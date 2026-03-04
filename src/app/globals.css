@@ -1,0 +1,200 @@
+@import "tailwindcss";
+
+:root {
+  --background: #ffffff;
+  --foreground: #171717;
+  --site-primary: #C9A96E;
+  --site-secondary: #ffffff;
+  --site-bg: #0a0a0a;
+
+  /* Warm palette */
+  --cream: #F5F0E8;
+  --cream-dark: #E8DFD3;
+  --warm-50: #FAF8F5;
+  --warm-100: #F0ECE6;
+  --warm-200: #DDD6CC;
+  --warm-300: #C4B9AB;
+  --warm-400: #A69888;
+  --warm-500: #887A6A;
+  --warm-600: #6B5F52;
+  --warm-700: #4E453A;
+  --warm-800: #322C24;
+  --warm-900: #1A1610;
+
+  /* Glassmorphism tokens */
+  --glass-bg: rgba(255, 255, 255, 0.06);
+  --glass-bg-hover: rgba(255, 255, 255, 0.1);
+  --glass-border: rgba(255, 255, 255, 0.1);
+  --glass-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-site-primary: var(--site-primary);
+  --color-site-secondary: var(--site-secondary);
+  --color-site-bg: var(--site-bg);
+  --color-cream: var(--cream);
+  --color-cream-dark: var(--cream-dark);
+  --color-warm-50: var(--warm-50);
+  --color-warm-100: var(--warm-100);
+  --color-warm-200: var(--warm-200);
+  --color-warm-300: var(--warm-300);
+  --color-warm-400: var(--warm-400);
+  --color-warm-500: var(--warm-500);
+  --color-warm-600: var(--warm-600);
+  --color-warm-700: var(--warm-700);
+  --color-warm-800: var(--warm-800);
+  --color-warm-900: var(--warm-900);
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --background: #0a0a0a;
+    --foreground: #ededed;
+  }
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-sans), Arial, Helvetica, sans-serif;
+}
+
+/* ====== GLASSMORPHISM UTILITIES ====== */
+
+.glass {
+  background: var(--glass-bg);
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  border: 1px solid var(--glass-border);
+}
+
+.glass-light {
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(24px) saturate(200%);
+  -webkit-backdrop-filter: blur(24px) saturate(200%);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+}
+
+.glass-card {
+  background: rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(16px) saturate(180%);
+  -webkit-backdrop-filter: blur(16px) saturate(180%);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 1.5rem;
+  box-shadow: var(--glass-shadow);
+}
+
+.glass-panel {
+  background: rgba(255, 255, 255, 0.94);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(0, 0, 0, 0.06);
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.08);
+}
+
+/* ====== BUTTON STYLES ====== */
+
+.btn-warm {
+  background: linear-gradient(135deg, var(--site-primary), #D4B87A);
+  color: var(--warm-900);
+  border-radius: 9999px;
+  font-weight: 500;
+  letter-spacing: 0.05em;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 16px rgba(201, 169, 110, 0.3);
+}
+.btn-warm:hover {
+  box-shadow: 0 6px 24px rgba(201, 169, 110, 0.5);
+  transform: translateY(-1px);
+}
+
+.btn-outline-warm {
+  border: 1.5px solid var(--site-primary);
+  color: var(--site-primary);
+  border-radius: 9999px;
+  font-weight: 500;
+  letter-spacing: 0.05em;
+  transition: all 0.3s ease;
+}
+.btn-outline-warm:hover {
+  background: var(--site-primary);
+  color: var(--warm-900);
+}
+
+/* ====== SCROLLBAR ====== */
+
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: rgba(201, 169, 110, 0.2);
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(201, 169, 110, 0.4);
+}
+
+/* Hide scrollbar for sliders */
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+/* ====== MAPBOX ====== */
+
+.mapboxgl-ctrl-logo,
+.mapboxgl-ctrl-attrib {
+  display: none !important;
+}
+
+.project-marker {
+  width: 20px;
+  height: 20px;
+  background: var(--site-primary);
+  border-radius: 50%;
+  border: 3px solid white;
+  box-shadow: 0 0 0 6px rgba(201, 169, 110, 0.3), 0 2px 8px rgba(0, 0, 0, 0.3);
+  cursor: pointer;
+}
+
+.project-marker::after {
+  content: '';
+  position: absolute;
+  inset: -6px;
+  border-radius: 50%;
+  border: 2px solid rgba(201, 169, 110, 0.4);
+  animation: pulse-ring 2s ease-out infinite;
+}
+
+@keyframes pulse-ring {
+  0% { transform: scale(1); opacity: 1; }
+  100% { transform: scale(2); opacity: 0; }
+}
+
+.poi-marker {
+  width: 14px;
+  height: 14px;
+  background: white;
+  border-radius: 50%;
+  border: 2px solid rgba(0, 0, 0, 0.15);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+.poi-marker:hover,
+.poi-marker.active {
+  transform: scale(1.4);
+  background: var(--site-primary);
+  border-color: white;
+}
