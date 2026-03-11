@@ -2,7 +2,7 @@
 
 import { useState, useRef, useCallback, useEffect, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { X, Search, Trash2, Link2, Unlink, AlertTriangle, XCircle, Copy, Grid3X3, CopyPlus, ArrowUp, ArrowDown } from "lucide-react";
+import { X, Search, Trash2, Link2, Unlink, AlertTriangle, XCircle, Copy, Grid3X3, CopyPlus, ArrowUp, ArrowDown, GripVertical } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { AlignmentToolbar } from "@/components/dashboard/AlignmentToolbar";
 import type { Unidad, Fachada } from "@/types";
@@ -822,219 +822,6 @@ export function FacadeHotspotEditor({
         ))}
       </div>
 
-      {/* Repeat Row popover — rendered outside canvas so it doesn't block the image */}
-      <AnimatePresence>
-        {showRepeatRow && (
-          <motion.div
-            initial={{ opacity: 0, y: -8 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -8 }}
-            className="px-4 py-3 bg-black/80 backdrop-blur-xl border border-[var(--border-default)] rounded-xl shadow-lg min-w-[320px]"
-          >
-            <div className="flex items-center justify-between mb-3">
-              <span className="text-[12px] font-medium text-[var(--text-primary)]">Repetir fila</span>
-              <button
-                onClick={() => setShowRepeatRow(false)}
-                className="text-[var(--text-muted)] hover:text-[var(--text-secondary)] transition-colors"
-              >
-                <X size={14} />
-              </button>
-            </div>
-
-            <div className="grid grid-cols-3 gap-3 mb-3">
-              <div>
-                <label className="text-[10px] text-[var(--text-tertiary)] uppercase tracking-wider mb-1 block">Copias</label>
-                <input
-                  type="number"
-                  min={1}
-                  max={50}
-                  value={repeatCount}
-                  onChange={(e) => setRepeatCount(Math.max(1, Math.min(50, parseInt(e.target.value) || 1)))}
-                  className="w-full px-2 py-1.5 text-[12px] text-white bg-[var(--surface-3)] border border-[var(--border-subtle)] rounded-lg focus:border-[var(--site-primary)] focus:outline-none transition-colors"
-                />
-              </div>
-              <div>
-                <label className="text-[10px] text-[var(--text-tertiary)] uppercase tracking-wider mb-1 block">Espaciado %</label>
-                <input
-                  type="number"
-                  min={0.5}
-                  max={20}
-                  step={0.5}
-                  value={repeatSpacing}
-                  onChange={(e) => setRepeatSpacing(Math.max(0.5, Math.min(20, parseFloat(e.target.value) || 1)))}
-                  className="w-full px-2 py-1.5 text-[12px] text-white bg-[var(--surface-3)] border border-[var(--border-subtle)] rounded-lg focus:border-[var(--site-primary)] focus:outline-none transition-colors"
-                />
-              </div>
-              <div>
-                <label className="text-[10px] text-[var(--text-tertiary)] uppercase tracking-wider mb-1 block">Dirección</label>
-                <div className="flex gap-1">
-                  <button
-                    onClick={() => setRepeatDirection("up")}
-                    className={cn(
-                      "flex-1 flex items-center justify-center py-1.5 rounded-lg border text-[11px] transition-all",
-                      repeatDirection === "up"
-                        ? "bg-[rgba(var(--site-primary-rgb),0.15)] border-[rgba(var(--site-primary-rgb),0.4)] text-[var(--site-primary)]"
-                        : "bg-[var(--surface-3)] border-[var(--border-subtle)] text-[var(--text-secondary)] hover:text-white"
-                    )}
-                  >
-                    <ArrowUp size={13} />
-                  </button>
-                  <button
-                    onClick={() => setRepeatDirection("down")}
-                    className={cn(
-                      "flex-1 flex items-center justify-center py-1.5 rounded-lg border text-[11px] transition-all",
-                      repeatDirection === "down"
-                        ? "bg-[rgba(var(--site-primary-rgb),0.15)] border-[rgba(var(--site-primary-rgb),0.4)] text-[var(--site-primary)]"
-                        : "bg-[var(--surface-3)] border-[var(--border-subtle)] text-[var(--text-secondary)] hover:text-white"
-                    )}
-                  >
-                    <ArrowDown size={13} />
-                  </button>
-                </div>
-              </div>
-            </div>
-
-            {previewDots.length > 0 && (
-              <p className="text-[10px] text-[var(--text-tertiary)] mb-3">
-                Vista previa: {previewDots.length} puntos nuevos
-              </p>
-            )}
-
-            <div className="flex items-center justify-end gap-2">
-              <button
-                onClick={() => setShowRepeatRow(false)}
-                className="px-3 py-1.5 text-[11px] text-[var(--text-secondary)] hover:text-white bg-[var(--surface-3)] hover:bg-[var(--surface-4)] rounded-lg border border-[var(--border-subtle)] transition-colors"
-              >
-                Cancelar
-              </button>
-              <button
-                onClick={handleApplyRepeatRow}
-                disabled={previewDots.length === 0}
-                className="px-4 py-1.5 text-[11px] text-[var(--surface-0)] bg-[var(--site-primary)] hover:brightness-110 rounded-lg font-medium transition-all disabled:opacity-40"
-              >
-                Aplicar ({previewDots.length})
-              </button>
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-
-      {/* Quick Grid popover — rendered outside canvas so it doesn't block the image */}
-      <AnimatePresence>
-        {showQuickGrid && (
-          <motion.div
-            initial={{ opacity: 0, y: -8 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -8 }}
-            className="px-4 py-3 bg-black/80 backdrop-blur-xl border border-[var(--border-default)] rounded-xl shadow-lg min-w-[320px]"
-          >
-            <div className="flex items-center justify-between mb-3">
-              <span className="text-[12px] font-medium text-[var(--text-primary)]">Cuadrícula rápida</span>
-              <button
-                onClick={() => setShowQuickGrid(false)}
-                className="text-[var(--text-muted)] hover:text-[var(--text-secondary)] transition-colors"
-              >
-                <X size={14} />
-              </button>
-            </div>
-
-            <div className="grid grid-cols-2 gap-3 mb-3">
-              <div>
-                <label className="text-[10px] text-[var(--text-tertiary)] uppercase tracking-wider mb-1 block">Columnas</label>
-                <input
-                  type="number"
-                  min={1}
-                  max={20}
-                  value={gridCols}
-                  onChange={(e) => setGridCols(Math.max(1, Math.min(20, parseInt(e.target.value) || 1)))}
-                  className="w-full px-2 py-1.5 text-[12px] text-white bg-[var(--surface-3)] border border-[var(--border-subtle)] rounded-lg focus:border-[var(--site-primary)] focus:outline-none transition-colors"
-                />
-              </div>
-              <div>
-                <label className="text-[10px] text-[var(--text-tertiary)] uppercase tracking-wider mb-1 block">Filas</label>
-                <input
-                  type="number"
-                  min={1}
-                  max={50}
-                  value={gridRows}
-                  onChange={(e) => setGridRows(Math.max(1, Math.min(50, parseInt(e.target.value) || 1)))}
-                  className="w-full px-2 py-1.5 text-[12px] text-white bg-[var(--surface-3)] border border-[var(--border-subtle)] rounded-lg focus:border-[var(--site-primary)] focus:outline-none transition-colors"
-                />
-              </div>
-            </div>
-
-            <div className="grid grid-cols-4 gap-2 mb-3">
-              <div>
-                <label className="text-[10px] text-[var(--text-tertiary)] uppercase tracking-wider mb-1 block">Izq %</label>
-                <input
-                  type="number"
-                  min={0}
-                  max={100}
-                  value={gridBounds.x1}
-                  onChange={(e) => setGridBounds((b) => ({ ...b, x1: Math.max(0, Math.min(100, parseFloat(e.target.value) || 0)) }))}
-                  className="w-full px-2 py-1.5 text-[12px] text-white bg-[var(--surface-3)] border border-[var(--border-subtle)] rounded-lg focus:border-[var(--site-primary)] focus:outline-none transition-colors"
-                />
-              </div>
-              <div>
-                <label className="text-[10px] text-[var(--text-tertiary)] uppercase tracking-wider mb-1 block">Arriba %</label>
-                <input
-                  type="number"
-                  min={0}
-                  max={100}
-                  value={gridBounds.y1}
-                  onChange={(e) => setGridBounds((b) => ({ ...b, y1: Math.max(0, Math.min(100, parseFloat(e.target.value) || 0)) }))}
-                  className="w-full px-2 py-1.5 text-[12px] text-white bg-[var(--surface-3)] border border-[var(--border-subtle)] rounded-lg focus:border-[var(--site-primary)] focus:outline-none transition-colors"
-                />
-              </div>
-              <div>
-                <label className="text-[10px] text-[var(--text-tertiary)] uppercase tracking-wider mb-1 block">Der %</label>
-                <input
-                  type="number"
-                  min={0}
-                  max={100}
-                  value={gridBounds.x2}
-                  onChange={(e) => setGridBounds((b) => ({ ...b, x2: Math.max(0, Math.min(100, parseFloat(e.target.value) || 0)) }))}
-                  className="w-full px-2 py-1.5 text-[12px] text-white bg-[var(--surface-3)] border border-[var(--border-subtle)] rounded-lg focus:border-[var(--site-primary)] focus:outline-none transition-colors"
-                />
-              </div>
-              <div>
-                <label className="text-[10px] text-[var(--text-tertiary)] uppercase tracking-wider mb-1 block">Abajo %</label>
-                <input
-                  type="number"
-                  min={0}
-                  max={100}
-                  value={gridBounds.y2}
-                  onChange={(e) => setGridBounds((b) => ({ ...b, y2: Math.max(0, Math.min(100, parseFloat(e.target.value) || 0)) }))}
-                  className="w-full px-2 py-1.5 text-[12px] text-white bg-[var(--surface-3)] border border-[var(--border-subtle)] rounded-lg focus:border-[var(--site-primary)] focus:outline-none transition-colors"
-                />
-              </div>
-            </div>
-
-            {previewDots.length > 0 && (
-              <p className="text-[10px] text-[var(--text-tertiary)] mb-3">
-                Vista previa: {gridCols} × {gridRows} = {previewDots.length} puntos
-              </p>
-            )}
-
-            <div className="flex items-center justify-end gap-2">
-              <button
-                onClick={() => setShowQuickGrid(false)}
-                className="px-3 py-1.5 text-[11px] text-[var(--text-secondary)] hover:text-white bg-[var(--surface-3)] hover:bg-[var(--surface-4)] rounded-lg border border-[var(--border-subtle)] transition-colors"
-              >
-                Cancelar
-              </button>
-              <button
-                onClick={handleApplyQuickGrid}
-                disabled={previewDots.length === 0}
-                className="px-4 py-1.5 text-[11px] text-[var(--surface-0)] bg-[var(--site-primary)] hover:brightness-110 rounded-lg font-medium transition-all disabled:opacity-40"
-              >
-                Generar ({previewDots.length})
-              </button>
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-
       {/* Image canvas — dynamic aspect ratio */}
       <div
         ref={containerRef}
@@ -1104,7 +891,7 @@ export function FacadeHotspotEditor({
                 initial={{ opacity: 0, y: -8 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -8 }}
-                className="flex items-center gap-2 px-2 py-1.5 bg-black/70 backdrop-blur-xl border border-[var(--border-default)] rounded-xl shadow-lg"
+                className="flex items-center gap-2 px-2 py-1.5 whitespace-nowrap bg-black/70 backdrop-blur-xl border border-[var(--border-default)] rounded-xl shadow-lg"
               >
                 {selectedUnitsData.length >= 2 && (
                   <AlignmentToolbar
@@ -1352,6 +1139,229 @@ export function FacadeHotspotEditor({
           onContextMenu={(e) => { e.preventDefault(); setActiveMenuDotId(null); }}
         />
       )}
+
+      {/* Repeat Row — draggable floating panel */}
+      <AnimatePresence>
+        {showRepeatRow && (
+          <motion.div
+            drag
+            dragMomentum={false}
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.95 }}
+            className="fixed top-[20%] right-8 z-50 px-4 py-3 bg-[var(--surface-1)]/95 backdrop-blur-xl border border-[var(--border-default)] rounded-xl shadow-xl w-[340px]"
+          >
+            <div className="flex items-center justify-between mb-3 cursor-grab active:cursor-grabbing">
+              <div className="flex items-center gap-2">
+                <GripVertical size={14} className="text-[var(--text-muted)]" />
+                <span className="text-[12px] font-medium text-[var(--text-primary)]">Repetir fila</span>
+              </div>
+              <button
+                onClick={() => setShowRepeatRow(false)}
+                className="text-[var(--text-muted)] hover:text-[var(--text-secondary)] transition-colors"
+              >
+                <X size={14} />
+              </button>
+            </div>
+
+            <div className="grid grid-cols-3 gap-3 mb-3">
+              <div>
+                <label className="text-[10px] text-[var(--text-tertiary)] uppercase tracking-wider mb-1 block">Copias</label>
+                <input
+                  type="number"
+                  min={1}
+                  max={50}
+                  value={repeatCount}
+                  onChange={(e) => setRepeatCount(Math.max(1, Math.min(50, parseInt(e.target.value) || 1)))}
+                  className="w-full px-2 py-1.5 text-[12px] text-white bg-[var(--surface-3)] border border-[var(--border-subtle)] rounded-lg focus:border-[var(--site-primary)] focus:outline-none transition-colors"
+                />
+              </div>
+              <div>
+                <label className="text-[10px] text-[var(--text-tertiary)] uppercase tracking-wider mb-1 block">Espaciado %</label>
+                <input
+                  type="number"
+                  min={0.5}
+                  max={20}
+                  step={0.5}
+                  value={repeatSpacing}
+                  onChange={(e) => setRepeatSpacing(Math.max(0.5, Math.min(20, parseFloat(e.target.value) || 1)))}
+                  className="w-full px-2 py-1.5 text-[12px] text-white bg-[var(--surface-3)] border border-[var(--border-subtle)] rounded-lg focus:border-[var(--site-primary)] focus:outline-none transition-colors"
+                />
+              </div>
+              <div>
+                <label className="text-[10px] text-[var(--text-tertiary)] uppercase tracking-wider mb-1 block">Dirección</label>
+                <div className="flex gap-1">
+                  <button
+                    onClick={() => setRepeatDirection("up")}
+                    className={cn(
+                      "flex-1 flex items-center justify-center py-1.5 rounded-lg border text-[11px] transition-all",
+                      repeatDirection === "up"
+                        ? "bg-[rgba(var(--site-primary-rgb),0.15)] border-[rgba(var(--site-primary-rgb),0.4)] text-[var(--site-primary)]"
+                        : "bg-[var(--surface-3)] border-[var(--border-subtle)] text-[var(--text-secondary)] hover:text-white"
+                    )}
+                  >
+                    <ArrowUp size={13} />
+                  </button>
+                  <button
+                    onClick={() => setRepeatDirection("down")}
+                    className={cn(
+                      "flex-1 flex items-center justify-center py-1.5 rounded-lg border text-[11px] transition-all",
+                      repeatDirection === "down"
+                        ? "bg-[rgba(var(--site-primary-rgb),0.15)] border-[rgba(var(--site-primary-rgb),0.4)] text-[var(--site-primary)]"
+                        : "bg-[var(--surface-3)] border-[var(--border-subtle)] text-[var(--text-secondary)] hover:text-white"
+                    )}
+                  >
+                    <ArrowDown size={13} />
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            {previewDots.length > 0 && (
+              <p className="text-[10px] text-[var(--text-tertiary)] mb-3">
+                Vista previa: {previewDots.length} puntos nuevos
+              </p>
+            )}
+
+            <div className="flex items-center justify-end gap-2">
+              <button
+                onClick={() => setShowRepeatRow(false)}
+                className="px-3 py-1.5 text-[11px] text-[var(--text-secondary)] hover:text-white bg-[var(--surface-3)] hover:bg-[var(--surface-4)] rounded-lg border border-[var(--border-subtle)] transition-colors"
+              >
+                Cancelar
+              </button>
+              <button
+                onClick={handleApplyRepeatRow}
+                disabled={previewDots.length === 0}
+                className="px-4 py-1.5 text-[11px] text-[var(--surface-0)] bg-[var(--site-primary)] hover:brightness-110 rounded-lg font-medium transition-all disabled:opacity-40"
+              >
+                Aplicar ({previewDots.length})
+              </button>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Quick Grid — draggable floating panel */}
+      <AnimatePresence>
+        {showQuickGrid && (
+          <motion.div
+            drag
+            dragMomentum={false}
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.95 }}
+            className="fixed top-[20%] right-8 z-50 px-4 py-3 bg-[var(--surface-1)]/95 backdrop-blur-xl border border-[var(--border-default)] rounded-xl shadow-xl w-[340px]"
+          >
+            <div className="flex items-center justify-between mb-3 cursor-grab active:cursor-grabbing">
+              <div className="flex items-center gap-2">
+                <GripVertical size={14} className="text-[var(--text-muted)]" />
+                <span className="text-[12px] font-medium text-[var(--text-primary)]">Cuadrícula rápida</span>
+              </div>
+              <button
+                onClick={() => setShowQuickGrid(false)}
+                className="text-[var(--text-muted)] hover:text-[var(--text-secondary)] transition-colors"
+              >
+                <X size={14} />
+              </button>
+            </div>
+
+            <div className="grid grid-cols-2 gap-3 mb-3">
+              <div>
+                <label className="text-[10px] text-[var(--text-tertiary)] uppercase tracking-wider mb-1 block">Columnas</label>
+                <input
+                  type="number"
+                  min={1}
+                  max={20}
+                  value={gridCols}
+                  onChange={(e) => setGridCols(Math.max(1, Math.min(20, parseInt(e.target.value) || 1)))}
+                  className="w-full px-2 py-1.5 text-[12px] text-white bg-[var(--surface-3)] border border-[var(--border-subtle)] rounded-lg focus:border-[var(--site-primary)] focus:outline-none transition-colors"
+                />
+              </div>
+              <div>
+                <label className="text-[10px] text-[var(--text-tertiary)] uppercase tracking-wider mb-1 block">Filas</label>
+                <input
+                  type="number"
+                  min={1}
+                  max={50}
+                  value={gridRows}
+                  onChange={(e) => setGridRows(Math.max(1, Math.min(50, parseInt(e.target.value) || 1)))}
+                  className="w-full px-2 py-1.5 text-[12px] text-white bg-[var(--surface-3)] border border-[var(--border-subtle)] rounded-lg focus:border-[var(--site-primary)] focus:outline-none transition-colors"
+                />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-4 gap-2 mb-3">
+              <div>
+                <label className="text-[10px] text-[var(--text-tertiary)] uppercase tracking-wider mb-1 block">Izq %</label>
+                <input
+                  type="number"
+                  min={0}
+                  max={100}
+                  value={gridBounds.x1}
+                  onChange={(e) => setGridBounds((b) => ({ ...b, x1: Math.max(0, Math.min(100, parseFloat(e.target.value) || 0)) }))}
+                  className="w-full px-2 py-1.5 text-[12px] text-white bg-[var(--surface-3)] border border-[var(--border-subtle)] rounded-lg focus:border-[var(--site-primary)] focus:outline-none transition-colors"
+                />
+              </div>
+              <div>
+                <label className="text-[10px] text-[var(--text-tertiary)] uppercase tracking-wider mb-1 block">Arriba %</label>
+                <input
+                  type="number"
+                  min={0}
+                  max={100}
+                  value={gridBounds.y1}
+                  onChange={(e) => setGridBounds((b) => ({ ...b, y1: Math.max(0, Math.min(100, parseFloat(e.target.value) || 0)) }))}
+                  className="w-full px-2 py-1.5 text-[12px] text-white bg-[var(--surface-3)] border border-[var(--border-subtle)] rounded-lg focus:border-[var(--site-primary)] focus:outline-none transition-colors"
+                />
+              </div>
+              <div>
+                <label className="text-[10px] text-[var(--text-tertiary)] uppercase tracking-wider mb-1 block">Der %</label>
+                <input
+                  type="number"
+                  min={0}
+                  max={100}
+                  value={gridBounds.x2}
+                  onChange={(e) => setGridBounds((b) => ({ ...b, x2: Math.max(0, Math.min(100, parseFloat(e.target.value) || 0)) }))}
+                  className="w-full px-2 py-1.5 text-[12px] text-white bg-[var(--surface-3)] border border-[var(--border-subtle)] rounded-lg focus:border-[var(--site-primary)] focus:outline-none transition-colors"
+                />
+              </div>
+              <div>
+                <label className="text-[10px] text-[var(--text-tertiary)] uppercase tracking-wider mb-1 block">Abajo %</label>
+                <input
+                  type="number"
+                  min={0}
+                  max={100}
+                  value={gridBounds.y2}
+                  onChange={(e) => setGridBounds((b) => ({ ...b, y2: Math.max(0, Math.min(100, parseFloat(e.target.value) || 0)) }))}
+                  className="w-full px-2 py-1.5 text-[12px] text-white bg-[var(--surface-3)] border border-[var(--border-subtle)] rounded-lg focus:border-[var(--site-primary)] focus:outline-none transition-colors"
+                />
+              </div>
+            </div>
+
+            {previewDots.length > 0 && (
+              <p className="text-[10px] text-[var(--text-tertiary)] mb-3">
+                Vista previa: {gridCols} × {gridRows} = {previewDots.length} puntos
+              </p>
+            )}
+
+            <div className="flex items-center justify-end gap-2">
+              <button
+                onClick={() => setShowQuickGrid(false)}
+                className="px-3 py-1.5 text-[11px] text-[var(--text-secondary)] hover:text-white bg-[var(--surface-3)] hover:bg-[var(--surface-4)] rounded-lg border border-[var(--border-subtle)] transition-colors"
+              >
+                Cancelar
+              </button>
+              <button
+                onClick={handleApplyQuickGrid}
+                disabled={previewDots.length === 0}
+                className="px-4 py-1.5 text-[11px] text-[var(--surface-0)] bg-[var(--site-primary)] hover:brightness-110 rounded-lg font-medium transition-all disabled:opacity-40"
+              >
+                Generar ({previewDots.length})
+              </button>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }
