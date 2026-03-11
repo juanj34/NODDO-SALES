@@ -165,6 +165,7 @@ export interface Fachada {
   tipo: "fachada" | "planta";
   piso_numero: number | null;
   planta_tipo_nombre: string | null;
+  puntos_vacios: { x: number; y: number }[];
   orden: number;
   created_at: string;
 }

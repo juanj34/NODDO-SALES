@@ -123,8 +123,14 @@ export function FacadeHotspotEditor({
   // Local positions for assigned units (instant drag feedback; persisted on mouseUp)
   const [positions, setPositions] = useState<Map<string, { x: number; y: number }>>(new Map());
 
-  // Empty (unassigned) dots — ephemeral, local-only
-  const [emptyDots, setEmptyDots] = useState<EmptyDot[]>([]);
+  // Empty (unassigned) dots — persisted to fachada.puntos_vacios
+  const [emptyDots, setEmptyDots] = useState<EmptyDot[]>(() =>
+    (fachada.puntos_vacios ?? []).map((p) => ({
+      localId: crypto.randomUUID(),
+      x: p.x,
+      y: p.y,
+    }))
+  );
 
   // Track last placed dot position for Shift/Ctrl constrained placement
   const lastPlacedPos = useRef<{ x: number; y: number } | null>(null);
@@ -202,6 +208,38 @@ export function FacadeHotspotEditor({
     }
     setPositions(m);
   }, [assignedUnits]);
+
+  /* Re-initialize empty dots when switching fachadas */
+  useEffect(() => {
+    setEmptyDots(
+      (fachada.puntos_vacios ?? []).map((p) => ({
+        localId: crypto.randomUUID(),
+        x: p.x,
+        y: p.y,
+      }))
+    );
+    emptyDotsInitialized.current = false;
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [fachada.id]);
+
+  /* Auto-save empty dots to fachada.puntos_vacios (debounced) */
+  const emptyDotsInitialized = useRef(false);
+  useEffect(() => {
+    // Skip the first render (initial load from DB)
+    if (!emptyDotsInitialized.current) {
+      emptyDotsInitialized.current = true;
+      return;
+    }
+    const timeout = setTimeout(() => {
+      const puntos_vacios = emptyDots.map(({ x, y }) => ({ x, y }));
+      fetch(`/api/fachadas/${fachada.id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ puntos_vacios }),
+      });
+    }, 800);
+    return () => clearTimeout(timeout);
+  }, [emptyDots, fachada.id]);
 
   /* Focus menu search when opened */
   useEffect(() => {
