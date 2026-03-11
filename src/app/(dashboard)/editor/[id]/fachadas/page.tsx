@@ -1643,11 +1643,11 @@ function TorreInfoCard({
       <div className="p-4 bg-[var(--surface-1)] rounded-xl border border-[var(--border-subtle)] flex items-center gap-4">
         {/* Logo / portada preview */}
         {(torre.logo_url || torre.imagen_portada) && (
-          <div className="w-12 h-12 rounded-lg overflow-hidden border border-[var(--border-subtle)] shrink-0 bg-[var(--surface-2)]">
+          <div className="h-12 max-w-[120px] rounded-lg overflow-hidden border border-[var(--border-subtle)] shrink-0 bg-[var(--surface-2)]">
             <img
               src={torre.logo_url || torre.imagen_portada || ""}
               alt={torre.nombre}
-              className="w-full h-full object-cover"
+              className="w-full h-full object-contain"
             />
           </div>
         )}
@@ -1722,7 +1722,7 @@ function TorreInfoCard({
         </div>
         <div>
           <label className={labelClass}>{t("fachadas.logo")}</label>
-          <FileUploader currentUrl={logoUrl || null} onUpload={(url) => setLogoUrl(url)} folder={`proyectos/${projectId}/torres`} label={t("fachadas.logo")} />
+          <FileUploader currentUrl={logoUrl || null} onUpload={(url) => setLogoUrl(url)} folder={`proyectos/${projectId}/torres`} label={t("fachadas.logo")} aspect="logo" />
         </div>
       </div>
       <div className="flex items-center gap-2 pt-1">

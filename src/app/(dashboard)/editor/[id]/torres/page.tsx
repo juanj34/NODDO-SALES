@@ -1226,6 +1226,7 @@ function TorreEditFormInline({
             onUpload={(url) => onUpdate(torre.id, { logo_url: url })}
             folder={`proyectos/${projectId}/torres`}
             label={t("torres.infoForm.uploadLogo")}
+            aspect="logo"
           />
         </div>
       </div>
