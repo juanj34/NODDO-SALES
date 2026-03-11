@@ -210,6 +210,14 @@ export function FacadeHotspotEditor({
   }, [assignedUnits]);
 
   /* Re-initialize empty dots when switching fachadas */
+  const lastSavedDots = useRef<string>(JSON.stringify(fachada.puntos_vacios ?? []));
+  const emptyDotsRef = useRef(emptyDots);
+  emptyDotsRef.current = emptyDots;
+  const fachadaIdRef = useRef(fachada.id);
+  fachadaIdRef.current = fachada.id;
+
+  const [dotsSaveStatus, setDotsSaveStatus] = useState<"idle" | "saving" | "saved">("idle");
+
   useEffect(() => {
     setEmptyDots(
       (fachada.puntos_vacios ?? []).map((p) => ({
@@ -218,28 +226,52 @@ export function FacadeHotspotEditor({
         y: p.y,
       }))
     );
-    emptyDotsInitialized.current = false;
+    lastSavedDots.current = JSON.stringify(fachada.puntos_vacios ?? []);
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [fachada.id]);
 
-  /* Auto-save empty dots to fachada.puntos_vacios (debounced) */
-  const emptyDotsInitialized = useRef(false);
+  /* Auto-save empty dots to fachada.puntos_vacios (debounced, with comparison) */
   useEffect(() => {
-    // Skip the first render (initial load from DB)
-    if (!emptyDotsInitialized.current) {
-      emptyDotsInitialized.current = true;
-      return;
-    }
-    const timeout = setTimeout(() => {
-      const puntos_vacios = emptyDots.map(({ x, y }) => ({ x, y }));
-      fetch(`/api/fachadas/${fachada.id}`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ puntos_vacios }),
-      });
-    }, 800);
+    const current = JSON.stringify(emptyDots.map(({ x, y }) => ({ x, y })));
+    if (current === lastSavedDots.current) return;
+
+    setDotsSaveStatus("saving");
+    const timeout = setTimeout(async () => {
+      try {
+        const puntos_vacios = emptyDots.map(({ x, y }) => ({ x, y }));
+        const res = await fetch(`/api/fachadas/${fachada.id}`, {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ puntos_vacios }),
+        });
+        if (res.ok) {
+          lastSavedDots.current = current;
+          setDotsSaveStatus("saved");
+          setTimeout(() => setDotsSaveStatus("idle"), 1500);
+        }
+      } catch {
+        setDotsSaveStatus("idle");
+      }
+    }, 500);
     return () => clearTimeout(timeout);
   }, [emptyDots, fachada.id]);
+
+  /* Flush pending save on unmount (e.g. navigating away) */
+  useEffect(() => {
+    return () => {
+      const puntos_vacios = emptyDotsRef.current.map(({ x, y }) => ({ x, y }));
+      const current = JSON.stringify(puntos_vacios);
+      if (current !== lastSavedDots.current) {
+        fetch(`/api/fachadas/${fachadaIdRef.current}`, {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ puntos_vacios }),
+          keepalive: true,
+        });
+      }
+    };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   /* Focus menu search when opened */
   useEffect(() => {
@@ -992,6 +1024,12 @@ export function FacadeHotspotEditor({
                   <span className="text-[11px] text-[var(--text-muted)] px-1">
                     {positions.size + emptyDots.length} punto{positions.size + emptyDots.length !== 1 ? "s" : ""}
                   </span>
+                )}
+                {dotsSaveStatus === "saving" && (
+                  <span className="text-[10px] text-[var(--text-muted)] animate-pulse px-1">Guardando...</span>
+                )}
+                {dotsSaveStatus === "saved" && (
+                  <span className="text-[10px] text-green-400 px-1">Guardado</span>
                 )}
                 {(positions.size > 0 || emptyDots.length > 0) && (
                   <button
