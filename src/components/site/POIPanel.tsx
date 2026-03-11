@@ -5,6 +5,7 @@ import Image from "next/image";
 import { motion, AnimatePresence } from "framer-motion";
 import { X, Car, Clock, ChevronLeft, ChevronRight } from "lucide-react";
 import type { PuntoInteres } from "@/types";
+import { useTranslation } from "@/i18n";
 
 interface POIPanelProps {
   pois: PuntoInteres[];
@@ -14,6 +15,7 @@ interface POIPanelProps {
 }
 
 export function POIPanel({ pois, selectedPOI, onSelectPOI, onClose }: POIPanelProps) {
+  const { t } = useTranslation("common");
   const currentIndex = useMemo(() => {
     if (!selectedPOI) return -1;
     return pois.findIndex((poi) => poi.id === selectedPOI.id);
@@ -39,7 +41,7 @@ export function POIPanel({ pois, selectedPOI, onSelectPOI, onClose }: POIPanelPr
       {selectedPOI && (
         <motion.div
           key="poi-panel"
-          className="absolute right-6 top-1/2 -translate-y-1/2 z-20 glass-panel rounded-3xl p-6 w-[380px] max-h-[calc(100vh-120px)] overflow-y-auto scrollbar-hide"
+          className="absolute right-4 sm:right-6 top-1/2 -translate-y-1/2 z-20 glass-dark rounded-3xl p-6 w-[calc(100vw-2rem)] sm:w-[380px] max-h-[calc(100vh-120px)] overflow-y-auto scrollbar-hide"
           initial={{ opacity: 0, x: 100 }}
           animate={{ opacity: 1, x: 0 }}
           exit={{ opacity: 0, x: 100 }}
@@ -48,10 +50,10 @@ export function POIPanel({ pois, selectedPOI, onSelectPOI, onClose }: POIPanelPr
           {/* Close button */}
           <button
             onClick={onClose}
-            className="absolute top-4 right-4 z-10 p-1.5 rounded-full bg-warm-100/80 hover:bg-warm-200 transition-colors"
-            aria-label="Cerrar panel"
+            className="absolute top-4 right-4 z-10 p-1.5 rounded-full bg-white/10 hover:bg-white/20 transition-colors cursor-pointer"
+            aria-label={t("accessibility.closePOIPanel")}
           >
-            <X className="w-4 h-4 text-warm-700" />
+            <X className="w-4 h-4 text-[var(--text-secondary)]" />
           </button>
 
           {/* POI Image */}
@@ -68,18 +70,18 @@ export function POIPanel({ pois, selectedPOI, onSelectPOI, onClose }: POIPanelPr
           )}
 
           {/* Category badge */}
-          <span className="inline-block px-3 py-1 text-xs font-medium rounded-full bg-[var(--site-primary)]/10 text-[var(--site-primary)] mb-2">
+          <span className="inline-block px-3 py-1 text-xs font-medium rounded-full bg-[rgba(var(--site-primary-rgb),0.15)] text-[var(--site-primary)] mb-2">
             {selectedPOI.categoria}
           </span>
 
           {/* POI name */}
-          <h3 className="text-xl font-semibold text-warm-900 mb-1">
+          <h3 className="text-xl font-semibold text-white mb-1">
             {selectedPOI.nombre}
           </h3>
 
           {/* City */}
           {selectedPOI.ciudad && (
-            <p className="text-sm text-warm-500 mb-3">
+            <p className="text-sm text-[var(--text-tertiary)] mb-3">
               {selectedPOI.ciudad}
             </p>
           )}
@@ -88,13 +90,13 @@ export function POIPanel({ pois, selectedPOI, onSelectPOI, onClose }: POIPanelPr
           {(selectedPOI.distancia_km !== null || selectedPOI.tiempo_minutos !== null) && (
             <div className="flex items-center gap-4 mb-4">
               {selectedPOI.distancia_km !== null && (
-                <div className="flex items-center gap-1.5 text-sm text-warm-600">
+                <div className="flex items-center gap-1.5 text-sm text-[var(--text-secondary)]">
                   <Car className="w-4 h-4" />
                   <span>{selectedPOI.distancia_km} km</span>
                 </div>
               )}
               {selectedPOI.tiempo_minutos !== null && (
-                <div className="flex items-center gap-1.5 text-sm text-warm-600">
+                <div className="flex items-center gap-1.5 text-sm text-[var(--text-secondary)]">
                   <Clock className="w-4 h-4" />
                   <span>{selectedPOI.tiempo_minutos} min</span>
                 </div>
@@ -104,36 +106,36 @@ export function POIPanel({ pois, selectedPOI, onSelectPOI, onClose }: POIPanelPr
 
           {/* Description */}
           {selectedPOI.descripcion && (
-            <p className="text-sm text-warm-600 leading-relaxed mb-4">
+            <p className="text-sm text-[var(--text-secondary)] leading-relaxed mb-4">
               {selectedPOI.descripcion}
             </p>
           )}
 
           {/* Divider */}
-          <div className="border-t border-warm-200 my-4" />
+          <div className="border-t border-white/10 my-4" />
 
           {/* Navigation */}
           <div className="flex items-center justify-between">
             <button
               onClick={handlePrev}
               disabled={isFirst}
-              className="p-2 rounded-full hover:bg-warm-100 transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
-              aria-label="Anterior punto de interés"
+              className="p-2 rounded-full hover:bg-white/10 transition-colors disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer"
+              aria-label={t("accessibility.previousPOI")}
             >
-              <ChevronLeft className="w-5 h-5 text-warm-700" />
+              <ChevronLeft className="w-5 h-5 text-[var(--text-secondary)]" />
             </button>
 
-            <span className="text-sm text-warm-500 font-medium">
+            <span className="text-sm text-[var(--text-tertiary)] font-medium">
               {currentIndex + 1} / {pois.length}
             </span>
 
             <button
               onClick={handleNext}
               disabled={isLast}
-              className="p-2 rounded-full hover:bg-warm-100 transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
-              aria-label="Siguiente punto de interés"
+              className="p-2 rounded-full hover:bg-white/10 transition-colors disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer"
+              aria-label={t("accessibility.nextPOI")}
             >
-              <ChevronRight className="w-5 h-5 text-warm-700" />
+              <ChevronRight className="w-5 h-5 text-[var(--text-secondary)]" />
             </button>
           </div>
         </motion.div>

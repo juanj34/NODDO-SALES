@@ -1,21 +1,17 @@
-import { createClient } from "@/lib/supabase/server";
+import { getAuthContext } from "@/lib/auth-context";
 import { NextRequest, NextResponse } from "next/server";
 
 export async function GET() {
   try {
-    const supabase = await createClient();
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-
-    if (!user) {
+    const auth = await getAuthContext();
+    if (!auth) {
       return NextResponse.json({ error: "No autorizado" }, { status: 401 });
     }
 
-    const { data, error } = await supabase
+    const { data, error } = await auth.supabase
       .from("proyectos")
       .select("*")
-      .eq("user_id", user.id)
+      .eq("user_id", auth.adminUserId)
       .order("created_at", { ascending: false });
 
     if (error) throw error;
@@ -30,13 +26,12 @@ export async function GET() {
 
 export async function POST(request: NextRequest) {
   try {
-    const supabase = await createClient();
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-
-    if (!user) {
+    const auth = await getAuthContext();
+    if (!auth) {
       return NextResponse.json({ error: "No autorizado" }, { status: 401 });
+    }
+    if (auth.role !== "admin") {
+      return NextResponse.json({ error: "Solo administradores pueden crear proyectos" }, { status: 403 });
     }
 
     const body = await request.json();
@@ -50,7 +45,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Check slug uniqueness
-    const { data: existing } = await supabase
+    const { data: existing } = await auth.supabase
       .from("proyectos")
       .select("id")
       .eq("slug", slug)
@@ -63,11 +58,12 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const { data, error } = await supabase
+    const { data, error } = await auth.supabase
       .from("proyectos")
       .insert({
         ...body,
-        user_id: user.id,
+        user_id: auth.user.id,
+        subdomain: slug,
       })
       .select()
       .single();

@@ -7,13 +7,17 @@ import Link from "next/link";
 import { Lightbox } from "@/components/site/Lightbox";
 import { SectionTransition } from "@/components/site/SectionTransition";
 import { ArrowLeft } from "lucide-react";
-import { useSiteProject } from "@/hooks/useSiteProject";
+import { useSiteProject, useSiteBasePath } from "@/hooks/useSiteProject";
+import { useTranslation } from "@/i18n";
 
 export default function GaleriaCategoria() {
   const proyecto = useSiteProject();
   const pathname = usePathname();
-  const slug = proyecto.slug;
-  const categoriaSlug = pathname.split("/")[4];
+  const basePath = useSiteBasePath();
+  const { t } = useTranslation("site");
+  // Extract categoria slug from URL - works for both /sites/slug/galeria/cat and /galeria/cat
+  const pathParts = pathname.split("/");
+  const categoriaSlug = pathParts[pathParts.length - 1];
   const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
 
   const categoria = proyecto.galeria_categorias.find(
@@ -23,7 +27,7 @@ export default function GaleriaCategoria() {
   if (!categoria || !categoria.imagenes) {
     return (
       <div className="h-screen flex items-center justify-center">
-        <p className="text-white/50">Categoría no encontrada</p>
+        <p className="text-[var(--text-secondary)]">{t("galeria.categoryNotFound")}</p>
       </div>
     );
   }
@@ -35,14 +39,14 @@ export default function GaleriaCategoria() {
       {/* Header */}
       <div className="flex items-center gap-4 mb-8">
         <Link
-          href={`/sites/${slug}/galeria`}
-          className="w-10 h-10 flex items-center justify-center rounded-full border border-white/10 hover:border-[var(--site-primary)] text-white/40 hover:text-[var(--site-primary)] transition-all"
+          href={`${basePath}/galeria`}
+          className="w-10 h-10 flex items-center justify-center rounded-full border border-[var(--border-default)] hover:border-[var(--site-primary)] text-[var(--text-tertiary)] hover:text-[var(--site-primary)] transition-all"
         >
           <ArrowLeft size={18} />
         </Link>
         <div>
           <p className="text-xs tracking-[0.4em] text-[var(--site-primary)] uppercase">
-            Galería
+            {t("galeria.gallery")}
           </p>
           <h2 className="text-xl font-light tracking-wider">
             {categoria.nombre}

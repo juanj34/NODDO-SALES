@@ -1,4 +1,4 @@
-import { createClient } from "@/lib/supabase/server";
+import { getAuthContext } from "@/lib/auth-context";
 import { NextRequest, NextResponse } from "next/server";
 
 export async function GET(
@@ -7,20 +7,16 @@ export async function GET(
 ) {
   try {
     const { id } = await params;
-    const supabase = await createClient();
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-
-    if (!user) {
+    const auth = await getAuthContext();
+    if (!auth) {
       return NextResponse.json({ error: "No autorizado" }, { status: 401 });
     }
 
-    const { data: proyecto, error } = await supabase
+    const { data: proyecto, error } = await auth.supabase
       .from("proyectos")
       .select("*")
       .eq("id", id)
-      .eq("user_id", user.id)
+      .eq("user_id", auth.adminUserId)
       .single();
 
     if (error || !proyecto) {
@@ -35,41 +31,64 @@ export async function GET(
       { data: tipologias },
       { data: categorias },
       { data: videos },
+      { data: puntosInteres },
+      { data: unidades },
+      { data: recursos },
+      { data: fachadas },
+      { data: torres },
+      { data: planos },
     ] = await Promise.all([
-      supabase
-        .from("tipologias")
-        .select("*")
-        .eq("proyecto_id", id)
-        .order("orden"),
-      supabase
-        .from("galeria_categorias")
-        .select("*")
-        .eq("proyecto_id", id)
-        .order("orden"),
-      supabase
-        .from("videos")
-        .select("*")
-        .eq("proyecto_id", id)
-        .order("orden"),
+      auth.supabase.from("tipologias").select("*").eq("proyecto_id", id).order("orden"),
+      auth.supabase.from("galeria_categorias").select("*").eq("proyecto_id", id).order("orden"),
+      auth.supabase.from("videos").select("*").eq("proyecto_id", id).order("orden"),
+      auth.supabase.from("puntos_interes").select("*").eq("proyecto_id", id).order("orden"),
+      auth.supabase.from("unidades").select("*").eq("proyecto_id", id).order("orden"),
+      auth.supabase.from("recursos").select("*").eq("proyecto_id", id).order("orden"),
+      auth.supabase.from("fachadas").select("*").eq("proyecto_id", id).order("orden"),
+      auth.supabase.from("torres").select("*").eq("proyecto_id", id).order("orden"),
+      auth.supabase.from("planos_interactivos").select("*").eq("proyecto_id", id).order("orden"),
     ]);
 
-    // Fetch images per category
-    const categoriasConImagenes = await Promise.all(
-      (categorias || []).map(async (cat) => {
-        const { data: imagenes } = await supabase
+    // Fetch all gallery images in a single query (avoids N+1)
+    const catIds = (categorias || []).map((c) => c.id);
+    const { data: allImages } = catIds.length > 0
+      ? await auth.supabase
           .from("galeria_imagenes")
           .select("*")
-          .eq("categoria_id", cat.id)
-          .order("orden");
-        return { ...cat, imagenes: imagenes || [] };
-      })
-    );
+          .in("categoria_id", catIds)
+          .order("orden")
+      : { data: [] };
+
+    const imgs = allImages || [];
+    const imagesByCategory: Record<string, typeof imgs> = {};
+    imgs.forEach((img) => {
+      if (!imagesByCategory[img.categoria_id]) imagesByCategory[img.categoria_id] = [];
+      imagesByCategory[img.categoria_id].push(img);
+    });
+
+    const categoriasConImagenes = (categorias || []).map((cat) => ({
+      ...cat,
+      imagenes: imagesByCategory[cat.id] || [],
+    }));
+
+    // Fetch plano puntos
+    const planoIds = (planos || []).map((p: { id: string }) => p.id);
+    const { data: planoPuntos } = planoIds.length > 0
+      ? await auth.supabase.from("plano_puntos").select("*").in("plano_id", planoIds).order("orden")
+      : { data: [] };
 
     return NextResponse.json({
       ...proyecto,
       tipologias: tipologias || [],
       galeria_categorias: categoriasConImagenes,
       videos: videos || [],
+      puntos_interes: puntosInteres || [],
+      unidades: unidades || [],
+      recursos: recursos || [],
+      fachadas: fachadas || [],
+      torres: torres || [],
+      planos_interactivos: planos || [],
+      plano_puntos: planoPuntos || [],
     });
   } catch (err) {
     return NextResponse.json(
@@ -85,22 +104,21 @@ export async function PUT(
 ) {
   try {
     const { id } = await params;
-    const supabase = await createClient();
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-
-    if (!user) {
+    const auth = await getAuthContext();
+    if (!auth) {
       return NextResponse.json({ error: "No autorizado" }, { status: 401 });
+    }
+    if (auth.role !== "admin") {
+      return NextResponse.json({ error: "Solo administradores" }, { status: 403 });
     }
 
     const body = await request.json();
 
-    const { data, error } = await supabase
+    const { data, error } = await auth.supabase
       .from("proyectos")
       .update({ ...body, updated_at: new Date().toISOString() })
       .eq("id", id)
-      .eq("user_id", user.id)
+      .eq("user_id", auth.user.id)
       .select()
       .single();
 
@@ -120,20 +138,19 @@ export async function DELETE(
 ) {
   try {
     const { id } = await params;
-    const supabase = await createClient();
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-
-    if (!user) {
+    const auth = await getAuthContext();
+    if (!auth) {
       return NextResponse.json({ error: "No autorizado" }, { status: 401 });
     }
+    if (auth.role !== "admin") {
+      return NextResponse.json({ error: "Solo administradores" }, { status: 403 });
+    }
 
-    const { error } = await supabase
+    const { error } = await auth.supabase
       .from("proyectos")
       .delete()
       .eq("id", id)
-      .eq("user_id", user.id);
+      .eq("user_id", auth.user.id);
 
     if (error) throw error;
     return NextResponse.json({ success: true });

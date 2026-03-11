@@ -1,154 +1,93 @@
 "use client";
 
-import { use, useState, useEffect, useCallback } from "react";
-import { useProject } from "@/hooks/useProject";
+import { useState, useEffect, useRef, useCallback } from "react";
+import { useEditorProject } from "@/hooks/useEditorProject";
+import { useToast } from "@/components/dashboard/Toast";
 import { FileUploader } from "@/components/dashboard/FileUploader";
-import { cn } from "@/lib/utils";
-import type { Tipologia, Video, GaleriaCategoria } from "@/types";
 import {
-  Save,
-  Eye,
-  Loader2,
-  Plus,
-  Pencil,
-  Trash2,
-  X,
-  Check,
-  ChevronDown,
-  ChevronUp,
-  Image as ImageIcon,
+  inputClass,
+  labelClass,
+  fieldHint,
+  sectionCard,
+  sectionTitle,
+  sectionDescription,
+  pageHeader,
+  pageTitle,
+  pageDescription,
+} from "@/components/dashboard/editor-styles";
+import {
+  Building2,
+  Briefcase,
+  Palette,
+  Home,
+  Settings2,
   Film,
-  MapPin,
-  Settings,
-  LayoutDashboard,
-  Layers,
+  Trash2,
+  Link2,
+  Globe,
+  Share2,
+  Scale,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
-import Link from "next/link";
+import { useTranslation } from "@/i18n";
 
-const tabs = [
-  { id: "general", label: "General", icon: LayoutDashboard },
-  { id: "tipologias", label: "Tipologias", icon: Layers },
-  { id: "galeria", label: "Galeria", icon: ImageIcon },
-  { id: "videos", label: "Videos", icon: Film },
-  { id: "ubicacion", label: "Ubicacion", icon: MapPin },
-  { id: "config", label: "Configuracion", icon: Settings },
+type GeneralTab = "proyecto" | "inicio" | "constructora" | "diseno" | "avanzado";
+
+const tabDefs: { id: GeneralTab; labelKey: string; icon: typeof Building2 }[] = [
+  { id: "proyecto", labelKey: "general.tabs.project", icon: Building2 },
+  { id: "inicio", labelKey: "general.tabs.landing", icon: Home },
+  { id: "constructora", labelKey: "general.tabs.developer", icon: Briefcase },
+  { id: "diseno", labelKey: "general.tabs.design", icon: Palette },
+  { id: "avanzado", labelKey: "general.tabs.advanced", icon: Settings2 },
 ];
 
-const inputClass =
-  "w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2.5 text-sm text-white placeholder:text-white/20 focus:outline-none focus:border-[#C9A96E]/50 transition-colors";
+export default function EditorGeneralPage() {
+  const { project, saving, save, projectId } = useEditorProject();
+  const { t } = useTranslation("editor");
+  const toast = useToast();
 
-const labelClass =
-  "block text-xs text-white/50 mb-2 tracking-wider uppercase";
-
-const btnPrimary =
-  "flex items-center gap-1.5 px-4 py-2 bg-[#C9A96E] text-black rounded-lg text-xs font-medium hover:brightness-110 transition-all disabled:opacity-50 disabled:cursor-not-allowed";
-
-const btnSecondary =
-  "flex items-center gap-1.5 px-4 py-2 border border-white/10 rounded-lg text-xs text-white/50 hover:text-white hover:border-white/20 transition-colors";
-
-const btnDanger =
-  "flex items-center gap-1.5 px-3 py-1.5 text-xs text-red-400/70 hover:text-red-400 hover:bg-red-400/10 rounded-lg transition-colors";
-
-// ---------------------------------------------------------------------------
-// Empty tipologia form state
-// ---------------------------------------------------------------------------
-const emptyTipologia = {
-  nombre: "",
-  descripcion: "",
-  area_m2: "",
-  habitaciones: "",
-  banos: "",
-  precio_desde: "",
-  plano_url: "",
-  renders: [] as string[],
-};
-
-// ---------------------------------------------------------------------------
-// Page component
-// ---------------------------------------------------------------------------
-export default function EditorPage({
-  params,
-}: {
-  params: Promise<{ id: string }>;
-}) {
-  const { id } = use(params);
-  const { project, loading, saving, save, refresh } = useProject(id);
-
-  const [activeTab, setActiveTab] = useState("general");
-
-  // ---- General form state ----
+  const [activeTab, setActiveTab] = useState<GeneralTab>("proyecto");
   const [nombre, setNombre] = useState("");
   const [slug, setSlug] = useState("");
   const [descripcion, setDescripcion] = useState("");
   const [constructoraNombre, setConstructoraNombre] = useState("");
-  const [colorPrimario, setColorPrimario] = useState("#C9A96E");
-  const [colorSecundario, setColorSecundario] = useState("#1a1a2e");
-  const [colorFondo, setColorFondo] = useState("#0f0f0f");
-  const [estado, setEstado] = useState<"borrador" | "publicado" | "archivado">(
-    "borrador"
-  );
+  const [colorPrimario, setColorPrimario] = useState("#D4A574");
+  const [colorSecundario, setColorSecundario] = useState("#ffffff");
+  const [colorFondo, setColorFondo] = useState("#0a0a0a");
+  const [estado, setEstado] = useState<"borrador" | "publicado" | "archivado">("borrador");
   const [disclaimer, setDisclaimer] = useState("");
+  const [politicaPrivacidadUrl, setPoliticaPrivacidadUrl] = useState("");
   const [renderPrincipalUrl, setRenderPrincipalUrl] = useState("");
   const [logoUrl, setLogoUrl] = useState("");
+  const [constructoraLogoUrl, setConstructoraLogoUrl] = useState("");
+  const [constructoraWebsite, setConstructoraWebsite] = useState("");
+  const [heroVideoUrl, setHeroVideoUrl] = useState("");
+  const [faviconUrl, setFaviconUrl] = useState("");
+  const [ogImageUrl, setOgImageUrl] = useState("");
 
-  // ---- Ubicacion form state ----
-  const [ubicacionDireccion, setUbicacionDireccion] = useState("");
-  const [ubicacionLat, setUbicacionLat] = useState("");
-  const [ubicacionLng, setUbicacionLng] = useState("");
-
-  // ---- Config form state ----
-  const [whatsappNumero, setWhatsappNumero] = useState("");
-  const [tour360Url, setTour360Url] = useState("");
-  const [brochureUrl, setBrochureUrl] = useState("");
-
-  // ---- Tipologias state ----
-  const [tipoForm, setTipoForm] = useState(emptyTipologia);
-  const [editingTipoId, setEditingTipoId] = useState<string | null>(null);
-  const [showTipoForm, setShowTipoForm] = useState(false);
-  const [tipoSaving, setTipoSaving] = useState(false);
-
-  // ---- Videos state ----
-  const [videoForm, setVideoForm] = useState({ titulo: "", url: "" });
-  const [editingVideoId, setEditingVideoId] = useState<string | null>(null);
-  const [showVideoForm, setShowVideoForm] = useState(false);
-  const [videoSaving, setVideoSaving] = useState(false);
-
-  // ---- Galeria state ----
-  const [newCatNombre, setNewCatNombre] = useState("");
-  const [showCatForm, setShowCatForm] = useState(false);
-  const [galeriaSaving, setGaleriaSaving] = useState(false);
-  const [expandedCat, setExpandedCat] = useState<string | null>(null);
-
-  // ---- Sync project data into form state when loaded ----
   useEffect(() => {
     if (!project) return;
     setNombre(project.nombre || "");
     setSlug(project.slug || "");
     setDescripcion(project.descripcion || "");
     setConstructoraNombre(project.constructora_nombre || "");
-    setColorPrimario(project.color_primario || "#C9A96E");
-    setColorSecundario(project.color_secundario || "#1a1a2e");
-    setColorFondo(project.color_fondo || "#0f0f0f");
+    setColorPrimario(project.color_primario || "#D4A574");
+    setColorSecundario(project.color_secundario || "#ffffff");
+    setColorFondo(project.color_fondo || "#0a0a0a");
     setEstado(project.estado || "borrador");
     setDisclaimer(project.disclaimer || "");
+    setPoliticaPrivacidadUrl(project.politica_privacidad_url || "");
     setRenderPrincipalUrl(project.render_principal_url || "");
     setLogoUrl(project.logo_url || "");
-    setUbicacionDireccion(project.ubicacion_direccion || "");
-    setUbicacionLat(
-      project.ubicacion_lat != null ? String(project.ubicacion_lat) : ""
-    );
-    setUbicacionLng(
-      project.ubicacion_lng != null ? String(project.ubicacion_lng) : ""
-    );
-    setWhatsappNumero(project.whatsapp_numero || "");
-    setTour360Url(project.tour_360_url || "");
-    setBrochureUrl(project.brochure_url || "");
+    setConstructoraLogoUrl(project.constructora_logo_url || "");
+    setConstructoraWebsite(project.constructora_website || "");
+    setHeroVideoUrl(project.hero_video_url || "");
+    setFaviconUrl(project.favicon_url || "");
+    setOgImageUrl(project.og_image_url || "");
   }, [project]);
 
-  // ---- Save handlers ----
-  const handleSaveGeneral = async () => {
-    await save({
+  const handleSave = async () => {
+    const ok = await save({
       nombre,
       slug,
       descripcion: descripcion || null,
@@ -158,1120 +97,334 @@ export default function EditorPage({
       color_fondo: colorFondo,
       estado,
       disclaimer,
+      politica_privacidad_url: politicaPrivacidadUrl || null,
       render_principal_url: renderPrincipalUrl || null,
+      hero_video_url: heroVideoUrl || null,
       logo_url: logoUrl || null,
+      constructora_logo_url: constructoraLogoUrl || null,
+      constructora_website: constructoraWebsite || null,
+      favicon_url: faviconUrl || null,
+      og_image_url: ogImageUrl || null,
     });
+    if (!ok) toast.error(t("general.saveError"));
   };
 
-  const handleSaveUbicacion = async () => {
-    await save({
-      ubicacion_direccion: ubicacionDireccion || null,
-      ubicacion_lat: ubicacionLat ? parseFloat(ubicacionLat) : null,
-      ubicacion_lng: ubicacionLng ? parseFloat(ubicacionLng) : null,
-    });
-  };
+  /* ── Auto-save ── */
+  const handleSaveRef = useRef(handleSave);
+  handleSaveRef.current = handleSave;
+  const saveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  const handleSaveConfig = async () => {
-    await save({
-      whatsapp_numero: whatsappNumero || null,
-      tour_360_url: tour360Url || null,
-      brochure_url: brochureUrl || null,
-    });
-  };
+  const scheduleAutoSave = useCallback(() => {
+    if (saveTimerRef.current) clearTimeout(saveTimerRef.current);
+    saveTimerRef.current = setTimeout(() => handleSaveRef.current(), 1500);
+  }, []);
 
-  // ---- Tipologia CRUD ----
-  const openNewTipo = () => {
-    setTipoForm(emptyTipologia);
-    setEditingTipoId(null);
-    setShowTipoForm(true);
-  };
-
-  const openEditTipo = (tipo: Tipologia) => {
-    setTipoForm({
-      nombre: tipo.nombre || "",
-      descripcion: tipo.descripcion || "",
-      area_m2: tipo.area_m2 != null ? String(tipo.area_m2) : "",
-      habitaciones: tipo.habitaciones != null ? String(tipo.habitaciones) : "",
-      banos: tipo.banos != null ? String(tipo.banos) : "",
-      precio_desde: tipo.precio_desde != null ? String(tipo.precio_desde) : "",
-      plano_url: tipo.plano_url || "",
-      renders: tipo.renders || [],
-    });
-    setEditingTipoId(tipo.id);
-    setShowTipoForm(true);
-  };
-
-  const cancelTipoForm = () => {
-    setShowTipoForm(false);
-    setEditingTipoId(null);
-    setTipoForm(emptyTipologia);
-  };
-
-  const saveTipologia = async () => {
-    setTipoSaving(true);
-    const payload = {
-      nombre: tipoForm.nombre,
-      descripcion: tipoForm.descripcion || null,
-      area_m2: tipoForm.area_m2 ? parseFloat(tipoForm.area_m2) : null,
-      habitaciones: tipoForm.habitaciones
-        ? parseInt(tipoForm.habitaciones)
-        : null,
-      banos: tipoForm.banos ? parseInt(tipoForm.banos) : null,
-      precio_desde: tipoForm.precio_desde
-        ? parseFloat(tipoForm.precio_desde)
-        : null,
-      plano_url: tipoForm.plano_url || null,
-      renders: tipoForm.renders,
-    };
-
-    try {
-      if (editingTipoId) {
-        await fetch(`/api/tipologias/${editingTipoId}`, {
-          method: "PUT",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(payload),
-        });
-      } else {
-        await fetch("/api/tipologias", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ ...payload, proyecto_id: id }),
-        });
+  // Save pending changes on unmount
+  useEffect(() => {
+    return () => {
+      if (saveTimerRef.current) {
+        clearTimeout(saveTimerRef.current);
+        handleSaveRef.current();
       }
-      await refresh();
-      cancelTipoForm();
-    } catch {
-      // silent
-    } finally {
-      setTipoSaving(false);
-    }
-  };
-
-  const deleteTipologia = async (tipoId: string) => {
-    if (!confirm("Eliminar esta tipologia?")) return;
-    try {
-      await fetch(`/api/tipologias/${tipoId}`, { method: "DELETE" });
-      await refresh();
-    } catch {
-      // silent
-    }
-  };
-
-  // ---- Video CRUD ----
-  const openNewVideo = () => {
-    setVideoForm({ titulo: "", url: "" });
-    setEditingVideoId(null);
-    setShowVideoForm(true);
-  };
-
-  const openEditVideo = (video: Video) => {
-    setVideoForm({
-      titulo: video.titulo || "",
-      url: video.url || "",
-    });
-    setEditingVideoId(video.id);
-    setShowVideoForm(true);
-  };
-
-  const cancelVideoForm = () => {
-    setShowVideoForm(false);
-    setEditingVideoId(null);
-    setVideoForm({ titulo: "", url: "" });
-  };
-
-  const saveVideo = async () => {
-    setVideoSaving(true);
-    const payload = {
-      titulo: videoForm.titulo || null,
-      url: videoForm.url,
     };
-
-    try {
-      if (editingVideoId) {
-        await fetch(`/api/videos/${editingVideoId}`, {
-          method: "PUT",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(payload),
-        });
-      } else {
-        await fetch("/api/videos", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ ...payload, proyecto_id: id }),
-        });
-      }
-      await refresh();
-      cancelVideoForm();
-    } catch {
-      // silent
-    } finally {
-      setVideoSaving(false);
-    }
-  };
-
-  const deleteVideo = async (videoId: string) => {
-    if (!confirm("Eliminar este video?")) return;
-    try {
-      await fetch(`/api/videos/${videoId}`, { method: "DELETE" });
-      await refresh();
-    } catch {
-      // silent
-    }
-  };
-
-  // ---- Galeria CRUD ----
-  const addCategoria = async () => {
-    if (!newCatNombre.trim()) return;
-    setGaleriaSaving(true);
-    const catSlug = newCatNombre
-      .toLowerCase()
-      .replace(/[^a-z0-9]+/g, "-")
-      .replace(/(^-|-$)/g, "");
-    try {
-      await fetch("/api/galeria/categorias", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          proyecto_id: id,
-          nombre: newCatNombre.trim(),
-          slug: catSlug,
-        }),
-      });
-      await refresh();
-      setNewCatNombre("");
-      setShowCatForm(false);
-    } catch {
-      // silent
-    } finally {
-      setGaleriaSaving(false);
-    }
-  };
-
-  const deleteCategoria = async (catId: string) => {
-    if (!confirm("Eliminar esta categoria y todas sus imagenes?")) return;
-    try {
-      await fetch(`/api/galeria/categorias/${catId}`, { method: "DELETE" });
-      await refresh();
-    } catch {
-      // silent
-    }
-  };
-
-  const addImageToCategory = async (categoriaId: string, url: string) => {
-    if (!url) return;
-    setGaleriaSaving(true);
-    try {
-      await fetch("/api/galeria/imagenes", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ categoria_id: categoriaId, url }),
-      });
-      await refresh();
-    } catch {
-      // silent
-    } finally {
-      setGaleriaSaving(false);
-    }
-  };
-
-  const deleteImage = async (imgId: string) => {
-    try {
-      await fetch(`/api/galeria/imagenes/${imgId}`, { method: "DELETE" });
-      await refresh();
-    } catch {
-      // silent
-    }
-  };
-
-  // ---- Render helpers ----
-  const addRenderUrl = (url: string) => {
-    if (!url) return;
-    setTipoForm((prev) => ({ ...prev, renders: [...prev.renders, url] }));
-  };
-
-  const removeRenderUrl = (index: number) => {
-    setTipoForm((prev) => ({
-      ...prev,
-      renders: prev.renders.filter((_, i) => i !== index),
-    }));
-  };
-
-  // ---- Loading state ----
-  if (loading || !project) {
-    return (
-      <div className="flex items-center justify-center h-screen">
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          className="flex flex-col items-center gap-4"
-        >
-          <Loader2 size={32} className="animate-spin text-[#C9A96E]" />
-          <p className="text-white/30 text-sm">Cargando proyecto...</p>
-        </motion.div>
-      </div>
-    );
-  }
+  }, []);
 
   return (
-    <div className="flex flex-col h-screen">
-      {/* ================================================================ */}
-      {/* Top bar                                                          */}
-      {/* ================================================================ */}
-      <div className="flex items-center justify-between px-8 py-4 border-b border-white/5">
+    <motion.div
+      initial={{ opacity: 0, y: 8 }}
+      animate={{ opacity: 1, y: 0 }}
+      className="max-w-4xl mx-auto"
+    >
+      {/* Page Header */}
+      <div className={pageHeader}>
         <div>
-          <h1 className="text-lg font-light tracking-wider">{nombre || project.nombre}</h1>
-          <p className="text-white/30 text-xs">/{slug || project.slug}</p>
+          <h2 className={pageTitle}>{t("general.title")}</h2>
+          <p className={pageDescription}>
+            {t("general.description")}
+          </p>
         </div>
-        <div className="flex items-center gap-3">
-          <Link
-            href={`/sites/${project.slug}`}
-            target="_blank"
-            className={btnSecondary}
-          >
-            <Eye size={14} />
-            Preview
-          </Link>
-          {(activeTab === "general" ||
-            activeTab === "ubicacion" ||
-            activeTab === "config") && (
+      </div>
+
+      {/* Tab Bar */}
+      <div className="flex items-center gap-1 p-1 bg-[var(--surface-1)] rounded-xl border border-[var(--border-subtle)] mb-6">
+        {tabDefs.map((tab) => {
+          const Icon = tab.icon;
+          const isActive = activeTab === tab.id;
+          return (
             <button
-              onClick={
-                activeTab === "general"
-                  ? handleSaveGeneral
-                  : activeTab === "ubicacion"
-                  ? handleSaveUbicacion
-                  : handleSaveConfig
-              }
-              disabled={saving}
-              className={btnPrimary}
+              key={tab.id}
+              onClick={() => setActiveTab(tab.id)}
+              className={`flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-medium transition-all ${
+                isActive
+                  ? "bg-[var(--surface-3)] text-white shadow-sm"
+                  : "text-[var(--text-tertiary)] hover:text-[var(--text-secondary)] hover:bg-[var(--surface-2)]"
+              }`}
             >
-              {saving ? (
-                <Loader2 size={14} className="animate-spin" />
-              ) : (
-                <Save size={14} />
-              )}
-              {saving ? "Guardando..." : "Guardar"}
+              <Icon size={14} />
+              {t(tab.labelKey)}
             </button>
+          );
+        })}
+      </div>
+
+      {/* Tab Content */}
+      <AnimatePresence mode="wait">
+        <motion.div
+          key={activeTab}
+          initial={{ opacity: 0, y: 6 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: -6 }}
+          transition={{ duration: 0.15 }}
+        >
+          {/* ═══ Proyecto ═══ */}
+          {activeTab === "proyecto" && (
+            <div className={sectionCard}>
+              <h3 className={sectionTitle}>
+                <Building2 size={15} className="text-[var(--site-primary)]" />
+                {t("general.project.title")}
+              </h3>
+              <p className={sectionDescription}>
+                {t("general.project.description")}
+              </p>
+
+              <div className="space-y-5">
+                <div>
+                  <label className={labelClass}>{t("general.project.name")}</label>
+                  <input type="text" value={nombre} onChange={(e) => { setNombre(e.target.value); scheduleAutoSave(); }} className={inputClass} placeholder={t("general.project.namePlaceholder")} />
+                </div>
+
+                <div>
+                  <label className={labelClass}>{t("general.project.slug")}</label>
+                  <input type="text" value={slug} onChange={(e) => { setSlug(e.target.value); scheduleAutoSave(); }} className={inputClass} placeholder={t("general.project.slugPlaceholder")} />
+                  <p className={fieldHint}>{t("general.project.slugHint", { slug: slug || "your-project" })}</p>
+                </div>
+
+                <div>
+                  <label className={labelClass}>{t("general.project.stateLabel")}</label>
+                  <select value={estado} onChange={(e) => { setEstado(e.target.value as typeof estado); scheduleAutoSave(); }} className={inputClass}>
+                    <option value="borrador">{t("general.project.stateDraft")}</option>
+                    <option value="publicado">{t("general.project.statePublished")}</option>
+                    <option value="archivado">{t("general.project.stateArchived")}</option>
+                  </select>
+                  <p className={fieldHint}>{t("general.project.stateHint")}</p>
+                </div>
+              </div>
+            </div>
           )}
-        </div>
-      </div>
 
-      {/* ================================================================ */}
-      {/* Tabs                                                             */}
-      {/* ================================================================ */}
-      <div className="flex px-8 border-b border-white/5">
-        {tabs.map((tab) => (
-          <button
-            key={tab.id}
-            onClick={() => setActiveTab(tab.id)}
-            className={cn(
-              "px-4 py-3 text-sm border-b-2 transition-all flex items-center gap-2",
-              activeTab === tab.id
-                ? "border-[#C9A96E] text-white"
-                : "border-transparent text-white/40 hover:text-white/70"
-            )}
-          >
-            <tab.icon size={14} />
-            {tab.label}
-          </button>
-        ))}
-      </div>
+          {/* ═══ Página de Inicio ═══ */}
+          {activeTab === "inicio" && (
+            <div className={sectionCard}>
+              <h3 className={sectionTitle}>
+                <Home size={15} className="text-[var(--site-primary)]" />
+                {t("general.landing.title")}
+              </h3>
+              <p className={sectionDescription}>
+                {t("general.landing.description")}
+              </p>
 
-      {/* ================================================================ */}
-      {/* Content                                                          */}
-      {/* ================================================================ */}
-      <div className="flex-1 overflow-y-auto p-8">
-        {/* -------------------------------------------------------------- */}
-        {/* GENERAL TAB                                                     */}
-        {/* -------------------------------------------------------------- */}
-        {activeTab === "general" && (
-          <motion.div
-            initial={{ opacity: 0, y: 8 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="max-w-2xl space-y-6"
-          >
-            {/* Nombre */}
-            <div>
-              <label className={labelClass}>Nombre del proyecto</label>
-              <input
-                type="text"
-                value={nombre}
-                onChange={(e) => setNombre(e.target.value)}
-                className={inputClass}
-              />
-            </div>
-
-            {/* Slug */}
-            <div>
-              <label className={labelClass}>Slug (URL)</label>
-              <input
-                type="text"
-                value={slug}
-                onChange={(e) => setSlug(e.target.value)}
-                className={inputClass}
-              />
-            </div>
-
-            {/* Descripcion */}
-            <div>
-              <label className={labelClass}>Descripcion</label>
-              <textarea
-                value={descripcion}
-                onChange={(e) => setDescripcion(e.target.value)}
-                rows={3}
-                className={inputClass + " resize-none"}
-              />
-            </div>
-
-            {/* Constructora */}
-            <div>
-              <label className={labelClass}>Constructora</label>
-              <input
-                type="text"
-                value={constructoraNombre}
-                onChange={(e) => setConstructoraNombre(e.target.value)}
-                className={inputClass}
-              />
-            </div>
-
-            {/* Colores */}
-            <div className="grid grid-cols-3 gap-4">
-              <div>
-                <label className={labelClass}>Color primario</label>
-                <div className="flex items-center gap-2">
-                  <input
-                    type="color"
-                    value={colorPrimario}
-                    onChange={(e) => setColorPrimario(e.target.value)}
-                    className="w-10 h-10 rounded cursor-pointer border border-white/10"
-                  />
-                  <input
-                    type="text"
-                    value={colorPrimario}
-                    onChange={(e) => setColorPrimario(e.target.value)}
-                    className={inputClass}
-                  />
+              <div className="space-y-5">
+                {/* Hero render */}
+                <div>
+                  <label className={labelClass}>{t("general.landing.heroRender")}</label>
+                  <FileUploader currentUrl={renderPrincipalUrl || null} onUpload={(url) => { setRenderPrincipalUrl(url); scheduleAutoSave(); }} folder={`proyectos/${projectId}`} label={t("general.landing.uploadHero")} cropAspect={16 / 9} />
+                  <p className={fieldHint}>{t("general.landing.heroHint")}</p>
                 </div>
-              </div>
-              <div>
-                <label className={labelClass}>Color secundario</label>
-                <div className="flex items-center gap-2">
-                  <input
-                    type="color"
-                    value={colorSecundario}
-                    onChange={(e) => setColorSecundario(e.target.value)}
-                    className="w-10 h-10 rounded cursor-pointer border border-white/10"
-                  />
-                  <input
-                    type="text"
-                    value={colorSecundario}
-                    onChange={(e) => setColorSecundario(e.target.value)}
-                    className={inputClass}
-                  />
-                </div>
-              </div>
-              <div>
-                <label className={labelClass}>Color fondo</label>
-                <div className="flex items-center gap-2">
-                  <input
-                    type="color"
-                    value={colorFondo}
-                    onChange={(e) => setColorFondo(e.target.value)}
-                    className="w-10 h-10 rounded cursor-pointer border border-white/10"
-                  />
-                  <input
-                    type="text"
-                    value={colorFondo}
-                    onChange={(e) => setColorFondo(e.target.value)}
-                    className={inputClass}
-                  />
-                </div>
-              </div>
-            </div>
 
-            {/* Estado */}
-            <div>
-              <label className={labelClass}>Estado</label>
-              <select
-                value={estado}
-                onChange={(e) =>
-                  setEstado(
-                    e.target.value as "borrador" | "publicado" | "archivado"
-                  )
-                }
-                className={inputClass}
-              >
-                <option value="borrador">Borrador</option>
-                <option value="publicado">Publicado</option>
-                <option value="archivado">Archivado</option>
-              </select>
-            </div>
-
-            {/* Disclaimer */}
-            <div>
-              <label className={labelClass}>Disclaimer legal</label>
-              <textarea
-                value={disclaimer}
-                onChange={(e) => setDisclaimer(e.target.value)}
-                rows={2}
-                className={inputClass + " resize-none"}
-              />
-            </div>
-
-            {/* Render principal */}
-            <div>
-              <label className={labelClass}>Render principal</label>
-              <FileUploader
-                currentUrl={renderPrincipalUrl || null}
-                onUpload={(url) => setRenderPrincipalUrl(url)}
-                folder={`proyectos/${id}`}
-                label="Subir render principal"
-              />
-            </div>
-
-            {/* Logo */}
-            <div>
-              <label className={labelClass}>Logo</label>
-              <div className="max-w-[200px]">
-                <FileUploader
-                  currentUrl={logoUrl || null}
-                  onUpload={(url) => setLogoUrl(url)}
-                  folder={`proyectos/${id}`}
-                  label="Subir logo"
-                  aspect="square"
-                />
-              </div>
-            </div>
-          </motion.div>
-        )}
-
-        {/* -------------------------------------------------------------- */}
-        {/* TIPOLOGIAS TAB                                                  */}
-        {/* -------------------------------------------------------------- */}
-        {activeTab === "tipologias" && (
-          <motion.div
-            initial={{ opacity: 0, y: 8 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="max-w-4xl"
-          >
-            <div className="flex items-center justify-between mb-6">
-              <h2 className="text-lg font-light">Tipologias</h2>
-              {!showTipoForm && (
-                <button onClick={openNewTipo} className={btnPrimary}>
-                  <Plus size={14} />
-                  Agregar Tipologia
-                </button>
-              )}
-            </div>
-
-            {/* Inline form */}
-            <AnimatePresence>
-              {showTipoForm && (
-                <motion.div
-                  initial={{ opacity: 0, height: 0 }}
-                  animate={{ opacity: 1, height: "auto" }}
-                  exit={{ opacity: 0, height: 0 }}
-                  className="mb-6 p-6 bg-white/5 rounded-lg border border-white/10 space-y-4 overflow-hidden"
-                >
-                  <h3 className="text-sm font-medium text-white/70">
-                    {editingTipoId ? "Editar tipologia" : "Nueva tipologia"}
-                  </h3>
-
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <label className={labelClass}>Nombre *</label>
-                      <input
-                        type="text"
-                        value={tipoForm.nombre}
-                        onChange={(e) =>
-                          setTipoForm((p) => ({
-                            ...p,
-                            nombre: e.target.value,
-                          }))
-                        }
-                        placeholder="Ej: Apartamento Tipo A"
-                        className={inputClass}
-                      />
-                    </div>
-                    <div>
-                      <label className={labelClass}>Area (m2)</label>
-                      <input
-                        type="number"
-                        value={tipoForm.area_m2}
-                        onChange={(e) =>
-                          setTipoForm((p) => ({
-                            ...p,
-                            area_m2: e.target.value,
-                          }))
-                        }
-                        className={inputClass}
-                      />
-                    </div>
+                {/* Logo + Video side by side */}
+                <div className="grid grid-cols-2 gap-5">
+                  <div>
+                    <label className={labelClass}>{t("general.landing.logo")}</label>
+                    <FileUploader currentUrl={logoUrl || null} onUpload={(url) => { setLogoUrl(url); scheduleAutoSave(); }} folder={`proyectos/${projectId}`} label={t("general.landing.uploadLogo")} aspect="logo" />
+                    <p className={fieldHint}>{t("general.landing.logoHint")}</p>
                   </div>
 
                   <div>
-                    <label className={labelClass}>Descripcion</label>
-                    <textarea
-                      value={tipoForm.descripcion}
-                      onChange={(e) =>
-                        setTipoForm((p) => ({
-                          ...p,
-                          descripcion: e.target.value,
-                        }))
-                      }
-                      rows={2}
-                      className={inputClass + " resize-none"}
-                    />
-                  </div>
-
-                  <div className="grid grid-cols-3 gap-4">
-                    <div>
-                      <label className={labelClass}>Habitaciones</label>
-                      <input
-                        type="number"
-                        value={tipoForm.habitaciones}
-                        onChange={(e) =>
-                          setTipoForm((p) => ({
-                            ...p,
-                            habitaciones: e.target.value,
-                          }))
-                        }
-                        className={inputClass}
-                      />
-                    </div>
-                    <div>
-                      <label className={labelClass}>Banos</label>
-                      <input
-                        type="number"
-                        value={tipoForm.banos}
-                        onChange={(e) =>
-                          setTipoForm((p) => ({
-                            ...p,
-                            banos: e.target.value,
-                          }))
-                        }
-                        className={inputClass}
-                      />
-                    </div>
-                    <div>
-                      <label className={labelClass}>Precio desde</label>
-                      <input
-                        type="number"
-                        value={tipoForm.precio_desde}
-                        onChange={(e) =>
-                          setTipoForm((p) => ({
-                            ...p,
-                            precio_desde: e.target.value,
-                          }))
-                        }
-                        className={inputClass}
-                      />
-                    </div>
-                  </div>
-
-                  {/* Plano */}
-                  <div>
-                    <label className={labelClass}>Plano</label>
-                    <FileUploader
-                      currentUrl={tipoForm.plano_url || null}
-                      onUpload={(url) =>
-                        setTipoForm((p) => ({ ...p, plano_url: url }))
-                      }
-                      folder={`proyectos/${id}/tipologias`}
-                      label="Subir plano"
-                    />
-                  </div>
-
-                  {/* Renders */}
-                  <div>
-                    <label className={labelClass}>Renders</label>
-                    <div className="grid grid-cols-4 gap-2 mb-2">
-                      {tipoForm.renders.map((r, i) => (
-                        <div
-                          key={i}
-                          className="relative aspect-video rounded overflow-hidden bg-white/5"
+                    <label className={labelClass}>
+                      <Film size={14} className="inline mr-1.5 -mt-0.5" />
+                      {t("general.landing.heroVideo")}
+                    </label>
+                    {heroVideoUrl ? (
+                      <div className="relative aspect-video rounded-xl overflow-hidden border-2 border-dashed border-[var(--border-default)]">
+                        <video
+                          src={heroVideoUrl}
+                          className="w-full h-full object-cover"
+                          muted
+                          loop
+                          playsInline
+                          autoPlay
+                        />
+                        <button
+                          onClick={() => { setHeroVideoUrl(""); scheduleAutoSave(); }}
+                          className="absolute top-2 right-2 w-7 h-7 bg-black/70 backdrop-blur-sm rounded-full flex items-center justify-center text-[var(--text-secondary)] hover:text-red-400 transition-colors"
                         >
-                          <img
-                            src={r}
-                            alt=""
-                            className="w-full h-full object-cover"
-                          />
-                          <button
-                            onClick={() => removeRenderUrl(i)}
-                            className="absolute top-1 right-1 w-5 h-5 bg-black/60 rounded-full flex items-center justify-center text-white/60 hover:text-white"
-                          >
-                            <X size={10} />
-                          </button>
-                        </div>
-                      ))}
-                      <FileUploader
-                        onUpload={addRenderUrl}
-                        folder={`proyectos/${id}/tipologias`}
-                        label="+ Render"
-                      />
-                    </div>
-                  </div>
-
-                  {/* Actions */}
-                  <div className="flex items-center gap-3 pt-2">
-                    <button
-                      onClick={saveTipologia}
-                      disabled={tipoSaving || !tipoForm.nombre.trim()}
-                      className={btnPrimary}
-                    >
-                      {tipoSaving ? (
-                        <Loader2 size={14} className="animate-spin" />
-                      ) : (
-                        <Check size={14} />
-                      )}
-                      {editingTipoId ? "Actualizar" : "Crear"}
-                    </button>
-                    <button onClick={cancelTipoForm} className={btnSecondary}>
-                      <X size={14} />
-                      Cancelar
-                    </button>
-                  </div>
-                </motion.div>
-              )}
-            </AnimatePresence>
-
-            {/* List */}
-            <div className="space-y-3">
-              {project.tipologias.length === 0 && !showTipoForm && (
-                <p className="text-white/20 text-sm text-center py-12">
-                  No hay tipologias. Agrega la primera.
-                </p>
-              )}
-              {project.tipologias.map((tipo) => (
-                <div
-                  key={tipo.id}
-                  className="flex items-center justify-between p-4 bg-white/5 rounded-lg border border-white/5 group"
-                >
-                  <div>
-                    <h3 className="text-sm font-medium">{tipo.nombre}</h3>
-                    <p className="text-xs text-white/30">
-                      {tipo.area_m2 ? `${tipo.area_m2} m2` : "--"} &bull;{" "}
-                      {tipo.habitaciones ?? "--"} hab &bull;{" "}
-                      {tipo.banos ?? "--"} banos
-                      {tipo.precio_desde
-                        ? ` &bull; Desde $${tipo.precio_desde.toLocaleString()}`
-                        : ""}
-                    </p>
-                  </div>
-                  <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                    <button
-                      onClick={() => openEditTipo(tipo)}
-                      className="flex items-center gap-1 px-3 py-1.5 text-xs text-white/40 hover:text-white hover:bg-white/5 rounded-lg transition-colors"
-                    >
-                      <Pencil size={12} />
-                      Editar
-                    </button>
-                    <button
-                      onClick={() => deleteTipologia(tipo.id)}
-                      className={btnDanger}
-                    >
-                      <Trash2 size={12} />
-                      Eliminar
-                    </button>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </motion.div>
-        )}
-
-        {/* -------------------------------------------------------------- */}
-        {/* GALERIA TAB                                                     */}
-        {/* -------------------------------------------------------------- */}
-        {activeTab === "galeria" && (
-          <motion.div
-            initial={{ opacity: 0, y: 8 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="max-w-4xl"
-          >
-            <div className="flex items-center justify-between mb-6">
-              <h2 className="text-lg font-light">Categorias de Galeria</h2>
-              {!showCatForm && (
-                <button
-                  onClick={() => setShowCatForm(true)}
-                  className={btnPrimary}
-                >
-                  <Plus size={14} />
-                  Agregar Categoria
-                </button>
-              )}
-            </div>
-
-            {/* New category form */}
-            <AnimatePresence>
-              {showCatForm && (
-                <motion.div
-                  initial={{ opacity: 0, height: 0 }}
-                  animate={{ opacity: 1, height: "auto" }}
-                  exit={{ opacity: 0, height: 0 }}
-                  className="mb-6 p-4 bg-white/5 rounded-lg border border-white/10 overflow-hidden"
-                >
-                  <div className="flex items-end gap-3">
-                    <div className="flex-1">
-                      <label className={labelClass}>Nombre de la categoria</label>
-                      <input
-                        type="text"
-                        value={newCatNombre}
-                        onChange={(e) => setNewCatNombre(e.target.value)}
-                        placeholder="Ej: Exteriores, Interiores, Amenidades..."
-                        className={inputClass}
-                      />
-                    </div>
-                    <button
-                      onClick={addCategoria}
-                      disabled={galeriaSaving || !newCatNombre.trim()}
-                      className={btnPrimary}
-                    >
-                      {galeriaSaving ? (
-                        <Loader2 size={14} className="animate-spin" />
-                      ) : (
-                        <Check size={14} />
-                      )}
-                      Crear
-                    </button>
-                    <button
-                      onClick={() => {
-                        setShowCatForm(false);
-                        setNewCatNombre("");
-                      }}
-                      className={btnSecondary}
-                    >
-                      <X size={14} />
-                    </button>
-                  </div>
-                </motion.div>
-              )}
-            </AnimatePresence>
-
-            {/* Categories list */}
-            <div className="space-y-4">
-              {project.galeria_categorias.length === 0 && !showCatForm && (
-                <p className="text-white/20 text-sm text-center py-12">
-                  No hay categorias. Agrega la primera.
-                </p>
-              )}
-              {project.galeria_categorias.map((cat) => {
-                const isExpanded = expandedCat === cat.id;
-                return (
-                  <div
-                    key={cat.id}
-                    className="p-4 bg-white/5 rounded-lg border border-white/5"
-                  >
-                    <div className="flex items-center justify-between mb-3">
-                      <button
-                        onClick={() =>
-                          setExpandedCat(isExpanded ? null : cat.id)
-                        }
-                        className="flex items-center gap-2 text-sm font-medium hover:text-[#C9A96E] transition-colors"
-                      >
-                        {isExpanded ? (
-                          <ChevronUp size={14} />
-                        ) : (
-                          <ChevronDown size={14} />
-                        )}
-                        {cat.nombre}
-                        <span className="text-xs text-white/30 font-normal">
-                          ({cat.imagenes?.length || 0} imagenes)
-                        </span>
-                      </button>
-                      <button
-                        onClick={() => deleteCategoria(cat.id)}
-                        className={btnDanger}
-                      >
-                        <Trash2 size={12} />
-                        Eliminar
-                      </button>
-                    </div>
-
-                    <AnimatePresence>
-                      {isExpanded && (
-                        <motion.div
-                          initial={{ opacity: 0, height: 0 }}
-                          animate={{ opacity: 1, height: "auto" }}
-                          exit={{ opacity: 0, height: 0 }}
-                          className="overflow-hidden"
-                        >
-                          <div className="grid grid-cols-6 gap-2">
-                            {cat.imagenes?.map((img) => (
-                              <div
-                                key={img.id}
-                                className="relative aspect-video rounded overflow-hidden bg-white/5 group"
-                              >
-                                <img
-                                  src={img.thumbnail_url || img.url}
-                                  alt={img.alt_text || ""}
-                                  className="w-full h-full object-cover"
-                                />
-                                <button
-                                  onClick={() => deleteImage(img.id)}
-                                  className="absolute top-1 right-1 w-5 h-5 bg-black/60 rounded-full flex items-center justify-center text-white/60 hover:text-red-400 opacity-0 group-hover:opacity-100 transition-all"
-                                >
-                                  <X size={10} />
-                                </button>
-                              </div>
-                            ))}
-                            <FileUploader
-                              onUpload={(url) =>
-                                addImageToCategory(cat.id, url)
-                              }
-                              folder={`proyectos/${id}/galeria/${cat.slug}`}
-                              label="+ Imagen"
-                            />
-                          </div>
-                        </motion.div>
-                      )}
-                    </AnimatePresence>
-
-                    {/* Collapsed preview */}
-                    {!isExpanded && (cat.imagenes?.length ?? 0) > 0 && (
-                      <div className="grid grid-cols-8 gap-1.5">
-                        {cat.imagenes?.slice(0, 8).map((img) => (
-                          <div
-                            key={img.id}
-                            className="aspect-video rounded overflow-hidden bg-white/5"
-                          >
-                            <img
-                              src={img.thumbnail_url || img.url}
-                              alt={img.alt_text || ""}
-                              className="w-full h-full object-cover"
-                            />
-                          </div>
-                        ))}
+                          <Trash2 size={14} />
+                        </button>
                       </div>
-                    )}
-                  </div>
-                );
-              })}
-            </div>
-          </motion.div>
-        )}
-
-        {/* -------------------------------------------------------------- */}
-        {/* VIDEOS TAB                                                      */}
-        {/* -------------------------------------------------------------- */}
-        {activeTab === "videos" && (
-          <motion.div
-            initial={{ opacity: 0, y: 8 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="max-w-2xl"
-          >
-            <div className="flex items-center justify-between mb-6">
-              <h2 className="text-lg font-light">Videos</h2>
-              {!showVideoForm && (
-                <button onClick={openNewVideo} className={btnPrimary}>
-                  <Plus size={14} />
-                  Agregar Video
-                </button>
-              )}
-            </div>
-
-            {/* Inline form */}
-            <AnimatePresence>
-              {showVideoForm && (
-                <motion.div
-                  initial={{ opacity: 0, height: 0 }}
-                  animate={{ opacity: 1, height: "auto" }}
-                  exit={{ opacity: 0, height: 0 }}
-                  className="mb-6 p-6 bg-white/5 rounded-lg border border-white/10 space-y-4 overflow-hidden"
-                >
-                  <h3 className="text-sm font-medium text-white/70">
-                    {editingVideoId ? "Editar video" : "Nuevo video"}
-                  </h3>
-                  <div>
-                    <label className={labelClass}>Titulo</label>
-                    <input
-                      type="text"
-                      value={videoForm.titulo}
-                      onChange={(e) =>
-                        setVideoForm((p) => ({
-                          ...p,
-                          titulo: e.target.value,
-                        }))
-                      }
-                      placeholder="Ej: Recorrido virtual"
-                      className={inputClass}
-                    />
-                  </div>
-                  <div>
-                    <label className={labelClass}>URL del video *</label>
-                    <input
-                      type="url"
-                      value={videoForm.url}
-                      onChange={(e) =>
-                        setVideoForm((p) => ({ ...p, url: e.target.value }))
-                      }
-                      placeholder="https://youtube.com/watch?v=..."
-                      className={inputClass}
-                    />
-                  </div>
-                  <div className="flex items-center gap-3 pt-2">
-                    <button
-                      onClick={saveVideo}
-                      disabled={videoSaving || !videoForm.url.trim()}
-                      className={btnPrimary}
-                    >
-                      {videoSaving ? (
-                        <Loader2 size={14} className="animate-spin" />
-                      ) : (
-                        <Check size={14} />
-                      )}
-                      {editingVideoId ? "Actualizar" : "Crear"}
-                    </button>
-                    <button onClick={cancelVideoForm} className={btnSecondary}>
-                      <X size={14} />
-                      Cancelar
-                    </button>
-                  </div>
-                </motion.div>
-              )}
-            </AnimatePresence>
-
-            {/* List */}
-            <div className="space-y-3">
-              {project.videos.length === 0 && !showVideoForm && (
-                <p className="text-white/20 text-sm text-center py-12">
-                  No hay videos. Agrega el primero.
-                </p>
-              )}
-              {project.videos.map((video) => (
-                <div
-                  key={video.id}
-                  className="flex items-center gap-4 p-4 bg-white/5 rounded-lg border border-white/5 group"
-                >
-                  <div className="w-24 h-14 rounded overflow-hidden bg-white/5 flex items-center justify-center">
-                    {video.thumbnail_url ? (
-                      <img
-                        src={video.thumbnail_url}
-                        alt=""
-                        className="w-full h-full object-cover"
-                      />
                     ) : (
-                      <Film size={20} className="text-white/10" />
+                      <FileUploader
+                        currentUrl={null}
+                        onUpload={(url) => { setHeroVideoUrl(url); scheduleAutoSave(); }}
+                        folder={`proyectos/${projectId}`}
+                        label={t("general.landing.uploadHeroVideo")}
+                        accept="video/mp4,video/webm"
+                        enablePaste={false}
+                      />
                     )}
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <h3 className="text-sm">{video.titulo || "Sin titulo"}</h3>
-                    <p className="text-xs text-white/30 truncate">
-                      {video.url}
-                    </p>
-                  </div>
-                  <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                    <button
-                      onClick={() => openEditVideo(video)}
-                      className="flex items-center gap-1 px-3 py-1.5 text-xs text-white/40 hover:text-white hover:bg-white/5 rounded-lg transition-colors"
-                    >
-                      <Pencil size={12} />
-                      Editar
-                    </button>
-                    <button
-                      onClick={() => deleteVideo(video.id)}
-                      className={btnDanger}
-                    >
-                      <Trash2 size={12} />
-                      Eliminar
-                    </button>
+                    <p className={fieldHint}>{t("general.landing.heroVideoHint")}</p>
                   </div>
                 </div>
-              ))}
-            </div>
-          </motion.div>
-        )}
 
-        {/* -------------------------------------------------------------- */}
-        {/* UBICACION TAB                                                   */}
-        {/* -------------------------------------------------------------- */}
-        {activeTab === "ubicacion" && (
-          <motion.div
-            initial={{ opacity: 0, y: 8 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="max-w-2xl space-y-6"
-          >
-            <div>
-              <label className={labelClass}>Direccion</label>
-              <input
-                type="text"
-                value={ubicacionDireccion}
-                onChange={(e) => setUbicacionDireccion(e.target.value)}
-                placeholder="Ej: Calle 100 #15-20, Bogota"
-                className={inputClass}
-              />
-            </div>
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <label className={labelClass}>Latitud</label>
-                <input
-                  type="number"
-                  step="0.000001"
-                  value={ubicacionLat}
-                  onChange={(e) => setUbicacionLat(e.target.value)}
-                  placeholder="4.6097"
-                  className={inputClass}
-                />
-              </div>
-              <div>
-                <label className={labelClass}>Longitud</label>
-                <input
-                  type="number"
-                  step="0.000001"
-                  value={ubicacionLng}
-                  onChange={(e) => setUbicacionLng(e.target.value)}
-                  placeholder="-74.0817"
-                  className={inputClass}
-                />
+                {/* Description */}
+                <div>
+                  <label className={labelClass}>{t("general.landing.descriptionLabel")}</label>
+                  <textarea value={descripcion} onChange={(e) => { setDescripcion(e.target.value); scheduleAutoSave(); }} rows={3} className={inputClass + " resize-none"} placeholder={t("general.landing.descriptionPlaceholder")} />
+                  <p className={fieldHint}>{t("general.landing.descriptionHint")}</p>
+                </div>
               </div>
             </div>
-          </motion.div>
-        )}
+          )}
 
-        {/* -------------------------------------------------------------- */}
-        {/* CONFIG TAB                                                      */}
-        {/* -------------------------------------------------------------- */}
-        {activeTab === "config" && (
-          <motion.div
-            initial={{ opacity: 0, y: 8 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="max-w-2xl space-y-6"
-          >
-            <div>
-              <label className={labelClass}>
-                WhatsApp (numero con codigo de pais)
-              </label>
-              <input
-                type="text"
-                value={whatsappNumero}
-                onChange={(e) => setWhatsappNumero(e.target.value)}
-                placeholder="+573001234567"
-                className={inputClass}
-              />
+          {/* ═══ Constructora ═══ */}
+          {activeTab === "constructora" && (
+            <div className={sectionCard}>
+              <h3 className={sectionTitle}>
+                <Briefcase size={15} className="text-[var(--site-primary)]" />
+                {t("general.developer.title")}
+              </h3>
+              <p className={sectionDescription}>
+                {t("general.developer.description")}
+              </p>
+
+              <div className="space-y-5">
+                <div>
+                  <label className={labelClass}>{t("general.developer.name")}</label>
+                  <input type="text" value={constructoraNombre} onChange={(e) => { setConstructoraNombre(e.target.value); scheduleAutoSave(); }} className={inputClass} placeholder={t("general.developer.namePlaceholder")} />
+                </div>
+
+                <div>
+                  <label className={labelClass}>{t("general.developer.logo")}</label>
+                  <div className="max-w-sm">
+                    <FileUploader currentUrl={constructoraLogoUrl || null} onUpload={(url) => { setConstructoraLogoUrl(url); scheduleAutoSave(); }} folder={`proyectos/${projectId}`} label={t("general.developer.uploadLogo")} aspect="logo" />
+                  </div>
+                </div>
+
+                <div>
+                  <label className={labelClass}>
+                    <Link2 size={14} className="inline mr-1.5 -mt-0.5" />
+                    {t("general.developer.website")}
+                  </label>
+                  <input type="url" value={constructoraWebsite} onChange={(e) => { setConstructoraWebsite(e.target.value); scheduleAutoSave(); }} className={inputClass} placeholder={t("general.developer.websitePlaceholder")} />
+                  <p className={fieldHint}>{t("general.developer.websiteHint")}</p>
+                </div>
+              </div>
             </div>
-            <div>
-              <label className={labelClass}>Tour 360 URL</label>
-              <input
-                type="url"
-                value={tour360Url}
-                onChange={(e) => setTour360Url(e.target.value)}
-                placeholder="https://..."
-                className={inputClass}
-              />
+          )}
+
+          {/* ═══ Diseño ═══ */}
+          {activeTab === "diseno" && (
+            <div className={sectionCard}>
+              <h3 className={sectionTitle}>
+                <Palette size={15} className="text-[var(--site-primary)]" />
+                {t("general.design.title")}
+              </h3>
+              <p className={sectionDescription}>
+                {t("general.design.description")}
+              </p>
+
+              <div className="grid grid-cols-3 gap-5">
+                {[
+                  { label: t("general.design.primary"), value: colorPrimario, set: setColorPrimario, hint: t("general.design.primaryHint") },
+                  { label: t("general.design.secondary"), value: colorSecundario, set: setColorSecundario, hint: t("general.design.secondaryHint") },
+                  { label: t("general.design.background"), value: colorFondo, set: setColorFondo, hint: t("general.design.backgroundHint") },
+                ].map((c) => (
+                  <div key={c.label}>
+                    <label className={labelClass}>{c.label}</label>
+                    <div className="flex items-center gap-2.5">
+                      <div
+                        className="w-10 h-10 rounded-lg border border-[var(--border-default)] cursor-pointer shrink-0 relative overflow-hidden"
+                        style={{ backgroundColor: c.value }}
+                      >
+                        <input
+                          type="color"
+                          value={c.value}
+                          onChange={(e) => { c.set(e.target.value); scheduleAutoSave(); }}
+                          className="absolute inset-0 opacity-0 cursor-pointer w-full h-full"
+                        />
+                      </div>
+                      <input type="text" value={c.value} onChange={(e) => c.set(e.target.value)} className={inputClass} />
+                    </div>
+                    <p className={fieldHint}>{c.hint}</p>
+                  </div>
+                ))}
+              </div>
             </div>
-            <div>
-              <label className={labelClass}>Brochure</label>
-              <FileUploader
-                currentUrl={brochureUrl || null}
-                onUpload={(url) => setBrochureUrl(url)}
-                accept="application/pdf,image/*"
-                folder={`proyectos/${id}`}
-                label="Subir brochure (PDF o imagen)"
-              />
+          )}
+
+          {/* ═══ Avanzado (SEO + Legal) ═══ */}
+          {activeTab === "avanzado" && (
+            <div className="space-y-6">
+              {/* SEO & Social */}
+              <div className={sectionCard}>
+                <h3 className={sectionTitle}>
+                  <Globe size={15} className="text-[var(--site-primary)]" />
+                  {t("general.advanced.seoTitle")}
+                </h3>
+                <p className={sectionDescription}>
+                  {t("general.advanced.seoDescription")}
+                </p>
+
+                <div className="grid grid-cols-2 gap-5">
+                  <div>
+                    <label className={labelClass}>
+                      <Globe size={14} className="inline mr-1.5 -mt-0.5" />
+                      {t("general.advanced.favicon")}
+                    </label>
+                    <FileUploader currentUrl={faviconUrl || null} onUpload={(url) => { setFaviconUrl(url); scheduleAutoSave(); }} folder={`proyectos/${projectId}`} label={t("general.advanced.uploadFavicon")} cropAspect={1} />
+                    <p className={fieldHint}>{t("general.advanced.faviconHint")}</p>
+                  </div>
+
+                  <div>
+                    <label className={labelClass}>
+                      <Share2 size={14} className="inline mr-1.5 -mt-0.5" />
+                      {t("general.advanced.ogImage")}
+                    </label>
+                    <FileUploader currentUrl={ogImageUrl || null} onUpload={(url) => { setOgImageUrl(url); scheduleAutoSave(); }} folder={`proyectos/${projectId}`} label={t("general.advanced.uploadOgImage")} cropAspect={1200 / 630} />
+                    <p className={fieldHint}>{t("general.advanced.ogImageHint")}</p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Legal */}
+              <div className={sectionCard}>
+                <h3 className={sectionTitle}>
+                  <Scale size={15} className="text-[var(--site-primary)]" />
+                  {t("general.advanced.legalTitle")}
+                </h3>
+                <p className={sectionDescription}>
+                  {t("general.advanced.legalDescription")}
+                </p>
+
+                <div className="space-y-5">
+                  <div>
+                    <label className={labelClass}>{t("general.advanced.disclaimer")}</label>
+                    <textarea value={disclaimer} onChange={(e) => { setDisclaimer(e.target.value); scheduleAutoSave(); }} rows={3} className={inputClass + " resize-none"} placeholder={t("general.advanced.disclaimerPlaceholder")} />
+                  </div>
+
+                  <div>
+                    <label className={labelClass}>
+                      <Link2 size={14} className="inline mr-1.5 -mt-0.5" />
+                      {t("general.advanced.privacyPolicy")}
+                    </label>
+                    <input type="url" value={politicaPrivacidadUrl} onChange={(e) => { setPoliticaPrivacidadUrl(e.target.value); scheduleAutoSave(); }} className={inputClass} placeholder={t("general.advanced.privacyPolicyPlaceholder")} />
+                    <p className={fieldHint}>{t("general.advanced.privacyPolicyHint")}</p>
+                  </div>
+                </div>
+              </div>
             </div>
-          </motion.div>
-        )}
-      </div>
-    </div>
+          )}
+        </motion.div>
+      </AnimatePresence>
+    </motion.div>
   );
 }

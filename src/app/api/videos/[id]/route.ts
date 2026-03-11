@@ -1,4 +1,4 @@
-import { createClient } from "@/lib/supabase/server";
+import { getAuthContext } from "@/lib/auth-context";
 import { NextRequest, NextResponse } from "next/server";
 
 export async function PUT(
@@ -7,15 +7,14 @@ export async function PUT(
 ) {
   try {
     const { id } = await params;
-    const supabase = await createClient();
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-    if (!user)
+    const auth = await getAuthContext();
+    if (!auth)
       return NextResponse.json({ error: "No autorizado" }, { status: 401 });
+    if (auth.role !== "admin")
+      return NextResponse.json({ error: "Solo administradores" }, { status: 403 });
 
     const body = await request.json();
-    const { data, error } = await supabase
+    const { data, error } = await auth.supabase
       .from("videos")
       .update(body)
       .eq("id", id)
@@ -38,14 +37,13 @@ export async function DELETE(
 ) {
   try {
     const { id } = await params;
-    const supabase = await createClient();
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-    if (!user)
+    const auth = await getAuthContext();
+    if (!auth)
       return NextResponse.json({ error: "No autorizado" }, { status: 401 });
+    if (auth.role !== "admin")
+      return NextResponse.json({ error: "Solo administradores" }, { status: 403 });
 
-    const { error } = await supabase.from("videos").delete().eq("id", id);
+    const { error } = await auth.supabase.from("videos").delete().eq("id", id);
 
     if (error) throw error;
     return NextResponse.json({ success: true });

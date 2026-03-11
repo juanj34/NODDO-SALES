@@ -1,14 +1,13 @@
-import { createClient } from "@/lib/supabase/server";
+import { getAuthContext } from "@/lib/auth-context";
 import { NextRequest, NextResponse } from "next/server";
 
 export async function POST(request: NextRequest) {
   try {
-    const supabase = await createClient();
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-    if (!user)
+    const auth = await getAuthContext();
+    if (!auth)
       return NextResponse.json({ error: "No autorizado" }, { status: 401 });
+    if (auth.role !== "admin")
+      return NextResponse.json({ error: "Solo administradores" }, { status: 403 });
 
     const body = await request.json();
     if (!body.proyecto_id || !body.nombre || !body.slug) {
@@ -18,7 +17,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const { data, error } = await supabase
+    const { data, error } = await auth.supabase
       .from("galeria_categorias")
       .insert(body)
       .select()

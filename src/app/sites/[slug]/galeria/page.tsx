@@ -1,94 +1,246 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useSiteProject } from "@/hooks/useSiteProject";
 import { Lightbox } from "@/components/site/Lightbox";
-import { SectionTransition } from "@/components/site/SectionTransition";
 import { cn } from "@/lib/utils";
+import { ChevronLeft, ChevronRight, Maximize2, Image as ImageIcon } from "lucide-react";
 import type { GaleriaImagen } from "@/types";
+import { useTranslation } from "@/i18n";
 
 export default function GaleriaPage() {
   const proyecto = useSiteProject();
   const categorias = proyecto.galeria_categorias;
+  const { t } = useTranslation("site");
+
+  // Empty state — no gallery categories configured
+  if (!categorias || categorias.length === 0) {
+    return (
+      <div className="h-screen flex flex-col items-center justify-center gap-4 text-center px-8 bg-[var(--site-bg)]">
+        <div className="w-16 h-16 rounded-2xl bg-white/5 flex items-center justify-center">
+          <ImageIcon size={28} className="text-[var(--text-muted)]" />
+        </div>
+        <div>
+          <h2 className="text-lg font-site-heading text-[var(--text-secondary)] mb-1">
+            {t("galeria.notAvailable")}
+          </h2>
+          <p className="text-sm text-[var(--text-tertiary)]">
+            {t("galeria.notConfigured")}
+          </p>
+        </div>
+      </div>
+    );
+  }
 
   const [activeCategory, setActiveCategory] = useState(0);
+  const [activeSlide, setActiveSlide] = useState(0);
   const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
 
   const currentImages: GaleriaImagen[] =
     categorias[activeCategory]?.imagenes ?? [];
 
-  return (
-    <SectionTransition className="h-screen flex flex-col pt-8 lg:pt-12">
-      {/* Title */}
-      <div className="px-8 lg:px-16 mb-6">
-        <p className="text-xs tracking-[0.4em] text-[var(--site-primary)] uppercase mb-2">
-          Galería
-        </p>
-        <h2 className="text-2xl lg:text-4xl font-light tracking-wider">
-          Explora el Proyecto
-        </h2>
-      </div>
+  const current = currentImages[activeSlide];
 
-      {/* Tabs */}
-      <div className="flex gap-6 px-8 lg:px-16 mb-8">
+  const goNext = useCallback(() => {
+    if (activeSlide < currentImages.length - 1) {
+      setActiveSlide((prev) => prev + 1);
+    }
+  }, [activeSlide, currentImages.length]);
+
+  const goPrev = useCallback(() => {
+    if (activeSlide > 0) {
+      setActiveSlide((prev) => prev - 1);
+    }
+  }, [activeSlide]);
+
+  const handleCategoryChange = (idx: number) => {
+    setActiveCategory(idx);
+    setActiveSlide(0);
+  };
+
+  // Keyboard navigation
+  useEffect(() => {
+    const handleKey = (e: KeyboardEvent) => {
+      // Skip when lightbox is open (it handles its own keys)
+      if (lightboxIndex !== null) return;
+      // Skip when typing in inputs
+      if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) return;
+
+      switch (e.key) {
+        case "ArrowRight":
+          e.preventDefault();
+          goNext();
+          break;
+        case "ArrowLeft":
+          e.preventDefault();
+          goPrev();
+          break;
+        case "f":
+          setLightboxIndex(activeSlide);
+          break;
+      }
+    };
+    window.addEventListener("keydown", handleKey);
+    return () => window.removeEventListener("keydown", handleKey);
+  }, [lightboxIndex, goNext, goPrev, activeSlide]);
+
+  return (
+    <div className="h-screen w-full relative overflow-hidden bg-black">
+      {/* Fullscreen background image — crossfade + subtle scale + swipe */}
+      <AnimatePresence mode="wait">
+        {current && (
+          <motion.div
+            key={`${activeCategory}-${activeSlide}`}
+            initial={{ opacity: 0, scale: 1.04 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.98 }}
+            transition={{ duration: 0.5, ease: [0.4, 0, 0.2, 1] }}
+            className="absolute inset-0"
+            drag="x"
+            dragConstraints={{ left: 0, right: 0 }}
+            dragElastic={0.15}
+            onDragEnd={(_e, info) => {
+              if (info.offset.x < -80) goNext();
+              else if (info.offset.x > 80) goPrev();
+            }}
+          >
+            <img
+              src={current.url}
+              alt={current.alt_text || ""}
+              className="w-full h-full object-cover pointer-events-none"
+            />
+            {/* Dark gradient overlay for readability */}
+            <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/10 to-black/30 pointer-events-none" />
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Category tabs — top-left underline style */}
+      <motion.div
+        className="absolute top-8 left-10 z-20 flex items-center gap-6"
+        initial={{ opacity: 0, y: -20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.3, duration: 0.5 }}
+      >
         {categorias.map((cat, idx) => (
           <button
             key={cat.id}
-            onClick={() => setActiveCategory(idx)}
+            onClick={() => handleCategoryChange(idx)}
             className={cn(
-              "relative pb-2 text-xs tracking-[0.3em] uppercase transition-colors whitespace-nowrap",
+              "relative pb-2 text-xs tracking-[0.2em] uppercase transition-all duration-300 cursor-pointer",
               idx === activeCategory
-                ? "text-[var(--site-primary)]"
-                : "text-white/40 hover:text-white/70"
+                ? "text-white font-medium"
+                : "text-[var(--text-tertiary)] hover:text-white/70"
             )}
           >
             {cat.nombre}
             {idx === activeCategory && (
               <motion.div
-                layoutId="gallery-tab"
-                className="absolute bottom-0 left-0 right-0 h-0.5 bg-[var(--site-primary)] rounded-full"
+                layoutId="gallery-tab-indicator"
+                className="absolute bottom-0 left-0 right-0 h-[2px] bg-[var(--site-primary)]"
                 transition={{ type: "spring", bounce: 0.2, duration: 0.5 }}
               />
             )}
           </button>
         ))}
-      </div>
+      </motion.div>
 
-      {/* Image slider */}
-      <div className="flex-1 overflow-hidden">
-        <AnimatePresence mode="wait">
-          <motion.div
-            key={activeCategory}
-            initial={{ opacity: 0, x: 40 }}
-            animate={{ opacity: 1, x: 0 }}
-            exit={{ opacity: 0, x: -40 }}
-            transition={{ duration: 0.3 }}
-            className="h-full"
-          >
-            <div className="flex gap-4 overflow-x-auto snap-x snap-mandatory px-8 lg:px-16 pb-4 scrollbar-hide h-full items-center">
-              {currentImages.map((img, idx) => (
-                <button
-                  key={img.id}
-                  onClick={() => setLightboxIndex(idx)}
-                  className="snap-center flex-shrink-0 w-[70vw] lg:w-[45vw] aspect-video rounded-2xl overflow-hidden group"
-                >
-                  <img
-                    src={img.url}
-                    alt={img.alt_text ?? ""}
-                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                  />
-                </button>
-              ))}
+      {/* Bottom section: Title + Arrows + Counter + Dots */}
+      <motion.div
+        className="absolute bottom-10 left-10 right-10 z-20 flex items-end justify-between"
+        initial={{ opacity: 0, y: 30 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.4, duration: 0.6 }}
+      >
+        {/* Left: Title + counter */}
+        <div className="flex-1 max-w-lg">
+          <AnimatePresence mode="wait">
+            {current?.alt_text && (
+              <motion.h2
+                key={`title-${activeCategory}-${activeSlide}`}
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -10 }}
+                transition={{ duration: 0.3 }}
+                className="font-site-heading text-3xl lg:text-5xl tracking-wider text-white mb-4"
+                style={{ textShadow: "0 2px 20px rgba(0,0,0,0.5)" }}
+              >
+                {current.alt_text}
+              </motion.h2>
+            )}
+          </AnimatePresence>
+
+          <div className="flex items-center gap-5">
+            {/* Navigation arrows */}
+            <div className="flex items-center gap-2">
+              <button
+                onClick={goPrev}
+                disabled={activeSlide === 0}
+                aria-label={t("galeria.prevImage")}
+                className="w-10 h-10 flex items-center justify-center rounded-full bg-white/10 hover:bg-white/20 backdrop-blur-sm text-white/70 hover:text-white disabled:opacity-20 disabled:hover:bg-white/10 transition-all cursor-pointer"
+              >
+                <ChevronLeft size={18} />
+              </button>
+              <button
+                onClick={goNext}
+                disabled={activeSlide === currentImages.length - 1}
+                aria-label={t("galeria.nextImage")}
+                className="w-10 h-10 flex items-center justify-center rounded-full bg-white/10 hover:bg-white/20 backdrop-blur-sm text-white/70 hover:text-white disabled:opacity-20 disabled:hover:bg-white/10 transition-all cursor-pointer"
+              >
+                <ChevronRight size={18} />
+              </button>
             </div>
-          </motion.div>
-        </AnimatePresence>
-      </div>
 
-      {/* Counter */}
-      <div className="px-8 lg:px-16 pb-8 text-right text-white/40 text-sm tracking-wider">
-        {currentImages.length} imágenes
-      </div>
+            {/* Counter */}
+            <span className="text-[var(--text-tertiary)] text-sm tracking-wider font-mono">
+              {String(activeSlide + 1).padStart(2, "0")} / {String(currentImages.length).padStart(2, "0")}
+            </span>
+
+            {/* Thumbnails Strip */}
+            <div className="flex items-center gap-2 overflow-x-auto scrollbar-hide flex-shrink-0 max-w-[40vw] pl-2 py-2">
+              <AnimatePresence mode="popLayout">
+                {currentImages.map((img, idx) => (
+                  <motion.button
+                    key={`${activeCategory}-${img.id || idx}`}
+                    initial={{ opacity: 0, scale: 0.8, y: 10 }}
+                    animate={{ opacity: 1, scale: 1, y: 0 }}
+                    exit={{ opacity: 0, scale: 0.8, y: 10 }}
+                    transition={{
+                      duration: 0.3,
+                      delay: idx * 0.05,
+                      ease: "easeOut"
+                    }}
+                    onClick={() => setActiveSlide(idx)}
+                    className={cn(
+                      "relative w-16 h-10 md:w-20 md:h-12 rounded-lg overflow-hidden flex-shrink-0 border-[1.5px] transition-all duration-300 cursor-pointer",
+                      idx === activeSlide
+                        ? "border-[var(--site-primary)] opacity-100 scale-110 shadow-lg"
+                        : "border-transparent opacity-40 hover:opacity-100 grayscale-[0.3]"
+                    )}
+                  >
+                    <img
+                      src={img.url}
+                      alt={`Thumbnail ${idx + 1}`}
+                      className="w-full h-full object-cover"
+                      loading="lazy"
+                    />
+                  </motion.button>
+                ))}
+              </AnimatePresence>
+            </div>
+          </div>
+        </div>
+
+        {/* Right: Fullscreen button */}
+        <button
+          onClick={() => setLightboxIndex(activeSlide)}
+          aria-label={t("galeria.fullscreen")}
+          className="w-11 h-11 flex items-center justify-center rounded-full bg-white/10 hover:bg-white/20 backdrop-blur-sm text-[var(--text-secondary)] hover:text-white transition-all cursor-pointer"
+        >
+          <Maximize2 size={18} />
+        </button>
+      </motion.div>
 
       {/* Lightbox */}
       {lightboxIndex !== null && (
@@ -98,6 +250,6 @@ export default function GaleriaPage() {
           onClose={() => setLightboxIndex(null)}
         />
       )}
-    </SectionTransition>
+    </div>
   );
 }

@@ -8,6 +8,7 @@ import type {
   Video,
   Lead,
   PuntoInteres,
+  Recurso,
 } from "@/types";
 
 const supabase = createClient();
@@ -33,14 +34,15 @@ export async function getProyectoById(id: string): Promise<ProyectoCompleto | nu
 
   if (error || !proyecto) return null;
 
-  const [tipologias, categorias, videos, puntos_interes] = await Promise.all([
+  const [tipologias, categorias, videos, puntos_interes, recursos] = await Promise.all([
     getTipologiasByProyecto(id),
     getCategoriasByProyecto(id),
     getVideosByProyecto(id),
     getPuntosInteresByProyecto(id),
+    getRecursosByProyecto(id),
   ]);
 
-  return { ...proyecto, tipologias, galeria_categorias: categorias, videos, puntos_interes };
+  return { ...proyecto, tipologias, galeria_categorias: categorias, videos, puntos_interes, recursos };
 }
 
 export async function getProyectoBySlug(slug: string): Promise<ProyectoCompleto | null> {
@@ -53,14 +55,15 @@ export async function getProyectoBySlug(slug: string): Promise<ProyectoCompleto 
 
   if (error || !proyecto) return null;
 
-  const [tipologias, categorias, videos, puntos_interes] = await Promise.all([
+  const [tipologias, categorias, videos, puntos_interes, recursos] = await Promise.all([
     getTipologiasByProyecto(proyecto.id),
     getCategoriasByProyecto(proyecto.id),
     getVideosByProyecto(proyecto.id),
     getPuntosInteresByProyecto(proyecto.id),
+    getRecursosByProyecto(proyecto.id),
   ]);
 
-  return { ...proyecto, tipologias, galeria_categorias: categorias, videos, puntos_interes };
+  return { ...proyecto, tipologias, galeria_categorias: categorias, videos, puntos_interes, recursos };
 }
 
 export async function createProyecto(
@@ -291,6 +294,19 @@ export async function deleteVideo(id: string): Promise<void> {
 export async function getPuntosInteresByProyecto(proyectoId: string): Promise<PuntoInteres[]> {
   const { data, error } = await supabase
     .from("puntos_interes")
+    .select("*")
+    .eq("proyecto_id", proyectoId)
+    .order("orden");
+
+  if (error) throw error;
+  return data || [];
+}
+
+// ==================== RECURSOS ====================
+
+export async function getRecursosByProyecto(proyectoId: string): Promise<Recurso[]> {
+  const { data, error } = await supabase
+    .from("recursos")
     .select("*")
     .eq("proyecto_id", proyectoId)
     .order("orden");

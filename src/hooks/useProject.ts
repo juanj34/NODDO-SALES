@@ -30,7 +30,7 @@ export function useProject(id: string) {
   const [saving, setSaving] = useState(false);
 
   const refresh = useCallback(async () => {
-    setLoading(true);
+    // Do NOT set loading=true here — silent refresh to avoid unmounting UI
     const res = await fetch(`/api/proyectos/${id}`);
     if (res.ok) {
       setProject(await res.json());
@@ -39,10 +39,11 @@ export function useProject(id: string) {
   }, [id]);
 
   useEffect(() => {
+    setLoading(true); // Only on initial load / id change
     refresh();
   }, [refresh]);
 
-  const save = async (data: Partial<Proyecto>) => {
+  const save = useCallback(async (data: Partial<Proyecto>) => {
     setSaving(true);
     const res = await fetch(`/api/proyectos/${id}`, {
       method: "PUT",
@@ -55,7 +56,14 @@ export function useProject(id: string) {
     }
     setSaving(false);
     return res.ok;
-  };
+  }, [id]);
 
-  return { project, loading, saving, save, refresh };
+  const updateLocal = useCallback(
+    (updater: (prev: ProyectoCompleto) => ProyectoCompleto) => {
+      setProject((prev) => (prev ? updater(prev) : prev));
+    },
+    []
+  );
+
+  return { project, loading, saving, save, refresh, updateLocal };
 }

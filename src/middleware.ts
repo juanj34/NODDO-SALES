@@ -1,7 +1,77 @@
 import { createServerClient, type CookieOptions } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
+import { parseDomain, resolveCustomDomainToSlug } from "@/lib/domains";
 
 export async function middleware(request: NextRequest) {
+  const hostname = request.headers.get("host") || "localhost:3000";
+  const { pathname } = request.nextUrl;
+  const domainInfo = parseDomain(hostname);
+
+  // ─── Subdomain or Custom Domain → rewrite to /sites/[slug] ───
+  if (domainInfo.type === "subdomain" || domainInfo.type === "custom_domain") {
+    // Let API and auth routes pass through without rewriting
+    if (pathname.startsWith("/api/") || pathname.startsWith("/auth/")) {
+      return NextResponse.next();
+    }
+
+    // Don't rewrite /sites/ paths (already correct)
+    if (pathname.startsWith("/sites/")) {
+      return NextResponse.next();
+    }
+
+    // Don't rewrite Next.js internals
+    if (pathname.startsWith("/_next/") || pathname === "/favicon.ico") {
+      return NextResponse.next();
+    }
+
+    let slug: string | undefined;
+
+    if (domainInfo.type === "subdomain") {
+      slug = domainInfo.slug;
+    } else {
+      // Custom domain: resolve to slug via DB lookup
+      slug = (await resolveCustomDomainToSlug(domainInfo.domain!)) ?? undefined;
+    }
+
+    if (!slug) {
+      // Unknown domain — redirect to main platform
+      const rootDomain = process.env.NEXT_PUBLIC_ROOT_DOMAIN || "localhost:3000";
+      const protocol = rootDomain.includes("localhost") ? "http" : "https";
+      return NextResponse.redirect(new URL(`${protocol}://${rootDomain}`));
+    }
+
+    // Rewrite: / → /sites/slug, /galeria → /sites/slug/galeria, etc.
+    const rewritePath =
+      pathname === "/" ? `/sites/${slug}` : `/sites/${slug}${pathname}`;
+    const url = request.nextUrl.clone();
+    url.pathname = rewritePath;
+
+    // Set header so the site layout knows to use root-relative links
+    const response = NextResponse.rewrite(url, {
+      request: {
+        headers: new Headers(request.headers),
+      },
+    });
+    response.headers.set("x-site-base-path", "");
+    return response;
+  }
+
+  // ─── Platform (main domain) ───
+
+  // Only run auth check on routes that need it
+  const isDashboardRoute =
+    pathname === "/proyectos" ||
+    pathname.startsWith("/editor") ||
+    pathname === "/leads" ||
+    pathname === "/equipo";
+  const isLoginRoute = pathname === "/login";
+
+  if (!isDashboardRoute && !isLoginRoute) {
+    // Public routes (landing page, /sites/*, /api/*, etc.) — pass through
+    return NextResponse.next();
+  }
+
+  // Auth check needed — create Supabase client
   let response = NextResponse.next({
     request: { headers: request.headers },
   });
@@ -39,22 +109,13 @@ export async function middleware(request: NextRequest) {
     data: { user },
   } = await supabase.auth.getUser();
 
-  const { pathname } = request.nextUrl;
-
-  // Protected dashboard routes
-  const isDashboardRoute =
-    pathname === "/proyectos" ||
-    pathname.startsWith("/editor") ||
-    pathname === "/leads";
-
   if (isDashboardRoute && !user) {
     const loginUrl = new URL("/login", request.url);
     loginUrl.searchParams.set("redirect", pathname);
     return NextResponse.redirect(loginUrl);
   }
 
-  // Redirect logged-in users away from login
-  if (pathname === "/login" && user) {
+  if (isLoginRoute && user) {
     return NextResponse.redirect(new URL("/proyectos", request.url));
   }
 
@@ -62,5 +123,7 @@ export async function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/proyectos", "/editor/:path*", "/leads", "/login"],
+  matcher: [
+    "/((?!api/|_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp|ico|css|js|woff|woff2)$).*)",
+  ],
 };

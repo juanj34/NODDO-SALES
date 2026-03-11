@@ -1,4 +1,4 @@
-import { createClient } from "@/lib/supabase/server";
+import { getAuthContext } from "@/lib/auth-context";
 import { NextRequest, NextResponse } from "next/server";
 
 export async function DELETE(
@@ -7,14 +7,13 @@ export async function DELETE(
 ) {
   try {
     const { id } = await params;
-    const supabase = await createClient();
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-    if (!user)
+    const auth = await getAuthContext();
+    if (!auth)
       return NextResponse.json({ error: "No autorizado" }, { status: 401 });
+    if (auth.role !== "admin")
+      return NextResponse.json({ error: "Solo administradores" }, { status: 403 });
 
-    const { error } = await supabase
+    const { error } = await auth.supabase
       .from("galeria_imagenes")
       .delete()
       .eq("id", id);

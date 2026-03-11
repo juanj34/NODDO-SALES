@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { headers } from "next/headers";
 import { notFound } from "next/navigation";
 import { getProyectoBySlug } from "@/lib/supabase/server-queries";
 import { mockProyecto } from "@/data/mock";
@@ -36,15 +37,34 @@ export async function generateMetadata({
     return { title: "Proyecto no encontrado" };
   }
 
+  const title = `${proyecto.nombre} — ${proyecto.constructora_nombre || "Noddo"}`;
+  const description = proyecto.descripcion || "";
+  const ogImage = proyecto.og_image_url || proyecto.render_principal_url;
+  const favicon = proyecto.favicon_url || proyecto.logo_url;
+
   return {
-    title: `${proyecto.nombre} — ${proyecto.constructora_nombre || "NodeSites"}`,
-    description: proyecto.descripcion || "",
+    title,
+    description,
+    // Favicon + Apple Touch Icon (per-project)
+    ...(favicon
+      ? { icons: { icon: favicon, apple: favicon } }
+      : {}),
+    // Open Graph — WhatsApp, Facebook, LinkedIn, Slack
     openGraph: {
+      type: "website",
       title: proyecto.nombre,
-      description: proyecto.descripcion || "",
-      images: proyecto.render_principal_url
-        ? [{ url: proyecto.render_principal_url }]
-        : [],
+      description,
+      siteName: proyecto.constructora_nombre || "Noddo",
+      ...(ogImage
+        ? { images: [{ url: ogImage, width: 1200, height: 630 }] }
+        : {}),
+    },
+    // Twitter Card
+    twitter: {
+      card: ogImage ? "summary_large_image" : "summary",
+      title: proyecto.nombre,
+      description,
+      ...(ogImage ? { images: [ogImage] } : {}),
     },
   };
 }
@@ -57,8 +77,14 @@ export default async function SiteLayout({ params, children }: Props) {
     notFound();
   }
 
+  // Read header set by middleware for subdomain/custom domain routing
+  const headersList = await headers();
+  const basePathHeader = headersList.get("x-site-base-path");
+  const basePath =
+    basePathHeader !== null ? basePathHeader : `/sites/${slug}`;
+
   return (
-    <SiteLayoutClient proyecto={proyecto}>
+    <SiteLayoutClient proyecto={proyecto} basePath={basePath}>
       {children}
     </SiteLayoutClient>
   );

@@ -2,8 +2,9 @@
 
 import { useState } from "react";
 import { motion } from "framer-motion";
-import { Send, CheckCircle } from "lucide-react";
+import { Send, CheckCircle, Loader2 } from "lucide-react";
 import type { Tipologia } from "@/types";
+import { useTranslation } from "@/i18n";
 
 interface LeadFormProps {
   proyectoId: string;
@@ -20,6 +21,7 @@ interface FormData {
 }
 
 export function LeadForm({ proyectoId, tipologias }: LeadFormProps) {
+  const { t } = useTranslation("common");
   const [formData, setFormData] = useState<FormData>({
     nombre: "",
     email: "",
@@ -30,10 +32,12 @@ export function LeadForm({ proyectoId, tipologias }: LeadFormProps) {
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
+    setError(null);
 
     try {
       const res = await fetch("/api/leads", {
@@ -50,9 +54,11 @@ export function LeadForm({ proyectoId, tipologias }: LeadFormProps) {
 
       if (res.ok) {
         setIsSubmitted(true);
+      } else {
+        setError(t("errors.submitFailed"));
       }
     } catch {
-      // Silent fail for MVP - will add error handling later
+      setError(t("errors.connectionError"));
     } finally {
       setIsSubmitting(false);
     }
@@ -69,67 +75,64 @@ export function LeadForm({ proyectoId, tipologias }: LeadFormProps) {
       <motion.div
         initial={{ opacity: 0, scale: 0.9 }}
         animate={{ opacity: 1, scale: 1 }}
-        className="flex flex-col items-center justify-center gap-4 py-12"
+        className="glass-card p-12 flex flex-col items-center justify-center gap-4"
       >
         <CheckCircle size={48} className="text-[var(--site-primary)]" />
-        <h3 className="text-xl text-white font-light">Gracias por tu interés</h3>
-        <p className="text-white/40 text-sm">
-          Un asesor se pondrá en contacto contigo pronto.
+        <h3 className="text-xl text-white font-light">{t("success.thankYou")}</h3>
+        <p className="text-[var(--text-tertiary)] text-sm">
+          {t("success.advisorContact")}
         </p>
       </motion.div>
     );
   }
 
-  const inputClass =
-    "w-full bg-white/5 border border-white/10 rounded px-4 py-3 text-white text-sm placeholder:text-white/20 focus:outline-none focus:border-[var(--site-primary)]/50 transition-colors";
-
   return (
-    <form onSubmit={handleSubmit} className="space-y-4 max-w-lg">
-      <div className="grid grid-cols-2 gap-4">
+    <form onSubmit={handleSubmit} className="glass-card p-8 space-y-4 max-w-lg">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <input
           type="text"
           name="nombre"
-          placeholder="Nombre completo *"
+          placeholder={t("form.fullName")}
           required
           value={formData.nombre}
           onChange={handleChange}
-          className={inputClass}
+          className="input-glass w-full"
         />
         <input
           type="email"
           name="email"
-          placeholder="Email *"
+          placeholder={t("form.email")}
           required
           value={formData.email}
           onChange={handleChange}
-          className={inputClass}
+          className="input-glass w-full"
         />
       </div>
-      <div className="grid grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <input
           type="tel"
           name="telefono"
-          placeholder="Teléfono"
+          placeholder={t("form.phone")}
           value={formData.telefono}
           onChange={handleChange}
-          className={inputClass}
+          className="input-glass w-full"
         />
         <input
           type="text"
           name="pais"
-          placeholder="País"
+          placeholder={t("form.country")}
           value={formData.pais}
           onChange={handleChange}
-          className={inputClass}
+          className="input-glass w-full"
         />
       </div>
       <select
         name="tipologia_interes"
         value={formData.tipologia_interes}
         onChange={handleChange}
-        className={inputClass}
+        className="input-glass w-full"
       >
-        <option value="">Tipología de interés</option>
+        <option value="">{t("form.typeOfInterest")}</option>
         {tipologias.map((t) => (
           <option key={t.id} value={t.nombre}>
             {t.nombre} — {t.area_m2} m²
@@ -138,22 +141,31 @@ export function LeadForm({ proyectoId, tipologias }: LeadFormProps) {
       </select>
       <textarea
         name="mensaje"
-        placeholder="Mensaje (opcional)"
+        placeholder={t("form.messageOptional")}
         rows={3}
         value={formData.mensaje}
         onChange={handleChange}
-        className={inputClass + " resize-none"}
+        className="input-glass w-full resize-none"
       />
       <motion.button
         type="submit"
         disabled={isSubmitting}
         whileHover={{ scale: 1.02 }}
         whileTap={{ scale: 0.98 }}
-        className="w-full bg-[var(--site-primary)] text-black font-medium py-3 rounded flex items-center justify-center gap-2 text-sm tracking-wider hover:brightness-110 transition-all disabled:opacity-50"
+        className="btn-warm w-full py-3.5 flex items-center justify-center gap-2 text-sm tracking-[0.2em] uppercase"
       >
-        <Send size={16} />
-        {isSubmitting ? "ENVIANDO..." : "ENVIAR"}
+        {isSubmitting ? (
+          <Loader2 size={16} className="animate-spin" />
+        ) : (
+          <Send size={16} />
+        )}
+        {isSubmitting ? t("buttons.sending") : t("buttons.send")}
       </motion.button>
+      {error && (
+        <p className="text-red-400 text-sm text-center mt-3" role="alert">
+          {error}
+        </p>
+      )}
     </form>
   );
 }

@@ -4,8 +4,10 @@ import { useState, useEffect, useCallback } from "react";
 import { motion } from "framer-motion";
 import { Download, Search, Loader2 } from "lucide-react";
 import type { Lead } from "@/types";
+import { useTranslation } from "@/i18n";
 
 export default function LeadsPage() {
+  const { t, locale } = useTranslation("dashboard");
   const [leads, setLeads] = useState<Lead[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
@@ -44,7 +46,7 @@ export default function LeadsPage() {
 
   const exportCSV = () => {
     if (!leads.length) return;
-    const headers = ["Nombre", "Email", "Teléfono", "País", "Tipología", "Mensaje", "Fecha"];
+    const headers = [t("leads.name"), t("leads.email"), t("leads.phone"), t("leads.country"), t("leads.type"), "Mensaje", t("leads.date")];
     const rows = leads.map((l) => [
       l.nombre,
       l.email,
@@ -52,7 +54,7 @@ export default function LeadsPage() {
       l.pais ?? "",
       l.tipologia_interes ?? "",
       l.mensaje ?? "",
-      new Date(l.created_at).toLocaleDateString("es-CO"),
+      new Date(l.created_at).toLocaleDateString(locale === "es" ? "es-CO" : "en-US"),
     ]);
     const csv = [
       headers.join(","),
@@ -75,20 +77,20 @@ export default function LeadsPage() {
     <div className="p-8">
       <div className="flex items-center justify-between mb-8">
         <div>
-          <h1 className="text-2xl font-light tracking-wider">Leads</h1>
-          <p className="text-white/40 text-sm mt-1">
+          <h1 className="text-2xl font-light tracking-wider">{t("leads.title")}</h1>
+          <p className="text-[var(--text-tertiary)] text-sm mt-1">
             {loading
-              ? "Cargando..."
-              : `${leads.length} contacto${leads.length !== 1 ? "s" : ""} recibido${leads.length !== 1 ? "s" : ""}`}
+              ? t("leads.loading")
+              : t("leads.contactCount", { count: String(leads.length) })}
           </p>
         </div>
         <button
           onClick={exportCSV}
           disabled={!leads.length || loading}
-          className="flex items-center gap-2 px-4 py-2 border border-white/10 rounded-lg text-xs text-white/50 hover:text-white hover:border-white/30 transition-all disabled:opacity-30"
+          className="flex items-center gap-2 px-4 py-2 border border-[var(--border-default)] rounded-lg text-xs text-[var(--text-secondary)] hover:text-white hover:border-[var(--border-default)] transition-all disabled:opacity-30"
         >
           <Download size={14} />
-          Exportar CSV
+          {t("leads.exportCsv")}
         </button>
       </div>
 
@@ -97,25 +99,25 @@ export default function LeadsPage() {
         <div className="relative flex-1 max-w-sm">
           <Search
             size={14}
-            className="absolute left-3 top-1/2 -translate-y-1/2 text-white/20"
+            className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--text-muted)]"
           />
           <input
             type="text"
-            placeholder="Buscar por nombre o email..."
+            placeholder={t("leads.searchPlaceholder")}
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="w-full bg-white/5 border border-white/10 rounded-lg pl-9 pr-4 py-2 text-sm text-white placeholder:text-white/20 focus:outline-none focus:border-[#C9A96E]/50 transition-colors"
+            className="w-full bg-[var(--surface-2)] border border-[var(--border-default)] rounded-lg pl-9 pr-4 py-2 text-sm text-white placeholder:text-[var(--text-muted)] focus:outline-none focus:border-[rgba(var(--site-primary-rgb),0.5)] transition-colors"
           />
         </div>
         <select
           value={tipologia}
           onChange={(e) => setTipologia(e.target.value)}
-          className="bg-white/5 border border-white/10 rounded-lg px-4 py-2 text-sm text-white/60 focus:outline-none focus:border-[#C9A96E]/50"
+          className="bg-[var(--surface-2)] border border-[var(--border-default)] rounded-lg px-4 py-2 text-sm text-[var(--text-secondary)] focus:outline-none focus:border-[rgba(var(--site-primary-rgb),0.5)]"
         >
-          <option value="">Todas las tipologías</option>
-          {uniqueTipologias.map((t) => (
-            <option key={t} value={t!}>
-              {t}
+          <option value="">{t("leads.allTypes")}</option>
+          {uniqueTipologias.map((tip) => (
+            <option key={tip} value={tip!}>
+              {tip}
             </option>
           ))}
         </select>
@@ -124,31 +126,31 @@ export default function LeadsPage() {
       {/* Table */}
       {loading ? (
         <div className="flex items-center justify-center py-20">
-          <Loader2 className="animate-spin text-[#C9A96E]" size={32} />
+          <Loader2 className="animate-spin text-[var(--site-primary)]" size={32} />
         </div>
       ) : leads.length === 0 ? (
         <div className="text-center py-20">
-          <p className="text-white/30 text-lg">No hay leads</p>
-          <p className="text-white/20 text-sm mt-1">
+          <p className="text-[var(--text-tertiary)] text-lg">{t("leads.noLeads")}</p>
+          <p className="text-[var(--text-muted)] text-sm mt-1">
             {debouncedSearch || tipologia
-              ? "Intenta ajustar los filtros"
-              : "Los leads aparecerán aquí cuando alguien llene el formulario"}
+              ? t("leads.adjustFilters")
+              : t("leads.leadsWillAppear")}
           </p>
         </div>
       ) : (
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
-          className="bg-white/5 border border-white/5 rounded-xl overflow-hidden"
+          className="bg-[var(--surface-2)] border border-[var(--border-subtle)] rounded-xl overflow-hidden"
         >
           <table className="w-full">
             <thead>
-              <tr className="border-b border-white/5">
-                {["Nombre", "Email", "Teléfono", "País", "Tipología", "Fecha"].map(
+              <tr className="border-b border-[var(--border-subtle)]">
+                {[t("leads.name"), t("leads.email"), t("leads.phone"), t("leads.country"), t("leads.type"), t("leads.date")].map(
                   (h) => (
                     <th
                       key={h}
-                      className="text-left px-6 py-3 text-xs text-white/30 tracking-wider uppercase font-normal"
+                      className="text-left px-6 py-3 text-xs text-[var(--text-tertiary)] tracking-wider uppercase font-normal"
                     >
                       {h}
                     </th>
@@ -163,29 +165,29 @@ export default function LeadsPage() {
                   initial={{ opacity: 0, y: 8 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: idx * 0.03 }}
-                  className="border-b border-white/5 last:border-0 hover:bg-white/5 transition-colors"
+                  className="border-b border-[var(--border-subtle)] last:border-0 hover:bg-[var(--surface-2)] transition-colors"
                 >
                   <td className="px-6 py-4 text-sm">{lead.nombre}</td>
-                  <td className="px-6 py-4 text-sm text-white/60">
+                  <td className="px-6 py-4 text-sm text-[var(--text-secondary)]">
                     {lead.email}
                   </td>
-                  <td className="px-6 py-4 text-sm text-white/60">
+                  <td className="px-6 py-4 text-sm text-[var(--text-secondary)]">
                     {lead.telefono ?? "—"}
                   </td>
-                  <td className="px-6 py-4 text-sm text-white/60">
+                  <td className="px-6 py-4 text-sm text-[var(--text-secondary)]">
                     {lead.pais ?? "—"}
                   </td>
                   <td className="px-6 py-4">
                     {lead.tipologia_interes ? (
-                      <span className="px-2 py-1 bg-[#C9A96E]/10 text-[#C9A96E] rounded text-xs">
+                      <span className="px-2 py-1 bg-[rgba(var(--site-primary-rgb),0.1)] text-[var(--site-primary)] rounded text-xs">
                         {lead.tipologia_interes}
                       </span>
                     ) : (
-                      <span className="text-white/20">—</span>
+                      <span className="text-[var(--text-muted)]">—</span>
                     )}
                   </td>
-                  <td className="px-6 py-4 text-sm text-white/40">
-                    {new Date(lead.created_at).toLocaleDateString("es-CO")}
+                  <td className="px-6 py-4 text-sm text-[var(--text-tertiary)]">
+                    {new Date(lead.created_at).toLocaleDateString(locale === "es" ? "es-CO" : "en-US")}
                   </td>
                 </motion.tr>
               ))}

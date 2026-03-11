@@ -30,33 +30,48 @@ npm run start    # Start production server
 ## Design System
 
 ### Philosophy
-Warm and inviting. Soft earth tones, cream/off-white accents, glassmorphism, rounded shapes. Premium but approachable — like a high-end wellness or lifestyle brand.
+Dark luxury with depth. Layered surfaces, warm champagne accents, sophisticated glassmorphism, and purposeful micro-interactions. Premium and immersive — like Linear.app meets luxury real estate.
 
 ### Color Palette (CSS custom properties in globals.css)
-- `--site-primary` — Accent gold (`#C9A96E`) → `text-site-primary`, `bg-site-primary`
-- `--site-secondary` — Text color (`#ffffff`)
-- `--site-bg` — Background (`#0a0a0a`)
-- `--cream` — Light warm (`#F5F0E8`)
-- `--warm-50` to `--warm-900` — Warm gray scale (registered as `text-warm-*`, `bg-warm-*`)
+- `--site-primary: #D4A574` — Warm champagne accent (customizable per project)
+- `--site-primary-rgb: 212, 165, 116` — For rgba() usage
+- `--site-bg: #0A0A0B` — Near-black base
 
-### Glassmorphism Utilities (globals.css)
-- `.glass` — Dark frosted glass (white/6% bg, blur-20, white/10% border)
-- `.glass-light` — Lighter frosted glass (white/10% bg, blur-24)
-- `.glass-card` — Dark rounded card (white/5% bg, blur-16, rounded-3xl, shadow)
-- `.glass-panel` — Light/white panel for overlays (white/94% bg, blur-20)
+### Surface System (elevation layers)
+- `--surface-0: #0A0A0B` — Base background
+- `--surface-1: #111113` — Sidebar, cards base
+- `--surface-2: #1A1A1D` — Cards hover, modals
+- `--surface-3: #222226` — Inputs, active elements
+- `--surface-4: #2A2A2F` — Elevated elements
 
-### Button Styles (globals.css)
-- `.btn-warm` — Gold gradient, rounded-full, shadow, hover lift effect
-- `.btn-outline-warm` — Gold border, rounded-full, hover fills gold
+### Border & Text Hierarchy
+- `--border-subtle` (white 6%), `--border-default` (white 10%), `--border-strong` (white 16%)
+- `--text-primary` (white 92%), `--text-secondary` (white 55%), `--text-tertiary` (white 35%), `--text-muted` (white 18%)
+
+### Glassmorphism (globals.css utilities)
+- `.glass` — Dark frosted (white/4% bg, blur-24, inset highlight)
+- `.glass-light` — Lighter frosted (white/7% bg, blur-32)
+- `.glass-dark` — Black frosted (black/70% bg, blur-32, shadow)
+- `.glass-card` — Rounded card (white/3% bg, blur-24, rounded-[1.25rem], shadow)
+
+### Buttons (globals.css)
+- `.btn-warm` — Gold gradient, dark text, rounded-[0.75rem], glow shadow, hover lift
+- `.btn-outline-warm` — Gold border, transparent bg, hover fills with glow
+- `.btn-ghost` — Transparent, subtle border on hover
+
+### Input Styles
+- `.input-glass` — surface-3 bg, border-default, focus with primary glow ring
 
 ### Design Rules
-- Use glassmorphism for overlays, navigation, cards
-- Rounded shapes everywhere: `rounded-2xl`, `rounded-3xl`, `rounded-full`
-- Warm gradient overlays on hero images: `from-[#1A1610]/80`
-- Gold accent (`--site-primary`) for CTAs, active states, highlights
-- Unsplash real estate photos for mock data (not picsum.photos)
+- Use surface layers for depth (surface-0 → surface-4, never flat bg-white/5)
+- Use CSS variables for ALL accent colors — never hardcode hex
+- For primary color with opacity: `rgba(var(--site-primary-rgb), 0.XX)` — NOT `var(--site-primary)/XX`
+- Rounded corners: 0.625rem (inputs/small), 0.75rem (buttons), 1.25rem (cards)
 - Framer Motion for all page transitions and interactive elements
-- Dark backgrounds with warm undertones, never pure black alone
+- Glow effects: `var(--glow-sm)`, `var(--glow-md)`, `var(--glow-lg)`
+- Shadows: `var(--shadow-sm)` through `var(--shadow-xl)` for consistent depth
+
+
 
 ## Architecture
 
@@ -145,4 +160,4 @@ NEXT_PUBLIC_MAPBOX_TOKEN=
 - Target: Real estate developers in Latin America (Colombia primarily)
 - Language: Spanish (es)
 - WhatsApp is the primary contact channel — always show floating button
-- Microsites must feel premium: dark backgrounds with warm undertones, gold accents, glassmorphism, rounded shapes, high-quality imagery
+- Microsites must feel premium: dark luxury with layered surfaces, warm champagne accents, sophisticated glassmorphism, depth through shadows and glows

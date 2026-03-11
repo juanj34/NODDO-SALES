@@ -3,9 +3,11 @@
 import { motion, AnimatePresence } from "framer-motion";
 import { useIsPortrait } from "@/hooks/useMediaQuery";
 import { RotateCw } from "lucide-react";
+import { useTranslation } from "@/i18n";
 
 export function RotateDevice() {
   const isPortrait = useIsPortrait();
+  const { t } = useTranslation("common");
 
   return (
     <AnimatePresence>
@@ -28,10 +30,10 @@ export function RotateDevice() {
             <RotateCw size={64} strokeWidth={1} className="text-[var(--site-primary)]" />
           </motion.div>
           <p className="text-lg tracking-wider font-light">
-            Gira tu dispositivo a modo horizontal
+            {t("rotateDevice.message")}
           </p>
           <p className="text-sm text-white/40">
-            El modo vertical no es compatible
+            {t("rotateDevice.subtitle")}
           </p>
         </motion.div>
       )}

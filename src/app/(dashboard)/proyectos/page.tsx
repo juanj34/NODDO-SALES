@@ -1,7 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
+import Tilt from "react-parallax-tilt";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useProjects } from "@/hooks/useProject";
@@ -12,12 +13,20 @@ import {
   Trash2,
   Loader2,
   X,
+  FolderOpen,
+  Sparkles,
+  Bot,
+  AlertTriangle,
 } from "lucide-react";
+import { MagneticButton } from "@/components/ui/MagneticButton";
+import { useTranslation } from "@/i18n";
+import { useToast } from "@/components/dashboard/Toast";
+import { useAuthRole } from "@/hooks/useAuthContext";
 
 const estadoColors: Record<string, string> = {
-  publicado: "bg-green-500/20 text-green-400",
-  borrador: "bg-yellow-500/20 text-yellow-400",
-  archivado: "bg-gray-500/20 text-gray-400",
+  publicado: "bg-emerald-500/15 text-emerald-400 shadow-[0_0_8px_rgba(52,211,153,0.15)]",
+  borrador: "bg-amber-500/15 text-amber-400",
+  archivado: "bg-neutral-500/15 text-neutral-400",
 };
 
 export default function ProyectosPage() {
@@ -26,7 +35,12 @@ export default function ProyectosPage() {
   const [creating, setCreating] = useState(false);
   const [nombre, setNombre] = useState("");
   const [slug, setSlug] = useState("");
+  const [creatingDemo, setCreatingDemo] = useState(false);
   const router = useRouter();
+  const { t } = useTranslation("dashboard");
+  const toast = useToast();
+  const { role } = useAuthRole();
+  const isAdmin = role === "admin";
 
   const handleCreate = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -43,17 +57,51 @@ export default function ProyectosPage() {
       router.push(`/editor/${proyecto.id}`);
     } else {
       const data = await res.json();
-      alert(data.error || "Error al crear proyecto");
+      toast.error(data.error || "Error al crear proyecto");
     }
     setCreating(false);
   };
 
-  const handleDelete = async (id: string, name: string) => {
-    if (!confirm(`¿Eliminar "${name}"? Esta acción no se puede deshacer.`))
-      return;
+  const handleCreateDemo = async () => {
+    setCreatingDemo(true);
+    try {
+      const res = await fetch("/api/proyectos/demo", { method: "POST" });
+      if (res.ok) {
+        const { id } = await res.json();
+        router.push(`/editor/${id}`);
+      } else {
+        const data = await res.json();
+        toast.error(data.error || "Error al crear demo");
+      }
+    } catch {
+      toast.error("Error al crear demo");
+    } finally {
+      setCreatingDemo(false);
+    }
+  };
 
-    const res = await fetch(`/api/proyectos/${id}`, { method: "DELETE" });
-    if (res.ok) refresh();
+  // Delete confirmation modal state
+  const [deleteTarget, setDeleteTarget] = useState<{ id: string; name: string } | null>(null);
+  const [deleteConfirmText, setDeleteConfirmText] = useState("");
+  const [deleting, setDeleting] = useState(false);
+
+  const handleDelete = (id: string, name: string) => {
+    setDeleteTarget({ id, name });
+    setDeleteConfirmText("");
+  };
+
+  const confirmDelete = async () => {
+    if (!deleteTarget) return;
+    setDeleting(true);
+    try {
+      const res = await fetch(`/api/proyectos/${deleteTarget.id}`, { method: "DELETE" });
+      if (res.ok) {
+        setDeleteTarget(null);
+        refresh();
+      }
+    } finally {
+      setDeleting(false);
+    }
   };
 
   const generateSlug = (text: string) =>
@@ -64,179 +112,322 @@ export default function ProyectosPage() {
       .replace(/[^a-z0-9]+/g, "-")
       .replace(/(^-|-$)/g, "");
 
-  const inputClass =
-    "w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2.5 text-sm text-white placeholder:text-white/20 focus:outline-none focus:border-[#C9A96E]/50 transition-colors";
-
   return (
-    <div className="p-8">
-      <div className="flex items-center justify-between mb-8">
+    <div className="p-8 max-w-7xl mx-auto">
+      {/* Header */}
+      <div className="flex items-center justify-between mb-10">
         <div>
-          <h1 className="text-2xl font-light tracking-wider">Proyectos</h1>
-          <p className="text-white/40 text-sm mt-1">
-            Gestiona tus micrositios inmobiliarios
+          <h1 className="text-2xl font-medium tracking-wide text-[var(--text-primary)]">
+            {t("proyectos.title")}
+          </h1>
+          <p className="text-[var(--text-tertiary)] text-sm mt-1">
+            {t("proyectos.description")}
           </p>
         </div>
-        <button
-          onClick={() => setShowCreate(true)}
-          className="flex items-center gap-2 bg-[#C9A96E] text-black px-5 py-2.5 rounded-lg text-sm font-medium hover:brightness-110 transition-all"
-        >
-          <Plus size={16} />
-          Nuevo Proyecto
-        </button>
+        {isAdmin && (
+          <div className="flex items-center gap-2">
+            <MagneticButton>
+              <button
+                onClick={handleCreateDemo}
+                disabled={creatingDemo}
+                className="flex items-center gap-2 px-4 py-2.5 text-sm border border-[var(--border-default)] rounded-xl text-[var(--text-secondary)] hover:text-white hover:border-[var(--border-strong)] hover:bg-[var(--surface-2)] transition-all disabled:opacity-50"
+              >
+                {creatingDemo ? <Loader2 size={14} className="animate-spin" /> : <Sparkles size={14} />}
+                {creatingDemo ? t("proyectos.loading") : t("proyectos.createDemo")}
+              </button>
+            </MagneticButton>
+            <MagneticButton>
+              <Link
+                href="/crear"
+                className="flex items-center gap-2 px-4 py-2.5 text-sm border border-[rgba(var(--site-primary-rgb),0.30)] rounded-xl text-[var(--site-primary)] hover:bg-[rgba(var(--site-primary-rgb),0.10)] transition-all"
+              >
+                <Bot size={14} />
+                {t("proyectos.createWithAI")}
+              </Link>
+            </MagneticButton>
+            <MagneticButton>
+              <button
+                onClick={() => setShowCreate(true)}
+                className="btn-noddo flex items-center gap-2 px-5 py-2.5 text-sm"
+              >
+                <Plus size={16} />
+                {t("proyectos.newProject")}
+              </button>
+            </MagneticButton>
+          </div>
+        )}
       </div>
 
       {/* Create modal */}
-      {showCreate && (
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          className="fixed inset-0 z-50 bg-black/60 flex items-center justify-center p-4"
-        >
-          <motion.form
-            initial={{ scale: 0.95 }}
-            animate={{ scale: 1 }}
-            onSubmit={handleCreate}
-            className="bg-[#1a1a1a] border border-white/10 rounded-xl p-6 w-full max-w-md space-y-4"
+      <AnimatePresence>
+        {showCreate && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4"
+            onClick={() => setShowCreate(false)}
           >
-            <div className="flex items-center justify-between mb-2">
-              <h2 className="text-lg font-light">Nuevo Proyecto</h2>
-              <button
-                type="button"
-                onClick={() => setShowCreate(false)}
-                className="text-white/30 hover:text-white"
-              >
-                <X size={18} />
-              </button>
-            </div>
-            <div>
-              <label className="block text-xs text-white/50 mb-1.5">
-                Nombre
-              </label>
-              <input
-                type="text"
-                value={nombre}
-                onChange={(e) => {
-                  setNombre(e.target.value);
-                  setSlug(generateSlug(e.target.value));
-                }}
-                required
-                placeholder="Alto de Yeguas"
-                className={inputClass}
-              />
-            </div>
-            <div>
-              <label className="block text-xs text-white/50 mb-1.5">
-                Slug (URL)
-              </label>
-              <input
-                type="text"
-                value={slug}
-                onChange={(e) => setSlug(generateSlug(e.target.value))}
-                required
-                placeholder="alto-de-yeguas"
-                className={inputClass}
-              />
-              <p className="text-xs text-white/20 mt-1">
-                /sites/{slug || "tu-proyecto"}
-              </p>
-            </div>
-            <button
-              type="submit"
-              disabled={creating}
-              className="w-full bg-[#C9A96E] text-black py-2.5 rounded-lg text-sm font-medium hover:brightness-110 disabled:opacity-50 flex items-center justify-center gap-2"
+            <motion.form
+              initial={{ scale: 0.95, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.95, opacity: 0 }}
+              transition={{ type: "spring", damping: 25, stiffness: 300 }}
+              onClick={(e) => e.stopPropagation()}
+              onSubmit={handleCreate}
+              className="glass-card p-8 w-full max-w-md space-y-5"
             >
-              {creating && <Loader2 size={14} className="animate-spin" />}
-              Crear Proyecto
-            </button>
-          </motion.form>
-        </motion.div>
-      )}
+              <div className="flex items-center justify-between mb-1">
+                <h2 className="text-lg font-medium tracking-wide text-[var(--text-primary)]">
+                  {t("proyectos.newProject")}
+                </h2>
+                <button
+                  type="button"
+                  onClick={() => setShowCreate(false)}
+                  className="text-[var(--text-muted)] hover:text-[var(--text-secondary)] transition-colors p-1 rounded-lg hover:bg-white/5"
+                >
+                  <X size={18} />
+                </button>
+              </div>
+
+              <div>
+                <label className="block text-xs text-[var(--text-secondary)] mb-2 tracking-wider uppercase font-medium">
+                  {t("proyectos.nameLabel")}
+                </label>
+                <input
+                  type="text"
+                  value={nombre}
+                  onChange={(e) => {
+                    setNombre(e.target.value);
+                    setSlug(generateSlug(e.target.value));
+                  }}
+                  required
+                  placeholder="Alto de Yeguas"
+                  className="input-glass w-full"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs text-[var(--text-secondary)] mb-2 tracking-wider uppercase font-medium">
+                  {t("proyectos.slugLabel")}
+                </label>
+                <input
+                  type="text"
+                  value={slug}
+                  onChange={(e) => setSlug(generateSlug(e.target.value))}
+                  required
+                  placeholder="alto-de-yeguas"
+                  className="input-glass w-full"
+                />
+                <p className="text-xs text-[var(--text-muted)] mt-2">
+                  {slug || "tu-proyecto"}.noddo.co
+                </p>
+              </div>
+
+              <MagneticButton>
+                <button
+                  type="submit"
+                  disabled={creating}
+                  className="btn-noddo w-full py-2.5 text-sm flex items-center justify-center gap-2"
+                >
+                  {creating && <Loader2 size={14} className="animate-spin" />}
+                  {t("proyectos.createProject")}
+                </button>
+              </MagneticButton>
+            </motion.form>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Delete confirmation modal */}
+      <AnimatePresence>
+        {deleteTarget && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4"
+            onClick={() => !deleting && setDeleteTarget(null)}
+          >
+            <motion.div
+              initial={{ scale: 0.95, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.95, opacity: 0 }}
+              transition={{ type: "spring", damping: 25, stiffness: 300 }}
+              onClick={(e) => e.stopPropagation()}
+              className="glass-card p-6 w-full max-w-sm space-y-4"
+            >
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-red-500/15 flex items-center justify-center shrink-0">
+                  <AlertTriangle size={20} className="text-red-400" />
+                </div>
+                <div>
+                  <h3 className="text-sm font-medium text-[var(--text-primary)]">
+                    {t("proyectos.deleteTitle")}
+                  </h3>
+                  <p className="text-[11px] text-[var(--text-tertiary)]">
+                    {deleteTarget.name}
+                  </p>
+                </div>
+                <button
+                  onClick={() => setDeleteTarget(null)}
+                  disabled={deleting}
+                  className="ml-auto text-[var(--text-muted)] hover:text-[var(--text-secondary)] transition-colors p-1 rounded-lg hover:bg-white/5"
+                >
+                  <X size={16} />
+                </button>
+              </div>
+
+              <p className="text-xs text-[var(--text-secondary)] leading-relaxed">
+                {t("proyectos.deleteDescription")}
+              </p>
+
+              <div>
+                <label className="block text-xs text-[var(--text-secondary)] mb-2">
+                  {t("proyectos.deleteTypeToConfirm")}{" "}
+                  <span className="font-semibold text-[var(--text-primary)] font-mono">
+                    {deleteTarget.name}
+                  </span>
+                </label>
+                <input
+                  type="text"
+                  value={deleteConfirmText}
+                  onChange={(e) => setDeleteConfirmText(e.target.value)}
+                  placeholder={deleteTarget.name}
+                  className="input-glass w-full"
+                  autoFocus
+                />
+              </div>
+
+              <div className="flex gap-2 pt-1">
+                <button
+                  onClick={() => setDeleteTarget(null)}
+                  disabled={deleting}
+                  className="flex-1 py-2.5 text-xs border border-[var(--border-default)] rounded-[0.75rem] text-[var(--text-secondary)] hover:text-white hover:border-[var(--border-strong)] transition-all"
+                >
+                  Cancelar
+                </button>
+                <button
+                  onClick={confirmDelete}
+                  disabled={deleting || deleteConfirmText !== deleteTarget.name}
+                  className="flex-1 py-2.5 text-xs rounded-[0.75rem] flex items-center justify-center gap-2 bg-red-500/15 text-red-400 border border-red-500/20 hover:bg-red-500/25 hover:border-red-500/40 transition-all disabled:opacity-40 disabled:cursor-not-allowed"
+                >
+                  {deleting ? <Loader2 size={13} className="animate-spin" /> : <Trash2 size={13} />}
+                  {deleting ? t("proyectos.deleting") : t("proyectos.deleteButton")}
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {loading ? (
-        <div className="flex items-center justify-center py-20">
-          <Loader2 className="animate-spin text-[#C9A96E]" size={32} />
+        <div className="flex items-center justify-center py-24">
+          <Loader2 className="animate-spin text-[var(--site-primary)]" size={28} />
         </div>
       ) : projects.length === 0 ? (
-        <div className="text-center py-20">
-          <p className="text-white/30 text-lg mb-4">
-            No tienes proyectos aún
+        <div className="flex flex-col items-center justify-center py-24">
+          <div className="w-16 h-16 rounded-2xl bg-[var(--surface-2)] border border-[var(--border-subtle)] flex items-center justify-center mb-5">
+            <FolderOpen size={28} className="text-[var(--text-muted)]" />
+          </div>
+          <p className="text-[var(--text-tertiary)] text-lg mb-2">
+            {t("proyectos.noProjects")}
           </p>
-          <button
-            onClick={() => setShowCreate(true)}
-            className="text-[#C9A96E] text-sm hover:underline"
-          >
-            Crea tu primer proyecto
-          </button>
+          <p className="text-[var(--text-muted)] text-sm mb-6">
+            {t("proyectos.noProjectsDescription")}
+          </p>
+          <MagneticButton>
+            <button
+              onClick={() => setShowCreate(true)}
+              className="btn-outline-warm px-5 py-2.5 text-sm"
+            >
+              {t("proyectos.createProject")}
+            </button>
+          </MagneticButton>
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
           {projects.map((proyecto, idx) => (
             <motion.div
               key={proyecto.id}
-              initial={{ opacity: 0, y: 20 }}
+              initial={{ opacity: 0, y: 16 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: idx * 0.1 }}
-              className="group bg-white/5 border border-white/5 rounded-xl overflow-hidden hover:border-white/10 transition-all"
+              transition={{ delay: idx * 0.06, duration: 0.4 }}
             >
-              <div className="aspect-video relative overflow-hidden">
-                {proyecto.render_principal_url ? (
-                  <img
-                    src={proyecto.render_principal_url}
-                    alt={proyecto.nombre}
-                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                  />
-                ) : (
-                  <div className="w-full h-full bg-white/5 flex items-center justify-center text-white/20 text-sm">
-                    Sin imagen
-                  </div>
-                )}
-                <div className="absolute top-3 right-3">
-                  <span
-                    className={`px-2.5 py-1 rounded-full text-[10px] tracking-wider uppercase ${
-                      estadoColors[proyecto.estado] || estadoColors.borrador
-                    }`}
-                  >
-                    {proyecto.estado}
-                  </span>
-                </div>
-              </div>
-
-              <div className="p-5">
-                <h3 className="text-lg font-light tracking-wider mb-1">
-                  {proyecto.nombre}
-                </h3>
-                <p className="text-white/30 text-xs mb-4">
-                  {proyecto.constructora_nombre || "Sin constructora"} &bull; /
-                  {proyecto.slug}
-                </p>
-                <div className="flex items-center gap-2">
-                  <Link
-                    href={`/editor/${proyecto.id}`}
-                    className="flex items-center gap-1.5 px-3 py-1.5 border border-white/10 rounded-lg text-xs text-white/50 hover:text-white hover:border-white/30 transition-all"
-                  >
-                    <Edit2 size={12} />
-                    Editar
-                  </Link>
-                  {proyecto.estado === "publicado" && (
-                    <Link
-                      href={`/sites/${proyecto.slug}`}
-                      target="_blank"
-                      className="flex items-center gap-1.5 px-3 py-1.5 border border-white/10 rounded-lg text-xs text-white/50 hover:text-white hover:border-white/30 transition-all"
-                    >
-                      <ExternalLink size={12} />
-                      Ver sitio
-                    </Link>
+              <Tilt
+                glareEnable={true}
+                glareMaxOpacity={0.15}
+                glareColor="#ffffff"
+                glarePosition="all"
+                glareBorderRadius="12px"
+                tiltMaxAngleX={4}
+                tiltMaxAngleY={4}
+                scale={1.02}
+                transitionSpeed={2000}
+                className="group bg-[var(--surface-1)] border border-[var(--border-subtle)] rounded-xl overflow-hidden hover:border-[var(--border-default)] hover:shadow-[var(--shadow-lg)] transition-all duration-300 h-full flex flex-col"
+              >
+                <div className="aspect-video relative overflow-hidden">
+                  {proyecto.render_principal_url ? (
+                    <img
+                      src={proyecto.render_principal_url}
+                      alt={proyecto.nombre}
+                      className="w-full h-full object-cover group-hover:scale-[1.03] transition-transform duration-700 ease-out"
+                    />
+                  ) : (
+                    <div className="w-full h-full bg-[var(--surface-2)] flex items-center justify-center text-[var(--text-muted)] text-sm">
+                      {t("proyectos.noImage")}
+                    </div>
                   )}
-                  <button
-                    onClick={() =>
-                      handleDelete(proyecto.id, proyecto.nombre)
-                    }
-                    className="ml-auto text-xs text-red-400/40 hover:text-red-400 transition-all"
-                  >
-                    <Trash2 size={14} />
-                  </button>
+                  <div className="absolute inset-0 bg-gradient-to-t from-[var(--surface-1)] via-transparent to-transparent opacity-60" />
+                  <div className="absolute top-3 right-3">
+                    <span
+                      className={`px-2.5 py-1 rounded-lg text-[10px] tracking-wider uppercase font-medium backdrop-blur-sm ${estadoColors[proyecto.estado] || estadoColors.borrador
+                        }`}
+                    >
+                      {proyecto.estado}
+                    </span>
+                  </div>
                 </div>
-              </div>
+
+                <div className="p-5">
+                  <h3 className="text-base font-medium tracking-wide mb-1 text-[var(--text-primary)]">
+                    {proyecto.nombre}
+                  </h3>
+                  <p className="text-[var(--text-muted)] text-xs mb-4">
+                    {proyecto.constructora_nombre || t("proyectos.noDeveloper")} &bull;{" "}
+                    {proyecto.subdomain || proyecto.slug}.noddo.co
+                  </p>
+                  <div className="flex items-center gap-2">
+                    <Link
+                      href={`/editor/${proyecto.id}`}
+                      className="flex items-center gap-1.5 px-3.5 py-2 bg-[var(--surface-2)] border border-[var(--border-default)] rounded-[0.625rem] text-xs text-[var(--text-secondary)] hover:text-white hover:border-[var(--border-strong)] hover:bg-[var(--surface-3)] transition-all"
+                    >
+                      <Edit2 size={12} />
+                      {t("proyectos.edit")}
+                    </Link>
+                    {proyecto.estado === "publicado" && (
+                      <Link
+                        href={`/sites/${proyecto.slug}`}
+                        target="_blank"
+                        className="flex items-center gap-1.5 px-3.5 py-2 bg-[var(--surface-2)] border border-[var(--border-default)] rounded-[0.625rem] text-xs text-[var(--text-secondary)] hover:text-white hover:border-[var(--border-strong)] hover:bg-[var(--surface-3)] transition-all"
+                      >
+                        <ExternalLink size={12} />
+                        {t("proyectos.viewSite")}
+                      </Link>
+                    )}
+                    {isAdmin && (
+                      <button
+                        onClick={() =>
+                          handleDelete(proyecto.id, proyecto.nombre)
+                        }
+                        className="ml-auto p-2 rounded-[0.625rem] text-red-400/30 hover:text-red-400 hover:bg-red-500/10 transition-all"
+                      >
+                        <Trash2 size={14} />
+                      </button>
+                    )}
+                  </div>
+                </div>
+              </Tilt>
             </motion.div>
           ))}
         </div>

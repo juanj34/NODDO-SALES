@@ -1,368 +1,875 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useMemo, useEffect, useCallback, useRef } from "react";
+import { useSearchParams } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { useSiteProject } from "@/hooks/useSiteProject";
-import { Lightbox } from "@/components/site/Lightbox";
+import { usePersistedState } from "@/hooks/usePersistedState";
+import { useTranslation, getEstadoConfig } from "@/i18n";
+import { CotizadorModal } from "@/components/site/CotizadorModal";
+import { SectionTransition } from "@/components/site/SectionTransition";
 import { cn } from "@/lib/utils";
 import {
-  ChevronLeft,
-  ChevronRight,
-  X,
   Maximize,
   BedDouble,
   Bath,
+  Car,
+  CheckCircle2,
+  Compass,
+  Eye,
+  X,
+  Sparkles,
+  ChevronRight,
+  ChevronDown,
+  Building2,
 } from "lucide-react";
-import type { GaleriaImagen } from "@/types";
+import type { Unidad } from "@/types";
+
+function formatPrecio(precio: number): string {
+  if (precio >= 1000000000) {
+    return `$${(precio / 1000000000).toFixed(1)}B`;
+  }
+  return `$${(precio / 1000000).toFixed(0)}M`;
+}
+
+function formatPrecioFull(precio: number, locale: string): string {
+  return new Intl.NumberFormat(locale === "es" ? "es-CO" : "en-US", {
+    style: "currency",
+    currency: "COP",
+    maximumFractionDigits: 0,
+  }).format(precio);
+}
 
 export default function TipologiasPage() {
   const proyecto = useSiteProject();
+  const searchParams = useSearchParams();
+  const { t: tSite, locale } = useTranslation("site");
+  const { t: tCommon } = useTranslation("common");
   const tipologias = proyecto.tipologias;
+  const unidades = proyecto.unidades;
 
-  const [activeIndex, setActiveIndex] = useState(0);
-  const [activeRenderIndex, setActiveRenderIndex] = useState(0);
-  const [showSelector, setShowSelector] = useState(false);
-  const [lightboxImages, setLightboxImages] = useState<GaleriaImagen[] | null>(
-    null
+  // Empty state — no tipologías configured
+  if (!tipologias || tipologias.length === 0) {
+    return (
+      <div className="h-screen flex flex-col items-center justify-center gap-4 text-center px-8 bg-[var(--site-bg)]">
+        <div className="w-16 h-16 rounded-2xl bg-white/5 flex items-center justify-center">
+          <Building2 size={28} className="text-[var(--text-muted)]" />
+        </div>
+        <div>
+          <h2 className="text-lg font-site-heading text-[var(--text-secondary)] mb-1">
+            {tSite("tipologias.notAvailable")}
+          </h2>
+          <p className="text-sm text-[var(--text-tertiary)]">
+            {tSite("tipologias.notConfigured")}
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+  // i18n-driven estado config and filters
+  const estadoConfigDynamic = useMemo(() => getEstadoConfig(tCommon), [tCommon]);
+  const estadoFiltersDynamic = useMemo(() => [
+    { value: "todas", label: tCommon("labels.all") },
+    { value: "disponible", label: tCommon("estados.disponible") },
+    { value: "separado", label: tCommon("estados.separado") },
+    { value: "reservada", label: tCommon("estados.reservada") },
+    { value: "vendida", label: tCommon("estados.vendida") },
+  ], [tCommon]);
+
+  // Torre selector state
+  const torres = proyecto.torres ?? [];
+  const isMultiTorre = torres.length > 1;
+  const [activeTorreId, setActiveTorreId] = usePersistedState<string | null>(
+    "tipologias-torre",
+    isMultiTorre ? torres[0]?.id ?? null : null,
+    proyecto.slug,
   );
 
-  const active = tipologias[activeIndex];
+  // Filter tipologías by active torre
+  const visibleTipologias = useMemo(() => {
+    if (!isMultiTorre || !activeTorreId) return tipologias;
+    return tipologias.filter((t) => t.torre_ids?.includes(activeTorreId));
+  }, [tipologias, isMultiTorre, activeTorreId]);
 
-  // Convert renders to GaleriaImagen format for the Lightbox
-  const renderImages: GaleriaImagen[] = active.renders.map((url, i) => ({
-    id: `render-${i}`,
-    categoria_id: "",
-    url,
-    thumbnail_url: null,
-    alt_text: `${active.nombre} render ${i + 1}`,
-    orden: i,
-  }));
+  // Read query params for deep linking
+  const tipoParam = searchParams.get("tipo");
+  const unidadParam = searchParams.get("unidad");
 
-  const currentRenderUrl =
-    active.renders.length > 0 ? active.renders[activeRenderIndex] : null;
+  // Persist the tipologia ID rather than the index (index changes when torre changes)
+  const [persistedTipoId, setPersistedTipoId] = usePersistedState<string | null>(
+    "tipologias-tipo",
+    null,
+    proyecto.slug,
+  );
+  const [activeIndex, setActiveIndexRaw] = useState(() => {
+    if (persistedTipoId) {
+      const idx = visibleTipologias.findIndex((t) => t.id === persistedTipoId);
+      if (idx >= 0) return idx;
+    }
+    return 0;
+  });
+  // Wrap setActiveIndex to also persist the tipologia ID
+  const setActiveIndex = useCallback((v: number | ((prev: number) => number)) => {
+    setActiveIndexRaw((prev) => {
+      const next = typeof v === "function" ? v(prev) : v;
+      const tipo = visibleTipologias[next];
+      if (tipo) setPersistedTipoId(tipo.id);
+      return next;
+    });
+  }, [visibleTipologias, setPersistedTipoId]);
+  const [estadoFilter, setEstadoFilter] = useState("todas");
+  const [hoveredHotspot, setHoveredHotspot] = useState<string | null>(null);
+  const [activeHotspot, setActiveHotspot] = useState<{ label: string; render_url: string } | null>(null);
+  const [showUbicacion, setShowUbicacion] = useState(false);
 
-  // Navigate renders
-  const goNextRender = useCallback(() => {
-    if (active.renders.length === 0) return;
-    setActiveRenderIndex((prev) =>
-      prev < active.renders.length - 1 ? prev + 1 : 0
-    );
-  }, [active.renders.length]);
+  // Image ref for hotspot container
+  const planoImgRef = useRef<HTMLImageElement>(null);
 
-  const goPrevRender = useCallback(() => {
-    if (active.renders.length === 0) return;
-    setActiveRenderIndex((prev) =>
-      prev > 0 ? prev - 1 : active.renders.length - 1
-    );
-  }, [active.renders.length]);
+  // Unit context panel state
+  const [selectedUnit, setSelectedUnit] = useState<Unidad | null>(null);
+  const [cotizarUnidad, setCotizarUnidad] = useState<Unidad | null>(null);
+  const [infoExpanded, setInfoExpanded] = useState(false);
 
-  // Switch tipologia => reset render index
-  const selectTipologia = useCallback((idx: number) => {
-    setActiveIndex(idx);
-    setActiveRenderIndex(0);
-    setShowSelector(false);
-  }, []);
+  // Handle query params on mount
+  useEffect(() => {
+    if (tipoParam) {
+      const idx = visibleTipologias.findIndex((t) => t.id === tipoParam);
+      if (idx >= 0) setActiveIndex(idx);
+    }
+    if (unidadParam) {
+      const unit = unidades.find((u) => u.id === unidadParam);
+      if (unit) {
+        setSelectedUnit(unit);
+        // Also switch to the correct tipología tab
+        if (unit.tipologia_id) {
+          const idx = visibleTipologias.findIndex((t) => t.id === unit.tipologia_id);
+          if (idx >= 0) setActiveIndex(idx);
+        }
+      }
+    }
+  }, [tipoParam, unidadParam, visibleTipologias, unidades]);
+
+  // Reset activeIndex when torre changes — try to restore persisted tipo
+  useEffect(() => {
+    if (persistedTipoId) {
+      const idx = visibleTipologias.findIndex((t) => t.id === persistedTipoId);
+      if (idx >= 0) {
+        setActiveIndexRaw(idx);
+        setSelectedUnit(null);
+        return;
+      }
+    }
+    setActiveIndexRaw(0);
+    setSelectedUnit(null);
+  }, [activeTorreId, visibleTipologias, persistedTipoId]);
 
   // Keyboard navigation
+  const closeHotspot = useCallback(() => setActiveHotspot(null), []);
   useEffect(() => {
     const handleKey = (e: KeyboardEvent) => {
-      if (lightboxImages) return; // don't interfere with lightbox
-      if (e.key === "ArrowRight") goNextRender();
-      else if (e.key === "ArrowLeft") goPrevRender();
-      else if (e.key === "Escape" && showSelector) setShowSelector(false);
+      if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) return;
+
+      switch (e.key) {
+        case "Escape":
+          if (activeHotspot) {
+            closeHotspot();
+          } else if (selectedUnit) {
+            setSelectedUnit(null);
+          }
+          break;
+        case "ArrowLeft":
+          if (!activeHotspot) {
+            e.preventDefault();
+            setActiveIndex((prev) => Math.max(prev - 1, 0));
+            setEstadoFilter("todas");
+            setSelectedUnit(null);
+          }
+          break;
+        case "ArrowRight":
+          if (!activeHotspot) {
+            e.preventDefault();
+            setActiveIndex((prev) => Math.min(prev + 1, visibleTipologias.length - 1));
+            setEstadoFilter("todas");
+            setSelectedUnit(null);
+          }
+          break;
+      }
     };
     window.addEventListener("keydown", handleKey);
     return () => window.removeEventListener("keydown", handleKey);
-  }, [goNextRender, goPrevRender, lightboxImages, showSelector]);
+  }, [activeHotspot, closeHotspot, selectedUnit, visibleTipologias.length]);
 
-  // Format counter numbers
-  const padNum = (n: number) => String(n).padStart(2, "0");
+  const active = visibleTipologias[activeIndex] ?? visibleTipologias[0];
+
+  // Filter units for current tipología (must be above early return to preserve hook order)
+  const filteredUnidades = useMemo(() => {
+    if (!active) return [];
+    let filtered = unidades.filter((u) => u.tipologia_id === active.id);
+    if (estadoFilter !== "todas") {
+      filtered = filtered.filter((u) => u.estado === estadoFilter);
+    }
+    return filtered;
+  }, [unidades, active, estadoFilter]);
+
+  // Count units by estado for current tipología
+  const estadoCounts = useMemo(() => {
+    if (!active) return { todas: 0, disponible: 0, separado: 0, reservada: 0, vendida: 0 };
+    const tipoUnidades = unidades.filter((u) => u.tipologia_id === active.id);
+    return {
+      todas: tipoUnidades.length,
+      disponible: tipoUnidades.filter((u) => u.estado === "disponible").length,
+      separado: tipoUnidades.filter((u) => u.estado === "separado").length,
+      reservada: tipoUnidades.filter((u) => u.estado === "reservada").length,
+      vendida: tipoUnidades.filter((u) => u.estado === "vendida").length,
+    };
+  }, [unidades, active]);
+
+  // Dynamic "desde" price from cheapest available unit
+  const precioDesde = useMemo(() => {
+    if (!active) return null;
+    const tipoUnits = unidades.filter(
+      (u) => u.tipologia_id === active.id && u.estado === "disponible" && u.precio != null
+    );
+    if (tipoUnits.length === 0) return active.precio_desde;
+    return Math.min(...tipoUnits.map((u) => u.precio!));
+  }, [active, unidades]);
+
+  // Group units by floor
+  const unitsByFloor = useMemo(() => {
+    const grouped: Record<number, typeof filteredUnidades> = {};
+    filteredUnidades.forEach((u) => {
+      const floor = u.piso ?? 0;
+      if (!grouped[floor]) grouped[floor] = [];
+      grouped[floor].push(u);
+    });
+    return Object.entries(grouped).sort(
+      ([a], [b]) => Number(a) - Number(b)
+    );
+  }, [filteredUnidades]);
+
+  const showFloorHeaders = unitsByFloor.length > 1;
+
+  // No tipologías available for this torre — show empty state
+  if (!active) {
+    return (
+      <SectionTransition className="h-screen flex flex-col overflow-hidden bg-[var(--site-bg)]">
+        {isMultiTorre && (
+          <div className="flex-shrink-0 flex items-center gap-2 px-6 lg:px-12 pt-4 pb-1">
+            {torres.map((torre) => (
+              <button
+                key={torre.id}
+                onClick={() => setActiveTorreId(torre.id)}
+                className={cn(
+                  "flex items-center gap-2 px-4 py-2 rounded-full text-xs font-medium tracking-wider uppercase transition-all cursor-pointer",
+                  activeTorreId === torre.id
+                    ? "bg-[rgba(var(--site-primary-rgb),0.15)] text-[var(--site-primary)] ring-1 ring-[rgba(var(--site-primary-rgb),0.3)]"
+                    : "text-[var(--text-tertiary)] hover:text-[var(--text-secondary)] hover:bg-white/5"
+                )}
+              >
+                <Building2 size={13} />
+                {torre.nombre}
+              </button>
+            ))}
+          </div>
+        )}
+        <div className="flex-1 flex flex-col items-center justify-center gap-3">
+          <Building2 size={40} className="text-[var(--text-muted)]" />
+          <p className="text-sm text-[var(--text-tertiary)]">No hay tipologías asignadas a esta torre</p>
+        </div>
+      </SectionTransition>
+    );
+  }
 
   return (
-    <div className="h-screen w-full overflow-hidden relative bg-black">
-      {/* ====== FULLSCREEN BACKGROUND IMAGE ====== */}
-      <AnimatePresence mode="wait">
-        {currentRenderUrl && (
-          <motion.div
-            key={`${active.id}-${activeRenderIndex}`}
-            initial={{ opacity: 0, scale: 1.05 }}
-            animate={{ opacity: 1, scale: 1 }}
-            exit={{ opacity: 0, scale: 1.02 }}
-            transition={{ duration: 0.7, ease: "easeInOut" }}
-            className="absolute inset-0 z-0"
-          >
-            <img
-              src={currentRenderUrl}
-              alt={`${active.nombre} render ${activeRenderIndex + 1}`}
-              className="w-full h-full object-cover"
-            />
-          </motion.div>
-        )}
-      </AnimatePresence>
+    <SectionTransition className="h-screen flex flex-col overflow-hidden bg-[var(--site-bg)]">
+      {/* ====== TOP: Torre Selector (multi-torre only) ====== */}
+      {isMultiTorre && (
+        <div className="flex-shrink-0 flex items-center gap-2 px-6 lg:px-12 pt-4 pb-1">
+          {torres.map((torre) => (
+            <button
+              key={torre.id}
+              onClick={() => setActiveTorreId(torre.id)}
+              className={cn(
+                "flex items-center gap-2 px-4 py-2 rounded-full text-xs font-medium tracking-wider uppercase transition-all cursor-pointer",
+                activeTorreId === torre.id
+                  ? "bg-[rgba(var(--site-primary-rgb),0.15)] text-[var(--site-primary)] ring-1 ring-[rgba(var(--site-primary-rgb),0.3)]"
+                  : "text-[var(--text-tertiary)] hover:text-[var(--text-secondary)] hover:bg-white/5"
+              )}
+            >
+              <Building2 size={13} />
+              {torre.nombre}
+            </button>
+          ))}
+        </div>
+      )}
 
-      {/* ====== WARM GRADIENT OVERLAYS ====== */}
-      <div className="absolute inset-0 z-[1] pointer-events-none">
-        {/* Top gradient */}
-        <div className="absolute top-0 inset-x-0 h-72 bg-gradient-to-b from-black/70 via-black/30 to-transparent" />
-        {/* Bottom gradient */}
-        <div className="absolute bottom-0 inset-x-0 h-72 bg-gradient-to-t from-black/80 via-black/40 to-transparent" />
-        {/* Warm tint overlay */}
-        <div className="absolute inset-0 bg-gradient-to-br from-amber-900/10 via-transparent to-amber-800/10" />
+      {/* ====== TOP: Tipología Tab Bar ====== */}
+      <div className={cn("flex-shrink-0 px-6 lg:px-12 pb-3", isMultiTorre ? "pt-2" : "pt-5")}>
+        <div className="flex items-end gap-6">
+          {visibleTipologias.map((tipo, idx) => {
+            const isActive = idx === activeIndex;
+            const tipoUnits = unidades.filter((u) => u.tipologia_id === tipo.id);
+            const disponibles = tipoUnits.filter((u) => u.estado === "disponible").length;
+            return (
+              <button
+                key={tipo.id}
+                onClick={() => { setActiveIndex(idx); setEstadoFilter("todas"); setSelectedUnit(null); setActiveHotspot(null); }}
+                className={cn(
+                  "relative pb-3 cursor-pointer transition-colors duration-200 group",
+                  isActive ? "text-white" : "text-[var(--text-tertiary)] hover:text-[var(--text-secondary)]"
+                )}
+              >
+                <span className="text-sm font-medium tracking-wide">{tipo.nombre}</span>
+                {disponibles > 0 && (
+                  <span className={cn(
+                    "ml-2 text-[10px] tabular-nums transition-colors duration-200",
+                    isActive ? "text-[var(--site-primary)]" : "text-[var(--text-muted)] group-hover:text-[var(--text-tertiary)]"
+                  )}>
+                    {disponibles}
+                  </span>
+                )}
+                {isActive && (
+                  <motion.div
+                    layoutId="tipo-tab-indicator"
+                    className="absolute bottom-0 left-0 right-0 h-[2px] bg-[var(--site-primary)] rounded-full"
+                    transition={{ type: "spring", bounce: 0.2, duration: 0.4 }}
+                  />
+                )}
+              </button>
+            );
+          })}
+        </div>
+        <div className="h-px bg-white/[0.06]" />
       </div>
 
-      {/* ====== MAIN CONTENT LAYER ====== */}
-      <div className="absolute inset-0 z-[2] flex flex-col">
-        {/* ---------- TOP: Title + Stats ---------- */}
-        <div className="flex-shrink-0 pt-24 pb-8 flex flex-col items-center text-center px-4">
+      {/* ====== MAIN CONTENT ====== */}
+      <div className="flex-1 flex flex-col lg:flex-row gap-6 px-6 lg:px-12 pb-6 min-h-0">
+        {/* ====== LEFT: Floor Plan + Stats ====== */}
+        <div className="flex-1 flex flex-col min-h-0">
           <AnimatePresence mode="wait">
             <motion.div
               key={active.id}
-              initial={{ opacity: 0, y: -20 }}
+              initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: 20 }}
-              transition={{ duration: 0.4 }}
-              className="flex flex-col items-center"
+              exit={{ opacity: 0, y: -10 }}
+              transition={{ duration: 0.3 }}
+              className="flex-1 flex flex-col min-h-0"
             >
-              <h1 className="text-5xl md:text-7xl font-extralight tracking-[0.15em] text-white/95 uppercase">
-                {active.nombre}
-              </h1>
+              {/* Floor Plan with Hotspots — inline-block wrapper shrink-wraps to image */}
+              <div className="flex-1 relative glass-card p-4 min-h-0 flex items-center justify-center overflow-hidden">
+                {active.plano_url && (
+                  <div className="relative inline-block max-w-full max-h-full leading-[0]">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img
+                      ref={planoImgRef}
+                      src={active.plano_url}
+                      alt={`Plano ${active.nombre}`}
+                      className="block max-w-full max-h-[calc(100vh-320px)] w-auto h-auto rounded-xl"
+                      draggable={false}
+                    />
 
-              {/* Stats row */}
-              <div className="flex items-center gap-6 mt-4">
-                {active.habitaciones && (
-                  <div className="flex items-center gap-2 text-white/60">
-                    <BedDouble size={16} />
-                    <span className="text-sm tracking-[0.2em] uppercase">
-                      Habitaciones {active.habitaciones}
-                    </span>
+                    {/* Hotspot dots — CSS % positioned relative to the inline-block wrapper */}
+                    {active.hotspots.map((hotspot) => (
+                      <button
+                        key={hotspot.id}
+                        aria-label={`Ver ${hotspot.label}`}
+                        className="absolute cursor-pointer group z-10 flex items-center justify-center"
+                        style={{
+                          left: `${hotspot.x}%`,
+                          top: `${hotspot.y}%`,
+                          transform: "translate(-50%, -50%)",
+                          minWidth: "44px",
+                          minHeight: "44px",
+                        }}
+                        onClick={() => setActiveHotspot({ label: hotspot.label, render_url: hotspot.render_url })}
+                        onMouseEnter={() => setHoveredHotspot(hotspot.id)}
+                        onMouseLeave={() => setHoveredHotspot(null)}
+                      >
+                        {/* Wrapper — sized by the dot, centered by button flexbox */}
+                        <span className="relative inline-flex items-center justify-center">
+                          {/* Pulse ring — inset-0 matches wrapper size, scales from center */}
+                          <span className="absolute inset-0 rounded-full border-2 border-[rgba(var(--site-primary-rgb),0.40)] animate-ping origin-center" />
+                          {/* Dot */}
+                          <span className={cn(
+                            "block w-5 h-5 rounded-full bg-[var(--site-primary)] border-2 border-white shadow-lg shadow-[rgba(var(--site-primary-rgb),0.30)] transition-transform duration-150",
+                            hoveredHotspot === hotspot.id && "scale-130"
+                          )} />
+                        </span>
+
+                        {/* Tooltip */}
+                        <AnimatePresence>
+                          {hoveredHotspot === hotspot.id && (
+                            <motion.div
+                              initial={{ opacity: 0, y: 8 }}
+                              animate={{ opacity: 1, y: 0 }}
+                              exit={{ opacity: 0, y: 8 }}
+                              className="absolute top-full mt-2 left-1/2 -translate-x-1/2 glass-dark px-3 py-1.5 rounded-lg whitespace-nowrap z-30 pointer-events-none"
+                            >
+                              <span className="text-[11px] font-medium text-white tracking-wider">
+                                {hotspot.label}
+                              </span>
+                            </motion.div>
+                          )}
+                        </AnimatePresence>
+                      </button>
+                    ))}
                   </div>
                 )}
-                {active.habitaciones && active.banos && (
-                  <span className="text-white/20">|</span>
+
+                {/* Location thumbnail overlay */}
+                {active.ubicacion_plano_url && !selectedUnit && (
+                  <button
+                    onClick={() => setShowUbicacion(true)}
+                    className="absolute bottom-4 right-4 w-[120px] h-[120px] glass-card rounded-xl overflow-hidden border border-[var(--border-default)] shadow-lg z-10 cursor-pointer group transition-all hover:border-[rgba(var(--site-primary-rgb),0.4)] hover:shadow-[var(--glow-sm)]"
+                  >
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img
+                      src={active.ubicacion_plano_url}
+                      alt="Ubicación"
+                      className="w-full h-full object-contain p-2"
+                    />
+                    <div className="absolute inset-0 bg-black/0 group-hover:bg-black/30 transition-colors flex items-center justify-center">
+                      <Maximize size={16} className="text-white opacity-0 group-hover:opacity-100 transition-opacity" />
+                    </div>
+                  </button>
                 )}
-                {active.banos && (
-                  <div className="flex items-center gap-2 text-white/60">
-                    <Bath size={16} />
-                    <span className="text-sm tracking-[0.2em] uppercase">
-                      Ba&ntilde;os {active.banos}
+
+                {/* Unit Context Banner — overlaid on floor plan */}
+                <AnimatePresence>
+                  {selectedUnit && (
+                    <motion.div
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: 20 }}
+                      transition={{ type: "spring", damping: 25 }}
+                      className="absolute bottom-4 left-4 right-4 z-20 glass-dark rounded-2xl p-4"
+                    >
+                      <button
+                        onClick={() => setSelectedUnit(null)}
+                        aria-label="Cerrar detalle"
+                        className="absolute top-3 right-3 p-1.5 rounded-full bg-white/10 hover:bg-white/20 transition-colors cursor-pointer"
+                      >
+                        <X size={12} className="text-[var(--text-secondary)]" />
+                      </button>
+
+                      <div className="flex items-start gap-4">
+                        <div className="flex-1">
+                          <div className="flex items-center gap-2 mb-1">
+                            <h3 className="text-base font-semibold text-white">
+                              {selectedUnit.identificador}
+                            </h3>
+                            {(() => {
+                              const cfg = estadoConfigDynamic[selectedUnit.estado];
+                              return (
+                                <span className={cn("inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-medium", cfg.bg, cfg.color)}>
+                                  <span className={cn("w-1.5 h-1.5 rounded-full", cfg.dot)} />
+                                  {cfg.label}
+                                </span>
+                              );
+                            })()}
+                          </div>
+
+                          <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-[var(--text-secondary)] mb-2">
+                            {selectedUnit.area_m2 && (
+                              <span className="flex items-center gap-1">
+                                <Maximize size={11} /> {selectedUnit.area_m2} m²
+                              </span>
+                            )}
+                            {selectedUnit.piso && (
+                              <span>Piso {selectedUnit.piso}</span>
+                            )}
+                            {selectedUnit.habitaciones !== null && (
+                              <span className="flex items-center gap-1">
+                                <BedDouble size={11} /> {selectedUnit.habitaciones} hab
+                              </span>
+                            )}
+                            {selectedUnit.banos !== null && (
+                              <span className="flex items-center gap-1">
+                                <Bath size={11} /> {selectedUnit.banos} baños
+                              </span>
+                            )}
+                            {selectedUnit.orientacion && (
+                              <span className="flex items-center gap-1">
+                                <Compass size={11} /> {selectedUnit.orientacion}
+                              </span>
+                            )}
+                            {selectedUnit.vista && (
+                              <span className="flex items-center gap-1">
+                                <Eye size={11} /> {selectedUnit.vista}
+                              </span>
+                            )}
+                          </div>
+
+                          {selectedUnit.precio && (
+                            <p className="text-lg font-semibold text-[var(--site-primary)]">
+                              {formatPrecioFull(selectedUnit.precio, locale)}
+                            </p>
+                          )}
+                        </div>
+
+                        {/* Cotizar button */}
+                        <button
+                          onClick={() => setCotizarUnidad(selectedUnit)}
+                          className="flex-shrink-0 btn-warm px-5 py-2.5 flex items-center gap-2 text-xs tracking-wider cursor-pointer"
+                        >
+                          <Sparkles size={14} />
+                          COTIZAR
+                        </button>
+                      </div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </div>
+
+              {/* Stats Row */}
+              <div className="flex-shrink-0 grid grid-cols-3 sm:grid-cols-5 gap-3 mt-4">
+                {/* Combined Area Card */}
+                <div className="glass-card rounded-2xl p-3">
+                  <div className="flex items-center gap-1.5 mb-2">
+                    <Maximize size={14} className="text-[var(--site-primary)]" />
+                    <span className="text-[10px] tracking-wider text-[var(--text-tertiary)] uppercase">
+                      Áreas
                     </span>
                   </div>
-                )}
-                {active.area_m2 && (
-                  <>
-                    <span className="text-white/20">|</span>
-                    <div className="flex items-center gap-2 text-white/60">
-                      <Maximize size={16} />
-                      <span className="text-sm tracking-[0.2em] uppercase">
-                        {active.area_m2} m&sup2;
+                  <div className="space-y-1">
+                    <div className="flex items-center justify-between">
+                      <span className="text-[10px] text-[var(--text-muted)]">Interna</span>
+                      <span className="text-xs font-medium text-white">
+                        {active.area_m2 != null ? `${active.area_m2} m²` : "—"}
                       </span>
                     </div>
-                  </>
-                )}
+                    {active.area_balcon != null && active.area_balcon > 0 && (
+                      <div className="flex items-center justify-between">
+                        <span className="text-[10px] text-[var(--text-muted)]">Balcón</span>
+                        <span className="text-xs font-medium text-white">
+                          {active.area_balcon} m²
+                        </span>
+                      </div>
+                    )}
+                    <div className="h-px bg-white/[0.06] my-1" />
+                    <div className="flex items-center justify-between">
+                      <span className="text-[10px] text-[var(--text-tertiary)] font-medium">Total</span>
+                      <span className="text-sm font-semibold text-[var(--site-primary)]">
+                        {active.area_m2 != null || active.area_balcon != null
+                          ? `${((active.area_m2 || 0) + (active.area_balcon || 0))} m²`
+                          : "—"}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+                <StatCard
+                  icon={<BedDouble size={16} />}
+                  label="Habitaciones"
+                  value={active.habitaciones === 0 ? "Studio" : String(active.habitaciones)}
+                />
+                <StatCard
+                  icon={<Bath size={16} />}
+                  label="Baños"
+                  value={String(active.banos)}
+                />
+                <StatCard
+                  icon={<Car size={16} />}
+                  label="Parqueaderos"
+                  value={String(active.parqueaderos ?? 0)}
+                />
+                <div className="glass-card rounded-2xl p-3 flex flex-col items-center justify-center text-center">
+                  <span className="text-[10px] tracking-wider text-[var(--text-tertiary)] uppercase mb-1">Desde</span>
+                  <span className="text-sm font-semibold text-[var(--site-primary)]">
+                    {precioDesde ? formatPrecio(precioDesde) : "—"}
+                  </span>
+                </div>
               </div>
             </motion.div>
           </AnimatePresence>
         </div>
 
-        {/* ---------- CENTER: Navigation arrows + CTA ---------- */}
-        <div className="flex-1 flex items-center justify-between px-4 md:px-8">
-          {/* Left arrow */}
-          <button
-            onClick={goPrevRender}
-            className={cn(
-              "glass w-14 h-14 rounded-full flex items-center justify-center",
-              "text-white/70 hover:text-white hover:bg-white/10 transition-all duration-300",
-              active.renders.length <= 1 && "opacity-0 pointer-events-none"
-            )}
-          >
-            <ChevronLeft size={28} />
-          </button>
-
-          {/* Center CTA */}
-          <motion.button
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.3 }}
-            className="btn-warm px-8 py-3 rounded-full text-sm font-semibold tracking-[0.15em] uppercase"
-            onClick={() => setLightboxImages(renderImages)}
-          >
-            Ver Casa &rarr;
-          </motion.button>
-
-          {/* Right arrow */}
-          <button
-            onClick={goNextRender}
-            className={cn(
-              "glass w-14 h-14 rounded-full flex items-center justify-center",
-              "text-white/70 hover:text-white hover:bg-white/10 transition-all duration-300",
-              active.renders.length <= 1 && "opacity-0 pointer-events-none"
-            )}
-          >
-            <ChevronRight size={28} />
-          </button>
-        </div>
-
-        {/* ---------- BOTTOM BAR ---------- */}
-        <div className="flex-shrink-0 pb-6 px-4 md:px-8">
-          <div className="flex items-end justify-between">
-            {/* Bottom left: Selector trigger */}
-            <button
-              onClick={() => setShowSelector(true)}
-              className="glass rounded-full px-6 py-3 text-xs tracking-[0.2em] uppercase text-white/70 hover:text-white hover:bg-white/10 transition-all duration-300"
-            >
-              Selecciona una Casa
-            </button>
-
-            {/* Bottom center: Thumbnail strip */}
-            {active.renders.length > 1 && (
-              <div className="hidden md:flex items-center gap-2">
-                {active.renders.map((url, idx) => (
-                  <button
-                    key={`thumb-${idx}`}
-                    onClick={() => setActiveRenderIndex(idx)}
-                    className={cn(
-                      "flex-shrink-0 w-16 h-11 rounded-lg overflow-hidden border-2 transition-all duration-300",
-                      idx === activeRenderIndex
-                        ? "border-[var(--site-primary)] opacity-100 scale-105"
-                        : "border-transparent opacity-40 hover:opacity-70"
-                    )}
-                  >
-                    <img
-                      src={url}
-                      alt={`${active.nombre} thumbnail ${idx + 1}`}
-                      className="w-full h-full object-cover"
-                      loading="lazy"
-                    />
-                  </button>
-                ))}
-              </div>
-            )}
-
-            {/* Bottom right: Counter */}
-            {active.renders.length > 0 && (
-              <span className="text-white/40 text-sm tracking-[0.2em] font-light">
-                {padNum(activeRenderIndex + 1)} &mdash;{" "}
-                {padNum(active.renders.length)}
-              </span>
-            )}
-          </div>
-        </div>
-      </div>
-
-      {/* ====== TIPOLOGIA SELECTOR PANEL (slide-in from left) ====== */}
-      <AnimatePresence>
-        {showSelector && (
-          <>
-            {/* Backdrop */}
+        {/* ====== RIGHT SIDEBAR ====== */}
+        <div className="w-full lg:w-[340px] flex-shrink-0 flex flex-col min-h-0 glass-card rounded-3xl overflow-hidden">
+          <AnimatePresence mode="wait">
             <motion.div
+              key={active.id}
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              transition={{ duration: 0.3 }}
-              className="fixed inset-0 z-[10] bg-black/50"
-              onClick={() => setShowSelector(false)}
-            />
-
-            {/* Panel */}
-            <motion.div
-              initial={{ x: "-100%" }}
-              animate={{ x: 0 }}
-              exit={{ x: "-100%" }}
-              transition={{ type: "spring", damping: 30, stiffness: 300 }}
-              className="fixed top-0 left-0 bottom-0 z-[11] w-80 md:w-96 glass-card rounded-none flex flex-col"
-              style={{
-                background: "rgba(10, 8, 5, 0.85)",
-                backdropFilter: "blur(24px) saturate(180%)",
-                borderRight: "1px solid rgba(255,255,255,0.08)",
-                borderRadius: 0,
-              }}
+              transition={{ duration: 0.2 }}
+              className="flex flex-col h-full"
             >
-              {/* Panel header */}
-              <div className="flex items-center justify-between px-6 pt-8 pb-6">
-                <p className="text-xs tracking-[0.35em] text-[var(--site-primary)] uppercase">
-                  Tipolog&iacute;as
-                </p>
-                <button
-                  onClick={() => setShowSelector(false)}
-                  className="w-9 h-9 flex items-center justify-center rounded-full text-white/40 hover:text-white hover:bg-white/10 transition-colors"
-                >
-                  <X size={18} />
-                </button>
+              {/* Tipología Info */}
+              <div className="p-6 pb-2 flex-shrink-0">
+                <div className="flex items-start justify-between gap-3">
+                  <div>
+                    <p className="text-[10px] tracking-[0.35em] text-[var(--site-primary)] uppercase mb-1">
+                      {proyecto.nombre}
+                    </p>
+                    <h2 className="font-site-heading text-2xl text-white">
+                      {active.nombre}
+                    </h2>
+                  </div>
+                  {(active.descripcion || active.caracteristicas.length > 0) && (
+                    <button
+                      onClick={() => setInfoExpanded((prev) => !prev)}
+                      className="mt-1 flex items-center gap-1 px-2.5 py-1 rounded-lg bg-white/[0.04] hover:bg-white/[0.08] transition-colors cursor-pointer text-[var(--text-tertiary)] hover:text-[var(--text-secondary)] flex-shrink-0"
+                    >
+                      <span className="text-[10px] tracking-wider uppercase">
+                        {infoExpanded ? "Menos" : "Info"}
+                      </span>
+                      <motion.div
+                        animate={{ rotate: infoExpanded ? 180 : 0 }}
+                        transition={{ duration: 0.2 }}
+                      >
+                        <ChevronDown size={12} />
+                      </motion.div>
+                    </button>
+                  )}
+                </div>
+
+                <AnimatePresence initial={false}>
+                  {infoExpanded && (
+                    <motion.div
+                      initial={{ height: 0, opacity: 0 }}
+                      animate={{ height: "auto", opacity: 1 }}
+                      exit={{ height: 0, opacity: 0 }}
+                      transition={{ duration: 0.25, ease: [0.4, 0, 0.2, 1] }}
+                      className="overflow-hidden"
+                    >
+                      <div className="pt-3">
+                        {active.descripcion && (
+                          <p className="text-sm text-[var(--text-secondary)] leading-relaxed mb-4">
+                            {active.descripcion}
+                          </p>
+                        )}
+
+                        {/* Key Features */}
+                        {active.caracteristicas.length > 0 && (
+                          <div className="space-y-2 mb-2">
+                            <p className="text-[10px] tracking-[0.25em] text-[var(--text-tertiary)] uppercase">
+                              Características
+                            </p>
+                            {active.caracteristicas.map((feat, i) => (
+                              <div key={i} className="flex items-start gap-2">
+                                <CheckCircle2 size={14} className="text-[var(--site-primary)] mt-0.5 flex-shrink-0" />
+                                <span className="text-xs text-[var(--text-secondary)]">{feat}</span>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
               </div>
 
-              {/* Tipologia list */}
-              <div className="flex-1 overflow-y-auto px-4 pb-8 space-y-1">
-                {tipologias.map((tipo, idx) => (
-                  <button
-                    key={tipo.id}
-                    onClick={() => selectTipologia(idx)}
-                    className={cn(
-                      "w-full text-left px-5 py-4 rounded-xl transition-all duration-300 relative",
-                      idx === activeIndex
-                        ? "bg-white/5 text-white"
-                        : "text-white/40 hover:text-white/70 hover:bg-white/5"
-                    )}
-                  >
-                    {/* Gold left border for active */}
-                    {idx === activeIndex && (
-                      <motion.div
-                        layoutId="tipologia-indicator"
-                        className="absolute left-0 top-2 bottom-2 w-[3px] rounded-full bg-[var(--site-primary)]"
-                        transition={{
-                          type: "spring",
-                          stiffness: 400,
-                          damping: 30,
-                        }}
-                      />
-                    )}
+              {/* Divider */}
+              <div className="border-t border-white/5 mx-6" />
 
-                    <span className="text-sm tracking-[0.15em] font-medium uppercase block">
-                      {tipo.nombre}
-                    </span>
+              {/* Units Section */}
+              <div className="flex-1 flex flex-col min-h-0 p-6 pt-4">
+                {/* Header + Count */}
+                <div className="flex items-center justify-between mb-3 flex-shrink-0">
+                  <p className="text-[10px] tracking-[0.25em] text-[var(--text-tertiary)] uppercase">
+                    Unidades
+                  </p>
+                  <span className="text-xs text-[var(--site-primary)]">
+                    {estadoCounts.disponible} disponibles
+                  </span>
+                </div>
 
-                    {/* Mini stats */}
-                    <div className="flex items-center gap-4 mt-2">
-                      {tipo.habitaciones && (
-                        <div className="flex items-center gap-1 text-white/30">
-                          <BedDouble size={12} />
-                          <span className="text-[11px] tracking-wider">
-                            {tipo.habitaciones}
-                          </span>
-                        </div>
-                      )}
-                      {tipo.banos && (
-                        <div className="flex items-center gap-1 text-white/30">
-                          <Bath size={12} />
-                          <span className="text-[11px] tracking-wider">
-                            {tipo.banos}
-                          </span>
-                        </div>
-                      )}
-                      {tipo.area_m2 && (
-                        <div className="flex items-center gap-1 text-white/30">
-                          <Maximize size={12} />
-                          <span className="text-[11px] tracking-wider">
-                            {tipo.area_m2} m&sup2;
-                          </span>
-                        </div>
-                      )}
+                {/* Estado Filter Tabs */}
+                <div className="flex gap-1 mb-3 flex-shrink-0 overflow-x-auto scrollbar-hide">
+                  {estadoFiltersDynamic.map((filter) => {
+                    const count = estadoCounts[filter.value as keyof typeof estadoCounts] ?? 0;
+                    return (
+                      <button
+                        key={filter.value}
+                        onClick={() => setEstadoFilter(filter.value)}
+                        className={cn(
+                          "px-3 py-1.5 rounded-full text-[10px] tracking-wider uppercase whitespace-nowrap transition-all cursor-pointer",
+                          estadoFilter === filter.value
+                            ? "bg-[rgba(var(--site-primary-rgb),0.15)] text-[var(--site-primary)]"
+                            : "text-[var(--text-tertiary)] hover:text-[var(--text-secondary)] hover:bg-white/5"
+                        )}
+                      >
+                        {filter.label} ({count})
+                      </button>
+                    );
+                  })}
+                </div>
+
+                {/* Units List */}
+                <div className="flex-1 overflow-y-auto space-y-1 scrollbar-hide min-h-0">
+                  {filteredUnidades.length === 0 ? (
+                    <div className="flex items-center justify-center py-8 text-[var(--text-muted)] text-sm">
+                      No hay unidades
                     </div>
-                  </button>
-                ))}
+                  ) : (
+                    unitsByFloor.map(([floor, units]) => (
+                      <div key={floor}>
+                        {showFloorHeaders && (
+                          <div className="px-3 py-1.5 text-[10px] tracking-wider uppercase text-[var(--text-muted)] font-medium">
+                            Piso {floor}
+                          </div>
+                        )}
+                        {units.map((unit) => {
+                          const config = estadoConfigDynamic[unit.estado];
+                          const isSelected = selectedUnit?.id === unit.id;
+                          return (
+                            <motion.button
+                              key={unit.id}
+                              initial={{ opacity: 0, x: 10 }}
+                              animate={{ opacity: 1, x: 0 }}
+                              onClick={() => setSelectedUnit(isSelected ? null : unit)}
+                              className={cn(
+                                "w-full flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all duration-200 cursor-pointer text-left",
+                                isSelected
+                                  ? "bg-[rgba(var(--site-primary-rgb),0.10)] ring-1 ring-[rgba(var(--site-primary-rgb),0.25)]"
+                                  : "hover:bg-white/5"
+                              )}
+                            >
+                              {/* Estado dot */}
+                              <span className={cn("w-2.5 h-2.5 rounded-full flex-shrink-0", config.dot)} />
+
+                              {/* Unit info */}
+                              <div className="flex-1 min-w-0">
+                                <p className="text-sm text-white/80 font-medium truncate">
+                                  {unit.identificador}
+                                </p>
+                                <p className="text-[10px] text-[var(--text-tertiary)] tracking-wider">
+                                  Piso {unit.piso} · {unit.area_m2} m² · {unit.orientacion}
+                                </p>
+                              </div>
+
+                              {/* Price */}
+                              <div className="text-right flex-shrink-0">
+                                <p className="text-sm text-white/70 font-medium">
+                                  {unit.precio ? formatPrecio(unit.precio) : "—"}
+                                </p>
+                                <p className={cn("text-[10px] tracking-wider", config.color)}>
+                                  {config.label}
+                                </p>
+                              </div>
+                            </motion.button>
+                          );
+                        })}
+                      </div>
+                    ))
+                  )}
+                </div>
               </div>
             </motion.div>
-          </>
+          </AnimatePresence>
+        </div>
+      </div>
+
+      {/* ====== HOTSPOT RENDER MODAL ====== */}
+      <AnimatePresence>
+        {activeHotspot && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.2 }}
+            className="fixed inset-0 z-[70] flex items-center justify-center p-8"
+            onClick={() => setActiveHotspot(null)}
+          >
+            {/* Blur backdrop */}
+            <div className="absolute inset-0 bg-black/60 backdrop-blur-md" />
+
+            {/* Modal content */}
+            <motion.div
+              initial={{ opacity: 0, scale: 0.92 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.92 }}
+              transition={{ duration: 0.25, ease: [0.4, 0, 0.2, 1] }}
+              className="relative max-w-[85vw] max-h-[85vh] rounded-2xl overflow-hidden shadow-2xl"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <img
+                src={activeHotspot.render_url}
+                alt={activeHotspot.label}
+                className="max-w-[85vw] max-h-[80vh] object-contain"
+              />
+              {/* Label overlay bottom-left */}
+              <div className="absolute bottom-0 left-0 right-0 p-5 bg-gradient-to-t from-black/70 to-transparent">
+                <span className="text-sm font-medium text-white tracking-wide">
+                  {activeHotspot.label}
+                </span>
+              </div>
+              {/* Close button */}
+              <button
+                onClick={() => setActiveHotspot(null)}
+                aria-label="Cerrar imagen"
+                className="absolute top-3 right-3 w-8 h-8 flex items-center justify-center rounded-full bg-black/40 hover:bg-black/60 transition-colors cursor-pointer"
+              >
+                <X size={16} className="text-white" />
+              </button>
+            </motion.div>
+          </motion.div>
         )}
       </AnimatePresence>
 
-      {/* ====== LIGHTBOX ====== */}
-      {lightboxImages && (
-        <Lightbox
-          images={lightboxImages}
-          initialIndex={activeRenderIndex}
-          onClose={() => setLightboxImages(null)}
+      {/* ====== UBICACIÓN MODAL ====== */}
+      <AnimatePresence>
+        {showUbicacion && active?.ubicacion_plano_url && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.2 }}
+            className="fixed inset-0 z-[70] flex items-center justify-center p-8"
+            onClick={() => setShowUbicacion(false)}
+          >
+            <div className="absolute inset-0 bg-black/60 backdrop-blur-md" />
+            <motion.div
+              initial={{ opacity: 0, scale: 0.92 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.92 }}
+              transition={{ duration: 0.25, ease: [0.4, 0, 0.2, 1] }}
+              className="relative max-w-[85vw] max-h-[85vh] rounded-2xl overflow-hidden shadow-2xl bg-[var(--surface-1)]"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <img
+                src={active.ubicacion_plano_url}
+                alt="Ubicación en el proyecto"
+                className="max-w-[85vw] max-h-[80vh] object-contain"
+              />
+              <div className="absolute bottom-0 left-0 right-0 p-5 bg-gradient-to-t from-black/70 to-transparent">
+                <span className="text-sm font-medium text-white tracking-wide">
+                  Ubicación en el proyecto
+                </span>
+              </div>
+              <button
+                onClick={() => setShowUbicacion(false)}
+                aria-label="Cerrar imagen"
+                className="absolute top-3 right-3 w-8 h-8 flex items-center justify-center rounded-full bg-black/40 hover:bg-black/60 transition-colors cursor-pointer"
+              >
+                <X size={16} className="text-white" />
+              </button>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* ====== COTIZADOR MODAL ====== */}
+      {cotizarUnidad && (
+        <CotizadorModal
+          isOpen={!!cotizarUnidad}
+          onClose={() => setCotizarUnidad(null)}
+          unidad={cotizarUnidad}
+          tipologia={tipologias.find((t) => t.id === cotizarUnidad.tipologia_id) || undefined}
+          proyectoId={proyecto.id}
         />
       )}
+    </SectionTransition>
+  );
+}
+
+function StatCard({ icon, label, value }: { icon: React.ReactNode; label: string; value: string }) {
+  return (
+    <div className="glass-card rounded-2xl p-3 flex flex-col items-center justify-center text-center">
+      <div className="text-[var(--site-primary)] mb-1">{icon}</div>
+      <span className="text-[10px] tracking-wider text-[var(--text-tertiary)] uppercase mb-0.5">{label}</span>
+      <span className="text-sm font-semibold text-white">{value}</span>
     </div>
   );
 }

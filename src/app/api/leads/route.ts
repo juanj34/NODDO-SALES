@@ -1,8 +1,10 @@
 import { createClient } from "@/lib/supabase/server";
+import { getAuthContext } from "@/lib/auth-context";
 import { NextRequest, NextResponse } from "next/server";
 
 export async function POST(request: NextRequest) {
   try {
+    // POST is public — no auth needed for lead creation
     const supabase = await createClient();
     const body = await request.json();
 
@@ -44,24 +46,21 @@ export async function POST(request: NextRequest) {
 
 export async function GET(request: NextRequest) {
   try {
-    const supabase = await createClient();
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-
-    if (!user) {
+    const auth = await getAuthContext();
+    if (!auth) {
       return NextResponse.json({ error: "No autorizado" }, { status: 401 });
     }
+    // Both admin and collaborator can access leads
 
     const { searchParams } = new URL(request.url);
     const tipologia = searchParams.get("tipologia");
     const search = searchParams.get("search");
 
-    // Get user's projects
-    const { data: proyectos } = await supabase
+    // Get user's projects (use adminUserId for filtering)
+    const { data: proyectos } = await auth.supabase
       .from("proyectos")
       .select("id")
-      .eq("user_id", user.id);
+      .eq("user_id", auth.adminUserId);
 
     if (!proyectos?.length) {
       return NextResponse.json([]);
@@ -69,7 +68,7 @@ export async function GET(request: NextRequest) {
 
     const projectIds = proyectos.map((p) => p.id);
 
-    let query = supabase
+    let query = auth.supabase
       .from("leads")
       .select("*")
       .in("proyecto_id", projectIds)

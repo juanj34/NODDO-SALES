@@ -4,16 +4,18 @@ import { motion } from "framer-motion";
 import { SectionTransition } from "@/components/site/SectionTransition";
 import { Globe } from "lucide-react";
 import { useSiteProject } from "@/hooks/useSiteProject";
+import { useTranslation } from "@/i18n";
 
 export default function Tour360Page() {
   const proyecto = useSiteProject();
+  const { t } = useTranslation("site");
 
   return (
     <SectionTransition className="h-screen flex flex-col">
       {/* Header */}
       <div className="px-8 lg:px-16 pt-8">
         <p className="text-xs tracking-[0.4em] text-[var(--site-primary)] mb-2 uppercase">
-          Tour 360°
+          {t("tour360.sectionLabel")}
         </p>
       </div>
 
@@ -24,7 +26,7 @@ export default function Tour360Page() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 0.3 }}
-            className="w-full h-full rounded-lg overflow-hidden border border-white/10"
+            className="w-full h-full rounded-2xl overflow-hidden glass-card"
           >
             <iframe
               src={proyecto.tour_360_url}
@@ -34,9 +36,18 @@ export default function Tour360Page() {
             />
           </motion.div>
         ) : (
-          <div className="w-full h-full flex flex-col items-center justify-center text-white/20">
-            <Globe size={48} className="mb-4" />
-            <p>Tour virtual no disponible</p>
+          <div className="w-full h-full flex flex-col items-center justify-center gap-4 text-center">
+            <div className="w-16 h-16 rounded-2xl bg-white/5 flex items-center justify-center">
+              <Globe size={28} className="text-[var(--text-muted)]" />
+            </div>
+            <div>
+              <h2 className="text-lg font-site-heading text-[var(--text-secondary)] mb-1">
+                {t("tour360.notAvailable")}
+              </h2>
+              <p className="text-sm text-[var(--text-tertiary)]">
+                {t("tour360.notConfigured")}
+              </p>
+            </div>
           </div>
         )}
       </div>

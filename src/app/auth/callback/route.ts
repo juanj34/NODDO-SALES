@@ -1,6 +1,7 @@
 import { createServerClient, type CookieOptions } from "@supabase/ssr";
 import { cookies } from "next/headers";
 import { NextResponse, type NextRequest } from "next/server";
+import { linkPendingCollaborator } from "@/lib/auth-context";
 
 export async function GET(request: NextRequest) {
   const { searchParams, origin } = new URL(request.url);
@@ -38,6 +39,11 @@ export async function GET(request: NextRequest) {
 
     const { error } = await supabase.auth.exchangeCodeForSession(code);
     if (!error) {
+      // Link pending collaborator invitations by email
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        await linkPendingCollaborator(supabase, user);
+      }
       return NextResponse.redirect(`${origin}${redirect}`);
     }
   }
