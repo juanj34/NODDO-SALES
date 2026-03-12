@@ -2,11 +2,12 @@
 
 import { useState, useCallback, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { ChevronLeft, ChevronRight, X } from "lucide-react";
-import type { GaleriaImagen } from "@/types";
+import { ChevronLeft, ChevronRight } from "lucide-react";
+import { CloseButton } from "@/components/ui/CloseButton";
+import type { LightboxImage } from "@/types";
 
 interface LightboxProps {
-  images: GaleriaImagen[];
+  images: LightboxImage[];
   initialIndex?: number;
   onClose: () => void;
 }
@@ -65,12 +66,7 @@ export function Lightbox({ images, initialIndex = 0, onClose }: LightboxProps) {
         <span className="text-[var(--text-secondary)] text-sm tracking-wider">
           {currentIndex + 1} / {images.length}
         </span>
-        <button
-          onClick={onClose}
-          className="w-10 h-10 flex items-center justify-center glass rounded-full text-[var(--text-secondary)] hover:text-white transition-colors cursor-pointer"
-        >
-          <X size={20} />
-        </button>
+        <CloseButton onClick={onClose} variant="glass" size={20} />
       </div>
 
       {/* Main image area */}
@@ -84,21 +80,32 @@ export function Lightbox({ images, initialIndex = 0, onClose }: LightboxProps) {
           <ChevronLeft size={24} />
         </button>
 
-        {/* Image */}
-        <AnimatePresence mode="wait" custom={direction}>
-          <motion.img
-            key={current.id}
-            custom={direction}
-            variants={variants}
-            initial="enter"
-            animate="center"
-            exit="exit"
-            transition={{ duration: 0.3, ease: "easeInOut" }}
-            src={current.url}
-            alt={current.alt_text || ""}
-            className="max-w-full max-h-[calc(100vh-200px)] object-contain rounded-lg"
-          />
-        </AnimatePresence>
+        {/* Image + label */}
+        <div className="relative max-w-full max-h-[calc(100vh-200px)]">
+          <AnimatePresence mode="wait" custom={direction}>
+            <motion.img
+              key={current.id}
+              custom={direction}
+              variants={variants}
+              initial="enter"
+              animate="center"
+              exit="exit"
+              transition={{ duration: 0.3, ease: "easeInOut" }}
+              src={current.url}
+              alt={current.alt_text || ""}
+              className="max-w-full max-h-[calc(100vh-200px)] object-contain rounded-lg"
+            />
+          </AnimatePresence>
+
+          {/* Label overlay */}
+          {current.label && (
+            <div className="absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-black/60 to-transparent rounded-b-lg pointer-events-none">
+              <span className="text-sm font-medium text-white tracking-wide">
+                {current.label}
+              </span>
+            </div>
+          )}
+        </div>
 
         {/* Next button */}
         <button

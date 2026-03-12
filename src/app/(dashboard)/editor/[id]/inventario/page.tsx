@@ -43,6 +43,7 @@ import {
 import { cn } from "@/lib/utils";
 import { useTranslation } from "@/i18n";
 import { useToast } from "@/components/dashboard/Toast";
+import { useMediaQuery } from "@/hooks/useMediaQuery";
 import type { Unidad, Tipologia, Torre, Fachada } from "@/types";
 
 // ---------------------------------------------------------------------------
@@ -155,6 +156,90 @@ function EstadoBadge({ estado }: { estado: EstadoUnidad }) {
     >
       {estado.charAt(0).toUpperCase() + estado.slice(1)}
     </span>
+  );
+}
+
+const ESTADO_DOT_BG: Record<EstadoUnidad, string> = {
+  disponible: "bg-green-500",
+  separado: "bg-yellow-500",
+  reservada: "bg-orange-500",
+  vendida: "bg-red-500",
+};
+
+function MobileUnitCard({
+  unit,
+  tipologias,
+  onStatusChange,
+  onEdit,
+  onDelete,
+}: {
+  unit: Unidad;
+  tipologias: Tipologia[];
+  onStatusChange: (unitId: string, estado: EstadoUnidad) => void;
+  onEdit: (unitId: string) => void;
+  onDelete: (unitId: string) => void;
+}) {
+  const tipo = tipologias.find((t) => t.id === unit.tipologia_id);
+  return (
+    <div className="p-3.5 bg-[var(--surface-2)] border border-[var(--border-subtle)] rounded-xl space-y-2.5">
+      {/* Row 1: ID + current badge */}
+      <div className="flex items-center justify-between">
+        <span className="text-sm font-medium text-white">{unit.identificador}</span>
+        <EstadoBadge estado={unit.estado} />
+      </div>
+      {/* Row 2: Details */}
+      <div className="flex items-center gap-2 text-[11px] text-[var(--text-tertiary)] flex-wrap">
+        {tipo && <span>{tipo.nombre}</span>}
+        {unit.piso != null && <span>· Piso {unit.piso}</span>}
+        {unit.area_m2 != null && <span>· {unit.area_m2} m²</span>}
+        {unit.habitaciones != null && <span>· {unit.habitaciones} hab</span>}
+      </div>
+      {/* Row 3: Price */}
+      {unit.precio != null && (
+        <p className="text-xs text-[var(--text-secondary)] font-medium">
+          {formatPrice(unit.precio)}
+        </p>
+      )}
+      {/* Row 4: Status dots + actions */}
+      <div className="flex items-center justify-between pt-1">
+        <div className="flex items-center gap-1.5">
+          {ESTADOS.map((e) => (
+            <button
+              key={e.value}
+              onClick={() => onStatusChange(unit.id, e.value)}
+              title={e.label}
+              className={cn(
+                "w-8 h-8 rounded-full flex items-center justify-center transition-all",
+                unit.estado === e.value
+                  ? `${ESTADO_DOT_BG[e.value]} ring-2 ring-offset-2 ring-offset-[var(--surface-2)] ring-current scale-110`
+                  : `${ESTADO_DOT_BG[e.value]}/25 hover:${ESTADO_DOT_BG[e.value]}/50`
+              )}
+            >
+              <span
+                className={cn(
+                  "w-3 h-3 rounded-full",
+                  unit.estado === e.value ? "bg-white" : ESTADO_DOT_BG[e.value]
+                )}
+              />
+            </button>
+          ))}
+        </div>
+        <div className="flex items-center gap-1">
+          <button
+            onClick={() => onEdit(unit.id)}
+            className="p-2 hover:bg-[var(--surface-3)] rounded-lg transition-colors text-[var(--text-tertiary)] hover:text-white"
+          >
+            <Pencil size={14} />
+          </button>
+          <button
+            onClick={() => onDelete(unit.id)}
+            className="p-2 hover:bg-red-500/10 rounded-lg transition-colors text-[var(--text-muted)] hover:text-red-400"
+          >
+            <Trash2 size={14} />
+          </button>
+        </div>
+      </div>
+    </div>
   );
 }
 
@@ -1131,7 +1216,7 @@ function UnitForm({
       className="overflow-hidden"
     >
       <div className="p-5 bg-[var(--surface-2)] border border-[var(--border-subtle)] rounded-xl space-y-4">
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
           <div>
             <label className={labelClass}>{t("inventario.fields.identifier")}</label>
             <input
@@ -1779,6 +1864,7 @@ export default function InventarioPage() {
   const { project, refresh, projectId } = useEditorProject();
   const { t } = useTranslation("editor");
   const toast = useToast();
+  const isMobile = useMediaQuery("(max-width: 767px)");
 
   // --- UI state ---
   const [searchQuery, setSearchQuery] = useState("");
@@ -1793,6 +1879,9 @@ export default function InventarioPage() {
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [formLoading, setFormLoading] = useState(false);
+
+  // --- Mobile ---
+  const [showMobileActions, setShowMobileActions] = useState(false);
 
   // --- Modals ---
   const [showCSVModal, setShowCSVModal] = useState(false);
@@ -2127,7 +2216,7 @@ export default function InventarioPage() {
       {/* Header */}
       <div className={pageHeader}>
         <div className="flex items-center gap-4">
-          <div className="w-10 h-10 rounded-xl bg-[var(--surface-2)] border border-[var(--border-subtle)] flex items-center justify-center">
+          <div className="w-10 h-10 rounded-xl bg-[var(--surface-2)] border border-[var(--border-subtle)] flex items-center justify-center shrink-0">
             <Package size={18} className="text-[var(--site-primary)]" />
           </div>
           <div>
@@ -2135,37 +2224,73 @@ export default function InventarioPage() {
             <p className={pageDescription}>{t("inventario.description")}</p>
           </div>
         </div>
-        <div className="flex items-center gap-2">
-          <button
-            onClick={() => setShowCSVModal(true)}
-            className={btnSecondary}
-          >
-            <Upload size={14} />
-            {t("inventario.importCsv")}
-          </button>
-          <button onClick={() => setShowAIModal(true)} className={btnSecondary}>
-            <Sparkles size={14} />
-            {t("inventario.importWithAI")}
-          </button>
-          <button onClick={() => setShowPriceAdjust(true)} className={btnSecondary}>
-            <TrendingUp size={14} />
-            {t("inventario.priceAdjust")}
-          </button>
-          <button onClick={() => setShowAIChat(true)} className={btnSecondary}>
-            <MessageSquare size={14} />
-            {t("inventario.aiChat")}
-          </button>
+        <div className="flex flex-wrap items-center gap-2">
+          {!isMobile && (
+            <>
+              <button
+                onClick={() => setShowCSVModal(true)}
+                className={btnSecondary}
+              >
+                <Upload size={14} />
+                {t("inventario.importCsv")}
+              </button>
+              <button onClick={() => setShowAIModal(true)} className={btnSecondary}>
+                <Sparkles size={14} />
+                {t("inventario.importWithAI")}
+              </button>
+              <button onClick={() => setShowPriceAdjust(true)} className={btnSecondary}>
+                <TrendingUp size={14} />
+                {t("inventario.priceAdjust")}
+              </button>
+              <button onClick={() => setShowAIChat(true)} className={btnSecondary}>
+                <MessageSquare size={14} />
+                {t("inventario.aiChat")}
+              </button>
+            </>
+          )}
           <button
             onClick={() => {
               setShowCreateForm(true);
               setEditingId(null);
-              // Auto-prefix will be handled via createFormInitial
             }}
             className={btnPrimary}
           >
             <Plus size={14} />
-            {t("inventario.newUnit")}
+            {isMobile ? t("inventario.newUnit").split(" ").pop() : t("inventario.newUnit")}
           </button>
+          {isMobile && (
+            <div className="relative">
+              <button
+                onClick={() => setShowMobileActions((p) => !p)}
+                className={btnSecondary}
+              >
+                <ChevronDown size={14} />
+              </button>
+              <AnimatePresence>
+                {showMobileActions && (
+                  <motion.div
+                    initial={{ opacity: 0, y: -4 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -4 }}
+                    className="absolute right-0 top-full mt-1 w-48 bg-[var(--surface-2)] border border-[var(--border-default)] rounded-xl shadow-2xl z-30 overflow-hidden"
+                  >
+                    <button onClick={() => { setShowCSVModal(true); setShowMobileActions(false); }} className="flex items-center gap-2 w-full px-4 py-2.5 text-xs text-[var(--text-secondary)] hover:bg-[var(--surface-3)] transition-colors">
+                      <Upload size={13} /> {t("inventario.importCsv")}
+                    </button>
+                    <button onClick={() => { setShowAIModal(true); setShowMobileActions(false); }} className="flex items-center gap-2 w-full px-4 py-2.5 text-xs text-[var(--text-secondary)] hover:bg-[var(--surface-3)] transition-colors">
+                      <Sparkles size={13} /> {t("inventario.importWithAI")}
+                    </button>
+                    <button onClick={() => { setShowPriceAdjust(true); setShowMobileActions(false); }} className="flex items-center gap-2 w-full px-4 py-2.5 text-xs text-[var(--text-secondary)] hover:bg-[var(--surface-3)] transition-colors">
+                      <TrendingUp size={13} /> {t("inventario.priceAdjust")}
+                    </button>
+                    <button onClick={() => { setShowAIChat(true); setShowMobileActions(false); }} className="flex items-center gap-2 w-full px-4 py-2.5 text-xs text-[var(--text-secondary)] hover:bg-[var(--surface-3)] transition-colors">
+                      <MessageSquare size={13} /> {t("inventario.aiChat")}
+                    </button>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
+          )}
         </div>
       </div>
 
@@ -2228,7 +2353,7 @@ export default function InventarioPage() {
       )}
 
       {/* Stats */}
-      <div className="grid grid-cols-4 gap-3">
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
         {ESTADOS.map((e) => (
           <div
             key={e.value}
@@ -2259,8 +2384,8 @@ export default function InventarioPage() {
       </AnimatePresence>
 
       {/* Filters & Search */}
-      <div className="flex items-center gap-3 flex-wrap">
-        <div className="relative flex-1 min-w-[200px] max-w-xs">
+      <div className="flex flex-col sm:flex-row sm:items-center gap-3 flex-wrap">
+        <div className="relative flex-1 min-w-0 sm:min-w-[200px] sm:max-w-xs">
           <Search
             size={14}
             className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--text-muted)]"
@@ -2489,190 +2614,230 @@ export default function InventarioPage() {
         )}
       </AnimatePresence>
 
-      {/* Table */}
-      <div className="bg-[var(--surface-2)] border border-[var(--border-subtle)] rounded-xl overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="w-full text-sm">
-            <thead>
-              <tr className="border-b border-[var(--border-default)]">
-                <th className="text-left py-3 px-4 w-10">
-                  <button
-                    onClick={toggleSelectAll}
-                    className="text-[var(--text-tertiary)] hover:text-[var(--text-secondary)] transition-colors"
-                  >
-                    {allFilteredSelected ? (
-                      <CheckSquare size={16} className="text-[var(--site-primary)]" />
-                    ) : someFilteredSelected ? (
-                      <MinusSquare size={16} className="text-[rgba(var(--site-primary-rgb),0.6)]" />
-                    ) : (
-                      <Square size={16} />
-                    )}
-                  </button>
-                </th>
-                <th className="text-left py-3 px-4 text-[var(--text-tertiary)] font-ui font-bold text-[10px] uppercase tracking-wider">
-                  {t("inventario.fields.identifier")}
-                </th>
-                <th className="text-left py-3 px-4 text-[var(--text-tertiary)] font-ui font-bold text-[10px] uppercase tracking-wider">
-                  {t("inventario.fields.typology")}
-                </th>
-                {fachadas.length > 0 && (
-                  <th className="text-left py-3 px-4 text-[var(--text-tertiary)] font-ui font-bold text-[10px] uppercase tracking-wider">
-                    {t("inventario.fields.fachada")}
-                  </th>
-                )}
-                <th className="text-left py-3 px-4 text-[var(--text-tertiary)] font-ui font-bold text-[10px] uppercase tracking-wider">
-                  {t("inventario.fields.floor")}
-                </th>
-                <th className="text-left py-3 px-4 text-[var(--text-tertiary)] font-ui font-bold text-[10px] uppercase tracking-wider">
-                  {t("inventario.fields.area")}
-                </th>
-                <th className="text-left py-3 px-4 text-[var(--text-tertiary)] font-ui font-bold text-[10px] uppercase tracking-wider">
-                  {t("inventario.fields.price")}
-                </th>
-                <th className="text-left py-3 px-4 text-[var(--text-tertiary)] font-ui font-bold text-[10px] uppercase tracking-wider">
-                  {t("inventario.fields.state")}
-                </th>
-                <th className="text-left py-3 px-4 text-[var(--text-tertiary)] font-ui font-bold text-[10px] uppercase tracking-wider">
-                  {t("inventario.fields.bedrooms")}
-                </th>
-                <th className="text-left py-3 px-4 text-[var(--text-tertiary)] font-ui font-bold text-[10px] uppercase tracking-wider">
-                  {t("inventario.fields.bathrooms")}
-                </th>
-                <th className="text-right py-3 px-4 text-[var(--text-tertiary)] font-ui font-bold text-[10px] uppercase tracking-wider">
-
-                </th>
-              </tr>
-            </thead>
-            <tbody>
-              {filteredUnidades.length === 0 ? (
-                <tr>
-                  <td
-                    colSpan={fachadas.length > 0 ? 11 : 10}
-                    className="py-16 text-center text-[var(--text-muted)] text-sm"
-                  >
-                    {unidades.length === 0
-                      ? t("inventario.noUnits")
-                      : t("inventario.noUnitsFiltered")}
-                  </td>
-                </tr>
+      {/* Unit list — Mobile cards / Desktop table */}
+      {isMobile ? (
+        /* ── MOBILE CARD VIEW ── */
+        <div className="space-y-2.5">
+          {filteredUnidades.length === 0 ? (
+            <div className="py-12 text-center text-[var(--text-muted)] text-sm">
+              {unidades.length === 0
+                ? t("inventario.noUnits")
+                : t("inventario.noUnitsFiltered")}
+            </div>
+          ) : (
+            filteredUnidades.map((unit) =>
+              editingId === unit.id ? (
+                <UnitForm
+                  key={unit.id}
+                  initial={getEditFormData(unit)}
+                  tipologias={tipologiasForDropdown}
+                  fachadas={fachadas}
+                  onSubmit={(data) => handleUpdate(unit.id, data)}
+                  onCancel={() => setEditingId(null)}
+                  submitting={formLoading}
+                />
               ) : (
-                filteredUnidades.map((unit) => (
-                  <motion.tr
-                    key={unit.id}
-                    layout
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    className="border-b border-[var(--border-subtle)] hover:bg-[var(--surface-2)] transition-colors group"
-                  >
-                    {editingId === unit.id ? (
-                      <td colSpan={fachadas.length > 0 ? 11 : 10} className="p-4">
-                        <UnitForm
-                          initial={getEditFormData(unit)}
-                          tipologias={tipologiasForDropdown}
-                          fachadas={fachadas}
-                          onSubmit={(data) => handleUpdate(unit.id, data)}
-                          onCancel={() => setEditingId(null)}
-                          submitting={formLoading}
-                        />
-                      </td>
-                    ) : (
-                      <>
-                        <td className="py-3 px-4">
-                          <button
-                            onClick={() => toggleSelect(unit.id)}
-                            className="text-[var(--text-tertiary)] hover:text-[var(--text-secondary)] transition-colors"
-                          >
-                            {selectedIds.has(unit.id) ? (
-                              <CheckSquare
-                                size={16}
-                                className="text-[var(--site-primary)]"
-                              />
-                            ) : (
-                              <Square size={16} />
-                            )}
-                          </button>
+                <MobileUnitCard
+                  key={unit.id}
+                  unit={unit}
+                  tipologias={tipologiasForDropdown}
+                  onStatusChange={(unitId, estado) => handleInlineUpdate(unitId, "estado", estado)}
+                  onEdit={(unitId) => {
+                    setEditingId(unitId);
+                    setShowCreateForm(false);
+                  }}
+                  onDelete={(unitId) => setDeleteConfirm(unitId)}
+                />
+              )
+            )
+          )}
+        </div>
+      ) : (
+        /* ── DESKTOP TABLE VIEW ── */
+        <div className="bg-[var(--surface-2)] border border-[var(--border-subtle)] rounded-xl overflow-hidden">
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="border-b border-[var(--border-default)]">
+                  <th className="text-left py-3 px-4 w-10">
+                    <button
+                      onClick={toggleSelectAll}
+                      className="text-[var(--text-tertiary)] hover:text-[var(--text-secondary)] transition-colors"
+                    >
+                      {allFilteredSelected ? (
+                        <CheckSquare size={16} className="text-[var(--site-primary)]" />
+                      ) : someFilteredSelected ? (
+                        <MinusSquare size={16} className="text-[rgba(var(--site-primary-rgb),0.6)]" />
+                      ) : (
+                        <Square size={16} />
+                      )}
+                    </button>
+                  </th>
+                  <th className="text-left py-3 px-4 text-[var(--text-tertiary)] font-ui font-bold text-[10px] uppercase tracking-wider">
+                    {t("inventario.fields.identifier")}
+                  </th>
+                  <th className="text-left py-3 px-4 text-[var(--text-tertiary)] font-ui font-bold text-[10px] uppercase tracking-wider">
+                    {t("inventario.fields.typology")}
+                  </th>
+                  {fachadas.length > 0 && (
+                    <th className="text-left py-3 px-4 text-[var(--text-tertiary)] font-ui font-bold text-[10px] uppercase tracking-wider">
+                      {t("inventario.fields.fachada")}
+                    </th>
+                  )}
+                  <th className="text-left py-3 px-4 text-[var(--text-tertiary)] font-ui font-bold text-[10px] uppercase tracking-wider">
+                    {t("inventario.fields.floor")}
+                  </th>
+                  <th className="text-left py-3 px-4 text-[var(--text-tertiary)] font-ui font-bold text-[10px] uppercase tracking-wider">
+                    {t("inventario.fields.area")}
+                  </th>
+                  <th className="text-left py-3 px-4 text-[var(--text-tertiary)] font-ui font-bold text-[10px] uppercase tracking-wider">
+                    {t("inventario.fields.price")}
+                  </th>
+                  <th className="text-left py-3 px-4 text-[var(--text-tertiary)] font-ui font-bold text-[10px] uppercase tracking-wider">
+                    {t("inventario.fields.state")}
+                  </th>
+                  <th className="text-left py-3 px-4 text-[var(--text-tertiary)] font-ui font-bold text-[10px] uppercase tracking-wider">
+                    {t("inventario.fields.bedrooms")}
+                  </th>
+                  <th className="text-left py-3 px-4 text-[var(--text-tertiary)] font-ui font-bold text-[10px] uppercase tracking-wider">
+                    {t("inventario.fields.bathrooms")}
+                  </th>
+                  <th className="text-right py-3 px-4 text-[var(--text-tertiary)] font-ui font-bold text-[10px] uppercase tracking-wider">
+
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                {filteredUnidades.length === 0 ? (
+                  <tr>
+                    <td
+                      colSpan={fachadas.length > 0 ? 11 : 10}
+                      className="py-16 text-center text-[var(--text-muted)] text-sm"
+                    >
+                      {unidades.length === 0
+                        ? t("inventario.noUnits")
+                        : t("inventario.noUnitsFiltered")}
+                    </td>
+                  </tr>
+                ) : (
+                  filteredUnidades.map((unit) => (
+                    <motion.tr
+                      key={unit.id}
+                      layout
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      className="border-b border-[var(--border-subtle)] hover:bg-[var(--surface-2)] transition-colors group"
+                    >
+                      {editingId === unit.id ? (
+                        <td colSpan={fachadas.length > 0 ? 11 : 10} className="p-4">
+                          <UnitForm
+                            initial={getEditFormData(unit)}
+                            tipologias={tipologiasForDropdown}
+                            fachadas={fachadas}
+                            onSubmit={(data) => handleUpdate(unit.id, data)}
+                            onCancel={() => setEditingId(null)}
+                            submitting={formLoading}
+                          />
                         </td>
-                        <td className="py-3 px-4 text-white font-medium">
-                          {unit.identificador}
-                        </td>
-                        <td className="py-3 px-4">
-                          <select
-                            value={unit.tipologia_id || ""}
-                            onChange={(e) => handleInlineUpdate(unit.id, "tipologia_id", e.target.value || null)}
-                            className="bg-transparent text-xs text-[var(--text-secondary)] hover:text-white cursor-pointer focus:outline-none border-none appearance-none"
-                          >
-                            <option value="" className="bg-[var(--surface-2)]">—</option>
-                            {tipologiasForDropdown.map((tp) => (
-                              <option key={tp.id} value={tp.id} className="bg-[var(--surface-2)]">
-                                {tp.nombre}
-                              </option>
-                            ))}
-                          </select>
-                        </td>
-                        {fachadas.length > 0 && (
+                      ) : (
+                        <>
+                          <td className="py-3 px-4">
+                            <button
+                              onClick={() => toggleSelect(unit.id)}
+                              className="text-[var(--text-tertiary)] hover:text-[var(--text-secondary)] transition-colors"
+                            >
+                              {selectedIds.has(unit.id) ? (
+                                <CheckSquare
+                                  size={16}
+                                  className="text-[var(--site-primary)]"
+                                />
+                              ) : (
+                                <Square size={16} />
+                              )}
+                            </button>
+                          </td>
+                          <td className="py-3 px-4 text-white font-medium">
+                            {unit.identificador}
+                          </td>
                           <td className="py-3 px-4">
                             <select
-                              value={unit.fachada_id || ""}
-                              onChange={(e) => handleInlineUpdate(unit.id, "fachada_id", e.target.value || null)}
+                              value={unit.tipologia_id || ""}
+                              onChange={(e) => handleInlineUpdate(unit.id, "tipologia_id", e.target.value || null)}
                               className="bg-transparent text-xs text-[var(--text-secondary)] hover:text-white cursor-pointer focus:outline-none border-none appearance-none"
                             >
                               <option value="" className="bg-[var(--surface-2)]">—</option>
-                              {fachadas.map((f) => (
-                                <option key={f.id} value={f.id} className="bg-[var(--surface-2)]">
-                                  {f.nombre}
+                              {tipologiasForDropdown.map((tp) => (
+                                <option key={tp.id} value={tp.id} className="bg-[var(--surface-2)]">
+                                  {tp.nombre}
                                 </option>
                               ))}
                             </select>
                           </td>
-                        )}
-                        <td className="py-3 px-4 text-[var(--text-secondary)]">
-                          {unit.piso ?? "-"}
-                        </td>
-                        <td className="py-3 px-4 text-[var(--text-secondary)]">
-                          {unit.area_m2 != null ? `${unit.area_m2} m²` : "-"}
-                        </td>
-                        <td className="py-3 px-4 text-[var(--text-secondary)]">
-                          {formatPrice(unit.precio)}
-                        </td>
-                        <td className="py-3 px-4">
-                          <EstadoBadge estado={unit.estado} />
-                        </td>
-                        <td className="py-3 px-4 text-[var(--text-secondary)]">
-                          {unit.habitaciones ?? "-"}
-                        </td>
-                        <td className="py-3 px-4 text-[var(--text-secondary)]">
-                          {unit.banos ?? "-"}
-                        </td>
-                        <td className="py-3 px-4">
-                          <div className="flex items-center justify-end gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                            <button
-                              onClick={() => {
-                                setEditingId(unit.id);
-                                setShowCreateForm(false);
-                              }}
-                              className="p-1.5 hover:bg-[var(--surface-2)] rounded-lg transition-colors text-[var(--text-tertiary)] hover:text-white"
-                              title="Editar"
-                            >
-                              <Pencil size={14} />
-                            </button>
-                            <button
-                              onClick={() => setDeleteConfirm(unit.id)}
-                              className={btnDanger}
-                              title="Eliminar"
-                            >
-                              <Trash2 size={14} />
-                            </button>
-                          </div>
-                        </td>
-                      </>
-                    )}
-                  </motion.tr>
-                ))
-              )}
-            </tbody>
-          </table>
+                          {fachadas.length > 0 && (
+                            <td className="py-3 px-4">
+                              <select
+                                value={unit.fachada_id || ""}
+                                onChange={(e) => handleInlineUpdate(unit.id, "fachada_id", e.target.value || null)}
+                                className="bg-transparent text-xs text-[var(--text-secondary)] hover:text-white cursor-pointer focus:outline-none border-none appearance-none"
+                              >
+                                <option value="" className="bg-[var(--surface-2)]">—</option>
+                                {fachadas.map((f) => (
+                                  <option key={f.id} value={f.id} className="bg-[var(--surface-2)]">
+                                    {f.nombre}
+                                  </option>
+                                ))}
+                              </select>
+                            </td>
+                          )}
+                          <td className="py-3 px-4 text-[var(--text-secondary)]">
+                            {unit.piso ?? "-"}
+                          </td>
+                          <td className="py-3 px-4 text-[var(--text-secondary)]">
+                            {unit.area_m2 != null ? `${unit.area_m2} m²` : "-"}
+                          </td>
+                          <td className="py-3 px-4 text-[var(--text-secondary)]">
+                            {formatPrice(unit.precio)}
+                          </td>
+                          <td className="py-3 px-4">
+                            <EstadoBadge estado={unit.estado} />
+                          </td>
+                          <td className="py-3 px-4 text-[var(--text-secondary)]">
+                            {unit.habitaciones ?? "-"}
+                          </td>
+                          <td className="py-3 px-4 text-[var(--text-secondary)]">
+                            {unit.banos ?? "-"}
+                          </td>
+                          <td className="py-3 px-4">
+                            <div className="flex items-center justify-end gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                              <button
+                                onClick={() => {
+                                  setEditingId(unit.id);
+                                  setShowCreateForm(false);
+                                }}
+                                className="p-1.5 hover:bg-[var(--surface-2)] rounded-lg transition-colors text-[var(--text-tertiary)] hover:text-white"
+                                title="Editar"
+                              >
+                                <Pencil size={14} />
+                              </button>
+                              <button
+                                onClick={() => setDeleteConfirm(unit.id)}
+                                className={btnDanger}
+                                title="Eliminar"
+                              >
+                                <Trash2 size={14} />
+                              </button>
+                            </div>
+                          </td>
+                        </>
+                      )}
+                    </motion.tr>
+                  ))
+                )}
+              </tbody>
+            </table>
+          </div>
         </div>
-      </div>
+      )}
 
       {/* Modals */}
       <AnimatePresence>

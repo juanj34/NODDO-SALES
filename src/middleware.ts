@@ -63,7 +63,9 @@ export async function middleware(request: NextRequest) {
     pathname === "/proyectos" ||
     pathname.startsWith("/editor") ||
     pathname === "/leads" ||
-    pathname === "/equipo";
+    pathname === "/equipo" ||
+    pathname === "/ayuda" ||
+    pathname === "/cuenta";
   const isLoginRoute = pathname === "/login";
 
   if (!isDashboardRoute && !isLoginRoute) {

@@ -70,8 +70,14 @@ export function MarketingNav() {
 
         {/* Right side */}
         <div className="flex items-center gap-4">
-          <Link href="/login" className="btn-mk-primary text-[10px] py-2.5 px-5">
-            Demo gratis
+          <Link
+            href="/login"
+            className="hidden md:inline text-[10px] tracking-[0.2em] uppercase text-[rgba(244,240,232,0.4)] hover:text-[var(--mk-accent)] transition-colors duration-200"
+          >
+            Iniciar Sesión
+          </Link>
+          <Link href="mailto:hola@noddo.co" className="btn-mk-primary text-[10px] py-2.5 px-5">
+            Agendar Demo
           </Link>
 
           {/* Mobile hamburger */}
@@ -127,6 +133,13 @@ export function MarketingNav() {
                   {link.label}
                 </Link>
               ))}
+              <Link
+                href="/login"
+                onClick={() => setMobileOpen(false)}
+                className="text-[11px] tracking-[0.2em] uppercase text-[var(--mk-text-secondary)] hover:text-[var(--mk-accent)] transition-colors duration-200 pt-2 border-t border-[var(--mk-border-rule)]"
+              >
+                Iniciar Sesión
+              </Link>
             </div>
           </motion.div>
         )}

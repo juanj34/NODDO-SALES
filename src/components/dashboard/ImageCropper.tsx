@@ -62,7 +62,7 @@ export function ImageCropper({
       {/* Header */}
       <div className="flex items-center justify-between px-6 py-4 border-b border-white/5">
         <div className="flex items-center gap-3">
-          <Crop size={16} className="text-[#0070F3]" />
+          <Crop size={16} className="text-[var(--site-primary)]" />
           <span className="text-sm text-white/70">
             Recortar imagen
             <span className="ml-2 text-xs text-white/30">({aspectLabel})</span>
@@ -88,16 +88,16 @@ export function ImageCropper({
           onCropComplete={onCropComplete}
           style={{
             containerStyle: { background: "#0a0a0a" },
-            cropAreaStyle: { border: "2px solid #0070F3" },
+            cropAreaStyle: { border: "2px solid var(--site-primary)" },
           }}
         />
       </div>
 
       {/* Controls */}
-      <div className="flex items-center justify-between px-6 py-4 border-t border-white/5 bg-[#0f0f0f]">
+      <div className="flex flex-col sm:flex-row items-center justify-between gap-3 px-4 sm:px-6 py-4 border-t border-white/5 bg-[#0f0f0f]">
         {/* Zoom slider */}
-        <div className="flex items-center gap-3">
-          <ZoomOut size={14} className="text-white/30" />
+        <div className="flex items-center gap-3 w-full sm:w-auto">
+          <ZoomOut size={14} className="text-white/30 shrink-0" />
           <input
             type="range"
             min={1}
@@ -105,13 +105,13 @@ export function ImageCropper({
             step={0.05}
             value={zoom}
             onChange={(e) => setZoom(Number(e.target.value))}
-            className="w-32 accent-[#0070F3]"
+            className="flex-1 sm:w-32 accent-noddo-primary"
           />
-          <ZoomIn size={14} className="text-white/30" />
+          <ZoomIn size={14} className="text-white/30 shrink-0" />
         </div>
 
         {/* Buttons */}
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 w-full sm:w-auto">
           <button
             onClick={onCancel}
             className="px-4 py-2 text-xs text-white/50 border border-white/10 rounded-lg hover:text-white hover:border-white/20 transition-colors"
@@ -121,7 +121,7 @@ export function ImageCropper({
           <button
             onClick={handleConfirm}
             disabled={processing}
-            className="flex items-center gap-1.5 px-4 py-2 bg-[#0070F3] text-black rounded-lg text-xs font-medium hover:brightness-110 transition-all disabled:opacity-50"
+            className="flex items-center gap-1.5 px-4 py-2 bg-[var(--site-primary)] text-black rounded-lg text-xs font-medium hover:brightness-110 transition-all disabled:opacity-50"
           >
             <Crop size={14} />
             {processing ? "Procesando..." : "Recortar y subir"}

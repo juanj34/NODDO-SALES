@@ -36,12 +36,12 @@ function createPickerMarkerElement(): HTMLDivElement {
   // Outer pulse ring
   const ring = document.createElement("div");
   ring.style.cssText =
-    "position:absolute;inset:-8px;border-radius:50%;border:2.5px solid rgba(0,112,243,0.4);animation:picker-pulse 2s ease-out infinite;";
+    "position:absolute;inset:-8px;border-radius:50%;border:2.5px solid rgba(184,151,58,0.4);animation:picker-pulse 2s ease-out infinite;";
   el.appendChild(ring);
   // Inner dot
   const dot = document.createElement("div");
   dot.style.cssText =
-    "width:40px;height:40px;background:#0070F3;border-radius:50%;border:3.5px solid white;box-shadow:0 0 0 5px rgba(0,112,243,0.3),0 4px 12px rgba(0,0,0,0.6);";
+    "width:40px;height:40px;background:var(--site-primary);border-radius:50%;border:3.5px solid white;box-shadow:0 0 0 5px rgba(184,151,58,0.3),0 4px 12px rgba(0,0,0,0.6);";
   el.appendChild(dot);
   return el;
 }
@@ -292,7 +292,7 @@ export function MapPickerModal({
       >
         {/* Header with search — z-10 ensures clicks don't pass through to the map */}
         <div className="flex-shrink-0 relative z-10 flex items-center gap-3 px-5 py-3 border-b border-white/5">
-          <MapPin size={16} className="text-[#0070F3] shrink-0" />
+          <MapPin size={16} className="text-[var(--site-primary)] shrink-0" />
           <div className="flex-1 relative">
             <div className="relative">
               <Search
@@ -304,7 +304,7 @@ export function MapPickerModal({
                 value={searchQuery}
                 onChange={(e) => handleSearchInput(e.target.value)}
                 placeholder={t("mapPicker.searchPlaceholder")}
-                className="w-full bg-white/5 border border-white/10 rounded-lg pl-9 pr-3 py-2 text-sm text-white placeholder:text-white/30 focus:outline-none focus:border-[#0070F3]/50 focus:ring-1 focus:ring-[#0070F3]/20 transition-colors"
+                className="w-full bg-white/5 border border-white/10 rounded-lg pl-9 pr-3 py-2 text-sm text-white placeholder:text-white/30 focus:outline-none focus:border-[rgba(184,151,58,0.5)] focus:ring-1 focus:ring-[rgba(184,151,58,0.2)] transition-colors"
               />
               {searching && (
                 <Loader2
@@ -323,7 +323,7 @@ export function MapPickerModal({
                     onClick={() => selectSearchResult(result)}
                     className="w-full text-left px-4 py-2.5 text-sm text-white/70 hover:text-white hover:bg-white/5 transition-colors border-b border-white/5 last:border-0 flex items-start gap-2.5"
                   >
-                    <MapPin size={13} className="text-[#0070F3] shrink-0 mt-0.5" />
+                    <MapPin size={13} className="text-[var(--site-primary)] shrink-0 mt-0.5" />
                     <span className="line-clamp-1">{result.place_name}</span>
                   </button>
                 ))}
@@ -354,7 +354,7 @@ export function MapPickerModal({
                   </p>
                 ) : (
                   <>
-                    <Loader2 size={16} className="text-[#0070F3] animate-spin" />
+                    <Loader2 size={16} className="text-[var(--site-primary)] animate-spin" />
                     <p className="text-white/40 text-sm">{t("mapPicker.loadingMap")}</p>
                   </>
                 )}
@@ -403,7 +403,7 @@ export function MapPickerModal({
             <button
               onClick={handleConfirm}
               disabled={selectedLat === null || selectedLng === null}
-              className="flex items-center gap-1.5 px-4 py-2 bg-[#0070F3] text-black rounded-lg text-xs font-medium hover:brightness-110 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+              className="flex items-center gap-1.5 px-4 py-2 bg-[var(--site-primary)] text-black rounded-lg text-xs font-medium hover:brightness-110 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
             >
               <Check size={14} />
               {t("mapPicker.confirmLocation")}

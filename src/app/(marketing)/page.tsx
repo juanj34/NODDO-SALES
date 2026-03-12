@@ -43,23 +43,23 @@ export default function MarketingHomePage() {
             </em>
           </h2>
           <p
-            className="text-[13px] mb-12 tracking-[0.05em]"
+            className="text-[14px] mb-12 tracking-[0.05em]"
             style={{ color: "rgba(244, 240, 232, 0.4)" }}
           >
-            14 días gratis. Sin tarjeta de crédito. Sin agencia.
+            Sin agencia. Sin código. Sin esperar.
           </p>
           <div className="flex gap-4 justify-center">
             <Link
-              href="/login"
+              href="mailto:hola@noddo.co"
               className="btn-mk-primary text-xs py-4 px-10"
             >
-              Crear mi sala de ventas
+              Agendar Demo
             </Link>
             <Link
               href="/sites/alto-de-yeguas"
               className="btn-mk-outline text-xs py-4 px-10"
             >
-              Ver demo en vivo
+              Demo en Vivo
             </Link>
           </div>
         </motion.div>

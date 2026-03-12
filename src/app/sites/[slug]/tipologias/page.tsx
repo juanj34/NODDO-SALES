@@ -7,7 +7,9 @@ import { useSiteProject } from "@/hooks/useSiteProject";
 import { usePersistedState } from "@/hooks/usePersistedState";
 import { useTranslation, getEstadoConfig } from "@/i18n";
 import { CotizadorModal } from "@/components/site/CotizadorModal";
+import { Lightbox } from "@/components/site/Lightbox";
 import { SectionTransition } from "@/components/site/SectionTransition";
+import { CloseButton } from "@/components/ui/CloseButton";
 import { cn } from "@/lib/utils";
 import {
   Maximize,
@@ -23,8 +25,9 @@ import {
   ChevronDown,
   Building2,
   Home,
+  Images,
 } from "lucide-react";
-import type { Unidad } from "@/types";
+import type { Unidad, LightboxImage } from "@/types";
 
 function formatPrecio(precio: number): string {
   if (precio >= 1000000000) {
@@ -123,6 +126,7 @@ export default function TipologiasPage() {
   const [hoveredHotspot, setHoveredHotspot] = useState<string | null>(null);
   const [activeHotspot, setActiveHotspot] = useState<{ label: string; render_url: string } | null>(null);
   const [showUbicacion, setShowUbicacion] = useState(false);
+  const [showRenderGallery, setShowRenderGallery] = useState(false);
 
   // Image ref for hotspot container
   const planoImgRef = useRef<HTMLImageElement>(null);
@@ -173,14 +177,18 @@ export default function TipologiasPage() {
 
       switch (e.key) {
         case "Escape":
-          if (activeHotspot) {
+          // Lightbox handles its own ESC
+          if (showRenderGallery) return;
+          if (showUbicacion) {
+            setShowUbicacion(false);
+          } else if (activeHotspot) {
             closeHotspot();
           } else if (selectedUnit) {
             setSelectedUnit(null);
           }
           break;
         case "ArrowLeft":
-          if (!activeHotspot) {
+          if (!activeHotspot && !showRenderGallery) {
             e.preventDefault();
             setActiveIndex((prev) => Math.max(prev - 1, 0));
             setEstadoFilter("todas");
@@ -188,7 +196,7 @@ export default function TipologiasPage() {
           }
           break;
         case "ArrowRight":
-          if (!activeHotspot) {
+          if (!activeHotspot && !showRenderGallery) {
             e.preventDefault();
             setActiveIndex((prev) => Math.min(prev + 1, visibleTipologias.length - 1));
             setEstadoFilter("todas");
@@ -199,7 +207,7 @@ export default function TipologiasPage() {
     };
     window.addEventListener("keydown", handleKey);
     return () => window.removeEventListener("keydown", handleKey);
-  }, [activeHotspot, closeHotspot, selectedUnit, visibleTipologias.length]);
+  }, [activeHotspot, closeHotspot, selectedUnit, showRenderGallery, showUbicacion, visibleTipologias.length]);
 
   const active = visibleTipologias[activeIndex] ?? visibleTipologias[0];
 
@@ -235,6 +243,20 @@ export default function TipologiasPage() {
     if (tipoUnits.length === 0) return active.precio_desde;
     return Math.min(...tipoUnits.map((u) => u.precio!));
   }, [active, unidades]);
+
+  // Render images from hotspots for gallery lightbox
+  const renderImages: LightboxImage[] = useMemo(() => {
+    if (!active) return [];
+    return active.hotspots
+      .filter((h) => h.render_url)
+      .map((h) => ({
+        id: h.id,
+        url: h.render_url,
+        thumbnail_url: h.render_url,
+        alt_text: h.label,
+        label: h.label,
+      }));
+  }, [active]);
 
   // Group units by floor
   const unitsByFloor = useMemo(() => {
@@ -416,6 +438,33 @@ export default function TipologiasPage() {
                       </button>
                     ))}
                   </div>
+                )}
+
+                {/* Render gallery button — bottom left */}
+                {renderImages.length > 0 && !selectedUnit && (
+                  <button
+                    onClick={() => setShowRenderGallery(true)}
+                    className="absolute bottom-4 left-4 glass-card rounded-xl overflow-hidden border border-[var(--border-default)] shadow-lg z-10 cursor-pointer group transition-all hover:border-[rgba(var(--site-primary-rgb),0.4)] hover:shadow-[var(--glow-sm)] flex items-center gap-2.5 px-3 py-2.5"
+                  >
+                    {/* Thumbnail of first render */}
+                    <div className="w-10 h-10 rounded-lg overflow-hidden flex-shrink-0">
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img
+                        src={renderImages[0].url}
+                        alt=""
+                        className="w-full h-full object-cover"
+                      />
+                    </div>
+                    <div className="text-left">
+                      <span className="text-[11px] text-[var(--text-secondary)] font-medium tracking-wide flex items-center gap-1.5">
+                        <Images size={12} className="text-[var(--site-primary)]" />
+                        Renders
+                      </span>
+                      <span className="text-[10px] text-[var(--text-muted)]">
+                        {renderImages.length} {renderImages.length === 1 ? "imagen" : "imágenes"}
+                      </span>
+                    </div>
+                  </button>
                 )}
 
                 {/* Location thumbnail overlay */}

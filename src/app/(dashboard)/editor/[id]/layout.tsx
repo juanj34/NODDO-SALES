@@ -28,6 +28,8 @@ import {
   RotateCcw,
   Check,
   HardHat,
+  Menu,
+  X,
 } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -36,6 +38,7 @@ import type { ProyectoVersion } from "@/types";
 import { useTranslation } from "@/i18n";
 import { useAuthRole } from "@/hooks/useAuthContext";
 import { NodDoLogo } from "@/components/ui/NodDoLogo";
+import { useMobileDrawer } from "@/hooks/useMobileDrawer";
 
 /* ------------------------------------------------------------------ */
 /*  Helpers                                                            */
@@ -133,6 +136,7 @@ export default function EditorLayout({
   const { role } = useAuthRole();
   const isCollaborator = role === "colaborador";
   const basePath = `/editor/${id}`;
+  const { isMobile, open: drawerOpen, toggle: toggleDrawer, close: closeDrawer } = useMobileDrawer();
 
   /* ---- Publish / version state ---- */
   const [publishing, setPublishing] = useState(false);
@@ -326,12 +330,42 @@ export default function EditorLayout({
   return (
     <EditorProjectContext.Provider value={contextValue!}>
       <div className="flex h-screen bg-[var(--surface-0)]">
+        {/* Mobile hamburger button */}
+        <button
+          onClick={toggleDrawer}
+          className="fixed top-3 left-3 z-50 md:hidden w-10 h-10 flex items-center justify-center bg-[var(--surface-2)] border border-[var(--border-subtle)] rounded-xl transition-colors hover:bg-[var(--surface-3)]"
+          aria-label="Toggle editor menu"
+        >
+          {drawerOpen ? <X size={16} /> : <Menu size={16} />}
+        </button>
+
+        {/* Mobile overlay */}
+        <AnimatePresence>
+          {drawerOpen && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.2 }}
+              onClick={closeDrawer}
+              className="fixed inset-0 z-[39] bg-black/60 md:hidden"
+            />
+          )}
+        </AnimatePresence>
+
         {/* Editor Sidebar */}
-        <aside className="w-56 bg-[var(--surface-1)] border-r border-[var(--border-subtle)] flex flex-col shrink-0">
+        <aside
+          className={cn(
+            "w-56 bg-[var(--surface-1)] border-r border-[var(--border-subtle)] flex flex-col shrink-0",
+            "fixed inset-y-0 left-0 z-[40] transition-transform duration-300 ease-[cubic-bezier(0.4,0,0.2,1)]",
+            "md:relative md:translate-x-0",
+            drawerOpen ? "translate-x-0" : "-translate-x-full"
+          )}
+        >
           {/* Back + project name */}
           <div className="px-5 py-4 border-b border-[var(--border-subtle)]">
-            <Link href="/proyectos" className="inline-block hover:opacity-80 transition-opacity mb-3">
-              <NodDoLogo height={14} colorNod="var(--text-muted)" colorDo="var(--site-primary)" />
+            <Link href="/proyectos" onClick={closeDrawer} className="inline-block hover:opacity-80 transition-opacity mb-3">
+              <NodDoLogo height={14} colorNod="var(--text-primary)" colorDo="var(--site-primary)" />
             </Link>
             <h2 className="text-[14px] font-semibold text-white truncate">
               {project.nombre}
@@ -358,6 +392,7 @@ export default function EditorLayout({
                       <Link
                         key={tab.id}
                         href={`${basePath}${tab.href}`}
+                        onClick={closeDrawer}
                         className={cn(
                           "flex items-center gap-2.5 px-3 py-[7px] rounded-lg font-ui text-[11px] font-semibold uppercase tracking-[0.08em] transition-all duration-150",
                           isActive
@@ -418,7 +453,7 @@ export default function EditorLayout({
             </div>
           )}
           {/* ── Publish header strip ── */}
-          {!isCollaborator && <div className="shrink-0 flex items-center justify-between px-6 h-12 border-b border-[var(--border-subtle)] bg-[var(--surface-1)]/60 backdrop-blur-sm">
+          {!isCollaborator && <div className="shrink-0 flex items-center justify-between px-3 md:px-6 h-12 border-b border-[var(--border-subtle)] bg-[var(--surface-1)]/60 backdrop-blur-sm">
             {/* Left: status badge + last published */}
             <div className="flex items-center gap-3">
               <span
@@ -483,7 +518,7 @@ export default function EditorLayout({
                   ) : (
                     <Rocket size={13} />
                   )}
-                  {publishing ? t("layout.publishing") : t("layout.publish")}
+                  <span className="hidden sm:inline">{publishing ? t("layout.publishing") : t("layout.publish")}</span>
                 </button>
                 <button
                   onClick={toggleVersions}
@@ -573,7 +608,7 @@ export default function EditorLayout({
           </div>}
 
           {/* Scrollable content */}
-          <div className="flex-1 overflow-y-auto p-6">
+          <div className="flex-1 overflow-y-auto p-4 md:p-6 pt-14 md:pt-6">
             {children}
           </div>
         </div>

@@ -66,7 +66,7 @@ export function Testimonials() {
 
               {/* Quote */}
               <p
-                className="text-xs leading-[1.8] mb-8 flex-1"
+                className="text-[13px] leading-[1.85] mb-8 flex-1"
                 style={{ color: "rgba(244, 240, 232, 0.5)" }}
               >
                 &ldquo;{t.quote}&rdquo;

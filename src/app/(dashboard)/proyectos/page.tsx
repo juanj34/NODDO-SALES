@@ -13,12 +13,13 @@ import {
   Trash2,
   Loader2,
   X,
-  FolderOpen,
   Sparkles,
   Bot,
   AlertTriangle,
+  ArrowRight,
 } from "lucide-react";
 import { MagneticButton } from "@/components/ui/MagneticButton";
+import { NodDoLogo } from "@/components/ui/NodDoLogo";
 import { useTranslation } from "@/i18n";
 import { useToast } from "@/components/dashboard/Toast";
 import { useAuthRole } from "@/hooks/useAuthContext";
@@ -113,9 +114,9 @@ export default function ProyectosPage() {
       .replace(/(^-|-$)/g, "");
 
   return (
-    <div className="p-8 max-w-7xl mx-auto">
+    <div className="p-4 md:p-8 max-w-7xl mx-auto">
       {/* Header */}
-      <div className="flex items-center justify-between mb-10">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-10">
         <div>
           <h1 className="font-heading text-2xl font-light text-[var(--text-primary)]">
             {t("proyectos.title")}
@@ -125,7 +126,7 @@ export default function ProyectosPage() {
           </p>
         </div>
         {isAdmin && (
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2">
             <MagneticButton>
               <button
                 onClick={handleCreateDemo}
@@ -326,24 +327,126 @@ export default function ProyectosPage() {
           <Loader2 className="animate-spin text-[var(--site-primary)]" size={28} />
         </div>
       ) : projects.length === 0 ? (
-        <div className="flex flex-col items-center justify-center py-24">
-          <div className="w-16 h-16 rounded-2xl bg-[var(--surface-2)] border border-[var(--border-subtle)] flex items-center justify-center mb-5">
-            <FolderOpen size={28} className="text-[var(--text-muted)]" />
-          </div>
-          <p className="text-[var(--text-tertiary)] text-lg mb-2">
-            {t("proyectos.noProjects")}
-          </p>
-          <p className="text-[var(--text-muted)] text-sm mb-6">
-            {t("proyectos.noProjectsDescription")}
-          </p>
-          <MagneticButton>
-            <button
-              onClick={() => setShowCreate(true)}
-              className="btn-outline-warm px-5 py-2.5 text-sm"
+        <div className="flex flex-col items-center justify-center py-16 max-w-2xl mx-auto">
+          {/* Logo + Welcome */}
+          <motion.div
+            initial={{ opacity: 0, y: 12 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5 }}
+            className="text-center mb-10"
+          >
+            <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl mb-6"
+              style={{
+                background: "linear-gradient(135deg, rgba(184,151,58,0.15), rgba(184,151,58,0.05))",
+                border: "1px solid rgba(184,151,58,0.15)",
+                boxShadow: "0 0 40px rgba(184,151,58,0.08)",
+              }}
             >
-              {t("proyectos.createProject")}
-            </button>
-          </MagneticButton>
+              <NodDoLogo height={14} colorNod="var(--text-secondary)" colorDo="var(--site-primary)" />
+            </div>
+            <h2 className="font-heading text-3xl font-light text-[var(--text-primary)] mb-3 tracking-wide">
+              {t("proyectos.noProjects")}
+            </h2>
+            <p className="text-[var(--text-tertiary)] text-sm max-w-md mx-auto leading-relaxed">
+              {t("proyectos.noProjectsDescription")}
+            </p>
+          </motion.div>
+
+          {/* Action Cards */}
+          {isAdmin && (
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 w-full">
+              {/* Card: Create blank */}
+              <motion.button
+                initial={{ opacity: 0, y: 16 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.4, delay: 0.1 }}
+                onClick={() => setShowCreate(true)}
+                className="group glass-card p-6 text-left hover:border-[var(--border-default)] transition-all duration-300 cursor-pointer"
+                style={{ borderRadius: "1.25rem" }}
+              >
+                <div className="w-10 h-10 rounded-xl bg-[var(--surface-3)] border border-[var(--border-subtle)] flex items-center justify-center mb-4 group-hover:border-[rgba(var(--site-primary-rgb),0.25)] group-hover:bg-[rgba(var(--site-primary-rgb),0.08)] transition-all">
+                  <Plus size={18} className="text-[var(--text-muted)] group-hover:text-[var(--site-primary)] transition-colors" />
+                </div>
+                <h3 className="font-ui text-xs font-bold uppercase tracking-wider text-[var(--text-primary)] mb-1.5">
+                  Proyecto en blanco
+                </h3>
+                <p className="text-[11px] text-[var(--text-tertiary)] leading-relaxed mb-4">
+                  Configura cada detalle manualmente desde cero.
+                </p>
+                <span className="inline-flex items-center gap-1.5 font-ui text-[10px] font-bold uppercase tracking-wider text-[var(--site-primary)] opacity-0 group-hover:opacity-100 transition-opacity">
+                  Crear <ArrowRight size={10} />
+                </span>
+              </motion.button>
+
+              {/* Card: Create with AI */}
+              <motion.div
+                initial={{ opacity: 0, y: 16 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.4, delay: 0.2 }}
+              >
+                <Link
+                  href="/crear"
+                  className="group glass-card p-6 text-left hover:border-[var(--border-default)] transition-all duration-300 block h-full"
+                  style={{ borderRadius: "1.25rem" }}
+                >
+                  <div className="w-10 h-10 rounded-xl bg-[var(--surface-3)] border border-[var(--border-subtle)] flex items-center justify-center mb-4 group-hover:border-[rgba(var(--site-primary-rgb),0.25)] group-hover:bg-[rgba(var(--site-primary-rgb),0.08)] transition-all">
+                    <Bot size={18} className="text-[var(--text-muted)] group-hover:text-[var(--site-primary)] transition-colors" />
+                  </div>
+                  <h3 className="font-ui text-xs font-bold uppercase tracking-wider text-[var(--text-primary)] mb-1.5">
+                    {t("proyectos.createWithAI")}
+                  </h3>
+                  <p className="text-[11px] text-[var(--text-tertiary)] leading-relaxed mb-4">
+                    Sube tu brochure o describe el proyecto y la IA lo estructura.
+                  </p>
+                  <span className="inline-flex items-center gap-1.5 font-ui text-[10px] font-bold uppercase tracking-wider text-[var(--site-primary)] opacity-0 group-hover:opacity-100 transition-opacity">
+                    Comenzar <ArrowRight size={10} />
+                  </span>
+                </Link>
+              </motion.div>
+
+              {/* Card: Demo */}
+              <motion.button
+                initial={{ opacity: 0, y: 16 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.4, delay: 0.3 }}
+                onClick={handleCreateDemo}
+                disabled={creatingDemo}
+                className="group glass-card p-6 text-left hover:border-[var(--border-default)] transition-all duration-300 cursor-pointer disabled:opacity-50"
+                style={{ borderRadius: "1.25rem" }}
+              >
+                <div className="w-10 h-10 rounded-xl bg-[var(--surface-3)] border border-[var(--border-subtle)] flex items-center justify-center mb-4 group-hover:border-[rgba(var(--site-primary-rgb),0.25)] group-hover:bg-[rgba(var(--site-primary-rgb),0.08)] transition-all">
+                  {creatingDemo ? (
+                    <Loader2 size={18} className="text-[var(--site-primary)] animate-spin" />
+                  ) : (
+                    <Sparkles size={18} className="text-[var(--text-muted)] group-hover:text-[var(--site-primary)] transition-colors" />
+                  )}
+                </div>
+                <h3 className="font-ui text-xs font-bold uppercase tracking-wider text-[var(--text-primary)] mb-1.5">
+                  {t("proyectos.createDemo")}
+                </h3>
+                <p className="text-[11px] text-[var(--text-tertiary)] leading-relaxed mb-4">
+                  Genera un proyecto de ejemplo para explorar la plataforma.
+                </p>
+                <span className="inline-flex items-center gap-1.5 font-ui text-[10px] font-bold uppercase tracking-wider text-[var(--site-primary)] opacity-0 group-hover:opacity-100 transition-opacity">
+                  {creatingDemo ? "Creando..." : "Generar"} <ArrowRight size={10} />
+                </span>
+              </motion.button>
+            </div>
+          )}
+
+          {/* Collaborator empty state */}
+          {!isAdmin && (
+            <motion.div
+              initial={{ opacity: 0, y: 12 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.4, delay: 0.15 }}
+              className="glass-card p-8 text-center max-w-sm"
+            >
+              <p className="text-sm text-[var(--text-secondary)] leading-relaxed">
+                Tu administrador aun no ha creado proyectos. Los veras aqui cuando esten disponibles.
+              </p>
+            </motion.div>
+          )}
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">

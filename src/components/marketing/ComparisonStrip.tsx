@@ -48,7 +48,7 @@ export function ComparisonStrip() {
             {themItems.map((item) => (
               <div
                 key={item}
-                className="flex items-baseline gap-3 py-3.5 text-[13px] border-b border-[var(--mk-border-rule)]"
+                className="flex items-baseline gap-3 py-3.5 text-[14px] border-b border-[var(--mk-border-rule)]"
                 style={{ color: "rgba(255, 255, 255, 0.3)" }}
               >
                 <span
@@ -85,7 +85,7 @@ export function ComparisonStrip() {
             {usItems.map((item) => (
               <div
                 key={item}
-                className="flex items-baseline gap-3 py-3.5 text-[13px] border-b border-[var(--mk-border-rule)]"
+                className="flex items-baseline gap-3 py-3.5 text-[14px] border-b border-[var(--mk-border-rule)]"
                 style={{ color: "rgba(244, 240, 232, 0.8)" }}
               >
                 <span

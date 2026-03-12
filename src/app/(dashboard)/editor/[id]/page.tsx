@@ -24,9 +24,10 @@ import {
   Film,
   Trash2,
   Link2,
-  Globe,
   Share2,
   Scale,
+  Fingerprint,
+  Globe,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useTranslation } from "@/i18n";
@@ -146,7 +147,7 @@ export default function EditorGeneralPage() {
       </div>
 
       {/* Tab Bar */}
-      <div className="flex items-center gap-1 p-1 bg-[var(--surface-1)] rounded-xl border border-[var(--border-subtle)] mb-6">
+      <div className="flex items-center gap-1 p-1 bg-[var(--surface-1)] rounded-xl border border-[var(--border-subtle)] mb-6 overflow-x-auto scrollbar-hide">
         {tabDefs.map((tab) => {
           const Icon = tab.icon;
           const isActive = activeTab === tab.id;
@@ -154,7 +155,7 @@ export default function EditorGeneralPage() {
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
-              className={`flex items-center gap-2 px-4 py-2 rounded-lg font-ui text-[10px] font-bold uppercase tracking-[0.08em] transition-all ${
+              className={`flex items-center gap-2 px-4 py-2 rounded-lg font-ui text-[10px] font-bold uppercase tracking-[0.08em] transition-all shrink-0 whitespace-nowrap ${
                 isActive
                   ? "bg-[var(--surface-3)] text-white shadow-sm"
                   : "text-[var(--text-tertiary)] hover:text-[var(--text-secondary)] hover:bg-[var(--surface-2)]"
@@ -214,72 +215,124 @@ export default function EditorGeneralPage() {
 
           {/* ═══ Página de Inicio ═══ */}
           {activeTab === "inicio" && (
-            <div className={sectionCard}>
-              <h3 className={sectionTitle}>
-                <Home size={15} className="text-[var(--site-primary)]" />
-                {t("general.landing.title")}
-              </h3>
-              <p className={sectionDescription}>
-                {t("general.landing.description")}
-              </p>
+            <div className="space-y-6">
+              {/* Site Identity */}
+              <div className={sectionCard}>
+                <h3 className={sectionTitle}>
+                  <Fingerprint size={15} className="text-[var(--site-primary)]" />
+                  {t("general.landing.identity.title")}
+                </h3>
+                <p className={sectionDescription}>
+                  {t("general.landing.identity.description")}
+                </p>
 
-              <div className="space-y-5">
-                {/* Hero render */}
-                <div>
-                  <label className={labelClass}>{t("general.landing.heroRender")}</label>
-                  <FileUploader currentUrl={renderPrincipalUrl || null} onUpload={(url) => { setRenderPrincipalUrl(url); scheduleAutoSave(); }} folder={`proyectos/${projectId}`} label={t("general.landing.uploadHero")} cropAspect={16 / 9} />
-                  <p className={fieldHint}>{t("general.landing.heroHint")}</p>
-                </div>
-
-                {/* Logo + Video side by side */}
                 <div className="grid grid-cols-2 gap-5">
-                  <div>
-                    <label className={labelClass}>{t("general.landing.logo")}</label>
-                    <FileUploader currentUrl={logoUrl || null} onUpload={(url) => { setLogoUrl(url); scheduleAutoSave(); }} folder={`proyectos/${projectId}`} label={t("general.landing.uploadLogo")} aspect="logo" />
-                    <p className={fieldHint}>{t("general.landing.logoHint")}</p>
-                  </div>
-
+                  {/* Favicon / Site Icon */}
                   <div>
                     <label className={labelClass}>
-                      <Film size={14} className="inline mr-1.5 -mt-0.5" />
-                      {t("general.landing.heroVideo")}
+                      <Globe size={14} className="inline mr-1.5 -mt-0.5" />
+                      {t("general.landing.identity.favicon")}
                     </label>
-                    {heroVideoUrl ? (
-                      <div className="relative aspect-video rounded-xl overflow-hidden border-2 border-dashed border-[var(--border-default)]">
-                        <video
-                          src={heroVideoUrl}
-                          className="w-full h-full object-cover"
-                          muted
-                          loop
-                          playsInline
-                          autoPlay
-                        />
-                        <button
-                          onClick={() => { setHeroVideoUrl(""); scheduleAutoSave(); }}
-                          className="absolute top-2 right-2 w-7 h-7 bg-black/70 backdrop-blur-sm rounded-full flex items-center justify-center text-[var(--text-secondary)] hover:text-red-400 transition-colors"
-                        >
-                          <Trash2 size={14} />
-                        </button>
+                    {/* Size guide */}
+                    {!faviconUrl && (
+                      <div className="mb-2 flex items-center justify-center w-full aspect-square max-w-[140px] rounded-xl border-2 border-dashed border-[var(--border-default)] bg-[var(--surface-2)]">
+                        <span className="font-ui text-[10px] tracking-wider uppercase text-[var(--text-muted)]">
+                          {t("general.landing.identity.faviconSize")}
+                        </span>
                       </div>
-                    ) : (
-                      <FileUploader
-                        currentUrl={null}
-                        onUpload={(url) => { setHeroVideoUrl(url); scheduleAutoSave(); }}
-                        folder={`proyectos/${projectId}`}
-                        label={t("general.landing.uploadHeroVideo")}
-                        accept="video/mp4,video/webm"
-                        enablePaste={false}
-                      />
                     )}
-                    <p className={fieldHint}>{t("general.landing.heroVideoHint")}</p>
+                    <FileUploader currentUrl={faviconUrl || null} onUpload={(url) => { setFaviconUrl(url); scheduleAutoSave(); }} folder={`proyectos/${projectId}`} label={t("general.landing.identity.uploadFavicon")} cropAspect={1} />
+                    <p className={fieldHint}>{t("general.landing.identity.faviconHint")}</p>
+                  </div>
+
+                  {/* OG Image */}
+                  <div>
+                    <label className={labelClass}>
+                      <Share2 size={14} className="inline mr-1.5 -mt-0.5" />
+                      {t("general.landing.identity.ogImage")}
+                    </label>
+                    {/* Size guide */}
+                    {!ogImageUrl && (
+                      <div className="mb-2 flex items-center justify-center w-full rounded-xl border-2 border-dashed border-[var(--border-default)] bg-[var(--surface-2)]" style={{ aspectRatio: "1200/630" }}>
+                        <span className="font-ui text-[10px] tracking-wider uppercase text-[var(--text-muted)]">
+                          {t("general.landing.identity.ogImageSize")}
+                        </span>
+                      </div>
+                    )}
+                    <FileUploader currentUrl={ogImageUrl || null} onUpload={(url) => { setOgImageUrl(url); scheduleAutoSave(); }} folder={`proyectos/${projectId}`} label={t("general.landing.identity.uploadOgImage")} cropAspect={1200 / 630} />
+                    <p className={fieldHint}>{t("general.landing.identity.ogImageHint")}</p>
                   </div>
                 </div>
+              </div>
 
-                {/* Description */}
-                <div>
-                  <label className={labelClass}>{t("general.landing.descriptionLabel")}</label>
-                  <textarea value={descripcion} onChange={(e) => { setDescripcion(e.target.value); scheduleAutoSave(); }} rows={3} className={inputClass + " resize-none"} placeholder={t("general.landing.descriptionPlaceholder")} />
-                  <p className={fieldHint}>{t("general.landing.descriptionHint")}</p>
+              {/* Landing Page Content */}
+              <div className={sectionCard}>
+                <h3 className={sectionTitle}>
+                  <Home size={15} className="text-[var(--site-primary)]" />
+                  {t("general.landing.title")}
+                </h3>
+                <p className={sectionDescription}>
+                  {t("general.landing.description")}
+                </p>
+
+                <div className="space-y-5">
+                  {/* Hero render */}
+                  <div>
+                    <label className={labelClass}>{t("general.landing.heroRender")}</label>
+                    <FileUploader currentUrl={renderPrincipalUrl || null} onUpload={(url) => { setRenderPrincipalUrl(url); scheduleAutoSave(); }} folder={`proyectos/${projectId}`} label={t("general.landing.uploadHero")} cropAspect={16 / 9} />
+                    <p className={fieldHint}>{t("general.landing.heroHint")}</p>
+                  </div>
+
+                  {/* Logo + Video side by side */}
+                  <div className="grid grid-cols-2 gap-5">
+                    <div>
+                      <label className={labelClass}>{t("general.landing.logo")}</label>
+                      <FileUploader currentUrl={logoUrl || null} onUpload={(url) => { setLogoUrl(url); scheduleAutoSave(); }} folder={`proyectos/${projectId}`} label={t("general.landing.uploadLogo")} aspect="logo" />
+                      <p className={fieldHint}>{t("general.landing.logoHint")}</p>
+                    </div>
+
+                    <div>
+                      <label className={labelClass}>
+                        <Film size={14} className="inline mr-1.5 -mt-0.5" />
+                        {t("general.landing.heroVideo")}
+                      </label>
+                      {heroVideoUrl ? (
+                        <div className="relative aspect-video rounded-xl overflow-hidden border-2 border-dashed border-[var(--border-default)]">
+                          <video
+                            src={heroVideoUrl}
+                            className="w-full h-full object-cover"
+                            muted
+                            loop
+                            playsInline
+                            autoPlay
+                          />
+                          <button
+                            onClick={() => { setHeroVideoUrl(""); scheduleAutoSave(); }}
+                            className="absolute top-2 right-2 w-7 h-7 bg-black/70 backdrop-blur-sm rounded-full flex items-center justify-center text-[var(--text-secondary)] hover:text-red-400 transition-colors"
+                          >
+                            <Trash2 size={14} />
+                          </button>
+                        </div>
+                      ) : (
+                        <FileUploader
+                          currentUrl={null}
+                          onUpload={(url) => { setHeroVideoUrl(url); scheduleAutoSave(); }}
+                          folder={`proyectos/${projectId}`}
+                          label={t("general.landing.uploadHeroVideo")}
+                          accept="video/mp4,video/webm"
+                          enablePaste={false}
+                        />
+                      )}
+                      <p className={fieldHint}>{t("general.landing.heroVideoHint")}</p>
+                    </div>
+                  </div>
+
+                  {/* Description */}
+                  <div>
+                    <label className={labelClass}>{t("general.landing.descriptionLabel")}</label>
+                    <textarea value={descripcion} onChange={(e) => { setDescripcion(e.target.value); scheduleAutoSave(); }} rows={3} className={inputClass + " resize-none"} placeholder={t("general.landing.descriptionPlaceholder")} />
+                    <p className={fieldHint}>{t("general.landing.descriptionHint")}</p>
+                  </div>
                 </div>
               </div>
             </div>
@@ -332,7 +385,7 @@ export default function EditorGeneralPage() {
                 {t("general.design.description")}
               </p>
 
-              <div className="grid grid-cols-3 gap-5">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
                 {[
                   { label: t("general.design.primary"), value: colorPrimario, set: setColorPrimario, hint: t("general.design.primaryHint") },
                   { label: t("general.design.secondary"), value: colorSecundario, set: setColorSecundario, hint: t("general.design.secondaryHint") },
@@ -361,64 +414,30 @@ export default function EditorGeneralPage() {
             </div>
           )}
 
-          {/* ═══ Avanzado (SEO + Legal) ═══ */}
+          {/* ═══ Avanzado (Legal) ═══ */}
           {activeTab === "avanzado" && (
-            <div className="space-y-6">
-              {/* SEO & Social */}
-              <div className={sectionCard}>
-                <h3 className={sectionTitle}>
-                  <Globe size={15} className="text-[var(--site-primary)]" />
-                  {t("general.advanced.seoTitle")}
-                </h3>
-                <p className={sectionDescription}>
-                  {t("general.advanced.seoDescription")}
-                </p>
+            <div className={sectionCard}>
+              <h3 className={sectionTitle}>
+                <Scale size={15} className="text-[var(--site-primary)]" />
+                {t("general.advanced.legalTitle")}
+              </h3>
+              <p className={sectionDescription}>
+                {t("general.advanced.legalDescription")}
+              </p>
 
-                <div className="grid grid-cols-2 gap-5">
-                  <div>
-                    <label className={labelClass}>
-                      <Globe size={14} className="inline mr-1.5 -mt-0.5" />
-                      {t("general.advanced.favicon")}
-                    </label>
-                    <FileUploader currentUrl={faviconUrl || null} onUpload={(url) => { setFaviconUrl(url); scheduleAutoSave(); }} folder={`proyectos/${projectId}`} label={t("general.advanced.uploadFavicon")} cropAspect={1} />
-                    <p className={fieldHint}>{t("general.advanced.faviconHint")}</p>
-                  </div>
-
-                  <div>
-                    <label className={labelClass}>
-                      <Share2 size={14} className="inline mr-1.5 -mt-0.5" />
-                      {t("general.advanced.ogImage")}
-                    </label>
-                    <FileUploader currentUrl={ogImageUrl || null} onUpload={(url) => { setOgImageUrl(url); scheduleAutoSave(); }} folder={`proyectos/${projectId}`} label={t("general.advanced.uploadOgImage")} cropAspect={1200 / 630} />
-                    <p className={fieldHint}>{t("general.advanced.ogImageHint")}</p>
-                  </div>
+              <div className="space-y-5">
+                <div>
+                  <label className={labelClass}>{t("general.advanced.disclaimer")}</label>
+                  <textarea value={disclaimer} onChange={(e) => { setDisclaimer(e.target.value); scheduleAutoSave(); }} rows={3} className={inputClass + " resize-none"} placeholder={t("general.advanced.disclaimerPlaceholder")} />
                 </div>
-              </div>
 
-              {/* Legal */}
-              <div className={sectionCard}>
-                <h3 className={sectionTitle}>
-                  <Scale size={15} className="text-[var(--site-primary)]" />
-                  {t("general.advanced.legalTitle")}
-                </h3>
-                <p className={sectionDescription}>
-                  {t("general.advanced.legalDescription")}
-                </p>
-
-                <div className="space-y-5">
-                  <div>
-                    <label className={labelClass}>{t("general.advanced.disclaimer")}</label>
-                    <textarea value={disclaimer} onChange={(e) => { setDisclaimer(e.target.value); scheduleAutoSave(); }} rows={3} className={inputClass + " resize-none"} placeholder={t("general.advanced.disclaimerPlaceholder")} />
-                  </div>
-
-                  <div>
-                    <label className={labelClass}>
-                      <Link2 size={14} className="inline mr-1.5 -mt-0.5" />
-                      {t("general.advanced.privacyPolicy")}
-                    </label>
-                    <input type="url" value={politicaPrivacidadUrl} onChange={(e) => { setPoliticaPrivacidadUrl(e.target.value); scheduleAutoSave(); }} className={inputClass} placeholder={t("general.advanced.privacyPolicyPlaceholder")} />
-                    <p className={fieldHint}>{t("general.advanced.privacyPolicyHint")}</p>
-                  </div>
+                <div>
+                  <label className={labelClass}>
+                    <Link2 size={14} className="inline mr-1.5 -mt-0.5" />
+                    {t("general.advanced.privacyPolicy")}
+                  </label>
+                  <input type="url" value={politicaPrivacidadUrl} onChange={(e) => { setPoliticaPrivacidadUrl(e.target.value); scheduleAutoSave(); }} className={inputClass} placeholder={t("general.advanced.privacyPolicyPlaceholder")} />
+                  <p className={fieldHint}>{t("general.advanced.privacyPolicyHint")}</p>
                 </div>
               </div>
             </div>

@@ -1,5 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { getAuthContext } from "@/lib/auth-context";
+import { createAdminClient } from "@/lib/supabase/admin";
+import { sendLeadNotification } from "@/lib/email";
 import { NextRequest, NextResponse } from "next/server";
 
 export async function POST(request: NextRequest) {
@@ -35,12 +37,60 @@ export async function POST(request: NextRequest) {
       .single();
 
     if (error) throw error;
+
+    // Send email notification to project admin (non-blocking)
+    sendLeadNotificationAsync(body.proyecto_id, {
+      leadName: body.nombre,
+      leadEmail: body.email,
+      leadPhone: body.telefono || null,
+      leadTypology: body.tipologia_interes || null,
+      leadMessage: body.mensaje || null,
+      leadCountry: body.pais || null,
+    });
+
     return NextResponse.json(data, { status: 201 });
   } catch (err) {
     return NextResponse.json(
       { error: err instanceof Error ? err.message : "Error" },
       { status: 500 }
     );
+  }
+}
+
+async function sendLeadNotificationAsync(
+  projectId: string,
+  leadData: {
+    leadName: string;
+    leadEmail: string;
+    leadPhone?: string | null;
+    leadTypology?: string | null;
+    leadMessage?: string | null;
+    leadCountry?: string | null;
+  }
+) {
+  try {
+    const adminSupabase = createAdminClient();
+
+    // Fetch project name and owner
+    const { data: proyecto } = await adminSupabase
+      .from("proyectos")
+      .select("nombre, user_id")
+      .eq("id", projectId)
+      .single();
+
+    if (!proyecto) return;
+
+    // Fetch admin email
+    const { data: userData } = await adminSupabase.auth.admin.getUserById(proyecto.user_id);
+    if (!userData?.user?.email) return;
+
+    await sendLeadNotification({
+      adminEmail: userData.user.email,
+      projectName: proyecto.nombre,
+      ...leadData,
+    });
+  } catch (err) {
+    console.error("[leads] Error sending notification:", err);
   }
 }
 

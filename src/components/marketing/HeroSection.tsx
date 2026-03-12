@@ -26,7 +26,7 @@ export function HeroSection() {
             className="block w-8 h-px"
             style={{ background: "var(--mk-accent)" }}
           />
-          <span className="text-[9px] tracking-[0.4em] uppercase text-[var(--mk-accent)]">
+          <span className="font-ui text-[9px] tracking-[0.4em] uppercase text-[var(--mk-accent)]">
             Plataforma de showroom digital
           </span>
         </motion.div>
@@ -50,7 +50,7 @@ export function HeroSection() {
           initial={{ opacity: 0, y: 24 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8, delay: 0.6, ease: "easeOut" }}
-          className="text-[13px] leading-[1.8] max-w-[380px] mb-12"
+          className="text-[14px] leading-[1.85] max-w-[380px] mb-12"
           style={{ color: "rgba(244, 240, 232, 0.5)" }}
         >
           NODDO le da a tu proyecto una{" "}
@@ -68,11 +68,11 @@ export function HeroSection() {
           transition={{ duration: 0.8, delay: 0.8, ease: "easeOut" }}
           className="flex items-center gap-4"
         >
-          <Link href="/login" className="btn-mk-primary">
-            Empezar gratis
+          <Link href="mailto:hola@noddo.co" className="btn-mk-primary">
+            Agendar Demo
           </Link>
           <Link href="/sites/alto-de-yeguas" className="btn-mk-outline">
-            Ver demo en vivo
+            Demo en Vivo
           </Link>
         </motion.div>
 
@@ -90,7 +90,7 @@ export function HeroSection() {
                 {stat.value}
               </div>
               <div
-                className="text-[9px] tracking-[0.2em] uppercase"
+                className="font-ui text-[9px] tracking-[0.2em] uppercase"
                 style={{ color: "rgba(244, 240, 232, 0.3)" }}
               >
                 {stat.label}

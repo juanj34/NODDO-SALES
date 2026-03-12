@@ -123,14 +123,14 @@
 }
 
 body {
-  --font-sans: var(--font-dm-mono);
+  --font-sans: var(--font-inter);
   --font-mono: var(--font-dm-mono);
   --font-heading: var(--font-cormorant);
   --font-ui: var(--font-syne);
   --font-site-heading: var(--font-cormorant);
   background: var(--background);
   color: var(--foreground);
-  font-family: var(--font-dm-mono), 'Courier New', monospace;
+  font-family: var(--font-inter), system-ui, sans-serif;
   font-size: 13px;
 }
 
@@ -142,6 +142,15 @@ body {
 
 .font-ui {
   font-family: var(--font-syne), sans-serif;
+}
+
+.font-mono {
+  font-family: var(--font-dm-mono), ui-monospace, monospace;
+}
+
+.font-number {
+  font-family: var(--font-dm-mono), ui-monospace, monospace;
+  font-variant-numeric: tabular-nums;
 }
 
 .font-site-heading {
@@ -804,8 +813,9 @@ body {
 
   color: var(--mk-text-secondary);
   background: var(--mk-bg);
-  font-family: var(--font-dm-mono), 'Courier New', monospace;
-  font-size: 13px;
+  font-family: var(--font-inter), system-ui, sans-serif;
+  font-size: 14px;
+  line-height: 1.75;
   cursor: none;
 }
 
@@ -826,7 +836,7 @@ body {
   font-family: var(--font-syne), sans-serif;
   font-size: 11px;
   font-weight: 700;
-  letter-spacing: 0.15em;
+  letter-spacing: 0.1em;
   text-transform: uppercase;
   text-decoration: none;
   border: none;
@@ -859,7 +869,7 @@ body {
   font-family: var(--font-syne), sans-serif;
   font-size: 11px;
   font-weight: 700;
-  letter-spacing: 0.15em;
+  letter-spacing: 0.1em;
   text-transform: uppercase;
   text-decoration: none;
   border-radius: 0;
@@ -876,6 +886,72 @@ body {
 .btn-mk-outline:disabled {
   opacity: 0.4;
   cursor: not-allowed;
+}
+
+/* ─── Marketing Inputs ─── */
+.input-mk {
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 0.75rem;
+  color: #f4f0e8;
+  font-family: var(--font-dm-mono), monospace;
+  font-size: 0.8125rem;
+  font-weight: 300;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  outline: none;
+}
+
+.input-mk::placeholder {
+  color: rgba(244, 240, 232, 0.18);
+}
+
+.input-mk:hover {
+  border-color: rgba(255, 255, 255, 0.12);
+}
+
+.input-mk:focus {
+  border-color: rgba(184, 151, 58, 0.4);
+  box-shadow: 0 0 0 3px rgba(184, 151, 58, 0.08);
+}
+
+/* ─── Login Card (glassmorphism) ─── */
+.login-card {
+  background: rgba(26, 26, 26, 0.65);
+  backdrop-filter: blur(40px) saturate(180%);
+  -webkit-backdrop-filter: blur(40px) saturate(180%);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 1rem;
+  box-shadow:
+    0 16px 48px rgba(0, 0, 0, 0.5),
+    0 4px 12px rgba(0, 0, 0, 0.3),
+    inset 0 1px 0 rgba(255, 255, 255, 0.04);
+  position: relative;
+}
+
+.login-card::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  padding: 1px;
+  background: linear-gradient(135deg, rgba(184,151,58,0.15) 0%, transparent 40%, transparent 60%, rgba(184,151,58,0.08) 100%);
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  pointer-events: none;
+}
+
+/* ─── Login Google Button ─── */
+.login-google-btn {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.10);
+  cursor: pointer;
+}
+
+.login-google-btn:hover {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.16);
 }
 
 /* ─── Marketing Focus Visible ─── */
@@ -916,6 +992,36 @@ body {
   flex: 1;
   height: 1px;
   background: rgba(255, 255, 255, 0.06);
+}
+
+/* ─── Hero Building Animations ─── */
+@keyframes buildingFloat {
+  0%, 100% { margin-top: 0; }
+  50%      { margin-top: -10px; }
+}
+
+@keyframes glowPulse {
+  0%, 100% { opacity: 0.6; transform: translate(-50%, -50%) scale(1); }
+  50%      { opacity: 1;   transform: translate(-50%, -50%) scale(1.15); }
+}
+
+@keyframes shimmerDown {
+  0%   { top: 8%;  opacity: 0; }
+  10%  { opacity: 0.8; }
+  90%  { opacity: 0.8; }
+  100% { top: 82%; opacity: 0; }
+}
+
+@keyframes cardInLeft   { from { opacity: 0; transform: translateX(-24px); } to { opacity: 1; transform: translateX(0); } }
+@keyframes cardOutLeft  { from { opacity: 1; transform: translateX(0); }     to { opacity: 0; transform: translateX(-24px); } }
+@keyframes cardInRight  { from { opacity: 0; transform: translateX(24px); }  to { opacity: 1; transform: translateX(0); } }
+@keyframes cardOutRight { from { opacity: 1; transform: translateX(0); }     to { opacity: 0; transform: translateX(24px); } }
+@keyframes cardInUp     { from { opacity: 0; transform: translateY(16px); }  to { opacity: 1; transform: translateY(0); } }
+@keyframes cardOutUp    { from { opacity: 1; transform: translateY(0); }     to { opacity: 0; transform: translateY(-16px); } }
+
+@keyframes leadPulse {
+  0%, 100% { transform: scale(1); opacity: 1; }
+  50%      { transform: scale(2.8); opacity: 0; }
 }
 
 /* ====== TIPTAP RICH TEXT EDITOR (DASHBOARD) ====== */
@@ -1015,4 +1121,41 @@ body {
 .content-auto {
   content-visibility: auto;
   contain-intrinsic-size: auto 500px;
+}
+
+/* ====== MOBILE FOUNDATIONS ====== */
+
+:root {
+  --safe-area-top: env(safe-area-inset-top, 0px);
+  --safe-area-bottom: env(safe-area-inset-bottom, 0px);
+  --safe-area-left: env(safe-area-inset-left, 0px);
+  --safe-area-right: env(safe-area-inset-right, 0px);
+}
+
+/* Touch device optimizations */
+@media (hover: none) and (pointer: coarse) {
+  .input-glass,
+  .input-mk {
+    min-height: 44px;
+    font-size: 16px; /* Prevent iOS zoom on input focus */
+  }
+
+  .hover-lift:hover {
+    transform: none;
+    box-shadow: inherit;
+  }
+
+  .btn-warm:hover,
+  .btn-noddo:hover,
+  .btn-mk-primary:hover {
+    transform: none;
+  }
+}
+
+/* Scroll lock for mobile drawers */
+body.scroll-locked {
+  overflow: hidden;
+  position: fixed;
+  width: 100%;
+  top: var(--scroll-position, 0);
 }

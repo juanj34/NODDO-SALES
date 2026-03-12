@@ -6,7 +6,7 @@ import { useEffect, useState, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { createClient } from "@/lib/supabase/client";
 import { cn } from "@/lib/utils";
-import { FolderOpen, Users, LogOut, Loader2 } from "lucide-react";
+import { FolderOpen, Users, Settings, LogOut, Loader2, HelpCircle, Menu, X } from "lucide-react";
 import type { User } from "@supabase/supabase-js";
 import { ToastProvider } from "@/components/dashboard/Toast";
 import { ConfirmProvider } from "@/components/dashboard/ConfirmModal";
@@ -15,6 +15,7 @@ import { useTranslation } from "@/i18n";
 import { LanguageToggle } from "@/components/ui/LanguageToggle";
 import { AuthContextProvider, useAuthRole } from "@/hooks/useAuthContext";
 import { NodDoLogo } from "@/components/ui/NodDoLogo";
+import { useMobileDrawer } from "@/hooks/useMobileDrawer";
 
 function DashboardShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
@@ -24,6 +25,7 @@ function DashboardShell({ children }: { children: React.ReactNode }) {
   const supabase = createClient();
   const { t } = useTranslation("dashboard");
   const { role } = useAuthRole();
+  const { isMobile, open: drawerOpen, toggle: toggleDrawer, close: closeDrawer } = useMobileDrawer();
 
   const navItems = useMemo(() => {
     const items = [
@@ -32,6 +34,7 @@ function DashboardShell({ children }: { children: React.ReactNode }) {
     if (role === "admin") {
       items.push({ href: "/equipo", label: t("sidebar.team"), icon: Users });
     }
+    items.push({ href: "/cuenta", label: t("sidebar.settings"), icon: Settings });
     return items;
   }, [role, t]);
 
@@ -80,11 +83,41 @@ function DashboardShell({ children }: { children: React.ReactNode }) {
       {/* Command Palette (Ctrl+K) */}
       <CommandPalette />
 
+      {/* Mobile hamburger button */}
+      <button
+        onClick={toggleDrawer}
+        className="fixed top-4 left-4 z-50 md:hidden w-11 h-11 flex items-center justify-center bg-[var(--surface-2)] border border-[var(--border-subtle)] rounded-xl transition-colors hover:bg-[var(--surface-3)]"
+        aria-label="Toggle menu"
+      >
+        {drawerOpen ? <X size={18} /> : <Menu size={18} />}
+      </button>
+
+      {/* Mobile overlay */}
+      <AnimatePresence>
+        {drawerOpen && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.2 }}
+            onClick={closeDrawer}
+            className="fixed inset-0 z-[39] bg-black/60 md:hidden"
+          />
+        )}
+      </AnimatePresence>
+
       {/* Sidebar */}
-      <aside className="w-64 relative z-10 bg-[var(--surface-1)] border-r border-[var(--border-subtle)] flex flex-col">
+      <aside
+        className={cn(
+          "w-64 bg-[var(--surface-1)] border-r border-[var(--border-subtle)] flex flex-col",
+          "fixed inset-y-0 left-0 z-[40] transition-transform duration-300 ease-[cubic-bezier(0.4,0,0.2,1)]",
+          "md:relative md:translate-x-0",
+          drawerOpen ? "translate-x-0" : "-translate-x-full"
+        )}
+      >
         {/* Logo */}
         <div className="p-6 border-b border-[var(--border-subtle)]">
-          <Link href="/proyectos" className="hover:opacity-80 transition-opacity">
+          <Link href="/proyectos" className="hover:opacity-80 transition-opacity" onClick={closeDrawer}>
             <NodDoLogo height={18} colorNod="var(--text-primary)" colorDo="var(--site-primary)" />
           </Link>
         </div>
@@ -100,6 +133,7 @@ function DashboardShell({ children }: { children: React.ReactNode }) {
               <Link
                 key={item.href}
                 href={item.href}
+                onClick={closeDrawer}
                 className={cn(
                   "flex items-center gap-3 px-3 py-2 rounded-[0.625rem] font-ui text-xs font-semibold uppercase tracking-[0.08em] transition-all",
                   isActive
@@ -121,6 +155,31 @@ function DashboardShell({ children }: { children: React.ReactNode }) {
             );
           })}
         </nav>
+
+        {/* Help link */}
+        <div className="px-4 pb-1">
+          <Link
+            href="/ayuda"
+            onClick={closeDrawer}
+            className={cn(
+              "flex items-center gap-3 px-3 py-2 rounded-[0.625rem] font-ui text-xs font-semibold uppercase tracking-[0.08em] transition-all",
+              pathname === "/ayuda"
+                ? "bg-[var(--surface-2)] text-white border-l-2 border-[var(--site-primary)]"
+                : "text-[var(--text-muted)] hover:text-[var(--text-secondary)] hover:bg-[var(--surface-2)]"
+            )}
+            style={
+              pathname === "/ayuda"
+                ? {
+                    boxShadow:
+                      "inset 3px 0 8px -2px rgba(var(--site-primary-rgb), 0.15)",
+                  }
+                : undefined
+            }
+          >
+            <HelpCircle size={14} />
+            {t("sidebar.help")}
+          </Link>
+        </div>
 
         {/* Language Toggle */}
         <div className="px-4 py-2 flex justify-center">
@@ -163,7 +222,7 @@ function DashboardShell({ children }: { children: React.ReactNode }) {
       </aside>
 
       {/* Main content */}
-      <main className="flex-1 relative z-10 bg-transparent overflow-y-auto">
+      <main className="flex-1 relative z-10 bg-transparent overflow-y-auto pt-14 md:pt-0">
         <AnimatePresence mode="wait">
           <motion.div
             key={pathname}

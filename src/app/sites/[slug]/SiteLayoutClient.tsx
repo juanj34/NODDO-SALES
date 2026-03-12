@@ -2,8 +2,9 @@
 
 import { useState } from "react";
 import { usePathname } from "next/navigation";
-import { AnimatePresence } from "framer-motion";
+import { AnimatePresence, motion } from "framer-motion";
 import { SiteNav } from "@/components/site/SiteNav";
+import { ChevronLeft } from "lucide-react";
 import { RotateDevice } from "@/components/site/RotateDevice";
 import { SmoothScroll } from "@/components/site/SmoothScroll";
 import { EditorialWatermark } from "@/components/site/EditorialWatermark";
@@ -51,21 +52,50 @@ export function SiteLayoutClient({ proyecto, basePath, children }: Props) {
           </AnimatePresence>
           <RotateDevice />
           {!isLanding && (
-            <SiteNav
-              basePath={basePath}
-              projectName={proyecto.nombre}
-              logoUrl={proyecto.logo_url}
-              constructoraLogoUrl={proyecto.constructora_logo_url}
-              constructoraWebsite={proyecto.constructora_website}
-              expanded={navExpanded}
-              onToggle={() => setNavExpanded((prev) => !prev)}
-              disclaimer={proyecto.disclaimer}
-              politicaPrivacidadUrl={proyecto.politica_privacidad_url}
-              etapaLabel={proyecto.etapa_label}
-              hasImplantaciones={proyecto.planos_interactivos?.some(p => p.tipo === "urbanismo" && p.visible) ?? false}
-              hasTour360={!!proyecto.tour_360_url}
-              hasAvances={(proyecto.avances_obra?.length || 0) > 0}
-            />
+            <>
+              <SiteNav
+                basePath={basePath}
+                projectName={proyecto.nombre}
+                logoUrl={proyecto.logo_url}
+                faviconUrl={proyecto.favicon_url}
+                constructoraLogoUrl={proyecto.constructora_logo_url}
+                constructoraWebsite={proyecto.constructora_website}
+                expanded={navExpanded}
+                disclaimer={proyecto.disclaimer}
+                politicaPrivacidadUrl={proyecto.politica_privacidad_url}
+                etapaLabel={proyecto.etapa_label}
+                hasImplantaciones={proyecto.planos_interactivos?.some(p => p.tipo === "urbanismo" && p.visible) ?? false}
+                hasTour360={!!proyecto.tour_360_url}
+                hasAvances={(proyecto.avances_obra?.length || 0) > 0}
+              />
+              {/* Sidebar toggle arrow — outside the nav, centered vertically */}
+              <motion.button
+                onClick={() => setNavExpanded((prev) => !prev)}
+                className="fixed top-1/2 -translate-y-1/2 z-[56] hidden lg:flex items-center justify-center w-4 h-9 rounded-r-md cursor-pointer"
+                animate={{
+                  left: navExpanded ? 200 : 60,
+                  backgroundColor: "rgba(26,26,26,0.7)",
+                }}
+                whileHover={{
+                  backgroundColor: "rgba(42,42,42,0.9)",
+                  width: 20,
+                }}
+                transition={{ duration: 0.25, ease: [0.4, 0, 0.2, 1] }}
+                style={{
+                  backdropFilter: "blur(8px)",
+                  borderTop: "1px solid rgba(255,255,255,0.06)",
+                  borderRight: "1px solid rgba(255,255,255,0.06)",
+                  borderBottom: "1px solid rgba(255,255,255,0.06)",
+                }}
+              >
+                <motion.div
+                  animate={{ rotate: navExpanded ? 0 : 180 }}
+                  transition={{ duration: 0.2, ease: [0.4, 0, 0.2, 1] }}
+                >
+                  <ChevronLeft size={12} className="text-[var(--text-tertiary)]" />
+                </motion.div>
+              </motion.button>
+            </>
           )}
           <EditorialWatermark basePath={basePath} />
           {/* Floating audio control on landing */}

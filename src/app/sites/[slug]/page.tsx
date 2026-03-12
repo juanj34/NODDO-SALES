@@ -144,7 +144,7 @@ export default function SiteLanding() {
                 <span className="text-[7px] tracking-[0.2em] uppercase font-medium text-white/60">
                   powered by
                 </span>
-                <NodDoLogo width={80} colorNod="rgba(255,255,255,0.8)" colorDo="#b8983c" />
+                <NodDoLogo width={80} colorNod="#fff" colorDo="#b8983c" />
               </a>
             </>
           )}

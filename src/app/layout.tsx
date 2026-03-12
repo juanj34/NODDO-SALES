@@ -1,5 +1,5 @@
-import type { Metadata } from "next";
-import { Cormorant_Garamond, DM_Mono, Syne } from "next/font/google";
+import type { Metadata, Viewport } from "next";
+import { Cormorant_Garamond, DM_Mono, Inter, Syne } from "next/font/google";
 import { LanguageProvider } from "@/i18n";
 import "./globals.css";
 
@@ -16,11 +16,23 @@ const dmMono = DM_Mono({
   weight: ["300", "400", "500"],
 });
 
+const inter = Inter({
+  variable: "--font-inter",
+  subsets: ["latin"],
+  weight: ["300", "400", "500", "600"],
+});
+
 const syne = Syne({
   variable: "--font-syne",
   subsets: ["latin"],
   weight: ["400", "600", "700", "800"],
 });
+
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  viewportFit: "cover",
+};
 
 export const metadata: Metadata = {
   title: "Noddo — Micrositios Inmobiliarios",
@@ -36,7 +48,7 @@ export default function RootLayout({
   return (
     <html lang="es">
       <body
-        className={`${cormorant.variable} ${dmMono.variable} ${syne.variable} antialiased`}
+        className={`${cormorant.variable} ${dmMono.variable} ${inter.variable} ${syne.variable} antialiased`}
       >
         <LanguageProvider>
           {children}

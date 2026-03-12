@@ -13,4 +13,5 @@ export interface Dictionary {
   site: TranslationNamespace;
   dashboard: TranslationNamespace;
   editor: TranslationNamespace;
+  help: TranslationNamespace;
 }

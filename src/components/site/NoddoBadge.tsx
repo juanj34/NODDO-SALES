@@ -24,7 +24,7 @@ export function NoddoBadge({ className }: NoddoBadgeProps) {
       <span className="text-[7px] tracking-[0.2em] uppercase font-medium text-white/50">
         powered by
       </span>
-      <NodDoLogo width={70} colorNod="rgba(255,255,255,0.7)" colorDo="#b8983c" />
+      <NodDoLogo width={70} colorNod="#fff" colorDo="#b8983c" />
     </a>
   );
 }

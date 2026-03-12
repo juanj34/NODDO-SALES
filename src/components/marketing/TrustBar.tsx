@@ -1,6 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
+import { InfiniteSlider } from "@/components/ui/infinite-slider";
 
 const logos = [
   { name: "Constructora Bolívar", initials: "CB" },
@@ -26,26 +27,22 @@ export function TrustBar() {
         >
           Constructoras que confían en Noddo
         </motion.p>
+      </div>
 
-        <motion.div
-          initial={{ opacity: 0, y: 12 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.7, delay: 0.1, ease }}
-          className="flex flex-wrap items-center justify-center gap-8 lg:gap-14"
-        >
-          {logos.map((logo, i) => (
-            <motion.div
+      <motion.div
+        initial={{ opacity: 0 }}
+        whileInView={{ opacity: 1 }}
+        viewport={{ once: true }}
+        transition={{ duration: 0.7, delay: 0.1, ease }}
+      >
+        <InfiniteSlider gap={48} duration={20} durationOnHover={40}>
+          {logos.map((logo) => (
+            <div
               key={logo.name}
-              initial={{ opacity: 0 }}
-              whileInView={{ opacity: 1 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.5, delay: 0.1 + i * 0.06, ease }}
-              className="flex items-center gap-3 group"
+              className="flex items-center gap-3 shrink-0"
             >
-              {/* Placeholder square (no radius) */}
               <div
-                className="w-9 h-9 flex items-center justify-center text-[10px] font-ui font-bold tracking-wider transition-all duration-300"
+                className="w-9 h-9 flex items-center justify-center text-[10px] font-ui font-bold tracking-wider"
                 style={{
                   background: "rgba(184, 151, 58, 0.06)",
                   border: "1px solid rgba(184, 151, 58, 0.12)",
@@ -55,15 +52,15 @@ export function TrustBar() {
                 {logo.initials}
               </div>
               <span
-                className="hidden sm:block text-[11px] font-medium transition-colors duration-300"
+                className="text-[11px] font-medium whitespace-nowrap"
                 style={{ color: "rgba(244, 240, 232, 0.2)" }}
               >
                 {logo.name}
               </span>
-            </motion.div>
+            </div>
           ))}
-        </motion.div>
-      </div>
+        </InfiniteSlider>
+      </motion.div>
     </section>
   );
 }

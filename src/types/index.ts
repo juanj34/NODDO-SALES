@@ -83,6 +83,15 @@ export interface GaleriaImagen {
   orden: number;
 }
 
+/** Generic image for Lightbox — GaleriaImagen satisfies this interface */
+export interface LightboxImage {
+  id: string;
+  url: string;
+  thumbnail_url: string | null;
+  alt_text: string | null;
+  label?: string;
+}
+
 export interface Video {
   id: string;
   proyecto_id: string;

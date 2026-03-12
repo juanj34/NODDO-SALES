@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback, useEffect } from "react";
+import { useState, useCallback, useEffect, useMemo } from "react";
 import Link from "next/link";
 import { useTranslation } from "@/i18n";
 import { useEditorProject } from "@/hooks/useEditorProject";
@@ -23,7 +23,6 @@ import {
   Plus,
   Trash2,
   Loader2,
-  AlertTriangle,
   Eye,
   Package,
   ChevronRight,
@@ -37,6 +36,7 @@ import {
 import { cn } from "@/lib/utils";
 import { useToast } from "@/components/dashboard/Toast";
 import { useConfirm } from "@/components/dashboard/ConfirmModal";
+import { useMediaQuery } from "@/hooks/useMediaQuery";
 import type { Torre, Fachada, Unidad, AmenidadItem } from "@/types";
 import {
   AMENIDADES_CATALOG,
@@ -68,6 +68,7 @@ export default function TorresPage() {
   const { project, projectId, refresh } = useEditorProject();
   const toast = useToast();
   const { confirm } = useConfirm();
+  const isMobile = useMediaQuery("(max-width: 767px)");
 
   const torres = project?.torres ?? [];
   const fachadas = project?.fachadas ?? [];
@@ -76,8 +77,6 @@ export default function TorresPage() {
   /* ── Shared state ─────────────────────────────────────────────── */
   const [saving, setSaving] = useState(false);
   const [deletingId, setDeletingId] = useState<string | null>(null);
-  const [disabling, setDisabling] = useState(false);
-  const [showDisableConfirm, setShowDisableConfirm] = useState(false);
   const [showAddForm, setShowAddForm] = useState(false);
 
   /* ── Multi-torre master-detail state ───────────────────────────── */
@@ -263,52 +262,6 @@ export default function TorresPage() {
     [fachadas, unidades, selectedTorreId, refresh]
   );
 
-  /* ── Disable multi-torre (keep first, delete rest) ────────────── */
-  const handleDisable = useCallback(async () => {
-    if (torres.length < 2) return;
-    setDisabling(true);
-    try {
-      const first = torres[0];
-      const rest = torres.slice(1);
-
-      // Detach fachadas from deleted torres
-      await Promise.all(
-        fachadas
-          .filter((f) => rest.some((t) => t.id === f.torre_id))
-          .map((f) =>
-            fetch(`/api/fachadas/${f.id}`, {
-              method: "PUT",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({ torre_id: null }),
-            })
-          )
-      );
-      // Detach unidades from deleted torres
-      await Promise.all(
-        unidades
-          .filter((u) => rest.some((t) => t.id === u.torre_id))
-          .map((u) =>
-            fetch(`/api/unidades/${u.id}`, {
-              method: "PUT",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({ torre_id: null }),
-            })
-          )
-      );
-      // Delete all torres except the first
-      await Promise.all(
-        rest.map((t) => fetch(`/api/torres/${t.id}`, { method: "DELETE" }))
-      );
-
-      void first; // kept intentionally
-      setShowDisableConfirm(false);
-      setSelectedTorreId(null);
-      await refresh();
-    } finally {
-      setDisabling(false);
-    }
-  }, [torres, fachadas, unidades, refresh]);
-
   /* ════════════════════════════════════════════════════════════════
      Render — Single unified layout: sidebar always visible
      ════════════════════════════════════════════════════════════════ */
@@ -335,10 +288,13 @@ export default function TorresPage() {
         </div>
       </div>
 
-      {/* ── Master-Detail Layout (always visible) ──────────────── */}
-      <div className="flex gap-4" style={{ minHeight: "480px" }}>
-        {/* ── Sidebar (left) ─────────────────────────────────────── */}
-        <div className="w-56 shrink-0 flex flex-col gap-2">
+      {/* ── Master-Detail Layout ──────────────────────────────── */}
+      <div className={cn("flex gap-4", isMobile && "flex-col")} style={isMobile ? undefined : { minHeight: "480px" }}>
+        {/* ── Sidebar (left / top on mobile) ──────────────────────── */}
+        <div className={cn(
+          "shrink-0 flex flex-col gap-2",
+          isMobile ? (selectedTorreId && !showAddForm ? "hidden" : "w-full") : "w-56"
+        )}>
           {/* Torre list */}
           {torres.map((torre) => {
             const isSelected = selectedTorreId === torre.id && !showAddForm;
@@ -416,50 +372,20 @@ export default function TorresPage() {
             <Plus size={14} />
             {t("torres.addTower")}
           </button>
-
-          {/* Disable multi-torre (only when 2+ torres) */}
-          {torres.length >= 2 && (
-            !showDisableConfirm ? (
-              <button
-                onClick={() => setShowDisableConfirm(true)}
-                className={btnDanger + " w-full justify-center text-[11px]"}
-              >
-                <AlertTriangle size={12} />
-                {t("torres.disableMulti")}
-              </button>
-            ) : (
-              <div className="p-3 bg-red-500/5 border border-red-500/20 rounded-xl space-y-2">
-                <div className="flex items-start gap-2">
-                  <AlertTriangle
-                    size={14}
-                    className="text-red-400 shrink-0 mt-0.5"
-                  />
-                  <p className="text-[10px] text-red-300 leading-relaxed">
-                    {t("torres.disableWarning")}
-                  </p>
-                </div>
-                <div className="flex items-center gap-2">
-                  <button
-                    onClick={handleDisable}
-                    disabled={disabling}
-                    className="flex-1 px-3 py-1.5 text-[11px] font-medium text-red-400 bg-red-500/10 border border-red-500/30 rounded-lg hover:bg-red-500/20 transition-colors disabled:opacity-50"
-                  >
-                    {disabling ? "..." : t("torres.confirm")}
-                  </button>
-                  <button
-                    onClick={() => setShowDisableConfirm(false)}
-                    className="px-3 py-1.5 text-[11px] text-[var(--text-muted)] hover:text-[var(--text-secondary)] transition-colors"
-                  >
-                    {t("torres.no")}
-                  </button>
-                </div>
-              </div>
-            )
-          )}
         </div>
 
-        {/* ── Right panel ────────────────────────────────────────── */}
-        <div className="flex-1 min-w-0">
+        {/* ── Right panel (full-width on mobile when torre selected) ── */}
+        <div className={cn("flex-1 min-w-0", isMobile && !selectedTorreId && !showAddForm && "hidden")}>
+          {/* Mobile back button */}
+          {isMobile && (selectedTorreId || showAddForm) && (
+            <button
+              onClick={() => { setSelectedTorreId(null); setShowAddForm(false); }}
+              className="flex items-center gap-2 mb-3 text-xs text-[var(--text-secondary)] hover:text-white transition-colors"
+            >
+              <ChevronRight size={14} className="rotate-180" />
+              {t("torres.backToList") ?? "Volver a torres"}
+            </button>
+          )}
           <AnimatePresence mode="wait">
             {/* Compact quick-add form */}
             {showAddForm && (
@@ -835,9 +761,20 @@ function AmenidadesTabContent({ torre, projectId, onUpdate }: AmenidadesTabConte
   const [customNombre, setCustomNombre] = useState("");
   const [customIconUrl, setCustomIconUrl] = useState("");
   const [showCustomForm, setShowCustomForm] = useState(false);
+  const [saving, setSaving] = useState(false);
 
-  const selected: AmenidadItem[] = torre.amenidades_data ?? [];
-  const selectedIds = new Set(selected.map((a) => a.id));
+  // Local state for batch selection — only synced to DB on save
+  const saved: AmenidadItem[] = useMemo(() => torre.amenidades_data ?? [], [torre.amenidades_data]);
+  const [localSelected, setLocalSelected] = useState<AmenidadItem[]>(saved);
+
+  // Sync local state when server data changes (e.g. after save completes)
+  useEffect(() => {
+    setLocalSelected(saved);
+  }, [saved]);
+
+  const selectedIds = new Set(localSelected.map((a) => a.id));
+  const savedIds = new Set(saved.map((a) => a.id));
+  const isDirty = localSelected.length !== saved.length || localSelected.some((a) => !savedIds.has(a.id)) || saved.some((a) => !selectedIds.has(a.id));
 
   const toggleCat = (cat: string) => {
     setCollapsedCats((prev) => {
@@ -849,36 +786,43 @@ function AmenidadesTabContent({ torre, projectId, onUpdate }: AmenidadesTabConte
   };
 
   const toggle = (item: { id: string; nombre: string; icono: string }) => {
-    let next: AmenidadItem[];
-    if (selectedIds.has(item.id)) {
-      next = selected.filter((a) => a.id !== item.id);
-    } else {
-      next = [...selected, { id: item.id, nombre: item.nombre, icono: item.icono }];
-    }
-    onUpdate(torre.id, { amenidades_data: next });
+    setLocalSelected((prev) => {
+      if (prev.some((a) => a.id === item.id)) {
+        return prev.filter((a) => a.id !== item.id);
+      }
+      return [...prev, { id: item.id, nombre: item.nombre, icono: item.icono }];
+    });
   };
 
   const remove = (id: string) => {
-    const next = selected.filter((a) => a.id !== id);
-    onUpdate(torre.id, { amenidades_data: next });
+    setLocalSelected((prev) => prev.filter((a) => a.id !== id));
   };
 
   const addCustom = () => {
     if (!customNombre.trim()) return;
     const id = `custom-${Date.now()}`;
-    const next: AmenidadItem[] = [
-      ...selected,
+    setLocalSelected((prev) => [
+      ...prev,
       {
         id,
         nombre: customNombre.trim(),
         icono: "Star",
         ...(customIconUrl ? { icon_url: customIconUrl } : {}),
       },
-    ];
-    onUpdate(torre.id, { amenidades_data: next });
+    ]);
     setCustomNombre("");
     setCustomIconUrl("");
     setShowCustomForm(false);
+  };
+
+  const handleSave = async () => {
+    setSaving(true);
+    await onUpdate(torre.id, { amenidades_data: localSelected });
+    setSaving(false);
+  };
+
+  const handleDiscard = () => {
+    setLocalSelected(saved);
   };
 
   const filteredCatalog = search.trim()
@@ -893,14 +837,38 @@ function AmenidadesTabContent({ torre, projectId, onUpdate }: AmenidadesTabConte
 
   return (
     <div className={sectionCard}>
+      {/* Save / discard bar */}
+      <AnimatePresence>
+        {isDirty && (
+          <motion.div
+            initial={{ opacity: 0, y: -8 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -8 }}
+            transition={{ duration: 0.2 }}
+            className="mb-4 flex items-center gap-2 p-2.5 rounded-lg bg-[rgba(var(--site-primary-rgb),0.08)] border border-[rgba(var(--site-primary-rgb),0.2)]"
+          >
+            <span className="text-xs text-[var(--site-primary)] flex-1">
+              {localSelected.length} amenidades seleccionadas — cambios sin guardar
+            </span>
+            <button onClick={handleDiscard} className={btnSecondary + " !py-1.5 !px-3 !text-xs"}>
+              Descartar
+            </button>
+            <button onClick={handleSave} disabled={saving} className={btnPrimary + " !py-1.5 !px-3 !text-xs"}>
+              {saving ? <Loader2 size={14} className="animate-spin" /> : <Check size={14} />}
+              Guardar
+            </button>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       {/* Selected amenities */}
-      {selected.length > 0 && (
+      {localSelected.length > 0 && (
         <div className="mb-4">
           <p className="font-ui text-[10px] text-[var(--text-tertiary)] tracking-wider uppercase font-bold mb-2">
-            Seleccionadas ({selected.length})
+            Seleccionadas ({localSelected.length})
           </p>
           <div className="flex flex-wrap gap-1.5">
-            {selected.map((a) => (
+            {localSelected.map((a) => (
               <span
                 key={a.id}
                 className="inline-flex items-center gap-1.5 pl-2 pr-1 py-1 bg-[rgba(var(--site-primary-rgb),0.1)] border border-[rgba(var(--site-primary-rgb),0.2)] rounded-lg text-xs text-[var(--site-primary)]"

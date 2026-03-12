@@ -6,8 +6,6 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useState } from "react";
 import { cn } from "@/lib/utils";
 import {
-  ChevronLeft,
-  ChevronRight,
   Image as ImageIcon,
   Layers,
   Package,
@@ -28,10 +26,10 @@ interface SiteNavProps {
   basePath: string;
   projectName: string;
   logoUrl?: string | null;
+  faviconUrl?: string | null;
   constructoraLogoUrl?: string | null;
   constructoraWebsite?: string | null;
   expanded: boolean;
-  onToggle: () => void;
   disclaimer?: string;
   politicaPrivacidadUrl?: string | null;
   etapaLabel?: string;
@@ -40,7 +38,7 @@ interface SiteNavProps {
   hasAvances?: boolean;
 }
 
-export function SiteNav({ basePath, projectName, logoUrl, constructoraLogoUrl, constructoraWebsite, expanded, onToggle, disclaimer, politicaPrivacidadUrl, etapaLabel, hasImplantaciones, hasTour360, hasAvances }: SiteNavProps) {
+export function SiteNav({ basePath, projectName, logoUrl, faviconUrl, constructoraLogoUrl, constructoraWebsite, expanded, disclaimer, politicaPrivacidadUrl, etapaLabel, hasImplantaciones, hasTour360, hasAvances }: SiteNavProps) {
   const pathname = usePathname();
   const [isOpen, setIsOpen] = useState(false);
   const [hoveredItem, setHoveredItem] = useState<string | null>(null);
@@ -122,7 +120,13 @@ export function SiteNav({ basePath, projectName, logoUrl, constructoraLogoUrl, c
             expanded ? "px-4 w-full justify-center flex-col gap-1" : "justify-center gap-2.5"
           )}
         >
-          {logoUrl ? (
+          {!expanded && faviconUrl ? (
+            <img
+              src={faviconUrl}
+              alt={projectName}
+              className="h-7 w-7 rounded-md object-cover flex-shrink-0"
+            />
+          ) : logoUrl ? (
             <img
               src={logoUrl}
               alt={projectName}
@@ -199,7 +203,7 @@ export function SiteNav({ basePath, projectName, logoUrl, constructoraLogoUrl, c
                     <motion.span
                       initial={{ opacity: 0 }}
                       animate={{ opacity: 1 }}
-                      className="text-[11px] tracking-[0.1em] uppercase font-medium truncate"
+                      className="font-ui text-[11px] tracking-[0.08em] uppercase font-semibold truncate"
                     >
                       {item.label}
                     </motion.span>
@@ -217,7 +221,7 @@ export function SiteNav({ basePath, projectName, logoUrl, constructoraLogoUrl, c
                         transition={{ duration: 0.15 }}
                         className="absolute left-full ml-3 top-1/2 -translate-y-1/2 z-[60] glass-dark px-3 py-1.5 rounded-lg whitespace-nowrap pointer-events-none"
                       >
-                        <span className="text-[10px] tracking-[0.15em] uppercase text-white/80 font-medium">
+                        <span className="font-ui text-[10px] tracking-[0.1em] uppercase text-white/80 font-semibold">
                           {item.label}
                         </span>
                       </motion.div>
@@ -275,26 +279,6 @@ export function SiteNav({ basePath, projectName, logoUrl, constructoraLogoUrl, c
           <AudioMuteButton size={14} />
         </div>
 
-        {/* Toggle button */}
-        <div className={cn("flex-shrink-0 mt-2", expanded ? "px-4 w-full" : "")}>
-          <button
-            onClick={onToggle}
-            aria-label={expanded ? tCommon("accessibility.collapseMenu") : tCommon("accessibility.expandMenu")}
-            className={cn(
-              "flex items-center justify-center rounded-lg bg-white/[0.04] hover:bg-white/[0.08] transition-colors cursor-pointer text-[var(--text-tertiary)] hover:text-[var(--text-secondary)]",
-              expanded ? "w-full py-2 gap-2" : "w-8 h-8 mx-auto"
-            )}
-          >
-            {expanded ? (
-              <>
-                <ChevronLeft size={14} />
-                <span className="text-[10px] tracking-wider uppercase">{tCommon("buttons.compact")}</span>
-              </>
-            ) : (
-              <ChevronRight size={14} />
-            )}
-          </button>
-        </div>
       </motion.nav>
     </>
   );

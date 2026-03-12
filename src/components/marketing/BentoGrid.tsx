@@ -81,7 +81,7 @@ export function BentoGrid() {
 
               {/* Body */}
               <div
-                className="text-xs leading-[1.8]"
+                className="text-[13px] leading-[1.85]"
                 style={{ color: "rgba(244, 240, 232, 0.4)" }}
               >
                 {ft.body}

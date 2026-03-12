@@ -44,8 +44,19 @@ export async function GET(request: NextRequest) {
       if (user) {
         await linkPendingCollaborator(supabase, user);
       }
+
+      // Recovery flow: redirect to new password page
+      if (redirect === "/nueva-contrasena") {
+        return NextResponse.redirect(`${origin}/nueva-contrasena`);
+      }
+
       return NextResponse.redirect(`${origin}${redirect}`);
     }
+  }
+
+  // If recovery redirect failed, send to nueva-contrasena with error
+  if (redirect === "/nueva-contrasena") {
+    return NextResponse.redirect(`${origin}/nueva-contrasena?error=invalid_link`);
   }
 
   return NextResponse.redirect(`${origin}/login?error=auth`);
