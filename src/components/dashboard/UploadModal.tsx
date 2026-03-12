@@ -1,9 +1,10 @@
 "use client";
 
 import { useState, useRef, useCallback, useEffect } from "react";
-import { X, Upload, Loader2, FolderOpen, Image as ImageIcon, AlertTriangle } from "lucide-react";
+import { Upload, Loader2, FolderOpen, Image as ImageIcon, AlertTriangle, X } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { compressImage } from "@/lib/compress-image";
+import { CloseButton } from "@/components/ui/CloseButton";
 import { useTranslation } from "@/i18n";
 
 interface StagedFile {
@@ -51,6 +52,16 @@ export function UploadModal({
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isOpen]);
+
+  // ESC to close (blocked during upload/compress)
+  useEffect(() => {
+    if (!isOpen) return;
+    const handleKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape" && !uploading && !compressing) onClose();
+    };
+    window.addEventListener("keydown", handleKey);
+    return () => window.removeEventListener("keydown", handleKey);
+  }, [isOpen, uploading, compressing, onClose]);
 
   const addFiles = useCallback((files: File[]) => {
     const imageFiles = files.filter((f) => f.type.startsWith("image/"));
@@ -218,12 +229,7 @@ export function UploadModal({
                 {t("uploadModal.uploadTo", { name: categoryName })}
               </h3>
             </div>
-            <button
-              onClick={onClose}
-              className="text-[var(--text-muted)] hover:text-[var(--text-secondary)] transition-colors"
-            >
-              <X size={16} />
-            </button>
+            <CloseButton onClick={onClose} variant="subtle" size={16} />
           </div>
 
           {/* Body */}

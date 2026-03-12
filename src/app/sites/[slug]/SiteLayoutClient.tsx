@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import { AnimatePresence, motion } from "framer-motion";
 import { SiteNav } from "@/components/site/SiteNav";
 import { ChevronLeft } from "lucide-react";
+import { useMediaQuery } from "@/hooks/useMediaQuery";
 import { RotateDevice } from "@/components/site/RotateDevice";
 import { SmoothScroll } from "@/components/site/SmoothScroll";
 import { EditorialWatermark } from "@/components/site/EditorialWatermark";
@@ -26,6 +27,7 @@ export function SiteLayoutClient({ proyecto, basePath, children }: Props) {
     pathname === `/sites/${proyecto.slug}` || pathname === "/";
   const [navExpanded, setNavExpanded] = useState(true);
   const [showPreloader, setShowPreloader] = useState(isLanding);
+  const isMobile = useMediaQuery("(max-width: 1023px)");
 
   return (
     <SiteProjectContext.Provider value={{ proyecto, basePath }}>
@@ -111,7 +113,7 @@ export function SiteLayoutClient({ proyecto, basePath, children }: Props) {
           <SmoothScroll>
             <main
               className={isLanding ? "h-full" : "h-full transition-[padding] duration-300"}
-              style={!isLanding ? { paddingLeft: navExpanded ? 200 : 60 } : undefined}
+              style={!isLanding ? { paddingLeft: isMobile ? 0 : navExpanded ? 200 : 60 } : undefined}
             >
               {children}
             </main>

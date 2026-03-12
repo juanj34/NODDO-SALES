@@ -1,7 +1,8 @@
 "use client";
 
 import { useEffect, useRef, useState, useCallback } from "react";
-import { X, MapPin, Check, Search, Loader2 } from "lucide-react";
+import { MapPin, Check, Search, Loader2 } from "lucide-react";
+import { CloseButton } from "@/components/ui/CloseButton";
 import { useTranslation } from "@/i18n";
 
 interface MapPickerModalProps {
@@ -272,6 +273,17 @@ export function MapPickerModal({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isOpen]);
 
+  // ESC to close (ignore if search input focused)
+  useEffect(() => {
+    if (!isOpen) return;
+    const handleKey = (e: KeyboardEvent) => {
+      if (e.target instanceof HTMLInputElement) return;
+      if (e.key === "Escape") onClose();
+    };
+    window.addEventListener("keydown", handleKey);
+    return () => window.removeEventListener("keydown", handleKey);
+  }, [isOpen, onClose]);
+
   const handleConfirm = () => {
     if (selectedLat !== null && selectedLng !== null) {
       onSelect(selectedLat, selectedLng, address || undefined);
@@ -330,12 +342,7 @@ export function MapPickerModal({
               </div>
             )}
           </div>
-          <button
-            onClick={onClose}
-            className="text-white/30 hover:text-white/60 transition-colors shrink-0"
-          >
-            <X size={18} />
-          </button>
+          <CloseButton onClick={onClose} variant="subtle" size={18} className="shrink-0" />
         </div>
 
         {/* Map container */}

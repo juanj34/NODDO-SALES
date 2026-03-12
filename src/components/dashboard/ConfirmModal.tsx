@@ -1,8 +1,9 @@
 "use client";
 
-import { useState, useCallback, createContext, useContext, useRef } from "react";
+import { useState, useCallback, useEffect, createContext, useContext, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { AlertTriangle, X } from "lucide-react";
+import { AlertTriangle } from "lucide-react";
+import { CloseButton } from "@/components/ui/CloseButton";
 
 interface ConfirmOptions {
   title?: string;
@@ -40,6 +41,15 @@ export function ConfirmProvider({ children }: { children: React.ReactNode }) {
     resolveRef.current = null;
     setOptions(null);
   }, []);
+
+  useEffect(() => {
+    if (!options) return;
+    const handleKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") handleClose(false);
+    };
+    window.addEventListener("keydown", handleKey);
+    return () => window.removeEventListener("keydown", handleKey);
+  }, [options, handleClose]);
 
   return (
     <ConfirmContext.Provider value={{ confirm }}>
@@ -94,12 +104,11 @@ export function ConfirmProvider({ children }: { children: React.ReactNode }) {
                       {options.message}
                     </p>
                   </div>
-                  <button
+                  <CloseButton
                     onClick={() => handleClose(false)}
-                    className="shrink-0 rounded-lg p-1 text-[var(--text-tertiary)] hover:text-[var(--text-primary)] hover:bg-white/5 transition-colors"
-                  >
-                    <X size={16} />
-                  </button>
+                    variant="subtle"
+                    size={16}
+                  />
                 </div>
 
                 {/* Actions */}

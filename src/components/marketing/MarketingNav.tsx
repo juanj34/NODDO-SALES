@@ -3,19 +3,28 @@
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 import { useState, useEffect, useCallback } from "react";
+import { LogIn, ArrowRight } from "lucide-react";
 import { NodDoLogo } from "@/components/ui/NodDoLogo";
+import { useBooking } from "./BookingProvider";
 
-const navLinks = [
+interface NavLink {
+  label: string;
+  href?: string;
+  action?: "booking";
+}
+
+const navLinks: NavLink[] = [
   { label: "Producto", href: "#capacidades" },
   { label: "Precios", href: "/pricing" },
   { label: "Casos", href: "/sites/alto-de-yeguas" },
-  { label: "Contacto", href: "mailto:hola@noddo.co" },
+  { label: "Contacto", action: "booking" },
 ];
 
 export function MarketingNav() {
   const [visible, setVisible] = useState(true);
   const [lastScrollY, setLastScrollY] = useState(0);
   const [mobileOpen, setMobileOpen] = useState(false);
+  const { openBooking } = useBooking();
 
   const handleScroll = useCallback(() => {
     const currentY = window.scrollY;
@@ -35,6 +44,13 @@ export function MarketingNav() {
     return () => window.removeEventListener("scroll", handleScroll);
   }, [handleScroll]);
 
+  const handleNavAction = (link: NavLink) => {
+    if (link.action === "booking") {
+      setMobileOpen(false);
+      openBooking();
+    }
+  };
+
   return (
     <motion.header
       animate={{ opacity: visible ? 1 : 0, y: visible ? 0 : -20 }}
@@ -48,7 +64,7 @@ export function MarketingNav() {
         pointerEvents: visible ? "auto" : "none",
       }}
     >
-      <nav className="mx-auto max-w-7xl px-6 lg:px-20 py-6 flex items-center justify-between">
+      <nav className="mx-auto max-w-[1400px] px-6 lg:px-24 py-6 flex items-center justify-between">
         {/* Logo: NOD<gold>DO</gold> */}
         <Link href="/" aria-label="NODDO Home">
           <NodDoLogo height={18} />
@@ -57,13 +73,22 @@ export function MarketingNav() {
         {/* Desktop links */}
         <ul className="hidden md:flex items-center gap-10">
           {navLinks.map((link) => (
-            <li key={link.href}>
-              <Link
-                href={link.href}
-                className="text-[10px] tracking-[0.2em] uppercase text-[rgba(244,240,232,0.4)] hover:text-[var(--mk-accent)] transition-colors duration-200"
-              >
-                {link.label}
-              </Link>
+            <li key={link.label}>
+              {link.action ? (
+                <button
+                  onClick={() => handleNavAction(link)}
+                  className="text-[11px] tracking-[0.18em] uppercase text-[rgba(244,240,232,0.4)] hover:text-[var(--mk-accent)] transition-colors duration-200"
+                >
+                  {link.label}
+                </button>
+              ) : (
+                <Link
+                  href={link.href!}
+                  className="text-[11px] tracking-[0.18em] uppercase text-[rgba(244,240,232,0.4)] hover:text-[var(--mk-accent)] transition-colors duration-200"
+                >
+                  {link.label}
+                </Link>
+              )}
             </li>
           ))}
         </ul>
@@ -72,13 +97,18 @@ export function MarketingNav() {
         <div className="flex items-center gap-4">
           <Link
             href="/login"
-            className="hidden md:inline text-[10px] tracking-[0.2em] uppercase text-[rgba(244,240,232,0.4)] hover:text-[var(--mk-accent)] transition-colors duration-200"
+            className="hidden md:inline-flex items-center gap-1.5 text-[11px] tracking-[0.18em] uppercase text-[rgba(244,240,232,0.4)] hover:text-[var(--mk-accent)] transition-colors duration-200"
           >
+            <LogIn size={13} strokeWidth={2} />
             Iniciar Sesión
           </Link>
-          <Link href="mailto:hola@noddo.co" className="btn-mk-primary text-[10px] py-2.5 px-5">
+          <button
+            onClick={openBooking}
+            className="btn-mk-primary text-[10px] py-2.5 px-5 inline-flex items-center gap-2"
+          >
             Agendar Demo
-          </Link>
+            <ArrowRight size={12} strokeWidth={2.5} />
+          </button>
 
           {/* Mobile hamburger */}
           <button
@@ -123,16 +153,26 @@ export function MarketingNav() {
             }}
           >
             <div className="mx-auto max-w-7xl px-6 py-4 flex flex-col gap-4">
-              {navLinks.map((link) => (
-                <Link
-                  key={link.href}
-                  href={link.href}
-                  onClick={() => setMobileOpen(false)}
-                  className="text-[11px] tracking-[0.2em] uppercase text-[var(--mk-text-secondary)] hover:text-[var(--mk-accent)] transition-colors duration-200"
-                >
-                  {link.label}
-                </Link>
-              ))}
+              {navLinks.map((link) =>
+                link.action ? (
+                  <button
+                    key={link.label}
+                    onClick={() => handleNavAction(link)}
+                    className="text-left text-[11px] tracking-[0.2em] uppercase text-[var(--mk-text-secondary)] hover:text-[var(--mk-accent)] transition-colors duration-200"
+                  >
+                    {link.label}
+                  </button>
+                ) : (
+                  <Link
+                    key={link.label}
+                    href={link.href!}
+                    onClick={() => setMobileOpen(false)}
+                    className="text-[11px] tracking-[0.2em] uppercase text-[var(--mk-text-secondary)] hover:text-[var(--mk-accent)] transition-colors duration-200"
+                  >
+                    {link.label}
+                  </Link>
+                )
+              )}
               <Link
                 href="/login"
                 onClick={() => setMobileOpen(false)}

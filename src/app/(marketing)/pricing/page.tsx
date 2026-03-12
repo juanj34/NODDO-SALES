@@ -2,8 +2,8 @@
 
 import { useState, useRef } from "react";
 import { motion, useInView, AnimatePresence } from "framer-motion";
-import Link from "next/link";
 import { Check, X, Sparkles, Zap, Building2, ChevronDown } from "lucide-react";
+import { useBooking } from "@/components/marketing/BookingProvider";
 
 /* ─── Animation helpers ─── */
 
@@ -230,10 +230,12 @@ function PricingCard({
   plan,
   annual,
   index,
+  onCtaClick,
 }: {
   plan: Plan;
   annual: boolean;
   index: number;
+  onCtaClick: () => void;
 }) {
   const price = annual ? plan.annualPrice : plan.monthlyPrice;
   const Icon = plan.icon;
@@ -323,14 +325,14 @@ function PricingCard({
         </p>
 
         {/* CTA Button */}
-        <Link
-          href={plan.ctaHref}
+        <button
+          onClick={onCtaClick}
           className={`${
             plan.ctaStyle === "primary" ? "btn-mk-primary" : "btn-mk-outline"
           } w-full py-3 text-sm tracking-[0.08em] text-center inline-flex items-center justify-center mb-8`}
         >
           {plan.cta}
-        </Link>
+        </button>
 
         {/* Divider */}
         <div
@@ -389,6 +391,7 @@ function PricingCard({
 
 export default function PricingPage() {
   const [annual, setAnnual] = useState(false);
+  const { openBooking } = useBooking();
 
   return (
     <div
@@ -489,6 +492,7 @@ export default function PricingPage() {
                 plan={plan}
                 annual={annual}
                 index={i}
+                onCtaClick={openBooking}
               />
             ))}
           </div>
@@ -533,12 +537,12 @@ export default function PricingPage() {
           >
             Contactanos para un plan a tu medida.
           </p>
-          <Link
-            href="mailto:hola@noddo.co"
+          <button
+            onClick={openBooking}
             className="btn-mk-primary px-10 py-3.5 text-sm tracking-[0.12em] inline-flex items-center justify-center"
           >
             Contactar ventas
-          </Link>
+          </button>
         </FadeInSection>
       </section>
     </div>

@@ -2,13 +2,16 @@
 
 import { motion } from "framer-motion";
 import Link from "next/link";
+import { ArrowRight, ExternalLink } from "lucide-react";
 import { HeroSection } from "@/components/marketing/HeroSection";
 import { BentoGrid } from "@/components/marketing/BentoGrid";
 import { ComparisonStrip } from "@/components/marketing/ComparisonStrip";
 import { TrustBar } from "@/components/marketing/TrustBar";
 import { Testimonials } from "@/components/marketing/Testimonials";
+import { useBooking } from "@/components/marketing/BookingProvider";
 
 export default function MarketingHomePage() {
+  const { openBooking } = useBooking();
   return (
     <div className="bg-[var(--mk-bg)] min-h-screen text-[var(--mk-text-secondary)] overflow-hidden selection:bg-[rgba(184,151,58,0.30)] selection:text-[var(--mk-text-primary)]">
       {/* 1. HERO */}
@@ -43,23 +46,25 @@ export default function MarketingHomePage() {
             </em>
           </h2>
           <p
-            className="text-[14px] mb-12 tracking-[0.05em]"
+            className="text-[15px] mb-12 tracking-[0.05em]"
             style={{ color: "rgba(244, 240, 232, 0.4)" }}
           >
             Sin agencia. Sin código. Sin esperar.
           </p>
-          <div className="flex gap-4 justify-center">
-            <Link
-              href="mailto:hola@noddo.co"
-              className="btn-mk-primary text-xs py-4 px-10"
+          <div className="flex gap-5 justify-center">
+            <button
+              onClick={openBooking}
+              className="btn-mk-primary text-xs py-4 px-10 inline-flex items-center gap-2.5"
             >
               Agendar Demo
-            </Link>
+              <ArrowRight size={14} strokeWidth={2.5} />
+            </button>
             <Link
               href="/sites/alto-de-yeguas"
-              className="btn-mk-outline text-xs py-4 px-10"
+              className="btn-mk-outline text-xs py-4 px-10 inline-flex items-center gap-2.5"
             >
               Demo en Vivo
+              <ExternalLink size={13} strokeWidth={2} />
             </Link>
           </div>
         </motion.div>

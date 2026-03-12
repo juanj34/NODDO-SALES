@@ -888,6 +888,17 @@ body {
   cursor: not-allowed;
 }
 
+/* ─── Marketing Button Icon Animation ─── */
+.btn-mk-primary svg,
+.btn-mk-outline svg {
+  transition: transform 0.2s ease;
+}
+
+.btn-mk-primary:hover svg,
+.btn-mk-outline:hover svg {
+  transform: translateX(2px);
+}
+
 /* ─── Marketing Inputs ─── */
 .input-mk {
   background: rgba(255, 255, 255, 0.04);
@@ -912,6 +923,49 @@ body {
 .input-mk:focus {
   border-color: rgba(184, 151, 58, 0.4);
   box-shadow: 0 0 0 3px rgba(184, 151, 58, 0.08);
+}
+
+/* ─── Booking Flow Glass Surface (warm-toned) ─── */
+.glass-booking {
+  background: rgba(26, 26, 26, 0.85);
+  backdrop-filter: blur(40px) saturate(1.4);
+  -webkit-backdrop-filter: blur(40px) saturate(1.4);
+  border: 1px solid rgba(184, 151, 58, 0.12);
+  box-shadow:
+    0 8px 32px rgba(0, 0, 0, 0.5),
+    inset 0 1px 0 rgba(184, 151, 58, 0.06);
+}
+
+/* ─── Booking Input ─── */
+.input-booking {
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 0.75rem;
+  padding: 12px 16px;
+  color: var(--mk-text-primary, rgba(244, 240, 232, 0.92));
+  font-size: 14px;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.input-booking:focus {
+  outline: none;
+  border-color: rgba(184, 151, 58, 0.4);
+  box-shadow: 0 0 0 3px rgba(184, 151, 58, 0.12);
+}
+
+.input-booking::placeholder {
+  color: rgba(244, 240, 232, 0.18);
+}
+
+/* ─── Success Pop Animation ─── */
+@keyframes success-pop {
+  0% { transform: scale(0.6); opacity: 0; }
+  50% { transform: scale(1.08); opacity: 1; }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+.animate-success-pop {
+  animation: success-pop 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
 }
 
 /* ─── Login Card (glassmorphism) ─── */

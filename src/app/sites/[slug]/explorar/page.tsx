@@ -26,6 +26,8 @@ import { usePersistedState } from "@/hooks/usePersistedState";
 import { useTranslation, getEstadoConfig } from "@/i18n";
 import { CotizadorModal } from "@/components/site/CotizadorModal";
 import { SectionTransition } from "@/components/site/SectionTransition";
+import { useMediaQuery } from "@/hooks/useMediaQuery";
+import { MobileBottomSheet } from "@/components/site/MobileBottomSheet";
 import { cn } from "@/lib/utils";
 import type { Unidad, Fachada, Torre, PlanoInteractivo, PlanoPunto } from "@/types";
 
@@ -135,6 +137,8 @@ export default function ExplorarPage() {
   const [hoveredUnit, setHoveredUnit] = useState<string | null>(null);
   const [cotizarUnidad, setCotizarUnidad] = useState<Unidad | null>(null);
   const [imageLoaded, setImageLoaded] = useState(false);
+  const isMobile = useMediaQuery("(max-width: 1023px)");
+  const [sheetOpen, setSheetOpen] = useState(false);
 
   // Units with fachada coordinates, filtered by active fachada
   const positionedUnits = useMemo(() => {
@@ -203,6 +207,425 @@ export default function ExplorarPage() {
     return () => window.removeEventListener("keydown", handleKey);
   }, [selectedUnit, cotizarUnidad, showImplantacionModal]);
 
+  /* ── Sidebar content (shared between desktop sidebar + mobile sheet) ── */
+  const sidebarContent = (
+    <>
+      {/* ── Torre selector (multi-torre) ── */}
+      {isMultiTorre && (
+        <div className="flex-shrink-0 px-4 pt-4 pb-0">
+          <p className="text-[9px] tracking-[0.25em] text-[var(--text-tertiary)] uppercase mb-2">
+            {tSite("explorar.towers")}
+          </p>
+          <div className="space-y-1.5">
+            {torres.map((torre) => {
+              const isActive = activeTorre?.id === torre.id;
+              return (
+                <button
+                  key={torre.id}
+                  onClick={() => {
+                    setSelectedTorreId(torre.id);
+                    selectFachada(0);
+                  }}
+                  className={cn(
+                    "w-full text-left p-2 rounded-xl border transition-all duration-200 cursor-pointer group",
+                    isActive
+                      ? "border-[var(--site-primary)] bg-[rgba(var(--site-primary-rgb),0.08)]"
+                      : "border-[var(--border-subtle)] hover:border-[var(--border-default)] bg-white/[0.02]"
+                  )}
+                >
+                  <div className="flex items-center gap-2.5">
+                    {torre.imagen_portada ? (
+                      <div className="w-8 h-8 rounded-lg overflow-hidden shrink-0 border border-white/10">
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img src={torre.imagen_portada} alt="" className="w-full h-full object-cover" />
+                      </div>
+                    ) : (
+                      <div className="w-8 h-8 rounded-lg bg-white/5 flex items-center justify-center shrink-0">
+                        <Building2 size={14} className={isActive ? "text-[var(--site-primary)]" : "text-[var(--text-muted)]"} />
+                      </div>
+                    )}
+                    <div className="min-w-0">
+                      <p className={cn(
+                        "text-xs font-medium truncate",
+                        isActive ? "text-white" : "text-[var(--text-secondary)] group-hover:text-white"
+                      )}>
+                        {torre.nombre}
+                      </p>
+                      {(torre.pisos_residenciales || torre.num_pisos) !== null && (
+                        <p className="text-[9px] text-[var(--text-tertiary)]">
+                          {torre.pisos_residenciales || torre.num_pisos} {tCommon("labels.floors").toLowerCase()}
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
+      {/* ── Torre info: name, description, amenidades ── */}
+      {activeTorre && (
+        <div className="flex-shrink-0 px-4 pt-3">
+          <p className="text-[10px] tracking-[0.3em] text-[var(--site-primary)] uppercase mb-0.5">
+            {activeTorre.nombre}
+          </p>
+          {activeTorre.tipo !== "urbanismo" && (activeTorre.pisos_residenciales || activeTorre.num_pisos) != null && (
+            <p className="text-[10px] text-[var(--text-tertiary)] mb-1">
+              {activeTorre.pisos_residenciales || activeTorre.num_pisos} {tCommon("labels.floors").toLowerCase()}
+            </p>
+          )}
+          {activeTorre.descripcion && (
+            <p className="text-[10px] text-[var(--text-tertiary)] leading-relaxed line-clamp-2 mb-2">
+              {activeTorre.descripcion}
+            </p>
+          )}
+          {activeTorre.amenidades_data && activeTorre.amenidades_data.length > 0 && (
+            <div className="grid grid-cols-2 gap-1 mb-1">
+              {activeTorre.amenidades_data.slice(0, 6).map((amenidad) => (
+                <div
+                  key={amenidad.id}
+                  className="flex items-center gap-1.5 px-2 py-1 rounded-lg bg-white/[0.03] border border-white/5"
+                >
+                  {amenidad.icon_url ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img src={amenidad.icon_url} alt="" className="w-3 h-3 object-contain flex-shrink-0" />
+                  ) : (
+                    <DynamicIcon name={amenidad.icono} size={10} className="text-[var(--site-primary)] flex-shrink-0" />
+                  )}
+                  <span className="text-[8px] text-[var(--text-tertiary)] truncate">{amenidad.nombre}</span>
+                </div>
+              ))}
+              {activeTorre.amenidades_data.length > 6 && (
+                <div className="flex items-center justify-center px-2 py-1 rounded-lg bg-white/[0.03] border border-white/5">
+                  <span className="text-[8px] text-[var(--text-muted)]">
+                    +{activeTorre.amenidades_data.length - 6} más
+                  </span>
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* ── Fachada / Floor selector ── */}
+      {sortedFachadas.length > 1 && (
+        <div className="flex-shrink-0 px-4 pt-3">
+          <p className="text-[9px] tracking-[0.25em] text-[var(--text-tertiary)] uppercase mb-2">
+            {explorarView === "planta" ? tSite("explorar.pisos") : tSite("explorar.fachadasLabel")}
+          </p>
+
+          {explorarView === "fachada" ? (
+            /* Horizontal thumbnail strip for fachadas */
+            <div className="flex gap-2 overflow-x-auto scrollbar-hide pb-1">
+              {sortedFachadas.map((fachada, idx) => (
+                <button
+                  key={fachada.id}
+                  onClick={() => selectFachada(idx)}
+                  className={cn(
+                    "relative flex-shrink-0 w-20 rounded-xl overflow-hidden border-2 transition-all duration-200 cursor-pointer group",
+                    idx === activeFachadaIndex
+                      ? "border-[var(--site-primary)] shadow-[0_0_12px_rgba(var(--site-primary-rgb),0.30)]"
+                      : "border-[var(--border-subtle)] hover:border-[var(--border-default)]"
+                  )}
+                >
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src={fachada.imagen_url} alt={fachada.nombre} className="w-full h-14 object-cover" />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent flex items-end p-1.5">
+                    <span className={cn(
+                      "text-[8px] font-medium tracking-wider truncate",
+                      idx === activeFachadaIndex ? "text-[var(--site-primary)]" : "text-white/70 group-hover:text-white"
+                    )}>
+                      {fachada.nombre}
+                    </span>
+                  </div>
+                </button>
+              ))}
+            </div>
+          ) : (
+            /* Horizontal floor buttons for plantas */
+            <div className="flex gap-1.5 overflow-x-auto scrollbar-hide pb-1">
+              {sortedFachadas.map((fachada, idx) => (
+                <button
+                  key={fachada.id}
+                  onClick={() => selectFachada(idx)}
+                  className={cn(
+                    "flex-shrink-0 px-3 py-2 rounded-xl border-2 transition-all duration-200 cursor-pointer",
+                    idx === activeFachadaIndex
+                      ? "border-[var(--site-primary)] bg-[rgba(var(--site-primary-rgb),0.12)]"
+                      : "border-transparent hover:bg-white/8"
+                  )}
+                >
+                  <span className={cn(
+                    "text-xs font-mono font-semibold",
+                    idx === activeFachadaIndex ? "text-[var(--site-primary)]" : "text-[var(--text-secondary)]"
+                  )}>
+                    P{fachada.piso_numero}
+                  </span>
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Single fachada label */}
+      {sortedFachadas.length === 1 && activeFachada && (
+        <div className="flex-shrink-0 px-4 pt-3">
+          <p className="text-[9px] tracking-[0.25em] text-[var(--text-tertiary)] uppercase">
+            {activeFachada.nombre}
+          </p>
+        </div>
+      )}
+
+      {/* ── Divider ── */}
+      <div className="border-t border-white/5 mx-4 mt-3" />
+
+      {/* ── Content: Unit list or detail (master-detail) ── */}
+      <AnimatePresence mode="wait">
+        {selectedUnit ? (
+          /* ── Unit Detail View ── */
+          <motion.div
+            key="detail"
+            initial={{ opacity: 0, x: 10 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: 10 }}
+            transition={{ duration: 0.15 }}
+            className="flex-1 flex flex-col overflow-y-auto scrollbar-hide"
+          >
+            {/* Back + title */}
+            <div className="flex-shrink-0 flex items-center gap-2 px-4 pt-3 pb-2">
+              <button
+                onClick={() => setSelectedUnit(null)}
+                className="p-1.5 rounded-lg bg-white/10 hover:bg-white/20 transition-colors cursor-pointer"
+              >
+                <ArrowLeft size={14} className="text-[var(--text-secondary)]" />
+              </button>
+              <p className="text-[10px] tracking-[0.3em] text-[var(--site-primary)] uppercase">
+                {tSite("explorar.detailTitle")}
+              </p>
+            </div>
+
+            {/* Unit header */}
+            <div className="px-4 pb-3">
+              <div className="flex items-center gap-2 mb-1">
+                <h2 className="text-xl font-semibold text-white">{selectedUnit.identificador}</h2>
+                {(() => {
+                  const cfg = estadoConfig[selectedUnit.estado];
+                  return (
+                    <span className={cn("inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-medium", cfg.bg, cfg.color)}>
+                      <span className={cn("w-1.5 h-1.5 rounded-full", cfg.dot)} />
+                      {cfg.label}
+                    </span>
+                  );
+                })()}
+              </div>
+              {selectedTipologia && (
+                <p className="text-sm text-[var(--text-secondary)]">{selectedTipologia.nombre}</p>
+              )}
+            </div>
+
+            {/* Floor plan */}
+            {selectedTipologia?.plano_url && (
+              <div className="mx-4 mb-3 relative aspect-[4/3] rounded-2xl overflow-hidden bg-white/5">
+                <Image
+                  src={selectedTipologia.plano_url}
+                  alt={selectedTipologia.nombre}
+                  fill
+                  unoptimized
+                  className="object-contain p-3"
+                />
+              </div>
+            )}
+
+            {/* Specs grid */}
+            <div className="px-4 space-y-3 mb-3">
+              <div className="grid grid-cols-2 gap-2">
+                {selectedUnit.area_m2 && (
+                  <div className="bg-white/5 rounded-xl px-3 py-2 flex items-center gap-2">
+                    <Maximize size={14} className="text-[var(--site-primary)]" />
+                    <div>
+                      <p className="text-[8px] text-[var(--text-tertiary)] tracking-wider uppercase">{tSite("explorar.area")}</p>
+                      <p className="text-sm text-white font-medium">{selectedUnit.area_m2} m²</p>
+                    </div>
+                  </div>
+                )}
+                {selectedUnit.piso && (
+                  <div className="bg-white/5 rounded-xl px-3 py-2 flex items-center gap-2">
+                    <Building2 size={14} className="text-[var(--site-primary)]" />
+                    <div>
+                      <p className="text-[8px] text-[var(--text-tertiary)] tracking-wider uppercase">{tSite("explorar.floor")}</p>
+                      <p className="text-sm text-white font-medium">{selectedUnit.piso}</p>
+                    </div>
+                  </div>
+                )}
+                {selectedUnit.habitaciones !== null && (
+                  <div className="bg-white/5 rounded-xl px-3 py-2 flex items-center gap-2">
+                    <BedDouble size={14} className="text-[var(--site-primary)]" />
+                    <div>
+                      <p className="text-[8px] text-[var(--text-tertiary)] tracking-wider uppercase">{tSite("explorar.bedrooms")}</p>
+                      <p className="text-sm text-white font-medium">
+                        {selectedUnit.habitaciones === 0 ? tSite("explorar.studio") : selectedUnit.habitaciones}
+                      </p>
+                    </div>
+                  </div>
+                )}
+                {selectedUnit.banos !== null && (
+                  <div className="bg-white/5 rounded-xl px-3 py-2 flex items-center gap-2">
+                    <Bath size={14} className="text-[var(--site-primary)]" />
+                    <div>
+                      <p className="text-[8px] text-[var(--text-tertiary)] tracking-wider uppercase">{tSite("explorar.bathrooms")}</p>
+                      <p className="text-sm text-white font-medium">{selectedUnit.banos}</p>
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* Orientation + View */}
+              {(selectedUnit.orientacion || selectedUnit.vista) && (
+                <div className="flex flex-wrap gap-2">
+                  {selectedUnit.orientacion && (
+                    <span className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-white/5 rounded-full text-xs text-[var(--text-secondary)]">
+                      <Compass size={12} className="text-[var(--text-tertiary)]" />
+                      {selectedUnit.orientacion}
+                    </span>
+                  )}
+                  {selectedUnit.vista && (
+                    <span className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-white/5 rounded-full text-xs text-[var(--text-secondary)]">
+                      <Eye size={12} className="text-[var(--text-tertiary)]" />
+                      {tSite("explorar.view")} {selectedUnit.vista}
+                    </span>
+                  )}
+                </div>
+              )}
+
+              {/* Notes */}
+              {selectedUnit.notas && (
+                <p className="text-xs text-[var(--text-tertiary)] leading-relaxed italic">{selectedUnit.notas}</p>
+              )}
+            </div>
+
+            {/* Price */}
+            {selectedUnit.precio && (
+              <div className="mx-4 mb-3 p-3 bg-[rgba(var(--site-primary-rgb),0.08)] rounded-2xl border border-[rgba(var(--site-primary-rgb),0.15)]">
+                <p className="text-[8px] text-[var(--site-primary)] opacity-60 tracking-wider uppercase mb-1">{tSite("explorar.price")}</p>
+                <p className="text-lg font-semibold text-[var(--site-primary)]">
+                  {formatPrecio(selectedUnit.precio, locale)}
+                </p>
+              </div>
+            )}
+
+            {/* Actions */}
+            <div className="px-4 pb-5 mt-auto space-y-2">
+              <button
+                onClick={() => setCotizarUnidad(selectedUnit)}
+                className="w-full btn-warm py-2.5 flex items-center justify-center gap-2 text-sm tracking-wider cursor-pointer"
+              >
+                <Sparkles size={14} />
+                {tSite("explorar.enquireUnit")}
+              </button>
+              <Link
+                href={`${basePath}/tipologias?tipo=${selectedUnit.tipologia_id}&unidad=${selectedUnit.id}`}
+                className="w-full flex items-center justify-center gap-2 px-4 py-2 rounded-full border border-[var(--border-default)] text-xs tracking-wider text-[var(--text-secondary)] hover:text-white hover:border-white/30 transition-all duration-300"
+              >
+                {tSite("explorar.moreInfo")}
+                <ChevronRight size={14} />
+              </Link>
+            </div>
+          </motion.div>
+        ) : (
+          /* ── Unit List View ── */
+          <motion.div
+            key="list"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.15 }}
+            className="flex-1 flex flex-col min-h-0"
+          >
+            {/* Header + status legend */}
+            <div className="flex-shrink-0 px-4 pt-3 pb-2">
+              <div className="flex items-center justify-between mb-2">
+                <p className="text-[9px] tracking-[0.25em] text-[var(--text-tertiary)] uppercase">
+                  {tCommon("labels.units")}
+                </p>
+                <span className="text-[9px] text-[var(--text-muted)]">
+                  {positionedUnits.length}
+                </span>
+              </div>
+              <div className="flex flex-wrap gap-x-3 gap-y-1">
+                {(["disponible", "separado", "reservada", "vendida"] as const).map((estado) => (
+                  <div key={estado} className="flex items-center gap-1">
+                    <span className={cn("w-2 h-2 rounded-full", estadoConfig[estado].dot)} />
+                    <span className="text-[8px] text-[var(--text-tertiary)] tracking-wider">
+                      {estadoConfig[estado].label}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Scrollable unit list */}
+            <div ref={unitListRef} className="flex-1 overflow-y-auto scrollbar-hide px-3 pb-4">
+              {positionedUnits.length > 0 ? (
+                <div className="space-y-1">
+                  {positionedUnits.map((unit) => {
+                    const config = estadoConfig[unit.estado];
+                    const tipologia = tipologias.find((t) => t.id === unit.tipologia_id);
+                    const isHovered = hoveredUnit === unit.id;
+
+                    return (
+                      <button
+                        key={unit.id}
+                        data-unit-id={unit.id}
+                        onClick={() => setSelectedUnit(unit)}
+                        onMouseEnter={() => setHoveredUnit(unit.id)}
+                        onMouseLeave={() => setHoveredUnit(null)}
+                        className={cn(
+                          "w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-left transition-all duration-200 cursor-pointer group",
+                          isHovered ? "bg-white/8" : "hover:bg-white/5"
+                        )}
+                      >
+                        {/* Status dot */}
+                        <span className={cn("w-2.5 h-2.5 rounded-full flex-shrink-0", config.dot)} />
+
+                        {/* Info */}
+                        <div className="flex-1 min-w-0">
+                          <p className="text-[13px] text-white font-medium truncate">
+                            {unit.identificador}
+                          </p>
+                          <div className="flex items-center gap-1 text-[10px] text-[var(--text-tertiary)]">
+                            {tipologia && <span className="truncate">{tipologia.nombre}</span>}
+                            {unit.area_m2 && <span className="flex-shrink-0">· {unit.area_m2} m²</span>}
+                            {unit.piso && <span className="flex-shrink-0">· P{unit.piso}</span>}
+                          </div>
+                        </div>
+
+                        {/* Price */}
+                        {unit.precio && (
+                          <span className="text-[10px] text-[var(--site-primary)] font-medium flex-shrink-0">
+                            {formatPrecio(unit.precio, locale)}
+                          </span>
+                        )}
+                      </button>
+                    );
+                  })}
+                </div>
+              ) : (
+                <div className="flex items-center justify-center h-32">
+                  <p className="text-xs text-[var(--text-muted)]">
+                    {tSite("explorar.noUnits")}
+                  </p>
+                </div>
+              )}
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </>
+  );
+
   return (
     <SectionTransition className="h-screen flex overflow-hidden bg-[var(--site-bg)]">
       {/* ====== LEFT: Facade image with hotspots ====== */}
@@ -212,7 +635,8 @@ export default function ExplorarPage() {
 
         {/* Header overlay — top left */}
         <motion.div
-          className="absolute top-6 left-6 z-20"
+          className="absolute top-6 z-20"
+          style={{ left: isMobile ? "5rem" : "1.5rem" }}
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.2 }}
@@ -280,7 +704,7 @@ export default function ExplorarPage() {
 
         {/* ====== FACADE IMAGE + HOTSPOTS ====== */}
         <motion.div
-          className="relative z-10 flex items-center justify-center p-8"
+          className="relative z-10 flex items-center justify-center p-4 lg:p-8"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.3, duration: 0.5 }}
@@ -320,7 +744,10 @@ export default function ExplorarPage() {
                   }}
                   onClick={() => {
                     setSelectedUnit(isSelected ? null : unit);
-                    if (!isSelected) scrollToUnit(unit.id);
+                    if (!isSelected) {
+                      scrollToUnit(unit.id);
+                      if (isMobile) setSheetOpen(true);
+                    }
                   }}
                   onMouseEnter={() => setHoveredUnit(unit.id)}
                   onMouseLeave={() => setHoveredUnit(null)}
@@ -371,8 +798,8 @@ export default function ExplorarPage() {
         {/* Bottom fade */}
         <div className="absolute bottom-0 left-0 right-0 h-16 bg-gradient-to-t from-[var(--site-bg)] to-transparent z-5" />
 
-        {/* Mini implantación floating overlay — bottom-left */}
-        {isMultiTorre && implantacionPlano && implantacionPuntos.length > 0 && (
+        {/* Mini implantación floating overlay — bottom-left (desktop only) */}
+        {!isMobile && isMultiTorre && implantacionPlano && implantacionPuntos.length > 0 && (
           <motion.div
             className="absolute bottom-6 left-6 z-20 w-[160px]"
             initial={{ opacity: 0, y: 20 }}
@@ -434,427 +861,31 @@ export default function ExplorarPage() {
         )}
       </div>
 
-      {/* ====== RIGHT: Always-visible panel ====== */}
-      <motion.div
-        initial={{ opacity: 0, x: 20 }}
-        animate={{ opacity: 1, x: 0 }}
-        transition={{ delay: 0.4, duration: 0.5 }}
-        className="w-[340px] h-full flex-shrink-0 bg-[var(--surface-0)]/95 backdrop-blur-xl border-l border-[var(--border-default)] flex flex-col z-20"
-      >
-        {/* ── Torre selector (multi-torre) ── */}
-        {isMultiTorre && (
-          <div className="flex-shrink-0 px-4 pt-4 pb-0">
-            <p className="text-[9px] tracking-[0.25em] text-[var(--text-tertiary)] uppercase mb-2">
-              {tSite("explorar.towers")}
-            </p>
-            <div className="space-y-1.5">
-              {torres.map((torre) => {
-                const isActive = activeTorre?.id === torre.id;
-                return (
-                  <button
-                    key={torre.id}
-                    onClick={() => {
-                      setSelectedTorreId(torre.id);
-                      selectFachada(0);
-                    }}
-                    className={cn(
-                      "w-full text-left p-2 rounded-xl border transition-all duration-200 cursor-pointer group",
-                      isActive
-                        ? "border-[var(--site-primary)] bg-[rgba(var(--site-primary-rgb),0.08)]"
-                        : "border-[var(--border-subtle)] hover:border-[var(--border-default)] bg-white/[0.02]"
-                    )}
-                  >
-                    <div className="flex items-center gap-2.5">
-                      {torre.imagen_portada ? (
-                        <div className="w-8 h-8 rounded-lg overflow-hidden shrink-0 border border-white/10">
-                          {/* eslint-disable-next-line @next/next/no-img-element */}
-                          <img src={torre.imagen_portada} alt="" className="w-full h-full object-cover" />
-                        </div>
-                      ) : (
-                        <div className="w-8 h-8 rounded-lg bg-white/5 flex items-center justify-center shrink-0">
-                          <Building2 size={14} className={isActive ? "text-[var(--site-primary)]" : "text-[var(--text-muted)]"} />
-                        </div>
-                      )}
-                      <div className="min-w-0">
-                        <p className={cn(
-                          "text-xs font-medium truncate",
-                          isActive ? "text-white" : "text-[var(--text-secondary)] group-hover:text-white"
-                        )}>
-                          {torre.nombre}
-                        </p>
-                        {(torre.pisos_residenciales || torre.num_pisos) !== null && (
-                          <p className="text-[9px] text-[var(--text-tertiary)]">
-                            {torre.pisos_residenciales || torre.num_pisos} {tCommon("labels.floors").toLowerCase()}
-                          </p>
-                        )}
-                      </div>
-                    </div>
-                  </button>
-                );
-              })}
-            </div>
+      {/* ====== RIGHT: Sidebar (desktop) / Bottom Sheet (mobile) ====== */}
+      {!isMobile && (
+        <motion.div
+          initial={{ opacity: 0, x: 20 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ delay: 0.4, duration: 0.5 }}
+          className="w-[340px] h-full flex-shrink-0 bg-[var(--surface-0)]/95 backdrop-blur-xl border-l border-[var(--border-default)] flex flex-col z-20"
+        >
+          {sidebarContent}
+        </motion.div>
+      )}
+      {isMobile && (
+        <MobileBottomSheet
+          isOpen={sheetOpen}
+          onToggle={() => setSheetOpen((o) => !o)}
+          onClose={() => setSheetOpen(false)}
+          fabIcon={<Building2 size={18} />}
+          fabLabel={tSite("mobile.showUnits")}
+          badgeCount={positionedUnits.length}
+        >
+          <div className="flex flex-col h-full">
+            {sidebarContent}
           </div>
-        )}
-
-        {/* ── Torre info: name, description, amenidades ── */}
-        {activeTorre && (
-          <div className="flex-shrink-0 px-4 pt-3">
-            <p className="text-[10px] tracking-[0.3em] text-[var(--site-primary)] uppercase mb-0.5">
-              {activeTorre.nombre}
-            </p>
-            {activeTorre.tipo !== "urbanismo" && (activeTorre.pisos_residenciales || activeTorre.num_pisos) != null && (
-              <p className="text-[10px] text-[var(--text-tertiary)] mb-1">
-                {activeTorre.pisos_residenciales || activeTorre.num_pisos} {tCommon("labels.floors").toLowerCase()}
-              </p>
-            )}
-            {activeTorre.descripcion && (
-              <p className="text-[10px] text-[var(--text-tertiary)] leading-relaxed line-clamp-2 mb-2">
-                {activeTorre.descripcion}
-              </p>
-            )}
-            {activeTorre.amenidades_data && activeTorre.amenidades_data.length > 0 && (
-              <div className="grid grid-cols-2 gap-1 mb-1">
-                {activeTorre.amenidades_data.slice(0, 6).map((amenidad) => (
-                  <div
-                    key={amenidad.id}
-                    className="flex items-center gap-1.5 px-2 py-1 rounded-lg bg-white/[0.03] border border-white/5"
-                  >
-                    {amenidad.icon_url ? (
-                      // eslint-disable-next-line @next/next/no-img-element
-                      <img src={amenidad.icon_url} alt="" className="w-3 h-3 object-contain flex-shrink-0" />
-                    ) : (
-                      <DynamicIcon name={amenidad.icono} size={10} className="text-[var(--site-primary)] flex-shrink-0" />
-                    )}
-                    <span className="text-[8px] text-[var(--text-tertiary)] truncate">{amenidad.nombre}</span>
-                  </div>
-                ))}
-                {activeTorre.amenidades_data.length > 6 && (
-                  <div className="flex items-center justify-center px-2 py-1 rounded-lg bg-white/[0.03] border border-white/5">
-                    <span className="text-[8px] text-[var(--text-muted)]">
-                      +{activeTorre.amenidades_data.length - 6} más
-                    </span>
-                  </div>
-                )}
-              </div>
-            )}
-          </div>
-        )}
-
-        {/* ── Fachada / Floor selector ── */}
-        {sortedFachadas.length > 1 && (
-          <div className="flex-shrink-0 px-4 pt-3">
-            <p className="text-[9px] tracking-[0.25em] text-[var(--text-tertiary)] uppercase mb-2">
-              {explorarView === "planta" ? tSite("explorar.pisos") : tSite("explorar.fachadasLabel")}
-            </p>
-
-            {explorarView === "fachada" ? (
-              /* Horizontal thumbnail strip for fachadas */
-              <div className="flex gap-2 overflow-x-auto scrollbar-hide pb-1">
-                {sortedFachadas.map((fachada, idx) => (
-                  <button
-                    key={fachada.id}
-                    onClick={() => selectFachada(idx)}
-                    className={cn(
-                      "relative flex-shrink-0 w-20 rounded-xl overflow-hidden border-2 transition-all duration-200 cursor-pointer group",
-                      idx === activeFachadaIndex
-                        ? "border-[var(--site-primary)] shadow-[0_0_12px_rgba(var(--site-primary-rgb),0.30)]"
-                        : "border-[var(--border-subtle)] hover:border-[var(--border-default)]"
-                    )}
-                  >
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img src={fachada.imagen_url} alt={fachada.nombre} className="w-full h-14 object-cover" />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent flex items-end p-1.5">
-                      <span className={cn(
-                        "text-[8px] font-medium tracking-wider truncate",
-                        idx === activeFachadaIndex ? "text-[var(--site-primary)]" : "text-white/70 group-hover:text-white"
-                      )}>
-                        {fachada.nombre}
-                      </span>
-                    </div>
-                  </button>
-                ))}
-              </div>
-            ) : (
-              /* Horizontal floor buttons for plantas */
-              <div className="flex gap-1.5 overflow-x-auto scrollbar-hide pb-1">
-                {sortedFachadas.map((fachada, idx) => (
-                  <button
-                    key={fachada.id}
-                    onClick={() => selectFachada(idx)}
-                    className={cn(
-                      "flex-shrink-0 px-3 py-2 rounded-xl border-2 transition-all duration-200 cursor-pointer",
-                      idx === activeFachadaIndex
-                        ? "border-[var(--site-primary)] bg-[rgba(var(--site-primary-rgb),0.12)]"
-                        : "border-transparent hover:bg-white/8"
-                    )}
-                  >
-                    <span className={cn(
-                      "text-xs font-mono font-semibold",
-                      idx === activeFachadaIndex ? "text-[var(--site-primary)]" : "text-[var(--text-secondary)]"
-                    )}>
-                      P{fachada.piso_numero}
-                    </span>
-                  </button>
-                ))}
-              </div>
-            )}
-          </div>
-        )}
-
-        {/* Single fachada label */}
-        {sortedFachadas.length === 1 && activeFachada && (
-          <div className="flex-shrink-0 px-4 pt-3">
-            <p className="text-[9px] tracking-[0.25em] text-[var(--text-tertiary)] uppercase">
-              {activeFachada.nombre}
-            </p>
-          </div>
-        )}
-
-        {/* ── Divider ── */}
-        <div className="border-t border-white/5 mx-4 mt-3" />
-
-        {/* ── Content: Unit list or detail (master-detail) ── */}
-        <AnimatePresence mode="wait">
-          {selectedUnit ? (
-            /* ── Unit Detail View ── */
-            <motion.div
-              key="detail"
-              initial={{ opacity: 0, x: 10 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: 10 }}
-              transition={{ duration: 0.15 }}
-              className="flex-1 flex flex-col overflow-y-auto scrollbar-hide"
-            >
-              {/* Back + title */}
-              <div className="flex-shrink-0 flex items-center gap-2 px-4 pt-3 pb-2">
-                <button
-                  onClick={() => setSelectedUnit(null)}
-                  className="p-1.5 rounded-lg bg-white/10 hover:bg-white/20 transition-colors cursor-pointer"
-                >
-                  <ArrowLeft size={14} className="text-[var(--text-secondary)]" />
-                </button>
-                <p className="text-[10px] tracking-[0.3em] text-[var(--site-primary)] uppercase">
-                  {tSite("explorar.detailTitle")}
-                </p>
-              </div>
-
-              {/* Unit header */}
-              <div className="px-4 pb-3">
-                <div className="flex items-center gap-2 mb-1">
-                  <h2 className="text-xl font-semibold text-white">{selectedUnit.identificador}</h2>
-                  {(() => {
-                    const cfg = estadoConfig[selectedUnit.estado];
-                    return (
-                      <span className={cn("inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-medium", cfg.bg, cfg.color)}>
-                        <span className={cn("w-1.5 h-1.5 rounded-full", cfg.dot)} />
-                        {cfg.label}
-                      </span>
-                    );
-                  })()}
-                </div>
-                {selectedTipologia && (
-                  <p className="text-sm text-[var(--text-secondary)]">{selectedTipologia.nombre}</p>
-                )}
-              </div>
-
-              {/* Floor plan */}
-              {selectedTipologia?.plano_url && (
-                <div className="mx-4 mb-3 relative aspect-[4/3] rounded-2xl overflow-hidden bg-white/5">
-                  <Image
-                    src={selectedTipologia.plano_url}
-                    alt={selectedTipologia.nombre}
-                    fill
-                    unoptimized
-                    className="object-contain p-3"
-                  />
-                </div>
-              )}
-
-              {/* Specs grid */}
-              <div className="px-4 space-y-3 mb-3">
-                <div className="grid grid-cols-2 gap-2">
-                  {selectedUnit.area_m2 && (
-                    <div className="bg-white/5 rounded-xl px-3 py-2 flex items-center gap-2">
-                      <Maximize size={14} className="text-[var(--site-primary)]" />
-                      <div>
-                        <p className="text-[8px] text-[var(--text-tertiary)] tracking-wider uppercase">{tSite("explorar.area")}</p>
-                        <p className="text-sm text-white font-medium">{selectedUnit.area_m2} m²</p>
-                      </div>
-                    </div>
-                  )}
-                  {selectedUnit.piso && (
-                    <div className="bg-white/5 rounded-xl px-3 py-2 flex items-center gap-2">
-                      <Building2 size={14} className="text-[var(--site-primary)]" />
-                      <div>
-                        <p className="text-[8px] text-[var(--text-tertiary)] tracking-wider uppercase">{tSite("explorar.floor")}</p>
-                        <p className="text-sm text-white font-medium">{selectedUnit.piso}</p>
-                      </div>
-                    </div>
-                  )}
-                  {selectedUnit.habitaciones !== null && (
-                    <div className="bg-white/5 rounded-xl px-3 py-2 flex items-center gap-2">
-                      <BedDouble size={14} className="text-[var(--site-primary)]" />
-                      <div>
-                        <p className="text-[8px] text-[var(--text-tertiary)] tracking-wider uppercase">{tSite("explorar.bedrooms")}</p>
-                        <p className="text-sm text-white font-medium">
-                          {selectedUnit.habitaciones === 0 ? tSite("explorar.studio") : selectedUnit.habitaciones}
-                        </p>
-                      </div>
-                    </div>
-                  )}
-                  {selectedUnit.banos !== null && (
-                    <div className="bg-white/5 rounded-xl px-3 py-2 flex items-center gap-2">
-                      <Bath size={14} className="text-[var(--site-primary)]" />
-                      <div>
-                        <p className="text-[8px] text-[var(--text-tertiary)] tracking-wider uppercase">{tSite("explorar.bathrooms")}</p>
-                        <p className="text-sm text-white font-medium">{selectedUnit.banos}</p>
-                      </div>
-                    </div>
-                  )}
-                </div>
-
-                {/* Orientation + View */}
-                {(selectedUnit.orientacion || selectedUnit.vista) && (
-                  <div className="flex flex-wrap gap-2">
-                    {selectedUnit.orientacion && (
-                      <span className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-white/5 rounded-full text-xs text-[var(--text-secondary)]">
-                        <Compass size={12} className="text-[var(--text-tertiary)]" />
-                        {selectedUnit.orientacion}
-                      </span>
-                    )}
-                    {selectedUnit.vista && (
-                      <span className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-white/5 rounded-full text-xs text-[var(--text-secondary)]">
-                        <Eye size={12} className="text-[var(--text-tertiary)]" />
-                        {tSite("explorar.view")} {selectedUnit.vista}
-                      </span>
-                    )}
-                  </div>
-                )}
-
-                {/* Notes */}
-                {selectedUnit.notas && (
-                  <p className="text-xs text-[var(--text-tertiary)] leading-relaxed italic">{selectedUnit.notas}</p>
-                )}
-              </div>
-
-              {/* Price */}
-              {selectedUnit.precio && (
-                <div className="mx-4 mb-3 p-3 bg-[rgba(var(--site-primary-rgb),0.08)] rounded-2xl border border-[rgba(var(--site-primary-rgb),0.15)]">
-                  <p className="text-[8px] text-[var(--site-primary)] opacity-60 tracking-wider uppercase mb-1">{tSite("explorar.price")}</p>
-                  <p className="text-lg font-semibold text-[var(--site-primary)]">
-                    {formatPrecio(selectedUnit.precio, locale)}
-                  </p>
-                </div>
-              )}
-
-              {/* Actions */}
-              <div className="px-4 pb-5 mt-auto space-y-2">
-                <button
-                  onClick={() => setCotizarUnidad(selectedUnit)}
-                  className="w-full btn-warm py-2.5 flex items-center justify-center gap-2 text-sm tracking-wider cursor-pointer"
-                >
-                  <Sparkles size={14} />
-                  {tSite("explorar.enquireUnit")}
-                </button>
-                <Link
-                  href={`${basePath}/tipologias?tipo=${selectedUnit.tipologia_id}&unidad=${selectedUnit.id}`}
-                  className="w-full flex items-center justify-center gap-2 px-4 py-2 rounded-full border border-[var(--border-default)] text-xs tracking-wider text-[var(--text-secondary)] hover:text-white hover:border-white/30 transition-all duration-300"
-                >
-                  {tSite("explorar.moreInfo")}
-                  <ChevronRight size={14} />
-                </Link>
-              </div>
-            </motion.div>
-          ) : (
-            /* ── Unit List View ── */
-            <motion.div
-              key="list"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              transition={{ duration: 0.15 }}
-              className="flex-1 flex flex-col min-h-0"
-            >
-              {/* Header + status legend */}
-              <div className="flex-shrink-0 px-4 pt-3 pb-2">
-                <div className="flex items-center justify-between mb-2">
-                  <p className="text-[9px] tracking-[0.25em] text-[var(--text-tertiary)] uppercase">
-                    {tCommon("labels.units")}
-                  </p>
-                  <span className="text-[9px] text-[var(--text-muted)]">
-                    {positionedUnits.length}
-                  </span>
-                </div>
-                <div className="flex flex-wrap gap-x-3 gap-y-1">
-                  {(["disponible", "separado", "reservada", "vendida"] as const).map((estado) => (
-                    <div key={estado} className="flex items-center gap-1">
-                      <span className={cn("w-2 h-2 rounded-full", estadoConfig[estado].dot)} />
-                      <span className="text-[8px] text-[var(--text-tertiary)] tracking-wider">
-                        {estadoConfig[estado].label}
-                      </span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              {/* Scrollable unit list */}
-              <div ref={unitListRef} className="flex-1 overflow-y-auto scrollbar-hide px-3 pb-4">
-                {positionedUnits.length > 0 ? (
-                  <div className="space-y-1">
-                    {positionedUnits.map((unit) => {
-                      const config = estadoConfig[unit.estado];
-                      const tipologia = tipologias.find((t) => t.id === unit.tipologia_id);
-                      const isHovered = hoveredUnit === unit.id;
-
-                      return (
-                        <button
-                          key={unit.id}
-                          data-unit-id={unit.id}
-                          onClick={() => setSelectedUnit(unit)}
-                          onMouseEnter={() => setHoveredUnit(unit.id)}
-                          onMouseLeave={() => setHoveredUnit(null)}
-                          className={cn(
-                            "w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-left transition-all duration-200 cursor-pointer group",
-                            isHovered ? "bg-white/8" : "hover:bg-white/5"
-                          )}
-                        >
-                          {/* Status dot */}
-                          <span className={cn("w-2.5 h-2.5 rounded-full flex-shrink-0", config.dot)} />
-
-                          {/* Info */}
-                          <div className="flex-1 min-w-0">
-                            <p className="text-[13px] text-white font-medium truncate">
-                              {unit.identificador}
-                            </p>
-                            <div className="flex items-center gap-1 text-[10px] text-[var(--text-tertiary)]">
-                              {tipologia && <span className="truncate">{tipologia.nombre}</span>}
-                              {unit.area_m2 && <span className="flex-shrink-0">· {unit.area_m2} m²</span>}
-                              {unit.piso && <span className="flex-shrink-0">· P{unit.piso}</span>}
-                            </div>
-                          </div>
-
-                          {/* Price */}
-                          {unit.precio && (
-                            <span className="text-[10px] text-[var(--site-primary)] font-medium flex-shrink-0">
-                              {formatPrecio(unit.precio, locale)}
-                            </span>
-                          )}
-                        </button>
-                      );
-                    })}
-                  </div>
-                ) : (
-                  <div className="flex items-center justify-center h-32">
-                    <p className="text-xs text-[var(--text-muted)]">
-                      {tSite("explorar.noUnits")}
-                    </p>
-                  </div>
-                )}
-              </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
-      </motion.div>
+        </MobileBottomSheet>
+      )}
 
       {/* Cotizador Modal */}
       {cotizarUnidad && (

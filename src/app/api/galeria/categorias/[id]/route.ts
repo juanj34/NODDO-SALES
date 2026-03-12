@@ -14,9 +14,15 @@ export async function PUT(
       return NextResponse.json({ error: "Solo administradores" }, { status: 403 });
 
     const body = await request.json();
+    const allowed = ["nombre", "slug", "orden", "torre_id"];
+    const updateData: Record<string, unknown> = {};
+    for (const key of allowed) {
+      if (body[key] !== undefined) updateData[key] = body[key];
+    }
+
     const { data, error } = await auth.supabase
       .from("galeria_categorias")
-      .update(body)
+      .update(updateData)
       .eq("id", id)
       .select()
       .single();

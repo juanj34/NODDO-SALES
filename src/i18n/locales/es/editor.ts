@@ -251,6 +251,10 @@ const editor = {
     uploadImages: "Subir imágenes",
     imageCount: "{{count}} imagen(es)",
     delete: "Eliminar",
+    scopeAll: "Todas",
+    scopeGeneral: "General",
+    scopeSelectTower: "Seleccionar torre",
+    scopeProjectWide: "General (proyecto)",
   },
   inventario: {
     title: "Inventario de Unidades",

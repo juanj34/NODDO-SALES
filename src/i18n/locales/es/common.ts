@@ -200,9 +200,70 @@ const common = {
   },
   rotateDevice: {
     message: "Gira tu dispositivo a modo horizontal",
-    subtitle: "El modo vertical no es compatible",
+    subtitle: "Para una mejor experiencia visual",
+    dismiss: "Ver de todos modos",
   },
   loading: "Cargando...",
+  booking: {
+    // Step labels
+    stepDate: "Fecha",
+    stepTime: "Hora",
+    stepConfirm: "Confirmar",
+    // Session info
+    sessionTitle: "Demo NODDO",
+    sessionSub: "30 min · Videollamada",
+    // Loading
+    loadingSlots: "Cargando disponibilidad...",
+    // Scarcity
+    scarcityPrefix: "Solo quedan ",
+    scarcitySuffix: " espacios esta semana",
+    // Calendar
+    next: "Continuar",
+    // Timeslots
+    changeDate: "Cambiar fecha",
+    confirmTime: "Seleccionar hora",
+    // Confirm form
+    changeTime: "Cambiar hora",
+    labelName: "Nombre completo",
+    labelEmail: "Correo electrónico",
+    labelPhone: "Teléfono",
+    placeholderName: "Tu nombre",
+    placeholderEmail: "nombre@empresa.com",
+    waReminder: "Recordatorio por WhatsApp",
+    bookCta: "Confirmar Demo",
+    trustLine: "Sin compromiso · Cancelación gratuita",
+    privacyText: "Al agendar, aceptas nuestra",
+    privacyLink: "política de privacidad",
+    // Booking in progress
+    bookingInProgress: "Agendando tu demo...",
+    bookingWait: "No cierres esta ventana",
+    // Success
+    successTitle: "Demo Agendada",
+    emailConfirmation: "Recibirás un email de confirmación",
+    emailAndWA: " y un recordatorio por WhatsApp",
+    backToSite: "Volver al sitio",
+    step2Label: "Siguiente paso",
+    step2Title: "Prepara tus preguntas",
+    step2Description: "Revisaremos tu proyecto y exploraremos cómo NODDO puede ayudarte",
+    // Fallback
+    fallbackTitle: "Agendar Demo",
+    fallbackSub: "Selecciona un horario disponible",
+    fallbackLoading: "Cargando calendario...",
+    fallbackProblem: "No pudimos cargar el calendario",
+    fallbackDescription: "Puedes agendar directamente o contactarnos por WhatsApp",
+    fallbackOpen: "Abrir calendario",
+    fallbackFooter: "Sesión gratuita · Sin compromiso",
+    // Header
+    agendaHeader: "Agendar Demo",
+    // Day abbreviations
+    daySun: "Dom",
+    dayMon: "Lun",
+    dayTue: "Mar",
+    dayWed: "Mié",
+    dayThu: "Jue",
+    dayFri: "Vie",
+    daySat: "Sáb",
+  },
 } as const;
 
 export default common;

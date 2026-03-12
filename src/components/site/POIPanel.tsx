@@ -1,9 +1,10 @@
 "use client";
 
-import { useMemo } from "react";
+import { useMemo, useEffect } from "react";
 import Image from "next/image";
 import { motion, AnimatePresence } from "framer-motion";
-import { X, Car, Clock, ChevronLeft, ChevronRight } from "lucide-react";
+import { Car, Clock, ChevronLeft, ChevronRight, X } from "lucide-react";
+import { CloseButton } from "@/components/ui/CloseButton";
 import type { PuntoInteres } from "@/types";
 import { useTranslation } from "@/i18n";
 
@@ -16,6 +17,15 @@ interface POIPanelProps {
 
 export function POIPanel({ pois, selectedPOI, onSelectPOI, onClose }: POIPanelProps) {
   const { t } = useTranslation("common");
+
+  useEffect(() => {
+    if (!selectedPOI) return;
+    const handleKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") onClose();
+    };
+    window.addEventListener("keydown", handleKey);
+    return () => window.removeEventListener("keydown", handleKey);
+  }, [selectedPOI, onClose]);
   const currentIndex = useMemo(() => {
     if (!selectedPOI) return -1;
     return pois.findIndex((poi) => poi.id === selectedPOI.id);
@@ -48,13 +58,12 @@ export function POIPanel({ pois, selectedPOI, onSelectPOI, onClose }: POIPanelPr
           transition={{ type: "spring", damping: 25, stiffness: 300 }}
         >
           {/* Close button */}
-          <button
+          <CloseButton
             onClick={onClose}
-            className="absolute top-4 right-4 z-10 p-1.5 rounded-full bg-white/10 hover:bg-white/20 transition-colors cursor-pointer"
-            aria-label={t("accessibility.closePOIPanel")}
-          >
-            <X className="w-4 h-4 text-[var(--text-secondary)]" />
-          </button>
+            variant="dark"
+            size={14}
+            className="absolute top-4 right-4 z-10"
+          />
 
           {/* POI Image */}
           {selectedPOI.imagen_url && (

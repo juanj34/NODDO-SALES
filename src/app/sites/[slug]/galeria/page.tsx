@@ -6,12 +6,19 @@ import { useSiteProject } from "@/hooks/useSiteProject";
 import { Lightbox } from "@/components/site/Lightbox";
 import { cn } from "@/lib/utils";
 import { ChevronLeft, ChevronRight, Maximize2, Image as ImageIcon } from "lucide-react";
-import type { GaleriaImagen } from "@/types";
+import type { GaleriaCategoria, GaleriaImagen } from "@/types";
 import { useTranslation } from "@/i18n";
+
+interface GalleryScope {
+  id: string;
+  label: string;
+  categories: GaleriaCategoria[];
+}
 
 export default function GaleriaPage() {
   const proyecto = useSiteProject();
   const categorias = proyecto.galeria_categorias;
+  const torres = proyecto.torres || [];
   const { t } = useTranslation("site");
 
   // Empty state — no gallery categories configured
@@ -33,12 +40,40 @@ export default function GaleriaPage() {
     );
   }
 
+  // Compute scope structure
+  const generalCats = categorias.filter((c) => !c.torre_id);
+  const towerCatMap = new Map<string, GaleriaCategoria[]>();
+  categorias.forEach((cat) => {
+    if (cat.torre_id) {
+      const existing = towerCatMap.get(cat.torre_id) || [];
+      existing.push(cat);
+      towerCatMap.set(cat.torre_id, existing);
+    }
+  });
+  const towersWithGallery = torres.filter((t) => towerCatMap.has(t.id));
+
+  const scopes: GalleryScope[] = [];
+  if (generalCats.length > 0) {
+    scopes.push({ id: "general", label: t("galeria.general"), categories: generalCats });
+  }
+  towersWithGallery.forEach((torre) => {
+    scopes.push({ id: torre.id, label: torre.nombre, categories: towerCatMap.get(torre.id)! });
+  });
+
+  const hasMultipleScopes = scopes.length > 1;
+
+  const [activeScope, setActiveScope] = useState(0);
   const [activeCategory, setActiveCategory] = useState(0);
   const [activeSlide, setActiveSlide] = useState(0);
   const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
 
+  // Current categories based on scope
+  const currentScopeCategories = hasMultipleScopes
+    ? scopes[activeScope]?.categories ?? []
+    : categorias;
+
   const currentImages: GaleriaImagen[] =
-    categorias[activeCategory]?.imagenes ?? [];
+    currentScopeCategories[activeCategory]?.imagenes ?? [];
 
   const current = currentImages[activeSlide];
 
@@ -53,6 +88,12 @@ export default function GaleriaPage() {
       setActiveSlide((prev) => prev - 1);
     }
   }, [activeSlide]);
+
+  const handleScopeChange = (idx: number) => {
+    setActiveScope(idx);
+    setActiveCategory(0);
+    setActiveSlide(0);
+  };
 
   const handleCategoryChange = (idx: number) => {
     setActiveCategory(idx);
@@ -116,14 +157,49 @@ export default function GaleriaPage() {
         )}
       </AnimatePresence>
 
+      {/* Scope tabs — only when multiple scopes exist */}
+      {hasMultipleScopes && (
+        <motion.div
+          className="absolute top-6 left-10 z-20 flex items-center gap-5"
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.2, duration: 0.5 }}
+        >
+          {scopes.map((scope, idx) => (
+            <button
+              key={scope.id}
+              onClick={() => handleScopeChange(idx)}
+              className={cn(
+                "relative pb-2 text-[11px] tracking-[0.15em] uppercase font-bold transition-all duration-300 cursor-pointer",
+                idx === activeScope
+                  ? "text-white"
+                  : "text-[var(--text-muted)] hover:text-white/60"
+              )}
+            >
+              {scope.label}
+              {idx === activeScope && (
+                <motion.div
+                  layoutId="gallery-scope-indicator"
+                  className="absolute bottom-0 left-0 right-0 h-[2px] bg-[var(--site-primary)]"
+                  transition={{ type: "spring", bounce: 0.2, duration: 0.5 }}
+                />
+              )}
+            </button>
+          ))}
+        </motion.div>
+      )}
+
       {/* Category tabs — top-left underline style */}
       <motion.div
-        className="absolute top-8 left-10 z-20 flex items-center gap-6"
+        className={cn(
+          "absolute left-10 z-20 flex items-center gap-6",
+          hasMultipleScopes ? "top-16" : "top-8"
+        )}
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.3, duration: 0.5 }}
       >
-        {categorias.map((cat, idx) => (
+        {currentScopeCategories.map((cat, idx) => (
           <button
             key={cat.id}
             onClick={() => handleCategoryChange(idx)}

@@ -71,6 +71,7 @@ export interface GaleriaCategoria {
   nombre: string;
   slug: string;
   orden: number;
+  torre_id: string | null;
   imagenes?: GaleriaImagen[];
 }
 

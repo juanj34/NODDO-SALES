@@ -344,6 +344,7 @@ export const mockProyecto: ProyectoCompleto = {
       nombre: "Renders Interiores",
       slug: "renders-interiores",
       orden: 0,
+      torre_id: null,
       imagenes: [
         { id: "img-int-1", categoria_id: "cat-interiores", url: "https://images.unsplash.com/photo-1600210492486-724fe5c67fb0?w=1920&q=80", thumbnail_url: "https://images.unsplash.com/photo-1600210492486-724fe5c67fb0?w=400&q=80", alt_text: "Sala principal", orden: 0 },
         { id: "img-int-2", categoria_id: "cat-interiores", url: "https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?w=1920&q=80", thumbnail_url: "https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?w=400&q=80", alt_text: "Cocina abierta", orden: 1 },
@@ -357,6 +358,7 @@ export const mockProyecto: ProyectoCompleto = {
       nombre: "Renders Exteriores",
       slug: "renders-exteriores",
       orden: 1,
+      torre_id: null,
       imagenes: [
         { id: "img-ext-1", categoria_id: "cat-exteriores", url: "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=1920&q=80", thumbnail_url: "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=400&q=80", alt_text: "Fachada principal", orden: 0 },
         { id: "img-ext-2", categoria_id: "cat-exteriores", url: "https://images.unsplash.com/photo-1605276374104-dee2a0ed3cd6?w=1920&q=80", thumbnail_url: "https://images.unsplash.com/photo-1605276374104-dee2a0ed3cd6?w=400&q=80", alt_text: "Entrada del proyecto", orden: 1 },
@@ -369,6 +371,7 @@ export const mockProyecto: ProyectoCompleto = {
       nombre: "Urbanismo",
       slug: "urbanismo",
       orden: 2,
+      torre_id: null,
       imagenes: [
         { id: "img-urb-1", categoria_id: "cat-urbanismo", url: "https://images.unsplash.com/photo-1500382017468-9049fed747ef?w=1920&q=80", thumbnail_url: "https://images.unsplash.com/photo-1500382017468-9049fed747ef?w=400&q=80", alt_text: "Vista aérea", orden: 0 },
         { id: "img-urb-2", categoria_id: "cat-urbanismo", url: "https://images.unsplash.com/photo-1585320806297-9794b3e4eeae?w=1920&q=80", thumbnail_url: "https://images.unsplash.com/photo-1585320806297-9794b3e4eeae?w=400&q=80", alt_text: "Jardines", orden: 1 },
@@ -381,6 +384,7 @@ export const mockProyecto: ProyectoCompleto = {
       nombre: "Zona Social",
       slug: "zona-social",
       orden: 3,
+      torre_id: null,
       imagenes: [
         { id: "img-soc-1", categoria_id: "cat-social", url: "https://images.unsplash.com/photo-1572120360610-d971b9d7767c?w=1920&q=80", thumbnail_url: "https://images.unsplash.com/photo-1572120360610-d971b9d7767c?w=400&q=80", alt_text: "Piscina", orden: 0 },
         { id: "img-soc-2", categoria_id: "cat-social", url: "https://images.unsplash.com/photo-1534438327276-14e5300c3a48?w=1920&q=80", thumbnail_url: "https://images.unsplash.com/photo-1534438327276-14e5300c3a48?w=400&q=80", alt_text: "Gimnasio", orden: 1 },

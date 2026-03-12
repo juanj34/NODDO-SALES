@@ -2,7 +2,9 @@
 
 import { motion } from "framer-motion";
 import Link from "next/link";
+import { ArrowRight, ExternalLink } from "lucide-react";
 import { IsometricBuilding } from "./illustrations/IsometricBuilding";
+import { useBooking } from "./BookingProvider";
 
 const stats = [
   { value: "1 día", label: "De idea a publicado" },
@@ -11,8 +13,9 @@ const stats = [
 ];
 
 export function HeroSection() {
+  const { openBooking } = useBooking();
   return (
-    <section className="relative min-h-screen grid grid-cols-1 lg:grid-cols-2 items-center px-6 lg:px-20 gap-8 lg:gap-16 overflow-hidden z-[1]">
+    <section className="relative min-h-screen grid grid-cols-1 lg:grid-cols-2 items-center px-6 lg:px-24 gap-8 lg:gap-12 overflow-hidden z-[1]">
       {/* ── LEFT: Copy ── */}
       <div className="relative z-[2] pt-32 lg:pt-0">
         {/* Label with gold line */}
@@ -26,7 +29,7 @@ export function HeroSection() {
             className="block w-8 h-px"
             style={{ background: "var(--mk-accent)" }}
           />
-          <span className="font-ui text-[9px] tracking-[0.4em] uppercase text-[var(--mk-accent)]">
+          <span className="font-ui text-[10px] tracking-[0.35em] uppercase text-[var(--mk-accent)]">
             Plataforma de showroom digital
           </span>
         </motion.div>
@@ -36,7 +39,7 @@ export function HeroSection() {
           initial={{ opacity: 0, y: 24 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8, delay: 0.4, ease: "easeOut" }}
-          className="font-heading text-[clamp(48px,6vw,86px)] font-light leading-[1.05] tracking-[-0.02em] text-[var(--mk-text-primary)] mb-7"
+          className="font-heading text-[clamp(52px,6.5vw,96px)] font-light leading-[1.05] tracking-[-0.02em] text-[var(--mk-text-primary)] mb-8"
         >
           Lo que antes
           <br />
@@ -50,7 +53,7 @@ export function HeroSection() {
           initial={{ opacity: 0, y: 24 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8, delay: 0.6, ease: "easeOut" }}
-          className="text-[14px] leading-[1.85] max-w-[380px] mb-12"
+          className="text-[15px] leading-[1.85] max-w-[480px] mb-14"
           style={{ color: "rgba(244, 240, 232, 0.5)" }}
         >
           NODDO le da a tu proyecto una{" "}
@@ -66,13 +69,15 @@ export function HeroSection() {
           initial={{ opacity: 0, y: 24 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8, delay: 0.8, ease: "easeOut" }}
-          className="flex items-center gap-4"
+          className="flex items-center gap-5"
         >
-          <Link href="mailto:hola@noddo.co" className="btn-mk-primary">
+          <button onClick={openBooking} className="btn-mk-primary inline-flex items-center gap-2.5">
             Agendar Demo
-          </Link>
-          <Link href="/sites/alto-de-yeguas" className="btn-mk-outline">
+            <ArrowRight size={14} strokeWidth={2.5} />
+          </button>
+          <Link href="/sites/alto-de-yeguas" className="btn-mk-outline inline-flex items-center gap-2.5">
             Demo en Vivo
+            <ExternalLink size={13} strokeWidth={2} />
           </Link>
         </motion.div>
 
@@ -81,16 +86,16 @@ export function HeroSection() {
           initial={{ opacity: 0, y: 24 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8, delay: 1.0, ease: "easeOut" }}
-          className="flex gap-10 mt-16 pt-10"
+          className="flex gap-12 mt-16 pt-10"
           style={{ borderTop: "1px solid rgba(244, 240, 232, 0.06)" }}
         >
           {stats.map((stat) => (
             <div key={stat.label}>
-              <div className="font-heading text-4xl font-light leading-none mb-1 text-[var(--mk-accent-light)]">
+              <div className="font-heading text-5xl font-light leading-none mb-1.5 text-[var(--mk-accent-light)]">
                 {stat.value}
               </div>
               <div
-                className="font-ui text-[9px] tracking-[0.2em] uppercase"
+                className="font-ui text-[10px] tracking-[0.2em] uppercase"
                 style={{ color: "rgba(244, 240, 232, 0.3)" }}
               >
                 {stat.label}

@@ -24,6 +24,7 @@ const site = {
     gallery: "Galería",
     notAvailable: "Galería no disponible",
     notConfigured: "Aún no se han agregado imágenes a la galería de este proyecto.",
+    general: "General",
   },
   ubicacion: {
     notAvailable: "Ubicación no disponible",
@@ -175,6 +176,11 @@ const site = {
   },
   whatsapp: {
     defaultMessage: "Hola, me interesa saber más sobre el proyecto",
+  },
+  mobile: {
+    showPois: "Puntos de interés",
+    showUnits: "Unidades",
+    showHotspots: "Zonas",
   },
 } as const;
 

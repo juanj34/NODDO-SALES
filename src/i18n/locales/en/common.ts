@@ -200,9 +200,70 @@ const common = {
   },
   rotateDevice: {
     message: "Please rotate your device to landscape mode",
-    subtitle: "Portrait mode is not supported",
+    subtitle: "For a better visual experience",
+    dismiss: "View anyway",
   },
   loading: "Loading...",
+  booking: {
+    // Step labels
+    stepDate: "Date",
+    stepTime: "Time",
+    stepConfirm: "Confirm",
+    // Session info
+    sessionTitle: "NODDO Demo",
+    sessionSub: "30 min · Video call",
+    // Loading
+    loadingSlots: "Loading availability...",
+    // Scarcity
+    scarcityPrefix: "Only ",
+    scarcitySuffix: " slots left this week",
+    // Calendar
+    next: "Continue",
+    // Timeslots
+    changeDate: "Change date",
+    confirmTime: "Select time",
+    // Confirm form
+    changeTime: "Change time",
+    labelName: "Full name",
+    labelEmail: "Email address",
+    labelPhone: "Phone number",
+    placeholderName: "Your name",
+    placeholderEmail: "name@company.com",
+    waReminder: "WhatsApp reminder",
+    bookCta: "Confirm Demo",
+    trustLine: "No commitment · Free cancellation",
+    privacyText: "By scheduling, you accept our",
+    privacyLink: "privacy policy",
+    // Booking in progress
+    bookingInProgress: "Scheduling your demo...",
+    bookingWait: "Don't close this window",
+    // Success
+    successTitle: "Demo Scheduled",
+    emailConfirmation: "You'll receive a confirmation email",
+    emailAndWA: " and a WhatsApp reminder",
+    backToSite: "Back to site",
+    step2Label: "Next step",
+    step2Title: "Prepare your questions",
+    step2Description: "We'll review your project and explore how NODDO can help",
+    // Fallback
+    fallbackTitle: "Schedule Demo",
+    fallbackSub: "Select an available time",
+    fallbackLoading: "Loading calendar...",
+    fallbackProblem: "We couldn't load the calendar",
+    fallbackDescription: "You can schedule directly or contact us via WhatsApp",
+    fallbackOpen: "Open calendar",
+    fallbackFooter: "Free session · No commitment",
+    // Header
+    agendaHeader: "Schedule Demo",
+    // Day abbreviations
+    daySun: "Sun",
+    dayMon: "Mon",
+    dayTue: "Tue",
+    dayWed: "Wed",
+    dayThu: "Thu",
+    dayFri: "Fri",
+    daySat: "Sat",
+  },
 } as const;
 
 export default common;

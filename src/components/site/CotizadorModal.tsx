@@ -2,7 +2,8 @@
 
 import { useState, useEffect, useCallback, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { X, Send, CheckCircle, Loader2, Maximize, BedDouble, Bath, MapPin, Eye } from "lucide-react";
+import { Send, CheckCircle, Loader2, Maximize, BedDouble, Bath, MapPin, Eye } from "lucide-react";
+import { CloseButton } from "@/components/ui/CloseButton";
 import { cn } from "@/lib/utils";
 import type { Unidad, Tipologia } from "@/types";
 import { useTranslation, getEstadoConfig } from "@/i18n";
@@ -146,13 +147,12 @@ export function CotizadorModal({ isOpen, onClose, unidad, tipologia, proyectoId 
             transition={{ type: "spring", damping: 25, stiffness: 300 }}
           >
             {/* Close button */}
-            <button
+            <CloseButton
               onClick={handleClose}
-              aria-label={tCommon("accessibility.close")}
-              className="absolute top-4 right-4 z-10 p-2 rounded-full bg-white/10 hover:bg-white/20 transition-colors cursor-pointer"
-            >
-              <X size={16} className="text-[var(--text-secondary)]" />
-            </button>
+              variant="dark"
+              size={16}
+              className="absolute top-4 right-4 z-10"
+            />
 
             {isSubmitted ? (
               <motion.div

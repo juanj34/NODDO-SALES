@@ -17,9 +17,17 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    const insertData: Record<string, unknown> = {
+      proyecto_id: body.proyecto_id,
+      nombre: body.nombre,
+      slug: body.slug,
+    };
+    if (body.orden !== undefined) insertData.orden = body.orden;
+    if (body.torre_id !== undefined) insertData.torre_id = body.torre_id;
+
     const { data, error } = await auth.supabase
       .from("galeria_categorias")
-      .insert(body)
+      .insert(insertData)
       .select()
       .single();
 

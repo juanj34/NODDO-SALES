@@ -846,13 +846,12 @@ export default function TipologiasPage() {
                 </span>
               </div>
               {/* Close button */}
-              <button
+              <CloseButton
                 onClick={() => setActiveHotspot(null)}
-                aria-label="Cerrar imagen"
-                className="absolute top-3 right-3 w-8 h-8 flex items-center justify-center rounded-full bg-black/40 hover:bg-black/60 transition-colors cursor-pointer"
-              >
-                <X size={16} className="text-white" />
-              </button>
+                variant="dark"
+                size={16}
+                className="absolute top-3 right-3"
+              />
             </motion.div>
           </motion.div>
         )}
@@ -888,15 +887,25 @@ export default function TipologiasPage() {
                   Ubicación en el proyecto
                 </span>
               </div>
-              <button
+              <CloseButton
                 onClick={() => setShowUbicacion(false)}
-                aria-label="Cerrar imagen"
-                className="absolute top-3 right-3 w-8 h-8 flex items-center justify-center rounded-full bg-black/40 hover:bg-black/60 transition-colors cursor-pointer"
-              >
-                <X size={16} className="text-white" />
-              </button>
+                variant="dark"
+                size={16}
+                className="absolute top-3 right-3"
+              />
             </motion.div>
           </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* ====== RENDER GALLERY LIGHTBOX ====== */}
+      <AnimatePresence>
+        {showRenderGallery && renderImages.length > 0 && (
+          <Lightbox
+            images={renderImages}
+            initialIndex={0}
+            onClose={() => setShowRenderGallery(false)}
+          />
         )}
       </AnimatePresence>
 

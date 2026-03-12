@@ -31,20 +31,23 @@ import {
 } from "lucide-react";
 import { motion, AnimatePresence, Reorder, useDragControls } from "framer-motion";
 import { useTranslation } from "@/i18n";
-import type { GaleriaCategoria } from "@/types";
+import type { GaleriaCategoria, Torre } from "@/types";
 
 /* ── Draggable pill for category tab bar ── */
 function DraggablePill({
   cat,
   isActive,
   onSelect,
+  torres,
 }: {
   cat: GaleriaCategoria;
   isActive: boolean;
   onSelect: () => void;
+  torres: Torre[];
 }) {
   const controls = useDragControls();
   const count = cat.imagenes?.length || 0;
+  const torre = cat.torre_id ? torres.find((t) => t.id === cat.torre_id) : null;
 
   return (
     <Reorder.Item
@@ -66,6 +69,11 @@ function DraggablePill({
       </div>
       <button onClick={onSelect} className="flex items-center gap-1.5">
         {cat.nombre}
+        {torre && (
+          <span className="text-[9px] px-1.5 py-0.5 rounded-full bg-[rgba(var(--site-primary-rgb),0.12)] text-[var(--site-primary)] truncate max-w-[70px]">
+            {torre.nombre}
+          </span>
+        )}
         {count > 0 && (
           <span className={`${isActive ? "bg-[rgba(var(--site-primary-rgb),0.2)] text-[var(--site-primary)]" : "bg-[var(--surface-3)] text-[var(--text-muted)]"} text-[10px] px-1.5 py-0.5 rounded-full font-medium`}>
             {count}
@@ -83,40 +91,66 @@ export default function GaleriaPage() {
   const { confirm } = useConfirm();
   const toast = useToast();
 
+  const torres: Torre[] = project.torres || [];
+  const hasTorres = torres.length > 0;
+
   const [selectedCatId, setSelectedCatId] = useState<string | null>(null);
   const [orderedCategories, setOrderedCategories] = useState<GaleriaCategoria[]>(
     project.galeria_categorias
   );
+  const [scopeFilter, setScopeFilter] = useState<string | null>(null); // null=all, "general"=project-wide, torre.id=tower
   const [showCatForm, setShowCatForm] = useState(false);
   const [showUploadModal, setShowUploadModal] = useState(false);
   const [newCatNombre, setNewCatNombre] = useState("");
+  const [newCatTorreId, setNewCatTorreId] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
+
+  // Filtered categories by scope
+  const filteredCategories = orderedCategories.filter((cat) => {
+    if (scopeFilter === null) return true;
+    if (scopeFilter === "general") return !cat.torre_id;
+    return cat.torre_id === scopeFilter;
+  });
 
   // Sync categories from project
   useEffect(() => {
     setOrderedCategories(project.galeria_categorias);
   }, [project.galeria_categorias]);
 
-  // Auto-select first category or fix invalid selection
+  // Auto-select first visible category or fix invalid selection
   useEffect(() => {
-    if (orderedCategories.length === 0) {
+    if (filteredCategories.length === 0) {
       setSelectedCatId(null);
       return;
     }
-    const exists = orderedCategories.some((c) => c.id === selectedCatId);
+    const exists = filteredCategories.some((c) => c.id === selectedCatId);
     if (!exists) {
-      setSelectedCatId(orderedCategories[0].id);
+      setSelectedCatId(filteredCategories[0].id);
     }
-  }, [orderedCategories, selectedCatId]);
+  }, [filteredCategories, selectedCatId]);
 
   const selectedCat = orderedCategories.find((c) => c.id === selectedCatId) || null;
   const imageCount = selectedCat?.imagenes?.length || 0;
 
   /* ── Reorder ── */
   const handleReorder = async (newOrder: GaleriaCategoria[]) => {
-    setOrderedCategories(newOrder);
+    // When filtered, splice reordered subset back into full list
+    let fullOrder: GaleriaCategoria[];
+    if (scopeFilter !== null) {
+      fullOrder = [...orderedCategories];
+      const filteredIds = new Set(newOrder.map((c) => c.id));
+      let insertIdx = 0;
+      for (let i = 0; i < fullOrder.length; i++) {
+        if (filteredIds.has(fullOrder[i].id)) {
+          fullOrder[i] = newOrder[insertIdx++];
+        }
+      }
+    } else {
+      fullOrder = newOrder;
+    }
+    setOrderedCategories(fullOrder);
     try {
-      const ids = newOrder.map((cat) => cat.id);
+      const ids = fullOrder.map((cat) => cat.id);
       const res = await fetch("/api/galeria/categorias/reorder", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -144,6 +178,7 @@ export default function GaleriaPage() {
           proyecto_id: projectId,
           nombre: newCatNombre.trim(),
           slug: catSlug,
+          torre_id: newCatTorreId,
         }),
       });
       if (res.ok) {
@@ -154,6 +189,7 @@ export default function GaleriaPage() {
         await refresh();
       }
       setNewCatNombre("");
+      setNewCatTorreId(null);
       setShowCatForm(false);
     } finally {
       setSaving(false);
@@ -225,22 +261,46 @@ export default function GaleriaPage() {
       {/* Category tab bar + content */}
       {(orderedCategories.length > 0 || showCatForm) && (
         <div className="space-y-4">
+          {/* Scope filter — only when project has torres */}
+          {hasTorres && (
+            <div className="flex items-center gap-1.5 overflow-x-auto pb-1">
+              {[
+                { id: null, label: t("galeria.scopeAll") },
+                { id: "general", label: t("galeria.scopeGeneral") },
+                ...torres.map((t) => ({ id: t.id, label: t.nombre })),
+              ].map((scope) => (
+                <button
+                  key={scope.id ?? "all"}
+                  onClick={() => setScopeFilter(scope.id)}
+                  className={`px-3 py-1 rounded-lg text-[10px] tracking-wide uppercase font-medium transition-all shrink-0 ${
+                    scopeFilter === scope.id
+                      ? "bg-[rgba(var(--site-primary-rgb),0.15)] text-[var(--site-primary)] border border-[rgba(var(--site-primary-rgb),0.3)]"
+                      : "text-[var(--text-muted)] hover:text-[var(--text-secondary)] border border-transparent hover:border-[var(--border-subtle)]"
+                  }`}
+                >
+                  {scope.label}
+                </button>
+              ))}
+            </div>
+          )}
+
           {/* Tab bar */}
           <div className="flex items-center gap-2 overflow-x-auto pb-1">
-            {orderedCategories.length > 0 && (
+            {filteredCategories.length > 0 && (
               <Reorder.Group
                 axis="x"
-                values={orderedCategories}
+                values={filteredCategories}
                 onReorder={handleReorder}
                 className="flex items-center gap-1.5"
                 style={{ listStyle: "none" }}
               >
-                {orderedCategories.map((cat) => (
+                {filteredCategories.map((cat) => (
                   <DraggablePill
                     key={cat.id}
                     cat={cat}
                     isActive={selectedCatId === cat.id}
                     onSelect={() => setSelectedCatId(cat.id)}
+                    torres={torres}
                   />
                 ))}
               </Reorder.Group>
@@ -249,7 +309,15 @@ export default function GaleriaPage() {
             {/* Add category button */}
             {!showCatForm && (
               <button
-                onClick={() => setShowCatForm(true)}
+                onClick={() => {
+                  // Pre-select torre based on current scope filter
+                  if (scopeFilter && scopeFilter !== "general") {
+                    setNewCatTorreId(scopeFilter);
+                  } else {
+                    setNewCatTorreId(null);
+                  }
+                  setShowCatForm(true);
+                }}
                 className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-[10px] text-[var(--text-muted)] hover:text-[var(--text-secondary)] hover:bg-[var(--surface-2)] border border-dashed border-[var(--border-default)] transition-all shrink-0"
               >
                 <Plus size={11} />
@@ -276,6 +344,20 @@ export default function GaleriaPage() {
                     onKeyDown={(e) => e.key === "Enter" && addCategoria()}
                     autoFocus
                   />
+                  {hasTorres && (
+                    <select
+                      value={newCatTorreId ?? ""}
+                      onChange={(e) => setNewCatTorreId(e.target.value || null)}
+                      className={`${inputClass} w-auto min-w-[140px]`}
+                    >
+                      <option value="">{t("galeria.scopeProjectWide")}</option>
+                      {torres.map((torre) => (
+                        <option key={torre.id} value={torre.id}>
+                          {torre.nombre}
+                        </option>
+                      ))}
+                    </select>
+                  )}
                   <button
                     onClick={addCategoria}
                     disabled={saving || !newCatNombre.trim()}
@@ -292,6 +374,7 @@ export default function GaleriaPage() {
                     onClick={() => {
                       setShowCatForm(false);
                       setNewCatNombre("");
+                      setNewCatTorreId(null);
                     }}
                     className={btnSecondary}
                   >
