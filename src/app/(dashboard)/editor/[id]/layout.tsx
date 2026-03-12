@@ -28,6 +28,7 @@ import {
   RotateCcw,
   Check,
   HardHat,
+  HelpCircle,
   Menu,
   X,
 } from "lucide-react";
@@ -427,6 +428,18 @@ export default function EditorLayout({
               </div>
             ))}
           </nav>
+
+          {/* Help link */}
+          <div className="px-3 pb-1">
+            <Link
+              href="/ayuda"
+              onClick={closeDrawer}
+              className="flex items-center gap-2.5 px-3 py-[7px] rounded-lg font-ui text-[11px] font-semibold uppercase tracking-[0.08em] text-[var(--text-muted)] hover:text-[var(--text-secondary)] hover:bg-[var(--surface-2)]/50 transition-all duration-150"
+            >
+              <HelpCircle size={15} className="shrink-0" />
+              <span className="truncate">{t("layout.help")}</span>
+            </Link>
+          </div>
 
           {/* Preview link */}
           <div className="px-4 py-3 border-t border-[var(--border-subtle)]">

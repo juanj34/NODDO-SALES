@@ -16,6 +16,7 @@ const editor = {
     restore: "Restaurar",
     confirm: "Confirmar",
     no: "No",
+    help: "Ayuda",
   },
   general: {
     title: "Información General",
