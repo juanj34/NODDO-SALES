@@ -283,11 +283,11 @@ export function MapPickerModal({
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center p-4"
+      className="fixed inset-0 z-50 flex items-center justify-center p-0 md:p-4"
       style={{ backgroundColor: "rgba(0,0,0,0.8)" }}
     >
       <div
-        className="w-full max-w-4xl h-[80vh] bg-[#141414] rounded-2xl border border-white/10 overflow-hidden flex flex-col"
+        className="w-full max-w-4xl h-[100dvh] md:h-[80vh] bg-[#141414] md:rounded-2xl border border-white/10 overflow-hidden flex flex-col"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header with search — z-10 ensures clicks don't pass through to the map */}
@@ -316,7 +316,7 @@ export function MapPickerModal({
 
             {/* Search results dropdown */}
             {searchResults.length > 0 && (
-              <div className="absolute top-full left-0 right-0 mt-1 bg-[#1a1a1a] border border-white/10 rounded-lg overflow-hidden z-10 shadow-2xl">
+              <div className="absolute top-full left-0 right-0 mt-1 bg-[#1a1a1a] border border-white/10 rounded-lg overflow-hidden z-10 shadow-2xl max-h-[40vh] overflow-y-auto">
                 {searchResults.map((result, i) => (
                   <button
                     key={i}
@@ -364,7 +364,7 @@ export function MapPickerModal({
         </div>
 
         {/* Footer with coordinates — z-10 ensures clicks don't pass through to the map */}
-        <div className="flex-shrink-0 relative z-10 flex items-center justify-between px-5 py-3 border-t border-white/5 bg-[#0f0f0f]">
+        <div className="flex-shrink-0 relative z-10 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2 px-4 sm:px-5 py-3 border-t border-white/5 bg-[#0f0f0f]">
           <div className="flex-1 min-w-0">
             {selectedLat !== null && selectedLng !== null ? (
               <div className="space-y-0.5">
@@ -393,7 +393,7 @@ export function MapPickerModal({
             )}
           </div>
 
-          <div className="flex items-center gap-2 ml-4">
+          <div className="flex items-center gap-2 sm:ml-4">
             <button
               onClick={onClose}
               className="px-4 py-2 text-xs text-white/50 border border-white/10 rounded-lg hover:text-white hover:border-white/20 transition-colors"

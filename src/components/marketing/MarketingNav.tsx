@@ -84,7 +84,7 @@ export function MarketingNav() {
           <button
             type="button"
             onClick={() => setMobileOpen((prev) => !prev)}
-            className="md:hidden flex flex-col gap-1.5 p-2"
+            className="md:hidden flex flex-col gap-1.5 p-2 min-w-[44px] min-h-[44px] items-center justify-center"
             aria-label="Toggle menu"
           >
             <motion.span

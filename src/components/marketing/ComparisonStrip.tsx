@@ -62,7 +62,7 @@ export function ComparisonStrip() {
             ))}
           </div>
 
-          {/* Center: vs */}
+          {/* Center: vs — vertical on desktop, horizontal divider on mobile */}
           <div className="hidden lg:flex flex-col items-center gap-3 pt-10">
             <div
               className="font-heading text-5xl font-light italic"
@@ -75,6 +75,11 @@ export function ComparisonStrip() {
             >
               vs
             </div>
+          </div>
+          <div className="lg:hidden flex items-center gap-4 py-2">
+            <div className="flex-1 h-px bg-[var(--mk-border-rule)]" />
+            <span className="font-heading text-2xl font-light italic" style={{ color: "rgba(255, 255, 255, 0.15)" }}>vs</span>
+            <div className="flex-1 h-px bg-[var(--mk-border-rule)]" />
           </div>
 
           {/* Right: Us */}

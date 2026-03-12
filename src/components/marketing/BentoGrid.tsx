@@ -39,7 +39,7 @@ export function BentoGrid() {
   return (
     <section
       id="capacidades"
-      className="relative z-[1] py-24 lg:py-32 px-6 lg:px-20 border-t border-[var(--mk-border-rule)]"
+      className="relative z-[1] py-24 lg:py-32 px-4 sm:px-6 lg:px-20 border-t border-[var(--mk-border-rule)]"
     >
       <div className="max-w-[1200px] mx-auto">
         {/* Section label with extending line */}
@@ -64,7 +64,7 @@ export function BentoGrid() {
                 delay: i * 0.1,
                 ease: "easeOut",
               }}
-              className="bg-[var(--mk-bg)] p-10 lg:p-10"
+              className="bg-[var(--mk-bg)] p-6 sm:p-8 lg:p-10"
             >
               {/* Number */}
               <div
