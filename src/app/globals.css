@@ -1,50 +1,54 @@
 @import "tailwindcss";
+@plugin "@tailwindcss/typography";
 
 :root {
-  --background: #0A0A0B;
-  --foreground: #F4F4F5;
+  --background: #141414;
+  --foreground: #f4f0e8;
 
-  /* ─── Noddo Brand (Vibrant Startup Palette) ─── */
-  --noddo-primary: #6366F1;
-  /* Electric Indigo */
-  --noddo-primary-rgb: 99, 102, 241;
-  --noddo-secondary: #0EA5E9;
-  /* Vivid Cyan/Blue */
-  --noddo-secondary-rgb: 14, 165, 233;
-  --noddo-tertiary: #10B981;
-  /* Emerald Green for success/growth */
-  --noddo-tertiary-rgb: 16, 185, 129;
+  /* ─── Noddo Brand (Gold Palette) ─── */
+  --noddo-primary: #b8973a;
+  /* True Gold */
+  --noddo-primary-rgb: 184, 151, 58;
+  --noddo-secondary: #d4b05a;
+  /* Light Gold */
+  --noddo-secondary-rgb: 212, 176, 90;
+  --noddo-tertiary: #a07e2e;
+  /* Deep Gold */
+  --noddo-tertiary-rgb: 160, 126, 46;
 
   /* ─── Site Primary (microsites — dynamic per project) ─── */
-  --site-primary: #D4A574;
-  --site-primary-rgb: 212, 165, 116;
-  --site-secondary: #F4F4F5;
-  --site-bg: #0A0A0B;
+  --site-primary: #b8973a;
+  --site-primary-rgb: 184, 151, 58;
+  --site-secondary: #f4f0e8;
+  --site-bg: #141414;
+
+  /* ─── Paper (warm white) ─── */
+  --paper: #f4f0e8;
 
   /* ─── Surface System (elevation layers) ─── */
-  --surface-0: #0A0A0B;
-  --surface-1: #111113;
-  --surface-2: #1A1A1D;
-  --surface-3: #222226;
-  --surface-4: #2A2A2F;
+  --surface-0: #141414;
+  --surface-1: #1a1a1a;
+  --surface-2: #222222;
+  --surface-3: #2a2a2a;
+  --surface-4: #333333;
 
   /* ─── Border Hierarchy ─── */
   --border-subtle: rgba(255, 255, 255, 0.06);
   --border-default: rgba(255, 255, 255, 0.10);
   --border-strong: rgba(255, 255, 255, 0.16);
-  --border-accent: rgba(124, 92, 252, 0.25);
+  --border-accent: rgba(184, 151, 58, 0.25);
 
-  /* ─── Text Hierarchy ─── */
-  --text-primary: rgba(255, 255, 255, 0.92);
-  --text-secondary: rgba(255, 255, 255, 0.55);
-  --text-tertiary: rgba(255, 255, 255, 0.35);
-  --text-muted: rgba(255, 255, 255, 0.18);
+  /* ─── Text Hierarchy (warm paper tones) ─── */
+  --text-primary: rgba(244, 240, 232, 0.92);
+  --text-secondary: rgba(244, 240, 232, 0.55);
+  --text-tertiary: rgba(244, 240, 232, 0.35);
+  --text-muted: rgba(244, 240, 232, 0.18);
 
-  /* ─── Glow System ─── */
-  --glow-xs: 0 0 12px rgba(124, 92, 252, 0.08);
-  --glow-sm: 0 0 20px rgba(124, 92, 252, 0.12);
-  --glow-md: 0 0 40px rgba(124, 92, 252, 0.15);
-  --glow-lg: 0 0 80px rgba(124, 92, 252, 0.12);
+  /* ─── Glow System (gold) ─── */
+  --glow-xs: 0 0 12px rgba(184, 151, 58, 0.08);
+  --glow-sm: 0 0 20px rgba(184, 151, 58, 0.12);
+  --glow-md: 0 0 40px rgba(184, 151, 58, 0.15);
+  --glow-lg: 0 0 80px rgba(184, 151, 58, 0.12);
 
   /* ─── Shadow System ─── */
   --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.3), 0 1px 3px rgba(0, 0, 0, 0.15);
@@ -116,22 +120,28 @@
   --color-neutral-700: var(--neutral-700);
   --color-neutral-800: var(--neutral-800);
   --color-neutral-900: var(--neutral-900);
-  --font-sans: var(--font-inter, var(--font-geist-sans));
-  --font-mono: var(--font-geist-mono);
-  --font-heading: var(--font-space-grotesk);
-  --font-site-heading: var(--font-cinzel);
+  --font-sans: var(--font-dm-mono);
+  --font-mono: var(--font-dm-mono);
+  --font-heading: var(--font-cormorant);
+  --font-ui: var(--font-syne);
+  --font-site-heading: var(--font-cormorant);
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: var(--font-sans), Arial, Helvetica, sans-serif;
+  font-family: var(--font-sans), 'Courier New', monospace;
+  font-size: 13px;
 }
 
 /* ====== TYPOGRAPHY ====== */
 
 .font-heading {
-  font-family: var(--font-heading), sans-serif;
+  font-family: var(--font-heading), Georgia, serif;
+}
+
+.font-ui {
+  font-family: var(--font-ui), sans-serif;
 }
 
 .font-site-heading {
@@ -207,7 +217,7 @@ body {
 
 .btn-noddo {
   background: linear-gradient(135deg, var(--noddo-primary), var(--noddo-secondary));
-  color: white;
+  color: #141414;
   border-radius: 0.75rem;
   font-weight: 600;
   letter-spacing: 0.02em;
@@ -267,7 +277,7 @@ body {
 
 .btn-warm {
   background: linear-gradient(135deg, var(--site-primary), color-mix(in srgb, var(--site-primary) 75%, #8B5E3C));
-  color: #0A0A0B;
+  color: #141414;
   border-radius: 0.75rem;
   font-weight: 600;
   letter-spacing: 0.04em;
@@ -754,70 +764,81 @@ body {
   }
 }
 
-/* ====== MARKETING EDITORIAL THEME ====== */
+/* ====== MARKETING — ARCHITECTURAL EDITORIAL THEME ====== */
 
 .marketing {
   /* ─── Base Colors ─── */
-  --mk-bg: #F5F0EB;
-  --mk-bg-alt: #FAFAF8;
-  --mk-bg-dark: #0F0F0F;
+  --mk-bg: #141414;
+  --mk-bg-alt: #1a1a1a;
 
-  /* ─── Text Hierarchy (dark on light) ─── */
-  --mk-text-primary: #0F0F0F;
-  --mk-text-secondary: #3D3D3D;
-  --mk-text-tertiary: #6B6B6B;
-  --mk-text-muted: #A3A3A3;
-  --mk-text-inverse: #F5F0EB;
+  /* ─── Text (warm paper tones) ─── */
+  --mk-text-primary: #f4f0e8;
+  --mk-text-secondary: rgba(244, 240, 232, 0.5);
+  --mk-text-tertiary: rgba(244, 240, 232, 0.3);
+  --mk-text-muted: rgba(244, 240, 232, 0.15);
 
-  /* ─── Borders (editorial lines) ─── */
-  --mk-border-rule: #D4D0CB;
-  --mk-border-subtle: #E8E4DF;
-  --mk-border-strong: #0F0F0F;
+  /* ─── Borders ─── */
+  --mk-border-rule: rgba(255, 255, 255, 0.04);
+  --mk-border-subtle: rgba(255, 255, 255, 0.06);
 
-  /* ─── Accent ─── */
-  --mk-accent: #6366F1;
-  --mk-accent-rgb: 99, 102, 241;
+  /* ─── Accent (true gold) ─── */
+  --mk-accent: #b8973a;
+  --mk-accent-light: #d4b05a;
+  --mk-accent-rgb: 184, 151, 58;
+  --mk-accent-glow: rgba(184, 151, 58, 0.15);
 
   /* ─── Surfaces ─── */
-  --mk-surface-0: #F5F0EB;
-  --mk-surface-1: #EFEBE6;
-  --mk-surface-2: #E8E4DF;
-  --mk-surface-3: #FFFFFF;
+  --mk-surface-2: #222222;
+  --mk-surface-3: #2a2a2a;
+  --mk-bg-dark: #0a0a0a;
 
-  /* ─── Shadows (light theme) ─── */
-  --mk-shadow-sm: 0 1px 3px rgba(0,0,0,0.04), 0 1px 2px rgba(0,0,0,0.02);
-  --mk-shadow-md: 0 4px 12px rgba(0,0,0,0.06), 0 1px 3px rgba(0,0,0,0.04);
-  --mk-shadow-lg: 0 8px 24px rgba(0,0,0,0.08), 0 2px 8px rgba(0,0,0,0.04);
+  /* ─── Shadows ─── */
+  --mk-shadow-sm: 0 1px 2px rgba(0,0,0,0.3), 0 1px 3px rgba(0,0,0,0.15);
+  --mk-shadow-md: 0 4px 12px rgba(0,0,0,0.4), 0 1px 3px rgba(0,0,0,0.2);
+
+  /* ─── Status ─── */
+  --mk-available: #4a9e6b;
+  --mk-reserved: #c4853a;
+  --mk-sold: #888;
+  --mk-mid: #6b6560;
 
   color: var(--mk-text-secondary);
   background: var(--mk-bg);
+  font-family: var(--font-sans), 'Courier New', monospace;
+  font-size: 13px;
+  cursor: none;
 }
 
-/* ─── Marketing Scrollbar Overrides ─── */
+/* ─── Marketing Scrollbar ─── */
 .marketing ::-webkit-scrollbar-thumb {
-  background: rgba(0, 0, 0, 0.10);
+  background: rgba(244, 240, 232, 0.08);
 }
 
 .marketing ::-webkit-scrollbar-thumb:hover {
-  background: rgba(0, 0, 0, 0.20);
+  background: rgba(244, 240, 232, 0.16);
 }
 
-/* ─── Marketing Buttons ─── */
+/* ─── Marketing Buttons (square, architectural) ─── */
 .btn-mk-primary {
-  background: #0F0F0F;
-  color: #F5F0EB;
-  border-radius: 0.5rem;
-  font-weight: 500;
-  letter-spacing: 0.02em;
-  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
-  cursor: pointer;
-  border: 1px solid transparent;
+  display: inline-block;
+  background: var(--mk-accent);
+  color: var(--mk-bg);
+  font-family: var(--font-ui), sans-serif;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  text-decoration: none;
+  border: none;
+  border-radius: 0;
+  padding: 14px 32px;
+  cursor: none;
+  transition: background 0.2s, transform 0.2s;
 }
 
 .btn-mk-primary:hover {
-  background: #2D2D2D;
+  background: var(--mk-accent-light);
   transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(0,0,0,0.12);
 }
 
 .btn-mk-primary:active {
@@ -831,23 +852,25 @@ body {
 }
 
 .btn-mk-outline {
+  display: inline-block;
   background: transparent;
-  color: #0F0F0F;
-  border: 1.5px solid #D4D0CB;
-  border-radius: 0.5rem;
-  font-weight: 500;
-  letter-spacing: 0.02em;
-  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
-  cursor: pointer;
+  border: 1px solid rgba(244, 240, 232, 0.15);
+  color: rgba(244, 240, 232, 0.6);
+  font-family: var(--font-ui), sans-serif;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  text-decoration: none;
+  border-radius: 0;
+  padding: 14px 32px;
+  cursor: none;
+  transition: border-color 0.2s, color 0.2s;
 }
 
 .btn-mk-outline:hover {
-  border-color: #0F0F0F;
-  background: rgba(0,0,0,0.03);
-}
-
-.btn-mk-outline:active {
-  background: rgba(0,0,0,0.06);
+  border-color: var(--mk-accent);
+  color: var(--mk-accent);
 }
 
 .btn-mk-outline:disabled {
@@ -855,40 +878,141 @@ body {
   cursor: not-allowed;
 }
 
-/* ─── Marketing Inputs ─── */
-.input-mk {
-  background: #FFFFFF;
-  border: 1px solid #E8E4DF;
-  border-radius: 0.5rem;
-  padding: 0.75rem 1rem;
-  color: #0F0F0F;
-  font-size: 0.875rem;
-  transition: all 0.2s;
-  outline: none;
-}
-
-.input-mk:focus {
-  border-color: #6366F1;
-  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
-}
-
-.input-mk::placeholder {
-  color: #A3A3A3;
-}
-
 /* ─── Marketing Focus Visible ─── */
 .btn-mk-primary:focus-visible,
 .btn-mk-outline:focus-visible {
-  outline: 2px solid #0F0F0F;
+  outline: 2px solid var(--mk-accent);
   outline-offset: 2px;
 }
 
-.input-mk:focus-visible {
-  outline: none;
+/* ─── Gold Grid Lines Background ─── */
+.bg-grid-lines {
+  background-image:
+    linear-gradient(rgba(184, 151, 58, 0.04) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(184, 151, 58, 0.04) 1px, transparent 1px);
+  background-size: 48px 48px;
 }
 
-/* ─── Marketing Dot Grid Background ─── */
-.bg-dot-grid {
-  background-image: radial-gradient(circle, rgba(0, 0, 0, 0.04) 1px, transparent 1px);
-  background-size: 24px 24px;
+.bg-grid-lines-subtle {
+  background-image:
+    linear-gradient(rgba(184, 151, 58, 0.02) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(184, 151, 58, 0.02) 1px, transparent 1px);
+  background-size: 48px 48px;
+}
+
+/* ─── Section Label (gold + extending line) ─── */
+.mk-section-label {
+  font-size: 9px;
+  letter-spacing: 0.4em;
+  text-transform: uppercase;
+  color: var(--mk-accent);
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.mk-section-label::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: rgba(255, 255, 255, 0.06);
+}
+
+/* ====== TIPTAP RICH TEXT EDITOR (DASHBOARD) ====== */
+
+.tiptap-editor.ProseMirror {
+  outline: none;
+  color: rgba(255, 255, 255, 0.92);
+  font-size: 0.875rem;
+  line-height: 1.7;
+  min-height: 160px;
+}
+
+.tiptap-editor.ProseMirror p {
+  margin-bottom: 0.75em;
+}
+
+.tiptap-editor.ProseMirror h2 {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: white;
+  margin-top: 1.5em;
+  margin-bottom: 0.5em;
+}
+
+.tiptap-editor.ProseMirror h3 {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: white;
+  margin-top: 1.25em;
+  margin-bottom: 0.5em;
+}
+
+.tiptap-editor.ProseMirror ul,
+.tiptap-editor.ProseMirror ol {
+  padding-left: 1.5em;
+  margin-bottom: 0.75em;
+}
+
+.tiptap-editor.ProseMirror ul {
+  list-style-type: disc;
+}
+
+.tiptap-editor.ProseMirror ol {
+  list-style-type: decimal;
+}
+
+.tiptap-editor.ProseMirror li {
+  margin-bottom: 0.25em;
+}
+
+.tiptap-editor.ProseMirror blockquote {
+  border-left: 3px solid rgba(var(--site-primary-rgb), 0.4);
+  padding-left: 1em;
+  margin-left: 0;
+  margin-bottom: 0.75em;
+  color: rgba(255, 255, 255, 0.55);
+  font-style: italic;
+}
+
+.tiptap-editor.ProseMirror a {
+  color: var(--site-primary);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.tiptap-editor.ProseMirror a:hover {
+  opacity: 0.8;
+}
+
+.tiptap-editor.ProseMirror strong {
+  font-weight: 600;
+  color: white;
+}
+
+.tiptap-editor.ProseMirror p.is-editor-empty:first-child::before {
+  content: attr(data-placeholder);
+  float: left;
+  color: rgba(255, 255, 255, 0.18);
+  pointer-events: none;
+  height: 0;
+}
+
+/* ====== PROSE OVERRIDES (MICROSITE RICH TEXT RENDERING) ====== */
+
+.prose.prose-invert {
+  --tw-prose-body: rgba(255, 255, 255, 0.55);
+  --tw-prose-headings: rgba(255, 255, 255, 0.92);
+  --tw-prose-bold: white;
+  --tw-prose-links: var(--site-primary);
+  --tw-prose-counters: rgba(255, 255, 255, 0.35);
+  --tw-prose-bullets: rgba(255, 255, 255, 0.35);
+  --tw-prose-quotes: rgba(255, 255, 255, 0.55);
+  --tw-prose-quote-borders: rgba(var(--site-primary-rgb), 0.3);
+}
+
+/* ─── Content Visibility (performance) ─── */
+.content-auto {
+  content-visibility: auto;
+  contain-intrinsic-size: auto 500px;
 }

@@ -14,6 +14,7 @@ import { CommandPalette } from "@/components/dashboard/CommandPalette";
 import { useTranslation } from "@/i18n";
 import { LanguageToggle } from "@/components/ui/LanguageToggle";
 import { AuthContextProvider, useAuthRole } from "@/hooks/useAuthContext";
+import { NodDoLogo } from "@/components/ui/NodDoLogo";
 
 function DashboardShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
@@ -71,8 +72,9 @@ function DashboardShell({ children }: { children: React.ReactNode }) {
   };
 
   return (
-    <div className="min-h-screen relative bg-[var(--surface-0)] text-white flex" style={{ '--site-primary': '#0070F3', '--site-primary-rgb': '0, 112, 243' } as React.CSSProperties}>
-      {/* Global Dashboard Noise Texture */}
+    <div className="min-h-screen relative bg-[var(--surface-0)] text-white flex">
+      {/* Gold grid + noise atmosphere */}
+      <div className="bg-grid-lines-subtle fixed inset-0 pointer-events-none z-0" />
       <div className="bg-noise fixed inset-0 pointer-events-none z-0" />
 
       {/* Command Palette (Ctrl+K) */}
@@ -82,11 +84,8 @@ function DashboardShell({ children }: { children: React.ReactNode }) {
       <aside className="w-64 relative z-10 bg-[var(--surface-1)] border-r border-[var(--border-subtle)] flex flex-col">
         {/* Logo */}
         <div className="p-6 border-b border-[var(--border-subtle)]">
-          <Link
-            href="/proyectos"
-            className="text-lg font-light tracking-[0.2em] text-[var(--text-primary)] hover:text-[var(--site-primary)] transition-colors"
-          >
-            NODDO
+          <Link href="/proyectos" className="hover:opacity-80 transition-opacity">
+            <NodDoLogo height={18} colorNod="var(--text-primary)" colorDo="var(--site-primary)" />
           </Link>
         </div>
 
@@ -102,7 +101,7 @@ function DashboardShell({ children }: { children: React.ReactNode }) {
                 key={item.href}
                 href={item.href}
                 className={cn(
-                  "flex items-center gap-3 px-3 py-2 rounded-[0.625rem] text-sm transition-all",
+                  "flex items-center gap-3 px-3 py-2 rounded-[0.625rem] font-ui text-xs font-semibold uppercase tracking-[0.08em] transition-all",
                   isActive
                     ? "bg-[var(--surface-2)] text-white border-l-2 border-[var(--site-primary)]"
                     : "text-[var(--text-tertiary)] hover:text-[var(--text-secondary)] hover:bg-[var(--surface-2)]"
@@ -147,7 +146,7 @@ function DashboardShell({ children }: { children: React.ReactNode }) {
                 {user?.email || "\u2014"}
               </span>
               {role === "colaborador" && (
-                <span className="text-[10px] text-[var(--site-primary)] font-medium">
+                <span className="font-ui text-[10px] text-[var(--site-primary)] font-bold uppercase tracking-wider">
                   {t("sidebar.collaborator")}
                 </span>
               )}

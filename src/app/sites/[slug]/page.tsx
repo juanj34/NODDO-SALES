@@ -1,11 +1,12 @@
 "use client";
 
 import { motion, useMotionValue } from "framer-motion";
-import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { ArrowRight } from "lucide-react";
-import { MouseEvent } from "react";
+import { MouseEvent, useCallback, useState } from "react";
 import { useSiteProject, useSiteBasePath } from "@/hooks/useSiteProject";
 import { useTranslation } from "@/i18n";
+import { NodDoLogo } from "@/components/ui/NodDoLogo";
 
 const stagger = {
   hidden: { opacity: 0 },
@@ -40,6 +41,17 @@ export default function SiteLanding() {
   const basePath = useSiteBasePath();
   const { t } = useTranslation("site");
 
+  const router = useRouter();
+  const [isExiting, setIsExiting] = useState(false);
+
+  const handleEnter = useCallback(() => {
+    if (isExiting) return;
+    setIsExiting(true);
+    setTimeout(() => {
+      router.push(`${basePath}/galeria`);
+    }, 1600);
+  }, [isExiting, router, basePath]);
+
   const hasVideo = !!proyecto.hero_video_url;
   const hasImage = !!proyecto.render_principal_url;
   const hasBothLogos = !!proyecto.logo_url && !!proyecto.constructora_logo_url;
@@ -57,17 +69,22 @@ export default function SiteLanding() {
   }
 
   return (
-    <div className="relative h-full" onMouseMove={handleMouseMove}>
+    <div className={`relative h-full ${isExiting ? "pointer-events-none" : ""}`} onMouseMove={handleMouseMove}>
       {/* Background Layer */}
-      <div className="absolute inset-0 z-0 overflow-hidden bg-[var(--site-bg)]">
+      <motion.div
+        className="absolute inset-0 z-0 overflow-hidden bg-[var(--site-bg)]"
+        animate={isExiting ? { scale: 1.15 } : { scale: 1 }}
+        transition={{ duration: 1.6, ease: [0.25, 0.1, 0.25, 1] }}
+      >
         {hasVideo ? (
           <video
             autoPlay
             muted
             loop
             playsInline
-            preload="none"
+            preload="auto"
             poster={proyecto.render_principal_url || undefined}
+            onCanPlay={() => window.dispatchEvent(new Event("hero-ready"))}
             className="absolute inset-0 w-full h-full object-cover"
           >
             <source src={proyecto.hero_video_url!} type={proyecto.hero_video_url!.endsWith(".webm") ? "video/webm" : "video/mp4"} />
@@ -76,36 +93,60 @@ export default function SiteLanding() {
           <img
             src={proyecto.render_principal_url!}
             alt={proyecto.nombre}
-            className="absolute inset-0 w-full h-full object-cover animate-[kenBurns_20s_ease-in-out_infinite_alternate]"
+            onLoad={() => window.dispatchEvent(new Event("hero-ready"))}
+            className={`absolute inset-0 w-full h-full object-cover ${isExiting ? "" : "animate-[kenBurns_20s_ease-in-out_infinite_alternate]"}`}
           />
         ) : null}
 
-        {/* Dark overlay for text readability */}
-        <div className="absolute inset-0 bg-gradient-to-t from-black via-black/60 to-black/30" />
-      </div>
+        {/* Dark overlay for text readability — lightens during exit to reveal more image */}
+        <motion.div
+          className="absolute inset-0 bg-gradient-to-t from-black via-black/60 to-black/30"
+          animate={isExiting ? { opacity: 0.4 } : { opacity: 1 }}
+          transition={{ duration: 0.8, ease: "easeOut" }}
+        />
+      </motion.div>
 
-      {/* Developer logo — top-right corner when both logos exist */}
+      {/* Developer logo + Powered by NODDO — bottom-right */}
       {hasBothLogos && (
         <motion.div
           initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 1.2, delay: 0.5 }}
-          className="absolute top-6 right-8 z-30"
+          animate={isExiting ? { opacity: 0, y: 10 } : { opacity: 1, y: 0 }}
+          transition={isExiting ? { duration: 0.4 } : { duration: 1.2, delay: 1.5 }}
+          className="absolute bottom-10 right-8 z-30 flex items-center gap-4"
         >
+          {/* Constructora logo */}
           {proyecto.constructora_website ? (
-            <a href={proyecto.constructora_website} target="_blank" rel="noopener noreferrer" className="hover:opacity-100 transition-opacity">
+            <a href={proyecto.constructora_website} target="_blank" rel="noopener noreferrer" className="hover:opacity-90 transition-opacity">
               <img
                 src={proyecto.constructora_logo_url!}
                 alt={proyecto.constructora_nombre || "Constructora"}
-                className="h-10 w-auto object-contain opacity-70 hover:opacity-100 transition-opacity"
+                className="h-8 w-auto object-contain opacity-60 hover:opacity-90 transition-opacity"
               />
             </a>
           ) : (
             <img
               src={proyecto.constructora_logo_url!}
               alt={proyecto.constructora_nombre || "Constructora"}
-              className="h-10 w-auto object-contain opacity-70"
+              className="h-8 w-auto object-contain opacity-60"
             />
+          )}
+
+          {/* Vertical divider + NODDO lockup */}
+          {!proyecto.hide_noddo_badge && (
+            <>
+              <div className="w-px h-8 bg-white/15" />
+              <a
+                href="https://noddo.io"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex flex-col items-center gap-1 no-underline opacity-50 hover:opacity-80 transition-opacity"
+              >
+                <span className="text-[7px] tracking-[0.2em] uppercase font-medium text-white/60">
+                  powered by
+                </span>
+                <NodDoLogo width={80} colorNod="rgba(255,255,255,0.8)" colorDo="#b8983c" />
+              </a>
+            </>
           )}
         </motion.div>
       )}
@@ -114,7 +155,11 @@ export default function SiteLanding() {
       <motion.div
         className="absolute inset-0 z-20 flex flex-col items-center justify-center px-8"
         style={{ x: mouseX, y: mouseY }}
-        transition={{ type: "spring", stiffness: 50, damping: 20 }}
+        animate={isExiting ? { opacity: 0, y: -30, filter: "blur(12px)" } : {}}
+        transition={isExiting
+          ? { duration: 0.6, ease: [0.4, 0, 1, 1] as [number, number, number, number] }
+          : { type: "spring", stiffness: 50, damping: 20 }
+        }
       >
         <motion.div
           variants={stagger}
@@ -201,9 +246,9 @@ export default function SiteLanding() {
 
           {/* CTA Button */}
           <motion.div variants={fadeUpBlur}>
-            <Link
-              href={`${basePath}/galeria`}
-              className="btn-warm group relative overflow-hidden inline-flex items-center gap-3 px-10 py-4 text-sm tracking-[0.3em] uppercase"
+            <button
+              onClick={handleEnter}
+              className="btn-warm group relative overflow-hidden inline-flex items-center gap-3 px-10 py-4 text-sm tracking-[0.3em] uppercase cursor-pointer"
             >
               <div className="absolute inset-0 bg-white/20 -translate-x-full group-hover:animate-[shimmer_1.5s_infinite]" />
               <span className="relative z-10">{t("landing.enterExperience")}</span>
@@ -211,7 +256,7 @@ export default function SiteLanding() {
                 size={16}
                 className="relative z-10 group-hover:translate-x-1 transition-transform duration-300"
               />
-            </Link>
+            </button>
           </motion.div>
         </motion.div>
       </motion.div>
@@ -220,8 +265,8 @@ export default function SiteLanding() {
       {proyecto.disclaimer && (
         <motion.div
           initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 1, delay: 2 }}
+          animate={isExiting ? { opacity: 0 } : { opacity: 1 }}
+          transition={isExiting ? { duration: 0.4 } : { duration: 1, delay: 2 }}
           className="absolute bottom-4 left-0 right-0 z-30 px-8 text-center"
         >
           <p className="text-[10px] text-white/25 max-w-2xl mx-auto leading-relaxed">
@@ -230,8 +275,30 @@ export default function SiteLanding() {
         </motion.div>
       )}
 
+      {/* Exit vignette — radial darkening from edges */}
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={isExiting ? { opacity: 1 } : { opacity: 0 }}
+        transition={{ duration: 0.8, delay: isExiting ? 0.8 : 0, ease: "easeIn" }}
+        className="absolute inset-0 z-40 pointer-events-none"
+        style={{ background: "radial-gradient(circle at center, transparent 0%, var(--site-bg) 70%)" }}
+      />
+
+      {/* Final blackout */}
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={isExiting ? { opacity: 1 } : { opacity: 0 }}
+        transition={{ duration: 0.3, delay: isExiting ? 1.3 : 0, ease: "easeIn" }}
+        className="absolute inset-0 z-50 pointer-events-none"
+        style={{ backgroundColor: "var(--site-bg)" }}
+      />
+
       {/* Atmospheric overlays */}
-      <div className="absolute bottom-0 left-0 right-0 h-40 bg-gradient-to-t from-black via-black/50 to-transparent z-10 pointer-events-none" />
+      <motion.div
+        className="absolute bottom-0 left-0 right-0 h-40 bg-gradient-to-t from-black via-black/50 to-transparent z-10 pointer-events-none"
+        animate={isExiting ? { opacity: 0 } : { opacity: 1 }}
+        transition={{ duration: 0.4 }}
+      />
       <div className="bg-noise fixed inset-0 pointer-events-none z-[5] mix-blend-overlay opacity-50" />
     </div>
   );

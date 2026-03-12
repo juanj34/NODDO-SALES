@@ -48,11 +48,11 @@ const cardVariant = {
 };
 
 const tipoLabelKeys: Record<Recurso["tipo"], string> = {
-  brochure: "recursos.tipoBrochure",
-  acabados: "recursos.tipoAcabados",
-  ficha_tecnica: "recursos.tipoFichaTecnica",
-  precios: "recursos.tipoPrecios",
-  otro: "recursos.tipoDocumento",
+  brochure: "recursos.types.brochure",
+  acabados: "recursos.types.acabados",
+  ficha_tecnica: "recursos.types.ficha_tecnica",
+  precios: "recursos.types.lista_precios",
+  otro: "recursos.types.otro",
 };
 
 export default function RecursosPage() {

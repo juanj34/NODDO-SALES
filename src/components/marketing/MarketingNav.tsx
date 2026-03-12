@@ -3,11 +3,13 @@
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 import { useState, useEffect, useCallback } from "react";
+import { NodDoLogo } from "@/components/ui/NodDoLogo";
 
 const navLinks = [
-  { label: "Caracteristicas", href: "#capacidades" },
+  { label: "Producto", href: "#capacidades" },
   { label: "Precios", href: "/pricing" },
-  { label: "Demo", href: "/sites/alto-de-yeguas" },
+  { label: "Casos", href: "/sites/alto-de-yeguas" },
+  { label: "Contacto", href: "mailto:hola@noddo.co" },
 ];
 
 export function MarketingNav() {
@@ -39,41 +41,37 @@ export function MarketingNav() {
       transition={{ duration: 0.3, ease: "easeInOut" }}
       className="fixed top-0 left-0 right-0 z-50"
       style={{
-        background: "rgba(245, 240, 235, 0.90)",
-        backdropFilter: "blur(16px) saturate(180%)",
-        WebkitBackdropFilter: "blur(16px) saturate(180%)",
+        background:
+          "linear-gradient(to bottom, rgba(20, 20, 20, 0.9), transparent)",
+        backdropFilter: "blur(8px)",
+        WebkitBackdropFilter: "blur(8px)",
         pointerEvents: visible ? "auto" : "none",
       }}
     >
-      {/* Thin bottom border */}
-      <div className="absolute bottom-0 left-0 right-0 h-px bg-[var(--mk-border-subtle)]" />
-
-      <nav className="mx-auto max-w-7xl px-6 py-4 flex items-center justify-between">
-        {/* Logo */}
-        <Link
-          href="/"
-          className="font-heading tracking-[0.18em] text-lg text-[var(--mk-text-primary)] font-bold"
-        >
-          NODDO
+      <nav className="mx-auto max-w-7xl px-6 lg:px-20 py-6 flex items-center justify-between">
+        {/* Logo: NOD<gold>DO</gold> */}
+        <Link href="/" aria-label="NODDO Home">
+          <NodDoLogo height={18} />
         </Link>
 
         {/* Desktop links */}
-        <div className="hidden md:flex items-center gap-8">
+        <ul className="hidden md:flex items-center gap-10">
           {navLinks.map((link) => (
-            <Link
-              key={link.href}
-              href={link.href}
-              className="text-xs tracking-wide text-[var(--mk-text-tertiary)] hover:text-[var(--mk-text-primary)] transition-colors duration-200"
-            >
-              {link.label}
-            </Link>
+            <li key={link.href}>
+              <Link
+                href={link.href}
+                className="text-[10px] tracking-[0.2em] uppercase text-[rgba(244,240,232,0.4)] hover:text-[var(--mk-accent)] transition-colors duration-200"
+              >
+                {link.label}
+              </Link>
+            </li>
           ))}
-        </div>
+        </ul>
 
         {/* Right side */}
         <div className="flex items-center gap-4">
-          <Link href="/login" className="btn-mk-primary px-5 py-2 text-sm">
-            Ingresar
+          <Link href="/login" className="btn-mk-primary text-[10px] py-2.5 px-5">
+            Demo gratis
           </Link>
 
           {/* Mobile hamburger */}
@@ -111,11 +109,11 @@ export function MarketingNav() {
             animate={{ opacity: 1, height: "auto" }}
             exit={{ opacity: 0, height: 0 }}
             transition={{ duration: 0.25, ease: "easeInOut" }}
-            className="md:hidden overflow-hidden border-t border-[var(--mk-border-subtle)]"
+            className="md:hidden overflow-hidden border-t border-[var(--mk-border-rule)]"
             style={{
-              background: "rgba(245, 240, 235, 0.95)",
-              backdropFilter: "blur(16px) saturate(180%)",
-              WebkitBackdropFilter: "blur(16px) saturate(180%)",
+              background: "rgba(20, 20, 20, 0.95)",
+              backdropFilter: "blur(8px)",
+              WebkitBackdropFilter: "blur(8px)",
             }}
           >
             <div className="mx-auto max-w-7xl px-6 py-4 flex flex-col gap-4">
@@ -124,7 +122,7 @@ export function MarketingNav() {
                   key={link.href}
                   href={link.href}
                   onClick={() => setMobileOpen(false)}
-                  className="text-sm tracking-wide text-[var(--mk-text-secondary)] hover:text-[var(--mk-text-primary)] transition-colors duration-200"
+                  className="text-[11px] tracking-[0.2em] uppercase text-[var(--mk-text-secondary)] hover:text-[var(--mk-accent)] transition-colors duration-200"
                 >
                   {link.label}
                 </Link>

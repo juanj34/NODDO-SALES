@@ -1393,7 +1393,7 @@ function PriceAdjustModal({
         <div className="flex-1 overflow-y-auto p-6 space-y-5">
           {/* Scope */}
           <div className="space-y-2">
-            <p className="text-xs text-[var(--text-tertiary)] uppercase tracking-wider">{t("inventario.applyTo")}</p>
+            <p className="font-ui text-[10px] text-[var(--text-tertiary)] uppercase tracking-wider font-bold">{t("inventario.applyTo")}</p>
             <div className="flex flex-col gap-2">
               {selectedIds.size > 0 && (
                 <label className="flex items-center gap-2 cursor-pointer">
@@ -1426,7 +1426,7 @@ function PriceAdjustModal({
 
           {/* Adjust type */}
           <div className="space-y-2">
-            <p className="text-xs text-[var(--text-tertiary)] uppercase tracking-wider">{t("inventario.adjustType")}</p>
+            <p className="font-ui text-[10px] text-[var(--text-tertiary)] uppercase tracking-wider font-bold">{t("inventario.adjustType")}</p>
             <div className="flex gap-2">
               <button
                 onClick={() => setAdjustType("percentage")}
@@ -1470,7 +1470,7 @@ function PriceAdjustModal({
           {/* Preview */}
           {numValue !== 0 && affectedUnits.length > 0 && (
             <div className="space-y-2">
-              <p className="text-xs text-[var(--text-tertiary)] uppercase tracking-wider">{t("inventario.preview")}</p>
+              <p className="font-ui text-[10px] text-[var(--text-tertiary)] uppercase tracking-wider font-bold">{t("inventario.preview")}</p>
               <div className="max-h-48 overflow-y-auto rounded-lg border border-[var(--border-subtle)]">
                 <table className="w-full text-xs">
                   <thead>
@@ -2509,36 +2509,36 @@ export default function InventarioPage() {
                     )}
                   </button>
                 </th>
-                <th className="text-left py-3 px-4 text-[var(--text-tertiary)] font-normal text-xs uppercase tracking-wider">
+                <th className="text-left py-3 px-4 text-[var(--text-tertiary)] font-ui font-bold text-[10px] uppercase tracking-wider">
                   {t("inventario.fields.identifier")}
                 </th>
-                <th className="text-left py-3 px-4 text-[var(--text-tertiary)] font-normal text-xs uppercase tracking-wider">
+                <th className="text-left py-3 px-4 text-[var(--text-tertiary)] font-ui font-bold text-[10px] uppercase tracking-wider">
                   {t("inventario.fields.typology")}
                 </th>
                 {fachadas.length > 0 && (
-                  <th className="text-left py-3 px-4 text-[var(--text-tertiary)] font-normal text-xs uppercase tracking-wider">
+                  <th className="text-left py-3 px-4 text-[var(--text-tertiary)] font-ui font-bold text-[10px] uppercase tracking-wider">
                     {t("inventario.fields.fachada")}
                   </th>
                 )}
-                <th className="text-left py-3 px-4 text-[var(--text-tertiary)] font-normal text-xs uppercase tracking-wider">
+                <th className="text-left py-3 px-4 text-[var(--text-tertiary)] font-ui font-bold text-[10px] uppercase tracking-wider">
                   {t("inventario.fields.floor")}
                 </th>
-                <th className="text-left py-3 px-4 text-[var(--text-tertiary)] font-normal text-xs uppercase tracking-wider">
+                <th className="text-left py-3 px-4 text-[var(--text-tertiary)] font-ui font-bold text-[10px] uppercase tracking-wider">
                   {t("inventario.fields.area")}
                 </th>
-                <th className="text-left py-3 px-4 text-[var(--text-tertiary)] font-normal text-xs uppercase tracking-wider">
+                <th className="text-left py-3 px-4 text-[var(--text-tertiary)] font-ui font-bold text-[10px] uppercase tracking-wider">
                   {t("inventario.fields.price")}
                 </th>
-                <th className="text-left py-3 px-4 text-[var(--text-tertiary)] font-normal text-xs uppercase tracking-wider">
+                <th className="text-left py-3 px-4 text-[var(--text-tertiary)] font-ui font-bold text-[10px] uppercase tracking-wider">
                   {t("inventario.fields.state")}
                 </th>
-                <th className="text-left py-3 px-4 text-[var(--text-tertiary)] font-normal text-xs uppercase tracking-wider">
+                <th className="text-left py-3 px-4 text-[var(--text-tertiary)] font-ui font-bold text-[10px] uppercase tracking-wider">
                   {t("inventario.fields.bedrooms")}
                 </th>
-                <th className="text-left py-3 px-4 text-[var(--text-tertiary)] font-normal text-xs uppercase tracking-wider">
+                <th className="text-left py-3 px-4 text-[var(--text-tertiary)] font-ui font-bold text-[10px] uppercase tracking-wider">
                   {t("inventario.fields.bathrooms")}
                 </th>
-                <th className="text-right py-3 px-4 text-[var(--text-tertiary)] font-normal text-xs uppercase tracking-wider">
+                <th className="text-right py-3 px-4 text-[var(--text-tertiary)] font-ui font-bold text-[10px] uppercase tracking-wider">
 
                 </th>
               </tr>

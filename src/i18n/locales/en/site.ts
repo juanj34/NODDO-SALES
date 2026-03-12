@@ -146,6 +146,8 @@ const site = {
   },
   recursos: {
     heading: "Downloads",
+    description: "Downloadable documents and materials for {{name}}",
+    download: "DOWNLOAD",
     notAvailable: "Downloads not available",
     notConfigured: "No downloadable resources have been added to this project yet.",
     types: {
@@ -155,6 +157,14 @@ const site = {
       lista_precios: "Price List",
       otro: "Other",
     },
+  },
+  avances: {
+    heading: "Construction Progress",
+    subtitle: "Follow the construction journey",
+    close: "Close",
+    watchVideo: "Watch video",
+    notAvailable: "Progress updates not available",
+    notConfigured: "No construction progress updates have been published for this project yet.",
   },
   cotizador: {
     heading: "Enquire About Unit",

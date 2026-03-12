@@ -262,10 +262,9 @@ export default function GaleriaPage() {
           <AnimatePresence>
             {showCatForm && (
               <motion.div
-                initial={{ opacity: 0, height: 0 }}
-                animate={{ opacity: 1, height: "auto" }}
-                exit={{ opacity: 0, height: 0 }}
-                className="overflow-hidden"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
               >
                 <div className="flex items-center gap-2 p-3 bg-[var(--surface-1)] rounded-xl border border-[var(--border-subtle)]">
                   <input

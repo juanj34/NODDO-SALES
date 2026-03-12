@@ -30,6 +30,8 @@ export interface Proyecto {
   custom_domain: string | null;
   domain_verified: boolean;
   etapa_label: string;
+  background_audio_url: string | null;
+  hide_noddo_badge: boolean;
   created_at: string;
   updated_at: string;
 }
@@ -174,6 +176,7 @@ export interface Torre {
   id: string;
   proyecto_id: string;
   nombre: string;
+  tipo: "torre" | "urbanismo";
   num_pisos: number | null;
   pisos_sotano: number | null;
   pisos_planta_baja: number | null;
@@ -236,6 +239,20 @@ export interface ProyectoCompleto extends Proyecto {
   torres: Torre[];
   planos_interactivos: PlanoInteractivo[];
   plano_puntos: PlanoPunto[];
+  avances_obra: AvanceObra[];
+}
+
+export interface AvanceObra {
+  id: string;
+  proyecto_id: string;
+  titulo: string;
+  fecha: string;
+  descripcion: string | null;
+  video_url: string | null;
+  imagen_url: string | null;
+  estado: "borrador" | "publicado";
+  orden: number;
+  created_at: string;
 }
 
 export interface ProyectoVersion {

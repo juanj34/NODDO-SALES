@@ -36,7 +36,7 @@ export function ShowcaseCarousel() {
                         viewport={{ once: true, margin: "-80px" }}
                         transition={{ duration: 0.7 }}
                     >
-                        <p className="text-[11px] tracking-[0.3em] uppercase text-[var(--mk-text-muted)] mb-3">
+                        <p className="text-[11px] tracking-[0.3em] uppercase text-[#D4A574] mb-3">
                             PROYECTOS
                         </p>
                         <h2 className="font-heading text-3xl lg:text-4xl font-bold tracking-tight text-[var(--mk-text-primary)] mb-3">
@@ -73,7 +73,7 @@ export function ShowcaseCarousel() {
                             transition={{ duration: 0.7, delay: index * 0.15 }}
                         >
                             {/* Image */}
-                            <div className="aspect-[4/3] rounded-xl overflow-hidden bg-[var(--mk-surface-2)]">
+                            <div className="aspect-[4/3] rounded-xl overflow-hidden bg-[var(--mk-surface-2)] border border-[var(--mk-border-subtle)] group-hover:border-[rgba(212,165,116,0.15)] group-hover:shadow-[0_0_30px_rgba(212,165,116,0.06)] transition-all duration-500">
                                 <img
                                     src={project.image}
                                     alt={project.name}
@@ -83,7 +83,7 @@ export function ShowcaseCarousel() {
 
                             {/* Info */}
                             <div className="mt-4">
-                                <p className="text-[10px] tracking-[0.2em] uppercase text-[var(--mk-text-muted)]">
+                                <p className="text-[10px] tracking-[0.2em] uppercase text-[#D4A574]/60">
                                     {project.tags.join(" · ")}
                                 </p>
                                 <h3 className="font-heading text-lg font-semibold text-[var(--mk-text-primary)] mt-1">

@@ -89,6 +89,7 @@ export function FileUploader({
   const { t } = useTranslation("editor");
   const [uploading, setUploading] = useState(false);
   const [compressing, setCompressing] = useState(false);
+  const [videoProgress, setVideoProgress] = useState(0);
   const [uploadError, setUploadError] = useState<string | null>(null);
   const [uploadProgress, setUploadProgress] = useState({ done: 0, total: 0 });
   const [preview, setPreview] = useState<string | null>(currentUrl || null);
@@ -131,6 +132,26 @@ export function FileUploader({
           fileToUpload = await compressImage(file);
         } finally {
           setCompressing(false);
+        }
+      }
+
+      // Reject videos over 100MB (too heavy for browser-based compression)
+      if (file.type.startsWith("video/") && file.size > 100 * 1024 * 1024) {
+        throw new Error("El video excede 100MB. Por favor usa un archivo más liviano.");
+      }
+
+      // Compress large videos client-side (FFmpeg WASM, lazy-loaded)
+      if (file.type.startsWith("video/") && file.size > 5 * 1024 * 1024) {
+        setCompressing(true);
+        setVideoProgress(0);
+        try {
+          const { compressVideo } = await import("@/lib/compress-video");
+          fileToUpload = await compressVideo(file, (ratio) => {
+            setVideoProgress(Math.round(ratio * 100));
+          });
+        } finally {
+          setCompressing(false);
+          setVideoProgress(0);
         }
       }
 
@@ -495,11 +516,26 @@ export function FileUploader({
             </button>
             {/* Compressing / Uploading overlay */}
             {(uploading || compressing) && (
-              <div className="absolute inset-0 bg-black/60 backdrop-blur-sm flex flex-col items-center justify-center gap-2">
+              <div className="absolute inset-0 bg-black/60 backdrop-blur-sm flex flex-col items-center justify-center gap-3 px-6">
                 <Loader2 size={24} className="animate-spin text-[var(--site-primary)]" />
-                {compressing && (
+                {compressing && videoProgress > 0 ? (
+                  <>
+                    <div className="w-full max-w-[180px] h-1 bg-white/10 rounded-full overflow-hidden">
+                      <div
+                        className="h-full bg-[var(--site-primary)] rounded-full transition-all duration-300"
+                        style={{ width: `${videoProgress}%` }}
+                      />
+                    </div>
+                    <span className="text-[11px] text-[var(--text-tertiary)]">
+                      {t("fileUploader.optimizingVideo")} {videoProgress}%
+                    </span>
+                    <span className="text-[10px] text-[var(--text-muted)] text-center">
+                      {t("fileUploader.canContinueWorking")}
+                    </span>
+                  </>
+                ) : compressing ? (
                   <span className="text-[11px] text-[var(--text-tertiary)]">{t("fileUploader.compressingFile")}</span>
-                )}
+                ) : null}
               </div>
             )}
           </>
@@ -510,9 +546,26 @@ export function FileUploader({
             className="w-full h-full flex flex-col items-center justify-center gap-2 text-[var(--text-muted)] hover:text-[var(--text-tertiary)] transition-colors"
           >
             {compressing ? (
-              <div className="flex flex-col items-center gap-2">
+              <div className="flex flex-col items-center gap-3 px-6 text-center">
                 <Loader2 size={24} className="animate-spin text-[var(--site-primary)]" />
-                <span className="text-xs text-[var(--text-tertiary)]">{t("fileUploader.compressing")}</span>
+                {videoProgress > 0 ? (
+                  <>
+                    <div className="w-full max-w-[200px] h-1 bg-white/10 rounded-full overflow-hidden">
+                      <div
+                        className="h-full bg-[var(--site-primary)] rounded-full transition-all duration-300"
+                        style={{ width: `${videoProgress}%` }}
+                      />
+                    </div>
+                    <span className="text-xs text-[var(--text-tertiary)]">
+                      {t("fileUploader.optimizingVideo")} {videoProgress}%
+                    </span>
+                    <span className="text-[10px] text-[var(--text-muted)]">
+                      {t("fileUploader.canContinueWorking")}
+                    </span>
+                  </>
+                ) : (
+                  <span className="text-xs text-[var(--text-tertiary)]">{t("fileUploader.compressing")}</span>
+                )}
               </div>
             ) : uploading ? (
               <div className="flex flex-col items-center gap-2">

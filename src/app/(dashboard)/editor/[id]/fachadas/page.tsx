@@ -766,7 +766,7 @@ export default function NoddoGridPage() {
     <div className="flex flex-col gap-1 w-44 shrink-0 overflow-y-auto max-h-[70vh] scrollbar-thin rounded-xl border border-[var(--border-subtle)] bg-[var(--surface-1)]">
       {/* Header */}
       <div className="px-3 py-2 border-b border-[var(--border-subtle)] bg-[var(--surface-2)] flex items-center justify-between">
-        <span className="text-[10px] font-medium text-[var(--text-secondary)] uppercase tracking-wider">{t("fachadas.plantas.label")}</span>
+        <span className="font-ui text-[10px] font-bold text-[var(--text-secondary)] uppercase tracking-wider">{t("fachadas.plantas.label")}</span>
         <button
           onClick={() => setShowPlantaTipoForm(true)}
           className="w-5 h-5 flex items-center justify-center rounded bg-[var(--surface-3)] text-[var(--text-tertiary)] hover:text-[var(--site-primary)] transition-colors"
@@ -888,7 +888,7 @@ export default function NoddoGridPage() {
       {/* Right: Unassigned units panel */}
       <div className="w-52 shrink-0 flex flex-col rounded-xl border border-[var(--border-subtle)] bg-[var(--surface-1)] overflow-hidden max-h-[70vh]">
         <div className="px-3 py-2.5 border-b border-[var(--border-subtle)] bg-[var(--surface-2)]">
-          <h3 className="text-[11px] font-medium text-[var(--text-secondary)] uppercase tracking-wider">{t("fachadas.unassigned")}</h3>
+          <h3 className="font-ui text-[10px] font-bold text-[var(--text-secondary)] uppercase tracking-wider">{t("fachadas.unassigned")}</h3>
           <p className="text-[10px] text-[var(--text-muted)]">{t("fachadas.unitCount", { count: unassignedUnits.length })}</p>
         </div>
         <div className="flex-1 overflow-y-auto scrollbar-thin">
@@ -916,7 +916,7 @@ export default function NoddoGridPage() {
         {assignedUnits.length > 0 && (
           <>
             <div className="px-3 py-2 border-t border-[var(--border-subtle)] bg-[var(--surface-2)]">
-              <h3 className="text-[11px] font-medium text-[var(--text-secondary)] uppercase tracking-wider">{t("fachadas.assigned")}</h3>
+              <h3 className="font-ui text-[10px] font-bold text-[var(--text-secondary)] uppercase tracking-wider">{t("fachadas.assigned")}</h3>
               <p className="text-[10px] text-[var(--text-muted)]">{t("fachadas.unitCount", { count: assignedUnits.length })}</p>
             </div>
             <div className="overflow-y-auto scrollbar-thin max-h-40">
@@ -1205,7 +1205,7 @@ export default function NoddoGridPage() {
                 {/* Instructions */}
                 {selectedFachada && (
                   <p className="text-[11px] text-[var(--text-muted)]">
-                    <strong>{t("fachadas.interactionHints.click")}</strong> = {t("fachadas.interactionHints.createPoint")} · <strong>{t("fachadas.interactionHints.clickOnPoint")}</strong> = {t("fachadas.interactionHints.assignUnit")} · <strong>{t("fachadas.interactionHints.drag")}</strong> = {t("fachadas.interactionHints.move")} · <strong>Shift+Click</strong> = {t("fachadas.interactionHints.horizontalLine")} · <strong>Ctrl+Click</strong> = {t("fachadas.interactionHints.verticalLine")} · <strong>{t("fachadas.interactionHints.shiftDrag")}</strong> = {t("fachadas.interactionHints.rectSelection")}
+                    <strong>{t("fachadas.interactionHints.click")}</strong> = {t("fachadas.interactionHints.createPoint")} · <strong>{t("fachadas.interactionHints.clickOnPoint")}</strong> = {t("fachadas.interactionHints.assignUnit")} · <strong>{t("fachadas.interactionHints.drag")}</strong> = {t("fachadas.interactionHints.move")} · <strong>Arrastrar</strong> = {t("fachadas.interactionHints.rectSelection")}
                   </p>
                 )}
 
@@ -1299,7 +1299,7 @@ export default function NoddoGridPage() {
           {/* Compact instructions */}
           {selectedFachada && (
             <p className="text-[11px] text-[var(--text-muted)]">
-              <strong>{t("fachadas.interactionHints.click")}</strong> = {t("fachadas.interactionHints.createPoint")} · <strong>{t("fachadas.interactionHints.clickOnPoint")}</strong> = {t("fachadas.interactionHints.assignUnit")} · <strong>{t("fachadas.interactionHints.drag")}</strong> = {t("fachadas.interactionHints.move")} · <strong>Shift+Click</strong> = {t("fachadas.interactionHints.horizontalLine")} · <strong>Ctrl+Click</strong> = {t("fachadas.interactionHints.verticalLine")} · <strong>{t("fachadas.interactionHints.shiftDrag")}</strong> = {t("fachadas.interactionHints.rectSelection")}
+              <strong>{t("fachadas.interactionHints.click")}</strong> = {t("fachadas.interactionHints.createPoint")} · <strong>{t("fachadas.interactionHints.clickOnPoint")}</strong> = {t("fachadas.interactionHints.assignUnit")} · <strong>{t("fachadas.interactionHints.drag")}</strong> = {t("fachadas.interactionHints.move")} · <strong>Arrastrar</strong> = {t("fachadas.interactionHints.rectSelection")}
             </p>
           )}
 

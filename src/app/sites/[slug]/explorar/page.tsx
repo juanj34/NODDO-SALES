@@ -21,6 +21,7 @@ import {
   X,
 } from "lucide-react";
 import { useSiteProject, useSiteBasePath } from "@/hooks/useSiteProject";
+import { DynamicIcon } from "@/data/amenidades-catalog";
 import { usePersistedState } from "@/hooks/usePersistedState";
 import { useTranslation, getEstadoConfig } from "@/i18n";
 import { CotizadorModal } from "@/components/site/CotizadorModal";
@@ -152,6 +153,11 @@ export default function ExplorarPage() {
     || proyecto.fachada_url
     || "https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?w=1200&q=80";
 
+  // Reset imageLoaded only when the actual image URL changes
+  useEffect(() => {
+    setImageLoaded(false);
+  }, [fachadaUrl]);
+
   // Whether we have implantaciones to go back to
   const hasImplantaciones = (proyecto.planos_interactivos ?? []).some(
     (p) => p.tipo === "urbanismo" && p.visible
@@ -180,7 +186,6 @@ export default function ExplorarPage() {
   // Helper to select fachada + reset state
   const selectFachada = useCallback((idx: number) => {
     setActiveFachadaIndex(idx);
-    setImageLoaded(false);
     setSelectedUnit(null);
   }, []);
 
@@ -365,32 +370,17 @@ export default function ExplorarPage() {
 
         {/* Bottom fade */}
         <div className="absolute bottom-0 left-0 right-0 h-16 bg-gradient-to-t from-[var(--site-bg)] to-transparent z-5" />
-      </div>
 
-      {/* ====== RIGHT: Always-visible panel ====== */}
-      <motion.div
-        initial={{ opacity: 0, x: 20 }}
-        animate={{ opacity: 1, x: 0 }}
-        transition={{ delay: 0.4, duration: 0.5 }}
-        className="w-[340px] h-full flex-shrink-0 bg-[var(--surface-0)]/95 backdrop-blur-xl border-l border-[var(--border-default)] flex flex-col z-20"
-      >
-        {/* ── Mini-plano de implantación (si existe) ── */}
+        {/* Mini implantación floating overlay — bottom-left */}
         {isMultiTorre && implantacionPlano && implantacionPuntos.length > 0 && (
-          <div className="flex-shrink-0 px-4 pt-4 pb-0">
-            <div className="flex items-center justify-between mb-2">
-              <p className="text-[9px] tracking-[0.25em] text-[var(--text-tertiary)] uppercase">
-                {tSite("explorar.implantacion")}
-              </p>
-              <button
-                onClick={() => setShowImplantacionModal(true)}
-                className="p-1 rounded-md hover:bg-white/10 text-[var(--text-muted)] hover:text-[var(--text-secondary)] transition-colors cursor-pointer"
-                aria-label={tSite("explorar.expandImplantacion")}
-              >
-                <Maximize2 size={12} />
-              </button>
-            </div>
+          <motion.div
+            className="absolute bottom-6 left-6 z-20 w-[160px]"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.5 }}
+          >
             <div
-              className="relative rounded-xl overflow-hidden border border-[var(--border-subtle)] bg-[var(--surface-1)] cursor-pointer"
+              className="relative rounded-xl overflow-hidden border border-[var(--border-subtle)] bg-[var(--surface-1)]/80 backdrop-blur-md cursor-pointer shadow-lg shadow-black/40 hover:border-[var(--border-default)] transition-all group"
               onClick={() => setShowImplantacionModal(true)}
             >
               {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -400,9 +390,8 @@ export default function ExplorarPage() {
                 className="w-full h-auto object-contain"
                 draggable={false}
               />
-              {/* Tower hotspots (small for thumbnail) */}
               {implantacionPuntos.map((punto, idx) => {
-                const isActive = activeTorre?.id === punto.torre_id;
+                const isActivePunto = activeTorre?.id === punto.torre_id;
                 return (
                   <button
                     key={punto.id}
@@ -419,19 +408,17 @@ export default function ExplorarPage() {
                       top: `${punto.y}%`,
                       transform: "translate(-50%, -50%)",
                     }}
-                    className="absolute z-10 cursor-pointer group"
+                    className="absolute z-10 cursor-pointer"
                   >
-                    {/* Active ring */}
-                    {isActive && (
+                    {isActivePunto && (
                       <span className="absolute -inset-0.5 rounded-full border border-[var(--site-primary)] animate-pulse" />
                     )}
-                    {/* Small numbered dot */}
                     <span
                       className={cn(
-                        "relative flex items-center justify-center w-4 h-4 rounded-full border border-white text-[7px] font-bold shadow-sm transition-transform",
-                        isActive
-                          ? "bg-[var(--site-primary)] text-black scale-110"
-                          : "bg-white/20 text-white backdrop-blur-sm group-hover:scale-125"
+                        "relative flex items-center justify-center w-3.5 h-3.5 rounded-full border border-white text-[6px] font-bold shadow-sm",
+                        isActivePunto
+                          ? "bg-[var(--site-primary)] text-black"
+                          : "bg-white/20 text-white backdrop-blur-sm"
                       )}
                     >
                       {idx + 1}
@@ -439,10 +426,21 @@ export default function ExplorarPage() {
                   </button>
                 );
               })}
+              <div className="absolute top-1.5 right-1.5 p-1 rounded-md bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity">
+                <Maximize2 size={10} className="text-white/70" />
+              </div>
             </div>
-          </div>
+          </motion.div>
         )}
+      </div>
 
+      {/* ====== RIGHT: Always-visible panel ====== */}
+      <motion.div
+        initial={{ opacity: 0, x: 20 }}
+        animate={{ opacity: 1, x: 0 }}
+        transition={{ delay: 0.4, duration: 0.5 }}
+        className="w-[340px] h-full flex-shrink-0 bg-[var(--surface-0)]/95 backdrop-blur-xl border-l border-[var(--border-default)] flex flex-col z-20"
+      >
         {/* ── Torre selector (multi-torre) ── */}
         {isMultiTorre && (
           <div className="flex-shrink-0 px-4 pt-4 pb-0">
@@ -498,16 +496,46 @@ export default function ExplorarPage() {
           </div>
         )}
 
-        {/* ── Single torre header ── */}
-        {!isMultiTorre && activeTorre && (
-          <div className="flex-shrink-0 px-4 pt-4">
-            <p className="text-[10px] tracking-[0.3em] text-[var(--site-primary)] uppercase mb-1">
+        {/* ── Torre info: name, description, amenidades ── */}
+        {activeTorre && (
+          <div className="flex-shrink-0 px-4 pt-3">
+            <p className="text-[10px] tracking-[0.3em] text-[var(--site-primary)] uppercase mb-0.5">
               {activeTorre.nombre}
             </p>
-            {(activeTorre.pisos_residenciales || activeTorre.num_pisos) !== null && (
-              <p className="text-xs text-[var(--text-tertiary)]">
+            {activeTorre.tipo !== "urbanismo" && (activeTorre.pisos_residenciales || activeTorre.num_pisos) != null && (
+              <p className="text-[10px] text-[var(--text-tertiary)] mb-1">
                 {activeTorre.pisos_residenciales || activeTorre.num_pisos} {tCommon("labels.floors").toLowerCase()}
               </p>
+            )}
+            {activeTorre.descripcion && (
+              <p className="text-[10px] text-[var(--text-tertiary)] leading-relaxed line-clamp-2 mb-2">
+                {activeTorre.descripcion}
+              </p>
+            )}
+            {activeTorre.amenidades_data && activeTorre.amenidades_data.length > 0 && (
+              <div className="grid grid-cols-2 gap-1 mb-1">
+                {activeTorre.amenidades_data.slice(0, 6).map((amenidad) => (
+                  <div
+                    key={amenidad.id}
+                    className="flex items-center gap-1.5 px-2 py-1 rounded-lg bg-white/[0.03] border border-white/5"
+                  >
+                    {amenidad.icon_url ? (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img src={amenidad.icon_url} alt="" className="w-3 h-3 object-contain flex-shrink-0" />
+                    ) : (
+                      <DynamicIcon name={amenidad.icono} size={10} className="text-[var(--site-primary)] flex-shrink-0" />
+                    )}
+                    <span className="text-[8px] text-[var(--text-tertiary)] truncate">{amenidad.nombre}</span>
+                  </div>
+                ))}
+                {activeTorre.amenidades_data.length > 6 && (
+                  <div className="flex items-center justify-center px-2 py-1 rounded-lg bg-white/[0.03] border border-white/5">
+                    <span className="text-[8px] text-[var(--text-muted)]">
+                      +{activeTorre.amenidades_data.length - 6} más
+                    </span>
+                  </div>
+                )}
+              </div>
             )}
           </div>
         )}

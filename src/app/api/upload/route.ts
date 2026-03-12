@@ -17,8 +17,17 @@ const VIDEO_TYPES = new Set([
   "video/webm",
 ]);
 
+const AUDIO_TYPES = new Set([
+  "audio/mpeg",
+  "audio/mp3",
+  "audio/wav",
+  "audio/ogg",
+  "audio/mp4",
+]);
+
 const MAX_IMAGE_SIZE = 10 * 1024 * 1024; // 10MB
-const MAX_VIDEO_SIZE = 30 * 1024 * 1024; // 30MB
+const MAX_VIDEO_SIZE = 50 * 1024 * 1024; // 50MB (post client-side compression)
+const MAX_AUDIO_SIZE = 15 * 1024 * 1024; // 15MB
 
 const MAX_OPTIMIZED_WIDTH = 1920;
 const OPTIMIZED_QUALITY = 80;
@@ -45,10 +54,18 @@ export async function POST(request: NextRequest) {
 
     const isImage = IMAGE_TYPES.has(file.type);
     const isVideo = VIDEO_TYPES.has(file.type);
+    const isAudio = AUDIO_TYPES.has(file.type);
 
     if (isVideo && file.size > MAX_VIDEO_SIZE) {
       return NextResponse.json(
-        { error: `El video excede el limite de 30MB (${(file.size / 1024 / 1024).toFixed(1)}MB)` },
+        { error: `El video excede el limite de 50MB (${(file.size / 1024 / 1024).toFixed(1)}MB)` },
+        { status: 400 }
+      );
+    }
+
+    if (isAudio && file.size > MAX_AUDIO_SIZE) {
+      return NextResponse.json(
+        { error: `El audio excede el limite de 15MB (${(file.size / 1024 / 1024).toFixed(1)}MB)` },
         { status: 400 }
       );
     }

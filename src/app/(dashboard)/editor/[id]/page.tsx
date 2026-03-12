@@ -51,7 +51,7 @@ export default function EditorGeneralPage() {
   const [slug, setSlug] = useState("");
   const [descripcion, setDescripcion] = useState("");
   const [constructoraNombre, setConstructoraNombre] = useState("");
-  const [colorPrimario, setColorPrimario] = useState("#D4A574");
+  const [colorPrimario, setColorPrimario] = useState("#b8973a");
   const [colorSecundario, setColorSecundario] = useState("#ffffff");
   const [colorFondo, setColorFondo] = useState("#0a0a0a");
   const [estado, setEstado] = useState<"borrador" | "publicado" | "archivado">("borrador");
@@ -71,7 +71,7 @@ export default function EditorGeneralPage() {
     setSlug(project.slug || "");
     setDescripcion(project.descripcion || "");
     setConstructoraNombre(project.constructora_nombre || "");
-    setColorPrimario(project.color_primario || "#D4A574");
+    setColorPrimario(project.color_primario || "#b8973a");
     setColorSecundario(project.color_secundario || "#ffffff");
     setColorFondo(project.color_fondo || "#0a0a0a");
     setEstado(project.estado || "borrador");
@@ -154,7 +154,7 @@ export default function EditorGeneralPage() {
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
-              className={`flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-medium transition-all ${
+              className={`flex items-center gap-2 px-4 py-2 rounded-lg font-ui text-[10px] font-bold uppercase tracking-[0.08em] transition-all ${
                 isActive
                   ? "bg-[var(--surface-3)] text-white shadow-sm"
                   : "text-[var(--text-tertiary)] hover:text-[var(--text-secondary)] hover:bg-[var(--surface-2)]"

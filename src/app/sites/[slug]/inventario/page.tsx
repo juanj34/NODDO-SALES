@@ -13,6 +13,7 @@ import {
   Eye,
   ArrowUpDown,
   Building2,
+  Home,
   Sparkles,
   LayoutGrid,
   LayoutList,
@@ -249,7 +250,7 @@ export default function InventarioPage() {
                     : "text-[var(--text-tertiary)] hover:text-[var(--text-secondary)] hover:bg-white/5"
                 )}
               >
-                <Building2 size={13} />
+                {torre.tipo === "urbanismo" ? <Home size={13} /> : <Building2 size={13} />}
                 {torre.nombre}
               </button>
             ))}

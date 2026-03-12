@@ -77,7 +77,7 @@ export default function LeadsPage() {
     <div className="p-8">
       <div className="flex items-center justify-between mb-8">
         <div>
-          <h1 className="text-2xl font-light tracking-wider">{t("leads.title")}</h1>
+          <h1 className="font-heading text-2xl font-light">{t("leads.title")}</h1>
           <p className="text-[var(--text-tertiary)] text-sm mt-1">
             {loading
               ? t("leads.loading")
@@ -87,7 +87,7 @@ export default function LeadsPage() {
         <button
           onClick={exportCSV}
           disabled={!leads.length || loading}
-          className="flex items-center gap-2 px-4 py-2 border border-[var(--border-default)] rounded-lg text-xs text-[var(--text-secondary)] hover:text-white hover:border-[var(--border-default)] transition-all disabled:opacity-30"
+          className="flex items-center gap-2 px-4 py-2 border border-[var(--border-default)] rounded-lg font-ui text-[10px] font-bold uppercase tracking-[0.1em] text-[var(--text-secondary)] hover:text-white hover:border-[var(--border-default)] transition-all disabled:opacity-30"
         >
           <Download size={14} />
           {t("leads.exportCsv")}
@@ -150,7 +150,7 @@ export default function LeadsPage() {
                   (h) => (
                     <th
                       key={h}
-                      className="text-left px-6 py-3 text-xs text-[var(--text-tertiary)] tracking-wider uppercase font-normal"
+                      className="text-left px-6 py-3 font-ui text-[10px] text-[var(--text-tertiary)] tracking-wider uppercase font-bold"
                     >
                       {h}
                     </th>

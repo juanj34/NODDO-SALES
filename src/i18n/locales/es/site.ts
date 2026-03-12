@@ -146,6 +146,8 @@ const site = {
   },
   recursos: {
     heading: "Recursos",
+    description: "Documentos y materiales descargables de {{name}}",
+    download: "DESCARGAR",
     notAvailable: "Recursos no disponibles",
     notConfigured: "Aún no se han agregado recursos descargables a este proyecto.",
     types: {
@@ -155,6 +157,14 @@ const site = {
       lista_precios: "Lista de Precios",
       otro: "Otro",
     },
+  },
+  avances: {
+    heading: "Avances de Obra",
+    subtitle: "Seguimiento del progreso de construcción",
+    close: "Cerrar",
+    watchVideo: "Ver video",
+    notAvailable: "Avances no disponibles",
+    notConfigured: "Aún no se han publicado avances de obra para este proyecto.",
   },
   cotizador: {
     heading: "Cotizar Unidad",

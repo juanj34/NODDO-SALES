@@ -377,7 +377,7 @@ export function UploadModal({
             <button
               onClick={handleUploadAll}
               disabled={uploading || compressing || stagedFiles.length === 0}
-              className="flex items-center gap-1.5 px-4 py-2 bg-[var(--site-primary)] text-[#0A0A0B] rounded-[0.625rem] text-xs font-semibold hover:brightness-110 hover:shadow-[0_4px_16px_rgba(var(--site-primary-rgb),0.25)] transition-all disabled:opacity-40 disabled:cursor-not-allowed"
+              className="flex items-center gap-1.5 px-4 py-2 bg-[var(--site-primary)] text-[#141414] rounded-[0.625rem] text-xs font-semibold hover:brightness-110 hover:shadow-[0_4px_16px_rgba(var(--site-primary-rgb),0.25)] transition-all disabled:opacity-40 disabled:cursor-not-allowed"
             >
               {compressing || uploading ? (
                 <Loader2 size={14} className="animate-spin" />

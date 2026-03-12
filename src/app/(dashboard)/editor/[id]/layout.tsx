@@ -10,6 +10,7 @@ import {
   Loader2,
   LayoutDashboard,
   Building2,
+  Home,
   Layers,
   Package,
   Image as ImageIcon,
@@ -26,6 +27,7 @@ import {
   ChevronDown,
   RotateCcw,
   Check,
+  HardHat,
 } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -33,6 +35,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import type { ProyectoVersion } from "@/types";
 import { useTranslation } from "@/i18n";
 import { useAuthRole } from "@/hooks/useAuthContext";
+import { NodDoLogo } from "@/components/ui/NodDoLogo";
 
 /* ------------------------------------------------------------------ */
 /*  Helpers                                                            */
@@ -76,6 +79,7 @@ interface BadgeCounts {
   puntos_interes: number;
   planos: number;
   torres: number;
+  avances: number;
 }
 
 const editorSections: TabSection[] = [
@@ -97,6 +101,7 @@ const editorSections: TabSection[] = [
       { id: "videos", label: "Videos", icon: Film, href: "/videos", badgeKey: "videos" },
       { id: "ubicacion", label: "Ubicacion", icon: MapPin, href: "/ubicacion", badgeKey: "puntos_interes" },
       { id: "recursos", label: "Recursos", icon: FileText, href: "/recursos", badgeKey: "recursos" },
+      { id: "avances", label: "Avances", icon: HardHat, href: "/avances", badgeKey: "avances" },
     ],
   },
   {
@@ -236,6 +241,7 @@ export default function EditorLayout({
       puntos_interes: project.puntos_interes?.length || 0,
       planos: project.planos_interactivos?.length ?? 0,
       torres: project.torres?.length || 0,
+      avances: project.avances_obra?.length || 0,
     };
   }, [project]);
 
@@ -243,6 +249,23 @@ export default function EditorLayout({
     if (!project) return null;
     return { project, loading, saving, save, refresh, updateLocal, projectId: id };
   }, [project, loading, saving, save, refresh, updateLocal, id]);
+
+  // Dynamic torres label based on torre types
+  const torresLabel = useMemo(() => {
+    const torres = project?.torres ?? [];
+    if (torres.length === 0) return "Torres";
+    const hasTorre = torres.some((t) => (t.tipo ?? "torre") === "torre");
+    const hasUrbanismo = torres.some((t) => t.tipo === "urbanismo");
+    if (hasTorre && hasUrbanismo) return "Agrupaciones";
+    if (hasUrbanismo) return "Urbanismos";
+    return "Torres";
+  }, [project?.torres]);
+
+  const torresIcon = useMemo(() => {
+    const torres = project?.torres ?? [];
+    const allUrbanismo = torres.length > 0 && torres.every((t) => t.tipo === "urbanismo");
+    return allUrbanismo ? Home : Building2;
+  }, [project?.torres]);
 
   // Collaborators only see the Inventario tab
   const filteredSections = useMemo(() => {
@@ -302,17 +325,13 @@ export default function EditorLayout({
   /* ---- Render ---- */
   return (
     <EditorProjectContext.Provider value={contextValue!}>
-      <div className="flex h-screen bg-[var(--surface-0)]" style={{ '--site-primary': '#0070F3', '--site-primary-rgb': '0, 112, 243' } as React.CSSProperties}>
+      <div className="flex h-screen bg-[var(--surface-0)]">
         {/* Editor Sidebar */}
         <aside className="w-56 bg-[var(--surface-1)] border-r border-[var(--border-subtle)] flex flex-col shrink-0">
           {/* Back + project name */}
           <div className="px-5 py-4 border-b border-[var(--border-subtle)]">
-            <Link
-              href="/proyectos"
-              className="inline-flex items-center gap-1.5 text-[11px] text-[var(--text-muted)] hover:text-[var(--text-secondary)] transition-colors mb-3"
-            >
-              <ArrowLeft size={12} />
-              {t("layout.projects")}
+            <Link href="/proyectos" className="inline-block hover:opacity-80 transition-opacity mb-3">
+              <NodDoLogo height={14} colorNod="var(--text-muted)" colorDo="var(--site-primary)" />
             </Link>
             <h2 className="text-[14px] font-semibold text-white truncate">
               {project.nombre}
@@ -326,32 +345,34 @@ export default function EditorLayout({
           <nav className="flex-1 overflow-y-auto py-2">
             {filteredSections.map((section) => (
               <div key={section.label}>
-                <p className="text-[10px] uppercase tracking-wider text-[var(--text-muted)] px-5 pt-4 pb-1.5 font-medium select-none">
+                <p className="font-ui text-[10px] uppercase tracking-wider text-[var(--text-muted)] px-5 pt-4 pb-1.5 font-bold select-none">
                   {section.label}
                 </p>
                 <div className="px-3 space-y-0.5">
                   {section.tabs.map((tab) => {
                     const isActive = activeTab === tab.id;
                     const count = tab.badgeKey && badgeCounts ? badgeCounts[tab.badgeKey] : null;
+                    const TabIcon = tab.id === "torres" ? torresIcon : tab.icon;
+                    const tabLabel = tab.id === "torres" ? torresLabel : tab.label;
                     return (
                       <Link
                         key={tab.id}
                         href={`${basePath}${tab.href}`}
                         className={cn(
-                          "flex items-center gap-2.5 px-3 py-[7px] rounded-lg text-[13px] transition-all duration-150",
+                          "flex items-center gap-2.5 px-3 py-[7px] rounded-lg font-ui text-[11px] font-semibold uppercase tracking-[0.08em] transition-all duration-150",
                           isActive
                             ? "bg-[var(--surface-2)] text-white"
                             : "text-[var(--text-tertiary)] hover:text-[var(--text-secondary)] hover:bg-[var(--surface-2)]/50"
                         )}
                       >
-                        <tab.icon
+                        <TabIcon
                           size={15}
                           className={cn(
                             "shrink-0",
                             isActive ? "text-[var(--site-primary)]" : ""
                           )}
                         />
-                        <span className="flex-1 truncate">{tab.label}</span>
+                        <span className="flex-1 truncate">{tabLabel}</span>
                         {count !== null && count > 0 && (
                           <span
                             className={cn(
@@ -377,7 +398,7 @@ export default function EditorLayout({
             <Link
               href={`/sites/${project.slug}`}
               target="_blank"
-              className="flex items-center justify-center gap-2 w-full px-3 py-2.5 bg-[var(--surface-2)] border border-[var(--border-default)] rounded-lg text-xs text-[var(--text-secondary)] hover:text-white hover:border-[var(--border-strong)] hover:bg-[var(--surface-3)] transition-all"
+              className="flex items-center justify-center gap-2 w-full px-3 py-2.5 bg-[var(--surface-2)] border border-[var(--border-default)] rounded-lg font-ui text-[10px] font-bold uppercase tracking-[0.1em] text-[var(--text-secondary)] hover:text-white hover:border-[var(--border-strong)] hover:bg-[var(--surface-3)] transition-all"
             >
               <ExternalLink size={13} />
               {t("layout.viewMicrosite")}
@@ -402,7 +423,7 @@ export default function EditorLayout({
             <div className="flex items-center gap-3">
               <span
                 className={cn(
-                  "text-[11px] font-medium px-2.5 py-0.5 rounded-full border",
+                  "font-ui text-[10px] font-bold uppercase tracking-wider px-2.5 py-0.5 rounded-full border",
                   publishStatus === "publicado" && "bg-green-500/12 text-green-400 border-green-500/20",
                   publishStatus === "cambios" && "bg-orange-500/12 text-orange-400 border-orange-500/20",
                   publishStatus === "borrador" && "bg-amber-500/12 text-amber-400 border-amber-500/20",
@@ -452,7 +473,7 @@ export default function EditorLayout({
                   onClick={handlePublish}
                   disabled={publishing}
                   className={cn(
-                    "flex items-center gap-1.5 px-3.5 py-1.5 text-xs font-medium rounded-l-lg transition-all",
+                    "flex items-center gap-1.5 px-3.5 py-1.5 font-ui text-[11px] font-bold uppercase tracking-[0.1em] rounded-l-lg transition-all",
                     "bg-[var(--site-primary)] text-[var(--surface-0)] hover:brightness-110",
                     "disabled:opacity-60 disabled:cursor-not-allowed"
                   )}
@@ -488,7 +509,7 @@ export default function EditorLayout({
                   >
                     <div className="flex items-center gap-2 px-4 py-2.5 border-b border-[var(--border-subtle)]">
                       <Clock size={13} className="text-[var(--text-tertiary)]" />
-                      <span className="text-xs font-medium text-[var(--text-secondary)]">{t("layout.versionHistory")}</span>
+                      <span className="font-ui text-[10px] font-bold uppercase tracking-wider text-[var(--text-secondary)]">{t("layout.versionHistory")}</span>
                     </div>
                     <div className="max-h-64 overflow-y-auto">
                       {loadingVersions ? (

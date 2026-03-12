@@ -14,6 +14,16 @@ export async function PUT(
       return NextResponse.json({ error: "Solo administradores" }, { status: 403 });
 
     const body = await request.json();
+
+    // When switching to urbanismo, clear tower-specific composition fields
+    if (body.tipo === "urbanismo") {
+      body.pisos_sotano = null;
+      body.pisos_planta_baja = null;
+      body.pisos_podio = null;
+      body.pisos_residenciales = null;
+      body.pisos_rooftop = null;
+    }
+
     const { data, error } = await auth.supabase
       .from("torres")
       .update(body)

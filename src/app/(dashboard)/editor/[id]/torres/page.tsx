@@ -19,6 +19,7 @@ import { FileUploader } from "@/components/dashboard/FileUploader";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Building2,
+  Home,
   Plus,
   Trash2,
   Loader2,
@@ -105,7 +106,26 @@ export default function TorresPage() {
   /* ── Add form state ───────────────────────────────────────────── */
   const [addNombre, setAddNombre] = useState(torres.length === 0 ? DEFAULTS.nombre : "");
   const [addPrefijo, setAddPrefijo] = useState("");
+  const [addTipo, setAddTipo] = useState<"torre" | "urbanismo">("torre");
   const [addNameError, setAddNameError] = useState(false);
+
+  /* ── Dynamic page title based on torre types ─────────────────── */
+  const hasTorre = torres.some((t) => (t.tipo ?? "torre") === "torre");
+  const hasUrbanismo = torres.some((t) => t.tipo === "urbanismo");
+  const pageLabel = torres.length === 0
+    ? t("torres.title")
+    : hasTorre && hasUrbanismo
+      ? t("torres.titleAgrupaciones")
+      : hasUrbanismo
+        ? t("torres.titleUrbanismos")
+        : t("torres.titleTorres");
+  const pageDesc = torres.length === 0
+    ? t("torres.description")
+    : hasTorre && hasUrbanismo
+      ? t("torres.descriptionAgrupaciones")
+      : hasUrbanismo
+        ? t("torres.descriptionUrbanismos")
+        : t("torres.description");
 
   /* ── Count helpers ────────────────────────────────────────────── */
   const fachadasForTorre = (torreId: string) =>
@@ -123,6 +143,7 @@ export default function TorresPage() {
   const resetAddForm = useCallback(() => {
     setAddNombre("");
     setAddPrefijo("");
+    setAddTipo("torre");
     setAddNameError(false);
     setShowAddForm(false);
   }, []);
@@ -141,6 +162,7 @@ export default function TorresPage() {
           proyecto_id: projectId,
           nombre: addNombre.trim(),
           prefijo: addPrefijo.trim() || null,
+          tipo: addTipo,
         }),
       });
       if (res.ok) {
@@ -149,7 +171,7 @@ export default function TorresPage() {
         await refresh();
         setSelectedTorreId(created.id);
         setTorreDetailTab("info");
-        toast.success("Torre creada");
+        toast.success(addTipo === "urbanismo" ? "Urbanismo creado" : "Torre creada");
       } else {
         const err = await res.json().catch(() => ({ error: "Error desconocido" }));
         toast.error(err.error || `Error ${res.status}`);
@@ -165,6 +187,7 @@ export default function TorresPage() {
     projectId,
     addNombre,
     addPrefijo,
+    addTipo,
     refresh,
     resetAddForm,
     toast,
@@ -303,9 +326,9 @@ export default function TorresPage() {
               <Building2 size={18} className="text-[var(--site-primary)]" />
             </div>
             <div>
-              <h1 className={pageTitle}>{t("torres.title")}</h1>
+              <h1 className={pageTitle}>{pageLabel}</h1>
               <p className={pageDescription}>
-                {t("torres.description")}
+                {pageDesc}
               </p>
             </div>
           </div>
@@ -321,7 +344,8 @@ export default function TorresPage() {
             const isSelected = selectedTorreId === torre.id && !showAddForm;
             const nFachadas = fachadasForTorre(torre.id);
             const nUnidades = unidadesForTorre(torre.id);
-            const hasData = !!(torre.num_pisos || nFachadas > 0 || nUnidades > 0);
+            const hasFloors = torre.tipo !== "urbanismo" && (torre.pisos_residenciales || torre.num_pisos);
+            const hasData = !!(hasFloors || nFachadas > 0 || nUnidades > 0);
             return (
               <button
                 key={torre.id}
@@ -343,14 +367,17 @@ export default function TorresPage() {
                       ? "bg-[rgba(var(--site-primary-rgb),0.15)]"
                       : "bg-[rgba(var(--site-primary-rgb),0.1)]"
                   )}>
-                    <Building2 size={14} className="text-[var(--site-primary)]" />
+                    {torre.tipo === "urbanismo"
+                      ? <Home size={14} className="text-[var(--site-primary)]" />
+                      : <Building2 size={14} className="text-[var(--site-primary)]" />
+                    }
                   </div>
                   <div className="min-w-0">
                     <p className="text-xs font-medium text-white truncate">{torre.nombre}</p>
                     {hasData ? (
                       <div className="flex items-center gap-1.5 text-[10px] text-[var(--text-muted)]">
-                        {(torre.pisos_residenciales || torre.num_pisos) && <span>{torre.pisos_residenciales || torre.num_pisos}p</span>}
-                        {(torre.pisos_residenciales || torre.num_pisos) && (nUnidades > 0 || nFachadas > 0) && <span>·</span>}
+                        {hasFloors && <span>{torre.pisos_residenciales || torre.num_pisos}p</span>}
+                        {hasFloors && (nUnidades > 0 || nFachadas > 0) && <span>·</span>}
                         {nUnidades > 0 && <span>{nUnidades} ud</span>}
                         {nUnidades > 0 && nFachadas > 0 && <span>·</span>}
                         {nFachadas > 0 && <span>{nFachadas} fach</span>}
@@ -445,6 +472,42 @@ export default function TorresPage() {
               >
                 <div className={sectionCard + " border-[rgba(var(--site-primary-rgb),0.3)]"}>
                   <h3 className="text-sm font-medium text-white mb-3">{t("torres.newTower")}</h3>
+
+                  {/* Type selector */}
+                  <div className="mb-4">
+                    <label className={labelClass}>{t("torres.typeLabel")}</label>
+                    <div className="grid grid-cols-2 gap-2 mt-1">
+                      {(["torre", "urbanismo"] as const).map((tipo) => (
+                        <button
+                          key={tipo}
+                          type="button"
+                          onClick={() => {
+                            setAddTipo(tipo);
+                            if (!addNombre || addNombre === DEFAULTS.nombre || addNombre === "Urbanismo Principal") {
+                              setAddNombre(tipo === "urbanismo" ? "Urbanismo Principal" : DEFAULTS.nombre);
+                            }
+                          }}
+                          className={cn(
+                            "flex items-center gap-2.5 p-3 rounded-xl border transition-all text-left",
+                            addTipo === tipo
+                              ? "bg-[rgba(var(--site-primary-rgb),0.08)] border-[rgba(var(--site-primary-rgb),0.3)]"
+                              : "bg-[var(--surface-1)] border-[var(--border-subtle)] hover:border-[var(--border-default)]"
+                          )}
+                        >
+                          {tipo === "torre" ? <Building2 size={16} className="text-[var(--site-primary)] shrink-0" /> : <Home size={16} className="text-[var(--site-primary)] shrink-0" />}
+                          <div>
+                            <p className="text-xs font-medium text-white">
+                              {t(tipo === "torre" ? "torres.typeTorre" : "torres.typeUrbanismo")}
+                            </p>
+                            <p className="text-[10px] text-[var(--text-muted)]">
+                              {t(tipo === "torre" ? "torres.typeTorreHint" : "torres.typeUrbanismoHint")}
+                            </p>
+                          </div>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
                   <div
                     className="grid grid-cols-[1fr_100px] gap-3 items-end"
                     onKeyDown={(e) => {
@@ -464,7 +527,7 @@ export default function TorresPage() {
                           if (addNameError) setAddNameError(false);
                         }}
                         className={cn(inputClass, addNameError && "!border-red-500/60 !ring-1 !ring-red-500/30")}
-                        placeholder={t("torres.namePlaceholder")}
+                        placeholder={addTipo === "urbanismo" ? t("torres.namePlaceholderUrbanismo") : t("torres.namePlaceholder")}
                         autoFocus
                       />
                       {addNameError && (
@@ -478,8 +541,7 @@ export default function TorresPage() {
                         value={addPrefijo}
                         onChange={(e) => setAddPrefijo(e.target.value)}
                         className={inputClass}
-                        placeholder="T1"
-
+                        placeholder={addTipo === "urbanismo" ? "U1" : "T1"}
                       />
                     </div>
                   </div>
@@ -834,7 +896,7 @@ function AmenidadesTabContent({ torre, projectId, onUpdate }: AmenidadesTabConte
       {/* Selected amenities */}
       {selected.length > 0 && (
         <div className="mb-4">
-          <p className="text-[10px] text-[var(--text-tertiary)] tracking-wider uppercase mb-2">
+          <p className="font-ui text-[10px] text-[var(--text-tertiary)] tracking-wider uppercase font-bold mb-2">
             Seleccionadas ({selected.length})
           </p>
           <div className="flex flex-wrap gap-1.5">
@@ -900,7 +962,7 @@ function AmenidadesTabContent({ torre, projectId, onUpdate }: AmenidadesTabConte
                     isCollapsed && "-rotate-90"
                   )}
                 />
-                <span className="text-[10px] tracking-wider uppercase text-[var(--text-tertiary)] group-hover:text-[var(--text-secondary)] transition-colors">
+                <span className="font-ui text-[10px] tracking-wider uppercase font-bold text-[var(--text-tertiary)] group-hover:text-[var(--text-secondary)] transition-colors">
                   {cat}
                 </span>
                 <span className="text-[10px] text-[var(--text-muted)]">
@@ -939,7 +1001,7 @@ function AmenidadesTabContent({ torre, projectId, onUpdate }: AmenidadesTabConte
       <div className="mt-4 pt-4 border-t border-[var(--border-subtle)]">
         {showCustomForm ? (
           <div className="space-y-3">
-            <p className="text-[10px] tracking-wider uppercase text-[var(--text-tertiary)]">
+            <p className="font-ui text-[10px] tracking-wider uppercase font-bold text-[var(--text-tertiary)]">
               Amenidad personalizada
             </p>
             <div className="flex items-end gap-3">
@@ -1038,6 +1100,7 @@ function TorreEditFormInline({
   const [pisosPodio, setPisosPodio] = useState(torre.pisos_podio != null ? String(torre.pisos_podio) : "");
   const [pisosResidenciales, setPisosResidenciales] = useState(torre.pisos_residenciales != null ? String(torre.pisos_residenciales) : "");
   const [pisosRooftop, setPisosRooftop] = useState(torre.pisos_rooftop != null ? String(torre.pisos_rooftop) : "");
+  const [typeSwitching, setTypeSwitching] = useState(false);
 
   // Sync from prop when torre data changes (e.g. after refresh)
   useEffect(() => {
@@ -1062,6 +1125,43 @@ function TorreEditFormInline({
 
   return (
     <div className="space-y-4">
+      {/* Type badge */}
+      <div className="flex items-center gap-2">
+        {(["torre", "urbanismo"] as const).map((tipo) => {
+          const isActive = (torre.tipo ?? "torre") === tipo;
+          return (
+            <button
+              key={tipo}
+              disabled={typeSwitching}
+              onClick={async () => {
+                if (!isActive && !typeSwitching) {
+                  setTypeSwitching(true);
+                  try {
+                    await onUpdate(torre.id, { tipo });
+                  } finally {
+                    setTypeSwitching(false);
+                  }
+                }
+              }}
+              className={cn(
+                "inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-all border",
+                isActive
+                  ? "bg-[rgba(var(--site-primary-rgb),0.1)] border-[rgba(var(--site-primary-rgb),0.3)] text-[var(--site-primary)]"
+                  : "bg-[var(--surface-2)] border-[var(--border-subtle)] text-[var(--text-muted)] hover:text-[var(--text-secondary)] hover:border-[var(--border-default)]",
+                typeSwitching && "opacity-60 pointer-events-none"
+              )}
+            >
+              {typeSwitching && !isActive ? (
+                <Loader2 size={12} className="animate-spin" />
+              ) : (
+                tipo === "torre" ? <Building2 size={12} /> : <Home size={12} />
+              )}
+              {t(tipo === "torre" ? "torres.typeTorre" : "torres.typeUrbanismo")}
+            </button>
+          );
+        })}
+      </div>
+
       {/* Row 1: Nombre */}
       <div>
         <label className={labelClass}>{t("torres.infoForm.name")}</label>
@@ -1078,8 +1178,8 @@ function TorreEditFormInline({
         />
       </div>
 
-      {/* Composición del edificio */}
-      <div>
+      {/* Composición del edificio — only for torre type */}
+      {(torre.tipo ?? "torre") !== "urbanismo" && <div>
         <label className={labelClass}>Composición del edificio</label>
         <div className="grid grid-cols-5 gap-3 mt-1">
           {compositionFields.map((field) => (
@@ -1105,11 +1205,11 @@ function TorreEditFormInline({
 
         {/* Visual composition bar */}
         {(() => {
-          const s = torre.pisos_sotano || 0;
-          const pb = torre.pisos_planta_baja || 0;
-          const pod = torre.pisos_podio || 0;
-          const res = torre.pisos_residenciales || 0;
-          const rt = torre.pisos_rooftop || 0;
+          const s = pisosSotano ? parseInt(pisosSotano) || 0 : 0;
+          const pb = pisosPlantaBaja ? parseInt(pisosPlantaBaja) || 0 : 0;
+          const pod = pisosPodio ? parseInt(pisosPodio) || 0 : 0;
+          const res = pisosResidenciales ? parseInt(pisosResidenciales) || 0 : 0;
+          const rt = pisosRooftop ? parseInt(pisosRooftop) || 0 : 0;
           const total = s + pb + pod + res + rt;
           if (total === 0) return null;
 
@@ -1149,7 +1249,7 @@ function TorreEditFormInline({
             </div>
           );
         })()}
-      </div>
+      </div>}
 
       {/* Row: Prefijo */}
       <div>

@@ -37,6 +37,7 @@ export async function GET(
       { data: fachadas },
       { data: torres },
       { data: planos },
+      { data: avancesObra },
     ] = await Promise.all([
       auth.supabase.from("tipologias").select("*").eq("proyecto_id", id).order("orden"),
       auth.supabase.from("galeria_categorias").select("*").eq("proyecto_id", id).order("orden"),
@@ -47,6 +48,7 @@ export async function GET(
       auth.supabase.from("fachadas").select("*").eq("proyecto_id", id).order("orden"),
       auth.supabase.from("torres").select("*").eq("proyecto_id", id).order("orden"),
       auth.supabase.from("planos_interactivos").select("*").eq("proyecto_id", id).order("orden"),
+      auth.supabase.from("avances_obra").select("*").eq("proyecto_id", id).order("orden"),
     ]);
 
     // Fetch all gallery images in a single query (avoids N+1)
@@ -89,6 +91,7 @@ export async function GET(
       torres: torres || [],
       planos_interactivos: planos || [],
       plano_puntos: planoPuntos || [],
+      avances_obra: avancesObra || [],
     });
   } catch (err) {
     return NextResponse.json(

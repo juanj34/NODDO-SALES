@@ -9,12 +9,12 @@ import { motion } from "framer-motion";
 export function HeroMockup({ className = "" }: { className?: string }) {
   return (
     <div className={`relative ${className}`}>
-      {/* Soft glow behind */}
+      {/* Soft gold glow behind */}
       <div
         className="absolute -inset-16 pointer-events-none rounded-full"
         style={{
           background:
-            "radial-gradient(ellipse at center, rgba(99,102,241,0.05) 0%, transparent 70%)",
+            "radial-gradient(ellipse at center, rgba(212,165,116,0.08) 0%, transparent 70%)",
         }}
       />
 
@@ -81,40 +81,40 @@ export function HeroMockup({ className = "" }: { className?: string }) {
         initial={{ opacity: 0, y: 40, scale: 0.96 }}
         animate={{ opacity: 1, y: 0, scale: 1 }}
         transition={{ duration: 0.9, delay: 0.7, ease: [0.25, 0.46, 0.45, 0.94] }}
-        className="absolute -bottom-6 -right-4 w-[58%] z-20 rounded-lg overflow-hidden border border-[var(--mk-border-subtle)]"
+        className="absolute -bottom-6 -right-4 w-[58%] z-20 rounded-lg overflow-hidden border border-white/8"
         style={{
-          boxShadow: "0 24px 64px rgba(0,0,0,0.18), 0 8px 24px rgba(0,0,0,0.1)",
+          boxShadow: "0 24px 64px rgba(0,0,0,0.4), 0 8px 24px rgba(0,0,0,0.3)",
         }}
       >
-        {/* Browser chrome — light */}
-        <div className="h-7 bg-[#F5F0EB] flex items-center gap-1.5 px-2.5 border-b border-[var(--mk-border-subtle)]">
+        {/* Browser chrome — dark dashboard */}
+        <div className="h-7 bg-[#111113] flex items-center gap-1.5 px-2.5 border-b border-white/6">
           <div className="w-2 h-2 rounded-full bg-[#FF5F56]/60" />
           <div className="w-2 h-2 rounded-full bg-[#FFBD2E]/60" />
           <div className="w-2 h-2 rounded-full bg-[#27C93F]/60" />
-          <div className="ml-3 flex-1 max-w-[160px] h-3.5 rounded bg-black/[0.03] flex items-center px-2">
-            <span className="text-[6px] text-black/25 font-mono truncate">
+          <div className="ml-3 flex-1 max-w-[160px] h-3.5 rounded bg-white/5 flex items-center px-2">
+            <span className="text-[6px] text-white/25 font-mono truncate">
               noddo.co/editor/alto-de-yeg...
             </span>
           </div>
         </div>
 
         {/* Dashboard content */}
-        <div className="bg-white flex" style={{ height: "140px" }}>
+        <div className="bg-[#0A0A0B] flex" style={{ height: "140px" }}>
           {/* Sidebar */}
-          <div className="w-16 bg-[#FAFAF8] border-r border-[var(--mk-border-subtle)] py-2 px-1.5 flex flex-col gap-1">
+          <div className="w-16 bg-[#111113] border-r border-white/6 py-2 px-1.5 flex flex-col gap-1">
             {["Config", "Galería", "Tipos", "Ubica.", "Videos"].map(
               (label, i) => (
                 <div
                   key={label}
                   className={`flex items-center gap-1 px-1.5 py-1 rounded text-[5px] ${
                     i === 1
-                      ? "bg-[rgba(99,102,241,0.08)] text-[#6366F1] font-medium"
-                      : "text-[#A3A3A3]"
+                      ? "bg-[rgba(212,165,116,0.10)] text-[#D4A574] font-medium"
+                      : "text-white/35"
                   }`}
                 >
                   <div
                     className={`w-1.5 h-1.5 rounded-sm ${
-                      i === 1 ? "bg-[#6366F1]" : "bg-[#D4D0CB]"
+                      i === 1 ? "bg-[#D4A574]" : "bg-white/15"
                     }`}
                   />
                   {label}
@@ -125,10 +125,10 @@ export function HeroMockup({ className = "" }: { className?: string }) {
 
           {/* Content area */}
           <div className="flex-1 p-2.5 overflow-hidden">
-            <p className="text-[7px] font-semibold text-[#0F0F0F] mb-0.5">
+            <p className="text-[7px] font-semibold text-white/90 mb-0.5">
               Galería
             </p>
-            <p className="text-[5px] text-[#A3A3A3] mb-2">
+            <p className="text-[5px] text-white/35 mb-2">
               Administra tus categorías
             </p>
 
@@ -141,7 +141,7 @@ export function HeroMockup({ className = "" }: { className?: string }) {
               ].map((src, i) => (
                 <div
                   key={i}
-                  className="aspect-[4/3] rounded overflow-hidden bg-[#EFEBE6]"
+                  className="aspect-[4/3] rounded overflow-hidden bg-[#1A1A1D]"
                 >
                   <img
                     src={src}
@@ -152,9 +152,9 @@ export function HeroMockup({ className = "" }: { className?: string }) {
               ))}
             </div>
             <div className="grid grid-cols-3 gap-1.5">
-              <p className="text-[4.5px] text-[#6B6B6B]">Exteriores</p>
-              <p className="text-[4.5px] text-[#6B6B6B]">Interiores</p>
-              <p className="text-[4.5px] text-[#6B6B6B]">Amenidades</p>
+              <p className="text-[4.5px] text-white/35">Exteriores</p>
+              <p className="text-[4.5px] text-white/35">Interiores</p>
+              <p className="text-[4.5px] text-white/35">Amenidades</p>
             </div>
           </div>
         </div>

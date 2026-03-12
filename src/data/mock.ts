@@ -1,4 +1,4 @@
-import type { ProyectoCompleto, Unidad, Recurso, Fachada, Torre, PlanoInteractivo, PlanoPunto } from "@/types";
+import type { ProyectoCompleto, Unidad, Recurso, Fachada, Torre, PlanoInteractivo, PlanoPunto, AvanceObra } from "@/types";
 
 function generateUnidades(): Unidad[] {
   const units: Unidad[] = [];
@@ -170,6 +170,8 @@ export const mockProyecto: ProyectoCompleto = {
   domain_verified: false,
   created_at: new Date().toISOString(),
   etapa_label: "Torres",
+  background_audio_url: null,
+  hide_noddo_badge: false,
   updated_at: new Date().toISOString(),
 
   tipologias: [
@@ -552,6 +554,7 @@ export const mockProyecto: ProyectoCompleto = {
       id: "torre-001",
       proyecto_id: "mock-001",
       nombre: "Torre Norte",
+      tipo: "torre" as const,
       num_pisos: 12,
       pisos_sotano: 2,
       pisos_planta_baja: 1,
@@ -583,6 +586,7 @@ export const mockProyecto: ProyectoCompleto = {
       id: "torre-002",
       proyecto_id: "mock-001",
       nombre: "Torre Sur",
+      tipo: "torre" as const,
       num_pisos: 10,
       pisos_sotano: 1,
       pisos_planta_baja: 1,
@@ -713,4 +717,6 @@ export const mockProyecto: ProyectoCompleto = {
       created_at: new Date().toISOString(),
     },
   ] as PlanoPunto[],
+
+  avances_obra: [] as AvanceObra[],
 };

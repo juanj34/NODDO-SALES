@@ -12,13 +12,13 @@ export const fieldHint =
 // ── Buttons ──────────────────────────────────────────────────────
 
 export const btnPrimary =
-  "flex items-center gap-1.5 px-4 py-2 bg-[var(--site-primary)] text-[#0A0A0B] rounded-[0.625rem] text-xs font-semibold hover:brightness-110 hover:shadow-[0_4px_16px_rgba(var(--site-primary-rgb),0.25)] transition-all disabled:opacity-40 disabled:cursor-not-allowed";
+  "flex items-center gap-1.5 px-4 py-2 bg-[var(--site-primary)] text-[#141414] rounded-[0.625rem] font-ui text-xs font-bold uppercase tracking-[0.1em] hover:brightness-110 hover:shadow-[0_4px_16px_rgba(var(--site-primary-rgb),0.25)] transition-all disabled:opacity-40 disabled:cursor-not-allowed";
 
 export const btnSecondary =
-  "flex items-center gap-1.5 px-4 py-2 border border-[var(--border-default)] bg-[var(--surface-2)] rounded-[0.625rem] text-xs text-[var(--text-secondary)] hover:text-white hover:border-[var(--border-strong)] hover:bg-[var(--surface-3)] transition-all";
+  "flex items-center gap-1.5 px-4 py-2 border border-[var(--border-default)] bg-[var(--surface-2)] rounded-[0.625rem] font-ui text-xs font-bold uppercase tracking-[0.1em] text-[var(--text-secondary)] hover:text-white hover:border-[var(--border-strong)] hover:bg-[var(--surface-3)] transition-all";
 
 export const btnDanger =
-  "flex items-center gap-1.5 px-3 py-1.5 text-xs text-red-400/70 hover:text-red-400 hover:bg-red-500/10 rounded-[0.625rem] transition-all";
+  "flex items-center gap-1.5 px-3 py-1.5 font-ui text-xs font-bold uppercase tracking-[0.1em] text-red-400/70 hover:text-red-400 hover:bg-red-500/10 rounded-[0.625rem] transition-all";
 
 // ── Page Layout ──────────────────────────────────────────────────
 
@@ -26,10 +26,10 @@ export const pageHeader =
   "flex items-start justify-between mb-8";
 
 export const pageTitle =
-  "text-xl font-semibold text-white";
+  "font-heading text-2xl font-light text-white";
 
 export const pageDescription =
-  "text-sm text-[var(--text-tertiary)] mt-1 max-w-lg";
+  "text-sm text-[var(--text-tertiary)] mt-1 max-w-lg leading-relaxed";
 
 export const sectionHeader =
   "flex items-center justify-between mb-6";
@@ -40,7 +40,7 @@ export const sectionCard =
   "p-6 bg-[var(--surface-1)] rounded-xl border border-[var(--border-subtle)] shadow-[var(--shadow-sm)]";
 
 export const sectionTitle =
-  "flex items-center gap-2 text-sm font-medium text-white mb-1";
+  "flex items-center gap-2 font-ui text-xs font-bold uppercase tracking-[0.1em] text-white mb-1";
 
 export const sectionDescription =
   "text-xs text-[var(--text-tertiary)] mb-5";
@@ -56,13 +56,13 @@ export const listItem =
 // ── Badges ───────────────────────────────────────────────────────
 
 export const badge =
-  "inline-flex items-center px-2 py-0.5 text-[10px] font-medium rounded-full";
+  "inline-flex items-center px-2 py-0.5 font-ui text-[10px] font-bold uppercase tracking-wider rounded-full";
 
 export const badgeMuted =
-  "inline-flex items-center px-2 py-0.5 text-[10px] font-medium rounded-full bg-[var(--surface-3)] text-[var(--text-tertiary)]";
+  "inline-flex items-center px-2 py-0.5 font-ui text-[10px] font-bold uppercase tracking-wider rounded-full bg-[var(--surface-3)] text-[var(--text-tertiary)]";
 
 export const badgeGold =
-  "inline-flex items-center px-2 py-0.5 text-[10px] font-medium rounded-full bg-[rgba(var(--site-primary-rgb),0.15)] text-[var(--site-primary)]";
+  "inline-flex items-center px-2 py-0.5 font-ui text-[10px] font-bold uppercase tracking-wider rounded-full bg-[rgba(var(--site-primary-rgb),0.15)] text-[var(--site-primary)]";
 
 // ── Empty States ─────────────────────────────────────────────────
 

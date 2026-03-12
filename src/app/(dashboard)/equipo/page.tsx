@@ -137,7 +137,7 @@ export default function EquipoPage() {
       {/* Header */}
       <div className="flex items-center justify-between mb-8">
         <div>
-          <h1 className="text-2xl font-medium tracking-wide text-[var(--text-primary)]">
+          <h1 className="font-heading text-2xl font-light text-[var(--text-primary)]">
             {t("equipo.title")}
           </h1>
           <p className="text-[var(--text-tertiary)] text-sm mt-1">
@@ -147,7 +147,7 @@ export default function EquipoPage() {
         <button
           onClick={() => setShowInvite(true)}
           disabled={activeCount >= 3}
-          className="btn-noddo flex items-center gap-2 px-5 py-2.5 text-sm disabled:opacity-40 disabled:cursor-not-allowed"
+          className="btn-noddo flex items-center gap-2 px-5 py-2.5 font-ui text-xs font-bold uppercase tracking-[0.1em] disabled:opacity-40 disabled:cursor-not-allowed"
         >
           <UserPlus size={15} />
           {t("equipo.invite")}
@@ -220,7 +220,7 @@ export default function EquipoPage() {
               {/* Status badge */}
               <span
                 className={cn(
-                  "px-2.5 py-1 rounded-lg text-[10px] tracking-wider uppercase font-medium border",
+                  "px-2.5 py-1 rounded-lg font-ui text-[10px] tracking-wider uppercase font-bold border",
                   estadoStyles[colab.estado]
                 )}
               >
@@ -325,7 +325,7 @@ export default function EquipoPage() {
                   <div className="w-10 h-10 rounded-xl bg-[rgba(var(--site-primary-rgb),0.15)] flex items-center justify-center">
                     <ShieldCheck size={20} className="text-[var(--site-primary)]" />
                   </div>
-                  <h2 className="text-lg font-medium tracking-wide text-[var(--text-primary)]">
+                  <h2 className="font-heading text-2xl font-light text-[var(--text-primary)]">
                     {t("equipo.invite")}
                   </h2>
                 </div>
@@ -339,7 +339,7 @@ export default function EquipoPage() {
               </div>
 
               <div>
-                <label className="block text-xs text-[var(--text-secondary)] mb-2 tracking-wider uppercase font-medium">
+                <label className="block font-ui text-[10px] text-[var(--text-secondary)] mb-2 tracking-wider uppercase font-bold">
                   {t("equipo.emailLabel")}
                 </label>
                 <input
@@ -353,7 +353,7 @@ export default function EquipoPage() {
               </div>
 
               <div>
-                <label className="block text-xs text-[var(--text-secondary)] mb-2 tracking-wider uppercase font-medium">
+                <label className="block font-ui text-[10px] text-[var(--text-secondary)] mb-2 tracking-wider uppercase font-bold">
                   {t("equipo.nameLabel")}
                 </label>
                 <input
@@ -368,7 +368,7 @@ export default function EquipoPage() {
               <button
                 type="submit"
                 disabled={sending}
-                className="btn-noddo w-full py-2.5 text-sm flex items-center justify-center gap-2"
+                className="btn-noddo w-full py-2.5 font-ui text-xs font-bold uppercase tracking-[0.1em] flex items-center justify-center gap-2"
               >
                 {sending ? (
                   <>

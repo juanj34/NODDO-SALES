@@ -132,9 +132,6 @@ export function FacadeHotspotEditor({
     }))
   );
 
-  // Track last placed dot position for Shift/Ctrl constrained placement
-  const lastPlacedPos = useRef<{ x: number; y: number } | null>(null);
-
   // Selection (can contain both unit ids and empty dot localIds)
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
 
@@ -173,8 +170,6 @@ export function FacadeHotspotEditor({
   const canvasMouseDown = useRef<{
     startClientX: number;
     startClientY: number;
-    shiftKey: boolean;
-    ctrlKey: boolean;
     pos: { x: number; y: number };
   } | null>(null);
 
@@ -362,13 +357,10 @@ export function FacadeHotspotEditor({
     canvasMouseDown.current = {
       startClientX: e.clientX,
       startClientY: e.clientY,
-      shiftKey: e.shiftKey,
-      ctrlKey: e.ctrlKey || e.metaKey,
       pos,
     };
 
-    // Don't start rect-select on mousedown — defer to mousemove with threshold
-    // so that Shift+click (no drag) reaches constrained placement in mouseUp.
+    // Don't start rect-select on mousedown — defer to mousemove with threshold.
   };
 
   const handleContainerMouseMove = (e: React.MouseEvent) => {
@@ -381,9 +373,9 @@ export function FacadeHotspotEditor({
       return;
     }
 
-    // Start rect-select only after Shift+drag beyond a threshold
+    // Start rect-select after drag beyond a threshold
     const down = canvasMouseDown.current;
-    if (down?.shiftKey) {
+    if (down) {
       const dist = Math.sqrt(
         (e.clientX - down.startClientX) ** 2 + (e.clientY - down.startClientY) ** 2
       );
@@ -424,7 +416,7 @@ export function FacadeHotspotEditor({
         return;
       }
 
-      // Shift was held but no significant drag — it's a shift+click for constrained placement
+      // Drag was too small — treat as a click
       setRectSelect(null);
     }
 
@@ -437,26 +429,13 @@ export function FacadeHotspotEditor({
     if (movedDist > 5) return; // Was a drag, not a click
 
     // This is a click on empty canvas — create an empty dot
-    let finalX = down.pos.x;
-    let finalY = down.pos.y;
-
-    // Modifier constraints relative to last placed dot
-    if (lastPlacedPos.current) {
-      if (down.shiftKey) {
-        finalY = lastPlacedPos.current.y; // Constrain horizontal
-      } else if (down.ctrlKey) {
-        finalX = lastPlacedPos.current.x; // Constrain vertical
-      }
-    }
-
     const newDot: EmptyDot = {
       localId: crypto.randomUUID(),
-      x: finalX,
-      y: finalY,
+      x: down.pos.x,
+      y: down.pos.y,
     };
 
     setEmptyDots((prev) => [...prev, newDot]);
-    lastPlacedPos.current = { x: finalX, y: finalY };
     setSelectedIds(new Set());
   };
 
@@ -1225,7 +1204,7 @@ export function FacadeHotspotEditor({
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 0.95 }}
-            className="fixed top-[20%] right-8 z-50 px-4 py-3 bg-[var(--surface-1)]/95 backdrop-blur-xl border border-[var(--border-default)] rounded-xl shadow-xl w-[340px]"
+            className="fixed top-[15%] right-[20%] z-50 px-4 py-3 bg-[var(--surface-1)]/95 backdrop-blur-xl border border-[var(--border-default)] rounded-xl shadow-xl w-[340px]"
           >
             <div className="flex items-center justify-between mb-3 cursor-grab active:cursor-grabbing">
               <div className="flex items-center gap-2">
@@ -1242,7 +1221,7 @@ export function FacadeHotspotEditor({
 
             <div className="grid grid-cols-3 gap-3 mb-3">
               <div>
-                <label className="text-[10px] text-[var(--text-tertiary)] uppercase tracking-wider mb-1 block">Copias</label>
+                <label className="font-ui text-[10px] text-[var(--text-tertiary)] uppercase tracking-wider font-bold mb-1 block">Copias</label>
                 <input
                   type="number"
                   min={1}
@@ -1253,7 +1232,7 @@ export function FacadeHotspotEditor({
                 />
               </div>
               <div>
-                <label className="text-[10px] text-[var(--text-tertiary)] uppercase tracking-wider mb-1 block">Espaciado %</label>
+                <label className="font-ui text-[10px] text-[var(--text-tertiary)] uppercase tracking-wider font-bold mb-1 block">Espaciado %</label>
                 <input
                   type="number"
                   min={0.5}
@@ -1265,7 +1244,7 @@ export function FacadeHotspotEditor({
                 />
               </div>
               <div>
-                <label className="text-[10px] text-[var(--text-tertiary)] uppercase tracking-wider mb-1 block">Dirección</label>
+                <label className="font-ui text-[10px] text-[var(--text-tertiary)] uppercase tracking-wider font-bold mb-1 block">Dirección</label>
                 <div className="flex gap-1">
                   <button
                     onClick={() => setRepeatDirection("up")}
@@ -1327,7 +1306,7 @@ export function FacadeHotspotEditor({
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 0.95 }}
-            className="fixed top-[20%] right-8 z-50 px-4 py-3 bg-[var(--surface-1)]/95 backdrop-blur-xl border border-[var(--border-default)] rounded-xl shadow-xl w-[340px]"
+            className="fixed top-[15%] right-[20%] z-50 px-4 py-3 bg-[var(--surface-1)]/95 backdrop-blur-xl border border-[var(--border-default)] rounded-xl shadow-xl w-[340px]"
           >
             <div className="flex items-center justify-between mb-3 cursor-grab active:cursor-grabbing">
               <div className="flex items-center gap-2">
@@ -1344,7 +1323,7 @@ export function FacadeHotspotEditor({
 
             <div className="grid grid-cols-2 gap-3 mb-3">
               <div>
-                <label className="text-[10px] text-[var(--text-tertiary)] uppercase tracking-wider mb-1 block">Columnas</label>
+                <label className="font-ui text-[10px] text-[var(--text-tertiary)] uppercase tracking-wider font-bold mb-1 block">Columnas</label>
                 <input
                   type="number"
                   min={1}
@@ -1355,7 +1334,7 @@ export function FacadeHotspotEditor({
                 />
               </div>
               <div>
-                <label className="text-[10px] text-[var(--text-tertiary)] uppercase tracking-wider mb-1 block">Filas</label>
+                <label className="font-ui text-[10px] text-[var(--text-tertiary)] uppercase tracking-wider font-bold mb-1 block">Filas</label>
                 <input
                   type="number"
                   min={1}
@@ -1369,7 +1348,7 @@ export function FacadeHotspotEditor({
 
             <div className="grid grid-cols-4 gap-2 mb-3">
               <div>
-                <label className="text-[10px] text-[var(--text-tertiary)] uppercase tracking-wider mb-1 block">Izq %</label>
+                <label className="font-ui text-[10px] text-[var(--text-tertiary)] uppercase tracking-wider font-bold mb-1 block">Izq %</label>
                 <input
                   type="number"
                   min={0}
@@ -1380,7 +1359,7 @@ export function FacadeHotspotEditor({
                 />
               </div>
               <div>
-                <label className="text-[10px] text-[var(--text-tertiary)] uppercase tracking-wider mb-1 block">Arriba %</label>
+                <label className="font-ui text-[10px] text-[var(--text-tertiary)] uppercase tracking-wider font-bold mb-1 block">Arriba %</label>
                 <input
                   type="number"
                   min={0}
@@ -1391,7 +1370,7 @@ export function FacadeHotspotEditor({
                 />
               </div>
               <div>
-                <label className="text-[10px] text-[var(--text-tertiary)] uppercase tracking-wider mb-1 block">Der %</label>
+                <label className="font-ui text-[10px] text-[var(--text-tertiary)] uppercase tracking-wider font-bold mb-1 block">Der %</label>
                 <input
                   type="number"
                   min={0}
@@ -1402,7 +1381,7 @@ export function FacadeHotspotEditor({
                 />
               </div>
               <div>
-                <label className="text-[10px] text-[var(--text-tertiary)] uppercase tracking-wider mb-1 block">Abajo %</label>
+                <label className="font-ui text-[10px] text-[var(--text-tertiary)] uppercase tracking-wider font-bold mb-1 block">Abajo %</label>
                 <input
                   type="number"
                   min={0}

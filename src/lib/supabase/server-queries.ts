@@ -44,6 +44,7 @@ export async function getProyectoById(
     { data: fachadas },
     { data: torres },
     { data: planos },
+    { data: avancesObra },
   ] = await Promise.all([
     supabase
       .from("tipologias")
@@ -62,6 +63,7 @@ export async function getProyectoById(
     supabase.from("fachadas").select("*").eq("proyecto_id", id).order("orden"),
     supabase.from("torres").select("*").eq("proyecto_id", id).order("orden"),
     supabase.from("planos_interactivos").select("*").eq("proyecto_id", id).order("orden"),
+    supabase.from("avances_obra").select("*").eq("proyecto_id", id).order("orden"),
   ]);
 
   // Load images for each category
@@ -94,6 +96,7 @@ export async function getProyectoById(
     torres: torres || [],
     planos_interactivos: planos || [],
     plano_puntos: planoPuntos || [],
+    avances_obra: avancesObra || [],
   };
 }
 
@@ -139,6 +142,7 @@ export async function getProyectoBySlug(
     torres: (snap.torres as ProyectoCompleto["torres"]) || [],
     planos_interactivos: (snap.planos_interactivos as ProyectoCompleto["planos_interactivos"]) || [],
     plano_puntos: (snap.plano_puntos as ProyectoCompleto["plano_puntos"]) || [],
+    avances_obra: (snap.avances_obra as ProyectoCompleto["avances_obra"]) || [],
   } as ProyectoCompleto;
 }
 

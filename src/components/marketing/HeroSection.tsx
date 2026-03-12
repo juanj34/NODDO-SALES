@@ -2,112 +2,146 @@
 
 import { motion } from "framer-motion";
 import Link from "next/link";
-import { ArrowRight } from "lucide-react";
-import { HeroMockup } from "./illustrations/HeroMockup";
+import { IsometricBuilding } from "./illustrations/IsometricBuilding";
 
 const stats = [
-  { value: "48+", label: "Proyectos Activos" },
-  { value: "12K", label: "Cotizaciones Generadas" },
-  { value: "$20M", label: "Ventas Facilitadas" },
-  { value: "100%", label: "Impacto Visual" },
+  { value: "1 día", label: "De idea a publicado" },
+  { value: "$0", label: "Costo de agencia" },
+  { value: "24/7", label: "Sala de ventas activa" },
 ];
 
 export function HeroSection() {
   return (
-    <section className="pt-32 lg:pt-40 pb-16 lg:pb-24 px-6 lg:px-12 bg-[var(--mk-bg)] relative overflow-hidden">
-      {/* Dot grid background */}
-      <div className="absolute inset-0 bg-dot-grid pointer-events-none" />
+    <section className="relative min-h-screen grid grid-cols-1 lg:grid-cols-2 items-center px-6 lg:px-20 gap-8 lg:gap-16 overflow-hidden z-[1]">
+      {/* ── LEFT: Copy ── */}
+      <div className="relative z-[2] pt-32 lg:pt-0">
+        {/* Label with gold line */}
+        <motion.div
+          initial={{ opacity: 0, y: 24 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.8, delay: 0.2, ease: "easeOut" }}
+          className="flex items-center gap-3.5 mb-7"
+        >
+          <span
+            className="block w-8 h-px"
+            style={{ background: "var(--mk-accent)" }}
+          />
+          <span className="text-[9px] tracking-[0.4em] uppercase text-[var(--mk-accent)]">
+            Plataforma de showroom digital
+          </span>
+        </motion.div>
 
-      <div className="max-w-7xl mx-auto relative">
-        {/* Top hero area — 2-column layout */}
-        <div className="flex flex-col lg:flex-row items-start gap-12 lg:gap-8 relative">
-          {/* Left column — text */}
-          <div className="lg:w-1/2 relative z-10">
-            <motion.p
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.7, delay: 0.1, ease: "easeOut" }}
-              className="text-[11px] uppercase tracking-[0.3em] text-[var(--mk-text-muted)] mb-6"
-            >
-              PLATAFORMA PROPTECH
-            </motion.p>
+        {/* Hero title — Cormorant Garamond */}
+        <motion.h1
+          initial={{ opacity: 0, y: 24 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.8, delay: 0.4, ease: "easeOut" }}
+          className="font-heading text-[clamp(48px,6vw,86px)] font-light leading-[1.05] tracking-[-0.02em] text-[var(--mk-text-primary)] mb-7"
+        >
+          Lo que antes
+          <br />
+          tardaba <em className="italic text-[var(--mk-accent-light)]">4 meses,</em>
+          <br />
+          hoy es 1 día.
+        </motion.h1>
 
-            <motion.h1
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.7, delay: 0.15, ease: "easeOut" }}
-              className="font-heading text-[clamp(2.75rem,6vw,5.5rem)] font-bold leading-[1.05] tracking-tight text-[var(--mk-text-primary)] mb-8"
-            >
-              Vende proyectos inmobiliarios de clase mundial.
-            </motion.h1>
+        {/* Subtitle — DM Mono */}
+        <motion.p
+          initial={{ opacity: 0, y: 24 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.8, delay: 0.6, ease: "easeOut" }}
+          className="text-[13px] leading-[1.8] max-w-[380px] mb-12"
+          style={{ color: "rgba(244, 240, 232, 0.5)" }}
+        >
+          NODDO le da a tu proyecto una{" "}
+          <strong className="text-[var(--mk-text-primary)] font-normal">
+            sala de ventas digital premium
+          </strong>{" "}
+          — con inventario en vivo, exploración de unidades, y captura de leads —
+          sin agencia, sin código, sin esperar.
+        </motion.p>
 
-            <motion.p
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.7, delay: 0.25, ease: "easeOut" }}
-              className="text-lg text-[var(--mk-text-secondary)] max-w-xl mb-10 leading-relaxed"
-            >
-              Noddo transforma tus renders en plataformas de venta premium
-              interactivas. Galerías, mapas 3D, inventario en tiempo real y
-              más.
-            </motion.p>
-
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.7, delay: 0.35, ease: "easeOut" }}
-              className="flex flex-wrap items-center gap-4"
-            >
-              <Link
-                href="/crear"
-                className="btn-mk-primary px-7 py-3.5 inline-flex items-center gap-2"
-              >
-                Comenzar Gratis
-                <ArrowRight size={16} />
-              </Link>
-              <Link
-                href="#demo"
-                className="btn-mk-outline px-7 py-3.5 inline-flex items-center"
-              >
-                Ver Demo
-              </Link>
-            </motion.div>
-          </div>
-
-          {/* Right column — Product mockup */}
-          <div className="hidden lg:block lg:w-1/2 relative">
-            <HeroMockup className="w-full max-w-[580px] ml-auto" />
-          </div>
-        </div>
-
-        {/* Full-width horizontal rule */}
-        <div className="my-12 h-px w-full bg-[var(--mk-border-rule)]" />
+        {/* CTAs */}
+        <motion.div
+          initial={{ opacity: 0, y: 24 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.8, delay: 0.8, ease: "easeOut" }}
+          className="flex items-center gap-4"
+        >
+          <Link href="/login" className="btn-mk-primary">
+            Empezar gratis
+          </Link>
+          <Link href="/sites/alto-de-yeguas" className="btn-mk-outline">
+            Ver demo en vivo
+          </Link>
+        </motion.div>
 
         {/* Stats strip */}
         <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true, margin: "-50px" }}
-          transition={{ duration: 0.7, ease: "easeOut" }}
-          className="flex flex-wrap items-center gap-y-8"
+          initial={{ opacity: 0, y: 24 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.8, delay: 1.0, ease: "easeOut" }}
+          className="flex gap-10 mt-16 pt-10"
+          style={{ borderTop: "1px solid rgba(244, 240, 232, 0.06)" }}
         >
-          {stats.map((stat, i) => (
-            <div key={stat.label} className="flex items-center">
-              {i > 0 && (
-                <div className="hidden sm:block w-px h-12 bg-[var(--mk-border-rule)] mx-8 lg:mx-12" />
-              )}
-              <div className="flex flex-col gap-1 min-w-[120px]">
-                <span className="font-heading text-3xl lg:text-4xl font-semibold text-[var(--mk-text-primary)]">
-                  {stat.value}
-                </span>
-                <span className="text-[10px] tracking-[0.2em] uppercase text-[var(--mk-text-muted)]">
-                  {stat.label}
-                </span>
+          {stats.map((stat) => (
+            <div key={stat.label}>
+              <div className="font-heading text-4xl font-light leading-none mb-1 text-[var(--mk-accent-light)]">
+                {stat.value}
+              </div>
+              <div
+                className="text-[9px] tracking-[0.2em] uppercase"
+                style={{ color: "rgba(244, 240, 232, 0.3)" }}
+              >
+                {stat.label}
               </div>
             </div>
           ))}
         </motion.div>
       </div>
+
+      {/* ── RIGHT: Isometric Building ── */}
+      <div className="hidden lg:flex items-center justify-center h-screen">
+        <IsometricBuilding />
+      </div>
+
+      {/* ── Scroll hint ── */}
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ duration: 1, delay: 2, ease: "easeOut" }}
+        className="absolute bottom-10 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2 z-[2]"
+      >
+        <div
+          className="w-px h-10"
+          style={{
+            background:
+              "linear-gradient(to bottom, rgba(184, 151, 58, 0.6), transparent)",
+            animation: "scrollPulse 2s infinite",
+          }}
+        />
+        <span
+          className="text-[8px] tracking-[0.3em] uppercase"
+          style={{ color: "rgba(244, 240, 232, 0.2)" }}
+        >
+          Scroll
+        </span>
+      </motion.div>
+
+      {/* Scroll pulse keyframes */}
+      <style jsx>{`
+        @keyframes scrollPulse {
+          0%,
+          100% {
+            opacity: 0.6;
+            transform: scaleY(1);
+          }
+          50% {
+            opacity: 0.2;
+            transform: scaleY(0.6);
+          }
+        }
+      `}</style>
     </section>
   );
 }

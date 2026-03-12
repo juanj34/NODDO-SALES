@@ -8,7 +8,7 @@ interface AmbientBackgroundProps {
 
 const VARIANTS = {
   gold: {
-    orb1: "#D4A574",
+    orb1: "#b8973a",
     orb2: "#D97706",
     orb3: "#92400E",
   },

@@ -644,7 +644,7 @@ export default function TipologiasPage() {
                       <div className="space-y-5">
                         {/* ── Áreas ── */}
                         <div>
-                          <p className="text-[10px] text-[var(--text-muted)] uppercase tracking-wider mb-2 font-medium">
+                          <p className="font-ui text-[10px] text-[var(--text-muted)] uppercase tracking-wider mb-2 font-bold">
                             {t("tipologias.specsAreas")}
                           </p>
                           <div className="grid grid-cols-3 gap-3">
@@ -653,7 +653,7 @@ export default function TipologiasPage() {
                                 <Maximize size={16} className="text-[var(--text-tertiary)]" />
                               </div>
                               <div className="flex-1 min-w-0">
-                                <p className="text-[10px] text-[var(--text-muted)] uppercase tracking-wider mb-0.5">{t("tipologias.internalArea")}</p>
+                                <p className="font-ui text-[10px] text-[var(--text-muted)] uppercase tracking-wider font-bold mb-0.5">{t("tipologias.internalArea")}</p>
                                 <input type="number" value={form.area_m2} onChange={(e) => updateForm("area_m2", e.target.value)} placeholder="0" className="w-full bg-transparent text-sm text-white placeholder:text-[var(--text-muted)] focus:outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none" />
                               </div>
                               {form.area_m2 && <span className="text-[11px] text-[var(--text-muted)] shrink-0">m²</span>}
@@ -663,7 +663,7 @@ export default function TipologiasPage() {
                                 <Palmtree size={16} className="text-[var(--text-tertiary)]" />
                               </div>
                               <div className="flex-1 min-w-0">
-                                <p className="text-[10px] text-[var(--text-muted)] uppercase tracking-wider mb-0.5">{t("tipologias.balconyArea")}</p>
+                                <p className="font-ui text-[10px] text-[var(--text-muted)] uppercase tracking-wider font-bold mb-0.5">{t("tipologias.balconyArea")}</p>
                                 <input type="number" value={form.area_balcon} onChange={(e) => updateForm("area_balcon", e.target.value)} placeholder="0" className="w-full bg-transparent text-sm text-white placeholder:text-[var(--text-muted)] focus:outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none" />
                               </div>
                               {form.area_balcon && <span className="text-[11px] text-[var(--text-muted)] shrink-0">m²</span>}
@@ -673,7 +673,7 @@ export default function TipologiasPage() {
                                 <LayoutGrid size={16} className="text-[var(--site-primary)]" />
                               </div>
                               <div className="flex-1 min-w-0">
-                                <p className="text-[10px] text-[var(--text-muted)] uppercase tracking-wider mb-0.5">{t("tipologias.totalArea")}</p>
+                                <p className="font-ui text-[10px] text-[var(--text-muted)] uppercase tracking-wider font-bold mb-0.5">{t("tipologias.totalArea")}</p>
                                 <p className="text-sm font-medium text-[var(--site-primary)]">
                                   {form.area_m2 || form.area_balcon
                                     ? `${((parseFloat(form.area_m2) || 0) + (parseFloat(form.area_balcon) || 0)).toFixed(1)} m²`
@@ -686,7 +686,7 @@ export default function TipologiasPage() {
 
                         {/* ── Espacios ── */}
                         <div>
-                          <p className="text-[10px] text-[var(--text-muted)] uppercase tracking-wider mb-2 font-medium">
+                          <p className="font-ui text-[10px] text-[var(--text-muted)] uppercase tracking-wider mb-2 font-bold">
                             {t("tipologias.specsSpaces")}
                           </p>
                           <div className="grid grid-cols-3 gap-3">
@@ -695,7 +695,7 @@ export default function TipologiasPage() {
                                 <BedDouble size={16} className="text-[var(--text-tertiary)]" />
                               </div>
                               <div className="flex-1 min-w-0">
-                                <p className="text-[10px] text-[var(--text-muted)] uppercase tracking-wider mb-0.5">{t("tipologias.bedrooms")}</p>
+                                <p className="font-ui text-[10px] text-[var(--text-muted)] uppercase tracking-wider font-bold mb-0.5">{t("tipologias.bedrooms")}</p>
                                 <input type="number" value={form.habitaciones} onChange={(e) => updateForm("habitaciones", e.target.value)} placeholder="0" className="w-full bg-transparent text-sm text-white placeholder:text-[var(--text-muted)] focus:outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none" />
                               </div>
                             </div>
@@ -704,7 +704,7 @@ export default function TipologiasPage() {
                                 <Bath size={16} className="text-[var(--text-tertiary)]" />
                               </div>
                               <div className="flex-1 min-w-0">
-                                <p className="text-[10px] text-[var(--text-muted)] uppercase tracking-wider mb-0.5">{t("tipologias.bathrooms")}</p>
+                                <p className="font-ui text-[10px] text-[var(--text-muted)] uppercase tracking-wider font-bold mb-0.5">{t("tipologias.bathrooms")}</p>
                                 <input type="number" value={form.banos} onChange={(e) => updateForm("banos", e.target.value)} placeholder="0" className="w-full bg-transparent text-sm text-white placeholder:text-[var(--text-muted)] focus:outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none" />
                               </div>
                             </div>
@@ -713,7 +713,7 @@ export default function TipologiasPage() {
                                 <Car size={16} className="text-[var(--text-tertiary)]" />
                               </div>
                               <div className="flex-1 min-w-0">
-                                <p className="text-[10px] text-[var(--text-muted)] uppercase tracking-wider mb-0.5">{t("tipologias.parking")}</p>
+                                <p className="font-ui text-[10px] text-[var(--text-muted)] uppercase tracking-wider font-bold mb-0.5">{t("tipologias.parking")}</p>
                                 <input type="number" value={form.parqueaderos} onChange={(e) => updateForm("parqueaderos", e.target.value)} placeholder="0" className="w-full bg-transparent text-sm text-white placeholder:text-[var(--text-muted)] focus:outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none" />
                               </div>
                             </div>
@@ -722,7 +722,7 @@ export default function TipologiasPage() {
 
                         {/* ── Precio ── */}
                         <div>
-                          <p className="text-[10px] text-[var(--text-muted)] uppercase tracking-wider mb-2 font-medium">
+                          <p className="font-ui text-[10px] text-[var(--text-muted)] uppercase tracking-wider mb-2 font-bold">
                             {t("tipologias.specsPricing")}
                           </p>
                           <div className="max-w-xs">
@@ -731,7 +731,7 @@ export default function TipologiasPage() {
                                 <DollarSign size={16} className="text-[var(--site-primary)]" />
                               </div>
                               <div className="flex-1 min-w-0">
-                                <p className="text-[10px] text-[var(--text-muted)] uppercase tracking-wider mb-0.5">{t("tipologias.priceFromComputed")}</p>
+                                <p className="font-ui text-[10px] text-[var(--text-muted)] uppercase tracking-wider font-bold mb-0.5">{t("tipologias.priceFromComputed")}</p>
                                 <p className="text-sm font-medium text-[var(--site-primary)]">
                                   {computedPrecioDesde || "—"}
                                 </p>

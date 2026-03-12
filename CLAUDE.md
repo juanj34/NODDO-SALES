@@ -71,7 +71,47 @@ Dark luxury with depth. Layered surfaces, warm champagne accents, sophisticated 
 - Glow effects: `var(--glow-sm)`, `var(--glow-md)`, `var(--glow-lg)`
 - Shadows: `var(--shadow-sm)` through `var(--shadow-xl)` for consistent depth
 
+### Typography — NODDO Brand Fonts
 
+Three fonts. Each has a specific role. Never mix them up.
+
+#### Cormorant Garamond
+**Use for:** Hero titles, section headings, large display numbers, italic accents, pull quotes.
+**Weight:** 300 (light) for most display use. 400 for body-sized headings. 600 sparingly for emphasis.
+**Style:** Italic (`font-style: italic`) is encouraged for contrast moments — taglines, em phrases inside headlines.
+**Never use for:** UI labels, buttons, captions, data, navigation, anything under 18px.
+
+#### Syne
+**Use for:** Navigation, buttons, CTAs, section labels, badges, tags, uppercase utility text.
+**Weight:** 700 or 800 for buttons and labels. 600 for nav links. 400 only in combination with heavier weights for contrast.
+**Style:** Always uppercase with `letter-spacing: .08em` to `.2em` depending on size. Smaller = more spacing.
+**Never use for:** Body copy, long paragraphs, anything that needs to be read continuously.
+
+#### DM Mono
+**Use for:** Body copy, descriptions, specs, data values, prices, card content, form labels, captions, footer text.
+**Weight:** 300 (light) for body. 400 for data that needs slightly more presence (prices, availability labels). 500 only for single values you need to pop (like a percentage or a unit count).
+**Style:** Never uppercase unless it's a very short label (2–3 chars max). Monospace rhythm works best in lowercase or sentence case.
+**Never use for:** Headings, hero text, anything decorative.
+
+#### Quick reference
+
+| Element | Font | Weight | Case |
+|---|---|---|---|
+| Hero headline | Cormorant Garamond | 300 | Title or sentence |
+| Section heading | Cormorant Garamond | 300–400 | Sentence |
+| Italic accent / tagline | Cormorant Garamond italic | 300 | Sentence |
+| Button / CTA | Syne | 700 | UPPERCASE |
+| Nav link | Syne | 600 | UPPERCASE |
+| Section label / badge | Syne | 700–800 | UPPERCASE |
+| Body paragraph | DM Mono | 300 | Sentence |
+| Price / data value | DM Mono | 400–500 | As-is |
+| Card label / caption | DM Mono | 300 | UPPERCASE only if ≤3 chars |
+| Footer text | DM Mono | 300 | Sentence |
+
+#### Size floor rules
+- Cormorant Garamond: minimum 24px. Below that it loses its character.
+- Syne: minimum 9px at uppercase. Works well from 9px to 20px for labels.
+- DM Mono: minimum 10px. Preferred body size 12–14px. Line height always 1.7–1.9 for readability.
 
 ## Architecture
 

@@ -256,9 +256,10 @@ function PricingCard({
         {plan.badge && (
           <div className="absolute -top-3.5 left-1/2 -translate-x-1/2">
             <span
-              className="text-white text-xs font-semibold px-5 py-1.5 rounded-full whitespace-nowrap"
+              className="text-xs font-semibold px-5 py-1.5 rounded-full whitespace-nowrap"
               style={{
                 background: "var(--mk-accent)",
+                color: "#141414",
                 boxShadow: "0 4px 16px rgba(var(--mk-accent-rgb), 0.3)",
               }}
             >
@@ -355,7 +356,7 @@ function PricingCard({
                 <div
                   className="w-5 h-5 rounded-md flex items-center justify-center flex-shrink-0 mt-0.5"
                   style={{
-                    background: "rgba(0, 0, 0, 0.03)",
+                    background: "rgba(255, 255, 255, 0.03)",
                     border: "1px solid var(--mk-border-subtle)",
                   }}
                 >
@@ -439,7 +440,7 @@ export default function PricingPage() {
         >
           <div
             className="inline-flex items-center rounded-full p-1 relative"
-            style={{ background: "#E8E4DF" }}
+            style={{ background: "var(--mk-surface-2)" }}
           >
             <button
               onClick={() => setAnnual(false)}
@@ -522,7 +523,7 @@ export default function PricingPage() {
         <FadeInSection className="relative z-10 text-center max-w-xl mx-auto">
           <h2
             className="font-heading text-3xl md:text-5xl font-light tracking-wider mb-5"
-            style={{ color: "var(--mk-text-inverse)" }}
+            style={{ color: "var(--mk-text-primary)" }}
           >
             ¿Necesitas algo diferente?
           </h2>
@@ -534,11 +535,7 @@ export default function PricingPage() {
           </p>
           <Link
             href="mailto:hola@noddo.co"
-            className="px-10 py-3.5 text-sm tracking-[0.12em] inline-flex items-center justify-center rounded-[0.75rem] font-medium transition-all duration-300 hover:opacity-90"
-            style={{
-              background: "var(--mk-bg)",
-              color: "var(--mk-text-primary)",
-            }}
+            className="btn-mk-primary px-10 py-3.5 text-sm tracking-[0.12em] inline-flex items-center justify-center"
           >
             Contactar ventas
           </Link>

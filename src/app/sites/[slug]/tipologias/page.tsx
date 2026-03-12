@@ -22,6 +22,7 @@ import {
   ChevronRight,
   ChevronDown,
   Building2,
+  Home,
 } from "lucide-react";
 import type { Unidad } from "@/types";
 
@@ -267,7 +268,7 @@ export default function TipologiasPage() {
                     : "text-[var(--text-tertiary)] hover:text-[var(--text-secondary)] hover:bg-white/5"
                 )}
               >
-                <Building2 size={13} />
+                {torre.tipo === "urbanismo" ? <Home size={13} /> : <Building2 size={13} />}
                 {torre.nombre}
               </button>
             ))}

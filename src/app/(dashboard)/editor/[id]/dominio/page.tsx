@@ -335,7 +335,7 @@ export default function DominioPage() {
                   {/* A Record */}
                   <div className="flex items-center gap-3 p-3 bg-[var(--surface-2)] rounded-[0.625rem] border border-[var(--border-subtle)]">
                     <div className="flex-1">
-                      <p className="text-[10px] text-[var(--text-muted)] uppercase tracking-wider mb-1">
+                      <p className="font-ui text-[10px] text-[var(--text-muted)] uppercase tracking-wider font-bold mb-1">
                         {t("dominio.custom.typeA")}
                       </p>
                       <div className="flex items-center gap-4">
@@ -374,7 +374,7 @@ export default function DominioPage() {
                   {/* CNAME Record */}
                   <div className="flex items-center gap-3 p-3 bg-[var(--surface-2)] rounded-[0.625rem] border border-[var(--border-subtle)]">
                     <div className="flex-1">
-                      <p className="text-[10px] text-[var(--text-muted)] uppercase tracking-wider mb-1">
+                      <p className="font-ui text-[10px] text-[var(--text-muted)] uppercase tracking-wider font-bold mb-1">
                         {t("dominio.custom.typeCNAME")}
                       </p>
                       <div className="flex items-center gap-4">

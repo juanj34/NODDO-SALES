@@ -117,7 +117,7 @@ export default function ProyectosPage() {
       {/* Header */}
       <div className="flex items-center justify-between mb-10">
         <div>
-          <h1 className="text-2xl font-medium tracking-wide text-[var(--text-primary)]">
+          <h1 className="font-heading text-2xl font-light text-[var(--text-primary)]">
             {t("proyectos.title")}
           </h1>
           <p className="text-[var(--text-tertiary)] text-sm mt-1">
@@ -130,7 +130,7 @@ export default function ProyectosPage() {
               <button
                 onClick={handleCreateDemo}
                 disabled={creatingDemo}
-                className="flex items-center gap-2 px-4 py-2.5 text-sm border border-[var(--border-default)] rounded-xl text-[var(--text-secondary)] hover:text-white hover:border-[var(--border-strong)] hover:bg-[var(--surface-2)] transition-all disabled:opacity-50"
+                className="flex items-center gap-2 px-4 py-2.5 font-ui text-xs font-bold uppercase tracking-[0.1em] border border-[var(--border-default)] rounded-xl text-[var(--text-secondary)] hover:text-white hover:border-[var(--border-strong)] hover:bg-[var(--surface-2)] transition-all disabled:opacity-50"
               >
                 {creatingDemo ? <Loader2 size={14} className="animate-spin" /> : <Sparkles size={14} />}
                 {creatingDemo ? t("proyectos.loading") : t("proyectos.createDemo")}
@@ -139,7 +139,7 @@ export default function ProyectosPage() {
             <MagneticButton>
               <Link
                 href="/crear"
-                className="flex items-center gap-2 px-4 py-2.5 text-sm border border-[rgba(var(--site-primary-rgb),0.30)] rounded-xl text-[var(--site-primary)] hover:bg-[rgba(var(--site-primary-rgb),0.10)] transition-all"
+                className="flex items-center gap-2 px-4 py-2.5 font-ui text-xs font-bold uppercase tracking-[0.1em] border border-[rgba(var(--site-primary-rgb),0.30)] rounded-xl text-[var(--site-primary)] hover:bg-[rgba(var(--site-primary-rgb),0.10)] transition-all"
               >
                 <Bot size={14} />
                 {t("proyectos.createWithAI")}
@@ -148,7 +148,7 @@ export default function ProyectosPage() {
             <MagneticButton>
               <button
                 onClick={() => setShowCreate(true)}
-                className="btn-noddo flex items-center gap-2 px-5 py-2.5 text-sm"
+                className="btn-noddo flex items-center gap-2 px-5 py-2.5 font-ui text-xs font-bold uppercase tracking-[0.1em]"
               >
                 <Plus size={16} />
                 {t("proyectos.newProject")}
@@ -178,7 +178,7 @@ export default function ProyectosPage() {
               className="glass-card p-8 w-full max-w-md space-y-5"
             >
               <div className="flex items-center justify-between mb-1">
-                <h2 className="text-lg font-medium tracking-wide text-[var(--text-primary)]">
+                <h2 className="font-heading text-2xl font-light text-[var(--text-primary)]">
                   {t("proyectos.newProject")}
                 </h2>
                 <button
@@ -191,7 +191,7 @@ export default function ProyectosPage() {
               </div>
 
               <div>
-                <label className="block text-xs text-[var(--text-secondary)] mb-2 tracking-wider uppercase font-medium">
+                <label className="block font-ui text-[10px] text-[var(--text-secondary)] mb-2 tracking-wider uppercase font-bold">
                   {t("proyectos.nameLabel")}
                 </label>
                 <input
@@ -208,7 +208,7 @@ export default function ProyectosPage() {
               </div>
 
               <div>
-                <label className="block text-xs text-[var(--text-secondary)] mb-2 tracking-wider uppercase font-medium">
+                <label className="block font-ui text-[10px] text-[var(--text-secondary)] mb-2 tracking-wider uppercase font-bold">
                   {t("proyectos.slugLabel")}
                 </label>
                 <input
@@ -228,7 +228,7 @@ export default function ProyectosPage() {
                 <button
                   type="submit"
                   disabled={creating}
-                  className="btn-noddo w-full py-2.5 text-sm flex items-center justify-center gap-2"
+                  className="btn-noddo w-full py-2.5 font-ui text-xs font-bold uppercase tracking-[0.1em] flex items-center justify-center gap-2"
                 >
                   {creating && <Loader2 size={14} className="animate-spin" />}
                   {t("proyectos.createProject")}
@@ -285,7 +285,7 @@ export default function ProyectosPage() {
               <div>
                 <label className="block text-xs text-[var(--text-secondary)] mb-2">
                   {t("proyectos.deleteTypeToConfirm")}{" "}
-                  <span className="font-semibold text-[var(--text-primary)] font-mono">
+                  <span className="font-medium text-[var(--text-primary)] font-mono">
                     {deleteTarget.name}
                   </span>
                 </label>
@@ -303,14 +303,14 @@ export default function ProyectosPage() {
                 <button
                   onClick={() => setDeleteTarget(null)}
                   disabled={deleting}
-                  className="flex-1 py-2.5 text-xs border border-[var(--border-default)] rounded-[0.75rem] text-[var(--text-secondary)] hover:text-white hover:border-[var(--border-strong)] transition-all"
+                  className="flex-1 py-2.5 font-ui text-xs font-bold uppercase tracking-[0.1em] border border-[var(--border-default)] rounded-[0.75rem] text-[var(--text-secondary)] hover:text-white hover:border-[var(--border-strong)] transition-all"
                 >
                   Cancelar
                 </button>
                 <button
                   onClick={confirmDelete}
                   disabled={deleting || deleteConfirmText !== deleteTarget.name}
-                  className="flex-1 py-2.5 text-xs rounded-[0.75rem] flex items-center justify-center gap-2 bg-red-500/15 text-red-400 border border-red-500/20 hover:bg-red-500/25 hover:border-red-500/40 transition-all disabled:opacity-40 disabled:cursor-not-allowed"
+                  className="flex-1 py-2.5 font-ui text-xs font-bold uppercase tracking-[0.1em] rounded-[0.75rem] flex items-center justify-center gap-2 bg-red-500/15 text-red-400 border border-red-500/20 hover:bg-red-500/25 hover:border-red-500/40 transition-all disabled:opacity-40 disabled:cursor-not-allowed"
                 >
                   {deleting ? <Loader2 size={13} className="animate-spin" /> : <Trash2 size={13} />}
                   {deleting ? t("proyectos.deleting") : t("proyectos.deleteButton")}
@@ -381,7 +381,7 @@ export default function ProyectosPage() {
                   <div className="absolute inset-0 bg-gradient-to-t from-[var(--surface-1)] via-transparent to-transparent opacity-60" />
                   <div className="absolute top-3 right-3">
                     <span
-                      className={`px-2.5 py-1 rounded-lg text-[10px] tracking-wider uppercase font-medium backdrop-blur-sm ${estadoColors[proyecto.estado] || estadoColors.borrador
+                      className={`px-2.5 py-1 rounded-lg font-ui text-[10px] tracking-wider uppercase font-bold backdrop-blur-sm ${estadoColors[proyecto.estado] || estadoColors.borrador
                         }`}
                     >
                       {proyecto.estado}
@@ -400,7 +400,7 @@ export default function ProyectosPage() {
                   <div className="flex items-center gap-2">
                     <Link
                       href={`/editor/${proyecto.id}`}
-                      className="flex items-center gap-1.5 px-3.5 py-2 bg-[var(--surface-2)] border border-[var(--border-default)] rounded-[0.625rem] text-xs text-[var(--text-secondary)] hover:text-white hover:border-[var(--border-strong)] hover:bg-[var(--surface-3)] transition-all"
+                      className="flex items-center gap-1.5 px-3.5 py-2 bg-[var(--surface-2)] border border-[var(--border-default)] rounded-[0.625rem] font-ui text-[10px] font-bold uppercase tracking-[0.1em] text-[var(--text-secondary)] hover:text-white hover:border-[var(--border-strong)] hover:bg-[var(--surface-3)] transition-all"
                     >
                       <Edit2 size={12} />
                       {t("proyectos.edit")}
@@ -409,7 +409,7 @@ export default function ProyectosPage() {
                       <Link
                         href={`/sites/${proyecto.slug}`}
                         target="_blank"
-                        className="flex items-center gap-1.5 px-3.5 py-2 bg-[var(--surface-2)] border border-[var(--border-default)] rounded-[0.625rem] text-xs text-[var(--text-secondary)] hover:text-white hover:border-[var(--border-strong)] hover:bg-[var(--surface-3)] transition-all"
+                        className="flex items-center gap-1.5 px-3.5 py-2 bg-[var(--surface-2)] border border-[var(--border-default)] rounded-[0.625rem] font-ui text-[10px] font-bold uppercase tracking-[0.1em] text-[var(--text-secondary)] hover:text-white hover:border-[var(--border-strong)] hover:bg-[var(--surface-3)] transition-all"
                       >
                         <ExternalLink size={12} />
                         {t("proyectos.viewSite")}

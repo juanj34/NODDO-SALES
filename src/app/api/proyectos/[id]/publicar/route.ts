@@ -37,6 +37,7 @@ export async function POST(
       { data: fachadas },
       { data: torres },
       { data: planos },
+      { data: avancesObra },
     ] = await Promise.all([
       auth.supabase.from("tipologias").select("*").eq("proyecto_id", id).order("orden"),
       auth.supabase.from("galeria_categorias").select("*").eq("proyecto_id", id).order("orden"),
@@ -47,6 +48,7 @@ export async function POST(
       auth.supabase.from("fachadas").select("*").eq("proyecto_id", id).order("orden"),
       auth.supabase.from("torres").select("*").eq("proyecto_id", id).order("orden"),
       auth.supabase.from("planos_interactivos").select("*").eq("proyecto_id", id).order("orden"),
+      auth.supabase.from("avances_obra").select("*").eq("proyecto_id", id).eq("estado", "publicado").order("orden"),
     ]);
 
     // Fetch gallery images
@@ -89,6 +91,7 @@ export async function POST(
       torres: torres || [],
       planos_interactivos: planos || [],
       plano_puntos: planoPuntos || [],
+      avances_obra: avancesObra || [],
     };
 
     // 4. Get next version number

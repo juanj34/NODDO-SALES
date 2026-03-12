@@ -618,7 +618,7 @@ export function PlanoHotspotEditor({
                 onMouseEnter={() => setHoveredId(punto.id)}
                 onMouseLeave={() => setHoveredId(null)}
               >
-                <span className="text-[11px] font-bold text-[#0A0A0B] select-none pointer-events-none">
+                <span className="text-[11px] font-bold text-[#141414] select-none pointer-events-none">
                   {index + 1}
                 </span>
                 {(isHovered || isSelected) && !isDragging && (
@@ -800,7 +800,7 @@ export function PlanoHotspotEditor({
         <div className="flex-1 overflow-y-auto min-h-0">
           {sortedPuntos.length > 0 ? (
             <div className="p-2 space-y-1">
-              <p className="text-[10px] text-[var(--text-muted)] uppercase tracking-wider font-medium px-1 mb-1">
+              <p className="font-ui text-[10px] text-[var(--text-muted)] uppercase tracking-wider font-bold px-1 mb-1">
                 {t("planoHotspot.pointCount", { count: String(sortedPuntos.length) })}
               </p>
               {sortedPuntos.map((punto, index) => {
@@ -826,7 +826,7 @@ export function PlanoHotspotEditor({
                   >
                     {/* Number badge */}
                     <span
-                      className="w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold text-[#0A0A0B] shrink-0"
+                      className="w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold text-[#141414] shrink-0"
                       style={{ backgroundColor: "var(--site-primary)" }}
                     >
                       {index + 1}

@@ -490,7 +490,7 @@ export default function AICreatorPage() {
 
           {/* Location */}
           <div className="border-t border-[var(--border-subtle)] pt-4 space-y-3">
-            <h4 className="flex items-center gap-2 text-xs text-[var(--text-tertiary)] uppercase tracking-wider">
+            <h4 className="flex items-center gap-2 font-ui text-[10px] text-[var(--text-tertiary)] uppercase tracking-wider font-bold">
               <MapPin size={12} />
               {t("crear.location")}
             </h4>
@@ -505,7 +505,7 @@ export default function AICreatorPage() {
           {/* Colors */}
           {(projectData.color_primario || projectData.color_secundario) && (
             <div className="border-t border-[var(--border-subtle)] pt-4">
-              <h4 className="text-xs text-[var(--text-tertiary)] uppercase tracking-wider mb-2">
+              <h4 className="font-ui text-[10px] text-[var(--text-tertiary)] uppercase tracking-wider font-bold mb-2">
                 {t("crear.colors")}
               </h4>
               <div className="flex gap-2">
@@ -531,7 +531,7 @@ export default function AICreatorPage() {
 
           {/* Tipologias */}
           <div className="border-t border-[var(--border-subtle)] pt-4 space-y-3">
-            <h4 className="flex items-center gap-2 text-xs text-[var(--text-tertiary)] uppercase tracking-wider">
+            <h4 className="flex items-center gap-2 font-ui text-[10px] text-[var(--text-tertiary)] uppercase tracking-wider font-bold">
               <Layers size={12} />
               {t("crear.typologies", { count: projectData.tipologias.length })}
             </h4>
@@ -569,7 +569,7 @@ export default function AICreatorPage() {
           {/* Follow-up questions */}
           {followUpQuestions.length > 0 && (
             <div className="border-t border-[var(--border-subtle)] pt-4">
-              <h4 className="text-xs text-amber-400/70 uppercase tracking-wider mb-2">
+              <h4 className="font-ui text-[10px] text-amber-400/70 uppercase tracking-wider font-bold mb-2">
                 {t("crear.pendingInfo")}
               </h4>
               <ul className="space-y-1">
@@ -629,7 +629,7 @@ function PreviewField({
 }) {
   return (
     <div>
-      <p className="flex items-center gap-1.5 text-[10px] text-[var(--text-muted)] uppercase tracking-wider mb-0.5">
+      <p className="flex items-center gap-1.5 font-ui text-[10px] text-[var(--text-muted)] uppercase tracking-wider font-bold mb-0.5">
         {icon}
         {label}
       </p>

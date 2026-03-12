@@ -5,9 +5,24 @@ import { usePathname } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { useState } from "react";
 import { cn } from "@/lib/utils";
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import {
+  ChevronLeft,
+  ChevronRight,
+  Image as ImageIcon,
+  Layers,
+  Package,
+  Building2,
+  MapPin,
+  Film,
+  FileText,
+  Globe,
+  MessageCircle,
+  Map as MapIcon,
+  HardHat,
+} from "lucide-react";
 import { useTranslation } from "@/i18n";
 import { LanguageToggle } from "@/components/ui/LanguageToggle";
+import { AudioMuteButton } from "@/components/site/AudioPlayer";
 
 interface SiteNavProps {
   basePath: string;
@@ -22,127 +37,10 @@ interface SiteNavProps {
   etapaLabel?: string;
   hasImplantaciones?: boolean;
   hasTour360?: boolean;
+  hasAvances?: boolean;
 }
 
-// Custom SVG icon components — 20x20 viewbox, stroke-only
-function IconGaleria({ className }: { className?: string }) {
-  return (
-    <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className={cn("w-5 h-5", className)}>
-      <rect x="2" y="2" width="7" height="7" rx="1.5" />
-      <rect x="11" y="2" width="7" height="7" rx="1.5" />
-      <rect x="2" y="11" width="7" height="7" rx="1.5" />
-      <rect x="11" y="11" width="7" height="7" rx="1.5" />
-    </svg>
-  );
-}
-
-function IconTipologias({ className }: { className?: string }) {
-  return (
-    <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className={cn("w-5 h-5", className)}>
-      <rect x="3" y="3" width="14" height="14" rx="2" />
-      <line x1="3" y1="10" x2="17" y2="10" />
-      <line x1="10" y1="3" x2="10" y2="10" />
-      <line x1="7" y1="10" x2="7" y2="17" />
-    </svg>
-  );
-}
-
-function IconInventario({ className }: { className?: string }) {
-  return (
-    <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className={cn("w-5 h-5", className)}>
-      <line x1="4" y1="4" x2="16" y2="4" />
-      <line x1="4" y1="8" x2="16" y2="8" />
-      <line x1="4" y1="12" x2="16" y2="12" />
-      <line x1="4" y1="16" x2="16" y2="16" />
-      <circle cx="2" cy="4" r="0.8" fill="currentColor" stroke="none" />
-      <circle cx="2" cy="8" r="0.8" fill="currentColor" stroke="none" />
-      <circle cx="2" cy="12" r="0.8" fill="currentColor" stroke="none" />
-      <circle cx="2" cy="16" r="0.8" fill="currentColor" stroke="none" />
-    </svg>
-  );
-}
-
-function IconTorre({ className }: { className?: string }) {
-  return (
-    <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className={cn("w-5 h-5", className)}>
-      <rect x="4" y="2" width="12" height="16" rx="1.5" />
-      <line x1="4" y1="6" x2="16" y2="6" />
-      <line x1="4" y1="10" x2="16" y2="10" />
-      <line x1="4" y1="14" x2="16" y2="14" />
-      <line x1="10" y1="2" x2="10" y2="18" />
-    </svg>
-  );
-}
-
-function IconUbicacion({ className }: { className?: string }) {
-  return (
-    <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className={cn("w-5 h-5", className)}>
-      <path d="M10 18S3 12 3 7.5a7 7 0 0 1 14 0C17 12 10 18 10 18z" />
-      <circle cx="10" cy="7.5" r="2.5" />
-    </svg>
-  );
-}
-
-function IconVideos({ className }: { className?: string }) {
-  return (
-    <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className={cn("w-5 h-5", className)}>
-      <rect x="2" y="4" width="16" height="12" rx="2" />
-      <polygon points="8,7 14,10 8,13" fill="currentColor" stroke="none" />
-    </svg>
-  );
-}
-
-function IconRecursos({ className }: { className?: string }) {
-  return (
-    <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className={cn("w-5 h-5", className)}>
-      <path d="M2 5a2 2 0 0 1 2-2h3l2 2h7a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5z" />
-    </svg>
-  );
-}
-
-function IconTour360({ className }: { className?: string }) {
-  return (
-    <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className={cn("w-5 h-5", className)}>
-      <circle cx="10" cy="10" r="7.5" />
-      <ellipse cx="10" cy="10" rx="3" ry="7.5" />
-      <line x1="2.5" y1="10" x2="17.5" y2="10" />
-    </svg>
-  );
-}
-
-function IconContacto({ className }: { className?: string }) {
-  return (
-    <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className={cn("w-5 h-5", className)}>
-      <path d="M3 4h14a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2z" />
-      <polyline points="1,4 10,11 19,4" />
-    </svg>
-  );
-}
-
-function IconImplantaciones({ className }: { className?: string }) {
-  return (
-    <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className={cn("w-5 h-5", className)}>
-      <rect x="2" y="2" width="16" height="16" rx="2" />
-      <rect x="5" y="5" width="4" height="5" rx="0.5" />
-      <rect x="11" y="5" width="4" height="5" rx="0.5" />
-      <rect x="5" y="12" width="4" height="4" rx="0.5" />
-      <rect x="11" y="12" width="4" height="4" rx="0.5" />
-    </svg>
-  );
-}
-
-function IconUrbanismo({ className }: { className?: string }) {
-  return (
-    <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className={cn("w-5 h-5", className)}>
-      <path d="M2 18h16" />
-      <path d="M4 18V8l4-3v13" />
-      <path d="M8 18V5l4 3v10" />
-      <path d="M12 18V8l4-3v13" />
-    </svg>
-  );
-}
-
-export function SiteNav({ basePath, projectName, logoUrl, constructoraLogoUrl, constructoraWebsite, expanded, onToggle, disclaimer, politicaPrivacidadUrl, etapaLabel, hasImplantaciones, hasTour360 }: SiteNavProps) {
+export function SiteNav({ basePath, projectName, logoUrl, constructoraLogoUrl, constructoraWebsite, expanded, onToggle, disclaimer, politicaPrivacidadUrl, etapaLabel, hasImplantaciones, hasTour360, hasAvances }: SiteNavProps) {
   const pathname = usePathname();
   const [isOpen, setIsOpen] = useState(false);
   const [hoveredItem, setHoveredItem] = useState<string | null>(null);
@@ -152,16 +50,17 @@ export function SiteNav({ basePath, projectName, logoUrl, constructoraLogoUrl, c
   const torreLabel = etapaLabel || tNav("torre");
 
   const navItems = [
-    { label: tNav("galeria"), href: "/galeria", Icon: IconGaleria },
-    { label: tNav("tipologias"), href: "/tipologias", Icon: IconTipologias },
-    { label: tNav("inventario"), href: "/inventario", Icon: IconInventario },
-    { label: torreLabel, href: "/explorar", Icon: IconTorre },
-    ...(hasImplantaciones ? [{ label: tNav("implantaciones"), href: "/implantaciones", Icon: IconImplantaciones }] : []),
-    { label: tNav("ubicacion"), href: "/ubicacion", Icon: IconUbicacion },
-    { label: tNav("videos"), href: "/videos", Icon: IconVideos },
-    { label: tNav("recursos"), href: "/recursos", Icon: IconRecursos },
-    ...(hasTour360 ? [{ label: tNav("tour360"), href: "/tour-360", Icon: IconTour360 }] : []),
-    { label: tNav("contacto"), href: "/contacto", Icon: IconContacto },
+    { label: tNav("galeria"), href: "/galeria", Icon: ImageIcon },
+    { label: tNav("tipologias"), href: "/tipologias", Icon: Layers },
+    { label: tNav("inventario"), href: "/inventario", Icon: Package },
+    { label: torreLabel, href: "/explorar", Icon: Building2 },
+    ...(hasImplantaciones ? [{ label: tNav("implantaciones"), href: "/implantaciones", Icon: MapIcon }] : []),
+    { label: tNav("ubicacion"), href: "/ubicacion", Icon: MapPin },
+    { label: tNav("videos"), href: "/videos", Icon: Film },
+    { label: tNav("recursos"), href: "/recursos", Icon: FileText },
+    ...(hasAvances ? [{ label: tNav("avances"), href: "/avances", Icon: HardHat }] : []),
+    ...(hasTour360 ? [{ label: tNav("tour360"), href: "/tour-360", Icon: Globe }] : []),
+    { label: tNav("contacto"), href: "/contacto", Icon: MessageCircle },
   ];
 
   const sidebarWidth = expanded ? 200 : 60;
@@ -294,7 +193,7 @@ export function SiteNav({ basePath, projectName, logoUrl, constructoraLogoUrl, c
                     />
                   )}
 
-                  <item.Icon className="flex-shrink-0" />
+                  <item.Icon className="flex-shrink-0" size={20} strokeWidth={1.5} />
 
                   {expanded && (
                     <motion.span
@@ -370,9 +269,10 @@ export function SiteNav({ basePath, projectName, logoUrl, constructoraLogoUrl, c
           </a>
         )}
 
-        {/* Language toggle */}
-        <div className={cn("flex-shrink-0 mt-3", expanded ? "px-4 w-full flex justify-center" : "")}>
+        {/* Language toggle + Audio mute */}
+        <div className={cn("flex-shrink-0 mt-3 flex items-center gap-2", expanded ? "px-4 w-full justify-center" : "flex-col")}>
           <LanguageToggle compact={!expanded} />
+          <AudioMuteButton size={14} />
         </div>
 
         {/* Toggle button */}

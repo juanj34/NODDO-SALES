@@ -57,7 +57,7 @@ export function CommandPalette() {
                             {t("commandPalette.noResults")}
                         </Command.Empty>
 
-                        <Command.Group heading={t("commandPalette.navigation")} className="px-2 py-3 text-xs font-semibold text-[var(--text-tertiary)] tracking-wider uppercase">
+                        <Command.Group heading={t("commandPalette.navigation")} className="px-2 py-3 font-ui text-[10px] font-bold text-[var(--text-tertiary)] tracking-wider uppercase">
                             <Command.Item
                                 onSelect={() => runCommand(() => router.push("/proyectos"))}
                                 className="flex items-center px-4 py-3 mt-1 rounded-lg text-sm text-[var(--text-secondary)] hover:bg-[var(--surface-3)] hover:text-white cursor-pointer transition-colors aria-selected:bg-[var(--surface-3)] aria-selected:text-white"
@@ -76,7 +76,7 @@ export function CommandPalette() {
 
                         <Command.Separator className="h-px bg-[var(--border-subtle)] my-2 mx-2" />
 
-                        <Command.Group heading={t("commandPalette.actions")} className="px-2 py-3 text-xs font-semibold text-[var(--text-tertiary)] tracking-wider uppercase">
+                        <Command.Group heading={t("commandPalette.actions")} className="px-2 py-3 font-ui text-[10px] font-bold text-[var(--text-tertiary)] tracking-wider uppercase">
                             <Command.Item
                                 onSelect={() => runCommand(() => {
                                     router.push("/login");

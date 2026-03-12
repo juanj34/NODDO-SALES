@@ -10,6 +10,7 @@ const nav = {
   contacto: "Contacto",
   brochure: "Brochure",
   torre: "Torre",
+  avances: "Avances",
   privacyPolicy: "Política de privacidad",
 } as const;
 
