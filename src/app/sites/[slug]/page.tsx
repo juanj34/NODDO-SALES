@@ -112,7 +112,7 @@ export default function SiteLanding() {
           initial={{ opacity: 0 }}
           animate={isExiting ? { opacity: 0, y: 10 } : { opacity: 1, y: 0 }}
           transition={isExiting ? { duration: 0.4 } : { duration: 1.2, delay: 1.5 }}
-          className="absolute bottom-10 right-8 z-30 flex items-center gap-4"
+          className="absolute bottom-6 right-4 sm:bottom-10 sm:right-8 z-30 flex items-center gap-4"
         >
           {/* Constructora logo */}
           {proyecto.constructora_website ? (
@@ -173,7 +173,7 @@ export default function SiteLanding() {
               <img
                 src={proyecto.logo_url}
                 alt={proyecto.nombre}
-                className={`w-auto object-contain drop-shadow-2xl ${hasBothLogos ? "h-40 lg:h-52" : "h-24"}`}
+                className={`w-auto object-contain drop-shadow-2xl ${hasBothLogos ? "h-28 sm:h-40 lg:h-52" : "h-24"}`}
               />
             ) : (
               <div className="w-24 h-24 rounded-2xl glass flex items-center justify-center shadow-2xl shadow-[var(--site-primary)]/10">
@@ -227,7 +227,7 @@ export default function SiteLanding() {
           {!hasBothLogos && (
             <motion.h1
               variants={fadeUpBlur}
-              className="font-site-heading text-5xl lg:text-8xl font-light tracking-[0.15em] text-white mb-6 leading-tight"
+              className="font-site-heading text-3xl sm:text-5xl lg:text-8xl font-light tracking-[0.15em] text-white mb-6 leading-tight"
               style={{ textShadow: "0 10px 40px rgba(0,0,0,0.8)" }}
             >
               {proyecto.nombre.toUpperCase()}
@@ -248,7 +248,7 @@ export default function SiteLanding() {
           <motion.div variants={fadeUpBlur}>
             <button
               onClick={handleEnter}
-              className="btn-warm group relative overflow-hidden inline-flex items-center gap-3 px-10 py-4 text-sm tracking-[0.3em] uppercase cursor-pointer"
+              className="btn-warm group relative overflow-hidden inline-flex items-center gap-3 px-6 py-3 sm:px-10 sm:py-4 text-sm tracking-[0.3em] uppercase cursor-pointer"
             >
               <div className="absolute inset-0 bg-white/20 -translate-x-full group-hover:animate-[shimmer_1.5s_infinite]" />
               <span className="relative z-10">{t("landing.enterExperience")}</span>
@@ -267,7 +267,7 @@ export default function SiteLanding() {
           initial={{ opacity: 0 }}
           animate={isExiting ? { opacity: 0 } : { opacity: 1 }}
           transition={isExiting ? { duration: 0.4 } : { duration: 1, delay: 2 }}
-          className="absolute bottom-4 left-0 right-0 z-30 px-8 text-center"
+          className="absolute bottom-2 sm:bottom-4 left-0 right-0 z-30 px-4 sm:px-8 text-center"
         >
           <p className="text-[10px] text-white/25 max-w-2xl mx-auto leading-relaxed">
             {proyecto.disclaimer}

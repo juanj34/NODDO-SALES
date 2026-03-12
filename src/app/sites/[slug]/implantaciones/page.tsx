@@ -5,6 +5,8 @@ import { motion, AnimatePresence } from "framer-motion";
 import { X, Layers, MapPin } from "lucide-react";
 import { useSiteProject } from "@/hooks/useSiteProject";
 import { SectionTransition } from "@/components/site/SectionTransition";
+import { useMediaQuery } from "@/hooks/useMediaQuery";
+import { MobileBottomSheet } from "@/components/site/MobileBottomSheet";
 import { cn } from "@/lib/utils";
 import type { PlanoInteractivo, PlanoPunto } from "@/types";
 import { useTranslation } from "@/i18n";
@@ -39,6 +41,8 @@ export default function ImplantacionesPage() {
   const [selectedPuntoId, setSelectedPuntoId] = useState<string | null>(null);
   const [hoveredPuntoId, setHoveredPuntoId] = useState<string | null>(null);
   const [imageLoaded, setImageLoaded] = useState(false);
+  const isMobile = useMediaQuery("(max-width: 1023px)");
+  const [sheetOpen, setSheetOpen] = useState(false);
 
   /* ── Render modal ───────────────────────────────────── */
   const [renderModalPunto, setRenderModalPunto] = useState<PlanoPunto | null>(null);
@@ -68,11 +72,12 @@ export default function ImplantacionesPage() {
   const handleHotspotClick = useCallback((punto: PlanoPunto) => {
     setSelectedPuntoId(punto.id);
     scrollToPunto(punto.id);
+    if (isMobile) setSheetOpen(true);
     // If render or image exists, open modal
     if (punto.render_url || punto.imagen_url) {
       setRenderModalPunto(punto);
     }
-  }, [scrollToPunto]);
+  }, [scrollToPunto, isMobile]);
 
   /* ── Handle hotspot click in list ───────────────────── */
   const handleListItemClick = useCallback((punto: PlanoPunto) => {
@@ -119,6 +124,123 @@ export default function ImplantacionesPage() {
     );
   }
 
+  /* ── Sidebar content (shared between desktop sidebar + mobile sheet) ── */
+  const sidebarContent = (
+    <>
+      {/* ── Plan title + description ── */}
+      <div className="flex-shrink-0 p-5 pb-0">
+        {activePlano && (
+          <>
+            <p className="text-[10px] tracking-[0.3em] text-[var(--site-primary)] uppercase mb-2">
+              {t("implantaciones.heading")}
+            </p>
+            <h2 className="font-site-heading text-xl text-white leading-tight mb-2">
+              {activePlano.nombre}
+            </h2>
+            {activePlano.descripcion && (
+              <p className="text-sm text-[var(--text-secondary)] leading-relaxed mb-4">
+                {activePlano.descripcion}
+              </p>
+            )}
+          </>
+        )}
+      </div>
+
+      {/* ── Divider ── */}
+      <div className="border-t border-white/5 mx-5" />
+
+      {/* ── Hotspots section ── */}
+      <div className="flex-shrink-0 px-5 pt-4 pb-2 flex items-center justify-between">
+        <p className="text-[10px] tracking-[0.25em] text-[var(--text-tertiary)] uppercase">
+          {t("implantaciones.hotspots")}
+        </p>
+        <span className="text-[10px] text-[var(--text-muted)]">
+          {t("implantaciones.hotspotCount", { count: String(puntos.length) })}
+        </span>
+      </div>
+
+      {/* ── Scrollable hotspot list ── */}
+      <div ref={puntoListRef} className="flex-1 overflow-y-auto scrollbar-hide px-3 pb-5">
+        {puntos.length > 0 ? (
+          <div className="space-y-1.5">
+            {puntos.map((punto, index) => {
+              const isSelected = selectedPuntoId === punto.id;
+              const number = index + 1;
+
+              return (
+                <button
+                  key={punto.id}
+                  data-punto-id={punto.id}
+                  onClick={() => handleListItemClick(punto)}
+                  onMouseEnter={() => setHoveredPuntoId(punto.id)}
+                  onMouseLeave={() => setHoveredPuntoId(null)}
+                  className={cn(
+                    "w-full flex items-center gap-3 px-3 py-3 rounded-xl text-left transition-all duration-200 cursor-pointer group",
+                    isSelected
+                      ? "bg-[rgba(var(--site-primary-rgb),0.10)] ring-1 ring-[rgba(var(--site-primary-rgb),0.25)]"
+                      : "hover:bg-white/5"
+                  )}
+                >
+                  {/* Number badge */}
+                  <span
+                    className={cn(
+                      "w-7 h-7 rounded-full flex items-center justify-center text-[11px] font-bold flex-shrink-0 transition-colors",
+                      isSelected
+                        ? "bg-[var(--site-primary)] text-black"
+                        : "bg-white/10 text-[var(--text-secondary)] group-hover:bg-[rgba(var(--site-primary-rgb),0.2)] group-hover:text-[var(--site-primary)]"
+                    )}
+                  >
+                    {number}
+                  </span>
+
+                  {/* Render thumbnail */}
+                  {(punto.render_url || punto.imagen_url) && (
+                    <div className="w-12 h-9 rounded-lg overflow-hidden bg-white/5 flex-shrink-0">
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img
+                        src={(punto.render_url || punto.imagen_url)!}
+                        alt=""
+                        className="w-full h-full object-cover"
+                      />
+                    </div>
+                  )}
+
+                  {/* Text content */}
+                  <div className="flex-1 min-w-0">
+                    <p className="text-[13px] text-white font-medium truncate">
+                      {punto.titulo}
+                    </p>
+                    {punto.descripcion && (
+                      <p className="text-[11px] text-[var(--text-tertiary)] line-clamp-1 mt-0.5">
+                        {punto.descripcion}
+                      </p>
+                    )}
+                  </div>
+
+                  {/* View render indicator */}
+                  {(punto.render_url || punto.imagen_url) && (
+                    <span className="text-[9px] text-[var(--site-primary)] opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0">
+                      {t("implantaciones.viewRender")}
+                    </span>
+                  )}
+                </button>
+              );
+            })}
+          </div>
+        ) : (
+          <div className="flex items-center justify-center h-full">
+            <div className="text-center">
+              <MapPin size={20} className="text-[var(--text-muted)] mx-auto mb-2" />
+              <p className="text-xs text-[var(--text-muted)]">
+                {t("implantaciones.selectPoint")}
+              </p>
+            </div>
+          </div>
+        )}
+      </div>
+    </>
+  );
+
   return (
     <SectionTransition className="h-screen flex overflow-hidden bg-[var(--site-bg)]">
       {/* ====== LEFT: Interactive plan image ====== */}
@@ -128,7 +250,8 @@ export default function ImplantacionesPage() {
 
         {/* Header overlay — top left */}
         <motion.div
-          className="absolute top-6 left-6 z-20"
+          className="absolute top-6 z-20"
+          style={{ left: isMobile ? "5rem" : "1.5rem" }}
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.2 }}
@@ -150,7 +273,7 @@ export default function ImplantacionesPage() {
 
         {/* ====== Plan Image + Hotspots ====== */}
         <motion.div
-          className="relative z-10 flex items-center justify-center p-8"
+          className="relative z-10 flex items-center justify-center p-4 lg:p-8"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.3, duration: 0.5 }}
@@ -255,7 +378,10 @@ export default function ImplantacionesPage() {
         {/* ====== Bottom-left: Plan selector (if multiple) ====== */}
         {planos.length > 1 && (
           <motion.div
-            className="absolute bottom-6 left-6 z-20 glass rounded-2xl p-3"
+            className={cn(
+              "absolute z-20 glass rounded-2xl p-3",
+              isMobile ? "bottom-20 left-4" : "bottom-6 left-6"
+            )}
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.5, duration: 0.5 }}
@@ -301,125 +427,31 @@ export default function ImplantacionesPage() {
         )}
       </div>
 
-      {/* ====== RIGHT: Always-visible detail panel ====== */}
-      <motion.div
-        initial={{ opacity: 0, x: 20 }}
-        animate={{ opacity: 1, x: 0 }}
-        transition={{ delay: 0.4, duration: 0.5 }}
-        className="w-[380px] h-full flex-shrink-0 bg-[var(--surface-0)]/95 backdrop-blur-xl border-l border-[var(--border-default)] flex flex-col z-20"
-      >
-        {/* ── Plan title + description ── */}
-        <div className="flex-shrink-0 p-5 pb-0">
-          {activePlano && (
-            <>
-              <p className="text-[10px] tracking-[0.3em] text-[var(--site-primary)] uppercase mb-2">
-                {t("implantaciones.heading")}
-              </p>
-              <h2 className="font-site-heading text-xl text-white leading-tight mb-2">
-                {activePlano.nombre}
-              </h2>
-              {activePlano.descripcion && (
-                <p className="text-sm text-[var(--text-secondary)] leading-relaxed mb-4">
-                  {activePlano.descripcion}
-                </p>
-              )}
-            </>
-          )}
-        </div>
-
-        {/* ── Divider ── */}
-        <div className="border-t border-white/5 mx-5" />
-
-        {/* ── Hotspots section ── */}
-        <div className="flex-shrink-0 px-5 pt-4 pb-2 flex items-center justify-between">
-          <p className="text-[10px] tracking-[0.25em] text-[var(--text-tertiary)] uppercase">
-            {t("implantaciones.hotspots")}
-          </p>
-          <span className="text-[10px] text-[var(--text-muted)]">
-            {t("implantaciones.hotspotCount", { count: String(puntos.length) })}
-          </span>
-        </div>
-
-        {/* ── Scrollable hotspot list ── */}
-        <div ref={puntoListRef} className="flex-1 overflow-y-auto scrollbar-hide px-3 pb-5">
-          {puntos.length > 0 ? (
-            <div className="space-y-1.5">
-              {puntos.map((punto, index) => {
-                const isSelected = selectedPuntoId === punto.id;
-                const number = index + 1;
-
-                return (
-                  <button
-                    key={punto.id}
-                    data-punto-id={punto.id}
-                    onClick={() => handleListItemClick(punto)}
-                    onMouseEnter={() => setHoveredPuntoId(punto.id)}
-                    onMouseLeave={() => setHoveredPuntoId(null)}
-                    className={cn(
-                      "w-full flex items-center gap-3 px-3 py-3 rounded-xl text-left transition-all duration-200 cursor-pointer group",
-                      isSelected
-                        ? "bg-[rgba(var(--site-primary-rgb),0.10)] ring-1 ring-[rgba(var(--site-primary-rgb),0.25)]"
-                        : "hover:bg-white/5"
-                    )}
-                  >
-                    {/* Number badge */}
-                    <span
-                      className={cn(
-                        "w-7 h-7 rounded-full flex items-center justify-center text-[11px] font-bold flex-shrink-0 transition-colors",
-                        isSelected
-                          ? "bg-[var(--site-primary)] text-black"
-                          : "bg-white/10 text-[var(--text-secondary)] group-hover:bg-[rgba(var(--site-primary-rgb),0.2)] group-hover:text-[var(--site-primary)]"
-                      )}
-                    >
-                      {number}
-                    </span>
-
-                    {/* Render thumbnail */}
-                    {(punto.render_url || punto.imagen_url) && (
-                      <div className="w-12 h-9 rounded-lg overflow-hidden bg-white/5 flex-shrink-0">
-                        {/* eslint-disable-next-line @next/next/no-img-element */}
-                        <img
-                          src={(punto.render_url || punto.imagen_url)!}
-                          alt=""
-                          className="w-full h-full object-cover"
-                        />
-                      </div>
-                    )}
-
-                    {/* Text content */}
-                    <div className="flex-1 min-w-0">
-                      <p className="text-[13px] text-white font-medium truncate">
-                        {punto.titulo}
-                      </p>
-                      {punto.descripcion && (
-                        <p className="text-[11px] text-[var(--text-tertiary)] line-clamp-1 mt-0.5">
-                          {punto.descripcion}
-                        </p>
-                      )}
-                    </div>
-
-                    {/* View render indicator */}
-                    {(punto.render_url || punto.imagen_url) && (
-                      <span className="text-[9px] text-[var(--site-primary)] opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0">
-                        {t("implantaciones.viewRender")}
-                      </span>
-                    )}
-                  </button>
-                );
-              })}
-            </div>
-          ) : (
-            <div className="flex items-center justify-center h-full">
-              <div className="text-center">
-                <MapPin size={20} className="text-[var(--text-muted)] mx-auto mb-2" />
-                <p className="text-xs text-[var(--text-muted)]">
-                  {t("implantaciones.selectPoint")}
-                </p>
-              </div>
-            </div>
-          )}
-        </div>
-      </motion.div>
+      {/* ====== RIGHT: Sidebar (desktop) / Bottom Sheet (mobile) ====== */}
+      {!isMobile && (
+        <motion.div
+          initial={{ opacity: 0, x: 20 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ delay: 0.4, duration: 0.5 }}
+          className="w-[380px] h-full flex-shrink-0 bg-[var(--surface-0)]/95 backdrop-blur-xl border-l border-[var(--border-default)] flex flex-col z-20"
+        >
+          {sidebarContent}
+        </motion.div>
+      )}
+      {isMobile && (
+        <MobileBottomSheet
+          isOpen={sheetOpen}
+          onToggle={() => setSheetOpen((o) => !o)}
+          onClose={() => setSheetOpen(false)}
+          fabIcon={<Layers size={18} />}
+          fabLabel={t("mobile.showHotspots")}
+          badgeCount={puntos.length}
+        >
+          <div className="flex flex-col h-full">
+            {sidebarContent}
+          </div>
+        </MobileBottomSheet>
+      )}
 
       {/* ====== RENDER MODAL ====== */}
       <AnimatePresence>

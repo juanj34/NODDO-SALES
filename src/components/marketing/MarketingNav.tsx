@@ -64,7 +64,7 @@ export function MarketingNav() {
         pointerEvents: visible ? "auto" : "none",
       }}
     >
-      <nav className="mx-auto max-w-[1400px] px-6 lg:px-24 py-6 flex items-center justify-between">
+      <nav className="px-6 lg:px-24 py-6 flex items-center justify-between">
         {/* Logo: NOD<gold>DO</gold> */}
         <Link href="/" aria-label="NODDO Home">
           <NodDoLogo height={18} />

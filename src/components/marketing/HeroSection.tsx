@@ -69,7 +69,7 @@ export function HeroSection() {
           initial={{ opacity: 0, y: 24 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8, delay: 0.8, ease: "easeOut" }}
-          className="flex items-center gap-5"
+          className="flex items-center gap-5 flex-wrap sm:flex-nowrap"
         >
           <button onClick={openBooking} className="btn-mk-primary inline-flex items-center gap-2.5">
             Agendar Demo

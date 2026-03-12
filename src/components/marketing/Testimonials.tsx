@@ -5,24 +5,24 @@ import { motion } from "framer-motion";
 const testimonials = [
   {
     quote:
-      "Noddo transformó completamente nuestra sala de ventas. Los clientes llegan más informados y el cierre de ventas se aceleró un 40%.",
-    name: "Carolina Vélez",
-    role: "Directora Comercial",
-    company: "Constructora Primavera",
+      "Lanzamos Torre Candelaria en 3 días. Antes con la agencia nos tardamos 5 meses en tener algo parecido — y costó 12 veces más. Los leads que llegan ya saben qué piso y qué tipología quieren.",
+    name: "Jorge Mora",
+    initials: "JM",
+    role: "Director Comercial · Arco Urbano",
   },
   {
     quote:
-      "Antes tardábamos semanas en actualizar nuestro material de ventas. Con Noddo lo hacemos en minutos y el resultado es impecable.",
-    name: "Andrés Restrepo",
-    role: "Gerente de Proyectos",
-    company: "Grupo Inmobiliario AR",
+      "Manejamos 4 proyectos simultáneos desde un solo dashboard. Antes necesitaba un equipo de marketing para cada uno. Ahora mi equipo de ventas tiene todo en tiempo real.",
+    name: "Lorena Castaño",
+    initials: "LC",
+    role: "Gerente General · Vértice Grupo",
   },
   {
     quote:
-      "La experiencia que Noddo ofrece a nuestros compradores es de otro nivel. Es como tener una sala de ventas digital 24/7.",
-    name: "María José Duarte",
-    role: "CEO",
-    company: "Duarte & Asociados",
+      "El Noddo Grid fue lo que convenció a nuestra junta. Los compradores pueden hacer clic en el edificio y ver exactamente qué unidades quedan. Eso no lo tiene ningún brochure del mercado.",
+    name: "Ricardo Fuentes",
+    initials: "RF",
+    role: "VP de Proyectos · Cimientos & Co",
   },
 ];
 
@@ -40,7 +40,7 @@ export function Testimonials() {
           transition={{ duration: 0.7, ease }}
           className="mk-section-label mb-16"
         >
-          Testimonios
+          Lo que dicen los desarrolladores
         </motion.div>
 
         {/* Cards */}
@@ -51,60 +51,81 @@ export function Testimonials() {
               initial={{ opacity: 0, y: 24 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true, margin: "-60px" }}
-              transition={{ duration: 0.6, delay: i * 0.1, ease }}
-              className="bg-[var(--mk-bg)] p-8 flex flex-col"
+              transition={{ duration: 0.6, delay: i * 0.12, ease }}
+              className="bg-[var(--mk-bg)] p-8 lg:p-10 flex flex-col relative"
             >
-              {/* Gold quote mark */}
-              <svg
-                className="w-6 h-6 mb-6 opacity-30"
-                viewBox="0 0 32 32"
-                fill="var(--mk-accent)"
-                aria-hidden="true"
-              >
-                <path d="M6 18c0-3.3 2.7-6 6-6V8c-5.5 0-10 4.5-10 10v10h10V18H6zm16 0c0-3.3 2.7-6 6-6V8c-5.5 0-10 4.5-10 10v10h10V18h-6z" />
-              </svg>
-
-              {/* Quote */}
-              <p
-                className="text-[13px] leading-[1.85] mb-8 flex-1"
-                style={{ color: "rgba(244, 240, 232, 0.5)" }}
-              >
-                &ldquo;{t.quote}&rdquo;
-              </p>
-
-              {/* Author */}
+              {/* Stars */}
               <div
-                className="pt-5"
+                className="absolute"
                 style={{
-                  borderTop: "1px solid rgba(255, 255, 255, 0.04)",
+                  top: 36,
+                  right: 36,
+                  color: "var(--mk-accent)",
+                  fontSize: 10,
+                  letterSpacing: 2,
                 }}
               >
-                <div className="flex items-center gap-3">
-                  {/* Avatar */}
-                  <div
-                    className="w-9 h-9 flex items-center justify-center text-[9px] font-ui font-bold tracking-wider"
-                    style={{
-                      background: "rgba(184, 151, 58, 0.08)",
-                      color: "var(--mk-accent)",
-                      border: "1px solid rgba(184, 151, 58, 0.2)",
-                    }}
+                ★★★★★
+              </div>
+
+              {/* Quote mark */}
+              <span
+                className="font-heading block mb-4"
+                style={{
+                  fontSize: 80,
+                  fontWeight: 300,
+                  lineHeight: 0.6,
+                  color: "rgba(184,151,58,0.15)",
+                }}
+              >
+                &ldquo;
+              </span>
+
+              {/* Quote text */}
+              <p
+                className="text-[13px] leading-[1.9] mb-7 flex-1 italic"
+                style={{ color: "rgba(244, 240, 232, 0.6)" }}
+              >
+                {t.quote}
+              </p>
+
+              {/* Divider */}
+              <div
+                className="mb-5"
+                style={{
+                  width: 32,
+                  height: 1,
+                  background: "rgba(184,151,58,0.3)",
+                }}
+              />
+
+              {/* Author */}
+              <div className="flex items-center gap-3.5">
+                {/* Avatar */}
+                <div
+                  className="flex-shrink-0 flex items-center justify-center font-heading"
+                  style={{
+                    width: 40,
+                    height: 40,
+                    background: "#1e1e1e",
+                    border: "1px solid rgba(184,151,58,0.15)",
+                    fontSize: 16,
+                    fontWeight: 300,
+                    color: "var(--mk-accent)",
+                  }}
+                >
+                  {t.initials}
+                </div>
+                <div>
+                  <p className="font-ui text-[11px] font-bold tracking-[0.06em] text-[var(--mk-text-primary)] mb-0.5">
+                    {t.name}
+                  </p>
+                  <p
+                    className="text-[9px] tracking-[0.1em]"
+                    style={{ color: "rgba(244, 240, 232, 0.3)" }}
                   >
-                    {t.name
-                      .split(" ")
-                      .map((n) => n[0])
-                      .join("")}
-                  </div>
-                  <div>
-                    <p className="font-ui text-[11px] font-semibold text-[var(--mk-text-primary)] tracking-wide">
-                      {t.name}
-                    </p>
-                    <p
-                      className="text-[9px] tracking-[0.1em]"
-                      style={{ color: "rgba(244, 240, 232, 0.3)" }}
-                    >
-                      {t.role}, {t.company}
-                    </p>
-                  </div>
+                    {t.role}
+                  </p>
                 </div>
               </div>
             </motion.div>

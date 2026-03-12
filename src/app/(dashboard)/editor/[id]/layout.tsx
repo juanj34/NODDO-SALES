@@ -466,8 +466,8 @@ export default function EditorLayout({
             </div>
           )}
           {/* ── Publish header strip ── */}
-          {!isCollaborator && <div className="shrink-0 flex items-center justify-between px-3 md:px-6 h-12 border-b border-[var(--border-subtle)] bg-[var(--surface-1)]/60 backdrop-blur-sm">
-            {/* Left: status badge + last published */}
+          {!isCollaborator && <div className="shrink-0 flex items-center justify-end gap-3 px-3 md:px-6 h-12 border-b border-[var(--border-subtle)] bg-[var(--surface-1)]/60 backdrop-blur-sm">
+            {/* Status badge + last published + auto-save */}
             <div className="flex items-center gap-3">
               <span
                 className={cn(

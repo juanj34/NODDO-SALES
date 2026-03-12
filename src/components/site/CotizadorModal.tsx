@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Send, CheckCircle, Loader2, Maximize, BedDouble, Bath, MapPin, Eye } from "lucide-react";
+import { Send, CheckCircle, Loader2, Maximize, BedDouble, Bath, MapPin, Eye, ShieldCheck, Mail } from "lucide-react";
 import { CloseButton } from "@/components/ui/CloseButton";
 import { cn } from "@/lib/utils";
 import type { Unidad, Tipologia } from "@/types";
@@ -140,7 +140,7 @@ export function CotizadorModal({ isOpen, onClose, unidad, tipologia, proyectoId 
 
           {/* Modal */}
           <motion.div
-            className="relative w-full max-w-lg glass-card rounded-3xl overflow-hidden"
+            className="relative w-full max-w-lg glass-card rounded-3xl overflow-hidden border border-[rgba(var(--site-primary-rgb),0.15)] shadow-[0_0_40px_rgba(var(--site-primary-rgb),0.08)]"
             initial={{ opacity: 0, scale: 0.95, y: 20 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.95, y: 20 }}
@@ -160,14 +160,24 @@ export function CotizadorModal({ isOpen, onClose, unidad, tipologia, proyectoId 
                 animate={{ opacity: 1, scale: 1 }}
                 className="p-12 flex flex-col items-center justify-center gap-4"
               >
-                <CheckCircle size={48} className="text-[var(--site-primary)]" />
-                <h3 className="text-xl text-white font-light">{tCommon("success.requestSent")}</h3>
-                <p className="text-[var(--text-tertiary)] text-sm text-center">
+                <div className="animate-success-pop">
+                  <div className="w-16 h-16 rounded-full bg-[rgba(var(--site-primary-rgb),0.1)] border border-[rgba(var(--site-primary-rgb),0.2)] flex items-center justify-center">
+                    <CheckCircle size={32} className="text-[var(--site-primary)]" />
+                  </div>
+                </div>
+                <h3 className="text-xl text-white font-light">{tSite("contacto.successHeading")}</h3>
+                <p className="text-[var(--text-tertiary)] text-sm text-center max-w-xs">
                   {tCommon("success.advisorContactUnit", { unit: unidad.identificador })}
                 </p>
+                <div className="flex items-center gap-2">
+                  <Mail size={14} className="text-[var(--text-muted)]" />
+                  <p className="text-xs text-[var(--text-muted)]">
+                    {tSite("contacto.successNext")}
+                  </p>
+                </div>
                 <button
                   onClick={handleClose}
-                  className="mt-4 btn-outline-warm px-6 py-2 text-sm tracking-wider cursor-pointer"
+                  className="mt-2 btn-outline-warm px-6 py-2 text-sm tracking-wider cursor-pointer"
                 >
                   {tCommon("buttons.close")}
                 </button>
@@ -246,51 +256,76 @@ export function CotizadorModal({ isOpen, onClose, unidad, tipologia, proyectoId 
                 {/* Form */}
                 <form onSubmit={handleSubmit} className="space-y-3">
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                    <input
-                      type="text"
-                      name="nombre"
-                      placeholder={tCommon("form.fullName")}
-                      required
-                      value={formData.nombre}
-                      onChange={handleChange}
-                      className="input-glass w-full"
-                    />
-                    <input
-                      type="email"
-                      name="email"
-                      placeholder={tCommon("form.email")}
-                      required
-                      value={formData.email}
-                      onChange={handleChange}
-                      className="input-glass w-full"
-                    />
+                    <div>
+                      <label className="block text-[10px] tracking-[0.2em] uppercase text-[var(--text-tertiary)] mb-1 font-mono">
+                        {tCommon("form.fullName")}
+                      </label>
+                      <input
+                        type="text"
+                        name="nombre"
+                        placeholder="Juan Pérez"
+                        required
+                        value={formData.nombre}
+                        onChange={handleChange}
+                        className="input-glass w-full"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-[10px] tracking-[0.2em] uppercase text-[var(--text-tertiary)] mb-1 font-mono">
+                        {tCommon("form.email")}
+                      </label>
+                      <input
+                        type="email"
+                        name="email"
+                        placeholder="juan@email.com"
+                        required
+                        value={formData.email}
+                        onChange={handleChange}
+                        className="input-glass w-full"
+                      />
+                    </div>
                   </div>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                    <input
-                      type="tel"
-                      name="telefono"
-                      placeholder={tCommon("form.phone")}
-                      value={formData.telefono}
+                    <div>
+                      <label className="block text-[10px] tracking-[0.2em] uppercase text-[var(--text-tertiary)] mb-1 font-mono">
+                        {tCommon("form.phone")}
+                      </label>
+                      <input
+                        type="tel"
+                        name="telefono"
+                        placeholder="+57 300 000 0000"
+                        value={formData.telefono}
+                        onChange={handleChange}
+                        className="input-glass w-full"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-[10px] tracking-[0.2em] uppercase text-[var(--text-tertiary)] mb-1 font-mono">
+                        {tCommon("form.country")}
+                      </label>
+                      <input
+                        type="text"
+                        name="pais"
+                        placeholder="Colombia"
+                        value={formData.pais}
+                        onChange={handleChange}
+                        className="input-glass w-full"
+                      />
+                    </div>
+                  </div>
+                  <div>
+                    <label className="block text-[10px] tracking-[0.2em] uppercase text-[var(--text-tertiary)] mb-1 font-mono">
+                      {tCommon("form.messageOptional")}
+                    </label>
+                    <textarea
+                      name="mensaje"
+                      placeholder="..."
+                      rows={2}
+                      value={formData.mensaje}
                       onChange={handleChange}
-                      className="input-glass w-full"
-                    />
-                    <input
-                      type="text"
-                      name="pais"
-                      placeholder={tCommon("form.country")}
-                      value={formData.pais}
-                      onChange={handleChange}
-                      className="input-glass w-full"
+                      className="input-glass w-full resize-none"
                     />
                   </div>
-                  <textarea
-                    name="mensaje"
-                    placeholder={tCommon("form.messageOptional")}
-                    rows={2}
-                    value={formData.mensaje}
-                    onChange={handleChange}
-                    className="input-glass w-full resize-none"
-                  />
                   <motion.button
                     type="submit"
                     disabled={isSubmitting}
@@ -310,6 +345,13 @@ export function CotizadorModal({ isOpen, onClose, unidad, tipologia, proyectoId 
                       {error}
                     </p>
                   )}
+                  {/* Trust footer */}
+                  <div className="flex items-center justify-center gap-2 pt-1">
+                    <ShieldCheck size={14} className="text-[rgba(var(--site-primary-rgb),0.4)]" />
+                    <p className="text-[10px] text-[var(--text-muted)]">
+                      {tSite("contacto.trustLine")}
+                    </p>
+                  </div>
                 </form>
               </div>
             )}

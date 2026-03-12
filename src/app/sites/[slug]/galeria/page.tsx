@@ -160,7 +160,7 @@ export default function GaleriaPage() {
       {/* Scope tabs — only when multiple scopes exist */}
       {hasMultipleScopes && (
         <motion.div
-          className="absolute top-6 left-10 z-20 flex items-center gap-5"
+          className="absolute top-20 left-4 lg:top-6 lg:left-10 z-20 flex items-center gap-4 lg:gap-5 overflow-x-auto scrollbar-hide max-w-[calc(100vw-2rem)] lg:max-w-none"
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.2, duration: 0.5 }}
@@ -192,8 +192,8 @@ export default function GaleriaPage() {
       {/* Category tabs — top-left underline style */}
       <motion.div
         className={cn(
-          "absolute left-10 z-20 flex items-center gap-6",
-          hasMultipleScopes ? "top-16" : "top-8"
+          "absolute left-4 lg:left-10 z-20 flex items-center gap-4 lg:gap-6 overflow-x-auto scrollbar-hide max-w-[calc(100vw-2rem)] lg:max-w-none",
+          hasMultipleScopes ? "top-32 lg:top-16" : "top-20 lg:top-8"
         )}
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -224,7 +224,7 @@ export default function GaleriaPage() {
 
       {/* Bottom section: Title + Arrows + Counter + Dots */}
       <motion.div
-        className="absolute bottom-10 left-10 right-10 z-20 flex items-end justify-between"
+        className="absolute bottom-6 left-4 right-4 lg:bottom-10 lg:left-10 lg:right-10 z-20 flex items-end justify-between"
         initial={{ opacity: 0, y: 30 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.4, duration: 0.6 }}
@@ -239,7 +239,7 @@ export default function GaleriaPage() {
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -10 }}
                 transition={{ duration: 0.3 }}
-                className="font-site-heading text-3xl lg:text-5xl tracking-wider text-white mb-4"
+                className="font-site-heading text-xl sm:text-3xl lg:text-5xl tracking-wider text-white mb-4"
                 style={{ textShadow: "0 2px 20px rgba(0,0,0,0.5)" }}
               >
                 {current.alt_text}
@@ -273,8 +273,8 @@ export default function GaleriaPage() {
               {String(activeSlide + 1).padStart(2, "0")} / {String(currentImages.length).padStart(2, "0")}
             </span>
 
-            {/* Thumbnails Strip */}
-            <div className="flex items-center gap-2 overflow-x-auto scrollbar-hide flex-shrink-0 max-w-[40vw] pl-2 py-2">
+            {/* Thumbnails Strip — hidden on small screens */}
+            <div className="hidden sm:flex items-center gap-2 overflow-x-auto scrollbar-hide flex-shrink-0 max-w-[40vw] pl-2 py-2">
               <AnimatePresence mode="popLayout">
                 {currentImages.map((img, idx) => (
                   <motion.button
