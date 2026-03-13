@@ -466,5 +466,7 @@ export interface Cotizacion {
   utm_source: string | null;
   utm_medium: string | null;
   utm_campaign: string | null;
+  agente_id: string | null;
+  agente_nombre: string | null;
   created_at: string;
 }

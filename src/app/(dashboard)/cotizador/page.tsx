@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useMemo } from "react";
-import { Loader2, ExternalLink, FileText, Search, Download } from "lucide-react";
+import { Loader2, ExternalLink, FileText, Search, Download, User } from "lucide-react";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
 import { useTranslation } from "@/i18n";
@@ -56,12 +56,14 @@ const frecLabels: Record<string, string> = {
   trimestral: "Trimestral",
 };
 
+const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
 /* ── Page ──────────────────────────────────────────────── */
 
 export default function CotizadorPage() {
   const { t } = useTranslation("dashboard");
   const toast = useToast();
-  const { role } = useAuthRole();
+  const { user, role } = useAuthRole();
 
   // Projects
   const [projects, setProjects] = useState<ProjectForCotizador[]>([]);
@@ -76,8 +78,15 @@ export default function CotizadorPage() {
   const [selectedUnitId, setSelectedUnitId] = useState<string | null>(null);
   const [search, setSearch] = useState("");
 
+  // Client info
+  const [clientName, setClientName] = useState("");
+  const [clientEmail, setClientEmail] = useState("");
+  const [clientPhone, setClientPhone] = useState("");
+
   // PDF generation
   const [generating, setGenerating] = useState(false);
+
+  const isAdmin = role === "admin";
 
   // Fetch projects (need cotizador_config fields)
   useEffect(() => {
@@ -159,9 +168,12 @@ export default function CotizadorPage() {
     return calcularCotizacion(selectedUnit.precio, selectedProject.cotizador_config);
   }, [selectedUnit, selectedProject]);
 
+  // Client form validation
+  const clientFormValid = clientName.trim().length > 0 && EMAIL_RE.test(clientEmail.trim());
+
   // Generate PDF
   const handleGeneratePdf = async () => {
-    if (!selectedUnit || !selectedProjectId) return;
+    if (!selectedUnit || !selectedProjectId || !clientFormValid) return;
     setGenerating(true);
     try {
       const res = await fetch("/api/cotizaciones", {
@@ -170,8 +182,11 @@ export default function CotizadorPage() {
         body: JSON.stringify({
           proyecto_id: selectedProjectId,
           unidad_id: selectedUnit.id,
-          nombre: "Cotización interna",
-          email: "admin@noddo.co",
+          nombre: clientName.trim(),
+          email: clientEmail.trim(),
+          telefono: clientPhone.trim() || undefined,
+          agente_id: user?.id,
+          agente_nombre: user?.email,
         }),
       });
 
@@ -181,6 +196,10 @@ export default function CotizadorPage() {
           window.open(pdf_url, "_blank");
         }
         toast.success("Cotización generada");
+        // Reset client form
+        setClientName("");
+        setClientEmail("");
+        setClientPhone("");
       } else {
         const err = await res.json();
         toast.error(err.error || "Error al generar cotización");
@@ -256,15 +275,17 @@ export default function CotizadorPage() {
         <div className="bg-[var(--surface-1)] rounded-xl border border-[var(--border-subtle)] p-10 text-center">
           <FileText size={32} className="mx-auto text-[var(--text-muted)] mb-4" />
           <p className="text-sm text-[var(--text-tertiary)] mb-3">
-            {t("cotizador.notConfigured")}
+            {isAdmin ? t("cotizador.notConfigured") : t("cotizador.notConfiguredCollab")}
           </p>
-          <Link
-            href={`/editor/${selectedProjectId}/config`}
-            className="inline-flex items-center gap-1.5 text-xs text-[var(--site-primary)] hover:underline"
-          >
-            {t("cotizador.configureLink")}
-            <ExternalLink size={12} />
-          </Link>
+          {isAdmin && (
+            <Link
+              href={`/editor/${selectedProjectId}/config`}
+              className="inline-flex items-center gap-1.5 text-xs text-[var(--site-primary)] hover:underline"
+            >
+              {t("cotizador.configureLink")}
+              <ExternalLink size={12} />
+            </Link>
+          )}
         </div>
       ) : (
         <div className="grid grid-cols-1 lg:grid-cols-5 gap-5">
@@ -420,11 +441,47 @@ export default function CotizadorPage() {
                   </div>
                 </div>
 
+                {/* Client info form */}
+                <div className="p-4 rounded-xl bg-[var(--surface-2)] border border-[var(--border-subtle)]">
+                  <div className="flex items-center gap-2 mb-4">
+                    <User size={14} className="text-[var(--site-primary)]" />
+                    <span className="font-ui text-[9px] font-bold uppercase tracking-[0.14em] text-[var(--text-muted)]">
+                      {t("cotizador.clientInfo")}
+                    </span>
+                  </div>
+                  <div className="space-y-3">
+                    <input
+                      type="text"
+                      value={clientName}
+                      onChange={(e) => setClientName(e.target.value)}
+                      placeholder={t("cotizador.clientName")}
+                      className="input-glass w-full text-xs"
+                    />
+                    <input
+                      type="email"
+                      value={clientEmail}
+                      onChange={(e) => setClientEmail(e.target.value)}
+                      placeholder={t("cotizador.clientEmail")}
+                      className="input-glass w-full text-xs"
+                    />
+                    <input
+                      type="tel"
+                      value={clientPhone}
+                      onChange={(e) => setClientPhone(e.target.value)}
+                      placeholder={t("cotizador.clientPhone")}
+                      className="input-glass w-full text-xs"
+                    />
+                  </div>
+                </div>
+
                 {/* Generate PDF */}
                 <button
                   onClick={handleGeneratePdf}
-                  disabled={generating}
-                  className="btn-noddo w-full py-3 font-ui text-xs font-bold uppercase tracking-[0.1em] flex items-center justify-center gap-2"
+                  disabled={generating || !clientFormValid}
+                  className={cn(
+                    "btn-noddo w-full py-3 font-ui text-xs font-bold uppercase tracking-[0.1em] flex items-center justify-center gap-2",
+                    !clientFormValid && !generating && "opacity-50 cursor-not-allowed"
+                  )}
                 >
                   {generating ? (
                     <Loader2 size={14} className="animate-spin" />

@@ -31,7 +31,7 @@ const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { proyecto_id, unidad_id, nombre, email, telefono, utm_source, utm_medium, utm_campaign } = body;
+    const { proyecto_id, unidad_id, nombre, email, telefono, utm_source, utm_medium, utm_campaign, agente_id, agente_nombre } = body;
 
     // Validate required fields
     if (!proyecto_id || !unidad_id || !nombre || !email) {
@@ -109,6 +109,8 @@ export async function POST(request: NextRequest) {
       config,
       buyerName: sanitize(nombre, 200),
       buyerEmail: sanitize(email, 320),
+      buyerPhone: telefono ? sanitize(telefono, 30) : null,
+      agenteName: agente_nombre ? sanitize(agente_nombre, 200) : null,
       fecha,
     });
 
@@ -161,6 +163,8 @@ export async function POST(request: NextRequest) {
         utm_source: utm_source ? sanitize(utm_source, 200) : null,
         utm_medium: utm_medium ? sanitize(utm_medium, 200) : null,
         utm_campaign: utm_campaign ? sanitize(utm_campaign, 200) : null,
+        agente_id: agente_id || null,
+        agente_nombre: agente_nombre ? sanitize(agente_nombre, 200) : null,
       });
 
     if (insertErr) {

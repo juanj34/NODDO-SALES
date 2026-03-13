@@ -272,16 +272,14 @@ function DashboardShell({ children }: { children: React.ReactNode }) {
             onClick={closeDrawer}
             iconSize={15}
           />
-          {isAdmin && (
-            <SidebarLink
-              href="/cotizador"
-              icon={Calculator}
-              label={t("sidebar.cotizador")}
-              pathname={pathname}
-              onClick={closeDrawer}
-              iconSize={15}
-            />
-          )}
+          <SidebarLink
+            href="/cotizador"
+            icon={Calculator}
+            label={t("sidebar.cotizador")}
+            pathname={pathname}
+            onClick={closeDrawer}
+            iconSize={15}
+          />
 
           {/* ── Divider ────────────────────────── */}
           <div className="!my-3 h-px bg-[var(--border-subtle)]" />
