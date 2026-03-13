@@ -1,14 +1,14 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 
 /**
  * Like `useState`, but persists the value in localStorage namespaced by slug.
  *
  * Key format: `noddo:{slug}:{key}` — so different projects never collide.
  *
- * SSR-safe: returns `defaultValue` during server render and hydrates from
- * localStorage on first client render.
+ * SSR-safe: always starts with `defaultValue` (matching server render),
+ * then hydrates from localStorage after mount to avoid hydration mismatch.
  */
 export function usePersistedState<T>(
   key: string,
@@ -16,20 +16,24 @@ export function usePersistedState<T>(
   slug?: string,
 ): [T, (value: T | ((prev: T) => T)) => void] {
   const storageKey = slug ? `noddo:${slug}:${key}` : `noddo:${key}`;
+  const initialized = useRef(false);
 
-  const [value, setValueRaw] = useState<T>(() => {
-    if (typeof window === "undefined") return defaultValue;
-    try {
-      const stored = localStorage.getItem(storageKey);
-      if (stored === null) return defaultValue;
-      return JSON.parse(stored) as T;
-    } catch {
-      return defaultValue;
-    }
-  });
+  const [value, setValueRaw] = useState<T>(defaultValue);
 
-  // Persist to localStorage whenever the value changes
+  // Hydrate from localStorage on mount, then persist on subsequent changes
   useEffect(() => {
+    if (!initialized.current) {
+      initialized.current = true;
+      try {
+        const stored = localStorage.getItem(storageKey);
+        if (stored !== null) {
+          setValueRaw(JSON.parse(stored) as T);
+          return; // Don't persist the default back — wait for hydrated value
+        }
+      } catch {
+        // ignore
+      }
+    }
     try {
       localStorage.setItem(storageKey, JSON.stringify(value));
     } catch {
