@@ -5,7 +5,8 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useSiteProject } from "@/hooks/useSiteProject";
 import { Lightbox } from "@/components/site/Lightbox";
 import { cn } from "@/lib/utils";
-import { ChevronLeft, ChevronRight, Maximize2, Image as ImageIcon } from "lucide-react";
+import { ChevronLeft, ChevronRight, Maximize2 } from "lucide-react";
+import { SiteEmptyState } from "@/components/site/SiteEmptyState";
 import type { GaleriaCategoria, GaleriaImagen } from "@/types";
 import { useTranslation } from "@/i18n";
 
@@ -24,19 +25,11 @@ export default function GaleriaPage() {
   // Empty state — no gallery categories configured
   if (!categorias || categorias.length === 0) {
     return (
-      <div className="h-screen flex flex-col items-center justify-center gap-4 text-center px-8 bg-[var(--site-bg)]">
-        <div className="w-16 h-16 rounded-2xl bg-white/5 flex items-center justify-center">
-          <ImageIcon size={28} className="text-[var(--text-muted)]" />
-        </div>
-        <div>
-          <h2 className="text-lg font-site-heading text-[var(--text-secondary)] mb-1">
-            {t("galeria.notAvailable")}
-          </h2>
-          <p className="text-sm text-[var(--text-tertiary)]">
-            {t("galeria.notConfigured")}
-          </p>
-        </div>
-      </div>
+      <SiteEmptyState
+        variant="galeria"
+        title={t("galeria.notAvailable")}
+        description={t("galeria.notConfigured")}
+      />
     );
   }
 

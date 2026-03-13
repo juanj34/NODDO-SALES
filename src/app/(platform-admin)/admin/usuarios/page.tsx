@@ -51,8 +51,8 @@ interface UserDetail {
 
 const PLAN_COLORS: Record<string, string> = {
   trial: "text-neutral-400 bg-neutral-500/15 border-neutral-500/20",
-  proyecto: "text-blue-400 bg-blue-500/15 border-blue-500/20",
-  studio: "text-purple-400 bg-purple-500/15 border-purple-500/20",
+  proyecto: "text-[var(--site-primary)] bg-[rgba(184,151,58,0.15)] border-[rgba(184,151,58,0.20)]",
+  studio: "text-[#d4b05a] bg-[rgba(212,176,90,0.15)] border-[rgba(212,176,90,0.20)]",
   enterprise: "text-[var(--site-primary)] bg-[rgba(var(--site-primary-rgb),0.15)] border-[rgba(var(--site-primary-rgb),0.20)]",
 };
 

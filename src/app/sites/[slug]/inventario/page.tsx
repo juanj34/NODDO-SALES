@@ -23,6 +23,7 @@ import { usePersistedState } from "@/hooks/usePersistedState";
 import { useTranslation, getEstadoConfig } from "@/i18n";
 import { CotizadorModal } from "@/components/site/CotizadorModal";
 import { SectionTransition } from "@/components/site/SectionTransition";
+import { SiteEmptyState } from "@/components/site/SiteEmptyState";
 import { cn } from "@/lib/utils";
 import type { Unidad } from "@/types";
 
@@ -51,19 +52,11 @@ export default function InventarioPage() {
   // Empty state — no units configured
   if (!unidades || unidades.length === 0) {
     return (
-      <div className="h-screen flex flex-col items-center justify-center gap-4 text-center px-8 bg-[var(--site-bg)]">
-        <div className="w-16 h-16 rounded-2xl bg-white/5 flex items-center justify-center">
-          <Building2 size={28} className="text-[var(--text-muted)]" />
-        </div>
-        <div>
-          <h2 className="text-lg font-site-heading text-[var(--text-secondary)] mb-1">
-            {tSite("inventario.notAvailable")}
-          </h2>
-          <p className="text-sm text-[var(--text-tertiary)]">
-            {tSite("inventario.notConfigured")}
-          </p>
-        </div>
-      </div>
+      <SiteEmptyState
+        variant="inventario"
+        title={tSite("inventario.notAvailable")}
+        description={tSite("inventario.notConfigured")}
+      />
     );
   }
 
@@ -609,6 +602,8 @@ export default function InventarioPage() {
           unidad={cotizarUnidad}
           tipologia={getTipologiaName(cotizarUnidad.tipologia_id) || undefined}
           proyectoId={proyecto.id}
+          cotizadorEnabled={proyecto.cotizador_enabled}
+          cotizadorConfig={proyecto.cotizador_config}
         />
       )}
     </SectionTransition>

@@ -26,6 +26,7 @@ import { usePersistedState } from "@/hooks/usePersistedState";
 import { useTranslation, getEstadoConfig } from "@/i18n";
 import { CotizadorModal } from "@/components/site/CotizadorModal";
 import { SectionTransition } from "@/components/site/SectionTransition";
+import { SiteEmptyState } from "@/components/site/SiteEmptyState";
 import { useMediaQuery } from "@/hooks/useMediaQuery";
 import { MobileBottomSheet } from "@/components/site/MobileBottomSheet";
 import { cn } from "@/lib/utils";
@@ -51,19 +52,11 @@ export default function ExplorarPage() {
   // Empty state — no fachadas configured
   if (!fachadas || fachadas.length === 0) {
     return (
-      <div className="h-screen flex flex-col items-center justify-center gap-4 text-center px-8 bg-[var(--site-bg)]">
-        <div className="w-16 h-16 rounded-2xl bg-white/5 flex items-center justify-center">
-          <Compass size={28} className="text-[var(--text-muted)]" />
-        </div>
-        <div>
-          <h2 className="text-lg font-site-heading text-[var(--text-secondary)] mb-1">
-            {tSite("explorar.notAvailable")}
-          </h2>
-          <p className="text-sm text-[var(--text-tertiary)]">
-            {tSite("explorar.notConfigured")}
-          </p>
-        </div>
-      </div>
+      <SiteEmptyState
+        variant="explorar"
+        title={tSite("explorar.notAvailable")}
+        description={tSite("explorar.notConfigured")}
+      />
     );
   }
 
@@ -895,6 +888,8 @@ export default function ExplorarPage() {
           unidad={cotizarUnidad}
           tipologia={tipologias.find((t) => t.id === cotizarUnidad.tipologia_id) || undefined}
           proyectoId={proyecto.id}
+          cotizadorEnabled={proyecto.cotizador_enabled}
+          cotizadorConfig={proyecto.cotizador_config}
         />
       )}
 

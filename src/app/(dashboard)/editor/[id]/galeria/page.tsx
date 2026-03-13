@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useAsyncAction } from "@/hooks/useAsyncAction";
 import { useEditorProject } from "@/hooks/useEditorProject";
 import { useConfirm } from "@/components/dashboard/ConfirmModal";
 import { useToast } from "@/components/dashboard/Toast";
@@ -19,6 +20,7 @@ import {
   emptyStateTitle,
   emptyStateDescription,
 } from "@/components/dashboard/editor-styles";
+import { DashboardEmptyState } from "@/components/dashboard/DashboardEmptyState";
 import {
   Image as ImageIcon,
   Plus,
@@ -196,7 +198,7 @@ export default function GaleriaPage() {
     }
   };
 
-  const deleteCategoria = async () => {
+  const deleteCategoriaAction = useAsyncAction(async () => {
     if (!selectedCatId) return;
     if (!(await confirm({ title: "Eliminar categoría", message: "¿Seguro que deseas eliminar esta categoría y todas sus imágenes?" }))) return;
     try {
@@ -209,7 +211,7 @@ export default function GaleriaPage() {
     } catch {
       toast.error("Error de conexión");
     }
-  };
+  });
 
   const deleteImage = async (imgId: string) => {
     try {
@@ -243,19 +245,16 @@ export default function GaleriaPage() {
 
       {/* Empty state when no categories */}
       {orderedCategories.length === 0 && !showCatForm && (
-        <div className={emptyState}>
-          <div className={emptyStateIcon}>
-            <ImageIcon size={24} className="text-[var(--text-muted)]" />
-          </div>
-          <p className={emptyStateTitle}>{t("galeria.noCategories")}</p>
-          <p className={emptyStateDescription}>
-            {t("galeria.createFirstCategory")}
-          </p>
+        <DashboardEmptyState
+          variant="galeria"
+          title={t("galeria.noCategories")}
+          description={t("galeria.createFirstCategory")}
+        >
           <button onClick={() => setShowCatForm(true)} className={btnPrimary}>
             <Plus size={14} />
             {t("galeria.createFirstButton")}
           </button>
-        </div>
+        </DashboardEmptyState>
       )}
 
       {/* Category tab bar + content */}
@@ -406,8 +405,8 @@ export default function GaleriaPage() {
                     <Upload size={14} />
                     {t("galeria.uploadImages")}
                   </button>
-                  <button onClick={deleteCategoria} className={btnDanger}>
-                    <Trash2 size={12} />
+                  <button onClick={deleteCategoriaAction.execute} disabled={deleteCategoriaAction.loading} className={btnDanger}>
+                    {deleteCategoriaAction.loading ? <Loader2 size={12} className="animate-spin" /> : <Trash2 size={12} />}
                     {t("galeria.delete")}
                   </button>
                 </div>
@@ -436,14 +435,11 @@ export default function GaleriaPage() {
                   ))}
                 </div>
               ) : (
-                <div className={emptyState}>
-                  <div className={emptyStateIcon}>
-                    <ImageIcon size={24} className="text-[var(--text-muted)]" />
-                  </div>
-                  <p className={emptyStateTitle}>{t("galeria.noImages")}</p>
-                  <p className={emptyStateDescription}>
-                    {t("galeria.uploadHint")}
-                  </p>
+                <DashboardEmptyState
+                  variant="imagenes"
+                  title={t("galeria.noImages")}
+                  description={t("galeria.uploadHint")}
+                >
                   <button
                     onClick={() => setShowUploadModal(true)}
                     className={btnPrimary}
@@ -451,7 +447,7 @@ export default function GaleriaPage() {
                     <Upload size={14} />
                     {t("galeria.uploadImages")}
                   </button>
-                </div>
+                </DashboardEmptyState>
               )}
             </div>
           )}

@@ -10,6 +10,7 @@ import { cn } from "@/lib/utils";
 import { sanitizeHtml } from "@/lib/sanitize";
 import type { AvanceObra } from "@/types";
 import { useTranslation } from "@/i18n";
+import { SiteEmptyState } from "@/components/site/SiteEmptyState";
 
 /* ── Helpers ── */
 function formatDate(dateStr: string, locale: string): string {
@@ -207,19 +208,12 @@ export default function AvancesPage() {
             </motion.div>
           )
         ) : (
-          <div className="flex flex-col items-center gap-4 py-12">
-            <div className="w-16 h-16 rounded-2xl bg-white/5 flex items-center justify-center">
-              <IconAvancesHeader className="text-[var(--text-muted)] w-7 h-7" />
-            </div>
-            <div className="text-center">
-              <h2 className="text-lg font-site-heading text-[var(--text-secondary)] mb-1">
-                {t("avances.notAvailable")}
-              </h2>
-              <p className="text-sm text-[var(--text-tertiary)]">
-                {t("avances.notConfigured")}
-              </p>
-            </div>
-          </div>
+          <SiteEmptyState
+            variant="avances"
+            title={t("avances.notAvailable")}
+            description={t("avances.notConfigured")}
+            compact
+          />
         )}
       </div>
 

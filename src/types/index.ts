@@ -32,6 +32,8 @@ export interface Proyecto {
   etapa_label: string;
   background_audio_url: string | null;
   hide_noddo_badge: boolean;
+  cotizador_enabled: boolean;
+  cotizador_config: CotizadorConfig | null;
   created_at: string;
   updated_at: string;
 }
@@ -385,7 +387,14 @@ export interface DashboardSummary {
   total_interactions: number;
   views_sparkline: { bucket: string; views: number }[];
   recent_leads: DashboardRecentLead[];
-  project_stats: Record<string, { views_7d: number; leads_7d: number }>;
+  project_stats: Record<string, {
+    views_7d: number;
+    leads_7d: number;
+    visitors_7d: number;
+    interactions_7d: number;
+    conversion_rate: number;
+    sparkline: { bucket: string; views: number }[];
+  }>;
 }
 
 export interface DashboardRecentLead {
@@ -396,5 +405,63 @@ export interface DashboardRecentLead {
   tipologia_interes: string | null;
   proyecto_nombre: string;
   proyecto_id: string;
+  created_at: string;
+}
+
+/* ── Cotizador ── */
+
+export interface FaseConfig {
+  id: string;
+  nombre: string;
+  tipo: "fijo" | "porcentaje" | "resto";
+  valor: number;
+  cuotas: number;
+  frecuencia: "unica" | "mensual" | "bimestral" | "trimestral";
+}
+
+export interface DescuentoConfig {
+  id: string;
+  nombre: string;
+  tipo: "porcentaje" | "fijo";
+  valor: number;
+}
+
+export interface CotizadorConfig {
+  moneda: string;
+  fases: FaseConfig[];
+  descuentos: DescuentoConfig[];
+  separacion_incluida_en_inicial: boolean;
+  notas_legales: string | null;
+}
+
+export interface FaseResultado {
+  nombre: string;
+  monto_total: number;
+  cuotas: number;
+  monto_por_cuota: number;
+  frecuencia: string;
+}
+
+export interface ResultadoCotizacion {
+  precio_base: number;
+  descuentos_aplicados: { nombre: string; monto: number }[];
+  precio_neto: number;
+  fases: FaseResultado[];
+}
+
+export interface Cotizacion {
+  id: string;
+  proyecto_id: string;
+  unidad_id: string | null;
+  nombre: string;
+  email: string;
+  telefono: string | null;
+  unidad_snapshot: Record<string, unknown>;
+  config_snapshot: CotizadorConfig;
+  resultado: ResultadoCotizacion;
+  pdf_url: string | null;
+  utm_source: string | null;
+  utm_medium: string | null;
+  utm_campaign: string | null;
   created_at: string;
 }

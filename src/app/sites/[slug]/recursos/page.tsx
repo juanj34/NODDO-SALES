@@ -18,6 +18,7 @@ import { cn } from "@/lib/utils";
 import type { Recurso } from "@/types";
 import { useTranslation } from "@/i18n";
 import { trackEvent } from "@/lib/tracking";
+import { SiteEmptyState } from "@/components/site/SiteEmptyState";
 
 const tipoIcons: Record<
   Recurso["tipo"],
@@ -155,19 +156,12 @@ export default function RecursosPage() {
             })}
           </motion.div>
         ) : (
-          <div className="flex flex-col items-center gap-4 py-12">
-            <div className="w-16 h-16 rounded-2xl bg-white/5 flex items-center justify-center">
-              <Download size={28} className="text-[var(--text-muted)]" />
-            </div>
-            <div className="text-center">
-              <h2 className="text-lg font-site-heading text-[var(--text-secondary)] mb-1">
-                {t("recursos.notAvailable")}
-              </h2>
-              <p className="text-sm text-[var(--text-tertiary)]">
-                {t("recursos.notConfigured")}
-              </p>
-            </div>
-          </div>
+          <SiteEmptyState
+            variant="recursos"
+            title={t("recursos.notAvailable")}
+            description={t("recursos.notConfigured")}
+            compact
+          />
         )}
       </div>
 

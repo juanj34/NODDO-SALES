@@ -1,5 +1,7 @@
 "use client";
 
+import { NodDoLogo } from "@/components/ui/NodDoLogo";
+
 export default function GlobalError({
   reset,
 }: {
@@ -19,19 +21,9 @@ export default function GlobalError({
           }}
         >
           <div style={{ textAlign: "center", maxWidth: "400px" }}>
-            {/* NODDO Logo text */}
-            <div style={{ marginBottom: "32px" }}>
-              <span
-                style={{
-                  fontFamily: "Georgia, 'Times New Roman', serif",
-                  fontSize: "28px",
-                  letterSpacing: "0.15em",
-                  fontWeight: 300,
-                }}
-              >
-                <span style={{ color: "#f4f0e8" }}>NOD</span>
-                <span style={{ color: "#b8973a" }}>DO</span>
-              </span>
+            {/* NODDO Logo */}
+            <div style={{ marginBottom: "32px", display: "flex", justifyContent: "center" }}>
+              <NodDoLogo height={28} colorNod="#f4f0e8" colorDo="#b8973a" />
             </div>
 
             {/* Error icon */}

@@ -9,6 +9,7 @@ import {
   btnPrimary,
   btnSecondary,
 } from "@/components/dashboard/editor-styles";
+import { DashboardEmptyState } from "@/components/dashboard/DashboardEmptyState";
 import { FileUploader } from "@/components/dashboard/FileUploader";
 import { HotspotEditor } from "@/components/dashboard/HotspotEditor";
 import { motion, AnimatePresence } from "framer-motion";
@@ -128,7 +129,7 @@ export default function TipologiasPage() {
   const [caracInput, setCaracInput] = useState("");
   const [activeTab, setActiveTab] = useState<TipoTab>("general");
   const [activeTorreId, setActiveTorreId] = useState<string | null>(null);
-  const [showCloneDropdown, setShowCloneDropdown] = useState(false);
+  const [duplicatingId, setDuplicatingId] = useState<string | null>(null);
 
   const filteredTipologias = useMemo(() => {
     if (!isMultiTorre || activeTorreId === null) return tipologias;
@@ -153,7 +154,6 @@ export default function TipologiasPage() {
       setSelectedId(null);
       setForm({ ...emptyTipologia });
     }
-    setShowCloneDropdown(false);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeTorreId]);
 
@@ -291,6 +291,51 @@ export default function TipologiasPage() {
     }
   };
 
+  const handleDuplicate = async (tip: Tipologia) => {
+    if (!(await confirm({ title: t("tipologias.duplicateTitle"), message: t("tipologias.duplicateConfirm") }))) return;
+    setDuplicatingId(tip.id);
+    try {
+      const payload = {
+        proyecto_id: projectId,
+        nombre: `${tip.nombre} (copia)`,
+        descripcion: tip.descripcion || null,
+        area_m2: tip.area_m2,
+        habitaciones: tip.habitaciones,
+        banos: tip.banos,
+        precio_desde: tip.precio_desde,
+        plano_url: tip.plano_url || null,
+        renders: tip.renders || [],
+        caracteristicas: tip.caracteristicas || [],
+        parqueaderos: tip.parqueaderos,
+        area_balcon: tip.area_balcon,
+        hotspots: tip.hotspots || [],
+        ubicacion_plano_url: tip.ubicacion_plano_url || null,
+        torre_ids: tip.torre_ids || [],
+      };
+      const res = await fetch("/api/tipologias", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+      if (res.ok) {
+        const created = await res.json();
+        await refresh();
+        if (created?.id) {
+          setSelectedId(created.id);
+          setIsCreating(false);
+          setForm(tipologiaToForm(created));
+        }
+        toast.success(t("tipologias.duplicated"));
+      } else {
+        toast.error(t("tipologias.duplicateError"));
+      }
+    } catch {
+      toast.error("Error de conexión");
+    } finally {
+      setDuplicatingId(null);
+    }
+  };
+
   const hasEditor = selectedId || isCreating;
 
   /* ─── Empty state ─── */
@@ -299,21 +344,17 @@ export default function TipologiasPage() {
       <motion.div
         initial={{ opacity: 0, y: 8 }}
         animate={{ opacity: 1, y: 0 }}
-        className="flex flex-col items-center justify-center py-24 text-center"
       >
-        <div className="w-14 h-14 rounded-2xl bg-[var(--surface-2)] border border-[var(--border-subtle)] flex items-center justify-center mb-4">
-          <Layers size={24} className="text-[var(--text-muted)]" />
-        </div>
-        <p className="text-sm font-medium text-[var(--text-secondary)] mb-1">
-          {t("tipologias.noTypes")}
-        </p>
-        <p className="text-xs text-[var(--text-tertiary)] mb-4">
-          {t("tipologias.createFirst")}
-        </p>
-        <button onClick={startCreating} className={btnPrimary}>
-          <Plus size={14} />
-          {t("tipologias.createFirstButton")}
-        </button>
+        <DashboardEmptyState
+          variant="tipologias"
+          title={t("tipologias.noTypes")}
+          description={t("tipologias.createFirst")}
+        >
+          <button onClick={startCreating} className={btnPrimary}>
+            <Plus size={14} />
+            {t("tipologias.createFirstButton")}
+          </button>
+        </DashboardEmptyState>
       </motion.div>
     );
   }
@@ -428,21 +469,36 @@ export default function TipologiasPage() {
                   {t.banos != null && <span>{t.banos} baños</span>}
                 </div>
 
-                {/* Delete button — visible on hover */}
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    handleDelete(t.id);
-                  }}
-                  disabled={deletingId === t.id}
-                  className="absolute right-2 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity"
-                >
-                  {deletingId === t.id ? (
-                    <Loader2 size={12} className="animate-spin text-[var(--text-muted)]" />
-                  ) : (
-                    <Trash2 size={12} className="text-[var(--text-muted)] hover:text-red-400" />
-                  )}
-                </button>
+                {/* Action buttons — visible on hover */}
+                <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleDuplicate(t);
+                    }}
+                    disabled={duplicatingId === t.id}
+                    title="Duplicar"
+                  >
+                    {duplicatingId === t.id ? (
+                      <Loader2 size={12} className="animate-spin text-[var(--text-muted)]" />
+                    ) : (
+                      <Copy size={12} className="text-[var(--text-muted)] hover:text-[var(--site-primary)]" />
+                    )}
+                  </button>
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleDelete(t.id);
+                    }}
+                    disabled={deletingId === t.id}
+                  >
+                    {deletingId === t.id ? (
+                      <Loader2 size={12} className="animate-spin text-[var(--text-muted)]" />
+                    ) : (
+                      <Trash2 size={12} className="text-[var(--text-muted)] hover:text-red-400" />
+                    )}
+                  </button>
+                </div>
               </div>
             ))}
 
@@ -841,46 +897,6 @@ export default function TipologiasPage() {
                   >
                     {t("inventario.cancel")}
                   </button>
-                )}
-                {isMultiTorre && selectedId && !isCreating && torres.length > 1 && (
-                  <div className="relative ml-auto">
-                    <button
-                      onClick={() => setShowCloneDropdown(!showCloneDropdown)}
-                      className={btnSecondary}
-                    >
-                      <Copy size={14} />
-                      {t("tipologias.cloneToTower")}
-                    </button>
-                    {showCloneDropdown && (
-                      <div className="absolute bottom-full mb-1 left-0 bg-[var(--surface-2)] border border-[var(--border-default)] rounded-lg shadow-xl p-1 min-w-[160px] z-10">
-                        {torres
-                          .filter(t => !filteredTipologias.find(tip => tip.id === selectedId)?.torre_ids?.includes(t.id))
-                          .map(t => (
-                            <button
-                              key={t.id}
-                              onClick={async () => {
-                                if (!selectedId) return;
-                                const res = await fetch(`/api/tipologias/${selectedId}/clonar`, {
-                                  method: "POST",
-                                  headers: { "Content-Type": "application/json" },
-                                  body: JSON.stringify({ torre_id: t.id }),
-                                });
-                                if (res.ok) {
-                                  toast.success(`Clonada a ${t.nombre}`);
-                                  await refresh();
-                                } else {
-                                  toast.error("Error al clonar");
-                                }
-                                setShowCloneDropdown(false);
-                              }}
-                              className="w-full text-left px-3 py-1.5 text-xs text-[var(--text-secondary)] hover:bg-[var(--surface-3)] rounded-md transition-colors"
-                            >
-                              {t.nombre}
-                            </button>
-                          ))}
-                      </div>
-                    )}
-                  </div>
                 )}
               </div>
             </>

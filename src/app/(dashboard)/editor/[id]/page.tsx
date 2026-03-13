@@ -55,7 +55,6 @@ export default function EditorGeneralPage() {
   const [colorPrimario, setColorPrimario] = useState("#b8973a");
   const [colorSecundario, setColorSecundario] = useState("#ffffff");
   const [colorFondo, setColorFondo] = useState("#0a0a0a");
-  const [estado, setEstado] = useState<"borrador" | "publicado" | "archivado">("borrador");
   const [disclaimer, setDisclaimer] = useState("");
   const [politicaPrivacidadUrl, setPoliticaPrivacidadUrl] = useState("");
   const [renderPrincipalUrl, setRenderPrincipalUrl] = useState("");
@@ -75,7 +74,6 @@ export default function EditorGeneralPage() {
     setColorPrimario(project.color_primario || "#b8973a");
     setColorSecundario(project.color_secundario || "#ffffff");
     setColorFondo(project.color_fondo || "#0a0a0a");
-    setEstado(project.estado || "borrador");
     setDisclaimer(project.disclaimer || "");
     setPoliticaPrivacidadUrl(project.politica_privacidad_url || "");
     setRenderPrincipalUrl(project.render_principal_url || "");
@@ -96,7 +94,6 @@ export default function EditorGeneralPage() {
       color_primario: colorPrimario,
       color_secundario: colorSecundario,
       color_fondo: colorFondo,
-      estado,
       disclaimer,
       politica_privacidad_url: politicaPrivacidadUrl || null,
       render_principal_url: renderPrincipalUrl || null,
@@ -179,43 +176,30 @@ export default function EditorGeneralPage() {
         >
           {/* ═══ Proyecto ═══ */}
           {activeTab === "proyecto" && (
-            <div className={sectionCard}>
-              <h3 className={sectionTitle}>
-                <Building2 size={15} className="text-[var(--site-primary)]" />
-                {t("general.project.title")}
-              </h3>
-              <p className={sectionDescription}>
-                {t("general.project.description")}
-              </p>
+            <div className="space-y-6">
+              <div className={sectionCard}>
+                <h3 className={sectionTitle}>
+                  <Building2 size={15} className="text-[var(--site-primary)]" />
+                  {t("general.project.title")}
+                </h3>
+                <p className={sectionDescription}>
+                  {t("general.project.description")}
+                </p>
 
-              <div className="space-y-5">
-                <div>
-                  <label className={labelClass}>{t("general.project.name")}</label>
-                  <input type="text" value={nombre} onChange={(e) => { setNombre(e.target.value); scheduleAutoSave(); }} className={inputClass} placeholder={t("general.project.namePlaceholder")} />
-                </div>
+                <div className="space-y-5">
+                  <div>
+                    <label className={labelClass}>{t("general.project.name")}</label>
+                    <input type="text" value={nombre} onChange={(e) => { setNombre(e.target.value); scheduleAutoSave(); }} className={inputClass} placeholder={t("general.project.namePlaceholder")} />
+                  </div>
 
-                <div>
-                  <label className={labelClass}>{t("general.project.slug")}</label>
-                  <input type="text" value={slug} onChange={(e) => { setSlug(e.target.value); scheduleAutoSave(); }} className={inputClass} placeholder={t("general.project.slugPlaceholder")} />
-                  <p className={fieldHint}>{t("general.project.slugHint", { slug: slug || "your-project" })}</p>
-                </div>
-
-                <div>
-                  <label className={labelClass}>{t("general.project.stateLabel")}</label>
-                  <select value={estado} onChange={(e) => { setEstado(e.target.value as typeof estado); scheduleAutoSave(); }} className={inputClass}>
-                    <option value="borrador">{t("general.project.stateDraft")}</option>
-                    <option value="publicado">{t("general.project.statePublished")}</option>
-                    <option value="archivado">{t("general.project.stateArchived")}</option>
-                  </select>
-                  <p className={fieldHint}>{t("general.project.stateHint")}</p>
+                  <div>
+                    <label className={labelClass}>{t("general.project.slug")}</label>
+                    <input type="text" value={slug} onChange={(e) => { setSlug(e.target.value); scheduleAutoSave(); }} className={inputClass} placeholder={t("general.project.slugPlaceholder")} />
+                    <p className={fieldHint}>{t("general.project.slugHint", { slug: slug || "your-project" })}</p>
+                  </div>
                 </div>
               </div>
-            </div>
-          )}
 
-          {/* ═══ Página de Inicio ═══ */}
-          {activeTab === "inicio" && (
-            <div className="space-y-6">
               {/* Site Identity */}
               <div className={sectionCard}>
                 <h3 className={sectionTitle}>
@@ -226,22 +210,14 @@ export default function EditorGeneralPage() {
                   {t("general.landing.identity.description")}
                 </p>
 
-                <div className="grid grid-cols-2 gap-5">
+                <div className="grid grid-cols-1 sm:grid-cols-[180px_1fr] gap-6 items-start">
                   {/* Favicon / Site Icon */}
                   <div>
                     <label className={labelClass}>
                       <Globe size={14} className="inline mr-1.5 -mt-0.5" />
                       {t("general.landing.identity.favicon")}
                     </label>
-                    {/* Size guide */}
-                    {!faviconUrl && (
-                      <div className="mb-2 flex items-center justify-center w-full aspect-square max-w-[140px] rounded-xl border-2 border-dashed border-[var(--border-default)] bg-[var(--surface-2)]">
-                        <span className="font-ui text-[10px] tracking-wider uppercase text-[var(--text-muted)]">
-                          {t("general.landing.identity.faviconSize")}
-                        </span>
-                      </div>
-                    )}
-                    <FileUploader currentUrl={faviconUrl || null} onUpload={(url) => { setFaviconUrl(url); scheduleAutoSave(); }} folder={`proyectos/${projectId}`} label={t("general.landing.identity.uploadFavicon")} cropAspect={1} />
+                    <FileUploader currentUrl={faviconUrl || null} onUpload={(url) => { setFaviconUrl(url); scheduleAutoSave(); }} folder={`proyectos/${projectId}`} label={t("general.landing.identity.uploadFavicon")} cropAspect={1} aspect="square" />
                     <p className={fieldHint}>{t("general.landing.identity.faviconHint")}</p>
                   </div>
 
@@ -251,20 +227,17 @@ export default function EditorGeneralPage() {
                       <Share2 size={14} className="inline mr-1.5 -mt-0.5" />
                       {t("general.landing.identity.ogImage")}
                     </label>
-                    {/* Size guide */}
-                    {!ogImageUrl && (
-                      <div className="mb-2 flex items-center justify-center w-full rounded-xl border-2 border-dashed border-[var(--border-default)] bg-[var(--surface-2)]" style={{ aspectRatio: "1200/630" }}>
-                        <span className="font-ui text-[10px] tracking-wider uppercase text-[var(--text-muted)]">
-                          {t("general.landing.identity.ogImageSize")}
-                        </span>
-                      </div>
-                    )}
                     <FileUploader currentUrl={ogImageUrl || null} onUpload={(url) => { setOgImageUrl(url); scheduleAutoSave(); }} folder={`proyectos/${projectId}`} label={t("general.landing.identity.uploadOgImage")} cropAspect={1200 / 630} />
                     <p className={fieldHint}>{t("general.landing.identity.ogImageHint")}</p>
                   </div>
                 </div>
               </div>
+            </div>
+          )}
 
+          {/* ═══ Página de Inicio ═══ */}
+          {activeTab === "inicio" && (
+            <div className="space-y-6">
               {/* Landing Page Content */}
               <div className={sectionCard}>
                 <h3 className={sectionTitle}>

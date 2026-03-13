@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useAsyncAction } from "@/hooks/useAsyncAction";
 import { useTranslation } from "@/i18n";
 import { useEditorProject } from "@/hooks/useEditorProject";
 import { useConfirm } from "@/components/dashboard/ConfirmModal";
@@ -22,6 +23,7 @@ import {
   emptyStateTitle,
   emptyStateDescription,
 } from "@/components/dashboard/editor-styles";
+import { DashboardEmptyState } from "@/components/dashboard/DashboardEmptyState";
 import type { Video } from "@/types";
 import {
   Plus,
@@ -41,12 +43,14 @@ function DraggableVideo({
   thumb,
   onEdit,
   onDelete,
+  deleteLoading,
   t,
 }: {
   video: Video;
   thumb: string | null;
   onEdit: () => void;
   onDelete: () => void;
+  deleteLoading: boolean;
   t: (key: string) => string;
 }) {
   const controls = useDragControls();
@@ -88,8 +92,8 @@ function DraggableVideo({
           <Pencil size={12} />
           {t("videos.edit")}
         </button>
-        <button onClick={onDelete} className={btnDanger}>
-          <Trash2 size={12} />
+        <button onClick={onDelete} disabled={deleteLoading} className={btnDanger}>
+          {deleteLoading ? <Loader2 size={12} className="animate-spin" /> : <Trash2 size={12} />}
           {t("videos.delete")}
         </button>
       </div>
@@ -185,7 +189,7 @@ export default function VideosPage() {
     }
   };
 
-  const deleteVideo = async (videoId: string) => {
+  const deleteVideoAction = useAsyncAction(async (videoId: string) => {
     if (!(await confirm({ title: "Eliminar video", message: "¿Seguro que deseas eliminar este video?" }))) return;
     try {
       const res = await fetch(`/api/videos/${videoId}`, { method: "DELETE" });
@@ -194,7 +198,7 @@ export default function VideosPage() {
     } catch {
       toast.error("Error de conexión");
     }
-  };
+  });
 
   const getYouTubeThumbnail = (url: string): string | null => {
     const match = url.match(
@@ -304,19 +308,16 @@ export default function VideosPage() {
 
       {/* Video List */}
       {orderedVideos.length === 0 && !showVideoForm && (
-        <div className={emptyState}>
-          <div className={emptyStateIcon}>
-            <Film size={24} className="text-[var(--text-muted)]" />
-          </div>
-          <h3 className={emptyStateTitle}>{t("videos.noVideos")}</h3>
-          <p className={emptyStateDescription}>
-            {t("videos.noVideosDescription")}
-          </p>
+        <DashboardEmptyState
+          variant="videos"
+          title={t("videos.noVideos")}
+          description={t("videos.noVideosDescription")}
+        >
           <button onClick={openNew} className={btnPrimary}>
             <Plus size={14} />
             {t("videos.addVideo")}
           </button>
-        </div>
+        </DashboardEmptyState>
       )}
 
       {orderedVideos.length > 0 && (
@@ -332,7 +333,8 @@ export default function VideosPage() {
               video={video}
               thumb={video.thumbnail_url || getYouTubeThumbnail(video.url)}
               onEdit={() => openEdit(video)}
-              onDelete={() => deleteVideo(video.id)}
+              onDelete={() => deleteVideoAction.execute(video.id)}
+              deleteLoading={deleteVideoAction.loading}
               t={t}
             />
           ))}

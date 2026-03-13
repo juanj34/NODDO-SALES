@@ -82,12 +82,12 @@ export function ProjectsShowcase() {
   return (
     <section
       className="relative z-[1] border-t border-[var(--mk-border-rule)] overflow-hidden"
-      style={{ padding: "120px 0 120px 24px" }}
+      style={{ padding: "120px 24px" }}
     >
       {/* Header */}
       <div
-        className="flex items-end justify-between mb-15 px-6 lg:px-20"
-        style={{ maxWidth: "calc(100% - 80px)", marginBottom: 60 }}
+        className="flex items-end justify-between mb-15 mx-auto px-6 lg:px-20"
+        style={{ maxWidth: 1320, marginBottom: 60 }}
       >
         <div>
           <div className="mk-section-label mb-6">Proyectos en vivo</div>
@@ -136,14 +136,14 @@ export function ProjectsShowcase() {
       </div>
 
       {/* Track */}
-      <div style={{ overflow: "hidden" }}>
+      <div className="mx-auto" style={{ maxWidth: 1320, overflow: "hidden" }}>
         <motion.div
           ref={trackRef}
           initial={{ opacity: 0, x: 40 }}
           whileInView={{ opacity: 1, x: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 0.7, ease }}
-          className="flex"
+          className="flex justify-center"
           style={{ gap: GAP, transition: "transform 0.6s cubic-bezier(0.22,1,0.36,1)" }}
         >
           {projects.map((proj, i) => (

@@ -35,6 +35,7 @@ export default function ProyectosPage() {
   const [creating, setCreating] = useState(false);
   const [nombre, setNombre] = useState("");
   const [slug, setSlug] = useState("");
+  const [kpiProjectFilter, setKpiProjectFilter] = useState<string | null>(null);
   const router = useRouter();
   const { t } = useTranslation("dashboard");
   const toast = useToast();
@@ -112,7 +113,12 @@ export default function ProyectosPage() {
         summaryLoading ? (
           <KPIStripSkeleton />
         ) : summary ? (
-          <DashboardKPIStrip data={summary} />
+          <DashboardKPIStrip
+            data={summary}
+            projects={projects.map((p) => ({ id: p.id, nombre: p.nombre }))}
+            selectedProjectId={kpiProjectFilter}
+            onSelectProject={setKpiProjectFilter}
+          />
         ) : null
       )}
 
@@ -359,7 +365,7 @@ export default function ProyectosPage() {
               exit={{ scale: 0.95, opacity: 0 }}
               transition={{ type: "spring", damping: 25, stiffness: 300 }}
               onClick={(e) => e.stopPropagation()}
-              className="glass-card p-6 w-full max-w-sm space-y-4"
+              className="glass-card p-6 w-full max-w-md space-y-4"
             >
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-xl bg-red-500/15 flex items-center justify-center shrink-0">
@@ -414,7 +420,7 @@ export default function ProyectosPage() {
                 <button
                   onClick={confirmDelete}
                   disabled={deleting || deleteConfirmText !== deleteTarget.name}
-                  className="flex-1 py-2.5 font-ui text-xs font-bold uppercase tracking-[0.1em] rounded-[0.75rem] flex items-center justify-center gap-2 bg-red-500/15 text-red-400 border border-red-500/20 hover:bg-red-500/25 hover:border-red-500/40 transition-all disabled:opacity-40 disabled:cursor-not-allowed"
+                  className="flex-1 min-w-[160px] py-2.5 font-ui text-xs font-bold uppercase tracking-[0.1em] rounded-[0.75rem] flex items-center justify-center gap-2 whitespace-nowrap bg-red-500/15 text-red-400 border border-red-500/20 hover:bg-red-500/25 hover:border-red-500/40 transition-all disabled:opacity-40 disabled:cursor-not-allowed"
                 >
                   {deleting ? <Loader2 size={13} className="animate-spin" /> : <Trash2 size={13} />}
                   {deleting ? t("proyectos.deleting") : t("proyectos.deleteButton")}

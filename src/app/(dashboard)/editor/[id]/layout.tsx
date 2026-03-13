@@ -32,6 +32,11 @@ import {
   Menu,
   X,
   BarChart3,
+  ToggleLeft,
+  Calculator,
+  Lock,
+  Archive,
+  ArchiveRestore,
 } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -41,6 +46,7 @@ import { useTranslation } from "@/i18n";
 import { useAuthRole } from "@/hooks/useAuthContext";
 import { NodDoLogo } from "@/components/ui/NodDoLogo";
 import { useMobileDrawer } from "@/hooks/useMobileDrawer";
+import { RouteProgressBar } from "@/components/ui/RouteProgressBar";
 
 /* ------------------------------------------------------------------ */
 /*  Helpers                                                            */
@@ -120,6 +126,13 @@ const editorSections: TabSection[] = [
     label: "Datos",
     tabs: [
       { id: "estadisticas", label: "Estadisticas", icon: BarChart3, href: "/estadisticas" },
+    ],
+  },
+  {
+    label: "Herramientas",
+    tabs: [
+      { id: "disponibilidad", label: "Disponibilidad", icon: ToggleLeft, href: "/disponibilidad" },
+      { id: "cotizador", label: "Cotizador", icon: Calculator, href: "/cotizador" },
     ],
   },
 ];
@@ -220,6 +233,32 @@ export default function EditorLayout({
     }
   }, [id, refresh, toast]);
 
+  const [archiving, setArchiving] = useState(false);
+
+  const handleArchiveToggle = useCallback(async () => {
+    if (!project) return;
+    const newEstado = project.estado === "archivado" ? "borrador" : "archivado";
+    setArchiving(true);
+    try {
+      const res = await fetch(`/api/proyectos/${id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ estado: newEstado }),
+      });
+      if (res.ok) {
+        toast.success(newEstado === "archivado" ? "Proyecto archivado" : "Proyecto desarchivado");
+        setShowVersions(false);
+        await refresh();
+      } else {
+        toast.error("Error al cambiar estado");
+      }
+    } catch {
+      toast.error("Error de conexión");
+    } finally {
+      setArchiving(false);
+    }
+  }, [id, project, refresh, toast]);
+
   const toggleVersions = useCallback(() => {
     setShowVersions((prev) => {
       if (!prev) {
@@ -279,13 +318,14 @@ export default function EditorLayout({
     return allUrbanismo ? Home : Building2;
   }, [project?.torres]);
 
-  // Collaborators only see the Inventario tab
+  // Collaborators see Inventario + Disponibilidad (both allow estado changes)
   const filteredSections = useMemo(() => {
     if (!isCollaborator) return editorSections;
+    const allowedTabs = ["inventario", "disponibilidad"];
     return editorSections
       .map((section) => ({
         ...section,
-        tabs: section.tabs.filter((tab) => tab.id === "inventario"),
+        tabs: section.tabs.filter((tab) => allowedTabs.includes(tab.id)),
       }))
       .filter((section) => section.tabs.length > 0);
   }, [isCollaborator]);
@@ -337,6 +377,7 @@ export default function EditorLayout({
   /* ---- Render ---- */
   return (
     <EditorProjectContext.Provider value={contextValue!}>
+      <RouteProgressBar color="#b8973a" />
       <div className="flex h-screen bg-[var(--surface-0)]">
         {/* Mobile hamburger button */}
         <button
@@ -379,7 +420,7 @@ export default function EditorLayout({
               {project.nombre}
             </h2>
             <p className="text-[var(--text-muted)] text-[11px] mt-0.5 truncate">
-              {project.subdomain || project.slug}.noddo.co
+              {project.slug}.noddo.co
             </p>
           </div>
 
@@ -416,6 +457,9 @@ export default function EditorLayout({
                           )}
                         />
                         <span className="flex-1 truncate">{tabLabel}</span>
+                        {tab.id === "cotizador" && !project.cotizador_enabled && (
+                          <Lock size={11} className="shrink-0 text-[var(--text-muted)]" />
+                        )}
                         {count !== null && count > 0 && (
                           <span
                             className={cn(
@@ -473,159 +517,200 @@ export default function EditorLayout({
             </div>
           )}
           {/* ── Publish header strip ── */}
-          {!isCollaborator && <div className="shrink-0 flex items-center justify-end gap-3 px-3 md:px-6 h-12 border-b border-[var(--border-subtle)] bg-[var(--surface-1)]/60 backdrop-blur-sm">
-            {/* Status badge + last published + auto-save */}
-            <div className="flex items-center gap-3">
-              <span
-                className={cn(
-                  "font-ui text-[10px] font-bold uppercase tracking-wider px-2.5 py-0.5 rounded-full border",
-                  publishStatus === "publicado" && "bg-green-500/12 text-green-400 border-green-500/20",
-                  publishStatus === "cambios" && "bg-orange-500/12 text-orange-400 border-orange-500/20",
-                  publishStatus === "borrador" && "bg-amber-500/12 text-amber-400 border-amber-500/20",
-                )}
-              >
-                {publishStatus === "publicado" && t("layout.published")}
-                {publishStatus === "cambios" && t("layout.unpublishedChanges")}
-                {publishStatus === "borrador" && t("layout.draft")}
-              </span>
-              {lastPublished && publishStatus === "publicado" && (
-                <span className="text-[11px] text-[var(--text-muted)]">
-                  {timeAgo(lastPublished)}
-                </span>
-              )}
-              <AnimatePresence mode="wait">
-                {saving && (
-                  <motion.div
-                    key="saving"
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    exit={{ opacity: 0 }}
-                    className="flex items-center gap-1.5 text-[11px] text-[var(--site-primary)]"
-                  >
-                    <Loader2 size={11} className="animate-spin" />
-                    {t("layout.saving")}
-                  </motion.div>
-                )}
-                {!saving && showSaved && (
-                  <motion.div
-                    key="saved"
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    exit={{ opacity: 0 }}
-                    className="flex items-center gap-1.5 text-[11px] text-green-400"
-                  >
-                    <Check size={11} />
-                    {t("layout.saved")}
-                  </motion.div>
-                )}
-              </AnimatePresence>
-            </div>
-
-            {/* Right: publish button + version dropdown */}
-            <div className="relative" ref={versionDropdownRef}>
-              <div className="flex items-center">
-                <button
-                  onClick={handlePublish}
-                  disabled={publishing}
-                  className={cn(
-                    "flex items-center gap-1.5 px-3.5 py-1.5 font-ui text-[11px] font-bold uppercase tracking-[0.1em] rounded-l-lg transition-all",
-                    "bg-[var(--site-primary)] text-[var(--surface-0)] hover:brightness-110",
-                    "disabled:opacity-60 disabled:cursor-not-allowed"
+          {!isCollaborator && (
+            <div className="shrink-0 flex items-center justify-between px-3 md:px-6 h-12 border-b border-[var(--border-subtle)] bg-[var(--surface-1)]/60 backdrop-blur-sm">
+              {/* Left: auto-save indicator */}
+              <div className="flex items-center gap-2">
+                <AnimatePresence mode="wait">
+                  {saving && (
+                    <motion.div
+                      key="saving"
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      exit={{ opacity: 0 }}
+                      className="flex items-center gap-1.5 text-[11px] text-[var(--site-primary)]"
+                    >
+                      <Loader2 size={11} className="animate-spin" />
+                      {t("layout.saving")}
+                    </motion.div>
                   )}
-                >
-                  {publishing ? (
-                    <Loader2 size={13} className="animate-spin" />
-                  ) : (
-                    <Rocket size={13} />
+                  {!saving && showSaved && (
+                    <motion.div
+                      key="saved"
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      exit={{ opacity: 0 }}
+                      className="flex items-center gap-1.5 text-[11px] text-green-400"
+                    >
+                      <Check size={11} />
+                      {t("layout.saved")}
+                    </motion.div>
                   )}
-                  <span className="hidden sm:inline">{publishing ? t("layout.publishing") : t("layout.publish")}</span>
-                </button>
-                <button
-                  onClick={toggleVersions}
-                  className={cn(
-                    "flex items-center px-1.5 py-1.5 text-xs rounded-r-lg border-l transition-all",
-                    "bg-[var(--site-primary)] text-[var(--surface-0)] border-[rgba(0,0,0,0.15)] hover:brightness-110",
-                    showVersions && "brightness-90"
-                  )}
-                >
-                  <ChevronDown size={13} className={cn("transition-transform", showVersions && "rotate-180")} />
-                </button>
+                </AnimatePresence>
               </div>
 
-              {/* Version history dropdown */}
-              <AnimatePresence>
-                {showVersions && (
-                  <motion.div
-                    initial={{ opacity: 0, y: -4, scale: 0.97 }}
-                    animate={{ opacity: 1, y: 0, scale: 1 }}
-                    exit={{ opacity: 0, y: -4, scale: 0.97 }}
-                    transition={{ duration: 0.12 }}
-                    className="absolute right-0 top-full mt-2 w-72 bg-[var(--surface-2)] border border-[var(--border-default)] rounded-xl shadow-2xl overflow-hidden z-50"
-                  >
-                    <div className="flex items-center gap-2 px-4 py-2.5 border-b border-[var(--border-subtle)]">
-                      <Clock size={13} className="text-[var(--text-tertiary)]" />
-                      <span className="font-ui text-[10px] font-bold uppercase tracking-wider text-[var(--text-secondary)]">{t("layout.versionHistory")}</span>
-                    </div>
-                    <div className="max-h-64 overflow-y-auto">
-                      {loadingVersions ? (
-                        <div className="flex items-center justify-center py-6">
-                          <Loader2 size={16} className="animate-spin text-[var(--text-muted)]" />
-                        </div>
-                      ) : versions.length === 0 ? (
-                        <div className="px-4 py-6 text-center">
-                          <p className="text-xs text-[var(--text-muted)]">{t("layout.noPublications")}</p>
-                          <p className="text-[11px] text-[var(--text-muted)] mt-1">
-                            {t("layout.publishHint")}
-                          </p>
-                        </div>
-                      ) : (
-                        versions.map((v) => (
-                          <div
-                            key={v.id}
-                            className="flex items-center justify-between px-4 py-2.5 hover:bg-[var(--surface-3)] transition-colors border-b border-[var(--border-subtle)] last:border-b-0"
-                          >
-                            <div className="flex items-center gap-2.5">
-                              <div className="w-6 h-6 rounded-md bg-[var(--surface-3)] flex items-center justify-center text-[10px] font-bold text-[var(--text-tertiary)]">
-                                v{v.version_number}
-                              </div>
-                              <span className="text-[11px] text-[var(--text-secondary)]">
-                                {timeAgo(v.published_at)}
-                              </span>
-                            </div>
-                            {confirmRestoreId === v.id ? (
-                              <div className="flex items-center gap-1.5">
-                                <button
-                                  onClick={() => handleRestore(v.id, v.version_number)}
-                                  disabled={restoring}
-                                  className="text-[10px] px-2 py-0.5 rounded bg-amber-500/20 text-amber-400 border border-amber-500/30 hover:bg-amber-500/30 transition-colors disabled:opacity-50"
-                                >
-                                  {restoring ? "..." : t("layout.confirm")}
-                                </button>
-                                <button
-                                  onClick={() => setConfirmRestoreId(null)}
-                                  className="text-[10px] px-1.5 py-0.5 text-[var(--text-muted)] hover:text-[var(--text-secondary)] transition-colors"
-                                >
-                                  {t("layout.no")}
-                                </button>
-                              </div>
-                            ) : (
-                              <button
-                                onClick={() => setConfirmRestoreId(v.id)}
-                                className="flex items-center gap-1 text-[11px] text-[var(--text-muted)] hover:text-[var(--text-secondary)] transition-colors"
-                              >
-                                <RotateCcw size={11} />
-                                {t("layout.restore")}
-                              </button>
-                            )}
-                          </div>
-                        ))
+              {/* Right: unified publish bar */}
+              <div className="relative" ref={versionDropdownRef}>
+                <div className="flex items-center bg-[var(--surface-2)] border border-[var(--border-default)] rounded-lg overflow-hidden">
+                  {/* Status section */}
+                  <div className="flex items-center gap-2 px-3 py-1.5">
+                    <span
+                      className={cn(
+                        "w-2 h-2 rounded-full shrink-0",
+                        publishStatus === "publicado" && "bg-green-400",
+                        publishStatus === "cambios" && "bg-orange-400",
+                        publishStatus === "borrador" && "bg-amber-400",
                       )}
-                    </div>
-                  </motion.div>
-                )}
-              </AnimatePresence>
+                    />
+                    <span
+                      className={cn(
+                        "font-ui text-[10px] font-bold uppercase tracking-wider",
+                        publishStatus === "publicado" && "text-green-400",
+                        publishStatus === "cambios" && "text-orange-400",
+                        publishStatus === "borrador" && "text-amber-400",
+                      )}
+                    >
+                      {publishStatus === "publicado" && t("layout.published")}
+                      {publishStatus === "cambios" && t("layout.unpublishedChanges")}
+                      {publishStatus === "borrador" && t("layout.draft")}
+                    </span>
+                    {lastPublished && publishStatus === "publicado" && (
+                      <span className="text-[10px] text-[var(--text-muted)] hidden sm:inline">
+                        {timeAgo(lastPublished)}
+                      </span>
+                    )}
+                  </div>
+
+                  {/* Divider */}
+                  <div className="w-px h-5 bg-[var(--border-default)]" />
+
+                  {/* Publish button */}
+                  <button
+                    onClick={handlePublish}
+                    disabled={publishing}
+                    className={cn(
+                      "flex items-center gap-1.5 px-3.5 py-1.5 font-ui text-[11px] font-bold uppercase tracking-[0.1em] transition-all",
+                      "bg-[var(--site-primary)] text-[var(--surface-0)] hover:brightness-110",
+                      "disabled:opacity-60 disabled:cursor-not-allowed"
+                    )}
+                  >
+                    {publishing ? (
+                      <Loader2 size={13} className="animate-spin" />
+                    ) : (
+                      <Rocket size={13} />
+                    )}
+                    <span className="hidden sm:inline">{publishing ? t("layout.publishing") : t("layout.publish")}</span>
+                  </button>
+
+                  {/* Divider */}
+                  <div className="w-px h-5 bg-[rgba(0,0,0,0.15)]" />
+
+                  {/* Dropdown toggle */}
+                  <button
+                    onClick={toggleVersions}
+                    className={cn(
+                      "flex items-center px-2 py-1.5 transition-all",
+                      "bg-[var(--site-primary)] text-[var(--surface-0)] hover:brightness-110",
+                      showVersions && "brightness-90"
+                    )}
+                  >
+                    <ChevronDown size={13} className={cn("transition-transform", showVersions && "rotate-180")} />
+                  </button>
+                </div>
+
+                {/* Version history + archive dropdown */}
+                <AnimatePresence>
+                  {showVersions && (
+                    <motion.div
+                      initial={{ opacity: 0, y: -4, scale: 0.97 }}
+                      animate={{ opacity: 1, y: 0, scale: 1 }}
+                      exit={{ opacity: 0, y: -4, scale: 0.97 }}
+                      transition={{ duration: 0.12 }}
+                      className="absolute right-0 top-full mt-2 w-72 bg-[var(--surface-2)] border border-[var(--border-default)] rounded-xl shadow-2xl overflow-hidden z-50"
+                    >
+                      <div className="flex items-center gap-2 px-4 py-2.5 border-b border-[var(--border-subtle)]">
+                        <Clock size={13} className="text-[var(--text-tertiary)]" />
+                        <span className="font-ui text-[10px] font-bold uppercase tracking-wider text-[var(--text-secondary)]">{t("layout.versionHistory")}</span>
+                      </div>
+                      <div className="max-h-64 overflow-y-auto">
+                        {loadingVersions ? (
+                          <div className="flex items-center justify-center py-6">
+                            <Loader2 size={16} className="animate-spin text-[var(--text-muted)]" />
+                          </div>
+                        ) : versions.length === 0 ? (
+                          <div className="px-4 py-6 text-center">
+                            <p className="text-xs text-[var(--text-muted)]">{t("layout.noPublications")}</p>
+                            <p className="text-[11px] text-[var(--text-muted)] mt-1">
+                              {t("layout.publishHint")}
+                            </p>
+                          </div>
+                        ) : (
+                          versions.map((v) => (
+                            <div
+                              key={v.id}
+                              className="flex items-center justify-between px-4 py-2.5 hover:bg-[var(--surface-3)] transition-colors border-b border-[var(--border-subtle)] last:border-b-0"
+                            >
+                              <div className="flex items-center gap-2.5">
+                                <div className="w-6 h-6 rounded-md bg-[var(--surface-3)] flex items-center justify-center text-[10px] font-bold text-[var(--text-tertiary)]">
+                                  v{v.version_number}
+                                </div>
+                                <span className="text-[11px] text-[var(--text-secondary)]">
+                                  {timeAgo(v.published_at)}
+                                </span>
+                              </div>
+                              {confirmRestoreId === v.id ? (
+                                <div className="flex items-center gap-1.5">
+                                  <button
+                                    onClick={() => handleRestore(v.id, v.version_number)}
+                                    disabled={restoring}
+                                    className="text-[10px] px-2 py-0.5 rounded bg-amber-500/20 text-amber-400 border border-amber-500/30 hover:bg-amber-500/30 transition-colors disabled:opacity-50"
+                                  >
+                                    {restoring ? "..." : t("layout.confirm")}
+                                  </button>
+                                  <button
+                                    onClick={() => setConfirmRestoreId(null)}
+                                    className="text-[10px] px-1.5 py-0.5 text-[var(--text-muted)] hover:text-[var(--text-secondary)] transition-colors"
+                                  >
+                                    {t("layout.no")}
+                                  </button>
+                                </div>
+                              ) : (
+                                <button
+                                  onClick={() => setConfirmRestoreId(v.id)}
+                                  className="flex items-center gap-1 text-[11px] text-[var(--text-muted)] hover:text-[var(--text-secondary)] transition-colors"
+                                >
+                                  <RotateCcw size={11} />
+                                  {t("layout.restore")}
+                                </button>
+                              )}
+                            </div>
+                          ))
+                        )}
+                      </div>
+
+                      {/* Archive action */}
+                      <div className="border-t border-[var(--border-subtle)] px-4 py-2.5">
+                        <button
+                          onClick={handleArchiveToggle}
+                          disabled={archiving}
+                          className="flex items-center gap-2 w-full text-[11px] text-[var(--text-muted)] hover:text-[var(--text-secondary)] transition-colors disabled:opacity-50"
+                        >
+                          {archiving ? (
+                            <Loader2 size={12} className="animate-spin" />
+                          ) : project?.estado === "archivado" ? (
+                            <ArchiveRestore size={12} />
+                          ) : (
+                            <Archive size={12} />
+                          )}
+                          {project?.estado === "archivado" ? "Desarchivar proyecto" : "Archivar proyecto"}
+                        </button>
+                      </div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </div>
             </div>
-          </div>}
+          )}
 
           {/* Scrollable content */}
           <div className="flex-1 overflow-y-auto p-4 md:p-6 pt-14 md:pt-6">

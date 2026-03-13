@@ -2,12 +2,14 @@
 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { useEffect, useState, useMemo } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { createClient } from "@/lib/supabase/client";
 import { cn } from "@/lib/utils";
-import { FolderOpen, Users, Settings, LogOut, Loader2, HelpCircle, Menu, X, Shield } from "lucide-react";
-import type { User } from "@supabase/supabase-js";
+import {
+  FolderOpen, Users, Settings, LogOut, Loader2, HelpCircle,
+  Menu, X, Shield, ChevronDown, ToggleLeft, Calculator,
+} from "lucide-react";
 import { ToastProvider } from "@/components/dashboard/Toast";
 import { ConfirmProvider } from "@/components/dashboard/ConfirmModal";
 import { CommandPalette } from "@/components/dashboard/CommandPalette";
@@ -16,42 +18,91 @@ import { LanguageToggle } from "@/components/ui/LanguageToggle";
 import { AuthContextProvider, useAuthRole } from "@/hooks/useAuthContext";
 import { NodDoLogo } from "@/components/ui/NodDoLogo";
 import { useMobileDrawer } from "@/hooks/useMobileDrawer";
+import { RouteProgressBar } from "@/components/ui/RouteProgressBar";
+
+interface SidebarProject {
+  id: string;
+  nombre: string;
+  estado: string;
+}
+
+/* ── Active link helper ─────────────────────────────────── */
+
+function SidebarLink({
+  href,
+  icon: Icon,
+  label,
+  pathname,
+  onClick,
+  iconSize = 16,
+  className: extraClass,
+}: {
+  href: string;
+  icon: React.ComponentType<{ size: number }>;
+  label: string;
+  pathname: string;
+  onClick?: () => void;
+  iconSize?: number;
+  className?: string;
+}) {
+  const isActive = pathname === href || pathname.startsWith(href + "/");
+  return (
+    <Link
+      href={href}
+      onClick={onClick}
+      className={cn(
+        "flex items-center gap-3 px-3 py-2 rounded-[0.625rem] font-ui text-xs font-semibold uppercase tracking-[0.08em] transition-all",
+        isActive
+          ? "bg-[var(--surface-2)] text-white border-l-2 border-[var(--site-primary)]"
+          : "text-[var(--text-tertiary)] hover:text-[var(--text-secondary)] hover:bg-[var(--surface-2)]",
+        extraClass
+      )}
+      style={
+        isActive
+          ? { boxShadow: "inset 3px 0 8px -2px rgba(var(--site-primary-rgb), 0.15)" }
+          : undefined
+      }
+    >
+      <Icon size={iconSize} />
+      {label}
+    </Link>
+  );
+}
+
+/* ── Dashboard Shell ────────────────────────────────────── */
 
 function DashboardShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const router = useRouter();
-  const [user, setUser] = useState<User | null>(null);
-  const [loading, setLoading] = useState(true);
-  const supabase = createClient();
   const { t } = useTranslation("dashboard");
-  const { role, isPlatformAdmin } = useAuthRole();
-  const { isMobile, open: drawerOpen, toggle: toggleDrawer, close: closeDrawer } = useMobileDrawer();
+  const { user, role, isPlatformAdmin, loading } = useAuthRole();
+  const { open: drawerOpen, toggle: toggleDrawer, close: closeDrawer } = useMobileDrawer();
 
-  const navItems = useMemo(() => {
-    const items = [
-      { href: "/proyectos", label: t("sidebar.projects"), icon: FolderOpen },
-    ];
-    if (role === "admin") {
-      items.push({ href: "/equipo", label: t("sidebar.team"), icon: Users });
+  // Sidebar projects
+  const [sidebarProjects, setSidebarProjects] = useState<SidebarProject[]>([]);
+  const [projectsExpanded, setProjectsExpanded] = useState(true);
+
+  const fetchSidebarProjects = useCallback(async () => {
+    try {
+      const res = await fetch("/api/proyectos");
+      if (res.ok) {
+        const data = await res.json();
+        setSidebarProjects(
+          data.map((p: { id: string; nombre: string; estado: string }) => ({
+            id: p.id,
+            nombre: p.nombre,
+            estado: p.estado,
+          }))
+        );
+      }
+    } catch {
+      // silent
     }
-    items.push({ href: "/cuenta", label: t("sidebar.settings"), icon: Settings });
-    return items;
-  }, [role, t]);
+  }, []);
 
   useEffect(() => {
-    supabase.auth.getUser().then(({ data: { user } }) => {
-      setUser(user);
-      setLoading(false);
-    });
-
-    const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, session) => {
-      setUser(session?.user ?? null);
-    });
-
-    return () => subscription.unsubscribe();
-  }, [supabase.auth]);
+    if (!loading && user) fetchSidebarProjects();
+  }, [loading, user, fetchSidebarProjects]);
 
   // Editor gets its own layout (has its own sidebar)
   if (pathname.startsWith("/editor/")) {
@@ -61,24 +112,27 @@ function DashboardShell({ children }: { children: React.ReactNode }) {
   if (loading) {
     return (
       <div className="min-h-screen bg-[var(--surface-0)] flex items-center justify-center">
-        <Loader2
-          className="animate-spin text-[var(--site-primary)]"
-          size={32}
-        />
+        <Loader2 className="animate-spin text-[var(--site-primary)]" size={32} />
       </div>
     );
   }
 
   const handleLogout = async () => {
+    const supabase = createClient();
     await supabase.auth.signOut();
     router.push("/login");
   };
+
+  const isAdmin = role === "admin";
 
   return (
     <div className="min-h-screen relative bg-[var(--surface-0)] text-white flex">
       {/* Gold grid + noise atmosphere */}
       <div className="bg-grid-lines-subtle fixed inset-0 pointer-events-none z-0" />
       <div className="bg-noise fixed inset-0 pointer-events-none z-0" />
+
+      {/* Route progress bar */}
+      <RouteProgressBar color="#b8973a" />
 
       {/* Command Palette (Ctrl+K) */}
       <CommandPalette />
@@ -123,37 +177,134 @@ function DashboardShell({ children }: { children: React.ReactNode }) {
         </div>
 
         {/* Navigation */}
-        <nav className="flex-1 p-4 space-y-1">
-          {navItems.map((item) => {
-            const isActive =
-              pathname === item.href ||
-              pathname.startsWith(item.href + "/");
-            const Icon = item.icon;
-            return (
-              <Link
-                key={item.href}
-                href={item.href}
-                onClick={closeDrawer}
-                className={cn(
-                  "flex items-center gap-3 px-3 py-2 rounded-[0.625rem] font-ui text-xs font-semibold uppercase tracking-[0.08em] transition-all",
-                  isActive
-                    ? "bg-[var(--surface-2)] text-white border-l-2 border-[var(--site-primary)]"
-                    : "text-[var(--text-tertiary)] hover:text-[var(--text-secondary)] hover:bg-[var(--surface-2)]"
-                )}
-                style={
-                  isActive
-                    ? {
-                      boxShadow:
-                        "inset 3px 0 8px -2px rgba(var(--site-primary-rgb), 0.15)",
-                    }
-                    : undefined
-                }
+        <nav className="flex-1 overflow-y-auto p-4 space-y-1">
+          {/* ── PROYECTOS section ────────────────── */}
+          <SidebarLink
+            href="/proyectos"
+            icon={FolderOpen}
+            label={t("sidebar.projects")}
+            pathname={pathname}
+            onClick={closeDrawer}
+          />
+
+          {/* Collapsible project list */}
+          {sidebarProjects.length > 0 && (
+            <div className="ml-1">
+              <button
+                onClick={() => setProjectsExpanded(!projectsExpanded)}
+                className="flex items-center gap-2 px-3 py-1.5 w-full text-left font-ui text-[9px] font-bold uppercase tracking-[0.14em] text-[var(--text-muted)] hover:text-[var(--text-tertiary)] transition-colors"
               >
-                <Icon size={16} />
-                {item.label}
-              </Link>
-            );
-          })}
+                <ChevronDown
+                  size={10}
+                  className={cn("transition-transform", !projectsExpanded && "-rotate-90")}
+                />
+                {sidebarProjects.length} {sidebarProjects.length === 1 ? "proyecto" : "proyectos"}
+              </button>
+
+              <AnimatePresence initial={false}>
+                {projectsExpanded && (
+                  <motion.div
+                    initial={{ height: 0, opacity: 0 }}
+                    animate={{ height: "auto", opacity: 1 }}
+                    exit={{ height: 0, opacity: 0 }}
+                    transition={{ duration: 0.2 }}
+                    className="overflow-hidden"
+                  >
+                    <div className="space-y-0.5 pb-1">
+                      {sidebarProjects.map((project) => {
+                        const isProjectActive = pathname === `/editor/${project.id}`;
+                        return (
+                          <Link
+                            key={project.id}
+                            href={`/editor/${project.id}`}
+                            onClick={closeDrawer}
+                            className={cn(
+                              "flex items-center gap-2.5 px-3 py-1.5 rounded-lg transition-all group",
+                              isProjectActive
+                                ? "bg-[var(--surface-2)]"
+                                : "hover:bg-[var(--surface-2)]"
+                            )}
+                          >
+                            <span
+                              className="w-1.5 h-1.5 rounded-full shrink-0"
+                              style={{
+                                background:
+                                  project.estado === "publicado"
+                                    ? "#4ade80"
+                                    : "rgba(184,151,58,0.5)",
+                              }}
+                            />
+                            <span
+                              className={cn(
+                                "text-[11px] truncate transition-colors",
+                                isProjectActive
+                                  ? "text-[var(--text-primary)]"
+                                  : "text-[var(--text-tertiary)] group-hover:text-[var(--text-secondary)]"
+                              )}
+                              style={{ fontFamily: "var(--font-body)" }}
+                            >
+                              {project.nombre}
+                            </span>
+                          </Link>
+                        );
+                      })}
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
+          )}
+
+          {/* ── Divider ────────────────────────── */}
+          <div className="!my-3 h-px bg-[var(--border-subtle)]" />
+
+          {/* ── HERRAMIENTAS section ─────────────── */}
+          <div className="px-3 py-1.5">
+            <span className="font-ui text-[9px] font-bold uppercase tracking-[0.14em] text-[var(--text-muted)]">
+              {t("sidebar.tools")}
+            </span>
+          </div>
+          <SidebarLink
+            href="/disponibilidad"
+            icon={ToggleLeft}
+            label={t("sidebar.disponibilidad")}
+            pathname={pathname}
+            onClick={closeDrawer}
+            iconSize={15}
+          />
+          {isAdmin && (
+            <SidebarLink
+              href="/cotizador"
+              icon={Calculator}
+              label={t("sidebar.cotizador")}
+              pathname={pathname}
+              onClick={closeDrawer}
+              iconSize={15}
+            />
+          )}
+
+          {/* ── Divider ────────────────────────── */}
+          <div className="!my-3 h-px bg-[var(--border-subtle)]" />
+
+          {/* ── EQUIPO (admin only) ──────────────── */}
+          {isAdmin && (
+            <SidebarLink
+              href="/equipo"
+              icon={Users}
+              label={t("sidebar.team")}
+              pathname={pathname}
+              onClick={closeDrawer}
+            />
+          )}
+
+          {/* ── CUENTA ──────────────────────────── */}
+          <SidebarLink
+            href="/cuenta"
+            icon={Settings}
+            label={t("sidebar.settings")}
+            pathname={pathname}
+            onClick={closeDrawer}
+          />
         </nav>
 
         {/* Platform Admin link */}
@@ -172,27 +323,15 @@ function DashboardShell({ children }: { children: React.ReactNode }) {
 
         {/* Help link */}
         <div className="px-4 pb-1">
-          <Link
+          <SidebarLink
             href="/ayuda"
+            icon={HelpCircle}
+            label={t("sidebar.help")}
+            pathname={pathname}
             onClick={closeDrawer}
-            className={cn(
-              "flex items-center gap-3 px-3 py-2 rounded-[0.625rem] font-ui text-xs font-semibold uppercase tracking-[0.08em] transition-all",
-              pathname === "/ayuda"
-                ? "bg-[var(--surface-2)] text-white border-l-2 border-[var(--site-primary)]"
-                : "text-[var(--text-muted)] hover:text-[var(--text-secondary)] hover:bg-[var(--surface-2)]"
-            )}
-            style={
-              pathname === "/ayuda"
-                ? {
-                    boxShadow:
-                      "inset 3px 0 8px -2px rgba(var(--site-primary-rgb), 0.15)",
-                  }
-                : undefined
-            }
-          >
-            <HelpCircle size={14} />
-            {t("sidebar.help")}
-          </Link>
+            iconSize={14}
+            className="!text-[var(--text-muted)]"
+          />
         </div>
 
         {/* Language Toggle */}
@@ -203,7 +342,6 @@ function DashboardShell({ children }: { children: React.ReactNode }) {
         {/* User Section */}
         <div className="p-4 border-t border-[var(--border-subtle)]">
           <div className="flex items-center gap-3 px-3 py-2">
-            {/* Avatar with gradient ring */}
             <div
               className="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold shrink-0"
               style={{
@@ -237,18 +375,7 @@ function DashboardShell({ children }: { children: React.ReactNode }) {
 
       {/* Main content */}
       <main className="flex-1 relative z-10 bg-transparent overflow-y-auto pt-14 md:pt-0">
-        <AnimatePresence mode="wait">
-          <motion.div
-            key={pathname}
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0.98 }}
-            transition={{ duration: 0.4, ease: [0.4, 0, 0.2, 1] }}
-            className="min-h-full"
-          >
-            {children}
-          </motion.div>
-        </AnimatePresence>
+        {children}
       </main>
     </div>
   );

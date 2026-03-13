@@ -14,6 +14,7 @@ import { AudioProvider, AudioMuteButton } from "@/components/site/AudioPlayer";
 import { NoddoBadge } from "@/components/site/NoddoBadge";
 import { WhatsAppButton } from "@/components/site/WhatsAppButton";
 import { SiteTracker } from "@/components/site/SiteTracker";
+import { RouteProgressBar } from "@/components/ui/RouteProgressBar";
 import { SiteProjectContext } from "@/hooks/useSiteProject";
 import type { ProyectoCompleto } from "@/types";
 
@@ -33,6 +34,7 @@ export function SiteLayoutClient({ proyecto, basePath, children }: Props) {
 
   return (
     <SiteProjectContext.Provider value={{ proyecto, basePath }}>
+      <RouteProgressBar />
       <SiteTracker proyectoId={proyecto.id} />
       <AudioProvider audioUrl={proyecto.background_audio_url}>
         <div

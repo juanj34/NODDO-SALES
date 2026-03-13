@@ -172,6 +172,8 @@ export const mockProyecto: ProyectoCompleto = {
   etapa_label: "Torres",
   background_audio_url: null,
   hide_noddo_badge: false,
+  cotizador_enabled: false,
+  cotizador_config: null,
   updated_at: new Date().toISOString(),
 
   tipologias: [

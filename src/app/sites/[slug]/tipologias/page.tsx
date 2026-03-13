@@ -27,6 +27,7 @@ import {
   Home,
   Images,
 } from "lucide-react";
+import { SiteEmptyState } from "@/components/site/SiteEmptyState";
 import type { Unidad, LightboxImage } from "@/types";
 
 function formatPrecio(precio: number): string {
@@ -55,19 +56,11 @@ export default function TipologiasPage() {
   // Empty state — no tipologías configured
   if (!tipologias || tipologias.length === 0) {
     return (
-      <div className="h-screen flex flex-col items-center justify-center gap-4 text-center px-8 bg-[var(--site-bg)]">
-        <div className="w-16 h-16 rounded-2xl bg-white/5 flex items-center justify-center">
-          <Building2 size={28} className="text-[var(--text-muted)]" />
-        </div>
-        <div>
-          <h2 className="text-lg font-site-heading text-[var(--text-secondary)] mb-1">
-            {tSite("tipologias.notAvailable")}
-          </h2>
-          <p className="text-sm text-[var(--text-tertiary)]">
-            {tSite("tipologias.notConfigured")}
-          </p>
-        </div>
-      </div>
+      <SiteEmptyState
+        variant="tipologias"
+        title={tSite("tipologias.notAvailable")}
+        description={tSite("tipologias.notConfigured")}
+      />
     );
   }
 
@@ -296,9 +289,13 @@ export default function TipologiasPage() {
             ))}
           </div>
         )}
-        <div className="flex-1 flex flex-col items-center justify-center gap-3">
-          <Building2 size={40} className="text-[var(--text-muted)]" />
-          <p className="text-sm text-[var(--text-tertiary)]">No hay tipologías asignadas a esta torre</p>
+        <div className="flex-1 flex items-center justify-center">
+          <SiteEmptyState
+            variant="tipologias"
+            title={tSite("tipologias.noTorreTipologias")}
+            description={tSite("tipologias.noTorreTipologiasDesc")}
+            compact
+          />
         </div>
       </SectionTransition>
     );
@@ -749,8 +746,8 @@ export default function TipologiasPage() {
                 {/* Units List */}
                 <div className="flex-1 overflow-y-auto space-y-1 scrollbar-hide min-h-0">
                   {filteredUnidades.length === 0 ? (
-                    <div className="flex items-center justify-center py-8 text-[var(--text-muted)] text-sm">
-                      No hay unidades
+                    <div className="flex flex-col items-center justify-center py-10 gap-2">
+                      <SiteEmptyState variant="inventario" title={tSite("tipologias.noUnits")} description="" compact />
                     </div>
                   ) : (
                     unitsByFloor.map(([floor, units]) => (
@@ -917,6 +914,8 @@ export default function TipologiasPage() {
           unidad={cotizarUnidad}
           tipologia={tipologias.find((t) => t.id === cotizarUnidad.tipologia_id) || undefined}
           proyectoId={proyecto.id}
+          cotizadorEnabled={proyecto.cotizador_enabled}
+          cotizadorConfig={proyecto.cotizador_config}
         />
       )}
     </SectionTransition>

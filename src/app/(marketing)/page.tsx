@@ -13,6 +13,8 @@ import { ProjectsShowcase } from "@/components/marketing/ProjectsShowcase";
 import { CountersSection } from "@/components/marketing/CountersSection";
 import { PricingSection } from "@/components/marketing/PricingSection";
 import { FAQSection } from "@/components/marketing/FAQSection";
+import { ProblemSection } from "@/components/marketing/ProblemSection";
+import { SalesImpactSection } from "@/components/marketing/SalesImpactSection";
 import { StickyCTA } from "@/components/marketing/StickyCTA";
 import { useBooking } from "@/components/marketing/BookingProvider";
 
@@ -26,19 +28,25 @@ export default function MarketingHomePage() {
       {/* 2. TRUST BAR */}
       <TrustBar />
 
-      {/* 3. HOW IT WORKS — simplicidad primero */}
+      {/* 3. PROBLEM — por qué necesitas esto */}
+      <ProblemSection />
+
+      {/* 4. HOW IT WORKS — simplicidad primero */}
       <HowItWorks />
 
       {/* 4. COMPARISON TABLE — por qué cambiar */}
       <ComparisonStrip />
 
-      {/* 5. SCROLL FEATURES (deep dive) — visitante ya motivado */}
+      {/* 5. SCROLL FEATURES (deep dive) */}
       <ScrollFeatures />
 
       {/* 6. PROJECTS SHOWCASE — quiénes ya lo usan */}
       <ProjectsShowcase />
 
-      {/* 7. TESTIMONIALS — qué dicen */}
+      {/* 7. SALES IMPACT — datos que prueban el cambio */}
+      <SalesImpactSection />
+
+      {/* 8. TESTIMONIALS — qué dicen */}
       <Testimonials />
 
       {/* 8. COUNTERS — refuerzo cuantitativo */}

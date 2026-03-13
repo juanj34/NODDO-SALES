@@ -1,6 +1,83 @@
 "use client";
 
 import { motion } from "framer-motion";
+import { NodDoLogo } from "@/components/ui/NodDoLogo";
+
+/* ── Column header icons ── */
+
+/** Brochure PDF — document page with text lines */
+function IconBrochure() {
+  return (
+    <svg viewBox="0 0 40 40" fill="none" width="36" height="36">
+      {/* Page with folded corner */}
+      <path d="M10 4 H26 L32 10 V36 H10 Z" stroke="rgba(244,240,232,0.4)" strokeWidth="1" />
+      <path d="M26 4 V10 H32" stroke="rgba(244,240,232,0.3)" strokeWidth="0.8" />
+      {/* Text lines */}
+      <line x1="15" y1="16" x2="27" y2="16" stroke="rgba(244,240,232,0.2)" strokeWidth="0.8" />
+      <line x1="15" y1="20" x2="25" y2="20" stroke="rgba(244,240,232,0.15)" strokeWidth="0.8" />
+      <line x1="15" y1="24" x2="27" y2="24" stroke="rgba(244,240,232,0.2)" strokeWidth="0.8" />
+      <line x1="15" y1="28" x2="22" y2="28" stroke="rgba(244,240,232,0.12)" strokeWidth="0.8" />
+    </svg>
+  );
+}
+
+/** NODDO — dashboard screen with panels */
+function IconNoddoDashboard() {
+  return (
+    <div className="flex flex-col items-center gap-2">
+      <svg viewBox="0 0 52 36" fill="none" width="52" height="36">
+        {/* Screen frame */}
+        <rect x="1" y="1" width="50" height="30" rx="2" stroke="#b8973a" strokeWidth="1" opacity="0.6" />
+        {/* Title bar */}
+        <line x1="1" y1="7" x2="51" y2="7" stroke="#b8973a" strokeWidth="0.5" opacity="0.25" />
+        {/* 3 dots */}
+        <circle cx="5" cy="4" r="1" fill="rgba(184,151,58,0.4)" />
+        <circle cx="9" cy="4" r="1" fill="rgba(184,151,58,0.3)" />
+        <circle cx="13" cy="4" r="1" fill="rgba(184,151,58,0.2)" />
+        {/* Sidebar */}
+        <line x1="14" y1="7" x2="14" y2="31" stroke="#b8973a" strokeWidth="0.4" opacity="0.2" />
+        {/* Sidebar nav lines */}
+        <line x1="4" y1="12" x2="11" y2="12" stroke="#b8973a" strokeWidth="0.5" opacity="0.3" />
+        <line x1="4" y1="16" x2="10" y2="16" stroke="#b8973a" strokeWidth="0.5" opacity="0.2" />
+        <line x1="4" y1="20" x2="11" y2="20" stroke="#b8973a" strokeWidth="0.5" opacity="0.2" />
+        {/* Main content — stat cards */}
+        <rect x="17" y="10" width="14" height="8" rx="1" stroke="#b8973a" strokeWidth="0.5" opacity="0.35" />
+        <rect x="34" y="10" width="14" height="8" rx="1" stroke="#b8973a" strokeWidth="0.5" opacity="0.35" />
+        {/* Building grid area */}
+        <rect x="17" y="21" width="31" height="8" rx="1" stroke="#b8973a" strokeWidth="0.5" opacity="0.25" />
+        {/* Grid dots inside */}
+        {[0, 1, 2, 3, 4, 5].map(c => (
+          <circle key={c} cx={21 + c * 5} cy="25" r="1.2" fill="#b8973a" opacity={c % 3 === 0 ? "0.5" : "0.25"} />
+        ))}
+        {/* Screen stand */}
+        <line x1="22" y1="31" x2="30" y2="35" stroke="#b8973a" strokeWidth="0.6" opacity="0.3" />
+        <line x1="30" y1="31" x2="22" y2="35" stroke="#b8973a" strokeWidth="0.6" opacity="0.3" />
+      </svg>
+      <NodDoLogo height={10} colorNod="#b8973a" colorDo="#b8973a" />
+    </div>
+  );
+}
+
+/** Software 3D — isometric cube / 3D model */
+function IconSoftware3D() {
+  return (
+    <svg viewBox="0 0 40 40" fill="none" width="36" height="36">
+      {/* Isometric cube */}
+      <polygon points="20,4 36,13 36,27 20,36 4,27 4,13" stroke="rgba(244,240,232,0.35)" strokeWidth="0.8" />
+      {/* Top face */}
+      <polygon points="20,4 36,13 20,22 4,13" stroke="rgba(244,240,232,0.3)" strokeWidth="0.6" fill="rgba(244,240,232,0.03)" />
+      {/* Center vertical edge */}
+      <line x1="20" y1="22" x2="20" y2="36" stroke="rgba(244,240,232,0.25)" strokeWidth="0.6" />
+      {/* Left face diagonal */}
+      <line x1="4" y1="13" x2="20" y2="22" stroke="rgba(244,240,232,0.2)" strokeWidth="0.6" />
+      {/* Right face diagonal */}
+      <line x1="36" y1="13" x2="20" y2="22" stroke="rgba(244,240,232,0.2)" strokeWidth="0.6" />
+      {/* Grid lines on top face */}
+      <line x1="12" y1="8.5" x2="28" y2="17.5" stroke="rgba(244,240,232,0.1)" strokeWidth="0.4" />
+      <line x1="12" y1="17.5" x2="28" y2="8.5" stroke="rgba(244,240,232,0.1)" strokeWidth="0.4" />
+    </svg>
+  );
+}
 
 const features = [
   { label: "Tiempo hasta publicar", brochure: { icon: "~", text: "1–2 semanas" }, noddo: { icon: "✓", text: "1 día" }, agency: { icon: "✗", text: "3–6 meses" } },
@@ -71,7 +148,7 @@ export function ComparisonStrip() {
                     verticalAlign: "bottom",
                   }}
                 >
-                  <div style={{ fontSize: 22, marginBottom: 10 }}>📄</div>
+                  <div style={{ marginBottom: 10 }}><IconBrochure /></div>
                   <div className="font-ui text-[10px] font-bold tracking-[0.15em] uppercase" style={{ color: "rgba(244,240,232,0.5)", marginBottom: 6 }}>
                     Brochure PDF
                   </div>
@@ -105,12 +182,7 @@ export function ComparisonStrip() {
                   >
                     Recomendado
                   </div>
-                  <div className="font-ui text-[18px] font-extrabold" style={{ color: "var(--mk-accent)", marginBottom: 10 }}>
-                    N·
-                  </div>
-                  <div className="font-ui text-[10px] font-bold tracking-[0.15em] uppercase" style={{ color: "var(--mk-accent)", marginBottom: 6 }}>
-                    NODDO
-                  </div>
+                  <div style={{ marginBottom: 10 }}><IconNoddoDashboard /></div>
                   <div className="font-heading text-[16px] font-light" style={{ color: "var(--mk-accent)" }}>
                     $149 – $399 / mes
                   </div>
@@ -125,7 +197,7 @@ export function ComparisonStrip() {
                     verticalAlign: "bottom",
                   }}
                 >
-                  <div style={{ fontSize: 22, marginBottom: 10 }}>🖥️</div>
+                  <div style={{ marginBottom: 10 }}><IconSoftware3D /></div>
                   <div className="font-ui text-[10px] font-bold tracking-[0.15em] uppercase" style={{ color: "rgba(244,240,232,0.5)", marginBottom: 6 }}>
                     Software 3D · Maqueta
                   </div>

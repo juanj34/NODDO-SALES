@@ -95,6 +95,7 @@ export default function NoddoGridPage() {
   const [plantaTipoPisos, setPlantaTipoPisos] = useState("");
   const [creatingPlantas, setCreatingPlantas] = useState(false);
   const [expandedPlantaTipos, setExpandedPlantaTipos] = useState<Set<string>>(new Set());
+  const [plantaTipoSelectedPisos, setPlantaTipoSelectedPisos] = useState<Set<number>>(new Set());
 
   // Duplicate hotspots
   const [showDuplicateModal, setShowDuplicateModal] = useState(false);
@@ -116,6 +117,15 @@ export default function NoddoGridPage() {
   /* ---- Derived data ---- */
   const torres = useMemo<Torre[]>(() => project?.torres ?? [], [project]);
   const isMultiTorre = torres.length > 1;
+
+  // Tipología lookup for enriching unit display
+  const tipologiaMap = useMemo(() => {
+    const map = new Map<string, { nombre: string; habitaciones: number | null }>();
+    for (const t of project?.tipologias ?? []) {
+      map.set(t.id, { nombre: t.nombre, habitaciones: t.habitaciones });
+    }
+    return map;
+  }, [project]);
 
   const implantacionPlano = useMemo<PlanoInteractivo | null>(
     () => (project?.planos_interactivos ?? []).find((p) => p.tipo === "implantacion") ?? null,
@@ -158,6 +168,39 @@ export default function NoddoGridPage() {
     }
     return map;
   }, [visibleFachadas, viewMode]);
+
+  // Generate available floors from torre building composition
+  const torreFloors = useMemo(() => {
+    const torre = activeTorre ?? (torres.length === 1 ? torres[0] : null);
+    if (!torre || (torre.tipo ?? "torre") === "urbanismo") return [];
+
+    const s = torre.pisos_sotano ?? 0;
+    const pb = torre.pisos_planta_baja ?? 0;
+    const pod = torre.pisos_podio ?? 0;
+    const res = torre.pisos_residenciales ?? 0;
+    const rt = torre.pisos_rooftop ?? 0;
+    if (s + pb + pod + res + rt === 0) return [];
+
+    const floors: { piso_numero: number; label: string; section: string }[] = [];
+    for (let i = s; i >= 1; i--) floors.push({ piso_numero: -i, label: `S${i}`, section: "Sótano" });
+    if (pb > 0) floors.push({ piso_numero: 0, label: "PB", section: "Planta Baja" });
+    let n = 1;
+    for (let i = 0; i < pod; i++) { floors.push({ piso_numero: n, label: String(n), section: "Podio" }); n++; }
+    for (let i = 0; i < res; i++) { floors.push({ piso_numero: n, label: String(n), section: "Residencial" }); n++; }
+    for (let i = 0; i < rt; i++) { floors.push({ piso_numero: n, label: String(n), section: "Rooftop" }); n++; }
+    return floors;
+  }, [activeTorre, torres]);
+
+  // Piso numbers already assigned to any planta tipo for the active torre
+  const assignedPisos = useMemo(() => {
+    const torreId = activeTorre?.id ?? (torres.length === 1 ? torres[0]?.id : null);
+    return new Set(
+      fachadas
+        .filter((f) => f.tipo === "planta" && (torreId ? f.torre_id === torreId : true))
+        .map((f) => f.piso_numero)
+        .filter((n): n is number => n !== null)
+    );
+  }, [fachadas, activeTorre, torres]);
 
   /* ---- Auto-select first facade for current context ---- */
   useEffect(() => {
@@ -566,20 +609,23 @@ export default function NoddoGridPage() {
     setPlantaTipoNombre("");
     setPlantaTipoImagenUrl("");
     setPlantaTipoPisos("");
+    setPlantaTipoSelectedPisos(new Set());
     setShowPlantaTipoForm(false);
   };
 
   const handleAddPlantaTipo = async () => {
-    if (!plantaTipoNombre.trim() || !plantaTipoImagenUrl || !plantaTipoPisos.trim()) return;
-    const pisos = parseFloorRange(plantaTipoPisos);
-    if (pisos.length === 0) return;
+    const pisos = torreFloors.length > 0
+      ? Array.from(plantaTipoSelectedPisos).sort((a, b) => a - b)
+      : parseFloorRange(plantaTipoPisos);
+    if (!plantaTipoNombre.trim() || !plantaTipoImagenUrl || pisos.length === 0) return;
 
     setCreatingPlantas(true);
     try {
       for (const piso of pisos) {
+        const pisoLabel = piso < 0 ? `S${Math.abs(piso)}` : piso === 0 ? "PB" : `P${piso}`;
         const body: Record<string, unknown> = {
           proyecto_id: projectId,
-          nombre: `${plantaTipoNombre.trim()} - P${piso}`,
+          nombre: `${plantaTipoNombre.trim()} - ${pisoLabel}`,
           imagen_url: plantaTipoImagenUrl,
           tipo: "planta",
           piso_numero: piso,
@@ -657,13 +703,18 @@ export default function NoddoGridPage() {
             u.fachada_x !== null &&
             u.fachada_y !== null
         )
-        .map((u) => ({
-          id: u.id,
-          identificador: u.identificador,
-          estado: u.estado,
-          fachada_x: u.fachada_x!,
-          fachada_y: u.fachada_y!,
-        }))
+        .map((u) => {
+          const tipo = u.tipologia_id ? tipologiaMap.get(u.tipologia_id) : null;
+          return {
+            id: u.id,
+            identificador: u.identificador,
+            estado: u.estado,
+            fachada_x: u.fachada_x!,
+            fachada_y: u.fachada_y!,
+            tipologiaNombre: tipo?.nombre ?? null,
+            habitaciones: u.habitaciones ?? tipo?.habitaciones ?? null,
+          };
+        })
     : [];
 
   const unassignedUnits = unidades
@@ -682,11 +733,16 @@ export default function NoddoGridPage() {
       // Fachada assigned → only show in that fachada's grid
       return selectedFachada ? u.fachada_id === selectedFachada.id : false;
     })
-    .map((u) => ({
-      id: u.id,
-      identificador: u.identificador,
-      estado: u.estado,
-    }));
+    .map((u) => {
+      const tipo = u.tipologia_id ? tipologiaMap.get(u.tipologia_id) : null;
+      return {
+        id: u.id,
+        identificador: u.identificador,
+        estado: u.estado,
+        tipologiaNombre: tipo?.nombre ?? null,
+        habitaciones: u.habitaciones ?? tipo?.habitaciones ?? null,
+      };
+    });
 
   const STATUS_COLORS: Record<string, string> = {
     disponible: "#22c55e",
@@ -904,10 +960,17 @@ export default function NoddoGridPage() {
               {unassignedUnits.map((u) => (
                 <div
                   key={u.id}
-                  className="flex items-center gap-2 px-3 py-1.5 text-xs text-[var(--text-secondary)] hover:bg-[var(--surface-2)] transition-colors"
+                  className="flex items-start gap-2 px-3 py-1.5 hover:bg-[var(--surface-2)] transition-colors"
                 >
-                  <span className="w-2 h-2 rounded-full shrink-0" style={{ background: STATUS_COLORS[u.estado] }} />
-                  <span className="truncate">{u.identificador}</span>
+                  <span className="w-2 h-2 rounded-full shrink-0 mt-1" style={{ background: STATUS_COLORS[u.estado] }} />
+                  <div className="min-w-0">
+                    <span className="block text-xs text-[var(--text-secondary)] truncate">{u.identificador}</span>
+                    {u.tipologiaNombre && (
+                      <span className="block text-[10px] text-[var(--text-muted)] truncate">
+                        {u.tipologiaNombre}{u.habitaciones ? ` · ${u.habitaciones} hab` : ""}
+                      </span>
+                    )}
+                  </div>
                 </div>
               ))}
             </div>
@@ -931,15 +994,22 @@ export default function NoddoGridPage() {
                 {assignedUnits.map((u) => (
                   <div
                     key={u.id}
-                    className="flex items-center justify-between gap-1 px-3 py-1.5 text-xs text-[var(--text-secondary)] hover:bg-[var(--surface-2)] transition-colors group"
+                    className="flex items-start justify-between gap-1 px-3 py-1.5 hover:bg-[var(--surface-2)] transition-colors group"
                   >
-                    <div className="flex items-center gap-2 min-w-0">
-                      <span className="w-2 h-2 rounded-full shrink-0" style={{ background: STATUS_COLORS[u.estado] }} />
-                      <span className="truncate">{u.identificador}</span>
+                    <div className="flex items-start gap-2 min-w-0">
+                      <span className="w-2 h-2 rounded-full shrink-0 mt-1" style={{ background: STATUS_COLORS[u.estado] }} />
+                      <div className="min-w-0">
+                        <span className="block text-xs text-[var(--text-secondary)] truncate">{u.identificador}</span>
+                        {u.tipologiaNombre && (
+                          <span className="block text-[10px] text-[var(--text-muted)] truncate">
+                            {u.tipologiaNombre}{u.habitaciones ? ` · ${u.habitaciones} hab` : ""}
+                          </span>
+                        )}
+                      </div>
                     </div>
                     <button
                       onClick={() => handleRemoveUnit(u.id)}
-                      className="opacity-0 group-hover:opacity-100 shrink-0 transition-opacity"
+                      className="opacity-0 group-hover:opacity-100 shrink-0 mt-0.5 transition-opacity"
                     >
                       <X size={12} className="text-[var(--text-tertiary)] hover:text-red-400" />
                     </button>
@@ -1459,28 +1529,118 @@ export default function NoddoGridPage() {
                   label={t("fachadas.plantas.uploadFloorPlan")}
                 />
               </div>
-              <div>
-                <label className={labelClass}>{t("fachadas.plantas.floorRange")}</label>
-                <input
-                  type="text"
-                  value={plantaTipoPisos}
-                  onChange={(e) => setPlantaTipoPisos(e.target.value)}
-                  placeholder={t("fachadas.plantas.floorRangePlaceholder")}
-                  className={inputClass}
-                />
-                <p className="text-[10px] text-[var(--text-muted)] mt-1">{t("fachadas.plantas.floorRangeHint")}</p>
-                {plantaTipoPisos.trim() && (
-                  <p className="text-[10px] text-[var(--site-primary)] mt-0.5">
-                    {parseFloorRange(plantaTipoPisos).length > 0
-                      ? `→ ${parseFloorRange(plantaTipoPisos).map((p) => `P${p}`).join(", ")}`
-                      : ""}
-                  </p>
-                )}
-              </div>
+              {torreFloors.length > 0 ? (
+                <div>
+                  <div className="flex items-center justify-between mb-1.5">
+                    <label className={labelClass + " !mb-0"}>Pisos asignados</label>
+                    <div className="flex gap-3">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const available = torreFloors
+                            .filter((f) => !assignedPisos.has(f.piso_numero))
+                            .map((f) => f.piso_numero);
+                          setPlantaTipoSelectedPisos(new Set(available));
+                        }}
+                        className="text-[10px] text-[var(--site-primary)] hover:underline"
+                      >
+                        Seleccionar todos
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setPlantaTipoSelectedPisos(new Set())}
+                        className="text-[10px] text-[var(--text-muted)] hover:underline"
+                      >
+                        Limpiar
+                      </button>
+                    </div>
+                  </div>
+                  <div className="space-y-2.5 max-h-52 overflow-y-auto scrollbar-thin rounded-xl border border-[var(--border-subtle)] bg-[var(--surface-0)] p-3">
+                    {([
+                      { name: "Sótano", color: "bg-white/20" },
+                      { name: "Planta Baja", color: "bg-emerald-400/50" },
+                      { name: "Podio", color: "bg-blue-400/50" },
+                      { name: "Residencial", color: "bg-[rgba(var(--site-primary-rgb),0.6)]" },
+                      { name: "Rooftop", color: "bg-amber-400/70" },
+                    ] as const).map((section) => {
+                      const sectionFloors = torreFloors.filter((f) => f.section === section.name);
+                      if (sectionFloors.length === 0) return null;
+                      return (
+                        <div key={section.name}>
+                          <p className="text-[10px] text-[var(--text-muted)] mb-1 flex items-center gap-1.5">
+                            <span className={`w-2 h-2 rounded-sm ${section.color}`} />
+                            {section.name}
+                          </p>
+                          <div className="flex flex-wrap gap-1">
+                            {sectionFloors.map((floor) => {
+                              const isAssigned = assignedPisos.has(floor.piso_numero);
+                              const isSelected = plantaTipoSelectedPisos.has(floor.piso_numero);
+                              return (
+                                <button
+                                  key={floor.piso_numero}
+                                  type="button"
+                                  disabled={isAssigned}
+                                  onClick={() => {
+                                    setPlantaTipoSelectedPisos((prev) => {
+                                      const next = new Set(prev);
+                                      if (next.has(floor.piso_numero)) next.delete(floor.piso_numero);
+                                      else next.add(floor.piso_numero);
+                                      return next;
+                                    });
+                                  }}
+                                  className={cn(
+                                    "min-w-[2.25rem] px-2 py-1 rounded-lg text-[11px] font-mono transition-all border",
+                                    isAssigned
+                                      ? "opacity-25 cursor-not-allowed border-transparent bg-[var(--surface-2)] text-[var(--text-muted)] line-through"
+                                      : isSelected
+                                        ? "bg-[rgba(var(--site-primary-rgb),0.15)] border-[rgba(var(--site-primary-rgb),0.4)] text-[var(--site-primary)]"
+                                        : "bg-[var(--surface-2)] border-[var(--border-subtle)] text-[var(--text-secondary)] hover:border-[var(--border-default)]"
+                                  )}
+                                >
+                                  {floor.label}
+                                </button>
+                              );
+                            })}
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                  {plantaTipoSelectedPisos.size > 0 && (
+                    <p className="text-[10px] text-[var(--site-primary)] mt-1.5">
+                      {plantaTipoSelectedPisos.size} pisos seleccionados: {Array.from(plantaTipoSelectedPisos).sort((a, b) => a - b).map((p) => p < 0 ? `S${Math.abs(p)}` : p === 0 ? "PB" : `P${p}`).join(", ")}
+                    </p>
+                  )}
+                  {assignedPisos.size > 0 && (
+                    <p className="text-[10px] text-[var(--text-muted)] mt-0.5">
+                      Los pisos tachados ya tienen planta tipo asignada
+                    </p>
+                  )}
+                </div>
+              ) : (
+                <div>
+                  <label className={labelClass}>{t("fachadas.plantas.floorRange")}</label>
+                  <input
+                    type="text"
+                    value={plantaTipoPisos}
+                    onChange={(e) => setPlantaTipoPisos(e.target.value)}
+                    placeholder={t("fachadas.plantas.floorRangePlaceholder")}
+                    className={inputClass}
+                  />
+                  <p className="text-[10px] text-[var(--text-muted)] mt-1">{t("fachadas.plantas.floorRangeHint")}</p>
+                  {plantaTipoPisos.trim() && (
+                    <p className="text-[10px] text-[var(--site-primary)] mt-0.5">
+                      {parseFloorRange(plantaTipoPisos).length > 0
+                        ? `→ ${parseFloorRange(plantaTipoPisos).map((p) => `P${p}`).join(", ")}`
+                        : ""}
+                    </p>
+                  )}
+                </div>
+              )}
               <div className="flex items-center gap-2 pt-1">
                 <button
                   onClick={handleAddPlantaTipo}
-                  disabled={creatingPlantas || !plantaTipoNombre.trim() || !plantaTipoImagenUrl || parseFloorRange(plantaTipoPisos).length === 0}
+                  disabled={creatingPlantas || !plantaTipoNombre.trim() || !plantaTipoImagenUrl || (torreFloors.length > 0 ? plantaTipoSelectedPisos.size === 0 : parseFloorRange(plantaTipoPisos).length === 0)}
                   className={btnPrimary}
                 >
                   {creatingPlantas ? <Loader2 size={14} className="animate-spin" /> : <Plus size={14} />}

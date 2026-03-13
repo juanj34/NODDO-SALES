@@ -48,7 +48,7 @@ interface EmptyDot {
 interface FacadeHotspotEditorProps {
   fachada: Fachada;
   assignedUnits: HotspotUnit[];
-  unassignedUnits: { id: string; identificador: string; estado: Unidad["estado"] }[];
+  unassignedUnits: { id: string; identificador: string; estado: Unidad["estado"]; tipologiaNombre?: string | null; habitaciones?: number | null }[];
   onUpdateUnit: (
     unitId: string,
     data: { fachada_id: string; fachada_x: number; fachada_y: number }
@@ -825,9 +825,11 @@ export function FacadeHotspotEditor({
      Filter unassigned units by search (for context menu)
      ------------------------------------------------------------------ */
   const filteredUnassigned = menuSearch
-    ? unassignedUnits.filter((u) =>
-        u.identificador.toLowerCase().includes(menuSearch.toLowerCase())
-      )
+    ? unassignedUnits.filter((u) => {
+        const q = menuSearch.toLowerCase();
+        return u.identificador.toLowerCase().includes(q) ||
+          (u.tipologiaNombre?.toLowerCase().includes(q) ?? false);
+      })
     : unassignedUnits;
 
   /* ------------------------------------------------------------------
@@ -1149,10 +1151,17 @@ export function FacadeHotspotEditor({
                       <button
                         key={u.id}
                         onClick={() => handleAssignUnit(u.id)}
-                        className="w-full flex items-center gap-2 px-3 py-1.5 text-[11px] text-[var(--text-secondary)] hover:text-white hover:bg-[var(--surface-2)] transition-colors"
+                        className="w-full flex items-start gap-2 px-3 py-1.5 hover:bg-[var(--surface-2)] transition-colors text-left"
                       >
-                        <span className="w-2 h-2 rounded-full shrink-0" style={{ background: STATUS_COLORS[u.estado] }} />
-                        {u.identificador}
+                        <span className="w-2 h-2 rounded-full shrink-0 mt-1" style={{ background: STATUS_COLORS[u.estado] }} />
+                        <span className="min-w-0">
+                          <span className="block text-[11px] text-[var(--text-secondary)] truncate">{u.identificador}</span>
+                          {u.tipologiaNombre && (
+                            <span className="block text-[9px] text-[var(--text-muted)] truncate">
+                              {u.tipologiaNombre}{u.habitaciones ? ` · ${u.habitaciones} hab` : ""}
+                            </span>
+                          )}
+                        </span>
                       </button>
                     ))}
                     {filteredUnassigned.length === 0 && (

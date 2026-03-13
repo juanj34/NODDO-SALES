@@ -14,15 +14,7 @@ interface StepData {
 
 const STEPS: StepData[] = [
   {
-    num: "01 / 06",
-    label: "Planos interactivos",
-    title: "Todo empieza\ncon el ",
-    titleEm: "plano.",
-    body: "Sube tus planos en PDF o imagen y Noddo los vincula directamente a cada unidad. El comprador ve el plano exacto del piso que le interesa — sin pedírselo al asesor.",
-    tag: "Planos por tipología y piso",
-  },
-  {
-    num: "02 / 06",
+    num: "01 / 03",
     label: "Noddo Grid",
     title: "La fachada\n",
     titleEm: "habla sola.",
@@ -30,15 +22,7 @@ const STEPS: StepData[] = [
     tag: "Fachada 100% interactiva",
   },
   {
-    num: "03 / 06",
-    label: "Renders 360°",
-    title: "Muestra el\nproyecto como ",
-    titleEm: "es.",
-    body: "Integra renders, tours virtuales y vistas de áreas comunes en la sala. El comprador recorre el proyecto antes de pisar una oficina.",
-    tag: "Renders, tours y galerías",
-  },
-  {
-    num: "04 / 06",
+    num: "02 / 03",
     label: "Disponibilidad",
     title: "Inventario en\n",
     titleEm: "tiempo real.",
@@ -46,20 +30,12 @@ const STEPS: StepData[] = [
     tag: "Se actualiza tú mismo",
   },
   {
-    num: "05 / 06",
+    num: "03 / 03",
     label: "Captura de leads",
     title: "El lead llega\n",
     titleEm: "cualificado.",
     body: "Cada lead incluye nombre, correo, WhatsApp, la unidad exacta que exploró y la fuente de tráfico. Tu equipo sabe exactamente a quién llamar y sobre qué.",
     tag: "Lead con piso y tipología",
-  },
-  {
-    num: "06 / 06",
-    label: "Avance de obra",
-    title: "La confianza\nse ",
-    titleEm: "construye.",
-    body: "Actualiza el avance de obra en el edificio. El comprador ve el progreso real del proyecto en cada visita. Transparencia que convierte dudas en contratos.",
-    tag: "Actualización mensual",
   },
 ];
 
@@ -85,9 +61,6 @@ export function ScrollFeatures() {
   const dotRefs = useRef<(HTMLDivElement | null)[]>([]);
   const layerRefs = useRef<(SVGSVGElement | null)[]>([]);
 
-  // Orbit angle state (time-based, not scroll)
-  const orbState = useRef({ angle1: 0, angle2: 180, lastTs: 0 });
-
   useEffect(() => {
     const section = sectionRef.current;
     if (!section) return;
@@ -100,7 +73,7 @@ export function ScrollFeatures() {
 
     let rafId: number;
 
-    function render(ts: number) {
+    function render() {
       rafId = requestAnimationFrame(render);
 
       const rect = section!.getBoundingClientRect();
@@ -108,11 +81,9 @@ export function ScrollFeatures() {
       const scrolled = clamp(-rect.top, 0, total);
       const p = total > 0 ? scrolled / total : 0;
 
-      const N = 6;
+      const N = 3;
       const STEP = 1 / N;
       const stepIdx = clamp(Math.floor(p * N), 0, N - 1);
-      const stepLocal = p * N - stepIdx;
-      const sLocal = smooth(clamp(stepLocal, 0, 1));
 
       // ── Progress UI ──
       if (progressFillRef.current) {
@@ -189,41 +160,9 @@ export function ScrollFeatures() {
       // Skip heavy per-element animations if user prefers reduced motion
       if (prefersReduced) return;
 
-      // ── Layer 0: PLANOS — sheets fly in ──
+      // ── Layer 0: GRID — units pop in staggered ──
       {
         const lp = clamp(p / STEP, 0, 1);
-        const s0 = smooth(clamp(lp * 2, 0, 1));
-        const s1 = smooth(clamp(lp * 2 - 1, 0, 1));
-
-        const p1 = $("sfPlan1");
-        const p2 = $("sfPlan2");
-        if (p1) {
-          (p1 as SVGElement).style.opacity = String(s0);
-          (p1 as SVGElement).style.transform = `translate(${(1 - s0) * -52}px,${(1 - s0) * -36}px) rotate(${(1 - s0) * -7}deg)`;
-          (p1 as SVGElement).style.transformOrigin = "48px 200px";
-        }
-        if (p2) {
-          (p2 as SVGElement).style.opacity = String(s1);
-          (p2 as SVGElement).style.transform = `translate(${(1 - s1) * -52}px,${(1 - s1) * -36}px) rotate(${(1 - s1) * -7}deg)`;
-          (p2 as SVGElement).style.transformOrigin = "70px 270px";
-        }
-        const lineS = smooth(clamp(lp * 2 - 0.8, 0, 1));
-        const ll1 = $("sfPlanLine1");
-        const ll2 = $("sfPlanLine2");
-        if (ll1) ll1.setAttribute("stroke-dashoffset", String(60 * (1 - lineS)));
-        if (ll2) ll2.setAttribute("stroke-dashoffset", String(60 * (1 - lineS)));
-        const dotS = smooth(clamp(lp * 2 - 1.2, 0, 1));
-        const d1 = $("sfPlanDot1");
-        const d2 = $("sfPlanDot2");
-        if (d1) (d1 as SVGElement).style.transform = `scale(${dotS})`;
-        if (d2) (d2 as SVGElement).style.transform = `scale(${dotS * 0.85})`;
-        const pl = $("sfPlanLabel");
-        if (pl) (pl as SVGElement).style.opacity = String(smooth(clamp(lp * 2 - 1.4, 0, 1)));
-      }
-
-      // ── Layer 1: GRID — units pop in staggered ──
-      {
-        const lp = clamp((p - STEP) / STEP, 0, 1);
         const units = section!.querySelectorAll<SVGElement>("[data-unit]");
         units.forEach((u, i) => {
           const threshold = i / units.length;
@@ -237,32 +176,9 @@ export function ScrollFeatures() {
         if (legend) (legend as SVGElement).style.opacity = String(smooth(clamp(lp * 2 - 1.5, 0, 1)));
       }
 
-      // ── Layer 2: RENDERS — orbit (time-based) + badge (scroll) ──
+      // ── Layer 1: DISPONIBILIDAD — dots pop in staggered ──
       {
-        const lp = clamp((p - 2 * STEP) / STEP, 0, 1);
-        const dt = ts - orbState.current.lastTs;
-        orbState.current.lastTs = ts;
-        const speed = 0.04;
-        orbState.current.angle1 = (orbState.current.angle1 + dt * speed) % 360;
-        orbState.current.angle2 = (orbState.current.angle2 + dt * speed) % 360;
-
-        const o1 = $("sfOrb1");
-        const o2 = $("sfOrb2");
-        if (o1) (o1 as SVGElement).style.transform = `rotate(${orbState.current.angle1}deg)`;
-        if (o2) (o2 as SVGElement).style.transform = `rotate(${orbState.current.angle2}deg)`;
-
-        const glow = $("sfRenderGlow");
-        if (glow) (glow as SVGElement).style.opacity = String(0.35 + 0.45 * Math.sin(ts / 2000));
-
-        const badge = $("sfRenderBadge");
-        const lbl = $("sfRenderLabel");
-        if (badge) (badge as SVGElement).style.opacity = String(smooth(clamp(lp * 2, 0, 1)));
-        if (lbl) (lbl as SVGElement).style.opacity = String(smooth(clamp(lp * 2 - 1.2, 0, 1)));
-      }
-
-      // ── Layer 3: DISPONIBILIDAD — dots pop in staggered ──
-      {
-        const lp = clamp((p - 3 * STEP) / STEP, 0, 1);
+        const lp = clamp((p - STEP) / STEP, 0, 1);
         const dots = section!.querySelectorAll<SVGElement>("[data-dot]");
         dots.forEach((d, i) => {
           const t = smooth(clamp((lp - i * 0.03) * 4, 0, 1));
@@ -279,9 +195,9 @@ export function ScrollFeatures() {
         if (lbl) (lbl as SVGElement).style.opacity = String(smooth(clamp(lp * 2 - 1.3, 0, 1)));
       }
 
-      // ── Layer 4: LEADS — cards fly up from below ──
+      // ── Layer 2: LEADS — cards fly up from below ──
       {
-        const lp = clamp((p - 4 * STEP) / STEP, 0, 1);
+        const lp = clamp((p - 2 * STEP) / STEP, 0, 1);
         const leads: [string, number][] = [["sfLead1", 0], ["sfLead2", 0.25], ["sfLead3", 0.5]];
         const lines: [string, number][] = [["sfLeadLine1", 100], ["sfLeadLine2", 100]];
         leads.forEach(([id, offset]) => {
@@ -300,40 +216,10 @@ export function ScrollFeatures() {
         const lbl = $("sfLeadLabel");
         if (lbl) (lbl as SVGElement).style.opacity = String(smooth(clamp(lp * 2 - 1.4, 0, 1)));
       }
-
-      // ── Layer 5: AVANCE DE OBRA — fill rises ──
-      {
-        const lp = clamp((p - 5 * STEP) / STEP, 0, 1);
-        const fillT = smooth(clamp(lp * 1.5, 0, 1));
-        const lineT = smooth(clamp(lp * 2 - 0.3, 0, 1));
-        const badgeT = smooth(clamp(lp * 2 - 0.9, 0, 1));
-        const timeT = smooth(clamp(lp * 2 - 1.2, 0, 1));
-        const lblT = smooth(clamp(lp * 2 - 1.5, 0, 1));
-
-        const pL = $("sfProgL");
-        const pR = $("sfProgR");
-        if (pL) (pL as SVGElement).style.transform = `scaleY(${fillT})`;
-        if (pR) (pR as SVGElement).style.transform = `scaleY(${fillT * 0.95})`;
-
-        const wL = $("sfWaterL");
-        const wR = $("sfWaterR");
-        if (wL) wL.setAttribute("stroke-dashoffset", String(240 * (1 - lineT)));
-        if (wR) wR.setAttribute("stroke-dashoffset", String(240 * (1 - lineT * 0.9)));
-
-        const progBadge = $("sfProgBadge");
-        if (progBadge) (progBadge as SVGElement).style.opacity = String(badgeT);
-        const progTimeline = $("sfProgTimeline");
-        if (progTimeline) (progTimeline as SVGElement).style.opacity = String(timeT);
-        const progLabel = $("sfProgLabel");
-        if (progLabel) (progLabel as SVGElement).style.opacity = String(lblT);
-      }
     }
 
     // Kick off loop
-    rafId = requestAnimationFrame((ts) => {
-      orbState.current.lastTs = ts;
-      render(ts);
-    });
+    rafId = requestAnimationFrame(render);
 
     return () => cancelAnimationFrame(rafId);
   }, []);
@@ -344,13 +230,13 @@ export function ScrollFeatures() {
     if (!section) return;
     const top = window.scrollY + section.getBoundingClientRect().top;
     const total = section.offsetHeight - window.innerHeight;
-    window.scrollTo({ top: top + (i / 6) * total + 10, behavior: "smooth" });
+    window.scrollTo({ top: top + (i / 3) * total + 10, behavior: "smooth" });
   }
 
   return (
     <section
       ref={sectionRef}
-      className="relative z-[1] h-[500vh] lg:h-[700vh]"
+      className="relative z-[1] h-[300vh] lg:h-[420vh]"
       style={{
         borderTop: "1px solid rgba(255,255,255,.04)",
       }}
@@ -508,57 +394,9 @@ export function ScrollFeatures() {
               <line x1="460" y1="108" x2="240" y2="52" stroke="rgba(184,151,58,.35)" strokeWidth="1" />
             </svg>
 
-            {/* ── Layer 0: PLANOS ── */}
+            {/* ── Layer 0: NODDO GRID ── */}
             <svg
               ref={(el) => { layerRefs.current[0] = el; }}
-              viewBox="0 0 480 560"
-              fill="none"
-              style={{ position: "absolute", inset: 0, width: "100%", height: "100%", opacity: 0, pointerEvents: "none", willChange: "opacity,transform" }}
-            >
-              <defs>
-                <linearGradient id="bpG" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stopColor="#3a6fa0" stopOpacity=".92" />
-                  <stop offset="100%" stopColor="#1e4870" stopOpacity=".78" />
-                </linearGradient>
-              </defs>
-              {/* Sheet 1 */}
-              <g id="sfPlan1">
-                <polygon points="48,200 200,160 200,224 48,264" fill="url(#bpG)" opacity=".88" />
-                <line x1="58" y1="212" x2="190" y2="176" stroke="rgba(160,210,255,.4)" strokeWidth=".7" />
-                <line x1="58" y1="224" x2="190" y2="188" stroke="rgba(160,210,255,.4)" strokeWidth=".7" />
-                <line x1="58" y1="236" x2="190" y2="200" stroke="rgba(160,210,255,.4)" strokeWidth=".7" />
-                <line x1="58" y1="248" x2="190" y2="212" stroke="rgba(160,210,255,.35)" strokeWidth=".7" />
-                <line x1="96" y1="167" x2="96" y2="257" stroke="rgba(160,210,255,.28)" strokeWidth=".7" />
-                <line x1="132" y1="158" x2="132" y2="248" stroke="rgba(160,210,255,.28)" strokeWidth=".7" />
-                <line x1="168" y1="149" x2="168" y2="239" stroke="rgba(160,210,255,.28)" strokeWidth=".7" />
-                <polygon points="60,203 90,195 90,215 60,223" fill="rgba(160,210,255,.22)" />
-                <polygon points="98,193 128,185 128,205 98,213" fill="rgba(160,210,255,.14)" />
-                <polygon points="48,200 200,160 200,163 48,203" fill="rgba(160,210,255,.45)" />
-              </g>
-              {/* Sheet 2 */}
-              <g id="sfPlan2">
-                <polygon points="70,270 222,230 222,290 70,330" fill="url(#bpG)" opacity=".72" />
-                <line x1="80" y1="281" x2="212" y2="245" stroke="rgba(160,210,255,.35)" strokeWidth=".7" />
-                <line x1="80" y1="295" x2="212" y2="259" stroke="rgba(160,210,255,.35)" strokeWidth=".7" />
-                <line x1="80" y1="309" x2="212" y2="273" stroke="rgba(160,210,255,.3)" strokeWidth=".7" />
-                <line x1="118" y1="237" x2="118" y2="323" stroke="rgba(160,210,255,.22)" strokeWidth=".7" />
-                <line x1="158" y1="227" x2="158" y2="313" stroke="rgba(160,210,255,.22)" strokeWidth=".7" />
-                <polygon points="70,270 222,230 222,233 70,273" fill="rgba(160,210,255,.38)" />
-              </g>
-              {/* Connecting lines */}
-              <line id="sfPlanLine1" x1="200" y1="192" x2="240" y2="212" stroke="rgba(74,127,181,.5)" strokeWidth="1" strokeDasharray="5 4" strokeDashoffset="60" />
-              <line id="sfPlanLine2" x1="222" y1="260" x2="240" y2="292" stroke="rgba(74,127,181,.4)" strokeWidth="1" strokeDasharray="5 4" strokeDashoffset="60" />
-              <circle id="sfPlanDot1" cx="240" cy="212" r="4" fill="#4a7fb5" style={{ transformOrigin: "240px 212px", transform: "scale(0)" }} />
-              <circle id="sfPlanDot2" cx="240" cy="292" r="4" fill="#4a7fb5" opacity=".7" style={{ transformOrigin: "240px 292px", transform: "scale(0)" }} />
-              <g id="sfPlanLabel" opacity="0">
-                <rect x="28" y="60" width="108" height="22" fill="rgba(58,111,160,.15)" stroke="rgba(58,111,160,.5)" strokeWidth=".8" />
-                <text x="82" y="75" textAnchor="middle" fontFamily="Syne,sans-serif" fontSize="8" fill="rgba(160,210,255,.9)" letterSpacing="2.5" fontWeight="700">PLANOS</text>
-              </g>
-            </svg>
-
-            {/* ── Layer 1: NODDO GRID ── */}
-            <svg
-              ref={(el) => { layerRefs.current[1] = el; }}
               viewBox="0 0 480 560"
               fill="none"
               style={{ position: "absolute", inset: 0, width: "100%", height: "100%", opacity: 0, pointerEvents: "none", willChange: "opacity,transform" }}
@@ -605,49 +443,9 @@ export function ScrollFeatures() {
               </g>
             </svg>
 
-            {/* ── Layer 2: RENDERS 360 ── */}
+            {/* ── Layer 1: DISPONIBILIDAD ── */}
             <svg
-              ref={(el) => { layerRefs.current[2] = el; }}
-              viewBox="0 0 480 560"
-              fill="none"
-              style={{ position: "absolute", inset: 0, width: "100%", height: "100%", opacity: 0, pointerEvents: "none", willChange: "opacity,transform" }}
-            >
-              <defs>
-                <radialGradient id="rGlw" cx="50%" cy="50%" r="50%">
-                  <stop offset="0%" stopColor="#d4b05a" stopOpacity=".2" />
-                  <stop offset="100%" stopColor="transparent" />
-                </radialGradient>
-              </defs>
-              <ellipse cx="240" cy="280" rx="185" ry="185" fill="url(#rGlw)" id="sfRenderGlow" />
-              <ellipse cx="240" cy="280" rx="205" ry="70" stroke="rgba(184,151,58,.18)" strokeWidth="1.2" strokeDasharray="7 5" />
-              {/* Orbiting thumbnail 1 */}
-              <g id="sfOrb1" style={{ transformOrigin: "240px 280px" }}>
-                <rect x="17" y="268" width="38" height="26" fill="#131313" stroke="rgba(184,151,58,.6)" strokeWidth="1" />
-                <line x1="21" y1="275" x2="51" y2="275" stroke="rgba(184,151,58,.3)" strokeWidth=".7" />
-                <line x1="21" y1="281" x2="50" y2="281" stroke="rgba(184,151,58,.22)" strokeWidth=".7" />
-                <line x1="21" y1="287" x2="49" y2="287" stroke="rgba(184,151,58,.18)" strokeWidth=".7" />
-              </g>
-              {/* Orbiting thumbnail 2 */}
-              <g id="sfOrb2" style={{ transformOrigin: "240px 280px" }}>
-                <rect x="17" y="268" width="38" height="26" fill="#131313" stroke="rgba(184,151,58,.45)" strokeWidth="1" />
-                <line x1="21" y1="275" x2="51" y2="275" stroke="rgba(184,151,58,.25)" strokeWidth=".7" />
-                <line x1="21" y1="281" x2="50" y2="281" stroke="rgba(184,151,58,.18)" strokeWidth=".7" />
-              </g>
-              {/* 360 badge */}
-              <g id="sfRenderBadge" opacity="0">
-                <circle cx="240" cy="148" r="40" fill="rgba(184,151,58,.07)" stroke="rgba(184,151,58,.32)" strokeWidth="1.2" />
-                <text x="240" y="144" textAnchor="middle" fontFamily="Syne,sans-serif" fontSize="17" fill="#d4b05a" fontWeight="800">360°</text>
-                <text x="240" y="162" textAnchor="middle" fontFamily="DM Mono,monospace" fontSize="7.5" fill="rgba(244,240,232,.35)" letterSpacing="2.5">RENDER</text>
-              </g>
-              <g id="sfRenderLabel" opacity="0">
-                <rect x="28" y="60" width="128" height="22" fill="rgba(184,151,58,.07)" stroke="rgba(184,151,58,.38)" strokeWidth=".8" />
-                <text x="92" y="75" textAnchor="middle" fontFamily="Syne,sans-serif" fontSize="8" fill="rgba(212,176,90,.9)" letterSpacing="2.5" fontWeight="700">RENDERS 360°</text>
-              </g>
-            </svg>
-
-            {/* ── Layer 3: DISPONIBILIDAD ── */}
-            <svg
-              ref={(el) => { layerRefs.current[3] = el; }}
+              ref={(el) => { layerRefs.current[1] = el; }}
               viewBox="0 0 480 560"
               fill="none"
               style={{ position: "absolute", inset: 0, width: "100%", height: "100%", opacity: 0, pointerEvents: "none", willChange: "opacity,transform" }}
@@ -684,9 +482,9 @@ export function ScrollFeatures() {
               </g>
             </svg>
 
-            {/* ── Layer 4: LEADS ── */}
+            {/* ── Layer 2: LEADS ── */}
             <svg
-              ref={(el) => { layerRefs.current[4] = el; }}
+              ref={(el) => { layerRefs.current[2] = el; }}
               viewBox="0 0 480 560"
               fill="none"
               style={{ position: "absolute", inset: 0, width: "100%", height: "100%", opacity: 0, pointerEvents: "none", willChange: "opacity,transform" }}
@@ -729,55 +527,6 @@ export function ScrollFeatures() {
                 <text x="73" y="75" textAnchor="middle" fontFamily="Syne,sans-serif" fontSize="8" fill="rgba(212,176,90,.9)" letterSpacing="2.5" fontWeight="700">LEADS</text>
               </g>
             </svg>
-
-            {/* ── Layer 5: AVANCE DE OBRA ── */}
-            <svg
-              ref={(el) => { layerRefs.current[5] = el; }}
-              viewBox="0 0 480 560"
-              fill="none"
-              style={{ position: "absolute", inset: 0, width: "100%", height: "100%", opacity: 0, pointerEvents: "none", willChange: "opacity,transform" }}
-            >
-              <defs>
-                <linearGradient id="sfPFG" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stopColor="#b8973a" stopOpacity=".45" />
-                  <stop offset="100%" stopColor="#b8973a" stopOpacity=".06" />
-                </linearGradient>
-                <clipPath id="sfLFC">
-                  <polygon points="20,508 20,108 240,52 240,452" />
-                </clipPath>
-                <clipPath id="sfRFC">
-                  <polygon points="240,452 240,52 460,108 460,508" />
-                </clipPath>
-              </defs>
-              {/* Fill rectangles — JS sets scaleY */}
-              <rect id="sfProgL" x="20" y="52" width="220" height="456" fill="url(#sfPFG)" clipPath="url(#sfLFC)" style={{ transformOrigin: "20px 508px", transform: "scaleY(0)" }} />
-              <rect id="sfProgR" x="240" y="52" width="220" height="456" fill="url(#sfPFG)" clipPath="url(#sfRFC)" style={{ transformOrigin: "240px 508px", transform: "scaleY(0)" }} />
-              {/* Waterline */}
-              <line id="sfWaterL" x1="20" y1="255" x2="240" y2="199" stroke="rgba(184,151,58,.65)" strokeWidth="1.8" strokeDasharray="240" strokeDashoffset="240" strokeLinecap="round" />
-              <line id="sfWaterR" x1="240" y1="199" x2="460" y2="255" stroke="rgba(184,151,58,.4)" strokeWidth="1.4" strokeDasharray="240" strokeDashoffset="240" strokeLinecap="round" />
-              {/* Progress badge */}
-              <g id="sfProgBadge" opacity="0">
-                <rect x="178" y="162" width="124" height="52" fill="#0c0c0c" stroke="rgba(184,151,58,.45)" strokeWidth=".8" />
-                <text x="240" y="186" textAnchor="middle" fontFamily="Cormorant Garamond,serif" fontSize="28" fontWeight="300" fill="#d4b05a">65%</text>
-                <text x="240" y="204" textAnchor="middle" fontFamily="DM Mono,monospace" fontSize="8" fill="rgba(244,240,232,.3)" letterSpacing="2">CONSTRUIDO</text>
-              </g>
-              {/* Timeline */}
-              <g id="sfProgTimeline" opacity="0">
-                <line x1="10" y1="508" x2="10" y2="255" stroke="rgba(184,151,58,.2)" strokeWidth=".8" />
-                <circle cx="10" cy="508" r="3" fill="rgba(184,151,58,.45)" />
-                <circle cx="10" cy="424" r="3" fill="rgba(184,151,58,.45)" />
-                <circle cx="10" cy="340" r="3" fill="rgba(184,151,58,.45)" />
-                <circle cx="10" cy="255" r="3" fill="rgba(184,151,58,.75)" />
-                <text x="0" y="512" fontFamily="DM Mono,monospace" fontSize="6.5" fill="rgba(244,240,232,.2)" textAnchor="middle">Ene</text>
-                <text x="0" y="428" fontFamily="DM Mono,monospace" fontSize="6.5" fill="rgba(244,240,232,.2)" textAnchor="middle">Abr</text>
-                <text x="0" y="344" fontFamily="DM Mono,monospace" fontSize="6.5" fill="rgba(244,240,232,.2)" textAnchor="middle">Jul</text>
-                <text x="0" y="259" fontFamily="DM Mono,monospace" fontSize="6.5" fill="rgba(244,240,232,.55)" textAnchor="middle">Oct</text>
-              </g>
-              <g id="sfProgLabel" opacity="0">
-                <rect x="28" y="60" width="138" height="22" fill="rgba(184,151,58,.07)" stroke="rgba(184,151,58,.38)" strokeWidth=".8" />
-                <text x="97" y="75" textAnchor="middle" fontFamily="Syne,sans-serif" fontSize="8" fill="rgba(212,176,90,.9)" letterSpacing="2.5" fontWeight="700">AVANCE OBRA</text>
-              </g>
-            </svg>
           </div>
         </div>
 
@@ -806,37 +555,84 @@ export function ScrollFeatures() {
             />
           </div>
 
-          {/* Counter */}
+          {/* Section header — persistent */}
           <div
+            className="px-6 lg:px-14"
             style={{
               position: "absolute",
-              top: 40,
-              right: 48,
-              fontFamily: "'Cormorant Garamond',serif",
-              fontSize: 11,
-              fontWeight: 300,
-              letterSpacing: ".1em",
-              color: "rgba(244,240,232,.2)",
+              top: 32,
+              left: 0,
+              right: 0,
+              zIndex: 5,
             }}
           >
-            <strong
-              ref={counterRef}
-              style={{
-                fontSize: 28,
-                lineHeight: 1,
-                fontWeight: 300,
-                color: "rgba(184,151,58,.35)",
-                display: "block",
-              }}
-            >
-              01
-            </strong>
-            de 06
+            <div className="flex items-start justify-between">
+              <div>
+                <span
+                  className="font-ui"
+                  style={{
+                    fontSize: 10,
+                    fontWeight: 700,
+                    letterSpacing: ".3em",
+                    textTransform: "uppercase" as const,
+                    color: "var(--mk-accent)",
+                    display: "block",
+                    marginBottom: 10,
+                  }}
+                >
+                  Funcionalidades
+                </span>
+                <h2
+                  className="font-heading"
+                  style={{
+                    fontSize: "clamp(24px, 2.8vw, 38px)",
+                    fontWeight: 300,
+                    lineHeight: 1.15,
+                    letterSpacing: "-.02em",
+                    color: "var(--mk-text-primary)",
+                  }}
+                >
+                  Todo en un solo{" "}
+                  <em style={{ fontStyle: "italic", color: "var(--mk-accent-light)" }}>
+                    micrositio.
+                  </em>
+                </h2>
+              </div>
+
+              {/* Counter */}
+              <div
+                style={{
+                  fontFamily: "'Cormorant Garamond',serif",
+                  fontSize: 11,
+                  fontWeight: 300,
+                  letterSpacing: ".1em",
+                  color: "rgba(244,240,232,.2)",
+                  textAlign: "right" as const,
+                  flexShrink: 0,
+                  marginLeft: 24,
+                }}
+              >
+                <strong
+                  ref={counterRef}
+                  style={{
+                    fontSize: 28,
+                    lineHeight: 1,
+                    fontWeight: 300,
+                    color: "rgba(184,151,58,.35)",
+                    display: "block",
+                  }}
+                >
+                  01
+                </strong>
+                de 03
+              </div>
+            </div>
           </div>
 
           {/* Cards viewport */}
           <div
-            className="absolute inset-0 flex items-center px-6 py-10 lg:px-14 lg:py-[60px] lg:pr-[72px]"
+            className="absolute left-0 right-0 bottom-0 flex items-center px-6 lg:px-14 lg:pr-[72px]"
+            style={{ top: 120 }}
           >
             {STEPS.map((step, i) => (
               <div

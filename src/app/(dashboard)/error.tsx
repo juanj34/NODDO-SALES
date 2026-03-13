@@ -14,91 +14,30 @@ export default function DashboardError({
   }, [error]);
 
   return (
-    <div
-      style={{
-        minHeight: "60vh",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        padding: 24,
-      }}
-    >
-      <div style={{ textAlign: "center", maxWidth: 400 }}>
-        <div
-          style={{
-            width: 48,
-            height: 48,
-            borderRadius: "50%",
-            backgroundColor: "rgba(239, 68, 68, 0.1)",
-            border: "1px solid rgba(239, 68, 68, 0.2)",
-            display: "inline-flex",
-            alignItems: "center",
-            justifyContent: "center",
-            marginBottom: 24,
-          }}
-        >
-          <span style={{ color: "#ef4444", fontSize: 20 }}>!</span>
+    <div className="min-h-[60vh] flex items-center justify-center p-6">
+      <div className="text-center max-w-[400px]">
+        {/* Error icon */}
+        <div className="w-12 h-12 rounded-full bg-red-500/10 border border-red-500/20 inline-flex items-center justify-center mb-6">
+          <span className="text-red-500 text-xl">!</span>
         </div>
 
-        <h1
-          style={{
-            fontFamily: "Georgia, 'Times New Roman', serif",
-            fontSize: 24,
-            fontWeight: 300,
-            color: "rgba(244, 240, 232, 0.92)",
-            marginBottom: 8,
-          }}
-        >
+        <h1 className="font-heading text-2xl font-light text-[rgba(244,240,232,0.92)] mb-2">
           Algo salió mal
         </h1>
-        <p
-          style={{
-            fontFamily: "'DM Mono', monospace",
-            fontSize: 13,
-            fontWeight: 300,
-            color: "rgba(244, 240, 232, 0.35)",
-            marginBottom: 32,
-            lineHeight: 1.7,
-          }}
-        >
+        <p className="font-body text-[13px] font-light text-[rgba(244,240,232,0.35)] mb-8 leading-relaxed">
           Ha ocurrido un error inesperado. Intenta recargar o vuelve a proyectos.
         </p>
 
-        <div style={{ display: "flex", gap: 12, justifyContent: "center" }}>
+        <div className="flex gap-3 justify-center">
           <button
             onClick={() => reset()}
-            style={{
-              padding: "12px 28px",
-              backgroundColor: "#b8973a",
-              color: "#141414",
-              fontFamily: "'Syne', sans-serif",
-              fontSize: 11,
-              fontWeight: 700,
-              textTransform: "uppercase" as const,
-              letterSpacing: "0.15em",
-              borderRadius: 8,
-              border: "none",
-              cursor: "pointer",
-            }}
+            className="btn-noddo px-7 py-3 font-ui text-[11px] font-bold uppercase tracking-[0.15em]"
           >
             Intentar de nuevo
           </button>
           <a
             href="/proyectos"
-            style={{
-              padding: "12px 28px",
-              backgroundColor: "transparent",
-              color: "rgba(244, 240, 232, 0.55)",
-              fontFamily: "'Syne', sans-serif",
-              fontSize: 11,
-              fontWeight: 700,
-              textTransform: "uppercase" as const,
-              letterSpacing: "0.15em",
-              borderRadius: 8,
-              border: "1px solid rgba(255, 255, 255, 0.1)",
-              textDecoration: "none",
-              display: "inline-block",
-            }}
+            className="inline-block px-7 py-3 bg-transparent text-[rgba(244,240,232,0.55)] font-ui text-[11px] font-bold uppercase tracking-[0.15em] rounded-[8px] border border-white/10 no-underline hover:border-white/20 transition-colors"
           >
             Ir a proyectos
           </a>

@@ -6,6 +6,7 @@ import { Download, FileText } from "lucide-react";
 import { useSiteProject } from "@/hooks/useSiteProject";
 import { useTranslation } from "@/i18n";
 import { trackEvent } from "@/lib/tracking";
+import { SiteEmptyState } from "@/components/site/SiteEmptyState";
 
 export default function BrochurePage() {
   const proyecto = useSiteProject();
@@ -58,19 +59,12 @@ export default function BrochurePage() {
             </a>
           </div>
         ) : (
-          <div className="flex flex-col items-center gap-3">
-            <div className="w-14 h-14 rounded-2xl bg-white/5 flex items-center justify-center">
-              <FileText size={24} className="text-[var(--text-muted)]" />
-            </div>
-            <div>
-              <p className="text-sm text-[var(--text-secondary)] mb-0.5">
-                {t("brochure.notAvailable")}
-              </p>
-              <p className="text-xs text-[var(--text-tertiary)]">
-                {t("brochure.notConfigured")}
-              </p>
-            </div>
-          </div>
+          <SiteEmptyState
+            variant="brochure"
+            title={t("brochure.notAvailable")}
+            description={t("brochure.notConfigured")}
+            compact
+          />
         )}
       </motion.div>
     </SectionTransition>

@@ -67,7 +67,6 @@ const common = {
     calculateAuto: "Calculate automatically",
     goToFloorPlan: "Go to Floor Plan",
     addRender: "Add render",
-    cloneToTower: "Clone to tower",
     view: "View",
   },
   labels: {

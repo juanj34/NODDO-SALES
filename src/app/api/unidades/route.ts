@@ -1,6 +1,41 @@
 import { pick } from "@/lib/api-utils";
-import { getAuthContext } from "@/lib/auth-context";
+import { getAuthContext, getAccessibleProjectIds } from "@/lib/auth-context";
 import { NextRequest, NextResponse } from "next/server";
+
+export async function GET(request: NextRequest) {
+  try {
+    const auth = await getAuthContext();
+    if (!auth) return NextResponse.json({ error: "No autorizado" }, { status: 401 });
+
+    const { searchParams } = new URL(request.url);
+    const proyectoId = searchParams.get("proyecto_id");
+
+    if (!proyectoId) {
+      return NextResponse.json({ error: "proyecto_id es requerido" }, { status: 400 });
+    }
+
+    // Verify project access for collaborators
+    const accessibleIds = await getAccessibleProjectIds(auth);
+    if (accessibleIds && !accessibleIds.includes(proyectoId)) {
+      return NextResponse.json({ error: "Sin acceso a este proyecto" }, { status: 403 });
+    }
+
+    const { data, error } = await auth.supabase
+      .from("unidades")
+      .select("*, tipologia:tipologias(nombre), torre:torres(nombre)")
+      .eq("proyecto_id", proyectoId)
+      .order("piso", { ascending: false })
+      .order("identificador");
+
+    if (error) throw error;
+    return NextResponse.json(data || []);
+  } catch (err) {
+    return NextResponse.json(
+      { error: err instanceof Error ? err.message : "Error" },
+      { status: 500 }
+    );
+  }
+}
 
 export async function POST(request: NextRequest) {
   try {

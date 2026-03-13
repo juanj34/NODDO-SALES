@@ -4,7 +4,8 @@ import { useState, useRef, useCallback, useEffect } from "react";
 import { motion } from "framer-motion";
 import { SectionTransition } from "@/components/site/SectionTransition";
 import { AmbientBackground } from "@/components/site/AmbientBackground";
-import { Play, Film, ChevronLeft, ChevronRight } from "lucide-react";
+import { Play, ChevronLeft, ChevronRight, Film } from "lucide-react";
+import { SiteEmptyState } from "@/components/site/SiteEmptyState";
 import { useSiteProject } from "@/hooks/useSiteProject";
 import { cn } from "@/lib/utils";
 import { useTranslation } from "@/i18n";
@@ -18,19 +19,11 @@ export default function VideosPage() {
   // Empty state — no videos configured
   if (!videos || videos.length === 0) {
     return (
-      <div className="h-screen flex flex-col items-center justify-center gap-4 text-center px-8 bg-[var(--site-bg)]">
-        <div className="w-16 h-16 rounded-2xl bg-white/5 flex items-center justify-center">
-          <Film size={28} className="text-[var(--text-muted)]" />
-        </div>
-        <div>
-          <h2 className="text-lg font-site-heading text-[var(--text-secondary)] mb-1">
-            {t("videos.notAvailable")}
-          </h2>
-          <p className="text-sm text-[var(--text-tertiary)]">
-            {t("videos.notConfigured")}
-          </p>
-        </div>
-      </div>
+      <SiteEmptyState
+        variant="videos"
+        title={t("videos.notAvailable")}
+        description={t("videos.notConfigured")}
+      />
     );
   }
 

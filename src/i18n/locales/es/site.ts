@@ -15,6 +15,8 @@ const site = {
     closeDetail: "Cerrar detalle",
     notAvailable: "Tipologías no disponibles",
     notConfigured: "Aún no se han configurado tipologías para este proyecto.",
+    noTorreTipologias: "Sin tipologías en esta torre",
+    noTorreTipologiasDesc: "Aún no se han asignado tipologías a esta torre.",
   },
   galeria: {
     prevImage: "Imagen anterior",

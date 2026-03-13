@@ -12,11 +12,8 @@ import {
   pageHeader,
   pageTitle,
   pageDescription,
-  emptyState,
-  emptyStateIcon,
-  emptyStateTitle,
-  emptyStateDescription,
 } from "@/components/dashboard/editor-styles";
+import { DashboardEmptyState } from "@/components/dashboard/DashboardEmptyState";
 import { FileUploader } from "@/components/dashboard/FileUploader";
 import { PlanoHotspotEditor } from "@/components/dashboard/PlanoHotspotEditor";
 import { useToast } from "@/components/dashboard/Toast";
@@ -283,16 +280,11 @@ export default function PlanoInteractivoPage() {
 
       {/* Empty state */}
       {filteredPlanos.length === 0 && (
-        <div className={emptyState}>
-          <div className={emptyStateIcon}>
-            <Map size={24} className="text-[var(--text-muted)]" />
-          </div>
-          <p className={emptyStateTitle}>
-            {t("planos.noPlans")}
-          </p>
-          <p className={emptyStateDescription}>
-            {t("planos.noPlansDescription")}
-          </p>
+        <DashboardEmptyState
+          variant="planos"
+          title={t("planos.noPlans")}
+          description={t("planos.noPlansDescription")}
+        >
           <div className="flex gap-6 text-center mb-5">
             {[
               t("planos.instructions.upload"),
@@ -311,7 +303,7 @@ export default function PlanoInteractivoPage() {
             <Plus size={14} />
             {t("planos.addFirstPlan")}
           </button>
-        </div>
+        </DashboardEmptyState>
       )}
 
       {/* Main layout: vertical thumbnails | editor */}

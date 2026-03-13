@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback, useRef } from "react";
+import { useAsyncAction } from "@/hooks/useAsyncAction";
 import { useTranslation } from "@/i18n";
 import { useEditorProject } from "@/hooks/useEditorProject";
 import { useConfirm } from "@/components/dashboard/ConfirmModal";
@@ -248,7 +249,7 @@ export default function UbicacionPage() {
     }
   };
 
-  const deletePoi = async (id: string) => {
+  const deletePoiAction = useAsyncAction(async (id: string) => {
     if (!(await confirm({ title: "Eliminar punto de interés", message: "¿Seguro que deseas eliminar este punto de interés?" }))) return;
     try {
       const res = await fetch(`/api/puntos-interes/${id}`, { method: "DELETE" });
@@ -257,7 +258,7 @@ export default function UbicacionPage() {
     } catch {
       toast.error("Error de conexión");
     }
-  };
+  });
 
   // AI Discovery
   const discoverPois = async () => {
@@ -769,10 +770,11 @@ export default function UbicacionPage() {
                       <Pencil size={12} />
                     </button>
                     <button
-                      onClick={() => deletePoi(poi.id)}
+                      onClick={() => deletePoiAction.execute(poi.id)}
+                      disabled={deletePoiAction.loading}
                       className="flex items-center gap-1 px-2 py-1 text-xs text-red-400/70 hover:text-red-400 hover:bg-red-400/10 rounded transition-colors"
                     >
-                      <Trash2 size={12} />
+                      {deletePoiAction.loading ? <Loader2 size={12} className="animate-spin" /> : <Trash2 size={12} />}
                     </button>
                   </div>
                 </div>

@@ -67,13 +67,13 @@ export const badgeGold =
 // ── Empty States ─────────────────────────────────────────────────
 
 export const emptyState =
-  "flex flex-col items-center justify-center py-16 text-center";
+  "flex flex-col items-center justify-center py-20 text-center";
 
 export const emptyStateIcon =
-  "w-14 h-14 rounded-2xl bg-[var(--surface-2)] border border-[var(--border-subtle)] flex items-center justify-center mb-4";
+  "w-16 h-16 rounded-2xl bg-[var(--surface-2)] border border-[rgba(var(--site-primary-rgb),0.15)] flex items-center justify-center mb-5 shadow-[0_0_20px_rgba(var(--site-primary-rgb),0.06)]";
 
 export const emptyStateTitle =
-  "text-sm font-medium text-[var(--text-secondary)] mb-1";
+  "font-heading text-lg font-light text-[var(--text-secondary)] mb-1.5";
 
 export const emptyStateDescription =
-  "text-xs text-[var(--text-muted)] mb-5 max-w-xs";
+  "text-[12px] leading-[1.7] text-[var(--text-muted)] mb-5 max-w-xs";

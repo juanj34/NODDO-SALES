@@ -15,6 +15,8 @@ const site = {
     closeDetail: "Close detail",
     notAvailable: "Unit types not available",
     notConfigured: "No unit types have been configured for this project yet.",
+    noTorreTipologias: "No unit types in this tower",
+    noTorreTipologiasDesc: "No unit types have been assigned to this tower yet.",
   },
   galeria: {
     prevImage: "Previous image",

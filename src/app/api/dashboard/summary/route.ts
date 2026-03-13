@@ -1,4 +1,4 @@
-import { getAuthContext } from "@/lib/auth-context";
+import { getAuthContext, getAccessibleProjectIds } from "@/lib/auth-context";
 import { NextResponse } from "next/server";
 import type { DashboardSummary, DashboardRecentLead } from "@/types";
 
@@ -9,12 +9,19 @@ export async function GET() {
       return NextResponse.json({ error: "No autorizado" }, { status: 401 });
     }
 
-    // Fetch all projects for this user
-    const { data: projects, error: projErr } = await auth.supabase
+    // Fetch projects filtered by collaborator access
+    let projQuery = auth.supabase
       .from("proyectos")
       .select("id, nombre")
       .eq("user_id", auth.adminUserId)
       .order("created_at", { ascending: false });
+
+    const accessibleIds = await getAccessibleProjectIds(auth);
+    if (accessibleIds) {
+      projQuery = projQuery.in("id", accessibleIds);
+    }
+
+    const { data: projects, error: projErr } = await projQuery;
 
     if (projErr) throw projErr;
 
@@ -97,21 +104,32 @@ export async function GET() {
     let totalViews = 0;
     let uniqueVisitors = 0;
     let totalInteractions = 0;
-    const projectStats: Record<string, { views_7d: number; leads_7d: number }> = {};
+    const projectStats: DashboardSummary["project_stats"] = {};
 
-    for (const { pid, summary } of perProjectResults) {
-      totalViews += Number(summary.total_views) || 0;
-      uniqueVisitors += Number(summary.unique_visitors) || 0;
-      totalInteractions +=
+    for (const { pid, summary, timeSeries } of perProjectResults) {
+      const pViews = Number(summary.total_views) || 0;
+      const pVisitors = Number(summary.unique_visitors) || 0;
+      const pInteractions =
         (Number(summary.whatsapp_clicks) || 0) +
         (Number(summary.brochure_downloads) || 0) +
         (Number(summary.video_plays) || 0) +
         (Number(summary.recurso_downloads) || 0) +
         (Number(summary.cta_clicks) || 0);
 
+      totalViews += pViews;
+      uniqueVisitors += pVisitors;
+      totalInteractions += pInteractions;
+
       projectStats[pid] = {
-        views_7d: Number(summary.total_views) || 0,
+        views_7d: pViews,
         leads_7d: 0, // will fill below
+        visitors_7d: pVisitors,
+        interactions_7d: pInteractions,
+        conversion_rate: 0, // will fill below
+        sparkline: timeSeries.map((ts: { bucket: string; views: number }) => ({
+          bucket: ts.bucket,
+          views: ts.views,
+        })),
       };
     }
 
@@ -129,6 +147,15 @@ export async function GET() {
             projectStats[l.proyecto_id].leads_7d += 1;
           }
         }
+      }
+    }
+
+    // Calculate per-project conversion rates
+    for (const pid of projectIds) {
+      const ps = projectStats[pid];
+      if (ps && ps.visitors_7d > 0) {
+        ps.conversion_rate =
+          Math.round((ps.leads_7d / ps.visitors_7d) * 10000) / 100;
       }
     }
 

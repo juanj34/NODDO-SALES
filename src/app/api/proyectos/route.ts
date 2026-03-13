@@ -1,4 +1,4 @@
-import { getAuthContext } from "@/lib/auth-context";
+import { getAuthContext, getAccessibleProjectIds } from "@/lib/auth-context";
 import { pick } from "@/lib/api-utils";
 import { NextRequest, NextResponse } from "next/server";
 
@@ -9,11 +9,18 @@ export async function GET() {
       return NextResponse.json({ error: "No autorizado" }, { status: 401 });
     }
 
-    const { data, error } = await auth.supabase
+    let query = auth.supabase
       .from("proyectos")
       .select("*")
       .eq("user_id", auth.adminUserId)
       .order("created_at", { ascending: false });
+
+    const accessibleIds = await getAccessibleProjectIds(auth);
+    if (accessibleIds) {
+      query = query.in("id", accessibleIds);
+    }
+
+    const { data, error } = await query;
 
     if (error) throw error;
     return NextResponse.json(data);

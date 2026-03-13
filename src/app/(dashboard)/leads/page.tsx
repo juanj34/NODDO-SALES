@@ -164,8 +164,8 @@ export default function LeadsPage() {
         </div>
       ) : leads.length === 0 ? (
         <div className="text-center py-20">
-          <p className="text-[var(--text-tertiary)] text-lg">{t("leads.noLeads")}</p>
-          <p className="text-[var(--text-muted)] text-sm mt-1">
+          <p className="font-heading text-xl font-light text-[var(--text-secondary)]">{t("leads.noLeads")}</p>
+          <p className="text-[var(--text-muted)] text-[12px] leading-[1.7] mt-2">
             {debouncedSearch || tipologia
               ? t("leads.adjustFilters")
               : t("leads.leadsWillAppear")}

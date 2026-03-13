@@ -65,7 +65,7 @@ type TorreDetailTab = "info" | "amenidades" | "fachadas" | "unidades";
 
 export default function TorresPage() {
   const { t } = useTranslation("editor");
-  const { project, projectId, refresh } = useEditorProject();
+  const { project, projectId, refresh, updateLocal } = useEditorProject();
   const toast = useToast();
   const { confirm } = useConfirm();
   const isMobile = useMediaQuery("(max-width: 767px)");
@@ -206,13 +206,20 @@ export default function TorresPage() {
           toast.error(err.error || `Error al guardar (${res.status})`);
           return;
         }
-        await refresh();
+        const updated = await res.json();
+        // Optimistic local update — don't refetch the whole project
+        updateLocal((prev) => ({
+          ...prev,
+          torres: prev.torres.map((t) =>
+            t.id === torreId ? { ...t, ...updated } : t
+          ),
+        }));
       } catch (err) {
         toast.error("Error de conexión al guardar");
         console.error("Torre update error:", err);
       }
     },
-    [refresh, toast]
+    [updateLocal, toast]
   );
 
   /* ── Delete torre ─────────────────────────────────────────────── */
@@ -349,9 +356,9 @@ export default function TorresPage() {
 
           {/* Empty state hint when no torres */}
           {torres.length === 0 && (
-            <div className="p-4 rounded-xl border border-dashed border-[var(--border-default)] text-center">
-              <Building2 size={20} className="mx-auto text-[var(--text-muted)] mb-2" />
-              <p className="text-[11px] text-[var(--text-tertiary)]">
+            <div className="p-5 rounded-xl border border-dashed border-[rgba(var(--site-primary-rgb),0.15)] text-center">
+              <Building2 size={20} className="mx-auto text-[var(--site-primary)] opacity-40 mb-2" />
+              <p className="font-heading text-sm font-light text-[var(--text-secondary)] mb-1">
                 {t("torres.noTowers")}
               </p>
             </div>
@@ -677,7 +684,7 @@ function FachadasTabContent({ torre, fachadas: fachadasList, projectId }: Fachad
           ))}
         </div>
       ) : (
-        <p className="text-xs text-[var(--text-muted)]">No hay fachadas asignadas.</p>
+        <p className="font-heading text-sm font-light text-[var(--text-tertiary)]">No hay fachadas asignadas.</p>
       )}
       <Link
         href={`/editor/${projectId}/fachadas`}
@@ -733,7 +740,7 @@ function UnidadesTabContent({ torre, unidades: unidadesList, tipologias, project
           })}
         </div>
       ) : (
-        <p className="text-xs text-[var(--text-muted)]">No hay unidades asignadas.</p>
+        <p className="font-heading text-sm font-light text-[var(--text-tertiary)]">No hay unidades asignadas.</p>
       )}
       <Link
         href={`/editor/${projectId}/inventario`}
@@ -1070,7 +1077,7 @@ function TorreEditFormInline({
   const [pisosRooftop, setPisosRooftop] = useState(torre.pisos_rooftop != null ? String(torre.pisos_rooftop) : "");
   const [typeSwitching, setTypeSwitching] = useState(false);
 
-  // Sync from prop when torre data changes (e.g. after refresh)
+  // Sync from prop only when switching to a different torre
   useEffect(() => {
     setNombre(torre.nombre);
     setPrefijo(torre.prefijo ?? "");
@@ -1081,7 +1088,8 @@ function TorreEditFormInline({
     setPisosPodio(torre.pisos_podio != null ? String(torre.pisos_podio) : "");
     setPisosResidenciales(torre.pisos_residenciales != null ? String(torre.pisos_residenciales) : "");
     setPisosRooftop(torre.pisos_rooftop != null ? String(torre.pisos_rooftop) : "");
-  }, [torre]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [torre.id]);
 
   const compositionFields = [
     { key: "pisos_sotano" as const, label: "Sótanos", placeholder: "0", value: pisosSotano, setter: setPisosSotano },

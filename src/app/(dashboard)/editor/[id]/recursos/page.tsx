@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useAsyncAction } from "@/hooks/useAsyncAction";
 import { useTranslation } from "@/i18n";
 import { useEditorProject } from "@/hooks/useEditorProject";
 import { useConfirm } from "@/components/dashboard/ConfirmModal";
@@ -18,11 +19,8 @@ import {
   sectionCard,
   sectionTitle,
   listItem,
-  emptyState,
-  emptyStateIcon,
-  emptyStateTitle,
-  emptyStateDescription,
 } from "@/components/dashboard/editor-styles";
+import { DashboardEmptyState } from "@/components/dashboard/DashboardEmptyState";
 import type { Recurso } from "@/types";
 import {
   Plus,
@@ -136,7 +134,7 @@ export default function RecursosPage() {
     }
   };
 
-  const deleteRecurso = async (id: string) => {
+  const deleteRecursoAction = useAsyncAction(async (id: string) => {
     if (!(await confirm({ title: t("recursos.deleteTitle") || "Eliminar recurso", message: t("recursos.deleteConfirm") }))) return;
     try {
       const res = await fetch(`/api/recursos/${id}`, { method: "DELETE" });
@@ -145,7 +143,7 @@ export default function RecursosPage() {
     } catch {
       toast.error("Error de conexión");
     }
-  };
+  });
 
   return (
     <motion.div
@@ -271,19 +269,16 @@ export default function RecursosPage() {
 
       {/* ── Empty State ──────────────────────────────────────────── */}
       {project.recursos.length === 0 && !showForm && (
-        <div className={emptyState}>
-          <div className={emptyStateIcon}>
-            <FileText size={24} className="text-[var(--text-muted)]" />
-          </div>
-          <h3 className={emptyStateTitle}>{t("recursos.noResources")}</h3>
-          <p className={emptyStateDescription}>
-            {t("recursos.noResourcesHint")}
-          </p>
+        <DashboardEmptyState
+          variant="recursos"
+          title={t("recursos.noResources")}
+          description={t("recursos.noResourcesHint")}
+        >
           <button onClick={openNew} className={btnPrimary}>
             <Plus size={14} />
             {t("recursos.addResource")}
           </button>
-        </div>
+        </DashboardEmptyState>
       )}
 
       {/* ── Resource List ────────────────────────────────────────── */}
@@ -321,10 +316,11 @@ export default function RecursosPage() {
                     {t("recursos.edit")}
                   </button>
                   <button
-                    onClick={() => deleteRecurso(r.id)}
+                    onClick={() => deleteRecursoAction.execute(r.id)}
+                    disabled={deleteRecursoAction.loading}
                     className={btnDanger}
                   >
-                    <Trash2 size={12} />
+                    {deleteRecursoAction.loading ? <Loader2 size={12} className="animate-spin" /> : <Trash2 size={12} />}
                   </button>
                 </div>
               </div>

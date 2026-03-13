@@ -1,81 +1,36 @@
 import Link from "next/link";
+import { NodDoLogo } from "@/components/ui/NodDoLogo";
 
 export default function NotFound() {
   return (
-    <div className="min-h-screen bg-[#0a0a0a] flex items-center justify-center px-4">
-      <div className="text-center max-w-md">
-        {/* NODDO Logo text */}
-        <div className="mb-8">
-          <span
-            style={{
-              fontFamily: "Georgia, 'Times New Roman', serif",
-              fontSize: "28px",
-              letterSpacing: "0.15em",
-              fontWeight: 300,
-            }}
-          >
-            <span style={{ color: "#f4f0e8" }}>NOD</span>
-            <span style={{ color: "#b8973a" }}>DO</span>
-          </span>
+    <div className="min-h-screen bg-[var(--surface-0)] flex items-center justify-center px-4 relative">
+      {/* Grid + noise atmosphere */}
+      <div className="bg-grid-lines-subtle fixed inset-0 pointer-events-none" />
+      <div className="bg-noise fixed inset-0 pointer-events-none" />
+
+      <div className="text-center max-w-md relative z-10">
+        {/* Logo */}
+        <div className="mb-8 flex justify-center">
+          <NodDoLogo height={28} colorNod="#f4f0e8" colorDo="#b8973a" />
         </div>
 
         {/* 404 number */}
-        <h1
-          style={{
-            fontFamily: "Georgia, 'Times New Roman', serif",
-            fontSize: "80px",
-            fontWeight: 300,
-            color: "#b8973a",
-            lineHeight: 1,
-            marginBottom: "16px",
-            letterSpacing: "0.05em",
-          }}
-        >
+        <h1 className="font-heading text-[80px] font-light text-[var(--site-primary)] leading-none mb-4 tracking-wide">
           404
         </h1>
 
         {/* Message */}
-        <p
-          style={{
-            fontFamily: "Georgia, 'Times New Roman', serif",
-            fontSize: "24px",
-            fontWeight: 300,
-            color: "rgba(244, 240, 232, 0.92)",
-            marginBottom: "8px",
-            letterSpacing: "0.02em",
-          }}
-        >
+        <p className="font-heading text-2xl font-light text-[rgba(244,240,232,0.92)] mb-2 tracking-wide">
           Pagina no encontrada
         </p>
-        <p
-          style={{
-            fontFamily: "'DM Mono', monospace",
-            fontSize: "13px",
-            fontWeight: 300,
-            color: "rgba(244, 240, 232, 0.35)",
-            marginBottom: "32px",
-            lineHeight: 1.7,
-          }}
-        >
+        <p className="font-body text-[13px] font-light text-[rgba(244,240,232,0.35)] mb-8 leading-relaxed">
           La pagina que buscas no existe o ha sido movida.
         </p>
 
         {/* Back home link */}
         <Link
           href="/"
-          style={{
-            display: "inline-block",
-            padding: "12px 32px",
-            backgroundColor: "#b8973a",
-            color: "#141414",
-            fontFamily: "'Syne', sans-serif",
-            fontSize: "11px",
-            fontWeight: 700,
-            textTransform: "uppercase" as const,
-            letterSpacing: "0.15em",
-            borderRadius: "8px",
-            textDecoration: "none",
-          }}
+          className="btn-noddo inline-block px-8 py-3 font-ui text-[11px] font-bold uppercase tracking-[0.15em]"
         >
           Volver al inicio
         </Link>

@@ -62,6 +62,23 @@ export async function getAuthContext(): Promise<AuthContext | null> {
 }
 
 /**
+ * Returns the list of project IDs a user can access, or null if they can
+ * access ALL projects (admin, or collaborator with no specific assignments).
+ */
+export async function getAccessibleProjectIds(
+  auth: AuthContext
+): Promise<string[] | null> {
+  if (auth.role === "admin") return null;
+
+  const { data: assigned } = await auth.supabase
+    .from("colaborador_proyectos")
+    .select("proyecto_id");
+
+  if (!assigned || assigned.length === 0) return null; // backward compat
+  return assigned.map((r: { proyecto_id: string }) => r.proyecto_id);
+}
+
+/**
  * After login/signup, checks if this user's email has a pending collaborator
  * invitation and links them automatically.
  */
