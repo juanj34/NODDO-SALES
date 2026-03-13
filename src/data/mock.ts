@@ -749,4 +749,5 @@ export const mockProyecto: ProyectoCompleto = {
   ] as PlanoPunto[],
 
   avances_obra: [] as AvanceObra[],
+  webhook_config: null,
 };

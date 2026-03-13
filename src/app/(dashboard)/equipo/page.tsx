@@ -16,6 +16,7 @@ import {
   Info,
   FolderOpen,
   Check,
+  RotateCw,
 } from "lucide-react";
 import { useAuthRole } from "@/hooks/useAuthContext";
 import { useRouter } from "next/navigation";
@@ -171,6 +172,21 @@ export default function EquipoPage() {
       }
     } catch {
       toast.error("Error al actualizar");
+    }
+  };
+
+  const handleResendInvite = async (id: string, email: string) => {
+    try {
+      const res = await fetch(`/api/colaboradores/${id}/resend`, { method: "POST" });
+      if (res.ok) {
+        toast.success("Invitación reenviada");
+        setMenuOpen(null);
+      } else {
+        const data = await res.json();
+        toast.error(data.error || "Error al reenviar");
+      }
+    } catch {
+      toast.error("Error de conexión");
     }
   };
 
@@ -381,6 +397,17 @@ export default function EquipoPage() {
                             <FolderOpen size={13} />
                             {t("equipo.editProjects")}
                           </button>
+
+                          {/* Resend invite for pending */}
+                          {colab.estado === "pendiente" && (
+                            <button
+                              onClick={() => handleResendInvite(colab.id, colab.email)}
+                              className="w-full flex items-center gap-2.5 px-4 py-2.5 text-xs text-[var(--site-primary)] hover:bg-[var(--surface-3)] transition-colors"
+                            >
+                              <RotateCw size={13} />
+                              Reenviar invitación
+                            </button>
+                          )}
 
                           {colab.estado !== "pendiente" && (
                             <button

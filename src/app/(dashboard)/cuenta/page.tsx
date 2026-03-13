@@ -15,7 +15,20 @@ import {
   Trash2,
   Shield,
   Mail,
+  Clock,
+  Calendar,
 } from "lucide-react";
+
+function formatDate(iso: string | undefined | null, fallback: string): string {
+  if (!iso) return fallback;
+  return new Date(iso).toLocaleDateString("es-CO", {
+    year: "numeric",
+    month: "long",
+    day: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+}
 
 export default function CuentaPage() {
   const { t } = useTranslation("dashboard");
@@ -29,6 +42,12 @@ export default function CuentaPage() {
   const [passwordLoading, setPasswordLoading] = useState(false);
   const [passwordError, setPasswordError] = useState<string | null>(null);
   const [passwordSuccess, setPasswordSuccess] = useState(false);
+
+  // Email change state
+  const [newEmail, setNewEmail] = useState("");
+  const [emailLoading, setEmailLoading] = useState(false);
+  const [emailError, setEmailError] = useState<string | null>(null);
+  const [emailSuccess, setEmailSuccess] = useState(false);
 
   // Delete account state
   const [showDelete, setShowDelete] = useState(false);
@@ -67,6 +86,30 @@ export default function CuentaPage() {
     setPasswordLoading(false);
 
     setTimeout(() => setPasswordSuccess(false), 3000);
+  };
+
+  const handleEmailChange = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setEmailError(null);
+    setEmailSuccess(false);
+
+    if (!newEmail || newEmail === user?.email) return;
+
+    setEmailLoading(true);
+
+    const { error } = await supabase.auth.updateUser({ email: newEmail });
+
+    if (error) {
+      setEmailError(error.message);
+      setEmailLoading(false);
+      return;
+    }
+
+    setEmailSuccess(true);
+    setNewEmail("");
+    setEmailLoading(false);
+
+    setTimeout(() => setEmailSuccess(false), 5000);
   };
 
   const handleDeleteAccount = async () => {
@@ -143,6 +186,114 @@ export default function CuentaPage() {
               </div>
             </div>
           </div>
+        </section>
+
+        {/* Session Info */}
+        <section className="glass-card p-6 mb-6">
+          <div className="flex items-center gap-2 mb-4">
+            <Clock size={16} className="text-[var(--site-primary)]" />
+            <h2 className="font-ui text-xs font-bold uppercase tracking-[0.1em] text-[var(--text-secondary)]">
+              {t("cuenta.sessionInfo")}
+            </h2>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <label className="block font-mono text-[10px] text-[var(--text-muted)] uppercase tracking-wider mb-1.5">
+                {t("cuenta.lastLogin")}
+              </label>
+              <div className="flex items-center gap-2.5 px-3 py-2.5 rounded-[0.625rem] bg-[var(--surface-2)] border border-[var(--border-subtle)]">
+                <Clock size={14} className="text-[var(--text-muted)]" />
+                <span className="font-mono text-xs text-[var(--text-secondary)] font-light">
+                  {formatDate(user?.last_sign_in_at, t("cuenta.never"))}
+                </span>
+              </div>
+            </div>
+            <div>
+              <label className="block font-mono text-[10px] text-[var(--text-muted)] uppercase tracking-wider mb-1.5">
+                {t("cuenta.accountCreated")}
+              </label>
+              <div className="flex items-center gap-2.5 px-3 py-2.5 rounded-[0.625rem] bg-[var(--surface-2)] border border-[var(--border-subtle)]">
+                <Calendar size={14} className="text-[var(--text-muted)]" />
+                <span className="font-mono text-xs text-[var(--text-secondary)] font-light">
+                  {formatDate(user?.created_at, "—")}
+                </span>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* Change Email Section */}
+        <section className="glass-card p-6 mb-6">
+          <div className="flex items-center gap-2 mb-4">
+            <Mail size={16} className="text-[var(--site-primary)]" />
+            <h2 className="font-ui text-xs font-bold uppercase tracking-[0.1em] text-[var(--text-secondary)]">
+              {t("cuenta.emailChangeSection")}
+            </h2>
+          </div>
+
+          {emailSuccess && (
+            <motion.div
+              initial={{ opacity: 0, y: -8 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="mb-4 p-3 rounded-xl flex items-center gap-2"
+              style={{
+                background: "rgba(52, 211, 153, 0.08)",
+                border: "1px solid rgba(52, 211, 153, 0.2)",
+              }}
+            >
+              <CheckCircle size={14} className="text-emerald-400" />
+              <span className="font-mono text-xs text-emerald-300 font-light">
+                {t("cuenta.emailChangeSuccess")}
+              </span>
+            </motion.div>
+          )}
+
+          {emailError && (
+            <motion.div
+              initial={{ opacity: 0, y: -8 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="mb-4 p-3 rounded-xl flex items-center gap-2"
+              style={{
+                background: "rgba(239, 68, 68, 0.08)",
+                border: "1px solid rgba(239, 68, 68, 0.2)",
+              }}
+            >
+              <AlertTriangle size={14} className="text-red-400" />
+              <span className="font-mono text-xs text-red-300 font-light">
+                {emailError}
+              </span>
+            </motion.div>
+          )}
+
+          <form onSubmit={handleEmailChange} className="space-y-4">
+            <div>
+              <label className="block font-mono text-[10px] text-[var(--text-muted)] uppercase tracking-wider mb-1.5">
+                {t("cuenta.newEmail")}
+              </label>
+              <input
+                type="email"
+                value={newEmail}
+                onChange={(e) => setNewEmail(e.target.value)}
+                required
+                className="input-glass w-full"
+                placeholder={t("cuenta.newEmailPlaceholder")}
+              />
+            </div>
+
+            <button
+              type="submit"
+              disabled={emailLoading || !newEmail || newEmail === user?.email}
+              className="btn-warm px-5 py-2.5 text-xs flex items-center gap-2 disabled:opacity-50"
+            >
+              {emailLoading ? (
+                <Loader2 size={14} className="animate-spin" />
+              ) : (
+                <Mail size={14} />
+              )}
+              {emailLoading ? t("cuenta.changingEmail") : t("cuenta.changeEmail")}
+            </button>
+          </form>
         </section>
 
         {/* Change Password Section */}

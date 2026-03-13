@@ -34,6 +34,7 @@ export interface Proyecto {
   hide_noddo_badge: boolean;
   cotizador_enabled: boolean;
   cotizador_config: CotizadorConfig | null;
+  webhook_config: WebhookConfig | null;
   created_at: string;
   updated_at: string;
 }
@@ -121,6 +122,7 @@ export interface Lead {
   utm_source: string | null;
   utm_medium: string | null;
   utm_campaign: string | null;
+  status: "nuevo" | "contactado" | "calificado" | "cerrado";
   created_at: string;
 }
 
@@ -476,5 +478,117 @@ export interface Cotizacion {
   utm_campaign: string | null;
   agente_id: string | null;
   agente_nombre: string | null;
+  created_at: string;
+}
+
+/* ── Platform Admin ── */
+
+export type AuditAction =
+  | "user_banned"
+  | "user_unbanned"
+  | "user_deleted"
+  | "plan_changed"
+  | "project_archived"
+  | "project_deleted"
+  | "admin_added"
+  | "admin_removed";
+
+export type AuditTargetType = "user" | "project" | "admin";
+
+export interface AuditLogEntry {
+  id: string;
+  admin_id: string;
+  admin_email: string;
+  action: AuditAction;
+  target_type: AuditTargetType;
+  target_id: string;
+  details: Record<string, unknown>;
+  created_at: string;
+}
+
+export interface PlatformAdmin {
+  id: string;
+  user_id: string;
+  email: string;
+  nombre: string | null;
+  created_at: string;
+}
+
+export interface PlatformFunnel {
+  signed_up: number;
+  project_created: number;
+  content_added: number;
+  published: number;
+  first_lead: number;
+}
+
+export interface PlatformStorage {
+  total_bytes: number;
+  tours_bytes: number;
+  videos_bytes: number;
+  media_bytes: number;
+  total_limit_bytes: number;
+}
+
+export interface GrowthBucket {
+  bucket: string;
+  count: number;
+}
+
+export interface PlatformStats {
+  totalUsers: number;
+  totalProjects: number;
+  publishedProjects: number;
+  totalLeads: number;
+  leadsInRange: number;
+  recentSignups: number;
+  planDistribution: Record<string, number>;
+  usersTrend: number | null;
+  projectsTrend: number | null;
+  leadsTrend: number | null;
+  viewsTrend: number | null;
+  usersOverTime: GrowthBucket[];
+  projectsOverTime: GrowthBucket[];
+  leadsOverTime: AnalyticsBreakdown[];
+  viewsOverTime: AnalyticsTimeSeries[];
+  platformSummary: AnalyticsSummary;
+  topProjectsByViews: { id: string; nombre: string; slug: string; views: number }[];
+  topProjectsByLeads: { id: string; nombre: string; slug: string; leads: number }[];
+  viewsByCountry: AnalyticsBreakdown[];
+  viewsByDevice: AnalyticsBreakdown[];
+  funnel: PlatformFunnel;
+  storage: PlatformStorage;
+}
+
+/* ── Webhooks ── */
+
+export type WebhookEventType = "lead.created" | "cotizacion.created";
+
+export interface WebhookConfig {
+  enabled: boolean;
+  url: string;
+  secret: string;
+  events: WebhookEventType[];
+}
+
+export interface WebhookLog {
+  id: string;
+  proyecto_id: string;
+  event_type: WebhookEventType;
+  url: string;
+  payload: Record<string, unknown>;
+  status_code: number | null;
+  response_body: string | null;
+  error: string | null;
+  delivered: boolean;
+  created_at: string;
+}
+
+export interface PlatformAlert {
+  id: string;
+  type: "new_signups" | "storage_warning" | "lead_spike" | "trial_expired";
+  severity: "info" | "warning" | "critical";
+  message: string;
+  details: Record<string, unknown>;
   created_at: string;
 }

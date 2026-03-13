@@ -188,9 +188,17 @@ const site = {
   cotizador: {
     heading: "Cotizar Unidad",
     subtitle: "Completa tus datos para recibir la cotización",
+    subtitleCotizador: "Revisa el plan de pagos y recibe tu cotización por correo",
     hab: "hab",
     banos: "baños",
     floor: "Piso",
+    paymentPlan: "Plan de pagos",
+    installmentsOf: "cuotas de",
+    receiveByEmail: "Recibe tu cotización por correo",
+    submitQuote: "Enviar cotización",
+    quoteSent: "Cotización enviada",
+    checkEmailPdf: "Revisa tu correo para ver el PDF con el plan de pagos completo.",
+    downloadPdf: "Descargar PDF",
   },
   whatsapp: {
     defaultMessage: "Hola, me interesa saber más sobre el proyecto",

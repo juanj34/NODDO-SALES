@@ -7,6 +7,7 @@ import { useToast } from "@/components/dashboard/Toast";
 import { cn } from "@/lib/utils";
 import {
   Eye,
+  View,
   Loader2,
   LayoutDashboard,
   Building2,
@@ -38,6 +39,8 @@ import {
   Archive,
   ArchiveRestore,
   HardDrive,
+  Plus,
+  Webhook,
 } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -119,6 +122,7 @@ const editorSections: TabSection[] = [
       { id: "planos", label: "Implantaciones", icon: MapIcon, href: "/planos", badgeKey: "planos" },
       { id: "galeria", label: "Galeria", icon: ImageIcon, href: "/galeria", badgeKey: "galeria" },
       { id: "videos", label: "Videos", icon: Film, href: "/videos", badgeKey: "videos" },
+      { id: "tour", label: "Tour 360", icon: View, href: "/tour" },
       { id: "ubicacion", label: "Ubicacion", icon: MapPin, href: "/ubicacion", badgeKey: "puntos_interes" },
       { id: "recursos", label: "Recursos", icon: FileText, href: "/recursos", badgeKey: "recursos" },
       { id: "avances", label: "Avances", icon: HardHat, href: "/avances", badgeKey: "avances" },
@@ -129,6 +133,7 @@ const editorSections: TabSection[] = [
     tabs: [
       { id: "config", label: "Configuracion", icon: Settings, href: "/config" },
       { id: "dominio", label: "Dominio", icon: Globe, href: "/dominio" },
+      { id: "webhooks", label: "Webhooks", icon: Webhook, href: "/webhooks" },
     ],
   },
   {
@@ -170,6 +175,8 @@ export default function EditorLayout({
 
   /* ---- Publish / version state ---- */
   const [publishing, setPublishing] = useState(false);
+  const [showPublishModal, setShowPublishModal] = useState(false);
+  const [publishTargets, setPublishTargets] = useState({ subdomain: true, customDomain: true });
   const [showVersions, setShowVersions] = useState(false);
   const [versions, setVersions] = useState<ProyectoVersion[]>([]);
   const [loadingVersions, setLoadingVersions] = useState(false);
@@ -239,6 +246,27 @@ export default function EditorLayout({
       toast.error("Error de conexión");
     } finally {
       setRestoring(false);
+    }
+  }, [id, refresh, toast]);
+
+  const [unpublishing, setUnpublishing] = useState(false);
+
+  const handleUnpublish = useCallback(async () => {
+    setUnpublishing(true);
+    try {
+      const res = await fetch(`/api/proyectos/${id}/despublicar`, { method: "POST" });
+      if (res.ok) {
+        toast.success("Proyecto despublicado");
+        setShowVersions(false);
+        await refresh();
+      } else {
+        const err = await res.json();
+        toast.error(err.error || "Error al despublicar");
+      }
+    } catch {
+      toast.error("Error de conexión");
+    } finally {
+      setUnpublishing(false);
     }
   }, [id, refresh, toast]);
 
@@ -656,7 +684,7 @@ export default function EditorLayout({
 
                   {/* Publish button */}
                   <button
-                    onClick={handlePublish}
+                    onClick={() => setShowPublishModal(true)}
                     disabled={publishing}
                     className={cn(
                       "flex items-center gap-1.5 px-3.5 py-1.5 font-ui text-[11px] font-bold uppercase tracking-[0.1em] transition-all",
@@ -758,8 +786,22 @@ export default function EditorLayout({
                         )}
                       </div>
 
-                      {/* Archive action */}
-                      <div className="border-t border-[var(--border-subtle)] px-4 py-2.5">
+                      {/* Unpublish + Archive actions */}
+                      <div className="border-t border-[var(--border-subtle)] px-4 py-2.5 space-y-2">
+                        {project?.estado === "publicado" && (
+                          <button
+                            onClick={handleUnpublish}
+                            disabled={unpublishing}
+                            className="flex items-center gap-2 w-full text-[11px] text-orange-400 hover:text-orange-300 transition-colors disabled:opacity-50"
+                          >
+                            {unpublishing ? (
+                              <Loader2 size={12} className="animate-spin" />
+                            ) : (
+                              <Eye size={12} />
+                            )}
+                            Despublicar
+                          </button>
+                        )}
                         <button
                           onClick={handleArchiveToggle}
                           disabled={archiving}
@@ -781,6 +823,139 @@ export default function EditorLayout({
               </div>
             </div>
           )}
+
+          {/* Publish modal */}
+          <AnimatePresence>
+            {showPublishModal && project && (
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-start justify-center pt-[15vh] p-4"
+                onClick={() => !publishing && setShowPublishModal(false)}
+              >
+                <motion.div
+                  initial={{ scale: 0.95, opacity: 0, y: -8 }}
+                  animate={{ scale: 1, opacity: 1, y: 0 }}
+                  exit={{ scale: 0.95, opacity: 0, y: -8 }}
+                  transition={{ type: "spring", damping: 25, stiffness: 300 }}
+                  onClick={(e) => e.stopPropagation()}
+                  className="w-full max-w-sm bg-[var(--surface-2)] border border-[var(--border-default)] rounded-xl shadow-2xl overflow-hidden"
+                >
+                  {/* Header */}
+                  <div className="flex items-center justify-between px-5 py-3.5 border-b border-[var(--border-subtle)]">
+                    <span className="font-ui text-[11px] font-bold uppercase tracking-[0.1em] text-[var(--text-primary)]">
+                      {t("layout.publishModal.title")}
+                    </span>
+                    <button
+                      onClick={() => setShowPublishModal(false)}
+                      disabled={publishing}
+                      className="text-[var(--text-muted)] hover:text-[var(--text-secondary)] transition-colors"
+                    >
+                      <X size={16} />
+                    </button>
+                  </div>
+
+                  {/* Domain targets */}
+                  <div className="px-5 py-4 space-y-3">
+                    {/* Subdomain — always present */}
+                    <label className="flex items-center gap-3 p-3 rounded-lg bg-[var(--surface-3)] border border-[var(--border-subtle)] cursor-pointer hover:border-[var(--border-default)] transition-colors">
+                      <input
+                        type="checkbox"
+                        checked={publishTargets.subdomain}
+                        onChange={(e) => setPublishTargets((prev) => ({ ...prev, subdomain: e.target.checked }))}
+                        className="accent-[var(--site-primary)] w-3.5 h-3.5 rounded"
+                      />
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2">
+                          <Globe size={13} className="text-[var(--site-primary)] shrink-0" />
+                          <span className="text-xs text-[var(--text-primary)] truncate">
+                            {project.subdomain || project.slug}.noddo.io
+                          </span>
+                        </div>
+                        {lastPublished && (
+                          <p className="text-[10px] text-[var(--text-muted)] mt-1 ml-[21px]">
+                            {t("layout.publishModal.lastPublished")} {timeAgo(lastPublished)}
+                          </p>
+                        )}
+                      </div>
+                    </label>
+
+                    {/* Custom domain — only if configured */}
+                    {project.custom_domain && (
+                      <label className="flex items-center gap-3 p-3 rounded-lg bg-[var(--surface-3)] border border-[var(--border-subtle)] cursor-pointer hover:border-[var(--border-default)] transition-colors">
+                        <input
+                          type="checkbox"
+                          checked={publishTargets.customDomain}
+                          onChange={(e) => setPublishTargets((prev) => ({ ...prev, customDomain: e.target.checked }))}
+                          className="accent-[var(--site-primary)] w-3.5 h-3.5 rounded"
+                        />
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2">
+                            <Globe size={13} className="text-[var(--site-primary)] shrink-0" />
+                            <span className="text-xs text-[var(--text-primary)] truncate">
+                              {project.custom_domain}
+                            </span>
+                            {project.domain_verified ? (
+                              <span className="text-[9px] px-1.5 py-0.5 rounded bg-emerald-500/15 text-emerald-400 font-medium shrink-0">
+                                {t("layout.publishModal.verified")}
+                              </span>
+                            ) : (
+                              <span className="text-[9px] px-1.5 py-0.5 rounded bg-amber-500/15 text-amber-400 font-medium shrink-0">
+                                {t("layout.publishModal.pendingDns")}
+                              </span>
+                            )}
+                          </div>
+                          {lastPublished && (
+                            <p className="text-[10px] text-[var(--text-muted)] mt-1 ml-[21px]">
+                              {t("layout.publishModal.lastPublished")} {timeAgo(lastPublished)}
+                            </p>
+                          )}
+                        </div>
+                      </label>
+                    )}
+
+                    {/* No custom domain hint */}
+                    {!project.custom_domain && (
+                      <Link
+                        href={`/editor/${id}/dominio`}
+                        onClick={() => setShowPublishModal(false)}
+                        className="flex items-center gap-3 p-3 rounded-lg border border-dashed border-[var(--border-subtle)] hover:border-[var(--border-default)] transition-colors"
+                      >
+                        <Plus size={13} className="text-[var(--text-muted)]" />
+                        <span className="text-[11px] text-[var(--text-muted)]">
+                          {t("layout.publishModal.addCustomDomain")}
+                        </span>
+                      </Link>
+                    )}
+                  </div>
+
+                  {/* Publish button */}
+                  <div className="px-5 pb-4">
+                    <button
+                      onClick={async () => {
+                        await handlePublish();
+                        setShowPublishModal(false);
+                      }}
+                      disabled={publishing || (!publishTargets.subdomain && !publishTargets.customDomain)}
+                      className={cn(
+                        "w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg font-ui text-[11px] font-bold uppercase tracking-[0.1em] transition-all",
+                        "bg-[var(--site-primary)] text-[var(--surface-0)] hover:brightness-110",
+                        "disabled:opacity-50 disabled:cursor-not-allowed"
+                      )}
+                    >
+                      {publishing ? (
+                        <Loader2 size={13} className="animate-spin" />
+                      ) : (
+                        <Rocket size={13} />
+                      )}
+                      {publishing ? t("layout.publishing") : t("layout.publishModal.publishButton")}
+                    </button>
+                  </div>
+                </motion.div>
+              </motion.div>
+            )}
+          </AnimatePresence>
 
           {/* Scrollable content */}
           <div className="flex-1 overflow-y-auto p-4 md:p-6 pt-14 md:pt-6">

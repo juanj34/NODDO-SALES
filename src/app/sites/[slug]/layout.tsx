@@ -6,6 +6,8 @@ import { mockProyecto } from "@/data/mock";
 import { SiteLayoutClient } from "./SiteLayoutClient";
 import type { ProyectoCompleto } from "@/types";
 
+const ROOT_DOMAIN = process.env.NEXT_PUBLIC_ROOT_DOMAIN || "noddo.io";
+
 interface Props {
   params: Promise<{ slug: string }>;
   children: React.ReactNode;
@@ -45,6 +47,7 @@ export async function generateMetadata({
   return {
     title,
     description,
+    // Canonical is handled per-page in SiteLayoutClient via <link> tag
     // Favicon + Apple Touch Icon (per-project)
     ...(favicon
       ? { icons: { icon: favicon, apple: favicon } }
@@ -83,9 +86,73 @@ export default async function SiteLayout({ params, children }: Props) {
   const basePath =
     basePathHeader !== null ? basePathHeader : `/sites/${slug}`;
 
+  // JSON-LD structured data
+  const subdomain = proyecto.subdomain || proyecto.slug;
+  const siteUrl =
+    proyecto.custom_domain && proyecto.domain_verified
+      ? `https://${proyecto.custom_domain}`
+      : ROOT_DOMAIN.includes("localhost")
+        ? `http://localhost:3000/sites/${proyecto.slug}`
+        : `https://${subdomain}.noddo.io`;
+
+  const jsonLd = {
+    "@context": "https://schema.org",
+    "@type": "WebPage",
+    name: proyecto.nombre,
+    description: proyecto.descripcion || undefined,
+    url: siteUrl,
+    publisher: {
+      "@type": "Organization",
+      name: "NODDO",
+      url: "https://noddo.io",
+    },
+    ...(proyecto.constructora_nombre
+      ? {
+          provider: {
+            "@type": "Organization",
+            name: proyecto.constructora_nombre,
+            ...(proyecto.constructora_website
+              ? { url: proyecto.constructora_website }
+              : {}),
+          },
+        }
+      : {}),
+    about: {
+      "@type": "Residence",
+      name: proyecto.nombre,
+      description: proyecto.descripcion || undefined,
+      ...(proyecto.render_principal_url
+        ? { image: proyecto.render_principal_url }
+        : {}),
+      ...(proyecto.ubicacion_lat && proyecto.ubicacion_lng
+        ? {
+            geo: {
+              "@type": "GeoCoordinates",
+              latitude: proyecto.ubicacion_lat,
+              longitude: proyecto.ubicacion_lng,
+            },
+          }
+        : {}),
+      ...(proyecto.ubicacion_direccion
+        ? {
+            address: {
+              "@type": "PostalAddress",
+              streetAddress: proyecto.ubicacion_direccion,
+            },
+          }
+        : {}),
+    },
+  };
+
   return (
-    <SiteLayoutClient proyecto={proyecto} basePath={basePath}>
-      {children}
-    </SiteLayoutClient>
+    <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
+      <SiteLayoutClient proyecto={proyecto} basePath={basePath}>
+        {children}
+      </SiteLayoutClient>
+    </>
   );
 }

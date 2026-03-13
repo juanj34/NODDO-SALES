@@ -4,6 +4,8 @@ import { calcularCotizacion } from "@/lib/cotizador/calcular";
 import { generarPDF } from "@/lib/cotizador/generar-pdf";
 import { sendCotizacionBuyer, sendCotizacionAdmin } from "@/lib/email";
 import { isRateLimited, getClientIp } from "@/lib/rate-limit";
+import { getWebhookConfig, dispatchWebhook } from "@/lib/webhooks";
+import type { WebhookPayload } from "@/lib/webhooks";
 import type { CotizadorConfig, Unidad } from "@/types";
 
 // Use service-role client for public endpoint (no user auth required)
@@ -182,8 +184,26 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Error al guardar cotización" }, { status: 500 });
     }
 
+    // Dispatch cotizacion webhook (fire-and-forget)
+    fireCotizacionWebhook(proyecto_id, proyecto.nombre, {
+      id: cotizacionId,
+      nombre: sanitize(nombre, 200),
+      email: sanitize(email, 320),
+      telefono: telefono ? sanitize(telefono, 30) : null,
+      unidad_id,
+      unidad_identificador: unit.identificador,
+      precio_neto: resultado.precio_neto,
+      moneda: config.moneda,
+      pdf_url: pdfUrl,
+      utm_source: utm_source || null,
+      utm_medium: utm_medium || null,
+      utm_campaign: utm_campaign || null,
+      agente_id: agente_id || null,
+      agente_nombre: agente_nombre ? sanitize(agente_nombre, 200) : null,
+    });
+
     // Also insert a lead (so existing lead pipeline works)
-    await supabase.from("leads").insert({
+    const { data: leadData } = await supabase.from("leads").insert({
       proyecto_id,
       nombre: sanitize(nombre, 200),
       email: sanitize(email, 320),
@@ -195,7 +215,12 @@ export async function POST(request: NextRequest) {
       utm_source: utm_source || null,
       utm_medium: utm_medium || null,
       utm_campaign: utm_campaign || null,
-    });
+    }).select().single();
+
+    // Dispatch lead webhook for the auto-created lead
+    if (leadData) {
+      fireLeadWebhookFromCotizacion(proyecto_id, proyecto.nombre, leadData);
+    }
 
     // Send emails (async, non-blocking)
     const totalFormatted = formatCurrency(resultado.precio_neto, config.moneda);
@@ -231,5 +256,82 @@ export async function POST(request: NextRequest) {
       { error: err instanceof Error ? err.message : "Error" },
       { status: 500 }
     );
+  }
+}
+
+/* ── Webhook helpers ── */
+
+async function fireCotizacionWebhook(
+  projectId: string,
+  projectName: string,
+  cotizacion: {
+    id: string;
+    nombre: string;
+    email: string;
+    telefono: string | null;
+    unidad_id: string;
+    unidad_identificador: string;
+    precio_neto: number;
+    moneda: string;
+    pdf_url: string | null;
+    utm_source: string | null;
+    utm_medium: string | null;
+    utm_campaign: string | null;
+    agente_id: string | null;
+    agente_nombre: string | null;
+  },
+) {
+  try {
+    const wh = await getWebhookConfig(projectId, "cotizacion.created");
+    if (!wh) return;
+
+    const payload: WebhookPayload = {
+      event: "cotizacion.created",
+      timestamp: new Date().toISOString(),
+      proyecto_id: projectId,
+      proyecto_nombre: projectName,
+      data: {
+        ...cotizacion,
+        created_at: new Date().toISOString(),
+      },
+    };
+    dispatchWebhook(projectId, wh.config, payload);
+  } catch (err) {
+    console.error("[cotizaciones] Webhook error:", err);
+  }
+}
+
+async function fireLeadWebhookFromCotizacion(
+  projectId: string,
+  projectName: string,
+  lead: Record<string, unknown>,
+) {
+  try {
+    const wh = await getWebhookConfig(projectId, "lead.created");
+    if (!wh) return;
+
+    const payload: WebhookPayload = {
+      event: "lead.created",
+      timestamp: new Date().toISOString(),
+      proyecto_id: projectId,
+      proyecto_nombre: projectName,
+      data: {
+        id: lead.id,
+        nombre: lead.nombre,
+        email: lead.email,
+        telefono: lead.telefono ?? null,
+        pais: lead.pais ?? null,
+        tipologia_interes: lead.tipologia_interes ?? null,
+        mensaje: lead.mensaje ?? null,
+        utm_source: lead.utm_source ?? null,
+        utm_medium: lead.utm_medium ?? null,
+        utm_campaign: lead.utm_campaign ?? null,
+        status: lead.status ?? "nuevo",
+        created_at: lead.created_at,
+      },
+    };
+    dispatchWebhook(projectId, wh.config, payload);
+  } catch (err) {
+    console.error("[cotizaciones] Lead webhook error:", err);
   }
 }

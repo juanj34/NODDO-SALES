@@ -1,0 +1,371 @@
+"use client";
+
+import { useState, useEffect, useRef, useCallback, DragEvent } from "react";
+import { useEditorProject } from "@/hooks/useEditorProject";
+import { useToast } from "@/components/dashboard/Toast";
+import { useConfirm } from "@/components/dashboard/ConfirmModal";
+import { useTourUpload } from "@/hooks/useTourUpload";
+import {
+  inputClass, labelClass, fieldHint,
+  pageHeader, pageTitle, pageDescription,
+  sectionCard,
+} from "@/components/dashboard/editor-styles";
+import { View, Loader2, ExternalLink, CheckCircle2, AlertCircle, CloudUpload, Link2, Upload } from "lucide-react";
+import { extractTourUrl } from "@/lib/tour-utils";
+import { motion } from "framer-motion";
+import { useTranslation } from "@/i18n";
+import { cn } from "@/lib/utils";
+
+export default function TourPage() {
+  const { project, save } = useEditorProject();
+  const { t } = useTranslation("editor");
+  const toast = useToast();
+  const { confirm } = useConfirm();
+
+  const [tour360Url, setTour360Url] = useState("");
+  const [tour360RawInput, setTour360RawInput] = useState("");
+  const [tourTab, setTourTab] = useState<"url" | "upload">("url");
+  const [tourDeleting, setTourDeleting] = useState(false);
+  const [dragOver, setDragOver] = useState(false);
+  const tourZipInputRef = useRef<HTMLInputElement>(null);
+  const tourUpload = useTourUpload();
+
+  useEffect(() => {
+    if (!project) return;
+    setTour360Url(project.tour_360_url || "");
+    setTour360RawInput(project.tour_360_url || "");
+  }, [project]);
+
+  const handleSave = async () => {
+    const ok = await save({
+      tour_360_url: tour360Url || null,
+    });
+    if (!ok) toast.error(t("general.saveError"));
+  };
+
+  /* ── Auto-save ── */
+  const handleSaveRef = useRef(handleSave);
+  handleSaveRef.current = handleSave;
+  const saveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const scheduleAutoSave = useCallback(() => {
+    if (saveTimerRef.current) clearTimeout(saveTimerRef.current);
+    saveTimerRef.current = setTimeout(() => handleSaveRef.current(), 1500);
+  }, []);
+
+  useEffect(() => {
+    return () => {
+      if (saveTimerRef.current) {
+        clearTimeout(saveTimerRef.current);
+        handleSaveRef.current();
+      }
+    };
+  }, []);
+
+  // Detect if tour URL is hosted on R2
+  const r2ToursUrl = process.env.NEXT_PUBLIC_R2_TOURS_URL || "";
+  const isR2Hosted = !!(tour360Url && r2ToursUrl && tour360Url.startsWith(r2ToursUrl));
+
+  // When upload completes, save the tour URL
+  useEffect(() => {
+    if (tourUpload.status === "complete" && tourUpload.tourUrl) {
+      setTour360Url(tourUpload.tourUrl);
+      setTour360RawInput(tourUpload.tourUrl);
+      scheduleAutoSave();
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [tourUpload.status, tourUpload.tourUrl]);
+
+  const handleTourZipSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !project) return;
+    if (tourZipInputRef.current) tourZipInputRef.current.value = "";
+    tourUpload.upload(file, project.id);
+  };
+
+  const handleDrop = useCallback((e: DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    setDragOver(false);
+    const file = e.dataTransfer.files?.[0];
+    if (!file || !project) return;
+    if (!file.name.endsWith(".zip")) {
+      toast.error("Solo se aceptan archivos .zip");
+      return;
+    }
+    tourUpload.upload(file, project.id);
+  }, [project, tourUpload, toast]);
+
+  const handleDeleteHostedTour = async () => {
+    if (!project) return;
+    const ok = await confirm({
+      title: t("config.tour.deleteHosted"),
+      message: t("config.tour.confirmDelete"),
+      confirmLabel: t("config.tour.deleteHosted"),
+      variant: "danger",
+    });
+    if (!ok) return;
+
+    setTourDeleting(true);
+    try {
+      const res = await fetch(`/api/tours/${project.id}`, { method: "DELETE" });
+      if (!res.ok) {
+        const data = await res.json();
+        throw new Error(data.error || "Error");
+      }
+      setTour360Url("");
+      setTour360RawInput("");
+      scheduleAutoSave();
+      tourUpload.reset();
+      toast.success(t("config.tour.uploadComplete"));
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Error");
+    } finally {
+      setTourDeleting(false);
+    }
+  };
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 8 }}
+      animate={{ opacity: 1, y: 0 }}
+      className="max-w-4xl mx-auto space-y-8"
+    >
+      {/* Page Header */}
+      <div className={pageHeader}>
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 rounded-xl bg-[var(--surface-2)] border border-[var(--border-subtle)] flex items-center justify-center">
+            <View size={18} className="text-[var(--site-primary)]" />
+          </div>
+          <div>
+            <h2 className={pageTitle}>{t("config.tour.title")}</h2>
+            <p className={pageDescription}>{t("config.tour.description")}</p>
+          </div>
+        </div>
+      </div>
+
+      {/* Tour Virtual Section */}
+      <div className={cn(sectionCard, "space-y-6")}>
+        {/* Tab toggle */}
+        <div className="flex gap-1 p-1 rounded-xl bg-[var(--surface-2)] border border-[var(--border-subtle)] w-fit">
+          <button
+            onClick={() => setTourTab("url")}
+            className={cn(
+              "flex items-center gap-2 px-3.5 py-1.5 rounded-lg text-xs font-ui font-semibold uppercase tracking-wider transition-all cursor-pointer",
+              tourTab === "url"
+                ? "bg-[var(--surface-3)] text-[var(--text-primary)] shadow-sm"
+                : "text-[var(--text-muted)] hover:text-[var(--text-tertiary)]"
+            )}
+          >
+            <Link2 size={13} />
+            {t("config.tour.tabUrl")}
+          </button>
+          <button
+            onClick={() => setTourTab("upload")}
+            className={cn(
+              "flex items-center gap-2 px-3.5 py-1.5 rounded-lg text-xs font-ui font-semibold uppercase tracking-wider transition-all cursor-pointer",
+              tourTab === "upload"
+                ? "bg-[var(--surface-3)] text-[var(--text-primary)] shadow-sm"
+                : "text-[var(--text-muted)] hover:text-[var(--text-tertiary)]"
+            )}
+          >
+            <CloudUpload size={13} />
+            {t("config.tour.tabUpload")}
+          </button>
+        </div>
+
+        {/* Tab: Paste URL */}
+        {tourTab === "url" && (
+          <div>
+            <label className={labelClass}>{t("config.tour.urlLabel")}</label>
+            <input
+              type="text"
+              value={tour360RawInput}
+              onChange={(e) => {
+                const raw = e.target.value;
+                setTour360RawInput(raw);
+                setTour360Url(extractTourUrl(raw));
+                scheduleAutoSave();
+              }}
+              placeholder={t("config.tour.urlPlaceholder")}
+              className={inputClass}
+            />
+            <p className={fieldHint}>
+              {t("config.tour.urlHint")}
+            </p>
+          </div>
+        )}
+
+        {/* Tab: Upload ZIP */}
+        {tourTab === "upload" && (
+          <div className="space-y-4">
+            {/* Already hosted on R2 */}
+            {isR2Hosted && tourUpload.status === "idle" && (
+              <div className="flex items-center gap-3 p-3 rounded-[1.25rem] bg-emerald-500/8 border border-emerald-500/15">
+                <CheckCircle2 size={18} className="text-emerald-400 shrink-0" />
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm text-emerald-300 font-medium">{t("config.tour.hostedOnNoddo")}</p>
+                  <p className="text-xs text-[var(--text-muted)] truncate mt-0.5">{tour360Url}</p>
+                </div>
+                <div className="flex gap-2 shrink-0">
+                  <button
+                    onClick={() => tourZipInputRef.current?.click()}
+                    className="text-xs text-[var(--text-tertiary)] hover:text-[var(--text-secondary)] px-2.5 py-1.5 rounded-lg border border-[var(--border-subtle)] hover:bg-[var(--surface-2)] transition-colors cursor-pointer"
+                  >
+                    {t("config.tour.replaceHosted")}
+                  </button>
+                  <button
+                    onClick={handleDeleteHostedTour}
+                    disabled={tourDeleting}
+                    className="text-xs text-red-400/70 hover:text-red-400 px-2.5 py-1.5 rounded-lg border border-red-500/15 hover:bg-red-500/10 transition-colors cursor-pointer disabled:opacity-50"
+                  >
+                    {tourDeleting ? <Loader2 size={12} className="animate-spin" /> : t("config.tour.deleteHosted")}
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {/* Extracting state */}
+            {tourUpload.status === "extracting" && (
+              <div className="flex flex-col items-center justify-center gap-3 p-10 rounded-[1.25rem] bg-[var(--surface-2)] border border-[var(--border-subtle)]">
+                <Loader2 size={24} className="animate-spin text-[var(--site-primary)]" />
+                <p className="text-sm text-[var(--text-secondary)]">{t("config.tour.extracting")}</p>
+              </div>
+            )}
+
+            {/* Uploading state */}
+            {tourUpload.status === "uploading" && (
+              <div className="p-6 rounded-[1.25rem] bg-[var(--surface-2)] border border-[var(--border-subtle)] space-y-4">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <CloudUpload size={18} className="text-[var(--site-primary)]" />
+                    <p className="text-sm text-[var(--text-secondary)]">
+                      {t("config.tour.uploadingFiles")} ({tourUpload.filesUploaded}/{tourUpload.filesTotal})
+                    </p>
+                  </div>
+                  <button
+                    onClick={tourUpload.cancel}
+                    className="text-xs text-[var(--text-muted)] hover:text-red-400 transition-colors cursor-pointer"
+                  >
+                    {t("config.tour.cancel")}
+                  </button>
+                </div>
+                <div className="w-full h-1.5 rounded-full bg-[var(--surface-3)] overflow-hidden">
+                  <motion.div
+                    className="h-full rounded-full"
+                    style={{ background: "var(--site-primary)" }}
+                    initial={{ width: 0 }}
+                    animate={{ width: `${tourUpload.progress}%` }}
+                    transition={{ duration: 0.3, ease: "easeOut" }}
+                  />
+                </div>
+                <p className="text-xs text-[var(--text-muted)] text-right">{tourUpload.progress}%</p>
+              </div>
+            )}
+
+            {/* Upload complete */}
+            {tourUpload.status === "complete" && (
+              <div className="flex items-center gap-3 p-3 rounded-[1.25rem] bg-emerald-500/8 border border-emerald-500/15">
+                <CheckCircle2 size={18} className="text-emerald-400 shrink-0" />
+                <p className="text-sm text-emerald-300">{t("config.tour.uploadComplete")}</p>
+              </div>
+            )}
+
+            {/* Error state */}
+            {tourUpload.status === "error" && (
+              <div className="flex items-center gap-3 p-3 rounded-[1.25rem] bg-red-500/8 border border-red-500/15">
+                <AlertCircle size={18} className="text-red-400 shrink-0" />
+                <div className="flex-1">
+                  <p className="text-sm text-red-300">{tourUpload.error}</p>
+                </div>
+                <button
+                  onClick={tourUpload.reset}
+                  className="text-xs text-[var(--text-tertiary)] hover:text-[var(--text-secondary)] px-2.5 py-1.5 rounded-lg border border-[var(--border-subtle)] hover:bg-[var(--surface-2)] transition-colors cursor-pointer"
+                >
+                  {t("config.tour.retry")}
+                </button>
+              </div>
+            )}
+
+            {/* Drop zone (shown when idle and not already hosted) */}
+            {tourUpload.status === "idle" && !isR2Hosted && (
+              <div
+                onDragOver={(e) => { e.preventDefault(); setDragOver(true); }}
+                onDragLeave={() => setDragOver(false)}
+                onDrop={handleDrop}
+                onClick={() => tourZipInputRef.current?.click()}
+                className={cn(
+                  "relative flex flex-col items-center justify-center gap-4 p-10 rounded-[1.25rem] border-2 border-dashed cursor-pointer transition-all duration-200",
+                  dragOver
+                    ? "border-[var(--site-primary)] bg-[rgba(var(--site-primary-rgb),0.06)]"
+                    : "border-[var(--border-default)] bg-[var(--surface-1)] hover:border-[var(--border-strong)] hover:bg-[var(--surface-2)]"
+                )}
+              >
+                <div className={cn(
+                  "w-12 h-12 rounded-2xl flex items-center justify-center transition-colors",
+                  dragOver
+                    ? "bg-[rgba(var(--site-primary-rgb),0.15)]"
+                    : "bg-[var(--surface-3)]"
+                )}>
+                  <Upload size={20} className={cn(
+                    "transition-colors",
+                    dragOver ? "text-[var(--site-primary)]" : "text-[var(--text-tertiary)]"
+                  )} />
+                </div>
+                <div className="text-center space-y-1.5">
+                  <p className="text-sm text-[var(--text-secondary)]">
+                    {t("config.tour.dropzoneTitle")}
+                  </p>
+                  <p className="text-xs text-[var(--text-muted)]">
+                    {t("config.tour.dropzoneOr")}{" "}
+                    <span className="text-[var(--site-primary)] font-medium">
+                      {t("config.tour.uploadButton")}
+                    </span>
+                  </p>
+                </div>
+                <p className="text-[10px] text-[var(--text-muted)] tracking-wide uppercase font-ui">
+                  {t("config.tour.dropzoneFormats")}
+                </p>
+              </div>
+            )}
+
+            <p className={fieldHint}>{t("config.tour.uploadHint")}</p>
+
+            <input
+              ref={tourZipInputRef}
+              type="file"
+              accept=".zip,application/zip,application/x-zip-compressed"
+              onChange={handleTourZipSelect}
+              className="hidden"
+            />
+          </div>
+        )}
+
+        {/* Preview (shown for both tabs when URL exists) */}
+        {tour360Url && (
+          <div className="space-y-2">
+            <div className="flex items-center justify-between">
+              <span className="text-xs text-[var(--text-tertiary)]">{t("config.tour.preview")}</span>
+              <a
+                href={tour360Url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-xs text-[var(--site-primary)] hover:underline flex items-center gap-1"
+              >
+                <ExternalLink size={11} />
+                {t("config.tour.openInTab")}
+              </a>
+            </div>
+            <div className="w-full h-[220px] rounded-xl overflow-hidden border border-[var(--border-subtle)]">
+              <iframe
+                src={tour360Url}
+                className="w-full h-full border-0"
+                allowFullScreen
+                title="Tour 360 preview"
+              />
+            </div>
+          </div>
+        )}
+      </div>
+    </motion.div>
+  );
+}

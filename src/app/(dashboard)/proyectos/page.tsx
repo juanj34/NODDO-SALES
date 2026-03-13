@@ -2,7 +2,6 @@
 
 import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useProjects } from "@/hooks/useProject";
 import { useDashboardSummary } from "@/hooks/useDashboardSummary";
@@ -13,8 +12,10 @@ import {
   AlertTriangle,
   Trash2,
   ArrowRight,
-  HelpCircle,
-  Users,
+  Search,
+  SlidersHorizontal,
+  ArrowUpDown,
+  Copy,
 } from "lucide-react";
 import { MagneticButton } from "@/components/ui/MagneticButton";
 import { NodDoLogo } from "@/components/ui/NodDoLogo";
@@ -24,7 +25,8 @@ import { useAuthRole } from "@/hooks/useAuthContext";
 
 import { DashboardGreeting } from "@/components/dashboard/home/DashboardGreeting";
 import { DashboardKPIStrip } from "@/components/dashboard/home/DashboardKPIStrip";
-import { RecentLeadsFeed } from "@/components/dashboard/home/RecentLeadsFeed";
+import { DashboardShortcuts } from "@/components/dashboard/home/DashboardShortcuts";
+import { DashboardAnalyticsPreview } from "@/components/dashboard/home/DashboardAnalyticsPreview";
 import { EnhancedProjectCard } from "@/components/dashboard/home/EnhancedProjectCard";
 import { DashboardSkeleton, KPIStripSkeleton } from "@/components/dashboard/home/DashboardSkeleton";
 
@@ -39,6 +41,10 @@ export default function ProyectosPage() {
   const [checkingSlug, setCheckingSlug] = useState(false);
   const slugCheckTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [kpiProjectFilter, setKpiProjectFilter] = useState<string | null>(null);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [statusFilter, setStatusFilter] = useState<string>("todos");
+  const [sortBy, setSortBy] = useState<"reciente" | "nombre">("reciente");
+  const [cloning, setCloning] = useState<string | null>(null);
   const router = useRouter();
   const { t } = useTranslation("dashboard");
   const toast = useToast();
@@ -120,6 +126,39 @@ export default function ProyectosPage() {
     };
   }, [slug]);
 
+  // Filtered and sorted projects
+  const filteredProjects = projects
+    .filter((p) => {
+      if (searchQuery) {
+        const q = searchQuery.toLowerCase();
+        if (!p.nombre.toLowerCase().includes(q) && !p.slug.toLowerCase().includes(q)) return false;
+      }
+      if (statusFilter !== "todos" && p.estado !== statusFilter) return false;
+      return true;
+    })
+    .sort((a, b) => {
+      if (sortBy === "nombre") return a.nombre.localeCompare(b.nombre);
+      return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
+    });
+
+  const handleClone = async (id: string) => {
+    setCloning(id);
+    try {
+      const res = await fetch(`/api/proyectos/${id}/clonar`, { method: "POST" });
+      if (res.ok) {
+        toast.success("Proyecto clonado");
+        refresh();
+      } else {
+        const data = await res.json();
+        toast.error(data.error || "Error al clonar");
+      }
+    } catch {
+      toast.error("Error de conexión");
+    } finally {
+      setCloning(null);
+    }
+  };
+
   // Full-page skeleton while projects are loading
   if (loading) {
     return <DashboardSkeleton />;
@@ -148,59 +187,22 @@ export default function ProyectosPage() {
         ) : null
       )}
 
-      {/* Activity row — admin only, with projects */}
+      {/* Quick shortcuts — admin only, with projects */}
       {isAdmin && projects.length > 0 && (
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
-          <div className="lg:col-span-2">
-            <RecentLeadsFeed
-              leads={summary?.recent_leads || []}
-              loading={summaryLoading}
-            />
-          </div>
+        <DashboardShortcuts
+          totalLeads={summary?.total_leads || 0}
+          onAnalyticsClick={() => {
+            document.getElementById("analytics-section")?.scrollIntoView({ behavior: "smooth" });
+          }}
+        />
+      )}
 
-          {/* Quick actions */}
-          <div className="bg-[var(--surface-1)] rounded-xl border border-[var(--border-subtle)] shadow-[var(--shadow-sm)] p-5 flex flex-col gap-3">
-            <span className="font-ui text-[10px] font-bold uppercase tracking-[0.12em] text-[var(--text-muted)] mb-1">
-              {t("home.quickActions")}
-            </span>
-
-            <button
-              onClick={() => setShowCreate(true)}
-              className="group flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-[var(--surface-2)] transition-colors text-left"
-            >
-              <div className="w-8 h-8 rounded-lg bg-[rgba(184,151,58,0.08)] border border-[rgba(184,151,58,0.12)] flex items-center justify-center text-[var(--site-primary)] group-hover:bg-[rgba(184,151,58,0.15)] transition-colors">
-                <Plus size={14} />
-              </div>
-              <span className="font-ui text-[10px] font-bold uppercase tracking-[0.1em] text-[var(--text-secondary)]">
-                {t("proyectos.newProject")}
-              </span>
-            </button>
-
-            <Link
-              href="/leads"
-              className="group flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-[var(--surface-2)] transition-colors"
-            >
-              <div className="w-8 h-8 rounded-lg bg-[var(--surface-3)] border border-[var(--border-subtle)] flex items-center justify-center text-[var(--text-tertiary)] group-hover:text-[var(--text-secondary)] transition-colors">
-                <Users size={14} />
-              </div>
-              <span className="font-ui text-[10px] font-bold uppercase tracking-[0.1em] text-[var(--text-secondary)]">
-                {t("home.viewAllLeads")}
-              </span>
-            </Link>
-
-            <Link
-              href="/ayuda"
-              className="group flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-[var(--surface-2)] transition-colors"
-            >
-              <div className="w-8 h-8 rounded-lg bg-[var(--surface-3)] border border-[var(--border-subtle)] flex items-center justify-center text-[var(--text-tertiary)] group-hover:text-[var(--text-secondary)] transition-colors">
-                <HelpCircle size={14} />
-              </div>
-              <span className="font-ui text-[10px] font-bold uppercase tracking-[0.1em] text-[var(--text-secondary)]">
-                {t("sidebar.help")}
-              </span>
-            </Link>
-          </div>
-        </div>
+      {/* Analytics preview — admin only, with projects */}
+      {isAdmin && projects.length > 0 && (
+        <DashboardAnalyticsPreview
+          projects={projects.map((p) => ({ id: p.id, nombre: p.nombre }))}
+          defaultProjectId={projects[0]?.id}
+        />
       )}
 
       {/* Projects section */}
@@ -270,27 +272,79 @@ export default function ProyectosPage() {
         </div>
       ) : (
         <>
-          {/* Section label */}
-          <div className="flex items-center gap-3">
-            <span className="font-ui text-[10px] font-bold uppercase tracking-[0.12em] text-[var(--text-muted)]">
-              {t("home.yourProjects")}
-            </span>
-            <div className="h-px flex-1 bg-[var(--border-subtle)]" />
+          {/* Section label + Search/Filter bar */}
+          <div className="space-y-3">
+            <div className="flex items-center gap-3">
+              <span className="font-ui text-[10px] font-bold uppercase tracking-[0.12em] text-[var(--text-muted)]">
+                {t("home.yourProjects")}
+              </span>
+              <div className="h-px flex-1 bg-[var(--border-subtle)]" />
+            </div>
+
+            <div className="flex flex-wrap items-center gap-2">
+              {/* Search */}
+              <div className="relative flex-1 min-w-[200px] max-w-xs">
+                <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--text-muted)]" />
+                <input
+                  type="text"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  placeholder="Buscar proyecto..."
+                  className="input-glass w-full pl-9 pr-3 py-2 text-xs"
+                />
+              </div>
+
+              {/* Status filter */}
+              <div className="relative">
+                <SlidersHorizontal size={12} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-[var(--text-muted)] pointer-events-none" />
+                <select
+                  value={statusFilter}
+                  onChange={(e) => setStatusFilter(e.target.value)}
+                  className="input-glass pl-8 pr-8 py-2 text-xs appearance-none cursor-pointer"
+                >
+                  <option value="todos">Todos</option>
+                  <option value="borrador">Borrador</option>
+                  <option value="publicado">Publicado</option>
+                  <option value="archivado">Archivado</option>
+                </select>
+              </div>
+
+              {/* Sort */}
+              <button
+                onClick={() => setSortBy((s) => (s === "reciente" ? "nombre" : "reciente"))}
+                className="flex items-center gap-1.5 px-3 py-2 border border-[var(--border-default)] rounded-[0.625rem] bg-[var(--surface-3)] text-[10px] font-ui font-bold uppercase tracking-wider text-[var(--text-secondary)] hover:text-white hover:border-[var(--border-strong)] transition-all"
+              >
+                <ArrowUpDown size={12} />
+                {sortBy === "reciente" ? "Reciente" : "A-Z"}
+              </button>
+            </div>
           </div>
 
           {/* Project grid */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-            {projects.map((proyecto, idx) => (
-              <EnhancedProjectCard
-                key={proyecto.id}
-                proyecto={proyecto}
-                stats={summary?.project_stats[proyecto.id]}
-                index={idx}
-                isAdmin={isAdmin}
-                onDelete={handleDelete}
-              />
-            ))}
-          </div>
+          {filteredProjects.length === 0 ? (
+            <div className="text-center py-12">
+              <p className="text-sm text-[var(--text-muted)]">
+                No se encontraron proyectos
+                {searchQuery && ` para "${searchQuery}"`}
+                {statusFilter !== "todos" && ` con estado "${statusFilter}"`}
+              </p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+              {filteredProjects.map((proyecto, idx) => (
+                <EnhancedProjectCard
+                  key={proyecto.id}
+                  proyecto={proyecto}
+                  stats={summary?.project_stats[proyecto.id]}
+                  index={idx}
+                  isAdmin={isAdmin}
+                  onDelete={handleDelete}
+                  onClone={handleClone}
+                  cloning={cloning === proyecto.id}
+                />
+              ))}
+            </div>
+          )}
         </>
       )}
 

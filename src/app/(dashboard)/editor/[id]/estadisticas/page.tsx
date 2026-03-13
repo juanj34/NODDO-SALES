@@ -26,6 +26,7 @@ import {
   AlertTriangle,
   ArrowDownRight,
   Layers,
+  Download,
 } from "lucide-react";
 import { motion } from "framer-motion";
 import { KPICard } from "@/components/dashboard/analytics/KPICard";
@@ -36,20 +37,60 @@ import { DeviceChart } from "@/components/dashboard/analytics/DeviceChart";
 import { RankedList } from "@/components/dashboard/analytics/RankedList";
 import { InteractionCards } from "@/components/dashboard/analytics/InteractionCards";
 
-const RANGE_DAYS: Record<TimeRange, number> = { "7d": 7, "30d": 30, "90d": 90 };
+const RANGE_DAYS: Record<string, number> = { "7d": 7, "30d": 30, "90d": 90 };
+
+function exportAnalyticsCSV(data: NonNullable<ReturnType<typeof import("@/hooks/useAnalytics").useAnalytics>["data"]>, projectName: string) {
+  const rows: string[][] = [
+    ["Metric", "Value"],
+    ["Total Views", String(data.summary.total_views)],
+    ["Unique Visitors", String(data.summary.unique_visitors)],
+    ["Total Leads", String(data.total_leads)],
+    ["Conversion Rate", `${data.conversion_rate}%`],
+    ["Bounce Rate", `${data.bounce_rate}%`],
+    ["Pages/Session", data.avg_pages_per_session.toFixed(1)],
+    [],
+    ["Date", "Views", "Unique Visitors"],
+    ...data.views_over_time.map((d) => [d.bucket, String(d.views), String(d.visitors)]),
+    [],
+    ["Page", "Views"],
+    ...data.views_by_page.map((d) => [d.label, String(d.count)]),
+    [],
+    ["Referrer", "Views"],
+    ...data.views_by_referrer.map((d) => [d.label, String(d.count)]),
+    [],
+    ["Country", "Views"],
+    ...data.views_by_country.map((d) => [d.label, String(d.count)]),
+  ];
+
+  const csv = rows.map((r) => r.map((c) => `"${c.replace(/"/g, '""')}"`).join(",")).join("\n");
+  const blob = new Blob(["\uFEFF" + csv], { type: "text/csv;charset=utf-8;" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = `analytics_${projectName.replace(/\s+/g, "_")}_${new Date().toISOString().split("T")[0]}.csv`;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
 
 export default function EstadisticasPage() {
   const { project } = useEditorProject();
   const [range, setRange] = useState<TimeRange>("30d");
+  const [customFrom, setCustomFrom] = useState<Date | null>(null);
+  const [customTo, setCustomTo] = useState<Date | null>(null);
 
   const { from, to } = useMemo(() => {
+    if (range === "custom" && customFrom && customTo) {
+      return { from: customFrom, to: customTo };
+    }
     const now = new Date();
-    const days = RANGE_DAYS[range];
+    const days = RANGE_DAYS[range] || 30;
     return {
       from: new Date(now.getTime() - days * 86400000),
       to: now,
     };
-  }, [range]);
+  }, [range, customFrom, customTo]);
 
   const { data, loading, error, refresh } = useAnalytics(project.id, from, to);
 
@@ -167,6 +208,15 @@ export default function EstadisticasPage() {
           </p>
         </div>
         <div className="flex items-center gap-2">
+          {data && (
+            <button
+              onClick={() => exportAnalyticsCSV(data, project.nombre)}
+              className="w-8 h-8 flex items-center justify-center rounded-lg border border-[var(--border-default)] bg-[var(--surface-2)] text-[var(--text-tertiary)] hover:text-white hover:bg-[var(--surface-3)] transition-all"
+              title="Exportar CSV"
+            >
+              <Download size={13} />
+            </button>
+          )}
           <button
             onClick={refresh}
             disabled={loading}
@@ -175,7 +225,14 @@ export default function EstadisticasPage() {
           >
             <RefreshCw size={13} className={loading ? "animate-spin" : ""} />
           </button>
-          <TimeRangeSelector value={range} onChange={setRange} />
+          <TimeRangeSelector
+            value={range}
+            onChange={setRange}
+            onCustomRange={(f, t) => {
+              setCustomFrom(f);
+              setCustomTo(t);
+            }}
+          />
         </div>
       </div>
 

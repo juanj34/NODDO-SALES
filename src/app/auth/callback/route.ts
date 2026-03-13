@@ -2,6 +2,7 @@ import { createServerClient, type CookieOptions } from "@supabase/ssr";
 import { cookies } from "next/headers";
 import { NextResponse, type NextRequest } from "next/server";
 import { linkPendingCollaborator } from "@/lib/auth-context";
+import { sendWelcomeEmail } from "@/lib/email";
 
 export async function GET(request: NextRequest) {
   const { searchParams, origin } = new URL(request.url);
@@ -47,6 +48,16 @@ export async function GET(request: NextRequest) {
       const { data: { user } } = await supabase.auth.getUser();
       if (user) {
         await linkPendingCollaborator(supabase, user);
+
+        // Send welcome email for new users (created within last 5 min)
+        const createdAt = new Date(user.created_at).getTime();
+        const isNewUser = Date.now() - createdAt < 5 * 60 * 1000;
+        if (isNewUser && user.email) {
+          sendWelcomeEmail({
+            email: user.email,
+            name: user.user_metadata?.full_name || user.email.split("@")[0],
+          }).catch(() => {});
+        }
       }
 
       // Recovery flow: redirect to new password page

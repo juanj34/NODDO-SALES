@@ -1,10 +1,31 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import { motion } from "framer-motion";
-import { Download, Search, Loader2, ChevronLeft, ChevronRight } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
+import {
+  Download,
+  Search,
+  Loader2,
+  ChevronLeft,
+  ChevronRight,
+  X,
+  Phone,
+  Mail,
+  MapPin,
+  MessageSquare,
+  Tag,
+  Calendar,
+  Globe,
+} from "lucide-react";
 import type { Lead } from "@/types";
 import { useTranslation } from "@/i18n";
+
+const STATUS_CONFIG: Record<string, { label: string; labelEn: string; dot: string; bg: string }> = {
+  nuevo: { label: "Nuevo", labelEn: "New", dot: "bg-blue-400", bg: "bg-blue-500/15 text-blue-400 border-blue-500/20" },
+  contactado: { label: "Contactado", labelEn: "Contacted", dot: "bg-amber-400", bg: "bg-amber-500/15 text-amber-400 border-amber-500/20" },
+  calificado: { label: "Calificado", labelEn: "Qualified", dot: "bg-emerald-400", bg: "bg-emerald-500/15 text-emerald-400 border-emerald-500/20" },
+  cerrado: { label: "Cerrado", labelEn: "Closed", dot: "bg-[var(--text-muted)]", bg: "bg-white/5 text-[var(--text-muted)] border-white/10" },
+};
 
 export default function LeadsPage() {
   const { t, locale } = useTranslation("dashboard");
@@ -15,6 +36,9 @@ export default function LeadsPage() {
   const [search, setSearch] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
   const [tipologia, setTipologia] = useState("");
+  const [statusFilter, setStatusFilter] = useState("");
+  const [selectedLead, setSelectedLead] = useState<Lead | null>(null);
+  const [updatingStatus, setUpdatingStatus] = useState<string | null>(null);
   const limit = 50;
 
   useEffect(() => {
@@ -25,7 +49,7 @@ export default function LeadsPage() {
   // Reset to page 1 when filters change
   useEffect(() => {
     setPage(1);
-  }, [debouncedSearch, tipologia]);
+  }, [debouncedSearch, tipologia, statusFilter]);
 
   const fetchLeads = useCallback(async () => {
     setLoading(true);
@@ -33,6 +57,7 @@ export default function LeadsPage() {
       const params = new URLSearchParams();
       if (debouncedSearch) params.set("search", debouncedSearch);
       if (tipologia) params.set("tipologia", tipologia);
+      if (statusFilter) params.set("status", statusFilter);
       params.set("page", String(page));
       params.set("limit", String(limit));
       const qs = params.toString();
@@ -48,11 +73,33 @@ export default function LeadsPage() {
     } finally {
       setLoading(false);
     }
-  }, [debouncedSearch, tipologia, page]);
+  }, [debouncedSearch, tipologia, statusFilter, page]);
 
   useEffect(() => {
     fetchLeads();
   }, [fetchLeads]);
+
+  const handleStatusChange = async (leadId: string, newStatus: string) => {
+    setUpdatingStatus(leadId);
+    try {
+      const res = await fetch(`/api/leads/${leadId}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ status: newStatus }),
+      });
+      if (res.ok) {
+        const updated = await res.json();
+        setLeads((prev) => prev.map((l) => (l.id === leadId ? updated : l)));
+        if (selectedLead?.id === leadId) {
+          setSelectedLead(updated);
+        }
+      }
+    } catch {
+      // silent
+    } finally {
+      setUpdatingStatus(null);
+    }
+  };
 
   // Gather unique tipologias from current page for filter dropdown
   const uniqueTipologias = [
@@ -65,11 +112,11 @@ export default function LeadsPage() {
 
   const exportCSV = async () => {
     if (total === 0) return;
-    // Fetch all leads (no pagination) for export
     try {
       const params = new URLSearchParams();
       if (debouncedSearch) params.set("search", debouncedSearch);
       if (tipologia) params.set("tipologia", tipologia);
+      if (statusFilter) params.set("status", statusFilter);
       params.set("page", "1");
       params.set("limit", "10000");
       const res = await fetch(`/api/leads?${params.toString()}`);
@@ -77,13 +124,14 @@ export default function LeadsPage() {
       const json = await res.json();
       const allLeads: Lead[] = json.data;
 
-      const headers = [t("leads.name"), t("leads.email"), t("leads.phone"), t("leads.country"), t("leads.type"), "Mensaje", t("leads.date")];
+      const headers = [t("leads.name"), t("leads.email"), t("leads.phone"), t("leads.country"), t("leads.type"), "Status", "Mensaje", t("leads.date")];
       const rows = allLeads.map((l) => [
         l.nombre,
         l.email,
         l.telefono ?? "",
         l.pais ?? "",
         l.tipologia_interes ?? "",
+        l.status ?? "nuevo",
         l.mensaje ?? "",
         new Date(l.created_at).toLocaleDateString(locale === "es" ? "es-CO" : "en-US"),
       ]);
@@ -107,6 +155,13 @@ export default function LeadsPage() {
     }
   };
 
+  const formatDate = (d: string) =>
+    new Date(d).toLocaleDateString(locale === "es" ? "es-CO" : "en-US", {
+      year: "numeric",
+      month: "short",
+      day: "numeric",
+    });
+
   return (
     <div className="p-8">
       <div className="flex items-center justify-between mb-8">
@@ -129,7 +184,7 @@ export default function LeadsPage() {
       </div>
 
       {/* Filters */}
-      <div className="flex gap-4 mb-6">
+      <div className="flex gap-3 mb-6 flex-wrap">
         <div className="relative flex-1 max-w-sm">
           <Search
             size={14}
@@ -143,6 +198,18 @@ export default function LeadsPage() {
             className="w-full bg-[var(--surface-2)] border border-[var(--border-default)] rounded-lg pl-9 pr-4 py-2 text-sm text-white placeholder:text-[var(--text-muted)] focus:outline-none focus:border-[rgba(var(--site-primary-rgb),0.5)] transition-colors"
           />
         </div>
+        <select
+          value={statusFilter}
+          onChange={(e) => setStatusFilter(e.target.value)}
+          className="bg-[var(--surface-2)] border border-[var(--border-default)] rounded-lg px-4 py-2 text-sm text-[var(--text-secondary)] focus:outline-none focus:border-[rgba(var(--site-primary-rgb),0.5)]"
+        >
+          <option value="">Status: Todos</option>
+          {Object.entries(STATUS_CONFIG).map(([key, cfg]) => (
+            <option key={key} value={key}>
+              {locale === "es" ? cfg.label : cfg.labelEn}
+            </option>
+          ))}
+        </select>
         <select
           value={tipologia}
           onChange={(e) => setTipologia(e.target.value)}
@@ -166,7 +233,7 @@ export default function LeadsPage() {
         <div className="text-center py-20">
           <p className="font-heading text-xl font-light text-[var(--text-secondary)]">{t("leads.noLeads")}</p>
           <p className="text-[var(--text-muted)] text-[12px] leading-[1.7] mt-2">
-            {debouncedSearch || tipologia
+            {debouncedSearch || tipologia || statusFilter
               ? t("leads.adjustFilters")
               : t("leads.leadsWillAppear")}
           </p>
@@ -181,7 +248,7 @@ export default function LeadsPage() {
             <table className="w-full">
               <thead>
                 <tr className="border-b border-[var(--border-subtle)]">
-                  {[t("leads.name"), t("leads.email"), t("leads.phone"), t("leads.country"), t("leads.type"), t("leads.date")].map(
+                  {[t("leads.name"), t("leads.email"), t("leads.phone"), t("leads.type"), "Status", t("leads.date")].map(
                     (h) => (
                       <th
                         key={h}
@@ -194,38 +261,45 @@ export default function LeadsPage() {
                 </tr>
               </thead>
               <tbody>
-                {leads.map((lead, idx) => (
-                  <motion.tr
-                    key={lead.id}
-                    initial={{ opacity: 0, y: 8 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: idx * 0.03 }}
-                    className="border-b border-[var(--border-subtle)] last:border-0 hover:bg-[var(--surface-2)] transition-colors"
-                  >
-                    <td className="px-6 py-4 text-sm">{lead.nombre}</td>
-                    <td className="px-6 py-4 text-sm text-[var(--text-secondary)]">
-                      {lead.email}
-                    </td>
-                    <td className="px-6 py-4 text-sm text-[var(--text-secondary)]">
-                      {lead.telefono ?? "—"}
-                    </td>
-                    <td className="px-6 py-4 text-sm text-[var(--text-secondary)]">
-                      {lead.pais ?? "—"}
-                    </td>
-                    <td className="px-6 py-4">
-                      {lead.tipologia_interes ? (
-                        <span className="px-2 py-1 bg-[rgba(var(--site-primary-rgb),0.1)] text-[var(--site-primary)] rounded text-xs">
-                          {lead.tipologia_interes}
+                {leads.map((lead, idx) => {
+                  const statusCfg = STATUS_CONFIG[lead.status] || STATUS_CONFIG.nuevo;
+                  return (
+                    <motion.tr
+                      key={lead.id}
+                      initial={{ opacity: 0, y: 8 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: idx * 0.03 }}
+                      onClick={() => setSelectedLead(lead)}
+                      className="border-b border-[var(--border-subtle)] last:border-0 hover:bg-[var(--surface-3)] transition-colors cursor-pointer"
+                    >
+                      <td className="px-6 py-4 text-sm">{lead.nombre}</td>
+                      <td className="px-6 py-4 text-sm text-[var(--text-secondary)]">
+                        {lead.email}
+                      </td>
+                      <td className="px-6 py-4 text-sm text-[var(--text-secondary)]">
+                        {lead.telefono ?? "—"}
+                      </td>
+                      <td className="px-6 py-4">
+                        {lead.tipologia_interes ? (
+                          <span className="px-2 py-1 bg-[rgba(var(--site-primary-rgb),0.1)] text-[var(--site-primary)] rounded text-xs">
+                            {lead.tipologia_interes}
+                          </span>
+                        ) : (
+                          <span className="text-[var(--text-muted)]">—</span>
+                        )}
+                      </td>
+                      <td className="px-6 py-4">
+                        <span className={`inline-flex items-center gap-1.5 px-2 py-1 rounded-lg text-[10px] font-bold uppercase tracking-wider border ${statusCfg.bg}`}>
+                          <span className={`w-1.5 h-1.5 rounded-full ${statusCfg.dot}`} />
+                          {locale === "es" ? statusCfg.label : statusCfg.labelEn}
                         </span>
-                      ) : (
-                        <span className="text-[var(--text-muted)]">—</span>
-                      )}
-                    </td>
-                    <td className="px-6 py-4 text-sm text-[var(--text-tertiary)]">
-                      {new Date(lead.created_at).toLocaleDateString(locale === "es" ? "es-CO" : "en-US")}
-                    </td>
-                  </motion.tr>
-                ))}
+                      </td>
+                      <td className="px-6 py-4 text-sm text-[var(--text-tertiary)]">
+                        {formatDate(lead.created_at)}
+                      </td>
+                    </motion.tr>
+                  );
+                })}
               </tbody>
             </table>
           </motion.div>
@@ -261,6 +335,125 @@ export default function LeadsPage() {
           )}
         </>
       )}
+
+      {/* Detail Modal */}
+      <AnimatePresence>
+        {selectedLead && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4"
+            onClick={() => setSelectedLead(null)}
+          >
+            <motion.div
+              initial={{ scale: 0.95, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.95, opacity: 0 }}
+              transition={{ type: "spring", damping: 25, stiffness: 300 }}
+              onClick={(e) => e.stopPropagation()}
+              className="bg-[var(--surface-1)] border border-[var(--border-default)] rounded-2xl shadow-2xl w-full max-w-lg overflow-hidden"
+            >
+              {/* Header */}
+              <div className="flex items-center justify-between p-6 pb-0">
+                <div>
+                  <h2 className="font-heading text-xl font-light text-white">
+                    {selectedLead.nombre}
+                  </h2>
+                  <p className="text-xs text-[var(--text-tertiary)] mt-1">
+                    {formatDate(selectedLead.created_at)}
+                  </p>
+                </div>
+                <button
+                  onClick={() => setSelectedLead(null)}
+                  className="text-[var(--text-muted)] hover:text-white transition-colors p-1.5 rounded-lg hover:bg-white/5"
+                >
+                  <X size={18} />
+                </button>
+              </div>
+
+              {/* Status selector */}
+              <div className="px-6 pt-4">
+                <label className="block font-ui text-[10px] text-[var(--text-tertiary)] mb-2 tracking-wider uppercase font-bold">
+                  Status
+                </label>
+                <div className="flex gap-2 flex-wrap">
+                  {Object.entries(STATUS_CONFIG).map(([key, cfg]) => {
+                    const isActive = selectedLead.status === key;
+                    const isUpdating = updatingStatus === selectedLead.id;
+                    return (
+                      <button
+                        key={key}
+                        onClick={() => !isActive && handleStatusChange(selectedLead.id, key)}
+                        disabled={isUpdating}
+                        className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[10px] font-bold uppercase tracking-wider border transition-all ${
+                          isActive
+                            ? cfg.bg
+                            : "border-[var(--border-subtle)] text-[var(--text-muted)] hover:text-[var(--text-secondary)] hover:border-[var(--border-default)]"
+                        } disabled:opacity-50`}
+                      >
+                        <span className={`w-1.5 h-1.5 rounded-full ${isActive ? cfg.dot : "bg-[var(--text-muted)]"}`} />
+                        {locale === "es" ? cfg.label : cfg.labelEn}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* Details */}
+              <div className="p-6 space-y-3">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <DetailRow icon={<Mail size={13} />} label={t("leads.email")} value={selectedLead.email} />
+                  <DetailRow icon={<Phone size={13} />} label={t("leads.phone")} value={selectedLead.telefono} />
+                  <DetailRow icon={<MapPin size={13} />} label={t("leads.country")} value={selectedLead.pais} />
+                  <DetailRow icon={<Tag size={13} />} label={t("leads.type")} value={selectedLead.tipologia_interes} />
+                  <DetailRow icon={<Calendar size={13} />} label={t("leads.date")} value={formatDate(selectedLead.created_at)} />
+                  {selectedLead.utm_source && (
+                    <DetailRow icon={<Globe size={13} />} label="UTM Source" value={selectedLead.utm_source} />
+                  )}
+                </div>
+                {selectedLead.mensaje && (
+                  <div className="pt-2">
+                    <div className="flex items-center gap-1.5 mb-1.5">
+                      <MessageSquare size={13} className="text-[var(--text-muted)]" />
+                      <span className="font-ui text-[10px] text-[var(--text-tertiary)] tracking-wider uppercase font-bold">
+                        Mensaje
+                      </span>
+                    </div>
+                    <p className="text-sm text-[var(--text-secondary)] leading-relaxed bg-[var(--surface-2)] rounded-xl p-3 border border-[var(--border-subtle)] whitespace-pre-wrap">
+                      {selectedLead.mensaje}
+                    </p>
+                  </div>
+                )}
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
+  );
+}
+
+function DetailRow({
+  icon,
+  label,
+  value,
+}: {
+  icon: React.ReactNode;
+  label: string;
+  value: string | null | undefined;
+}) {
+  return (
+    <div className="flex items-start gap-2 p-2.5 bg-[var(--surface-2)] rounded-xl border border-[var(--border-subtle)]">
+      <span className="text-[var(--text-muted)] mt-0.5 shrink-0">{icon}</span>
+      <div className="min-w-0">
+        <p className="font-ui text-[9px] text-[var(--text-muted)] tracking-wider uppercase font-bold">
+          {label}
+        </p>
+        <p className="text-sm text-[var(--text-secondary)] truncate">
+          {value || "—"}
+        </p>
+      </div>
     </div>
   );
 }

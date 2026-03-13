@@ -28,6 +28,9 @@ import {
   Scale,
   Fingerprint,
   Globe,
+  Music,
+  Upload,
+  Loader2,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useTranslation } from "@/i18n";
@@ -64,6 +67,9 @@ export default function EditorGeneralPage() {
   const [heroVideoUrl, setHeroVideoUrl] = useState("");
   const [faviconUrl, setFaviconUrl] = useState("");
   const [ogImageUrl, setOgImageUrl] = useState("");
+  const [backgroundAudioUrl, setBackgroundAudioUrl] = useState("");
+  const [audioUploading, setAudioUploading] = useState(false);
+  const audioInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     if (!project) return;
@@ -83,6 +89,7 @@ export default function EditorGeneralPage() {
     setHeroVideoUrl(project.hero_video_url || "");
     setFaviconUrl(project.favicon_url || "");
     setOgImageUrl(project.og_image_url || "");
+    setBackgroundAudioUrl(project.background_audio_url || "");
   }, [project]);
 
   const handleSave = async () => {
@@ -103,6 +110,7 @@ export default function EditorGeneralPage() {
       constructora_website: constructoraWebsite || null,
       favicon_url: faviconUrl || null,
       og_image_url: ogImageUrl || null,
+      background_audio_url: backgroundAudioUrl || null,
     });
     if (!ok) toast.error(t("general.saveError"));
   };
@@ -126,6 +134,33 @@ export default function EditorGeneralPage() {
       }
     };
   }, []);
+
+  const handleAudioUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (audioInputRef.current) audioInputRef.current.value = "";
+
+    setAudioUploading(true);
+    try {
+      const formData = new FormData();
+      formData.append("file", file);
+      formData.append("bucket", "media");
+      formData.append("folder", "audio");
+
+      const res = await fetch("/api/upload", { method: "POST", body: formData });
+      if (!res.ok) {
+        const data = await res.json();
+        throw new Error(data.error || "Error al subir");
+      }
+      const { url } = await res.json();
+      setBackgroundAudioUrl(url);
+      scheduleAutoSave();
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Error al subir audio");
+    } finally {
+      setAudioUploading(false);
+    }
+  };
 
   return (
     <motion.div
@@ -305,6 +340,44 @@ export default function EditorGeneralPage() {
                     <label className={labelClass}>{t("general.landing.descriptionLabel")}</label>
                     <textarea value={descripcion} onChange={(e) => { setDescripcion(e.target.value); scheduleAutoSave(); }} rows={3} className={inputClass + " resize-none"} placeholder={t("general.landing.descriptionPlaceholder")} />
                     <p className={fieldHint}>{t("general.landing.descriptionHint")}</p>
+                  </div>
+
+                  {/* Audio de fondo */}
+                  <div>
+                    <label className={labelClass}>
+                      <Music size={14} className="inline mr-1.5 -mt-0.5" />
+                      {t("config.audio.title")}
+                    </label>
+                    {backgroundAudioUrl ? (
+                      <div className="flex items-center gap-3">
+                        <audio controls src={backgroundAudioUrl} className="flex-1 h-10 rounded-lg" />
+                        <button
+                          onClick={() => { setBackgroundAudioUrl(""); scheduleAutoSave(); }}
+                          className="w-8 h-8 rounded-lg bg-red-500/10 border border-red-500/20 flex items-center justify-center text-red-400 hover:bg-red-500/20 transition-colors cursor-pointer"
+                        >
+                          <Trash2 size={14} />
+                        </button>
+                      </div>
+                    ) : (
+                      <div>
+                        <button
+                          onClick={() => audioInputRef.current?.click()}
+                          disabled={audioUploading}
+                          className="btn-outline-warm px-4 py-2.5 text-xs flex items-center gap-2 cursor-pointer"
+                        >
+                          {audioUploading ? <Loader2 size={14} className="animate-spin" /> : <Upload size={14} />}
+                          {t("config.audio.upload")}
+                        </button>
+                        <input
+                          ref={audioInputRef}
+                          type="file"
+                          accept="audio/mpeg,audio/mp3,audio/wav,audio/ogg,audio/mp4"
+                          onChange={handleAudioUpload}
+                          className="hidden"
+                        />
+                      </div>
+                    )}
+                    <p className={fieldHint}>{t("config.audio.hint")}</p>
                   </div>
                 </div>
               </div>

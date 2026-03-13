@@ -15,6 +15,7 @@ import {
   RefreshCw,
   Archive,
   Trash2,
+  Download,
 } from "lucide-react";
 import { useToast } from "@/components/dashboard/Toast";
 import { useConfirm } from "@/components/dashboard/ConfirmModal";
@@ -32,6 +33,10 @@ interface ProjectRow {
   ownerEmail: string;
   unitCount: number;
   leadCount: number;
+  storage_tours_bytes: number | null;
+  storage_videos_bytes: number | null;
+  storage_media_bytes: number | null;
+  storage_limit_bytes: number | null;
 }
 
 const estadoColors: Record<string, string> = {
@@ -119,16 +124,59 @@ export default function AdminProyectosPage() {
     return date.toLocaleDateString("es-CO", { day: "2-digit", month: "short", year: "numeric" });
   };
 
+  const formatStorageMB = (bytes: number | null) => {
+    if (!bytes) return "0";
+    return (bytes / 1024 / 1024).toFixed(1);
+  };
+
+  const handleExportCSV = () => {
+    const headers = ["Nombre", "Slug", "Owner", "Constructora", "Estado", "Unidades", "Leads", "Storage (MB)", "Fecha"];
+    const rows = filtered.map((p) => {
+      const totalStorage = (p.storage_tours_bytes || 0) + (p.storage_videos_bytes || 0) + (p.storage_media_bytes || 0);
+      return [
+        p.nombre,
+        p.slug,
+        p.ownerEmail,
+        p.constructora_nombre || "",
+        p.estado,
+        p.unitCount,
+        p.leadCount,
+        formatStorageMB(totalStorage),
+        p.created_at,
+      ];
+    });
+    const csv = [headers, ...rows].map((row) => row.map((cell) => `"${cell}"`).join(",")).join("\n");
+    const blob = new Blob(["\uFEFF" + csv], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `proyectos-noddo-${new Date().toISOString().slice(0, 10)}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+    toast.success(`${filtered.length} proyectos exportados`);
+  };
+
   return (
     <div className="p-4 md:p-8 max-w-7xl mx-auto space-y-6">
       {/* Header */}
-      <div>
-        <h1 className="font-heading text-2xl font-light text-[var(--text-primary)]">
-          Proyectos
-        </h1>
-        <p className="text-[var(--text-tertiary)] text-sm mt-1">
-          {projects.length} proyectos en la plataforma
-        </p>
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div>
+          <h1 className="font-heading text-2xl font-light text-[var(--text-primary)]">
+            Proyectos
+          </h1>
+          <p className="text-[var(--text-tertiary)] text-sm mt-1">
+            {projects.length} proyectos en la plataforma
+          </p>
+        </div>
+        {projects.length > 0 && (
+          <button
+            onClick={handleExportCSV}
+            className="flex items-center gap-2 px-4 py-2 rounded-lg bg-[var(--surface-2)] border border-[var(--border-subtle)] text-xs font-ui font-bold uppercase tracking-wider text-[var(--text-secondary)] hover:text-white hover:border-[var(--border-default)] transition-all"
+          >
+            <Download size={13} />
+            Exportar CSV
+          </button>
+        )}
       </div>
 
       {/* Filters */}

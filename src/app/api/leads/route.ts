@@ -1,8 +1,10 @@
 import { createClient } from "@/lib/supabase/server";
 import { getAuthContext } from "@/lib/auth-context";
 import { createAdminClient } from "@/lib/supabase/admin";
-import { sendLeadNotification } from "@/lib/email";
+import { sendLeadNotification, sendLeadConfirmation } from "@/lib/email";
 import { isRateLimited, getClientIp } from "@/lib/rate-limit";
+import { getWebhookConfig, dispatchWebhook } from "@/lib/webhooks";
+import type { WebhookPayload } from "@/lib/webhooks";
 import { NextRequest, NextResponse } from "next/server";
 
 export async function POST(request: NextRequest) {
@@ -61,6 +63,12 @@ export async function POST(request: NextRequest) {
 
     if (error) throw error;
 
+    // Dispatch webhook (fire-and-forget)
+    fireLeadWebhook(body.proyecto_id, data);
+
+    // Send confirmation email to lead (non-blocking)
+    sendLeadConfirmationAsync(body.proyecto_id, body.nombre, body.email);
+
     // Send email notification to project admin (non-blocking)
     sendLeadNotificationAsync(body.proyecto_id, {
       leadName: body.nombre,
@@ -117,6 +125,57 @@ async function sendLeadNotificationAsync(
   }
 }
 
+async function sendLeadConfirmationAsync(projectId: string, name: string, email: string) {
+  try {
+    const adminSupabase = createAdminClient();
+    const { data: proyecto } = await adminSupabase
+      .from("proyectos")
+      .select("nombre")
+      .eq("id", projectId)
+      .single();
+    if (!proyecto) return;
+
+    await sendLeadConfirmation({
+      email,
+      name,
+      projectName: proyecto.nombre,
+    });
+  } catch (err) {
+    console.error("[leads] Error sending lead confirmation:", err);
+  }
+}
+
+async function fireLeadWebhook(projectId: string, lead: Record<string, unknown>) {
+  try {
+    const wh = await getWebhookConfig(projectId, "lead.created");
+    if (!wh) return;
+
+    const payload: WebhookPayload = {
+      event: "lead.created",
+      timestamp: new Date().toISOString(),
+      proyecto_id: projectId,
+      proyecto_nombre: wh.projectName,
+      data: {
+        id: lead.id,
+        nombre: lead.nombre,
+        email: lead.email,
+        telefono: lead.telefono ?? null,
+        pais: lead.pais ?? null,
+        tipologia_interes: lead.tipologia_interes ?? null,
+        mensaje: lead.mensaje ?? null,
+        utm_source: lead.utm_source ?? null,
+        utm_medium: lead.utm_medium ?? null,
+        utm_campaign: lead.utm_campaign ?? null,
+        status: lead.status ?? "nuevo",
+        created_at: lead.created_at,
+      },
+    };
+    dispatchWebhook(projectId, wh.config, payload);
+  } catch (err) {
+    console.error("[leads] Webhook error:", err);
+  }
+}
+
 export async function GET(request: NextRequest) {
   try {
     const auth = await getAuthContext();
@@ -128,6 +187,7 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url);
     const tipologia = searchParams.get("tipologia");
     const search = searchParams.get("search");
+    const status = searchParams.get("status");
     const page = Math.max(1, parseInt(searchParams.get("page") || "1"));
     const limit = Math.min(100, Math.max(1, parseInt(searchParams.get("limit") || "50")));
     const offset = (page - 1) * limit;
@@ -151,6 +211,7 @@ export async function GET(request: NextRequest) {
       .in("proyecto_id", projectIds);
 
     if (tipologia) countQuery = countQuery.eq("tipologia_interes", tipologia);
+    if (status) countQuery = countQuery.eq("status", status);
     if (search) countQuery = countQuery.or(`nombre.ilike.%${search}%,email.ilike.%${search}%`);
 
     const { count } = await countQuery;
@@ -165,6 +226,9 @@ export async function GET(request: NextRequest) {
 
     if (tipologia) {
       query = query.eq("tipologia_interes", tipologia);
+    }
+    if (status) {
+      query = query.eq("status", status);
     }
     if (search) {
       query = query.or(

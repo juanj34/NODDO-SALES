@@ -24,6 +24,8 @@ interface Props {
   children: React.ReactNode;
 }
 
+const ROOT_DOMAIN = process.env.NEXT_PUBLIC_ROOT_DOMAIN || "noddo.io";
+
 export function SiteLayoutClient({ proyecto, basePath, children }: Props) {
   const pathname = usePathname();
   const isLanding =
@@ -32,8 +34,22 @@ export function SiteLayoutClient({ proyecto, basePath, children }: Props) {
   const [showPreloader, setShowPreloader] = useState(isLanding);
   const isMobile = useMediaQuery("(max-width: 1023px)");
 
+  // Per-page canonical URL
+  const canonicalUrl = (() => {
+    const subdomain = proyecto.subdomain || proyecto.slug;
+    const base =
+      proyecto.custom_domain && proyecto.domain_verified
+        ? `https://${proyecto.custom_domain}`
+        : ROOT_DOMAIN.includes("localhost")
+          ? `http://localhost:3000/sites/${proyecto.slug}`
+          : `https://${subdomain}.noddo.io`;
+    const pageSuffix = pathname.replace(`/sites/${proyecto.slug}`, "");
+    return pageSuffix && pageSuffix !== "/" ? `${base}${pageSuffix}` : base;
+  })();
+
   return (
     <SiteProjectContext.Provider value={{ proyecto, basePath }}>
+      <link rel="canonical" href={canonicalUrl} />
       <RouteProgressBar />
       <SiteTracker proyectoId={proyecto.id} />
       <AudioProvider audioUrl={proyecto.background_audio_url}>

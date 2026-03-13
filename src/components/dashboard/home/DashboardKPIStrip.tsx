@@ -1,7 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { Eye, Users, UserCheck, Percent, Zap, ChevronDown } from "lucide-react";
+import { Eye, Users, UserCheck, Zap, ChevronDown } from "lucide-react";
 import { AnimatedCounter } from "./AnimatedCounter";
 import { MiniSparkline } from "./MiniSparkline";
 import { useTranslation } from "@/i18n";
@@ -22,7 +22,6 @@ export function DashboardKPIStrip({ data, projects, selectedProjectId, onSelectP
   const views = filtered ? filtered.views_7d : data.total_views;
   const visitors = filtered ? filtered.visitors_7d : data.unique_visitors;
   const leads = filtered ? filtered.leads_7d : data.total_leads;
-  const conversion = filtered ? filtered.conversion_rate : data.conversion_rate;
   const interactions = filtered ? filtered.interactions_7d : data.total_interactions;
   const sparkline = filtered ? filtered.sparkline : data.views_sparkline;
 
@@ -42,13 +41,6 @@ export function DashboardKPIStrip({ data, projects, selectedProjectId, onSelectP
       label: t("home.kpiLeads"),
       value: leads,
       icon: <UserCheck size={16} />,
-    },
-    {
-      label: t("home.kpiConversion"),
-      value: conversion,
-      icon: <Percent size={16} />,
-      suffix: "%",
-      decimals: 1,
     },
     {
       label: t("home.kpiInteractions"),
@@ -82,7 +74,7 @@ export function DashboardKPIStrip({ data, projects, selectedProjectId, onSelectP
       )}
 
       {/* KPI cards */}
-      <div className="grid grid-cols-2 lg:grid-cols-5 gap-3">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
         {kpis.map((kpi, idx) => (
           <motion.div
             key={kpi.label}
@@ -102,11 +94,7 @@ export function DashboardKPIStrip({ data, projects, selectedProjectId, onSelectP
 
             <div className="flex items-end justify-between">
               <span className="font-heading text-2xl font-light text-white leading-none">
-                <AnimatedCounter
-                  target={kpi.value}
-                  suffix={kpi.suffix}
-                  decimals={kpi.decimals}
-                />
+                <AnimatedCounter target={kpi.value} />
               </span>
               {kpi.sparkline && <MiniSparkline data={kpi.sparkline} />}
             </div>

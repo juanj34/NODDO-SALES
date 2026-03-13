@@ -14,6 +14,7 @@
     "@ffmpeg/ffmpeg": "^0.12.15",
     "@ffmpeg/util": "^0.12.2",
     "@paper-design/shaders-react": "^0.0.71",
+    "@sentry/nextjs": "^10.43.0",
     "@studio-freight/react-lenis": "^0.0.47",
     "@supabase/ssr": "^0.6",
     "@supabase/supabase-js": "^2",

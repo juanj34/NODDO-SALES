@@ -1,0 +1,17 @@
+User-agent: *
+Allow: /
+
+# Marketing pages
+Allow: /pricing
+Allow: /privacidad
+Allow: /terminos
+
+# Block dashboard and API
+Disallow: /proyectos
+Disallow: /editor/
+Disallow: /leads
+Disallow: /admin/
+Disallow: /api/
+Disallow: /auth/
+
+Sitemap: https://noddo.io/sitemap.xml

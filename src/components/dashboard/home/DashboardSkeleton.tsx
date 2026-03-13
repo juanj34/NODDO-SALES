@@ -24,26 +24,28 @@ export function DashboardSkeleton() {
       </div>
 
       {/* KPI strip skeleton */}
-      <div className="grid grid-cols-2 lg:grid-cols-5 gap-3">
-        {[0, 1, 2, 3, 4].map((i) => (
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+        {[0, 1, 2, 3].map((i) => (
           <ShimmerBlock key={i} className="h-[100px]" />
         ))}
       </div>
 
-      {/* Activity row skeleton */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
-        <div className="lg:col-span-2">
-          <ShimmerBlock className="h-[260px]" />
-        </div>
-        <ShimmerBlock className="h-[260px]" />
+      {/* Shortcuts skeleton */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+        {[0, 1, 2, 3].map((i) => (
+          <ShimmerBlock key={i} className="h-[72px]" />
+        ))}
       </div>
+
+      {/* Analytics section skeleton */}
+      <ShimmerBlock className="h-[360px]" />
 
       {/* Project grid skeleton */}
       <div className="space-y-4">
         <ShimmerBlock className="h-3 w-28 rounded-lg" />
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
           {[0, 1, 2].map((i) => (
-            <ShimmerBlock key={i} className="h-[280px]" />
+            <ShimmerBlock key={i} className="h-[340px]" />
           ))}
         </div>
       </div>
@@ -53,8 +55,8 @@ export function DashboardSkeleton() {
 
 export function KPIStripSkeleton() {
   return (
-    <div className="grid grid-cols-2 lg:grid-cols-5 gap-3 animate-pulse">
-      {[0, 1, 2, 3, 4].map((i) => (
+    <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 animate-pulse">
+      {[0, 1, 2, 3].map((i) => (
         <ShimmerBlock key={i} className="h-[100px]" />
       ))}
     </div>

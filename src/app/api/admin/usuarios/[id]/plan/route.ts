@@ -1,5 +1,6 @@
 import { getAuthContext } from "@/lib/auth-context";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { logAdminAction } from "@/lib/admin-audit";
 import { NextRequest, NextResponse } from "next/server";
 
 const PLAN_LIMITS: Record<string, { max_projects: number; max_units_per_project: number | null }> = {
@@ -52,6 +53,15 @@ export async function PUT(
   if (error) {
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
+
+  await logAdminAction({
+    adminId: auth.user.id,
+    adminEmail: auth.user.email ?? "",
+    action: "plan_changed",
+    targetType: "user",
+    targetId: userId,
+    details: { plan, status: status || "active" },
+  });
 
   return NextResponse.json({ ok: true });
 }

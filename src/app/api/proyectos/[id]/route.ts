@@ -12,6 +12,7 @@ const PROYECTO_FIELDS = [
   "custom_domain", "domain_verified", "etapa_label", "background_audio_url",
   "hide_noddo_badge",
   "cotizador_enabled", "cotizador_config",
+  "webhook_config",
 ];
 
 export async function GET(

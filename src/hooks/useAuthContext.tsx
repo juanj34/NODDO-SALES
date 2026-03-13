@@ -3,8 +3,15 @@
 import { createContext, useContext, useEffect, useState, useCallback, type ReactNode } from "react";
 import type { UserRole } from "@/types";
 
+interface AuthUser {
+  id: string;
+  email: string;
+  created_at?: string;
+  last_sign_in_at?: string;
+}
+
 interface AuthContextValue {
-  user: { id: string; email: string } | null;
+  user: AuthUser | null;
   role: UserRole | null;
   adminUserId: string | null;
   isPlatformAdmin: boolean;
@@ -26,7 +33,7 @@ export function useAuthRole(): AuthContextValue {
 }
 
 export function AuthContextProvider({ children }: { children: ReactNode }) {
-  const [user, setUser] = useState<{ id: string; email: string } | null>(null);
+  const [user, setUser] = useState<AuthUser | null>(null);
   const [role, setRole] = useState<UserRole | null>(null);
   const [adminUserId, setAdminUserId] = useState<string | null>(null);
   const [isPlatformAdmin, setIsPlatformAdmin] = useState(false);

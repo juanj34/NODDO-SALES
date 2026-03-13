@@ -1,5 +1,6 @@
 "use client";
 
+import * as Sentry from "@sentry/nextjs";
 import { useEffect } from "react";
 import { NodDoLogo } from "@/components/ui/NodDoLogo";
 
@@ -11,7 +12,7 @@ export default function MarketingError({
   reset: () => void;
 }) {
   useEffect(() => {
-    console.error("[marketing] Error:", error);
+    Sentry.captureException(error);
   }, [error]);
 
   return (

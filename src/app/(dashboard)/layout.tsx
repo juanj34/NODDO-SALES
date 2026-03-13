@@ -179,28 +179,49 @@ function DashboardShell({ children }: { children: React.ReactNode }) {
         {/* Navigation */}
         <nav className="flex-1 overflow-y-auto p-4 space-y-1">
           {/* ── PROYECTOS section ────────────────── */}
-          <SidebarLink
-            href="/proyectos"
-            icon={FolderOpen}
-            label={t("sidebar.projects")}
-            pathname={pathname}
-            onClick={closeDrawer}
-          />
-
-          {/* Collapsible project list */}
-          {sidebarProjects.length > 0 && (
-            <div className="ml-1">
-              <button
-                onClick={() => setProjectsExpanded(!projectsExpanded)}
-                className="flex items-center gap-2 px-3 py-1.5 w-full text-left font-ui text-[9px] font-bold uppercase tracking-[0.14em] text-[var(--text-muted)] hover:text-[var(--text-tertiary)] transition-colors"
+          <div>
+            <div className="flex items-center">
+              <Link
+                href="/proyectos"
+                onClick={closeDrawer}
+                className={cn(
+                  "flex-1 flex items-center gap-3 px-3 py-2 rounded-l-[0.625rem] font-ui text-xs font-semibold uppercase tracking-[0.08em] transition-all",
+                  pathname === "/proyectos" || pathname.startsWith("/proyectos/")
+                    ? "bg-[var(--surface-2)] text-white border-l-2 border-[var(--site-primary)]"
+                    : "text-[var(--text-tertiary)] hover:text-[var(--text-secondary)] hover:bg-[var(--surface-2)]"
+                )}
+                style={
+                  pathname === "/proyectos" || pathname.startsWith("/proyectos/")
+                    ? { boxShadow: "inset 3px 0 8px -2px rgba(var(--site-primary-rgb), 0.15)" }
+                    : undefined
+                }
               >
-                <ChevronDown
-                  size={10}
-                  className={cn("transition-transform", !projectsExpanded && "-rotate-90")}
-                />
-                {sidebarProjects.length} {sidebarProjects.length === 1 ? "proyecto" : "proyectos"}
-              </button>
+                <FolderOpen size={16} />
+                {t("sidebar.projects")}
+              </Link>
+              {sidebarProjects.length > 0 && (
+                <button
+                  onClick={() => setProjectsExpanded(!projectsExpanded)}
+                  className={cn(
+                    "flex items-center px-2 py-2 rounded-r-[0.625rem] transition-colors",
+                    pathname === "/proyectos" || pathname.startsWith("/proyectos/")
+                      ? "bg-[var(--surface-2)]"
+                      : "hover:bg-[var(--surface-2)]"
+                  )}
+                >
+                  <ChevronDown
+                    size={12}
+                    className={cn(
+                      "text-[var(--text-muted)] transition-transform",
+                      !projectsExpanded && "-rotate-90"
+                    )}
+                  />
+                </button>
+              )}
+            </div>
 
+            {/* Collapsible project list */}
+            {sidebarProjects.length > 0 && (
               <AnimatePresence initial={false}>
                 {projectsExpanded && (
                   <motion.div
@@ -208,9 +229,9 @@ function DashboardShell({ children }: { children: React.ReactNode }) {
                     animate={{ height: "auto", opacity: 1 }}
                     exit={{ height: 0, opacity: 0 }}
                     transition={{ duration: 0.2 }}
-                    className="overflow-hidden"
+                    className="overflow-hidden ml-1"
                   >
-                    <div className="space-y-0.5 pb-1">
+                    <div className="space-y-0.5 pt-1 pb-1">
                       {sidebarProjects.map((project) => {
                         const isProjectActive = pathname === `/editor/${project.id}`;
                         return (
@@ -252,8 +273,8 @@ function DashboardShell({ children }: { children: React.ReactNode }) {
                   </motion.div>
                 )}
               </AnimatePresence>
-            </div>
-          )}
+            )}
+          </div>
 
           {/* ── Divider ────────────────────────── */}
           <div className="!my-3 h-px bg-[var(--border-subtle)]" />

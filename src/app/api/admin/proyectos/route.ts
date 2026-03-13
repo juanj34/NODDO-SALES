@@ -13,7 +13,7 @@ export async function GET() {
   // Get all projects
   const { data: projects, error } = await admin
     .from("proyectos")
-    .select("id, nombre, slug, subdomain, estado, user_id, render_principal_url, constructora_nombre, created_at")
+    .select("id, nombre, slug, subdomain, estado, user_id, render_principal_url, constructora_nombre, created_at, storage_tours_bytes, storage_videos_bytes, storage_media_bytes, storage_limit_bytes")
     .order("created_at", { ascending: false });
 
   if (error) {

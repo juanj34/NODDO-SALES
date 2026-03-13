@@ -17,10 +17,10 @@ const companyLinks = [
 ];
 
 const legalLinks = [
-  { label: "Términos de uso", href: "#" },
-  { label: "Privacidad", href: "#" },
-  { label: "Cookies", href: "#" },
-  { label: "SLA", href: "#" },
+  { label: "Términos de uso", href: "/terminos" },
+  { label: "Privacidad", href: "/privacidad" },
+  { label: "Cookies", href: "/privacidad#cookies" },
+  { label: "SLA", href: "/terminos#disponibilidad" },
 ];
 
 const smallBadges = [

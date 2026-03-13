@@ -1,5 +1,6 @@
 import { getAuthContext, getAccessibleProjectIds } from "@/lib/auth-context";
 import { pick } from "@/lib/api-utils";
+import { checkProjectLimit } from "@/lib/plan-limits";
 import { NextRequest, NextResponse } from "next/server";
 
 export async function GET() {
@@ -40,6 +41,15 @@ export async function POST(request: NextRequest) {
     }
     if (auth.role !== "admin") {
       return NextResponse.json({ error: "Solo administradores pueden crear proyectos" }, { status: 403 });
+    }
+
+    // Check plan project limit
+    const projectLimit = await checkProjectLimit(auth.supabase, auth.user.id);
+    if (!projectLimit.allowed) {
+      return NextResponse.json(
+        { error: `Has alcanzado el límite de ${projectLimit.max} proyecto(s) en tu plan actual` },
+        { status: 403 }
+      );
     }
 
     const body = await request.json();

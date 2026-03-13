@@ -419,7 +419,7 @@ function CotizadorFlow({
       {resultado && (
         <div className="bg-white/5 rounded-2xl p-4 border border-white/8">
           <h4 className="text-[10px] tracking-[0.2em] uppercase text-[var(--site-primary)] mb-3 font-ui font-bold">
-            Plan de pagos
+            {tSite("cotizador.paymentPlan")}
           </h4>
           <div className="space-y-0">
             {resultado.fases.map((fase, i) => (
@@ -428,7 +428,7 @@ function CotizadorFlow({
                   <p className="text-xs text-white">{fase.nombre}</p>
                   {fase.cuotas > 1 && (
                     <p className="text-[10px] text-[var(--text-muted)] mt-0.5">
-                      {fase.cuotas} cuotas de {formatCurrency(fase.monto_por_cuota, moneda)}
+                      {fase.cuotas} {tSite("cotizador.installmentsOf")} {formatCurrency(fase.monto_por_cuota, moneda)}
                       {fase.frecuencia !== "unica" && ` (${fase.frecuencia})`}
                     </p>
                   )}
@@ -451,7 +451,7 @@ function CotizadorFlow({
       {/* Contact form */}
       <form onSubmit={handleSubmit} className="space-y-3">
         <p className="text-[10px] tracking-[0.2em] uppercase text-[var(--text-tertiary)] font-ui font-bold">
-          Recibe tu cotización por correo
+          {tSite("cotizador.receiveByEmail")}
         </p>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <div>
@@ -486,7 +486,7 @@ function CotizadorFlow({
           className="btn-warm w-full py-3 flex items-center justify-center gap-2 text-sm tracking-[0.2em] uppercase"
         >
           {isSubmitting ? <Loader2 size={16} className="animate-spin" /> : <Send size={16} />}
-          {isSubmitting ? tCommon("buttons.sending") : "Enviar cotización"}
+          {isSubmitting ? tCommon("buttons.sending") : tSite("cotizador.submitQuote")}
         </motion.button>
         {error && (
           <p className="text-red-400 text-sm text-center mt-3" role="alert">{error}</p>
@@ -580,11 +580,11 @@ export function CotizadorModal({
                   </div>
                 </div>
                 <h3 className="text-xl text-white font-light">
-                  {useCotizador ? "Cotización enviada" : tSite("contacto.successHeading")}
+                  {useCotizador ? tSite("cotizador.quoteSent") : tSite("contacto.successHeading")}
                 </h3>
                 <p className="text-[var(--text-tertiary)] text-sm text-center max-w-xs">
                   {useCotizador
-                    ? "Revisa tu correo para ver el PDF con el plan de pagos completo."
+                    ? tSite("cotizador.checkEmailPdf")
                     : tCommon("success.advisorContactUnit", { unit: unidad.identificador })
                   }
                 </p>
@@ -596,7 +596,7 @@ export function CotizadorModal({
                     className="flex items-center gap-2 px-5 py-2.5 bg-white/5 border border-white/10 rounded-xl text-xs text-[var(--text-secondary)] hover:bg-white/10 hover:text-white transition-all"
                   >
                     <FileDown size={14} />
-                    Descargar PDF
+                    {tSite("cotizador.downloadPdf")}
                   </a>
                 )}
                 <div className="flex items-center gap-2">
@@ -621,7 +621,7 @@ export function CotizadorModal({
                 </h2>
                 <p className="text-xs text-[var(--text-tertiary)] mb-5">
                   {useCotizador
-                    ? "Revisa el plan de pagos y recibe tu cotización por correo"
+                    ? tSite("cotizador.subtitleCotizador")
                     : tSite("cotizador.subtitle")
                   }
                 </p>

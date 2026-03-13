@@ -22,6 +22,7 @@ import {
   Calendar,
   Shield,
   Edit2,
+  Download,
 } from "lucide-react";
 import { useToast } from "@/components/dashboard/Toast";
 import { useConfirm } from "@/components/dashboard/ConfirmModal";
@@ -195,6 +196,28 @@ export default function AdminUsuariosPage() {
     return date.toLocaleDateString("es-CO", { day: "2-digit", month: "short", year: "numeric" });
   };
 
+  const handleExportCSV = () => {
+    const headers = ["Email", "Plan", "Estado Plan", "Max Proyectos", "Proyectos", "Leads", "Fecha Registro"];
+    const rows = filtered.map((u) => [
+      u.email,
+      u.plan || "",
+      u.planStatus || "",
+      u.maxProjects ?? "",
+      u.projectCount,
+      u.leadCount,
+      u.created_at,
+    ]);
+    const csv = [headers, ...rows].map((row) => row.map((cell) => `"${cell}"`).join(",")).join("\n");
+    const blob = new Blob(["\uFEFF" + csv], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `usuarios-noddo-${new Date().toISOString().slice(0, 10)}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+    toast.success(`${filtered.length} usuarios exportados`);
+  };
+
   return (
     <div className="p-4 md:p-8 max-w-7xl mx-auto space-y-6">
       {/* Header */}
@@ -207,6 +230,15 @@ export default function AdminUsuariosPage() {
             {users.length} usuarios registrados
           </p>
         </div>
+        {users.length > 0 && (
+          <button
+            onClick={handleExportCSV}
+            className="flex items-center gap-2 px-4 py-2 rounded-lg bg-[var(--surface-2)] border border-[var(--border-subtle)] text-xs font-ui font-bold uppercase tracking-wider text-[var(--text-secondary)] hover:text-white hover:border-[var(--border-default)] transition-all"
+          >
+            <Download size={13} />
+            Exportar CSV
+          </button>
+        )}
       </div>
 
       {/* Search */}

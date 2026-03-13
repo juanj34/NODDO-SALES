@@ -1,5 +1,6 @@
 import { getAuthContext } from "@/lib/auth-context";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { sendCollaboratorInvite } from "@/lib/email";
 import { NextRequest, NextResponse } from "next/server";
 
 const MAX_COLABORADORES = 3;
@@ -127,6 +128,12 @@ export async function POST(request: NextRequest) {
       }
       throw error;
     }
+
+    // Send invite email (non-blocking)
+    sendCollaboratorInvite({
+      email: email.toLowerCase(),
+      inviterName: auth.user.email || "Un administrador",
+    }).catch((err) => console.error("[collab] invite email error:", err));
 
     return NextResponse.json(data, { status: 201 });
   } catch (err) {

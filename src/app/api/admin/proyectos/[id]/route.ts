@@ -1,5 +1,6 @@
 import { getAuthContext } from "@/lib/auth-context";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { logAdminAction } from "@/lib/admin-audit";
 import { NextRequest, NextResponse } from "next/server";
 
 export async function PUT(
@@ -30,6 +31,17 @@ export async function PUT(
   const { error } = await admin.from("proyectos").update(updates).eq("id", id);
   if (error) {
     return NextResponse.json({ error: error.message }, { status: 500 });
+  }
+
+  if (body.estado === "archivado") {
+    await logAdminAction({
+      adminId: auth.user.id,
+      adminEmail: auth.user.email ?? "",
+      action: "project_archived",
+      targetType: "project",
+      targetId: id,
+      details: { estado: body.estado },
+    });
   }
 
   return NextResponse.json({ ok: true });
@@ -75,6 +87,14 @@ export async function DELETE(
   if (error) {
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
+
+  await logAdminAction({
+    adminId: auth.user.id,
+    adminEmail: auth.user.email ?? "",
+    action: "project_deleted",
+    targetType: "project",
+    targetId: id,
+  });
 
   return NextResponse.json({ ok: true });
 }

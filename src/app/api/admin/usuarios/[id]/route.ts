@@ -1,5 +1,6 @@
 import { getAuthContext } from "@/lib/auth-context";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { logAdminAction } from "@/lib/admin-audit";
 import { NextRequest, NextResponse } from "next/server";
 
 export async function GET(
@@ -74,6 +75,14 @@ export async function PUT(
     if (error) {
       return NextResponse.json({ error: error.message }, { status: 500 });
     }
+    await logAdminAction({
+      adminId: auth.user.id,
+      adminEmail: auth.user.email ?? "",
+      action: body.banned ? "user_banned" : "user_unbanned",
+      targetType: "user",
+      targetId: id,
+      details: { email: id },
+    });
   }
 
   return NextResponse.json({ ok: true });
@@ -108,6 +117,14 @@ export async function DELETE(
   if (error) {
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
+
+  await logAdminAction({
+    adminId: auth.user.id,
+    adminEmail: auth.user.email ?? "",
+    action: "user_deleted",
+    targetType: "user",
+    targetId: id,
+  });
 
   return NextResponse.json({ ok: true });
 }

@@ -1,5 +1,6 @@
 import { pick } from "@/lib/api-utils";
 import { getAuthContext, getAccessibleProjectIds } from "@/lib/auth-context";
+import { checkUnitLimit } from "@/lib/plan-limits";
 import { NextRequest, NextResponse } from "next/server";
 
 export async function GET(request: NextRequest) {
@@ -48,6 +49,15 @@ export async function POST(request: NextRequest) {
       return NextResponse.json(
         { error: "proyecto_id e identificador son requeridos" },
         { status: 400 }
+      );
+    }
+
+    // Check plan unit limit
+    const unitLimit = await checkUnitLimit(auth.supabase, auth.user.id, body.proyecto_id);
+    if (!unitLimit.allowed) {
+      return NextResponse.json(
+        { error: `Has alcanzado el límite de ${unitLimit.max} unidades por proyecto en tu plan actual` },
+        { status: 403 }
       );
     }
 

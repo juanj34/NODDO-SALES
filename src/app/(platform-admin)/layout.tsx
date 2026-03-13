@@ -17,11 +17,15 @@ import {
   X,
   Shield,
   MessageSquare,
+  Activity,
+  HardDrive,
+  ShieldCheck,
 } from "lucide-react";
 import { ToastProvider } from "@/components/dashboard/Toast";
 import { ConfirmProvider } from "@/components/dashboard/ConfirmModal";
 import { AuthContextProvider, useAuthRole } from "@/hooks/useAuthContext";
 import { NodDoLogo } from "@/components/ui/NodDoLogo";
+import { AlertsBell } from "@/components/admin/AlertsBell";
 import { createClient } from "@/lib/supabase/client";
 import { useMobileDrawer } from "@/hooks/useMobileDrawer";
 
@@ -31,6 +35,9 @@ const navItems = [
   { href: "/admin/proyectos", label: "Proyectos", icon: FolderOpen },
   { href: "/admin/leads", label: "Leads", icon: MessageSquare },
   { href: "/admin/planes", label: "Planes", icon: CreditCard },
+  { href: "/admin/actividad", label: "Actividad", icon: Activity },
+  { href: "/admin/storage", label: "Storage", icon: HardDrive },
+  { href: "/admin/admins", label: "Admins", icon: ShieldCheck },
 ];
 
 function AdminShell({ children }: { children: React.ReactNode }) {
@@ -103,7 +110,7 @@ function AdminShell({ children }: { children: React.ReactNode }) {
         )}
       >
         {/* Logo + Admin badge */}
-        <div className="p-6 border-b border-[var(--border-subtle)]">
+        <div className="p-6 border-b border-[var(--border-subtle)] flex items-center justify-between">
           <Link href="/admin" className="hover:opacity-80 transition-opacity flex items-center gap-3" onClick={closeDrawer}>
             <NodDoLogo height={18} colorNod="var(--text-primary)" colorDo="var(--site-primary)" />
             <span className="flex items-center gap-1 px-2 py-0.5 rounded-md bg-red-500/15 border border-red-500/20">
@@ -111,6 +118,7 @@ function AdminShell({ children }: { children: React.ReactNode }) {
               <span className="font-ui text-[9px] font-bold uppercase tracking-wider text-red-400">Admin</span>
             </span>
           </Link>
+          <AlertsBell />
         </div>
 
         {/* Navigation */}

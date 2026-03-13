@@ -188,9 +188,17 @@ const site = {
   cotizador: {
     heading: "Enquire About Unit",
     subtitle: "Complete your details to receive a quote",
+    subtitleCotizador: "Review the payment plan and receive your quote by email",
     hab: "BR",
     banos: "BA",
     floor: "Floor",
+    paymentPlan: "Payment plan",
+    installmentsOf: "installments of",
+    receiveByEmail: "Receive your quote by email",
+    submitQuote: "Send quote",
+    quoteSent: "Quote sent",
+    checkEmailPdf: "Check your email for the PDF with the full payment plan.",
+    downloadPdf: "Download PDF",
   },
   whatsapp: {
     defaultMessage: "Hi, I'm interested in learning more about the project",
