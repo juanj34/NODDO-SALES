@@ -21,6 +21,8 @@ function generateUnidades(): Unidad[] {
       estado: studioEstados[i],
       habitaciones: 0,
       banos: 1,
+      parqueaderos: null,
+      depositos: null,
       orientacion: i % 2 === 0 ? "Norte" : "Sur",
       vista: i % 2 === 0 ? "Interior" : "Calle",
       notas: null,
@@ -57,6 +59,8 @@ function generateUnidades(): Unidad[] {
       estado: hab1Estados[i],
       habitaciones: 1,
       banos: 1,
+      parqueaderos: 1,
+      depositos: null,
       orientacion: ["Norte", "Sur", "Oriente", "Occidente"][col],
       vista: ["Montaña", "Ciudad", "Parque", "Interior"][col],
       notas: null,
@@ -93,6 +97,8 @@ function generateUnidades(): Unidad[] {
       estado: hab2Estados[i],
       habitaciones: 2,
       banos: 2,
+      parqueaderos: 1,
+      depositos: 1,
       orientacion: ["Norte", "Oriente", "Sur", "Occidente"][col],
       vista: ["Montaña", "Ciudad", "Parque", "Piscina"][col],
       notas: null,
@@ -127,6 +133,8 @@ function generateUnidades(): Unidad[] {
       estado: hab3Estados[i],
       habitaciones: 3,
       banos: 3,
+      parqueaderos: 2,
+      depositos: 1,
       orientacion: ["Norte", "Oriente", "Sur"][col],
       vista: ["Montaña", "Ciudad", "Panorámica"][col],
       notas: i === 0 ? "Esquinero con doble vista" : null,
@@ -214,6 +222,7 @@ export const mockProyecto: ProyectoCompleto = {
         "Closet empotrado",
       ],
       parqueaderos: 0,
+      depositos: null,
       area_balcon: 5,
       hotspots: [
         { id: "hs-s1", label: "Sala - Comedor", x: 40, y: 35, render_url: "https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?w=1920&q=80" },
@@ -252,6 +261,7 @@ export const mockProyecto: ProyectoCompleto = {
         "1 parqueadero incluido",
       ],
       parqueaderos: 1,
+      depositos: null,
       area_balcon: 8,
       hotspots: [
         { id: "hs-1h1", label: "Sala", x: 35, y: 30, render_url: "https://images.unsplash.com/photo-1600210492486-724fe5c67fb0?w=1920&q=80" },
@@ -292,6 +302,7 @@ export const mockProyecto: ProyectoCompleto = {
         "1 parqueadero incluido",
       ],
       parqueaderos: 1,
+      depositos: null,
       area_balcon: 12,
       hotspots: [
         { id: "hs-2h1", label: "Sala - Comedor", x: 30, y: 25, render_url: "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=1920&q=80" },
@@ -335,6 +346,7 @@ export const mockProyecto: ProyectoCompleto = {
         "Piso en madera laminada premium",
       ],
       parqueaderos: 2,
+      depositos: 1,
       area_balcon: 18,
       hotspots: [
         { id: "hs-3h1", label: "Sala Principal", x: 30, y: 20, render_url: "https://images.unsplash.com/photo-1600607687644-aac4c3eac7f4?w=1920&q=80" },
@@ -408,12 +420,12 @@ export const mockProyecto: ProyectoCompleto = {
   ],
 
   videos: [
-    { id: "vid-1", proyecto_id: "mock-001", titulo: "Recorrido Virtual", url: "https://www.youtube.com/embed/dQw4w9WgXcQ", thumbnail_url: "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=640&q=80", orden: 0 },
-    { id: "vid-2", proyecto_id: "mock-001", titulo: "Avance de Obra Enero", url: "https://www.youtube.com/embed/dQw4w9WgXcQ", thumbnail_url: "https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?w=640&q=80", orden: 1 },
-    { id: "vid-3", proyecto_id: "mock-001", titulo: "Avance de Obra Marzo", url: "https://www.youtube.com/embed/dQw4w9WgXcQ", thumbnail_url: "https://images.unsplash.com/photo-1605276374104-dee2a0ed3cd6?w=640&q=80", orden: 2 },
-    { id: "vid-4", proyecto_id: "mock-001", titulo: "Zonas Comunes", url: "https://www.youtube.com/embed/dQw4w9WgXcQ", thumbnail_url: "https://images.unsplash.com/photo-1572120360610-d971b9d7767c?w=640&q=80", orden: 3 },
-    { id: "vid-5", proyecto_id: "mock-001", titulo: "Vista Aérea del Proyecto", url: "https://www.youtube.com/embed/dQw4w9WgXcQ", thumbnail_url: "https://images.unsplash.com/photo-1500382017468-9049fed747ef?w=640&q=80", orden: 4 },
-    { id: "vid-6", proyecto_id: "mock-001", titulo: "Acabados y Materiales", url: "https://www.youtube.com/embed/dQw4w9WgXcQ", thumbnail_url: "https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?w=640&q=80", orden: 5 },
+    { id: "vid-1", proyecto_id: "mock-001", titulo: "Recorrido Virtual", url: "https://www.youtube.com/embed/dQw4w9WgXcQ", thumbnail_url: "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=640&q=80", stream_uid: null, stream_status: null, duration: null, size_bytes: null, orden: 0 },
+    { id: "vid-2", proyecto_id: "mock-001", titulo: "Avance de Obra Enero", url: "https://www.youtube.com/embed/dQw4w9WgXcQ", thumbnail_url: "https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?w=640&q=80", stream_uid: null, stream_status: null, duration: null, size_bytes: null, orden: 1 },
+    { id: "vid-3", proyecto_id: "mock-001", titulo: "Avance de Obra Marzo", url: "https://www.youtube.com/embed/dQw4w9WgXcQ", thumbnail_url: "https://images.unsplash.com/photo-1605276374104-dee2a0ed3cd6?w=640&q=80", stream_uid: null, stream_status: null, duration: null, size_bytes: null, orden: 2 },
+    { id: "vid-4", proyecto_id: "mock-001", titulo: "Zonas Comunes", url: "https://www.youtube.com/embed/dQw4w9WgXcQ", thumbnail_url: "https://images.unsplash.com/photo-1572120360610-d971b9d7767c?w=640&q=80", stream_uid: null, stream_status: null, duration: null, size_bytes: null, orden: 3 },
+    { id: "vid-5", proyecto_id: "mock-001", titulo: "Vista Aérea del Proyecto", url: "https://www.youtube.com/embed/dQw4w9WgXcQ", thumbnail_url: "https://images.unsplash.com/photo-1500382017468-9049fed747ef?w=640&q=80", stream_uid: null, stream_status: null, duration: null, size_bytes: null, orden: 4 },
+    { id: "vid-6", proyecto_id: "mock-001", titulo: "Acabados y Materiales", url: "https://www.youtube.com/embed/dQw4w9WgXcQ", thumbnail_url: "https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?w=640&q=80", stream_uid: null, stream_status: null, duration: null, size_bytes: null, orden: 5 },
   ],
 
   puntos_interes: [

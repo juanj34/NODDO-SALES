@@ -53,15 +53,29 @@ export async function POST(request: NextRequest) {
     }
 
     // Check slug uniqueness
-    const { data: existing } = await auth.supabase
+    const { data: slugExists } = await auth.supabase
       .from("proyectos")
       .select("id")
       .eq("slug", slug)
       .single();
 
-    if (existing) {
+    if (slugExists) {
       return NextResponse.json(
-        { error: "Este slug ya está en uso" },
+        { error: "Este nombre ya está en uso" },
+        { status: 409 }
+      );
+    }
+
+    // Check subdomain uniqueness (someone may have manually set their subdomain to this value)
+    const { data: subdomainExists } = await auth.supabase
+      .from("proyectos")
+      .select("id")
+      .eq("subdomain", slug)
+      .single();
+
+    if (subdomainExists) {
+      return NextResponse.json(
+        { error: "Este subdominio ya está en uso" },
         { status: 409 }
       );
     }

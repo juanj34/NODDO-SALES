@@ -39,7 +39,7 @@ export async function POST(
     const { data: cloned, error: insertError } = await auth.supabase
       .from("tipologias")
       .insert({
-        ...pick(source as Record<string, unknown>, ["proyecto_id", "nombre", "descripcion", "area_m2", "habitaciones", "banos", "precio_desde", "plano_url", "renders", "caracteristicas", "parqueaderos", "area_balcon", "hotspots", "ubicacion_plano_url", "orden"]),
+        ...pick(source as Record<string, unknown>, ["proyecto_id", "nombre", "descripcion", "area_m2", "habitaciones", "banos", "precio_desde", "plano_url", "renders", "caracteristicas", "parqueaderos", "depositos", "area_balcon", "hotspots", "ubicacion_plano_url", "orden"]),
         nombre: `${source.nombre} (copia)`,
         torre_ids: [body.torre_id],
       })

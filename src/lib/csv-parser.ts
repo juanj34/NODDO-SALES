@@ -7,6 +7,8 @@ interface ParsedUnit {
   estado?: "disponible" | "separado" | "reservada" | "vendida";
   habitaciones?: number;
   banos?: number;
+  parqueaderos?: number;
+  depositos?: number;
   orientacion?: string;
   vista?: string;
   notas?: string;
@@ -50,6 +52,15 @@ const HEADER_MAP: Record<string, keyof ParsedUnit> = {
   banos: "banos",
   bathrooms: "banos",
   bath: "banos",
+  parqueaderos: "parqueaderos",
+  parking: "parqueaderos",
+  garajes: "parqueaderos",
+  garaje: "parqueaderos",
+  depositos: "depositos",
+  deposito: "depositos",
+  storage: "depositos",
+  bodega: "depositos",
+  bodegas: "depositos",
   orientacion: "orientacion",
   orientation: "orientacion",
   vista: "vista",
@@ -130,6 +141,8 @@ export function parseCSV(text: string): ParsedUnit[] {
         case "piso":
         case "habitaciones":
         case "banos":
+        case "parqueaderos":
+        case "depositos":
           (unit as Record<string, number>)[field] = parseInt(value) || 0;
           break;
         case "area_m2":

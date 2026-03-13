@@ -32,7 +32,7 @@ const help = {
         "Para eliminar un proyecto, haz clic en el ícono de eliminar. Deberás escribir el nombre del proyecto para confirmar la acción.",
       ],
       tips: [
-        "El slug determina la URL de tu micrositio (ejemplo: mi-proyecto.noddo.co). Elige uno corto y memorable.",
+        "El slug determina la URL de tu micrositio (ejemplo: mi-proyecto.noddo.io). Elige uno corto y memorable.",
         "Un proyecto en estado «borrador» no es visible al público hasta que lo publiques desde el editor.",
       ],
     },
@@ -311,9 +311,9 @@ const help = {
       description:
         "Configura un dominio propio para tu micrositio",
       content:
-        "Por defecto, tu micrositio está disponible en un subdominio de NODDO (tu-proyecto.noddo.co). Puedes conectar un dominio personalizado para una experiencia más profesional.",
+        "Por defecto, tu micrositio está disponible en un subdominio de NODDO (tu-proyecto.noddo.io). Puedes conectar un dominio personalizado para una experiencia más profesional.",
       steps: [
-        "En la pestaña «Dominio» verás tu subdominio actual (slug.noddo.co).",
+        "En la pestaña «Dominio» verás tu subdominio actual (slug.noddo.io).",
         "Para conectar un dominio propio, ingresa el dominio completo (ej: www.miproyecto.com).",
         "El sistema te mostrará los registros DNS que debes configurar en tu proveedor de dominio.",
         "Una vez configurados los DNS, haz clic en «Verificar» para confirmar que el dominio está apuntando correctamente.",

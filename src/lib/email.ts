@@ -21,7 +21,7 @@ export async function sendLeadNotification(data: LeadNotificationData) {
     return;
   }
 
-  const fromAddress = process.env.RESEND_FROM_EMAIL || "NODDO <notificaciones@noddo.co>";
+  const fromAddress = process.env.RESEND_FROM_EMAIL || "NODDO <notificaciones@noddo.io>";
 
   const detailRows = [
     { label: "Nombre", value: data.leadName },
@@ -101,7 +101,7 @@ export async function sendLeadNotification(data: LeadNotificationData) {
               <table cellpadding="0" cellspacing="0" border="0">
                 <tr>
                   <td align="center" style="background-color:#b8973a;border-radius:8px;">
-                    <a href="${process.env.NEXT_PUBLIC_APP_URL || "https://noddo.co"}/leads" target="_blank" style="display:inline-block;padding:14px 40px;font-family:'Helvetica Neue',Helvetica,Arial,sans-serif;font-size:11px;font-weight:800;letter-spacing:0.15em;text-transform:uppercase;color:#141414;text-decoration:none;">
+                    <a href="${process.env.NEXT_PUBLIC_APP_URL || "https://noddo.io"}/leads" target="_blank" style="display:inline-block;padding:14px 40px;font-family:'Helvetica Neue',Helvetica,Arial,sans-serif;font-size:11px;font-weight:800;letter-spacing:0.15em;text-transform:uppercase;color:#141414;text-decoration:none;">
                       Ver Leads
                     </a>
                   </td>
@@ -161,7 +161,7 @@ export async function sendCotizacionBuyer(data: CotizacionBuyerData) {
     return;
   }
 
-  const fromAddress = process.env.RESEND_FROM_EMAIL || "NODDO <notificaciones@noddo.co>";
+  const fromAddress = process.env.RESEND_FROM_EMAIL || "NODDO <notificaciones@noddo.io>";
 
   const html = `<!DOCTYPE html>
 <html lang="es">
@@ -251,7 +251,7 @@ export async function sendCotizacionAdmin(data: CotizacionAdminData) {
     return;
   }
 
-  const fromAddress = process.env.RESEND_FROM_EMAIL || "NODDO <notificaciones@noddo.co>";
+  const fromAddress = process.env.RESEND_FROM_EMAIL || "NODDO <notificaciones@noddo.io>";
 
   const detailRows = [
     { label: "Cliente", value: data.buyerName },
@@ -303,7 +303,7 @@ export async function sendCotizacionAdmin(data: CotizacionAdminData) {
           <table cellpadding="0" cellspacing="0" border="0">
             <tr>
               <td align="center" style="background-color:#b8973a;border-radius:8px;">
-                <a href="${process.env.NEXT_PUBLIC_APP_URL || "https://noddo.co"}/leads" target="_blank" style="display:inline-block;padding:14px 40px;font-family:'Helvetica Neue',Helvetica,Arial,sans-serif;font-size:11px;font-weight:800;letter-spacing:0.15em;text-transform:uppercase;color:#141414;text-decoration:none;">
+                <a href="${process.env.NEXT_PUBLIC_APP_URL || "https://noddo.io"}/leads" target="_blank" style="display:inline-block;padding:14px 40px;font-family:'Helvetica Neue',Helvetica,Arial,sans-serif;font-size:11px;font-weight:800;letter-spacing:0.15em;text-transform:uppercase;color:#141414;text-decoration:none;">
                   Ver Leads
                 </a>
               </td>

@@ -42,7 +42,7 @@ export default function DominioPage() {
   const [copied, setCopied] = useState<string | null>(null);
 
   const rootDomain =
-    process.env.NEXT_PUBLIC_ROOT_DOMAIN || "noddo.co";
+    process.env.NEXT_PUBLIC_ROOT_DOMAIN || "noddo.io";
   const isLocalhost = rootDomain.includes("localhost");
   const protocol = isLocalhost ? "http" : "https";
   const siteUrl = `${protocol}://${subdomain}.${rootDomain}`;

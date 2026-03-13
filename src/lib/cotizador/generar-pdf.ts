@@ -273,7 +273,7 @@ export function generarPDF(data: PDFData): Buffer {
 
   doc.setFontSize(7);
   doc.setTextColor(170, 170, 170);
-  doc.text("Generado por NODDO — noddo.co", pageW / 2, footerY, { align: "center" });
+  doc.text("Generado por NODDO — noddo.io", pageW / 2, footerY, { align: "center" });
 
   // Gold bar at bottom
   doc.setFillColor(accent[0], accent[1], accent[2]);

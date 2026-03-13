@@ -231,7 +231,7 @@ export default function AdminProyectosPage() {
                         <div>
                           <p className="text-xs text-[var(--text-primary)] font-medium">{p.nombre}</p>
                           <p className="text-[10px] text-[var(--text-muted)]">
-                            {p.subdomain || p.slug}.noddo.co
+                            {p.subdomain || p.slug}.noddo.io
                           </p>
                         </div>
                       </div>

@@ -189,7 +189,7 @@ export default function RecursosPage() {
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.9, y: 20 }}
               transition={{ type: "spring", damping: 25, stiffness: 300 }}
-              className="relative z-10 w-full max-w-4xl h-[85vh] flex flex-col glass-card overflow-hidden"
+              className="relative z-10 w-full max-w-4xl h-[85vh] flex flex-col bg-[var(--surface-1)] rounded-[1.25rem] overflow-hidden border border-[var(--border-default)]"
             >
               {/* Modal header */}
               <div className="flex items-center justify-between px-6 py-4 border-b border-[var(--border-default)]">

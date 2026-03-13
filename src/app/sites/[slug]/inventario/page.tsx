@@ -9,6 +9,8 @@ import {
   Maximize,
   BedDouble,
   Bath,
+  Car,
+  Archive,
   Compass,
   Eye,
   ArrowUpDown,
@@ -457,6 +459,18 @@ export default function InventarioPage() {
                           {unit.banos}
                         </span>
                       )}
+                      {unit.parqueaderos !== null && unit.parqueaderos > 0 && (
+                        <span className="flex items-center gap-0.5">
+                          <Car size={10} className="text-[var(--text-muted)]" />
+                          {unit.parqueaderos}
+                        </span>
+                      )}
+                      {unit.depositos !== null && unit.depositos > 0 && (
+                        <span className="flex items-center gap-0.5">
+                          <Archive size={10} className="text-[var(--text-muted)]" />
+                          {unit.depositos}
+                        </span>
+                      )}
                       {unit.orientacion && (
                         <span className="flex items-center gap-0.5">
                           <Compass size={10} className="text-[var(--text-muted)]" />
@@ -518,6 +532,8 @@ export default function InventarioPage() {
               <span className="w-16 shrink-0 text-right">{tSite("inventario.area")}</span>
               <span className="w-10 shrink-0 text-center hidden lg:block">{tSite("inventario.bedrooms")}</span>
               <span className="w-10 shrink-0 text-center hidden lg:block">{tSite("inventario.bathrooms")}</span>
+              <span className="w-10 shrink-0 text-center hidden lg:block">{tSite("inventario.parking")}</span>
+              <span className="w-10 shrink-0 text-center hidden lg:block">{tSite("inventario.storage")}</span>
               <span className="w-20 shrink-0 hidden xl:block">{tSite("inventario.orientation")}</span>
               <span className="w-20 shrink-0 hidden xl:block">{tSite("inventario.view")}</span>
               <span className="w-12 shrink-0 text-center">{tSite("inventario.floor")}</span>
@@ -547,6 +563,8 @@ export default function InventarioPage() {
                     <span className="w-16 shrink-0 text-[11px] text-[var(--text-secondary)] text-right tabular-nums">{unit.area_m2 ? `${unit.area_m2} m²` : "—"}</span>
                     <span className="w-10 shrink-0 text-[11px] text-[var(--text-tertiary)] text-center hidden lg:block">{unit.habitaciones !== null ? (unit.habitaciones === 0 ? tSite("inventario.studioShort") : unit.habitaciones) : "—"}</span>
                     <span className="w-10 shrink-0 text-[11px] text-[var(--text-tertiary)] text-center hidden lg:block">{unit.banos ?? "—"}</span>
+                    <span className="w-10 shrink-0 text-[11px] text-[var(--text-tertiary)] text-center hidden lg:block">{unit.parqueaderos ?? "—"}</span>
+                    <span className="w-10 shrink-0 text-[11px] text-[var(--text-tertiary)] text-center hidden lg:block">{unit.depositos ?? "—"}</span>
                     <span className="w-20 shrink-0 text-[11px] text-[var(--text-tertiary)] truncate hidden xl:block">{unit.orientacion ?? "—"}</span>
                     <span className="w-20 shrink-0 text-[11px] text-[var(--text-tertiary)] truncate hidden xl:block">{unit.vista ?? "—"}</span>
                     <span className="w-12 shrink-0 text-[11px] text-[var(--text-tertiary)] text-center tabular-nums">{unit.piso ?? "—"}</span>

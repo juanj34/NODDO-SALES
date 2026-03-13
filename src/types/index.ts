@@ -59,6 +59,7 @@ export interface Tipologia {
   renders: string[];
   caracteristicas: string[];
   parqueaderos: number | null;
+  depositos: number | null;
   area_balcon: number | null;
   hotspots: TipologiaHotspot[];
   ubicacion_plano_url: string | null;
@@ -102,6 +103,10 @@ export interface Video {
   url: string;
   thumbnail_url: string | null;
   orden: number;
+  stream_uid: string | null;
+  stream_status: string | null;
+  duration: number | null;
+  size_bytes: number | null;
 }
 
 export interface Lead {
@@ -165,6 +170,8 @@ export interface Unidad {
   planta_x: number | null;
   planta_y: number | null;
   torre_id: string | null;
+  parqueaderos: number | null;
+  depositos: number | null;
   orden: number;
   created_at: string;
 }
@@ -287,6 +294,7 @@ export interface AITipologiaData {
   precio_desde: number | null;
   caracteristicas: string[];
   parqueaderos: number | null;
+  depositos: number | null;
   area_balcon: number | null;
 }
 

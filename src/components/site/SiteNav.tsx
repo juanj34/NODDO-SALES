@@ -21,6 +21,7 @@ import {
 import { useTranslation } from "@/i18n";
 import { LanguageToggle } from "@/components/ui/LanguageToggle";
 import { AudioMuteButton } from "@/components/site/AudioPlayer";
+import { NodDoLogo } from "@/components/ui/NodDoLogo";
 
 interface SiteNavProps {
   basePath: string;
@@ -36,9 +37,10 @@ interface SiteNavProps {
   hasImplantaciones?: boolean;
   hasTour360?: boolean;
   hasAvances?: boolean;
+  hideNoddoBadge?: boolean;
 }
 
-export function SiteNav({ basePath, projectName, logoUrl, faviconUrl, constructoraLogoUrl, constructoraWebsite, expanded, disclaimer, politicaPrivacidadUrl, etapaLabel, hasImplantaciones, hasTour360, hasAvances }: SiteNavProps) {
+export function SiteNav({ basePath, projectName, logoUrl, faviconUrl, constructoraLogoUrl, constructoraWebsite, expanded, disclaimer, politicaPrivacidadUrl, etapaLabel, hasImplantaciones, hasTour360, hasAvances, hideNoddoBadge }: SiteNavProps) {
   const pathname = usePathname();
   const [isOpen, setIsOpen] = useState(false);
   const [hoveredItem, setHoveredItem] = useState<string | null>(null);
@@ -278,6 +280,26 @@ export function SiteNav({ basePath, projectName, logoUrl, faviconUrl, constructo
           <LanguageToggle compact={!expanded} />
           <AudioMuteButton size={14} />
         </div>
+
+        {/* Powered by Noddo */}
+        {!hideNoddoBadge && (
+          <a
+            href="https://noddo.io"
+            target="_blank"
+            rel="noopener noreferrer"
+            className={cn(
+              "flex-shrink-0 mt-3 flex flex-col items-center gap-0.5 no-underline opacity-25 hover:opacity-50 transition-opacity",
+              expanded ? "px-4" : "px-1"
+            )}
+          >
+            {expanded && (
+              <span className="text-[7px] tracking-[0.15em] uppercase text-white/50">
+                powered by
+              </span>
+            )}
+            <NodDoLogo width={expanded ? 56 : 32} colorNod="#fff" colorDo="#b8983c" />
+          </a>
+        )}
 
       </motion.nav>
     </>

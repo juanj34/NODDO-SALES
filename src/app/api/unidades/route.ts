@@ -53,7 +53,7 @@ export async function POST(request: NextRequest) {
 
     const { data, error } = await auth.supabase
       .from("unidades")
-      .insert(pick(body, ["proyecto_id", "tipologia_id", "identificador", "piso", "area_m2", "precio", "estado", "habitaciones", "banos", "orientacion", "vista", "notas", "fachada_id", "fachada_x", "fachada_y", "planta_id", "planta_x", "planta_y", "torre_id", "orden"]))
+      .insert(pick(body, ["proyecto_id", "tipologia_id", "identificador", "piso", "area_m2", "precio", "estado", "habitaciones", "banos", "orientacion", "vista", "notas", "fachada_id", "fachada_x", "fachada_y", "planta_id", "planta_x", "planta_y", "torre_id", "parqueaderos", "depositos", "orden"]))
       .select()
       .single();
 

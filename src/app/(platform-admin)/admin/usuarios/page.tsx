@@ -446,7 +446,7 @@ export default function AdminUsuariosPage() {
                                               )}
                                               <div>
                                                 <p className="text-xs text-[var(--text-primary)] font-medium">{proj.nombre}</p>
-                                                <p className="text-[10px] text-[var(--text-muted)]">{proj.slug}.noddo.co</p>
+                                                <p className="text-[10px] text-[var(--text-muted)]">{proj.slug}.noddo.io</p>
                                               </div>
                                             </div>
                                             <div className="flex items-center gap-2">

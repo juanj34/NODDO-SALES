@@ -121,7 +121,7 @@ const plans: Plan[] = [
     priceLabel: "",
     description: "Para constructoras con multiples proyectos.",
     cta: "Contactar ventas",
-    ctaHref: "mailto:hola@noddo.co",
+    ctaHref: "mailto:hola@noddo.io",
     ctaStyle: "outline",
     highlighted: false,
     features: [

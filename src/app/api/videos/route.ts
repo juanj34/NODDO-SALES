@@ -11,16 +11,16 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Solo administradores" }, { status: 403 });
 
     const body = await request.json();
-    if (!body.proyecto_id || !body.url) {
+    if (!body.proyecto_id || (!body.url && !body.stream_uid)) {
       return NextResponse.json(
-        { error: "proyecto_id y url son requeridos" },
+        { error: "proyecto_id y url (o stream_uid) son requeridos" },
         { status: 400 }
       );
     }
 
     const { data, error } = await auth.supabase
       .from("videos")
-      .insert(pick(body, ["proyecto_id", "titulo", "url", "thumbnail_url", "orden"]))
+      .insert(pick(body, ["proyecto_id", "titulo", "url", "thumbnail_url", "orden", "stream_uid", "stream_status", "duration", "size_bytes"]))
       .select()
       .single();
 

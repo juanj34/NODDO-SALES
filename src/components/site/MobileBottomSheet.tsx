@@ -111,9 +111,7 @@ export function MobileBottomSheet({
             className="fixed inset-x-0 bottom-0 z-[39] flex flex-col rounded-t-[1.25rem] border-t border-[var(--border-default)] overflow-hidden"
             style={{
               height: `${heightVh}vh`,
-              background: "rgba(10, 10, 11, 0.95)",
-              backdropFilter: "blur(24px)",
-              WebkitBackdropFilter: "blur(24px)",
+              background: "var(--surface-1)",
               paddingBottom: "var(--safe-area-bottom, 0px)",
             }}
           >

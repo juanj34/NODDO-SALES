@@ -320,7 +320,7 @@ export default function ImplantacionesPage() {
                       <span className="relative inline-flex items-center justify-center">
                         {/* Pulse ring */}
                         {!isSelected && (
-                          <span className="absolute inset-0 rounded-full border-2 border-[rgba(var(--site-primary-rgb),0.40)] animate-ping origin-center" />
+                          <span className="absolute inset-0 rounded-full border-2 border-[rgba(var(--site-primary-rgb),0.40)] opacity-60" />
                         )}
 
                         {/* Selection ring */}
@@ -333,8 +333,8 @@ export default function ImplantacionesPage() {
                           className={cn(
                             "relative flex items-center justify-center w-7 h-7 rounded-full border-2 border-white shadow-lg transition-transform duration-150",
                             "bg-[var(--site-primary)] text-black",
-                            isSelected && "scale-125",
-                            isHovered && !isSelected && "scale-110"
+                            isSelected && "scale-110",
+                            isHovered && !isSelected && "scale-105"
                           )}
                         >
                           <span className="text-[11px] font-bold leading-none">

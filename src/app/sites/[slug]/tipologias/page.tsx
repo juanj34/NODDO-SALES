@@ -26,6 +26,7 @@ import {
   Building2,
   Home,
   Images,
+  Archive,
 } from "lucide-react";
 import { SiteEmptyState } from "@/components/site/SiteEmptyState";
 import type { Unidad, LightboxImage } from "@/types";
@@ -620,6 +621,13 @@ export default function TipologiasPage() {
                   label="Parqueaderos"
                   value={String(active.parqueaderos ?? 0)}
                 />
+                {(active.depositos ?? 0) > 0 && (
+                  <StatCard
+                    icon={<Archive size={16} />}
+                    label="Depósitos"
+                    value={String(active.depositos)}
+                  />
+                )}
                 <div className="glass-card rounded-2xl p-3 flex flex-col items-center justify-center text-center">
                   <span className="text-[10px] tracking-wider text-[var(--text-tertiary)] uppercase mb-1">Desde</span>
                   <span className="text-sm font-semibold text-[var(--site-primary)]">
@@ -744,7 +752,7 @@ export default function TipologiasPage() {
                 </div>
 
                 {/* Units List */}
-                <div className="flex-1 overflow-y-auto space-y-1 scrollbar-hide min-h-0">
+                <div className="flex-1 overflow-y-auto space-y-1 min-h-0" data-lenis-prevent>
                   {filteredUnidades.length === 0 ? (
                     <div className="flex flex-col items-center justify-center py-10 gap-2">
                       <SiteEmptyState variant="inventario" title={tSite("tipologias.noUnits")} description="" compact />

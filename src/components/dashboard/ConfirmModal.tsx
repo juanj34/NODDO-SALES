@@ -75,7 +75,7 @@ export function ConfirmProvider({ children }: { children: React.ReactNode }) {
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.95, y: 8 }}
               transition={{ duration: 0.15 }}
-              className="relative w-full max-w-sm rounded-[1.25rem] border border-[var(--border-default)] bg-[var(--surface-2)] shadow-xl"
+              className="relative w-full max-w-sm glass-modal"
             >
               <div className="p-6">
                 {/* Icon + Title */}
@@ -115,13 +115,13 @@ export function ConfirmProvider({ children }: { children: React.ReactNode }) {
                 <div className="mt-6 flex items-center justify-end gap-2.5">
                   <button
                     onClick={() => handleClose(false)}
-                    className="px-4 py-2 text-sm font-medium rounded-[0.75rem] text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-white/5 border border-[var(--border-subtle)] transition-colors"
+                    className="px-5 py-2.5 text-sm font-medium rounded-[0.75rem] text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-white/5 border border-[var(--border-subtle)] transition-colors"
                   >
                     {options.cancelLabel || "Cancelar"}
                   </button>
                   <button
                     onClick={() => handleClose(true)}
-                    className={`px-4 py-2 text-sm font-semibold rounded-[0.75rem] transition-colors ${
+                    className={`px-5 py-2.5 text-sm font-semibold rounded-[0.75rem] transition-colors ${
                       options.variant === "warning"
                         ? "bg-amber-500 hover:bg-amber-400 text-black"
                         : "bg-red-500 hover:bg-red-400 text-white"

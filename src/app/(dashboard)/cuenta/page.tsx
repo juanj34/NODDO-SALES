@@ -250,7 +250,7 @@ export default function CuentaPage() {
           {!showDelete ? (
             <button
               onClick={() => setShowDelete(true)}
-              className="px-4 py-2 text-xs font-ui font-bold uppercase tracking-wider text-red-400 border border-red-500/30 rounded-[0.75rem] hover:bg-red-500/10 transition-colors flex items-center gap-2"
+              className="px-5 py-2.5 text-xs font-ui font-bold uppercase tracking-wider text-red-400 border border-red-500/30 rounded-[0.75rem] hover:bg-red-500/10 transition-colors flex items-center gap-2"
             >
               <Trash2 size={14} />
               {t("cuenta.deleteAccount")}
@@ -292,7 +292,7 @@ export default function CuentaPage() {
                 <button
                   onClick={handleDeleteAccount}
                   disabled={deleteLoading || deleteConfirmEmail !== user?.email}
-                  className="px-4 py-2 text-xs font-ui font-bold uppercase tracking-wider text-white bg-red-600 rounded-[0.75rem] hover:bg-red-700 transition-colors disabled:opacity-50 flex items-center gap-2"
+                  className="px-5 py-2.5 text-xs font-ui font-bold uppercase tracking-wider text-white bg-red-600 rounded-[0.75rem] hover:bg-red-700 transition-colors disabled:opacity-50 flex items-center gap-2"
                 >
                   {deleteLoading ? (
                     <Loader2 size={14} className="animate-spin" />
@@ -307,7 +307,7 @@ export default function CuentaPage() {
                     setDeleteConfirmEmail("");
                     setDeleteError(null);
                   }}
-                  className="px-4 py-2 text-xs font-mono text-[var(--text-tertiary)] hover:text-[var(--text-secondary)] transition-colors"
+                  className="px-5 py-2.5 text-xs font-mono text-[var(--text-tertiary)] hover:text-[var(--text-secondary)] transition-colors"
                 >
                   Cancelar
                 </button>

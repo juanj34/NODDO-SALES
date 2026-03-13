@@ -28,7 +28,7 @@ const help = {
         "To delete a project, click the delete icon. You'll need to type the project name to confirm.",
       ],
       tips: [
-        "The slug determines your microsite URL (e.g.: my-project.noddo.co). Choose something short and memorable.",
+        "The slug determines your microsite URL (e.g.: my-project.noddo.io). Choose something short and memorable.",
         "A project in 'draft' status is not visible to the public until you publish it from the editor.",
       ],
     },
@@ -281,9 +281,9 @@ const help = {
       title: "Custom Domain",
       description: "Set up a custom domain for your microsite",
       content:
-        "By default, your microsite is available on a NODDO subdomain (your-project.noddo.co). You can connect a custom domain for a more professional experience.",
+        "By default, your microsite is available on a NODDO subdomain (your-project.noddo.io). You can connect a custom domain for a more professional experience.",
       steps: [
-        "In the 'Domain' tab you'll see your current subdomain (slug.noddo.co).",
+        "In the 'Domain' tab you'll see your current subdomain (slug.noddo.io).",
         "To connect a custom domain, enter the full domain (e.g.: www.myproject.com).",
         "The system will show DNS records to configure with your domain provider.",
         "Once DNS is configured, click 'Verify' to confirm the domain is pointing correctly.",

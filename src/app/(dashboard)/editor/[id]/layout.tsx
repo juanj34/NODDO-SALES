@@ -37,6 +37,7 @@ import {
   Lock,
   Archive,
   ArchiveRestore,
+  HardDrive,
 } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -51,6 +52,14 @@ import { RouteProgressBar } from "@/components/ui/RouteProgressBar";
 /* ------------------------------------------------------------------ */
 /*  Helpers                                                            */
 /* ------------------------------------------------------------------ */
+
+function formatBytes(bytes: number): string {
+  if (bytes === 0) return "0 B";
+  const k = 1024;
+  const sizes = ["B", "KB", "MB", "GB", "TB"];
+  const i = Math.floor(Math.log(bytes) / Math.log(k));
+  return `${parseFloat((bytes / Math.pow(k, i)).toFixed(1))} ${sizes[i]}`;
+}
 
 function timeAgo(dateStr: string): string {
   const seconds = Math.floor((Date.now() - new Date(dateStr).getTime()) / 1000);
@@ -349,6 +358,21 @@ export default function EditorLayout({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [project?.id]);
 
+  /* ---- Storage usage ---- */
+  const [storageData, setStorageData] = useState<{
+    total_bytes: number;
+    limit_bytes: number;
+    pct_used: number;
+  } | null>(null);
+
+  useEffect(() => {
+    if (!project) return;
+    fetch(`/api/proyectos/${id}/storage`)
+      .then((r) => (r.ok ? r.json() : null))
+      .then((d) => { if (d) setStorageData(d); })
+      .catch(() => {});
+  }, [id, project]);
+
   /* ---- "Saved" indicator ---- */
   const [showSaved, setShowSaved] = useState(false);
   const prevSavingRef = useRef(false);
@@ -362,13 +386,30 @@ export default function EditorLayout({
     prevSavingRef.current = saving;
   }, [saving]);
 
-  /* ---- Loading ---- */
+  /* ---- Loading skeleton ---- */
   if (loading || !project) {
     return (
-      <div className="flex items-center justify-center h-screen bg-[var(--surface-0)]">
-        <div className="flex flex-col items-center gap-4">
-          <Loader2 size={28} className="animate-spin text-[var(--site-primary)]" />
-          <p className="text-[var(--text-tertiary)] text-sm">{t("layout.loading")}</p>
+      <div className="flex h-screen bg-[var(--surface-0)]">
+        {/* Skeleton sidebar */}
+        <aside className="w-56 bg-[var(--surface-1)] border-r border-[var(--border-subtle)] flex flex-col shrink-0 hidden md:flex">
+          <div className="px-5 py-4 border-b border-[var(--border-subtle)]">
+            <div className="h-3.5 w-16 bg-[var(--surface-3)] rounded animate-pulse mb-2" />
+            <div className="h-2.5 w-24 bg-[var(--surface-2)] rounded animate-pulse mb-3" />
+            <div className="h-4 w-32 bg-[var(--surface-3)] rounded animate-pulse" />
+            <div className="h-2.5 w-28 bg-[var(--surface-2)] rounded animate-pulse mt-1.5" />
+          </div>
+          <nav className="flex-1 py-2 px-3 space-y-1">
+            {[...Array(8)].map((_, i) => (
+              <div key={i} className="flex items-center gap-2.5 px-3 py-[7px]">
+                <div className="w-4 h-4 bg-[var(--surface-3)] rounded animate-pulse" />
+                <div className="h-3 bg-[var(--surface-2)] rounded animate-pulse" style={{ width: `${60 + (i % 3) * 20}px` }} />
+              </div>
+            ))}
+          </nav>
+        </aside>
+        {/* Skeleton content */}
+        <div className="flex-1 flex items-center justify-center">
+          <Loader2 size={24} className="animate-spin text-[var(--site-primary)]" />
         </div>
       </div>
     );
@@ -413,14 +454,18 @@ export default function EditorLayout({
         >
           {/* Back + project name */}
           <div className="px-5 py-4 border-b border-[var(--border-subtle)]">
-            <Link href="/proyectos" onClick={closeDrawer} className="inline-block hover:opacity-80 transition-opacity mb-3">
+            <Link href="/proyectos" onClick={closeDrawer} className="inline-block hover:opacity-80 transition-opacity mb-1">
               <NodDoLogo height={14} colorNod="var(--text-primary)" colorDo="var(--site-primary)" />
+            </Link>
+            <Link href="/proyectos" onClick={closeDrawer} className="flex items-center gap-1.5 text-[10px] text-[var(--text-muted)] hover:text-[var(--text-secondary)] transition-colors mb-3">
+              <ArrowLeft size={10} />
+              Volver a proyectos
             </Link>
             <h2 className="text-[14px] font-semibold text-white truncate">
               {project.nombre}
             </h2>
             <p className="text-[var(--text-muted)] text-[11px] mt-0.5 truncate">
-              {project.slug}.noddo.co
+              {project.slug}.noddo.io
             </p>
           </div>
 
@@ -479,6 +524,31 @@ export default function EditorLayout({
               </div>
             ))}
           </nav>
+
+          {/* Storage meter */}
+          {storageData && storageData.total_bytes > 0 && (
+            <div className="px-5 pb-2">
+              <div className="flex items-center gap-1.5 mb-1.5">
+                <HardDrive size={11} className="text-[var(--text-muted)]" />
+                <span className="text-[10px] text-[var(--text-muted)]">
+                  {formatBytes(storageData.total_bytes)} / {formatBytes(storageData.limit_bytes)}
+                </span>
+              </div>
+              <div className="w-full h-1 rounded-full bg-[var(--surface-3)] overflow-hidden">
+                <div
+                  className={cn(
+                    "h-full rounded-full transition-all",
+                    storageData.pct_used > 90
+                      ? "bg-red-400"
+                      : storageData.pct_used > 70
+                        ? "bg-yellow-400"
+                        : "bg-[var(--site-primary)]"
+                  )}
+                  style={{ width: `${Math.min(100, storageData.pct_used)}%` }}
+                />
+              </div>
+            </div>
+          )}
 
           {/* Help link */}
           <div className="px-3 pb-1">

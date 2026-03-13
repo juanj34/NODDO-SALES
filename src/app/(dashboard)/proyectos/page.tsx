@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -35,6 +35,9 @@ export default function ProyectosPage() {
   const [creating, setCreating] = useState(false);
   const [nombre, setNombre] = useState("");
   const [slug, setSlug] = useState("");
+  const [slugAvailable, setSlugAvailable] = useState<boolean | null>(null);
+  const [checkingSlug, setCheckingSlug] = useState(false);
+  const slugCheckTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [kpiProjectFilter, setKpiProjectFilter] = useState<string | null>(null);
   const router = useRouter();
   const { t } = useTranslation("dashboard");
@@ -93,6 +96,29 @@ export default function ProyectosPage() {
       .replace(/[\u0300-\u036f]/g, "")
       .replace(/[^a-z0-9]+/g, "-")
       .replace(/(^-|-$)/g, "");
+
+  // Debounced slug availability check
+  useEffect(() => {
+    if (!slug || slug.length < 2) {
+      setSlugAvailable(null);
+      return;
+    }
+    setCheckingSlug(true);
+    if (slugCheckTimer.current) clearTimeout(slugCheckTimer.current);
+    slugCheckTimer.current = setTimeout(async () => {
+      try {
+        const res = await fetch(`/api/domains/check?subdomain=${encodeURIComponent(slug)}`);
+        const data = await res.json();
+        setSlugAvailable(data.available);
+      } catch {
+        setSlugAvailable(null);
+      }
+      setCheckingSlug(false);
+    }, 400);
+    return () => {
+      if (slugCheckTimer.current) clearTimeout(slugCheckTimer.current);
+    };
+  }, [slug]);
 
   // Full-page skeleton while projects are loading
   if (loading) {
@@ -285,7 +311,7 @@ export default function ProyectosPage() {
               transition={{ type: "spring", damping: 25, stiffness: 300 }}
               onClick={(e) => e.stopPropagation()}
               onSubmit={handleCreate}
-              className="glass-card p-8 w-full max-w-md space-y-5"
+              className="glass-modal p-8 w-full max-w-md space-y-5"
             >
               <div className="flex items-center justify-between mb-1">
                 <h2 className="font-heading text-2xl font-light text-[var(--text-primary)]">
@@ -329,15 +355,26 @@ export default function ProyectosPage() {
                   placeholder="alto-de-yeguas"
                   className="input-glass w-full"
                 />
-                <p className="text-xs text-[var(--text-muted)] mt-2">
-                  {slug || "tu-proyecto"}.noddo.co
-                </p>
+                <div className="flex items-center gap-2 mt-2">
+                  <p className="text-xs text-[var(--text-muted)]">
+                    {slug || "tu-proyecto"}.noddo.io
+                  </p>
+                  {slug.length >= 2 && (
+                    checkingSlug ? (
+                      <Loader2 size={12} className="animate-spin text-[var(--text-muted)]" />
+                    ) : slugAvailable === true ? (
+                      <span className="text-[10px] text-emerald-400 font-medium">Disponible</span>
+                    ) : slugAvailable === false ? (
+                      <span className="text-[10px] text-red-400 font-medium">No disponible</span>
+                    ) : null
+                  )}
+                </div>
               </div>
 
               <MagneticButton>
                 <button
                   type="submit"
-                  disabled={creating}
+                  disabled={creating || slugAvailable === false || checkingSlug}
                   className="btn-noddo w-full py-2.5 font-ui text-xs font-bold uppercase tracking-[0.1em] flex items-center justify-center gap-2"
                 >
                   {creating && <Loader2 size={14} className="animate-spin" />}
@@ -365,7 +402,7 @@ export default function ProyectosPage() {
               exit={{ scale: 0.95, opacity: 0 }}
               transition={{ type: "spring", damping: 25, stiffness: 300 }}
               onClick={(e) => e.stopPropagation()}
-              className="glass-card p-6 w-full max-w-md space-y-4"
+              className="glass-modal p-6 w-full max-w-md space-y-4"
             >
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-xl bg-red-500/15 flex items-center justify-center shrink-0">
@@ -413,14 +450,14 @@ export default function ProyectosPage() {
                 <button
                   onClick={() => setDeleteTarget(null)}
                   disabled={deleting}
-                  className="flex-1 py-2.5 font-ui text-xs font-bold uppercase tracking-[0.1em] border border-[var(--border-default)] rounded-[0.75rem] text-[var(--text-secondary)] hover:text-white hover:border-[var(--border-strong)] transition-all"
+                  className="flex-1 px-4 py-2.5 font-ui text-xs font-bold uppercase tracking-[0.1em] border border-[var(--border-default)] rounded-[0.75rem] text-[var(--text-secondary)] hover:text-white hover:border-[var(--border-strong)] transition-all"
                 >
                   Cancelar
                 </button>
                 <button
                   onClick={confirmDelete}
                   disabled={deleting || deleteConfirmText !== deleteTarget.name}
-                  className="flex-1 min-w-[160px] py-2.5 font-ui text-xs font-bold uppercase tracking-[0.1em] rounded-[0.75rem] flex items-center justify-center gap-2 whitespace-nowrap bg-red-500/15 text-red-400 border border-red-500/20 hover:bg-red-500/25 hover:border-red-500/40 transition-all disabled:opacity-40 disabled:cursor-not-allowed"
+                  className="flex-1 px-4 py-2.5 font-ui text-xs font-bold uppercase tracking-[0.1em] rounded-[0.75rem] flex items-center justify-center gap-2 whitespace-nowrap bg-red-500/15 text-red-400 border border-red-500/20 hover:bg-red-500/25 hover:border-red-500/40 transition-all disabled:opacity-40 disabled:cursor-not-allowed"
                 >
                   {deleting ? <Loader2 size={13} className="animate-spin" /> : <Trash2 size={13} />}
                   {deleting ? t("proyectos.deleting") : t("proyectos.deleteButton")}

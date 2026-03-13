@@ -29,6 +29,7 @@ import {
   BedDouble,
   Bath,
   Car,
+  Archive,
   DollarSign,
 } from "lucide-react";
 import { useToast } from "@/components/dashboard/Toast";
@@ -49,6 +50,7 @@ interface TipoForm {
   renders: string[];
   caracteristicas: string[];
   parqueaderos: string;
+  depositos: string;
   area_balcon: string;
   hotspots: TipologiaHotspot[];
   ubicacion_plano_url: string;
@@ -66,6 +68,7 @@ const emptyTipologia: TipoForm = {
   renders: [],
   caracteristicas: [],
   parqueaderos: "",
+  depositos: "",
   area_balcon: "",
   hotspots: [],
   ubicacion_plano_url: "",
@@ -84,6 +87,7 @@ function tipologiaToForm(t: Tipologia): TipoForm {
     renders: t.renders || [],
     caracteristicas: t.caracteristicas || [],
     parqueaderos: t.parqueaderos != null ? String(t.parqueaderos) : "",
+    depositos: t.depositos != null ? String(t.depositos) : "",
     area_balcon: t.area_balcon != null ? String(t.area_balcon) : "",
     hotspots: t.hotspots || [],
     ubicacion_plano_url: t.ubicacion_plano_url || "",
@@ -218,6 +222,7 @@ export default function TipologiasPage() {
     renders: form.renders.filter((r) => r),
     caracteristicas: form.caracteristicas,
     parqueaderos: parseOptionalNumber(form.parqueaderos),
+    depositos: parseOptionalNumber(form.depositos),
     area_balcon: parseOptionalNumber(form.area_balcon),
     hotspots: form.hotspots,
     ubicacion_plano_url: form.ubicacion_plano_url || null,
@@ -307,6 +312,7 @@ export default function TipologiasPage() {
         renders: tip.renders || [],
         caracteristicas: tip.caracteristicas || [],
         parqueaderos: tip.parqueaderos,
+        depositos: tip.depositos,
         area_balcon: tip.area_balcon,
         hotspots: tip.hotspots || [],
         ubicacion_plano_url: tip.ubicacion_plano_url || null,
@@ -771,6 +777,15 @@ export default function TipologiasPage() {
                               <div className="flex-1 min-w-0">
                                 <p className="font-ui text-[10px] text-[var(--text-muted)] uppercase tracking-wider font-bold mb-0.5">{t("tipologias.parking")}</p>
                                 <input type="number" value={form.parqueaderos} onChange={(e) => updateForm("parqueaderos", e.target.value)} placeholder="0" className="w-full bg-transparent text-sm text-white placeholder:text-[var(--text-muted)] focus:outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none" />
+                              </div>
+                            </div>
+                            <div className="flex items-center gap-3 p-3 bg-[var(--surface-1)] rounded-xl border border-[var(--border-subtle)] hover:border-[var(--border-default)] transition-all">
+                              <div className="w-9 h-9 rounded-lg bg-[var(--surface-2)] flex items-center justify-center shrink-0">
+                                <Archive size={16} className="text-[var(--text-tertiary)]" />
+                              </div>
+                              <div className="flex-1 min-w-0">
+                                <p className="font-ui text-[10px] text-[var(--text-muted)] uppercase tracking-wider font-bold mb-0.5">Depósitos</p>
+                                <input type="number" value={form.depositos} onChange={(e) => updateForm("depositos", e.target.value)} placeholder="0" className="w-full bg-transparent text-sm text-white placeholder:text-[var(--text-muted)] focus:outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none" />
                               </div>
                             </div>
                           </div>

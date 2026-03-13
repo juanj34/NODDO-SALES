@@ -87,7 +87,7 @@ export function EnhancedProjectCard({ proyecto, stats, index, isAdmin, onDelete 
           </h3>
           <p className="text-[var(--text-muted)] text-xs mb-3">
             {proyecto.constructora_nombre || t("proyectos.noDeveloper")} &bull;{" "}
-            {proyecto.subdomain || proyecto.slug}.noddo.co
+            {proyecto.subdomain || proyecto.slug}.noddo.io
           </p>
 
           {/* Mini stats */}

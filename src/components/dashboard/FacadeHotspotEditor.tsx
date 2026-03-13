@@ -24,7 +24,7 @@ const STATUS_LABELS: Record<Unidad["estado"], string> = {
   vendida: "Vendida",
 };
 
-const EMPTY_DOT_COLOR = "#6b7280";
+const EMPTY_DOT_COLOR = "#ffffff";
 
 const SELECTION_COLOR = "#38bdf8";       // sky-400 — high contrast on light/dark
 
@@ -589,33 +589,38 @@ export function FacadeHotspotEditor({
   /* ------------------------------------------------------------------
      Context menu actions
      ------------------------------------------------------------------ */
-  const handleAssignUnit = async (unitId: string) => {
+  const handleAssignUnit = (unitId: string) => {
     if (!activeMenuDotId) return;
-    const dot = emptyDots.find((d) => d.localId === activeMenuDotId);
+    const dotId = activeMenuDotId;
+    const dot = emptyDots.find((d) => d.localId === dotId);
+
+    // Close menu immediately (optimistic)
+    setActiveMenuDotId(null);
+    setSelectedIds(new Set());
+
     if (dot) {
-      // Assign unit at empty dot position, remove empty dot
-      await onUpdateUnit(unitId, {
+      // Remove empty dot immediately
+      setEmptyDots((prev) => prev.filter((d) => d.localId !== dotId));
+      // Save in background
+      onUpdateUnit(unitId, {
         fachada_id: fachada.id,
         fachada_x: Math.round(dot.x * 100) / 100,
         fachada_y: Math.round(dot.y * 100) / 100,
       });
-      setEmptyDots((prev) => prev.filter((d) => d.localId !== activeMenuDotId));
     } else {
-      // Reassign: the activeMenuDotId is an existing unit, replace it
-      const pos = positions.get(activeMenuDotId);
+      // Reassign: the dotId is an existing unit, replace it
+      const pos = positions.get(dotId);
       if (pos) {
-        // First unassign the current unit from this position
-        await onRemoveUnit(activeMenuDotId);
-        // Then assign the new unit at the same position
-        await onUpdateUnit(unitId, {
-          fachada_id: fachada.id,
-          fachada_x: Math.round(pos.x * 100) / 100,
-          fachada_y: Math.round(pos.y * 100) / 100,
-        });
+        // Unassign current + assign new in background
+        onRemoveUnit(dotId).then(() =>
+          onUpdateUnit(unitId, {
+            fachada_id: fachada.id,
+            fachada_x: Math.round(pos.x * 100) / 100,
+            fachada_y: Math.round(pos.y * 100) / 100,
+          })
+        );
       }
     }
-    setActiveMenuDotId(null);
-    setSelectedIds(new Set());
   };
 
   const handleDeleteDot = () => {

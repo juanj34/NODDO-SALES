@@ -12,7 +12,7 @@ import {
   emptyStateDescription,
 } from "@/components/dashboard/editor-styles";
 import { cn } from "@/lib/utils";
-import { Package, ChevronDown } from "lucide-react";
+import { Package, ChevronDown, Upload, Loader2 } from "lucide-react";
 import { useToast } from "@/components/dashboard/Toast";
 import type { Unidad } from "@/types";
 
@@ -42,6 +42,26 @@ export default function DisponibilidadPage() {
   const [filterTorre, setFilterTorre] = useState<string>("");
   const [filterTipo, setFilterTipo] = useState<string>("");
   const [updatingIds, setUpdatingIds] = useState<Set<string>>(new Set());
+  const [publishing, setPublishing] = useState(false);
+
+  const handlePublishAvailability = useCallback(async () => {
+    setPublishing(true);
+    try {
+      const res = await fetch(`/api/proyectos/${project.id}/publicar-disponibilidad`, {
+        method: "POST",
+      });
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({ error: "Error" }));
+        toast.error(data.error || "Error al publicar disponibilidad");
+        return;
+      }
+      toast.success("Disponibilidad publicada en el micrositio");
+    } catch {
+      toast.error("Error de conexión");
+    } finally {
+      setPublishing(false);
+    }
+  }, [project.id, toast]);
 
   // Filter units
   const filtered = useMemo(() => {
@@ -135,6 +155,14 @@ export default function DisponibilidadPage() {
           <h1 className={pageTitle}>Disponibilidad</h1>
           <p className={pageDescription}>Cambio rápido de estado de unidades</p>
         </div>
+        <button
+          onClick={handlePublishAvailability}
+          disabled={publishing}
+          className="inline-flex items-center gap-2 px-4 py-2 bg-[rgba(var(--site-primary-rgb),0.1)] border border-[rgba(var(--site-primary-rgb),0.3)] text-[var(--site-primary)] rounded-xl text-xs font-ui font-semibold uppercase tracking-wider hover:bg-[rgba(var(--site-primary-rgb),0.15)] transition-all disabled:opacity-50"
+        >
+          {publishing ? <Loader2 size={14} className="animate-spin" /> : <Upload size={14} />}
+          {publishing ? "Publicando..." : "Publicar disponibilidad"}
+        </button>
       </div>
 
       {/* Filters */}

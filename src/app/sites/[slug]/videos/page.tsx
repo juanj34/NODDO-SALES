@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useCallback, useEffect } from "react";
+import { useState, useRef, useCallback, useEffect, useMemo } from "react";
 import { motion } from "framer-motion";
 import { SectionTransition } from "@/components/site/SectionTransition";
 import { AmbientBackground } from "@/components/site/AmbientBackground";
@@ -11,13 +11,44 @@ import { cn } from "@/lib/utils";
 import { useTranslation } from "@/i18n";
 import { trackEvent } from "@/lib/tracking";
 
+function getVideoSrc(video: { stream_uid?: string | null; url: string }): string {
+  if (video.stream_uid) {
+    return `https://iframe.videodelivery.net/${video.stream_uid}`;
+  }
+  return video.url;
+}
+
+function getVideoThumb(video: {
+  stream_uid?: string | null;
+  thumbnail_url?: string | null;
+  url: string;
+}): string | null {
+  if (video.thumbnail_url) return video.thumbnail_url;
+  if (video.stream_uid) {
+    return `https://videodelivery.net/${video.stream_uid}/thumbnails/thumbnail.jpg`;
+  }
+  // YouTube thumbnail fallback
+  const match = video.url.match(
+    /(?:youtube\.com\/(?:watch\?v=|embed\/)|youtu\.be\/)([a-zA-Z0-9_-]{11})/
+  );
+  return match ? `https://img.youtube.com/vi/${match[1]}/mqdefault.jpg` : null;
+}
+
 export default function VideosPage() {
   const proyecto = useSiteProject();
-  const videos = proyecto.videos;
   const { t } = useTranslation("site");
 
-  // Empty state — no videos configured
-  if (!videos || videos.length === 0) {
+  // Filter out videos that are still processing or errored
+  const videos = useMemo(
+    () =>
+      (proyecto.videos || []).filter(
+        (v) => !v.stream_uid || v.stream_status === "ready"
+      ),
+    [proyecto.videos]
+  );
+
+  // Empty state — no videos ready
+  if (videos.length === 0) {
     return (
       <SiteEmptyState
         variant="videos"
@@ -74,7 +105,7 @@ export default function VideosPage() {
           className="w-full aspect-video rounded-2xl overflow-hidden bg-black shadow-2xl shadow-black/50 mb-5"
         >
           <iframe
-            src={current.url}
+            src={getVideoSrc(current)}
             className="w-full h-full border-0"
             allowFullScreen
             allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
@@ -110,61 +141,64 @@ export default function VideosPage() {
             ref={stripRef}
             className="flex gap-3 overflow-x-auto scrollbar-hide pb-2"
           >
-            {videos.map((video, idx) => (
-              <motion.button
-                key={video.id}
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.1 + idx * 0.04 }}
-                onClick={() => {
-                  setActiveVideo(idx);
-                  trackEvent(proyecto.id, "video_play", undefined, { video_title: video.titulo });
-                }}
-                className={cn(
-                  "flex-shrink-0 w-40 cursor-pointer group transition-all duration-200",
-                  idx === activeVideo ? "opacity-100" : "opacity-50 hover:opacity-80"
-                )}
-              >
-                <div className={cn(
-                  "relative w-full aspect-video rounded-xl overflow-hidden mb-1.5 transition-all duration-200",
-                  idx === activeVideo
-                    ? "ring-2 ring-[var(--site-primary)] shadow-lg shadow-[rgba(var(--site-primary-rgb),0.10)]"
-                    : "ring-1 ring-[var(--border-default)] group-hover:ring-white/20"
-                )}>
-                  {video.thumbnail_url ? (
-                    <img
-                      src={video.thumbnail_url}
-                      alt={video.titulo || ""}
-                      className="w-full h-full object-cover"
-                    />
-                  ) : (
-                    <div className="w-full h-full bg-white/5 flex items-center justify-center">
-                      <Film size={20} className="text-[var(--text-muted)]" />
-                    </div>
+            {videos.map((video, idx) => {
+              const thumb = getVideoThumb(video);
+              return (
+                <motion.button
+                  key={video.id}
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.1 + idx * 0.04 }}
+                  onClick={() => {
+                    setActiveVideo(idx);
+                    trackEvent(proyecto.id, "video_play", undefined, { video_title: video.titulo });
+                  }}
+                  className={cn(
+                    "flex-shrink-0 w-40 cursor-pointer group transition-all duration-200",
+                    idx === activeVideo ? "opacity-100" : "opacity-50 hover:opacity-80"
                   )}
-                  {/* Play overlay */}
+                >
                   <div className={cn(
-                    "absolute inset-0 flex items-center justify-center transition-all duration-200",
-                    idx === activeVideo ? "bg-black/20" : "bg-black/40 group-hover:bg-black/25"
+                    "relative w-full aspect-video rounded-xl overflow-hidden mb-1.5 transition-all duration-200",
+                    idx === activeVideo
+                      ? "ring-2 ring-[var(--site-primary)] shadow-lg shadow-[rgba(var(--site-primary-rgb),0.10)]"
+                      : "ring-1 ring-[var(--border-default)] group-hover:ring-white/20"
                   )}>
+                    {thumb ? (
+                      <img
+                        src={thumb}
+                        alt={video.titulo || ""}
+                        className="w-full h-full object-cover"
+                      />
+                    ) : (
+                      <div className="w-full h-full bg-white/5 flex items-center justify-center">
+                        <Film size={20} className="text-[var(--text-muted)]" />
+                      </div>
+                    )}
+                    {/* Play overlay */}
                     <div className={cn(
-                      "w-7 h-7 rounded-full flex items-center justify-center transition-all duration-200",
-                      idx === activeVideo
-                        ? "bg-[var(--site-primary)] scale-110"
-                        : "bg-white/20 group-hover:bg-white/30"
+                      "absolute inset-0 flex items-center justify-center transition-all duration-200",
+                      idx === activeVideo ? "bg-black/20" : "bg-black/40 group-hover:bg-black/25"
                     )}>
-                      <Play size={12} className={idx === activeVideo ? "text-black" : "text-white"} fill="currentColor" />
+                      <div className={cn(
+                        "w-7 h-7 rounded-full flex items-center justify-center transition-all duration-200",
+                        idx === activeVideo
+                          ? "bg-[var(--site-primary)] scale-110"
+                          : "bg-white/20 group-hover:bg-white/30"
+                      )}>
+                        <Play size={12} className={idx === activeVideo ? "text-black" : "text-white"} fill="currentColor" />
+                      </div>
                     </div>
                   </div>
-                </div>
-                <p className={cn(
-                  "text-[11px] truncate transition-colors duration-200",
-                  idx === activeVideo ? "text-white" : "text-[var(--text-tertiary)] group-hover:text-[var(--text-secondary)]"
-                )}>
-                  {video.titulo || `Video ${idx + 1}`}
-                </p>
-              </motion.button>
-            ))}
+                  <p className={cn(
+                    "text-[11px] truncate transition-colors duration-200",
+                    idx === activeVideo ? "text-white" : "text-[var(--text-tertiary)] group-hover:text-[var(--text-secondary)]"
+                  )}>
+                    {video.titulo || `Video ${idx + 1}`}
+                  </p>
+                </motion.button>
+              );
+            })}
           </div>
 
           {/* Right arrow */}

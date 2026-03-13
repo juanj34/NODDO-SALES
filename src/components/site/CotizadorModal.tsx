@@ -22,6 +22,53 @@ import { useTranslation, getEstadoConfig } from "@/i18n";
 import { trackEvent } from "@/lib/tracking";
 import { calcularCotizacion } from "@/lib/cotizador/calcular";
 
+const COUNTRY_CODES = [
+  { code: "+57", flag: "\u{1F1E8}\u{1F1F4}", label: "CO" },
+  { code: "+52", flag: "\u{1F1F2}\u{1F1FD}", label: "MX" },
+  { code: "+1", flag: "\u{1F1FA}\u{1F1F8}", label: "US" },
+  { code: "+507", flag: "\u{1F1F5}\u{1F1E6}", label: "PA" },
+  { code: "+593", flag: "\u{1F1EA}\u{1F1E8}", label: "EC" },
+  { code: "+51", flag: "\u{1F1F5}\u{1F1EA}", label: "PE" },
+  { code: "+56", flag: "\u{1F1E8}\u{1F1F1}", label: "CL" },
+  { code: "+34", flag: "\u{1F1EA}\u{1F1F8}", label: "ES" },
+] as const;
+
+function PhoneInput({
+  value,
+  onChange,
+  countryCode,
+  onCountryChange,
+}: {
+  value: string;
+  onChange: (v: string) => void;
+  countryCode: string;
+  onCountryChange: (v: string) => void;
+}) {
+  return (
+    <div className="flex gap-1.5">
+      <select
+        value={countryCode}
+        onChange={(e) => onCountryChange(e.target.value)}
+        className="input-glass w-[90px] shrink-0 text-xs appearance-none cursor-pointer"
+        style={{ backgroundImage: "none" }}
+      >
+        {COUNTRY_CODES.map((c) => (
+          <option key={c.code} value={c.code}>
+            {c.flag} {c.code}
+          </option>
+        ))}
+      </select>
+      <input
+        type="tel"
+        placeholder="300 000 0000"
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        className="input-glass w-full"
+      />
+    </div>
+  );
+}
+
 interface CotizadorModalProps {
   isOpen: boolean;
   onClose: () => void;
@@ -164,6 +211,7 @@ function LeadCaptureFlow({
     pais: "",
     mensaje: "",
   });
+  const [countryCode, setCountryCode] = useState("+57");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -188,7 +236,7 @@ function LeadCaptureFlow({
         body: JSON.stringify({
           nombre: formData.nombre,
           email: formData.email,
-          telefono: formData.telefono || null,
+          telefono: formData.telefono ? `${countryCode} ${formData.telefono}` : null,
           pais: formData.pais || null,
           tipologia_interes: tipologia
             ? `${tipologia.nombre} - ${unidad.identificador}`
@@ -246,7 +294,12 @@ function LeadCaptureFlow({
           <label className="block text-[10px] tracking-[0.2em] uppercase text-[var(--text-tertiary)] mb-1 font-mono">
             {tCommon("form.phone")}
           </label>
-          <input type="tel" name="telefono" placeholder="+57 300 000 0000" value={formData.telefono} onChange={handleChange} className="input-glass w-full" />
+          <PhoneInput
+            value={formData.telefono}
+            onChange={(v) => setFormData((prev) => ({ ...prev, telefono: v }))}
+            countryCode={countryCode}
+            onCountryChange={setCountryCode}
+          />
         </div>
         <div>
           <label className="block text-[10px] tracking-[0.2em] uppercase text-[var(--text-tertiary)] mb-1 font-mono">
@@ -306,6 +359,7 @@ function CotizadorFlow({
   const [nombre, setNombre] = useState("");
   const [email, setEmail] = useState("");
   const [telefono, setTelefono] = useState("");
+  const [countryCode2, setCountryCode2] = useState("+57");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -335,7 +389,7 @@ function CotizadorFlow({
           unidad_id: unidad.id,
           nombre,
           email,
-          telefono: telefono || null,
+          telefono: telefono ? `${countryCode2} ${telefono}` : null,
           utm_source: new URLSearchParams(window.location.search).get("utm_source"),
           utm_medium: new URLSearchParams(window.location.search).get("utm_medium"),
           utm_campaign: new URLSearchParams(window.location.search).get("utm_campaign"),
@@ -417,7 +471,12 @@ function CotizadorFlow({
           <label className="block text-[10px] tracking-[0.2em] uppercase text-[var(--text-tertiary)] mb-1 font-mono">
             WhatsApp
           </label>
-          <input type="tel" placeholder="+57 300 000 0000" value={telefono} onChange={(e) => setTelefono(e.target.value)} className="input-glass w-full" />
+          <PhoneInput
+            value={telefono}
+            onChange={setTelefono}
+            countryCode={countryCode2}
+            onCountryChange={setCountryCode2}
+          />
         </div>
         <motion.button
           type="submit"
@@ -488,13 +547,13 @@ export function CotizadorModal({
         >
           {/* Backdrop */}
           <motion.div
-            className="absolute inset-0 bg-black/70 backdrop-blur-sm"
+            className="absolute inset-0 bg-black/90 backdrop-blur-sm"
             onClick={handleClose}
           />
 
           {/* Modal */}
           <motion.div
-            className="relative w-full max-w-lg max-h-[90vh] overflow-y-auto glass-card rounded-3xl border border-[rgba(var(--site-primary-rgb),0.15)] shadow-[0_0_40px_rgba(var(--site-primary-rgb),0.08)]"
+            className="relative w-full max-w-lg max-h-[90vh] overflow-y-auto bg-[var(--surface-1)] rounded-3xl border border-[rgba(var(--site-primary-rgb),0.15)] shadow-[0_0_40px_rgba(var(--site-primary-rgb),0.08)]"
             initial={{ opacity: 0, scale: 0.95, y: 20 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.95, y: 20 }}
@@ -548,7 +607,7 @@ export function CotizadorModal({
                 </div>
                 <button
                   onClick={handleClose}
-                  className="mt-2 btn-outline-warm px-6 py-2 text-sm tracking-wider cursor-pointer"
+                  className="mt-2 btn-outline-warm px-6 py-2.5 text-sm tracking-wider cursor-pointer"
                 >
                   {tCommon("buttons.close")}
                 </button>

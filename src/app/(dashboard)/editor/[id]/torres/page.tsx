@@ -129,6 +129,13 @@ export default function TorresPage() {
   /* ── Count helpers ────────────────────────────────────────────── */
   const fachadasForTorre = (torreId: string) =>
     fachadas.filter((f) => f.torre_id === torreId).length;
+  const fachadasCountByTipo = (torreId: string) => {
+    const list = fachadas.filter((f) => f.torre_id === torreId);
+    return {
+      fachadas: list.filter((f) => f.tipo === "fachada").length,
+      plantas: list.filter((f) => f.tipo === "planta").length,
+    };
+  };
   const unidadesForTorre = (torreId: string) =>
     unidades.filter((u) => u.torre_id === torreId).length;
 
@@ -305,10 +312,11 @@ export default function TorresPage() {
           {/* Torre list */}
           {torres.map((torre) => {
             const isSelected = selectedTorreId === torre.id && !showAddForm;
-            const nFachadas = fachadasForTorre(torre.id);
+            const counts = fachadasCountByTipo(torre.id);
             const nUnidades = unidadesForTorre(torre.id);
             const hasFloors = torre.tipo !== "urbanismo" && (torre.pisos_residenciales || torre.num_pisos);
-            const hasData = !!(hasFloors || nFachadas > 0 || nUnidades > 0);
+            const nTotalFachadas = counts.fachadas + counts.plantas;
+            const hasData = !!(hasFloors || nTotalFachadas > 0 || nUnidades > 0);
             return (
               <button
                 key={torre.id}
@@ -340,10 +348,12 @@ export default function TorresPage() {
                     {hasData ? (
                       <div className="flex items-center gap-1.5 text-[10px] text-[var(--text-muted)]">
                         {hasFloors && <span>{torre.pisos_residenciales || torre.num_pisos}p</span>}
-                        {hasFloors && (nUnidades > 0 || nFachadas > 0) && <span>·</span>}
+                        {hasFloors && (nUnidades > 0 || nTotalFachadas > 0) && <span>·</span>}
                         {nUnidades > 0 && <span>{nUnidades} ud</span>}
-                        {nUnidades > 0 && nFachadas > 0 && <span>·</span>}
-                        {nFachadas > 0 && <span>{nFachadas} fach</span>}
+                        {nUnidades > 0 && nTotalFachadas > 0 && <span>·</span>}
+                        {counts.fachadas > 0 && <span>{counts.fachadas} fach</span>}
+                        {counts.fachadas > 0 && counts.plantas > 0 && <span>·</span>}
+                        {counts.plantas > 0 && <span>{counts.plantas} pl</span>}
                       </div>
                     ) : (
                       <p className="text-[10px] text-[var(--text-muted)] italic">{t("torres.notConfigured")}</p>

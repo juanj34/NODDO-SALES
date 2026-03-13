@@ -11,7 +11,7 @@ import { SmoothScroll } from "@/components/site/SmoothScroll";
 import { EditorialWatermark } from "@/components/site/EditorialWatermark";
 import { SitePreloader } from "@/components/site/SitePreloader";
 import { AudioProvider, AudioMuteButton } from "@/components/site/AudioPlayer";
-import { NoddoBadge } from "@/components/site/NoddoBadge";
+
 import { WhatsAppButton } from "@/components/site/WhatsAppButton";
 import { SiteTracker } from "@/components/site/SiteTracker";
 import { RouteProgressBar } from "@/components/ui/RouteProgressBar";
@@ -74,6 +74,7 @@ export function SiteLayoutClient({ proyecto, basePath, children }: Props) {
                 hasImplantaciones={proyecto.planos_interactivos?.some(p => p.tipo === "urbanismo" && p.visible) ?? false}
                 hasTour360={!!proyecto.tour_360_url}
                 hasAvances={(proyecto.avances_obra?.length || 0) > 0}
+                hideNoddoBadge={!!proyecto.hide_noddo_badge}
               />
               {/* Sidebar toggle arrow — outside the nav, centered vertically */}
               <motion.button
@@ -118,10 +119,7 @@ export function SiteLayoutClient({ proyecto, basePath, children }: Props) {
               proyectoId={proyecto.id}
             />
           )}
-          {/* Noddo badge — fixed bottom-right, pushed up when WhatsApp button is present */}
-          {!proyecto.hide_noddo_badge && !isLanding && (
-            <NoddoBadge className={`fixed right-5 z-30 ${proyecto.whatsapp_numero ? "bottom-[5.5rem]" : "bottom-5"}`} />
-          )}
+          {/* Noddo badge moved to SiteNav sidebar */}
           <SmoothScroll>
             <main
               className={isLanding ? "h-full" : "h-full transition-[padding] duration-300"}

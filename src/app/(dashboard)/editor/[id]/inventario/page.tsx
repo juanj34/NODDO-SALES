@@ -39,6 +39,7 @@ import {
   TrendingUp,
   MessageSquare,
   Send,
+  Download,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useTranslation } from "@/i18n";
@@ -62,6 +63,8 @@ interface UnitFormData {
   estado: EstadoUnidad;
   habitaciones: string;
   banos: string;
+  parqueaderos: string;
+  depositos: string;
   orientacion: string;
   vista: string;
   notas: string;
@@ -76,6 +79,8 @@ interface ParsedPreviewUnit {
   estado: EstadoUnidad;
   habitaciones: number | null;
   banos: number | null;
+  parqueaderos: number | null;
+  depositos: number | null;
   orientacion: string;
   vista: string;
   notas: string;
@@ -109,6 +114,8 @@ const EMPTY_FORM: UnitFormData = {
   estado: "disponible",
   habitaciones: "",
   banos: "",
+  parqueaderos: "",
+  depositos: "",
   orientacion: "",
   vista: "",
   notas: "",
@@ -300,12 +307,14 @@ function ConfirmDialog({
 
 function ImportCSVModal({
   tipologias,
+  torres,
   proyectoId,
   activeTorreId,
   onClose,
   onDone,
 }: {
   tipologias: Tipologia[];
+  torres: Torre[];
   proyectoId: string;
   activeTorreId: string | null;
   onClose: () => void;
@@ -346,6 +355,27 @@ function ImportCSVModal({
     if (file) await processFile(file);
   };
 
+  const handleDownloadExample = () => {
+    const torreNombre = torres.length > 0
+      ? (torres.find((t) => t.id === activeTorreId)?.prefijo || torres[0].prefijo || "T1")
+      : "T1";
+    const rows = [
+      "identificador,piso,area_m2,precio,estado,habitaciones,banos,parqueaderos,depositos,orientacion,vista",
+      `${torreNombre}-101,1,65.5,350000000,disponible,2,2,1,1,Norte,Interior`,
+      `${torreNombre}-102,1,72.3,380000000,disponible,3,2,2,0,Sur,Exterior`,
+      `${torreNombre}-201,2,65.5,360000000,disponible,2,2,1,1,Norte,Interior`,
+      `${torreNombre}-202,2,72.3,390000000,disponible,3,2,2,0,Sur,Exterior`,
+    ];
+    const csv = rows.join("\n");
+    const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "ejemplo_inventario.csv";
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
   const handleParse = () => {
     setError(null);
     try {
@@ -363,6 +393,8 @@ function ImportCSVModal({
         estado: u.estado || "disponible",
         habitaciones: u.habitaciones ?? null,
         banos: u.banos ?? null,
+        parqueaderos: u.parqueaderos ?? null,
+        depositos: u.depositos ?? null,
         orientacion: u.orientacion || "",
         vista: u.vista || "",
         notas: u.notas || "",
@@ -389,6 +421,8 @@ function ImportCSVModal({
         estado: u.estado,
         habitaciones: u.habitaciones,
         banos: u.banos,
+        parqueaderos: u.parqueaderos,
+        depositos: u.depositos,
         orientacion: u.orientacion || null,
         vista: u.vista || null,
         notas: u.notas || null,
@@ -419,7 +453,9 @@ function ImportCSVModal({
       if (
         field === "piso" ||
         field === "habitaciones" ||
-        field === "banos"
+        field === "banos" ||
+        field === "parqueaderos" ||
+        field === "depositos"
       ) {
         unit[field] = value ? parseInt(value) || null : null;
       } else if (field === "area_m2" || field === "precio") {
@@ -500,6 +536,14 @@ function ImportCSVModal({
                   onChange={handleFileSelect}
                 />
               </div>
+              <button
+                type="button"
+                onClick={handleDownloadExample}
+                className="inline-flex items-center gap-1.5 text-[11px] text-[var(--site-primary)] hover:underline"
+              >
+                <Download size={12} />
+                Descargar ejemplo CSV
+              </button>
               <div className="flex items-center gap-3">
                 <div className="flex-1 h-px bg-[var(--border-subtle)]" />
                 <span className="text-[10px] text-[var(--text-muted)]">{t("inventario.orPaste")}</span>
@@ -551,6 +595,12 @@ function ImportCSVModal({
                       </th>
                       <th className="text-left py-2 px-2 text-[var(--text-tertiary)] font-normal">
                         {t("inventario.fields.bathrooms")}
+                      </th>
+                      <th className="text-left py-2 px-2 text-[var(--text-tertiary)] font-normal">
+                        {t("inventario.fields.parking")}
+                      </th>
+                      <th className="text-left py-2 px-2 text-[var(--text-tertiary)] font-normal">
+                        {t("inventario.fields.storage")}
                       </th>
                     </tr>
                   </thead>
@@ -667,6 +717,26 @@ function ImportCSVModal({
                             value={u.banos ?? ""}
                             onChange={(e) =>
                               updatePreviewUnit(i, "banos", e.target.value)
+                            }
+                            className="bg-transparent border-b border-[var(--border-default)] text-white text-xs px-1 py-0.5 w-12 focus:outline-none focus:border-[rgba(var(--site-primary-rgb),0.5)]"
+                            type="number"
+                          />
+                        </td>
+                        <td className="py-1.5 px-2">
+                          <input
+                            value={u.parqueaderos ?? ""}
+                            onChange={(e) =>
+                              updatePreviewUnit(i, "parqueaderos", e.target.value)
+                            }
+                            className="bg-transparent border-b border-[var(--border-default)] text-white text-xs px-1 py-0.5 w-12 focus:outline-none focus:border-[rgba(var(--site-primary-rgb),0.5)]"
+                            type="number"
+                          />
+                        </td>
+                        <td className="py-1.5 px-2">
+                          <input
+                            value={u.depositos ?? ""}
+                            onChange={(e) =>
+                              updatePreviewUnit(i, "depositos", e.target.value)
                             }
                             className="bg-transparent border-b border-[var(--border-default)] text-white text-xs px-1 py-0.5 w-12 focus:outline-none focus:border-[rgba(var(--site-primary-rgb),0.5)]"
                             type="number"
@@ -806,6 +876,8 @@ function ImportAIModal({
         estado: ((u.estado as string) || "disponible") as EstadoUnidad,
         habitaciones: (u.habitaciones as number) ?? null,
         banos: (u.banos as number) ?? null,
+        parqueaderos: (u.parqueaderos as number) ?? null,
+        depositos: (u.depositos as number) ?? null,
         orientacion: (u.orientacion as string) || "",
         vista: (u.vista as string) || "",
         notas: (u.notas as string) || "",
@@ -838,6 +910,8 @@ function ImportAIModal({
         estado: u.estado,
         habitaciones: u.habitaciones,
         banos: u.banos,
+        parqueaderos: u.parqueaderos,
+        depositos: u.depositos,
         orientacion: u.orientacion || null,
         vista: u.vista || null,
         notas: u.notas || null,
@@ -868,7 +942,9 @@ function ImportAIModal({
       if (
         field === "piso" ||
         field === "habitaciones" ||
-        field === "banos"
+        field === "banos" ||
+        field === "parqueaderos" ||
+        field === "depositos"
       ) {
         unit[field] = value ? parseInt(value) || null : null;
       } else if (field === "area_m2" || field === "precio") {
@@ -1003,6 +1079,12 @@ function ImportAIModal({
                       <th className="text-left py-2 px-2 text-[var(--text-tertiary)] font-normal">
                         {t("inventario.fields.bathrooms")}
                       </th>
+                      <th className="text-left py-2 px-2 text-[var(--text-tertiary)] font-normal">
+                        {t("inventario.fields.parking")}
+                      </th>
+                      <th className="text-left py-2 px-2 text-[var(--text-tertiary)] font-normal">
+                        {t("inventario.fields.storage")}
+                      </th>
                     </tr>
                   </thead>
                   <tbody>
@@ -1118,6 +1200,26 @@ function ImportAIModal({
                             value={u.banos ?? ""}
                             onChange={(e) =>
                               updatePreviewUnit(i, "banos", e.target.value)
+                            }
+                            className="bg-transparent border-b border-[var(--border-default)] text-white text-xs px-1 py-0.5 w-12 focus:outline-none focus:border-[rgba(var(--site-primary-rgb),0.5)]"
+                            type="number"
+                          />
+                        </td>
+                        <td className="py-1.5 px-2">
+                          <input
+                            value={u.parqueaderos ?? ""}
+                            onChange={(e) =>
+                              updatePreviewUnit(i, "parqueaderos", e.target.value)
+                            }
+                            className="bg-transparent border-b border-[var(--border-default)] text-white text-xs px-1 py-0.5 w-12 focus:outline-none focus:border-[rgba(var(--site-primary-rgb),0.5)]"
+                            type="number"
+                          />
+                        </td>
+                        <td className="py-1.5 px-2">
+                          <input
+                            value={u.depositos ?? ""}
+                            onChange={(e) =>
+                              updatePreviewUnit(i, "depositos", e.target.value)
                             }
                             className="bg-transparent border-b border-[var(--border-default)] text-white text-xs px-1 py-0.5 w-12 focus:outline-none focus:border-[rgba(var(--site-primary-rgb),0.5)]"
                             type="number"
@@ -1328,6 +1430,26 @@ function UnitForm({
               value={form.banos}
               onChange={(e) => set("banos", e.target.value)}
               placeholder="2"
+              className={inputClass}
+            />
+          </div>
+          <div>
+            <label className={labelClass}>{t("inventario.fields.parking")}</label>
+            <input
+              type="number"
+              value={form.parqueaderos}
+              onChange={(e) => set("parqueaderos", e.target.value)}
+              placeholder="1"
+              className={inputClass}
+            />
+          </div>
+          <div>
+            <label className={labelClass}>{t("inventario.fields.storage")}</label>
+            <input
+              type="number"
+              value={form.depositos}
+              onChange={(e) => set("depositos", e.target.value)}
+              placeholder="1"
               className={inputClass}
             />
           </div>
@@ -1678,6 +1800,8 @@ function AIChatModal({
             estado: u.estado,
             habitaciones: u.habitaciones,
             banos: u.banos,
+            parqueaderos: u.parqueaderos,
+            depositos: u.depositos,
           })),
           tipologias: tipologias.map((tp) => ({ id: tp.id, nombre: tp.nombre })),
           fachadas: fachadas.map((f) => ({ id: f.id, nombre: f.nombre })),
@@ -1974,6 +2098,8 @@ export default function InventarioPage() {
               ? parseInt(data.habitaciones)
               : null,
             banos: data.banos ? parseInt(data.banos) : null,
+            parqueaderos: data.parqueaderos ? parseInt(data.parqueaderos) : null,
+            depositos: data.depositos ? parseInt(data.depositos) : null,
             orientacion: data.orientacion || null,
             vista: data.vista || null,
             notas: data.notas || null,
@@ -2011,6 +2137,8 @@ export default function InventarioPage() {
               ? parseInt(data.habitaciones)
               : null,
             banos: data.banos ? parseInt(data.banos) : null,
+            parqueaderos: data.parqueaderos ? parseInt(data.parqueaderos) : null,
+            depositos: data.depositos ? parseInt(data.depositos) : null,
             orientacion: data.orientacion || null,
             vista: data.vista || null,
             notas: data.notas || null,
@@ -2168,6 +2296,8 @@ export default function InventarioPage() {
     estado: u.estado,
     habitaciones: u.habitaciones != null ? String(u.habitaciones) : "",
     banos: u.banos != null ? String(u.banos) : "",
+    parqueaderos: u.parqueaderos != null ? String(u.parqueaderos) : "",
+    depositos: u.depositos != null ? String(u.depositos) : "",
     orientacion: u.orientacion || "",
     vista: u.vista || "",
     notas: u.notas || "",
@@ -2702,6 +2832,12 @@ export default function InventarioPage() {
                   <th className="text-left py-3 px-4 text-[var(--text-tertiary)] font-ui font-bold text-[10px] uppercase tracking-wider">
                     {t("inventario.fields.bathrooms")}
                   </th>
+                  <th className="text-left py-3 px-4 text-[var(--text-tertiary)] font-ui font-bold text-[10px] uppercase tracking-wider">
+                    {t("inventario.fields.parking")}
+                  </th>
+                  <th className="text-left py-3 px-4 text-[var(--text-tertiary)] font-ui font-bold text-[10px] uppercase tracking-wider">
+                    {t("inventario.fields.storage")}
+                  </th>
                   <th className="text-right py-3 px-4 text-[var(--text-tertiary)] font-ui font-bold text-[10px] uppercase tracking-wider">
 
                   </th>
@@ -2711,7 +2847,7 @@ export default function InventarioPage() {
                 {filteredUnidades.length === 0 ? (
                   <tr>
                     <td
-                      colSpan={fachadas.length > 0 ? 11 : 10}
+                      colSpan={fachadas.length > 0 ? 13 : 12}
                       className="py-16 text-center text-[var(--text-muted)] text-sm"
                     >
                       {unidades.length === 0
@@ -2729,7 +2865,7 @@ export default function InventarioPage() {
                       className="border-b border-[var(--border-subtle)] hover:bg-[var(--surface-2)] transition-colors group"
                     >
                       {editingId === unit.id ? (
-                        <td colSpan={fachadas.length > 0 ? 11 : 10} className="p-4">
+                        <td colSpan={fachadas.length > 0 ? 13 : 12} className="p-4">
                           <UnitForm
                             initial={getEditFormData(unit)}
                             tipologias={tipologiasForDropdown}
@@ -2807,6 +2943,12 @@ export default function InventarioPage() {
                           <td className="py-3 px-4 text-[var(--text-secondary)]">
                             {unit.banos ?? "-"}
                           </td>
+                          <td className="py-3 px-4 text-[var(--text-secondary)]">
+                            {unit.parqueaderos ?? "-"}
+                          </td>
+                          <td className="py-3 px-4 text-[var(--text-secondary)]">
+                            {unit.depositos ?? "-"}
+                          </td>
                           <td className="py-3 px-4">
                             <div className="flex items-center justify-end gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                               <button
@@ -2855,6 +2997,7 @@ export default function InventarioPage() {
         {showCSVModal && (
           <ImportCSVModal
             tipologias={tipologias}
+            torres={torres}
             proyectoId={projectId}
             activeTorreId={activeTorreId}
             onClose={() => setShowCSVModal(false)}

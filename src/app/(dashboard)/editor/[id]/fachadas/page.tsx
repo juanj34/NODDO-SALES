@@ -5,6 +5,7 @@ import { useTranslation } from "@/i18n";
 import { useEditorProject } from "@/hooks/useEditorProject";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/components/dashboard/Toast";
+import { useConfirm } from "@/components/dashboard/ConfirmModal";
 import {
   inputClass,
   labelClass,
@@ -50,6 +51,7 @@ export default function NoddoGridPage() {
   const { project, projectId, refresh } = useEditorProject();
   const { t } = useTranslation("editor");
   const toast = useToast();
+  const { confirm } = useConfirm();
 
   /* ---- Local state ---- */
   const [fachadas, setFachadas] = useState<Fachada[]>([]);
@@ -243,39 +245,48 @@ export default function NoddoGridPage() {
     setShowAddForm(false);
   };
 
-  const handleAddFachada = async () => {
+  const handleAddFachada = () => {
     if (!newNombre.trim() || !newImagenUrl) return;
-    setAddingFachada(true);
-    try {
-      const body: Record<string, unknown> = {
-        proyecto_id: projectId,
-        nombre: newNombre.trim(),
-        imagen_url: newImagenUrl,
-        num_pisos: newNumPisos ? parseInt(newNumPisos) : null,
-        descripcion: newDescripcion.trim() || null,
-        amenidades: newAmenidades.trim() || null,
-        imagen_portada: newImagenPortada || null,
-      };
-      if (isMultiTorre && activeTorre) {
-        body.torre_id = activeTorre.id;
-      }
-      const res = await fetch("/api/fachadas", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(body),
-      });
+    const body: Record<string, unknown> = {
+      proyecto_id: projectId,
+      nombre: newNombre.trim(),
+      imagen_url: newImagenUrl,
+      num_pisos: newNumPisos ? parseInt(newNumPisos) : null,
+      descripcion: newDescripcion.trim() || null,
+      amenidades: newAmenidades.trim() || null,
+      imagen_portada: newImagenPortada || null,
+    };
+    if (isMultiTorre && activeTorre) {
+      body.torre_id = activeTorre.id;
+    }
+    // Close form immediately
+    resetAddForm();
+    // Save in background
+    fetch("/api/fachadas", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body),
+    }).then(async (res) => {
       if (res.ok) {
         const created: Fachada = await res.json();
         setSelectedFachadaId(created.id);
-        resetAddForm();
+        toast.success("Fachada creada");
         await refresh();
+      } else {
+        toast.error("Error al crear fachada");
       }
-    } finally {
-      setAddingFachada(false);
-    }
+    }).catch(() => {
+      toast.error("Error de conexión");
+    });
   };
 
   const handleDeleteFachada = async (id: string) => {
+    const target = fachadas.find((f) => f.id === id);
+    const label = target?.tipo === "planta" ? "planta" : "fachada";
+    if (!(await confirm({
+      title: `Eliminar ${label}`,
+      message: `¿Estás seguro de eliminar "${target?.nombre || label}"? Las unidades asignadas serán desvinculadas.`,
+    }))) return;
     setDeletingId(id);
     try {
       const res = await fetch(`/api/fachadas/${id}`, { method: "DELETE" });
@@ -665,6 +676,10 @@ export default function NoddoGridPage() {
   const handleDeletePlantaTipo = async (tipoNombre: string) => {
     const toDelete = visibleFachadas.filter((f) => f.planta_tipo_nombre === tipoNombre);
     if (toDelete.length === 0) return;
+    if (!(await confirm({
+      title: "Eliminar tipo de planta",
+      message: `¿Eliminar todas las plantas "${tipoNombre}" (${toDelete.length} piso${toDelete.length > 1 ? "s" : ""})? Las unidades asignadas serán desvinculadas.`,
+    }))) return;
     try {
       await Promise.all(
         toDelete.map((f) => fetch(`/api/fachadas/${f.id}`, { method: "DELETE" }))

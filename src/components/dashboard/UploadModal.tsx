@@ -218,7 +218,7 @@ export function UploadModal({
           initial={{ scale: 0.95, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
           exit={{ scale: 0.95, opacity: 0 }}
-          className="w-full max-w-2xl bg-[var(--surface-1)] rounded-xl border border-[var(--border-subtle)] shadow-[var(--shadow-xl)] overflow-hidden"
+          className="w-full max-w-2xl glass-modal overflow-hidden"
           onClick={(e) => e.stopPropagation()}
         >
           {/* Header */}
@@ -267,7 +267,7 @@ export function UploadModal({
                     </div>
                     <button
                       onClick={() => inputRef.current?.click()}
-                      className="flex items-center gap-1.5 px-4 py-2 border border-[var(--border-default)] bg-[var(--surface-2)] rounded-[0.625rem] text-xs text-[var(--text-secondary)] hover:text-white hover:border-[var(--border-strong)] hover:bg-[var(--surface-3)] transition-all"
+                      className="flex items-center gap-1.5 px-5 py-2.5 border border-[var(--border-default)] bg-[var(--surface-2)] rounded-[0.625rem] text-xs text-[var(--text-secondary)] hover:text-white hover:border-[var(--border-strong)] hover:bg-[var(--surface-3)] transition-all"
                     >
                       <FolderOpen size={14} />
                       {t("uploadModal.openExplorer")}
@@ -376,14 +376,14 @@ export function UploadModal({
             <button
               onClick={onClose}
               disabled={uploading || compressing}
-              className="flex items-center gap-1.5 px-4 py-2 border border-[var(--border-default)] bg-[var(--surface-2)] rounded-[0.625rem] text-xs text-[var(--text-secondary)] hover:text-white hover:border-[var(--border-strong)] hover:bg-[var(--surface-3)] transition-all disabled:opacity-40"
+              className="flex items-center gap-1.5 px-5 py-2.5 border border-[var(--border-default)] bg-[var(--surface-2)] rounded-[0.625rem] text-xs text-[var(--text-secondary)] hover:text-white hover:border-[var(--border-strong)] hover:bg-[var(--surface-3)] transition-all disabled:opacity-40"
             >
               {t("uploadModal.cancel")}
             </button>
             <button
               onClick={handleUploadAll}
               disabled={uploading || compressing || stagedFiles.length === 0}
-              className="flex items-center gap-1.5 px-4 py-2 bg-[var(--site-primary)] text-[#141414] rounded-[0.625rem] text-xs font-semibold hover:brightness-110 hover:shadow-[0_4px_16px_rgba(var(--site-primary-rgb),0.25)] transition-all disabled:opacity-40 disabled:cursor-not-allowed"
+              className="flex items-center gap-1.5 px-5 py-2.5 bg-[var(--site-primary)] text-[#141414] rounded-[0.625rem] text-xs font-semibold hover:brightness-110 hover:shadow-[0_4px_16px_rgba(var(--site-primary-rgb),0.25)] transition-all disabled:opacity-40 disabled:cursor-not-allowed"
             >
               {compressing || uploading ? (
                 <Loader2 size={14} className="animate-spin" />

@@ -113,8 +113,8 @@ export function LeadForm({
         animate={{ opacity: 1, scale: 1 }}
         className={`${
           isPage
-            ? "glass-card border border-[rgba(var(--site-primary-rgb),0.2)] shadow-[0_0_40px_rgba(var(--site-primary-rgb),0.08)]"
-            : "glass-card"
+            ? "bg-[var(--surface-1)] rounded-[1.25rem] border border-[rgba(var(--site-primary-rgb),0.2)] shadow-[0_0_40px_rgba(var(--site-primary-rgb),0.08)]"
+            : "bg-[var(--surface-1)] rounded-[1.25rem]"
         } p-12 flex flex-col items-center justify-center gap-4`}
       >
         <div className="animate-success-pop">
@@ -148,8 +148,8 @@ export function LeadForm({
       onSubmit={handleSubmit}
       className={`${
         isPage
-          ? "glass-card border border-[rgba(var(--site-primary-rgb),0.2)] shadow-[0_0_40px_rgba(var(--site-primary-rgb),0.08)] p-8"
-          : "glass-card p-8"
+          ? "bg-[var(--surface-1)] rounded-[1.25rem] border border-[rgba(var(--site-primary-rgb),0.2)] shadow-[0_0_40px_rgba(var(--site-primary-rgb),0.08)] p-8"
+          : "bg-[var(--surface-1)] rounded-[1.25rem] p-8"
       } space-y-4 ${isPage ? "" : "max-w-lg"}`}
     >
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">

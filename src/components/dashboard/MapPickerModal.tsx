@@ -299,7 +299,7 @@ export function MapPickerModal({
       style={{ backgroundColor: "rgba(0,0,0,0.8)" }}
     >
       <div
-        className="w-full max-w-4xl h-[100dvh] md:h-[80vh] bg-[#141414] md:rounded-2xl border border-white/10 overflow-hidden flex flex-col"
+        className="w-full max-w-4xl h-[100dvh] md:h-[80vh] glass-modal !rounded-none md:!rounded-2xl overflow-hidden flex flex-col"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header with search — z-10 ensures clicks don't pass through to the map */}
@@ -403,14 +403,14 @@ export function MapPickerModal({
           <div className="flex items-center gap-2 sm:ml-4">
             <button
               onClick={onClose}
-              className="px-4 py-2 text-xs text-white/50 border border-white/10 rounded-lg hover:text-white hover:border-white/20 transition-colors"
+              className="px-5 py-2.5 text-xs text-white/50 border border-white/10 rounded-lg hover:text-white hover:border-white/20 transition-colors"
             >
               {t("mapPicker.cancel")}
             </button>
             <button
               onClick={handleConfirm}
               disabled={selectedLat === null || selectedLng === null}
-              className="flex items-center gap-1.5 px-4 py-2 bg-[var(--site-primary)] text-black rounded-lg text-xs font-medium hover:brightness-110 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+              className="flex items-center gap-1.5 px-5 py-2.5 bg-[var(--site-primary)] text-black rounded-lg text-xs font-medium hover:brightness-110 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
             >
               <Check size={14} />
               {t("mapPicker.confirmLocation")}

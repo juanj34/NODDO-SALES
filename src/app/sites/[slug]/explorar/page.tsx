@@ -10,6 +10,8 @@ import {
   Maximize2,
   BedDouble,
   Bath,
+  Car,
+  Archive,
   Compass,
   Eye,
   ChevronRight,
@@ -479,6 +481,24 @@ export default function ExplorarPage() {
                     </div>
                   </div>
                 )}
+                {selectedUnit.parqueaderos !== null && selectedUnit.parqueaderos > 0 && (
+                  <div className="bg-white/5 rounded-xl px-3 py-2 flex items-center gap-2">
+                    <Car size={14} className="text-[var(--site-primary)]" />
+                    <div>
+                      <p className="text-[8px] text-[var(--text-tertiary)] tracking-wider uppercase">{tSite("explorar.parking")}</p>
+                      <p className="text-sm text-white font-medium">{selectedUnit.parqueaderos}</p>
+                    </div>
+                  </div>
+                )}
+                {selectedUnit.depositos !== null && selectedUnit.depositos > 0 && (
+                  <div className="bg-white/5 rounded-xl px-3 py-2 flex items-center gap-2">
+                    <Archive size={14} className="text-[var(--site-primary)]" />
+                    <div>
+                      <p className="text-[8px] text-[var(--text-tertiary)] tracking-wider uppercase">{tSite("explorar.storage")}</p>
+                      <p className="text-sm text-white font-medium">{selectedUnit.depositos}</p>
+                    </div>
+                  </div>
+                )}
               </div>
 
               {/* Orientation + View */}
@@ -709,7 +729,8 @@ export default function ExplorarPage() {
           transition={{ delay: 0.3, duration: 0.5 }}
         >
           {/* Wrapper sized to exact image — CSS % hotspot positioning */}
-          <div className="relative inline-block leading-[0]">
+          {/* Click on background (not on a hotspot) closes unit detail */}
+          <div className="relative inline-block leading-[0]" onClick={() => selectedUnit && setSelectedUnit(null)}>
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               src={fachadaUrl}
@@ -741,7 +762,8 @@ export default function ExplorarPage() {
                     top: `${isPlantaView ? unit.planta_y : unit.fachada_y}%`,
                     transform: "translate(-50%, -50%)",
                   }}
-                  onClick={() => {
+                  onClick={(e) => {
+                    e.stopPropagation();
                     setSelectedUnit(isSelected ? null : unit);
                     if (!isSelected) {
                       scrollToUnit(unit.id);
