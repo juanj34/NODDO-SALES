@@ -1,5 +1,17 @@
 import { getAuthContext } from "@/lib/auth-context";
+import { pick } from "@/lib/api-utils";
 import { NextRequest, NextResponse } from "next/server";
+
+const PROYECTO_FIELDS = [
+  "nombre", "slug", "descripcion", "estado", "disclaimer", "politica_privacidad_url",
+  "logo_url", "constructora_nombre", "constructora_logo_url", "constructora_website",
+  "color_primario", "color_secundario", "color_fondo", "whatsapp_numero",
+  "ubicacion_direccion", "ubicacion_lat", "ubicacion_lng", "tour_360_url",
+  "brochure_url", "render_principal_url", "favicon_url", "og_image_url",
+  "hero_video_url", "fachada_url", "mapa_ubicacion_url", "subdomain",
+  "custom_domain", "domain_verified", "etapa_label", "background_audio_url",
+  "hide_noddo_badge",
+];
 
 export async function GET(
   _request: NextRequest,
@@ -117,9 +129,11 @@ export async function PUT(
 
     const body = await request.json();
 
+    const updateData = { ...pick(body, PROYECTO_FIELDS), updated_at: new Date().toISOString() };
+
     const { data, error } = await auth.supabase
       .from("proyectos")
-      .update({ ...body, updated_at: new Date().toISOString() })
+      .update(updateData)
       .eq("id", id)
       .eq("user_id", auth.user.id)
       .select()

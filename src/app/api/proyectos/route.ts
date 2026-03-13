@@ -1,4 +1,5 @@
 import { getAuthContext } from "@/lib/auth-context";
+import { pick } from "@/lib/api-utils";
 import { NextRequest, NextResponse } from "next/server";
 
 export async function GET() {
@@ -58,13 +59,15 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    const insertData = {
+      ...pick(body, ["nombre", "slug", "descripcion", "estado"]),
+      user_id: auth.user.id,
+      subdomain: slug,
+    };
+
     const { data, error } = await auth.supabase
       .from("proyectos")
-      .insert({
-        ...body,
-        user_id: auth.user.id,
-        subdomain: slug,
-      })
+      .insert(insertData)
       .select()
       .single();
 

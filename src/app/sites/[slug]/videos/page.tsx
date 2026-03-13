@@ -8,6 +8,7 @@ import { Play, Film, ChevronLeft, ChevronRight } from "lucide-react";
 import { useSiteProject } from "@/hooks/useSiteProject";
 import { cn } from "@/lib/utils";
 import { useTranslation } from "@/i18n";
+import { trackEvent } from "@/lib/tracking";
 
 export default function VideosPage() {
   const proyecto = useSiteProject();
@@ -122,7 +123,10 @@ export default function VideosPage() {
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.1 + idx * 0.04 }}
-                onClick={() => setActiveVideo(idx)}
+                onClick={() => {
+                  setActiveVideo(idx);
+                  trackEvent(proyecto.id, "video_play", undefined, { video_title: video.titulo });
+                }}
                 className={cn(
                   "flex-shrink-0 w-40 cursor-pointer group transition-all duration-200",
                   idx === activeVideo ? "opacity-100" : "opacity-50 hover:opacity-80"

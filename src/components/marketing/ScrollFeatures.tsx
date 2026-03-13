@@ -95,6 +95,9 @@ export function ScrollFeatures() {
     // Collect layer-specific elements by ID from the DOM subtree
     const $ = (id: string) => section.querySelector<SVGElement | HTMLElement>(`#${id}`);
 
+    const prefersReduced =
+      window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
     let rafId: number;
 
     function render(ts: number) {
@@ -122,17 +125,19 @@ export function ScrollFeatures() {
         counterRef.current.textContent = pad(stepIdx + 1);
       }
 
-      // Dots
+      // Dots — target inner <span> for visual styling
       dotRefs.current.forEach((d, i) => {
         if (!d) return;
+        const dot = d.querySelector("span") as HTMLElement | null;
+        if (!dot) return;
         if (i === stepIdx) {
-          d.style.background = "var(--mk-accent)";
-          d.style.transform = "scale(1.5)";
-          d.style.boxShadow = "0 0 8px rgba(184,151,58,.5)";
+          dot.style.background = "var(--mk-accent)";
+          dot.style.transform = "scale(1.5)";
+          dot.style.boxShadow = "0 0 8px rgba(184,151,58,.5)";
         } else {
-          d.style.background = "rgba(255,255,255,.1)";
-          d.style.transform = "scale(1)";
-          d.style.boxShadow = "none";
+          dot.style.background = "rgba(255,255,255,.1)";
+          dot.style.transform = "scale(1)";
+          dot.style.boxShadow = "none";
         }
       });
 
@@ -180,6 +185,9 @@ export function ScrollFeatures() {
         else op = 0;
         l.style.opacity = String(op);
       });
+
+      // Skip heavy per-element animations if user prefers reduced motion
+      if (prefersReduced) return;
 
       // ── Layer 0: PLANOS — sheets fly in ──
       {
@@ -342,27 +350,24 @@ export function ScrollFeatures() {
   return (
     <section
       ref={sectionRef}
+      className="relative z-[1] h-[500vh] lg:h-[700vh]"
       style={{
-        position: "relative",
-        zIndex: 1,
-        height: "700vh",
         borderTop: "1px solid rgba(255,255,255,.04)",
       }}
     >
       <div
+        className="grid grid-cols-1 lg:grid-cols-[55%_45%]"
         style={{
           position: "sticky",
           top: 0,
           height: "100vh",
-          display: "grid",
-          gridTemplateColumns: "55% 45%",
           overflow: "hidden",
         }}
       >
-        {/* ── LEFT: Building + Layers ── */}
+        {/* ── LEFT: Building + Layers (hidden on mobile) ── */}
         <div
+          className="hidden lg:flex"
           style={{
-            display: "flex",
             alignItems: "center",
             justifyContent: "center",
             position: "relative",
@@ -777,7 +782,7 @@ export function ScrollFeatures() {
         </div>
 
         {/* ── RIGHT: Cards + Progress UI ── */}
-        <div style={{ position: "relative", overflow: "hidden" }}>
+        <div className="relative overflow-hidden">
           {/* Vertical progress bar */}
           <div
             style={{
@@ -831,22 +836,14 @@ export function ScrollFeatures() {
 
           {/* Cards viewport */}
           <div
-            style={{
-              position: "absolute",
-              inset: 0,
-              display: "flex",
-              alignItems: "center",
-              padding: "60px 72px 60px 56px",
-            }}
+            className="absolute inset-0 flex items-center px-6 py-10 lg:px-14 lg:py-[60px] lg:pr-[72px]"
           >
             {STEPS.map((step, i) => (
               <div
                 key={i}
                 ref={(el) => { stepRefs.current[i] = el; }}
+                className="absolute w-[calc(100%-48px)] lg:w-[calc(100%-128px)] left-6 lg:left-14"
                 style={{
-                  position: "absolute",
-                  width: "calc(100% - 128px)",
-                  left: 56,
                   opacity: i === 0 ? 1 : 0,
                   willChange: "opacity, transform",
                   pointerEvents: "none",
@@ -855,7 +852,7 @@ export function ScrollFeatures() {
                 {/* Step number + label */}
                 <div
                   style={{
-                    fontSize: 9,
+                    fontSize: 10,
                     letterSpacing: ".35em",
                     textTransform: "uppercase" as const,
                     color: "var(--mk-accent)",
@@ -873,7 +870,7 @@ export function ScrollFeatures() {
                 <h2
                   className="font-heading"
                   style={{
-                    fontSize: "clamp(36px,3.8vw,56px)",
+                    fontSize: "clamp(42px,4.5vw,68px)",
                     fontWeight: 300,
                     lineHeight: 1.08,
                     letterSpacing: "-.02em",
@@ -889,10 +886,10 @@ export function ScrollFeatures() {
                 {/* Body */}
                 <p
                   style={{
-                    fontSize: 13,
-                    lineHeight: 1.9,
-                    color: "rgba(244,240,232,.42)",
-                    maxWidth: 380,
+                    fontSize: 15,
+                    lineHeight: 1.85,
+                    color: "rgba(244,240,232,.55)",
+                    maxWidth: 420,
                     marginBottom: 32,
                   }}
                 >
@@ -906,7 +903,7 @@ export function ScrollFeatures() {
                     display: "inline-flex",
                     alignItems: "center",
                     gap: 8,
-                    fontSize: 9,
+                    fontSize: 10,
                     fontWeight: 700,
                     letterSpacing: ".18em",
                     textTransform: "uppercase" as const,
@@ -943,20 +940,35 @@ export function ScrollFeatures() {
               zIndex: 10,
             }}
           >
-            {STEPS.map((_, i) => (
-              <div
+            {STEPS.map((step, i) => (
+              <button
                 key={i}
-                ref={(el) => { dotRefs.current[i] = el; }}
+                ref={(el) => { dotRefs.current[i] = el as unknown as HTMLDivElement; }}
                 onClick={() => handleDotClick(i)}
+                aria-label={`Ir al paso ${i + 1}: ${step.label}`}
                 style={{
-                  width: 5,
-                  height: 5,
-                  borderRadius: "50%",
-                  background: i === 0 ? "var(--mk-accent)" : "rgba(255,255,255,.1)",
-                  willChange: "background, transform, box-shadow",
+                  width: 24,
+                  height: 24,
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  background: "none",
+                  border: "none",
+                  padding: 0,
                   cursor: "pointer",
                 }}
-              />
+              >
+                <span
+                  style={{
+                    width: 5,
+                    height: 5,
+                    borderRadius: "50%",
+                    display: "block",
+                    background: i === 0 ? "var(--mk-accent)" : "rgba(255,255,255,.1)",
+                    willChange: "background, transform, box-shadow",
+                  }}
+                />
+              </button>
             ))}
           </div>
 

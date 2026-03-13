@@ -1,3 +1,4 @@
+import { pick } from "@/lib/api-utils";
 import { getAuthContext } from "@/lib/auth-context";
 import { NextRequest, NextResponse } from "next/server";
 
@@ -28,7 +29,7 @@ export async function PUT(
 
     const { data, error } = await auth.supabase
       .from("unidades")
-      .update(body)
+      .update(pick(body, ["tipologia_id", "identificador", "piso", "area_m2", "precio", "estado", "habitaciones", "banos", "orientacion", "vista", "notas", "fachada_id", "fachada_x", "fachada_y", "torre_id", "orden"]))
       .eq("id", id)
       .select()
       .single();

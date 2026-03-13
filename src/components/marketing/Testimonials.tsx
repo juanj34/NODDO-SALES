@@ -9,6 +9,8 @@ const testimonials = [
     name: "Jorge Mora",
     initials: "JM",
     role: "Director Comercial · Arco Urbano",
+    avatar:
+      "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&h=100&fit=crop&crop=face",
   },
   {
     quote:
@@ -16,6 +18,8 @@ const testimonials = [
     name: "Lorena Castaño",
     initials: "LC",
     role: "Gerente General · Vértice Grupo",
+    avatar:
+      "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=100&h=100&fit=crop&crop=face",
   },
   {
     quote:
@@ -23,6 +27,8 @@ const testimonials = [
     name: "Ricardo Fuentes",
     initials: "RF",
     role: "VP de Proyectos · Cimientos & Co",
+    avatar:
+      "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=100&h=100&fit=crop&crop=face",
   },
 ];
 
@@ -38,10 +44,21 @@ export function Testimonials() {
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true, margin: "-80px" }}
           transition={{ duration: 0.7, ease }}
-          className="mk-section-label mb-16"
+          className="mk-section-label mb-6"
         >
           Lo que dicen los desarrolladores
         </motion.div>
+
+        <motion.h2
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, margin: "-80px" }}
+          transition={{ duration: 0.7, delay: 0.1, ease }}
+          className="mk-section-heading mb-16"
+        >
+          Historias de quienes<br />
+          ya <em>venden diferente.</em>
+        </motion.h2>
 
         {/* Cards */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-px bg-[rgba(255,255,255,0.04)]">
@@ -102,20 +119,16 @@ export function Testimonials() {
               {/* Author */}
               <div className="flex items-center gap-3.5">
                 {/* Avatar */}
-                <div
-                  className="flex-shrink-0 flex items-center justify-center font-heading"
+                <img
+                  src={t.avatar}
+                  alt={t.name}
+                  className="flex-shrink-0 rounded-full object-cover"
                   style={{
-                    width: 40,
-                    height: 40,
-                    background: "#1e1e1e",
-                    border: "1px solid rgba(184,151,58,0.15)",
-                    fontSize: 16,
-                    fontWeight: 300,
-                    color: "var(--mk-accent)",
+                    width: 42,
+                    height: 42,
+                    border: "2px solid rgba(184,151,58,0.2)",
                   }}
-                >
-                  {t.initials}
-                </div>
+                />
                 <div>
                   <p className="font-ui text-[11px] font-bold tracking-[0.06em] text-[var(--mk-text-primary)] mb-0.5">
                     {t.name}

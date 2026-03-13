@@ -1,14 +1,22 @@
 "use client";
 
+import { useEffect } from "react";
 import { motion } from "framer-motion";
 import { SectionTransition } from "@/components/site/SectionTransition";
 import { Globe } from "lucide-react";
 import { useSiteProject } from "@/hooks/useSiteProject";
 import { useTranslation } from "@/i18n";
+import { trackEvent } from "@/lib/tracking";
 
 export default function Tour360Page() {
   const proyecto = useSiteProject();
   const { t } = useTranslation("site");
+
+  useEffect(() => {
+    if (proyecto.tour_360_url) {
+      trackEvent(proyecto.id, "tour_360_view");
+    }
+  }, [proyecto.id, proyecto.tour_360_url]);
 
   return (
     <SectionTransition className="h-screen flex flex-col">

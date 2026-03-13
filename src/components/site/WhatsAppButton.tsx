@@ -2,13 +2,15 @@
 
 import { motion } from "framer-motion";
 import { MessageCircle } from "lucide-react";
+import { trackEvent } from "@/lib/tracking";
 
 interface WhatsAppButtonProps {
   numero: string;
   mensaje?: string;
+  proyectoId?: string;
 }
 
-export function WhatsAppButton({ numero, mensaje = "Hola, me interesa saber más sobre el proyecto" }: WhatsAppButtonProps) {
+export function WhatsAppButton({ numero, mensaje = "Hola, me interesa saber más sobre el proyecto", proyectoId }: WhatsAppButtonProps) {
   const cleanNumber = numero.replace(/[^0-9]/g, "");
   const url = `https://wa.me/${cleanNumber}?text=${encodeURIComponent(mensaje)}`;
 
@@ -17,6 +19,9 @@ export function WhatsAppButton({ numero, mensaje = "Hola, me interesa saber más
       href={url}
       target="_blank"
       rel="noopener noreferrer"
+      onClick={() => {
+        if (proyectoId) trackEvent(proyectoId, "whatsapp_click");
+      }}
       className="fixed bottom-6 right-6 z-50 w-14 h-14 bg-[#25D366] rounded-full flex items-center justify-center shadow-lg hover:shadow-2xl"
       whileHover={{ scale: 1.1 }}
       whileTap={{ scale: 0.95 }}

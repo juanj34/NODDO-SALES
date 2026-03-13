@@ -6,34 +6,25 @@ import { useRef, useState } from "react";
 interface MagneticButtonProps {
     children: React.ReactNode;
     className?: string;
-    onClick?: () => void;
-    disabled?: boolean;
-    type?: "button" | "submit" | "reset";
 }
 
 export function MagneticButton({
     children,
     className = "",
-    onClick,
-    disabled = false,
-    type = "button",
 }: MagneticButtonProps) {
-    const ref = useRef<HTMLButtonElement>(null);
+    const ref = useRef<HTMLDivElement>(null);
     const [position, setPosition] = useState({ x: 0, y: 0 });
 
-    const handleMouse = (e: React.MouseEvent<HTMLButtonElement>) => {
-        if (!ref.current || disabled) return;
+    const handleMouse = (e: React.MouseEvent<HTMLDivElement>) => {
+        if (!ref.current) return;
 
         const { clientX, clientY } = e;
         const { height, width, left, top } = ref.current.getBoundingClientRect();
 
-        // Calculate distance from center of the button
         const middleX = clientX - (left + width / 2);
         const middleY = clientY - (top + height / 2);
 
-        // Magnetic pull strength (lower is stronger pull)
         const pullStrength = 0.2;
-
         setPosition({ x: middleX * pullStrength, y: middleY * pullStrength });
     };
 
@@ -44,13 +35,10 @@ export function MagneticButton({
     const { x, y } = position;
 
     return (
-        <motion.button
+        <motion.div
             ref={ref}
-            type={type}
             onMouseMove={handleMouse}
             onMouseLeave={reset}
-            onClick={onClick}
-            disabled={disabled}
             animate={{ x, y }}
             transition={{
                 type: "spring",
@@ -58,10 +46,9 @@ export function MagneticButton({
                 damping: 15,
                 mass: 0.1,
             }}
-            whileTap={{ scale: disabled ? 1 : 0.95 }}
-            className={`relative z-10 ${className}`}
+            className={`relative z-10 inline-block ${className}`}
         >
             {children}
-        </motion.button>
+        </motion.div>
     );
 }

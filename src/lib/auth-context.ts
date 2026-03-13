@@ -7,6 +7,7 @@ export interface AuthContext {
   user: { id: string; email: string };
   role: UserRole;
   adminUserId: string;
+  isPlatformAdmin: boolean;
   supabase: SupabaseClient;
 }
 
@@ -31,13 +32,22 @@ export async function getAuthContext(): Promise<AuthContext | null> {
     .eq("colaborador_user_id", user.id)
     .eq("estado", "activo")
     .limit(1)
-    .single();
+    .maybeSingle();
+
+  // Check if this user is a platform admin
+  const { data: platformAdmin } = await supabase
+    .from("platform_admins")
+    .select("id")
+    .eq("user_id", user.id)
+    .limit(1)
+    .maybeSingle();
 
   if (collab) {
     return {
       user: { id: user.id, email: user.email },
       role: "colaborador",
       adminUserId: collab.admin_user_id,
+      isPlatformAdmin: !!platformAdmin,
       supabase,
     };
   }
@@ -46,6 +56,7 @@ export async function getAuthContext(): Promise<AuthContext | null> {
     user: { id: user.id, email: user.email },
     role: "admin",
     adminUserId: user.id,
+    isPlatformAdmin: !!platformAdmin,
     supabase,
   };
 }

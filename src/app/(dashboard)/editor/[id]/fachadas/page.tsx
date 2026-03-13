@@ -180,6 +180,13 @@ export default function NoddoGridPage() {
     }
   }, [torres, activeTab, isMultiTorre]);
 
+  /* ---- Reset viewMode for urbanismo (etapas don't have fachadas/plantas) ---- */
+  useEffect(() => {
+    if (activeTorre?.tipo === "urbanismo" && viewMode !== "fachada") {
+      setViewMode("fachada");
+    }
+  }, [activeTorre, viewMode]);
+
   /* ------------------------------------------------------------------
      CRUD: Fachada
      ------------------------------------------------------------------ */
@@ -1019,13 +1026,13 @@ export default function NoddoGridPage() {
           </div>
         </div>
         <div className="flex items-center gap-2">
-          {(!isMultiTorre || activeTorre) && viewMode === "fachada" && (
+          {(!isMultiTorre || activeTorre) && (viewMode === "fachada" || activeTorre?.tipo === "urbanismo") && (
             <button onClick={() => setShowAddForm(true)} className={btnPrimary}>
               <Plus size={14} />
               {t("fachadas.addGrid")}
             </button>
           )}
-          {(!isMultiTorre || activeTorre) && viewMode === "planta" && (
+          {(!isMultiTorre || activeTorre) && viewMode === "planta" && activeTorre?.tipo !== "urbanismo" && (
             <button onClick={() => setShowPlantaTipoForm(true)} className={btnPrimary}>
               <Plus size={14} />
               {t("fachadas.plantas.addPlantaTipo")}
@@ -1179,17 +1186,8 @@ export default function NoddoGridPage() {
                 transition={{ duration: 0.15 }}
                 className="space-y-3"
               >
-                {/* Torre info card */}
-                <TorreInfoCard
-                  torre={activeTorre}
-                  projectId={projectId}
-                  onUpdate={handleUpdateTorre}
-                  onDelete={handleDeleteTorre}
-                  deleting={deletingTorreId === activeTorre.id}
-                />
-
-                {/* Fachadas | Plantas toggle */}
-                {renderViewModeToggle()}
+                {/* Fachadas | Plantas toggle (hide for urbanismo/etapas — they only mark casas) */}
+                {activeTorre.tipo !== "urbanismo" && renderViewModeToggle()}
 
                 {/* Duplicate result toast */}
                 {duplicateResult && (
@@ -1270,18 +1268,6 @@ export default function NoddoGridPage() {
           ============================================================ */}
       {!isMultiTorre && (
         <>
-          {/* Torre info (mono-torre) */}
-          {torres.length === 1 && (
-            <TorreInfoCard
-              torre={torres[0]}
-              projectId={projectId}
-              onUpdate={handleUpdateTorre}
-              onDelete={handleDeleteTorre}
-              deleting={deletingTorreId === torres[0].id}
-              hideDelete
-            />
-          )}
-
           {/* Fachadas | Plantas toggle */}
           {renderViewModeToggle()}
 

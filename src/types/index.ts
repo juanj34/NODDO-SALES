@@ -313,3 +313,88 @@ export interface Colaborador {
 }
 
 export type UserRole = "admin" | "colaborador";
+
+/* ── Analytics ── */
+
+export interface AnalyticsEvent {
+  id: string;
+  proyecto_id: string;
+  event_type: string;
+  page_path: string | null;
+  session_id: string;
+  visitor_id: string | null;
+  device_type: "desktop" | "mobile" | "tablet" | null;
+  user_agent: string | null;
+  screen_width: number | null;
+  referrer: string | null;
+  utm_source: string | null;
+  utm_medium: string | null;
+  utm_campaign: string | null;
+  country: string | null;
+  city: string | null;
+  metadata: Record<string, unknown>;
+  created_at: string;
+}
+
+export interface AnalyticsSummary {
+  total_views: number;
+  unique_visitors: number;
+  total_sessions: number;
+  whatsapp_clicks: number;
+  brochure_downloads: number;
+  video_plays: number;
+  recurso_downloads: number;
+  cta_clicks: number;
+}
+
+export interface AnalyticsTimeSeries {
+  bucket: string;
+  views: number;
+  visitors: number;
+}
+
+export interface AnalyticsBreakdown {
+  label: string;
+  count: number;
+}
+
+export interface AnalyticsResponse {
+  summary: AnalyticsSummary;
+  total_leads: number;
+  conversion_rate: number;
+  bounce_rate: number;
+  avg_pages_per_session: number;
+  views_over_time: AnalyticsTimeSeries[];
+  leads_over_time: AnalyticsBreakdown[];
+  views_by_page: AnalyticsBreakdown[];
+  views_by_device: AnalyticsBreakdown[];
+  views_by_country: AnalyticsBreakdown[];
+  views_by_referrer: AnalyticsBreakdown[];
+  leads_by_source: AnalyticsBreakdown[];
+  leads_by_tipologia: AnalyticsBreakdown[];
+  leads_by_country: AnalyticsBreakdown[];
+}
+
+/* ── Dashboard Home ── */
+
+export interface DashboardSummary {
+  total_views: number;
+  unique_visitors: number;
+  total_leads: number;
+  conversion_rate: number;
+  total_interactions: number;
+  views_sparkline: { bucket: string; views: number }[];
+  recent_leads: DashboardRecentLead[];
+  project_stats: Record<string, { views_7d: number; leads_7d: number }>;
+}
+
+export interface DashboardRecentLead {
+  id: string;
+  nombre: string;
+  email: string;
+  pais: string | null;
+  tipologia_interes: string | null;
+  proyecto_nombre: string;
+  proyecto_id: string;
+  created_at: string;
+}

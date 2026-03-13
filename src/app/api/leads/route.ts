@@ -19,19 +19,32 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // Validate email format
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      return NextResponse.json(
+        { error: "Formato de email inválido" },
+        { status: 400 }
+      );
+    }
+
+    // Truncate string fields to prevent abuse
+    const clean = (val: unknown, max: number) =>
+      typeof val === "string" ? val.slice(0, max) : null;
+
     const { data, error } = await supabase
       .from("leads")
       .insert({
         proyecto_id: body.proyecto_id,
-        nombre: body.nombre,
-        email: body.email,
-        telefono: body.telefono || null,
-        pais: body.pais || null,
-        tipologia_interes: body.tipologia_interes || null,
-        mensaje: body.mensaje || null,
-        utm_source: body.utm_source || null,
-        utm_medium: body.utm_medium || null,
-        utm_campaign: body.utm_campaign || null,
+        nombre: clean(body.nombre, 200),
+        email: clean(body.email, 320),
+        telefono: clean(body.telefono, 30),
+        pais: clean(body.pais, 100),
+        tipologia_interes: clean(body.tipologia_interes, 200),
+        mensaje: clean(body.mensaje, 2000),
+        utm_source: clean(body.utm_source, 200),
+        utm_medium: clean(body.utm_medium, 200),
+        utm_campaign: clean(body.utm_campaign, 200),
       })
       .select()
       .single();
@@ -105,6 +118,9 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url);
     const tipologia = searchParams.get("tipologia");
     const search = searchParams.get("search");
+    const page = Math.max(1, parseInt(searchParams.get("page") || "1"));
+    const limit = Math.min(100, Math.max(1, parseInt(searchParams.get("limit") || "50")));
+    const offset = (page - 1) * limit;
 
     // Get user's projects (use adminUserId for filtering)
     const { data: proyectos } = await auth.supabase
@@ -113,16 +129,29 @@ export async function GET(request: NextRequest) {
       .eq("user_id", auth.adminUserId);
 
     if (!proyectos?.length) {
-      return NextResponse.json([]);
+      return NextResponse.json({ data: [], total: 0, page, limit });
     }
 
     const projectIds = proyectos.map((p) => p.id);
 
+    // Count query (same filters, no data)
+    let countQuery = auth.supabase
+      .from("leads")
+      .select("*", { count: "exact", head: true })
+      .in("proyecto_id", projectIds);
+
+    if (tipologia) countQuery = countQuery.eq("tipologia_interes", tipologia);
+    if (search) countQuery = countQuery.or(`nombre.ilike.%${search}%,email.ilike.%${search}%`);
+
+    const { count } = await countQuery;
+
+    // Data query with pagination
     let query = auth.supabase
       .from("leads")
       .select("*")
       .in("proyecto_id", projectIds)
-      .order("created_at", { ascending: false });
+      .order("created_at", { ascending: false })
+      .range(offset, offset + limit - 1);
 
     if (tipologia) {
       query = query.eq("tipologia_interes", tipologia);
@@ -135,7 +164,7 @@ export async function GET(request: NextRequest) {
 
     const { data, error } = await query;
     if (error) throw error;
-    return NextResponse.json(data || []);
+    return NextResponse.json({ data: data || [], total: count || 0, page, limit });
   } catch (err) {
     return NextResponse.json(
       { error: err instanceof Error ? err.message : "Error" },

@@ -7,6 +7,7 @@ interface AuthContextValue {
   user: { id: string; email: string } | null;
   role: UserRole | null;
   adminUserId: string | null;
+  isPlatformAdmin: boolean;
   loading: boolean;
   refresh: () => Promise<void>;
 }
@@ -15,6 +16,7 @@ const AuthContext = createContext<AuthContextValue>({
   user: null,
   role: null,
   adminUserId: null,
+  isPlatformAdmin: false,
   loading: true,
   refresh: async () => {},
 });
@@ -27,6 +29,7 @@ export function AuthContextProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<{ id: string; email: string } | null>(null);
   const [role, setRole] = useState<UserRole | null>(null);
   const [adminUserId, setAdminUserId] = useState<string | null>(null);
+  const [isPlatformAdmin, setIsPlatformAdmin] = useState(false);
   const [loading, setLoading] = useState(true);
 
   const fetchAuth = useCallback(async () => {
@@ -37,15 +40,18 @@ export function AuthContextProvider({ children }: { children: ReactNode }) {
         setUser(data.user);
         setRole(data.role);
         setAdminUserId(data.adminUserId);
+        setIsPlatformAdmin(data.isPlatformAdmin ?? false);
       } else {
         setUser(null);
         setRole(null);
         setAdminUserId(null);
+        setIsPlatformAdmin(false);
       }
     } catch {
       setUser(null);
       setRole(null);
       setAdminUserId(null);
+      setIsPlatformAdmin(false);
     } finally {
       setLoading(false);
     }
@@ -56,7 +62,7 @@ export function AuthContextProvider({ children }: { children: ReactNode }) {
   }, [fetchAuth]);
 
   return (
-    <AuthContext value={{ user, role, adminUserId, loading, refresh: fetchAuth }}>
+    <AuthContext value={{ user, role, adminUserId, isPlatformAdmin, loading, refresh: fetchAuth }}>
       {children}
     </AuthContext>
   );

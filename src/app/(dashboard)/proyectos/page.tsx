@@ -2,21 +2,19 @@
 
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import Tilt from "react-parallax-tilt";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useProjects } from "@/hooks/useProject";
+import { useDashboardSummary } from "@/hooks/useDashboardSummary";
 import {
   Plus,
-  ExternalLink,
-  Edit2,
-  Trash2,
   Loader2,
   X,
-  Sparkles,
-  Bot,
   AlertTriangle,
+  Trash2,
   ArrowRight,
+  HelpCircle,
+  Users,
 } from "lucide-react";
 import { MagneticButton } from "@/components/ui/MagneticButton";
 import { NodDoLogo } from "@/components/ui/NodDoLogo";
@@ -24,23 +22,23 @@ import { useTranslation } from "@/i18n";
 import { useToast } from "@/components/dashboard/Toast";
 import { useAuthRole } from "@/hooks/useAuthContext";
 
-const estadoColors: Record<string, string> = {
-  publicado: "bg-emerald-500/15 text-emerald-400 shadow-[0_0_8px_rgba(52,211,153,0.15)]",
-  borrador: "bg-amber-500/15 text-amber-400",
-  archivado: "bg-neutral-500/15 text-neutral-400",
-};
+import { DashboardGreeting } from "@/components/dashboard/home/DashboardGreeting";
+import { DashboardKPIStrip } from "@/components/dashboard/home/DashboardKPIStrip";
+import { RecentLeadsFeed } from "@/components/dashboard/home/RecentLeadsFeed";
+import { EnhancedProjectCard } from "@/components/dashboard/home/EnhancedProjectCard";
+import { DashboardSkeleton, KPIStripSkeleton } from "@/components/dashboard/home/DashboardSkeleton";
 
 export default function ProyectosPage() {
   const { projects, loading, refresh } = useProjects();
+  const { data: summary, loading: summaryLoading } = useDashboardSummary();
   const [showCreate, setShowCreate] = useState(false);
   const [creating, setCreating] = useState(false);
   const [nombre, setNombre] = useState("");
   const [slug, setSlug] = useState("");
-  const [creatingDemo, setCreatingDemo] = useState(false);
   const router = useRouter();
   const { t } = useTranslation("dashboard");
   const toast = useToast();
-  const { role } = useAuthRole();
+  const { user, role } = useAuthRole();
   const isAdmin = role === "admin";
 
   const handleCreate = async (e: React.FormEvent) => {
@@ -61,24 +59,6 @@ export default function ProyectosPage() {
       toast.error(data.error || "Error al crear proyecto");
     }
     setCreating(false);
-  };
-
-  const handleCreateDemo = async () => {
-    setCreatingDemo(true);
-    try {
-      const res = await fetch("/api/proyectos/demo", { method: "POST" });
-      if (res.ok) {
-        const { id } = await res.json();
-        router.push(`/editor/${id}`);
-      } else {
-        const data = await res.json();
-        toast.error(data.error || "Error al crear demo");
-      }
-    } catch {
-      toast.error("Error al crear demo");
-    } finally {
-      setCreatingDemo(false);
-    }
   };
 
   // Delete confirmation modal state
@@ -113,51 +93,174 @@ export default function ProyectosPage() {
       .replace(/[^a-z0-9]+/g, "-")
       .replace(/(^-|-$)/g, "");
 
+  // Full-page skeleton while projects are loading
+  if (loading) {
+    return <DashboardSkeleton />;
+  }
+
   return (
-    <div className="p-4 md:p-8 max-w-7xl mx-auto">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-10">
-        <div>
-          <h1 className="font-heading text-2xl font-light text-[var(--text-primary)]">
-            {t("proyectos.title")}
-          </h1>
-          <p className="text-[var(--text-tertiary)] text-sm mt-1">
-            {t("proyectos.description")}
-          </p>
-        </div>
-        {isAdmin && (
-          <div className="flex flex-wrap items-center gap-2">
-            <MagneticButton>
-              <button
-                onClick={handleCreateDemo}
-                disabled={creatingDemo}
-                className="flex items-center gap-2 px-4 py-2.5 font-ui text-xs font-bold uppercase tracking-[0.1em] border border-[var(--border-default)] rounded-xl text-[var(--text-secondary)] hover:text-white hover:border-[var(--border-strong)] hover:bg-[var(--surface-2)] transition-all disabled:opacity-50"
-              >
-                {creatingDemo ? <Loader2 size={14} className="animate-spin" /> : <Sparkles size={14} />}
-                {creatingDemo ? t("proyectos.loading") : t("proyectos.createDemo")}
-              </button>
-            </MagneticButton>
-            <MagneticButton>
-              <Link
-                href="/crear"
-                className="flex items-center gap-2 px-4 py-2.5 font-ui text-xs font-bold uppercase tracking-[0.1em] border border-[rgba(var(--site-primary-rgb),0.30)] rounded-xl text-[var(--site-primary)] hover:bg-[rgba(var(--site-primary-rgb),0.10)] transition-all"
-              >
-                <Bot size={14} />
-                {t("proyectos.createWithAI")}
-              </Link>
-            </MagneticButton>
-            <MagneticButton>
-              <button
-                onClick={() => setShowCreate(true)}
-                className="btn-noddo flex items-center gap-2 px-5 py-2.5 font-ui text-xs font-bold uppercase tracking-[0.1em]"
-              >
-                <Plus size={16} />
-                {t("proyectos.newProject")}
-              </button>
-            </MagneticButton>
+    <div className="p-4 md:p-8 max-w-7xl mx-auto space-y-8">
+      {/* Greeting */}
+      <DashboardGreeting
+        userEmail={user?.email || ""}
+        isAdmin={isAdmin}
+        onCreateClick={() => setShowCreate(true)}
+      />
+
+      {/* KPI Strip — admin only, with projects */}
+      {isAdmin && projects.length > 0 && (
+        summaryLoading ? (
+          <KPIStripSkeleton />
+        ) : summary ? (
+          <DashboardKPIStrip data={summary} />
+        ) : null
+      )}
+
+      {/* Activity row — admin only, with projects */}
+      {isAdmin && projects.length > 0 && (
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
+          <div className="lg:col-span-2">
+            <RecentLeadsFeed
+              leads={summary?.recent_leads || []}
+              loading={summaryLoading}
+            />
           </div>
-        )}
-      </div>
+
+          {/* Quick actions */}
+          <div className="bg-[var(--surface-1)] rounded-xl border border-[var(--border-subtle)] shadow-[var(--shadow-sm)] p-5 flex flex-col gap-3">
+            <span className="font-ui text-[10px] font-bold uppercase tracking-[0.12em] text-[var(--text-muted)] mb-1">
+              {t("home.quickActions")}
+            </span>
+
+            <button
+              onClick={() => setShowCreate(true)}
+              className="group flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-[var(--surface-2)] transition-colors text-left"
+            >
+              <div className="w-8 h-8 rounded-lg bg-[rgba(184,151,58,0.08)] border border-[rgba(184,151,58,0.12)] flex items-center justify-center text-[var(--site-primary)] group-hover:bg-[rgba(184,151,58,0.15)] transition-colors">
+                <Plus size={14} />
+              </div>
+              <span className="font-ui text-[10px] font-bold uppercase tracking-[0.1em] text-[var(--text-secondary)]">
+                {t("proyectos.newProject")}
+              </span>
+            </button>
+
+            <Link
+              href="/leads"
+              className="group flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-[var(--surface-2)] transition-colors"
+            >
+              <div className="w-8 h-8 rounded-lg bg-[var(--surface-3)] border border-[var(--border-subtle)] flex items-center justify-center text-[var(--text-tertiary)] group-hover:text-[var(--text-secondary)] transition-colors">
+                <Users size={14} />
+              </div>
+              <span className="font-ui text-[10px] font-bold uppercase tracking-[0.1em] text-[var(--text-secondary)]">
+                {t("home.viewAllLeads")}
+              </span>
+            </Link>
+
+            <Link
+              href="/ayuda"
+              className="group flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-[var(--surface-2)] transition-colors"
+            >
+              <div className="w-8 h-8 rounded-lg bg-[var(--surface-3)] border border-[var(--border-subtle)] flex items-center justify-center text-[var(--text-tertiary)] group-hover:text-[var(--text-secondary)] transition-colors">
+                <HelpCircle size={14} />
+              </div>
+              <span className="font-ui text-[10px] font-bold uppercase tracking-[0.1em] text-[var(--text-secondary)]">
+                {t("sidebar.help")}
+              </span>
+            </Link>
+          </div>
+        </div>
+      )}
+
+      {/* Projects section */}
+      {projects.length === 0 ? (
+        /* Empty state */
+        <div className="flex flex-col items-center justify-center py-16 max-w-2xl mx-auto">
+          <motion.div
+            initial={{ opacity: 0, y: 12 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5 }}
+            className="text-center mb-10"
+          >
+            <div
+              className="inline-flex items-center justify-center w-16 h-16 rounded-2xl mb-6"
+              style={{
+                background: "linear-gradient(135deg, rgba(184,151,58,0.15), rgba(184,151,58,0.05))",
+                border: "1px solid rgba(184,151,58,0.15)",
+                boxShadow: "0 0 40px rgba(184,151,58,0.08)",
+              }}
+            >
+              <NodDoLogo height={14} colorNod="var(--text-secondary)" colorDo="var(--site-primary)" />
+            </div>
+            <h2 className="font-heading text-3xl font-light text-[var(--text-primary)] mb-3 tracking-wide">
+              {t("proyectos.noProjects")}
+            </h2>
+            <p className="text-[var(--text-tertiary)] text-sm max-w-md mx-auto leading-relaxed">
+              {t("proyectos.noProjectsDescription")}
+            </p>
+          </motion.div>
+
+          {isAdmin && (
+            <motion.button
+              initial={{ opacity: 0, y: 16 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.4, delay: 0.1 }}
+              onClick={() => setShowCreate(true)}
+              className="group glass-card p-6 text-left hover:border-[var(--border-default)] transition-all duration-300 cursor-pointer w-full max-w-sm"
+              style={{ borderRadius: "1.25rem" }}
+            >
+              <div className="w-10 h-10 rounded-xl bg-[var(--surface-3)] border border-[var(--border-subtle)] flex items-center justify-center mb-4 group-hover:border-[rgba(var(--site-primary-rgb),0.25)] group-hover:bg-[rgba(var(--site-primary-rgb),0.08)] transition-all">
+                <Plus size={18} className="text-[var(--text-muted)] group-hover:text-[var(--site-primary)] transition-colors" />
+              </div>
+              <h3 className="font-ui text-xs font-bold uppercase tracking-wider text-[var(--text-primary)] mb-1.5">
+                {t("proyectos.newProject")}
+              </h3>
+              <p className="text-[11px] text-[var(--text-tertiary)] leading-relaxed mb-4">
+                Configura cada detalle manualmente desde cero.
+              </p>
+              <span className="inline-flex items-center gap-1.5 font-ui text-[10px] font-bold uppercase tracking-wider text-[var(--site-primary)] opacity-0 group-hover:opacity-100 transition-opacity">
+                Crear <ArrowRight size={10} />
+              </span>
+            </motion.button>
+          )}
+
+          {!isAdmin && (
+            <motion.div
+              initial={{ opacity: 0, y: 12 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.4, delay: 0.15 }}
+              className="glass-card p-8 text-center max-w-sm"
+            >
+              <p className="text-sm text-[var(--text-secondary)] leading-relaxed">
+                Tu administrador aun no ha creado proyectos. Los veras aqui cuando esten disponibles.
+              </p>
+            </motion.div>
+          )}
+        </div>
+      ) : (
+        <>
+          {/* Section label */}
+          <div className="flex items-center gap-3">
+            <span className="font-ui text-[10px] font-bold uppercase tracking-[0.12em] text-[var(--text-muted)]">
+              {t("home.yourProjects")}
+            </span>
+            <div className="h-px flex-1 bg-[var(--border-subtle)]" />
+          </div>
+
+          {/* Project grid */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+            {projects.map((proyecto, idx) => (
+              <EnhancedProjectCard
+                key={proyecto.id}
+                proyecto={proyecto}
+                stats={summary?.project_stats[proyecto.id]}
+                index={idx}
+                isAdmin={isAdmin}
+                onDelete={handleDelete}
+              />
+            ))}
+          </div>
+        </>
+      )}
 
       {/* Create modal */}
       <AnimatePresence>
@@ -321,220 +424,6 @@ export default function ProyectosPage() {
           </motion.div>
         )}
       </AnimatePresence>
-
-      {loading ? (
-        <div className="flex items-center justify-center py-24">
-          <Loader2 className="animate-spin text-[var(--site-primary)]" size={28} />
-        </div>
-      ) : projects.length === 0 ? (
-        <div className="flex flex-col items-center justify-center py-16 max-w-2xl mx-auto">
-          {/* Logo + Welcome */}
-          <motion.div
-            initial={{ opacity: 0, y: 12 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5 }}
-            className="text-center mb-10"
-          >
-            <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl mb-6"
-              style={{
-                background: "linear-gradient(135deg, rgba(184,151,58,0.15), rgba(184,151,58,0.05))",
-                border: "1px solid rgba(184,151,58,0.15)",
-                boxShadow: "0 0 40px rgba(184,151,58,0.08)",
-              }}
-            >
-              <NodDoLogo height={14} colorNod="var(--text-secondary)" colorDo="var(--site-primary)" />
-            </div>
-            <h2 className="font-heading text-3xl font-light text-[var(--text-primary)] mb-3 tracking-wide">
-              {t("proyectos.noProjects")}
-            </h2>
-            <p className="text-[var(--text-tertiary)] text-sm max-w-md mx-auto leading-relaxed">
-              {t("proyectos.noProjectsDescription")}
-            </p>
-          </motion.div>
-
-          {/* Action Cards */}
-          {isAdmin && (
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 w-full">
-              {/* Card: Create blank */}
-              <motion.button
-                initial={{ opacity: 0, y: 16 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.4, delay: 0.1 }}
-                onClick={() => setShowCreate(true)}
-                className="group glass-card p-6 text-left hover:border-[var(--border-default)] transition-all duration-300 cursor-pointer"
-                style={{ borderRadius: "1.25rem" }}
-              >
-                <div className="w-10 h-10 rounded-xl bg-[var(--surface-3)] border border-[var(--border-subtle)] flex items-center justify-center mb-4 group-hover:border-[rgba(var(--site-primary-rgb),0.25)] group-hover:bg-[rgba(var(--site-primary-rgb),0.08)] transition-all">
-                  <Plus size={18} className="text-[var(--text-muted)] group-hover:text-[var(--site-primary)] transition-colors" />
-                </div>
-                <h3 className="font-ui text-xs font-bold uppercase tracking-wider text-[var(--text-primary)] mb-1.5">
-                  Proyecto en blanco
-                </h3>
-                <p className="text-[11px] text-[var(--text-tertiary)] leading-relaxed mb-4">
-                  Configura cada detalle manualmente desde cero.
-                </p>
-                <span className="inline-flex items-center gap-1.5 font-ui text-[10px] font-bold uppercase tracking-wider text-[var(--site-primary)] opacity-0 group-hover:opacity-100 transition-opacity">
-                  Crear <ArrowRight size={10} />
-                </span>
-              </motion.button>
-
-              {/* Card: Create with AI */}
-              <motion.div
-                initial={{ opacity: 0, y: 16 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.4, delay: 0.2 }}
-              >
-                <Link
-                  href="/crear"
-                  className="group glass-card p-6 text-left hover:border-[var(--border-default)] transition-all duration-300 block h-full"
-                  style={{ borderRadius: "1.25rem" }}
-                >
-                  <div className="w-10 h-10 rounded-xl bg-[var(--surface-3)] border border-[var(--border-subtle)] flex items-center justify-center mb-4 group-hover:border-[rgba(var(--site-primary-rgb),0.25)] group-hover:bg-[rgba(var(--site-primary-rgb),0.08)] transition-all">
-                    <Bot size={18} className="text-[var(--text-muted)] group-hover:text-[var(--site-primary)] transition-colors" />
-                  </div>
-                  <h3 className="font-ui text-xs font-bold uppercase tracking-wider text-[var(--text-primary)] mb-1.5">
-                    {t("proyectos.createWithAI")}
-                  </h3>
-                  <p className="text-[11px] text-[var(--text-tertiary)] leading-relaxed mb-4">
-                    Sube tu brochure o describe el proyecto y la IA lo estructura.
-                  </p>
-                  <span className="inline-flex items-center gap-1.5 font-ui text-[10px] font-bold uppercase tracking-wider text-[var(--site-primary)] opacity-0 group-hover:opacity-100 transition-opacity">
-                    Comenzar <ArrowRight size={10} />
-                  </span>
-                </Link>
-              </motion.div>
-
-              {/* Card: Demo */}
-              <motion.button
-                initial={{ opacity: 0, y: 16 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.4, delay: 0.3 }}
-                onClick={handleCreateDemo}
-                disabled={creatingDemo}
-                className="group glass-card p-6 text-left hover:border-[var(--border-default)] transition-all duration-300 cursor-pointer disabled:opacity-50"
-                style={{ borderRadius: "1.25rem" }}
-              >
-                <div className="w-10 h-10 rounded-xl bg-[var(--surface-3)] border border-[var(--border-subtle)] flex items-center justify-center mb-4 group-hover:border-[rgba(var(--site-primary-rgb),0.25)] group-hover:bg-[rgba(var(--site-primary-rgb),0.08)] transition-all">
-                  {creatingDemo ? (
-                    <Loader2 size={18} className="text-[var(--site-primary)] animate-spin" />
-                  ) : (
-                    <Sparkles size={18} className="text-[var(--text-muted)] group-hover:text-[var(--site-primary)] transition-colors" />
-                  )}
-                </div>
-                <h3 className="font-ui text-xs font-bold uppercase tracking-wider text-[var(--text-primary)] mb-1.5">
-                  {t("proyectos.createDemo")}
-                </h3>
-                <p className="text-[11px] text-[var(--text-tertiary)] leading-relaxed mb-4">
-                  Genera un proyecto de ejemplo para explorar la plataforma.
-                </p>
-                <span className="inline-flex items-center gap-1.5 font-ui text-[10px] font-bold uppercase tracking-wider text-[var(--site-primary)] opacity-0 group-hover:opacity-100 transition-opacity">
-                  {creatingDemo ? "Creando..." : "Generar"} <ArrowRight size={10} />
-                </span>
-              </motion.button>
-            </div>
-          )}
-
-          {/* Collaborator empty state */}
-          {!isAdmin && (
-            <motion.div
-              initial={{ opacity: 0, y: 12 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.4, delay: 0.15 }}
-              className="glass-card p-8 text-center max-w-sm"
-            >
-              <p className="text-sm text-[var(--text-secondary)] leading-relaxed">
-                Tu administrador aun no ha creado proyectos. Los veras aqui cuando esten disponibles.
-              </p>
-            </motion.div>
-          )}
-        </div>
-      ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-          {projects.map((proyecto, idx) => (
-            <motion.div
-              key={proyecto.id}
-              initial={{ opacity: 0, y: 16 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: idx * 0.06, duration: 0.4 }}
-            >
-              <Tilt
-                glareEnable={true}
-                glareMaxOpacity={0.15}
-                glareColor="#ffffff"
-                glarePosition="all"
-                glareBorderRadius="12px"
-                tiltMaxAngleX={4}
-                tiltMaxAngleY={4}
-                scale={1.02}
-                transitionSpeed={2000}
-                className="group bg-[var(--surface-1)] border border-[var(--border-subtle)] rounded-xl overflow-hidden hover:border-[var(--border-default)] hover:shadow-[var(--shadow-lg)] transition-all duration-300 h-full flex flex-col"
-              >
-                <div className="aspect-video relative overflow-hidden">
-                  {proyecto.render_principal_url ? (
-                    <img
-                      src={proyecto.render_principal_url}
-                      alt={proyecto.nombre}
-                      className="w-full h-full object-cover group-hover:scale-[1.03] transition-transform duration-700 ease-out"
-                    />
-                  ) : (
-                    <div className="w-full h-full bg-[var(--surface-2)] flex items-center justify-center text-[var(--text-muted)] text-sm">
-                      {t("proyectos.noImage")}
-                    </div>
-                  )}
-                  <div className="absolute inset-0 bg-gradient-to-t from-[var(--surface-1)] via-transparent to-transparent opacity-60" />
-                  <div className="absolute top-3 right-3">
-                    <span
-                      className={`px-2.5 py-1 rounded-lg font-ui text-[10px] tracking-wider uppercase font-bold backdrop-blur-sm ${estadoColors[proyecto.estado] || estadoColors.borrador
-                        }`}
-                    >
-                      {proyecto.estado}
-                    </span>
-                  </div>
-                </div>
-
-                <div className="p-5">
-                  <h3 className="text-base font-medium tracking-wide mb-1 text-[var(--text-primary)]">
-                    {proyecto.nombre}
-                  </h3>
-                  <p className="text-[var(--text-muted)] text-xs mb-4">
-                    {proyecto.constructora_nombre || t("proyectos.noDeveloper")} &bull;{" "}
-                    {proyecto.subdomain || proyecto.slug}.noddo.co
-                  </p>
-                  <div className="flex items-center gap-2">
-                    <Link
-                      href={`/editor/${proyecto.id}`}
-                      className="flex items-center gap-1.5 px-3.5 py-2 bg-[var(--surface-2)] border border-[var(--border-default)] rounded-[0.625rem] font-ui text-[10px] font-bold uppercase tracking-[0.1em] text-[var(--text-secondary)] hover:text-white hover:border-[var(--border-strong)] hover:bg-[var(--surface-3)] transition-all"
-                    >
-                      <Edit2 size={12} />
-                      {t("proyectos.edit")}
-                    </Link>
-                    {proyecto.estado === "publicado" && (
-                      <Link
-                        href={`/sites/${proyecto.slug}`}
-                        target="_blank"
-                        className="flex items-center gap-1.5 px-3.5 py-2 bg-[var(--surface-2)] border border-[var(--border-default)] rounded-[0.625rem] font-ui text-[10px] font-bold uppercase tracking-[0.1em] text-[var(--text-secondary)] hover:text-white hover:border-[var(--border-strong)] hover:bg-[var(--surface-3)] transition-all"
-                      >
-                        <ExternalLink size={12} />
-                        {t("proyectos.viewSite")}
-                      </Link>
-                    )}
-                    {isAdmin && (
-                      <button
-                        onClick={() =>
-                          handleDelete(proyecto.id, proyecto.nombre)
-                        }
-                        className="ml-auto p-2 rounded-[0.625rem] text-red-400/30 hover:text-red-400 hover:bg-red-500/10 transition-all"
-                      >
-                        <Trash2 size={14} />
-                      </button>
-                    )}
-                  </div>
-                </div>
-              </Tilt>
-            </motion.div>
-          ))}
-        </div>
-      )}
     </div>
   );
 }

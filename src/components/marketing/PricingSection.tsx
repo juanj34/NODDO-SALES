@@ -79,7 +79,12 @@ export function PricingSection() {
       style={{ padding: "120px 24px" }}
     >
       <div style={{ maxWidth: 1000, margin: "0 auto", position: "relative", zIndex: 1 }}>
-        <div className="mk-section-label mb-16">Planes</div>
+        <div className="mk-section-label mb-6">Planes</div>
+
+        <h2 className="mk-section-heading mb-16">
+          Elige el plan<br />
+          que escala <em>contigo.</em>
+        </h2>
 
         <div
           className="grid grid-cols-1 md:grid-cols-3"

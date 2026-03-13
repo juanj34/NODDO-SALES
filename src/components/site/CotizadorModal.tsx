@@ -7,6 +7,7 @@ import { CloseButton } from "@/components/ui/CloseButton";
 import { cn } from "@/lib/utils";
 import type { Unidad, Tipologia } from "@/types";
 import { useTranslation, getEstadoConfig } from "@/i18n";
+import { trackEvent } from "@/lib/tracking";
 
 interface CotizadorModalProps {
   isOpen: boolean;
@@ -87,6 +88,10 @@ export function CotizadorModal({ isOpen, onClose, unidad, tipologia, proyectoId 
 
       if (res.ok) {
         setIsSubmitted(true);
+        trackEvent(proyectoId, "lead_submit", undefined, {
+          tipologia: tipologia?.nombre || unidad.identificador,
+          unidad: unidad.identificador,
+        });
       } else {
         setError(tCommon("errors.submitFailed"));
       }

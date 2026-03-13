@@ -1,3 +1,4 @@
+import { pick } from "@/lib/api-utils";
 import { getAuthContext } from "@/lib/auth-context";
 import { NextRequest, NextResponse } from "next/server";
 
@@ -19,7 +20,7 @@ export async function POST(request: NextRequest) {
 
     const { data, error } = await auth.supabase
       .from("fachadas")
-      .insert(body)
+      .insert(pick(body, ["proyecto_id", "nombre", "imagen_url", "num_pisos", "descripcion", "amenidades", "imagen_portada", "torre_id", "tipo", "piso_numero", "planta_tipo_nombre", "puntos_vacios", "orden"]))
       .select()
       .single();
 

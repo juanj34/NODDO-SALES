@@ -6,7 +6,7 @@ import { useEffect, useState, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { createClient } from "@/lib/supabase/client";
 import { cn } from "@/lib/utils";
-import { FolderOpen, Users, Settings, LogOut, Loader2, HelpCircle, Menu, X } from "lucide-react";
+import { FolderOpen, Users, Settings, LogOut, Loader2, HelpCircle, Menu, X, Shield } from "lucide-react";
 import type { User } from "@supabase/supabase-js";
 import { ToastProvider } from "@/components/dashboard/Toast";
 import { ConfirmProvider } from "@/components/dashboard/ConfirmModal";
@@ -24,7 +24,7 @@ function DashboardShell({ children }: { children: React.ReactNode }) {
   const [loading, setLoading] = useState(true);
   const supabase = createClient();
   const { t } = useTranslation("dashboard");
-  const { role } = useAuthRole();
+  const { role, isPlatformAdmin } = useAuthRole();
   const { isMobile, open: drawerOpen, toggle: toggleDrawer, close: closeDrawer } = useMobileDrawer();
 
   const navItems = useMemo(() => {
@@ -155,6 +155,20 @@ function DashboardShell({ children }: { children: React.ReactNode }) {
             );
           })}
         </nav>
+
+        {/* Platform Admin link */}
+        {isPlatformAdmin && (
+          <div className="px-4 pb-1">
+            <Link
+              href="/admin"
+              onClick={closeDrawer}
+              className="flex items-center gap-3 px-3 py-2 rounded-[0.625rem] font-ui text-xs font-semibold uppercase tracking-[0.08em] text-red-400/60 hover:text-red-400 hover:bg-red-500/8 transition-all"
+            >
+              <Shield size={14} />
+              Admin
+            </Link>
+          </div>
+        )}
 
         {/* Help link */}
         <div className="px-4 pb-1">

@@ -41,16 +41,17 @@ export function ComparisonStrip() {
           que <em>las reemplaza</em> a todas.
         </h2>
 
-        <p className="text-[14px] leading-[1.8] max-w-[520px] mb-14" style={{ color: "rgba(244,240,232,0.35)" }}>
+        <p className="text-[14px] leading-[1.8] max-w-[520px] mb-14" style={{ color: "rgba(244,240,232,0.55)" }}>
           Tres opciones que los desarrolladores usan para vender. Solo una que las hace innecesarias.
         </p>
 
+        {/* Desktop table */}
         <motion.div
           initial={{ opacity: 0, y: 24 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true, margin: "-80px" }}
           transition={{ duration: 0.7, ease }}
-          className="overflow-x-auto"
+          className="hidden md:block"
           style={{ border: "1px solid rgba(255,255,255,0.06)" }}
         >
           <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 12 }}>
@@ -71,7 +72,7 @@ export function ComparisonStrip() {
                   }}
                 >
                   <div style={{ fontSize: 22, marginBottom: 10 }}>📄</div>
-                  <div className="font-ui text-[10px] font-bold tracking-[0.15em] uppercase" style={{ color: "rgba(244,240,232,0.4)", marginBottom: 6 }}>
+                  <div className="font-ui text-[10px] font-bold tracking-[0.15em] uppercase" style={{ color: "rgba(244,240,232,0.5)", marginBottom: 6 }}>
                     Brochure PDF
                   </div>
                   <div className="font-heading text-[16px] font-light" style={{ color: "rgba(244,240,232,0.5)" }}>
@@ -124,9 +125,9 @@ export function ComparisonStrip() {
                     verticalAlign: "bottom",
                   }}
                 >
-                  <div style={{ fontSize: 22, marginBottom: 10 }}>🎨</div>
-                  <div className="font-ui text-[10px] font-bold tracking-[0.15em] uppercase" style={{ color: "rgba(244,240,232,0.4)", marginBottom: 6 }}>
-                    Agencia 3D
+                  <div style={{ fontSize: 22, marginBottom: 10 }}>🖥️</div>
+                  <div className="font-ui text-[10px] font-bold tracking-[0.15em] uppercase" style={{ color: "rgba(244,240,232,0.5)", marginBottom: 6 }}>
+                    Software 3D · Maqueta
                   </div>
                   <div className="font-heading text-[16px] font-light" style={{ color: "rgba(244,240,232,0.5)" }}>
                     $30k – $80k
@@ -176,6 +177,56 @@ export function ComparisonStrip() {
               ))}
             </tbody>
           </table>
+        </motion.div>
+
+        {/* Mobile card layout */}
+        <motion.div
+          initial={{ opacity: 0, y: 24 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, margin: "-80px" }}
+          transition={{ duration: 0.7, ease }}
+          className="md:hidden flex flex-col gap-px"
+          style={{ background: "rgba(255,255,255,0.04)" }}
+        >
+          {features.map((f) => (
+            <div
+              key={f.label}
+              style={{ background: "var(--mk-bg)", padding: "16px 0" }}
+            >
+              <div
+                className="font-ui text-[11px] font-semibold tracking-[0.04em] mb-3"
+                style={{ color: "rgba(244,240,232,0.7)" }}
+              >
+                {f.label}
+              </div>
+              <div className="grid grid-cols-3 gap-2">
+                <div style={{ fontSize: 11, color: "rgba(244,240,232,0.45)" }}>
+                  <div className="font-ui text-[8px] tracking-[0.12em] uppercase mb-1" style={{ color: "rgba(244,240,232,0.3)" }}>Brochure</div>
+                  <span style={{ color: iconColor(f.brochure.icon), marginRight: 3 }}>{f.brochure.icon}</span>
+                  {f.brochure.text}
+                </div>
+                <div
+                  style={{
+                    fontSize: 11,
+                    color: "rgba(244,240,232,0.85)",
+                    fontWeight: 500,
+                    background: "rgba(184,151,58,0.06)",
+                    padding: "6px 8px",
+                    border: "1px solid rgba(184,151,58,0.15)",
+                  }}
+                >
+                  <div className="font-ui text-[8px] tracking-[0.12em] uppercase mb-1" style={{ color: "var(--mk-accent)" }}>Noddo</div>
+                  <span style={{ color: iconColor(f.noddo.icon), marginRight: 3 }}>{f.noddo.icon}</span>
+                  {f.noddo.text}
+                </div>
+                <div style={{ fontSize: 11, color: "rgba(244,240,232,0.45)" }}>
+                  <div className="font-ui text-[8px] tracking-[0.12em] uppercase mb-1" style={{ color: "rgba(244,240,232,0.3)" }}>Software 3D</div>
+                  <span style={{ color: iconColor(f.agency.icon), marginRight: 3 }}>{f.agency.icon}</span>
+                  {f.agency.text}
+                </div>
+              </div>
+            </div>
+          ))}
         </motion.div>
 
         {/* Badges */}

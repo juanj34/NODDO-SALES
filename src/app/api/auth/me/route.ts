@@ -12,6 +12,7 @@ export async function GET() {
       user: auth.user,
       role: auth.role,
       adminUserId: auth.adminUserId,
+      isPlatformAdmin: auth.isPlatformAdmin,
     });
   } catch (err) {
     return NextResponse.json(

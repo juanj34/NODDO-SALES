@@ -31,6 +31,7 @@ import {
   HelpCircle,
   Menu,
   X,
+  BarChart3,
 } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -113,6 +114,12 @@ const editorSections: TabSection[] = [
     tabs: [
       { id: "config", label: "Configuracion", icon: Settings, href: "/config" },
       { id: "dominio", label: "Dominio", icon: Globe, href: "/dominio" },
+    ],
+  },
+  {
+    label: "Datos",
+    tabs: [
+      { id: "estadisticas", label: "Estadisticas", icon: BarChart3, href: "/estadisticas" },
     ],
   },
 ];

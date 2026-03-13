@@ -129,6 +129,11 @@ const editor = {
       matterportUrl: "Matterport URL",
       matterportPlaceholder: "https://my.matterport.com/show/?m=...",
       matterportHint: "Matterport embed link for interactive 360° walkthrough",
+      urlLabel: "URL or embed code",
+      urlPlaceholder: "Paste a link or embed code from your virtual tour",
+      urlHint: "Accepts links from Matterport, 3DVista, Kuula, CloudPano or any 360° tour platform",
+      preview: "Preview",
+      openInTab: "Open in tab",
     },
     audio: {
       title: "Background Audio",

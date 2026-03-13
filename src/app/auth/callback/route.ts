@@ -6,7 +6,11 @@ import { linkPendingCollaborator } from "@/lib/auth-context";
 export async function GET(request: NextRequest) {
   const { searchParams, origin } = new URL(request.url);
   const code = searchParams.get("code");
-  const redirect = searchParams.get("redirect") || "/proyectos";
+  const rawRedirect = searchParams.get("redirect") || "/proyectos";
+  // Prevent open redirect: only allow relative paths starting with /
+  const redirect = rawRedirect.startsWith("/") && !rawRedirect.startsWith("//")
+    ? rawRedirect
+    : "/proyectos";
 
   if (code) {
     const cookieStore = await cookies();

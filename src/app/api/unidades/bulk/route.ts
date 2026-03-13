@@ -1,3 +1,4 @@
+import { pick } from "@/lib/api-utils";
 import { getAuthContext } from "@/lib/auth-context";
 import { NextRequest, NextResponse } from "next/server";
 
@@ -15,9 +16,20 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // Verify project ownership
+    const { data: project } = await auth.supabase
+      .from("proyectos")
+      .select("id")
+      .eq("id", proyecto_id)
+      .eq("user_id", auth.adminUserId)
+      .maybeSingle();
+    if (!project) {
+      return NextResponse.json({ error: "Proyecto no encontrado" }, { status: 404 });
+    }
+
     const rows = unidades.map(
       (u: Record<string, unknown>, i: number) => ({
-        ...u,
+        ...pick(u, ["tipologia_id", "identificador", "piso", "area_m2", "precio", "estado", "habitaciones", "banos", "orientacion", "vista", "notas", "torre_id"]),
         proyecto_id,
         orden: u.orden ?? i,
       })

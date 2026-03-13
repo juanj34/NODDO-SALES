@@ -5,6 +5,7 @@ import { motion } from "framer-motion";
 import { Send, CheckCircle, Loader2, ShieldCheck, Mail } from "lucide-react";
 import type { Tipologia } from "@/types";
 import { useTranslation } from "@/i18n";
+import { trackEvent } from "@/lib/tracking";
 
 interface LeadFormProps {
   proyectoId: string;
@@ -80,6 +81,9 @@ export function LeadForm({
 
       if (res.ok) {
         setIsSubmitted(true);
+        trackEvent(proyectoId, "lead_submit", undefined, {
+          tipologia: formData.tipologia_interes || null,
+        });
       } else {
         setError(tCommon("errors.submitFailed"));
       }

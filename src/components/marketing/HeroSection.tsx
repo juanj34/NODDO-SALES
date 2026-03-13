@@ -30,7 +30,7 @@ export function HeroSection() {
             style={{ background: "var(--mk-accent)" }}
           />
           <span className="font-ui text-[10px] tracking-[0.35em] uppercase text-[var(--mk-accent)]">
-            Plataforma de showroom digital
+            Showroom digital para constructoras
           </span>
         </motion.div>
 
@@ -39,13 +39,11 @@ export function HeroSection() {
           initial={{ opacity: 0, y: 24 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8, delay: 0.4, ease: "easeOut" }}
-          className="font-heading text-[clamp(52px,6.5vw,96px)] font-light leading-[1.05] tracking-[-0.02em] text-[var(--mk-text-primary)] mb-8"
+          className="font-heading text-[clamp(36px,5.5vw,96px)] font-light leading-[1.05] tracking-[-0.02em] text-[var(--mk-text-primary)] mb-8"
         >
-          Lo que antes
+          Tu proyecto merece
           <br />
-          tardaba <em className="italic text-[var(--mk-accent-light)]">4 meses,</em>
-          <br />
-          hoy es 1 día.
+          <em className="italic text-[var(--mk-accent-light)]">más que un brochure.</em>
         </motion.h1>
 
         {/* Subtitle — DM Mono */}
@@ -56,12 +54,10 @@ export function HeroSection() {
           className="text-[15px] leading-[1.85] max-w-[480px] mb-14"
           style={{ color: "rgba(244, 240, 232, 0.5)" }}
         >
-          NODDO le da a tu proyecto una{" "}
-          <strong className="text-[var(--mk-text-primary)] font-normal">
-            sala de ventas digital premium
-          </strong>{" "}
-          — con inventario en vivo, exploración de unidades, y captura de leads —
-          sin agencia, sin código, sin esperar.
+          El comprador ya no pide información — <em className="italic text-[var(--mk-accent-light)]">la busca</em>.
+          Dale un showroom que responda solo: <strong className="text-[var(--mk-text-primary)] font-normal">inventario
+          en vivo, planos, recorridos 360° y leads cualificados</strong>.
+          Listo en <strong className="text-[var(--mk-text-primary)] font-normal">3 días</strong>, sin código.
         </motion.p>
 
         {/* CTAs */}
@@ -71,11 +67,11 @@ export function HeroSection() {
           transition={{ duration: 0.8, delay: 0.8, ease: "easeOut" }}
           className="flex items-center gap-5 flex-wrap sm:flex-nowrap"
         >
-          <button onClick={openBooking} className="btn-mk-primary inline-flex items-center gap-2.5">
+          <button onClick={openBooking} className="btn-mk-primary inline-flex items-center gap-2.5 whitespace-nowrap">
             Agendar Demo
             <ArrowRight size={14} strokeWidth={2.5} />
           </button>
-          <Link href="/sites/alto-de-yeguas" className="btn-mk-outline inline-flex items-center gap-2.5">
+          <Link href="/sites/alto-de-yeguas" className="btn-mk-outline inline-flex items-center gap-2.5 whitespace-nowrap">
             Demo en Vivo
             <ExternalLink size={13} strokeWidth={2} />
           </Link>
@@ -86,7 +82,7 @@ export function HeroSection() {
           initial={{ opacity: 0, y: 24 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8, delay: 1.0, ease: "easeOut" }}
-          className="flex gap-12 mt-16 pt-10"
+          className="flex gap-6 sm:gap-12 mt-16 pt-10 flex-wrap sm:flex-nowrap"
           style={{ borderTop: "1px solid rgba(244, 240, 232, 0.06)" }}
         >
           {stats.map((stat) => (
@@ -96,7 +92,7 @@ export function HeroSection() {
               </div>
               <div
                 className="font-ui text-[10px] tracking-[0.2em] uppercase"
-                style={{ color: "rgba(244, 240, 232, 0.3)" }}
+                style={{ color: "rgba(244, 240, 232, 0.5)" }}
               >
                 {stat.label}
               </div>

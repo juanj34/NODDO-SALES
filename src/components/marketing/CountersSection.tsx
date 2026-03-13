@@ -66,7 +66,7 @@ function AnimatedCounter({ target, suffix, label, delay }: CounterData & { delay
     >
       <div
         className="font-heading leading-none mb-2"
-        style={{ fontSize: 56, fontWeight: 300, color: "var(--mk-accent-light)" }}
+        style={{ fontSize: 68, fontWeight: 300, color: "var(--mk-accent-light)" }}
       >
         {value.toLocaleString("es-CO")}
         <span style={{ fontSize: 28, color: "rgba(184,151,58,0.5)" }}>{suffix}</span>

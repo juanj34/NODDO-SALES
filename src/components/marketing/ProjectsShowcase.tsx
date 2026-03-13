@@ -17,8 +17,9 @@ const projects: Project[] = [
   { name: "Torre Candelaria 90", location: "Cl. 53 #13-21 · Bogotá D.C.", city: "Bogotá · Chapinero", units: "124", sold: "68%", leads: "847" },
   { name: "Parque Envigado Residencias", location: "Cra. 43A #18 Sur · Medellín", city: "Medellín · El Poblado", units: "88", sold: "41%", leads: "392" },
   { name: "Morada 170 — Torres", location: "Av. 6A Norte #24N · Cali", city: "Cali · Ciudad Jardín", units: "216", sold: "22%", leads: "1.2k", statusColor: "#c4853a" },
-  { name: "Ébano Living", location: "Cra. 53 #98-45 · Barranquilla", city: "Barranquilla · Buenavista", units: "72", sold: "85%", leads: "614" },
 ];
+
+const VISIBLE_CARDS = 3;
 
 /* Mini isometric building SVG for thumbnail */
 function BuildingThumb({ seed }: { seed: number }) {
@@ -53,20 +54,28 @@ function BuildingThumb({ seed }: { seed: number }) {
   );
 }
 
-const CARD_W = 420;
+const CARD_W_DESKTOP = 420;
+const CARD_W_MOBILE = 300;
 const GAP = 24;
 const ease = [0.25, 0.46, 0.45, 0.94] as const;
+
+function getCardW() {
+  return typeof window !== "undefined" && window.innerWidth < 640
+    ? CARD_W_MOBILE
+    : CARD_W_DESKTOP;
+}
 
 export function ProjectsShowcase() {
   const trackRef = useRef<HTMLDivElement>(null);
   const [idx, setIdx] = useState(0);
 
   const slideTo = (i: number) => {
-    const max = Math.max(0, projects.length - 2);
+    const cardW = getCardW();
+    const max = Math.max(0, projects.length - VISIBLE_CARDS);
     const next = Math.max(0, Math.min(i, max));
     setIdx(next);
     if (trackRef.current) {
-      trackRef.current.style.transform = `translateX(-${next * (CARD_W + GAP)}px)`;
+      trackRef.current.style.transform = `translateX(-${next * (cardW + GAP)}px)`;
     }
   };
 
@@ -81,17 +90,22 @@ export function ProjectsShowcase() {
         style={{ maxWidth: "calc(100% - 80px)", marginBottom: 60 }}
       >
         <div>
-          <div className="mk-section-label" style={{ marginBottom: 12 }}>Proyectos en vivo</div>
-          <p className="text-[12px] leading-[1.7] max-w-[420px]" style={{ color: "rgba(244,240,232,0.35)" }}>
+          <div className="mk-section-label mb-6">Proyectos en vivo</div>
+          <h2 className="mk-section-heading mb-5">
+            Ya están vendiendo<br />
+            <em>con Noddo.</em>
+          </h2>
+          <p className="text-[13px] leading-[1.7] max-w-[420px]" style={{ color: "rgba(244,240,232,0.55)" }}>
             Cada uno de estos proyectos tiene su sala de ventas activa con Noddo. El comprador explora, cotiza y se convierte — sin llamada previa.
           </p>
         </div>
         <div className="flex gap-3">
           <button
             onClick={() => slideTo(idx - 1)}
-            className="flex items-center justify-center"
+            aria-label="Proyectos anteriores"
+            className="flex items-center justify-center hover:border-[rgba(255,255,255,0.25)] hover:text-[rgba(244,240,232,0.7)]"
             style={{
-              width: 36, height: 36,
+              width: 44, height: 44,
               border: "1px solid rgba(255,255,255,0.1)",
               background: "none",
               color: "rgba(244,240,232,0.4)",
@@ -104,9 +118,10 @@ export function ProjectsShowcase() {
           </button>
           <button
             onClick={() => slideTo(idx + 1)}
-            className="flex items-center justify-center"
+            aria-label="Siguientes proyectos"
+            className="flex items-center justify-center hover:border-[rgba(255,255,255,0.25)] hover:text-[rgba(244,240,232,0.7)]"
             style={{
-              width: 36, height: 36,
+              width: 44, height: 44,
               border: "1px solid rgba(255,255,255,0.1)",
               background: "none",
               color: "rgba(244,240,232,0.4)",
@@ -134,9 +149,8 @@ export function ProjectsShowcase() {
           {projects.map((proj, i) => (
             <div
               key={proj.name}
-              className="flex-shrink-0 overflow-hidden"
+              className="flex-shrink-0 overflow-hidden w-[300px] sm:w-[420px]"
               style={{
-                width: CARD_W,
                 border: "1px solid rgba(255,255,255,0.06)",
                 background: "#111",
                 transition: "border-color 0.3s",

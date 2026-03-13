@@ -1,3 +1,4 @@
+import { pick } from "@/lib/api-utils";
 import { getAuthContext } from "@/lib/auth-context";
 import { NextRequest, NextResponse } from "next/server";
 
@@ -35,18 +36,11 @@ export async function POST(
       );
     }
 
-    // Clone: copy all fields except id and created_at
-    const {
-      id: _id,
-      created_at: _created,
-      ...fields
-    } = source;
-
     const { data: cloned, error: insertError } = await auth.supabase
       .from("tipologias")
       .insert({
-        ...fields,
-        nombre: `${fields.nombre} (copia)`,
+        ...pick(source as Record<string, unknown>, ["proyecto_id", "nombre", "descripcion", "area_m2", "habitaciones", "banos", "precio_desde", "plano_url", "renders", "caracteristicas", "parqueaderos", "area_balcon", "hotspots", "ubicacion_plano_url", "orden"]),
+        nombre: `${source.nombre} (copia)`,
         torre_ids: [body.torre_id],
       })
       .select()

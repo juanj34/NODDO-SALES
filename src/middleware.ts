@@ -65,7 +65,8 @@ export async function middleware(request: NextRequest) {
     pathname === "/leads" ||
     pathname === "/equipo" ||
     pathname === "/ayuda" ||
-    pathname === "/cuenta";
+    pathname === "/cuenta" ||
+    pathname.startsWith("/admin");
   const isLoginRoute = pathname === "/login";
 
   if (!isDashboardRoute && !isLoginRoute) {
@@ -115,6 +116,20 @@ export async function middleware(request: NextRequest) {
     const loginUrl = new URL("/login", request.url);
     loginUrl.searchParams.set("redirect", pathname);
     return NextResponse.redirect(loginUrl);
+  }
+
+  // Platform admin routes — verify role
+  if (pathname.startsWith("/admin") && user) {
+    const { data: platformAdmin } = await supabase
+      .from("platform_admins")
+      .select("id")
+      .eq("user_id", user.id)
+      .limit(1)
+      .maybeSingle();
+
+    if (!platformAdmin) {
+      return NextResponse.redirect(new URL("/proyectos", request.url));
+    }
   }
 
   if (isLoginRoute && user) {

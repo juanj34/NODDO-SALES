@@ -7,6 +7,7 @@ import { AmbientBackground } from "@/components/site/AmbientBackground";
 import { X, Play, Calendar } from "lucide-react";
 import { useSiteProject } from "@/hooks/useSiteProject";
 import { cn } from "@/lib/utils";
+import { sanitizeHtml } from "@/lib/sanitize";
 import type { AvanceObra } from "@/types";
 import { useTranslation } from "@/i18n";
 
@@ -300,7 +301,7 @@ export default function AvancesPage() {
                 {selectedAvance.descripcion && (
                   <div
                     className="text-sm text-[var(--text-secondary)] leading-relaxed prose prose-invert prose-sm max-w-none"
-                    dangerouslySetInnerHTML={{ __html: selectedAvance.descripcion }}
+                    dangerouslySetInnerHTML={{ __html: sanitizeHtml(selectedAvance.descripcion) }}
                   />
                 )}
               </div>

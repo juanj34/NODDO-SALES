@@ -12,6 +12,8 @@ import { EditorialWatermark } from "@/components/site/EditorialWatermark";
 import { SitePreloader } from "@/components/site/SitePreloader";
 import { AudioProvider, AudioMuteButton } from "@/components/site/AudioPlayer";
 import { NoddoBadge } from "@/components/site/NoddoBadge";
+import { WhatsAppButton } from "@/components/site/WhatsAppButton";
+import { SiteTracker } from "@/components/site/SiteTracker";
 import { SiteProjectContext } from "@/hooks/useSiteProject";
 import type { ProyectoCompleto } from "@/types";
 
@@ -31,6 +33,7 @@ export function SiteLayoutClient({ proyecto, basePath, children }: Props) {
 
   return (
     <SiteProjectContext.Provider value={{ proyecto, basePath }}>
+      <SiteTracker proyectoId={proyecto.id} />
       <AudioProvider audioUrl={proyecto.background_audio_url}>
         <div
           className="h-screen overflow-hidden"
@@ -106,9 +109,16 @@ export function SiteLayoutClient({ proyecto, basePath, children }: Props) {
               <AudioMuteButton />
             </div>
           )}
-          {/* Noddo badge — fixed bottom-right on all non-landing pages */}
+          {/* WhatsApp floating button — non-landing pages when number is configured */}
+          {!isLanding && proyecto.whatsapp_numero && (
+            <WhatsAppButton
+              numero={proyecto.whatsapp_numero}
+              proyectoId={proyecto.id}
+            />
+          )}
+          {/* Noddo badge — fixed bottom-right, pushed up when WhatsApp button is present */}
           {!proyecto.hide_noddo_badge && !isLanding && (
-            <NoddoBadge className="fixed bottom-5 right-5 z-30" />
+            <NoddoBadge className={`fixed right-5 z-30 ${proyecto.whatsapp_numero ? "bottom-[5.5rem]" : "bottom-5"}`} />
           )}
           <SmoothScroll>
             <main

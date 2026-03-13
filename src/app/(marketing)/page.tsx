@@ -4,7 +4,6 @@ import { motion } from "framer-motion";
 import Link from "next/link";
 import { ArrowRight, ExternalLink } from "lucide-react";
 import { HeroSection } from "@/components/marketing/HeroSection";
-import { BentoGrid } from "@/components/marketing/BentoGrid";
 import { ComparisonStrip } from "@/components/marketing/ComparisonStrip";
 import { TrustBar } from "@/components/marketing/TrustBar";
 import { Testimonials } from "@/components/marketing/Testimonials";
@@ -27,26 +26,23 @@ export default function MarketingHomePage() {
       {/* 2. TRUST BAR */}
       <TrustBar />
 
-      {/* 3. SCROLL FEATURES (6-step explainer) */}
-      <ScrollFeatures />
-
-      {/* 4. HOW IT WORKS (3-step) */}
+      {/* 3. HOW IT WORKS — simplicidad primero */}
       <HowItWorks />
 
-      {/* 5. PROJECTS SHOWCASE (slideshow) */}
+      {/* 4. COMPARISON TABLE — por qué cambiar */}
+      <ComparisonStrip />
+
+      {/* 5. SCROLL FEATURES (deep dive) — visitante ya motivado */}
+      <ScrollFeatures />
+
+      {/* 6. PROJECTS SHOWCASE — quiénes ya lo usan */}
       <ProjectsShowcase />
 
-      {/* 6. COUNTERS (4 animated stats) */}
-      <CountersSection />
-
-      {/* 7. FEATURES GRID (BentoGrid) */}
-      <BentoGrid />
-
-      {/* 8. TESTIMONIALS */}
+      {/* 7. TESTIMONIALS — qué dicen */}
       <Testimonials />
 
-      {/* 9. COMPARISON TABLE */}
-      <ComparisonStrip />
+      {/* 8. COUNTERS — refuerzo cuantitativo */}
+      <CountersSection />
 
       {/* 10. PRICING */}
       <PricingSection />
@@ -56,20 +52,95 @@ export default function MarketingHomePage() {
 
       {/* 12. CTA SECTION */}
       <section className="relative z-[1] py-36 lg:py-40 px-6 text-center border-t border-[var(--mk-border-rule)] overflow-hidden">
-        {/* Decorative building silhouette background */}
-        <div className="absolute inset-0 flex items-center justify-center pointer-events-none" style={{ opacity: 0.04 }}>
-          <svg viewBox="0 0 800 600" fill="none" width="800" height="600">
-            <polygon points="200,580 200,180 400,80 400,580" fill="#f4f0e8" />
-            <polygon points="400,580 400,80 600,180 600,580" fill="#d4d0c8" />
-            <line x1="200" y1="180" x2="400" y2="80" stroke="#b8973a" strokeWidth="2" />
-            <line x1="400" y1="80" x2="600" y2="180" stroke="#b8973a" strokeWidth="1.5" />
-            <line x1="400" y1="80" x2="400" y2="580" stroke="#b8973a" strokeWidth="2.5" />
-            {[0, 1, 2, 3, 4, 5].map((i) => (
-              <line key={i} x1="200" y1={230 + i * 60} x2="400" y2={130 + i * 60} stroke="#b8973a" strokeWidth="0.6" />
+        {/* Decorative skyline — wireframe blueprint style */}
+        <div className="absolute inset-0 flex items-end justify-center pointer-events-none" style={{ opacity: 0.06 }}>
+          <svg viewBox="0 0 1200 500" fill="none" className="w-full max-w-5xl" style={{ marginBottom: -1 }}>
+            {/* Left small building */}
+            <rect x="80" y="280" width="100" height="220" stroke="#b8973a" strokeWidth="0.8" />
+            {[0,1,2,3,4,5].map(i => (
+              <g key={`lb${i}`}>
+                <rect x="92" y={292 + i * 34} width="14" height="20" stroke="#b8973a" strokeWidth="0.4" />
+                <rect x="114" y={292 + i * 34} width="14" height="20" stroke="#b8973a" strokeWidth="0.4" />
+                <rect x="136" y={292 + i * 34} width="14" height="20" stroke="#b8973a" strokeWidth="0.4" />
+                <rect x="158" y={292 + i * 34} width="14" height="20" stroke="#b8973a" strokeWidth="0.4" />
+              </g>
             ))}
-            {[0, 1, 2, 3, 4, 5].map((i) => (
-              <line key={`r${i}`} x1="400" y1={130 + i * 60} x2="600" y2={230 + i * 60} stroke="#b8973a" strokeWidth="0.4" />
+            <line x1="80" y1="280" x2="130" y2="258" stroke="#b8973a" strokeWidth="0.6" />
+            <line x1="180" y1="280" x2="130" y2="258" stroke="#b8973a" strokeWidth="0.6" />
+
+            {/* Left-mid tower */}
+            <rect x="220" y="160" width="120" height="340" stroke="#b8973a" strokeWidth="0.8" />
+            {[0,1,2,3,4,5,6,7,8].map(i => (
+              <g key={`lm${i}`}>
+                <rect x="232" y={174 + i * 36} width="16" height="22" stroke="#b8973a" strokeWidth="0.4" />
+                <rect x="258" y={174 + i * 36} width="16" height="22" stroke="#b8973a" strokeWidth="0.4" />
+                <rect x="284" y={174 + i * 36} width="16" height="22" stroke="#b8973a" strokeWidth="0.4" />
+                <rect x="312" y={174 + i * 36} width="16" height="22" stroke="#b8973a" strokeWidth="0.4" />
+              </g>
             ))}
+            {/* Antenna */}
+            <line x1="280" y1="160" x2="280" y2="130" stroke="#b8973a" strokeWidth="0.6" />
+            <line x1="272" y1="145" x2="288" y2="145" stroke="#b8973a" strokeWidth="0.4" />
+
+            {/* Center main tower (tallest) */}
+            <rect x="400" y="60" width="160" height="440" stroke="#b8973a" strokeWidth="1" />
+            {/* Crown detail */}
+            <rect x="410" y="60" width="140" height="12" stroke="#b8973a" strokeWidth="0.5" />
+            <line x1="480" y1="60" x2="480" y2="28" stroke="#b8973a" strokeWidth="0.8" />
+            <line x1="472" y1="38" x2="488" y2="38" stroke="#b8973a" strokeWidth="0.5" />
+            <circle cx="480" cy="24" r="3" stroke="#b8973a" strokeWidth="0.5" />
+            {/* Floor lines + windows */}
+            {[0,1,2,3,4,5,6,7,8,9,10,11].map(i => (
+              <g key={`ct${i}`}>
+                <line x1="400" y1={82 + i * 35} x2="560" y2={82 + i * 35} stroke="#b8973a" strokeWidth="0.25" />
+                <rect x="414" y={86 + i * 35} width="18" height="22" stroke="#b8973a" strokeWidth="0.4" />
+                <rect x="442" y={86 + i * 35} width="18" height="22" stroke="#b8973a" strokeWidth="0.4" />
+                <rect x="470" y={86 + i * 35} width="18" height="22" stroke="#b8973a" strokeWidth="0.4" />
+                <rect x="498" y={86 + i * 35} width="18" height="22" stroke="#b8973a" strokeWidth="0.4" />
+                <rect x="526" y={86 + i * 35} width="18" height="22" stroke="#b8973a" strokeWidth="0.4" />
+              </g>
+            ))}
+            {/* Entrance */}
+            <rect x="455" y="460" width="50" height="40" stroke="#b8973a" strokeWidth="0.6" rx="25" />
+
+            {/* Right-mid building */}
+            <rect x="620" y="200" width="130" height="300" stroke="#b8973a" strokeWidth="0.8" />
+            {[0,1,2,3,4,5,6,7].map(i => (
+              <g key={`rm${i}`}>
+                <rect x="634" y={214 + i * 34} width="14" height="20" stroke="#b8973a" strokeWidth="0.4" />
+                <rect x="658" y={214 + i * 34} width="14" height="20" stroke="#b8973a" strokeWidth="0.4" />
+                <rect x="682" y={214 + i * 34} width="14" height="20" stroke="#b8973a" strokeWidth="0.4" />
+                <rect x="706" y={214 + i * 34} width="14" height="20" stroke="#b8973a" strokeWidth="0.4" />
+                <rect x="724" y={214 + i * 34} width="14" height="20" stroke="#b8973a" strokeWidth="0.4" />
+              </g>
+            ))}
+            {/* Setback top */}
+            <rect x="640" y="180" width="90" height="20" stroke="#b8973a" strokeWidth="0.5" />
+
+            {/* Right small building */}
+            <rect x="800" y="310" width="90" height="190" stroke="#b8973a" strokeWidth="0.8" />
+            {[0,1,2,3,4].map(i => (
+              <g key={`rb${i}`}>
+                <rect x="812" y={322 + i * 34} width="12" height="20" stroke="#b8973a" strokeWidth="0.4" />
+                <rect x="832" y={322 + i * 34} width="12" height="20" stroke="#b8973a" strokeWidth="0.4" />
+                <rect x="852" y={322 + i * 34} width="12" height="20" stroke="#b8973a" strokeWidth="0.4" />
+                <rect x="870" y={322 + i * 34} width="12" height="20" stroke="#b8973a" strokeWidth="0.4" />
+              </g>
+            ))}
+
+            {/* Far-right thin tower */}
+            <rect x="940" y="240" width="60" height="260" stroke="#b8973a" strokeWidth="0.7" />
+            {[0,1,2,3,4,5,6].map(i => (
+              <g key={`fr${i}`}>
+                <rect x="950" y={254 + i * 34} width="10" height="20" stroke="#b8973a" strokeWidth="0.35" />
+                <rect x="968" y={254 + i * 34} width="10" height="20" stroke="#b8973a" strokeWidth="0.35" />
+                <rect x="982" y={254 + i * 34} width="10" height="20" stroke="#b8973a" strokeWidth="0.35" />
+              </g>
+            ))}
+            <line x1="970" y1="240" x2="970" y2="218" stroke="#b8973a" strokeWidth="0.5" />
+
+            {/* Ground line */}
+            <line x1="40" y1="500" x2="1160" y2="500" stroke="#b8973a" strokeWidth="0.5" />
           </svg>
         </div>
 

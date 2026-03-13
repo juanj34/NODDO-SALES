@@ -102,10 +102,13 @@ export function MapboxMap({
       projectEl.style.opacity = "0";
       projectEl.style.transition = "opacity 0.8s ease-in-out";
     }
-    projectEl.innerHTML = `
-      <div class="project-marker"></div>
-      <div class="project-marker-label">${projectName}</div>
-    `;
+    const markerDot = document.createElement("div");
+    markerDot.className = "project-marker";
+    const markerLabel = document.createElement("div");
+    markerLabel.className = "project-marker-label";
+    markerLabel.textContent = projectName;
+    projectEl.appendChild(markerDot);
+    projectEl.appendChild(markerLabel);
     projectMarkerRef.current = new mapboxgl.Marker({ element: projectEl })
       .setLngLat(center)
       .addTo(map);
@@ -118,10 +121,13 @@ export function MapboxMap({
         wrapper.style.opacity = "0";
         wrapper.style.transition = "opacity 0.8s ease-in-out";
       }
-      wrapper.innerHTML = `
-        <div class="poi-marker-dot"></div>
-        <div class="poi-marker-tooltip">${poi.nombre}</div>
-      `;
+      const dot = document.createElement("div");
+      dot.className = "poi-marker-dot";
+      const tooltip = document.createElement("div");
+      tooltip.className = "poi-marker-tooltip";
+      tooltip.textContent = poi.nombre;
+      wrapper.appendChild(dot);
+      wrapper.appendChild(tooltip);
       wrapper.addEventListener("click", (e) => {
         e.stopPropagation();
         onSelectPOIRef.current(poi);

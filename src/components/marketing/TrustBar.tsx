@@ -35,30 +35,33 @@ export function TrustBar() {
         viewport={{ once: true }}
         transition={{ duration: 0.7, delay: 0.1, ease }}
       >
-        <InfiniteSlider gap={48} duration={20} durationOnHover={40}>
-          {logos.map((logo) => (
-            <div
-              key={logo.name}
-              className="flex items-center gap-3 shrink-0"
-            >
+        <InfiniteSlider gap={48} duration={60} durationOnHover={90}>
+          {/* Repeat logos 3× so one set is always wider than the viewport */}
+          {[0, 1, 2].flatMap((rep) =>
+            logos.map((logo) => (
               <div
-                className="w-9 h-9 flex items-center justify-center text-[10px] font-ui font-bold tracking-wider"
-                style={{
-                  background: "rgba(184, 151, 58, 0.06)",
-                  border: "1px solid rgba(184, 151, 58, 0.12)",
-                  color: "rgba(184, 151, 58, 0.50)",
-                }}
+                key={`${rep}-${logo.name}`}
+                className="flex items-center gap-3 shrink-0"
               >
-                {logo.initials}
+                <div
+                  className="w-9 h-9 flex items-center justify-center text-[10px] font-ui font-bold tracking-wider"
+                  style={{
+                    background: "rgba(255, 255, 255, 0.04)",
+                    border: "1px solid rgba(255, 255, 255, 0.08)",
+                    color: "rgba(255, 255, 255, 0.35)",
+                  }}
+                >
+                  {logo.initials}
+                </div>
+                <span
+                  className="text-[11px] font-medium whitespace-nowrap"
+                  style={{ color: "rgba(255, 255, 255, 0.25)" }}
+                >
+                  {logo.name}
+                </span>
               </div>
-              <span
-                className="text-[11px] font-medium whitespace-nowrap"
-                style={{ color: "rgba(244, 240, 232, 0.2)" }}
-              >
-                {logo.name}
-              </span>
-            </div>
-          ))}
+            ))
+          )}
         </InfiniteSlider>
       </motion.div>
     </section>

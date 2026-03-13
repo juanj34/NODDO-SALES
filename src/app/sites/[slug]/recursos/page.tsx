@@ -17,6 +17,7 @@ import { useSiteProject } from "@/hooks/useSiteProject";
 import { cn } from "@/lib/utils";
 import type { Recurso } from "@/types";
 import { useTranslation } from "@/i18n";
+import { trackEvent } from "@/lib/tracking";
 
 const tipoIcons: Record<
   Recurso["tipo"],
@@ -225,6 +226,7 @@ export default function RecursosPage() {
                     download
                     target="_blank"
                     rel="noopener noreferrer"
+                    onClick={() => trackEvent(proyecto.id, "recurso_download", undefined, { recurso: viewingRecurso.nombre, tipo: viewingRecurso.tipo })}
                     className="btn-outline-warm inline-flex items-center gap-2 px-4 py-2 text-xs tracking-[0.15em]"
                   >
                     <Download size={14} />

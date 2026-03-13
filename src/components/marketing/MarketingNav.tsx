@@ -77,14 +77,14 @@ export function MarketingNav() {
               {link.action ? (
                 <button
                   onClick={() => handleNavAction(link)}
-                  className="text-[11px] tracking-[0.18em] uppercase text-[rgba(244,240,232,0.4)] hover:text-[var(--mk-accent)] transition-colors duration-200"
+                  className="text-[11px] font-semibold tracking-[0.18em] uppercase text-[rgba(244,240,232,0.4)] hover:text-[var(--mk-accent)] transition-colors duration-200"
                 >
                   {link.label}
                 </button>
               ) : (
                 <Link
                   href={link.href!}
-                  className="text-[11px] tracking-[0.18em] uppercase text-[rgba(244,240,232,0.4)] hover:text-[var(--mk-accent)] transition-colors duration-200"
+                  className="text-[11px] font-semibold tracking-[0.18em] uppercase text-[rgba(244,240,232,0.4)] hover:text-[var(--mk-accent)] transition-colors duration-200"
                 >
                   {link.label}
                 </Link>
@@ -114,7 +114,7 @@ export function MarketingNav() {
           <button
             type="button"
             onClick={() => setMobileOpen((prev) => !prev)}
-            className="md:hidden flex flex-col gap-1.5 p-2 min-w-[44px] min-h-[44px] items-center justify-center"
+            className="md:hidden flex flex-col gap-1.5 p-2 min-w-[44px] min-h-[44px] items-center justify-center hover:bg-[rgba(255,255,255,0.05)] active:bg-[rgba(255,255,255,0.1)] rounded transition-colors"
             aria-label="Toggle menu"
           >
             <motion.span

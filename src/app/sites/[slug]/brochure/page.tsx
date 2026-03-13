@@ -5,6 +5,7 @@ import { SectionTransition } from "@/components/site/SectionTransition";
 import { Download, FileText } from "lucide-react";
 import { useSiteProject } from "@/hooks/useSiteProject";
 import { useTranslation } from "@/i18n";
+import { trackEvent } from "@/lib/tracking";
 
 export default function BrochurePage() {
   const proyecto = useSiteProject();
@@ -49,6 +50,7 @@ export default function BrochurePage() {
               download
               target="_blank"
               rel="noopener noreferrer"
+              onClick={() => trackEvent(proyecto.id, "brochure_download")}
               className="btn-outline-warm inline-flex items-center gap-2 px-8 py-3 text-sm tracking-[0.2em]"
             >
               <Download size={16} />

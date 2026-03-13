@@ -58,11 +58,12 @@ export function FAQSection() {
               {/* Question */}
               <button
                 onClick={() => setOpenIdx(openIdx === i ? null : i)}
+                aria-expanded={openIdx === i}
                 className="flex items-center justify-between w-full text-left gap-5"
                 style={{
                   padding: "24px 0",
                   fontFamily: "'Syne', sans-serif",
-                  fontSize: 12,
+                  fontSize: "clamp(13px, 1.5vw, 14px)",
                   fontWeight: 600,
                   letterSpacing: "0.04em",
                   color: openIdx === i ? "var(--mk-text-primary)" : "rgba(244,240,232,0.65)",
@@ -74,12 +75,13 @@ export function FAQSection() {
               >
                 <span>{faq.q}</span>
                 <span
+                  aria-hidden="true"
                   className="flex items-center justify-center flex-shrink-0"
                   style={{
-                    width: 20,
-                    height: 20,
+                    width: 24,
+                    height: 24,
                     border: `1px solid ${openIdx === i ? "var(--mk-accent)" : "rgba(255,255,255,0.12)"}`,
-                    fontSize: 10,
+                    fontSize: 12,
                     color: openIdx === i ? "var(--mk-accent)" : "rgba(244,240,232,0.35)",
                     transition: "transform 0.3s, border-color 0.2s, color 0.2s",
                     transform: openIdx === i ? "rotate(45deg)" : "none",
@@ -96,7 +98,7 @@ export function FAQSection() {
                   overflow: "hidden",
                   transition: "max-height 0.4s ease, padding 0.3s ease",
                   paddingBottom: openIdx === i ? 24 : 0,
-                  fontSize: 12,
+                  fontSize: 13,
                   lineHeight: 1.9,
                   color: "rgba(244,240,232,0.55)",
                 }}

@@ -2,22 +2,30 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { motion } from "framer-motion";
-import { Download, Search, Loader2 } from "lucide-react";
+import { Download, Search, Loader2, ChevronLeft, ChevronRight } from "lucide-react";
 import type { Lead } from "@/types";
 import { useTranslation } from "@/i18n";
 
 export default function LeadsPage() {
   const { t, locale } = useTranslation("dashboard");
   const [leads, setLeads] = useState<Lead[]>([]);
+  const [total, setTotal] = useState(0);
+  const [page, setPage] = useState(1);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
   const [tipologia, setTipologia] = useState("");
+  const limit = 50;
 
   useEffect(() => {
     const timer = setTimeout(() => setDebouncedSearch(search), 400);
     return () => clearTimeout(timer);
   }, [search]);
+
+  // Reset to page 1 when filters change
+  useEffect(() => {
+    setPage(1);
+  }, [debouncedSearch, tipologia]);
 
   const fetchLeads = useCallback(async () => {
     setLoading(true);
@@ -25,52 +33,78 @@ export default function LeadsPage() {
       const params = new URLSearchParams();
       if (debouncedSearch) params.set("search", debouncedSearch);
       if (tipologia) params.set("tipologia", tipologia);
+      params.set("page", String(page));
+      params.set("limit", String(limit));
       const qs = params.toString();
       const res = await fetch(`/api/leads${qs ? `?${qs}` : ""}`);
-      if (res.ok) setLeads(await res.json());
+      if (res.ok) {
+        const json = await res.json();
+        setLeads(json.data);
+        setTotal(json.total);
+      }
     } catch {
       setLeads([]);
+      setTotal(0);
     } finally {
       setLoading(false);
     }
-  }, [debouncedSearch, tipologia]);
+  }, [debouncedSearch, tipologia, page]);
 
   useEffect(() => {
     fetchLeads();
   }, [fetchLeads]);
 
-  // Gather unique tipologias from leads for filter dropdown
+  // Gather unique tipologias from current page for filter dropdown
   const uniqueTipologias = [
     ...new Set(leads.map((l) => l.tipologia_interes).filter(Boolean)),
   ];
 
-  const exportCSV = () => {
-    if (!leads.length) return;
-    const headers = [t("leads.name"), t("leads.email"), t("leads.phone"), t("leads.country"), t("leads.type"), "Mensaje", t("leads.date")];
-    const rows = leads.map((l) => [
-      l.nombre,
-      l.email,
-      l.telefono ?? "",
-      l.pais ?? "",
-      l.tipologia_interes ?? "",
-      l.mensaje ?? "",
-      new Date(l.created_at).toLocaleDateString(locale === "es" ? "es-CO" : "en-US"),
-    ]);
-    const csv = [
-      headers.join(","),
-      ...rows.map((r) =>
-        r.map((c) => `"${String(c).replace(/"/g, '""')}"`).join(",")
-      ),
-    ].join("\n");
-    const blob = new Blob(["\uFEFF" + csv], { type: "text/csv;charset=utf-8;" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = `leads_${new Date().toISOString().split("T")[0]}.csv`;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
+  const totalPages = Math.max(1, Math.ceil(total / limit));
+  const showingFrom = total === 0 ? 0 : (page - 1) * limit + 1;
+  const showingTo = Math.min(page * limit, total);
+
+  const exportCSV = async () => {
+    if (total === 0) return;
+    // Fetch all leads (no pagination) for export
+    try {
+      const params = new URLSearchParams();
+      if (debouncedSearch) params.set("search", debouncedSearch);
+      if (tipologia) params.set("tipologia", tipologia);
+      params.set("page", "1");
+      params.set("limit", "10000");
+      const res = await fetch(`/api/leads?${params.toString()}`);
+      if (!res.ok) return;
+      const json = await res.json();
+      const allLeads: Lead[] = json.data;
+
+      const headers = [t("leads.name"), t("leads.email"), t("leads.phone"), t("leads.country"), t("leads.type"), "Mensaje", t("leads.date")];
+      const rows = allLeads.map((l) => [
+        l.nombre,
+        l.email,
+        l.telefono ?? "",
+        l.pais ?? "",
+        l.tipologia_interes ?? "",
+        l.mensaje ?? "",
+        new Date(l.created_at).toLocaleDateString(locale === "es" ? "es-CO" : "en-US"),
+      ]);
+      const csv = [
+        headers.join(","),
+        ...rows.map((r) =>
+          r.map((c) => `"${String(c).replace(/"/g, '""')}"`).join(",")
+        ),
+      ].join("\n");
+      const blob = new Blob(["\uFEFF" + csv], { type: "text/csv;charset=utf-8;" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `leads_${new Date().toISOString().split("T")[0]}.csv`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    } catch {
+      // Silent fail on export
+    }
   };
 
   return (
@@ -81,12 +115,12 @@ export default function LeadsPage() {
           <p className="text-[var(--text-tertiary)] text-sm mt-1">
             {loading
               ? t("leads.loading")
-              : t("leads.contactCount", { count: String(leads.length) })}
+              : t("leads.contactCount", { count: String(total) })}
           </p>
         </div>
         <button
           onClick={exportCSV}
-          disabled={!leads.length || loading}
+          disabled={total === 0 || loading}
           className="flex items-center gap-2 px-4 py-2 border border-[var(--border-default)] rounded-lg font-ui text-[10px] font-bold uppercase tracking-[0.1em] text-[var(--text-secondary)] hover:text-white hover:border-[var(--border-default)] transition-all disabled:opacity-30"
         >
           <Download size={14} />
@@ -138,62 +172,94 @@ export default function LeadsPage() {
           </p>
         </div>
       ) : (
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          className="bg-[var(--surface-2)] border border-[var(--border-subtle)] rounded-xl overflow-hidden"
-        >
-          <table className="w-full">
-            <thead>
-              <tr className="border-b border-[var(--border-subtle)]">
-                {[t("leads.name"), t("leads.email"), t("leads.phone"), t("leads.country"), t("leads.type"), t("leads.date")].map(
-                  (h) => (
-                    <th
-                      key={h}
-                      className="text-left px-6 py-3 font-ui text-[10px] text-[var(--text-tertiary)] tracking-wider uppercase font-bold"
-                    >
-                      {h}
-                    </th>
-                  )
-                )}
-              </tr>
-            </thead>
-            <tbody>
-              {leads.map((lead, idx) => (
-                <motion.tr
-                  key={lead.id}
-                  initial={{ opacity: 0, y: 8 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: idx * 0.03 }}
-                  className="border-b border-[var(--border-subtle)] last:border-0 hover:bg-[var(--surface-2)] transition-colors"
+        <>
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            className="bg-[var(--surface-2)] border border-[var(--border-subtle)] rounded-xl overflow-hidden"
+          >
+            <table className="w-full">
+              <thead>
+                <tr className="border-b border-[var(--border-subtle)]">
+                  {[t("leads.name"), t("leads.email"), t("leads.phone"), t("leads.country"), t("leads.type"), t("leads.date")].map(
+                    (h) => (
+                      <th
+                        key={h}
+                        className="text-left px-6 py-3 font-ui text-[10px] text-[var(--text-tertiary)] tracking-wider uppercase font-bold"
+                      >
+                        {h}
+                      </th>
+                    )
+                  )}
+                </tr>
+              </thead>
+              <tbody>
+                {leads.map((lead, idx) => (
+                  <motion.tr
+                    key={lead.id}
+                    initial={{ opacity: 0, y: 8 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: idx * 0.03 }}
+                    className="border-b border-[var(--border-subtle)] last:border-0 hover:bg-[var(--surface-2)] transition-colors"
+                  >
+                    <td className="px-6 py-4 text-sm">{lead.nombre}</td>
+                    <td className="px-6 py-4 text-sm text-[var(--text-secondary)]">
+                      {lead.email}
+                    </td>
+                    <td className="px-6 py-4 text-sm text-[var(--text-secondary)]">
+                      {lead.telefono ?? "—"}
+                    </td>
+                    <td className="px-6 py-4 text-sm text-[var(--text-secondary)]">
+                      {lead.pais ?? "—"}
+                    </td>
+                    <td className="px-6 py-4">
+                      {lead.tipologia_interes ? (
+                        <span className="px-2 py-1 bg-[rgba(var(--site-primary-rgb),0.1)] text-[var(--site-primary)] rounded text-xs">
+                          {lead.tipologia_interes}
+                        </span>
+                      ) : (
+                        <span className="text-[var(--text-muted)]">—</span>
+                      )}
+                    </td>
+                    <td className="px-6 py-4 text-sm text-[var(--text-tertiary)]">
+                      {new Date(lead.created_at).toLocaleDateString(locale === "es" ? "es-CO" : "en-US")}
+                    </td>
+                  </motion.tr>
+                ))}
+              </tbody>
+            </table>
+          </motion.div>
+
+          {/* Pagination */}
+          {totalPages > 1 && (
+            <div className="flex items-center justify-between mt-6">
+              <p className="text-[var(--text-muted)] text-xs">
+                {showingFrom}–{showingTo} de {total}
+              </p>
+              <div className="flex items-center gap-3">
+                <button
+                  onClick={() => setPage((p) => Math.max(1, p - 1))}
+                  disabled={page <= 1}
+                  className="flex items-center gap-1.5 px-3 py-1.5 border border-[var(--border-default)] rounded-lg font-ui text-[10px] font-bold uppercase tracking-[0.1em] text-[var(--text-secondary)] hover:text-white transition-all disabled:opacity-30 disabled:cursor-not-allowed"
                 >
-                  <td className="px-6 py-4 text-sm">{lead.nombre}</td>
-                  <td className="px-6 py-4 text-sm text-[var(--text-secondary)]">
-                    {lead.email}
-                  </td>
-                  <td className="px-6 py-4 text-sm text-[var(--text-secondary)]">
-                    {lead.telefono ?? "—"}
-                  </td>
-                  <td className="px-6 py-4 text-sm text-[var(--text-secondary)]">
-                    {lead.pais ?? "—"}
-                  </td>
-                  <td className="px-6 py-4">
-                    {lead.tipologia_interes ? (
-                      <span className="px-2 py-1 bg-[rgba(var(--site-primary-rgb),0.1)] text-[var(--site-primary)] rounded text-xs">
-                        {lead.tipologia_interes}
-                      </span>
-                    ) : (
-                      <span className="text-[var(--text-muted)]">—</span>
-                    )}
-                  </td>
-                  <td className="px-6 py-4 text-sm text-[var(--text-tertiary)]">
-                    {new Date(lead.created_at).toLocaleDateString(locale === "es" ? "es-CO" : "en-US")}
-                  </td>
-                </motion.tr>
-              ))}
-            </tbody>
-          </table>
-        </motion.div>
+                  <ChevronLeft size={12} />
+                  Anterior
+                </button>
+                <span className="text-[var(--text-tertiary)] text-xs tabular-nums">
+                  {page} / {totalPages}
+                </span>
+                <button
+                  onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+                  disabled={page >= totalPages}
+                  className="flex items-center gap-1.5 px-3 py-1.5 border border-[var(--border-default)] rounded-lg font-ui text-[10px] font-bold uppercase tracking-[0.1em] text-[var(--text-secondary)] hover:text-white transition-all disabled:opacity-30 disabled:cursor-not-allowed"
+                >
+                  Siguiente
+                  <ChevronRight size={12} />
+                </button>
+              </div>
+            </div>
+          )}
+        </>
       )}
     </div>
   );

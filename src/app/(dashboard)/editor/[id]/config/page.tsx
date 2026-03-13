@@ -8,7 +8,8 @@ import {
   pageHeader, pageTitle, pageDescription,
   sectionCard, sectionTitle, sectionDescription,
 } from "@/components/dashboard/editor-styles";
-import { Settings, MessageCircle, View, Tags, Music, Eye, Trash2, Upload, Loader2 } from "lucide-react";
+import { Settings, MessageCircle, View, Tags, Music, Eye, Trash2, Upload, Loader2, ExternalLink } from "lucide-react";
+import { extractTourUrl } from "@/lib/tour-utils";
 import { motion } from "framer-motion";
 import { useTranslation, useLanguage } from "@/i18n";
 
@@ -21,6 +22,7 @@ export default function ConfigPage() {
 
   const [whatsappNumero, setWhatsappNumero] = useState("");
   const [tour360Url, setTour360Url] = useState("");
+  const [tour360RawInput, setTour360RawInput] = useState("");
   const [etapaLabel, setEtapaLabel] = useState("");
   const [backgroundAudioUrl, setBackgroundAudioUrl] = useState("");
   const [hideNoddoBadge, setHideNoddoBadge] = useState(false);
@@ -31,6 +33,7 @@ export default function ConfigPage() {
     if (!project) return;
     setWhatsappNumero(project.whatsapp_numero || "");
     setTour360Url(project.tour_360_url || "");
+    setTour360RawInput(project.tour_360_url || "");
     setEtapaLabel(project.etapa_label || "Etapas");
     setBackgroundAudioUrl(project.background_audio_url || "");
     setHideNoddoBadge(project.hide_noddo_badge ?? false);
@@ -175,18 +178,49 @@ export default function ConfigPage() {
         <p className={sectionDescription}>{t("config.tour.description")}</p>
 
         <div>
-          <label className={labelClass}>{t("config.tour.matterportUrl")}</label>
+          <label className={labelClass}>{t("config.tour.urlLabel")}</label>
           <input
-            type="url"
-            value={tour360Url}
-            onChange={(e) => { setTour360Url(e.target.value); scheduleAutoSave(); }}
-            placeholder={t("config.tour.matterportPlaceholder")}
+            type="text"
+            value={tour360RawInput}
+            onChange={(e) => {
+              const raw = e.target.value;
+              setTour360RawInput(raw);
+              setTour360Url(extractTourUrl(raw));
+              scheduleAutoSave();
+            }}
+            placeholder={t("config.tour.urlPlaceholder")}
             className={inputClass}
           />
           <p className={fieldHint}>
-            {t("config.tour.matterportHint")}
+            {t("config.tour.urlHint")}
           </p>
         </div>
+
+        {/* Preview */}
+        {tour360Url && (
+          <div className="space-y-2">
+            <div className="flex items-center justify-between">
+              <span className="text-xs text-[var(--text-tertiary)]">{t("config.tour.preview")}</span>
+              <a
+                href={tour360Url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-xs text-[var(--site-primary)] hover:underline flex items-center gap-1"
+              >
+                <ExternalLink size={11} />
+                {t("config.tour.openInTab")}
+              </a>
+            </div>
+            <div className="w-full h-[220px] rounded-xl overflow-hidden border border-[var(--border-subtle)]">
+              <iframe
+                src={tour360Url}
+                className="w-full h-full border-0"
+                allowFullScreen
+                title="Tour 360 preview"
+              />
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Audio de fondo Section */}

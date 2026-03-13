@@ -1,3 +1,4 @@
+import { pick } from "@/lib/api-utils";
 import { getAuthContext } from "@/lib/auth-context";
 import { NextRequest, NextResponse } from "next/server";
 
@@ -19,7 +20,7 @@ export async function POST(request: NextRequest) {
 
     const { data, error } = await auth.supabase
       .from("galeria_imagenes")
-      .insert(body)
+      .insert(pick(body, ["categoria_id", "url", "thumbnail_url", "alt_text", "orden"]))
       .select()
       .single();
 
