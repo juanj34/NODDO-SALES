@@ -830,7 +830,9 @@ body {
 
 /* ─── Marketing Buttons (square, architectural) ─── */
 .btn-mk-primary {
-  display: inline-block;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
   background: var(--mk-accent);
   color: var(--mk-bg);
   font-family: var(--font-syne), sans-serif;
@@ -839,9 +841,10 @@ body {
   letter-spacing: 0.1em;
   text-transform: uppercase;
   text-decoration: none;
+  white-space: nowrap;
   border: none;
   border-radius: 0;
-  padding: 14px 32px;
+  padding: 12px 24px;
   cursor: none;
   transition: background 0.2s, transform 0.2s;
 }
@@ -862,7 +865,9 @@ body {
 }
 
 .btn-mk-outline {
-  display: inline-block;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
   background: transparent;
   border: 1px solid rgba(244, 240, 232, 0.15);
   color: rgba(244, 240, 232, 0.6);
@@ -872,8 +877,9 @@ body {
   letter-spacing: 0.1em;
   text-transform: uppercase;
   text-decoration: none;
+  white-space: nowrap;
   border-radius: 0;
-  padding: 14px 32px;
+  padding: 12px 24px;
   cursor: none;
   transition: border-color 0.2s, color 0.2s;
 }
@@ -891,6 +897,7 @@ body {
 /* ─── Marketing Button Icon Animation ─── */
 .btn-mk-primary svg,
 .btn-mk-outline svg {
+  flex-shrink: 0;
   transition: transform 0.2s ease;
 }
 
@@ -1047,6 +1054,22 @@ body {
   height: 1px;
   background: rgba(255, 255, 255, 0.06);
 }
+
+/* ─── Large Section Heading ─── */
+.mk-section-heading {
+  font-family: var(--font-cormorant), 'Cormorant Garamond', Georgia, serif;
+  font-weight: 300;
+  font-size: clamp(40px, 5vw, 72px);
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+  color: var(--mk-text-primary);
+}
+
+.mk-section-heading em {
+  font-style: italic;
+  color: var(--mk-accent-light);
+}
+
 
 /* ─── Hero Building Animations ─── */
 @keyframes buildingFloat {

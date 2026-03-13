@@ -36,11 +36,16 @@ export function FAQSection() {
   const [openIdx, setOpenIdx] = useState<number | null>(null);
 
   return (
-    <section className="relative z-[1] py-24 lg:py-32 px-6 lg:px-20 border-t border-[var(--mk-border-rule)]">
+    <section className="relative z-[1] py-28 lg:py-40 px-6 lg:px-20 border-t border-[var(--mk-border-rule)]">
       <div style={{ maxWidth: 800, margin: "0 auto" }}>
-        <div className="mk-section-label mb-16">Preguntas frecuentes</div>
+        <div className="mk-section-label mb-6">Preguntas frecuentes</div>
 
-        <div className="mt-15">
+        <h2 className="mk-section-heading mb-16">
+          Resolvemos<br />
+          <em>tus dudas.</em>
+        </h2>
+
+        <div>
           {faqs.map((faq, i) => (
             <motion.div
               key={i}
@@ -60,7 +65,7 @@ export function FAQSection() {
                   fontSize: 12,
                   fontWeight: 600,
                   letterSpacing: "0.04em",
-                  color: openIdx === i ? "var(--mk-text-primary)" : "rgba(244,240,232,0.7)",
+                  color: openIdx === i ? "var(--mk-text-primary)" : "rgba(244,240,232,0.65)",
                   transition: "color 0.2s",
                   background: "none",
                   border: "none",
@@ -73,9 +78,9 @@ export function FAQSection() {
                   style={{
                     width: 20,
                     height: 20,
-                    border: `1px solid ${openIdx === i ? "var(--mk-accent)" : "rgba(255,255,255,0.1)"}`,
+                    border: `1px solid ${openIdx === i ? "var(--mk-accent)" : "rgba(255,255,255,0.12)"}`,
                     fontSize: 10,
-                    color: openIdx === i ? "var(--mk-accent)" : "rgba(244,240,232,0.3)",
+                    color: openIdx === i ? "var(--mk-accent)" : "rgba(244,240,232,0.35)",
                     transition: "transform 0.3s, border-color 0.2s, color 0.2s",
                     transform: openIdx === i ? "rotate(45deg)" : "none",
                   }}
@@ -87,13 +92,13 @@ export function FAQSection() {
               {/* Answer */}
               <div
                 style={{
-                  maxHeight: openIdx === i ? 200 : 0,
+                  maxHeight: openIdx === i ? 300 : 0,
                   overflow: "hidden",
                   transition: "max-height 0.4s ease, padding 0.3s ease",
                   paddingBottom: openIdx === i ? 24 : 0,
                   fontSize: 12,
                   lineHeight: 1.9,
-                  color: "rgba(244,240,232,0.4)",
+                  color: "rgba(244,240,232,0.55)",
                 }}
               >
                 {faq.a}

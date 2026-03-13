@@ -47,9 +47,14 @@ const ease = [0.25, 0.46, 0.45, 0.94] as const;
 
 export function HowItWorks() {
   return (
-    <section className="relative z-[1] py-24 lg:py-32 px-6 lg:px-20 border-t border-[var(--mk-border-rule)]">
+    <section className="relative z-[1] py-28 lg:py-40 px-6 lg:px-20 border-t border-[var(--mk-border-rule)]">
       <div style={{ maxWidth: 1200, margin: "0 auto" }}>
-        <div className="mk-section-label mb-16">Cómo funciona</div>
+        <div className="mk-section-label mb-6">Cómo funciona</div>
+
+        <h2 className="mk-section-heading mb-16">
+          Tres pasos.<br />
+          <em>Un día.</em>
+        </h2>
 
         <div
           className="grid grid-cols-1 md:grid-cols-3 relative"
@@ -62,13 +67,13 @@ export function HowItWorks() {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true, margin: "-60px" }}
               transition={{ duration: 0.6, delay: i * 0.15, ease }}
-              className="bg-[var(--mk-bg)] relative z-[1]"
-              style={{ padding: "52px 40px" }}
+              className="relative z-[1]"
+              style={{ padding: "52px 40px", background: "var(--mk-bg)" }}
             >
               {/* Number */}
               <div
                 className="font-heading leading-none mb-7"
-                style={{ fontSize: 72, fontWeight: 300, color: "rgba(184,151,58,0.1)", letterSpacing: "-0.03em" }}
+                style={{ fontSize: 72, fontWeight: 300, color: "rgba(184,151,58,0.15)", letterSpacing: "-0.03em" }}
               >
                 {step.num}
               </div>
@@ -76,18 +81,18 @@ export function HowItWorks() {
               {/* Icon */}
               <div
                 className="flex items-center justify-center mb-5"
-                style={{ width: 40, height: 40, border: "1px solid rgba(184,151,58,0.2)" }}
+                style={{ width: 40, height: 40, border: "1px solid rgba(184,151,58,0.3)" }}
               >
                 {step.icon}
               </div>
 
               {/* Title */}
-              <div className="font-ui text-[13px] font-bold uppercase tracking-[0.08em] text-[var(--mk-text-primary)] mb-3">
+              <div className="font-ui text-[13px] font-bold uppercase tracking-[0.08em] mb-3" style={{ color: "var(--mk-text-primary)" }}>
                 {step.title}
               </div>
 
               {/* Body */}
-              <div className="text-[12px] leading-[1.8]" style={{ color: "rgba(244,240,232,0.4)" }}>
+              <div className="text-[12px] leading-[1.8]" style={{ color: "rgba(244,240,232,0.55)" }}>
                 {step.body}
               </div>
 
@@ -97,7 +102,7 @@ export function HowItWorks() {
                 style={{
                   color: "var(--mk-accent)",
                   padding: "5px 12px",
-                  border: "1px solid rgba(184,151,58,0.2)",
+                  border: "1px solid rgba(184,151,58,0.3)",
                 }}
               >
                 {step.tag}
