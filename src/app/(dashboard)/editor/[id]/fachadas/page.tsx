@@ -282,11 +282,12 @@ export default function NoddoGridPage() {
       if (res.ok) {
         setFachadas((prev) => prev.filter((f) => f.id !== id));
         setUnidades((prev) =>
-          prev.map((u) =>
-            u.fachada_id === id
-              ? { ...u, fachada_id: null, fachada_x: null, fachada_y: null }
-              : u
-          )
+          prev.map((u) => {
+            let updated = u;
+            if (u.fachada_id === id) updated = { ...updated, fachada_id: null, fachada_x: null, fachada_y: null };
+            if (u.planta_id === id) updated = { ...updated, planta_id: null, planta_x: null, planta_y: null };
+            return updated;
+          })
         );
         await refresh();
       }
@@ -303,18 +304,23 @@ export default function NoddoGridPage() {
       unitId: string,
       data: { fachada_id: string; fachada_x: number; fachada_y: number }
     ) => {
+      // In planta mode, write to planta_id/x/y instead of fachada_id/x/y
+      const isPlantaMode = viewMode === "planta";
+      const payload = isPlantaMode
+        ? { planta_id: data.fachada_id, planta_x: data.fachada_x, planta_y: data.fachada_y }
+        : data;
+      const optimistic = isPlantaMode
+        ? { planta_id: data.fachada_id, planta_x: data.fachada_x, planta_y: data.fachada_y }
+        : { fachada_id: data.fachada_id, fachada_x: data.fachada_x, fachada_y: data.fachada_y };
+
       setUnidades((prev) =>
-        prev.map((u) =>
-          u.id === unitId
-            ? { ...u, fachada_id: data.fachada_id, fachada_x: data.fachada_x, fachada_y: data.fachada_y }
-            : u
-        )
+        prev.map((u) => (u.id === unitId ? { ...u, ...optimistic } : u))
       );
       try {
         const res = await fetch(`/api/unidades/${unitId}`, {
           method: "PUT",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(data),
+          body: JSON.stringify(payload),
         });
         if (!res.ok) toast.error("Error al guardar posición");
         await refresh();
@@ -323,23 +329,24 @@ export default function NoddoGridPage() {
         await refresh();
       }
     },
-    [refresh, toast]
+    [refresh, toast, viewMode]
   );
 
   const handleRemoveUnit = useCallback(
     async (unitId: string) => {
+      const isPlantaMode = viewMode === "planta";
+      const clearFields = isPlantaMode
+        ? { planta_id: null, planta_x: null, planta_y: null }
+        : { fachada_x: null, fachada_y: null };
+
       setUnidades((prev) =>
-        prev.map((u) =>
-          u.id === unitId
-            ? { ...u, fachada_x: null, fachada_y: null }
-            : u
-        )
+        prev.map((u) => (u.id === unitId ? { ...u, ...clearFields } : u))
       );
       try {
         const res = await fetch(`/api/unidades/${unitId}`, {
           method: "PUT",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ fachada_x: null, fachada_y: null }),
+          body: JSON.stringify(clearFields),
         });
         if (!res.ok) toast.error("Error al remover unidad");
         await refresh();
@@ -348,18 +355,26 @@ export default function NoddoGridPage() {
         await refresh();
       }
     },
-    [refresh, toast]
+    [refresh, toast, viewMode]
   );
 
   const handleClearAll = useCallback(
     async (fachadaId: string) => {
+      const isPlantaMode = viewMode === "planta";
+      const idField = isPlantaMode ? "planta_id" : "fachada_id";
+      const xField = isPlantaMode ? "planta_x" : "fachada_x";
+      const yField = isPlantaMode ? "planta_y" : "fachada_y";
+      const clearFields = isPlantaMode
+        ? { planta_id: null, planta_x: null, planta_y: null }
+        : { fachada_x: null, fachada_y: null };
+
       const assigned = unidades.filter(
-        (u) => u.fachada_id === fachadaId && u.fachada_x !== null && u.fachada_y !== null
+        (u) => u[idField] === fachadaId && u[xField] !== null && u[yField] !== null
       );
       setUnidades((prev) =>
         prev.map((u) =>
-          u.fachada_id === fachadaId && u.fachada_x !== null && u.fachada_y !== null
-            ? { ...u, fachada_x: null, fachada_y: null }
+          u[idField] === fachadaId && u[xField] !== null && u[yField] !== null
+            ? { ...u, ...clearFields }
             : u
         )
       );
@@ -369,7 +384,7 @@ export default function NoddoGridPage() {
             fetch(`/api/unidades/${u.id}`, {
               method: "PUT",
               headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({ fachada_x: null, fachada_y: null }),
+              body: JSON.stringify(clearFields),
             })
           )
         );
@@ -380,7 +395,7 @@ export default function NoddoGridPage() {
         await refresh();
       }
     },
-    [unidades, refresh, toast]
+    [unidades, refresh, toast, viewMode]
   );
 
   /* ------------------------------------------------------------------
@@ -695,13 +710,14 @@ export default function NoddoGridPage() {
      ------------------------------------------------------------------ */
   const selectedFachada = visibleFachadas.find((f) => f.id === selectedFachadaId) ?? null;
 
+  const isPlantaView = viewMode === "planta";
+
   const assignedUnits = selectedFachada
     ? unidades
-        .filter(
-          (u) =>
-            u.fachada_id === selectedFachada.id &&
-            u.fachada_x !== null &&
-            u.fachada_y !== null
+        .filter((u) =>
+          isPlantaView
+            ? u.planta_id === selectedFachada.id && u.planta_x !== null && u.planta_y !== null
+            : u.fachada_id === selectedFachada.id && u.fachada_x !== null && u.fachada_y !== null
         )
         .map((u) => {
           const tipo = u.tipologia_id ? tipologiaMap.get(u.tipologia_id) : null;
@@ -709,8 +725,8 @@ export default function NoddoGridPage() {
             id: u.id,
             identificador: u.identificador,
             estado: u.estado,
-            fachada_x: u.fachada_x!,
-            fachada_y: u.fachada_y!,
+            fachada_x: isPlantaView ? u.planta_x! : u.fachada_x!,
+            fachada_y: isPlantaView ? u.planta_y! : u.fachada_y!,
             tipologiaNombre: tipo?.nombre ?? null,
             habitaciones: u.habitaciones ?? tipo?.habitaciones ?? null,
           };
@@ -719,18 +735,23 @@ export default function NoddoGridPage() {
 
   const unassignedUnits = unidades
     .filter((u) => {
-      // Already placed on a grid (has coordinates)
-      if (u.fachada_x !== null && u.fachada_y !== null) return false;
-      // In plantas mode, only show units for the selected floor
-      if (viewMode === "planta" && selectedFachada?.piso_numero != null) {
-        // Filter by floor number AND torre
-        const matchesFloor = u.piso === selectedFachada.piso_numero;
-        const matchesTorre = !selectedFachada.torre_id || u.torre_id === selectedFachada.torre_id;
-        return matchesFloor && matchesTorre;
+      if (isPlantaView) {
+        // In planta mode, check planta fields for "already placed"
+        if (u.planta_x !== null && u.planta_y !== null) return false;
+        // Only show units for the selected floor
+        if (selectedFachada?.piso_numero != null) {
+          const matchesFloor = u.piso === selectedFachada.piso_numero;
+          const matchesTorre = !selectedFachada.torre_id || u.torre_id === selectedFachada.torre_id;
+          return matchesFloor && matchesTorre;
+        }
+        return false;
       }
-      // No fachada assigned → show in all grids
+      // Fachada mode — filter by torre + fachada assignment
+      if (u.fachada_x !== null && u.fachada_y !== null) return false;
+      // Only show units from the active torre (or all if single-torre project)
+      const torreId = activeTorre?.id ?? (torres.length === 1 ? torres[0]?.id : null);
+      if (torreId && u.torre_id !== torreId) return false;
       if (!u.fachada_id) return true;
-      // Fachada assigned → only show in that fachada's grid
       return selectedFachada ? u.fachada_id === selectedFachada.id : false;
     })
     .map((u) => {
@@ -967,7 +988,7 @@ export default function NoddoGridPage() {
                     <span className="block text-xs text-[var(--text-secondary)] truncate">{u.identificador}</span>
                     {u.tipologiaNombre && (
                       <span className="block text-[10px] text-[var(--text-muted)] truncate">
-                        {u.tipologiaNombre}{u.habitaciones ? ` · ${u.habitaciones} hab` : ""}
+                        {u.tipologiaNombre}
                       </span>
                     )}
                   </div>

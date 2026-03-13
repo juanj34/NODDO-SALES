@@ -28,6 +28,9 @@ function generateUnidades(): Unidad[] {
       torre_id: "torre-001",
       fachada_x: 25 + col * 17,
       fachada_y: 88 - row * 10,
+      planta_id: null,
+      planta_x: null,
+      planta_y: null,
       orden: i,
       created_at: new Date().toISOString(),
     });
@@ -61,6 +64,9 @@ function generateUnidades(): Unidad[] {
       torre_id: inTorreNorte ? "torre-001" : "torre-002",
       fachada_x: 25 + col * 17,
       fachada_y: 78 - row * 10,
+      planta_id: null,
+      planta_x: null,
+      planta_y: null,
       orden: i,
       created_at: new Date().toISOString(),
     });
@@ -94,6 +100,9 @@ function generateUnidades(): Unidad[] {
       torre_id: inTorreNorte ? "torre-001" : "torre-002",
       fachada_x: 25 + col * 17,
       fachada_y: 68 - row * 10,
+      planta_id: null,
+      planta_x: null,
+      planta_y: null,
       orden: i,
       created_at: new Date().toISOString(),
     });
@@ -125,6 +134,9 @@ function generateUnidades(): Unidad[] {
       torre_id: "torre-002",
       fachada_x: 28 + col * 22,
       fachada_y: 42 - row * 10,
+      planta_id: null,
+      planta_x: null,
+      planta_y: null,
       orden: i,
       created_at: new Date().toISOString(),
     });

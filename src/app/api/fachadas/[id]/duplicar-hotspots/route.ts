@@ -60,13 +60,25 @@ export async function POST(
       );
     }
 
-    // 3. Get all units positioned on the source fachada
+    // Determine if source is a planta (use planta_id/x/y fields)
+    const { data: sourceFachadaFull } = await auth.supabase
+      .from("fachadas")
+      .select("tipo")
+      .eq("id", sourceFachadaId)
+      .single();
+    const isPlanta = sourceFachadaFull?.tipo === "planta";
+
+    // 3. Get all units positioned on the source fachada/planta
+    const posIdCol = isPlanta ? "planta_id" : "fachada_id";
+    const posXCol = isPlanta ? "planta_x" : "fachada_x";
+    const posYCol = isPlanta ? "planta_y" : "fachada_y";
+
     const { data: sourceUnits } = await auth.supabase
       .from("unidades")
-      .select("id, identificador, fachada_x, fachada_y, piso")
-      .eq("fachada_id", sourceFachadaId)
-      .not("fachada_x", "is", null)
-      .not("fachada_y", "is", null);
+      .select(`id, identificador, ${posXCol}, ${posYCol}, piso`)
+      .eq(posIdCol, sourceFachadaId)
+      .not(posXCol, "is", null)
+      .not(posYCol, "is", null);
 
     if (!sourceUnits || sourceUnits.length === 0) {
       return NextResponse.json(
@@ -124,8 +136,8 @@ export async function POST(
           target_id: targetUnit.id,
           source_identificador: sourceUnit.identificador,
           target_identificador: targetUnit.identificador,
-          x: sourceUnit.fachada_x!,
-          y: sourceUnit.fachada_y!,
+          x: (sourceUnit as Record<string, unknown>)[posXCol] as number,
+          y: (sourceUnit as Record<string, unknown>)[posYCol] as number,
         });
       } else {
         unmatched.push(sourceUnit.identificador);
@@ -139,9 +151,9 @@ export async function POST(
           auth.supabase
             .from("unidades")
             .update({
-              fachada_id: target_fachada_id,
-              fachada_x: m.x,
-              fachada_y: m.y,
+              [posIdCol]: target_fachada_id,
+              [posXCol]: m.x,
+              [posYCol]: m.y,
             })
             .eq("id", m.target_id)
         )

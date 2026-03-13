@@ -161,6 +161,9 @@ export interface Unidad {
   fachada_id: string | null;
   fachada_x: number | null;
   fachada_y: number | null;
+  planta_id: string | null;
+  planta_x: number | null;
+  planta_y: number | null;
   torre_id: string | null;
   orden: number;
   created_at: string;

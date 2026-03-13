@@ -1158,7 +1158,7 @@ export function FacadeHotspotEditor({
                           <span className="block text-[11px] text-[var(--text-secondary)] truncate">{u.identificador}</span>
                           {u.tipologiaNombre && (
                             <span className="block text-[9px] text-[var(--text-muted)] truncate">
-                              {u.tipologiaNombre}{u.habitaciones ? ` · ${u.habitaciones} hab` : ""}
+                              {u.tipologiaNombre}
                             </span>
                           )}
                         </span>

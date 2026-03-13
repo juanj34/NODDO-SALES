@@ -29,7 +29,7 @@ export async function POST(request: NextRequest) {
 
     const rows = unidades.map(
       (u: Record<string, unknown>, i: number) => ({
-        ...pick(u, ["tipologia_id", "identificador", "piso", "area_m2", "precio", "estado", "habitaciones", "banos", "orientacion", "vista", "notas", "torre_id"]),
+        ...pick(u, ["tipologia_id", "identificador", "piso", "area_m2", "precio", "estado", "habitaciones", "banos", "orientacion", "vista", "notas", "fachada_id", "fachada_x", "fachada_y", "planta_id", "planta_x", "planta_y", "torre_id"]),
         proyecto_id,
         orden: u.orden ?? i,
       })

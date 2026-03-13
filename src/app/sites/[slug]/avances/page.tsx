@@ -113,7 +113,7 @@ export default function AvancesPage() {
   const isSingle = avances.length === 1;
 
   return (
-    <SectionTransition className="relative min-h-screen flex flex-col items-center px-6 lg:px-12 py-12 overflow-hidden">
+    <SectionTransition className="relative h-full flex flex-col items-center px-6 lg:px-12 py-12 overflow-y-auto overflow-x-clip" data-lenis-prevent>
       <AmbientBackground variant="gold" />
 
       <div className="relative z-10 w-full max-w-4xl">

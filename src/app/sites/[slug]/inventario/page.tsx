@@ -186,8 +186,10 @@ export default function InventarioPage() {
   };
 
   return (
-    <SectionTransition className="min-h-screen bg-[var(--site-bg)]">
-      <div className="max-w-7xl mx-auto px-6 lg:px-10 py-4">
+    <SectionTransition className="h-full flex flex-col bg-[var(--site-bg)]">
+      <div className="flex-1 flex flex-col min-h-0 max-w-7xl mx-auto px-6 lg:px-10 w-full">
+        {/* ====== FROZEN HEADER AREA ====== */}
+        <div className="shrink-0 pt-4">
         {/* ====== COMPACT HEADER ====== */}
         <div className="flex items-center gap-3 mb-3">
           <div className="w-8 h-8 rounded-lg bg-[rgba(var(--site-primary-rgb),0.15)] flex items-center justify-center shrink-0">
@@ -396,6 +398,10 @@ export default function InventarioPage() {
         <p className="text-[10px] text-[var(--text-tertiary)] tracking-wider mb-2 pl-1">
           {filteredUnidades.length} {filteredUnidades.length !== 1 ? tSite("inventario.results") : tSite("inventario.result")}
         </p>
+        </div>{/* end frozen header */}
+
+        {/* ====== SCROLLABLE CONTENT AREA ====== */}
+        <div className="flex-1 overflow-y-auto min-h-0 pb-4" data-lenis-prevent>
 
         {/* ====== GRID VIEW ====== */}
         {viewMode === "grid" && (
@@ -500,9 +506,12 @@ export default function InventarioPage() {
 
         {/* ====== LIST VIEW ====== */}
         {viewMode === "list" && (
-          <div className="glass rounded-xl overflow-hidden">
-            {/* Table header */}
-            <div className="flex items-center gap-2 px-3 py-2 border-b border-white/[0.06] text-[10px] text-[var(--text-muted)] tracking-wider uppercase">
+          <div className="glass rounded-xl" style={{ overflowX: "clip" }}>
+            {/* Table header — sticky within scroll parent */}
+            <div
+              className="sticky top-0 z-10 flex items-center gap-2 px-3 py-2 border-b border-white/[0.06] text-[10px] text-[var(--text-muted)] tracking-wider uppercase backdrop-blur-xl"
+              style={{ backgroundColor: "rgba(17, 17, 19, 0.92)" }}
+            >
               <span className="w-4 shrink-0" />
               <span className="w-24 shrink-0">{tSite("inventario.unit")}</span>
               <span className="w-28 shrink-0 hidden md:block">{tSite("inventario.type")}</span>
@@ -592,6 +601,7 @@ export default function InventarioPage() {
             </button>
           </motion.div>
         )}
+        </div>{/* end scrollable content */}
       </div>
 
       {/* Cotizador Modal */}

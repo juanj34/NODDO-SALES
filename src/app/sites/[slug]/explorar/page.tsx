@@ -133,12 +133,18 @@ export default function ExplorarPage() {
   const isMobile = useMediaQuery("(max-width: 1023px)");
   const [sheetOpen, setSheetOpen] = useState(false);
 
-  // Units with fachada coordinates, filtered by active fachada
+  // Units with coordinates, filtered by active fachada/planta
+  const isPlantaView = explorarView === "planta";
   const positionedUnits = useMemo(() => {
+    if (isPlantaView) {
+      let filtered = unidades.filter((u) => u.planta_x !== null && u.planta_y !== null);
+      if (activeFachada) filtered = filtered.filter((u) => u.planta_id === activeFachada.id);
+      return filtered;
+    }
     let filtered = unidades.filter((u) => u.fachada_x !== null && u.fachada_y !== null);
     if (activeFachada) filtered = filtered.filter((u) => u.fachada_id === activeFachada.id);
     return filtered;
-  }, [unidades, activeFachada]);
+  }, [unidades, activeFachada, isPlantaView]);
 
   const selectedTipologia = useMemo(() => {
     if (!selectedUnit?.tipologia_id) return undefined;
@@ -731,8 +737,8 @@ export default function ExplorarPage() {
                   aria-label={`${tCommon("labels.unit")} ${unit.identificador}`}
                   className="absolute z-10 cursor-pointer group"
                   style={{
-                    left: `${unit.fachada_x}%`,
-                    top: `${unit.fachada_y}%`,
+                    left: `${isPlantaView ? unit.planta_x : unit.fachada_x}%`,
+                    top: `${isPlantaView ? unit.planta_y : unit.fachada_y}%`,
                     transform: "translate(-50%, -50%)",
                   }}
                   onClick={() => {
