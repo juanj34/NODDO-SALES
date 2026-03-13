@@ -2,10 +2,20 @@ import { createClient } from "@/lib/supabase/server";
 import { getAuthContext } from "@/lib/auth-context";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { sendLeadNotification } from "@/lib/email";
+import { isRateLimited, getClientIp } from "@/lib/rate-limit";
 import { NextRequest, NextResponse } from "next/server";
 
 export async function POST(request: NextRequest) {
   try {
+    // Rate limit: 5 leads per minute per IP
+    const ip = getClientIp(request);
+    if (isRateLimited("leads", ip, 5, 60_000)) {
+      return NextResponse.json(
+        { error: "Demasiadas solicitudes. Intenta de nuevo en un momento." },
+        { status: 429 }
+      );
+    }
+
     // POST is public — no auth needed for lead creation
     const supabase = await createClient();
     const body = await request.json();

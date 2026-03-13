@@ -51,6 +51,8 @@ const site = {
     valueProp3Title: "Dedicated advisor",
     valueProp3Desc: "Personalized attention for your investment",
     trustLine: "Your data is protected and will not be shared",
+    consentPrefix: "By submitting, you accept our",
+    consentLink: "privacy policy",
     successHeading: "Message sent!",
     successDescription: "A specialized advisor will contact you soon to answer all your questions about {{name}}.",
     successNext: "Check your email for confirmation",

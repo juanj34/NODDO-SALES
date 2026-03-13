@@ -1,4 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
+import { isRateLimited, getClientIp } from "@/lib/rate-limit";
 import { NextRequest, NextResponse } from "next/server";
 
 const VALID_EVENT_TYPES = new Set([
@@ -21,36 +22,6 @@ function isBot(userAgent: string | null): boolean {
   return BOT_UA_REGEX.test(userAgent);
 }
 
-/* ── Simple in-memory rate limiter ── */
-const rateLimitMap = new Map<string, { count: number; resetAt: number }>();
-const RATE_LIMIT_WINDOW = 60_000; // 1 minute
-const RATE_LIMIT_MAX = 100; // events per minute per IP
-
-function isRateLimited(ip: string): boolean {
-  const now = Date.now();
-  const entry = rateLimitMap.get(ip);
-
-  if (!entry || now > entry.resetAt) {
-    rateLimitMap.set(ip, { count: 1, resetAt: now + RATE_LIMIT_WINDOW });
-    return false;
-  }
-
-  entry.count++;
-  if (entry.count > RATE_LIMIT_MAX) return true;
-  return false;
-}
-
-// Clean up stale entries every 5 minutes
-if (typeof globalThis !== "undefined") {
-  const cleanup = () => {
-    const now = Date.now();
-    for (const [key, entry] of rateLimitMap) {
-      if (now > entry.resetAt) rateLimitMap.delete(key);
-    }
-  };
-  setInterval(cleanup, 5 * 60_000).unref?.();
-}
-
 export async function POST(request: NextRequest) {
   try {
     const userAgent = request.headers.get("user-agent") || null;
@@ -60,10 +31,9 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ ok: true }, { status: 202 }); // Accept silently, don't store
     }
 
-    // Rate limit by IP
-    const ip = request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ||
-      request.headers.get("x-real-ip") || "unknown";
-    if (isRateLimited(ip)) {
+    // Rate limit: 100 events per minute per IP
+    const ip = getClientIp(request);
+    if (isRateLimited("track", ip, 100, 60_000)) {
       return NextResponse.json({ error: "Too many requests" }, { status: 429 });
     }
 

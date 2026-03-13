@@ -3,6 +3,7 @@ import { createClient } from "@supabase/supabase-js";
 import { calcularCotizacion } from "@/lib/cotizador/calcular";
 import { generarPDF } from "@/lib/cotizador/generar-pdf";
 import { sendCotizacionBuyer, sendCotizacionAdmin } from "@/lib/email";
+import { isRateLimited, getClientIp } from "@/lib/rate-limit";
 import type { CotizadorConfig, Unidad } from "@/types";
 
 // Use service-role client for public endpoint (no user auth required)
@@ -30,6 +31,15 @@ const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 export async function POST(request: NextRequest) {
   try {
+    // Rate limit: 3 cotizaciones per minute per IP (PDF generation is expensive)
+    const ip = getClientIp(request);
+    if (isRateLimited("cotizaciones", ip, 3, 60_000)) {
+      return NextResponse.json(
+        { error: "Demasiadas solicitudes. Intenta de nuevo en un momento." },
+        { status: 429 }
+      );
+    }
+
     const body = await request.json();
     const { proyecto_id, unidad_id, nombre, email, telefono, utm_source, utm_medium, utm_campaign, agente_id, agente_nombre } = body;
 

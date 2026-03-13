@@ -13,6 +13,7 @@ interface LeadFormProps {
   preselectedTipologia?: string;
   projectName?: string;
   variant?: "page" | "compact";
+  privacyPolicyUrl?: string | null;
 }
 
 interface FormData {
@@ -30,6 +31,7 @@ export function LeadForm({
   preselectedTipologia = "",
   projectName,
   variant = "compact",
+  privacyPolicyUrl,
 }: LeadFormProps) {
   const { t: tCommon } = useTranslation("common");
   const { t: tSite } = useTranslation("site");
@@ -160,6 +162,7 @@ export function LeadForm({
             name="nombre"
             placeholder="Juan Pérez"
             required
+            autoComplete="name"
             value={formData.nombre}
             onChange={handleChange}
             className="input-glass w-full"
@@ -174,6 +177,8 @@ export function LeadForm({
             name="email"
             placeholder="juan@email.com"
             required
+            autoComplete="email"
+            inputMode="email"
             value={formData.email}
             onChange={handleChange}
             className="input-glass w-full"
@@ -189,6 +194,8 @@ export function LeadForm({
             type="tel"
             name="telefono"
             placeholder="+57 300 000 0000"
+            autoComplete="tel"
+            inputMode="tel"
             value={formData.telefono}
             onChange={handleChange}
             className="input-glass w-full"
@@ -202,6 +209,7 @@ export function LeadForm({
             type="text"
             name="pais"
             placeholder="Colombia"
+            autoComplete="country-name"
             value={formData.pais}
             onChange={handleChange}
             className="input-glass w-full"
@@ -260,14 +268,29 @@ export function LeadForm({
       )}
 
       {/* Trust footer */}
-      <div className="flex items-center justify-center gap-2 pt-2">
-        <ShieldCheck
-          size={14}
-          className="text-[rgba(var(--site-primary-rgb),0.4)]"
-        />
-        <p className="text-[10px] text-[var(--text-muted)]">
-          {tSite("contacto.trustLine")}
-        </p>
+      <div className="flex flex-col items-center gap-1.5 pt-2">
+        <div className="flex items-center gap-2">
+          <ShieldCheck
+            size={14}
+            className="text-[rgba(var(--site-primary-rgb),0.4)]"
+          />
+          <p className="text-[10px] text-[var(--text-muted)]">
+            {tSite("contacto.trustLine")}
+          </p>
+        </div>
+        {privacyPolicyUrl && (
+          <p className="text-[10px] text-[var(--text-muted)]">
+            {tSite("contacto.consentPrefix")}{" "}
+            <a
+              href={privacyPolicyUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="underline underline-offset-2 hover:text-[var(--site-primary)] transition-colors"
+            >
+              {tSite("contacto.consentLink")}
+            </a>
+          </p>
+        )}
       </div>
     </form>
   );

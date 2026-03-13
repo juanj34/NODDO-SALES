@@ -82,7 +82,7 @@ export default function SiteLanding() {
             muted
             loop
             playsInline
-            preload="auto"
+            preload="metadata"
             poster={proyecto.render_principal_url || undefined}
             onCanPlay={() => window.dispatchEvent(new Event("hero-ready"))}
             className="absolute inset-0 w-full h-full object-cover"
@@ -120,6 +120,7 @@ export default function SiteLanding() {
               <img
                 src={proyecto.constructora_logo_url!}
                 alt={proyecto.constructora_nombre || "Constructora"}
+                loading="lazy"
                 className="h-8 w-auto object-contain opacity-60 hover:opacity-90 transition-opacity"
               />
             </a>
@@ -127,6 +128,7 @@ export default function SiteLanding() {
             <img
               src={proyecto.constructora_logo_url!}
               alt={proyecto.constructora_nombre || "Constructora"}
+              loading="lazy"
               className="h-8 w-auto object-contain opacity-60"
             />
           )}
@@ -196,6 +198,7 @@ export default function SiteLanding() {
                     <img
                       src={proyecto.constructora_logo_url}
                       alt={proyecto.constructora_nombre || "Constructora"}
+                      loading="lazy"
                       className="h-8 w-auto object-contain opacity-80 hover:opacity-100 transition-opacity"
                     />
                   </a>
@@ -203,6 +206,7 @@ export default function SiteLanding() {
                   <img
                     src={proyecto.constructora_logo_url}
                     alt={proyecto.constructora_nombre || "Constructora"}
+                    loading="lazy"
                     className="h-8 w-auto object-contain opacity-80"
                   />
                 )

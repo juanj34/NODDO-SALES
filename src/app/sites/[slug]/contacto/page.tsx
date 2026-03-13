@@ -142,6 +142,7 @@ export default function ContactoPage() {
             preselectedTipologia={selectedTipologia}
             projectName={proyecto.nombre}
             variant="page"
+            privacyPolicyUrl={proyecto.politica_privacidad_url}
           />
         </motion.div>
       </div>

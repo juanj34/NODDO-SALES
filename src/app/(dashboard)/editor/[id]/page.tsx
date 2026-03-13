@@ -109,7 +109,7 @@ export default function EditorGeneralPage() {
 
   /* ── Auto-save ── */
   const handleSaveRef = useRef(handleSave);
-  handleSaveRef.current = handleSave;
+  useEffect(() => { handleSaveRef.current = handleSave; });
   const saveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const scheduleAutoSave = useCallback(() => {

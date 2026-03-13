@@ -51,6 +51,8 @@ const site = {
     valueProp3Title: "Asesor dedicado",
     valueProp3Desc: "Atención personalizada para tu inversión",
     trustLine: "Tus datos están protegidos y no serán compartidos",
+    consentPrefix: "Al enviar, aceptas nuestra",
+    consentLink: "política de privacidad",
     successHeading: "¡Mensaje enviado!",
     successDescription: "Un asesor especializado te contactará pronto para resolver todas tus dudas sobre {{name}}.",
     successNext: "Revisa tu correo para la confirmación",
