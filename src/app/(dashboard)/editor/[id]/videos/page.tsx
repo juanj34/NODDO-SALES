@@ -95,7 +95,7 @@ function DraggableVideo({
       >
         <GripVertical size={16} />
       </div>
-      <div className="w-32 h-20 rounded-lg overflow-hidden bg-[var(--surface-2)] flex items-center justify-center shrink-0 relative">
+      <div className="w-20 h-14 sm:w-32 sm:h-20 rounded-lg overflow-hidden bg-[var(--surface-2)] flex items-center justify-center shrink-0 relative">
         {isProcessing ? (
           <div className="flex flex-col items-center gap-1">
             <Loader2 size={20} className="text-[var(--site-primary)] animate-spin" />

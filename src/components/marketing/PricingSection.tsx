@@ -1,10 +1,15 @@
 "use client";
 
+import { useCallback } from "react";
 import { motion } from "framer-motion";
 import { useBooking } from "./BookingProvider";
+import { useContact } from "./ContactProvider";
+import { trackPricingPlanClicked } from "@/lib/marketing-tracking";
+import { PLAN_VALUES } from "@/lib/ghl-config";
 
 interface Plan {
   name: string;
+  slug: string;
   price: string;
   pricePrefix?: string;
   period: string;
@@ -12,12 +17,13 @@ interface Plan {
   featured?: boolean;
   badge?: string;
   ctaLabel: string;
-  ctaStyle: "primary" | "ghost";
+  ctaAction: "booking" | "contact";
 }
 
 const plans: Plan[] = [
   {
     name: "Proyecto",
+    slug: "proyecto",
     pricePrefix: "$",
     price: "149",
     period: "/ mes · o $119 con pago anual",
@@ -30,10 +36,11 @@ const plans: Plan[] = [
       { text: "White-label", on: false },
     ],
     ctaLabel: "Agenda una demo",
-    ctaStyle: "ghost",
+    ctaAction: "booking",
   },
   {
     name: "Studio",
+    slug: "studio",
     pricePrefix: "$",
     price: "399",
     period: "/ mes · o $319 con pago anual",
@@ -48,10 +55,11 @@ const plans: Plan[] = [
       { text: "White-label", on: false },
     ],
     ctaLabel: "Agenda una demo",
-    ctaStyle: "primary",
+    ctaAction: "booking",
   },
   {
     name: "Enterprise",
+    slug: "enterprise",
     price: "A medida",
     period: "contrato anual",
     features: [
@@ -63,7 +71,7 @@ const plans: Plan[] = [
       { text: "SLA garantizado", on: true },
     ],
     ctaLabel: "Hablar con ventas",
-    ctaStyle: "ghost",
+    ctaAction: "contact",
   },
 ];
 
@@ -71,6 +79,21 @@ const ease = [0.25, 0.46, 0.45, 0.94] as const;
 
 export function PricingSection() {
   const { openBooking } = useBooking();
+  const { openContact } = useContact();
+
+  const handlePlanClick = useCallback(
+    (plan: Plan) => {
+      // Track which plan was clicked
+      trackPricingPlanClicked(plan.slug, PLAN_VALUES[plan.slug] || 149);
+
+      if (plan.ctaAction === "contact") {
+        openContact(plan.slug, `pricing-${plan.slug}`);
+      } else {
+        openBooking();
+      }
+    },
+    [openBooking, openContact]
+  );
 
   return (
     <section
@@ -166,8 +189,8 @@ export function PricingSection() {
 
               {/* CTA */}
               <button
-                onClick={openBooking}
-                className={plan.ctaStyle === "primary" ? "btn-mk-primary" : "btn-mk-outline"}
+                onClick={() => handlePlanClick(plan)}
+                className={plan.featured ? "btn-mk-primary" : "btn-mk-outline"}
                 style={{ display: "block", width: "100%", textAlign: "center", fontSize: 10 }}
               >
                 {plan.ctaLabel}

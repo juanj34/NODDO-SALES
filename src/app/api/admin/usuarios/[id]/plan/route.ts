@@ -3,11 +3,11 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { logAdminAction } from "@/lib/admin-audit";
 import { NextRequest, NextResponse } from "next/server";
 
-const PLAN_LIMITS: Record<string, { max_projects: number; max_units_per_project: number | null }> = {
-  trial: { max_projects: 1, max_units_per_project: 50 },
-  proyecto: { max_projects: 1, max_units_per_project: 200 },
-  studio: { max_projects: 5, max_units_per_project: null },
-  enterprise: { max_projects: 999, max_units_per_project: null },
+const PLAN_DEFAULTS: Record<string, { max_projects: number; max_units_per_project: number | null; max_collaborators: number }> = {
+  trial: { max_projects: 1, max_units_per_project: 50, max_collaborators: 2 },
+  proyecto: { max_projects: 1, max_units_per_project: 200, max_collaborators: 5 },
+  studio: { max_projects: 5, max_units_per_project: null, max_collaborators: 5 },
+  enterprise: { max_projects: 999, max_units_per_project: null, max_collaborators: 5 },
 };
 
 export async function PUT(
@@ -21,9 +21,9 @@ export async function PUT(
 
   const { id: userId } = await params;
   const body = await request.json();
-  const { plan, status } = body;
+  const { plan, status, max_projects, max_units_per_project, max_collaborators } = body;
 
-  if (!plan || !PLAN_LIMITS[plan]) {
+  if (!plan || !PLAN_DEFAULTS[plan]) {
     return NextResponse.json({ error: "Plan inválido" }, { status: 400 });
   }
 
@@ -32,8 +32,14 @@ export async function PUT(
     return NextResponse.json({ error: "Estado de plan inválido" }, { status: 400 });
   }
 
+  const defaults = PLAN_DEFAULTS[plan];
+
+  // Use custom overrides if provided, otherwise fall back to plan defaults
+  const finalMaxProjects = max_projects !== undefined ? max_projects : defaults.max_projects;
+  const finalMaxUnits = max_units_per_project !== undefined ? max_units_per_project : defaults.max_units_per_project;
+  const finalMaxCollabs = max_collaborators !== undefined ? max_collaborators : defaults.max_collaborators;
+
   const admin = createAdminClient();
-  const limits = PLAN_LIMITS[plan];
 
   // Upsert the plan
   const { error } = await admin
@@ -43,8 +49,9 @@ export async function PUT(
         user_id: userId,
         plan,
         status: status || "active",
-        max_projects: limits.max_projects,
-        max_units_per_project: limits.max_units_per_project,
+        max_projects: finalMaxProjects,
+        max_units_per_project: finalMaxUnits,
+        max_collaborators: finalMaxCollabs,
         started_at: new Date().toISOString(),
       },
       { onConflict: "user_id" }
@@ -60,7 +67,13 @@ export async function PUT(
     action: "plan_changed",
     targetType: "user",
     targetId: userId,
-    details: { plan, status: status || "active" },
+    details: {
+      plan,
+      status: status || "active",
+      max_projects: finalMaxProjects,
+      max_units_per_project: finalMaxUnits,
+      max_collaborators: finalMaxCollabs,
+    },
   });
 
   return NextResponse.json({ ok: true });

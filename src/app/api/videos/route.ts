@@ -1,5 +1,6 @@
 import { pick } from "@/lib/api-utils";
 import { getAuthContext } from "@/lib/auth-context";
+import { checkFeature } from "@/lib/feature-flags";
 import { NextRequest, NextResponse } from "next/server";
 
 export async function POST(request: NextRequest) {
@@ -15,6 +16,15 @@ export async function POST(request: NextRequest) {
       return NextResponse.json(
         { error: "proyecto_id y url (o stream_uid) son requeridos" },
         { status: 400 }
+      );
+    }
+
+    // Check feature flag
+    const videoEnabled = await checkFeature(auth.supabase, body.proyecto_id, "video_hosting");
+    if (!videoEnabled) {
+      return NextResponse.json(
+        { error: "Video Hosting no está habilitado para este proyecto" },
+        { status: 403 }
       );
     }
 

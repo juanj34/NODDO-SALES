@@ -1,5 +1,5 @@
 import { pick } from "@/lib/api-utils";
-import { getAuthContext } from "@/lib/auth-context";
+import { getAuthContext, getAccessibleProjectIds, verifyProjectOwnership } from "@/lib/auth-context";
 import { NextRequest, NextResponse } from "next/server";
 
 export async function PUT(
@@ -15,6 +15,17 @@ export async function PUT(
 
     const body = await request.json();
 
+    // Lookup the unidad to get its proyecto_id for ownership check
+    const { data: unidad } = await auth.supabase
+      .from("unidades")
+      .select("tipologia_id, tipologias(proyecto_id)")
+      .eq("id", id)
+      .maybeSingle();
+    if (!unidad) {
+      return NextResponse.json({ error: "Unidad no encontrada" }, { status: 404 });
+    }
+    const proyectoId = (unidad.tipologias as unknown as { proyecto_id: string })?.proyecto_id;
+
     // Collaborators can ONLY update estado
     if (auth.role === "colaborador") {
       const allowedKeys = ["estado"];
@@ -24,6 +35,16 @@ export async function PUT(
           { error: "Solo puedes actualizar el estado de la unidad" },
           { status: 403 }
         );
+      }
+      // Verify collaborator has access to this project
+      const accessible = await getAccessibleProjectIds(auth);
+      if (accessible && !accessible.includes(proyectoId)) {
+        return NextResponse.json({ error: "Sin acceso a este proyecto" }, { status: 403 });
+      }
+    } else {
+      // Admin: verify project ownership
+      if (!(await verifyProjectOwnership(auth, proyectoId))) {
+        return NextResponse.json({ error: "Sin acceso a este proyecto" }, { status: 403 });
       }
     }
 

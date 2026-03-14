@@ -141,7 +141,7 @@ export default function GaleriaPage() {
           >
             <img
               src={current.url}
-              alt={current.alt_text || ""}
+              alt={current.alt_text || proyecto.nombre}
               className="w-full h-full object-cover pointer-events-none"
             />
             {/* Dark gradient overlay for readability */}

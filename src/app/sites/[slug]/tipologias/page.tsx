@@ -456,10 +456,10 @@ export default function TipologiasPage() {
                     <div className="text-left">
                       <span className="text-[11px] text-[var(--text-secondary)] font-medium tracking-wide flex items-center gap-1.5">
                         <Images size={12} className="text-[var(--site-primary)]" />
-                        Renders
+                        {tSite("tipologias.renders")}
                       </span>
                       <span className="text-[10px] text-[var(--text-muted)]">
-                        {renderImages.length} {renderImages.length === 1 ? "imagen" : "imágenes"}
+                        {renderImages.length} {renderImages.length === 1 ? tSite("tipologias.image") : tSite("tipologias.images")}
                       </span>
                     </div>
                   </button>
@@ -474,7 +474,7 @@ export default function TipologiasPage() {
                     {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img
                       src={active.ubicacion_plano_url}
-                      alt="Ubicación"
+                      alt={tSite("tipologias.location")}
                       className="w-full h-full object-contain p-2"
                     />
                     <div className="absolute inset-0 bg-black/0 group-hover:bg-black/30 transition-colors flex items-center justify-center">
@@ -495,7 +495,7 @@ export default function TipologiasPage() {
                     >
                       <button
                         onClick={() => setSelectedUnit(null)}
-                        aria-label="Cerrar detalle"
+                        aria-label={tSite("tipologias.closeDetail")}
                         className="absolute top-3 right-3 p-1.5 rounded-full bg-white/10 hover:bg-white/20 transition-colors cursor-pointer"
                       >
                         <X size={12} className="text-[var(--text-secondary)]" />
@@ -525,16 +525,16 @@ export default function TipologiasPage() {
                               </span>
                             )}
                             {selectedUnit.piso && (
-                              <span>Piso {selectedUnit.piso}</span>
+                              <span>{tSite("tipologias.floor")} {selectedUnit.piso}</span>
                             )}
                             {selectedUnit.habitaciones !== null && (
                               <span className="flex items-center gap-1">
-                                <BedDouble size={11} /> {selectedUnit.habitaciones} hab
+                                <BedDouble size={11} /> {selectedUnit.habitaciones} {tSite("cotizador.hab")}
                               </span>
                             )}
                             {selectedUnit.banos !== null && (
                               <span className="flex items-center gap-1">
-                                <Bath size={11} /> {selectedUnit.banos} baños
+                                <Bath size={11} /> {selectedUnit.banos} {tSite("cotizador.banos")}
                               </span>
                             )}
                             {selectedUnit.orientacion && (
@@ -562,7 +562,7 @@ export default function TipologiasPage() {
                           className="flex-shrink-0 btn-warm px-5 py-2.5 flex items-center gap-2 text-xs tracking-wider cursor-pointer"
                         >
                           <Sparkles size={14} />
-                          COTIZAR
+                          {tSite("tipologias.enquire")}
                         </button>
                       </div>
                     </motion.div>
@@ -577,19 +577,19 @@ export default function TipologiasPage() {
                   <div className="flex items-center gap-1.5 mb-2">
                     <Maximize size={14} className="text-[var(--site-primary)]" />
                     <span className="text-[10px] tracking-wider text-[var(--text-tertiary)] uppercase">
-                      Áreas
+                      {tSite("tipologias.areas")}
                     </span>
                   </div>
                   <div className="space-y-1">
                     <div className="flex items-center justify-between">
-                      <span className="text-[10px] text-[var(--text-muted)]">Interna</span>
+                      <span className="text-[10px] text-[var(--text-muted)]">{tSite("tipologias.internalArea")}</span>
                       <span className="text-xs font-medium text-white">
                         {active.area_m2 != null ? `${active.area_m2} m²` : "—"}
                       </span>
                     </div>
                     {active.area_balcon != null && active.area_balcon > 0 && (
                       <div className="flex items-center justify-between">
-                        <span className="text-[10px] text-[var(--text-muted)]">Balcón</span>
+                        <span className="text-[10px] text-[var(--text-muted)]">{tSite("tipologias.balcony")}</span>
                         <span className="text-xs font-medium text-white">
                           {active.area_balcon} m²
                         </span>
@@ -597,7 +597,7 @@ export default function TipologiasPage() {
                     )}
                     <div className="h-px bg-white/[0.06] my-1" />
                     <div className="flex items-center justify-between">
-                      <span className="text-[10px] text-[var(--text-tertiary)] font-medium">Total</span>
+                      <span className="text-[10px] text-[var(--text-tertiary)] font-medium">{tSite("tipologias.total")}</span>
                       <span className="text-sm font-semibold text-[var(--site-primary)]">
                         {active.area_m2 != null || active.area_balcon != null
                           ? `${((active.area_m2 || 0) + (active.area_balcon || 0))} m²`
@@ -608,28 +608,28 @@ export default function TipologiasPage() {
                 </div>
                 <StatCard
                   icon={<BedDouble size={16} />}
-                  label="Habitaciones"
-                  value={active.habitaciones === 0 ? "Studio" : String(active.habitaciones)}
+                  label={tSite("explorar.bedrooms")}
+                  value={active.habitaciones === 0 ? tSite("tipologias.studio") : String(active.habitaciones)}
                 />
                 <StatCard
                   icon={<Bath size={16} />}
-                  label="Baños"
+                  label={tSite("explorar.bathrooms")}
                   value={String(active.banos)}
                 />
                 <StatCard
                   icon={<Car size={16} />}
-                  label="Parqueaderos"
+                  label={tSite("explorar.parking")}
                   value={String(active.parqueaderos ?? 0)}
                 />
                 {(active.depositos ?? 0) > 0 && (
                   <StatCard
                     icon={<Archive size={16} />}
-                    label="Depósitos"
+                    label={tSite("explorar.storage")}
                     value={String(active.depositos)}
                   />
                 )}
                 <div className="glass-card rounded-2xl p-3 flex flex-col items-center justify-center text-center">
-                  <span className="text-[10px] tracking-wider text-[var(--text-tertiary)] uppercase mb-1">Desde</span>
+                  <span className="text-[10px] tracking-wider text-[var(--text-tertiary)] uppercase mb-1">{tSite("tipologias.from")}</span>
                   <span className="text-sm font-semibold text-[var(--site-primary)]">
                     {precioDesde ? formatPrecio(precioDesde) : "—"}
                   </span>
@@ -667,7 +667,7 @@ export default function TipologiasPage() {
                       className="mt-1 flex items-center gap-1 px-2.5 py-1 rounded-lg bg-white/[0.04] hover:bg-white/[0.08] transition-colors cursor-pointer text-[var(--text-tertiary)] hover:text-[var(--text-secondary)] flex-shrink-0"
                     >
                       <span className="text-[10px] tracking-wider uppercase">
-                        {infoExpanded ? "Menos" : "Info"}
+                        {infoExpanded ? tSite("tipologias.lessInfo") : tSite("tipologias.moreInfo")}
                       </span>
                       <motion.div
                         animate={{ rotate: infoExpanded ? 180 : 0 }}
@@ -699,7 +699,7 @@ export default function TipologiasPage() {
                         {active.caracteristicas.length > 0 && (
                           <div className="space-y-2 mb-2">
                             <p className="text-[10px] tracking-[0.25em] text-[var(--text-tertiary)] uppercase">
-                              Características
+                              {tSite("tipologias.features")}
                             </p>
                             {active.caracteristicas.map((feat, i) => (
                               <div key={i} className="flex items-start gap-2">
@@ -723,10 +723,10 @@ export default function TipologiasPage() {
                 {/* Header + Count */}
                 <div className="flex items-center justify-between mb-3 flex-shrink-0">
                   <p className="text-[10px] tracking-[0.25em] text-[var(--text-tertiary)] uppercase">
-                    Unidades
+                    {tSite("tipologias.units")}
                   </p>
                   <span className="text-xs text-[var(--site-primary)]">
-                    {estadoCounts.disponible} disponibles
+                    {estadoCounts.disponible} {tSite("tipologias.available")}
                   </span>
                 </div>
 
@@ -762,7 +762,7 @@ export default function TipologiasPage() {
                       <div key={floor}>
                         {showFloorHeaders && (
                           <div className="px-3 py-1.5 text-[10px] tracking-wider uppercase text-[var(--text-muted)] font-medium">
-                            Piso {floor}
+                            {tSite("tipologias.floor")} {floor}
                           </div>
                         )}
                         {units.map((unit) => {
@@ -790,7 +790,7 @@ export default function TipologiasPage() {
                                   {unit.identificador}
                                 </p>
                                 <p className="text-[10px] text-[var(--text-tertiary)] tracking-wider">
-                                  Piso {unit.piso} · {unit.area_m2} m² · {unit.orientacion}
+                                  {tSite("tipologias.floor")} {unit.piso} · {unit.area_m2} m² · {unit.orientacion}
                                 </p>
                               </div>
 
@@ -884,12 +884,12 @@ export default function TipologiasPage() {
             >
               <img
                 src={active.ubicacion_plano_url}
-                alt="Ubicación en el proyecto"
+                alt={tSite("tipologias.locationInProject")}
                 className="max-w-[85vw] max-h-[80vh] object-contain"
               />
               <div className="absolute bottom-0 left-0 right-0 p-5 bg-gradient-to-t from-black/70 to-transparent">
                 <span className="text-sm font-medium text-white tracking-wide">
-                  Ubicación en el proyecto
+                  {tSite("tipologias.locationInProject")}
                 </span>
               </div>
               <CloseButton

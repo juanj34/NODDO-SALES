@@ -4,12 +4,14 @@ interface PlanLimits {
   plan: string;
   max_projects: number;
   max_units_per_project: number | null;
+  max_collaborators: number;
 }
 
 const DEFAULT_LIMITS: PlanLimits = {
   plan: "trial",
   max_projects: 1,
   max_units_per_project: 200,
+  max_collaborators: 5,
 };
 
 export async function getPlanLimits(
@@ -18,7 +20,7 @@ export async function getPlanLimits(
 ): Promise<PlanLimits> {
   const { data } = await supabase
     .from("user_plans")
-    .select("plan, max_projects, max_units_per_project")
+    .select("plan, max_projects, max_units_per_project, max_collaborators")
     .eq("user_id", userId)
     .single();
 
@@ -66,5 +68,25 @@ export async function checkUnitLimit(
     allowed: current < limits.max_units_per_project,
     current,
     max: limits.max_units_per_project,
+  };
+}
+
+export async function checkCollaboratorLimit(
+  supabase: SupabaseClient,
+  adminUserId: string
+): Promise<{ allowed: boolean; current: number; max: number }> {
+  const limits = await getPlanLimits(supabase, adminUserId);
+
+  const { count } = await supabase
+    .from("colaboradores")
+    .select("id", { count: "exact", head: true })
+    .eq("admin_user_id", adminUserId)
+    .in("estado", ["pendiente", "activo"]);
+
+  const current = count ?? 0;
+  return {
+    allowed: current < limits.max_collaborators,
+    current,
+    max: limits.max_collaborators,
   };
 }

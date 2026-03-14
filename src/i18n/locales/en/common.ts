@@ -242,8 +242,8 @@ const common = {
     emailAndWA: " and a WhatsApp reminder",
     backToSite: "Back to site",
     step2Label: "Next step",
-    step2Title: "Prepare your questions",
-    step2Description: "We'll review your project and explore how NODDO can help",
+    step2Title: "Check your email",
+    step2Description: "You'll receive a Google Meet link and the details for your session with Juan.",
     // Fallback
     fallbackTitle: "Schedule Demo",
     fallbackSub: "Select an available time",
@@ -262,6 +262,12 @@ const common = {
     dayThu: "Thu",
     dayFri: "Fri",
     daySat: "Sat",
+    // Host
+    hostLabel: "Your host",
+    hostWaiting: "Juan will be waiting for you",
+    // Call format
+    duration: "30 min",
+    formatVideo: "Video call",
   },
 } as const;
 

@@ -283,6 +283,242 @@ export async function sendCollaboratorInvite(data: CollaboratorInviteData) {
   }
 }
 
+/* ── Booking confirmation: sent to the person who booked a demo ── */
+
+interface BookingConfirmationData {
+  email: string;
+  name: string;
+  scheduledFor: string; // ISO string
+  timezone: string;
+  durationMinutes: number;
+  meetingLink?: string;
+}
+
+export async function sendBookingConfirmation(data: BookingConfirmationData) {
+  if (!resend) {
+    console.warn("[email] RESEND_API_KEY not configured — skipping booking confirmation");
+    return;
+  }
+
+  const fromAddress = process.env.RESEND_FROM_EMAIL || "NODDO <notificaciones@noddo.io>";
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL || "https://noddo.io";
+  const bookingUrl = `${appUrl}/`;
+
+  const dateFormatted = formatDateTime(data.scheduledFor, data.timezone);
+
+  const html = emailWrapper(
+    "Tu demo está confirmada",
+    "NODDO",
+    `<tr><td align="center" style="padding:0 40px 16px;">
+      <p style="margin:0;font-size:14px;color:#f4f0e8;line-height:1.7;font-weight:300;">
+        Hola ${escapeHtml(data.name)},
+      </p>
+    </td></tr>
+    <tr><td align="center" style="padding:0 40px 24px;">
+      <p style="margin:0;font-size:13px;color:#8a8580;line-height:1.7;">
+        Tu demo con el equipo de NODDO ha sido agendada. Nos veremos para mostrarte cómo crear un showroom digital premium para tus proyectos.
+      </p>
+    </td></tr>
+    ${detailTable([
+      { label: "Fecha", value: dateFormatted.date },
+      { label: "Hora", value: `${dateFormatted.time} (${data.timezone})` },
+      { label: "Duración", value: `${data.durationMinutes} minutos` },
+      { label: "Formato", value: "Videollamada" },
+    ])}
+    <tr><td align="center" style="padding:0 40px 8px;">
+      <p style="margin:0;font-size:12px;color:#b8973a;font-weight:600;text-transform:uppercase;letter-spacing:0.1em;">
+        Qué esperar en la demo
+      </p>
+    </td></tr>
+    <tr><td style="padding:0 40px 24px;">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr><td style="padding:4px 0;font-size:13px;color:#8a8580;line-height:1.6;">
+          &bull; Recorrido completo por la plataforma
+        </td></tr>
+        <tr><td style="padding:4px 0;font-size:13px;color:#8a8580;line-height:1.6;">
+          &bull; Configuración personalizada para tu proyecto
+        </td></tr>
+        <tr><td style="padding:4px 0;font-size:13px;color:#8a8580;line-height:1.6;">
+          &bull; Resolución de dudas y próximos pasos
+        </td></tr>
+      </table>
+    </td></tr>
+    ${data.meetingLink ? ctaButton(data.meetingLink, "Unirme a la videollamada") : ctaButton(bookingUrl, "Ir a NODDO")}`,
+  );
+
+  try {
+    await resend.emails.send({
+      from: fromAddress,
+      to: data.email,
+      subject: `Tu demo con NODDO — ${dateFormatted.date}`,
+      html,
+      headers: { "List-Unsubscribe": "<mailto:hola@noddo.io?subject=Cancelar%20suscripcion>" },
+    });
+  } catch (err) {
+    console.error("[email] Failed to send booking confirmation:", err);
+  }
+}
+
+/* ── Booking admin notification: sent to NODDO team when demo is booked ── */
+
+interface BookingAdminNotificationData {
+  adminEmail: string;
+  leadName: string;
+  leadEmail: string;
+  leadPhone?: string | null;
+  leadCompany?: string | null;
+  scheduledFor: string;
+  timezone: string;
+  utmSource?: string | null;
+  utmMedium?: string | null;
+  utmCampaign?: string | null;
+}
+
+export async function sendBookingAdminNotification(data: BookingAdminNotificationData) {
+  if (!resend) {
+    console.warn("[email] RESEND_API_KEY not configured — skipping booking admin notification");
+    return;
+  }
+
+  const fromAddress = process.env.RESEND_FROM_EMAIL || "NODDO <notificaciones@noddo.io>";
+
+  const dateFormatted = formatDateTime(data.scheduledFor, data.timezone);
+
+  const rows = [
+    { label: "Nombre", value: data.leadName },
+    { label: "Email", value: data.leadEmail },
+    data.leadPhone ? { label: "Teléfono", value: data.leadPhone } : null,
+    data.leadCompany ? { label: "Empresa", value: data.leadCompany } : null,
+    { label: "Fecha", value: dateFormatted.date },
+    { label: "Hora", value: `${dateFormatted.time} (${data.timezone})` },
+    data.utmSource ? { label: "Fuente", value: `${data.utmSource} / ${data.utmMedium || "—"}` } : null,
+    data.utmCampaign ? { label: "Campaña", value: data.utmCampaign } : null,
+  ].filter(Boolean) as { label: string; value: string }[];
+
+  const html = emailWrapper(
+    "Nueva demo agendada",
+    "NODDO",
+    `${detailTable(rows)}`,
+  );
+
+  try {
+    await resend.emails.send({
+      from: fromAddress,
+      to: data.adminEmail,
+      subject: `Nueva demo agendada — ${data.leadName}${data.leadCompany ? ` de ${data.leadCompany}` : ""}`,
+      html,
+      headers: { "List-Unsubscribe": "<mailto:hola@noddo.io?subject=Cancelar%20suscripcion>" },
+    });
+  } catch (err) {
+    console.error("[email] Failed to send booking admin notification:", err);
+  }
+}
+
+/* ── Booking reminder: sent before demo (24h and 2h) ── */
+
+interface BookingReminderData {
+  email: string;
+  name: string;
+  scheduledFor: string;
+  timezone: string;
+  meetingLink?: string;
+  type: "24h" | "2h";
+}
+
+export async function sendBookingReminder(data: BookingReminderData) {
+  if (!resend) {
+    console.warn("[email] RESEND_API_KEY not configured — skipping booking reminder");
+    return;
+  }
+
+  const fromAddress = process.env.RESEND_FROM_EMAIL || "NODDO <notificaciones@noddo.io>";
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL || "https://noddo.io";
+  const dateFormatted = formatDateTime(data.scheduledFor, data.timezone);
+
+  const is24h = data.type === "24h";
+
+  const html = emailWrapper(
+    is24h ? "Tu demo es mañana" : "Tu demo es en 2 horas",
+    "NODDO",
+    `<tr><td align="center" style="padding:0 40px 16px;">
+      <p style="margin:0;font-size:14px;color:#f4f0e8;line-height:1.7;font-weight:300;">
+        Hola ${escapeHtml(data.name)},
+      </p>
+    </td></tr>
+    <tr><td align="center" style="padding:0 40px 24px;">
+      <p style="margin:0;font-size:13px;color:#8a8580;line-height:1.7;">
+        ${is24h
+          ? `Solo un recordatorio: tu demo con NODDO es mañana <strong style="color:#f4f0e8;">${dateFormatted.date}</strong> a las <strong style="color:#f4f0e8;">${dateFormatted.time}</strong>. Prepara tus preguntas — queremos que aproveches al máximo la sesión.`
+          : `Tu demo con NODDO comienza en 2 horas a las <strong style="color:#f4f0e8;">${dateFormatted.time}</strong>. ¡Te esperamos!`
+        }
+      </p>
+    </td></tr>
+    ${data.meetingLink ? ctaButton(data.meetingLink, "Unirme a la videollamada") : ctaButton(appUrl, "Ir a NODDO")}`,
+  );
+
+  try {
+    await resend.emails.send({
+      from: fromAddress,
+      to: data.email,
+      subject: is24h ? "Tu demo es mañana — NODDO" : "Tu demo es en 2 horas — NODDO",
+      html,
+      headers: { "List-Unsubscribe": "<mailto:hola@noddo.io?subject=Cancelar%20suscripcion>" },
+    });
+  } catch (err) {
+    console.error("[email] Failed to send booking reminder:", err);
+  }
+}
+
+/* ── No-show follow-up: sent when lead doesn't attend demo ── */
+
+interface NoShowFollowupData {
+  email: string;
+  name: string;
+}
+
+export async function sendNoShowFollowup(data: NoShowFollowupData) {
+  if (!resend) {
+    console.warn("[email] RESEND_API_KEY not configured — skipping no-show followup");
+    return;
+  }
+
+  const fromAddress = process.env.RESEND_FROM_EMAIL || "NODDO <notificaciones@noddo.io>";
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL || "https://noddo.io";
+
+  const html = emailWrapper(
+    "¿Todo bien?",
+    "NODDO",
+    `<tr><td align="center" style="padding:0 40px 16px;">
+      <p style="margin:0;font-size:14px;color:#f4f0e8;line-height:1.7;font-weight:300;">
+        Hola ${escapeHtml(data.name)},
+      </p>
+    </td></tr>
+    <tr><td align="center" style="padding:0 40px 24px;">
+      <p style="margin:0;font-size:13px;color:#8a8580;line-height:1.7;">
+        Vimos que no pudiste conectarte a la demo de hoy. No te preocupes, entendemos que las agendas se complican. Si aún te interesa ver cómo NODDO puede transformar la comercialización de tus proyectos, puedes reagendar cuando quieras.
+      </p>
+    </td></tr>
+    ${ctaButton(appUrl + "/#booking", "Reagendar demo")}
+    <tr><td align="center" style="padding:0 40px 24px;">
+      <p style="margin:0;font-size:12px;color:#5a5550;line-height:1.6;">
+        También puedes escribirnos por <a href="https://wa.me/971585407848?text=Hola,%20quiero%20reagendar%20mi%20demo%20de%20NODDO" style="color:#b8973a;text-decoration:underline;">WhatsApp</a> si prefieres.
+      </p>
+    </td></tr>`,
+  );
+
+  try {
+    await resend.emails.send({
+      from: fromAddress,
+      to: data.email,
+      subject: "¿Todo bien? Tu demo con NODDO",
+      html,
+      headers: { "List-Unsubscribe": "<mailto:hola@noddo.io?subject=Cancelar%20suscripcion>" },
+    });
+  } catch (err) {
+    console.error("[email] Failed to send no-show followup:", err);
+  }
+}
+
 /* ── Shared email template helpers ── */
 
 function emailWrapper(heading: string, subLabel: string | undefined, bodyRows: string): string {
@@ -363,6 +599,26 @@ function ctaButton(href: string, label: string): string {
       </tr>
     </table>
   </td></tr>`;
+}
+
+function formatDateTime(isoString: string, timezone: string): { date: string; time: string } {
+  const d = new Date(isoString);
+  const date = new Intl.DateTimeFormat("es-CO", {
+    weekday: "long",
+    day: "numeric",
+    month: "long",
+    timeZone: timezone,
+  }).format(d);
+  const time = new Intl.DateTimeFormat("es-CO", {
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: true,
+    timeZone: timezone,
+  }).format(d);
+  return {
+    date: date.charAt(0).toUpperCase() + date.slice(1),
+    time,
+  };
 }
 
 function escapeHtml(str: string): string {

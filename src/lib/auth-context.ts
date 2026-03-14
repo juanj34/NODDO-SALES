@@ -79,6 +79,23 @@ export async function getAccessibleProjectIds(
 }
 
 /**
+ * Verifies that a project belongs to the authenticated user's admin account.
+ * Works for both admins (own projects) and collaborators (admin's projects).
+ */
+export async function verifyProjectOwnership(
+  auth: AuthContext,
+  projectId: string
+): Promise<boolean> {
+  const { data } = await auth.supabase
+    .from("proyectos")
+    .select("id")
+    .eq("id", projectId)
+    .eq("user_id", auth.adminUserId)
+    .maybeSingle();
+  return !!data;
+}
+
+/**
  * After login/signup, checks if this user's email has a pending collaborator
  * invitation and links them automatically.
  */

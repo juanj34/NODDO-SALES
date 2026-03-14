@@ -1,5 +1,5 @@
 import { pick } from "@/lib/api-utils";
-import { getAuthContext } from "@/lib/auth-context";
+import { getAuthContext, verifyProjectOwnership } from "@/lib/auth-context";
 import { NextRequest, NextResponse } from "next/server";
 
 export async function POST(request: NextRequest) {
@@ -16,6 +16,16 @@ export async function POST(request: NextRequest) {
         { error: "categoria_id y url son requeridos" },
         { status: 400 }
       );
+    }
+
+    // Verify ownership via categoria → proyecto
+    const { data: cat } = await auth.supabase
+      .from("galeria_categorias")
+      .select("proyecto_id")
+      .eq("id", body.categoria_id)
+      .maybeSingle();
+    if (!cat || !(await verifyProjectOwnership(auth, cat.proyecto_id))) {
+      return NextResponse.json({ error: "Sin acceso a este proyecto" }, { status: 403 });
     }
 
     const { data, error } = await auth.supabase

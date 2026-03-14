@@ -53,6 +53,151 @@ function shouldSkip(path: string): boolean {
 
 const CONCURRENT_UPLOADS = 6;
 
+/** Detect and strip common root folder from paths */
+function stripCommonRoot(
+  paths: string[]
+): { stripped: string[]; prefix: string } {
+  const firstParts = paths.map((p) => {
+    const idx = p.indexOf("/");
+    return idx > 0 ? p.substring(0, idx) : null;
+  });
+  const commonRoot = firstParts[0];
+  const allSameRoot =
+    commonRoot &&
+    firstParts.every((p) => p === commonRoot) &&
+    paths.some((p) => {
+      const s = p.substring(commonRoot.length + 1);
+      return s === "index.htm" || s === "index.html";
+    });
+
+  const prefix = allSameRoot ? commonRoot + "/" : "";
+  return {
+    stripped: prefix
+      ? paths.map((p) => p.replace(prefix, ""))
+      : paths,
+    prefix,
+  };
+}
+
+interface FileToUpload {
+  path: string;
+  contentType: string;
+  file: File;
+  size: number;
+}
+
+/** Read all files from a dropped DataTransferItemList that contains a folder */
+export async function readDroppedFolder(
+  items: DataTransferItemList
+): Promise<{ file: File; path: string }[] | null> {
+  // Find the first directory entry
+  for (let i = 0; i < items.length; i++) {
+    const entry = items[i].webkitGetAsEntry?.();
+    if (entry?.isDirectory) {
+      const results: { file: File; path: string }[] = [];
+      await readDirectoryRecursive(
+        entry as FileSystemDirectoryEntry,
+        "",
+        results
+      );
+      return results;
+    }
+  }
+  return null;
+}
+
+async function readDirectoryRecursive(
+  dirEntry: FileSystemDirectoryEntry,
+  basePath: string,
+  results: { file: File; path: string }[]
+): Promise<void> {
+  const entries = await readAllEntries(dirEntry.createReader());
+  for (const entry of entries) {
+    const entryPath = basePath ? `${basePath}/${entry.name}` : entry.name;
+    if (entry.isFile) {
+      const file = await fileFromEntry(entry as FileSystemFileEntry);
+      results.push({ file, path: entryPath });
+    } else if (entry.isDirectory) {
+      await readDirectoryRecursive(
+        entry as FileSystemDirectoryEntry,
+        entryPath,
+        results
+      );
+    }
+  }
+}
+
+function readAllEntries(
+  reader: FileSystemDirectoryReader
+): Promise<FileSystemEntry[]> {
+  return new Promise((resolve, reject) => {
+    const all: FileSystemEntry[] = [];
+    function readBatch() {
+      reader.readEntries((entries) => {
+        if (entries.length === 0) {
+          resolve(all);
+        } else {
+          all.push(...entries);
+          readBatch();
+        }
+      }, reject);
+    }
+    readBatch();
+  });
+}
+
+function fileFromEntry(entry: FileSystemFileEntry): Promise<File> {
+  return new Promise((resolve, reject) => entry.file(resolve, reject));
+}
+
+/** Pick a folder using the File System Access API (no scary browser dialog) */
+export async function pickFolderNative(): Promise<
+  { file: File; path: string }[] | null
+> {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const showDirectoryPicker = (window as any).showDirectoryPicker as
+    | (() => Promise<FileSystemDirectoryHandle>)
+    | undefined;
+  if (!showDirectoryPicker) return null;
+
+  try {
+    const dirHandle = await showDirectoryPicker();
+    const results: { file: File; path: string }[] = [];
+    await readHandleRecursive(dirHandle, "", results);
+    return results;
+  } catch (err) {
+    // User cancelled the picker
+    if (err instanceof DOMException && err.name === "AbortError") return null;
+    throw err;
+  }
+}
+
+async function readHandleRecursive(
+  dirHandle: FileSystemDirectoryHandle,
+  basePath: string,
+  results: { file: File; path: string }[]
+): Promise<void> {
+  // @ts-expect-error entries() is available on FileSystemDirectoryHandle
+  for await (const [name, handle] of dirHandle.entries()) {
+    const entryPath = basePath ? `${basePath}/${name}` : name;
+    if (handle.kind === "file") {
+      const file = await (handle as FileSystemFileHandle).getFile();
+      results.push({ file, path: entryPath });
+    } else if (handle.kind === "directory") {
+      await readHandleRecursive(
+        handle as FileSystemDirectoryHandle,
+        entryPath,
+        results
+      );
+    }
+  }
+}
+
+/** Check if the File System Access API is available */
+export function hasNativeFolderPicker(): boolean {
+  return typeof window !== "undefined" && "showDirectoryPicker" in window;
+}
+
 export interface TourUploadHook {
   status: Status;
   progress: number;
@@ -61,6 +206,7 @@ export interface TourUploadHook {
   error: string | null;
   tourUrl: string | null;
   upload: (file: File, projectId: string) => Promise<void>;
+  uploadFolder: (files: FileList | { file: File; path: string }[], projectId: string) => Promise<void>;
   reset: () => void;
   cancel: () => void;
 }
@@ -92,99 +238,12 @@ export function useTourUpload(): TourUploadHook {
     setFilesTotal(0);
   }, []);
 
-  const upload = useCallback(async (file: File, projectId: string) => {
-    cancelledRef.current = false;
-    setError(null);
-    setTourUrl(null);
-    setStatus("extracting");
-    setProgress(0);
-    setFilesUploaded(0);
-    setFilesTotal(0);
-
-    try {
-      // Validate file type
-      if (
-        !file.name.toLowerCase().endsWith(".zip") &&
-        file.type !== "application/zip" &&
-        file.type !== "application/x-zip-compressed"
-      ) {
-        throw new Error("El archivo debe ser un ZIP");
-      }
-
-      // Dynamic import JSZip (only loaded when needed)
-      const JSZip = (await import("jszip")).default;
-      const zip = await JSZip.loadAsync(file);
-
-      // Collect file entries (skip directories and OS junk)
-      const entries: { path: string; zipEntry: import("jszip").JSZipObject }[] = [];
-      zip.forEach((relativePath, zipEntry) => {
-        if (zipEntry.dir) return;
-        if (shouldSkip(relativePath)) return;
-        entries.push({ path: relativePath, zipEntry });
-      });
-
-      if (entries.length === 0) {
-        throw new Error("El ZIP está vacío");
-      }
-
-      // Detect and strip common root folder
-      // (3DVista often wraps everything in a single folder)
-      const firstSlashParts = entries.map((e) => {
-        const idx = e.path.indexOf("/");
-        return idx > 0 ? e.path.substring(0, idx) : null;
-      });
-      const commonRoot = firstSlashParts[0];
-      const allSameRoot =
-        commonRoot &&
-        firstSlashParts.every((p) => p === commonRoot) &&
-        entries.some((e) => {
-          const stripped = e.path.substring(commonRoot.length + 1);
-          return stripped === "index.htm" || stripped === "index.html";
-        });
-
-      const stripPrefix = allSameRoot ? commonRoot + "/" : "";
-
-      // Apply prefix stripping
-      const processedEntries = entries.map((e) => ({
-        ...e,
-        finalPath: stripPrefix ? e.path.replace(stripPrefix, "") : e.path,
-      }));
-
-      // Verify index.htm or index.html exists
-      const hasIndex = processedEntries.some(
-        (e) => e.finalPath === "index.htm" || e.finalPath === "index.html"
-      );
-      if (!hasIndex) {
-        throw new Error(
-          "No se encontró index.htm ni index.html en el ZIP. Asegúrate de exportar correctamente desde 3DVista."
-        );
-      }
-
-      // Extract file data and build the file list for presigning
-      const filesToUpload: {
-        path: string;
-        contentType: string;
-        data: Uint8Array;
-        size: number;
-      }[] = [];
-
-      for (const entry of processedEntries) {
-        if (cancelledRef.current) return;
-        const data = await entry.zipEntry.async("uint8array");
-        filesToUpload.push({
-          path: entry.finalPath,
-          contentType: getMimeType(entry.finalPath),
-          data,
-          size: data.byteLength,
-        });
-      }
-
-      if (cancelledRef.current) return;
-
+  /** Shared: presign + concurrent upload */
+  const presignAndUpload = useCallback(
+    async (filesToUpload: FileToUpload[], projectId: string) => {
       setFilesTotal(filesToUpload.length);
       setStatus("uploading");
 
-      // Request presigned URLs
       const presignRes = await fetch("/api/tours/presign", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -205,7 +264,6 @@ export function useTourUpload(): TourUploadHook {
 
       const { files: signedFiles, tourBaseUrl } = await presignRes.json();
 
-      // Build upload queue
       const uploadMap = new Map<string, string>(
         signedFiles.map((sf: { path: string; uploadUrl: string }) => [
           sf.path,
@@ -214,8 +272,6 @@ export function useTourUpload(): TourUploadHook {
       );
 
       let uploaded = 0;
-
-      // Upload files with concurrency limit
       const queue = [...filesToUpload];
 
       async function worker() {
@@ -230,7 +286,7 @@ export function useTourUpload(): TourUploadHook {
           const res = await fetch(uploadUrl, {
             method: "PUT",
             headers: { "Content-Type": item.contentType },
-            body: new Blob([item.data.buffer as ArrayBuffer], { type: item.contentType }),
+            body: item.file,
           });
 
           if (!res.ok) {
@@ -254,14 +310,172 @@ export function useTourUpload(): TourUploadHook {
       setTourUrl(tourBaseUrl);
       setStatus("complete");
       setProgress(100);
-    } catch (err) {
-      if (cancelledRef.current) return;
-      const message =
-        err instanceof Error ? err.message : "Error al subir tour";
-      setError(message);
-      setStatus("error");
-    }
-  }, []);
+    },
+    []
+  );
+
+  /** Upload from ZIP file */
+  const upload = useCallback(
+    async (file: File, projectId: string) => {
+      cancelledRef.current = false;
+      setError(null);
+      setTourUrl(null);
+      setStatus("extracting");
+      setProgress(0);
+      setFilesUploaded(0);
+      setFilesTotal(0);
+
+      try {
+        if (
+          !file.name.toLowerCase().endsWith(".zip") &&
+          file.type !== "application/zip" &&
+          file.type !== "application/x-zip-compressed"
+        ) {
+          throw new Error("El archivo debe ser un ZIP");
+        }
+
+        const JSZip = (await import("jszip")).default;
+        const zip = await JSZip.loadAsync(file);
+
+        const entries: {
+          path: string;
+          zipEntry: import("jszip").JSZipObject;
+        }[] = [];
+        zip.forEach((relativePath, zipEntry) => {
+          if (zipEntry.dir) return;
+          if (shouldSkip(relativePath)) return;
+          entries.push({ path: relativePath, zipEntry });
+        });
+
+        if (entries.length === 0) {
+          throw new Error("El ZIP está vacío");
+        }
+
+        const rawPaths = entries.map((e) => e.path);
+        const { stripped, prefix } = stripCommonRoot(rawPaths);
+
+        const finalEntries = entries.map((e, i) => ({
+          ...e,
+          finalPath: stripped[i],
+        }));
+
+        const hasIndex = finalEntries.some(
+          (e) => e.finalPath === "index.htm" || e.finalPath === "index.html"
+        );
+        if (!hasIndex) {
+          throw new Error(
+            "No se encontró index.htm ni index.html en el ZIP. Asegúrate de exportar correctamente."
+          );
+        }
+
+        const filesToUpload: FileToUpload[] = [];
+        for (const entry of finalEntries) {
+          if (cancelledRef.current) return;
+          const data = await entry.zipEntry.async("uint8array");
+          const f = new File(
+            [data.buffer as ArrayBuffer],
+            entry.finalPath.split("/").pop() || entry.finalPath,
+            { type: getMimeType(entry.finalPath) }
+          );
+          filesToUpload.push({
+            path: entry.finalPath,
+            contentType: getMimeType(entry.finalPath),
+            file: f,
+            size: data.byteLength,
+          });
+        }
+
+        if (cancelledRef.current) return;
+
+        await presignAndUpload(filesToUpload, projectId);
+      } catch (err) {
+        if (cancelledRef.current) return;
+        const message =
+          err instanceof Error ? err.message : "Error al subir tour";
+        setError(message);
+        setStatus("error");
+      }
+    },
+    [presignAndUpload]
+  );
+
+  /** Upload from folder (webkitdirectory FileList or pre-read entries) */
+  const uploadFolder = useCallback(
+    async (
+      input: FileList | { file: File; path: string }[],
+      projectId: string
+    ) => {
+      cancelledRef.current = false;
+      setError(null);
+      setTourUrl(null);
+      setStatus("extracting");
+      setProgress(0);
+      setFilesUploaded(0);
+      setFilesTotal(0);
+
+      try {
+        // Normalize input to { file, path }[]
+        let rawFiles: { file: File; path: string }[];
+
+        if (input instanceof FileList) {
+          rawFiles = [];
+          for (let i = 0; i < input.length; i++) {
+            const f = input[i];
+            // webkitRelativePath is "FolderName/subfolder/file.jpg"
+            const path = f.webkitRelativePath || f.name;
+            rawFiles.push({ file: f, path });
+          }
+        } else {
+          rawFiles = input;
+        }
+
+        // Filter OS junk
+        rawFiles = rawFiles.filter((f) => !shouldSkip(f.path));
+
+        if (rawFiles.length === 0) {
+          throw new Error("La carpeta está vacía");
+        }
+
+        // Strip common root folder
+        const rawPaths = rawFiles.map((f) => f.path);
+        const { stripped } = stripCommonRoot(rawPaths);
+
+        const processedFiles = rawFiles.map((f, i) => ({
+          ...f,
+          finalPath: stripped[i],
+        }));
+
+        // Validate index exists
+        const hasIndex = processedFiles.some(
+          (f) =>
+            f.finalPath === "index.htm" || f.finalPath === "index.html"
+        );
+        if (!hasIndex) {
+          throw new Error(
+            "No se encontró index.htm ni index.html en la carpeta. Asegúrate de seleccionar la carpeta exportada correcta."
+          );
+        }
+
+        if (cancelledRef.current) return;
+
+        const filesToUpload: FileToUpload[] = processedFiles.map((f) => ({
+          path: f.finalPath,
+          contentType: getMimeType(f.finalPath),
+          file: f.file,
+          size: f.file.size,
+        }));
+
+        await presignAndUpload(filesToUpload, projectId);
+      } catch (err) {
+        if (cancelledRef.current) return;
+        const message =
+          err instanceof Error ? err.message : "Error al subir tour";
+        setError(message);
+        setStatus("error");
+      }
+    },
+    [presignAndUpload]
+  );
 
   return {
     status,
@@ -271,6 +485,7 @@ export function useTourUpload(): TourUploadHook {
     error,
     tourUrl,
     upload,
+    uploadFolder,
     reset,
     cancel,
   };

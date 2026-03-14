@@ -9,6 +9,7 @@ const dashboard = {
     tools: "Tools",
     disponibilidad: "Availability",
     cotizador: "Quotation",
+    registros: "Leads",
     allProjects: "All projects",
   },
   cuenta: {

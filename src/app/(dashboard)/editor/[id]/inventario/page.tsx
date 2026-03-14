@@ -483,7 +483,7 @@ function ImportCSVModal({
         animate={{ scale: 1, opacity: 1 }}
         exit={{ scale: 0.95, opacity: 0 }}
         onClick={(e) => e.stopPropagation()}
-        className="bg-[var(--surface-2)] border border-[var(--border-default)] rounded-2xl w-full max-w-4xl max-h-[85vh] flex flex-col shadow-2xl"
+        className="bg-[var(--surface-2)] border border-[var(--border-default)] rounded-2xl w-full max-w-[calc(100vw-2rem)] sm:max-w-2xl lg:max-w-4xl max-h-[85vh] flex flex-col shadow-2xl"
       >
         {/* Header */}
         <div className="flex items-center justify-between p-6 border-b border-[var(--border-subtle)]">
@@ -972,7 +972,7 @@ function ImportAIModal({
         animate={{ scale: 1, opacity: 1 }}
         exit={{ scale: 0.95, opacity: 0 }}
         onClick={(e) => e.stopPropagation()}
-        className="bg-[var(--surface-2)] border border-[var(--border-default)] rounded-2xl w-full max-w-4xl max-h-[85vh] flex flex-col shadow-2xl"
+        className="bg-[var(--surface-2)] border border-[var(--border-default)] rounded-2xl w-full max-w-[calc(100vw-2rem)] sm:max-w-2xl lg:max-w-4xl max-h-[85vh] flex flex-col shadow-2xl"
       >
         {/* Header */}
         <div className="flex items-center justify-between p-6 border-b border-[var(--border-subtle)]">

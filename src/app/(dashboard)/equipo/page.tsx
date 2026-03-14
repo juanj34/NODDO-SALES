@@ -82,7 +82,7 @@ export default function EquipoPage() {
                 assignments[c.id] = await projRes.json();
               }
             } catch {
-              // silent
+              // assignment fetch failed — non-critical
             }
           })
         );
@@ -272,9 +272,9 @@ export default function EquipoPage() {
   }
 
   return (
-    <div className="p-8 max-w-3xl mx-auto">
+    <div className="p-4 md:p-8 max-w-3xl mx-auto">
       {/* Header */}
-      <div className="flex items-center justify-between mb-8">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-8">
         <div>
           <h1 className="font-heading text-2xl font-light text-[var(--text-primary)]">
             {t("equipo.title")}
@@ -335,7 +335,7 @@ export default function EquipoPage() {
                 transition={{ delay: idx * 0.05 }}
                 className="p-4 bg-[var(--surface-1)] border border-[var(--border-subtle)] rounded-xl hover:border-[var(--border-default)] transition-colors"
               >
-                <div className="flex items-center gap-4">
+                <div className="flex items-center gap-3 sm:gap-4">
                   {/* Avatar */}
                   <div
                     className="w-10 h-10 rounded-xl flex items-center justify-center text-sm font-bold shrink-0"
@@ -463,7 +463,7 @@ export default function EquipoPage() {
                 </div>
 
                 {/* Project access badges */}
-                <div className="mt-2.5 pl-14 flex items-center gap-1.5 flex-wrap">
+                <div className="mt-2.5 pl-4 sm:pl-14 flex items-center gap-1.5 flex-wrap">
                   <FolderOpen size={11} className="text-[var(--text-muted)]" />
                   {hasSpecificAccess ? (
                     assigned.map((pid) => (

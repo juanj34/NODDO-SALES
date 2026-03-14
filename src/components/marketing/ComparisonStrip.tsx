@@ -271,7 +271,7 @@ export function ComparisonStrip() {
               >
                 {f.label}
               </div>
-              <div className="grid grid-cols-3 gap-2">
+              <div className="grid grid-cols-3 gap-2 text-[10px]">
                 <div style={{ fontSize: 11, color: "rgba(244,240,232,0.45)" }}>
                   <div className="font-ui text-[8px] tracking-[0.12em] uppercase mb-1" style={{ color: "rgba(244,240,232,0.3)" }}>Brochure</div>
                   <span style={{ color: iconColor(f.brochure.icon), marginRight: 3 }}>{f.brochure.icon}</span>

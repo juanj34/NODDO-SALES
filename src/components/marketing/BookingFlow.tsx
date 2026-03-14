@@ -10,9 +10,10 @@ import {
   ChevronRight,
   Check,
   Calendar,
-  Clock,
-  UserCheck,
   X,
+  Search,
+  Monitor,
+  FileText,
 } from "lucide-react";
 import { useTranslation } from "@/i18n";
 import {
@@ -29,7 +30,17 @@ import {
   todayInCalendarTz,
   getGmtLabel,
   formatDateLong,
+  BOOKING_HOST,
+  CALL_BENEFITS,
+  SOCIAL_PROOF_STAT,
+  BOOKING_TESTIMONIAL,
 } from "@/lib/booking-constants";
+import {
+  trackBookingOpened,
+  trackBookingDateSelected,
+  trackBookingTimeSelected,
+  trackBookingConfirmed,
+} from "@/lib/marketing-tracking";
 
 // ─── Types ──────────────────────────────────────────────────────────────
 
@@ -49,48 +60,191 @@ type Step =
 type LocalSlot = { localTime: string; calDate: string; calTime: string };
 type LocalSlotsData = Record<string, LocalSlot[]>;
 
-// ─── Step Indicator ─────────────────────────────────────────────────────
+// ─── Initials Avatar ────────────────────────────────────────────────────
+
+const InitialsAvatar = ({ size = 56, className = "" }: { size?: number; className?: string }) => (
+  <div
+    className={`rounded-full bg-[rgba(184,151,58,0.15)] border-2 border-[rgba(184,151,58,0.4)] flex items-center justify-center shrink-0 ${className}`}
+    style={{ width: size, height: size }}
+  >
+    <span
+      className="font-heading font-light text-[var(--mk-accent)]"
+      style={{ fontSize: size * 0.36 }}
+    >
+      {BOOKING_HOST.initials}
+    </span>
+  </div>
+);
+
+// ─── Host Card (replaces SessionCard) ───────────────────────────────────
+
+const HostCard = () => {
+  const { t } = useTranslation("common");
+  return (
+    <div className="flex flex-col items-center pt-4 pb-4">
+      {/* Avatar with glow + online dot */}
+      <div className="relative mb-2.5">
+        <div className="absolute -inset-1.5 rounded-full bg-[rgba(184,151,58,0.1)] blur-md" />
+        <InitialsAvatar size={56} className="relative" />
+        <div className="absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 rounded-full bg-[#4a9e6b] border-2 border-[#141414]" />
+      </div>
+
+      {/* Host label */}
+      <p className="font-ui text-[9px] font-bold uppercase tracking-[0.2em] text-[var(--mk-text-muted)] mb-1">
+        {t("booking.hostLabel")}
+      </p>
+
+      {/* Name */}
+      <p className="font-heading text-xl font-light text-[var(--mk-text-primary)]">
+        {BOOKING_HOST.name}
+      </p>
+
+      {/* Title */}
+      <p className="text-[11px] text-[var(--mk-text-tertiary)] mt-0.5">
+        {BOOKING_HOST.title}, NODDO
+      </p>
+
+      {/* Divider */}
+      <div className="w-8 h-px bg-[rgba(184,151,58,0.3)] mt-3 mb-2.5" />
+
+      {/* Format pills */}
+      <div className="flex items-center gap-1.5">
+        {[t("booking.duration"), t("booking.formatVideo"), "Google Meet"].map((label) => (
+          <span
+            key={label}
+            className="font-ui text-[8px] font-bold uppercase tracking-wider text-[var(--mk-text-tertiary)] bg-white/[0.04] border border-white/[0.06] rounded-md px-2 py-0.5"
+          >
+            {label}
+          </span>
+        ))}
+      </div>
+    </div>
+  );
+};
+
+// ─── Call Benefits ──────────────────────────────────────────────────────
+
+const CallBenefits = () => {
+  const { locale } = useTranslation("common");
+  const benefits = CALL_BENEFITS[locale === "en" ? "en" : "es"];
+  const iconMap: Record<string, typeof Search> = { Search, Monitor, FileText };
+
+  return (
+    <div className="glass-booking rounded-xl p-3.5 mb-4 space-y-2.5">
+      {benefits.map((b) => {
+        const Icon = iconMap[b.icon];
+        return (
+          <div key={b.icon} className="flex items-start gap-2.5">
+            <Icon className="w-3.5 h-3.5 text-[var(--mk-accent)] mt-0.5 shrink-0" />
+            <p className="text-[12px] text-[var(--mk-text-secondary)] leading-snug">
+              {b.text}
+            </p>
+          </div>
+        );
+      })}
+    </div>
+  );
+};
+
+// ─── Social Proof Strip ─────────────────────────────────────────────────
+
+const SocialProofStrip = () => {
+  const { locale } = useTranslation("common");
+  const text = SOCIAL_PROOF_STAT[locale === "en" ? "en" : "es"];
+  return (
+    <div className="flex items-center justify-center gap-2 mb-4">
+      <span className="w-1 h-1 rounded-full bg-[rgba(184,151,58,0.5)]" />
+      <p className="font-ui text-[9px] font-bold uppercase tracking-[0.15em] text-[var(--mk-text-muted)]">
+        {text}
+      </p>
+      <span className="w-1 h-1 rounded-full bg-[rgba(184,151,58,0.5)]" />
+    </div>
+  );
+};
+
+// ─── Host Mini Card (timeslots & confirm) ───────────────────────────────
+
+const HostMiniCard = () => {
+  const { t } = useTranslation("common");
+  return (
+    <div className="glass-booking rounded-xl p-3 mb-4 flex items-center gap-3">
+      <InitialsAvatar size={32} className="!border" />
+      <div className="flex-1 min-w-0">
+        <p className="text-[12px] font-bold text-white truncate">
+          {BOOKING_HOST.name}
+        </p>
+        <p className="text-[10px] text-[var(--mk-text-tertiary)]">
+          {t("booking.sessionTitle")}
+        </p>
+      </div>
+      <span className="font-ui text-[9px] font-bold uppercase tracking-wider text-[var(--mk-accent)] bg-[rgba(184,151,58,0.1)] border border-[rgba(184,151,58,0.15)] rounded-md px-2 py-1 shrink-0">
+        {t("booking.duration")}
+      </span>
+    </div>
+  );
+};
+
+// ─── Testimonial Snippet (confirm step) ─────────────────────────────────
+
+const TestimonialSnippet = () => {
+  const { locale } = useTranslation("common");
+  const testimonial = BOOKING_TESTIMONIAL[locale === "en" ? "en" : "es"];
+  return (
+    <div className="border-l-2 border-[rgba(184,151,58,0.25)] pl-3.5 py-1 mb-5">
+      <p className="text-[11px] italic text-[var(--mk-text-tertiary)] leading-relaxed">
+        &ldquo;{testimonial.quote}&rdquo;
+      </p>
+      <p className="text-[9px] text-[var(--mk-text-muted)] mt-1.5">
+        &mdash; {testimonial.name}, {testimonial.role}
+      </p>
+    </div>
+  );
+};
+
+// ─── Step Indicator (refined) ───────────────────────────────────────────
 
 const StepIndicator = ({ currentStep }: { currentStep: number }) => {
   const { t } = useTranslation("common");
   const steps = [
-    { icon: Calendar, label: t("booking.stepDate") },
-    { icon: Clock, label: t("booking.stepTime") },
-    { icon: UserCheck, label: t("booking.stepConfirm") },
+    t("booking.stepDate"),
+    t("booking.stepTime"),
+    t("booking.stepConfirm"),
   ];
 
   return (
-    <div className="flex items-center justify-center gap-1 mb-5">
-      {steps.map((s, i) => {
+    <div className="flex items-center justify-center mb-5">
+      {steps.map((label, i) => {
         const done = i < currentStep;
         const active = i === currentStep;
         return (
-          <div key={s.label} className="flex items-center gap-1">
+          <div key={label} className="flex items-center">
             {i > 0 && (
               <div
-                className={`w-6 h-px mx-0.5 ${
-                  done ? "bg-[var(--mk-accent)]" : "bg-white/10"
+                className={`w-8 h-px ${
+                  done ? "bg-[var(--mk-accent)]" : "bg-white/[0.08]"
                 }`}
               />
             )}
-            <div className="flex items-center gap-1.5">
+            <div className="flex flex-col items-center gap-1 px-1">
               <div
-                className={`w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold transition-all ${
+                className={`w-1.5 h-1.5 rounded-full transition-all ${
                   done
-                    ? "bg-[var(--mk-accent)] text-[#141414]"
+                    ? "bg-[var(--mk-accent)]"
                     : active
-                    ? "bg-[rgba(184,151,58,0.2)] border border-[var(--mk-accent)] text-[var(--mk-accent)]"
-                    : "bg-white/5 border border-white/10 text-white/30"
+                    ? "bg-transparent border border-[var(--mk-accent)] shadow-[0_0_6px_rgba(184,151,58,0.4)]"
+                    : "bg-white/[0.08]"
                 }`}
-              >
-                {done ? <Check className="w-3 h-3" /> : i + 1}
-              </div>
+              />
               <span
-                className={`font-ui text-[10px] font-bold uppercase tracking-wider ${
-                  done || active ? "text-white/80" : "text-white/25"
+                className={`font-ui text-[8px] font-bold uppercase tracking-[0.15em] ${
+                  active
+                    ? "text-[var(--mk-accent)]"
+                    : done
+                    ? "text-white/50"
+                    : "text-white/20"
                 }`}
               >
-                {s.label}
+                {label}
               </span>
             </div>
           </div>
@@ -100,35 +254,16 @@ const StepIndicator = ({ currentStep }: { currentStep: number }) => {
   );
 };
 
-// ─── Session Card ───────────────────────────────────────────────────────
-
-const SessionCard = () => {
-  const { t } = useTranslation("common");
-  return (
-    <div className="flex flex-col items-center pt-4 pb-3">
-      <div className="w-14 h-14 rounded-full bg-[rgba(184,151,58,0.15)] border-2 border-[rgba(184,151,58,0.3)] flex items-center justify-center mb-2">
-        <Calendar className="w-6 h-6 text-[var(--mk-accent)]" />
-      </div>
-      <p className="font-ui text-sm font-bold text-[var(--mk-text-primary)] uppercase tracking-wide">
-        {t("booking.sessionTitle")}
-      </p>
-      <p className="text-[10px] text-[var(--mk-text-tertiary)] mt-0.5">
-        {t("booking.sessionSub")}
-      </p>
-    </div>
-  );
-};
-
-// ─── Scarcity Banner ────────────────────────────────────────────────────
+// ─── Scarcity Banner (refined, inline) ──────────────────────────────────
 
 const ScarcityBanner = ({ totalSlots }: { totalSlots: number }) => {
   const { t } = useTranslation("common");
   return (
-    <div className="glass-booking rounded-xl p-3 mb-5 flex items-center justify-center gap-2">
-      <span className="w-2 h-2 rounded-full bg-[var(--mk-accent)] animate-pulse" />
-      <p className="text-xs font-bold text-white/80">
+    <div className="flex items-center justify-center gap-2 mb-4">
+      <span className="w-1.5 h-1.5 rounded-full bg-[var(--mk-accent)] animate-pulse" />
+      <p className="font-ui text-[10px] text-[var(--mk-text-tertiary)]">
         {t("booking.scarcityPrefix")}
-        <span className="text-[var(--mk-accent)] font-black">{totalSlots}</span>
+        <span className="text-[var(--mk-accent)] font-bold">{totalSlots}</span>
         {t("booking.scarcitySuffix")}
       </p>
     </div>
@@ -190,7 +325,7 @@ const DayPillGrid = ({
         </div>
       </div>
 
-      <div className="grid grid-cols-5 gap-2">
+      <div className="grid grid-cols-4 sm:grid-cols-5 gap-1.5 sm:gap-2">
         {pageDates.map((dateStr) => {
           const d = new Date(dateStr + "T00:00:00");
           const dayName = dayNames[d.getDay()];
@@ -221,7 +356,7 @@ const DayPillGrid = ({
               >
                 {dayNum}
               </p>
-              <p className="text-[8px] text-green-400/60 mt-0.5">●</p>
+              <p className="text-[8px] text-green-400/60 mt-0.5">&bull;</p>
             </button>
           );
         })}
@@ -473,6 +608,7 @@ const BookingFlow = ({ onClose }: BookingFlowProps) => {
 
         setLocalSlots(local);
         setStep("calendar");
+        trackBookingOpened();
       } catch (err) {
         console.error("[BookingFlow] Failed to fetch slots:", err);
         setStep("fallback");
@@ -518,6 +654,17 @@ const BookingFlow = ({ onClose }: BookingFlowProps) => {
       }).format(endInstant);
       const endTime = `${endDateStr}T${endTimeStr}:00${calOffset}`;
 
+      // Gather UTM params + visitor context for attribution
+      const urlParams = new URLSearchParams(window.location.search);
+      const utmSource = urlParams.get("utm_source") || undefined;
+      const utmMedium = urlParams.get("utm_medium") || undefined;
+      const utmCampaign = urlParams.get("utm_campaign") || undefined;
+      const referrer = document.referrer || undefined;
+      let visitorId: string | undefined;
+      try {
+        visitorId = localStorage.getItem("noddo_visitor_id") || undefined;
+      } catch { /* localStorage unavailable */ }
+
       const res = await fetch(`${SUPABASE_FN_URL}/ghl-book`, {
         method: "POST",
         headers: {
@@ -533,6 +680,12 @@ const BookingFlow = ({ onClose }: BookingFlowProps) => {
             : undefined,
           startTime,
           endTime,
+          whatsappOptin: wantWA && !!formPhone.trim(),
+          utmSource,
+          utmMedium,
+          utmCampaign,
+          referrer,
+          visitorId,
         }),
       });
 
@@ -541,7 +694,32 @@ const BookingFlow = ({ onClose }: BookingFlowProps) => {
         throw new Error(data.error || `HTTP ${res.status}`);
       }
 
-      setStep("success");
+      // Track conversion across all systems (Pixel + GA4 + CAPI)
+      trackBookingConfirmed({
+        email: formEmail,
+        name: formName,
+        phone: formPhone.trim()
+          ? `${formCountryCode}${formPhone.replace(/\s+/g, "")}`
+          : undefined,
+      });
+
+      // Save contact for GHL auto-tagging on future visits
+      try {
+        localStorage.setItem(
+          "noddo_ghl_contact",
+          JSON.stringify({ email: formEmail.trim().toLowerCase() })
+        );
+      } catch {
+        // Silent fail
+      }
+
+      // Redirect to post-booking thank-you page
+      const thankYouParams = new URLSearchParams({
+        name: formName,
+        date: selectedDate,
+        time: selectedTime,
+      });
+      window.location.href = `/demo-confirmada?${thankYouParams.toString()}`;
     } catch (err: unknown) {
       const message =
         err instanceof Error ? err.message : "Error desconocido";
@@ -549,7 +727,7 @@ const BookingFlow = ({ onClose }: BookingFlowProps) => {
       setBookingError(message);
       setStep("fallback");
     }
-  }, [selectedCal, formName, formEmail, formPhone, formCountryCode]);
+  }, [selectedCal, formName, formEmail, formPhone, formCountryCode, wantWA, selectedDate, selectedTime]);
 
   // ─── LOADING ──────────────────────────────────────────────────────
   if (step === "loading") {
@@ -568,12 +746,19 @@ const BookingFlow = ({ onClose }: BookingFlowProps) => {
     return <FallbackView onClose={onClose} />;
   }
 
-  // ─── BOOKING (loading spinner) ────────────────────────────────────
+  // ─── BOOKING (processing spinner) ─────────────────────────────────
   if (step === "booking") {
     return (
       <div className="flex flex-col items-center justify-center gap-4 py-20">
-        <div className="w-16 h-16 rounded-full bg-[rgba(184,151,58,0.1)] border border-[rgba(184,151,58,0.3)] flex items-center justify-center">
-          <Loader2 className="w-8 h-8 text-[var(--mk-accent)] animate-spin" />
+        <div className="relative w-16 h-16">
+          {/* Spinning ring */}
+          <div className="absolute inset-0 rounded-full border border-[rgba(184,151,58,0.15)] border-t-[var(--mk-accent)] animate-spin" />
+          {/* Initials inside */}
+          <div className="absolute inset-2 rounded-full bg-[rgba(184,151,58,0.1)] flex items-center justify-center">
+            <span className="font-heading text-base font-light text-[var(--mk-accent)]">
+              {BOOKING_HOST.initials}
+            </span>
+          </div>
         </div>
         <p className="text-sm text-white font-bold">
           {t("booking.bookingInProgress")}
@@ -600,30 +785,49 @@ const BookingFlow = ({ onClose }: BookingFlowProps) => {
           </div>
         )}
         <div className="overflow-y-auto px-5 pb-6 flex-1">
+          {/* Success avatar with green ring */}
           <div className="flex flex-col items-center mb-6">
-            <div className="w-16 h-16 rounded-full bg-green-500/20 border-2 border-green-500/50 flex items-center justify-center mb-4 animate-success-pop">
-              <Check className="w-8 h-8 text-green-400" />
+            <div className="relative w-20 h-20 mb-4 animate-success-pop">
+              <div className="absolute inset-0 rounded-full border-2 border-green-500/50" />
+              <div className="absolute inset-2 rounded-full bg-[rgba(184,151,58,0.12)] flex items-center justify-center">
+                <span className="font-heading text-xl font-light text-[var(--mk-accent)]">
+                  {BOOKING_HOST.initials}
+                </span>
+              </div>
+              <div className="absolute -bottom-1 -right-1 w-6 h-6 rounded-full bg-green-500 border-2 border-[#141414] flex items-center justify-center">
+                <Check className="w-3.5 h-3.5 text-white" />
+              </div>
             </div>
             <h2 className="font-heading text-2xl font-light text-[var(--mk-text-primary)] mb-1">
               {t("booking.successTitle")}
             </h2>
             <p className="text-sm text-[var(--mk-text-tertiary)] text-center capitalize">
-              {formatDateLong(selectedDate, locale)} · {selectedTime}
+              {formatDateLong(selectedDate, locale)} &middot; {selectedTime}
             </p>
           </div>
 
-          <div className="glass-booking rounded-xl p-4 mb-6">
-            <p className="font-ui text-xs font-bold text-[var(--mk-accent)] uppercase tracking-widest mb-2">
+          {/* What happens next */}
+          <div className="glass-booking rounded-xl p-4 mb-5">
+            <p className="font-ui text-[9px] font-bold text-[var(--mk-accent)] uppercase tracking-[0.2em] mb-2">
               {t("booking.step2Label")}
             </p>
             <p className="text-sm font-bold text-white mb-1">
               {t("booking.step2Title")}
             </p>
-            <p className="text-xs text-[var(--mk-text-tertiary)]">
+            <p className="text-xs text-[var(--mk-text-tertiary)] leading-relaxed">
               {t("booking.step2Description")}
             </p>
           </div>
 
+          {/* Host waiting strip */}
+          <div className="flex items-center justify-center gap-2 mb-5">
+            <InitialsAvatar size={20} className="!border" />
+            <p className="text-[11px] text-[var(--mk-text-tertiary)]">
+              {t("booking.hostWaiting")}
+            </p>
+          </div>
+
+          {/* Email confirmation */}
           <div className="text-center mb-5">
             <p className="text-xs text-[var(--mk-text-tertiary)]">
               {t("booking.emailConfirmation")}
@@ -647,8 +851,10 @@ const BookingFlow = ({ onClose }: BookingFlowProps) => {
     return (
       <>
         {onClose && <ModalHeader onClose={onClose} />}
-        <div className="overflow-y-auto px-5 pt-5 pb-5 flex-1">
-          <SessionCard />
+        <div className="overflow-y-auto px-5 pt-4 pb-5 flex-1">
+          <HostCard />
+          <CallBenefits />
+          <SocialProofStrip />
           <StepIndicator currentStep={0} />
           <ScarcityBanner totalSlots={totalSlots} />
           <DayPillGrid
@@ -661,6 +867,7 @@ const BookingFlow = ({ onClose }: BookingFlowProps) => {
             onClick={() => {
               setSelectedTime("");
               setStep("timeslots");
+              trackBookingDateSelected(selectedDate);
             }}
             className={`w-full mt-5 py-3.5 rounded-xl font-ui font-bold text-sm uppercase tracking-wider flex items-center justify-center gap-2 transition-all ${
               selectedDate
@@ -686,16 +893,17 @@ const BookingFlow = ({ onClose }: BookingFlowProps) => {
             onBack={() => setStep("calendar")}
           />
         )}
-        <div className="overflow-y-auto px-5 pt-5 pb-5 flex-1">
+        <div className="overflow-y-auto px-5 pt-4 pb-5 flex-1">
+          <HostMiniCard />
           <StepIndicator currentStep={1} />
-          <p className="text-center text-sm text-white/70 font-bold mb-1 capitalize">
+          <p className="text-center font-heading text-lg font-light text-white/80 mb-1 capitalize">
             {formatDateLong(selectedDate, locale)}
           </p>
           <p className="text-center text-[10px] text-[var(--mk-text-tertiary)] mb-5">
             {getGmtLabel(clientTz)}
           </p>
 
-          <div className="grid grid-cols-3 gap-2.5">
+          <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
             {(localSlots[selectedDate] || []).map((slot) => {
               const active = slot.localTime === selectedTime;
               return (
@@ -722,7 +930,10 @@ const BookingFlow = ({ onClose }: BookingFlowProps) => {
 
           <button
             disabled={!selectedTime}
-            onClick={() => setStep("confirm")}
+            onClick={() => {
+              setStep("confirm");
+              trackBookingTimeSelected(selectedTime);
+            }}
             className={`w-full mt-5 py-3.5 rounded-xl font-ui font-bold text-sm uppercase tracking-wider flex items-center justify-center gap-2 transition-all ${
               selectedTime
                 ? "btn-mk-primary shadow-[0_0_25px_rgba(184,151,58,0.2)]"
@@ -747,25 +958,26 @@ const BookingFlow = ({ onClose }: BookingFlowProps) => {
             onBack={() => setStep("timeslots")}
           />
         )}
-        <div className="overflow-y-auto px-5 pt-5 pb-5 flex-1">
+        <div className="overflow-y-auto px-5 pt-4 pb-5 flex-1">
           <StepIndicator currentStep={2} />
 
-          {/* Summary */}
+          {/* Summary with host avatar */}
           <div className="glass-booking rounded-xl p-4 mb-5 flex items-center gap-3">
             <Calendar className="w-5 h-5 text-[var(--mk-accent)] shrink-0" />
-            <div>
+            <div className="flex-1 min-w-0">
               <p className="text-sm font-bold text-white capitalize">
                 {formatDateLong(selectedDate, locale)}
               </p>
               <p className="text-xs text-[var(--mk-text-tertiary)]">
-                {selectedTime} · {SESSION_MINUTES} min ·{" "}
+                {selectedTime} &middot; {SESSION_MINUTES} min &middot;{" "}
                 {locale === "en" ? "Video call" : "Videollamada"}
               </p>
             </div>
+            <InitialsAvatar size={28} className="!border" />
           </div>
 
           {/* Form */}
-          <div className="space-y-3 mb-5">
+          <div className="space-y-3 mb-4">
             <div>
               <label className="font-ui text-[10px] text-[var(--mk-text-tertiary)] font-bold uppercase tracking-wider mb-1 block">
                 {t("booking.labelName")}
@@ -798,7 +1010,7 @@ const BookingFlow = ({ onClose }: BookingFlowProps) => {
                 <select
                   value={formCountryCode}
                   onChange={(e) => setFormCountryCode(e.target.value)}
-                  className="input-booking w-[110px] shrink-0 appearance-none cursor-pointer"
+                  className="input-booking w-[90px] sm:w-[110px] shrink-0 appearance-none cursor-pointer"
                 >
                   {COUNTRY_CODES.map((c) => (
                     <option
@@ -830,6 +1042,9 @@ const BookingFlow = ({ onClose }: BookingFlowProps) => {
               </span>
             </label>
           </div>
+
+          {/* Testimonial */}
+          <TestimonialSnippet />
 
           {bookingError && (
             <div className="text-center mb-3">

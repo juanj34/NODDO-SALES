@@ -39,7 +39,7 @@ export async function generateMetadata({
     return { title: "Proyecto no encontrado" };
   }
 
-  const title = `${proyecto.nombre} — ${proyecto.constructora_nombre || "Noddo"}`;
+  const title = `${proyecto.nombre} — ${proyecto.constructora_nombre || "NODDO"}`;
   const description = proyecto.descripcion || "";
   const ogImage = proyecto.og_image_url || proyecto.render_principal_url;
   const favicon = proyecto.favicon_url || proyecto.logo_url;
@@ -57,7 +57,7 @@ export async function generateMetadata({
       type: "website",
       title: proyecto.nombre,
       description,
-      siteName: proyecto.constructora_nombre || "Noddo",
+      siteName: proyecto.constructora_nombre || "NODDO",
       ...(ogImage
         ? { images: [{ url: ogImage, width: 1200, height: 630 }] }
         : {}),

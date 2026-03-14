@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
+import sharp from "sharp";
 import { calcularCotizacion } from "@/lib/cotizador/calcular";
 import { generarPDF } from "@/lib/cotizador/generar-pdf";
 import { sendCotizacionBuyer, sendCotizacionAdmin } from "@/lib/email";
@@ -31,6 +32,43 @@ function sanitize(str: string, maxLen: number): string {
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
+async function fetchImageAsBase64(
+  url: string | null,
+): Promise<{ base64: string; format: "JPEG" | "PNG" } | null> {
+  if (!url) return null;
+  try {
+    const res = await fetch(url, { signal: AbortSignal.timeout(5000) });
+    if (!res.ok) return null;
+    const buffer = await res.arrayBuffer();
+    const uint8 = new Uint8Array(buffer);
+
+    // Detect format from magic bytes
+    const isJPEG = uint8[0] === 0xff && uint8[1] === 0xd8;
+    const isPNG = uint8[0] === 0x89 && uint8[1] === 0x50;
+
+    if (!isJPEG && !isPNG) {
+      // Convert WebP/AVIF/other to JPEG via sharp
+      const jpegBuffer = await sharp(Buffer.from(buffer))
+        .resize(1200, null, { withoutEnlargement: true })
+        .jpeg({ quality: 80 })
+        .toBuffer();
+      return { base64: jpegBuffer.toString("base64"), format: "JPEG" };
+    }
+
+    // Resize raster images to keep PDF small
+    const resized = await sharp(Buffer.from(buffer))
+      .resize(1200, null, { withoutEnlargement: true })
+      .toBuffer();
+    return {
+      base64: resized.toString("base64"),
+      format: isJPEG ? "JPEG" : "PNG",
+    };
+  } catch (err) {
+    console.warn("[cotizaciones] Image fetch failed:", url, err);
+    return null;
+  }
+}
+
 export async function POST(request: NextRequest) {
   try {
     // Rate limit: 3 cotizaciones per minute per IP (PDF generation is expensive)
@@ -58,7 +96,7 @@ export async function POST(request: NextRequest) {
     // Fetch project with cotizador config
     const { data: proyecto, error: projErr } = await supabase
       .from("proyectos")
-      .select("id, nombre, constructora_nombre, color_primario, cotizador_enabled, cotizador_config, user_id")
+      .select("id, nombre, constructora_nombre, constructora_logo_url, color_primario, cotizador_enabled, cotizador_config, user_id, render_principal_url, tour_360_url, whatsapp_numero, disclaimer")
       .eq("id", proyecto_id)
       .single();
 
@@ -67,6 +105,17 @@ export async function POST(request: NextRequest) {
     }
     if (!proyecto.cotizador_enabled || !proyecto.cotizador_config) {
       return NextResponse.json({ error: "Cotizador no habilitado" }, { status: 403 });
+    }
+
+    // Check feature flag (cotizador must be enabled in project_features)
+    const { data: featureRow } = await supabase
+      .from("project_features")
+      .select("enabled")
+      .eq("proyecto_id", proyecto_id)
+      .eq("feature", "cotizador")
+      .maybeSingle();
+    if (featureRow && !featureRow.enabled) {
+      return NextResponse.json({ error: "Cotizador no habilitado para este proyecto" }, { status: 403 });
     }
 
     const config = proyecto.cotizador_config as CotizadorConfig;
@@ -88,23 +137,40 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Unidad sin precio" }, { status: 400 });
     }
 
-    // Fetch tipología name
+    // Fetch tipología name + renders
     let tipologiaName: string | null = null;
+    let tipologiaRenders: string[] = [];
     if (unit.tipologia_id) {
       const { data: tipo } = await supabase
         .from("tipologias")
-        .select("nombre")
+        .select("nombre, renders")
         .eq("id", unit.tipologia_id)
         .single();
       tipologiaName = tipo?.nombre ?? null;
+      tipologiaRenders = tipo?.renders ?? [];
     }
 
     // Calculate quotation (server-side — source of truth)
     const resultado = calcularCotizacion(unit.precio, config, []);
 
+    // Determine cover image URL (config override > project render > tipología render)
+    const coverUrl =
+      config.portada_url ||
+      proyecto.render_principal_url ||
+      tipologiaRenders[0] ||
+      null;
+
+    // Fetch images in parallel (with timeout, graceful degradation)
+    const [coverImage, logoImage] = await Promise.all([
+      fetchImageAsBase64(coverUrl),
+      fetchImageAsBase64(proyecto.constructora_logo_url),
+    ]);
+
     // Generate PDF
     const now = new Date();
     const fecha = now.toLocaleDateString("es-CO", { day: "numeric", month: "long", year: "numeric" });
+    const cotizacionId = crypto.randomUUID();
+    const refNumber = `COT-${now.getFullYear()}-${cotizacionId.slice(0, 4).toUpperCase()}`;
 
     const pdfBuffer = generarPDF({
       projectName: proyecto.nombre,
@@ -117,6 +183,9 @@ export async function POST(request: NextRequest) {
       vista: unit.vista,
       habitaciones: unit.habitaciones,
       banos: unit.banos,
+      orientacion: unit.orientacion,
+      parqueaderos: unit.parqueaderos,
+      depositos: unit.depositos,
       resultado,
       config,
       buyerName: sanitize(nombre, 200),
@@ -124,6 +193,17 @@ export async function POST(request: NextRequest) {
       buyerPhone: telefono ? sanitize(telefono, 30) : null,
       agenteName: agente_nombre ? sanitize(agente_nombre, 200) : null,
       fecha,
+      referenceNumber: refNumber,
+      coverImageBase64: coverImage?.base64 ?? null,
+      coverImageFormat: coverImage?.format ?? null,
+      constructoraLogoBase64: logoImage?.base64 ?? null,
+      constructoraLogoFormat: logoImage?.format ?? null,
+      tour360Url: proyecto.tour_360_url,
+      whatsappNumero: proyecto.whatsapp_numero,
+      disclaimer: proyecto.disclaimer,
+      pdfSaludo: config.pdf_saludo ?? null,
+      pdfDespedida: config.pdf_despedida ?? null,
+      fechaEstimadaEntrega: config.fecha_estimada_entrega ?? null,
     });
 
     // Snapshot unit data
@@ -140,7 +220,6 @@ export async function POST(request: NextRequest) {
     };
 
     // Upload PDF to Supabase Storage
-    const cotizacionId = crypto.randomUUID();
     const pdfPath = `cotizaciones/${proyecto_id}/${cotizacionId}.pdf`;
 
     const { error: uploadErr } = await supabase.storage

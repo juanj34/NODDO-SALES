@@ -126,6 +126,27 @@ export interface Lead {
   created_at: string;
 }
 
+export interface LeadWithMeta extends Lead {
+  cotizaciones_count: number;
+  proyecto_nombre?: string;
+}
+
+export interface LeadCotizacionSummary {
+  id: string;
+  unidad_snapshot: Record<string, unknown>;
+  resultado: ResultadoCotizacion;
+  pdf_url: string | null;
+  agente_nombre: string | null;
+  created_at: string;
+}
+
+export interface LeadStats {
+  total_all: number;
+  this_month: number;
+  with_cotizaciones: number;
+  by_status: Record<string, number>;
+}
+
 export interface PuntoInteres {
   id: string;
   proyecto_id: string;
@@ -445,6 +466,11 @@ export interface CotizadorConfig {
   descuentos: DescuentoConfig[];
   separacion_incluida_en_inicial: boolean;
   notas_legales: string | null;
+  // PDF customization (optional, backward compatible)
+  pdf_saludo?: string;
+  pdf_despedida?: string;
+  fecha_estimada_entrega?: string;
+  portada_url?: string;
 }
 
 export interface FaseResultado {
@@ -491,7 +517,8 @@ export type AuditAction =
   | "project_archived"
   | "project_deleted"
   | "admin_added"
-  | "admin_removed";
+  | "admin_removed"
+  | "features_updated";
 
 export type AuditTargetType = "user" | "project" | "admin";
 

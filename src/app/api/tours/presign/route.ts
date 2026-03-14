@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getAuthContext } from "@/lib/auth-context";
+import { checkFeature } from "@/lib/feature-flags";
 import { getPresignedUploadUrls, type FileToSign } from "@/lib/r2";
 
 const MAX_FILES = 2000;
@@ -25,6 +26,15 @@ export async function POST(request: NextRequest) {
       return NextResponse.json(
         { error: "proyecto_id y files son requeridos" },
         { status: 400 }
+      );
+    }
+
+    // Check feature flag
+    const tourEnabled = await checkFeature(auth.supabase, proyecto_id, "tour_360");
+    if (!tourEnabled) {
+      return NextResponse.json(
+        { error: "Tour 360 no está habilitado para este proyecto" },
+        { status: 403 }
       );
     }
 

@@ -59,6 +59,13 @@ const PLAN_COLORS: Record<string, string> = {
 
 const PLANS = ["trial", "proyecto", "studio", "enterprise"] as const;
 
+const PLAN_DEFAULTS: Record<string, { max_projects: number; max_units_per_project: number | null; max_collaborators: number }> = {
+  trial: { max_projects: 1, max_units_per_project: 50, max_collaborators: 2 },
+  proyecto: { max_projects: 1, max_units_per_project: 200, max_collaborators: 5 },
+  studio: { max_projects: 5, max_units_per_project: null, max_collaborators: 5 },
+  enterprise: { max_projects: 999, max_units_per_project: null, max_collaborators: 5 },
+};
+
 const estadoColors: Record<string, string> = {
   publicado: "text-emerald-400 bg-emerald-500/15 border-emerald-500/20",
   borrador: "text-amber-400 bg-amber-500/15 border-amber-500/20",
@@ -73,6 +80,9 @@ export default function AdminUsuariosPage() {
   const [changingPlan, setChangingPlan] = useState<string | null>(null);
   const [selectedPlan, setSelectedPlan] = useState<string>("");
   const [savingPlan, setSavingPlan] = useState(false);
+  const [customMaxProjects, setCustomMaxProjects] = useState<number>(1);
+  const [customMaxUnits, setCustomMaxUnits] = useState<number | null>(200);
+  const [customMaxCollabs, setCustomMaxCollabs] = useState<number>(5);
   const [expandedUser, setExpandedUser] = useState<string | null>(null);
   const [userDetail, setUserDetail] = useState<UserDetail | null>(null);
   const [loadingDetail, setLoadingDetail] = useState(false);
@@ -130,7 +140,12 @@ export default function AdminUsuariosPage() {
       const res = await fetch(`/api/admin/usuarios/${userId}/plan`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ plan: selectedPlan }),
+        body: JSON.stringify({
+          plan: selectedPlan,
+          max_projects: customMaxProjects,
+          max_units_per_project: customMaxUnits,
+          max_collaborators: customMaxCollabs,
+        }),
       });
       if (res.ok) {
         toast.success("Plan actualizado");
@@ -343,8 +358,17 @@ export default function AdminUsuariosPage() {
                         <div className="flex items-center justify-end gap-1" onClick={(e) => e.stopPropagation()}>
                           <button
                             onClick={() => {
-                              setChangingPlan(changingPlan === user.id ? null : user.id);
-                              setSelectedPlan(user.plan || "");
+                              if (changingPlan === user.id) {
+                                setChangingPlan(null);
+                              } else {
+                                setChangingPlan(user.id);
+                                const plan = user.plan || "trial";
+                                setSelectedPlan(plan);
+                                const defaults = PLAN_DEFAULTS[plan] || PLAN_DEFAULTS.trial;
+                                setCustomMaxProjects(user.maxProjects ?? defaults.max_projects);
+                                setCustomMaxUnits(defaults.max_units_per_project);
+                                setCustomMaxCollabs(defaults.max_collaborators);
+                              }
                             }}
                             className="flex items-center gap-1 px-2 py-1 rounded-md text-[10px] font-ui font-bold uppercase tracking-wider text-[var(--text-tertiary)] hover:text-[var(--site-primary)] hover:bg-[var(--surface-3)] transition-all"
                           >
@@ -573,7 +597,13 @@ export default function AdminUsuariosPage() {
                 {PLANS.map((plan) => (
                   <button
                     key={plan}
-                    onClick={() => setSelectedPlan(plan)}
+                    onClick={() => {
+                      setSelectedPlan(plan);
+                      const defaults = PLAN_DEFAULTS[plan];
+                      setCustomMaxProjects(defaults.max_projects);
+                      setCustomMaxUnits(defaults.max_units_per_project);
+                      setCustomMaxCollabs(defaults.max_collaborators);
+                    }}
                     className={`px-3 py-2 rounded-lg border text-xs font-ui font-bold uppercase tracking-wider transition-all ${
                       selectedPlan === plan
                         ? `${PLAN_COLORS[plan]} border`
@@ -583,6 +613,57 @@ export default function AdminUsuariosPage() {
                     {plan}
                   </button>
                 ))}
+              </div>
+
+              {/* Custom limits */}
+              <div className="space-y-3 pt-1">
+                <h4 className="font-ui text-[10px] font-bold uppercase tracking-wider text-[var(--text-muted)]">
+                  Límites
+                </h4>
+                <div className="grid grid-cols-3 gap-2">
+                  <div>
+                    <label className="block text-[9px] text-[var(--text-muted)] uppercase tracking-wider font-bold mb-1">
+                      Max Proy.
+                    </label>
+                    <input
+                      type="number"
+                      min={1}
+                      max={999}
+                      value={customMaxProjects}
+                      onChange={(e) => setCustomMaxProjects(parseInt(e.target.value) || 1)}
+                      className="input-glass w-full text-xs text-center py-1.5"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-[9px] text-[var(--text-muted)] uppercase tracking-wider font-bold mb-1">
+                      Max Uds.
+                    </label>
+                    <input
+                      type="number"
+                      min={0}
+                      value={customMaxUnits ?? ""}
+                      placeholder="∞"
+                      onChange={(e) => {
+                        const v = e.target.value;
+                        setCustomMaxUnits(v === "" ? null : parseInt(v) || 0);
+                      }}
+                      className="input-glass w-full text-xs text-center py-1.5"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-[9px] text-[var(--text-muted)] uppercase tracking-wider font-bold mb-1">
+                      Max Colab.
+                    </label>
+                    <input
+                      type="number"
+                      min={0}
+                      max={20}
+                      value={customMaxCollabs}
+                      onChange={(e) => setCustomMaxCollabs(parseInt(e.target.value) || 0)}
+                      className="input-glass w-full text-xs text-center py-1.5"
+                    />
+                  </div>
+                </div>
               </div>
 
               <div className="flex gap-2 pt-1">

@@ -35,7 +35,7 @@ export const viewport: Viewport = {
 };
 
 export const metadata: Metadata = {
-  title: "Noddo — Micrositios Inmobiliarios",
+  title: "NODDO — Micrositios Inmobiliarios",
   description:
     "Genera micrositios de venta inmobiliaria tipo sala de ventas digital para tus proyectos.",
 };

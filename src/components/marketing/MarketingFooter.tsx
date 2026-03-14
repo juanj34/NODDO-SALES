@@ -31,7 +31,7 @@ const smallBadges = [
 
 export function MarketingFooter() {
   return (
-    <footer className="relative z-[1] px-6 lg:px-20 border-t border-[var(--mk-border-rule)]" style={{ padding: "80px 24px 40px" }}>
+    <footer className="relative z-[1] px-6 lg:px-20 border-t border-[var(--mk-border-rule)] pt-12 sm:pt-20 pb-10">
       {/* Top: 4-column grid */}
       <div
         className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-[2fr_1fr_1fr_1fr] gap-10 lg:gap-16 pb-14 mb-14"

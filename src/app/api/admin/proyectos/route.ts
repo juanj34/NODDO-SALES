@@ -1,5 +1,6 @@
 import { getAuthContext } from "@/lib/auth-context";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { ALL_FEATURES } from "@/lib/feature-flags";
 import { NextResponse } from "next/server";
 
 export async function GET() {
@@ -42,12 +43,32 @@ export async function GET() {
     leadCounts.set(l.proyecto_id, (leadCounts.get(l.proyecto_id) || 0) + 1);
   }
 
-  const result = (projects ?? []).map((p) => ({
-    ...p,
-    ownerEmail: emailMap.get(p.user_id) || "",
-    unitCount: unitCounts.get(p.id) || 0,
-    leadCount: leadCounts.get(p.id) || 0,
-  }));
+  // Get feature flags per project
+  const { data: allFeatures } = await admin
+    .from("project_features")
+    .select("proyecto_id, feature, enabled");
+
+  const featuresMap = new Map<string, Record<string, boolean>>();
+  for (const row of allFeatures ?? []) {
+    if (!featuresMap.has(row.proyecto_id)) {
+      const defaults: Record<string, boolean> = {};
+      for (const f of ALL_FEATURES) defaults[f] = false;
+      featuresMap.set(row.proyecto_id, defaults);
+    }
+    featuresMap.get(row.proyecto_id)![row.feature] = row.enabled;
+  }
+
+  const result = (projects ?? []).map((p) => {
+    // Build default features map if none exist
+    const features = featuresMap.get(p.id) ?? Object.fromEntries(ALL_FEATURES.map((f) => [f, false]));
+    return {
+      ...p,
+      ownerEmail: emailMap.get(p.user_id) || "",
+      unitCount: unitCounts.get(p.id) || 0,
+      leadCount: leadCounts.get(p.id) || 0,
+      features,
+    };
+  });
 
   return NextResponse.json(result);
 }

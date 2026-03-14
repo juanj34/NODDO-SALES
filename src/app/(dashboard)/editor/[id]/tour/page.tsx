@@ -4,13 +4,13 @@ import { useState, useEffect, useRef, useCallback, DragEvent } from "react";
 import { useEditorProject } from "@/hooks/useEditorProject";
 import { useToast } from "@/components/dashboard/Toast";
 import { useConfirm } from "@/components/dashboard/ConfirmModal";
-import { useTourUpload } from "@/hooks/useTourUpload";
+import { useTourUpload, readDroppedFolder, pickFolderNative, hasNativeFolderPicker } from "@/hooks/useTourUpload";
 import {
   inputClass, labelClass, fieldHint,
   pageHeader, pageTitle, pageDescription,
   sectionCard,
 } from "@/components/dashboard/editor-styles";
-import { View, Loader2, ExternalLink, CheckCircle2, AlertCircle, CloudUpload, Link2, Upload } from "lucide-react";
+import { View, Loader2, ExternalLink, CheckCircle2, AlertCircle, CloudUpload, Link2, Upload, FolderOpen } from "lucide-react";
 import { extractTourUrl } from "@/lib/tour-utils";
 import { motion } from "framer-motion";
 import { useTranslation } from "@/i18n";
@@ -28,6 +28,7 @@ export default function TourPage() {
   const [tourDeleting, setTourDeleting] = useState(false);
   const [dragOver, setDragOver] = useState(false);
   const tourZipInputRef = useRef<HTMLInputElement>(null);
+  const tourFolderInputRef = useRef<HTMLInputElement>(null);
   const tourUpload = useTourUpload();
 
   useEffect(() => {
@@ -83,17 +84,54 @@ export default function TourPage() {
     tourUpload.upload(file, project.id);
   };
 
-  const handleDrop = useCallback((e: DragEvent<HTMLDivElement>) => {
+  const handleFolderSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (!files || files.length === 0 || !project) return;
+    // Snapshot files before clearing — FileList is a live reference that empties on clear
+    const snapshot: { file: File; path: string }[] = [];
+    for (let i = 0; i < files.length; i++) {
+      const f = files[i];
+      snapshot.push({ file: f, path: f.webkitRelativePath || f.name });
+    }
+    if (tourFolderInputRef.current) tourFolderInputRef.current.value = "";
+    tourUpload.uploadFolder(snapshot, project.id);
+  };
+
+  const handleFolderClick = useCallback(async () => {
+    if (!project) return;
+    // Use native File System Access API (no scary browser dialog)
+    if (hasNativeFolderPicker()) {
+      const files = await pickFolderNative();
+      if (files && files.length > 0) {
+        tourUpload.uploadFolder(files, project.id);
+      }
+      return;
+    }
+    // Fallback to webkitdirectory input
+    tourFolderInputRef.current?.click();
+  }, [project, tourUpload]);
+
+  const handleDrop = useCallback(async (e: DragEvent<HTMLDivElement>) => {
     e.preventDefault();
     setDragOver(false);
+    if (!project) return;
+
+    // Check if a folder was dropped
+    const folderFiles = await readDroppedFolder(e.dataTransfer.items);
+    if (folderFiles && folderFiles.length > 0) {
+      tourUpload.uploadFolder(folderFiles, project.id);
+      return;
+    }
+
+    // Otherwise treat as ZIP file
     const file = e.dataTransfer.files?.[0];
-    if (!file || !project) return;
+    if (!file) return;
     if (!file.name.endsWith(".zip")) {
-      toast.error("Solo se aceptan archivos .zip");
+      toast.error(t("config.tour.zipOrFolderOnly"));
       return;
     }
     tourUpload.upload(file, project.id);
-  }, [project, tourUpload, toast]);
+  }, [project, tourUpload, toast, t]);
 
   const handleDeleteHostedTour = async () => {
     if (!project) return;
@@ -195,7 +233,7 @@ export default function TourPage() {
           </div>
         )}
 
-        {/* Tab: Upload ZIP */}
+        {/* Tab: Upload */}
         {tourTab === "upload" && (
           <div className="space-y-4">
             {/* Already hosted on R2 */}
@@ -224,7 +262,7 @@ export default function TourPage() {
               </div>
             )}
 
-            {/* Extracting state */}
+            {/* Extracting / scanning state */}
             {tourUpload.status === "extracting" && (
               <div className="flex flex-col items-center justify-center gap-3 p-10 rounded-[1.25rem] bg-[var(--surface-2)] border border-[var(--border-subtle)]">
                 <Loader2 size={24} className="animate-spin text-[var(--site-primary)]" />
@@ -292,9 +330,8 @@ export default function TourPage() {
                 onDragOver={(e) => { e.preventDefault(); setDragOver(true); }}
                 onDragLeave={() => setDragOver(false)}
                 onDrop={handleDrop}
-                onClick={() => tourZipInputRef.current?.click()}
                 className={cn(
-                  "relative flex flex-col items-center justify-center gap-4 p-10 rounded-[1.25rem] border-2 border-dashed cursor-pointer transition-all duration-200",
+                  "relative flex flex-col items-center justify-center gap-4 p-4 sm:p-8 rounded-[1.25rem] border-2 border-dashed transition-all duration-200",
                   dragOver
                     ? "border-[var(--site-primary)] bg-[rgba(var(--site-primary-rgb),0.06)]"
                     : "border-[var(--border-default)] bg-[var(--surface-1)] hover:border-[var(--border-strong)] hover:bg-[var(--surface-2)]"
@@ -316,11 +353,26 @@ export default function TourPage() {
                     {t("config.tour.dropzoneTitle")}
                   </p>
                   <p className="text-xs text-[var(--text-muted)]">
-                    {t("config.tour.dropzoneOr")}{" "}
-                    <span className="text-[var(--site-primary)] font-medium">
-                      {t("config.tour.uploadButton")}
-                    </span>
+                    {t("config.tour.dropzoneOr")}
                   </p>
+                </div>
+                <div className="flex gap-3">
+                  <button
+                    type="button"
+                    onClick={(e) => { e.stopPropagation(); tourZipInputRef.current?.click(); }}
+                    className="flex items-center gap-2 px-3.5 py-2 rounded-lg text-xs font-ui font-semibold uppercase tracking-wider border border-[var(--border-default)] bg-[var(--surface-2)] text-[var(--text-secondary)] hover:bg-[var(--surface-3)] hover:text-[var(--text-primary)] transition-colors cursor-pointer"
+                  >
+                    <Upload size={13} />
+                    {t("config.tour.selectZip")}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={(e) => { e.stopPropagation(); handleFolderClick(); }}
+                    className="flex items-center gap-2 px-3.5 py-2 rounded-lg text-xs font-ui font-semibold uppercase tracking-wider border border-[var(--site-primary)]/30 bg-[rgba(var(--site-primary-rgb),0.08)] text-[var(--site-primary)] hover:bg-[rgba(var(--site-primary-rgb),0.15)] transition-colors cursor-pointer"
+                  >
+                    <FolderOpen size={13} />
+                    {t("config.tour.selectFolder")}
+                  </button>
                 </div>
                 <p className="text-[10px] text-[var(--text-muted)] tracking-wide uppercase font-ui">
                   {t("config.tour.dropzoneFormats")}
@@ -335,6 +387,15 @@ export default function TourPage() {
               type="file"
               accept=".zip,application/zip,application/x-zip-compressed"
               onChange={handleTourZipSelect}
+              className="hidden"
+            />
+            <input
+              ref={(el) => {
+                (tourFolderInputRef as React.MutableRefObject<HTMLInputElement | null>).current = el;
+                if (el) el.setAttribute("webkitdirectory", "");
+              }}
+              type="file"
+              onChange={handleFolderSelect}
               className="hidden"
             />
           </div>

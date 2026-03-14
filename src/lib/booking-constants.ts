@@ -1,7 +1,7 @@
 /** ─── NODDO GoHighLevel Booking Configuration ─── */
 
 /** GHL Calendar ID — replace with your NODDO calendar ID from GHL dashboard */
-export const GHL_CALENDAR_ID = "YOUR_NODDO_CALENDAR_ID";
+export const GHL_CALENDAR_ID = "3DFQdv2pBoX6pJF7ix9m";
 
 /** Calendar timezone (used for slot conversion) */
 export const GHL_CALENDAR_TZ = "America/Bogota";
@@ -20,7 +20,7 @@ export const MAX_DISPLAY_SLOTS = 5;
 
 /** NODDO WhatsApp fallback URL */
 export const NODDO_WA_URL =
-  "https://wa.me/573001234567?text=Hola,%20quiero%20agendar%20una%20demo%20de%20NODDO";
+  "https://wa.me/971585407848?text=Hola,%20quiero%20agendar%20una%20demo%20de%20NODDO";
 
 /** Country codes — LATAM first */
 export const COUNTRY_CODES = [
@@ -108,6 +108,55 @@ export function formatDateLong(dateStr: string, lang: string): string {
   const month = MONTH_NAMES_ES[d.getMonth()].toLowerCase();
   return `${dayName}, ${day} de ${month}`;
 }
+
+// ─── Host & Social Proof Data ─────────────────────────────────────────
+
+/** Host information for the booking flow */
+export interface BookingHost {
+  name: string;
+  initials: string;
+  title: string;
+}
+
+export const BOOKING_HOST: BookingHost = {
+  name: "Juan Castillo",
+  initials: "JC",
+  title: "Co-Founder",
+};
+
+/** What happens during the call — icon key + localized text */
+export const CALL_BENEFITS: Record<string, { icon: string; text: string }[]> = {
+  es: [
+    { icon: "Search", text: "Análisis personalizado de tu proyecto" },
+    { icon: "Monitor", text: "Demo en vivo de la plataforma" },
+    { icon: "FileText", text: "Hoja de ruta y pricing a tu medida" },
+  ],
+  en: [
+    { icon: "Search", text: "Personalized analysis of your project" },
+    { icon: "Monitor", text: "Live platform demo" },
+    { icon: "FileText", text: "Custom pricing and roadmap" },
+  ],
+};
+
+/** Social proof one-liner */
+export const SOCIAL_PROOF_STAT: Record<string, string> = {
+  es: "50+ constructoras confían en NODDO",
+  en: "50+ developers trust NODDO",
+};
+
+/** Testimonial snippet for confirm step */
+export const BOOKING_TESTIMONIAL: Record<string, { quote: string; name: string; role: string }> = {
+  es: {
+    quote: "Lanzamos nuestro proyecto en 3 días. Los leads llegan pre-calificados.",
+    name: "Jorge Mora",
+    role: "Director Comercial · Arco Urbano",
+  },
+  en: {
+    quote: "We launched our project in 3 days. Leads arrive pre-qualified.",
+    name: "Jorge Mora",
+    role: "Commercial Director · Arco Urbano",
+  },
+};
 
 /** Get the timezone offset string (e.g., "-05:00") for a given timezone at a given instant */
 function getTimezoneOffsetString(tz: string, date: Date): string {

@@ -120,6 +120,14 @@ export async function middleware(request: NextRequest) {
     return NextResponse.redirect(loginUrl);
   }
 
+  // Block banned users from dashboard
+  if (isDashboardRoute && user) {
+    const bannedUntil = (user as unknown as { banned_until?: string }).banned_until;
+    if (bannedUntil && new Date(bannedUntil) > new Date()) {
+      return NextResponse.redirect(new URL("/login", request.url));
+    }
+  }
+
   // Platform admin routes — verify role
   if (pathname.startsWith("/admin") && user) {
     const { data: platformAdmin } = await supabase

@@ -8,6 +8,7 @@ import {
   pageDescription,
   inputClass,
   labelClass,
+  fieldHint,
 } from "@/components/dashboard/editor-styles";
 import { cn } from "@/lib/utils";
 import {
@@ -107,7 +108,7 @@ function FaseCard({
         </button>
       </div>
 
-      <div className="grid grid-cols-2 gap-3">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
         {/* Type */}
         <div>
           <label className="block text-[10px] text-[var(--text-muted)] mb-1 uppercase tracking-wider">Tipo</label>
@@ -291,7 +292,7 @@ export default function CotizadorConfigPage() {
             Contacta a NODDO para activar este módulo.
           </p>
           <a
-            href="https://wa.me/573001234567?text=Quiero%20activar%20el%20cotizador"
+            href="https://wa.me/971585407848?text=Quiero%20activar%20el%20cotizador"
             target="_blank"
             rel="noopener noreferrer"
             className="flex items-center gap-2 px-6 py-3 bg-[var(--site-primary)] text-[#141414] rounded-xl font-ui text-xs font-bold uppercase tracking-[0.1em] hover:brightness-110 transition-all"
@@ -392,7 +393,7 @@ export default function CotizadorConfigPage() {
                       <Trash2 size={13} />
                     </button>
                   </div>
-                  <div className="grid grid-cols-2 gap-3">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     <div>
                       <label className="block text-[10px] text-[var(--text-muted)] mb-1 uppercase tracking-wider">Tipo</label>
                       <div className="relative">
@@ -452,6 +453,52 @@ export default function CotizadorConfigPage() {
                 className={cn(inputClass, "text-xs resize-none")}
                 placeholder="Los precios están sujetos a cambios sin previo aviso..."
               />
+            </div>
+          </div>
+
+          {/* PDF Customization */}
+          <div className="bg-[var(--surface-1)] border border-[var(--border-subtle)] rounded-xl p-5 space-y-4">
+            <h3 className="text-sm font-medium text-white">Personalización del PDF</h3>
+
+            <div>
+              <label className="block text-[10px] text-[var(--text-muted)] mb-1 uppercase tracking-wider">
+                Saludo personalizado
+              </label>
+              <textarea
+                value={config.pdf_saludo ?? ""}
+                onChange={(e) => saveConfig({ ...config, pdf_saludo: e.target.value || undefined })}
+                rows={2}
+                className={cn(inputClass, "text-xs resize-none")}
+                placeholder="Gracias por considerar nuestro proyecto como su nuevo hogar..."
+              />
+              <p className={fieldHint}>Aparece en la página de oferta. Dejar vacío para usar el saludo por defecto.</p>
+            </div>
+
+            <div>
+              <label className="block text-[10px] text-[var(--text-muted)] mb-1 uppercase tracking-wider">
+                Despedida
+              </label>
+              <input
+                type="text"
+                value={config.pdf_despedida ?? ""}
+                onChange={(e) => saveConfig({ ...config, pdf_despedida: e.target.value || undefined })}
+                className={cn(inputClass, "text-xs")}
+                placeholder="Cordialmente,"
+              />
+            </div>
+
+            <div>
+              <label className="block text-[10px] text-[var(--text-muted)] mb-1 uppercase tracking-wider">
+                Fecha estimada de entrega
+              </label>
+              <input
+                type="text"
+                value={config.fecha_estimada_entrega ?? ""}
+                onChange={(e) => saveConfig({ ...config, fecha_estimada_entrega: e.target.value || undefined })}
+                className={cn(inputClass, "text-xs")}
+                placeholder="Diciembre 2027"
+              />
+              <p className={fieldHint}>Se muestra en la sección de detalle de unidad del PDF.</p>
             </div>
           </div>
         </div>

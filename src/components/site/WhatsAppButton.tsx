@@ -3,6 +3,7 @@
 import { motion } from "framer-motion";
 import { MessageCircle } from "lucide-react";
 import { trackEvent } from "@/lib/tracking";
+import { useTranslation } from "@/i18n";
 
 interface WhatsAppButtonProps {
   numero: string;
@@ -10,9 +11,11 @@ interface WhatsAppButtonProps {
   proyectoId?: string;
 }
 
-export function WhatsAppButton({ numero, mensaje = "Hola, me interesa saber más sobre el proyecto", proyectoId }: WhatsAppButtonProps) {
+export function WhatsAppButton({ numero, mensaje, proyectoId }: WhatsAppButtonProps) {
+  const { t } = useTranslation("site");
+  const finalMessage = mensaje || t("whatsapp.defaultMessage");
   const cleanNumber = numero.replace(/[^0-9]/g, "");
-  const url = `https://wa.me/${cleanNumber}?text=${encodeURIComponent(mensaje)}`;
+  const url = `https://wa.me/${cleanNumber}?text=${encodeURIComponent(finalMessage)}`;
 
   return (
     <motion.a

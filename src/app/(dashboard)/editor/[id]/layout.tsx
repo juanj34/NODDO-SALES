@@ -48,6 +48,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import type { ProyectoVersion } from "@/types";
 import { useTranslation } from "@/i18n";
 import { useAuthRole } from "@/hooks/useAuthContext";
+import { useConfirm } from "@/components/dashboard/ConfirmModal";
 import { NodDoLogo } from "@/components/ui/NodDoLogo";
 import { useMobileDrawer } from "@/hooks/useMobileDrawer";
 import { RouteProgressBar } from "@/components/ui/RouteProgressBar";
@@ -86,6 +87,7 @@ interface TabItem {
   icon: typeof LayoutDashboard;
   href: string;
   badgeKey?: keyof BadgeCounts;
+  featureKey?: string; // maps to project_features.feature
 }
 
 interface TabSection {
@@ -121,8 +123,8 @@ const editorSections: TabSection[] = [
       { id: "fachadas", label: "Noddo Grid", icon: Eye, href: "/fachadas" },
       { id: "planos", label: "Implantaciones", icon: MapIcon, href: "/planos", badgeKey: "planos" },
       { id: "galeria", label: "Galeria", icon: ImageIcon, href: "/galeria", badgeKey: "galeria" },
-      { id: "videos", label: "Videos", icon: Film, href: "/videos", badgeKey: "videos" },
-      { id: "tour", label: "Tour 360", icon: View, href: "/tour" },
+      { id: "videos", label: "Videos", icon: Film, href: "/videos", badgeKey: "videos", featureKey: "video_hosting" },
+      { id: "tour", label: "Tour 360", icon: View, href: "/tour", featureKey: "tour_360" },
       { id: "ubicacion", label: "Ubicacion", icon: MapPin, href: "/ubicacion", badgeKey: "puntos_interes" },
       { id: "recursos", label: "Recursos", icon: FileText, href: "/recursos", badgeKey: "recursos" },
       { id: "avances", label: "Avances", icon: HardHat, href: "/avances", badgeKey: "avances" },
@@ -132,21 +134,21 @@ const editorSections: TabSection[] = [
     label: "Ajustes",
     tabs: [
       { id: "config", label: "Configuracion", icon: Settings, href: "/config" },
-      { id: "dominio", label: "Dominio", icon: Globe, href: "/dominio" },
-      { id: "webhooks", label: "Webhooks", icon: Webhook, href: "/webhooks" },
+      { id: "dominio", label: "Dominio", icon: Globe, href: "/dominio", featureKey: "custom_domain" },
+      { id: "webhooks", label: "Webhooks", icon: Webhook, href: "/webhooks", featureKey: "webhooks" },
     ],
   },
   {
     label: "Datos",
     tabs: [
-      { id: "estadisticas", label: "Estadisticas", icon: BarChart3, href: "/estadisticas" },
+      { id: "estadisticas", label: "Estadisticas", icon: BarChart3, href: "/estadisticas", featureKey: "analytics" },
     ],
   },
   {
     label: "Herramientas",
     tabs: [
       { id: "disponibilidad", label: "Disponibilidad", icon: ToggleLeft, href: "/disponibilidad" },
-      { id: "cotizador", label: "Cotizador", icon: Calculator, href: "/cotizador" },
+      { id: "cotizador", label: "Cotizador", icon: Calculator, href: "/cotizador", featureKey: "cotizador" },
     ],
   },
 ];
@@ -167,6 +169,7 @@ export default function EditorLayout({
   const pathname = usePathname();
   const toast = useToast();
   const { t } = useTranslation("editor");
+  const { confirm } = useConfirm();
 
   const { role } = useAuthRole();
   const isCollaborator = role === "colaborador";
@@ -213,15 +216,15 @@ export default function EditorLayout({
       const res = await fetch(`/api/proyectos/${id}/publicar`, { method: "POST" });
       if (res.ok) {
         const data = await res.json();
-        toast.success(`Publicado v${data.version_number}`);
+        toast.success(t("layout.publishedVersion", { version: data.version_number }));
         await refresh();
         fetchVersions();
       } else {
         const err = await res.json();
-        toast.error(err.error || "Error al publicar");
+        toast.error(err.error || t("layout.publishError"));
       }
     } catch {
-      toast.error("Error de conexión");
+      toast.error(t("layout.connectionError"));
     } finally {
       setPublishing(false);
     }
@@ -234,16 +237,16 @@ export default function EditorLayout({
         method: "POST",
       });
       if (res.ok) {
-        toast.success(`Restaurado a v${versionNumber}`);
+        toast.success(t("layout.restoredVersion", { version: versionNumber }));
         setShowVersions(false);
         setConfirmRestoreId(null);
         await refresh();
       } else {
         const err = await res.json();
-        toast.error(err.error || "Error al restaurar");
+        toast.error(err.error || t("layout.restoreError"));
       }
     } catch {
-      toast.error("Error de conexión");
+      toast.error(t("layout.connectionError"));
     } finally {
       setRestoring(false);
     }
@@ -252,29 +255,45 @@ export default function EditorLayout({
   const [unpublishing, setUnpublishing] = useState(false);
 
   const handleUnpublish = useCallback(async () => {
+    const ok = await confirm({
+      title: t("layout.confirmUnpublishTitle"),
+      message: t("layout.confirmUnpublishMessage"),
+      confirmLabel: t("layout.unpublish"),
+      variant: "warning",
+    });
+    if (!ok) return;
     setUnpublishing(true);
     try {
       const res = await fetch(`/api/proyectos/${id}/despublicar`, { method: "POST" });
       if (res.ok) {
-        toast.success("Proyecto despublicado");
+        toast.success(t("layout.unpublished"));
         setShowVersions(false);
         await refresh();
       } else {
         const err = await res.json();
-        toast.error(err.error || "Error al despublicar");
+        toast.error(err.error || t("layout.unpublishError"));
       }
     } catch {
-      toast.error("Error de conexión");
+      toast.error(t("layout.connectionError"));
     } finally {
       setUnpublishing(false);
     }
-  }, [id, refresh, toast]);
+  }, [id, refresh, toast, confirm, t]);
 
   const [archiving, setArchiving] = useState(false);
 
   const handleArchiveToggle = useCallback(async () => {
     if (!project) return;
     const newEstado = project.estado === "archivado" ? "borrador" : "archivado";
+    if (newEstado === "archivado") {
+      const ok = await confirm({
+        title: t("layout.confirmArchiveTitle"),
+        message: t("layout.confirmArchiveMessage"),
+        confirmLabel: t("layout.archiveProject"),
+        variant: "warning",
+      });
+      if (!ok) return;
+    }
     setArchiving(true);
     try {
       const res = await fetch(`/api/proyectos/${id}`, {
@@ -283,18 +302,18 @@ export default function EditorLayout({
         body: JSON.stringify({ estado: newEstado }),
       });
       if (res.ok) {
-        toast.success(newEstado === "archivado" ? "Proyecto archivado" : "Proyecto desarchivado");
+        toast.success(newEstado === "archivado" ? t("layout.archived") : t("layout.unarchived"));
         setShowVersions(false);
         await refresh();
       } else {
-        toast.error("Error al cambiar estado");
+        toast.error(t("layout.stateChangeError"));
       }
     } catch {
-      toast.error("Error de conexión");
+      toast.error(t("layout.connectionError"));
     } finally {
       setArchiving(false);
     }
-  }, [id, project, refresh, toast]);
+  }, [id, project, refresh, toast, confirm, t]);
 
   const toggleVersions = useCallback(() => {
     setShowVersions((prev) => {
@@ -487,13 +506,13 @@ export default function EditorLayout({
             </Link>
             <Link href="/proyectos" onClick={closeDrawer} className="flex items-center gap-1.5 text-[10px] text-[var(--text-muted)] hover:text-[var(--text-secondary)] transition-colors mb-3">
               <ArrowLeft size={10} />
-              Volver a proyectos
+              {t("layout.backToProjects")}
             </Link>
             <h2 className="text-[14px] font-semibold text-white truncate">
               {project.nombre}
             </h2>
             <p className="text-[var(--text-muted)] text-[11px] mt-0.5 truncate">
-              {project.slug}.noddo.io
+              {project.subdomain || project.slug}.noddo.io
             </p>
           </div>
 
@@ -510,6 +529,24 @@ export default function EditorLayout({
                     const count = tab.badgeKey && badgeCounts ? badgeCounts[tab.badgeKey] : null;
                     const TabIcon = tab.id === "torres" ? torresIcon : tab.icon;
                     const tabLabel = tab.id === "torres" ? torresLabel : tab.label;
+                    // Check if feature is locked (feature exists in project_features and is disabled)
+                    const features = (project as unknown as Record<string, unknown>).features as Record<string, boolean> | undefined;
+                    const isFeatureLocked = tab.featureKey && features ? features[tab.featureKey] === false : false;
+
+                    if (isFeatureLocked) {
+                      return (
+                        <div
+                          key={tab.id}
+                          className="flex items-center gap-2.5 px-3 py-[7px] rounded-lg font-ui text-[11px] font-semibold uppercase tracking-[0.08em] text-[var(--text-muted)] opacity-50 cursor-not-allowed"
+                          title="Feature no habilitada"
+                        >
+                          <TabIcon size={15} className="shrink-0" />
+                          <span className="flex-1 truncate">{tabLabel}</span>
+                          <Lock size={11} className="shrink-0" />
+                        </div>
+                      );
+                    }
+
                     return (
                       <Link
                         key={tab.id}
@@ -530,9 +567,6 @@ export default function EditorLayout({
                           )}
                         />
                         <span className="flex-1 truncate">{tabLabel}</span>
-                        {tab.id === "cotizador" && !project.cotizador_enabled && (
-                          <Lock size={11} className="shrink-0 text-[var(--text-muted)]" />
-                        )}
                         {count !== null && count > 0 && (
                           <span
                             className={cn(
@@ -610,7 +644,7 @@ export default function EditorLayout({
             <div className="shrink-0 flex items-center gap-2 px-6 h-10 border-b border-[var(--border-subtle)] bg-[rgba(var(--site-primary-rgb),0.06)]">
               <Package size={13} className="text-[var(--site-primary)]" />
               <span className="text-[11px] text-[var(--text-secondary)]">
-                Solo puedes actualizar el estado de las unidades
+                {t("layout.collaboratorRestriction")}
               </span>
             </div>
           )}
@@ -799,7 +833,7 @@ export default function EditorLayout({
                             ) : (
                               <Eye size={12} />
                             )}
-                            Despublicar
+                            {t("layout.unpublish")}
                           </button>
                         )}
                         <button
@@ -814,7 +848,7 @@ export default function EditorLayout({
                           ) : (
                             <Archive size={12} />
                           )}
-                          {project?.estado === "archivado" ? "Desarchivar proyecto" : "Archivar proyecto"}
+                          {project?.estado === "archivado" ? t("layout.unarchiveProject") : t("layout.archiveProject")}
                         </button>
                       </div>
                     </motion.div>
@@ -840,7 +874,7 @@ export default function EditorLayout({
                   exit={{ scale: 0.95, opacity: 0, y: -8 }}
                   transition={{ type: "spring", damping: 25, stiffness: 300 }}
                   onClick={(e) => e.stopPropagation()}
-                  className="w-full max-w-sm bg-[var(--surface-2)] border border-[var(--border-default)] rounded-xl shadow-2xl overflow-hidden"
+                  className="w-full max-w-[calc(100vw-2rem)] sm:max-w-sm bg-[var(--surface-2)] border border-[var(--border-default)] rounded-xl shadow-2xl overflow-hidden"
                 >
                   {/* Header */}
                   <div className="flex items-center justify-between px-5 py-3.5 border-b border-[var(--border-subtle)]">

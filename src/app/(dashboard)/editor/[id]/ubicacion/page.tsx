@@ -407,7 +407,7 @@ export default function UbicacionPage() {
                   className={inputClass}
                 />
               </div>
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <label className={labelClass}>{t("ubicacion.coordinates.latitude")}</label>
                   <input
@@ -565,7 +565,7 @@ export default function UbicacionPage() {
                     {editingPoiId ? t("ubicacion.pois.editPOI") : t("ubicacion.pois.newPOI")}
                   </h3>
 
-                  <div className="grid grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
                       <label className={labelClass}>{t("ubicacion.pois.nameRequired")}</label>
                       <input
@@ -646,7 +646,7 @@ export default function UbicacionPage() {
                     </div>
                   </div>
 
-                  <div className="grid grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
                       <label className={labelClass}>{t("ubicacion.pois.distance")}</label>
                       <div className="flex gap-2">

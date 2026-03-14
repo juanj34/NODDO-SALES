@@ -1,5 +1,5 @@
 import { pick } from "@/lib/api-utils";
-import { getAuthContext } from "@/lib/auth-context";
+import { getAuthContext, verifyProjectOwnership } from "@/lib/auth-context";
 import { NextRequest, NextResponse } from "next/server";
 
 export async function POST(request: NextRequest) {
@@ -16,6 +16,10 @@ export async function POST(request: NextRequest) {
         { error: "proyecto_id y nombre son requeridos" },
         { status: 400 }
       );
+    }
+
+    if (!(await verifyProjectOwnership(auth, body.proyecto_id))) {
+      return NextResponse.json({ error: "Sin acceso a este proyecto" }, { status: 403 });
     }
 
     const { data, error } = await auth.supabase

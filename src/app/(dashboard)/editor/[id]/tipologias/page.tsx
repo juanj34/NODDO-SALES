@@ -709,7 +709,7 @@ export default function TipologiasPage() {
                           <p className="font-ui text-[10px] text-[var(--text-muted)] uppercase tracking-wider mb-2 font-bold">
                             {t("tipologias.specsAreas")}
                           </p>
-                          <div className="grid grid-cols-3 gap-3">
+                          <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
                             <div className="flex items-center gap-3 p-3 bg-[var(--surface-1)] rounded-xl border border-[var(--border-subtle)] hover:border-[var(--border-default)] transition-all">
                               <div className="w-9 h-9 rounded-lg bg-[var(--surface-2)] flex items-center justify-center shrink-0">
                                 <Maximize size={16} className="text-[var(--text-tertiary)]" />
@@ -751,7 +751,7 @@ export default function TipologiasPage() {
                           <p className="font-ui text-[10px] text-[var(--text-muted)] uppercase tracking-wider mb-2 font-bold">
                             {t("tipologias.specsSpaces")}
                           </p>
-                          <div className="grid grid-cols-3 gap-3">
+                          <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
                             <div className="flex items-center gap-3 p-3 bg-[var(--surface-1)] rounded-xl border border-[var(--border-subtle)] hover:border-[var(--border-default)] transition-all">
                               <div className="w-9 h-9 rounded-lg bg-[var(--surface-2)] flex items-center justify-center shrink-0">
                                 <BedDouble size={16} className="text-[var(--text-tertiary)]" />

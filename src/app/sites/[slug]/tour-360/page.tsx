@@ -20,15 +20,8 @@ export default function Tour360Page() {
 
   return (
     <SectionTransition className="h-screen flex flex-col">
-      {/* Header */}
-      <div className="px-8 lg:px-16 pt-8">
-        <p className="text-xs tracking-[0.4em] text-[var(--site-primary)] mb-2 uppercase">
-          {t("tour360.sectionLabel")}
-        </p>
-      </div>
-
       {/* Tour embed */}
-      <div className="flex-1 px-4 pb-12">
+      <div className="flex-1 px-4 pt-4 pb-12">
         {proyecto.tour_360_url ? (
           <motion.div
             initial={{ opacity: 0 }}

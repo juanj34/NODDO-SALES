@@ -1,9 +1,8 @@
 import { getAuthContext } from "@/lib/auth-context";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { sendCollaboratorInvite } from "@/lib/email";
+import { checkCollaboratorLimit } from "@/lib/plan-limits";
 import { NextRequest, NextResponse } from "next/server";
-
-const MAX_COLABORADORES = 3;
 
 export async function GET() {
   try {
@@ -51,16 +50,11 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Check limit
-    const { count } = await auth.supabase
-      .from("colaboradores")
-      .select("id", { count: "exact", head: true })
-      .eq("admin_user_id", auth.user.id)
-      .in("estado", ["pendiente", "activo"]);
-
-    if ((count ?? 0) >= MAX_COLABORADORES) {
+    // Check dynamic collaborator limit from user plan
+    const collabLimit = await checkCollaboratorLimit(auth.supabase, auth.user.id);
+    if (!collabLimit.allowed) {
       return NextResponse.json(
-        { error: `Máximo ${MAX_COLABORADORES} colaboradores permitidos` },
+        { error: `Máximo ${collabLimit.max} colaboradores permitidos` },
         { status: 400 }
       );
     }

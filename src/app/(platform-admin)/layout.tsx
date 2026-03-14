@@ -20,6 +20,7 @@ import {
   Activity,
   HardDrive,
   ShieldCheck,
+  CalendarCheck,
 } from "lucide-react";
 import { ToastProvider } from "@/components/dashboard/Toast";
 import { ConfirmProvider } from "@/components/dashboard/ConfirmModal";
@@ -35,6 +36,7 @@ const navItems = [
   { href: "/admin/proyectos", label: "Proyectos", icon: FolderOpen },
   { href: "/admin/leads", label: "Leads", icon: MessageSquare },
   { href: "/admin/planes", label: "Planes", icon: CreditCard },
+  { href: "/admin/citas", label: "Citas", icon: CalendarCheck },
   { href: "/admin/actividad", label: "Actividad", icon: Activity },
   { href: "/admin/storage", label: "Storage", icon: HardDrive },
   { href: "/admin/admins", label: "Admins", icon: ShieldCheck },

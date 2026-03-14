@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
 import {
   FolderOpen,
@@ -16,9 +16,15 @@ import {
   Archive,
   Trash2,
   Download,
+  ChevronRight,
+  Mail,
+  HardDrive,
+  ToggleLeft,
+  ToggleRight,
 } from "lucide-react";
 import { useToast } from "@/components/dashboard/Toast";
 import { useConfirm } from "@/components/dashboard/ConfirmModal";
+import { ALL_FEATURES, FEATURE_LABELS, type ProjectFeature } from "@/lib/feature-flags";
 
 interface ProjectRow {
   id: string;
@@ -37,6 +43,7 @@ interface ProjectRow {
   storage_videos_bytes: number | null;
   storage_media_bytes: number | null;
   storage_limit_bytes: number | null;
+  features: Record<string, boolean>;
 }
 
 const estadoColors: Record<string, string> = {
@@ -51,6 +58,8 @@ export default function AdminProyectosPage() {
   const [error, setError] = useState(false);
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
+  const [expandedProject, setExpandedProject] = useState<string | null>(null);
+  const [savingFeatures, setSavingFeatures] = useState<string | null>(null);
   const toast = useToast();
   const { confirm } = useConfirm();
 
@@ -107,6 +116,53 @@ export default function AdminProyectosPage() {
     } else {
       toast.error("Error al eliminar");
     }
+  };
+
+  const handleToggleFeature = async (projectId: string, feature: ProjectFeature, enabled: boolean) => {
+    // Optimistic update
+    setProjects((prev) =>
+      prev.map((p) =>
+        p.id === projectId
+          ? { ...p, features: { ...p.features, [feature]: enabled } }
+          : p
+      )
+    );
+    setSavingFeatures(projectId);
+
+    try {
+      const res = await fetch(`/api/admin/proyectos/${projectId}/features`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ features: { [feature]: enabled } }),
+      });
+      if (!res.ok) {
+        // Revert on failure
+        setProjects((prev) =>
+          prev.map((p) =>
+            p.id === projectId
+              ? { ...p, features: { ...p.features, [feature]: !enabled } }
+              : p
+          )
+        );
+        toast.error("Error al actualizar feature");
+      }
+    } catch {
+      // Revert
+      setProjects((prev) =>
+        prev.map((p) =>
+          p.id === projectId
+            ? { ...p, features: { ...p.features, [feature]: !enabled } }
+            : p
+        )
+      );
+      toast.error("Error al actualizar feature");
+    } finally {
+      setSavingFeatures(null);
+    }
+  };
+
+  const handleExpandProject = (projectId: string) => {
+    setExpandedProject(expandedProject === projectId ? null : projectId);
   };
 
   const filtered = projects.filter((p) => {
@@ -231,6 +287,7 @@ export default function AdminProyectosPage() {
             <table className="w-full text-sm">
               <thead>
                 <tr className="border-b border-[var(--border-subtle)] bg-[var(--surface-2)]">
+                  <th className="w-8" />
                   <th className="text-left px-4 py-3 font-ui text-[10px] font-bold uppercase tracking-wider text-[var(--text-muted)]">
                     Proyecto
                   </th>
@@ -258,85 +315,176 @@ export default function AdminProyectosPage() {
               </thead>
               <tbody>
                 {filtered.map((p, i) => (
-                  <motion.tr
-                    key={p.id}
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    transition={{ delay: i * 0.02 }}
-                    className="border-b border-[var(--border-subtle)] last:border-b-0 hover:bg-[var(--surface-2)] transition-colors"
-                  >
-                    <td className="px-4 py-3">
-                      <div className="flex items-center gap-3">
-                        {p.render_principal_url ? (
-                          <div className="w-10 h-7 rounded overflow-hidden bg-[var(--surface-3)] shrink-0">
-                            <img src={p.render_principal_url} alt="" className="w-full h-full object-cover" />
+                  <>
+                    <motion.tr
+                      key={p.id}
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      transition={{ delay: i * 0.02 }}
+                      className={`border-b border-[var(--border-subtle)] last:border-b-0 hover:bg-[var(--surface-2)] transition-colors cursor-pointer ${expandedProject === p.id ? "bg-[var(--surface-2)]" : ""}`}
+                      onClick={() => handleExpandProject(p.id)}
+                    >
+                      <td className="pl-3 py-3">
+                        <ChevronRight
+                          size={14}
+                          className={`text-[var(--text-muted)] transition-transform ${expandedProject === p.id ? "rotate-90" : ""}`}
+                        />
+                      </td>
+                      <td className="px-4 py-3">
+                        <div className="flex items-center gap-3">
+                          {p.render_principal_url ? (
+                            <div className="w-10 h-7 rounded overflow-hidden bg-[var(--surface-3)] shrink-0">
+                              <img src={p.render_principal_url} alt="" className="w-full h-full object-cover" />
+                            </div>
+                          ) : (
+                            <div className="w-10 h-7 rounded bg-[var(--surface-3)] flex items-center justify-center shrink-0">
+                              <FolderOpen size={12} className="text-[var(--text-muted)]" />
+                            </div>
+                          )}
+                          <div>
+                            <p className="text-xs text-[var(--text-primary)] font-medium">{p.nombre}</p>
+                            <p className="text-[10px] text-[var(--text-muted)]">
+                              {p.subdomain || p.slug}.noddo.io
+                            </p>
                           </div>
-                        ) : (
-                          <div className="w-10 h-7 rounded bg-[var(--surface-3)] flex items-center justify-center shrink-0">
-                            <FolderOpen size={12} className="text-[var(--text-muted)]" />
-                          </div>
-                        )}
-                        <div>
-                          <p className="text-xs text-[var(--text-primary)] font-medium">{p.nombre}</p>
-                          <p className="text-[10px] text-[var(--text-muted)]">
-                            {p.subdomain || p.slug}.noddo.io
-                          </p>
                         </div>
-                      </div>
-                    </td>
-                    <td className="px-4 py-3">
-                      <span className="text-xs text-[var(--text-tertiary)]">{p.ownerEmail}</span>
-                    </td>
-                    <td className="px-4 py-3">
-                      <span className={`inline-flex px-2 py-0.5 rounded-md font-ui text-[10px] font-bold uppercase tracking-wider border ${estadoColors[p.estado] || estadoColors.borrador}`}>
-                        {p.estado}
-                      </span>
-                    </td>
-                    <td className="px-4 py-3 text-center">
-                      <span className="text-xs text-[var(--text-secondary)]">{p.unitCount}</span>
-                    </td>
-                    <td className="px-4 py-3 text-center">
-                      <span className="text-xs text-[var(--text-secondary)]">{p.leadCount}</span>
-                    </td>
-                    <td className="px-4 py-3">
-                      <span className="text-xs text-[var(--text-tertiary)]">{formatDate(p.created_at)}</span>
-                    </td>
-                    <td className="px-4 py-3 text-right">
-                      <div className="flex items-center justify-end gap-1">
-                        <Link
-                          href={`/editor/${p.id}`}
-                          className="flex items-center gap-1 px-2 py-1 rounded-md text-[10px] font-ui font-bold uppercase tracking-wider text-[var(--text-tertiary)] hover:text-[var(--site-primary)] hover:bg-[var(--surface-3)] transition-all"
-                        >
-                          <Edit2 size={11} />
-                          Editor
-                        </Link>
-                        {p.estado === "publicado" && (
+                      </td>
+                      <td className="px-4 py-3">
+                        <span className="text-xs text-[var(--text-tertiary)]">{p.ownerEmail}</span>
+                      </td>
+                      <td className="px-4 py-3">
+                        <span className={`inline-flex px-2 py-0.5 rounded-md font-ui text-[10px] font-bold uppercase tracking-wider border ${estadoColors[p.estado] || estadoColors.borrador}`}>
+                          {p.estado}
+                        </span>
+                      </td>
+                      <td className="px-4 py-3 text-center">
+                        <span className="text-xs text-[var(--text-secondary)]">{p.unitCount}</span>
+                      </td>
+                      <td className="px-4 py-3 text-center">
+                        <span className="text-xs text-[var(--text-secondary)]">{p.leadCount}</span>
+                      </td>
+                      <td className="px-4 py-3">
+                        <span className="text-xs text-[var(--text-tertiary)]">{formatDate(p.created_at)}</span>
+                      </td>
+                      <td className="px-4 py-3 text-right">
+                        <div className="flex items-center justify-end gap-1" onClick={(e) => e.stopPropagation()}>
                           <Link
-                            href={`/sites/${p.slug}`}
-                            target="_blank"
-                            className="flex items-center gap-1 px-2 py-1 rounded-md text-[10px] font-ui font-bold uppercase tracking-wider text-[var(--text-tertiary)] hover:text-emerald-400 hover:bg-[var(--surface-3)] transition-all"
+                            href={`/editor/${p.id}`}
+                            className="flex items-center gap-1 px-2 py-1 rounded-md text-[10px] font-ui font-bold uppercase tracking-wider text-[var(--text-tertiary)] hover:text-[var(--site-primary)] hover:bg-[var(--surface-3)] transition-all"
                           >
-                            <ExternalLink size={11} />
-                            Ver
+                            <Edit2 size={11} />
+                            Editor
                           </Link>
-                        )}
-                        {p.estado !== "archivado" && (
+                          {p.estado === "publicado" && (
+                            <Link
+                              href={`/sites/${p.slug}`}
+                              target="_blank"
+                              className="flex items-center gap-1 px-2 py-1 rounded-md text-[10px] font-ui font-bold uppercase tracking-wider text-[var(--text-tertiary)] hover:text-emerald-400 hover:bg-[var(--surface-3)] transition-all"
+                            >
+                              <ExternalLink size={11} />
+                              Ver
+                            </Link>
+                          )}
+                          {p.estado !== "archivado" && (
+                            <button
+                              onClick={() => handleArchive(p.id)}
+                              className="flex items-center gap-1 px-2 py-1 rounded-md text-[10px] font-ui font-bold uppercase tracking-wider text-[var(--text-tertiary)] hover:text-amber-400 hover:bg-[var(--surface-3)] transition-all"
+                            >
+                              <Archive size={11} />
+                            </button>
+                          )}
                           <button
-                            onClick={() => handleArchive(p.id)}
-                            className="flex items-center gap-1 px-2 py-1 rounded-md text-[10px] font-ui font-bold uppercase tracking-wider text-[var(--text-tertiary)] hover:text-amber-400 hover:bg-[var(--surface-3)] transition-all"
+                            onClick={() => handleDelete(p.id)}
+                            className="flex items-center gap-1 px-2 py-1 rounded-md text-[10px] font-ui font-bold uppercase tracking-wider text-[var(--text-tertiary)] hover:text-red-400 hover:bg-[var(--surface-3)] transition-all"
                           >
-                            <Archive size={11} />
+                            <Trash2 size={11} />
                           </button>
-                        )}
-                        <button
-                          onClick={() => handleDelete(p.id)}
-                          className="flex items-center gap-1 px-2 py-1 rounded-md text-[10px] font-ui font-bold uppercase tracking-wider text-[var(--text-tertiary)] hover:text-red-400 hover:bg-[var(--surface-3)] transition-all"
+                        </div>
+                      </td>
+                    </motion.tr>
+
+                    {/* Expanded detail row */}
+                    <AnimatePresence>
+                      {expandedProject === p.id && (
+                        <motion.tr
+                          key={`${p.id}-detail`}
+                          initial={{ opacity: 0, height: 0 }}
+                          animate={{ opacity: 1, height: "auto" }}
+                          exit={{ opacity: 0, height: 0 }}
+                          className="border-b border-[var(--border-subtle)]"
                         >
-                          <Trash2 size={11} />
-                        </button>
-                      </div>
-                    </td>
-                  </motion.tr>
+                          <td colSpan={8} className="p-0">
+                            <div className="px-6 py-5 bg-[var(--surface-2)]/50">
+                              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                {/* Project Info */}
+                                <div className="space-y-3">
+                                  <h4 className="font-ui text-[10px] font-bold uppercase tracking-wider text-[var(--text-muted)]">
+                                    Información
+                                  </h4>
+                                  <div className="space-y-2">
+                                    <div className="flex items-center gap-2 text-xs">
+                                      <Mail size={12} className="text-[var(--text-muted)]" />
+                                      <span className="text-[var(--text-secondary)]">{p.ownerEmail}</span>
+                                    </div>
+                                    {p.constructora_nombre && (
+                                      <div className="flex items-center gap-2 text-xs">
+                                        <FolderOpen size={12} className="text-[var(--text-muted)]" />
+                                        <span className="text-[var(--text-tertiary)]">{p.constructora_nombre}</span>
+                                      </div>
+                                    )}
+                                    <div className="flex items-center gap-2 text-xs">
+                                      <HardDrive size={12} className="text-[var(--text-muted)]" />
+                                      <span className="text-[var(--text-tertiary)]">
+                                        Storage: {formatStorageMB((p.storage_tours_bytes || 0) + (p.storage_videos_bytes || 0) + (p.storage_media_bytes || 0))} MB
+                                        {p.storage_limit_bytes && ` / ${formatStorageMB(p.storage_limit_bytes)} MB`}
+                                      </span>
+                                    </div>
+                                  </div>
+                                </div>
+
+                                {/* Feature Toggles */}
+                                <div className="space-y-3">
+                                  <h4 className="font-ui text-[10px] font-bold uppercase tracking-wider text-[var(--text-muted)]">
+                                    Features
+                                  </h4>
+                                  <div className="grid grid-cols-2 gap-2">
+                                    {ALL_FEATURES.map((feature) => {
+                                      const isEnabled = p.features?.[feature] ?? false;
+                                      const isSaving = savingFeatures === p.id;
+                                      return (
+                                        <button
+                                          key={feature}
+                                          onClick={(e) => {
+                                            e.stopPropagation();
+                                            handleToggleFeature(p.id, feature, !isEnabled);
+                                          }}
+                                          disabled={isSaving}
+                                          className={`flex items-center gap-2 px-3 py-2 rounded-lg border text-left transition-all ${
+                                            isEnabled
+                                              ? "bg-[rgba(184,151,58,0.08)] border-[rgba(184,151,58,0.25)] text-[var(--site-primary)]"
+                                              : "bg-[var(--surface-3)] border-[var(--border-subtle)] text-[var(--text-muted)] hover:text-[var(--text-secondary)] hover:border-[var(--border-default)]"
+                                          } disabled:opacity-50`}
+                                        >
+                                          {isEnabled ? (
+                                            <ToggleRight size={16} className="text-[var(--site-primary)] shrink-0" />
+                                          ) : (
+                                            <ToggleLeft size={16} className="shrink-0" />
+                                          )}
+                                          <span className="text-[11px] font-ui font-bold uppercase tracking-wider truncate">
+                                            {FEATURE_LABELS[feature].es}
+                                          </span>
+                                        </button>
+                                      );
+                                    })}
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                          </td>
+                        </motion.tr>
+                      )}
+                    </AnimatePresence>
+                  </>
                 ))}
               </tbody>
             </table>

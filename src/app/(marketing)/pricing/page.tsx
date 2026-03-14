@@ -4,6 +4,9 @@ import { useState, useRef } from "react";
 import { motion, useInView, AnimatePresence } from "framer-motion";
 import { Check, X, Sparkles, Zap, Building2, ChevronDown } from "lucide-react";
 import { useBooking } from "@/components/marketing/BookingProvider";
+import { useContact } from "@/components/marketing/ContactProvider";
+import { trackPricingPlanClicked, trackPricingViewed } from "@/lib/marketing-tracking";
+import { PLAN_VALUES } from "@/lib/ghl-config";
 
 /* ─── Animation helpers ─── */
 
@@ -389,9 +392,33 @@ function PricingCard({
 
 /* ─── Page ─── */
 
+// Map plan names to slugs for tracking
+const PLAN_SLUGS: Record<string, string> = {
+  Basico: "proyecto",
+  Profesional: "studio",
+  Empresarial: "enterprise",
+};
+
 export default function PricingPage() {
   const [annual, setAnnual] = useState(false);
   const { openBooking } = useBooking();
+  const { openContact } = useContact();
+
+  // Track pricing page view on mount
+  useState(() => {
+    trackPricingViewed();
+  });
+
+  const handlePlanCTA = (plan: Plan) => {
+    const slug = PLAN_SLUGS[plan.name] || plan.name.toLowerCase();
+    trackPricingPlanClicked(slug, PLAN_VALUES[slug] || 149);
+
+    if (plan.name === "Empresarial") {
+      openContact("enterprise", "pricing-enterprise");
+    } else {
+      openBooking();
+    }
+  };
 
   return (
     <div
@@ -399,7 +426,7 @@ export default function PricingPage() {
       style={{ background: "var(--mk-bg)", color: "var(--mk-text-primary)" }}
     >
       {/* ─── Header Section ─── */}
-      <section className="relative pt-32 pb-16 px-6">
+      <section className="relative pt-20 sm:pt-32 pb-16 px-6">
         <div className="relative z-10 text-center max-w-3xl mx-auto">
           <motion.p
             initial={{ opacity: 0, y: 20 }}
@@ -492,7 +519,7 @@ export default function PricingPage() {
                 plan={plan}
                 annual={annual}
                 index={i}
-                onCtaClick={openBooking}
+                onCtaClick={() => handlePlanCTA(plan)}
               />
             ))}
           </div>
@@ -538,7 +565,7 @@ export default function PricingPage() {
             Contactanos para un plan a tu medida.
           </p>
           <button
-            onClick={openBooking}
+            onClick={() => openContact("enterprise", "pricing-bottom-cta")}
             className="btn-mk-primary px-10 py-3.5 text-sm tracking-[0.12em] inline-flex items-center justify-center"
           >
             Contactar ventas

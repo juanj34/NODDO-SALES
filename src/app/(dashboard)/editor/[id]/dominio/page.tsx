@@ -162,7 +162,7 @@ export default function DominioPage() {
 
         <div>
           <label className={labelClass}>{t("dominio.subdomain.label")}</label>
-          <div className="flex gap-2">
+          <div className="flex flex-col sm:flex-row gap-2">
             <div className="flex-1 relative">
               <input
                 type="text"
@@ -256,7 +256,7 @@ export default function DominioPage() {
 
         <div>
           <label className={labelClass}>{t("dominio.custom.label")}</label>
-          <div className="flex gap-2">
+          <div className="flex flex-col sm:flex-row gap-2">
             <input
               type="text"
               value={customDomain}

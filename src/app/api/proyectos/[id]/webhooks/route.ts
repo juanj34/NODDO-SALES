@@ -1,4 +1,5 @@
 import { getAuthContext } from "@/lib/auth-context";
+import { checkFeature } from "@/lib/feature-flags";
 import { generateWebhookSecret } from "@/lib/webhooks";
 import { NextRequest, NextResponse } from "next/server";
 import type { WebhookConfig, WebhookEventType } from "@/types";
@@ -46,6 +47,15 @@ export async function PUT(
     const auth = await getAuthContext();
     if (!auth) return NextResponse.json({ error: "No autorizado" }, { status: 401 });
     if (auth.role !== "admin") return NextResponse.json({ error: "Solo administradores" }, { status: 403 });
+
+    // Check feature flag
+    const webhooksEnabled = await checkFeature(auth.supabase, id, "webhooks");
+    if (!webhooksEnabled) {
+      return NextResponse.json(
+        { error: "Webhooks no están habilitados para este proyecto" },
+        { status: 403 }
+      );
+    }
 
     const body = await request.json();
     const { enabled, url, events, regenerate_secret } = body;

@@ -188,57 +188,190 @@ export async function GET(request: NextRequest) {
     const tipologia = searchParams.get("tipologia");
     const search = searchParams.get("search");
     const status = searchParams.get("status");
+    const dateFrom = searchParams.get("date_from");
+    const dateTo = searchParams.get("date_to");
+    const proyectoIdFilter = searchParams.get("proyecto_id");
+    const source = searchParams.get("source");
+    const sort = searchParams.get("sort") || "newest";
+    const includeStats = searchParams.get("include_stats") === "true";
+    const includeCotizCount = searchParams.get("include_cotizacion_count") === "true";
     const page = Math.max(1, parseInt(searchParams.get("page") || "1"));
     const limit = Math.min(100, Math.max(1, parseInt(searchParams.get("limit") || "50")));
     const offset = (page - 1) * limit;
 
-    // Get user's projects (use adminUserId for filtering)
+    // Get user's projects with names (use adminUserId for filtering)
     const { data: proyectos } = await auth.supabase
       .from("proyectos")
-      .select("id")
+      .select("id, nombre")
       .eq("user_id", auth.adminUserId);
 
     if (!proyectos?.length) {
-      return NextResponse.json({ data: [], total: 0, page, limit });
+      const emptyResponse: Record<string, unknown> = { data: [], total: 0, page, limit };
+      if (includeStats) {
+        emptyResponse.stats = { total_all: 0, this_month: 0, with_cotizaciones: 0, by_status: {} };
+        emptyResponse.projects = [];
+      }
+      return NextResponse.json(emptyResponse);
     }
 
-    const projectIds = proyectos.map((p) => p.id);
+    const projectNameMap = new Map(proyectos.map((p) => [p.id, p.nombre]));
+    let activeProjectIds = proyectos.map((p) => p.id);
 
-    // Count query (same filters, no data)
-    let countQuery = auth.supabase
-      .from("leads")
-      .select("*", { count: "exact", head: true })
-      .in("proyecto_id", projectIds);
+    // If filtering by specific project, verify ownership
+    if (proyectoIdFilter) {
+      if (!activeProjectIds.includes(proyectoIdFilter)) {
+        return NextResponse.json({ error: "Proyecto no autorizado" }, { status: 403 });
+      }
+      activeProjectIds = [proyectoIdFilter];
+    }
 
-    if (tipologia) countQuery = countQuery.eq("tipologia_interes", tipologia);
-    if (status) countQuery = countQuery.eq("status", status);
-    if (search) countQuery = countQuery.or(`nombre.ilike.%${search}%,email.ilike.%${search}%`);
+    // Build shared filter function
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const applyFilters = (q: any) => {
+      let filtered = q.in("proyecto_id", activeProjectIds);
+      if (tipologia) filtered = filtered.eq("tipologia_interes", tipologia);
+      if (status) filtered = filtered.eq("status", status);
+      if (source) filtered = filtered.eq("utm_source", source);
+      if (dateFrom) filtered = filtered.gte("created_at", dateFrom + "T00:00:00");
+      if (dateTo) filtered = filtered.lte("created_at", dateTo + "T23:59:59");
+      if (search) {
+        filtered = filtered.or(
+          `nombre.ilike.%${search}%,email.ilike.%${search}%,telefono.ilike.%${search}%`
+        );
+      }
+      return filtered;
+    };
 
-    const { count } = await countQuery;
+    // Count query
+    const { count } = await applyFilters(
+      auth.supabase.from("leads").select("*", { count: "exact", head: true })
+    );
 
     // Data query with pagination
-    let query = auth.supabase
-      .from("leads")
-      .select("*")
-      .in("proyecto_id", projectIds)
-      .order("created_at", { ascending: false })
-      .range(offset, offset + limit - 1);
+    const { data, error } = await applyFilters(
+      auth.supabase
+        .from("leads")
+        .select("*")
+        .order("created_at", { ascending: sort === "oldest" })
+        .range(offset, offset + limit - 1)
+    );
 
-    if (tipologia) {
-      query = query.eq("tipologia_interes", tipologia);
-    }
-    if (status) {
-      query = query.eq("status", status);
-    }
-    if (search) {
-      query = query.or(
-        `nombre.ilike.%${search}%,email.ilike.%${search}%`
-      );
-    }
-
-    const { data, error } = await query;
     if (error) throw error;
-    return NextResponse.json({ data: data || [], total: count || 0, page, limit });
+
+    const leads = data || [];
+
+    // Enrich leads with proyecto_nombre
+    const enrichedLeads = leads.map((l: Record<string, unknown>) => ({
+      ...l,
+      proyecto_nombre: projectNameMap.get(l.proyecto_id as string) || "",
+      cotizaciones_count: 0,
+    }));
+
+    // Fetch cotizaciones counts for leads on this page
+    if (includeCotizCount && enrichedLeads.length > 0) {
+      const emails = [...new Set(enrichedLeads.map((l: Record<string, unknown>) => l.email as string))];
+      const { data: cotizRows } = await auth.supabase
+        .from("cotizaciones")
+        .select("email, proyecto_id")
+        .in("proyecto_id", activeProjectIds)
+        .in("email", emails);
+
+      if (cotizRows) {
+        const countMap = new Map<string, number>();
+        for (const c of cotizRows) {
+          const key = `${c.email}__${c.proyecto_id}`;
+          countMap.set(key, (countMap.get(key) || 0) + 1);
+        }
+        for (const lead of enrichedLeads) {
+          const key = `${lead.email}__${lead.proyecto_id}`;
+          lead.cotizaciones_count = countMap.get(key) || 0;
+        }
+      }
+    }
+
+    const response: Record<string, unknown> = {
+      data: enrichedLeads,
+      total: count || 0,
+      page,
+      limit,
+    };
+
+    // Compute stats if requested
+    if (includeStats) {
+      const allProjectIds = proyectos.map((p) => p.id);
+
+      // Total all leads (no filters)
+      const { count: totalAll } = await auth.supabase
+        .from("leads")
+        .select("*", { count: "exact", head: true })
+        .in("proyecto_id", allProjectIds);
+
+      // This month
+      const firstOfMonth = new Date();
+      firstOfMonth.setDate(1);
+      firstOfMonth.setHours(0, 0, 0, 0);
+      const { count: thisMonth } = await auth.supabase
+        .from("leads")
+        .select("*", { count: "exact", head: true })
+        .in("proyecto_id", allProjectIds)
+        .gte("created_at", firstOfMonth.toISOString());
+
+      // Leads with cotizaciones (distinct emails in cotizaciones that exist in leads)
+      const { data: cotizEmails } = await auth.supabase
+        .from("cotizaciones")
+        .select("email, proyecto_id")
+        .in("proyecto_id", allProjectIds);
+
+      const uniqueCotizPairs = new Set<string>();
+      if (cotizEmails) {
+        for (const c of cotizEmails) {
+          uniqueCotizPairs.add(`${c.email}__${c.proyecto_id}`);
+        }
+      }
+
+      // Count leads matching those pairs
+      // Since we can't do a join easily, get all lead emails in a single query
+      const { data: allLeadPairs } = await auth.supabase
+        .from("leads")
+        .select("email, proyecto_id")
+        .in("proyecto_id", allProjectIds);
+
+      let withCotizaciones = 0;
+      const seenPairs = new Set<string>();
+      if (allLeadPairs) {
+        for (const l of allLeadPairs) {
+          const key = `${l.email}__${l.proyecto_id}`;
+          if (uniqueCotizPairs.has(key) && !seenPairs.has(key)) {
+            withCotizaciones++;
+            seenPairs.add(key);
+          }
+        }
+      }
+
+      // By status counts
+      const statuses = ["nuevo", "contactado", "calificado", "cerrado"];
+      const byStatus: Record<string, number> = {};
+      await Promise.all(
+        statuses.map(async (s) => {
+          const { count: c } = await auth.supabase
+            .from("leads")
+            .select("*", { count: "exact", head: true })
+            .in("proyecto_id", allProjectIds)
+            .eq("status", s);
+          byStatus[s] = c || 0;
+        })
+      );
+
+      response.stats = {
+        total_all: totalAll || 0,
+        this_month: thisMonth || 0,
+        with_cotizaciones: withCotizaciones,
+        by_status: byStatus,
+      };
+      response.projects = proyectos.map((p) => ({ id: p.id, nombre: p.nombre }));
+    }
+
+    return NextResponse.json(response);
   } catch (err) {
     return NextResponse.json(
       { error: err instanceof Error ? err.message : "Error" },

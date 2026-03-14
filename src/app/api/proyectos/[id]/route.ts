@@ -1,5 +1,6 @@
 import { getAuthContext } from "@/lib/auth-context";
 import { pick } from "@/lib/api-utils";
+import { getProjectFeatures } from "@/lib/feature-flags";
 import { NextRequest, NextResponse } from "next/server";
 
 const PROYECTO_FIELDS = [
@@ -93,6 +94,9 @@ export async function GET(
       ? await auth.supabase.from("plano_puntos").select("*").in("plano_id", planoIds).order("orden")
       : { data: [] };
 
+    // Fetch project features
+    const features = await getProjectFeatures(auth.supabase, id);
+
     return NextResponse.json({
       ...proyecto,
       tipologias: tipologias || [],
@@ -106,6 +110,7 @@ export async function GET(
       planos_interactivos: planos || [],
       plano_puntos: planoPuntos || [],
       avances_obra: avancesObra || [],
+      features,
     });
   } catch (err) {
     return NextResponse.json(
@@ -131,7 +136,20 @@ export async function PUT(
 
     const body = await request.json();
 
-    const updateData = { ...pick(body, PROYECTO_FIELDS), updated_at: new Date().toISOString() };
+    const updateData: Record<string, unknown> = { ...pick(body, PROYECTO_FIELDS), updated_at: new Date().toISOString() };
+
+    // Auto-sync subdomain when slug changes (if subdomain was never independently customized)
+    if (body.slug !== undefined && body.subdomain === undefined) {
+      const { data: current } = await auth.supabase
+        .from("proyectos")
+        .select("slug, subdomain")
+        .eq("id", id)
+        .single();
+
+      if (current && (current.subdomain === current.slug || !current.subdomain)) {
+        updateData.subdomain = body.slug;
+      }
+    }
 
     const { data, error } = await auth.supabase
       .from("proyectos")
