@@ -26,9 +26,9 @@ import { useAuthRole } from "@/hooks/useAuthContext";
 import { DashboardGreeting } from "@/components/dashboard/home/DashboardGreeting";
 import { DashboardKPIStrip } from "@/components/dashboard/home/DashboardKPIStrip";
 import { DashboardShortcuts } from "@/components/dashboard/home/DashboardShortcuts";
-import { DashboardAnalyticsPreview } from "@/components/dashboard/home/DashboardAnalyticsPreview";
 import { EnhancedProjectCard } from "@/components/dashboard/home/EnhancedProjectCard";
 import { DashboardSkeleton, KPIStripSkeleton } from "@/components/dashboard/home/DashboardSkeleton";
+import { NodDoDropdown } from "@/components/ui/NodDoDropdown";
 
 export default function ProyectosPage() {
   const { projects, loading, refresh } = useProjects();
@@ -197,14 +197,6 @@ export default function ProyectosPage() {
         />
       )}
 
-      {/* Analytics preview — admin only, with projects */}
-      {isAdmin && projects.length > 0 && (
-        <DashboardAnalyticsPreview
-          projects={projects.map((p) => ({ id: p.id, nombre: p.nombre }))}
-          defaultProjectId={projects[0]?.id}
-        />
-      )}
-
       {/* Projects section */}
       {projects.length === 0 ? (
         /* Empty state */
@@ -295,19 +287,17 @@ export default function ProyectosPage() {
               </div>
 
               {/* Status filter */}
-              <div className="relative">
-                <SlidersHorizontal size={12} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-[var(--text-muted)] pointer-events-none" />
-                <select
-                  value={statusFilter}
-                  onChange={(e) => setStatusFilter(e.target.value)}
-                  className="input-glass pl-8 pr-8 py-2 text-xs appearance-none cursor-pointer"
-                >
-                  <option value="todos">Todos</option>
-                  <option value="borrador">Borrador</option>
-                  <option value="publicado">Publicado</option>
-                  <option value="archivado">Archivado</option>
-                </select>
-              </div>
+              <NodDoDropdown
+                value={statusFilter}
+                onChange={setStatusFilter}
+                options={[
+                  { value: "todos", label: "Todos" },
+                  { value: "borrador", label: "Borrador" },
+                  { value: "publicado", label: "Publicado" },
+                  { value: "archivado", label: "Archivado" },
+                ]}
+                icon={<SlidersHorizontal size={12} />}
+              />
 
               {/* Sort */}
               <button

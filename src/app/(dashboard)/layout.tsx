@@ -9,6 +9,7 @@ import { cn } from "@/lib/utils";
 import {
   FolderOpen, Users, Settings, LogOut, Loader2, HelpCircle,
   Menu, X, Shield, ChevronDown, ToggleLeft, Calculator, ContactRound,
+  BarChart3,
 } from "lucide-react";
 import { ToastProvider } from "@/components/dashboard/Toast";
 import { ConfirmProvider } from "@/components/dashboard/ConfirmModal";
@@ -180,45 +181,39 @@ function DashboardShell({ children }: { children: React.ReactNode }) {
         <nav className="flex-1 overflow-y-auto p-4 space-y-1">
           {/* ── PROYECTOS section ────────────────── */}
           <div>
-            <div className="flex items-center">
-              <Link
-                href="/proyectos"
-                onClick={closeDrawer}
-                className={cn(
-                  "flex-1 flex items-center gap-3 px-3 py-2 rounded-l-[0.625rem] font-ui text-xs font-semibold uppercase tracking-[0.08em] transition-all",
-                  pathname === "/proyectos" || pathname.startsWith("/proyectos/")
-                    ? "bg-[var(--surface-2)] text-white border-l-2 border-[var(--site-primary)]"
-                    : "text-[var(--text-tertiary)] hover:text-[var(--text-secondary)] hover:bg-[var(--surface-2)]"
-                )}
-                style={
-                  pathname === "/proyectos" || pathname.startsWith("/proyectos/")
-                    ? { boxShadow: "inset 3px 0 8px -2px rgba(var(--site-primary-rgb), 0.15)" }
-                    : undefined
+            <button
+              onClick={() => {
+                if (sidebarProjects.length > 0) {
+                  setProjectsExpanded(!projectsExpanded);
+                } else {
+                  router.push("/proyectos");
+                  closeDrawer();
                 }
-              >
-                <FolderOpen size={16} />
-                {t("sidebar.projects")}
-              </Link>
-              {sidebarProjects.length > 0 && (
-                <button
-                  onClick={() => setProjectsExpanded(!projectsExpanded)}
-                  className={cn(
-                    "flex items-center px-2 py-2 rounded-r-[0.625rem] transition-colors",
-                    pathname === "/proyectos" || pathname.startsWith("/proyectos/")
-                      ? "bg-[var(--surface-2)]"
-                      : "hover:bg-[var(--surface-2)]"
-                  )}
-                >
-                  <ChevronDown
-                    size={12}
-                    className={cn(
-                      "text-[var(--text-muted)] transition-transform",
-                      !projectsExpanded && "-rotate-90"
-                    )}
-                  />
-                </button>
+              }}
+              className={cn(
+                "w-full flex items-center gap-3 px-3 py-2.5 rounded-[0.625rem] font-ui text-xs font-semibold uppercase tracking-[0.08em] transition-all",
+                pathname === "/proyectos" || pathname.startsWith("/proyectos/")
+                  ? "bg-[var(--surface-2)] text-white border-l-2 border-[var(--site-primary)]"
+                  : "text-[var(--text-tertiary)] hover:text-[var(--text-secondary)] hover:bg-[var(--surface-2)]"
               )}
-            </div>
+              style={
+                pathname === "/proyectos" || pathname.startsWith("/proyectos/")
+                  ? { boxShadow: "inset 3px 0 8px -2px rgba(var(--site-primary-rgb), 0.15)" }
+                  : undefined
+              }
+            >
+              <FolderOpen size={16} />
+              <span className="flex-1 text-left">{t("sidebar.projects")}</span>
+              {sidebarProjects.length > 0 && (
+                <ChevronDown
+                  size={14}
+                  className={cn(
+                    "text-[var(--text-muted)] transition-transform",
+                    !projectsExpanded && "-rotate-90"
+                  )}
+                />
+              )}
+            </button>
 
             {/* Collapsible project list */}
             {sidebarProjects.length > 0 && (
@@ -231,23 +226,23 @@ function DashboardShell({ children }: { children: React.ReactNode }) {
                     transition={{ duration: 0.2 }}
                     className="overflow-hidden ml-1"
                   >
-                    <div className="space-y-0.5 pt-1 pb-1">
+                    <div className="space-y-0.5 pt-1.5 pb-1">
                       {sidebarProjects.map((project) => {
-                        const isProjectActive = pathname === `/editor/${project.id}`;
+                        const isProjectActive = pathname === `/editor/${project.id}` || pathname.startsWith(`/editor/${project.id}/`);
                         return (
                           <Link
                             key={project.id}
                             href={`/editor/${project.id}`}
                             onClick={closeDrawer}
                             className={cn(
-                              "flex items-center gap-2.5 px-3 py-1.5 rounded-lg transition-all group",
+                              "flex items-center gap-2.5 px-3 py-2 rounded-lg transition-all group",
                               isProjectActive
                                 ? "bg-[var(--surface-2)]"
                                 : "hover:bg-[var(--surface-2)]"
                             )}
                           >
                             <span
-                              className="w-1.5 h-1.5 rounded-full shrink-0"
+                              className="w-2 h-2 rounded-full shrink-0"
                               style={{
                                 background:
                                   project.estado === "publicado"
@@ -257,7 +252,7 @@ function DashboardShell({ children }: { children: React.ReactNode }) {
                             />
                             <span
                               className={cn(
-                                "text-[11px] truncate transition-colors",
+                                "text-[13px] truncate transition-colors",
                                 isProjectActive
                                   ? "text-[var(--text-primary)]"
                                   : "text-[var(--text-tertiary)] group-hover:text-[var(--text-secondary)]"
@@ -305,6 +300,14 @@ function DashboardShell({ children }: { children: React.ReactNode }) {
             href="/leads"
             icon={ContactRound}
             label={t("sidebar.registros")}
+            pathname={pathname}
+            onClick={closeDrawer}
+            iconSize={15}
+          />
+          <SidebarLink
+            href="/analytics"
+            icon={BarChart3}
+            label="Analytics"
             pathname={pathname}
             onClick={closeDrawer}
             iconSize={15}
