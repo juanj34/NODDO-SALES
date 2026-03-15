@@ -51,6 +51,7 @@
     "lucide-react": "^0.474",
     "mapbox-gl": "^3.19.1",
     "next": "16.1.6",
+    "next-intl": "^3.26.5",
     "pptxgenjs": "^4.0.1",
     "react": "19.2.3",
     "react-dom": "19.2.3",
