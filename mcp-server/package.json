@@ -1,0 +1,25 @@
+{
+  "name": "@noddo/mcp-server",
+  "version": "1.0.0",
+  "description": "MCP server for NODDO - provides Hugo AI with access to projects, FAQs, and real-time data",
+  "type": "module",
+  "main": "dist/index.js",
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsx src/index.ts",
+    "start": "node dist/index.js",
+    "tunnel": "cloudflared tunnel --url http://localhost:3001"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.0.4",
+    "@supabase/supabase-js": "^2.47.10",
+    "dotenv": "^16.4.7",
+    "express": "^4.21.2"
+  },
+  "devDependencies": {
+    "@types/express": "^5.0.0",
+    "@types/node": "^22.10.5",
+    "tsx": "^4.19.2",
+    "typescript": "^5.7.2"
+  }
+}
