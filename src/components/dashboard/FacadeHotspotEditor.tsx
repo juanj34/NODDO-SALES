@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { X, Search, Trash2, Unlink, AlertTriangle, XCircle, Copy, Grid3X3, CopyPlus, ArrowUp, ArrowDown, GripVertical } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { AlignmentToolbar } from "@/components/dashboard/AlignmentToolbar";
+import { useHotspotCanvas } from "@/hooks/useHotspotCanvas";
 import type { Unidad, Fachada } from "@/types";
 
 /* ------------------------------------------------------------------
@@ -181,7 +182,6 @@ export function FacadeHotspotEditor({
 
   // Dynamic image aspect ratio
   const [imageAspectRatio, setImageAspectRatio] = useState("4/3");
-  const [, setTick] = useState(0);
 
   // Repeat Row popover state
   const [showRepeatRow, setShowRepeatRow] = useState(false);
@@ -276,47 +276,8 @@ export function FacadeHotspotEditor({
     }
   }, [activeMenuDotId]);
 
-  /* ------------------------------------------------------------------
-     Image bounds helper (accounts for object-contain)
-     ------------------------------------------------------------------ */
-  const getImageBounds = useCallback(() => {
-    const container = containerRef.current;
-    const img = imgRef.current;
-    if (!container || !img || !img.naturalWidth || !img.naturalHeight) return null;
-    const cRect = container.getBoundingClientRect();
-    const naturalRatio = img.naturalWidth / img.naturalHeight;
-    const containerRatio = cRect.width / cRect.height;
-
-    let imgW: number, imgH: number, offsetX: number, offsetY: number;
-    if (naturalRatio > containerRatio) {
-      imgW = cRect.width;
-      imgH = cRect.width / naturalRatio;
-      offsetX = 0;
-      offsetY = (cRect.height - imgH) / 2;
-    } else {
-      imgH = cRect.height;
-      imgW = cRect.height * naturalRatio;
-      offsetX = (cRect.width - imgW) / 2;
-      offsetY = 0;
-    }
-
-    return { imgW, imgH, offsetX, offsetY, cRect };
-  }, []);
-
-  /* ------------------------------------------------------------------
-     Percentage helpers (relative to actual image, not container)
-     ------------------------------------------------------------------ */
-  const toPercent = useCallback(
-    (clientX: number, clientY: number): { x: number; y: number } | null => {
-      const bounds = getImageBounds();
-      if (!bounds) return null;
-      const { imgW, imgH, offsetX, offsetY, cRect } = bounds;
-      const x = ((clientX - cRect.left - offsetX) / imgW) * 100;
-      const y = ((clientY - cRect.top - offsetY) / imgH) * 100;
-      return { x: Math.max(0, Math.min(100, x)), y: Math.max(0, Math.min(100, y)) };
-    },
-    [getImageBounds]
-  );
+  // Use shared hotspot canvas hook for image bounds & coordinate conversion
+  const { getImageBounds, toPercent, toPx } = useHotspotCanvas(containerRef, imgRef);
 
   /* ------------------------------------------------------------------
      Helpers for getting/setting dot positions (both types)
@@ -903,9 +864,9 @@ export function FacadeHotspotEditor({
                 const { naturalWidth, naturalHeight } = imgRef.current;
                 if (naturalWidth && naturalHeight) {
                   setImageAspectRatio(`${naturalWidth}/${naturalHeight}`);
+                  // useHotspotCanvas hook handles resize/load updates internally
                 }
               }
-              requestAnimationFrame(() => setTick((t) => t + 1));
             }}
           />
         </div>
@@ -1040,7 +1001,7 @@ export function FacadeHotspotEditor({
           hoveredId={hoveredId}
           dragging={dragging}
           activeMenuDotId={activeMenuDotId}
-          getImageBounds={getImageBounds}
+          toPx={toPx}
           onMouseDown={handleDotMouseDown}
           onHover={setHoveredId}
           onContextMenu={(id, isEmpty) => {
@@ -1446,7 +1407,7 @@ function AllDots({
   hoveredId,
   dragging,
   activeMenuDotId,
-  getImageBounds,
+  toPx,
   onMouseDown,
   onHover,
   onContextMenu,
@@ -1458,33 +1419,11 @@ function AllDots({
   hoveredId: string | null;
   dragging: { dotId: string } | null;
   activeMenuDotId: string | null;
-  getImageBounds: () => {
-    imgW: number;
-    imgH: number;
-    offsetX: number;
-    offsetY: number;
-    cRect: DOMRect;
-  } | null;
+  toPx: (x: number, y: number) => { left: number; top: number } | null;
   onMouseDown: (e: React.MouseEvent, id: string, isEmpty: boolean) => void;
   onHover: (id: string | null) => void;
   onContextMenu: (id: string, isEmpty: boolean) => void;
 }) {
-  // Force re-render on resize so dots reposition
-  const [, setTick] = useState(0);
-  useEffect(() => {
-    const onResize = () => setTick((t) => t + 1);
-    window.addEventListener("resize", onResize);
-    return () => window.removeEventListener("resize", onResize);
-  }, []);
-
-  const bounds = getImageBounds();
-  if (!bounds) return null;
-  const { imgW, imgH, offsetX, offsetY } = bounds;
-
-  const toPx = (x: number, y: number) => ({
-    left: offsetX + (x / 100) * imgW,
-    top: offsetY + (y / 100) * imgH,
-  });
 
   return (
     <>
@@ -1497,6 +1436,7 @@ function AllDots({
         const isDragging = dragging?.dotId === id;
         const isMenuOpen = activeMenuDotId === id;
         const px = toPx(pos.x, pos.y);
+        if (!px) return null;
 
         return (
           <div
@@ -1540,6 +1480,7 @@ function AllDots({
         const isDragging = dragging?.dotId === dot.localId;
         const isMenuOpen = activeMenuDotId === dot.localId;
         const px = toPx(dot.x, dot.y);
+        if (!px) return null;
 
         return (
           <div
