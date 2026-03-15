@@ -2,8 +2,9 @@
 
 import { useState, useRef, useCallback, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Trash2, MapPin, Upload, X, Loader2 } from "lucide-react";
+import { Trash2, MapPin, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useHotspotCanvas } from "@/hooks/useHotspotCanvas";
 import {
   inputClass,
   labelClass,
@@ -37,92 +38,6 @@ interface PlanoHotspotEditorProps {
   onUpdatePunto: (id: string, data: Partial<PlanoPunto>) => Promise<void>;
   onDeletePunto: (id: string) => Promise<void>;
   uploadFolder?: string;
-}
-
-/* ------------------------------------------------------------------
-   Compact inline image uploader (thumbnail-sized)
-   ------------------------------------------------------------------ */
-function MiniUploader({
-  currentUrl,
-  onUpload,
-  folder,
-}: {
-  currentUrl: string | null;
-  onUpload: (url: string) => void;
-  folder: string;
-}) {
-  const inputRef = useRef<HTMLInputElement>(null);
-  const [uploading, setUploading] = useState(false);
-  const [preview, setPreview] = useState<string | null>(currentUrl);
-  const { t } = useTranslation("editor");
-
-  useEffect(() => { setPreview(currentUrl); }, [currentUrl]);
-
-  const handleFile = async (file: File) => {
-    if (!file.type.startsWith("image/")) return;
-    setPreview(URL.createObjectURL(file));
-    setUploading(true);
-    try {
-      const fd = new FormData();
-      fd.append("file", file);
-      fd.append("bucket", "media");
-      fd.append("folder", folder);
-      const res = await fetch("/api/upload", { method: "POST", body: fd });
-      if (!res.ok) throw new Error("Upload failed");
-      const data = await res.json();
-      onUpload(data.url);
-      setPreview(data.url);
-    } finally {
-      setUploading(false);
-    }
-  };
-
-  if (preview) {
-    return (
-      <div className="relative w-16 h-16 rounded-lg overflow-hidden border border-[var(--border-subtle)] shrink-0">
-        <img src={preview} alt="" className="w-full h-full object-cover" />
-        {uploading && (
-          <div className="absolute inset-0 bg-black/60 flex items-center justify-center">
-            <Loader2 size={14} className="animate-spin text-white" />
-          </div>
-        )}
-        <button
-          onClick={() => { setPreview(null); onUpload(""); }}
-          className="absolute top-0.5 right-0.5 w-4 h-4 bg-black/70 rounded-full flex items-center justify-center"
-        >
-          <X size={8} className="text-white" />
-        </button>
-      </div>
-    );
-  }
-
-  return (
-    <>
-      <button
-        onClick={() => inputRef.current?.click()}
-        disabled={uploading}
-        className="w-16 h-16 rounded-lg border border-dashed border-[var(--border-default)] hover:border-[var(--border-strong)] flex flex-col items-center justify-center gap-1 text-[var(--text-muted)] hover:text-[var(--text-tertiary)] transition-colors shrink-0"
-      >
-        {uploading ? (
-          <Loader2 size={14} className="animate-spin" />
-        ) : (
-          <Upload size={14} />
-        )}
-        <span className="text-[8px]">{t("planoHotspot.image")}</span>
-      </button>
-      <input
-        ref={inputRef}
-        type="file"
-        accept="image/*"
-        onChange={(e) => {
-          const f = e.target.files?.[0];
-          if (f) handleFile(f);
-          if (inputRef.current) inputRef.current.value = "";
-        }}
-        className="hidden"
-      />
-    </>
-  );
 }
 
 /* ------------------------------------------------------------------
@@ -178,58 +93,8 @@ export function PlanoHotspotEditor({
   const [hoveredId, setHoveredId] = useState<string | null>(null);
   const [axisLock, setAxisLock] = useState<"x" | "y" | null>(null);
 
-  const [, setTick] = useState(0);
-  useEffect(() => {
-    const onResize = () => setTick((t) => t + 1);
-    window.addEventListener("resize", onResize);
-    return () => window.removeEventListener("resize", onResize);
-  }, []);
-
-  /* ── Image bounds helper ── */
-  const getImageBounds = useCallback(() => {
-    const container = containerRef.current;
-    const img = imgRef.current;
-    if (!container || !img || !img.naturalWidth || !img.naturalHeight) return null;
-    const cRect = container.getBoundingClientRect();
-    const naturalRatio = img.naturalWidth / img.naturalHeight;
-    const containerRatio = cRect.width / cRect.height;
-
-    let imgW: number, imgH: number, offsetX: number, offsetY: number;
-    if (naturalRatio > containerRatio) {
-      imgW = cRect.width;
-      imgH = cRect.width / naturalRatio;
-      offsetX = 0;
-      offsetY = (cRect.height - imgH) / 2;
-    } else {
-      imgH = cRect.height;
-      imgW = cRect.height * naturalRatio;
-      offsetX = (cRect.width - imgW) / 2;
-      offsetY = 0;
-    }
-    return { imgW, imgH, offsetX, offsetY, cRect };
-  }, []);
-
-  const toPercent = useCallback(
-    (clientX: number, clientY: number): { x: number; y: number } | null => {
-      const bounds = getImageBounds();
-      if (!bounds) return null;
-      const { imgW, imgH, offsetX, offsetY, cRect } = bounds;
-      const x = ((clientX - cRect.left - offsetX) / imgW) * 100;
-      const y = ((clientY - cRect.top - offsetY) / imgH) * 100;
-      return { x: Math.max(0, Math.min(100, x)), y: Math.max(0, Math.min(100, y)) };
-    },
-    [getImageBounds]
-  );
-
-  const toPx = useCallback(
-    (x: number, y: number): { left: number; top: number } | null => {
-      const bounds = getImageBounds();
-      if (!bounds) return null;
-      const { imgW, imgH, offsetX, offsetY } = bounds;
-      return { left: offsetX + (x / 100) * imgW, top: offsetY + (y / 100) * imgH };
-    },
-    [getImageBounds]
-  );
+  // Use shared hotspot canvas hook for image bounds & coordinate conversion
+  const { getImageBounds, toPercent, toPx } = useHotspotCanvas(containerRef, imgRef);
 
   const getPuntoPos = useCallback(
     (punto: PlanoPunto): { x: number; y: number } => {
@@ -657,18 +522,20 @@ export function PlanoHotspotEditor({
       </div>
 
       {/* ═══ RIGHT: Sidebar Panel ═══ */}
-      <div className="w-[260px] shrink-0 flex flex-col min-h-0 bg-[var(--surface-1)] rounded-xl border border-[var(--border-subtle)] overflow-hidden">
-        {/* Form (top portion) */}
-        <AnimatePresence mode="wait">
-          {showForm ? (
-            <motion.div
-              key={isEditing ? `edit-${selectedPuntoId}` : "new"}
-              initial={{ opacity: 0, x: 8 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: 8 }}
-              transition={{ duration: 0.15 }}
-              className="p-3 border-b border-[var(--border-subtle)] space-y-2.5 shrink-0"
-            >
+      <div className="w-[320px] shrink-0 flex flex-col min-h-0 bg-[var(--surface-1)] rounded-xl border border-[var(--border-subtle)] overflow-hidden">
+        {/* Scrollable container for all content */}
+        <div className="flex-1 overflow-y-auto min-h-0">
+          {/* Form section */}
+          <AnimatePresence mode="wait">
+            {showForm ? (
+              <motion.div
+                key={isEditing ? `edit-${selectedPuntoId}` : "new"}
+                initial={{ opacity: 0, x: 8 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: 8 }}
+                transition={{ duration: 0.15 }}
+                className="p-4 border-b border-[var(--border-subtle)] space-y-3 bg-[var(--surface-2)]"
+              >
               {/* Header */}
               <div className="flex items-center justify-between">
                 <span className="text-[11px] font-medium text-[var(--text-secondary)]">
@@ -794,71 +661,82 @@ export function PlanoHotspotEditor({
               </p>
             </motion.div>
           )}
-        </AnimatePresence>
+          </AnimatePresence>
 
-        {/* Points list (scrollable) */}
-        <div className="flex-1 overflow-y-auto min-h-0">
-          {sortedPuntos.length > 0 ? (
-            <div className="p-2 space-y-1">
-              <p className="font-ui text-[10px] text-[var(--text-muted)] uppercase tracking-wider font-bold px-1 mb-1">
-                {t("planoHotspot.pointCount", { count: String(sortedPuntos.length) })}
-              </p>
-              {sortedPuntos.map((punto, index) => {
-                const isSelected = selectedPuntoId === punto.id;
-                const subtitle = tipo === "implantacion"
-                  ? isMultiTorre && punto.torre_id
-                    ? torreMap.get(punto.torre_id)?.nombre
-                    : punto.fachada_id
-                      ? fachadaMap.get(punto.fachada_id)?.nombre
-                      : null
-                  : punto.descripcion;
+          {/* Points list section */}
+          <div className="p-4">
+            {sortedPuntos.length > 0 ? (
+              <div className="space-y-2">
+                <div className="flex items-center justify-between mb-3">
+                  <p className="font-ui text-[10px] text-[var(--text-muted)] uppercase tracking-wider font-bold">
+                    {t("planoHotspot.pointCount", { count: String(sortedPuntos.length) })}
+                  </p>
+                  <span className="text-[9px] text-[var(--text-tertiary)]">
+                    {sortedPuntos.length}/{tipo === "implantacion" && isMultiTorre ? torres.length : "∞"}
+                  </span>
+                </div>
+                <div className="space-y-1.5">
+                  {sortedPuntos.map((punto, index) => {
+                    const isSelected = selectedPuntoId === punto.id;
+                    const subtitle = tipo === "implantacion"
+                      ? isMultiTorre && punto.torre_id
+                        ? torreMap.get(punto.torre_id)?.nombre
+                        : punto.fachada_id
+                          ? fachadaMap.get(punto.fachada_id)?.nombre
+                          : null
+                      : punto.descripcion;
 
-                return (
-                  <button
-                    key={punto.id}
-                    onClick={() => selectPunto(punto)}
-                    className={cn(
-                      "w-full flex items-center gap-2 px-2 py-1.5 rounded-lg text-left transition-all",
-                      isSelected
-                        ? "bg-[rgba(var(--site-primary-rgb),0.1)] ring-1 ring-[rgba(var(--site-primary-rgb),0.3)]"
-                        : "hover:bg-[var(--surface-2)]"
-                    )}
-                  >
-                    {/* Number badge */}
-                    <span
-                      className="w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold text-[#141414] shrink-0"
-                      style={{ backgroundColor: "var(--site-primary)" }}
-                    >
-                      {index + 1}
-                    </span>
-                    {/* Render thumbnail */}
-                    {tipo === "urbanismo" && punto.render_url && (
-                      <img
-                        src={punto.render_url}
-                        alt=""
-                        className="w-8 h-8 rounded object-cover shrink-0"
-                      />
-                    )}
-                    {/* Info */}
-                    <div className="flex-1 min-w-0">
-                      <p className="text-[11px] text-[var(--text-primary)] truncate">
-                        {punto.titulo}
-                      </p>
-                      {subtitle && (
-                        <p className="text-[9px] text-[var(--text-muted)] truncate">
-                          {subtitle}
-                        </p>
-                      )}
-                    </div>
-                  </button>
-                );
-              })}
-            </div>
-          ) : (
-            <div className="flex items-center justify-center h-full">
-              <p className="text-[10px] text-[var(--text-muted)]">{t("planoHotspot.noPoints")}</p>
-            </div>
-          )}
+                    return (
+                      <button
+                        key={punto.id}
+                        onClick={() => selectPunto(punto)}
+                        className={cn(
+                          "w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-left transition-all",
+                          isSelected
+                            ? "bg-[rgba(var(--site-primary-rgb),0.12)] ring-1 ring-[rgba(var(--site-primary-rgb),0.35)]"
+                            : "hover:bg-[var(--surface-3)]"
+                        )}
+                      >
+                        {/* Number badge */}
+                        <span
+                          className="w-6 h-6 rounded-full flex items-center justify-center text-[11px] font-bold text-[#141414] shrink-0"
+                          style={{ backgroundColor: "var(--site-primary)" }}
+                        >
+                          {index + 1}
+                        </span>
+                        {/* Render thumbnail */}
+                        {tipo === "urbanismo" && punto.render_url && (
+                          <img
+                            src={punto.render_url}
+                            alt=""
+                            className="w-10 h-10 rounded object-cover shrink-0"
+                          />
+                        )}
+                        {/* Info */}
+                        <div className="flex-1 min-w-0">
+                          <p className="text-xs text-[var(--text-primary)] font-medium truncate">
+                            {punto.titulo}
+                          </p>
+                          {subtitle && (
+                            <p className="text-[10px] text-[var(--text-muted)] truncate mt-0.5">
+                              {subtitle}
+                            </p>
+                          )}
+                        </div>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            ) : (
+              <div className="flex flex-col items-center justify-center py-12">
+                <MapPin size={24} className="text-[var(--text-muted)] mb-2 opacity-40" />
+                <p className="text-[10px] text-[var(--text-muted)] text-center">
+                  {t("planoHotspot.noPoints")}
+                </p>
+              </div>
+            )}
+          </div>
         </div>
       </div>
     </div>

@@ -41,7 +41,7 @@ export function ContactForm({ onClose, defaultPlan, source }: ContactFormProps) 
   const [phone, setPhone] = useState("");
   const [plan, setPlan] = useState(defaultPlan || "");
   const [message, setMessage] = useState("");
-  const [whatsappOptin, setWhatsappOptin] = useState(true);
+  const [whatsappOptin] = useState(true);
   const [error, setError] = useState("");
 
   const fullPhone = phone ? `${countryCode}${phone.replace(/\D/g, "")}` : undefined;

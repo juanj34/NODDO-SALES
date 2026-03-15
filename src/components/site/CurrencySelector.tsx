@@ -3,7 +3,7 @@
 import { useCurrency } from "@/contexts/CurrencyContext";
 import { CURRENCY_CONFIG, type Currency } from "@/lib/currency";
 import { NodDoDropdown } from "@/components/ui/NodDoDropdown";
-import { TrendingUp, Clock } from "lucide-react";
+import { Clock } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { es, enUS } from "date-fns/locale";
 import { useLanguage } from "@/i18n";

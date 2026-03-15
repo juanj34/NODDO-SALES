@@ -175,7 +175,7 @@ export default function EquipoPage() {
     }
   };
 
-  const handleResendInvite = async (id: string, email: string) => {
+  const handleResendInvite = async (id: string) => {
     try {
       const res = await fetch(`/api/colaboradores/${id}/resend`, { method: "POST" });
       if (res.ok) {
@@ -401,7 +401,7 @@ export default function EquipoPage() {
                           {/* Resend invite for pending */}
                           {colab.estado === "pendiente" && (
                             <button
-                              onClick={() => handleResendInvite(colab.id, colab.email)}
+                              onClick={() => handleResendInvite(colab.id)}
                               className="w-full flex items-center gap-2.5 px-4 py-2.5 text-xs text-[var(--site-primary)] hover:bg-[var(--surface-3)] transition-colors"
                             >
                               <RotateCw size={13} />

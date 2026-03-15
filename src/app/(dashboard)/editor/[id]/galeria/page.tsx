@@ -7,19 +7,13 @@ import { useConfirm } from "@/components/dashboard/ConfirmModal";
 import { useToast } from "@/components/dashboard/Toast";
 import { UploadModal } from "@/components/dashboard/UploadModal";
 import { NodDoDropdown } from "@/components/ui/NodDoDropdown";
+import { PageHeader } from "@/components/dashboard/base/PageHeader";
 import {
   inputClass,
   btnPrimary,
   btnSecondary,
   btnDanger,
-  pageHeader,
-  pageTitle,
-  pageDescription,
   badgeGold,
-  emptyState,
-  emptyStateIcon,
-  emptyStateTitle,
-  emptyStateDescription,
 } from "@/components/dashboard/editor-styles";
 import { DashboardEmptyState } from "@/components/dashboard/DashboardEmptyState";
 import {
@@ -230,19 +224,11 @@ export default function GaleriaPage() {
       animate={{ opacity: 1, y: 0 }}
     >
       {/* Page Header */}
-      <div className={pageHeader}>
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-[rgba(var(--site-primary-rgb),0.1)] border border-[rgba(var(--site-primary-rgb),0.2)] flex items-center justify-center">
-            <ImageIcon size={18} className="text-[var(--site-primary)]" />
-          </div>
-          <div>
-            <h2 className={pageTitle}>{t("galeria.title")}</h2>
-            <p className={pageDescription}>
-              {t("galeria.description")}
-            </p>
-          </div>
-        </div>
-      </div>
+      <PageHeader
+        icon={ImageIcon}
+        title={t("galeria.title")}
+        description={t("galeria.description")}
+      />
 
       {/* Empty state when no categories */}
       {orderedCategories.length === 0 && !showCatForm && (

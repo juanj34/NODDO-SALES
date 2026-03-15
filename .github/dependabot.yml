@@ -1,0 +1,42 @@
+# Dependabot Configuration for NODDO
+# Automatically checks for dependency vulnerabilities and opens PRs to fix them
+# Docs: https://docs.github.com/en/code-security/dependabot/dependabot-version-updates/configuration-options-for-the-dependabot.yml-file
+
+version: 2
+updates:
+  # npm dependencies (package.json)
+  - package-ecosystem: "npm"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "09:00"
+      timezone: "America/Bogota"
+    open-pull-requests-limit: 5
+    labels:
+      - "dependencies"
+      - "automated"
+    commit-message:
+      prefix: "chore"
+      prefix-development: "chore"
+      include: "scope"
+    # Security-only updates (recommended)
+    # Remove this block if you want all dependency updates
+    ignore:
+      - dependency-name: "*"
+        # Only update for security vulnerabilities
+        # Ignore minor and patch version bumps
+        update-types:
+          - "version-update:semver-minor"
+          - "version-update:semver-patch"
+
+  # GitHub Actions workflows
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "monthly"
+    labels:
+      - "github-actions"
+      - "dependencies"
+    commit-message:
+      prefix: "ci"

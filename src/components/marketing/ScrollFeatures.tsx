@@ -560,7 +560,7 @@ export function ScrollFeatures() {
             className="px-6 lg:px-14"
             style={{
               position: "absolute",
-              top: 32,
+              top: 24,
               left: 0,
               right: 0,
               zIndex: 5,
@@ -577,7 +577,7 @@ export function ScrollFeatures() {
                     textTransform: "uppercase" as const,
                     color: "var(--mk-accent)",
                     display: "block",
-                    marginBottom: 10,
+                    marginBottom: 6,
                   }}
                 >
                   Funcionalidades
@@ -585,7 +585,7 @@ export function ScrollFeatures() {
                 <h2
                   className="font-heading"
                   style={{
-                    fontSize: "clamp(24px, 2.8vw, 38px)",
+                    fontSize: "clamp(16px, 1.8vw, 22px)",
                     fontWeight: 300,
                     lineHeight: 1.15,
                     letterSpacing: "-.02em",

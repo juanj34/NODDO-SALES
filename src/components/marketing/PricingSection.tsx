@@ -188,23 +188,89 @@ export function PricingSection() {
               </ul>
 
               {/* CTA */}
-              <button
-                onClick={() => handlePlanClick(plan)}
-                className={plan.featured ? "btn-mk-primary" : "btn-mk-outline"}
-                style={{ display: "block", width: "100%", textAlign: "center", fontSize: 10 }}
-              >
-                {plan.ctaLabel}
-              </button>
+              {plan.featured ? (
+                <div className="relative">
+                  {/* Pulsing glow ring for featured plan */}
+                  <div
+                    className="absolute inset-0 rounded-[12px]"
+                    style={{
+                      background: "transparent",
+                      boxShadow: "0 0 0 0 rgba(184,151,58,0.7)",
+                      animation: "pulse-ring 2s cubic-bezier(0.4, 0, 0.6, 1) infinite",
+                    }}
+                  />
+                  <button
+                    onClick={() => handlePlanClick(plan)}
+                    className="btn-mk-primary relative z-[1]"
+                    style={{ display: "block", width: "100%", textAlign: "center", fontSize: 10, fontWeight: 700 }}
+                  >
+                    {plan.ctaLabel} →
+                  </button>
+                </div>
+              ) : (
+                <button
+                  onClick={() => handlePlanClick(plan)}
+                  className="btn-mk-outline"
+                  style={{ display: "block", width: "100%", textAlign: "center", fontSize: 10 }}
+                >
+                  {plan.ctaLabel}
+                </button>
+              )}
             </motion.div>
           ))}
         </div>
 
-        <p
-          className="text-center mt-10 text-[11px] tracking-[0.05em]"
-          style={{ color: "rgba(244,240,232,0.2)" }}
-        >
-          Implementación asistida incluida · Te configuramos el primer proyecto
-        </p>
+        {/* Trust elements below pricing */}
+        <div className="text-center mt-12">
+          {/* Urgency badge */}
+          <div
+            className="inline-flex items-center gap-2 mb-6"
+            style={{
+              background: "rgba(184,151,58,0.08)",
+              border: "1px solid rgba(184,151,58,0.2)",
+              padding: "8px 20px",
+              borderRadius: "8px",
+            }}
+          >
+            <span style={{ fontSize: 16 }}>⏰</span>
+            <span
+              className="font-ui text-[10px] tracking-[0.12em] uppercase"
+              style={{ color: "var(--mk-accent)" }}
+            >
+              Últimas 3 demos disponibles esta semana
+            </span>
+          </div>
+
+          {/* Trust micro-copy */}
+          <div className="flex items-center justify-center gap-6 flex-wrap text-[11px]" style={{ color: "rgba(244,240,232,0.3)" }}>
+            <div className="flex items-center gap-1.5">
+              <span style={{ color: "var(--mk-accent)" }}>✓</span>
+              Implementación asistida incluida
+            </div>
+            <div className="flex items-center gap-1.5">
+              <span style={{ color: "var(--mk-accent)" }}>✓</span>
+              Sin compromiso · Cancela cuando quieras
+            </div>
+            <div className="flex items-center gap-1.5">
+              <span style={{ color: "var(--mk-accent)" }}>✓</span>
+              Soporte 24/7
+            </div>
+          </div>
+        </div>
+
+        <style jsx>{`
+          @keyframes pulse-ring {
+            0% {
+              box-shadow: 0 0 0 0 rgba(184,151,58,0.7);
+            }
+            50% {
+              box-shadow: 0 0 0 8px rgba(184,151,58,0);
+            }
+            100% {
+              box-shadow: 0 0 0 0 rgba(184,151,58,0);
+            }
+          }
+        `}</style>
       </div>
     </section>
   );

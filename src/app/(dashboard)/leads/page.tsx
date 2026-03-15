@@ -125,7 +125,7 @@ export default function LeadsPage() {
     } finally {
       setLoading(false);
     }
-  }, [debouncedSearch, statusFilters, datePreset, customDateFrom, customDateTo, proyectoId, sortDir, page, statsLoaded, locale]);
+  }, [debouncedSearch, statusFilters, datePreset, customDateFrom, customDateTo, proyectoId, sortDir, page, statsLoaded, locale, toast]);
 
   useEffect(() => {
     fetchLeads();

@@ -5,28 +5,28 @@ import { motion } from "framer-motion";
 
 const faqs = [
   {
-    q: "¿Necesito saber programar para usar Noddo?",
-    a: "No. Noddo está diseñado para directores comerciales y gerentes de proyectos, no para desarrolladores. Si sabes usar Google Drive, puedes usar Noddo. El onboarding completo toma menos de un día.",
+    q: "¿Cuánto tiempo toma lanzar mi proyecto?",
+    a: "Entre 1 y 3 días. Si tienes tu contenido listo (renders, planos, textos), puedes publicar en menos de 24 horas. Nuestro equipo te acompaña en el onboarding para acelerar el proceso — muchos clientes lanzan el mismo día.",
   },
   {
-    q: "¿Qué pasa si mi proyecto tiene más de 200 unidades?",
-    a: "El plan Studio soporta unidades ilimitadas. Si estás en el plan Proyecto y tu torre crece, el upgrade es automático y proporcional. Nunca perderás datos ni configuración.",
+    q: "¿Necesito conocimientos técnicos o un equipo IT?",
+    a: "No. Si sabes usar Excel y subir archivos a Drive, puedes usar Noddo. Está diseñado para directores comerciales y gerentes de proyectos, no para desarrolladores. Todo es punto-y-click, sin código.",
   },
   {
-    q: "¿Puedo usar mi propio dominio en vez de .noddo.io?",
-    a: "Sí, desde el plan Studio puedes mapear tu propio dominio (ej. ventas.tuyedificio.com). En Enterprise tienes white-label completo — el comprador nunca ve la marca Noddo a menos que tú quieras.",
+    q: "¿Cuánto cuesta? ¿Hay período de prueba?",
+    a: "Los planes van desde $149/mes (1 proyecto) hasta Enterprise personalizado. Ofrecemos garantía de reembolso de 14 días — mejor que un trial porque ya tienes acceso completo. Si no te convence en 2 semanas, devolvemos el 100%.",
   },
   {
     q: "¿Cómo recibo los leads? ¿Se integra con mi CRM?",
-    a: "Los leads llegan al dashboard de Noddo con nombre, correo, WhatsApp, unidad de interés y UTM de origen. También enviamos notificaciones por email y Slack. La integración directa con CRM (HubSpot, GHL, Salesforce) está disponible en Enterprise.",
+    a: "Los leads llegan a tu dashboard con nombre, email, WhatsApp, unidad de interés y UTM de origen. También recibes notificaciones instantáneas por email. Integración directa con CRM (HubSpot, GoHighLevel, Salesforce) disponible en planes Studio y Enterprise.",
   },
   {
-    q: "¿Cómo funciona la implementación asistida?",
-    a: "Cuando contratas Noddo, un especialista de nuestro equipo te acompaña en el onboarding. Configuramos el primer proyecto contigo — subimos los planos, armamos el Noddo Grid, conectamos el dominio y hacemos la primera publicación. Tiempo estimado: un día de trabajo conjunto.",
+    q: "¿Puedo usar mi propio dominio en vez de .noddo.io?",
+    a: "Sí. Desde el plan Studio puedes mapear tu dominio (ej: ventastorreazul.com). En Enterprise tienes white-label completo — el comprador nunca ve la marca Noddo. La configuración DNS es guiada paso a paso.",
   },
   {
-    q: "¿Noddo funciona para proyectos fuera de Colombia?",
-    a: "Sí. Tenemos clientes activos en Colombia, México, Perú y Miami. La plataforma soporta múltiples monedas, idiomas y configuraciones fiscales. El soporte es en español y en horario americano.",
+    q: "¿Qué pasa con mis datos si cancelo o cambio de plan?",
+    a: "Tienes acceso hasta el final del período pagado. Después, tu sitio se desactiva pero tus datos (leads, contenido, analytics) se conservan por 30 días. Puedes exportar todo en cualquier momento (JSON, CSV). Si haces downgrade, no pierdes información.",
   },
 ];
 

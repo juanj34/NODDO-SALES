@@ -2,7 +2,7 @@
 
 import { useState, useMemo } from "react";
 import { motion } from "framer-motion";
-import { Send, Loader2, CheckCircle, FileDown, Mail, MapPin, BedDouble, Bath, Maximize, Eye } from "lucide-react";
+import { Send, Loader2, FileDown, MapPin, BedDouble, Bath, Maximize, Eye } from "lucide-react";
 import type { Unidad, Tipologia, CotizadorConfig, ResultadoCotizacion, Currency } from "@/types";
 import { calcularCotizacion } from "@/lib/cotizador/calcular";
 import { formatCurrency } from "@/lib/currency";
@@ -64,7 +64,7 @@ export function CotizadorFlowMultiStep({
   tipologia,
   proyectoId,
   config,
-  locale,
+
   tCommon,
   tSite,
   onSuccess,

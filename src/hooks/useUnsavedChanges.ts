@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useCallback, useRef, useState } from "react";
-import { useRouter } from "next/navigation";
 
 /**
  * Hook para detectar cambios sin guardar y prevenir navegación accidental
@@ -11,7 +10,6 @@ export function useUnsavedChanges(
   hasUnsavedChanges: boolean,
   message: string = "Tienes cambios sin guardar. ¿Estás seguro de que quieres salir?"
 ) {
-  const router = useRouter();
   const messageRef = useRef(message);
 
   useEffect(() => {

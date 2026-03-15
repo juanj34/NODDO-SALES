@@ -28,7 +28,7 @@ export function UploadModal({
   onClose,
   categoryName,
   categoryId,
-  projectId,
+
   folder,
   onUploaded,
 }: UploadModalProps) {

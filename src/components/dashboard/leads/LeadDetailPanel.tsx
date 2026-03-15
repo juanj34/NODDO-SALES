@@ -18,7 +18,7 @@ import {
   FileText,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { LeadStatusBadge, STATUS_CONFIG } from "./LeadStatusBadge";
+import { STATUS_CONFIG } from "./LeadStatusBadge";
 import { LeadCotizacionCard } from "./LeadCotizacionCard";
 import type { LeadWithMeta, LeadCotizacionSummary } from "@/types";
 

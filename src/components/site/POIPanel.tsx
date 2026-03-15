@@ -3,7 +3,7 @@
 import { useMemo, useEffect } from "react";
 import Image from "next/image";
 import { motion, AnimatePresence } from "framer-motion";
-import { Car, Clock, ChevronLeft, ChevronRight, X } from "lucide-react";
+import { Car, Clock, ChevronLeft, ChevronRight } from "lucide-react";
 import { CloseButton } from "@/components/ui/CloseButton";
 import type { PuntoInteres } from "@/types";
 import { useTranslation } from "@/i18n";

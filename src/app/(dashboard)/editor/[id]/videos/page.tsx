@@ -15,12 +15,10 @@ import {
   btnPrimary,
   btnSecondary,
   btnDanger,
-  pageHeader,
-  pageTitle,
-  pageDescription,
   sectionCard,
   listItem,
 } from "@/components/dashboard/editor-styles";
+import { PageHeader } from "@/components/dashboard/base/PageHeader";
 import { DashboardEmptyState } from "@/components/dashboard/DashboardEmptyState";
 import type { Video } from "@/types";
 import {
@@ -35,9 +33,7 @@ import {
   Upload,
   Link2,
   CloudUpload,
-  Clock,
   AlertCircle,
-  CheckCircle2,
 } from "lucide-react";
 import { motion, AnimatePresence, Reorder, useDragControls } from "framer-motion";
 
@@ -317,25 +313,19 @@ export default function VideosPage() {
       className="max-w-4xl mx-auto"
     >
       {/* Page Header */}
-      <div className={pageHeader}>
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-[var(--surface-2)] border border-[var(--border-subtle)] flex items-center justify-center">
-            <Film size={18} className="text-[var(--site-primary)]" />
-          </div>
-          <div>
-            <h2 className={pageTitle}>{t("videos.title")}</h2>
-            <p className={pageDescription}>
-              {t("videos.description")}
-            </p>
-          </div>
-        </div>
-        {!showVideoForm && videoUpload.status === "idle" && (
-          <button onClick={openNew} className={btnPrimary}>
-            <Plus size={14} />
-            {t("videos.addVideo")}
-          </button>
-        )}
-      </div>
+      <PageHeader
+        icon={Film}
+        title={t("videos.title")}
+        description={t("videos.description")}
+        actions={
+          !showVideoForm && videoUpload.status === "idle" ? (
+            <button onClick={openNew} className={btnPrimary}>
+              <Plus size={14} />
+              {t("videos.addVideo")}
+            </button>
+          ) : undefined
+        }
+      />
 
       {/* Upload Progress (shown outside form when uploading/processing) */}
       <AnimatePresence>

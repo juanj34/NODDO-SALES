@@ -2,7 +2,7 @@
 
 import { useState, useRef, useCallback, useEffect, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { X, Search, Trash2, Link2, Unlink, AlertTriangle, XCircle, Copy, Grid3X3, CopyPlus, ArrowUp, ArrowDown, GripVertical } from "lucide-react";
+import { X, Search, Trash2, Unlink, AlertTriangle, XCircle, Copy, Grid3X3, CopyPlus, ArrowUp, ArrowDown, GripVertical } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { AlignmentToolbar } from "@/components/dashboard/AlignmentToolbar";
 import type { Unidad, Fachada } from "@/types";
@@ -265,7 +265,7 @@ export function FacadeHotspotEditor({
         });
       }
     };
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+   
   }, []);
 
   /* Focus menu search when opened */

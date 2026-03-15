@@ -2,7 +2,6 @@
 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { useState, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { createClient } from "@/lib/supabase/client";
 import { cn } from "@/lib/utils";
@@ -105,7 +104,7 @@ function DashboardShell({ children }: { children: React.ReactNode }) {
       <div className="bg-noise fixed inset-0 pointer-events-none z-0" />
 
       {/* Route progress bar */}
-      <RouteProgressBar color="#b8973a" />
+      <RouteProgressBar color="var(--site-primary)" />
 
       {/* Command Palette (Ctrl+K) */}
       <CommandPalette />

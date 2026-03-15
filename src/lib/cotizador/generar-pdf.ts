@@ -68,8 +68,6 @@ const frecLabels: Record<string, string> = {
 
 // Dark surface colors matching NODDO brand
 const DARK_BG: RGB = [10, 10, 11]; // #0A0A0B
-const SURFACE_1: RGB = [17, 17, 19]; // #111113
-const SURFACE_2: RGB = [26, 26, 29]; // #1A1A1D
 const TEXT_WHITE: RGB = [240, 237, 230]; // warm white
 const TEXT_SECONDARY: RGB = [160, 155, 145];
 const TEXT_MUTED: RGB = [110, 107, 100];
@@ -123,7 +121,7 @@ function drawSectionLabel(
 
 /* ── COVER PAGE (Page 1) ── */
 
-function drawCoverPage(doc: jsPDF, data: PDFData, accent: RGB, accentLight: RGB) {
+function drawCoverPage(doc: jsPDF, data: PDFData, accent: RGB) {
   const pageW = doc.internal.pageSize.getWidth();
   const pageH = doc.internal.pageSize.getHeight();
 
@@ -633,7 +631,7 @@ export function generarPDF(data: PDFData): Buffer {
   ];
 
   // ── Page 1: Cover ──
-  drawCoverPage(doc, data, accent, accentLight);
+  drawCoverPage(doc, data, accent);
 
   // ── Page 2: Offer Details ──
   doc.addPage();

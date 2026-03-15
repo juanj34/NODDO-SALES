@@ -112,6 +112,7 @@ export function GlobalSearch() {
 
     document.addEventListener("keydown", handler);
     return () => document.removeEventListener("keydown", handler);
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- handleSelect is stable, defined after this effect
   }, [open, allResults, selectedIndex]);
 
   const handleSelect = (item: (typeof allResults)[0]) => {
@@ -205,7 +206,7 @@ export function GlobalSearch() {
                     <div className="px-4 py-1.5 font-ui text-[10px] font-bold uppercase tracking-wider text-[var(--text-muted)]">
                       Usuarios ({results.users.length})
                     </div>
-                    {results.users.map((user, i) => {
+                    {results.users.map((user) => {
                       const index = allResults.findIndex((r) => r.type === "user" && r.id === user.id);
                       return (
                         <button

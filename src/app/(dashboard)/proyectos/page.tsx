@@ -37,7 +37,7 @@ export default function ProyectosPage() {
   const [statusFilter, setStatusFilter] = useState<string>("todos");
   const [sortBy, setSortBy] = useState<string>("reciente");
   const [selectedId, setSelectedId] = useState<string | null>(null);
-  const [cloning, setCloning] = useState<string | null>(null);
+  const [, setCloning] = useState<string | null>(null);
   const router = useRouter();
   const { t } = useTranslation("dashboard");
   const toast = useToast();

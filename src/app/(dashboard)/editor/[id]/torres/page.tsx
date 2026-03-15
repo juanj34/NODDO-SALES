@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback, useEffect, useMemo } from "react";
+import { useState, useCallback, useEffect } from "react";
 import Link from "next/link";
 import { useTranslation } from "@/i18n";
 import { useEditorProject } from "@/hooks/useEditorProject";
@@ -9,12 +9,9 @@ import {
   labelClass,
   btnPrimary,
   btnSecondary,
-  btnDanger,
   sectionCard,
-  pageHeader,
-  pageTitle,
-  pageDescription,
 } from "@/components/dashboard/editor-styles";
+import { PageHeader } from "@/components/dashboard/base/PageHeader";
 import { FileUploader } from "@/components/dashboard/FileUploader";
 import { motion, AnimatePresence } from "framer-motion";
 import {
@@ -26,24 +23,14 @@ import {
   Eye,
   Package,
   ChevronRight,
-  Search,
-  X,
-  ChevronDown,
   Sparkles,
-  Upload,
-  Check,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/components/dashboard/Toast";
 import { useConfirm } from "@/components/dashboard/ConfirmModal";
 import { useMediaQuery } from "@/hooks/useMediaQuery";
-import type { Torre, Fachada, Unidad, AmenidadItem } from "@/types";
+import type { Torre, Fachada, Unidad } from "@/types";
 import { AITextImprover } from "@/components/dashboard/AITextImprover";
-import {
-  AMENIDADES_CATALOG,
-  AMENIDADES_CATEGORIAS,
-  DynamicIcon,
-} from "@/data/amenidades-catalog";
 import { AmenidadesEditor } from "@/components/dashboard/AmenidadesEditor";
 
 /* ── Default values for first torre ──────────────────────────────── */
@@ -280,6 +267,7 @@ export default function TorresPage() {
         setDeletingId(null);
       }
     },
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- confirm and t are stable
     [fachadas, unidades, selectedTorreId, refresh]
   );
 
@@ -293,21 +281,11 @@ export default function TorresPage() {
       className="max-w-5xl mx-auto"
     >
       {/* ── Page Header ─────────────────────────────────────────── */}
-      <div className={pageHeader}>
-        <div>
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-[var(--surface-2)] border border-[var(--border-subtle)] flex items-center justify-center">
-              <Building2 size={18} className="text-[var(--site-primary)]" />
-            </div>
-            <div>
-              <h1 className={pageTitle}>{pageLabel}</h1>
-              <p className={pageDescription}>
-                {pageDesc}
-              </p>
-            </div>
-          </div>
-        </div>
-      </div>
+      <PageHeader
+        icon={Building2}
+        title={pageLabel}
+        description={pageDesc}
+      />
 
       {/* ── Master-Detail Layout ──────────────────────────────── */}
       <div className={cn("flex gap-4", isMobile && "flex-col")} style={isMobile ? undefined : { minHeight: "480px" }}>

@@ -191,7 +191,7 @@ export default function EditorLayout({
   const { role } = useAuthRole();
   const isCollaborator = role === "colaborador";
   const basePath = `/editor/${id}`;
-  const { isMobile, open: drawerOpen, toggle: toggleDrawer, close: closeDrawer } = useMobileDrawer();
+  const { open: drawerOpen, toggle: toggleDrawer, close: closeDrawer } = useMobileDrawer();
 
   /* ---- Publish / version state ---- */
   const [publishing, setPublishing] = useState(false);
@@ -245,6 +245,7 @@ export default function EditorLayout({
     } finally {
       setPublishing(false);
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- t is stable
   }, [id, refresh, toast, fetchVersions]);
 
   const handleRestore = useCallback(async (versionId: string, versionNumber: number) => {
@@ -267,6 +268,7 @@ export default function EditorLayout({
     } finally {
       setRestoring(false);
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- t is stable
   }, [id, refresh, toast]);
 
   const [unpublishing, setUnpublishing] = useState(false);
@@ -487,7 +489,7 @@ export default function EditorLayout({
   /* ---- Render ---- */
   return (
     <EditorProjectContext.Provider value={contextValue!}>
-      <RouteProgressBar color="#b8973a" />
+      <RouteProgressBar color="var(--site-primary)" />
       <div className="flex h-screen bg-[var(--surface-0)]">
         {/* Mobile hamburger button */}
         <button
@@ -780,21 +782,21 @@ export default function EditorLayout({
                       animate={{ opacity: 1, y: 0, scale: 1 }}
                       exit={{ opacity: 0, y: -4, scale: 0.97 }}
                       transition={{ duration: 0.12 }}
-                      className="absolute right-0 top-full mt-2 w-72 bg-[var(--surface-2)] border border-[var(--border-default)] rounded-xl shadow-2xl overflow-hidden z-50"
+                      className="absolute right-0 top-full mt-2 w-96 bg-[var(--surface-2)] border border-[var(--border-default)] rounded-xl shadow-2xl overflow-hidden z-50"
                     >
-                      <div className="flex items-center gap-2 px-4 py-2.5 border-b border-[var(--border-subtle)]">
-                        <Clock size={13} className="text-[var(--text-tertiary)]" />
-                        <span className="font-ui text-[10px] font-bold uppercase tracking-wider text-[var(--text-secondary)]">{t("layout.versionHistory")}</span>
+                      <div className="flex items-center gap-2.5 px-4 py-3 border-b border-[var(--border-subtle)]">
+                        <Clock size={14} className="text-[var(--text-tertiary)]" />
+                        <span className="font-ui text-xs font-bold uppercase tracking-wider text-[var(--text-secondary)]">{t("layout.versionHistory")}</span>
                       </div>
-                      <div className="max-h-64 overflow-y-auto">
+                      <div className="max-h-80 overflow-y-auto">
                         {loadingVersions ? (
-                          <div className="flex items-center justify-center py-6">
-                            <Loader2 size={16} className="animate-spin text-[var(--text-muted)]" />
+                          <div className="flex items-center justify-center py-8">
+                            <Loader2 size={18} className="animate-spin text-[var(--text-muted)]" />
                           </div>
                         ) : versions.length === 0 ? (
-                          <div className="px-4 py-6 text-center">
-                            <p className="text-xs text-[var(--text-muted)]">{t("layout.noPublications")}</p>
-                            <p className="text-[11px] text-[var(--text-muted)] mt-1">
+                          <div className="px-4 py-8 text-center">
+                            <p className="text-xs text-[var(--text-secondary)]">{t("layout.noPublications")}</p>
+                            <p className="text-xs text-[var(--text-muted)] mt-1.5">
                               {t("layout.publishHint")}
                             </p>
                           </div>
@@ -802,13 +804,13 @@ export default function EditorLayout({
                           versions.map((v) => (
                             <div
                               key={v.id}
-                              className="flex items-center justify-between px-4 py-2.5 hover:bg-[var(--surface-3)] transition-colors border-b border-[var(--border-subtle)] last:border-b-0"
+                              className="flex items-center justify-between px-4 py-3 hover:bg-[var(--surface-3)] transition-colors border-b border-[var(--border-subtle)] last:border-b-0"
                             >
                               <div className="flex items-center gap-2.5">
-                                <div className="w-6 h-6 rounded-md bg-[var(--surface-3)] flex items-center justify-center text-[10px] font-bold text-[var(--text-tertiary)]">
+                                <div className="w-7 h-7 rounded-md bg-[var(--surface-3)] flex items-center justify-center text-[11px] font-bold text-[var(--text-tertiary)]">
                                   v{v.version_number}
                                 </div>
-                                <span className="text-[11px] text-[var(--text-secondary)]">
+                                <span className="text-xs text-[var(--text-secondary)]">
                                   {timeAgo(v.published_at)}
                                 </span>
                               </div>
@@ -817,13 +819,13 @@ export default function EditorLayout({
                                   <button
                                     onClick={() => handleRestore(v.id, v.version_number)}
                                     disabled={restoring}
-                                    className="text-[10px] px-2 py-0.5 rounded bg-amber-500/20 text-amber-400 border border-amber-500/30 hover:bg-amber-500/30 transition-colors disabled:opacity-50"
+                                    className="text-xs px-2.5 py-1 rounded bg-amber-500/20 text-amber-400 border border-amber-500/30 hover:bg-amber-500/30 transition-colors disabled:opacity-50"
                                   >
                                     {restoring ? "..." : t("layout.confirm")}
                                   </button>
                                   <button
                                     onClick={() => setConfirmRestoreId(null)}
-                                    className="text-[10px] px-1.5 py-0.5 text-[var(--text-muted)] hover:text-[var(--text-secondary)] transition-colors"
+                                    className="text-xs px-2 py-1 text-[var(--text-muted)] hover:text-[var(--text-secondary)] transition-colors"
                                   >
                                     {t("layout.no")}
                                   </button>
@@ -831,9 +833,9 @@ export default function EditorLayout({
                               ) : (
                                 <button
                                   onClick={() => setConfirmRestoreId(v.id)}
-                                  className="flex items-center gap-1 text-[11px] text-[var(--text-muted)] hover:text-[var(--text-secondary)] transition-colors"
+                                  className="flex items-center gap-1.5 text-xs text-[var(--text-muted)] hover:text-[var(--text-secondary)] transition-colors"
                                 >
-                                  <RotateCcw size={11} />
+                                  <RotateCcw size={12} />
                                   {t("layout.restore")}
                                 </button>
                               )}
@@ -843,17 +845,17 @@ export default function EditorLayout({
                       </div>
 
                       {/* Unpublish + Archive actions */}
-                      <div className="border-t border-[var(--border-subtle)] px-4 py-2.5 space-y-2">
+                      <div className="border-t border-[var(--border-subtle)] px-4 py-3 space-y-2.5">
                         {project?.estado === "publicado" && (
                           <button
                             onClick={handleUnpublish}
                             disabled={unpublishing}
-                            className="flex items-center gap-2 w-full text-[11px] text-orange-400 hover:text-orange-300 transition-colors disabled:opacity-50"
+                            className="flex items-center gap-2 w-full text-xs text-orange-400 hover:text-orange-300 transition-colors disabled:opacity-50"
                           >
                             {unpublishing ? (
-                              <Loader2 size={12} className="animate-spin" />
+                              <Loader2 size={13} className="animate-spin" />
                             ) : (
-                              <Eye size={12} />
+                              <Eye size={13} />
                             )}
                             {t("layout.unpublish")}
                           </button>
@@ -861,14 +863,14 @@ export default function EditorLayout({
                         <button
                           onClick={handleArchiveToggle}
                           disabled={archiving}
-                          className="flex items-center gap-2 w-full text-[11px] text-[var(--text-muted)] hover:text-[var(--text-secondary)] transition-colors disabled:opacity-50"
+                          className="flex items-center gap-2 w-full text-xs text-[var(--text-muted)] hover:text-[var(--text-secondary)] transition-colors disabled:opacity-50"
                         >
                           {archiving ? (
-                            <Loader2 size={12} className="animate-spin" />
+                            <Loader2 size={13} className="animate-spin" />
                           ) : project?.estado === "archivado" ? (
-                            <ArchiveRestore size={12} />
+                            <ArchiveRestore size={13} />
                           ) : (
-                            <Archive size={12} />
+                            <Archive size={13} />
                           )}
                           {project?.estado === "archivado" ? t("layout.unarchiveProject") : t("layout.archiveProject")}
                         </button>

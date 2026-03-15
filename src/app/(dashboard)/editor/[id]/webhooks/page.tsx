@@ -7,15 +7,13 @@ import {
   inputClass,
   labelClass,
   fieldHint,
-  pageHeader,
-  pageTitle,
-  pageDescription,
   sectionCard,
   sectionTitle,
   sectionDescription,
   btnPrimary,
   btnSecondary,
 } from "@/components/dashboard/editor-styles";
+import { PageHeader } from "@/components/dashboard/base/PageHeader";
 import { cn } from "@/lib/utils";
 import { InfoTooltip } from "@/components/ui/InfoTooltip";
 import { useLanguage } from "@/i18n/LanguageProvider";
@@ -199,19 +197,11 @@ export default function WebhooksPage() {
       className="max-w-3xl mx-auto space-y-6"
     >
       {/* Header */}
-      <div className={pageHeader}>
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-[var(--surface-2)] border border-[var(--border-subtle)] flex items-center justify-center">
-            <Webhook size={18} className="text-[var(--site-primary)]" />
-          </div>
-          <div>
-            <h2 className={pageTitle}>Webhooks</h2>
-            <p className={pageDescription}>
-              Conecta con Zapier, Make, n8n o tu CRM
-            </p>
-          </div>
-        </div>
-      </div>
+      <PageHeader
+        icon={Webhook}
+        title="Webhooks"
+        description="Conecta con Zapier, Make, n8n o tu CRM"
+      />
 
       {/* Enable toggle */}
       <div className={sectionCard}>

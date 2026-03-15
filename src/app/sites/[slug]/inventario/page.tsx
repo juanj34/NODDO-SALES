@@ -32,14 +32,6 @@ import type { Unidad } from "@/types";
 
 type SortKey = "precio_asc" | "precio_desc" | "area_asc" | "area_desc" | "piso_asc" | "piso_desc";
 
-function formatPrecio(precio: number, locale: string): string {
-  return new Intl.NumberFormat(locale === "es" ? "es-CO" : "en-US", {
-    style: "currency",
-    currency: "COP",
-    maximumFractionDigits: 0,
-  }).format(precio);
-}
-
 function formatPrecioShort(precio: number): string {
   if (precio >= 1000000000) return `$${(precio / 1000000000).toFixed(1)}B`;
   return `$${(precio / 1000000).toFixed(0)}M`;
@@ -48,7 +40,7 @@ function formatPrecioShort(precio: number): string {
 export default function InventarioPage() {
   const proyecto = useSiteProject();
   const basePath = useSiteBasePath();
-  const { t: tSite, locale } = useTranslation("site");
+  const { t: tSite } = useTranslation("site");
   const { t: tCommon } = useTranslation("common");
 
   // ALL HOOKS MUST BE CALLED BEFORE ANY EARLY RETURNS

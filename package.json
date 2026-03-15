@@ -11,7 +11,11 @@
     "typecheck": "tsc --noEmit",
     "verify:vercel": "tsx scripts/verify-vercel-token.ts",
     "create-admin": "tsx scripts/create-first-admin.ts",
-    "setup:prod": "bash scripts/quick-setup.sh"
+    "setup:prod": "bash scripts/quick-setup.sh",
+    "security:audit": "npm audit --audit-level=moderate",
+    "security:audit:fix": "npm audit fix",
+    "security:full": "npm run security:audit && npm run lint && npm run typecheck",
+    "db:migrate": "npx supabase db push"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.1008.0",
@@ -47,9 +51,11 @@
     "lucide-react": "^0.474",
     "mapbox-gl": "^3.19.1",
     "next": "16.1.6",
+    "pptxgenjs": "^4.0.1",
     "react": "19.2.3",
     "react-dom": "19.2.3",
     "react-easy-crop": "^5.5.6",
+    "react-google-recaptcha-v3": "^1.11.0",
     "react-parallax-tilt": "^1.7.319",
     "react-use-measure": "^2.1.7",
     "recharts": "^3.8.0",

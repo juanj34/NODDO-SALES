@@ -124,9 +124,9 @@ export default function TipologiasPage() {
     { id: "hotspots", label: t("tipologias.tabs.hotspots") },
   ];
 
-  const tipologias = project.tipologias || [];
-  const unidades = project.unidades || [];
-  const torres = project.torres || [];
+  const tipologias = useMemo(() => project.tipologias || [], [project.tipologias]);
+  const unidades = useMemo(() => project.unidades || [], [project.unidades]);
+  const torres = useMemo(() => project.torres || [], [project.torres]);
   const isMultiTorre = torres.length > 1;
 
   const [selectedId, setSelectedId] = useState<string | null>(null);

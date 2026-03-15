@@ -477,7 +477,7 @@ export default function DisponibilidadPage() {
               {hasActiveFilters && (
                 <button
                   onClick={clearAllFilters}
-                  className="flex items-center gap-1 text-[10px] text-[var(--site-primary)] hover:text-[#d4b05a] font-ui uppercase tracking-wider transition-colors"
+                  className="flex items-center gap-1 text-[10px] text-[var(--site-primary)] hover:brightness-110 font-ui uppercase tracking-wider transition-all"
                 >
                   <X size={10} />
                   Limpiar

@@ -2,6 +2,8 @@ import type { Metadata, Viewport } from "next";
 import { Cormorant_Garamond, DM_Mono, Inter, Syne } from "next/font/google";
 import { LanguageProvider } from "@/i18n";
 import { ReactQueryProvider } from "@/lib/react-query";
+import { CookieConsent } from "@/components/common/CookieConsent";
+import { CrispChat } from "@/components/common/CrispChat";
 import "./globals.css";
 
 const cormorant = Cormorant_Garamond({
@@ -54,6 +56,8 @@ export default function RootLayout({
         <ReactQueryProvider>
           <LanguageProvider>
             {children}
+            <CookieConsent />
+            <CrispChat />
           </LanguageProvider>
         </ReactQueryProvider>
       </body>

@@ -70,7 +70,7 @@ export default function EditorError({
             onClick={() => reset()}
             style={{
               padding: "12px 28px",
-              backgroundColor: "#b8973a",
+              backgroundColor: "var(--site-primary)",
               color: "#141414",
               fontFamily: "'Syne', sans-serif",
               fontSize: 11,

@@ -1,6 +1,8 @@
 "use client";
 
 import { motion } from "framer-motion";
+import { ArrowRight } from "lucide-react";
+import { useBooking } from "./BookingProvider";
 
 /* ── Step 01: Dashboard / Upload panel ── */
 function IllustrationUpload() {
@@ -215,6 +217,8 @@ const steps = [
 const ease = [0.25, 0.46, 0.45, 0.94] as const;
 
 export function HowItWorks() {
+  const { openBooking } = useBooking();
+
   return (
     <section className="relative z-[1] py-28 lg:py-40 px-6 lg:px-20 border-t border-[var(--mk-border-rule)]">
       <div style={{ maxWidth: 1200, margin: "0 auto" }}>
@@ -275,6 +279,73 @@ export function HowItWorks() {
             </motion.div>
           ))}
         </div>
+
+        {/* CTA after steps */}
+        <motion.div
+          initial={{ opacity: 0, y: 24 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, margin: "-60px" }}
+          transition={{ duration: 0.7, delay: 0.3, ease }}
+          className="text-center mt-20"
+        >
+          <p
+            className="font-heading text-[24px] font-light leading-[1.4] mb-8"
+            style={{ color: "rgba(244,240,232,0.7)" }}
+          >
+            ¿Listo para publicar tu proyecto <span style={{ color: "var(--mk-accent-light)", fontStyle: "italic" }}>en 24 horas</span>?
+          </p>
+
+          <div className="flex items-center justify-center gap-4 mb-6">
+            <div className="relative">
+              {/* Pulsing glow ring */}
+              <div
+                className="absolute inset-0 rounded-[12px]"
+                style={{
+                  background: "transparent",
+                  boxShadow: "0 0 0 0 rgba(184,151,58,0.7)",
+                  animation: "pulse-ring 2s cubic-bezier(0.4, 0, 0.6, 1) infinite",
+                }}
+              />
+              <button
+                onClick={openBooking}
+                className="btn-mk-primary inline-flex items-center gap-2.5 whitespace-nowrap relative z-[1]"
+                style={{ fontSize: 13, padding: "14px 32px" }}
+              >
+                Agendar Demo Gratis
+                <ArrowRight size={15} strokeWidth={2.5} />
+              </button>
+            </div>
+          </div>
+
+          <div className="flex items-center justify-center gap-6 text-[11px]" style={{ color: "rgba(244,240,232,0.35)" }}>
+            <div className="flex items-center gap-1.5">
+              <span style={{ color: "var(--mk-accent)" }}>✓</span>
+              Sin código
+            </div>
+            <div className="flex items-center gap-1.5">
+              <span style={{ color: "var(--mk-accent)" }}>✓</span>
+              Sin agencia
+            </div>
+            <div className="flex items-center gap-1.5">
+              <span style={{ color: "var(--mk-accent)" }}>✓</span>
+              Sin esperar
+            </div>
+          </div>
+        </motion.div>
+
+        <style jsx>{`
+          @keyframes pulse-ring {
+            0% {
+              box-shadow: 0 0 0 0 rgba(184,151,58,0.7);
+            }
+            50% {
+              box-shadow: 0 0 0 10px rgba(184,151,58,0);
+            }
+            100% {
+              box-shadow: 0 0 0 0 rgba(184,151,58,0);
+            }
+          }
+        `}</style>
       </div>
     </section>
   );

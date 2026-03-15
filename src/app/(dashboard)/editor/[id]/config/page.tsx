@@ -5,9 +5,9 @@ import { useEditorProject } from "@/hooks/useEditorProject";
 import { useToast } from "@/components/dashboard/Toast";
 import {
   inputClass, labelClass, fieldHint,
-  pageHeader, pageTitle, pageDescription,
   sectionCard, sectionTitle, sectionDescription,
 } from "@/components/dashboard/editor-styles";
+import { PageHeader } from "@/components/dashboard/base/PageHeader";
 import { Settings, MessageCircle, Tags, Eye } from "lucide-react";
 import { motion } from "framer-motion";
 import { useTranslation, useLanguage } from "@/i18n";
@@ -20,9 +20,9 @@ export default function ConfigPage() {
   const groupingOptions = ((dictionary.editor as Record<string, Record<string, Record<string, unknown>>>).config.grouping.options) as readonly string[];
 
   // Initialize state from project using memo to avoid re-renders
-  const initialWhatsapp = useMemo(() => project?.whatsapp_numero || "", [project?.whatsapp_numero, project?.id]);
-  const initialEtapa = useMemo(() => project?.etapa_label || "Etapas", [project?.etapa_label, project?.id]);
-  const initialBadge = useMemo(() => project?.hide_noddo_badge ?? false, [project?.hide_noddo_badge, project?.id]);
+  const initialWhatsapp = useMemo(() => project?.whatsapp_numero || "", [project?.whatsapp_numero]);
+  const initialEtapa = useMemo(() => project?.etapa_label || "Etapas", [project?.etapa_label]);
+  const initialBadge = useMemo(() => project?.hide_noddo_badge ?? false, [project?.hide_noddo_badge]);
 
   const [whatsappNumero, setWhatsappNumero] = useState(initialWhatsapp);
   const [etapaLabel, setEtapaLabel] = useState(initialEtapa);
@@ -35,14 +35,14 @@ export default function ConfigPage() {
     setHideNoddoBadge(initialBadge);
   }
 
-  const handleSave = async () => {
+  const handleSave = useCallback(async () => {
     const ok = await save({
       whatsapp_numero: whatsappNumero || null,
       etapa_label: etapaLabel || "Etapas",
       hide_noddo_badge: hideNoddoBadge,
     });
     if (!ok) toast.error(t("general.saveError"));
-  };
+  }, [save, whatsappNumero, etapaLabel, hideNoddoBadge, toast, t]);
 
   /* ── Auto-save ── */
   const handleSaveRef = useRef(handleSave);
@@ -74,19 +74,11 @@ export default function ConfigPage() {
       className="max-w-4xl mx-auto space-y-8"
     >
       {/* Page Header */}
-      <div className={pageHeader}>
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-[var(--surface-2)] border border-[var(--border-subtle)] flex items-center justify-center">
-            <Settings size={18} className="text-[var(--site-primary)]" />
-          </div>
-          <div>
-            <h2 className={pageTitle}>{t("config.title")}</h2>
-            <p className={pageDescription}>
-              {t("config.description")}
-            </p>
-          </div>
-        </div>
-      </div>
+      <PageHeader
+        icon={Settings}
+        title={t("config.title")}
+        description={t("config.description")}
+      />
 
       {/* Etiqueta de agrupacion Section */}
       <div className={sectionCard}>

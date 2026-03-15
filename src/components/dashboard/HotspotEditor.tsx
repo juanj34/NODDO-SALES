@@ -1,8 +1,9 @@
 "use client";
 
-import { useState, useRef, useCallback, useEffect } from "react";
+import { useState, useRef, useCallback } from "react";
 import type { TipologiaHotspot } from "@/types";
 import { FileUploader } from "./FileUploader";
+import { useHotspotCanvas } from "@/hooks/useHotspotCanvas";
 import { inputClass, labelClass, btnPrimary, btnSecondary, btnDanger } from "./editor-styles";
 import { Plus, X, Trash2, Check, MousePointerClick } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
@@ -33,76 +34,8 @@ export function HotspotEditor({
   const [newLabel, setNewLabel] = useState("");
   const [newRenderUrl, setNewRenderUrl] = useState("");
 
-  // Cache image bounds to avoid ref access during render
-  const [cachedBounds, setCachedBounds] = useState<{
-    imgW: number;
-    imgH: number;
-    offsetX: number;
-    offsetY: number;
-    cRect: DOMRect;
-  } | null>(null);
-
-  // Force re-render on resize so pixel positions recalculate
-  const [, setTick] = useState(0);
-  useEffect(() => {
-    const onResize = () => setTick((t) => t + 1);
-    window.addEventListener("resize", onResize);
-    return () => window.removeEventListener("resize", onResize);
-  }, []);
-
-  /* Image bounds helper — accounts for object-contain offset */
-  const getImageBounds = useCallback(() => {
-    const container = containerRef.current;
-    const img = imgRef.current;
-    if (!container || !img || !img.naturalWidth || !img.naturalHeight) return null;
-    const cRect = container.getBoundingClientRect();
-    const naturalRatio = img.naturalWidth / img.naturalHeight;
-    const containerRatio = cRect.width / cRect.height;
-
-    let imgW: number, imgH: number, offsetX: number, offsetY: number;
-    if (naturalRatio > containerRatio) {
-      imgW = cRect.width;
-      imgH = cRect.width / naturalRatio;
-      offsetX = 0;
-      offsetY = (cRect.height - imgH) / 2;
-    } else {
-      imgH = cRect.height;
-      imgW = cRect.height * naturalRatio;
-      offsetX = (cRect.width - imgW) / 2;
-      offsetY = 0;
-    }
-    const bounds = { imgW, imgH, offsetX, offsetY, cRect };
-    setCachedBounds(bounds);
-    return bounds;
-  }, []);
-
-  // Update cached bounds on resize and image load
-  useEffect(() => {
-    getImageBounds();
-  }, [getImageBounds]);
-
-  /* Convert client coords to image-relative percentages */
-  const getPercentCoords = useCallback(
-    (clientX: number, clientY: number) => {
-      const bounds = getImageBounds();
-      if (!bounds) return { x: 0, y: 0 };
-      const { imgW, imgH, offsetX, offsetY, cRect } = bounds;
-      const x = ((clientX - cRect.left - offsetX) / imgW) * 100;
-      const y = ((clientY - cRect.top - offsetY) / imgH) * 100;
-      return { x: Math.max(0, Math.min(100, x)), y: Math.max(0, Math.min(100, y)) };
-    },
-    [getImageBounds]
-  );
-
-  /* Convert image-relative percentages to pixel positions */
-  const toPx = useCallback(
-    (x: number, y: number): { left: number; top: number } | null => {
-      if (!cachedBounds) return null;
-      const { imgW, imgH, offsetX, offsetY } = cachedBounds;
-      return { left: offsetX + (x / 100) * imgW, top: offsetY + (y / 100) * imgH };
-    },
-    [cachedBounds]
-  );
+  // Use shared hotspot canvas hook for image bounds & coordinate conversion
+  const { toPercent, toPx } = useHotspotCanvas(containerRef, imgRef);
 
   const handleImageClick = (e: React.MouseEvent) => {
     if (draggingId) return;
@@ -111,7 +44,7 @@ export function HotspotEditor({
       setEditingId(null);
       return;
     }
-    const { x, y } = getPercentCoords(e.clientX, e.clientY);
+    const { x, y } = toPercent(e.clientX, e.clientY);
     setNewHotspot({ x, y });
     setNewLabel("");
     setNewRenderUrl("");
@@ -156,7 +89,7 @@ export function HotspotEditor({
 
   const handlePointerMove = (e: React.PointerEvent) => {
     if (!draggingId) return;
-    const { x, y } = getPercentCoords(e.clientX, e.clientY);
+    const { x, y } = toPercent(e.clientX, e.clientY);
     updateHotspot(draggingId, { x, y });
   };
 
@@ -171,7 +104,6 @@ export function HotspotEditor({
   };
 
   const editingHotspot = editingId ? hotspots.find((h) => h.id === editingId) : null;
-  const showingForm = newHotspot || editingHotspot;
 
   return (
     <div className="flex gap-4 h-full">

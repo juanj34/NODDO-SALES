@@ -10,6 +10,7 @@ import {
   Users,
   FolderOpen,
   CreditCard,
+  DollarSign,
   ArrowLeft,
   LogOut,
   Loader2,
@@ -22,6 +23,10 @@ import {
   ShieldCheck,
   CalendarCheck,
   Sparkles,
+  Webhook,
+  HeartPulse,
+  ShieldAlert,
+  Mail,
 } from "lucide-react";
 import { ToastProvider } from "@/components/dashboard/Toast";
 import { ConfirmProvider } from "@/components/dashboard/ConfirmModal";
@@ -38,7 +43,12 @@ const navItems = [
   { href: "/admin/proyectos", label: "Proyectos", icon: FolderOpen },
   { href: "/admin/leads", label: "Leads", icon: MessageSquare },
   { href: "/admin/planes", label: "Planes", icon: CreditCard },
+  { href: "/admin/revenue", label: "Revenue", icon: DollarSign },
   { href: "/admin/features", label: "Features", icon: Sparkles },
+  { href: "/admin/webhooks", label: "Webhooks", icon: Webhook },
+  { href: "/admin/health", label: "Health", icon: HeartPulse },
+  { href: "/admin/moderacion", label: "Moderación", icon: ShieldAlert },
+  { href: "/admin/emails", label: "Emails", icon: Mail },
   { href: "/admin/citas", label: "Citas", icon: CalendarCheck },
   { href: "/admin/actividad", label: "Actividad", icon: Activity },
   { href: "/admin/storage", label: "Storage", icon: HardDrive },
@@ -51,7 +61,7 @@ function AdminShell({ children }: { children: React.ReactNode }) {
   const { isPlatformAdmin, loading, user } = useAuthRole();
   const [ready, setReady] = useState(false);
   const supabase = createClient();
-  const { isMobile, open: drawerOpen, toggle: toggleDrawer, close: closeDrawer } = useMobileDrawer();
+  const { open: drawerOpen, toggle: toggleDrawer, close: closeDrawer } = useMobileDrawer();
 
   useEffect(() => {
     if (!loading) {

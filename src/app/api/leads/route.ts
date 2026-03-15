@@ -4,6 +4,7 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { sendLeadNotification, sendLeadConfirmation } from "@/lib/email";
 import { isRateLimited, getClientIp } from "@/lib/rate-limit";
 import { getWebhookConfig, dispatchWebhook } from "@/lib/webhooks";
+import { verifyRecaptcha, getRecaptchaToken } from "@/lib/recaptcha";
 import type { WebhookPayload } from "@/lib/webhooks";
 import { NextRequest, NextResponse } from "next/server";
 
@@ -21,6 +22,16 @@ export async function POST(request: NextRequest) {
     // POST is public — no auth needed for lead creation
     const supabase = await createClient();
     const body = await request.json();
+
+    // Verify reCAPTCHA token
+    const recaptchaToken = getRecaptchaToken(body);
+    const isHuman = await verifyRecaptcha(recaptchaToken || "", "lead_submit", 0.5);
+    if (!isHuman) {
+      return NextResponse.json(
+        { error: "Verificación de seguridad fallida. Por favor intenta de nuevo." },
+        { status: 403 }
+      );
+    }
 
     const { nombre, email, proyecto_id } = body;
 

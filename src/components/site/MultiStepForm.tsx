@@ -82,7 +82,6 @@ export function MultiStepForm({
           {steps.map((s, index) => {
             const isActive = index === currentStep;
             const isCompleted = index < currentStep;
-            const isFuture = index > currentStep;
 
             return (
               <div key={s.id} className="flex items-center flex-1">

@@ -352,7 +352,7 @@ export function useTourUpload(): TourUploadHook {
         }
 
         const rawPaths = entries.map((e) => e.path);
-        const { stripped, prefix } = stripCommonRoot(rawPaths);
+        const { stripped } = stripCommonRoot(rawPaths);
 
         const finalEntries = entries.map((e, i) => ({
           ...e,

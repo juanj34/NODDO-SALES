@@ -89,7 +89,6 @@ export function FileUploader({
 }: FileUploaderProps) {
   const { t } = useTranslation("editor");
   const [uploading, setUploading] = useState(false);
-  const [compressing, setCompressing] = useState(false);
   const [uploadState, setUploadState] = useState<UploadState>("idle");
   const [uploadProgressPercent, setUploadProgressPercent] = useState(0);
   const [uploadError, setUploadError] = useState<string | null>(null);
@@ -102,8 +101,6 @@ export function FileUploader({
 
   // Crop state
   const [cropSrc, setCropSrc] = useState<string | null>(null);
-  // Pending file to upload after crop decision
-  const [pendingFile, setPendingFile] = useState<File | null>(null);
 
   // Aspect ratio warning
   const [aspectWarning, setAspectWarning] = useState<{

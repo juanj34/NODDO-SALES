@@ -210,31 +210,31 @@ async function addGHLTags(contactId: string, tags: string[]) {
   }).catch((err) => console.error("[booking-handler] GHL tag add failed:", err));
 }
 
-async function moveGHLOpportunity(contactId: string, stageId: string) {
-  const headers = getGHLHeaders();
-  const pipelineId = Deno.env.get("GHL_PIPELINE_ID");
-  const locationId = Deno.env.get("GHL_LOCATION_ID");
-  if (!headers || !pipelineId || !locationId || !contactId) return;
+// async function moveGHLOpportunity(contactId: string, stageId: string) {
+//   const headers = getGHLHeaders();
+//   const pipelineId = Deno.env.get("GHL_PIPELINE_ID");
+//   const locationId = Deno.env.get("GHL_LOCATION_ID");
+//   if (!headers || !pipelineId || !locationId || !contactId) return;
 
-  try {
-    const searchRes = await fetch(
-      `${GHL_BASE}/opportunities/search?location_id=${locationId}&pipeline_id=${pipelineId}&contact_id=${contactId}`,
-      { headers },
-    );
-    const searchData = await searchRes.json();
-    const oppId = searchData?.opportunities?.[0]?.id;
+//   try {
+//     const searchRes = await fetch(
+//       `${GHL_BASE}/opportunities/search?location_id=${locationId}&pipeline_id=${pipelineId}&contact_id=${contactId}`,
+//       { headers },
+//     );
+//     const searchData = await searchRes.json();
+//     const oppId = searchData?.opportunities?.[0]?.id;
 
-    if (oppId) {
-      await fetch(`${GHL_BASE}/opportunities/${oppId}`, {
-        method: "PUT",
-        headers,
-        body: JSON.stringify({ pipelineStageId: stageId }),
-      });
-    }
-  } catch (err) {
-    console.error("[booking-handler] GHL opportunity move failed:", err);
-  }
-}
+//     if (oppId) {
+//       await fetch(`${GHL_BASE}/opportunities/${oppId}`, {
+//         method: "PUT",
+//         headers,
+//         body: JSON.stringify({ pipelineStageId: stageId }),
+//       });
+//     }
+//   } catch (err) {
+//     console.error("[booking-handler] GHL opportunity move failed:", err);
+//   }
+// }
 
 // ─── Action handlers ────────────────────────────────────────────────────
 
@@ -289,7 +289,6 @@ async function handleConfirmation(
 
   const a = appt as Appointment;
   const dt = formatDateTime(a.scheduled_for, a.timezone);
-  const meetingLink = a.meeting_link || MEETING_LINK || `${APP_URL}/#booking`;
 
   // Build thank-you page URL with booking context
   const thankYouUrl = `${APP_URL}/demo-confirmada?name=${encodeURIComponent(a.nombre)}&date=${encodeURIComponent(a.scheduled_for.split("T")[0])}&time=${encodeURIComponent(dt.time)}`;

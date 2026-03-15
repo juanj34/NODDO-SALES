@@ -4,6 +4,7 @@ import { useState, useEffect, useRef, useCallback } from "react";
 import { useEditorProject } from "@/hooks/useEditorProject";
 import { useToast } from "@/components/dashboard/Toast";
 import { FileUploader } from "@/components/dashboard/FileUploader";
+import { PageHeader } from "@/components/dashboard/base/PageHeader";
 import {
   inputClass,
   labelClass,
@@ -11,9 +12,6 @@ import {
   sectionCard,
   sectionTitle,
   sectionDescription,
-  pageHeader,
-  pageTitle,
-  pageDescription,
 } from "@/components/dashboard/editor-styles";
 import {
   Building2,
@@ -51,7 +49,7 @@ const tabDefs: { id: GeneralTab; labelKey: string; icon: typeof Building2 }[] = 
 ];
 
 export default function EditorGeneralPage() {
-  const { project, saving, save, projectId } = useEditorProject();
+  const { project, save, projectId } = useEditorProject();
   const { t } = useTranslation("editor");
   const toast = useToast();
 
@@ -195,14 +193,11 @@ export default function EditorGeneralPage() {
       className="max-w-4xl mx-auto"
     >
       {/* Page Header */}
-      <div className={pageHeader}>
-        <div>
-          <h2 className={pageTitle}>{t("general.title")}</h2>
-          <p className={pageDescription}>
-            {t("general.description")}
-          </p>
-        </div>
-      </div>
+      <PageHeader
+        icon={Building2}
+        title={t("general.title")}
+        description={t("general.description")}
+      />
 
       {/* Tab Bar */}
       <div className="flex items-center gap-1 p-1 bg-[var(--surface-1)] rounded-xl border border-[var(--border-subtle)] mb-6 overflow-x-auto scrollbar-hide">

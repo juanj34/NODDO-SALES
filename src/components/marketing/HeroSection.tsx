@@ -65,17 +65,112 @@ export function HeroSection() {
           initial={{ opacity: 0, y: 24 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8, delay: 0.8, ease: "easeOut" }}
-          className="flex items-center gap-5 flex-wrap sm:flex-nowrap"
         >
-          <button onClick={openBooking} className="btn-mk-primary inline-flex items-center gap-2.5 whitespace-nowrap">
-            Agendar Demo
-            <ArrowRight size={14} strokeWidth={2.5} />
-          </button>
-          <Link href="/sites/alto-de-yeguas" className="btn-mk-outline inline-flex items-center gap-2.5 whitespace-nowrap">
-            Demo en Vivo
-            <ExternalLink size={13} strokeWidth={2} />
-          </Link>
+          <div className="flex items-center gap-5 flex-wrap sm:flex-nowrap mb-5">
+            {/* Primary CTA with pulse */}
+            <div className="relative">
+              {/* Pulsing glow ring */}
+              <div
+                className="absolute inset-0 rounded-[12px]"
+                style={{
+                  background: "transparent",
+                  boxShadow: "0 0 0 0 rgba(184,151,58,0.7)",
+                  animation: "pulse-ring 2s cubic-bezier(0.4, 0, 0.6, 1) infinite",
+                }}
+              />
+              <button
+                onClick={openBooking}
+                className="btn-mk-primary inline-flex items-center gap-2.5 whitespace-nowrap relative z-[1]"
+                style={{ fontSize: 13, padding: "14px 32px" }}
+              >
+                Ver Demo Gratis
+                <ArrowRight size={15} strokeWidth={2.5} />
+              </button>
+            </div>
+
+            <Link href="/sites/alto-de-yeguas" className="btn-mk-outline inline-flex items-center gap-2.5 whitespace-nowrap" style={{ fontSize: 13, padding: "14px 28px" }}>
+              Demo en Vivo
+              <ExternalLink size={13} strokeWidth={2} />
+            </Link>
+          </div>
+
+          {/* Trust elements below CTAs */}
+          <div className="flex items-center gap-6 flex-wrap">
+            {/* Avatar stack */}
+            <div className="flex items-center gap-2.5">
+              <div className="flex items-center" style={{ marginLeft: -4 }}>
+                {[
+                  "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=80&h=80&fit=crop&crop=faces",
+                  "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=80&h=80&fit=crop&crop=faces",
+                  "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=80&h=80&fit=crop&crop=faces",
+                  "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=80&h=80&fit=crop&crop=faces",
+                ].map((photoUrl, i) => (
+                  <div
+                    key={i}
+                    style={{
+                      width: 28,
+                      height: 28,
+                      borderRadius: "50%",
+                      border: "2px solid var(--mk-bg)",
+                      marginLeft: i === 0 ? 0 : -10,
+                      position: "relative",
+                      zIndex: 5 - i,
+                      boxShadow: "0 2px 8px rgba(0,0,0,0.3), 0 0 0 1px rgba(184,151,58,0.2)",
+                      overflow: "hidden",
+                    }}
+                  >
+                    <img
+                      src={photoUrl}
+                      alt=""
+                      style={{
+                        width: "100%",
+                        height: "100%",
+                        objectFit: "cover",
+                      }}
+                    />
+                  </div>
+                ))}
+              </div>
+              <span style={{ fontSize: 12, color: "rgba(244,240,232,0.5)" }}>
+                <strong style={{ color: "var(--mk-text-primary)", fontWeight: 500 }}>100+</strong> desarrolladores
+              </span>
+            </div>
+
+            {/* Divider */}
+            <div style={{ width: 1, height: 20, background: "rgba(255,255,255,0.1)" }} />
+
+            {/* Micro-copy trust elements */}
+            <div className="flex items-center gap-4 text-[11px]" style={{ color: "rgba(244,240,232,0.4)" }}>
+              <div className="flex items-center gap-1.5">
+                <span style={{ color: "var(--mk-accent)" }}>✓</span>
+                Sin tarjeta
+              </div>
+              <div className="flex items-center gap-1.5">
+                <span style={{ color: "var(--mk-accent)" }}>✓</span>
+                Listo en 24h
+              </div>
+              <div className="flex items-center gap-1.5 hidden sm:flex">
+                <span style={{ color: "var(--mk-accent)" }}>✓</span>
+                Sin compromiso
+              </div>
+            </div>
+          </div>
         </motion.div>
+
+        {/* Pulse ring keyframes */}
+        <style jsx>{`
+          @keyframes pulse-ring {
+            0% {
+              box-shadow: 0 0 0 0 rgba(184,151,58,0.7);
+            }
+            50% {
+              box-shadow: 0 0 0 10px rgba(184,151,58,0);
+            }
+            100% {
+              box-shadow: 0 0 0 0 rgba(184,151,58,0);
+            }
+          }
+        `}</style>
 
         {/* Stats strip */}
         <motion.div

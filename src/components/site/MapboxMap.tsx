@@ -244,10 +244,11 @@ export function MapboxMap({
     return () => {
       map.remove();
       mapRef.current = null;
+      // eslint-disable-next-line react-hooks/exhaustive-deps -- Refs used in cleanup are intentionally from closure
       poiMarkersRef.current.clear();
       projectMarkerRef.current = null;
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- Map init should only run once
   }, []);
 
   // Handle style changes

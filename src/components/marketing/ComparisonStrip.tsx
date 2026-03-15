@@ -8,16 +8,18 @@ import { NodDoLogo } from "@/components/ui/NodDoLogo";
 /** Brochure PDF — document page with text lines */
 function IconBrochure() {
   return (
-    <svg viewBox="0 0 40 40" fill="none" width="36" height="36">
-      {/* Page with folded corner */}
-      <path d="M10 4 H26 L32 10 V36 H10 Z" stroke="rgba(244,240,232,0.4)" strokeWidth="1" />
-      <path d="M26 4 V10 H32" stroke="rgba(244,240,232,0.3)" strokeWidth="0.8" />
-      {/* Text lines */}
-      <line x1="15" y1="16" x2="27" y2="16" stroke="rgba(244,240,232,0.2)" strokeWidth="0.8" />
-      <line x1="15" y1="20" x2="25" y2="20" stroke="rgba(244,240,232,0.15)" strokeWidth="0.8" />
-      <line x1="15" y1="24" x2="27" y2="24" stroke="rgba(244,240,232,0.2)" strokeWidth="0.8" />
-      <line x1="15" y1="28" x2="22" y2="28" stroke="rgba(244,240,232,0.12)" strokeWidth="0.8" />
-    </svg>
+    <div className="flex items-center justify-center">
+      <svg viewBox="0 0 40 40" fill="none" width="36" height="36">
+        {/* Page with folded corner */}
+        <path d="M10 4 H26 L32 10 V36 H10 Z" stroke="rgba(244,240,232,0.4)" strokeWidth="1" />
+        <path d="M26 4 V10 H32" stroke="rgba(244,240,232,0.3)" strokeWidth="0.8" />
+        {/* Text lines */}
+        <line x1="15" y1="16" x2="27" y2="16" stroke="rgba(244,240,232,0.2)" strokeWidth="0.8" />
+        <line x1="15" y1="20" x2="25" y2="20" stroke="rgba(244,240,232,0.15)" strokeWidth="0.8" />
+        <line x1="15" y1="24" x2="27" y2="24" stroke="rgba(244,240,232,0.2)" strokeWidth="0.8" />
+        <line x1="15" y1="28" x2="22" y2="28" stroke="rgba(244,240,232,0.12)" strokeWidth="0.8" />
+      </svg>
+    </div>
   );
 }
 
@@ -61,21 +63,23 @@ function IconNoddoDashboard() {
 /** Software 3D — isometric cube / 3D model */
 function IconSoftware3D() {
   return (
-    <svg viewBox="0 0 40 40" fill="none" width="36" height="36">
-      {/* Isometric cube */}
-      <polygon points="20,4 36,13 36,27 20,36 4,27 4,13" stroke="rgba(244,240,232,0.35)" strokeWidth="0.8" />
-      {/* Top face */}
-      <polygon points="20,4 36,13 20,22 4,13" stroke="rgba(244,240,232,0.3)" strokeWidth="0.6" fill="rgba(244,240,232,0.03)" />
-      {/* Center vertical edge */}
-      <line x1="20" y1="22" x2="20" y2="36" stroke="rgba(244,240,232,0.25)" strokeWidth="0.6" />
-      {/* Left face diagonal */}
-      <line x1="4" y1="13" x2="20" y2="22" stroke="rgba(244,240,232,0.2)" strokeWidth="0.6" />
-      {/* Right face diagonal */}
-      <line x1="36" y1="13" x2="20" y2="22" stroke="rgba(244,240,232,0.2)" strokeWidth="0.6" />
-      {/* Grid lines on top face */}
-      <line x1="12" y1="8.5" x2="28" y2="17.5" stroke="rgba(244,240,232,0.1)" strokeWidth="0.4" />
-      <line x1="12" y1="17.5" x2="28" y2="8.5" stroke="rgba(244,240,232,0.1)" strokeWidth="0.4" />
-    </svg>
+    <div className="flex items-center justify-center">
+      <svg viewBox="0 0 40 40" fill="none" width="36" height="36">
+        {/* Isometric cube */}
+        <polygon points="20,4 36,13 36,27 20,36 4,27 4,13" stroke="rgba(244,240,232,0.35)" strokeWidth="0.8" />
+        {/* Top face */}
+        <polygon points="20,4 36,13 20,22 4,13" stroke="rgba(244,240,232,0.3)" strokeWidth="0.6" fill="rgba(244,240,232,0.03)" />
+        {/* Center vertical edge */}
+        <line x1="20" y1="22" x2="20" y2="36" stroke="rgba(244,240,232,0.25)" strokeWidth="0.6" />
+        {/* Left face diagonal */}
+        <line x1="4" y1="13" x2="20" y2="22" stroke="rgba(244,240,232,0.2)" strokeWidth="0.6" />
+        {/* Right face diagonal */}
+        <line x1="36" y1="13" x2="20" y2="22" stroke="rgba(244,240,232,0.2)" strokeWidth="0.6" />
+        {/* Grid lines on top face */}
+        <line x1="12" y1="8.5" x2="28" y2="17.5" stroke="rgba(244,240,232,0.1)" strokeWidth="0.4" />
+        <line x1="12" y1="17.5" x2="28" y2="8.5" stroke="rgba(244,240,232,0.1)" strokeWidth="0.4" />
+      </svg>
+    </div>
   );
 }
 
@@ -184,7 +188,7 @@ export function ComparisonStrip() {
                   </div>
                   <div style={{ marginBottom: 10 }}><IconNoddoDashboard /></div>
                   <div className="font-heading text-[16px] font-light" style={{ color: "var(--mk-accent)" }}>
-                    $149 – $399 / mes
+                    Desde $149 / mes
                   </div>
                 </th>
                 {/* Agencia */}

@@ -46,7 +46,6 @@ export function UpgradePrompt({
   isOpen,
   onClose,
   feature,
-  currentPlan,
   requiredPlan,
   onUpgrade,
 }: UpgradePromptProps) {

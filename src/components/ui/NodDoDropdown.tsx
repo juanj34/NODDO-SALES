@@ -190,7 +190,8 @@ export function NodDoDropdown({
 
     document.addEventListener("keydown", handleKeyDown);
     return () => document.removeEventListener("keydown", handleKeyDown);
-  }, [isOpen, focusedIndex, options, handleSelect]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- handleSelect is stable, defined before this effect
+  }, [isOpen, focusedIndex, options]);
 
   // Scroll focused option into view
   useEffect(() => {

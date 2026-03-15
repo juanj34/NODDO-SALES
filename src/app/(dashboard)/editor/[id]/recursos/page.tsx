@@ -13,13 +13,11 @@ import {
   btnPrimary,
   btnSecondary,
   btnDanger,
-  pageHeader,
-  pageTitle,
-  pageDescription,
   sectionCard,
   sectionTitle,
   listItem,
 } from "@/components/dashboard/editor-styles";
+import { PageHeader } from "@/components/dashboard/base/PageHeader";
 import { DashboardEmptyState } from "@/components/dashboard/DashboardEmptyState";
 import type { Recurso } from "@/types";
 import {
@@ -152,25 +150,19 @@ export default function RecursosPage() {
       className="max-w-4xl mx-auto"
     >
       {/* ── Page Header ──────────────────────────────────────────── */}
-      <div className={pageHeader}>
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-[rgba(var(--site-primary-rgb),0.1)] flex items-center justify-center">
-            <FileText size={20} className="text-[var(--site-primary)]" />
-          </div>
-          <div>
-            <h2 className={pageTitle}>{t("recursos.title")}</h2>
-            <p className={pageDescription}>
-              {t("recursos.description")}
-            </p>
-          </div>
-        </div>
-        {!showForm && (
-          <button onClick={openNew} className={btnPrimary}>
-            <Plus size={14} />
-            {t("recursos.addResource")}
-          </button>
-        )}
-      </div>
+      <PageHeader
+        icon={FileText}
+        title={t("recursos.title")}
+        description={t("recursos.description")}
+        actions={
+          !showForm ? (
+            <button onClick={openNew} className={btnPrimary}>
+              <Plus size={14} />
+              {t("recursos.addResource")}
+            </button>
+          ) : undefined
+        }
+      />
 
       {/* ── Form ─────────────────────────────────────────────────── */}
       <AnimatePresence>

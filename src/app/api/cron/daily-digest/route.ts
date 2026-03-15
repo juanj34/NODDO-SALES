@@ -40,7 +40,6 @@ function isAuthorizedCronRequest(request: NextRequest): boolean {
 async function getDailyMetrics() {
   const supabase = await createClient();
   const yesterday = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
-  const weekAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
 
   try {
     // Leads (last 24h vs previous 24h)
@@ -75,7 +74,7 @@ async function getDailyMetrics() {
       .limit(5);
 
     // Redis stats (estimate from info command)
-    let redisStats = {
+    const redisStats = {
       commandsToday: 0,
       memoryUsageMB: 0,
       maxMemoryMB: 25,

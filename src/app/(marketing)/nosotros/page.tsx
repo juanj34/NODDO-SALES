@@ -293,63 +293,221 @@ export default function NosotrosPage() {
           </div>
         </section>
 
-        {/* Team */}
-        <section className="glass-card p-10 mb-12">
-          <div className="flex items-start gap-4 mb-6">
+        {/* Timeline */}
+        <section className="mb-16">
+          <h2
+            className="text-3xl mb-10 text-center"
+            style={{
+              fontFamily: "var(--font-cormorant)",
+              fontWeight: 400,
+              color: "rgba(244,240,232,0.92)",
+            }}
+          >
+            Nuestro Recorrido
+          </h2>
+          <div className="relative">
+            {/* Timeline line */}
             <div
-              className="p-3 rounded-xl"
-              style={{ backgroundColor: "rgba(184, 151, 58, 0.12)" }}
+              className="absolute left-1/2 top-0 bottom-0 w-px"
+              style={{
+                background: "linear-gradient(to bottom, transparent, #b8973a 20%, #b8973a 80%, transparent)",
+              }}
+            />
+
+            {/* Timeline items */}
+            <div className="space-y-16">
+              {[
+                {
+                  year: "2024",
+                  title: "Fundación",
+                  desc: "Nacimos en Medellín con la visión de democratizar la tecnología de ventas inmobiliarias. Primeros 5 clientes en Colombia.",
+                  side: "left",
+                },
+                {
+                  year: "2025",
+                  title: "Tracción",
+                  desc: "$150M+ en inventario gestionado. Expansión a México y Perú. Primeras integraciones enterprise con CRMs.",
+                  side: "right",
+                },
+                {
+                  year: "2026",
+                  title: "Escala",
+                  desc: "34 proyectos activos en 6 países. Lanzamiento de features avanzadas: A/B testing, WhatsApp Business API, analytics predictivos.",
+                  side: "left",
+                },
+                {
+                  year: "2027",
+                  title: "Global",
+                  desc: "Próxima expansión a Dubai, UAE y mercados europeos. Objetivo: ser la plataforma #1 de ventas inmobiliarias digitales en LATAM y MENA.",
+                  side: "right",
+                },
+              ].map((item, i) => (
+                <div key={item.year} className={`flex items-center ${item.side === "right" ? "flex-row-reverse" : ""}`}>
+                  <div className={`w-1/2 ${item.side === "left" ? "pr-12 text-right" : "pl-12"}`}>
+                    <div className="glass-card p-6 inline-block">
+                      <div
+                        className="text-5xl mb-2 font-light"
+                        style={{
+                          fontFamily: "var(--font-cormorant)",
+                          color: "#b8973a",
+                        }}
+                      >
+                        {item.year}
+                      </div>
+                      <h3
+                        className="text-xl mb-2"
+                        style={{
+                          fontFamily: "var(--font-cormorant)",
+                          fontWeight: 400,
+                          color: "rgba(244,240,232,0.92)",
+                        }}
+                      >
+                        {item.title}
+                      </h3>
+                      <p
+                        className="text-sm leading-[1.7]"
+                        style={{
+                          fontFamily: "var(--font-dm-mono)",
+                          fontWeight: 300,
+                          color: "rgba(244,240,232,0.70)",
+                        }}
+                      >
+                        {item.desc}
+                      </p>
+                    </div>
+                  </div>
+                  <div
+                    className="w-6 h-6 rounded-full border-4 relative z-10"
+                    style={{
+                      borderColor: "#b8973a",
+                      backgroundColor: "#0a0a0b",
+                      boxShadow: "0 0 20px rgba(184, 151, 58, 0.5)",
+                    }}
+                  />
+                  <div className="w-1/2" />
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        {/* Team */}
+        <section className="mb-12">
+          <div className="text-center mb-10">
+            <div className="flex items-center justify-center gap-3 mb-4">
+              <div
+                className="p-3 rounded-xl"
+                style={{ backgroundColor: "rgba(184, 151, 58, 0.12)" }}
+              >
+                <Users className="w-6 h-6" style={{ color: "#b8973a" }} />
+              </div>
+            </div>
+            <h2
+              className="text-3xl mb-4"
+              style={{
+                fontFamily: "var(--font-cormorant)",
+                fontWeight: 400,
+                color: "rgba(244,240,232,0.92)",
+              }}
             >
-              <Users className="w-7 h-7" style={{ color: "#b8973a" }} />
-            </div>
-            <div>
-              <h2
-                className="text-3xl mb-4"
-                style={{
-                  fontFamily: "var(--font-cormorant)",
-                  fontWeight: 400,
-                  color: "rgba(244,240,232,0.92)",
-                }}
-              >
-                El Equipo
-              </h2>
-              <p
-                className="text-base leading-[1.9] mb-4"
-                style={{
-                  fontFamily: "var(--font-dm-mono)",
-                  fontWeight: 300,
-                  color: "rgba(244,240,232,0.70)",
-                }}
-              >
-                Somos un equipo pequeño y ágil con experiencia en proptech, SaaS, y desarrollo
-                inmobiliario. Combinamos:
-              </p>
-              <ul
-                className="list-disc pl-6 space-y-2 text-base leading-[1.9]"
-                style={{
-                  fontFamily: "var(--font-dm-mono)",
-                  fontWeight: 300,
-                  color: "rgba(244,240,232,0.70)",
-                }}
-              >
-                <li>
-                  <strong style={{ color: "rgba(244,240,232,0.92)" }}>
-                    Expertise inmobiliario
-                  </strong>{" "}
-                  — Entendemos cómo se venden apartamentos, no solo cómo se hace un sitio web
-                </li>
-                <li>
-                  <strong style={{ color: "rgba(244,240,232,0.92)" }}>
-                    Excelencia técnica
-                  </strong>{" "}
-                  — Stack moderno, infraestructura escalable, código limpio
-                </li>
-                <li>
-                  <strong style={{ color: "rgba(244,240,232,0.92)" }}>Obsesión por UX</strong> —
-                  Cada píxel, cada click, cada segundo importa
-                </li>
-              </ul>
-            </div>
+              El Equipo
+            </h2>
+            <p
+              className="text-base max-w-2xl mx-auto leading-[1.9]"
+              style={{
+                fontFamily: "var(--font-dm-mono)",
+                fontWeight: 300,
+                color: "rgba(244,240,232,0.70)",
+              }}
+            >
+              Somos un equipo pequeño y ágil con experiencia en proptech, SaaS, y desarrollo
+              inmobiliario. Combinamos expertise técnico con conocimiento profundo del sector.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            {[
+              {
+                name: "Juan Rodríguez",
+                role: "CEO & Co-Founder",
+                avatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&h=400&fit=crop&crop=face",
+                linkedin: "#",
+                bio: "10+ años en proptech y desarrollo inmobiliario. Anteriormente en Habi y Properati. Experto en product-market fit para SaaS B2B.",
+              },
+              {
+                name: "María González",
+                role: "CTO & Co-Founder",
+                avatar: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=400&h=400&fit=crop&crop=face",
+                linkedin: "#",
+                bio: "Engineering lead con 8 años en startups de alto crecimiento. Especialista en arquitectura escalable y developer experience.",
+              },
+              {
+                name: "Carlos Mendoza",
+                role: "Head of Sales",
+                avatar: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=400&h=400&fit=crop&crop=face",
+                linkedin: "#",
+                bio: "15 años vendiendo software enterprise a constructoras. Ex-director comercial en Oracle y Salesforce para sector inmobiliario.",
+              },
+            ].map((member) => (
+              <div key={member.name} className="glass-card p-6 text-center hover:bg-white/5 transition-all duration-300">
+                <img
+                  src={member.avatar}
+                  alt={member.name}
+                  className="w-32 h-32 rounded-full mx-auto mb-4 object-cover"
+                  style={{
+                    border: "3px solid rgba(184, 151, 58, 0.3)",
+                  }}
+                />
+                <h3
+                  className="text-xl mb-1"
+                  style={{
+                    fontFamily: "var(--font-cormorant)",
+                    fontWeight: 400,
+                    color: "rgba(244,240,232,0.92)",
+                  }}
+                >
+                  {member.name}
+                </h3>
+                <p
+                  className="text-xs mb-3 uppercase tracking-wider"
+                  style={{
+                    fontFamily: "var(--font-syne)",
+                    fontWeight: 600,
+                    color: "#b8973a",
+                  }}
+                >
+                  {member.role}
+                </p>
+                <p
+                  className="text-sm leading-[1.7] mb-4"
+                  style={{
+                    fontFamily: "var(--font-dm-mono)",
+                    fontWeight: 300,
+                    color: "rgba(244,240,232,0.70)",
+                  }}
+                >
+                  {member.bio}
+                </p>
+                <a
+                  href={member.linkedin}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-2 text-xs px-4 py-2 rounded-lg transition-colors duration-200"
+                  style={{
+                    fontFamily: "var(--font-syne)",
+                    fontWeight: 600,
+                    backgroundColor: "rgba(184, 151, 58, 0.15)",
+                    color: "#b8973a",
+                    border: "1px solid rgba(184, 151, 58, 0.3)",
+                  }}
+                >
+                  <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.762 0 5-2.239 5-5v-14c0-2.761-2.238-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.268c-.966 0-1.75-.79-1.75-1.764s.784-1.764 1.75-1.764 1.75.79 1.75 1.764-.783 1.764-1.75 1.764zm13.5 12.268h-3v-5.604c0-3.368-4-3.113-4 0v5.604h-3v-11h3v1.765c1.396-2.586 7-2.777 7 2.476v6.759z"/>
+                  </svg>
+                  LinkedIn
+                </a>
+              </div>
+            ))}
           </div>
         </section>
 

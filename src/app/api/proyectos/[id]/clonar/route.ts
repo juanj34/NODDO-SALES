@@ -38,7 +38,7 @@ export async function POST(
     // Generate unique slug
     let newSlug = `${source.slug}-copia`;
     let suffix = 1;
-    // eslint-disable-next-line no-constant-condition
+     
     while (true) {
       const { data: exists } = await auth.supabase
         .from("proyectos")

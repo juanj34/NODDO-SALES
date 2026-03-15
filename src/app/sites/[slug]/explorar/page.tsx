@@ -60,7 +60,7 @@ export default function ExplorarPage() {
     "explorar-torre", null, proyecto.slug
   );
 
-  const torres = proyecto.torres ?? [];
+  const torres = useMemo(() => proyecto.torres ?? [], [proyecto.torres]);
   const isMultiTorre = torres.length > 1;
 
   // Implantacion modal
@@ -71,6 +71,7 @@ export default function ExplorarPage() {
     if (isMultiTorre && !torreIdParam && !selectedTorreId && torres.length > 0) {
       setSelectedTorreId(torres[0].id);
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- setSelectedTorreId is a state setter, stable
   }, [isMultiTorre, torreIdParam, selectedTorreId, torres]);
 
   const activeTorre = useMemo<Torre | null>(() => {

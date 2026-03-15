@@ -12,14 +12,12 @@ import {
   btnPrimary,
   btnSecondary,
   btnDanger,
-  pageHeader,
-  pageTitle,
-  pageDescription,
   emptyState,
   emptyStateIcon,
   emptyStateTitle,
   emptyStateDescription,
 } from "@/components/dashboard/editor-styles";
+import { PageHeader } from "@/components/dashboard/base/PageHeader";
 import { FileUploader } from "@/components/dashboard/FileUploader";
 import { FacadeHotspotEditor } from "@/components/dashboard/FacadeHotspotEditor";
 import { PlanoHotspotEditor } from "@/components/dashboard/PlanoHotspotEditor";
@@ -69,7 +67,6 @@ export default function NoddoGridPage() {
   const [newDescripcion, setNewDescripcion] = useState("");
   const [newAmenidades, setNewAmenidades] = useState("");
   const [newImagenPortada, setNewImagenPortada] = useState("");
-  const [addingFachada, setAddingFachada] = useState(false);
 
   // Implantación
   const [implantacionNombre, setImplantacionNombre] = useState(t("fachadas.implantacionDefaultName"));
@@ -77,20 +74,8 @@ export default function NoddoGridPage() {
   const [creatingImplantacion, setCreatingImplantacion] = useState(false);
   const [deletingImplantacion, setDeletingImplantacion] = useState(false);
 
-  // Torre form modal
-  const [showAddTorreForm, setShowAddTorreForm] = useState(false);
-  const [torreNombre, setTorreNombre] = useState("");
-  const [torreNumPisos, setTorreNumPisos] = useState("");
-  const [torreDescripcion, setTorreDescripcion] = useState("");
-  const [torreAmenidades, setTorreAmenidades] = useState("");
-  const [torreCaracteristicas, setTorreCaracteristicas] = useState("");
-  const [torreImagenPortada, setTorreImagenPortada] = useState("");
-  const [torreLogoUrl, setTorreLogoUrl] = useState("");
-  const [savingTorre, setSavingTorre] = useState(false);
-
   // Multi-torre tab
   const [activeTab, setActiveTab] = useState<string>("implantacion");
-  const [enablingMultiTorre, setEnablingMultiTorre] = useState(false);
 
   // Plantas view
   const [viewMode, setViewMode] = useState<"fachada" | "planta">("fachada");
@@ -110,7 +95,6 @@ export default function NoddoGridPage() {
 
   // Busy / saving indicators
   const [deletingId, setDeletingId] = useState<string | null>(null);
-  const [deletingTorreId, setDeletingTorreId] = useState<string | null>(null);
 
   /* ---- Sync from context ---- */
   useEffect(() => {
@@ -482,138 +466,6 @@ export default function NoddoGridPage() {
     await refresh();
   };
 
-  /* ------------------------------------------------------------------
-     CRUD: Torres
-     ------------------------------------------------------------------ */
-  const resetTorreForm = () => {
-    setTorreNombre("");
-    setTorreNumPisos("");
-    setTorreDescripcion("");
-    setTorreAmenidades("");
-    setTorreCaracteristicas("");
-    setTorreImagenPortada("");
-    setTorreLogoUrl("");
-    setShowAddTorreForm(false);
-  };
-
-  const handleAddTorre = async () => {
-    if (!torreNombre.trim()) return;
-    setSavingTorre(true);
-    try {
-      const res = await fetch("/api/torres", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          proyecto_id: projectId,
-          nombre: torreNombre.trim(),
-          num_pisos: torreNumPisos ? parseInt(torreNumPisos) : null,
-          descripcion: torreDescripcion.trim() || null,
-          amenidades: torreAmenidades.trim() || null,
-          caracteristicas: torreCaracteristicas.trim() || null,
-          imagen_portada: torreImagenPortada || null,
-          logo_url: torreLogoUrl || null,
-        }),
-      });
-      if (res.ok) {
-        const created: Torre = await res.json();
-        resetTorreForm();
-        await refresh();
-        setActiveTab(created.id);
-      }
-    } finally {
-      setSavingTorre(false);
-    }
-  };
-
-  const handleUpdateTorre = async (torreId: string, data: Partial<Torre>) => {
-    await fetch(`/api/torres/${torreId}`, {
-      method: "PUT",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(data),
-    });
-    await refresh();
-  };
-
-  const handleDeleteTorre = async (torreId: string) => {
-    setDeletingTorreId(torreId);
-    try {
-      // Delete fachadas belonging to this torre first
-      const torreFachadas = fachadas.filter((f) => f.torre_id === torreId);
-      await Promise.all(
-        torreFachadas.map((f) => fetch(`/api/fachadas/${f.id}`, { method: "DELETE" }))
-      );
-      // Delete the torre
-      const res = await fetch(`/api/torres/${torreId}`, { method: "DELETE" });
-      if (res.ok) {
-        const remaining = torres.filter((t) => t.id !== torreId);
-        setActiveTab(remaining.length > 0 ? remaining[0].id : "implantacion");
-        await refresh();
-      }
-    } finally {
-      setDeletingTorreId(null);
-    }
-  };
-
-  /* ------------------------------------------------------------------
-     Mode toggle: Simple ↔ Multi-torre
-     ------------------------------------------------------------------ */
-  const handleEnableMultiTorre = async () => {
-    setEnablingMultiTorre(true);
-    try {
-      // Create default torre
-      const res = await fetch("/api/torres", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          proyecto_id: projectId,
-          nombre: "Torre 1",
-        }),
-      });
-      if (!res.ok) return;
-      const created: Torre = await res.json();
-
-      // Assign existing fachadas to the new torre
-      await Promise.all(
-        fachadas.map((f) =>
-          fetch(`/api/fachadas/${f.id}`, {
-            method: "PUT",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ torre_id: created.id }),
-          })
-        )
-      );
-
-      await refresh();
-      setActiveTab(created.id);
-    } finally {
-      setEnablingMultiTorre(false);
-    }
-  };
-
-  const handleDisableMultiTorre = async () => {
-    setEnablingMultiTorre(true);
-    try {
-      // Detach fachadas from torres
-      await Promise.all(
-        fachadas.map((f) =>
-          f.torre_id
-            ? fetch(`/api/fachadas/${f.id}`, {
-                method: "PUT",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ torre_id: null }),
-              })
-            : Promise.resolve()
-        )
-      );
-      // Delete all torres
-      await Promise.all(
-        torres.map((t) => fetch(`/api/torres/${t.id}`, { method: "DELETE" }))
-      );
-      await refresh();
-    } finally {
-      setEnablingMultiTorre(false);
-    }
-  };
 
   /* ------------------------------------------------------------------
      CRUD: Plantas (floor plans)
@@ -1117,45 +969,41 @@ export default function NoddoGridPage() {
       className="space-y-3"
     >
       {/* Page Header */}
-      <div className={pageHeader}>
-        <div className="flex items-center gap-4">
-          <div className="w-10 h-10 rounded-xl bg-[var(--surface-2)] border border-[var(--border-subtle)] flex items-center justify-center">
-            <Eye size={18} className="text-[var(--site-primary)]" />
+      <PageHeader
+        icon={Eye}
+        title={t("fachadas.title")}
+        description={
+          <span className="flex items-center gap-2">
+            {t("fachadas.description")}
+            <InfoTooltip
+              content={tLang.tooltips.fachadas.hotspotEditor.long}
+              variant="dashboard"
+              placement="auto"
+            />
+            {selectedFachada && !isMultiTorre && (
+              <span className="ml-2 text-[var(--text-tertiary)]">
+                {t("fachadas.descriptionDetail", { name: selectedFachada.nombre, assigned: assignedUnits.length, unassigned: unassignedUnits.length })}
+              </span>
+            )}
+          </span>
+        }
+        actions={
+          <div className="flex items-center gap-2">
+            {(!isMultiTorre || activeTorre) && (viewMode === "fachada" || activeTorre?.tipo === "urbanismo") && (
+              <button onClick={() => setShowAddForm(true)} className={btnPrimary}>
+                <Plus size={14} />
+                {t("fachadas.addGrid")}
+              </button>
+            )}
+            {(!isMultiTorre || activeTorre) && viewMode === "planta" && activeTorre?.tipo !== "urbanismo" && (
+              <button onClick={() => setShowPlantaTipoForm(true)} className={btnPrimary}>
+                <Plus size={14} />
+                {t("fachadas.plantas.addPlantaTipo")}
+              </button>
+            )}
           </div>
-          <div>
-            <h2 className={`${pageTitle} flex items-center gap-2`}>
-              {t("fachadas.title")}
-              <InfoTooltip
-                content={tLang.tooltips.fachadas.hotspotEditor.long}
-                variant="dashboard"
-                placement="auto"
-              />
-            </h2>
-            <p className={pageDescription}>
-              {t("fachadas.description")}
-              {selectedFachada && !isMultiTorre && (
-                <span className="ml-2 text-[var(--text-tertiary)]">
-                  {t("fachadas.descriptionDetail", { name: selectedFachada.nombre, assigned: assignedUnits.length, unassigned: unassignedUnits.length })}
-                </span>
-              )}
-            </p>
-          </div>
-        </div>
-        <div className="flex items-center gap-2">
-          {(!isMultiTorre || activeTorre) && (viewMode === "fachada" || activeTorre?.tipo === "urbanismo") && (
-            <button onClick={() => setShowAddForm(true)} className={btnPrimary}>
-              <Plus size={14} />
-              {t("fachadas.addGrid")}
-            </button>
-          )}
-          {(!isMultiTorre || activeTorre) && viewMode === "planta" && activeTorre?.tipo !== "urbanismo" && (
-            <button onClick={() => setShowPlantaTipoForm(true)} className={btnPrimary}>
-              <Plus size={14} />
-              {t("fachadas.plantas.addPlantaTipo")}
-            </button>
-          )}
-        </div>
-      </div>
+        }
+      />
 
       {/* ============================================================
           MULTI-TORRE MODE
@@ -1771,168 +1619,3 @@ export default function NoddoGridPage() {
   );
 }
 
-/* ====================================================================
-   TorreInfoCard — Inline editable torre info
-   ==================================================================== */
-function TorreInfoCard({
-  torre,
-  projectId,
-  onUpdate,
-  onDelete,
-  deleting,
-  hideDelete = false,
-}: {
-  torre: Torre;
-  projectId: string;
-  onUpdate: (id: string, data: Partial<Torre>) => Promise<void>;
-  onDelete: (id: string) => Promise<void>;
-  deleting: boolean;
-  hideDelete?: boolean;
-}) {
-  const { t } = useTranslation("editor");
-  const [editing, setEditing] = useState(false);
-  const [nombre, setNombre] = useState(torre.nombre);
-  const [numPisos, setNumPisos] = useState(torre.num_pisos?.toString() ?? "");
-  const [descripcion, setDescripcion] = useState(torre.descripcion ?? "");
-  const [amenidades, setAmenidades] = useState(torre.amenidades ?? "");
-  const [caracteristicas, setCaracteristicas] = useState(torre.caracteristicas ?? "");
-  const [imagenPortada, setImagenPortada] = useState(torre.imagen_portada ?? "");
-  const [logoUrl, setLogoUrl] = useState(torre.logo_url ?? "");
-  const [saving, setSaving] = useState(false);
-
-  // Sync when torre changes (e.g. after refresh)
-  useEffect(() => {
-    setNombre(torre.nombre);
-    setNumPisos(torre.num_pisos?.toString() ?? "");
-    setDescripcion(torre.descripcion ?? "");
-    setAmenidades(torre.amenidades ?? "");
-    setCaracteristicas(torre.caracteristicas ?? "");
-    setImagenPortada(torre.imagen_portada ?? "");
-    setLogoUrl(torre.logo_url ?? "");
-  }, [torre]);
-
-  const handleSave = async () => {
-    setSaving(true);
-    try {
-      await onUpdate(torre.id, {
-        nombre: nombre.trim(),
-        num_pisos: numPisos ? parseInt(numPisos) : null,
-        descripcion: descripcion.trim() || null,
-        amenidades: amenidades.trim() || null,
-        caracteristicas: caracteristicas.trim() || null,
-        imagen_portada: imagenPortada || null,
-        logo_url: logoUrl || null,
-      });
-      setEditing(false);
-    } finally {
-      setSaving(false);
-    }
-  };
-
-  if (!editing) {
-    // Compact read-only view
-    return (
-      <div className="p-4 bg-[var(--surface-1)] rounded-xl border border-[var(--border-subtle)] flex items-center gap-4">
-        {/* Logo / portada preview */}
-        {(torre.logo_url || torre.imagen_portada) && (
-          <div className="h-12 max-w-[120px] rounded-lg overflow-hidden border border-[var(--border-subtle)] shrink-0 bg-[var(--surface-2)]">
-            <img
-              src={torre.logo_url || torre.imagen_portada || ""}
-              alt={torre.nombre}
-              className="w-full h-full object-contain"
-            />
-          </div>
-        )}
-        <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-2">
-            <Building2 size={14} className="text-[var(--site-primary)] shrink-0" />
-            <h3 className="text-sm font-medium text-white truncate">{torre.nombre}</h3>
-            {torre.num_pisos && (
-              <span className="text-[10px] text-[var(--text-muted)] shrink-0">{t("fachadas.floorCount", { n: torre.num_pisos })}</span>
-            )}
-          </div>
-          {(torre.amenidades || torre.caracteristicas) && (
-            <p className="text-[10px] text-[var(--text-tertiary)] truncate mt-0.5">
-              {[torre.amenidades, torre.caracteristicas].filter(Boolean).join(" · ")}
-            </p>
-          )}
-        </div>
-        <div className="flex items-center gap-1 shrink-0">
-          <button onClick={() => setEditing(true)} className={btnSecondary}>
-            {t("fachadas.edit")}
-          </button>
-          {!hideDelete && (
-            <button onClick={() => onDelete(torre.id)} disabled={deleting} className={btnDanger}>
-              {deleting ? <Loader2 size={13} className="animate-spin" /> : <Trash2 size={13} />}
-            </button>
-          )}
-        </div>
-      </div>
-    );
-  }
-
-  // Expanded edit view
-  return (
-    <div className="p-5 bg-[var(--surface-1)] rounded-xl border border-[var(--border-default)] space-y-4">
-      <div className="flex items-center justify-between">
-        <h3 className="text-sm font-medium text-white flex items-center gap-2">
-          <Building2 size={14} className="text-[var(--site-primary)]" />
-          {t("fachadas.editTower")}
-        </h3>
-        <button onClick={() => setEditing(false)} className="text-[var(--text-muted)] hover:text-[var(--text-secondary)] text-[11px]">
-          {t("fachadas.cancelEdit")}
-        </button>
-      </div>
-      <div className="grid grid-cols-3 gap-3">
-        <div className="col-span-2">
-          <label className={labelClass}>{t("fachadas.towerName")}</label>
-          <input type="text" value={nombre} onChange={(e) => setNombre(e.target.value)} className={inputClass} />
-        </div>
-        <div>
-          <label className={labelClass}>{t("fachadas.floors")}</label>
-          <input type="number" value={numPisos} onChange={(e) => setNumPisos(e.target.value)} className={inputClass} />
-        </div>
-      </div>
-      <div className="grid grid-cols-2 gap-3">
-        <div>
-          <label className={labelClass}>{t("fachadas.towerAmenities")}</label>
-          <input type="text" value={amenidades} onChange={(e) => setAmenidades(e.target.value)} placeholder={t("fachadas.towerAmenitiesPlaceholder")} className={inputClass} />
-        </div>
-        <div>
-          <label className={labelClass}>{t("fachadas.characteristics")}</label>
-          <input type="text" value={caracteristicas} onChange={(e) => setCaracteristicas(e.target.value)} placeholder={t("fachadas.characteristicsPlaceholder")} className={inputClass} />
-        </div>
-      </div>
-      <div>
-        <label className={labelClass}>{t("fachadas.towerDescription")}</label>
-        <textarea value={descripcion} onChange={(e) => setDescripcion(e.target.value)} rows={2} className={inputClass + " resize-none"} />
-      </div>
-      <div className="grid grid-cols-2 gap-3">
-        <div>
-          <label className={labelClass}>{t("fachadas.towerCoverImage")}</label>
-          <FileUploader currentUrl={imagenPortada || null} onUpload={(url) => setImagenPortada(url)} folder={`proyectos/${projectId}/torres`} label={t("fachadas.cover")} />
-        </div>
-        <div>
-          <label className={labelClass}>{t("fachadas.logo")}</label>
-          <FileUploader currentUrl={logoUrl || null} onUpload={(url) => setLogoUrl(url)} folder={`proyectos/${projectId}/torres`} label={t("fachadas.logo")} aspect="logo" />
-        </div>
-      </div>
-      <div className="flex items-center gap-2 pt-1">
-        <button onClick={handleSave} disabled={saving || !nombre.trim()} className={btnPrimary}>
-          {saving ? <Loader2 size={14} className="animate-spin" /> : <Save size={14} />}
-          {saving ? t("fachadas.savingChanges") : t("fachadas.saveChanges")}
-        </button>
-        <button onClick={() => setEditing(false)} className={btnSecondary}>{t("fachadas.cancel")}</button>
-        {!hideDelete && (
-          <>
-            <div className="flex-1" />
-            <button onClick={() => onDelete(torre.id)} disabled={deleting} className={btnDanger}>
-              {deleting ? <Loader2 size={13} className="animate-spin" /> : <Trash2 size={13} />}
-              {t("fachadas.deleteTower")}
-            </button>
-          </>
-        )}
-      </div>
-    </div>
-  );
-}

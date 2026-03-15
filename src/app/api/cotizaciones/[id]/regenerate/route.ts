@@ -3,7 +3,7 @@ import { getAuthContext } from "@/lib/auth-context";
 import { createClient } from "@supabase/supabase-js";
 import { calcularCotizacion } from "@/lib/cotizador/calcular";
 import { generarPDF } from "@/lib/cotizador/generar-pdf";
-import type { CotizadorConfig, Currency } from "@/types";
+import type { CotizadorConfig } from "@/types";
 import sharp from "sharp";
 
 function getServiceClient() {
@@ -84,7 +84,6 @@ export async function POST(
 
     // Use CURRENT config from project (not snapshot)
     const config = cotizacion.proyectos.cotizador_config as CotizadorConfig;
-    const moneda = (config.moneda || "COP") as Currency;
     const snapshot = cotizacion.unidad_snapshot;
 
     // Recalculate with current config

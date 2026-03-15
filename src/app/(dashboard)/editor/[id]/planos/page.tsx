@@ -8,11 +8,8 @@ import {
   labelClass,
   btnPrimary,
   btnSecondary,
-  btnDanger,
-  pageHeader,
-  pageTitle,
-  pageDescription,
 } from "@/components/dashboard/editor-styles";
+import { PageHeader } from "@/components/dashboard/base/PageHeader";
 import { DashboardEmptyState } from "@/components/dashboard/DashboardEmptyState";
 import { FileUploader } from "@/components/dashboard/FileUploader";
 import { PlanoHotspotEditor } from "@/components/dashboard/PlanoHotspotEditor";
@@ -319,23 +316,17 @@ export default function PlanoInteractivoPage() {
       className="space-y-3"
     >
       {/* Page Header */}
-      <div className={pageHeader}>
-        <div className="flex items-center gap-4">
-          <div className="w-10 h-10 rounded-xl bg-[var(--surface-2)] border border-[var(--border-subtle)] flex items-center justify-center">
-            <Map size={18} className="text-[var(--site-primary)]" />
-          </div>
-          <div>
-            <h2 className={pageTitle}>{t("planos.title")}</h2>
-            <p className={pageDescription}>
-              {t("planos.description")}
-            </p>
-          </div>
-        </div>
-        <button onClick={() => setShowAddForm(true)} className={btnPrimary}>
-          <Plus size={14} />
-          {t("planos.addPlan")}
-        </button>
-      </div>
+      <PageHeader
+        icon={Map}
+        title={t("planos.title")}
+        description={t("planos.description")}
+        actions={
+          <button onClick={() => setShowAddForm(true)} className={btnPrimary}>
+            <Plus size={14} />
+            {t("planos.addPlan")}
+          </button>
+        }
+      />
 
       {/* Empty state */}
       {filteredPlanos.length === 0 && (

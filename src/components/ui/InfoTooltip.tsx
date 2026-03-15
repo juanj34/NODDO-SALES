@@ -61,7 +61,6 @@ export function InfoTooltip({
   const [isOpen, setIsOpen] = useState(false);
   const [isPinned, setIsPinned] = useState(false);
   const [position, setPosition] = useState<TooltipPosition | null>(null);
-  const [isMounted, setIsMounted] = useState(typeof window !== "undefined");
 
   const triggerRef = useRef<HTMLButtonElement>(null);
   const tooltipRef = useRef<HTMLDivElement>(null);
@@ -176,7 +175,7 @@ export function InfoTooltip({
       window.removeEventListener("scroll", calculatePosition, true);
       window.removeEventListener("resize", calculatePosition);
     };
-  }, [isOpen, isMounted, maxWidth, placement]);
+  }, [isOpen, maxWidth, placement]);
 
   // Close on outside click
   useEffect(() => {

@@ -1,7 +1,7 @@
 "use client";
 
-import { useState, useEffect, useCallback, createContext, useContext } from "react";
-import { Check, X, AlertCircle, Info } from "lucide-react";
+import { useState, useCallback, createContext, useContext } from "react";
+import { Check, X, Info } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
 type ToastType = "success" | "error" | "info";

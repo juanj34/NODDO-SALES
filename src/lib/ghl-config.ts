@@ -45,12 +45,10 @@ export const GHL_TAGS = {
   high_intent: "high-intent",
   cta_clicked: "cta-clicked",
 
-  // Plans (updated to new all-inclusive tiers)
-  plan_basic: "plan-basic",
-  plan_premium: "plan-premium",
-  plan_enterprise: "plan-enterprise",
+  // Plans (all-inclusive tiers)
   plan_proyecto: "plan-proyecto",
   plan_studio: "plan-studio",
+  plan_enterprise: "plan-enterprise",
 
   // Booking
   demo_booked: "demo-booked",
@@ -77,7 +75,7 @@ export const GHL_CUSTOM_FIELDS = {
 // ─── Plan values (USD/month) - All-inclusive pricing ────────────────────
 
 export const PLAN_VALUES: Record<string, number> = {
-  basic: 79,
-  premium: 149,
-  enterprise: 499, // Starting price, custom pricing for large clients
+  proyecto: 149,
+  studio: 399,
+  enterprise: 799, // Starting price, custom pricing for large clients
 };

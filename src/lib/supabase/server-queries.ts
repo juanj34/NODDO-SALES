@@ -6,7 +6,6 @@ import type {
   GaleriaCategoria,
   Video,
   Lead,
-  Unidad,
 } from "@/types";
 
 // Server-side queries using the server client (for API routes + server components)

@@ -17,12 +17,10 @@ import {
 } from "lucide-react";
 import { CloseButton } from "@/components/ui/CloseButton";
 import { cn } from "@/lib/utils";
-import type { Unidad, Tipologia, CotizadorConfig, ResultadoCotizacion, Currency } from "@/types";
+import type { Unidad, Tipologia, CotizadorConfig } from "@/types";
 import { useTranslation, getEstadoConfig } from "@/i18n";
 import { trackEvent } from "@/lib/tracking";
-import { calcularCotizacion } from "@/lib/cotizador/calcular";
 import { NodDoDropdown } from "@/components/ui/NodDoDropdown";
-import { formatCurrency } from "@/lib/currency";
 import { TrustBadges, trustBadgePresets } from "@/components/site/TrustBadges";
 import { CotizadorFlowMultiStep } from "@/components/site/CotizadorFlowMultiStep";
 

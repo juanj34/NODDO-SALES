@@ -17,18 +17,18 @@ export type Feature =
 
 /**
  * Maps each feature to the minimum plans that have access to it
+ * All plans (Proyecto, Studio, Enterprise) include ALL core features.
+ * Only Enterprise has exclusive advanced features (white-label, API, etc.)
  */
 const FEATURE_PLANS: Record<Feature, Plan[]> = {
-  // Basic features - available in all plans
-  galeria: ["basic", "premium", "enterprise"],
-  cotizador: ["basic", "premium", "enterprise"],
-  brochure: ["basic", "premium", "enterprise"],
-
-  // Premium features - require Premium or Enterprise
-  video_hosting: ["premium", "enterprise"],
-  custom_domain: ["premium", "enterprise"],
-  tour_360: ["premium", "enterprise"],
-  analytics: ["premium", "enterprise"],
+  // Core features - available in ALL plans (Proyecto, Studio, Enterprise)
+  galeria: ["proyecto", "studio", "enterprise"],
+  cotizador: ["proyecto", "studio", "enterprise"],
+  brochure: ["proyecto", "studio", "enterprise"],
+  video_hosting: ["proyecto", "studio", "enterprise"],
+  custom_domain: ["proyecto", "studio", "enterprise"],
+  tour_360: ["proyecto", "studio", "enterprise"],
+  analytics: ["proyecto", "studio", "enterprise"],
 
   // Enterprise-only features
   webhooks: ["enterprise"],
@@ -109,7 +109,6 @@ export async function checkFeatureAccess(
   }
 
   // Find the minimum required plan
-  const planOrder: Plan[] = ["basic", "premium", "enterprise"];
   const requiredPlan = allowedPlans[0]; // First plan in the list is the minimum
 
   return {

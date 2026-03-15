@@ -1,0 +1,1565 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NODDO - Pitch Deck</title>
+    <style>
+        /* ============================================================ */
+        /* RESET & BASE */
+        /* ============================================================ */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            /* NODDO Brand Colors */
+            --gold: #b8973a;
+            --gold-light: #d4b05a;
+            --gold-dark: #a07e2e;
+
+            /* Surfaces */
+            --surface-0: #141414;
+            --surface-1: #1a1a1a;
+            --surface-2: #222222;
+            --surface-3: #2a2a2a;
+            --surface-4: #333333;
+
+            /* Text */
+            --text-primary: #f4f0e8;
+            --text-secondary: #c8c3bb;
+            --text-muted: #8c8780;
+
+            /* Accent colors */
+            --red: #dc2626;
+            --green: #22c55e;
+
+            /* Gradients */
+            --gold-gradient: linear-gradient(135deg, var(--gold) 0%, var(--gold-light) 100%);
+            --dark-gradient: linear-gradient(180deg, var(--surface-0) 0%, var(--surface-1) 100%);
+        }
+
+        html {
+            scroll-behavior: smooth;
+            scroll-snap-type: y mandatory;
+            overflow-x: hidden;
+        }
+
+        body {
+            font-family: Calibri, 'Segoe UI', sans-serif;
+            background: var(--surface-0);
+            color: var(--text-primary);
+            line-height: 1.6;
+            overflow-x: hidden;
+            position: relative;
+        }
+
+        /* Grain texture overlay */
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIzMDAiIGhlaWdodD0iMzAwIj48ZmlsdGVyIGlkPSJhIj48ZmVUdXJidWxlbmNlIGJhc2VGcmVxdWVuY3k9Ii43NSIgc3RpdGNoVGlsZXM9InN0aXRjaCIgdHlwZT0iZnJhY3RhbE5vaXNlIi8+PGZlQ29sb3JNYXRyaXggdHlwZT0ic2F0dXJhdGUiIHZhbHVlcz0iMCIvPjwvZmlsdGVyPjxwYXRoIGQ9Ik0wIDBoMzAwdjMwMEgweiIgZmlsdGVyPSJ1cmwoI2EpIiBvcGFjaXR5PSIuMDUiLz48L3N2Zz4=');
+            pointer-events: none;
+            opacity: 0.4;
+            z-index: 9999;
+        }
+
+        /* ============================================================ */
+        /* TYPOGRAPHY */
+        /* ============================================================ */
+        h1, h2, h3 {
+            font-family: Georgia, 'Times New Roman', serif;
+            font-weight: 300;
+            line-height: 1.2;
+        }
+
+        h1 {
+            font-size: clamp(3rem, 8vw, 6rem);
+            letter-spacing: -0.02em;
+        }
+
+        h2 {
+            font-size: clamp(2rem, 5vw, 3.5rem);
+            letter-spacing: -0.01em;
+        }
+
+        h3 {
+            font-size: clamp(1.5rem, 3vw, 2rem);
+        }
+
+        /* ============================================================ */
+        /* SLIDE CONTAINER */
+        /* ============================================================ */
+        .slide {
+            min-height: 100vh;
+            width: 100%;
+            scroll-snap-align: start;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 4rem 2rem;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .slide-content {
+            max-width: 1200px;
+            width: 100%;
+            z-index: 1;
+            opacity: 0;
+            transform: translateY(30px);
+            transition: opacity 0.8s ease, transform 0.8s ease;
+        }
+
+        .slide-content.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        /* ============================================================ */
+        /* PROGRESS INDICATOR */
+        /* ============================================================ */
+        .progress-bar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            height: 3px;
+            background: var(--gold-gradient);
+            z-index: 10000;
+            transition: width 0.3s ease;
+        }
+
+        .slide-counter {
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            font-size: 0.875rem;
+            color: var(--text-muted);
+            font-family: 'Courier New', monospace;
+            z-index: 10000;
+        }
+
+        /* ============================================================ */
+        /* GLASSMORPHISM UTILITIES */
+        /* ============================================================ */
+        .glass {
+            background: rgba(255, 255, 255, 0.04);
+            backdrop-filter: blur(24px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 1.25rem;
+        }
+
+        .glass-card {
+            background: rgba(255, 255, 255, 0.03);
+            backdrop-filter: blur(32px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 1.25rem;
+            padding: 2rem;
+        }
+
+        /* ============================================================ */
+        /* BUTTONS & INTERACTIVE ELEMENTS */
+        /* ============================================================ */
+        .btn-gold {
+            display: inline-block;
+            padding: 1.25rem 3rem;
+            background: var(--gold-gradient);
+            color: var(--surface-0);
+            text-decoration: none;
+            border-radius: 0.75rem;
+            font-weight: 600;
+            font-size: 1.125rem;
+            transition: all 0.3s ease;
+            box-shadow: 0 8px 32px rgba(184, 151, 58, 0.3);
+            border: none;
+            cursor: pointer;
+        }
+
+        .btn-gold:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 12px 48px rgba(184, 151, 58, 0.4);
+        }
+
+        /* ============================================================ */
+        /* TABLE STYLES */
+        /* ============================================================ */
+        table {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 0;
+            margin: 2rem 0;
+        }
+
+        th, td {
+            padding: 1.25rem 1.5rem;
+            text-align: left;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+        }
+
+        th {
+            background: var(--surface-2);
+            color: var(--gold);
+            font-weight: 600;
+            font-size: 0.875rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        td {
+            background: var(--surface-1);
+        }
+
+        tr:hover td {
+            background: var(--surface-2);
+        }
+
+        table tr:first-child th:first-child {
+            border-top-left-radius: 0.75rem;
+        }
+
+        table tr:first-child th:last-child {
+            border-top-right-radius: 0.75rem;
+        }
+
+        table tr:last-child td:first-child {
+            border-bottom-left-radius: 0.75rem;
+        }
+
+        table tr:last-child td:last-child {
+            border-bottom-right-radius: 0.75rem;
+        }
+
+        /* ============================================================ */
+        /* GRID LAYOUTS */
+        /* ============================================================ */
+        .grid-2 {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 2rem;
+            margin: 2rem 0;
+        }
+
+        .grid-3 {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 2rem;
+            margin: 2rem 0;
+        }
+
+        .grid-4 {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+            gap: 1.5rem;
+            margin: 2rem 0;
+        }
+
+        /* ============================================================ */
+        /* FEATURE CARDS */
+        /* ============================================================ */
+        .feature-card {
+            background: var(--surface-2);
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            border-radius: 1rem;
+            padding: 2rem;
+            transition: all 0.3s ease;
+        }
+
+        .feature-card:hover {
+            background: var(--surface-3);
+            border-color: rgba(184, 151, 58, 0.3);
+            transform: translateY(-4px);
+        }
+
+        .feature-icon {
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+            display: block;
+        }
+
+        .feature-title {
+            color: var(--gold);
+            font-size: 1.25rem;
+            font-weight: 600;
+            margin-bottom: 0.75rem;
+        }
+
+        .feature-desc {
+            color: var(--text-secondary);
+            font-size: 0.95rem;
+            line-height: 1.6;
+        }
+
+        /* ============================================================ */
+        /* METRIC CARDS */
+        /* ============================================================ */
+        .metric {
+            text-align: center;
+        }
+
+        .metric-number {
+            font-size: clamp(3rem, 6vw, 5rem);
+            font-weight: 700;
+            color: var(--gold);
+            font-family: Georgia, serif;
+            display: block;
+            line-height: 1;
+        }
+
+        .metric-label {
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+            margin-top: 0.5rem;
+            display: block;
+        }
+
+        /* ============================================================ */
+        /* PRICING CARDS */
+        /* ============================================================ */
+        .pricing-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 2rem;
+            margin: 3rem 0;
+        }
+
+        .price-card {
+            background: var(--surface-2);
+            border: 2px solid rgba(255, 255, 255, 0.08);
+            border-radius: 1.5rem;
+            padding: 2.5rem 2rem;
+            text-align: center;
+            transition: all 0.3s ease;
+        }
+
+        .price-card.featured {
+            background: var(--gold-gradient);
+            border-color: var(--gold-light);
+            transform: scale(1.05);
+        }
+
+        .price-card.featured * {
+            color: var(--surface-0) !important;
+        }
+
+        .price-card:hover {
+            transform: translateY(-8px);
+            border-color: var(--gold);
+        }
+
+        .price-name {
+            font-size: 1.25rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+            color: var(--gold);
+        }
+
+        .price-amount {
+            font-size: 3.5rem;
+            font-weight: 700;
+            font-family: Georgia, serif;
+            margin: 1rem 0 0.5rem 0;
+            line-height: 1;
+        }
+
+        .price-period {
+            font-size: 0.95rem;
+            color: var(--text-muted);
+        }
+
+        .price-features {
+            list-style: none;
+            margin: 2rem 0;
+            text-align: left;
+        }
+
+        .price-features li {
+            padding: 0.75rem 0;
+            font-size: 0.95rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        /* ============================================================ */
+        /* STEP INDICATOR */
+        /* ============================================================ */
+        .steps {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin: 3rem 0;
+            position: relative;
+        }
+
+        .step {
+            text-align: center;
+            position: relative;
+        }
+
+        .step-number {
+            width: 80px;
+            height: 80px;
+            background: var(--gold-gradient);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2.5rem;
+            font-weight: 700;
+            font-family: Georgia, serif;
+            color: var(--surface-0);
+            margin: 0 auto 1rem auto;
+            position: relative;
+            z-index: 1;
+        }
+
+        .step-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 0.5rem;
+        }
+
+        .step-desc {
+            font-size: 0.95rem;
+            color: var(--text-secondary);
+            line-height: 1.5;
+        }
+
+        /* Arrow between steps */
+        @media (min-width: 768px) {
+            .step:not(:last-child)::after {
+                content: '→';
+                position: absolute;
+                right: -1rem;
+                top: 35px;
+                font-size: 2rem;
+                color: var(--gold);
+                z-index: 0;
+            }
+        }
+
+        /* ============================================================ */
+        /* TESTIMONIAL */
+        /* ============================================================ */
+        .testimonial {
+            background: var(--surface-2);
+            border-left: 4px solid var(--gold);
+            padding: 2.5rem;
+            border-radius: 1rem;
+            margin: 2rem 0;
+            position: relative;
+        }
+
+        .testimonial::before {
+            content: '"';
+            position: absolute;
+            top: 1rem;
+            left: 1.5rem;
+            font-size: 6rem;
+            color: var(--gold);
+            opacity: 0.2;
+            font-family: Georgia, serif;
+            line-height: 1;
+        }
+
+        .testimonial-text {
+            font-size: 1.5rem;
+            font-style: italic;
+            font-family: Georgia, serif;
+            color: var(--text-primary);
+            margin-bottom: 1.5rem;
+            position: relative;
+            z-index: 1;
+        }
+
+        .testimonial-author {
+            font-size: 1rem;
+            color: var(--gold-light);
+            font-weight: 600;
+        }
+
+        /* ============================================================ */
+        /* COMPARISON TABLE */
+        /* ============================================================ */
+        .comparison-table {
+            margin: 2rem 0;
+        }
+
+        .comparison-table td.highlight {
+            background: rgba(184, 151, 58, 0.1);
+            font-weight: 600;
+        }
+
+        .comparison-table .check {
+            color: var(--green);
+            font-size: 1.5rem;
+        }
+
+        .comparison-table .cross {
+            color: var(--red);
+            font-size: 1.5rem;
+        }
+
+        /* ============================================================ */
+        /* URGENCY BOX */
+        /* ============================================================ */
+        .urgency-box {
+            background: var(--red);
+            color: white;
+            padding: 2rem 3rem;
+            border-radius: 1rem;
+            text-align: center;
+            margin: 2rem 0;
+            box-shadow: 0 12px 48px rgba(220, 38, 38, 0.3);
+        }
+
+        .urgency-box h3 {
+            font-size: 1.75rem;
+            margin-bottom: 0.5rem;
+        }
+
+        /* ============================================================ */
+        /* UTILITIES */
+        /* ============================================================ */
+        .text-center {
+            text-align: center;
+        }
+
+        .text-gold {
+            color: var(--gold);
+        }
+
+        .text-red {
+            color: var(--red);
+        }
+
+        .text-green {
+            color: var(--green);
+        }
+
+        .text-muted {
+            color: var(--text-muted);
+        }
+
+        .text-secondary {
+            color: var(--text-secondary);
+        }
+
+        .mb-1 {
+            margin-bottom: 1rem;
+        }
+
+        .mb-2 {
+            margin-bottom: 2rem;
+        }
+
+        .mb-3 {
+            margin-bottom: 3rem;
+        }
+
+        .mt-1 {
+            margin-top: 1rem;
+        }
+
+        .mt-2 {
+            margin-top: 2rem;
+        }
+
+        .mt-3 {
+            margin-top: 3rem;
+        }
+
+        /* ============================================================ */
+        /* ANIMATIONS */
+        /* ============================================================ */
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .fade-in-up {
+            animation: fadeInUp 0.8s ease forwards;
+        }
+
+        /* Stagger animation delays */
+        .stagger-1 { animation-delay: 0.1s; opacity: 0; }
+        .stagger-2 { animation-delay: 0.2s; opacity: 0; }
+        .stagger-3 { animation-delay: 0.3s; opacity: 0; }
+        .stagger-4 { animation-delay: 0.4s; opacity: 0; }
+        .stagger-5 { animation-delay: 0.5s; opacity: 0; }
+        .stagger-6 { animation-delay: 0.6s; opacity: 0; }
+
+        /* SVG Icon Animations */
+        @keyframes floatIcon {
+            0%, 100% {
+                transform: translateY(0);
+            }
+            50% {
+                transform: translateY(-10px);
+            }
+        }
+
+        @keyframes pulseIcon {
+            0%, 100% {
+                opacity: 0.4;
+            }
+            50% {
+                opacity: 0.8;
+            }
+        }
+
+        @keyframes fadeInIcon {
+            from {
+                opacity: 0;
+                transform: scale(0.5);
+            }
+            to {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+
+        @keyframes scatterIn {
+            from {
+                opacity: 0;
+                transform: translate(var(--tx, 0), var(--ty, 0)) scale(0.3);
+            }
+            to {
+                opacity: 0.6;
+                transform: translate(0, 0) scale(1);
+            }
+        }
+
+        .animated-icon {
+            opacity: 0;
+            animation: fadeInUp 0.8s ease forwards;
+        }
+
+        .float-icon {
+            animation: floatIcon 3s ease-in-out infinite;
+        }
+
+        .pulse-icon {
+            animation: pulseIcon 2s ease-in-out infinite;
+        }
+
+        .fade-in-icon {
+            animation: fadeInIcon 0.5s ease forwards;
+            opacity: 0;
+        }
+
+        .scatter-icon rect {
+            animation: scatterIn 0.6s ease forwards;
+            opacity: 0;
+        }
+
+        .scatter-icon rect:nth-child(1) {
+            --tx: -20px;
+            --ty: -20px;
+            animation-delay: 0.1s;
+        }
+
+        .scatter-icon rect:nth-child(2) {
+            --tx: 20px;
+            --ty: -20px;
+            animation-delay: 0.2s;
+        }
+
+        .scatter-icon rect:nth-child(3) {
+            --tx: -20px;
+            --ty: 20px;
+            animation-delay: 0.3s;
+        }
+
+        .scatter-icon rect:nth-child(4) {
+            --tx: 20px;
+            --ty: 20px;
+            animation-delay: 0.4s;
+        }
+
+        /* ============================================================ */
+        /* RESPONSIVE */
+        /* ============================================================ */
+        @media (max-width: 768px) {
+            .slide {
+                padding: 2rem 1.5rem;
+            }
+
+            h1 {
+                font-size: 2.5rem;
+            }
+
+            h2 {
+                font-size: 2rem;
+            }
+
+            .pricing-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .price-card.featured {
+                transform: scale(1);
+            }
+
+            table {
+                font-size: 0.875rem;
+            }
+
+            th, td {
+                padding: 0.75rem;
+            }
+
+            .step:not(:last-child)::after {
+                display: none;
+            }
+        }
+
+        /* ============================================================ */
+        /* LOGO */
+        /* ============================================================ */
+        .logo {
+            position: fixed;
+            top: 2rem;
+            left: 2rem;
+            font-size: 1.5rem;
+            font-weight: 700;
+            font-family: Georgia, serif;
+            color: var(--text-primary);
+            z-index: 10000;
+        }
+
+        .logo span {
+            color: var(--gold);
+        }
+    </style>
+</head>
+<body>
+    <!-- Progress Bar -->
+    <div class="progress-bar" id="progressBar"></div>
+
+    <!-- Logo -->
+    <div class="logo">NOD<span>DO</span></div>
+
+    <!-- Slide Counter -->
+    <div class="slide-counter" id="slideCounter">01 / 16</div>
+
+    <!-- ============================================================ -->
+    <!-- SLIDE 1: HOOK EMOCIONAL -->
+    <!-- ============================================================ -->
+    <section class="slide" style="background: var(--surface-0);">
+        <div class="slide-content">
+            <div class="text-center">
+                <h1 class="mb-2">¿Invirtió $8M en su proyecto...</h1>
+                <h1 class="text-gold mb-3">para que se vea como un sitio de $800 online?</h1>
+                <p class="text-secondary" style="font-size: 1.25rem; font-style: italic; max-width: 700px; margin: 0 auto;">
+                    El problema que no puede ignorar
+                </p>
+            </div>
+        </div>
+    </section>
+
+    <!-- ============================================================ -->
+    <!-- SLIDE 2: EL PROBLEMA -->
+    <!-- ============================================================ -->
+    <section class="slide" style="background: var(--surface-1);">
+        <div class="slide-content">
+            <h2 class="text-gold mb-3">El Problema</h2>
+
+            <div style="max-width: 800px;">
+                <p style="font-size: 1.5rem; line-height: 1.8; margin-bottom: 1.5rem;">
+                    Desarrolladoras latinas invierten <span class="text-gold">$2M+</span> en proyectos premium
+                </p>
+                <p style="font-size: 1.5rem; line-height: 1.8; margin-bottom: 1.5rem;">
+                    ...pero su sitio web convierte solo <span class="text-red">1.5%</span> de visitantes
+                </p>
+                <p style="font-size: 2rem; line-height: 1.8; font-weight: 600;" class="text-red">
+                    Resultado: 98.5% de leads potenciales SE PIERDEN
+                </p>
+            </div>
+
+            <div class="mt-3" style="max-width: 600px;">
+                <div style="background: var(--gold-light); height: 60px; border-radius: 0.5rem; display: flex; align-items: center; padding: 0 1.5rem; margin-bottom: 1rem;">
+                    <strong style="color: var(--surface-0); font-size: 1.25rem;">100 Visitantes</strong>
+                </div>
+                <div style="background: var(--red); width: 2%; height: 60px; border-radius: 0.5rem; display: flex; align-items: center; padding: 0 1.5rem;">
+                    <strong style="color: white; font-size: 1.25rem; white-space: nowrap;">1.5 Leads</strong>
+                </div>
+                <p class="text-red mt-1" style="font-size: 1.125rem; font-weight: 600;">
+                    ↑ 98.5% PERDIDOS
+                </p>
+            </div>
+        </div>
+    </section>
+
+    <!-- ============================================================ -->
+    <!-- SLIDE 3: POR QUÉ EXISTE EL PROBLEMA -->
+    <!-- ============================================================ -->
+    <section class="slide" style="background: var(--surface-0);">
+        <div class="slide-content">
+            <h2 class="text-gold mb-2">¿Por Qué Sucede Esto?</h2>
+            <p class="text-secondary mb-3" style="font-size: 1.125rem;">
+                No es su culpa. Las opciones actuales son:
+            </p>
+
+            <div class="grid-2">
+                <div class="feature-card" style="position: relative; overflow: visible;">
+                    <svg class="animated-icon" width="120" height="120" viewBox="0 0 120 120" style="margin: 0 auto 1.5rem auto; display: block;">
+                        <!-- PDF Document -->
+                        <rect x="30" y="20" width="60" height="80" rx="4" fill="var(--surface-4)" stroke="var(--gold)" stroke-width="2" opacity="0.3"/>
+                        <line x1="40" y1="35" x2="70" y2="35" stroke="var(--gold)" stroke-width="2" opacity="0.5"/>
+                        <line x1="40" y1="45" x2="80" y2="45" stroke="var(--gold)" stroke-width="2" opacity="0.5"/>
+                        <line x1="40" y1="55" x2="75" y2="55" stroke="var(--gold)" stroke-width="2" opacity="0.5"/>
+                        <!-- X mark overlay -->
+                        <g class="fade-in-icon" style="animation-delay: 0.3s;">
+                            <line x1="45" y1="65" x2="75" y2="85" stroke="#dc2626" stroke-width="4" stroke-linecap="round"/>
+                            <line x1="75" y1="65" x2="45" y2="85" stroke="#dc2626" stroke-width="4" stroke-linecap="round"/>
+                        </g>
+                    </svg>
+                    <div class="feature-title" style="text-transform: uppercase; letter-spacing: 0.1em; font-size: 1rem;">BROCHURES ESTÁTICOS</div>
+                    <div class="feature-desc">Inviertes millones en brochures que terminan en un PDF que nadie abre. Sin interactividad, sin inmersión, sin forma de medir si alguien lo leyó.</div>
+                </div>
+
+                <div class="feature-card" style="position: relative; overflow: visible;">
+                    <svg class="animated-icon" width="120" height="120" viewBox="0 0 120 120" style="margin: 0 auto 1.5rem auto; display: block;">
+                        <!-- 3D Cube (representing renders) -->
+                        <g class="float-icon">
+                            <path d="M60 30 L85 45 L85 75 L60 90 L35 75 L35 45 Z" fill="var(--surface-4)" stroke="var(--gold)" stroke-width="2" opacity="0.4"/>
+                            <path d="M60 30 L60 60 L85 75 L85 45 Z" fill="var(--gold)" opacity="0.15"/>
+                            <path d="M60 30 L35 45 L35 75 L60 60 Z" fill="var(--gold)" opacity="0.08"/>
+                        </g>
+                        <!-- Waste symbol -->
+                        <g class="fade-in-icon" style="animation-delay: 0.4s;">
+                            <circle cx="85" cy="30" r="12" fill="#dc2626"/>
+                            <path d="M79 30 L91 30 M85 24 L85 36" stroke="white" stroke-width="2.5" stroke-linecap="round"/>
+                        </g>
+                    </svg>
+                    <div class="feature-title" style="text-transform: uppercase; letter-spacing: 0.1em; font-size: 1rem;">CGI DESPERDICIADO</div>
+                    <div class="feature-desc">Renders, recorridos 360°, videos, interiores, amenidades — miles de dólares en producción visual que terminan perdidos en carpetas que nadie ve.</div>
+                </div>
+
+                <div class="feature-card" style="position: relative; overflow: visible;">
+                    <svg class="animated-icon" width="120" height="120" viewBox="0 0 120 120" style="margin: 0 auto 1.5rem auto; display: block;">
+                        <!-- Fragmented screens -->
+                        <g class="scatter-icon">
+                            <rect x="20" y="25" width="30" height="22" rx="2" fill="var(--surface-4)" stroke="var(--gold)" stroke-width="1.5" opacity="0.6"/>
+                            <rect x="70" y="20" width="30" height="22" rx="2" fill="var(--surface-4)" stroke="var(--gold)" stroke-width="1.5" opacity="0.6"/>
+                            <rect x="15" y="60" width="30" height="22" rx="2" fill="var(--surface-4)" stroke="var(--gold)" stroke-width="1.5" opacity="0.6"/>
+                            <rect x="75" y="70" width="30" height="22" rx="2" fill="var(--surface-4)" stroke="var(--gold)" stroke-width="1.5" opacity="0.6"/>
+                        </g>
+                        <g class="fade-in-icon" style="animation-delay: 0.5s;">
+                            <circle cx="60" cy="60" r="8" fill="#dc2626"/>
+                            <text x="60" y="66" text-anchor="middle" fill="white" font-size="12" font-weight="bold">?</text>
+                        </g>
+                    </svg>
+                    <div class="feature-title" style="text-transform: uppercase; letter-spacing: 0.1em; font-size: 1rem;">PROCESO FRAGMENTADO</div>
+                    <div class="feature-desc">Brochure aquí, planos allá, disponibilidad en Excel. Tu equipo comercial pierde minutos valiosos saltando entre archivos — especialmente en videollamadas.</div>
+                </div>
+
+                <div class="feature-card" style="position: relative; overflow: visible;">
+                    <svg class="animated-icon" width="120" height="120" viewBox="0 0 120 120" style="margin: 0 auto 1.5rem auto; display: block;">
+                        <!-- Funnel with leak -->
+                        <g class="pulse-icon">
+                            <path d="M35 25 L85 25 L70 55 L50 55 Z" fill="var(--gold)" opacity="0.2" stroke="var(--gold)" stroke-width="2"/>
+                            <path d="M70 55 L50 55 L45 95 L75 95 Z" fill="var(--gold)" opacity="0.15" stroke="var(--gold)" stroke-width="2"/>
+                        </g>
+                        <!-- Drops leaking (opportunities lost) -->
+                        <g class="fade-in-icon" style="animation-delay: 0.6s;">
+                            <circle cx="48" cy="65" r="3" fill="#dc2626" opacity="0.8"/>
+                            <circle cx="55" cy="72" r="3" fill="#dc2626" opacity="0.6"/>
+                            <circle cx="65" cy="68" r="3" fill="#dc2626" opacity="0.7"/>
+                        </g>
+                    </svg>
+                    <div class="feature-title" style="text-transform: uppercase; letter-spacing: 0.1em; font-size: 1rem;">LEADS SIN TRAZABILIDAD</div>
+                    <div class="feature-desc">No sabes quién vio tu proyecto, qué unidad le interesó ni de qué campaña llegó. Cada oportunidad que no capturas es una venta que se pierde.</div>
+                </div>
+            </div>
+
+            <div class="mt-3" style="max-width: 800px; margin: 3rem auto 0 auto;">
+                <p class="text-center text-secondary mb-2" style="font-size: 1.25rem; font-style: italic;">
+                    Las constructoras invierten fortunas en renders, vídeos y brochures para vender sus proyectos.
+                    Pero toda esa producción termina fragmentada en PDFs estáticos, carpetas dispersas y procesos manuales que no convierten.
+                </p>
+            </div>
+        </div>
+    </section>
+
+    <!-- ============================================================ -->
+    <!-- SLIDE 4: LA SOLUCIÓN - NODDO -->
+    <!-- ============================================================ -->
+    <section class="slide" style="background: var(--surface-0);">
+        <div class="slide-content text-center">
+            <h1 style="font-size: clamp(4rem, 12vw, 8rem); font-weight: 700; margin-bottom: 1rem;">
+                NODDO
+            </h1>
+            <h2 class="mb-2">Microsites Premium-as-a-Service</h2>
+            <p class="text-secondary mb-3" style="font-size: 1.5rem; font-style: italic; max-width: 800px; margin: 0 auto 3rem auto;">
+                La experiencia digital que sus proyectos de $10M merecen
+            </p>
+
+            <div class="grid-2" style="max-width: 900px; margin: 0 auto;">
+                <div class="glass-card">
+                    <span class="text-gold" style="font-size: 1.5rem; font-weight: 600;">✓</span>
+                    <p style="font-size: 1.25rem; font-weight: 600; margin-top: 0.5rem;">Live en 48 horas</p>
+                    <p class="text-muted">(no 6 meses)</p>
+                </div>
+                <div class="glass-card">
+                    <span class="text-gold" style="font-size: 1.5rem; font-weight: 600;">✓</span>
+                    <p style="font-size: 1.25rem; font-weight: 600; margin-top: 0.5rem;">$299/mes</p>
+                    <p class="text-muted">(no $50,000)</p>
+                </div>
+                <div class="glass-card">
+                    <span class="text-gold" style="font-size: 1.5rem; font-weight: 600;">✓</span>
+                    <p style="font-size: 1.25rem; font-weight: 600; margin-top: 0.5rem;">8% conversión</p>
+                    <p class="text-muted">(no 1.5%)</p>
+                </div>
+                <div class="glass-card">
+                    <span class="text-gold" style="font-size: 1.5rem; font-weight: 600;">✓</span>
+                    <p style="font-size: 1.25rem; font-weight: 600; margin-top: 0.5rem;">Sin equipo técnico</p>
+                    <p class="text-muted">requerido</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ============================================================ -->
+    <!-- SLIDE 5: CÓMO FUNCIONA -->
+    <!-- ============================================================ -->
+    <section class="slide" style="background: var(--surface-1);">
+        <div class="slide-content">
+            <h2 class="text-gold mb-2 text-center">Cómo Funciona</h2>
+            <p class="text-secondary text-center mb-3" style="font-size: 1.125rem; font-style: italic;">
+                Tan simple que parece magia
+            </p>
+
+            <div class="steps">
+                <div class="step">
+                    <div class="step-number">1</div>
+                    <div class="step-title">Setup (48h)</div>
+                    <div class="step-desc">Sube fotos + info del proyecto</div>
+                </div>
+                <div class="step">
+                    <div class="step-number">2</div>
+                    <div class="step-title">Customiza</div>
+                    <div class="step-desc">Dashboard visual, 0 código</div>
+                </div>
+                <div class="step">
+                    <div class="step-number">3</div>
+                    <div class="step-title">Publica</div>
+                    <div class="step-desc">Microsite live en tu dominio</div>
+                </div>
+                <div class="step">
+                    <div class="step-number">4</div>
+                    <div class="step-title">Captura</div>
+                    <div class="step-desc">Leads automáticos a CRM + WhatsApp</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ============================================================ -->
+    <!-- SLIDE 6: CARACTERÍSTICAS CLAVE -->
+    <!-- ============================================================ -->
+    <section class="slide" style="background: var(--surface-0);">
+        <div class="slide-content">
+            <h2 class="text-gold mb-3">Por Qué Funciona</h2>
+
+            <div class="grid-2">
+                <div class="feature-card">
+                    <span class="feature-icon">🎨</span>
+                    <div class="feature-title">Dark Luxury Design</div>
+                    <div class="feature-desc">Transmite exclusividad - justifica precio premium</div>
+                </div>
+                <div class="feature-card">
+                    <span class="feature-icon">🛰️</span>
+                    <div class="feature-title">Mapbox Satellite</div>
+                    <div class="feature-desc">Compradores visualizan ubicación real - no mapa genérico</div>
+                </div>
+                <div class="feature-card">
+                    <span class="feature-icon">📸</span>
+                    <div class="feature-title">Galería HD Categorizada</div>
+                    <div class="feature-desc">Muestra TODOS los acabados - reduce objeciones</div>
+                </div>
+                <div class="feature-card">
+                    <span class="feature-icon">📊</span>
+                    <div class="feature-title">Analytics + CRM</div>
+                    <div class="feature-desc">Sabe qué funciona - optimiza continuamente</div>
+                </div>
+                <div class="feature-card">
+                    <span class="feature-icon">⚡</span>
+                    <div class="feature-title">Carga &lt;1s</div>
+                    <div class="feature-desc">0 rebote - cada visitante importa</div>
+                </div>
+                <div class="feature-card">
+                    <span class="feature-icon">📱</span>
+                    <div class="feature-title">Mobile-first</div>
+                    <div class="feature-desc">80% de tráfico mobile - diseñado para WhatsApp</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ============================================================ -->
+    <!-- SLIDE 7: DEMO -->
+    <!-- ============================================================ -->
+    <section class="slide" style="background: var(--surface-0);">
+        <div class="slide-content text-center">
+            <h1 class="text-gold mb-2" style="font-size: clamp(3rem, 10vw, 7rem);">DEMO</h1>
+            <h2 class="mb-3">Esto es lo que VEN sus compradores</h2>
+            <p class="text-muted mb-3" style="font-size: 1.25rem; font-style: italic;">
+                [ Abrir microsite demo en vivo ]
+            </p>
+
+            <div class="glass-card" style="max-width: 600px; margin: 0 auto;">
+                <ul style="list-style: none; text-align: left; font-size: 1.125rem;">
+                    <li style="padding: 0.75rem 0; border-bottom: 1px solid rgba(255,255,255,0.05);">
+                        → Zoom satelital fluido (Mapbox)
+                    </li>
+                    <li style="padding: 0.75rem 0; border-bottom: 1px solid rgba(255,255,255,0.05);">
+                        → Lightbox galería premium
+                    </li>
+                    <li style="padding: 0.75rem 0;">
+                        → Glassmorphism contact form
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </section>
+
+    <!-- ============================================================ -->
+    <!-- SLIDE 8: SOCIAL PROOF -->
+    <!-- ============================================================ -->
+    <section class="slide" style="background: var(--surface-1);">
+        <div class="slide-content">
+            <h2 class="text-gold mb-3 text-center">Líderes Confían en NODDO</h2>
+
+            <div class="grid-3 mb-3">
+                <div class="metric">
+                    <span class="metric-number">2,450</span>
+                    <span class="metric-label">Leads Capturados Q1</span>
+                </div>
+                <div class="metric">
+                    <span class="metric-number">150+</span>
+                    <span class="metric-label">Proyectos Activos</span>
+                </div>
+                <div class="metric">
+                    <span class="metric-number">89%</span>
+                    <span class="metric-label">Satisfacción</span>
+                </div>
+            </div>
+
+            <div class="testimonial">
+                <div class="testimonial-text">
+                    NODDO convirtió nuestro sitio en una herramienta de ventas. Leads +340% en Q1.
+                </div>
+                <div class="testimonial-author">
+                    — Director Comercial, Desarrolladora Premium
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ============================================================ -->
+    <!-- SLIDE 9: TECH STACK -->
+    <!-- ============================================================ -->
+    <section class="slide" style="background: var(--surface-0);">
+        <div class="slide-content">
+            <h2 class="text-gold mb-2">Tecnología Enterprise</h2>
+            <p class="text-secondary mb-3" style="font-size: 1.125rem; font-style: italic;">
+                La misma tecnología que usan unicornios... a fracción del costo
+            </p>
+
+            <div style="max-width: 800px;">
+                <div class="glass-card mb-2">
+                    <div style="display: flex; align-items: center; gap: 1rem;">
+                        <span class="text-green" style="font-size: 2rem;">✓</span>
+                        <div>
+                            <div class="feature-title" style="margin-bottom: 0.25rem;">Next.js 16</div>
+                            <div class="text-muted">Vercel, Netflix, TikTok</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="glass-card mb-2">
+                    <div style="display: flex; align-items: center; gap: 1rem;">
+                        <span class="text-green" style="font-size: 2rem;">✓</span>
+                        <div>
+                            <div class="feature-title" style="margin-bottom: 0.25rem;">Supabase PostgreSQL</div>
+                            <div class="text-muted">Escalable a millones de leads</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="glass-card mb-2">
+                    <div style="display: flex; align-items: center; gap: 1rem;">
+                        <span class="text-green" style="font-size: 2rem;">✓</span>
+                        <div>
+                            <div class="feature-title" style="margin-bottom: 0.25rem;">Mapbox GL</div>
+                            <div class="text-muted">Tesla, National Geographic, CNN</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="glass-card mb-2">
+                    <div style="display: flex; align-items: center; gap: 1rem;">
+                        <span class="text-green" style="font-size: 2rem;">✓</span>
+                        <div>
+                            <div class="feature-title" style="margin-bottom: 0.25rem;">Vercel Edge CDN</div>
+                            <div class="text-muted">Latencia &lt;50ms global</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="glass-card">
+                    <div style="display: flex; align-items: center; gap: 1rem;">
+                        <span class="text-green" style="font-size: 2rem;">✓</span>
+                        <div>
+                            <div class="feature-title" style="margin-bottom: 0.25rem;">Uptime 99.9% SLA</div>
+                            <div class="text-muted">Garantía enterprise</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ============================================================ -->
+    <!-- SLIDE 10: SECURITY & COMPLIANCE -->
+    <!-- ============================================================ -->
+    <section class="slide" style="background: var(--surface-1);">
+        <div class="slide-content">
+            <h2 class="text-gold mb-2">Seguridad & Compliance</h2>
+            <p class="text-secondary mb-3" style="font-size: 1.125rem; font-style: italic;">
+                Sus datos están más seguros que en su propio servidor
+            </p>
+
+            <div class="grid-2">
+                <div class="feature-card">
+                    <span class="feature-icon">🔒</span>
+                    <div class="feature-title">SSL/TLS Encryption</div>
+                    <div class="feature-desc">Tráfico 100% encriptado</div>
+                </div>
+                <div class="feature-card">
+                    <span class="feature-icon">🛡️</span>
+                    <div class="feature-title">SOC 2 Compliance</div>
+                    <div class="feature-desc">Certificado Supabase</div>
+                </div>
+                <div class="feature-card">
+                    <span class="feature-icon">📊</span>
+                    <div class="feature-title">GDPR Ready</div>
+                    <div class="feature-desc">Privacidad EU compliant</div>
+                </div>
+                <div class="feature-card">
+                    <span class="feature-icon">🔐</span>
+                    <div class="feature-title">Role-Based Access</div>
+                    <div class="feature-desc">Control equipos grandes</div>
+                </div>
+                <div class="feature-card">
+                    <span class="feature-icon">💾</span>
+                    <div class="feature-title">Backups Diarios</div>
+                    <div class="feature-desc">Automáticos + recovery</div>
+                </div>
+                <div class="feature-card">
+                    <span class="feature-icon">🚨</span>
+                    <div class="feature-title">Rate Limiting</div>
+                    <div class="feature-desc">Anti-spam protection</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ============================================================ -->
+    <!-- SLIDE 11: PRICING (Anchoring) -->
+    <!-- ============================================================ -->
+    <section class="slide" style="background: var(--surface-0);">
+        <div class="slide-content">
+            <h2 class="text-gold mb-3 text-center">Inversión</h2>
+
+            <!-- Anchors (expensive first) -->
+            <div class="text-center mb-3">
+                <p class="text-red" style="font-size: 1.5rem; margin-bottom: 0.5rem;">
+                    Agencia Custom: $50,000 + 6 meses
+                </p>
+                <p class="text-red" style="font-size: 1.5rem; margin-bottom: 2rem;">
+                    Developer in-house: $8,000/mes continuo
+                </p>
+                <div style="height: 2px; background: var(--gold); max-width: 600px; margin: 0 auto 2rem auto;"></div>
+            </div>
+
+            <div class="pricing-grid">
+                <div class="price-card">
+                    <div class="price-name">Starter</div>
+                    <div class="price-amount">$199</div>
+                    <div class="price-period">/mes</div>
+                    <div style="margin-top: 1.5rem; padding-top: 1.5rem; border-top: 1px solid rgba(255,255,255,0.08);">
+                        <div class="text-muted" style="font-size: 0.95rem;">Proyectos &lt;100 unidades</div>
+                    </div>
+                </div>
+
+                <div class="price-card featured">
+                    <div class="price-name" style="display: flex; align-items: center; justify-content: center; gap: 0.5rem;">
+                        Professional <span style="font-size: 1.5rem;">⭐</span>
+                    </div>
+                    <div class="price-amount">$299</div>
+                    <div class="price-period">/mes</div>
+                    <div style="margin-top: 1.5rem; padding-top: 1.5rem; border-top: 1px solid rgba(20,20,20,0.2);">
+                        <div style="font-size: 0.95rem; font-weight: 600;">100-300 unidades</div>
+                        <div style="font-size: 0.875rem; margin-top: 0.25rem;">(POPULAR)</div>
+                    </div>
+                </div>
+
+                <div class="price-card">
+                    <div class="price-name">Enterprise</div>
+                    <div class="price-amount">$599</div>
+                    <div class="price-period">/mes</div>
+                    <div style="margin-top: 1.5rem; padding-top: 1.5rem; border-top: 1px solid rgba(255,255,255,0.08);">
+                        <div class="text-muted" style="font-size: 0.95rem;">Desarrolladoras 5+ proyectos</div>
+                    </div>
+                </div>
+            </div>
+
+            <p class="text-center text-gold mt-3" style="font-size: 1.125rem; font-style: italic;">
+                $299/mes = $9.96/día<br>
+                Menos que un almuerzo ejecutivo
+            </p>
+        </div>
+    </section>
+
+    <!-- ============================================================ -->
+    <!-- SLIDE 12: ROI CALCULATOR -->
+    <!-- ============================================================ -->
+    <section class="slide" style="background: var(--surface-1);">
+        <div class="slide-content">
+            <h2 class="text-gold mb-2">ROI Calculado</h2>
+            <p class="text-secondary mb-3" style="font-size: 1.125rem; font-style: italic;">
+                Escenario conservador - Hagamos las matemáticas
+            </p>
+
+            <table style="max-width: 900px; margin: 0 auto 2rem auto;">
+                <thead>
+                    <tr>
+                        <th>Métrica</th>
+                        <th>Actual</th>
+                        <th>Con NODDO</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Visitantes/mes</td>
+                        <td>500</td>
+                        <td>500</td>
+                    </tr>
+                    <tr>
+                        <td>Tasa conversión</td>
+                        <td class="text-red">2%</td>
+                        <td class="text-green">8%</td>
+                    </tr>
+                    <tr>
+                        <td>Leads capturados</td>
+                        <td class="text-red">10 leads</td>
+                        <td class="text-green">40 leads</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Leads ADICIONALES</strong></td>
+                        <td class="text-muted">—</td>
+                        <td class="text-gold"><strong>+30 leads/mes</strong></td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <div class="glass-card text-center" style="max-width: 700px; margin: 0 auto;">
+                <p style="font-size: 1.25rem; margin-bottom: 1rem;">
+                    Valor promedio lead: <span class="text-gold">$200</span><br>
+                    Valor adicional mensual: <span class="text-gold">$6,000</span><br>
+                    Inversión NODDO: <span class="text-gold">$299</span>
+                </p>
+                <div style="height: 2px; background: var(--gold); margin: 1.5rem 0;"></div>
+                <div class="metric-number" style="font-size: 4rem;">1,907%</div>
+                <div class="metric-label" style="font-size: 1.125rem;">ROI Mensual</div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ============================================================ -->
+    <!-- SLIDE 13: COMPETITIVE COMPARISON -->
+    <!-- ============================================================ -->
+    <section class="slide" style="background: var(--surface-0);">
+        <div class="slide-content">
+            <h2 class="text-gold mb-3">Por Qué NODDO Gana</h2>
+
+            <table class="comparison-table">
+                <thead>
+                    <tr>
+                        <th></th>
+                        <th>Agencia Custom</th>
+                        <th>Wix/WordPress</th>
+                        <th style="background: var(--gold); color: var(--surface-0);">NODDO</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><strong>Costo</strong></td>
+                        <td class="text-red">$50,000</td>
+                        <td class="text-red">$500/mes</td>
+                        <td class="highlight text-green">$299/mes</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Tiempo setup</strong></td>
+                        <td class="text-red">6 meses</td>
+                        <td class="text-muted">2 semanas</td>
+                        <td class="highlight text-green">48 horas</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Diseño premium</strong></td>
+                        <td class="check">✓</td>
+                        <td class="cross">✗</td>
+                        <td class="highlight check">✓</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Carga &lt;1s</strong></td>
+                        <td class="text-muted">⚠️</td>
+                        <td class="cross">✗</td>
+                        <td class="highlight check">✓</td>
+                    </tr>
+                    <tr>
+                        <td><strong>CRM integrado</strong></td>
+                        <td class="cross">✗</td>
+                        <td class="cross">✗</td>
+                        <td class="highlight check">✓</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Soporte 24/7</strong></td>
+                        <td class="cross">✗</td>
+                        <td class="cross">✗</td>
+                        <td class="highlight check">✓</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </section>
+
+    <!-- ============================================================ -->
+    <!-- SLIDE 14: OBJECTIONS ANSWERED -->
+    <!-- ============================================================ -->
+    <section class="slide" style="background: var(--surface-1);">
+        <div class="slide-content">
+            <h2 class="text-gold mb-3">Sus Preguntas, Respondidas</h2>
+
+            <div class="grid-2">
+                <div class="glass-card">
+                    <h3 class="text-gold" style="font-size: 1.25rem; margin-bottom: 1rem;">¿Y si no me gusta?</h3>
+                    <ul style="list-style: none; padding: 0;">
+                        <li style="padding: 0.5rem 0; border-bottom: 1px solid rgba(255,255,255,0.05);">
+                            <span class="text-green">✓</span> 30 días money-back
+                        </li>
+                        <li style="padding: 0.5rem 0;">
+                            <span class="text-green">✓</span> Migración gratis de vuelta
+                        </li>
+                    </ul>
+                </div>
+
+                <div class="glass-card">
+                    <h3 class="text-gold" style="font-size: 1.25rem; margin-bottom: 1rem;">¿Necesito equipo técnico?</h3>
+                    <ul style="list-style: none; padding: 0;">
+                        <li style="padding: 0.5rem 0; border-bottom: 1px solid rgba(255,255,255,0.05);">
+                            <span class="text-green">✓</span> 0 código requerido
+                        </li>
+                        <li style="padding: 0.5rem 0; border-bottom: 1px solid rgba(255,255,255,0.05);">
+                            <span class="text-green">✓</span> Onboarding incluido
+                        </li>
+                        <li style="padding: 0.5rem 0;">
+                            <span class="text-green">✓</span> Soporte 24/7 español
+                        </li>
+                    </ul>
+                </div>
+
+                <div class="glass-card">
+                    <h3 class="text-gold" style="font-size: 1.25rem; margin-bottom: 1rem;">¿Qué pasa con mi SEO?</h3>
+                    <ul style="list-style: none; padding: 0;">
+                        <li style="padding: 0.5rem 0; border-bottom: 1px solid rgba(255,255,255,0.05);">
+                            <span class="text-green">✓</span> Migramos todo su SEO
+                        </li>
+                        <li style="padding: 0.5rem 0; border-bottom: 1px solid rgba(255,255,255,0.05);">
+                            <span class="text-green">✓</span> Redirects 301 automáticos
+                        </li>
+                        <li style="padding: 0.5rem 0;">
+                            <span class="text-green">✓</span> Performance = mejor ranking
+                        </li>
+                    </ul>
+                </div>
+
+                <div class="glass-card">
+                    <h3 class="text-gold" style="font-size: 1.25rem; margin-bottom: 1rem;">¿Cambios custom?</h3>
+                    <ul style="list-style: none; padding: 0;">
+                        <li style="padding: 0.5rem 0; border-bottom: 1px solid rgba(255,255,255,0.05);">
+                            <span class="text-green">✓</span> API abierta
+                        </li>
+                        <li style="padding: 0.5rem 0; border-bottom: 1px solid rgba(255,255,255,0.05);">
+                            <span class="text-green">✓</span> Webhooks para CRM
+                        </li>
+                        <li style="padding: 0.5rem 0;">
+                            <span class="text-green">✓</span> Enterprise: dev dedicado
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ============================================================ -->
+    <!-- SLIDE 15: URGENCY/SCARCITY -->
+    <!-- ============================================================ -->
+    <section class="slide" style="background: var(--surface-0);">
+        <div class="slide-content text-center">
+            <h2 class="mb-2" style="font-size: clamp(2.5rem, 6vw, 4rem);">Oferta Early Adopter</h2>
+            <p class="text-secondary mb-3" style="font-size: 1.25rem; font-style: italic;">(Limitada)</p>
+
+            <div class="glass-card" style="max-width: 700px; margin: 0 auto 3rem auto;">
+                <ul style="list-style: none; padding: 0; text-align: left; font-size: 1.5rem;">
+                    <li style="padding: 1rem 0; border-bottom: 1px solid rgba(255,255,255,0.05);">
+                        🎁 2 meses gratis (primeros 10 clientes)
+                    </li>
+                    <li style="padding: 1rem 0; border-bottom: 1px solid rgba(255,255,255,0.05);">
+                        🎁 Setup prioritario (24h no 48h)
+                    </li>
+                    <li style="padding: 1rem 0; border-bottom: 1px solid rgba(255,255,255,0.05);">
+                        🎁 Pricing locked por 2 años
+                    </li>
+                    <li style="padding: 1rem 0;">
+                        🎁 Migración gratis desde sitio actual
+                    </li>
+                </ul>
+            </div>
+
+            <div class="urgency-box" style="max-width: 600px; margin: 0 auto;">
+                <h3>Solo 4 slots disponibles este mes</h3>
+                <p style="font-size: 1.125rem; margin-top: 0.5rem;">Oferta expira: 31 Marzo 2026</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- ============================================================ -->
+    <!-- SLIDE 16: CTA -->
+    <!-- ============================================================ -->
+    <section class="slide" style="background: var(--surface-0);">
+        <div class="slide-content text-center">
+            <h1 class="mb-3" style="max-width: 900px; margin: 0 auto 2rem auto;">
+                ¿Listo para convertir más visitantes en compradores?
+            </h1>
+
+            <a href="#" class="btn-gold" style="font-size: 1.5rem; padding: 1.75rem 4rem;">
+                AGENDE SU DEMO PERSONALIZADA (15 MIN)
+            </a>
+
+            <div class="mt-3">
+                <p class="text-secondary mb-2" style="font-size: 1.125rem;">O escriba directo:</p>
+                <p class="text-gold" style="font-size: 1.5rem; font-weight: 600;">
+                    WhatsApp: +57 XXX XXX XXXX<br>
+                    Email: hola@noddo.io
+                </p>
+            </div>
+
+            <div class="glass-card" style="max-width: 500px; margin: 3rem auto 0 auto;">
+                <ul style="list-style: none; padding: 0; font-size: 1rem; color: var(--text-muted);">
+                    <li style="padding: 0.5rem 0;">✓ Sin compromiso</li>
+                    <li style="padding: 0.5rem 0;">✓ Demo personalizada con su proyecto</li>
+                    <li style="padding: 0.5rem 0;">✓ Cotización inmediata</li>
+                </ul>
+            </div>
+        </div>
+    </section>
+
+    <script>
+        // ============================================================
+        // INTERSECTION OBSERVER FOR SLIDE ANIMATIONS
+        // ============================================================
+        const observerOptions = {
+            threshold: 0.5,
+            rootMargin: '0px'
+        };
+
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.querySelector('.slide-content').classList.add('visible');
+                }
+            });
+        }, observerOptions);
+
+        document.querySelectorAll('.slide').forEach(slide => {
+            observer.observe(slide);
+        });
+
+        // ============================================================
+        // PROGRESS BAR & SLIDE COUNTER
+        // ============================================================
+        const progressBar = document.getElementById('progressBar');
+        const slideCounter = document.getElementById('slideCounter');
+        const slides = document.querySelectorAll('.slide');
+        const totalSlides = slides.length;
+
+        window.addEventListener('scroll', () => {
+            const windowHeight = window.innerHeight;
+            const documentHeight = document.documentElement.scrollHeight - windowHeight;
+            const scrolled = window.scrollY;
+            const progress = (scrolled / documentHeight) * 100;
+
+            progressBar.style.width = progress + '%';
+
+            // Update slide counter
+            const currentSlide = Math.floor(scrolled / windowHeight) + 1;
+            const slideNum = Math.min(currentSlide, totalSlides);
+            slideCounter.textContent = `${slideNum.toString().padStart(2, '0')} / ${totalSlides}`;
+        });
+
+        // ============================================================
+        // SMOOTH SCROLL FOR BUTTONS (if any internal links)
+        // ============================================================
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'start'
+                    });
+                }
+            });
+        });
+
+        // ============================================================
+        // KEYBOARD NAVIGATION
+        // ============================================================
+        document.addEventListener('keydown', (e) => {
+            const currentScroll = window.scrollY;
+            const windowHeight = window.innerHeight;
+
+            if (e.key === 'ArrowDown' || e.key === 'PageDown') {
+                e.preventDefault();
+                window.scrollTo({
+                    top: currentScroll + windowHeight,
+                    behavior: 'smooth'
+                });
+            } else if (e.key === 'ArrowUp' || e.key === 'PageUp') {
+                e.preventDefault();
+                window.scrollTo({
+                    top: currentScroll - windowHeight,
+                    behavior: 'smooth'
+                });
+            }
+        });
+    </script>
+</body>
+</html>

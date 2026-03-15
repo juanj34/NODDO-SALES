@@ -3,13 +3,11 @@
 import { useState, useMemo, useCallback, useRef, useEffect } from "react";
 import { useEditorProject } from "@/hooks/useEditorProject";
 import {
-  pageHeader,
-  pageTitle,
-  pageDescription,
   inputClass,
   labelClass,
   fieldHint,
 } from "@/components/dashboard/editor-styles";
+import { PageHeader } from "@/components/dashboard/base/PageHeader";
 import { cn } from "@/lib/utils";
 import {
   Plus,
@@ -19,9 +17,8 @@ import {
   Calculator,
 } from "lucide-react";
 import { Reorder, useDragControls } from "framer-motion";
-import { useToast } from "@/components/dashboard/Toast";
 import { calcularCotizacion } from "@/lib/cotizador/calcular";
-import type { CotizadorConfig, FaseConfig, DescuentoConfig, ResultadoCotizacion, Currency } from "@/types";
+import type { CotizadorConfig, FaseConfig, DescuentoConfig, ResultadoCotizacion } from "@/types";
 import { NodDoDropdown } from "@/components/ui/NodDoDropdown";
 import { InfoTooltip } from "@/components/ui/InfoTooltip";
 import { formatCurrency } from "@/lib/currency";
@@ -179,7 +176,6 @@ function FaseCard({
 
 export default function CotizadorConfigPage() {
   const { project, save } = useEditorProject();
-  const toast = useToast();
   const { t } = useLanguage();
 
   const cotizadorEnabled = project.cotizador_enabled;
@@ -275,12 +271,11 @@ export default function CotizadorConfigPage() {
   if (!cotizadorEnabled) {
     return (
       <div className="p-6 md:p-10 max-w-5xl mx-auto">
-        <div className={pageHeader}>
-          <div>
-            <h1 className={pageTitle}>Cotizador</h1>
-            <p className={pageDescription}>Configura la estructura de pagos para tus unidades</p>
-          </div>
-        </div>
+        <PageHeader
+          icon={Calculator}
+          title="Cotizador"
+          description="Configura la estructura de pagos para tus unidades"
+        />
         <div className="flex flex-col items-center justify-center py-20 text-center">
           <div className="w-16 h-16 rounded-2xl bg-[var(--surface-2)] border border-[var(--border-subtle)] flex items-center justify-center mb-6">
             <Lock size={24} className="text-[var(--text-muted)]" />
@@ -306,12 +301,11 @@ export default function CotizadorConfigPage() {
 
   return (
     <div className="p-6 md:p-10 max-w-6xl mx-auto">
-      <div className={pageHeader}>
-        <div>
-          <h1 className={pageTitle}>Cotizador</h1>
-          <p className={pageDescription}>Configura la estructura de pagos para las cotizaciones de tus unidades</p>
-        </div>
-      </div>
+      <PageHeader
+        icon={Calculator}
+        title="Cotizador"
+        description="Configura la estructura de pagos para las cotizaciones de tus unidades"
+      />
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
         {/* Left: Config */}

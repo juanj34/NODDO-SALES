@@ -2,6 +2,8 @@
 
 import { useEffect, useRef, useState } from "react";
 import { motion } from "framer-motion";
+import { ArrowRight, TrendingUp } from "lucide-react";
+import { useBooking } from "./BookingProvider";
 
 /* ── stat data ───────────────────────────────────────── */
 
@@ -148,6 +150,8 @@ function AnimatedStat({
 const ease = [0.25, 0.46, 0.45, 0.94] as const;
 
 export function SalesImpactSection() {
+  const { openBooking } = useBooking();
+
   // Extract cells by position
   const featured = cells[0] as StatCell; // 3x — large
   const right1 = cells[1] as StatCell; // 93%
@@ -446,6 +450,138 @@ export function SalesImpactSection() {
             </div>
           </motion.div>
         </div>
+
+        {/* CTA Banner after stats */}
+        <motion.div
+          initial={{ opacity: 0, y: 24 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, margin: "-60px" }}
+          transition={{ duration: 0.7, delay: 0.4, ease }}
+          className="mt-16"
+          style={{
+            background: "linear-gradient(135deg, rgba(184,151,58,0.08) 0%, rgba(184,151,58,0.04) 100%)",
+            border: "1px solid rgba(184,151,58,0.2)",
+            borderRadius: "16px",
+            padding: "48px 40px",
+            position: "relative",
+            overflow: "hidden",
+          }}
+        >
+          {/* Decorative corner accent */}
+          <div
+            style={{
+              position: "absolute",
+              top: 0,
+              right: 0,
+              width: 200,
+              height: 200,
+              background: "radial-gradient(circle at top right, rgba(184,151,58,0.12), transparent 70%)",
+              pointerEvents: "none",
+            }}
+          />
+
+          <div className="relative z-[1] text-center max-w-[680px] mx-auto">
+            <div className="flex items-center justify-center gap-2 mb-4">
+              <TrendingUp size={20} stroke="#b8973a" strokeWidth={2} />
+              <span
+                className="font-ui text-[10px] tracking-[0.2em] uppercase"
+                style={{ color: "var(--mk-accent)" }}
+              >
+                Únete a los equipos que venden más
+              </span>
+            </div>
+
+            <h3
+              className="font-heading text-[clamp(24px,3.5vw,36px)] font-light leading-[1.2] mb-6"
+              style={{ color: "var(--mk-text-primary)" }}
+            >
+              Centraliza tu proyecto. <em className="italic" style={{ color: "var(--mk-accent-light)" }}>Vende 3x más.</em>
+            </h3>
+
+            <p
+              className="text-[13px] leading-[1.8] mb-8"
+              style={{ color: "rgba(244,240,232,0.5)" }}
+            >
+              Los mejores equipos comerciales usan NODDO para presentar más rápido,
+              capturar más leads y cerrar más ventas.
+            </p>
+
+            <div className="flex items-center justify-center gap-4">
+              <div className="relative">
+                {/* Pulsing glow ring */}
+                <div
+                  className="absolute inset-0 rounded-[12px]"
+                  style={{
+                    background: "transparent",
+                    boxShadow: "0 0 0 0 rgba(184,151,58,0.7)",
+                    animation: "pulse-ring 2s cubic-bezier(0.4, 0, 0.6, 1) infinite",
+                  }}
+                />
+                <button
+                  onClick={openBooking}
+                  className="btn-mk-primary inline-flex items-center gap-2.5 whitespace-nowrap relative z-[1]"
+                  style={{ fontSize: 13, padding: "14px 32px" }}
+                >
+                  Ver Cómo Funciona
+                  <ArrowRight size={15} strokeWidth={2.5} />
+                </button>
+              </div>
+            </div>
+
+            {/* Mini social proof */}
+            <div className="flex items-center justify-center gap-3 mt-6">
+              <div className="flex items-center" style={{ marginLeft: -4 }}>
+                {[
+                  "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=80&h=80&fit=crop&crop=faces",
+                  "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=80&h=80&fit=crop&crop=faces",
+                  "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=80&h=80&fit=crop&crop=faces",
+                ].map((photoUrl, i) => (
+                  <div
+                    key={i}
+                    style={{
+                      width: 24,
+                      height: 24,
+                      borderRadius: "50%",
+                      border: "2px solid rgba(18,18,18,0.9)",
+                      marginLeft: i === 0 ? 0 : -8,
+                      position: "relative",
+                      zIndex: 4 - i,
+                      boxShadow: "0 2px 6px rgba(0,0,0,0.2)",
+                      overflow: "hidden",
+                    }}
+                  >
+                    <img
+                      src={photoUrl}
+                      alt=""
+                      style={{
+                        width: "100%",
+                        height: "100%",
+                        objectFit: "cover",
+                      }}
+                    />
+                  </div>
+                ))}
+              </div>
+              <span style={{ fontSize: 11, color: "rgba(244,240,232,0.4)" }}>
+                <strong style={{ color: "var(--mk-text-primary)", fontWeight: 500 }}>100+</strong> equipos comerciales
+              </span>
+            </div>
+          </div>
+
+          <style jsx>{`
+            @keyframes pulse-ring {
+              0% {
+                box-shadow: 0 0 0 0 rgba(184,151,58,0.7);
+              }
+              50% {
+                box-shadow: 0 0 0 10px rgba(184,151,58,0);
+              }
+              100% {
+                box-shadow: 0 0 0 0 rgba(184,151,58,0);
+              }
+            }
+          `}</style>
+        </motion.div>
       </div>
     </section>
   );

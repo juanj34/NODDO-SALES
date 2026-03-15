@@ -7,19 +7,12 @@ import { useEditorProject } from "@/hooks/useEditorProject";
 import { useConfirm } from "@/components/dashboard/ConfirmModal";
 import { useToast } from "@/components/dashboard/Toast";
 import { NodDoDropdown } from "@/components/ui/NodDoDropdown";
+import { PageHeader } from "@/components/dashboard/base/PageHeader";
 import {
   inputClass,
   labelClass,
   btnPrimary,
   btnSecondary,
-  btnDanger,
-  pageHeader,
-  pageTitle,
-  pageDescription,
-  emptyState,
-  emptyStateIcon,
-  emptyStateTitle,
-  emptyStateDescription,
 } from "@/components/dashboard/editor-styles";
 import type { PuntoInteres } from "@/types";
 import {
@@ -90,7 +83,7 @@ const TABS: { id: UbicacionTab; labelKey: string; icon: typeof MapPin }[] = [
 
 export default function UbicacionPage() {
   const { t } = useTranslation("editor");
-  const { project, saving, save, refresh, projectId } = useEditorProject();
+  const { project, save, refresh, projectId } = useEditorProject();
   const { confirm } = useConfirm();
   const toast = useToast();
 
@@ -374,16 +367,12 @@ export default function UbicacionPage() {
       animate={{ opacity: 1, y: 0 }}
     >
       {/* Page Header */}
-      <div className={`${pageHeader} max-w-4xl mx-auto`}>
-        <div className="flex items-center gap-4">
-          <div className="w-10 h-10 rounded-xl bg-[var(--surface-2)] border border-[var(--border-subtle)] flex items-center justify-center">
-            <MapPin size={18} className="text-[var(--site-primary)]" />
-          </div>
-          <div>
-            <h2 className={pageTitle}>{t("ubicacion.title")}</h2>
-            <p className={pageDescription}>{t("ubicacion.description")}</p>
-          </div>
-        </div>
+      <div className="max-w-4xl mx-auto">
+        <PageHeader
+          icon={MapPin}
+          title={t("ubicacion.title")}
+          description={t("ubicacion.description")}
+        />
       </div>
 
       {/* Tab bar */}

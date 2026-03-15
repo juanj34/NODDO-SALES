@@ -58,8 +58,8 @@ export default function MarketingHomePage() {
       {/* 11. FAQ */}
       <FAQSection />
 
-      {/* 12. CTA SECTION */}
-      <section className="relative z-[1] py-36 lg:py-40 px-6 text-center border-t border-[var(--mk-border-rule)] overflow-hidden">
+      {/* 12. FINAL CTA SECTION */}
+      <section className="relative z-[1] py-36 lg:py-48 px-6 text-center border-t border-[var(--mk-border-rule)] overflow-hidden">
         {/* Decorative skyline — wireframe blueprint style */}
         <div className="absolute inset-0 flex items-end justify-center pointer-events-none" style={{ opacity: 0.06 }}>
           <svg viewBox="0 0 1200 500" fill="none" className="w-full max-w-5xl" style={{ marginBottom: -1 }}>
@@ -157,39 +157,160 @@ export default function MarketingHomePage() {
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true, margin: "-80px" }}
           transition={{ duration: 0.7, ease: [0.25, 0.46, 0.45, 0.94] }}
-          className="relative z-10"
+          className="relative z-10 max-w-5xl mx-auto"
         >
-          <h2 className="font-heading text-[clamp(48px,6vw,96px)] font-light leading-[1.1] tracking-[-0.02em] mb-6">
-            Tu edificio merece
+          {/* FOMO indicator */}
+          <div className="flex items-center justify-center gap-2 mb-8">
+            <div
+              className="w-2 h-2 rounded-full"
+              style={{
+                background: "#4ade80",
+                boxShadow: "0 0 12px rgba(74,222,128,0.6)",
+                animation: "pulse-dot 2s ease-in-out infinite",
+              }}
+            />
+            <span
+              className="font-ui text-[10px] tracking-[0.18em] uppercase"
+              style={{ color: "rgba(244,240,232,0.5)" }}
+            >
+              <strong style={{ color: "#4ade80", fontWeight: 600 }}>34</strong> equipos comerciales usando NODDO ahora
+            </span>
+          </div>
+
+          <h2 className="font-heading text-[clamp(40px,5.5vw,80px)] font-light leading-[1.1] tracking-[-0.02em] mb-6">
+            Tu competencia ya tiene
             <br />
-            mostrarse{" "}
             <em className="italic text-[var(--mk-accent-light)]">
-              como lo que es.
+              su showroom digital.
             </em>
           </h2>
+
           <p
-            className="text-[15px] mb-12 tracking-[0.05em]"
-            style={{ color: "rgba(244, 240, 232, 0.4)" }}
+            className="text-[16px] leading-[1.7] mb-12 max-w-2xl mx-auto"
+            style={{ color: "rgba(244, 240, 232, 0.5)" }}
           >
-            Sin agencia. Sin código. Sin esperar.
+            Mientras otros asesores buscan archivos, los tuyos podrían estar cerrando ventas.
+            <strong style={{ color: "var(--mk-text-primary)", fontWeight: 400 }}> Únete a los 100+ proyectos que venden más rápido.</strong>
           </p>
-          <div className="flex gap-5 justify-center">
-            <button
-              onClick={openBooking}
-              className="btn-mk-primary text-xs py-4 px-10 inline-flex items-center gap-2.5"
-            >
-              Agendar Demo
-              <ArrowRight size={14} strokeWidth={2.5} />
-            </button>
+
+          {/* Primary CTA with extra emphasis */}
+          <div className="flex flex-col items-center gap-6 mb-10">
+            <div className="relative">
+              {/* Extra large pulsing glow ring */}
+              <div
+                className="absolute inset-0 rounded-[14px]"
+                style={{
+                  background: "transparent",
+                  boxShadow: "0 0 0 0 rgba(184,151,58,0.8)",
+                  animation: "pulse-ring-large 2s cubic-bezier(0.4, 0, 0.6, 1) infinite",
+                }}
+              />
+              <button
+                onClick={openBooking}
+                className="btn-mk-primary inline-flex items-center gap-3 relative z-[1] group"
+                style={{ fontSize: 14, padding: "18px 48px", fontWeight: 700, letterSpacing: "0.04em" }}
+              >
+                <span>Agendar Demo Ahora</span>
+                <ArrowRight size={16} strokeWidth={2.5} className="group-hover:translate-x-1 transition-transform" />
+              </button>
+            </div>
+
             <Link
               href="/sites/alto-de-yeguas"
-              className="btn-mk-outline text-xs py-4 px-10 inline-flex items-center gap-2.5"
+              className="btn-mk-outline inline-flex items-center gap-2.5"
+              style={{ fontSize: 12, padding: "12px 32px" }}
             >
-              Demo en Vivo
+              Ver Demo en Vivo
               <ExternalLink size={13} strokeWidth={2} />
             </Link>
           </div>
+
+          {/* Trust guarantees */}
+          <div className="flex items-center justify-center gap-8 flex-wrap text-[12px]" style={{ color: "rgba(244,240,232,0.4)" }}>
+            <div className="flex items-center gap-2">
+              <span style={{ fontSize: 18 }}>✓</span>
+              <span>Demo de <strong style={{ color: "var(--mk-text-primary)", fontWeight: 500 }}>15 minutos</strong></span>
+            </div>
+            <div className="flex items-center gap-2">
+              <span style={{ fontSize: 18 }}>✓</span>
+              <span>Tu proyecto <strong style={{ color: "var(--mk-text-primary)", fontWeight: 500 }}>configurado en vivo</strong></span>
+            </div>
+            <div className="flex items-center gap-2">
+              <span style={{ fontSize: 18 }}>✓</span>
+              <span><strong style={{ color: "var(--mk-text-primary)", fontWeight: 500 }}>Sin compromiso</strong></span>
+            </div>
+          </div>
+
+          {/* Social proof avatars */}
+          <div className="flex items-center justify-center gap-3 mt-10 pt-10" style={{ borderTop: "1px solid rgba(255,255,255,0.04)" }}>
+            <div className="flex items-center" style={{ marginLeft: -4 }}>
+              {[
+                "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=80&h=80&fit=crop&crop=faces",
+                "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=80&h=80&fit=crop&crop=faces",
+                "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=80&h=80&fit=crop&crop=faces",
+                "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=80&h=80&fit=crop&crop=faces",
+                "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=80&h=80&fit=crop&crop=faces",
+              ].map((photoUrl, i) => (
+                <div
+                  key={i}
+                  style={{
+                    width: 36,
+                    height: 36,
+                    borderRadius: "50%",
+                    border: "2px solid var(--mk-bg)",
+                    marginLeft: i === 0 ? 0 : -12,
+                    position: "relative",
+                    zIndex: 6 - i,
+                    boxShadow: "0 2px 12px rgba(0,0,0,0.4), 0 0 0 1px rgba(184,151,58,0.2)",
+                    overflow: "hidden",
+                  }}
+                >
+                  <img
+                    src={photoUrl}
+                    alt=""
+                    style={{
+                      width: "100%",
+                      height: "100%",
+                      objectFit: "cover",
+                    }}
+                  />
+                </div>
+              ))}
+            </div>
+            <div className="text-left">
+              <div style={{ fontSize: 12, color: "var(--mk-text-primary)", fontWeight: 500 }}>
+                100+ desarrolladores inmobiliarios
+              </div>
+              <div style={{ fontSize: 11, color: "rgba(244,240,232,0.4)" }}>
+                Se unieron en los últimos 30 días
+              </div>
+            </div>
+          </div>
         </motion.div>
+
+        {/* Animations */}
+        <style jsx>{`
+          @keyframes pulse-dot {
+            0%, 100% {
+              opacity: 1;
+            }
+            50% {
+              opacity: 0.5;
+            }
+          }
+
+          @keyframes pulse-ring-large {
+            0% {
+              box-shadow: 0 0 0 0 rgba(184,151,58,0.8);
+            }
+            50% {
+              box-shadow: 0 0 0 12px rgba(184,151,58,0);
+            }
+            100% {
+              box-shadow: 0 0 0 0 rgba(184,151,58,0);
+            }
+          }
+        `}</style>
       </section>
 
       {/* 13. STICKY CTA (fixed position) */}

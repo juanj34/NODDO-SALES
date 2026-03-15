@@ -19,7 +19,6 @@ import { ViewsChart } from "@/components/dashboard/analytics/ViewsChart";
 import { DeviceChart } from "@/components/dashboard/analytics/DeviceChart";
 import { RankedList } from "@/components/dashboard/analytics/RankedList";
 import { TimeRangeSelector, type TimeRange } from "@/components/dashboard/analytics/TimeRangeSelector";
-import { useTranslation } from "@/i18n";
 import { NodDoDropdown } from "@/components/ui/NodDoDropdown";
 import { trackDashboardEvent } from "@/lib/dashboard-tracking";
 import { useAuthRole } from "@/hooks/useAuthContext";
@@ -30,6 +29,7 @@ import { EventsChart } from "@/components/dashboard/analytics/EventsChart";
 import { PopularShortcuts } from "@/components/dashboard/analytics/PopularShortcuts";
 import { RecentActivity } from "@/components/dashboard/analytics/RecentActivity";
 import { SearchPatterns } from "@/components/dashboard/analytics/SearchPatterns";
+import { AIUsageAnalytics } from "@/components/dashboard/analytics/AIUsageAnalytics";
 
 function getDateRange(range: TimeRange): { from: Date; to: Date } {
   const to = new Date();
@@ -72,7 +72,6 @@ interface DashboardAnalyticsData {
 }
 
 export default function AnalyticsPage() {
-  const { t } = useTranslation("dashboard");
   const { data: projects = [], isLoading: projectsLoading } = useProjects();
   const { user, role } = useAuthRole();
   const [activeTab, setActiveTab] = useState<AnalyticsTab>("dashboard");
@@ -119,8 +118,6 @@ export default function AnalyticsPage() {
 
   const { from, to } = useMemo(() => getDateRange(timeRange), [timeRange]);
   const { data, isLoading: loading } = useAnalytics(projectId, from, to);
-
-  const selectedProject = projects.find((p) => p.id === projectId);
 
   return (
     <div className="p-4 md:p-8 space-y-6 max-w-[1600px] mx-auto">
@@ -243,10 +240,19 @@ export default function AnalyticsPage() {
                 <SearchPatterns searches={dashboardData.top_searches} />
               </div>
 
+              {/* AI Usage Analytics */}
+              <motion.div
+                initial={{ opacity: 0, y: 8 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.6, duration: 0.4 }}
+              >
+                <AIUsageAnalytics />
+              </motion.div>
+
               <motion.div
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
-                transition={{ delay: 0.5, duration: 0.4 }}
+                transition={{ delay: 0.7, duration: 0.4 }}
                 className="text-center pt-4"
               >
                 <p className="font-mono text-xs text-[var(--text-muted)]">

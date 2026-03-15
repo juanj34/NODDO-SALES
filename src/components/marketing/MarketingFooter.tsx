@@ -1,19 +1,19 @@
 import Link from "next/link";
 
 const productLinks = [
-  { label: "Noddo Grid", href: "#capacidades" },
-  { label: "Dashboard", href: "#" },
-  { label: "Integraciones", href: "#" },
-  { label: "API", href: "#" },
-  { label: "Changelog", href: "#" },
+  { label: "Integraciones", href: "/integraciones" },
+  { label: "Roadmap", href: "/roadmap" },
+  { label: "Pricing", href: "/pricing" },
+  { label: "Seguridad", href: "/seguridad" },
+  { label: "Estado", href: "/estado" },
 ];
 
 const companyLinks = [
-  { label: "Sobre Noddo", href: "#" },
-  { label: "Casos de éxito", href: "#" },
-  { label: "Blog", href: "#" },
-  { label: "Afiliados", href: "#" },
-  { label: "Contacto", href: "#" },
+  { label: "Nosotros", href: "/nosotros" },
+  { label: "Casos de Estudio", href: "/casos-de-estudio" },
+  { label: "Recursos", href: "/recursos" },
+  { label: "FAQ", href: "/faq" },
+  { label: "Contacto", href: "/#contacto" },
 ];
 
 const legalLinks = [

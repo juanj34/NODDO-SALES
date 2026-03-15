@@ -1,6 +1,6 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 
-export type Plan = "basic" | "premium" | "enterprise";
+export type Plan = "proyecto" | "studio" | "enterprise";
 
 interface PlanLimits {
   plan: Plan;
@@ -11,29 +11,29 @@ interface PlanLimits {
 }
 
 export const PLAN_DEFAULTS: Record<Plan, Omit<PlanLimits, "plan">> = {
-  basic: {
+  proyecto: {
     max_projects: 1,
-    max_units_per_project: 200,
-    max_collaborators: 5,
-    storage_limit_gb: 10,
+    max_units_per_project: null, // unlimited
+    max_collaborators: 999, // unlimited
+    storage_limit_gb: 50,
   },
-  premium: {
+  studio: {
     max_projects: 5,
     max_units_per_project: null, // unlimited
-    max_collaborators: 5,
-    storage_limit_gb: 50,
+    max_collaborators: 999, // unlimited
+    storage_limit_gb: 250,
   },
   enterprise: {
     max_projects: 999, // unlimited
-    max_units_per_project: null,
-    max_collaborators: 999,
+    max_units_per_project: null, // unlimited
+    max_collaborators: 999, // unlimited
     storage_limit_gb: 500,
   },
 };
 
 const DEFAULT_LIMITS: PlanLimits = {
-  plan: "basic",
-  ...PLAN_DEFAULTS.basic,
+  plan: "proyecto",
+  ...PLAN_DEFAULTS.proyecto,
 };
 
 export async function getPlanLimits(

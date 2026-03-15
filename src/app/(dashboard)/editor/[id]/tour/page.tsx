@@ -7,9 +7,9 @@ import { useConfirm } from "@/components/dashboard/ConfirmModal";
 import { useTourUpload, readDroppedFolder, pickFolderNative, hasNativeFolderPicker } from "@/hooks/useTourUpload";
 import {
   inputClass, labelClass, fieldHint,
-  pageHeader, pageTitle, pageDescription,
   sectionCard,
 } from "@/components/dashboard/editor-styles";
+import { PageHeader } from "@/components/dashboard/base/PageHeader";
 import { View, Loader2, ExternalLink, CheckCircle2, AlertCircle, CloudUpload, Link2, Upload, FolderOpen } from "lucide-react";
 import { extractTourUrl } from "@/lib/tour-utils";
 import { motion } from "framer-motion";
@@ -169,17 +169,11 @@ export default function TourPage() {
       className="max-w-4xl mx-auto space-y-8"
     >
       {/* Page Header */}
-      <div className={pageHeader}>
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-[var(--surface-2)] border border-[var(--border-subtle)] flex items-center justify-center">
-            <View size={18} className="text-[var(--site-primary)]" />
-          </div>
-          <div>
-            <h2 className={pageTitle}>{t("config.tour.title")}</h2>
-            <p className={pageDescription}>{t("config.tour.description")}</p>
-          </div>
-        </div>
-      </div>
+      <PageHeader
+        icon={View}
+        title={t("config.tour.title")}
+        description={t("config.tour.description")}
+      />
 
       {/* Tour Virtual Section */}
       <div className={cn(sectionCard, "space-y-6")}>

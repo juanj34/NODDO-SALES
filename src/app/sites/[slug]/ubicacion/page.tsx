@@ -18,7 +18,6 @@ import {
   Dumbbell,
   ChevronRight,
   Image as ImageIcon,
-  X,
 } from "lucide-react";
 import { useSiteProject } from "@/hooks/useSiteProject";
 import { CloseButton } from "@/components/ui/CloseButton";
@@ -103,7 +102,6 @@ export default function UbicacionPage() {
   } = proyecto;
 
   const { t } = useTranslation("site");
-  const { t: tCommon } = useTranslation("common");
 
   const isMobile = useMediaQuery("(max-width: 1023px)");
   const [sheetOpen, setSheetOpen] = useState(false);
@@ -134,10 +132,6 @@ export default function UbicacionPage() {
     setSelectedPOI((prev) => (prev?.id === poi.id ? null : poi));
     if (isMobile) setSheetOpen(true);
   }, [isMobile]);
-
-  const handleClosePOI = useCallback(() => {
-    setSelectedPOI(null);
-  }, []);
 
   // Keyboard navigation for POI list
   useEffect(() => {

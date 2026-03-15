@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 import { getProyectoBySlug } from "@/lib/supabase/server-queries";
 import { mockProyecto } from "@/data/mock";
 import { SiteLayoutClient } from "./SiteLayoutClient";
+import { ReCaptchaProvider } from "@/components/site/ReCaptchaProvider";
 import type { ProyectoCompleto } from "@/types";
 
 const ROOT_DOMAIN = process.env.NEXT_PUBLIC_ROOT_DOMAIN || "noddo.io";
@@ -150,9 +151,11 @@ export default async function SiteLayout({ params, children }: Props) {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
-      <SiteLayoutClient proyecto={proyecto} basePath={basePath}>
-        {children}
-      </SiteLayoutClient>
+      <ReCaptchaProvider>
+        <SiteLayoutClient proyecto={proyecto} basePath={basePath}>
+          {children}
+        </SiteLayoutClient>
+      </ReCaptchaProvider>
     </>
   );
 }

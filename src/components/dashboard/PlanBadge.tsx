@@ -12,13 +12,13 @@ interface PlanBadgeProps {
 }
 
 const PLAN_CONFIG: Record<Plan, { label: string; color: string; icon: typeof Zap }> = {
-  basic: {
-    label: "Basic",
-    color: "#9CA3AF", // Gray
+  proyecto: {
+    label: "Proyecto",
+    color: "#b8973a", // NODDO Gold
     icon: Zap,
   },
-  premium: {
-    label: "⭐ Premium",
+  studio: {
+    label: "⭐ Studio",
     color: "#b8973a", // NODDO Gold
     icon: Sparkles,
   },

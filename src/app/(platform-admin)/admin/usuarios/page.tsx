@@ -14,7 +14,6 @@ import {
   Ban,
   CheckCircle,
   X,
-  ChevronDown,
   AlertTriangle,
   RefreshCw,
   Trash2,

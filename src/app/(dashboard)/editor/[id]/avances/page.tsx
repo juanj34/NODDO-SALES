@@ -14,14 +14,12 @@ import {
   btnPrimary,
   btnSecondary,
   sectionCard,
-  pageHeader,
-  pageTitle,
-  pageDescription,
   emptyState,
   emptyStateIcon,
   emptyStateTitle,
   emptyStateDescription,
 } from "@/components/dashboard/editor-styles";
+import { PageHeader } from "@/components/dashboard/base/PageHeader";
 import type { AvanceObra } from "@/types";
 import {
   Plus,
@@ -267,23 +265,19 @@ export default function AvancesPage() {
       className="max-w-5xl mx-auto"
     >
       {/* Page Header */}
-      <div className={pageHeader}>
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-[var(--surface-2)] border border-[var(--border-subtle)] flex items-center justify-center">
-            <HardHat size={18} className="text-[var(--site-primary)]" />
-          </div>
-          <div>
-            <h2 className={pageTitle}>{t("avances.title")}</h2>
-            <p className={pageDescription}>{t("avances.description")}</p>
-          </div>
-        </div>
-        {!showForm && (
-          <button onClick={openNew} className={btnPrimary}>
-            <Plus size={14} />
-            {t("avances.addAvance")}
-          </button>
-        )}
-      </div>
+      <PageHeader
+        icon={HardHat}
+        title={t("avances.title")}
+        description={t("avances.description")}
+        actions={
+          !showForm ? (
+            <button onClick={openNew} className={btnPrimary}>
+              <Plus size={14} />
+              {t("avances.addAvance")}
+            </button>
+          ) : undefined
+        }
+      />
 
       {/* Form */}
       <AnimatePresence>

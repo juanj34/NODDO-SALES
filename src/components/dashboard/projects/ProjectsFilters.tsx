@@ -2,7 +2,6 @@
 
 import { Search, X, Plus } from "lucide-react";
 import { NodDoDropdown } from "@/components/ui/NodDoDropdown";
-import { useTranslation } from "@/i18n";
 
 interface Props {
   search: string;
@@ -43,8 +42,6 @@ export function ProjectsFilters({
   isAdmin,
   total,
 }: Props) {
-  const { t } = useTranslation("dashboard");
-
   const hasActiveFilters = search !== "" || statusFilter !== "todos";
 
   const clearFilters = () => {

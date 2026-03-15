@@ -9,10 +9,8 @@ import {
   btnPrimary,
   btnSecondary,
   cardClass,
-  pageHeader,
-  pageTitle,
-  pageDescription,
 } from "@/components/dashboard/editor-styles";
+import { PageHeader } from "@/components/dashboard/base/PageHeader";
 import {
   Globe,
   ExternalLink,
@@ -138,17 +136,11 @@ export default function DominioPage() {
   return (
     <div className="max-w-4xl mx-auto space-y-8">
       {/* Header */}
-      <div className={pageHeader}>
-        <div className="flex items-center gap-4">
-          <div className="w-10 h-10 rounded-xl bg-[var(--surface-2)] border border-[var(--border-subtle)] flex items-center justify-center">
-            <Globe size={18} className="text-[var(--site-primary)]" />
-          </div>
-          <div>
-            <h2 className={pageTitle}>{t("dominio.title")}</h2>
-            <p className={pageDescription}>{t("dominio.description")}</p>
-          </div>
-        </div>
-      </div>
+      <PageHeader
+        icon={Globe}
+        title={t("dominio.title")}
+        description={t("dominio.description")}
+      />
 
       {/* Subdomain section */}
       <div className={cardClass + " space-y-4"}>

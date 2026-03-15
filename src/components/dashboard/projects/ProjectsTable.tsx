@@ -124,7 +124,7 @@ export function ProjectsTable({
             </tr>
           </thead>
           <tbody>
-            {projects.map((proyecto, idx) => (
+            {projects.map((proyecto) => (
               <ProjectTableRow
                 key={proyecto.id}
                 proyecto={proyecto}

@@ -720,7 +720,7 @@ export interface PlatformAlert {
 
 /* ── Plans & Billing ── */
 
-export type Plan = "basic" | "premium" | "enterprise";
+export type Plan = "proyecto" | "studio" | "enterprise";
 
 export interface UserPlan {
   id: string;

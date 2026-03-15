@@ -22,7 +22,6 @@ export async function GET() {
   }
 
   // Get user emails
-  const userIds = [...new Set((projects ?? []).map((p) => p.user_id))];
   const { data: authData } = await admin.auth.admin.listUsers({ perPage: 1000, page: 1 });
   const emailMap = new Map<string, string>();
   for (const u of authData?.users ?? []) {

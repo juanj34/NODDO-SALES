@@ -86,7 +86,7 @@ export function useProject(id: string) {
       }
       setSaving(false);
       return false;
-    } catch (err) {
+    } catch {
       setSaving(false);
       return false;
     }

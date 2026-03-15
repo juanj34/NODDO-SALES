@@ -3,14 +3,12 @@
 import { useState, useMemo, useCallback } from "react";
 import { useEditorProject } from "@/hooks/useEditorProject";
 import {
-  pageHeader,
-  pageTitle,
-  pageDescription,
   emptyState,
   emptyStateIcon,
   emptyStateTitle,
   emptyStateDescription,
 } from "@/components/dashboard/editor-styles";
+import { PageHeader } from "@/components/dashboard/base/PageHeader";
 import { cn } from "@/lib/utils";
 import { formatCurrency as formatCurrencyFn } from "@/lib/currency";
 import { Package, Upload, Loader2 } from "lucide-react";
@@ -34,9 +32,9 @@ export default function DisponibilidadPage() {
   const { project, updateLocal } = useEditorProject();
   const toast = useToast();
 
-  const unidades = project.unidades ?? [];
-  const tipologias = project.tipologias ?? [];
-  const torres = project.torres ?? [];
+  const unidades = useMemo(() => project.unidades ?? [], [project.unidades]);
+  const tipologias = useMemo(() => project.tipologias ?? [], [project.tipologias]);
+  const torres = useMemo(() => project.torres ?? [], [project.torres]);
 
   const [filterTorre, setFilterTorre] = useState<string>("");
   const [filterTipo, setFilterTipo] = useState<string>("");
@@ -115,7 +113,7 @@ export default function DisponibilidadPage() {
         return next;
       });
     }
-  }, [unidades, project, updateLocal, toast]);
+  }, [unidades, updateLocal, toast]);
 
   // Group by floor
   const grouped = useMemo(() => {
@@ -131,12 +129,11 @@ export default function DisponibilidadPage() {
   if (unidades.length === 0) {
     return (
       <div className="p-6 md:p-10 max-w-5xl mx-auto">
-        <div className={pageHeader}>
-          <div>
-            <h1 className={pageTitle}>Disponibilidad</h1>
-            <p className={pageDescription}>Cambio rápido de estado de unidades</p>
-          </div>
-        </div>
+        <PageHeader
+          icon={Package}
+          title="Disponibilidad"
+          description="Cambio rápido de estado de unidades"
+        />
         <div className={emptyState}>
           <Package size={32} className={emptyStateIcon} />
           <h3 className={emptyStateTitle}>Sin unidades</h3>
@@ -149,20 +146,21 @@ export default function DisponibilidadPage() {
   return (
     <div className="p-6 md:p-10 max-w-5xl mx-auto">
       {/* Header */}
-      <div className={pageHeader}>
-        <div>
-          <h1 className={pageTitle}>Disponibilidad</h1>
-          <p className={pageDescription}>Cambio rápido de estado de unidades</p>
-        </div>
-        <button
-          onClick={handlePublishAvailability}
-          disabled={publishing}
-          className="inline-flex items-center gap-2 px-4 py-2 bg-[rgba(var(--site-primary-rgb),0.1)] border border-[rgba(var(--site-primary-rgb),0.3)] text-[var(--site-primary)] rounded-xl text-xs font-ui font-semibold uppercase tracking-wider hover:bg-[rgba(var(--site-primary-rgb),0.15)] transition-all disabled:opacity-50"
-        >
-          {publishing ? <Loader2 size={14} className="animate-spin" /> : <Upload size={14} />}
-          {publishing ? "Publicando..." : "Publicar disponibilidad"}
-        </button>
-      </div>
+      <PageHeader
+        icon={Package}
+        title="Disponibilidad"
+        description="Cambio rápido de estado de unidades"
+        actions={
+          <button
+            onClick={handlePublishAvailability}
+            disabled={publishing}
+            className="inline-flex items-center gap-2 px-4 py-2 bg-[rgba(var(--site-primary-rgb),0.1)] border border-[rgba(var(--site-primary-rgb),0.3)] text-[var(--site-primary)] rounded-xl text-xs font-ui font-semibold uppercase tracking-wider hover:bg-[rgba(var(--site-primary-rgb),0.15)] transition-all disabled:opacity-50"
+          >
+            {publishing ? <Loader2 size={14} className="animate-spin" /> : <Upload size={14} />}
+            {publishing ? "Publicando..." : "Publicar disponibilidad"}
+          </button>
+        }
+      />
 
       {/* Filters */}
       <div className="flex flex-wrap items-center gap-3 mb-6">

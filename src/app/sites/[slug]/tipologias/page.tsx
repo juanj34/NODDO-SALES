@@ -21,7 +21,6 @@ import {
   Eye,
   X,
   Sparkles,
-  ChevronRight,
   ChevronDown,
   Building2,
   Home,
@@ -53,10 +52,10 @@ export default function TipologiasPage() {
   const { t: tCommon } = useTranslation("common");
 
   // ALL HOOKS MUST BE BEFORE ANY EARLY RETURNS
-  // Extract data first (non-hook)
-  const tipologias = proyecto.tipologias ?? [];
-  const unidades = proyecto.unidades ?? [];
-  const torres = proyecto.torres ?? [];
+  // Extract data first (wrapped in useMemo to prevent dep warnings)
+  const tipologias = useMemo(() => proyecto.tipologias ?? [], [proyecto.tipologias]);
+  const unidades = useMemo(() => proyecto.unidades ?? [], [proyecto.unidades]);
+  const torres = useMemo(() => proyecto.torres ?? [], [proyecto.torres]);
   const isMultiTorre = torres.length > 1;
 
   // i18n-driven estado config and filters
@@ -197,6 +196,7 @@ export default function TipologiasPage() {
     };
     window.addEventListener("keydown", handleKey);
     return () => window.removeEventListener("keydown", handleKey);
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- setActiveIndex is a state setter, stable
   }, [activeHotspot, closeHotspot, selectedUnit, showRenderGallery, showUbicacion, visibleTipologias.length]);
 
   const active = visibleTipologias[activeIndex] ?? visibleTipologias[0];
