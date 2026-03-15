@@ -237,7 +237,7 @@ export function PricingSection() {
               className="font-ui text-[10px] tracking-[0.12em] uppercase"
               style={{ color: "var(--mk-accent)" }}
             >
-              Últimas 3 demos disponibles esta semana
+              Últimas 3 llamadas disponibles esta semana
             </span>
           </div>
 

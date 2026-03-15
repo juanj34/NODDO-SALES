@@ -691,7 +691,7 @@ export default function CasosDeEstudioPage() {
                 color: "rgba(244,240,232,0.55)",
               }}
             >
-              Agenda una demo de 30 minutos y te mostramos cómo NODDO puede transformar tu
+              Agenda una llamada de 30 minutos y te mostramos cómo NODDO puede transformar tu
               estrategia de ventas digitales
             </p>
             <Link
@@ -705,7 +705,7 @@ export default function CasosDeEstudioPage() {
                 boxShadow: "0 0 30px rgba(184, 151, 58, 0.3)",
               }}
             >
-              Agendar Demo
+              Agendar Llamada
               <ArrowRight className="w-5 h-5" />
             </Link>
           </div>

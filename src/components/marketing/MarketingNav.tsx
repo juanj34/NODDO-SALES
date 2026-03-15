@@ -103,9 +103,9 @@ export function MarketingNav() {
           </Link>
           <button
             onClick={openBooking}
-            className="btn-mk-primary text-[10px] py-2.5 px-5 inline-flex items-center gap-2"
+            className="btn-mk-outline text-[10px] py-2.5 px-5 inline-flex items-center gap-2"
           >
-            Agendar Demo
+            Agendar Llamada
             <ArrowRight size={12} strokeWidth={2.5} />
           </button>
 

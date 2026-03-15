@@ -1,10 +1,39 @@
 "use client";
 
+import { useState, useEffect, useCallback } from "react";
 import Image from "next/image";
-import { motion } from "framer-motion";
-import { ArrowRight } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
+import Link from "next/link";
+import { ArrowRight, Play } from "lucide-react";
 import { IsometricBuilding } from "./illustrations/IsometricBuilding";
 import { useBooking } from "./BookingProvider";
+
+const perspectives = [
+  {
+    id: "compradores",
+    label: "Para compradores",
+    content: (
+      <>
+        El comprador ya no pide información — <em className="italic text-[var(--mk-accent-light)]">la busca</em>.
+        Dale un showroom que responda solo: <strong className="text-[var(--mk-text-primary)] font-normal">inventario
+        en vivo, planos, recorridos 360° y leads cualificados</strong>.
+        En vivo en <strong className="text-[var(--mk-text-primary)] font-normal">24 horas</strong>. Tú lo manejas — sin agencias, sin esperas.
+      </>
+    ),
+  },
+  {
+    id: "comerciales",
+    label: "Para asesores",
+    content: (
+      <>
+        Tu equipo de ventas pierde horas buscando renders y actualizando PDFs — <em className="italic text-[var(--mk-accent-light)]">eso se acaba</em>.
+        Con un showroom digital, presentan con <strong className="text-[var(--mk-text-primary)] font-normal">inventario
+        en vivo, planos interactivos y disponibilidad al instante</strong>.
+        Menos WhatsApps, más cierres. <strong className="text-[var(--mk-text-primary)] font-normal">Todo desde un link.</strong>
+      </>
+    ),
+  },
+];
 
 const stats = [
   { value: "24h", label: "De renders a showroom" },
@@ -14,6 +43,24 @@ const stats = [
 
 export function HeroSection() {
   const { openBooking } = useBooking();
+  const [activeIndex, setActiveIndex] = useState(0);
+  const [isPaused, setIsPaused] = useState(false);
+
+  useEffect(() => {
+    if (isPaused) return;
+    const interval = setInterval(() => {
+      setActiveIndex((prev) => (prev + 1) % perspectives.length);
+    }, 5000);
+    return () => clearInterval(interval);
+  }, [isPaused]);
+
+  const handleTabClick = useCallback((index: number) => {
+    setActiveIndex(index);
+    setIsPaused(true);
+    const timeout = setTimeout(() => setIsPaused(false), 10000);
+    return () => clearTimeout(timeout);
+  }, []);
+
   return (
     <section className="relative min-h-screen grid grid-cols-1 lg:grid-cols-2 items-center px-6 lg:px-24 gap-8 lg:gap-12 overflow-hidden z-[1]">
       {/* ── LEFT: Copy ── */}
@@ -46,19 +93,64 @@ export function HeroSection() {
           <em className="italic text-[var(--mk-accent-light)]">más que un brochure.</em>
         </motion.h1>
 
-        {/* Subtitle — DM Mono */}
-        <motion.p
+        {/* Perspective tabs */}
+        <motion.div
           initial={{ opacity: 0, y: 24 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8, delay: 0.6, ease: "easeOut" }}
-          className="text-[15px] leading-[1.85] max-w-[580px] mb-14"
-          style={{ color: "rgba(244, 240, 232, 0.5)" }}
+          transition={{ duration: 0.8, delay: 0.55, ease: "easeOut" }}
+          className="flex items-center gap-6 mb-5"
+          onMouseEnter={() => setIsPaused(true)}
+          onMouseLeave={() => setIsPaused(false)}
         >
-          El comprador ya no pide información — <em className="italic text-[var(--mk-accent-light)]">la busca</em>.
-          Dale un showroom que responda solo: <strong className="text-[var(--mk-text-primary)] font-normal">inventario
-          en vivo, planos, recorridos 360° y leads cualificados</strong>.
-          En vivo en <strong className="text-[var(--mk-text-primary)] font-normal">24 horas</strong>. Tú lo manejas — sin agencias, sin esperas.
-        </motion.p>
+          {perspectives.map((p, i) => (
+            <button
+              key={p.id}
+              onClick={() => handleTabClick(i)}
+              className="relative pb-2.5 font-ui text-[9px] tracking-[0.2em] uppercase"
+              style={{
+                color: i === activeIndex
+                  ? "var(--mk-accent)"
+                  : "rgba(244, 240, 232, 0.35)",
+                background: "none",
+                border: "none",
+                cursor: "pointer",
+                transition: "color 0.3s ease",
+              }}
+            >
+              {p.label}
+              {i === activeIndex && (
+                <motion.div
+                  layoutId="perspective-underline"
+                  className="absolute bottom-0 left-0 right-0 h-[2px]"
+                  style={{ background: "var(--mk-accent)" }}
+                  transition={{ type: "spring", stiffness: 500, damping: 35 }}
+                />
+              )}
+            </button>
+          ))}
+        </motion.div>
+
+        {/* Animated subtitle */}
+        <motion.div
+          initial={{ opacity: 0, y: 24 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.8, delay: 0.65, ease: "easeOut" }}
+          className="mb-14 min-h-[100px]"
+        >
+          <AnimatePresence mode="wait">
+            <motion.p
+              key={perspectives[activeIndex].id}
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -8 }}
+              transition={{ duration: 0.4, ease: "easeInOut" }}
+              className="text-[15px] leading-[1.85] max-w-[580px]"
+              style={{ color: "rgba(244, 240, 232, 0.5)" }}
+            >
+              {perspectives[activeIndex].content}
+            </motion.p>
+          </AnimatePresence>
+        </motion.div>
 
         {/* CTAs */}
         <motion.div
@@ -66,10 +158,9 @@ export function HeroSection() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8, delay: 0.8, ease: "easeOut" }}
         >
-          <div className="flex items-center gap-5 flex-wrap sm:flex-nowrap mb-5">
-            {/* Primary CTA with pulse */}
+          <div className="flex items-center gap-4 flex-wrap sm:flex-nowrap mb-5">
+            {/* Primary CTA — book a call */}
             <div className="relative">
-              {/* Pulsing glow ring */}
               <div
                 className="absolute inset-0 rounded-[12px]"
                 style={{
@@ -83,10 +174,21 @@ export function HeroSection() {
                 className="btn-mk-primary inline-flex items-center gap-2.5 whitespace-nowrap relative z-[1]"
                 style={{ fontSize: 13, padding: "14px 32px" }}
               >
-                Ver Demo Gratis
+                Agendar Llamada
                 <ArrowRight size={15} strokeWidth={2.5} />
               </button>
             </div>
+
+            {/* Secondary CTA — see a live project */}
+            <Link
+              href="/sites/demo"
+              target="_blank"
+              className="btn-mk-outline inline-flex items-center gap-2.5 whitespace-nowrap"
+              style={{ fontSize: 13, padding: "14px 28px" }}
+            >
+              <Play size={13} strokeWidth={2.5} fill="currentColor" />
+              Ver Proyecto en Vivo
+            </Link>
           </div>
 
           {/* Trust elements below CTAs */}

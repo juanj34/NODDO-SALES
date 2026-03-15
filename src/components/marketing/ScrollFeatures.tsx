@@ -266,12 +266,12 @@ export function ScrollFeatures() {
             style={{
               position: "absolute",
               inset: 0,
-              background: "radial-gradient(ellipse 70% 60% at 50% 55%, rgba(184,151,58,.06) 0%, transparent 70%)",
+              background: "radial-gradient(ellipse 70% 60% at 50% 55%, rgba(184,151,58,.05) 0%, transparent 70%)",
               pointerEvents: "none",
             }}
           />
 
-          {/* Building wrapper */}
+          {/* Dashboard wrapper */}
           <div
             style={{
               position: "relative",
@@ -280,166 +280,152 @@ export function ScrollFeatures() {
               filter: "drop-shadow(0 60px 80px rgba(0,0,0,.8))",
             }}
           >
-            {/* Base building SVG */}
+            {/* Base dashboard frame SVG */}
             <svg
               viewBox="0 0 480 560"
               fill="none"
               style={{ position: "absolute", inset: 0, width: "100%", height: "100%" }}
             >
               <defs>
-                <linearGradient id="sfFL" x1="0" y1="0" x2="1" y2="0">
-                  <stop offset="0%" stopColor="#2a2a2a" />
-                  <stop offset="100%" stopColor="#1e1e1e" />
-                </linearGradient>
-                <linearGradient id="sfFR" x1="0" y1="0" x2="1" y2="0">
-                  <stop offset="0%" stopColor="#0c0c0c" />
-                  <stop offset="100%" stopColor="#181818" />
-                </linearGradient>
-                <linearGradient id="sfEd" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stopColor="#d4b05a" stopOpacity=".9" />
-                  <stop offset="100%" stopColor="#b8973a" stopOpacity="0" />
-                </linearGradient>
+                <clipPath id="sfBrowserClip">
+                  <rect x="8" y="8" width="464" height="544" rx="12" />
+                </clipPath>
               </defs>
-              {/* Shadow */}
-              <ellipse cx="240" cy="528" rx="155" ry="16" fill="rgba(0,0,0,.55)" />
-              {/* Left face */}
-              <polygon points="20,508 20,108 240,52 240,452" fill="url(#sfFL)" />
-              {/* Right face */}
-              <polygon points="240,452 240,52 460,108 460,508" fill="url(#sfFR)" />
-              {/* Floor lines L */}
-              {[148, 188, 228, 268, 308, 348, 388, 428, 468].map((y, i) => (
-                <line key={`fl-${i}`} x1="20" y1={y} x2="240" y2={y - 56} stroke="rgba(184,151,58,.07)" strokeWidth=".8" />
+              {/* Browser outer frame */}
+              <rect x="8" y="8" width="464" height="544" rx="12" fill="#0c0c0c" stroke="rgba(255,255,255,.08)" strokeWidth="1" />
+              {/* Browser chrome bar */}
+              <rect x="8" y="8" width="464" height="32" rx="12" fill="#161616" />
+              <rect x="8" y="28" width="464" height="12" fill="#161616" />
+              {/* Traffic light dots */}
+              <circle cx="26" cy="24" r="4.5" fill="rgba(255,95,87,.5)" />
+              <circle cx="40" cy="24" r="4.5" fill="rgba(255,189,46,.5)" />
+              <circle cx="54" cy="24" r="4.5" fill="rgba(39,201,63,.5)" />
+              {/* URL bar */}
+              <rect x="110" y="16" width="200" height="16" rx="4" fill="rgba(255,255,255,.04)" />
+              <text x="210" y="27" textAnchor="middle" fontFamily="DM Mono,monospace" fontSize="7.5" fill="rgba(244,240,232,.25)">dashboard.noddo.io</text>
+
+              {/* Left sidebar */}
+              <rect x="8" y="40" width="82" height="512" fill="#111" />
+              {/* Sidebar bottom round corners (cover) */}
+              <rect x="8" y="540" width="10" height="12" rx="0" fill="#111" />
+              <path d="M8,544 L8,552 Q8,552 8,552 L20,552 L20,544 Z" fill="#0c0c0c" />
+              {/* NODDO logo placeholder — 2 gold lines */}
+              <rect x="22" y="52" width="24" height="2.5" rx="1" fill="rgba(184,151,58,.7)" />
+              <rect x="22" y="58" width="16" height="2.5" rx="1" fill="rgba(184,151,58,.4)" />
+              {/* Nav items */}
+              {/* Active item */}
+              <rect x="14" y="78" width="70" height="24" rx="5" fill="rgba(184,151,58,.1)" />
+              <rect x="14" y="78" width="2.5" height="24" rx="1" fill="#b8973a" />
+              <rect x="24" y="85" width="10" height="10" rx="2" fill="rgba(184,151,58,.3)" />
+              <text x="40" y="94" fontFamily="Syne,sans-serif" fontSize="7" fill="rgba(184,151,58,.9)" fontWeight="700" letterSpacing="0.5">Grid</text>
+              {/* Inactive items */}
+              {([112, 142, 172, 202, 232] as const).map((y, i) => (
+                <g key={`nav-${i}`}>
+                  <rect x="24" y={y + 7} width="10" height="10" rx="2" fill="rgba(255,255,255,.06)" />
+                  <rect x="40" y={y + 10} width={[28, 22, 32, 26, 20][i]} height="4" rx="1.5" fill="rgba(255,255,255,.08)" />
+                </g>
               ))}
-              {/* Floor lines R */}
-              {[92, 132, 172, 212, 252, 292, 332, 372, 412].map((y, i) => (
-                <line key={`fr-${i}`} x1="240" y1={y} x2="460" y2={y + 56} stroke="rgba(110,140,180,.05)" strokeWidth=".8" />
+
+              {/* Sidebar / content separator */}
+              <line x1="90" y1="40" x2="90" y2="552" stroke="rgba(255,255,255,.06)" strokeWidth="1" />
+
+              {/* Content area header */}
+              <text x="106" y="66" fontFamily="Syne,sans-serif" fontSize="11" fill="rgba(244,240,232,.85)" fontWeight="700" letterSpacing="1.2">TORRE RESIDENCIAL</text>
+              {/* Tab bar */}
+              <text x="106" y="84" fontFamily="Syne,sans-serif" fontSize="7.5" fill="rgba(184,151,58,.85)" fontWeight="700" letterSpacing="1">GENERAL</text>
+              <line x1="106" y1="87" x2="140" y2="87" stroke="#b8973a" strokeWidth="1.5" />
+              <text x="152" y="84" fontFamily="Syne,sans-serif" fontSize="7.5" fill="rgba(244,240,232,.25)" fontWeight="600" letterSpacing="1">GRID</text>
+              <text x="182" y="84" fontFamily="Syne,sans-serif" fontSize="7.5" fill="rgba(244,240,232,.25)" fontWeight="600" letterSpacing="1">INVENTARIO</text>
+              <text x="230" y="84" fontFamily="Syne,sans-serif" fontSize="7.5" fill="rgba(244,240,232,.25)" fontWeight="600" letterSpacing="1">LEADS</text>
+              {/* Tab bar divider */}
+              <line x1="90" y1="92" x2="472" y2="92" stroke="rgba(255,255,255,.05)" strokeWidth="1" />
+
+              {/* Faint horizontal grid lines in content area */}
+              {[140, 190, 240, 290, 340, 390, 440, 490].map((y, i) => (
+                <line key={`gl-${i}`} x1="90" y1={y} x2="472" y2={y} stroke="rgba(255,255,255,.025)" strokeWidth=".5" />
               ))}
-              {/* Windows L — representative selection */}
-              {[
-                [44, 466, 80, 457, 80, 476, 44, 485, ".14"],
-                [96, 453, 132, 444, 132, 463, 96, 472, ".14"],
-                [148, 440, 184, 431, 184, 450, 148, 459, ".2"],
-                [200, 427, 236, 418, 236, 437, 200, 446, ".14"],
-                [44, 426, 80, 417, 80, 436, 44, 445, ".2"],
-                [96, 413, 132, 404, 132, 423, 96, 432, ".14"],
-                [148, 400, 184, 391, 184, 410, 148, 419, ".14"],
-                [200, 387, 236, 378, 236, 397, 200, 406, ".2"],
-                [44, 386, 80, 377, 80, 396, 44, 405, ".14"],
-                [96, 373, 132, 364, 132, 383, 96, 392, ".2"],
-                [148, 360, 184, 351, 184, 370, 148, 379, ".14"],
-                [200, 347, 236, 338, 236, 357, 200, 366, ".14"],
-                [44, 346, 80, 337, 80, 356, 44, 365, ".14"],
-                [96, 333, 132, 324, 132, 343, 96, 352, ".14"],
-                [148, 320, 184, 311, 184, 330, 148, 339, ".2"],
-                [200, 307, 236, 298, 236, 317, 200, 326, ".14"],
-                [44, 306, 80, 297, 80, 316, 44, 325, ".2"],
-                [96, 293, 132, 284, 132, 303, 96, 312, ".14"],
-                [148, 280, 184, 271, 184, 290, 148, 299, ".14"],
-                [200, 267, 236, 258, 236, 277, 200, 286, ".2"],
-                [44, 266, 80, 257, 80, 276, 44, 285, ".14"],
-                [96, 253, 132, 244, 132, 263, 96, 272, ".2"],
-                [148, 240, 184, 231, 184, 250, 148, 259, ".14"],
-                [200, 227, 236, 218, 236, 237, 200, 246, ".14"],
-                [44, 226, 80, 217, 80, 236, 44, 245, ".14"],
-                [148, 200, 184, 191, 184, 210, 148, 219, ".2"],
-                [200, 187, 236, 178, 236, 197, 200, 206, ".14"],
-                [44, 186, 80, 177, 80, 196, 44, 205, ".2"],
-                [96, 173, 132, 164, 132, 183, 96, 192, ".14"],
-                [148, 160, 184, 151, 184, 170, 148, 179, ".14"],
-                [200, 147, 236, 138, 236, 157, 200, 166, ".2"],
-                [44, 110, 92, 99, 92, 122, 44, 133, ".28"],
-                [100, 97, 148, 86, 148, 109, 100, 120, ".22"],
-                [156, 84, 204, 73, 204, 96, 156, 107, ".28"],
-              ].map(([x1, y1, x2, y2, x3, y3, x4, y4, op], i) => (
-                <polygon
-                  key={`wl-${i}`}
-                  points={`${x1},${y1} ${x2},${y2} ${x3},${y3} ${x4},${y4}`}
-                  fill={`rgba(184,151,58,${op})`}
-                />
-              ))}
-              {/* Windows R — representative selection */}
-              {[
-                [260, 444, 296, 453, 296, 472, 260, 463, ".12"],
-                [308, 457, 344, 466, 344, 485, 308, 476, ".16"],
-                [356, 470, 392, 479, 392, 498, 356, 489, ".12"],
-                [260, 404, 296, 413, 296, 432, 260, 423, ".16"],
-                [308, 417, 344, 426, 344, 445, 308, 436, ".12"],
-                [260, 364, 296, 373, 296, 392, 260, 383, ".12"],
-                [308, 377, 344, 386, 344, 405, 308, 396, ".12"],
-                [356, 390, 392, 399, 392, 418, 356, 409, ".16"],
-                [260, 324, 296, 333, 296, 352, 260, 343, ".16"],
-                [308, 337, 344, 346, 344, 365, 308, 356, ".12"],
-                [260, 284, 296, 293, 296, 312, 260, 303, ".12"],
-                [308, 297, 344, 306, 344, 325, 308, 316, ".16"],
-                [260, 244, 296, 253, 296, 272, 260, 263, ".12"],
-                [308, 257, 344, 266, 344, 285, 308, 276, ".12"],
-                [260, 204, 296, 213, 296, 232, 260, 223, ".16"],
-                [308, 217, 344, 226, 344, 245, 308, 236, ".12"],
-                [260, 112, 308, 124, 308, 147, 260, 135, ".2"],
-                [316, 128, 364, 140, 364, 163, 316, 151, ".16"],
-              ].map(([x1, y1, x2, y2, x3, y3, x4, y4, op], i) => (
-                <polygon
-                  key={`wr-${i}`}
-                  points={`${x1},${y1} ${x2},${y2} ${x3},${y3} ${x4},${y4}`}
-                  fill={`rgba(110,160,210,${op})`}
-                />
-              ))}
-              {/* Roof */}
-              <polygon points="20,108 240,52 460,108 240,102" fill="#1e1e1e" stroke="rgba(184,151,58,.12)" strokeWidth=".6" />
-              {/* Edges */}
-              <line x1="20" y1="108" x2="20" y2="508" stroke="url(#sfEd)" strokeWidth="1" />
-              <line x1="240" y1="52" x2="240" y2="452" stroke="url(#sfEd)" strokeWidth="2.5" />
-              <line x1="460" y1="108" x2="460" y2="508" stroke="rgba(184,151,58,.14)" strokeWidth=".8" />
-              <line x1="20" y1="108" x2="240" y2="52" stroke="rgba(184,151,58,.6)" strokeWidth="1.4" />
-              <line x1="460" y1="108" x2="240" y2="52" stroke="rgba(184,151,58,.35)" strokeWidth="1" />
             </svg>
 
-            {/* ── Layer 0: NODDO GRID ── */}
+            {/* ── Layer 0: NODDO GRID (Fachada) ── */}
             <svg
               ref={(el) => { layerRefs.current[0] = el; }}
               viewBox="0 0 480 560"
               fill="none"
               style={{ position: "absolute", inset: 0, width: "100%", height: "100%", opacity: 0, pointerEvents: "none", willChange: "opacity,transform" }}
             >
-              {/* Unit polygons — JS drives individual opacity via data-unit */}
+              {/* Simplified 2D building elevation on left side of content */}
+              <rect x="106" y="110" width="140" height="380" rx="2" fill="none" stroke="rgba(255,255,255,.08)" strokeWidth=".8" />
+              {/* Floor dividers */}
+              {[148, 186, 224, 262, 300, 338, 376, 414, 452].map((y, i) => (
+                <line key={`fd-${i}`} x1="106" y1={y} x2="246" y2={y} stroke="rgba(255,255,255,.05)" strokeWidth=".5" />
+              ))}
+              {/* Column dividers */}
+              <line x1="141" y1="110" x2="141" y2="490" stroke="rgba(255,255,255,.04)" strokeWidth=".5" />
+              <line x1="176" y1="110" x2="176" y2="490" stroke="rgba(255,255,255,.04)" strokeWidth=".5" />
+              <line x1="211" y1="110" x2="211" y2="490" stroke="rgba(255,255,255,.04)" strokeWidth=".5" />
+
+              {/* Unit cells — colored rects with data-unit */}
               {([
-                { pts: "44,466 80,457 80,476 44,485", fill: "rgba(74,158,107,.75)", stroke: "rgba(74,158,107,.95)", sw: "1.2", ox: "62px", oy: "471px" },
-                { pts: "96,453 132,444 132,463 96,472", fill: "rgba(184,151,58,.85)", stroke: "#d4b05a", sw: "1.5", ox: "114px", oy: "458px" },
-                { pts: "148,440 184,431 184,450 148,459", fill: "rgba(100,100,100,.6)", stroke: "rgba(130,130,130,.7)", sw: "1", ox: "166px", oy: "445px" },
-                { pts: "200,427 236,418 236,437 200,446", fill: "rgba(74,158,107,.65)", stroke: "rgba(74,158,107,.85)", sw: "1.1", ox: "218px", oy: "432px" },
-                { pts: "44,426 80,417 80,436 44,445", fill: "rgba(196,133,58,.7)", stroke: "rgba(196,133,58,.88)", sw: "1.2", ox: "62px", oy: "431px" },
-                { pts: "96,413 132,404 132,423 96,432", fill: "rgba(184,151,58,.8)", stroke: "#b8973a", sw: "1.3", ox: "114px", oy: "418px" },
-                { pts: "44,306 80,297 80,316 44,325", fill: "rgba(74,158,107,.7)", stroke: "rgba(74,158,107,.9)", sw: "1.1", ox: "62px", oy: "311px" },
-                { pts: "96,293 132,284 132,303 96,312", fill: "rgba(100,100,100,.55)", stroke: "rgba(130,130,130,.65)", sw: "1", ox: "114px", oy: "298px" },
-                { pts: "148,280 184,271 184,290 148,299", fill: "rgba(74,158,107,.72)", stroke: "rgba(74,158,107,.92)", sw: "1.2", ox: "166px", oy: "285px" },
-                { pts: "44,186 80,177 80,196 44,205", fill: "rgba(184,151,58,.75)", stroke: "#d4b05a", sw: "1.4", ox: "62px", oy: "191px" },
-                { pts: "260,364 296,373 296,392 260,383", fill: "rgba(184,151,58,.75)", stroke: "#b8973a", sw: "1.3", ox: "278px", oy: "378px" },
-                { pts: "308,377 344,386 344,405 308,396", fill: "rgba(74,158,107,.65)", stroke: "rgba(74,158,107,.85)", sw: "1.1", ox: "326px", oy: "391px" },
-                { pts: "260,284 296,293 296,312 260,303", fill: "rgba(100,100,100,.55)", stroke: "rgba(130,130,130,.65)", sw: "1", ox: "278px", oy: "298px" },
-                { pts: "260,204 296,213 296,232 260,223", fill: "rgba(184,151,58,.8)", stroke: "#d4b05a", sw: "1.4", ox: "278px", oy: "218px" },
+                { x: 107, y: 453, w: 33, h: 36, fill: "rgba(74,158,107,.65)", stroke: "rgba(74,158,107,.8)" },
+                { x: 142, y: 453, w: 33, h: 36, fill: "rgba(184,151,58,.7)", stroke: "rgba(184,151,58,.85)" },
+                { x: 177, y: 453, w: 33, h: 36, fill: "rgba(100,100,100,.5)", stroke: "rgba(130,130,130,.6)" },
+                { x: 212, y: 453, w: 33, h: 36, fill: "rgba(74,158,107,.6)", stroke: "rgba(74,158,107,.75)" },
+                { x: 107, y: 415, w: 33, h: 36, fill: "rgba(196,133,58,.6)", stroke: "rgba(196,133,58,.75)" },
+                { x: 142, y: 415, w: 33, h: 36, fill: "rgba(74,158,107,.65)", stroke: "rgba(74,158,107,.8)" },
+                { x: 177, y: 415, w: 33, h: 36, fill: "rgba(74,158,107,.55)", stroke: "rgba(74,158,107,.7)" },
+                { x: 212, y: 415, w: 33, h: 36, fill: "rgba(100,100,100,.5)", stroke: "rgba(130,130,130,.6)" },
+                { x: 107, y: 377, w: 33, h: 36, fill: "rgba(184,151,58,.65)", stroke: "rgba(184,151,58,.8)" },
+                { x: 142, y: 377, w: 33, h: 36, fill: "rgba(100,100,100,.5)", stroke: "rgba(130,130,130,.6)" },
+                { x: 177, y: 377, w: 33, h: 36, fill: "rgba(74,158,107,.7)", stroke: "rgba(74,158,107,.85)" },
+                { x: 212, y: 377, w: 33, h: 36, fill: "rgba(196,133,58,.6)", stroke: "rgba(196,133,58,.75)" },
+                { x: 107, y: 339, w: 33, h: 36, fill: "rgba(74,158,107,.6)", stroke: "rgba(74,158,107,.75)" },
+                { x: 142, y: 339, w: 33, h: 36, fill: "rgba(184,151,58,.7)", stroke: "rgba(184,151,58,.85)" },
               ] as const).map((u, i) => (
-                <polygon
+                <rect
                   key={i}
                   data-unit={i}
-                  points={u.pts}
+                  x={u.x}
+                  y={u.y}
+                  width={u.w}
+                  height={u.h}
+                  rx="2"
                   fill={u.fill}
                   stroke={u.stroke}
-                  strokeWidth={u.sw}
+                  strokeWidth=".8"
                   opacity="0"
-                  style={{ transformOrigin: `${u.ox} ${u.oy}` }}
+                  style={{ transformOrigin: `${u.x + u.w / 2}px ${u.y + u.h / 2}px` }}
                 />
               ))}
+
+              {/* Unit detail card (right side of content area) */}
               <g id="sfGridLabel" opacity="0">
-                <rect x="28" y="60" width="136" height="22" fill="rgba(184,151,58,.1)" stroke="rgba(184,151,58,.45)" strokeWidth=".8" />
-                <text x="96" y="75" textAnchor="middle" fontFamily="Syne,sans-serif" fontSize="8" fill="rgba(212,176,90,.95)" letterSpacing="2.5" fontWeight="700">NODDO GRID</text>
+                <rect x="268" y="130" width="185" height="120" rx="6" fill="#0e0e0e" stroke="rgba(184,151,58,.2)" strokeWidth=".8" />
+                <text x="282" y="150" fontFamily="Syne,sans-serif" fontSize="7.5" fill="rgba(184,151,58,.9)" letterSpacing="2" fontWeight="700">UNIDAD 6B</text>
+                <line x1="282" y1="158" x2="438" y2="158" stroke="rgba(255,255,255,.06)" strokeWidth=".5" />
+                <text x="282" y="174" fontFamily="DM Mono,monospace" fontSize="8" fill="rgba(244,240,232,.35)">Piso</text>
+                <text x="380" y="174" fontFamily="DM Mono,monospace" fontSize="8" fill="rgba(244,240,232,.65)" textAnchor="end">6</text>
+                <text x="282" y="190" fontFamily="DM Mono,monospace" fontSize="8" fill="rgba(244,240,232,.35)">Tipo</text>
+                <text x="380" y="190" fontFamily="DM Mono,monospace" fontSize="8" fill="rgba(244,240,232,.65)" textAnchor="end">B - 72m2</text>
+                <text x="282" y="206" fontFamily="DM Mono,monospace" fontSize="8" fill="rgba(244,240,232,.35)">Precio</text>
+                <text x="380" y="206" fontFamily="DM Mono,monospace" fontSize="8" fill="rgba(244,240,232,.65)" textAnchor="end">$385.000.000</text>
+                <text x="282" y="222" fontFamily="DM Mono,monospace" fontSize="8" fill="rgba(244,240,232,.35)">Estado</text>
+                <rect x="348" y="215" width="48" height="12" rx="3" fill="rgba(74,158,107,.12)" />
+                <text x="372" y="224" textAnchor="middle" fontFamily="DM Mono,monospace" fontSize="7" fill="rgba(74,158,107,.85)">Disponible</text>
+                <text x="282" y="242" fontFamily="DM Mono,monospace" fontSize="8" fill="rgba(244,240,232,.35)">Vista</text>
+                <text x="380" y="242" fontFamily="DM Mono,monospace" fontSize="8" fill="rgba(244,240,232,.65)" textAnchor="end">Interior</text>
               </g>
+
+              {/* Color legend */}
               <g id="sfGridLegend" opacity="0">
-                <circle cx="36" cy="98" r="4" fill="rgba(74,158,107,.8)" />
-                <text x="46" y="102" fontFamily="DM Mono,monospace" fontSize="9" fill="rgba(244,240,232,.35)">Disponible</text>
-                <circle cx="36" cy="116" r="4" fill="rgba(196,133,58,.8)" />
-                <text x="46" y="120" fontFamily="DM Mono,monospace" fontSize="9" fill="rgba(244,240,232,.35)">Reservado</text>
-                <circle cx="36" cy="134" r="4" fill="rgba(100,100,100,.8)" />
-                <text x="46" y="138" fontFamily="DM Mono,monospace" fontSize="9" fill="rgba(244,240,232,.35)">Vendido</text>
+                <rect x="268" y="270" width="185" height="50" rx="6" fill="#0e0e0e" stroke="rgba(255,255,255,.06)" strokeWidth=".5" />
+                <circle cx="284" cy="288" r="4" fill="rgba(74,158,107,.8)" />
+                <text x="294" y="291" fontFamily="DM Mono,monospace" fontSize="7.5" fill="rgba(244,240,232,.35)">Disponible</text>
+                <circle cx="356" cy="288" r="4" fill="rgba(196,133,58,.8)" />
+                <text x="366" y="291" fontFamily="DM Mono,monospace" fontSize="7.5" fill="rgba(244,240,232,.35)">Reservado</text>
+                <circle cx="284" cy="306" r="4" fill="rgba(100,100,100,.8)" />
+                <text x="294" y="309" fontFamily="DM Mono,monospace" fontSize="7.5" fill="rgba(244,240,232,.35)">Vendido</text>
+                <circle cx="356" cy="306" r="4" fill="rgba(184,151,58,.8)" />
+                <text x="366" y="309" fontFamily="DM Mono,monospace" fontSize="7.5" fill="rgba(244,240,232,.35)">Separado</text>
               </g>
             </svg>
 
@@ -450,35 +436,66 @@ export function ScrollFeatures() {
               fill="none"
               style={{ position: "absolute", inset: 0, width: "100%", height: "100%", opacity: 0, pointerEvents: "none", willChange: "opacity,transform" }}
             >
-              {/* Availability dots */}
+              {/* 3 KPI stat cards at top */}
+              {/* Disponibles */}
+              <rect x="100" y="104" width="118" height="52" rx="6" fill="#0e0e0e" stroke="rgba(74,158,107,.25)" strokeWidth=".8" />
+              <text x="114" y="122" fontFamily="Syne,sans-serif" fontSize="6.5" fill="rgba(244,240,232,.3)" letterSpacing="1.5" fontWeight="700">DISPONIBLES</text>
+              <text x="114" y="146" fontFamily="Cormorant Garamond,serif" fontSize="24" fontWeight="300" fill="#4a9e6b">24</text>
+              <circle cx="200" cy="140" r="3" fill="rgba(74,158,107,.6)" />
+              {/* Reservados */}
+              <rect x="226" y="104" width="118" height="52" rx="6" fill="#0e0e0e" stroke="rgba(196,133,58,.25)" strokeWidth=".8" />
+              <text x="240" y="122" fontFamily="Syne,sans-serif" fontSize="6.5" fill="rgba(244,240,232,.3)" letterSpacing="1.5" fontWeight="700">RESERVADOS</text>
+              <text x="240" y="146" fontFamily="Cormorant Garamond,serif" fontSize="24" fontWeight="300" fill="#c4853a">8</text>
+              <circle cx="326" cy="140" r="3" fill="rgba(196,133,58,.6)" />
+              {/* Vendidos */}
+              <rect x="352" y="104" width="118" height="52" rx="6" fill="#0e0e0e" stroke="rgba(100,100,100,.25)" strokeWidth=".8" />
+              <text x="366" y="122" fontFamily="Syne,sans-serif" fontSize="6.5" fill="rgba(244,240,232,.3)" letterSpacing="1.5" fontWeight="700">VENDIDOS</text>
+              <text x="366" y="146" fontFamily="Cormorant Garamond,serif" fontSize="24" fontWeight="300" fill="#888">8</text>
+              <circle cx="452" cy="140" r="3" fill="rgba(100,100,100,.6)" />
+
+              {/* Dot grid — 10x2 (20 dots) */}
               {([
-                [62, 103, "#4a9e6b"], [114, 90, "#c4853a"], [166, 77, "#4a9e6b"], [218, 64, "#666"],
-                [62, 143, "#666"], [114, 130, "#4a9e6b"], [166, 117, "#c4853a"], [218, 104, "#4a9e6b"],
-                [62, 183, "#4a9e6b"], [114, 170, "#4a9e6b"], [166, 157, "#666"], [218, 144, "#c4853a"],
-                [62, 223, "#c4853a"], [114, 210, "#4a9e6b"], [166, 197, "#4a9e6b"], [218, 184, "#666"],
-                [62, 263, "#4a9e6b"], [114, 250, "#666"], [166, 237, "#4a9e6b"], [218, 224, "#c4853a"],
+                [120, 186, "#4a9e6b"], [148, 186, "#4a9e6b"], [176, 186, "#c4853a"], [204, 186, "#4a9e6b"], [232, 186, "#888"],
+                [260, 186, "#4a9e6b"], [288, 186, "#4a9e6b"], [316, 186, "#c4853a"], [344, 186, "#888"], [372, 186, "#4a9e6b"],
+                [120, 214, "#4a9e6b"], [148, 214, "#888"], [176, 214, "#4a9e6b"], [204, 214, "#c4853a"], [232, 214, "#4a9e6b"],
+                [260, 214, "#4a9e6b"], [288, 214, "#888"], [316, 214, "#4a9e6b"], [344, 214, "#c4853a"], [372, 214, "#4a9e6b"],
               ] as const).map(([cx, cy, color], i) => (
                 <circle
                   key={i}
                   data-dot={i}
                   cx={cx}
                   cy={cy}
-                  r="5.5"
+                  r="8"
                   fill={color}
                   opacity="0"
                   style={{ transformOrigin: `${cx}px ${cy}px` }}
                 />
               ))}
-              {/* Availability card */}
-              <g id="sfAvailCard" opacity="0" transform="translate(20,0)">
-                <rect x="268" y="170" width="148" height="80" fill="#0c0c0c" stroke="rgba(74,158,107,.42)" strokeWidth=".8" />
-                <text x="282" y="191" fontFamily="Syne,sans-serif" fontSize="7.5" fill="rgba(244,240,232,.28)" letterSpacing="2.2" fontWeight="700">DISPONIBILIDAD</text>
-                <text x="282" y="218" fontFamily="Cormorant Garamond,serif" fontSize="26" fontWeight="300" fill="#4a9e6b">68%</text>
-                <text x="282" y="234" fontFamily="DM Mono,monospace" fontSize="9" fill="rgba(244,240,232,.28)">unidades libres</text>
+
+              {/* Availability progress card */}
+              <g id="sfAvailCard" opacity="0">
+                <rect x="108" y="250" width="352" height="60" rx="6" fill="#0e0e0e" stroke="rgba(74,158,107,.2)" strokeWidth=".8" />
+                <text x="124" y="270" fontFamily="Syne,sans-serif" fontSize="7" fill="rgba(244,240,232,.3)" letterSpacing="2" fontWeight="700">OCUPACION DEL PROYECTO</text>
+                <text x="124" y="294" fontFamily="Cormorant Garamond,serif" fontSize="22" fontWeight="300" fill="#4a9e6b">60%</text>
+                {/* Progress bar background */}
+                <rect x="180" y="282" width="260" height="8" rx="4" fill="rgba(255,255,255,.04)" />
+                {/* Progress bar fill */}
+                <rect x="180" y="282" width="156" height="8" rx="4" fill="rgba(74,158,107,.5)" />
+                <rect x="180" y="282" width="96" height="8" rx="4" fill="rgba(184,151,58,.5)" />
+                <rect x="180" y="282" width="48" height="8" rx="4" fill="rgba(100,100,100,.5)" />
               </g>
+
+              {/* Availability label */}
               <g id="sfAvailLabel" opacity="0">
-                <rect x="28" y="60" width="158" height="22" fill="rgba(74,158,107,.07)" stroke="rgba(74,158,107,.35)" strokeWidth=".8" />
-                <text x="107" y="75" textAnchor="middle" fontFamily="Syne,sans-serif" fontSize="8" fill="rgba(100,210,140,.88)" letterSpacing="2.5" fontWeight="700">DISPONIBILIDAD</text>
+                <rect x="108" y="330" width="352" height="44" rx="6" fill="#0e0e0e" stroke="rgba(255,255,255,.05)" strokeWidth=".5" />
+                <text x="124" y="348" fontFamily="DM Mono,monospace" fontSize="8" fill="rgba(244,240,232,.35)">Unidades totales:</text>
+                <text x="236" y="348" fontFamily="DM Mono,monospace" fontSize="8" fill="rgba(244,240,232,.65)">40</text>
+                <text x="270" y="348" fontFamily="DM Mono,monospace" fontSize="8" fill="rgba(244,240,232,.35)">Precio promedio:</text>
+                <text x="400" y="348" fontFamily="DM Mono,monospace" fontSize="8" fill="rgba(244,240,232,.65)">$392M</text>
+                <text x="124" y="364" fontFamily="DM Mono,monospace" fontSize="8" fill="rgba(244,240,232,.35)">Ventas este mes:</text>
+                <text x="236" y="364" fontFamily="DM Mono,monospace" fontSize="8" fill="rgba(74,158,107,.75)">+3</text>
+                <text x="270" y="364" fontFamily="DM Mono,monospace" fontSize="8" fill="rgba(244,240,232,.35)">Reservas activas:</text>
+                <text x="400" y="364" fontFamily="DM Mono,monospace" fontSize="8" fill="rgba(196,133,58,.75)">5</text>
               </g>
             </svg>
 
@@ -489,42 +506,69 @@ export function ScrollFeatures() {
               fill="none"
               style={{ position: "absolute", inset: 0, width: "100%", height: "100%", opacity: 0, pointerEvents: "none", willChange: "opacity,transform" }}
             >
-              {/* Lead card 1 */}
+              {/* Lead table header */}
+              <rect x="100" y="104" width="368" height="28" rx="4" fill="rgba(255,255,255,.03)" />
+              <text x="126" y="122" fontFamily="Syne,sans-serif" fontSize="7" fill="rgba(244,240,232,.3)" letterSpacing="1.2" fontWeight="700">NOMBRE</text>
+              <text x="220" y="122" fontFamily="Syne,sans-serif" fontSize="7" fill="rgba(244,240,232,.3)" letterSpacing="1.2" fontWeight="700">CORREO</text>
+              <text x="336" y="122" fontFamily="Syne,sans-serif" fontSize="7" fill="rgba(244,240,232,.3)" letterSpacing="1.2" fontWeight="700">UNIDAD</text>
+              <text x="400" y="122" fontFamily="Syne,sans-serif" fontSize="7" fill="rgba(244,240,232,.3)" letterSpacing="1.2" fontWeight="700">FUENTE</text>
+
+              {/* Lead row 1 */}
               <g id="sfLead1" opacity="0" style={{ transform: "translateY(44px)" }}>
-                <rect x="16" y="340" width="158" height="58" fill="#0c0c0c" stroke="rgba(184,151,58,.3)" strokeWidth=".8" />
-                <circle cx="34" cy="361" r="10" fill="rgba(184,151,58,.12)" stroke="rgba(184,151,58,.32)" strokeWidth=".8" />
-                <text x="34" y="365" textAnchor="middle" fontFamily="Cormorant Garamond,serif" fontSize="11" fill="#d4b05a">MG</text>
-                <text x="52" y="357" fontFamily="Syne,sans-serif" fontSize="9" fontWeight="700" fill="rgba(244,240,232,.82)">María García</text>
-                <text x="52" y="370" fontFamily="DM Mono,monospace" fontSize="8" fill="rgba(244,240,232,.32)">Piso 6 · Tipo B</text>
-                <rect x="52" y="376" width="56" height="12" fill="rgba(74,158,107,.1)" stroke="rgba(74,158,107,.32)" strokeWidth=".5" />
-                <text x="80" y="386" textAnchor="middle" fontFamily="DM Mono,monospace" fontSize="7.5" fill="rgba(74,200,120,.72)" letterSpacing="1">Instagram</text>
+                <rect x="100" y="140" width="368" height="52" rx="6" fill="#0e0e0e" stroke="rgba(184,151,58,.15)" strokeWidth=".8" />
+                <circle cx="120" cy="166" r="14" fill="rgba(184,151,58,.1)" stroke="rgba(184,151,58,.25)" strokeWidth=".8" />
+                <text x="120" y="170" textAnchor="middle" fontFamily="Cormorant Garamond,serif" fontSize="11" fill="#d4b05a">MG</text>
+                <text x="142" y="160" fontFamily="Syne,sans-serif" fontSize="8.5" fontWeight="700" fill="rgba(244,240,232,.82)">Maria Garcia</text>
+                <text x="142" y="174" fontFamily="DM Mono,monospace" fontSize="7" fill="rgba(244,240,232,.28)">+57 310 456 7890</text>
+                <text x="220" y="164" fontFamily="DM Mono,monospace" fontSize="7.5" fill="rgba(244,240,232,.4)">maria.g@</text>
+                <text x="220" y="176" fontFamily="DM Mono,monospace" fontSize="7.5" fill="rgba(244,240,232,.4)">gmail.com</text>
+                <text x="336" y="168" fontFamily="DM Mono,monospace" fontSize="8" fill="rgba(244,240,232,.55)">6B</text>
+                <rect x="394" y="158" width="56" height="16" rx="4" fill="rgba(74,158,107,.1)" stroke="rgba(74,158,107,.25)" strokeWidth=".5" />
+                <text x="422" y="170" textAnchor="middle" fontFamily="DM Mono,monospace" fontSize="7" fill="rgba(74,200,120,.72)" letterSpacing=".8">Instagram</text>
               </g>
-              {/* Lead card 2 */}
+
+              {/* Lead row 2 */}
               <g id="sfLead2" opacity="0" style={{ transform: "translateY(44px)" }}>
-                <rect x="310" y="380" width="158" height="58" fill="#0c0c0c" stroke="rgba(184,151,58,.3)" strokeWidth=".8" />
-                <circle cx="328" cy="401" r="10" fill="rgba(184,151,58,.12)" stroke="rgba(184,151,58,.32)" strokeWidth=".8" />
-                <text x="328" y="405" textAnchor="middle" fontFamily="Cormorant Garamond,serif" fontSize="11" fill="#d4b05a">CR</text>
-                <text x="346" y="397" fontFamily="Syne,sans-serif" fontSize="9" fontWeight="700" fill="rgba(244,240,232,.82)">Carlos R.</text>
-                <text x="346" y="410" fontFamily="DM Mono,monospace" fontSize="8" fill="rgba(244,240,232,.32)">Piso 9 · Tipo D</text>
-                <rect x="346" y="416" width="48" height="12" fill="rgba(74,158,107,.1)" stroke="rgba(74,158,107,.32)" strokeWidth=".5" />
-                <text x="370" y="426" textAnchor="middle" fontFamily="DM Mono,monospace" fontSize="7.5" fill="rgba(74,200,120,.72)" letterSpacing="1">Google</text>
+                <rect x="100" y="200" width="368" height="52" rx="6" fill="#0e0e0e" stroke="rgba(184,151,58,.15)" strokeWidth=".8" />
+                <circle cx="120" cy="226" r="14" fill="rgba(184,151,58,.1)" stroke="rgba(184,151,58,.25)" strokeWidth=".8" />
+                <text x="120" y="230" textAnchor="middle" fontFamily="Cormorant Garamond,serif" fontSize="11" fill="#d4b05a">CR</text>
+                <text x="142" y="220" fontFamily="Syne,sans-serif" fontSize="8.5" fontWeight="700" fill="rgba(244,240,232,.82)">Carlos Rojas</text>
+                <text x="142" y="234" fontFamily="DM Mono,monospace" fontSize="7" fill="rgba(244,240,232,.28)">+57 315 678 1234</text>
+                <text x="220" y="224" fontFamily="DM Mono,monospace" fontSize="7.5" fill="rgba(244,240,232,.4)">carlos.r@</text>
+                <text x="220" y="236" fontFamily="DM Mono,monospace" fontSize="7.5" fill="rgba(244,240,232,.4)">outlook.com</text>
+                <text x="336" y="228" fontFamily="DM Mono,monospace" fontSize="8" fill="rgba(244,240,232,.55)">9D</text>
+                <rect x="394" y="218" width="56" height="16" rx="4" fill="rgba(74,158,107,.1)" stroke="rgba(74,158,107,.25)" strokeWidth=".5" />
+                <text x="422" y="230" textAnchor="middle" fontFamily="DM Mono,monospace" fontSize="7" fill="rgba(74,200,120,.72)" letterSpacing=".8">Google</text>
               </g>
-              {/* Lead card 3 */}
+
+              {/* Lead row 3 */}
               <g id="sfLead3" opacity="0" style={{ transform: "translateY(44px)" }}>
-                <rect x="155" y="430" width="158" height="58" fill="#0c0c0c" stroke="rgba(184,151,58,.3)" strokeWidth=".8" />
-                <circle cx="173" cy="451" r="10" fill="rgba(184,151,58,.12)" stroke="rgba(184,151,58,.32)" strokeWidth=".8" />
-                <text x="173" y="455" textAnchor="middle" fontFamily="Cormorant Garamond,serif" fontSize="11" fill="#d4b05a">LV</text>
-                <text x="191" y="447" fontFamily="Syne,sans-serif" fontSize="9" fontWeight="700" fill="rgba(244,240,232,.82)">Luisa V.</text>
-                <text x="191" y="460" fontFamily="DM Mono,monospace" fontSize="8" fill="rgba(244,240,232,.32)">Piso 10 · Tipo C</text>
-                <rect x="191" y="466" width="52" height="12" fill="rgba(74,158,107,.1)" stroke="rgba(74,158,107,.32)" strokeWidth=".5" />
-                <text x="217" y="476" textAnchor="middle" fontFamily="DM Mono,monospace" fontSize="7.5" fill="rgba(74,200,120,.72)" letterSpacing="1">Referido</text>
+                <rect x="100" y="260" width="368" height="52" rx="6" fill="#0e0e0e" stroke="rgba(184,151,58,.15)" strokeWidth=".8" />
+                <circle cx="120" cy="286" r="14" fill="rgba(184,151,58,.1)" stroke="rgba(184,151,58,.25)" strokeWidth=".8" />
+                <text x="120" y="290" textAnchor="middle" fontFamily="Cormorant Garamond,serif" fontSize="11" fill="#d4b05a">LV</text>
+                <text x="142" y="280" fontFamily="Syne,sans-serif" fontSize="8.5" fontWeight="700" fill="rgba(244,240,232,.82)">Luisa Vargas</text>
+                <text x="142" y="294" fontFamily="DM Mono,monospace" fontSize="7" fill="rgba(244,240,232,.28)">+57 300 123 4567</text>
+                <text x="220" y="284" fontFamily="DM Mono,monospace" fontSize="7.5" fill="rgba(244,240,232,.4)">luisa.v@</text>
+                <text x="220" y="296" fontFamily="DM Mono,monospace" fontSize="7.5" fill="rgba(244,240,232,.4)">yahoo.com</text>
+                <text x="336" y="288" fontFamily="DM Mono,monospace" fontSize="8" fill="rgba(244,240,232,.55)">10C</text>
+                <rect x="394" y="278" width="56" height="16" rx="4" fill="rgba(184,151,58,.1)" stroke="rgba(184,151,58,.25)" strokeWidth=".5" />
+                <text x="422" y="290" textAnchor="middle" fontFamily="DM Mono,monospace" fontSize="7" fill="rgba(184,151,58,.72)" letterSpacing=".8">Referido</text>
               </g>
-              {/* Connecting dashed lines */}
-              <line id="sfLeadLine1" x1="100" y1="340" x2="170" y2="272" stroke="rgba(184,151,58,.28)" strokeWidth=".9" strokeDasharray="4 3" strokeDashoffset="100" />
-              <line id="sfLeadLine2" x1="389" y1="380" x2="310" y2="310" stroke="rgba(184,151,58,.22)" strokeWidth=".9" strokeDasharray="4 3" strokeDashoffset="100" />
+
+              {/* Invisible connecting lines — kept for JS compatibility */}
+              <line id="sfLeadLine1" x1="120" y1="192" x2="120" y2="200" stroke="rgba(184,151,58,.2)" strokeWidth=".8" strokeDasharray="4 3" strokeDashoffset="100" />
+              <line id="sfLeadLine2" x1="120" y1="252" x2="120" y2="260" stroke="rgba(184,151,58,.2)" strokeWidth=".8" strokeDasharray="4 3" strokeDashoffset="100" />
+
+              {/* Lead label */}
               <g id="sfLeadLabel" opacity="0">
-                <rect x="28" y="60" width="90" height="22" fill="rgba(184,151,58,.07)" stroke="rgba(184,151,58,.38)" strokeWidth=".8" />
-                <text x="73" y="75" textAnchor="middle" fontFamily="Syne,sans-serif" fontSize="8" fill="rgba(212,176,90,.9)" letterSpacing="2.5" fontWeight="700">LEADS</text>
+                <rect x="100" y="326" width="368" height="40" rx="6" fill="#0e0e0e" stroke="rgba(255,255,255,.05)" strokeWidth=".5" />
+                <text x="116" y="342" fontFamily="DM Mono,monospace" fontSize="8" fill="rgba(244,240,232,.35)">Total leads esta semana:</text>
+                <text x="276" y="342" fontFamily="Cormorant Garamond,serif" fontSize="14" fontWeight="300" fill="#d4b05a">12</text>
+                <text x="300" y="342" fontFamily="DM Mono,monospace" fontSize="8" fill="rgba(74,158,107,.65)">+4 vs anterior</text>
+                <text x="116" y="358" fontFamily="DM Mono,monospace" fontSize="7.5" fill="rgba(244,240,232,.25)">Tasa de conversion:</text>
+                <text x="248" y="358" fontFamily="DM Mono,monospace" fontSize="7.5" fill="rgba(184,151,58,.7)">18.5%</text>
+                <text x="300" y="358" fontFamily="DM Mono,monospace" fontSize="7.5" fill="rgba(244,240,232,.25)">Fuente top:</text>
+                <text x="378" y="358" fontFamily="DM Mono,monospace" fontSize="7.5" fill="rgba(244,240,232,.55)">Instagram</text>
               </g>
             </svg>
           </div>

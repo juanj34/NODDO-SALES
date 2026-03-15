@@ -311,7 +311,7 @@ export function HowItWorks() {
                 className="btn-mk-primary inline-flex items-center gap-2.5 whitespace-nowrap relative z-[1]"
                 style={{ fontSize: 13, padding: "14px 32px" }}
               >
-                Agendar Demo Gratis
+                Agendar Llamada
                 <ArrowRight size={15} strokeWidth={2.5} />
               </button>
             </div>

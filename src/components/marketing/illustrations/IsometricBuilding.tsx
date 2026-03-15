@@ -103,7 +103,7 @@ const INITIAL_DOT_COLORS = [
    ══════════════════════════════════════════ */
 function BuildingSVG({ svgRef }: { svgRef: React.RefObject<SVGSVGElement | null> }) {
   /* Left face windows: 10 floors × 4 cols as parallelograms */
-  const leftWindows: { points: string; floor: number; col: number; isPenthouse: boolean }[] = [];
+  const leftWindows: { points: string; floor: number; col: number; isPenthouse: boolean; lx: number; ly: number; lw: number; lh: number }[] = [];
   for (let floor = 1; floor <= 10; floor++) {
     const isPenthouse = floor === 10;
     for (let col = 1; col <= 4; col++) {
@@ -111,12 +111,11 @@ function BuildingSVG({ svgRef }: { svgRef: React.RefObject<SVGSVGElement | null>
       const ly = 295 - (floor - 1) * 32;
       const lw = isPenthouse ? 34 : 30;
       const lh = isPenthouse ? 21 : 18;
-      leftWindows.push({ points: makePoly(lx, ly, lw, lh), floor, col, isPenthouse });
+      leftWindows.push({ points: makePoly(lx, ly, lw, lh), floor, col, isPenthouse, lx, ly, lw, lh });
     }
   }
 
   /* Right face windows: 10 floors × 4 cols as parallelograms */
-  // Right face shear: world = (260+lx, 80+ly + lx*0.25)
   function rfPt(lx: number, ly: number): [number, number] {
     return [260 + lx, 80 + ly + lx * 0.25];
   }
@@ -128,7 +127,7 @@ function BuildingSVG({ svgRef }: { svgRef: React.RefObject<SVGSVGElement | null>
     return `${tl[0]},${tl[1]} ${tr[0]},${tr[1]} ${br[0]},${br[1]} ${bl[0]},${bl[1]}`;
   }
 
-  const rightWindows: { points: string; floor: number; col: number; isPenthouse: boolean }[] = [];
+  const rightWindows: { points: string; floor: number; col: number; isPenthouse: boolean; lx: number; ly: number; lw: number; lh: number }[] = [];
   for (let floor = 1; floor <= 10; floor++) {
     const isPenthouse = floor === 10;
     for (let col = 1; col <= 4; col++) {
@@ -136,7 +135,7 @@ function BuildingSVG({ svgRef }: { svgRef: React.RefObject<SVGSVGElement | null>
       const ly = 298 - (floor - 1) * 32;
       const lw = isPenthouse ? 32 : 28;
       const lh = isPenthouse ? 20 : 17;
-      rightWindows.push({ points: makeRightPoly(lx, ly, lw, lh), floor, col, isPenthouse });
+      rightWindows.push({ points: makeRightPoly(lx, ly, lw, lh), floor, col, isPenthouse, lx, ly, lw, lh });
     }
   }
 
@@ -147,22 +146,14 @@ function BuildingSVG({ svgRef }: { svgRef: React.RefObject<SVGSVGElement | null>
 
   for (const floor of balconyFloors) {
     for (let col = 1; col <= 4; col++) {
-      // Left balcony: small slab below each window
       const lx = 12 + (col - 1) * 48;
       const ly = 295 - (floor - 1) * 32 + 19;
       leftBalconies.push({ points: makePoly(lx, ly, 34, 4) });
-      // Right balcony
       const rx = 10 + (col - 1) * 46;
       const ry = 298 - (floor - 1) * 32 + 17.5;
       rightBalconies.push({ points: makeRightPoly(rx, ry, 32, 4) });
     }
   }
-
-  /* Floor lines */
-  const floorLineYs = Array.from({ length: 9 }, (_, i) => {
-    const ly = 32 * (i + 1);
-    return ly;
-  });
 
   return (
     <svg
@@ -202,6 +193,15 @@ function BuildingSVG({ svgRef }: { svgRef: React.RefObject<SVGSVGElement | null>
           <stop offset="0%" stopColor="#80b4d8" stopOpacity=".14" />
           <stop offset="100%" stopColor="#4080a8" stopOpacity=".04" />
         </linearGradient>
+        {/* Parapet gradients */}
+        <linearGradient id="parapetL" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stopColor="#333" />
+          <stop offset="100%" stopColor="#222" />
+        </linearGradient>
+        <linearGradient id="parapetR" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stopColor="#252525" />
+          <stop offset="100%" stopColor="#181818" />
+        </linearGradient>
       </defs>
 
       {/* Ground shadow */}
@@ -215,101 +215,188 @@ function BuildingSVG({ svgRef }: { svgRef: React.RefObject<SVGSVGElement | null>
       {/* ═══ LEFT FACE ═══ */}
       <polygon points="60,450 60,130 260,80 260,400" fill="url(#fL)" />
 
-      {/* Floor lines — left face */}
-      {floorLineYs.map((ly, i) => (
-        <line
-          key={`fl-l-${i}`}
-          x1="60" y1={130 + ly}
-          x2="260" y2={80 + ly}
-          stroke="rgba(184,151,58,.08)" strokeWidth=".7"
-        />
+      {/* Left face — vertical structural columns */}
+      {[0, 48, 96, 144, 192].map((lx, i) => {
+        const [x1, y1] = lfPt(lx, 0);
+        const [x2, y2] = lfPt(lx, 320);
+        return (
+          <line key={`vcl-${i}`} x1={x1} y1={y1} x2={x2} y2={y2}
+            stroke="rgba(184,151,58,.05)" strokeWidth=".5" />
+        );
+      })}
+
+      {/* Left face — floor slab bands (between each floor) */}
+      {Array.from({ length: 10 }, (_, i) => (
+        <polygon key={`slb-l-${i}`}
+          points={makePoly(0, 295 - i * 32 + 20, 200, 5)}
+          fill="rgba(184,151,58,.03)" />
       ))}
 
-      {/* Left face windows */}
-      {leftWindows.map(({ points, floor, col, isPenthouse }) => (
-        <polygon
-          key={`lw-${floor}-${col}`}
-          data-win="left"
-          points={points}
-          fill="url(#winDepthL)"
-          stroke="rgba(184,151,58,.3)"
-          strokeWidth={isPenthouse ? ".9" : ".8"}
-        />
+      {/* Left face — floor lines */}
+      {Array.from({ length: 9 }, (_, i) => (
+        <line key={`fl-l-${i}`}
+          x1="60" y1={130 + 32 * (i + 1)}
+          x2="260" y2={80 + 32 * (i + 1)}
+          stroke="rgba(184,151,58,.1)" strokeWidth=".7" />
       ))}
 
-      {/* Left face balconies */}
+      {/* Left face — windows with glass details */}
+      {leftWindows.map(({ points, floor, col, isPenthouse, lx, ly, lw, lh }) => (
+        <g key={`lwg-${floor}-${col}`}>
+          <polygon data-win="left" points={points}
+            fill="url(#winDepthL)" stroke="rgba(184,151,58,.3)"
+            strokeWidth={isPenthouse ? ".9" : ".8"} />
+          {/* Glass reflection highlight */}
+          <polygon points={makePoly(lx + 1.5, ly + 1, lw * 0.3, lh * 0.4)}
+            fill="rgba(255,255,200,.04)" />
+          {/* Horizontal mullion */}
+          <line
+            x1={lfPt(lx + 1, ly + lh * 0.55)[0]} y1={lfPt(lx + 1, ly + lh * 0.55)[1]}
+            x2={lfPt(lx + lw - 1, ly + lh * 0.55)[0]} y2={lfPt(lx + lw - 1, ly + lh * 0.55)[1]}
+            stroke="rgba(184,151,58,.12)" strokeWidth=".4" />
+          {/* Vertical mullion */}
+          {!isPenthouse && (
+            <line
+              x1={lfPt(lx + lw * 0.5, ly + 1)[0]} y1={lfPt(lx + lw * 0.5, ly + 1)[1]}
+              x2={lfPt(lx + lw * 0.5, ly + lh - 1)[0]} y2={lfPt(lx + lw * 0.5, ly + lh - 1)[1]}
+              stroke="rgba(184,151,58,.08)" strokeWidth=".3" />
+          )}
+        </g>
+      ))}
+
+      {/* Left face — balconies */}
       {leftBalconies.map((b, i) => (
-        <polygon
-          key={`lb-${i}`}
-          points={b.points}
-          fill="#1c1c1c"
-          stroke="rgba(184,151,58,.2)"
-          strokeWidth=".5"
-        />
+        <polygon key={`lb-${i}`} points={b.points}
+          fill="#1c1c1c" stroke="rgba(184,151,58,.22)" strokeWidth=".6" />
       ))}
+
+      {/* Left face — decorative accent band at mid-height */}
+      <polygon points={makePoly(0, 153, 200, 3)}
+        fill="rgba(184,151,58,.08)" stroke="rgba(184,151,58,.15)" strokeWidth=".3" />
 
       {/* ═══ RIGHT FACE ═══ */}
       <polygon points="260,400 260,80 460,130 460,450" fill="url(#fR)" />
 
-      {/* Floor lines — right face */}
-      {floorLineYs.map((ly, i) => (
-        <line
-          key={`fl-r-${i}`}
-          x1="260" y1={80 + ly}
-          x2="460" y2={130 + ly}
-          stroke="rgba(100,140,180,.07)" strokeWidth=".7"
-        />
+      {/* Right face — vertical structural columns */}
+      {[0, 46, 92, 138, 184].map((lx, i) => {
+        const [x1, y1] = rfPt(lx, 0);
+        const [x2, y2] = rfPt(lx, 320);
+        return (
+          <line key={`vcr-${i}`} x1={x1} y1={y1} x2={x2} y2={y2}
+            stroke="rgba(100,140,180,.04)" strokeWidth=".5" />
+        );
+      })}
+
+      {/* Right face — floor slab bands */}
+      {Array.from({ length: 10 }, (_, i) => (
+        <polygon key={`slb-r-${i}`}
+          points={makeRightPoly(0, 298 - i * 32 + 19, 196, 5)}
+          fill="rgba(100,140,180,.02)" />
       ))}
 
-      {/* Right face windows */}
-      {rightWindows.map(({ points, floor, col, isPenthouse }) => (
-        <polygon
-          key={`rw-${floor}-${col}`}
-          data-win="right"
-          points={points}
-          fill="url(#winDepthR)"
-          stroke="rgba(130,180,220,.22)"
-          strokeWidth={isPenthouse ? ".9" : ".8"}
-        />
+      {/* Right face — floor lines */}
+      {Array.from({ length: 9 }, (_, i) => (
+        <line key={`fl-r-${i}`}
+          x1="260" y1={80 + 32 * (i + 1)}
+          x2="460" y2={130 + 32 * (i + 1)}
+          stroke="rgba(100,140,180,.08)" strokeWidth=".7" />
       ))}
 
-      {/* Right face balconies */}
+      {/* Right face — windows with glass details */}
+      {rightWindows.map(({ points, floor, col, isPenthouse, lx, ly, lw, lh }) => (
+        <g key={`rwg-${floor}-${col}`}>
+          <polygon data-win="right" points={points}
+            fill="url(#winDepthR)" stroke="rgba(130,180,220,.22)"
+            strokeWidth={isPenthouse ? ".9" : ".8"} />
+          {/* Glass reflection */}
+          <polygon points={makeRightPoly(lx + lw * 0.55, ly + 1, lw * 0.35, lh * 0.4)}
+            fill="rgba(200,220,255,.03)" />
+          {/* Horizontal mullion */}
+          <line
+            x1={rfPt(lx + 1, ly + lh * 0.55)[0]} y1={rfPt(lx + 1, ly + lh * 0.55)[1]}
+            x2={rfPt(lx + lw - 1, ly + lh * 0.55)[0]} y2={rfPt(lx + lw - 1, ly + lh * 0.55)[1]}
+            stroke="rgba(130,180,220,.1)" strokeWidth=".35" />
+          {/* Vertical mullion */}
+          {!isPenthouse && (
+            <line
+              x1={rfPt(lx + lw * 0.5, ly + 1)[0]} y1={rfPt(lx + lw * 0.5, ly + 1)[1]}
+              x2={rfPt(lx + lw * 0.5, ly + lh - 1)[0]} y2={rfPt(lx + lw * 0.5, ly + lh - 1)[1]}
+              stroke="rgba(130,180,220,.06)" strokeWidth=".3" />
+          )}
+        </g>
+      ))}
+
+      {/* Right face — balconies */}
       {rightBalconies.map((b, i) => (
-        <polygon
-          key={`rb-${i}`}
-          points={b.points}
-          fill="#111"
-          stroke="rgba(130,180,220,.12)"
-          strokeWidth=".5"
-        />
+        <polygon key={`rb-${i}`} points={b.points}
+          fill="#111" stroke="rgba(130,180,220,.14)" strokeWidth=".5" />
       ))}
 
-      {/* ═══ ROOF ═══ */}
-      <polygon points="60,130 260,80 460,130 260,180" fill="url(#roofG)" />
-      <line x1="60" y1="130" x2="260" y2="180" stroke="rgba(184,151,58,.1)" strokeWidth=".5" />
-      <line x1="460" y1="130" x2="260" y2="180" stroke="rgba(184,151,58,.06)" strokeWidth=".5" />
-      <line x1="60" y1="130" x2="260" y2="80" stroke="rgba(184,151,58,.28)" strokeWidth=".8" />
-      <line x1="460" y1="130" x2="260" y2="80" stroke="rgba(184,151,58,.2)" strokeWidth=".8" />
+      {/* Right face — accent band */}
+      <polygon points={makeRightPoly(0, 155, 196, 3)}
+        fill="rgba(100,140,180,.05)" stroke="rgba(100,140,180,.1)" strokeWidth=".3" />
 
-      {/* Rooftop details */}
-      <rect x="230" y="72" width="24" height="14" rx="1" fill="#222" stroke="rgba(184,151,58,.2)" strokeWidth=".8" />
-      <rect x="258" y="69" width="12" height="12" rx="1" fill="#1a1a1a" stroke="rgba(184,151,58,.15)" strokeWidth=".8" />
-      <rect x="274" y="74" width="18" height="10" rx="1" fill="#1c1c1c" stroke="rgba(184,151,58,.12)" strokeWidth=".8" />
-      <circle cx="242" cy="77" r="3" fill="rgba(184,151,58,.65)" />
-      <circle cx="242" cy="77" r="7" fill="rgba(184,151,58,.08)" />
+      {/* ═══ ROOF with PARAPET ═══ */}
+      <polygon points="60,130 260,80 460,130 260,180" fill="url(#roofG)" />
+
+      {/* Parapet walls */}
+      <polygon points="60,130 60,124 260,74 260,80" fill="url(#parapetL)" stroke="rgba(184,151,58,.15)" strokeWidth=".5" />
+      <polygon points="260,80 260,74 460,124 460,130" fill="url(#parapetR)" stroke="rgba(184,151,58,.1)" strokeWidth=".5" />
+      {/* Parapet cap (gold trim) */}
+      <line x1="60" y1="124" x2="260" y2="74" stroke="rgba(184,151,58,.35)" strokeWidth=".8" />
+      <line x1="260" y1="74" x2="460" y2="124" stroke="rgba(184,151,58,.22)" strokeWidth=".7" />
+
+      {/* Roof surface lines */}
+      <line x1="60" y1="130" x2="260" y2="180" stroke="rgba(184,151,58,.08)" strokeWidth=".5" />
+      <line x1="460" y1="130" x2="260" y2="180" stroke="rgba(184,151,58,.05)" strokeWidth=".5" />
+
+      {/* Rooftop equipment */}
+      <rect x="220" y="71" width="16" height="7" rx="1" fill="#222" stroke="rgba(184,151,58,.15)" strokeWidth=".6" />
+      <rect x="238" y="69" width="12" height="9" rx="1" fill="#1c1c1c" stroke="rgba(184,151,58,.12)" strokeWidth=".6" />
+      {/* Elevator shaft housing */}
+      <polygon points="272,74 272,60 290,54 290,68" fill="#1a1a1a" stroke="rgba(184,151,58,.12)" strokeWidth=".6" />
+      <polygon points="272,60 280,56 298,50 290,54" fill="#222" stroke="rgba(184,151,58,.08)" strokeWidth=".4" />
+      {/* Antenna with beacon */}
+      <line x1="284" y1="50" x2="284" y2="34" stroke="rgba(184,151,58,.25)" strokeWidth=".7" />
+      <line x1="280" y1="42" x2="288" y2="42" stroke="rgba(184,151,58,.15)" strokeWidth=".4" />
+      <circle cx="284" cy="33" r="1.5" fill="rgba(184,151,58,.7)">
+        <animate attributeName="opacity" values=".7;.2;.7" dur="2s" repeatCount="indefinite" />
+      </circle>
+      <circle cx="284" cy="33" r="4" fill="rgba(184,151,58,.06)">
+        <animate attributeName="r" values="4;7;4" dur="2s" repeatCount="indefinite" />
+        <animate attributeName="opacity" values=".06;.02;.06" dur="2s" repeatCount="indefinite" />
+      </circle>
+      {/* Status light */}
+      <circle cx="242" cy="77" r="2.5" fill="rgba(184,151,58,.6)" />
+      <circle cx="242" cy="77" r="6" fill="rgba(184,151,58,.06)" />
 
       {/* ═══ STRUCTURAL EDGES ═══ */}
-      <line x1="60" y1="130" x2="60" y2="450" stroke="url(#gEdge)" strokeWidth="1.2" />
-      <line x1="260" y1="80" x2="260" y2="400" stroke="url(#gEdge)" strokeWidth="2.2" />
-      <line x1="460" y1="130" x2="460" y2="450" stroke="rgba(184,151,58,.2)" strokeWidth=".8" />
-      <line x1="60" y1="130" x2="260" y2="80" stroke="rgba(184,151,58,.5)" strokeWidth="1.2" />
-      <line x1="460" y1="130" x2="260" y2="80" stroke="rgba(184,151,58,.32)" strokeWidth="1" />
+      <line x1="60" y1="124" x2="60" y2="450" stroke="url(#gEdge)" strokeWidth="1.4" />
+      <line x1="260" y1="74" x2="260" y2="400" stroke="url(#gEdge)" strokeWidth="2.4" />
+      <line x1="460" y1="124" x2="460" y2="450" stroke="rgba(184,151,58,.2)" strokeWidth=".8" />
+      <line x1="60" y1="124" x2="260" y2="74" stroke="rgba(184,151,58,.5)" strokeWidth="1.2" />
+      <line x1="460" y1="124" x2="260" y2="74" stroke="rgba(184,151,58,.32)" strokeWidth="1" />
+      {/* Bottom edges */}
+      <line x1="60" y1="450" x2="260" y2="400" stroke="rgba(184,151,58,.08)" strokeWidth=".5" />
+      <line x1="460" y1="450" x2="260" y2="400" stroke="rgba(184,151,58,.06)" strokeWidth=".5" />
 
-      {/* Ground floor entrance — left */}
-      <polygon points="150,429.5 178,422.0 178,442.0 150,449.5" fill="rgba(184,151,58,.06)" stroke="rgba(184,151,58,.25)" strokeWidth=".8" />
-      <line x1="164" y1="430" x2="164" y2="449" stroke="rgba(184,151,58,.14)" strokeWidth=".5" />
-      {/* Ground floor entrance — right */}
-      <polygon points="302,438.5 330,445.5 330,449.5 302,442.5" fill="rgba(130,180,220,.06)" stroke="rgba(130,180,220,.18)" strokeWidth=".8" />
+      {/* ═══ ENTRANCE ═══ */}
+      {/* Left face lobby doors */}
+      <polygon points={makePoly(80, 298, 40, 22)}
+        fill="rgba(184,151,58,.07)" stroke="rgba(184,151,58,.28)" strokeWidth=".8" />
+      <line x1={lfPt(100, 298)[0]} y1={lfPt(100, 298)[1]}
+        x2={lfPt(100, 320)[0]} y2={lfPt(100, 320)[1]}
+        stroke="rgba(184,151,58,.15)" strokeWidth=".5" />
+      {/* Entrance canopy */}
+      <polygon points={makePoly(76, 296, 48, 2)}
+        fill="rgba(184,151,58,.1)" stroke="rgba(184,151,58,.2)" strokeWidth=".4" />
+
+      {/* Right face entrance */}
+      <polygon points={makeRightPoly(70, 302, 36, 18)}
+        fill="rgba(130,180,220,.05)" stroke="rgba(130,180,220,.18)" strokeWidth=".7" />
+      <line x1={rfPt(88, 302)[0]} y1={rfPt(88, 302)[1]}
+        x2={rfPt(88, 320)[0]} y2={rfPt(88, 320)[1]}
+        stroke="rgba(130,180,220,.1)" strokeWidth=".4" />
 
       {/* Selected unit highlight (will be moved by JS) */}
       <polygon

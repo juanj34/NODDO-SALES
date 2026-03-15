@@ -84,7 +84,7 @@ export function StickyCTA() {
             className="btn-mk-primary flex-shrink-0 relative"
             style={{ fontSize: 10, padding: "11px 22px", whiteSpace: "nowrap", fontWeight: 700, zIndex: 1 }}
           >
-            Ver Demo →
+            Agendar Llamada →
           </button>
         </div>
       </div>
@@ -236,7 +236,7 @@ export function StickyCTA() {
               zIndex: 1,
             }}
           >
-            <span className="relative z-10">VER DEMO GRATIS →</span>
+            <span className="relative z-10">AGENDAR LLAMADA →</span>
 
             {/* Animated shine effect */}
             <div

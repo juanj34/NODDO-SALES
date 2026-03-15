@@ -210,7 +210,7 @@ export default function MarketingHomePage() {
                 className="btn-mk-primary inline-flex items-center gap-3 relative z-[1] group"
                 style={{ fontSize: 14, padding: "18px 48px", fontWeight: 700, letterSpacing: "0.04em" }}
               >
-                <span>Agendar Demo Ahora</span>
+                <span>Agendar Llamada</span>
                 <ArrowRight size={16} strokeWidth={2.5} className="group-hover:translate-x-1 transition-transform" />
               </button>
             </div>
@@ -220,7 +220,7 @@ export default function MarketingHomePage() {
           <div className="flex items-center justify-center gap-8 flex-wrap text-[12px]" style={{ color: "rgba(244,240,232,0.4)" }}>
             <div className="flex items-center gap-2">
               <span style={{ fontSize: 18 }}>✓</span>
-              <span>Demo de <strong style={{ color: "var(--mk-text-primary)", fontWeight: 500 }}>15 minutos</strong></span>
+              <span>Llamada de <strong style={{ color: "var(--mk-text-primary)", fontWeight: 500 }}>15 minutos</strong></span>
             </div>
             <div className="flex items-center gap-2">
               <span style={{ fontSize: 18 }}>✓</span>
