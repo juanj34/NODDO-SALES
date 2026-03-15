@@ -34,6 +34,9 @@ import {
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useTranslation } from "@/i18n";
+import { proyectoGeneralSchema } from "@/lib/validation/schemas";
+import { InlineError } from "@/components/ui/ErrorBoundary";
+import { ZodError } from "zod";
 
 type GeneralTab = "proyecto" | "inicio" | "constructora" | "diseno" | "avanzado";
 
@@ -70,6 +73,7 @@ export default function EditorGeneralPage() {
   const [backgroundAudioUrl, setBackgroundAudioUrl] = useState("");
   const [audioUploading, setAudioUploading] = useState(false);
   const audioInputRef = useRef<HTMLInputElement>(null);
+  const [validationError, setValidationError] = useState<string | null>(null);
 
   useEffect(() => {
     if (!project) return;
@@ -93,7 +97,9 @@ export default function EditorGeneralPage() {
   }, [project]);
 
   const handleSave = async () => {
-    const ok = await save({
+    setValidationError(null);
+
+    const payload = {
       nombre,
       slug,
       descripcion: descripcion || null,
@@ -111,8 +117,23 @@ export default function EditorGeneralPage() {
       favicon_url: faviconUrl || null,
       og_image_url: ogImageUrl || null,
       background_audio_url: backgroundAudioUrl || null,
-    });
-    if (!ok) toast.error(t("general.saveError"));
+    };
+
+    try {
+      // Validate general project data
+      proyectoGeneralSchema.parse(payload);
+
+      const ok = await save(payload);
+      if (!ok) toast.error(t("general.saveError"));
+    } catch (err) {
+      if (err instanceof ZodError) {
+        const zodError = err as ZodError<any>;
+        if (zodError.issues?.length > 0) {
+          setValidationError(zodError.issues[0].message);
+          toast.error(zodError.issues[0].message);
+        }
+      }
+    }
   };
 
   /* ── Auto-save ── */
@@ -199,6 +220,15 @@ export default function EditorGeneralPage() {
           );
         })}
       </div>
+
+      {/* Validation Error */}
+      {validationError && (
+        <InlineError
+          message={validationError}
+          onRetry={() => setValidationError(null)}
+          variant="compact"
+        />
+      )}
 
       {/* Tab Content */}
       <AnimatePresence mode="wait">

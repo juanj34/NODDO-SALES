@@ -6,6 +6,7 @@ import { useTranslation } from "@/i18n";
 import { useEditorProject } from "@/hooks/useEditorProject";
 import { useConfirm } from "@/components/dashboard/ConfirmModal";
 import { useToast } from "@/components/dashboard/Toast";
+import { NodDoDropdown } from "@/components/ui/NodDoDropdown";
 import {
   inputClass,
   labelClass,
@@ -36,6 +37,9 @@ import {
 import { motion, AnimatePresence } from "framer-motion";
 import { MapPickerModal } from "@/components/dashboard/MapPickerModal";
 import { FileUploader } from "@/components/dashboard/FileUploader";
+import { poiSchema, proyectoUbicacionSchema } from "@/lib/validation/schemas";
+import { InlineError } from "@/components/ui/ErrorBoundary";
+import { ZodError } from "zod";
 
 const CATEGORIAS = [
   "Comercio",
@@ -97,6 +101,7 @@ export default function UbicacionPage() {
   const [ubicacionDireccion, setUbicacionDireccion] = useState("");
   const [ubicacionLat, setUbicacionLat] = useState("");
   const [ubicacionLng, setUbicacionLng] = useState("");
+  const [ubicacionErrors, setUbicacionErrors] = useState<string | null>(null);
 
   // POI state
   const [poiForm, setPoiForm] = useState(emptyPoi);
@@ -104,6 +109,7 @@ export default function UbicacionPage() {
   const [showPoiForm, setShowPoiForm] = useState(false);
   const [poiSaving, setPoiSaving] = useState(false);
   const [filterCat, setFilterCat] = useState<string>("");
+  const [poiErrors, setPoiErrors] = useState<string | null>(null);
 
   // Map picker
   const [showMapPicker, setShowMapPicker] = useState(false);
@@ -128,12 +134,30 @@ export default function UbicacionPage() {
   }, [project]);
 
   const handleSaveLocation = async () => {
-    const ok = await save({
-      ubicacion_direccion: ubicacionDireccion || null,
-      ubicacion_lat: ubicacionLat ? parseFloat(ubicacionLat) : null,
-      ubicacion_lng: ubicacionLng ? parseFloat(ubicacionLng) : null,
-    });
-    if (!ok) toast.error(t("general.saveError"));
+    try {
+      // Validate location data
+      proyectoUbicacionSchema.parse({
+        ubicacion_direccion: ubicacionDireccion || null,
+        ubicacion_lat: ubicacionLat ? parseFloat(ubicacionLat) : null,
+        ubicacion_lng: ubicacionLng ? parseFloat(ubicacionLng) : null,
+      });
+      setUbicacionErrors(null);
+
+      const ok = await save({
+        ubicacion_direccion: ubicacionDireccion || null,
+        ubicacion_lat: ubicacionLat ? parseFloat(ubicacionLat) : null,
+        ubicacion_lng: ubicacionLng ? parseFloat(ubicacionLng) : null,
+      });
+      if (!ok) toast.error(t("general.saveError"));
+    } catch (err) {
+      if (err instanceof ZodError) {
+        const zodError = err as ZodError<any>;
+        if (zodError.issues?.length > 0) {
+          setUbicacionErrors(zodError.issues[0].message);
+          toast.error(zodError.issues[0].message);
+        }
+      }
+    }
   };
 
   /* ── Auto-save for coordinates ── */
@@ -204,6 +228,8 @@ export default function UbicacionPage() {
 
   const savePoi = async () => {
     setPoiSaving(true);
+    setPoiErrors(null);
+
     const payload = {
       nombre: poiForm.nombre,
       descripcion: poiForm.descripcion || null,
@@ -218,7 +244,11 @@ export default function UbicacionPage() {
         ? parseInt(poiForm.tiempo_minutos)
         : null,
     };
+
     try {
+      // Validate POI data
+      poiSchema.parse(payload);
+
       if (editingPoiId) {
         const res = await fetch(`/api/puntos-interes/${editingPoiId}`, {
           method: "PUT",
@@ -242,8 +272,16 @@ export default function UbicacionPage() {
       }
       await refresh();
       cancelPoiForm();
-    } catch {
-      toast.error("Error de conexión");
+    } catch (err) {
+      if (err instanceof ZodError) {
+        const zodError = err as ZodError<any>;
+        if (zodError.issues?.length > 0) {
+          setPoiErrors(zodError.issues[0].message);
+          toast.error(zodError.issues[0].message);
+        }
+      } else {
+        toast.error("Error de conexión");
+      }
     } finally {
       setPoiSaving(false);
     }
@@ -431,6 +469,14 @@ export default function UbicacionPage() {
                   />
                 </div>
               </div>
+              {ubicacionErrors && (
+                <InlineError
+                  message={ubicacionErrors}
+                  onRetry={() => setUbicacionErrors(null)}
+                  variant="compact"
+                />
+              )}
+
               <button
                 type="button"
                 onClick={() => setShowMapPicker(true)}
@@ -580,19 +626,13 @@ export default function UbicacionPage() {
                     </div>
                     <div>
                       <label className={labelClass}>{t("ubicacion.pois.categoryRequired")}</label>
-                      <select
+                      <NodDoDropdown
+                        variant="dashboard"
+                        size="md"
                         value={poiForm.categoria}
-                        onChange={(e) =>
-                          setPoiForm((p) => ({ ...p, categoria: e.target.value }))
-                        }
-                        className={inputClass}
-                      >
-                        {CATEGORIAS.map((c) => (
-                          <option key={c} value={c}>
-                            {c}
-                          </option>
-                        ))}
-                      </select>
+                        onChange={(val) => setPoiForm((p) => ({ ...p, categoria: val }))}
+                        options={CATEGORIAS.map((c) => ({ value: c, label: c }))}
+                      />
                     </div>
                   </div>
 
@@ -687,6 +727,14 @@ export default function UbicacionPage() {
                       />
                     </div>
                   </div>
+
+                  {poiErrors && (
+                    <InlineError
+                      message={poiErrors}
+                      onRetry={() => setPoiErrors(null)}
+                      variant="compact"
+                    />
+                  )}
 
                   <div className="flex items-center gap-3 pt-2">
                     <button

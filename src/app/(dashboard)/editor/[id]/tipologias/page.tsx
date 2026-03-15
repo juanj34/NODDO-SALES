@@ -36,6 +36,9 @@ import { useToast } from "@/components/dashboard/Toast";
 import { useConfirm } from "@/components/dashboard/ConfirmModal";
 import { useTranslation } from "@/i18n";
 import type { Tipologia, TipologiaHotspot } from "@/types";
+import { tipologiaSchema } from "@/lib/validation/schemas";
+import { InlineError } from "@/components/ui/ErrorBoundary";
+import { ZodError } from "zod";
 
 /* ─── Form types ─── */
 
@@ -134,6 +137,7 @@ export default function TipologiasPage() {
   const [activeTab, setActiveTab] = useState<TipoTab>("general");
   const [activeTorreId, setActiveTorreId] = useState<string | null>(null);
   const [duplicatingId, setDuplicatingId] = useState<string | null>(null);
+  const [validationError, setValidationError] = useState<string | null>(null);
 
   const filteredTipologias = useMemo(() => {
     if (!isMultiTorre || activeTorreId === null) return tipologias;
@@ -232,12 +236,19 @@ export default function TipologiasPage() {
   const handleSave = async () => {
     if (!form.nombre.trim()) return;
     setSaving(true);
+    setValidationError(null);
+
     try {
+      const payload = buildPayload();
+
+      // Validate tipologia data
+      tipologiaSchema.parse(payload);
+
       if (selectedId && !isCreating) {
         const res = await fetch(`/api/tipologias/${selectedId}`, {
           method: "PUT",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(buildPayload()),
+          body: JSON.stringify(payload),
         });
         if (!res.ok) {
           toast.error("Error al guardar tipología");
@@ -248,7 +259,7 @@ export default function TipologiasPage() {
         const res = await fetch("/api/tipologias", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ proyecto_id: projectId, ...buildPayload() }),
+          body: JSON.stringify({ proyecto_id: projectId, ...payload }),
         });
         if (!res.ok) {
           toast.error("Error al crear tipología");
@@ -262,8 +273,16 @@ export default function TipologiasPage() {
           setIsCreating(false);
         }
       }
-    } catch {
-      toast.error("Error de conexión");
+    } catch (err) {
+      if (err instanceof ZodError) {
+        const zodError = err as ZodError<any>;
+        if (zodError.issues?.length > 0) {
+          setValidationError(zodError.issues[0].message);
+          toast.error(zodError.issues[0].message);
+        }
+      } else {
+        toast.error("Error de conexión");
+      }
     } finally {
       setSaving(false);
     }
@@ -889,8 +908,16 @@ export default function TipologiasPage() {
               </div>
 
               {/* Save bar */}
-              <div className="px-6 py-3 border-t border-[var(--border-subtle)] shrink-0 flex items-center gap-3">
-                <button
+              <div className="px-6 py-3 border-t border-[var(--border-subtle)] shrink-0 space-y-3">
+                {validationError && (
+                  <InlineError
+                    message={validationError}
+                    onRetry={() => setValidationError(null)}
+                    variant="compact"
+                  />
+                )}
+                <div className="flex items-center gap-3">
+                  <button
                   onClick={handleSave}
                   disabled={saving || !form.nombre.trim()}
                   className={btnPrimary}
@@ -913,6 +940,7 @@ export default function TipologiasPage() {
                     {t("inventario.cancel")}
                   </button>
                 )}
+                </div>
               </div>
             </>
           ) : (

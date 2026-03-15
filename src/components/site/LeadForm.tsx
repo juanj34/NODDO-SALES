@@ -6,6 +6,9 @@ import { Send, CheckCircle, Loader2, ShieldCheck, Mail } from "lucide-react";
 import type { Tipologia } from "@/types";
 import { useTranslation } from "@/i18n";
 import { trackEvent } from "@/lib/tracking";
+import { NodDoDropdown } from "@/components/ui/NodDoDropdown";
+import { leadFormSchema } from "@/lib/validation/schemas";
+import { ZodError } from "zod";
 
 interface LeadFormProps {
   proyectoId: string;
@@ -63,6 +66,9 @@ export function LeadForm({
     setError(null);
 
     try {
+      // Validate form data
+      leadFormSchema.parse(formData);
+
       const res = await fetch("/api/leads", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -89,8 +95,15 @@ export function LeadForm({
       } else {
         setError(tCommon("errors.submitFailed"));
       }
-    } catch {
-      setError(tCommon("errors.connectionError"));
+    } catch (err) {
+      if (err instanceof ZodError) {
+        const zodError = err as ZodError<any>;
+        if (zodError.issues?.length > 0) {
+          setError(zodError.issues[0].message);
+        }
+      } else {
+        setError(tCommon("errors.connectionError"));
+      }
     } finally {
       setIsSubmitting(false);
     }
@@ -116,12 +129,15 @@ export function LeadForm({
             ? "bg-[var(--surface-1)] rounded-[1.25rem] border border-[rgba(var(--site-primary-rgb),0.2)] shadow-[0_0_40px_rgba(var(--site-primary-rgb),0.08)]"
             : "bg-[var(--surface-1)] rounded-[1.25rem]"
         } p-12 flex flex-col items-center justify-center gap-4`}
+        role="status"
+        aria-live="polite"
       >
         <div className="animate-success-pop">
           <div className="w-16 h-16 rounded-full bg-[rgba(var(--site-primary-rgb),0.1)] border border-[rgba(var(--site-primary-rgb),0.2)] flex items-center justify-center">
             <CheckCircle
               size={32}
               className="text-[var(--site-primary)]"
+              aria-hidden="true"
             />
           </div>
         </div>
@@ -134,7 +150,7 @@ export function LeadForm({
           })}
         </p>
         <div className="flex items-center gap-2 mt-2">
-          <Mail size={14} className="text-[var(--text-muted)]" />
+          <Mail size={14} className="text-[var(--text-muted)]" aria-hidden="true" />
           <p className="text-xs text-[var(--text-muted)]">
             {tSite("contacto.successNext")}
           </p>
@@ -154,10 +170,11 @@ export function LeadForm({
     >
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div>
-          <label className="block text-[10px] tracking-[0.2em] uppercase text-[var(--text-tertiary)] mb-1.5 font-mono">
+          <label htmlFor="lead-nombre" className="block text-[10px] tracking-[0.2em] uppercase text-[var(--text-tertiary)] mb-1.5 font-mono">
             {tCommon("form.fullName")}
           </label>
           <input
+            id="lead-nombre"
             type="text"
             name="nombre"
             placeholder="Juan Pérez"
@@ -166,13 +183,15 @@ export function LeadForm({
             value={formData.nombre}
             onChange={handleChange}
             className="input-glass w-full"
+            aria-required="true"
           />
         </div>
         <div>
-          <label className="block text-[10px] tracking-[0.2em] uppercase text-[var(--text-tertiary)] mb-1.5 font-mono">
+          <label htmlFor="lead-email" className="block text-[10px] tracking-[0.2em] uppercase text-[var(--text-tertiary)] mb-1.5 font-mono">
             {tCommon("form.email")}
           </label>
           <input
+            id="lead-email"
             type="email"
             name="email"
             placeholder="juan@email.com"
@@ -182,15 +201,17 @@ export function LeadForm({
             value={formData.email}
             onChange={handleChange}
             className="input-glass w-full"
+            aria-required="true"
           />
         </div>
       </div>
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div>
-          <label className="block text-[10px] tracking-[0.2em] uppercase text-[var(--text-tertiary)] mb-1.5 font-mono">
+          <label htmlFor="lead-telefono" className="block text-[10px] tracking-[0.2em] uppercase text-[var(--text-tertiary)] mb-1.5 font-mono">
             {tCommon("form.phone")}
           </label>
           <input
+            id="lead-telefono"
             type="tel"
             name="telefono"
             placeholder="+57 300 000 0000"
@@ -202,10 +223,11 @@ export function LeadForm({
           />
         </div>
         <div>
-          <label className="block text-[10px] tracking-[0.2em] uppercase text-[var(--text-tertiary)] mb-1.5 font-mono">
+          <label htmlFor="lead-pais" className="block text-[10px] tracking-[0.2em] uppercase text-[var(--text-tertiary)] mb-1.5 font-mono">
             {tCommon("form.country")}
           </label>
           <input
+            id="lead-pais"
             type="text"
             name="pais"
             placeholder="Colombia"
@@ -217,28 +239,35 @@ export function LeadForm({
         </div>
       </div>
       <div>
-        <label className="block text-[10px] tracking-[0.2em] uppercase text-[var(--text-tertiary)] mb-1.5 font-mono">
+        <label htmlFor="lead-tipologia" className="block text-[10px] tracking-[0.2em] uppercase text-[var(--text-tertiary)] mb-1.5 font-mono">
           {tCommon("form.typeOfInterest")}
         </label>
-        <select
-          name="tipologia_interes"
+        <NodDoDropdown
+          variant="site"
+          size="md"
           value={formData.tipologia_interes}
-          onChange={handleChange}
-          className="input-glass w-full"
-        >
-          <option value="">{tCommon("form.typeOfInterest")}</option>
-          {tipologias.map((tip) => (
-            <option key={tip.id} value={tip.nombre}>
-              {tip.nombre} — {tip.area_m2} m²
-            </option>
-          ))}
-        </select>
+          onChange={(val) => {
+            const e = {
+              target: { name: "tipologia_interes", value: val },
+            } as React.ChangeEvent<HTMLInputElement>;
+            handleChange(e);
+          }}
+          options={[
+            { value: "", label: tCommon("form.typeOfInterest") },
+            ...tipologias.map((tip) => ({
+              value: tip.nombre,
+              label: `${tip.nombre} — ${tip.area_m2} m²`,
+            })),
+          ]}
+          placeholder={tCommon("form.typeOfInterest")}
+        />
       </div>
       <div>
-        <label className="block text-[10px] tracking-[0.2em] uppercase text-[var(--text-tertiary)] mb-1.5 font-mono">
+        <label htmlFor="lead-mensaje" className="block text-[10px] tracking-[0.2em] uppercase text-[var(--text-tertiary)] mb-1.5 font-mono">
           {tCommon("form.messageOptional")}
         </label>
         <textarea
+          id="lead-mensaje"
           name="mensaje"
           placeholder="..."
           rows={3}
@@ -253,16 +282,17 @@ export function LeadForm({
         whileHover={{ scale: 1.02 }}
         whileTap={{ scale: 0.98 }}
         className="btn-warm w-full py-3.5 flex items-center justify-center gap-2 text-sm tracking-[0.2em] uppercase"
+        aria-label={isSubmitting ? tCommon("buttons.sending") : tCommon("buttons.send")}
       >
         {isSubmitting ? (
-          <Loader2 size={16} className="animate-spin" />
+          <Loader2 size={16} className="animate-spin" aria-hidden="true" />
         ) : (
-          <Send size={16} />
+          <Send size={16} aria-hidden="true" />
         )}
         {isSubmitting ? tCommon("buttons.sending") : tCommon("buttons.send")}
       </motion.button>
       {error && (
-        <p className="text-red-400 text-sm text-center mt-3" role="alert">
+        <p className="text-red-400 text-sm text-center mt-3" role="alert" aria-live="assertive">
           {error}
         </p>
       )}

@@ -6,11 +6,11 @@ import {
   Check,
   Send,
   X,
-  ChevronDown,
 } from "lucide-react";
 import { COUNTRY_CODES } from "@/lib/booking-constants";
 import { GHL_TAGS, GHL_CUSTOM_FIELDS, GHL_STAGES } from "@/lib/ghl-config";
 import { trackMarketingEvent, sendCAPIEvent } from "@/lib/marketing-tracking";
+import { NodDoDropdown } from "@/components/ui/NodDoDropdown";
 
 interface ContactFormProps {
   onClose?: () => void;
@@ -55,9 +55,9 @@ export function ContactForm({ onClose, defaultPlan, source }: ContactFormProps) 
 
     // Build tags based on plan interest
     const tags: string[] = [GHL_TAGS.contact_form];
-    if (plan === "proyecto") tags.push(GHL_TAGS.plan_proyecto);
-    else if (plan === "studio") tags.push(GHL_TAGS.plan_studio);
-    else if (plan === "enterprise") tags.push(GHL_TAGS.plan_enterprise);
+    if (plan === "proyecto") tags.push((GHL_TAGS as any).plan_proyecto);
+    else if (plan === "studio") tags.push((GHL_TAGS as any).plan_studio);
+    else if (plan === "enterprise") tags.push((GHL_TAGS as any).plan_enterprise);
 
     // Get UTM from URL
     const params = new URLSearchParams(window.location.search);
@@ -312,28 +312,23 @@ export function ContactForm({ onClose, defaultPlan, source }: ContactFormProps) 
               Teléfono
             </label>
             <div className="flex gap-1.5">
-              <div className="relative">
-                <select
+              <div style={{ width: 85 }}>
+                <NodDoDropdown
+                  variant="marketing"
+                  size="md"
                   value={countryCode}
-                  onChange={(e) => setCountryCode(e.target.value)}
-                  className="appearance-none pl-3 pr-7 py-2.5 rounded-[0.625rem] text-[13px] outline-none cursor-pointer"
-                  style={{
-                    background: "rgba(255,255,255,0.04)",
-                    border: "1px solid rgba(255,255,255,0.08)",
-                    color: "rgba(244,240,232,0.7)",
-                    width: 85,
-                  }}
-                >
-                  {COUNTRY_CODES.map((c) => (
-                    <option key={c.code} value={c.code}>
-                      {c.flag} {c.code}
-                    </option>
-                  ))}
-                </select>
-                <ChevronDown
-                  size={12}
-                  className="absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none"
-                  style={{ color: "rgba(244,240,232,0.3)" }}
+                  onChange={setCountryCode}
+                  options={COUNTRY_CODES.map((c) => ({
+                    value: c.code,
+                    label: c.code,
+                    metadata: { flag: c.flag },
+                  }))}
+                  renderOption={(opt) => (
+                    <span>{opt.metadata?.flag} {opt.label}</span>
+                  )}
+                  renderSelected={(opt) => (
+                    <span>{opt.metadata?.flag} {opt.label}</span>
+                  )}
                 />
               </div>
               <input
@@ -361,29 +356,14 @@ export function ContactForm({ onClose, defaultPlan, source }: ContactFormProps) 
             >
               Plan de interés
             </label>
-            <div className="relative">
-              <select
-                value={plan}
-                onChange={(e) => setPlan(e.target.value)}
-                className="appearance-none w-full px-3.5 py-2.5 pr-8 rounded-[0.625rem] text-[13px] outline-none cursor-pointer"
-                style={{
-                  background: "rgba(255,255,255,0.04)",
-                  border: "1px solid rgba(255,255,255,0.08)",
-                  color: plan ? "rgba(244,240,232,0.9)" : "rgba(244,240,232,0.4)",
-                }}
-              >
-                {PLAN_OPTIONS.map((opt) => (
-                  <option key={opt.value} value={opt.value}>
-                    {opt.label}
-                  </option>
-                ))}
-              </select>
-              <ChevronDown
-                size={12}
-                className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none"
-                style={{ color: "rgba(244,240,232,0.3)" }}
-              />
-            </div>
+            <NodDoDropdown
+              variant="marketing"
+              size="md"
+              value={plan}
+              onChange={setPlan}
+              options={PLAN_OPTIONS.map((opt) => ({ value: opt.value, label: opt.label }))}
+              placeholder="Selecciona un plan"
+            />
           </div>
         </div>
 

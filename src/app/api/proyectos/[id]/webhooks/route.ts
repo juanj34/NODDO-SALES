@@ -25,8 +25,8 @@ export async function GET(
       if (auth.user.email && planAccess.requiredPlan) {
         sendFeatureBlocked({
           email: auth.user.email,
-          name: auth.user.user_metadata?.full_name || auth.user.email.split("@")[0],
-          feature: FEATURE_LABELS.webhooks,
+          name: (auth.user as any).user_metadata?.full_name || auth.user.email.split("@")[0],
+          feature: FEATURE_LABELS.webhooks.es,
           currentPlan: planAccess.currentPlan,
           requiredPlan: planAccess.requiredPlan,
         }).catch((err) => {
@@ -84,8 +84,8 @@ export async function PUT(
       if (auth.user.email && planAccess.requiredPlan) {
         sendFeatureBlocked({
           email: auth.user.email,
-          name: auth.user.user_metadata?.full_name || auth.user.email.split("@")[0],
-          feature: FEATURE_LABELS.webhooks,
+          name: (auth.user as any).user_metadata?.full_name || auth.user.email.split("@")[0],
+          feature: FEATURE_LABELS.webhooks.es,
           currentPlan: planAccess.currentPlan,
           requiredPlan: planAccess.requiredPlan,
         }).catch((err) => {
