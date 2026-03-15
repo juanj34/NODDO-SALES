@@ -396,9 +396,7 @@ export function PlanoHotspotEditor({
                   const { naturalWidth, naturalHeight } = imgRef.current;
                   if (naturalWidth && naturalHeight) {
                     setImageAspectRatio(`${naturalWidth}/${naturalHeight}`);
-                    // Force re-render after browser paints the new aspect ratio
-                    // so toPx() calculates positions from the correct container size
-                    requestAnimationFrame(() => setTick((t) => t + 1));
+                    // useHotspotCanvas hook handles resize/load updates internally
                   }
                 }
               }}
