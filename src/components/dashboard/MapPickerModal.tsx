@@ -196,19 +196,27 @@ export function MapPickerModal({
 
         // ── Marker placement — uses mapboxgl directly from closure ──
         placeMarkerRef.current = (lng: number, lat: number) => {
-          if (!map) return;
+          if (!map) {
+            console.warn("placeMarker called but map is null");
+            return;
+          }
+
+          console.log("Placing marker at:", { lng, lat });
           setSelectedLat(Math.round(lat * 1_000_000) / 1_000_000);
           setSelectedLng(Math.round(lng * 1_000_000) / 1_000_000);
 
           if (markerRef.current) {
+            console.log("Updating existing marker position");
             markerRef.current.setLngLat([lng, lat]);
           } else {
+            console.log("Creating new marker");
             markerRef.current = new mapboxgl.Marker({
               element: createPickerMarkerElement(),
               anchor: "center",
             })
               .setLngLat([lng, lat])
               .addTo(map);
+            console.log("Marker created and added to map");
           }
 
           reverseGeocodeRef.current(lat, lng);
@@ -230,10 +238,15 @@ export function MapPickerModal({
           }
         });
 
+        // Click event to place/move marker
         map.on("click", (e) => {
           if (cancelled) return;
+          console.log("Map clicked at:", e.lngLat.lng, e.lngLat.lat);
           placeMarkerRef.current(e.lngLat.lng, e.lngLat.lat);
         });
+
+        // Change cursor to pointer when hovering over map
+        map.getCanvas().style.cursor = "crosshair";
 
         map.on("error", (e) => {
           console.warn("Mapbox error:", e.error?.message || e);
@@ -294,10 +307,25 @@ export function MapPickerModal({
   if (!isOpen) return null;
 
   return (
-    <div
-      className="fixed inset-0 z-50 flex items-center justify-center p-0 md:p-4"
-      style={{ backgroundColor: "rgba(0,0,0,0.8)" }}
-    >
+    <>
+      {/* Marker pulse animation */}
+      <style>{`
+        @keyframes picker-pulse {
+          0%, 100% {
+            opacity: 1;
+            transform: scale(1);
+          }
+          50% {
+            opacity: 0.7;
+            transform: scale(1.3);
+          }
+        }
+      `}</style>
+
+      <div
+        className="fixed inset-0 z-50 flex items-center justify-center p-0 md:p-4"
+        style={{ backgroundColor: "rgba(0,0,0,0.8)" }}
+      >
       <div
         className="w-full max-w-4xl h-[100dvh] md:h-[80vh] glass-modal !rounded-none md:!rounded-2xl overflow-hidden flex flex-col"
         onClick={(e) => e.stopPropagation()}
@@ -349,7 +377,14 @@ export function MapPickerModal({
         <div className="flex-1 min-h-0 relative overflow-hidden">
           <div
             ref={mapContainerRef}
-            style={{ position: "absolute", top: 0, left: 0, right: 0, bottom: 0 }}
+            style={{
+              position: "absolute",
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0,
+              pointerEvents: "auto",
+            }}
           />
           {/* Loading overlay */}
           {!mapReady && (
@@ -418,6 +453,7 @@ export function MapPickerModal({
           </div>
         </div>
       </div>
-    </div>
+      </div>
+    </>
   );
 }
