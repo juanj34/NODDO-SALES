@@ -72,6 +72,9 @@ export async function POST(request: NextRequest) {
     const cacheKey = generateCacheKey(trimmedText, style);
     const cached = await getCachedImprovement(cacheKey);
     if (cached) {
+      // Track cache hit for analytics
+      await trackAIUsage(auth.user.id, style, trimmedText.length, cached.length, true);
+
       return NextResponse.json(
         { improved: cached, cached: true },
         { headers: rateLimitResult.headers }
@@ -94,6 +97,9 @@ export async function POST(request: NextRequest) {
     // 9. Cache for 24h
     await cacheImprovement(cacheKey, improved);
 
+    // 10. Track usage for analytics
+    await trackAIUsage(auth.user.id, style, trimmedText.length, improved.length, false);
+
     return NextResponse.json(
       { improved, cached: false },
       { headers: rateLimitResult.headers }
@@ -107,6 +113,38 @@ export async function POST(request: NextRequest) {
       },
       { status: 500 }
     );
+  }
+}
+
+/**
+ * Track AI usage in Supabase for analytics
+ */
+async function trackAIUsage(
+  userId: string,
+  style: ImprovementStyle,
+  inputLength: number,
+  outputLength: number,
+  cached: boolean
+): Promise<void> {
+  try {
+    // Use server-side Supabase client (bypasses RLS)
+    const { createClient } = await import("@supabase/supabase-js");
+    const supabase = createClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+    );
+
+    await supabase.from("ai_usage_logs").insert({
+      user_id: userId,
+      feature: "improve-text",
+      style,
+      input_length: inputLength,
+      output_length: outputLength,
+      cached,
+    });
+  } catch (err) {
+    console.error("Failed to track AI usage:", err);
+    // Don't throw - analytics failure shouldn't break the feature
   }
 }
 
