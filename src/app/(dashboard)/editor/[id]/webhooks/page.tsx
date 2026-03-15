@@ -17,6 +17,8 @@ import {
   btnSecondary,
 } from "@/components/dashboard/editor-styles";
 import { cn } from "@/lib/utils";
+import { InfoTooltip } from "@/components/ui/InfoTooltip";
+import { useLanguage } from "@/i18n/LanguageProvider";
 import {
   Webhook,
   Check,
@@ -38,6 +40,7 @@ import type { WebhookConfig, WebhookLog } from "@/types";
 export default function WebhooksPage() {
   const { project } = useEditorProject();
   const toast = useToast();
+  const { t } = useLanguage();
 
   const [enabled, setEnabled] = useState(false);
   const [url, setUrl] = useState("");
@@ -254,7 +257,14 @@ export default function WebhooksPage() {
               Recibirás un POST con JSON firmado (HMAC-SHA256) en cada evento
             </p>
             <div>
-              <label className={labelClass}>URL del Webhook</label>
+              <label className={`${labelClass} flex items-center gap-2`}>
+                URL del Webhook
+                <InfoTooltip
+                  content={t.tooltips.webhooks.urlWebhook.long}
+                  variant="dashboard"
+                  placement="auto"
+                />
+              </label>
               <input
                 type="url"
                 value={url}
@@ -304,6 +314,11 @@ export default function WebhooksPage() {
               <div className={sectionTitle}>
                 <KeyRound size={15} className="text-[var(--site-primary)]" />
                 Secret de Firma
+                <InfoTooltip
+                  content={t.tooltips.webhooks.secretFirma.long}
+                  variant="dashboard"
+                  placement="auto"
+                />
               </div>
               <p className={sectionDescription}>
                 Usa este secret para verificar la autenticidad de los webhooks (header <code className="text-[var(--text-secondary)]">X-Webhook-Signature</code>)

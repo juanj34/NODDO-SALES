@@ -56,7 +56,7 @@ export function BottomSheet({
   }, [isOpen]);
 
   // Handle drag to close
-  const handleDragEnd = (_: any, info: PanInfo) => {
+  const handleDragEnd = (_event: MouseEvent | TouchEvent | PointerEvent, info: PanInfo) => {
     // If dragged down more than 100px or velocity is high, close
     if (info.offset.y > 100 || info.velocity.y > 500) {
       onClose();

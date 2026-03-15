@@ -97,9 +97,8 @@ export function LeadForm({
       }
     } catch (err) {
       if (err instanceof ZodError) {
-        const zodError = err as ZodError<any>;
-        if (zodError.issues?.length > 0) {
-          setError(zodError.issues[0].message);
+        if (err.issues?.length > 0) {
+          setError(err.issues[0].message);
         }
       } else {
         setError(tCommon("errors.connectionError"));

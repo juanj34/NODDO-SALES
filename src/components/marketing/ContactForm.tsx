@@ -164,29 +164,55 @@ export function ContactForm({ onClose, defaultPlan, source }: ContactFormProps) 
         </div>
 
         <h3
-          className="font-heading text-2xl font-light mb-3"
+          className="font-heading text-2xl font-light mb-4"
           style={{ color: "rgba(244,240,232,0.92)" }}
         >
-          Mensaje enviado
+          ✓ Mensaje enviado
         </h3>
 
-        <p
-          className="text-[13px] leading-relaxed max-w-sm mb-6"
-          style={{ color: "rgba(244,240,232,0.5)" }}
-        >
-          Recibimos tu mensaje. Nuestro equipo te contactará en menos de 24 horas para conversar sobre
-          cómo NODDO puede potenciar tus proyectos.
-        </p>
+        <div className="max-w-md mb-6 space-y-4">
+          <div className="text-left">
+            <div className="flex items-start gap-3 mb-3">
+              <div className="text-xl">📧</div>
+              <div>
+                <p className="text-[12px] font-ui font-bold tracking-[0.1em] uppercase mb-1" style={{ color: "#b8973a" }}>
+                  Revisa tu correo en los próximos 5 minutos
+                </p>
+                <p className="text-[13px]" style={{ color: "rgba(244,240,232,0.5)" }}>
+                  Te enviamos confirmación + link a demo grabada (2 min)
+                </p>
+              </div>
+            </div>
 
-        <div
-          className="text-[10px] font-ui font-bold tracking-[0.15em] uppercase px-4 py-2 rounded-lg"
-          style={{
-            background: "rgba(184,151,58,0.1)",
-            border: "1px solid rgba(184,151,58,0.2)",
-            color: "#b8973a",
-          }}
-        >
-          Respuesta en &lt; 24h
+            <div className="flex items-start gap-3 mb-3">
+              <div className="text-xl">📞</div>
+              <div>
+                <p className="text-[12px] font-ui font-bold tracking-[0.1em] uppercase mb-1" style={{ color: "#b8973a" }}>
+                  Te llamamos en &lt; 24 horas
+                </p>
+                <p className="text-[13px]" style={{ color: "rgba(244,240,232,0.5)" }}>
+                  Un especialista te contactará para agendar tu demo personalizada
+                </p>
+              </div>
+            </div>
+
+            <div className="flex items-start gap-3">
+              <div className="text-xl">👀</div>
+              <div>
+                <p className="text-[12px] font-ui font-bold tracking-[0.1em] uppercase mb-1" style={{ color: "#b8973a" }}>
+                  Mientras tanto
+                </p>
+                <a
+                  href="/sites/alto-de-yeguas"
+                  target="_blank"
+                  className="text-[13px] underline hover:text-[#d4b05a] transition-colors"
+                  style={{ color: "rgba(244,240,232,0.7)" }}
+                >
+                  Ver NODDO en acción con un proyecto real →
+                </a>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     );

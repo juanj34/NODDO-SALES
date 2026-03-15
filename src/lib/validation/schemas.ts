@@ -206,7 +206,8 @@ export function useFormValidation<T>(schema: z.ZodSchema<T>) {
     validateField: (fieldName: string, value: unknown) => {
       try {
         // Valida solo un campo
-        const fieldSchema = (schema as any).shape[fieldName];
+        const shapeSchema = schema as unknown as { shape?: Record<string, { parse: (value: unknown) => unknown }> };
+        const fieldSchema = shapeSchema.shape?.[fieldName];
         if (!fieldSchema) return { valid: true };
 
         fieldSchema.parse(value);

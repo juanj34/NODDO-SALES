@@ -12,7 +12,7 @@ export interface Option {
   value: string;
   label: string;
   icon?: React.ReactNode;
-  metadata?: Record<string, any>;
+  metadata?: Record<string, unknown>;
 }
 
 interface Props {

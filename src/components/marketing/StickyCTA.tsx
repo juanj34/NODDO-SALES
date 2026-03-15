@@ -34,8 +34,11 @@ export function StickyCTA() {
       }}
     >
       <span className="hidden sm:inline" style={{ fontSize: 11, color: "rgba(244,240,232,0.5)", letterSpacing: "0.06em", whiteSpace: "nowrap" }}>
-        <strong style={{ color: "var(--mk-text-primary)", fontWeight: 400 }}>Implementación asistida</strong>
-        {" "}· Te acompañamos
+        <strong style={{ color: "var(--mk-text-primary)", fontWeight: 400 }}>Publicado mañana</strong>
+        {" "}· Leads 24/7 · $149/mes
+      </span>
+      <span className="inline sm:hidden" style={{ fontSize: 11, color: "rgba(244,240,232,0.5)", letterSpacing: "0.06em", whiteSpace: "nowrap" }}>
+        <strong style={{ color: "var(--mk-text-primary)", fontWeight: 400 }}>Listo en 1 día</strong>
       </span>
       <button
         onClick={openBooking}

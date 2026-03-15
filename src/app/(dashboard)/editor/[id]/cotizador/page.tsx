@@ -23,7 +23,9 @@ import { useToast } from "@/components/dashboard/Toast";
 import { calcularCotizacion } from "@/lib/cotizador/calcular";
 import type { CotizadorConfig, FaseConfig, DescuentoConfig, ResultadoCotizacion, Currency } from "@/types";
 import { NodDoDropdown } from "@/components/ui/NodDoDropdown";
+import { InfoTooltip } from "@/components/ui/InfoTooltip";
 import { formatCurrency } from "@/lib/currency";
+import { useLanguage } from "@/i18n/LanguageProvider";
 
 /* ─── Helpers ─── */
 
@@ -70,6 +72,7 @@ function FaseCard({
   moneda: string;
 }) {
   const controls = useDragControls();
+  const { t } = useLanguage();
 
   return (
     <Reorder.Item
@@ -103,7 +106,14 @@ function FaseCard({
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
         {/* Type */}
         <div>
-          <label className="block text-[10px] text-[var(--text-muted)] mb-1 uppercase tracking-wider">Tipo</label>
+          <label className="flex items-center gap-2 text-[10px] text-[var(--text-muted)] mb-1 uppercase tracking-wider">
+            Tipo
+            <InfoTooltip
+              content={t.tooltips.cotizador.tipoFase.long}
+              variant="dashboard"
+              placement="auto"
+            />
+          </label>
           <NodDoDropdown
             variant="dashboard"
             size="sm"
@@ -170,6 +180,7 @@ function FaseCard({
 export default function CotizadorConfigPage() {
   const { project, save } = useEditorProject();
   const toast = useToast();
+  const { t } = useLanguage();
 
   const cotizadorEnabled = project.cotizador_enabled;
 
@@ -307,7 +318,14 @@ export default function CotizadorConfigPage() {
         <div className="space-y-6">
           {/* Currency */}
           <div>
-            <label className={labelClass}>Moneda</label>
+            <label className={`${labelClass} flex items-center gap-2`}>
+              Moneda
+              <InfoTooltip
+                content={t.tooltips.cotizador.moneda.long}
+                variant="dashboard"
+                placement="auto"
+              />
+            </label>
             <div className="w-32">
               <NodDoDropdown
                 variant="dashboard"
@@ -421,14 +439,24 @@ export default function CotizadorConfigPage() {
                 onChange={(e) => saveConfig({ ...config, separacion_incluida_en_inicial: e.target.checked })}
                 className="w-4 h-4 rounded bg-[var(--surface-3)] border border-[var(--border-default)] accent-[var(--site-primary)]"
               />
-              <span className="text-xs text-[var(--text-secondary)]">
+              <span className="text-xs text-[var(--text-secondary)] flex items-center gap-2">
                 La separación se descuenta de la cuota inicial
+                <InfoTooltip
+                  content={t.tooltips.cotizador.separacionIncluida.long}
+                  variant="dashboard"
+                  placement="auto"
+                />
               </span>
             </label>
 
             <div>
-              <label className="block text-[10px] text-[var(--text-muted)] mb-1 uppercase tracking-wider">
+              <label className="flex items-center gap-2 text-[10px] text-[var(--text-muted)] mb-1 uppercase tracking-wider">
                 Notas legales (aparecen en el PDF)
+                <InfoTooltip
+                  content={t.tooltips.cotizador.notasLegales.long}
+                  variant="dashboard"
+                  placement="auto"
+                />
               </label>
               <textarea
                 value={config.notas_legales ?? ""}

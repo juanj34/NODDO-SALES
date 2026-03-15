@@ -8,7 +8,8 @@
     "build:turbo": "next build",
     "start": "next start",
     "lint": "eslint",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "verify:vercel": "tsx scripts/verify-vercel-token.ts"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.1008.0",
@@ -29,6 +30,8 @@
     "@tiptap/react": "^3.20.1",
     "@tiptap/starter-kit": "^3.20.1",
     "@types/jszip": "^3.4.0",
+    "@upstash/ratelimit": "^2.0.8",
+    "@upstash/redis": "^1.37.0",
     "browser-image-compression": "^2.0.2",
     "class-variance-authority": "^0.7",
     "clsx": "^2",

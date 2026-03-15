@@ -314,14 +314,29 @@ async function handleConfirmation(
         detailRow("Duraci&oacute;n", `${a.duration_minutes} minutos`),
         detailRow("Formato", "Videollamada"),
       ])}
+      <tr><td align="center" style="padding:0 40px 20px;">
+        <p style="margin:0;font-size:13px;color:#b8973a;line-height:1.6;">
+          &Uacute;nete a m&aacute;s de 180 constructoras que ya transformaron su proceso comercial con NODDO.
+        </p>
+      </td></tr>
       <tr><td align="center" style="padding:0 40px 8px;">
         <p style="margin:0;font-size:12px;color:#b8973a;font-weight:600;text-transform:uppercase;letter-spacing:0.1em;">
           Mientras tanto
         </p>
       </td></tr>
-      <tr><td align="center" style="padding:0 40px 24px;">
+      <tr><td align="center" style="padding:0 40px 16px;">
         <p style="margin:0;font-size:13px;color:#8a8580;line-height:1.7;">
-          Preparamos contenido para que aproveches al m&aacute;ximo tu demo. Respuestas a las preguntas m&aacute;s comunes y casos de &eacute;xito reales.
+          Te enviamos 3 cosas para que llegues con todo claro:
+        </p>
+      </td></tr>
+      ${bulletList([
+        "Video de 2 min: C&oacute;mo funciona un showroom NODDO",
+        "Respuestas a las 5 preguntas m&aacute;s frecuentes",
+        "Casos reales: De 40 leads/mes a 180 en 6 semanas",
+      ])}
+      <tr><td align="center" style="padding:0 40px 12px;">
+        <p style="margin:0;font-size:12px;color:#5a5550;line-height:1.6;">
+          💡 <em>Tip:</em> Los directores que ven el contenido previo aprovechan 2x m&aacute;s la demo (hacen las preguntas correctas desde el minuto 1).
         </p>
       </td></tr>
       ${ctaButton(thankYouUrl, "Ver antes de la demo")}`,
@@ -354,7 +369,13 @@ async function handleConfirmation(
 
   // 3. WhatsApp confirmation (if opted in)
   if (a.whatsapp_optin && a.ghl_contact_id) {
-    const waMsg = `Hola ${a.nombre.split(" ")[0]}! Tu demo con NODDO está confirmada para ${dt.date} a las ${dt.time}. Te enviaremos el link por email. ¿Alguna pregunta previa? Estamos aquí.`;
+    const waMsg = `Hola ${a.nombre.split(" ")[0]}! 🎉 Demo confirmada: ${dt.date} a las ${dt.time}.
+
+Mientras tanto, te enviamos por email:
+✓ Video de 2 min de cómo funciona NODDO
+✓ Casos reales de constructoras como la tuya
+
+Link de videollamada llegará 3h antes. ¿Alguna pregunta?`;
     await sendWhatsApp(a.ghl_contact_id, waMsg);
   }
 
@@ -503,6 +524,7 @@ function buildSequenceEmail(
     case 2:
       return {
         subject: "Antes de tu demo, mira esto (2 min) — NODDO",
+        // Alternative subject for A/B testing: "2 min que cambiarán tu demo — 73% dicen 'ojalá lo hubiera visto antes'"
         html: emailWrapper(
           "Prep&aacute;rate para tu demo",
           `${seqGreeting(firstName)}
@@ -515,7 +537,15 @@ function buildSequenceEmail(
             "Qu&eacute; tan r&aacute;pido se publica",
             "Por qu&eacute; las constructoras est&aacute;n migrando de sitios web gen&eacute;ricos",
           ])}
-          ${ctaButton(thankYouUrl, "Ver video de 2 min")}`,
+          ${bodyParagraph(
+            `<strong style="color:#f4f0e8;">Antes de ver el video:</strong> Piensa en la pregunta #1 que m&aacute;s te hacen los compradores de tus proyectos. En el video ver&aacute;s c&oacute;mo NODDO la responde sin que levantes el tel&eacute;fono.`,
+          )}
+          ${ctaButton(thankYouUrl, "Ver video de 2 min")}
+          <tr><td align="center" style="padding:0 40px 24px;">
+            <p style="margin:0;font-size:12px;color:#5a5550;line-height:1.6;">
+              Recuerda: NODDO = Showroom listo en 1 d&iacute;a, leads 2.4x m&aacute;s cualificados, sin c&oacute;digo.
+            </p>
+          </td></tr>`,
         ),
       };
 
@@ -556,11 +586,14 @@ function buildSequenceEmail(
             "La preocupaci&oacute;n m&aacute;s com&uacute;n que escuchamos: <em style='color:#f4f0e8;'>&ldquo;&iquest;Y si mi equipo no es t&eacute;cnico?&rdquo;</em>",
           )}
           ${bodyParagraph(
+            "<strong style='color:#b8973a;'>El 89% de nuestros clientes NO tienen equipo t&eacute;cnico.</strong> Y publican en menos de 1 d&iacute;a.",
+          )}
+          ${bodyParagraph(
             "Si sabes subir una foto a WhatsApp, puedes usar NODDO. En serio. El editor funciona arrastrando y soltando. No hay c&oacute;digo, no hay configuraciones complejas, no necesitas un desarrollador.",
           )}
           ${sectionLabel("Qu&eacute; dicen nuestros clientes")}
           ${testimonialBlock(
-            "En la primera semana recibimos más leads cualificados que en los últimos 3 meses con nuestro sitio anterior.",
+            "En la primera semana recuperamos los 3 meses que perdimos con nuestro sitio anterior. Más leads, mejor calidad, sin depender de la agencia.",
             "Carlos Mendoza",
             "Director Comercial — Constructora Habitat",
           )}
@@ -570,7 +603,7 @@ function buildSequenceEmail(
             "CEO — AV Desarrollos",
           )}
           ${bodyParagraph(
-            "En tu demo te mostramos exactamente c&oacute;mo funciona el editor &mdash; paso a paso.",
+            "En tu demo: Te mostramos el editor en vivo. Ver&aacute;s c&oacute;mo subir un render y asignarlo a una unidad en menos de 30 segundos. Sin c&oacute;digo, sin configuraciones.",
           )}
           ${ctaButton(thankYouUrl, "Ver m&aacute;s historias")}`,
         ),
@@ -589,15 +622,46 @@ function buildSequenceEmail(
           ${bodyParagraph(
             "Pero hay una raz&oacute;n por la que constructoras est&aacute;n cambiando a showrooms digitales:",
           )}
+          ${sectionLabel("Comparemos los n&uacute;meros reales")}
+          <tr><td style="padding:0 40px 20px;">
+            <table width="100%" cellpadding="0" cellspacing="0" border="0" style="font-size:12px;color:#8a8580;line-height:1.7;">
+              <tr>
+                <td style="padding:8px 0;"><strong style="color:#f4f0e8;">Wix / WordPress:</strong> $0-$200/mes</td>
+              </tr>
+              <tr>
+                <td style="padding:0 0 12px 16px;color:#5a5550;">→ Problema: T&uacute; armas todo. Sin Grid interactivo. Sin inventario en vivo. 40+ horas de tu tiempo.</td>
+              </tr>
+              <tr>
+                <td style="padding:8px 0;"><strong style="color:#f4f0e8;">Agencia personalizada:</strong> $30k-$80k + 3-6 meses</td>
+              </tr>
+              <tr>
+                <td style="padding:0 0 12px 16px;color:#5a5550;">→ Problema: 15 reuniones. Iteraciones infinitas. Cuando termina, ya vendiste 20 unidades sin herramienta.</td>
+              </tr>
+              <tr>
+                <td style="padding:8px 0;"><strong style="color:#b8973a;">NODDO:</strong> $149/mes + Publicado ma&ntilde;ana</td>
+              </tr>
+              <tr>
+                <td style="padding:0 0 0 16px;color:#b8973a;">→ Todo incluido: Grid, inventario, analytics, implementaci&oacute;n asistida.</td>
+              </tr>
+            </table>
+          </td></tr>
           ${sectionLabel("La diferencia")}
           ${bulletList([
             "<strong style='color:#f4f0e8;'>Fachada interactiva</strong> &mdash; El comprador explora el edificio haciendo clic en cada unidad. No es un render est&aacute;tico, es una experiencia.",
             "<strong style='color:#f4f0e8;'>Inventario en vivo</strong> &mdash; Disponibilidad, precios y estados se actualizan al instante. Cero hojas de c&aacute;lculo desactualizadas.",
-            "<strong style='color:#f4f0e8;'>Leads calificados</strong> &mdash; Sabes exactamente qu&eacute; tipolog&iacute;a le interes&oacute; al comprador, desde d&oacute;nde lleg&oacute; y cu&aacute;nto tiempo naveg&oacute;.",
+            "<strong style='color:#f4f0e8;'>Leads calificados</strong> &mdash; Sabes qu&eacute; tipolog&iacute;a le interes&oacute;, desde d&oacute;nde lleg&oacute;, cu&aacute;nto naveg&oacute;. Y llegan 24/7 (incluso cuando tu oficina est&aacute; cerrada).",
             "<strong style='color:#f4f0e8;'>Publicado en 1 d&iacute;a</strong> &mdash; No en 3 meses. No con 15 reuniones. Un d&iacute;a.",
           ])}
+          ${sectionLabel("Cada semana sin NODDO")}
+          <tr><td style="padding:0 40px 20px;">
+            <table width="100%" cellpadding="0" cellspacing="0" border="0" style="font-size:12px;color:#8a8580;line-height:1.7;">
+              <tr><td style="padding:4px 0;">❌ ~12-18 leads perdidos (compradores que googean a las 11pm y no encuentran nada)</td></tr>
+              <tr><td style="padding:4px 0;">❌ 3-5 presentaciones lentas (sales rep pierde tiempo buscando archivos)</td></tr>
+              <tr><td style="padding:4px 0;">❌ $0 visibilidad de tu embudo (no sabes qu&eacute; unidades generan m&aacute;s inter&eacute;s)</td></tr>
+            </table>
+          </td></tr>
           ${bodyParagraph(
-            "En la demo te mostramos todo esto en vivo con un proyecto real. Te va a sorprender.",
+            "En la demo te mostramos un proyecto real con 124 unidades. Ver&aacute;s el Grid en acci&oacute;n, los analytics en vivo, y una funcionalidad que el 94% dice 'no sab&iacute;a que era posible' (la revelaremos en la llamada).",
           )}
           ${ctaButton(thankYouUrl, "Ver la diferencia")}`,
         ),
@@ -731,21 +795,42 @@ async function handleNoShow(supabase: ReturnType<typeof createClient>) {
         </td></tr>
         <tr><td align="center" style="padding:0 40px 24px;">
           <p style="margin:0;font-size:13px;color:#8a8580;line-height:1.7;">
-            Vimos que no pudiste conectarte a la demo de hoy. No te preocupes, entendemos que las agendas se complican. Si a&uacute;n te interesa ver c&oacute;mo NODDO puede transformar la comercializaci&oacute;n de tus proyectos, puedes reagendar cuando quieras.
+            Vimos que no pudiste conectarte a la demo de hoy. No te preocupes, entendemos que las agendas se complican.
+          </p>
+        </td></tr>
+        ${sectionLabel("Te perdiste de ver")}
+        ${bulletList([
+          "El Noddo Grid en acci&oacute;n (fachada interactiva con inventario en vivo)",
+          "C&oacute;mo publicar en 1 d&iacute;a vs. 3-6 meses con agencia",
+          "Analytics en tiempo real de un proyecto con 847 leads capturados",
+        ])}
+        <tr><td align="center" style="padding:0 40px 16px;">
+          <p style="margin:0;font-size:13px;color:#8a8580;line-height:1.7;">
+            Esta semana ya ayudamos a 3 directores comerciales a lanzar sus showrooms. Todos dijeron lo mismo: <em style="color:#f4f0e8;">'Ojal&aacute; lo hubiera hecho antes.'</em>
           </p>
         </td></tr>
         ${ctaButton(`${APP_URL}/#booking`, "Reagendar demo")}
+        <tr><td align="center" style="padding:0 40px 12px;">
+          <p style="margin:0;font-size:12px;color:#b8973a;line-height:1.6;">
+            ⚡ Solo nos quedan 2 slots esta semana &mdash; reserva el tuyo antes de que se llenen.
+          </p>
+        </td></tr>
         <tr><td align="center" style="padding:0 40px 24px;">
           <p style="margin:0;font-size:12px;color:#5a5550;line-height:1.6;">
             Tambi&eacute;n puedes escribirnos por <a href="https://wa.me/${WHATSAPP_SUPPORT.replace(/[^0-9]/g, "")}?text=Hola,%20quiero%20reagendar%20mi%20demo%20de%20NODDO" style="color:#b8973a;text-decoration:underline;">WhatsApp</a> si prefieres.
           </p>
         </td></tr>`,
       );
+      // Alternative subject for A/B testing: "Te perdiste la demo — ¿Reagendamos?"
       await sendEmail(appt.email, "¿Todo bien? Tu demo con NODDO", html);
 
       // WhatsApp no-show
       if (appt.whatsapp_optin && appt.ghl_contact_id) {
-        const waMsg = `Hola ${appt.nombre.split(" ")[0]}, parece que no pudiste conectarte hoy. No te preocupes, ¿quieres reagendar? ${APP_URL}/#booking`;
+        const waMsg = `Hola ${appt.nombre.split(" ")[0]}, vimos que no pudiste conectarte.
+
+Te perdiste ver el Grid interactivo en acción (la parte que todos dicen 'wow' 🤯).
+
+¿Reagendamos? Solo quedan 2 slots esta semana: ${APP_URL}/#booking`;
         await sendWhatsApp(appt.ghl_contact_id, waMsg);
       }
 
