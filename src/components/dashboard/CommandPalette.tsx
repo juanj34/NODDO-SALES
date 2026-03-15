@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Command } from "cmdk";
-import { Search, FolderOpen, LogOut, Settings } from "lucide-react";
+import { Search, FolderOpen, LogOut, Settings, Users, BarChart3, ToggleLeft, Calculator, FileText, ContactRound } from "lucide-react";
 import { useTranslation } from "@/i18n";
 
 export function CommandPalette() {
@@ -66,7 +66,49 @@ export function CommandPalette() {
                                 {t("commandPalette.viewAllProjects")}
                             </Command.Item>
                             <Command.Item
-                                onSelect={() => runCommand(() => router.push("/proyectos/nuevo"))}
+                                onSelect={() => runCommand(() => router.push("/leads"))}
+                                className="flex items-center px-4 py-3 rounded-lg text-sm text-[var(--text-secondary)] hover:bg-[var(--surface-3)] hover:text-white cursor-pointer transition-colors aria-selected:bg-[var(--surface-3)] aria-selected:text-white"
+                            >
+                                <ContactRound className="mr-3 shrink-0" size={16} />
+                                Leads
+                            </Command.Item>
+                            <Command.Item
+                                onSelect={() => runCommand(() => router.push("/analytics"))}
+                                className="flex items-center px-4 py-3 rounded-lg text-sm text-[var(--text-secondary)] hover:bg-[var(--surface-3)] hover:text-white cursor-pointer transition-colors aria-selected:bg-[var(--surface-3)] aria-selected:text-white"
+                            >
+                                <BarChart3 className="mr-3 shrink-0" size={16} />
+                                Analytics
+                            </Command.Item>
+                            <Command.Item
+                                onSelect={() => runCommand(() => router.push("/disponibilidad"))}
+                                className="flex items-center px-4 py-3 rounded-lg text-sm text-[var(--text-secondary)] hover:bg-[var(--surface-3)] hover:text-white cursor-pointer transition-colors aria-selected:bg-[var(--surface-3)] aria-selected:text-white"
+                            >
+                                <ToggleLeft className="mr-3 shrink-0" size={16} />
+                                Disponibilidad
+                            </Command.Item>
+                            <Command.Item
+                                onSelect={() => runCommand(() => router.push("/cotizador"))}
+                                className="flex items-center px-4 py-3 rounded-lg text-sm text-[var(--text-secondary)] hover:bg-[var(--surface-3)] hover:text-white cursor-pointer transition-colors aria-selected:bg-[var(--surface-3)] aria-selected:text-white"
+                            >
+                                <Calculator className="mr-3 shrink-0" size={16} />
+                                Cotizador
+                            </Command.Item>
+                            <Command.Item
+                                onSelect={() => runCommand(() => router.push("/cotizaciones"))}
+                                className="flex items-center px-4 py-3 rounded-lg text-sm text-[var(--text-secondary)] hover:bg-[var(--surface-3)] hover:text-white cursor-pointer transition-colors aria-selected:bg-[var(--surface-3)] aria-selected:text-white"
+                            >
+                                <FileText className="mr-3 shrink-0" size={16} />
+                                Cotizaciones
+                            </Command.Item>
+                            <Command.Item
+                                onSelect={() => runCommand(() => router.push("/equipo"))}
+                                className="flex items-center px-4 py-3 rounded-lg text-sm text-[var(--text-secondary)] hover:bg-[var(--surface-3)] hover:text-white cursor-pointer transition-colors aria-selected:bg-[var(--surface-3)] aria-selected:text-white"
+                            >
+                                <Users className="mr-3 shrink-0" size={16} />
+                                Equipo
+                            </Command.Item>
+                            <Command.Item
+                                onSelect={() => runCommand(() => router.push("/cuenta"))}
                                 className="flex items-center px-4 py-3 rounded-lg text-sm text-[var(--text-secondary)] hover:bg-[var(--surface-3)] hover:text-white cursor-pointer transition-colors aria-selected:bg-[var(--surface-3)] aria-selected:text-white"
                             >
                                 <Settings className="mr-3 shrink-0" size={16} />

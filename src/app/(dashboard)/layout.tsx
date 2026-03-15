@@ -9,7 +9,7 @@ import { cn } from "@/lib/utils";
 import {
   FolderOpen, Users, Settings, LogOut, Loader2, HelpCircle,
   Menu, X, Shield, ToggleLeft, Calculator, ContactRound,
-  BarChart3,
+  BarChart3, FileText,
 } from "lucide-react";
 import { ToastProvider } from "@/components/dashboard/Toast";
 import { ConfirmProvider } from "@/components/dashboard/ConfirmModal";
@@ -181,6 +181,14 @@ function DashboardShell({ children }: { children: React.ReactNode }) {
             href="/cotizador"
             icon={Calculator}
             label={t("sidebar.cotizador")}
+            pathname={pathname}
+            onClick={closeDrawer}
+            iconSize={15}
+          />
+          <SidebarLink
+            href="/cotizaciones"
+            icon={FileText}
+            label="Cotizaciones"
             pathname={pathname}
             onClick={closeDrawer}
             iconSize={15}

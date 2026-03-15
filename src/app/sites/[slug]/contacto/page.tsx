@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
 import { SectionTransition } from "@/components/site/SectionTransition";
-import { LeadForm } from "@/components/site/LeadForm";
+import { LeadFormMultiStep as LeadForm } from "@/components/site/LeadFormMultiStep";
 import { Clock, ShieldCheck, UserCheck } from "lucide-react";
 import { useSiteProject } from "@/hooks/useSiteProject";
 import { useTranslation } from "@/i18n";

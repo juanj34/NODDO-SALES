@@ -242,6 +242,41 @@ const site = {
     step3: "Visita agendada",
     step4: "Recibes cotización",
   },
+  leadForm: {
+    step1: {
+      label: "Interés",
+      title: "¿Qué te interesa?",
+      subtitle: "Selecciona el tipo de propiedad que buscas",
+    },
+    step2: {
+      label: "Contacto",
+      title: "Tu información",
+      subtitle: "Para que un asesor te contacte",
+    },
+    step3: {
+      label: "Detalles",
+      title: "Detalles adicionales",
+      subtitle: "Cuéntanos más sobre tu búsqueda",
+    },
+    continue: "Continuar",
+    back: "Atrás",
+    submit: "Enviar consulta",
+  },
+  cotizadorForm: {
+    step1: {
+      label: "Datos",
+      title: "Tu información",
+      subtitle: "Para enviarte la cotización personalizada",
+    },
+    step2: {
+      label: "Resumen",
+      title: "Plan de pagos",
+      subtitle: "Revisa el detalle antes de enviar",
+    },
+    continue: "Ver cotización",
+    back: "Atrás",
+    submit: "Enviar cotización",
+  },
 } as const;
 
 export default site;

@@ -69,6 +69,7 @@ export async function middleware(request: NextRequest) {
     pathname === "/cuenta" ||
     pathname === "/disponibilidad" ||
     pathname === "/cotizador" ||
+    pathname === "/cotizaciones" ||
     pathname === "/analytics" ||
     pathname.startsWith("/admin");
   const isLoginRoute = pathname === "/login";

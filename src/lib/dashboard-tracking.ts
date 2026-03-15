@@ -26,6 +26,7 @@ export type DashboardEventType =
   | "shortcut_analytics_click"
   | "shortcut_disponibilidad_click"
   | "shortcut_cotizador_click"
+  | "shortcut_cotizaciones_click"
   // Table interactions
   | "project_table_row_select"
   | "project_table_edit_click"

@@ -9,6 +9,7 @@ import { getWebhookConfig, dispatchWebhook } from "@/lib/webhooks";
 import type { WebhookPayload } from "@/lib/webhooks";
 import type { CotizadorConfig, Unidad, Currency } from "@/types";
 import { formatCurrency } from "@/lib/currency";
+import { getAuthContext } from "@/lib/auth-context";
 
 // Use service-role client for public endpoint (no user auth required)
 function getServiceClient() {
@@ -23,6 +24,92 @@ function sanitize(str: string, maxLen: number): string {
 }
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+/* ── GET /api/cotizaciones - List cotizaciones with filters ── */
+export async function GET(request: NextRequest) {
+  try {
+    const { user, role, adminUserId, supabase } = await getAuthContext(request);
+    if (!user) {
+      return NextResponse.json({ error: "No autorizado" }, { status: 401 });
+    }
+
+    const url = new URL(request.url);
+    const proyectoId = url.searchParams.get("proyecto_id");
+    const search = url.searchParams.get("search");
+    const dateFrom = url.searchParams.get("date_from");
+    const dateTo = url.searchParams.get("date_to");
+    const limit = parseInt(url.searchParams.get("limit") || "50", 10);
+    const offset = parseInt(url.searchParams.get("offset") || "0", 10);
+
+    // Build query
+    let query = supabase
+      .from("cotizaciones")
+      .select("*", { count: "exact" })
+      .order("created_at", { ascending: false });
+
+    // Filter by admin's projects (or all if no filter)
+    if (proyectoId) {
+      query = query.eq("proyecto_id", proyectoId);
+    } else {
+      // Only show cotizaciones from user's projects
+      const { data: userProjects } = await supabase
+        .from("proyectos")
+        .select("id")
+        .eq(role === "admin" ? "user_id" : "id", role === "admin" ? adminUserId : "");
+
+      if (userProjects && userProjects.length > 0) {
+        const projectIds = userProjects.map((p) => p.id);
+        query = query.in("proyecto_id", projectIds);
+      } else {
+        // No projects, return empty
+        return NextResponse.json({ cotizaciones: [], total: 0, stats: {} });
+      }
+    }
+
+    // Search filter
+    if (search) {
+      const s = search.toLowerCase();
+      query = query.or(`nombre.ilike.%${s}%,email.ilike.%${s}%,unidad_snapshot->>identificador.ilike.%${s}%`);
+    }
+
+    // Date filters
+    if (dateFrom) {
+      query = query.gte("created_at", dateFrom);
+    }
+    if (dateTo) {
+      query = query.lte("created_at", dateTo);
+    }
+
+    // Pagination
+    query = query.range(offset, offset + limit - 1);
+
+    const { data: cotizaciones, error, count } = await query;
+
+    if (error) {
+      console.error("[GET cotizaciones] Error:", error);
+      return NextResponse.json({ error: "Error al obtener cotizaciones" }, { status: 500 });
+    }
+
+    // Calculate stats (last 30 days + total value)
+    const thirtyDaysAgo = new Date();
+    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+
+    const stats = {
+      total: count || 0,
+      thisMonth: cotizaciones?.filter((c) => new Date(c.created_at) >= thirtyDaysAgo).length || 0,
+      totalValue: cotizaciones?.reduce((sum, c) => sum + (c.resultado?.precio_neto || 0), 0) || 0,
+    };
+
+    return NextResponse.json({
+      cotizaciones: cotizaciones || [],
+      total: count || 0,
+      stats,
+    });
+  } catch (err) {
+    console.error("[GET cotizaciones] Error:", err);
+    return NextResponse.json({ error: "Error interno" }, { status: 500 });
+  }
+}
 
 async function fetchImageAsBase64(
   url: string | null,

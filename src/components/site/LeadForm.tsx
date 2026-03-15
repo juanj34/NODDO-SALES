@@ -11,6 +11,7 @@ import { leadFormSchema } from "@/lib/validation/schemas";
 import { ZodError } from "zod";
 import { TrustBadges, trustBadgePresets } from "@/components/site/TrustBadges";
 import { ProcessTimeline, timelinePresets } from "@/components/site/ProcessTimeline";
+import { useGoogleReCaptcha } from "react-google-recaptcha-v3";
 
 interface LeadFormProps {
   proyectoId: string;
@@ -40,6 +41,7 @@ export function LeadForm({
 }: LeadFormProps) {
   const { t: tCommon } = useTranslation("common");
   const { t: tSite } = useTranslation("site");
+  const { executeRecaptcha } = useGoogleReCaptcha();
   const [formData, setFormData] = useState<FormData>({
     nombre: "",
     email: "",
@@ -71,12 +73,24 @@ export function LeadForm({
       // Validate form data
       leadFormSchema.parse(formData);
 
+      // Execute reCAPTCHA
+      let recaptchaToken: string | undefined;
+      if (executeRecaptcha) {
+        try {
+          recaptchaToken = await executeRecaptcha("lead_submit");
+        } catch (err) {
+          console.error("reCAPTCHA execution failed:", err);
+          // Continue without token - server will decide based on config
+        }
+      }
+
       const res = await fetch("/api/leads", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           ...formData,
           proyecto_id: proyectoId,
+          recaptchaToken,
           utm_source: new URLSearchParams(window.location.search).get(
             "utm_source"
           ),
