@@ -4,11 +4,11 @@ import createIntlMiddleware from 'next-intl/middleware';
 import { parseDomain, resolveCustomDomainToSlug } from "@/lib/domains";
 import { locales, defaultLocale } from '@/i18n/config';
 
-// Create next-intl middleware for marketing pages
+// Create next-intl middleware for ALL routes
 const intlMiddleware = createIntlMiddleware({
   locales,
   defaultLocale,
-  localePrefix: 'as-needed', // No prefix for default locale (es)
+  localePrefix: 'always', // ALWAYS prefix with locale (required for [locale] routing)
   localeDetection: true, // Auto-detect from Accept-Language header
 });
 
