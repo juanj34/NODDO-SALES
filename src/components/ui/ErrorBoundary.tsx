@@ -1,6 +1,6 @@
 "use client";
 
-import { Component, ReactNode } from "react";
+import { Component, ReactNode, useState, useCallback } from "react";
 import { motion } from "framer-motion";
 import { AlertTriangle, RefreshCw } from "lucide-react";
 
@@ -100,15 +100,23 @@ export function useRetry<T>(
     maxRetries?: number;
     delay?: number;
     backoff?: number;
+    onSuccess?: (data: T) => void;
+    onError?: (error: Error) => void;
+    onFinally?: () => void;
   } = {}
 ) {
-  const { maxRetries = 3, delay = 1000, backoff = 2 } = options;
+  const { maxRetries = 3, delay = 1000, backoff = 2, onSuccess, onError, onFinally } = options;
+  const [loading, setLoading] = useState(false);
 
-  const executeWithRetry = async (attempt = 0): Promise<T> => {
+  const executeWithRetry = useCallback(async (attempt = 0): Promise<T | undefined> => {
+    setLoading(true);
     try {
-      return await fn();
+      const result = await fn();
+      if (onSuccess) onSuccess(result);
+      return result;
     } catch (error) {
       if (attempt >= maxRetries) {
+        if (onError) onError(error instanceof Error ? error : new Error(String(error)));
         throw error;
       }
 
@@ -116,10 +124,13 @@ export function useRetry<T>(
       await new Promise((resolve) => setTimeout(resolve, waitTime));
 
       return executeWithRetry(attempt + 1);
+    } finally {
+      setLoading(false);
+      if (onFinally) onFinally();
     }
-  };
+  }, [fn, maxRetries, delay, backoff, onSuccess, onError, onFinally]);
 
-  return { execute: executeWithRetry };
+  return { execute: executeWithRetry, loading };
 }
 
 /**

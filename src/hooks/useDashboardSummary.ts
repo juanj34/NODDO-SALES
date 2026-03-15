@@ -2,30 +2,38 @@
 
 import { useState, useEffect, useCallback } from "react";
 import type { DashboardSummary } from "@/types";
+import { useRetry } from "@/components/ui/ErrorBoundary";
 
 export function useDashboardSummary() {
   const [data, setData] = useState<DashboardSummary | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const fetch_ = useCallback(async () => {
-    try {
-      setLoading(true);
-      setError(null);
-      const res = await fetch("/api/dashboard/summary");
-      if (!res.ok) throw new Error("Error fetching dashboard summary");
-      const json = await res.json();
-      setData(json);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Error");
-    } finally {
-      setLoading(false);
-    }
+  const fetchSummary = useCallback(async () => {
+    const res = await fetch("/api/dashboard/summary");
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    return await res.json();
   }, []);
 
-  useEffect(() => {
-    fetch_();
-  }, [fetch_]);
+  const { execute: refresh, loading: retrying } = useRetry(fetchSummary, {
+    maxRetries: 3,
+    delay: 1000,
+    backoff: 2,
+    onSuccess: (json) => {
+      setData(json);
+      setError(null);
+    },
+    onError: (err) => {
+      setError(err instanceof Error ? err.message : "Error al cargar resumen");
+    },
+    onFinally: () => {
+      setLoading(false);
+    },
+  });
 
-  return { data, loading, error, refresh: fetch_ };
+  useEffect(() => {
+    refresh();
+  }, [refresh]);
+
+  return { data, loading: loading || retrying, error, refresh };
 }
