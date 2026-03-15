@@ -53,6 +53,7 @@ export async function POST(
       torres: Record<string, unknown>[];
       planos_interactivos: Record<string, unknown>[];
       plano_puntos: Record<string, unknown>[];
+      avances_obra: Record<string, unknown>[];
     };
 
     // --- Delete current child data (order matters for FK) ---
@@ -86,6 +87,7 @@ export async function POST(
     await auth.supabase.from("videos").delete().eq("proyecto_id", id);
     await auth.supabase.from("puntos_interes").delete().eq("proyecto_id", id);
     await auth.supabase.from("recursos").delete().eq("proyecto_id", id);
+    await auth.supabase.from("avances_obra").delete().eq("proyecto_id", id);
 
     // --- Insert from snapshot ---
 
@@ -147,6 +149,11 @@ export async function POST(
     if (snap.plano_puntos?.length) {
       const { error } = await auth.supabase.from("plano_puntos").insert(snap.plano_puntos);
       if (error) throw new Error(`Restore plano_puntos: ${error.message}`);
+    }
+
+    if (snap.avances_obra?.length) {
+      const { error } = await auth.supabase.from("avances_obra").insert(snap.avances_obra);
+      if (error) throw new Error(`Restore avances_obra: ${error.message}`);
     }
 
     // Update project fields from snapshot (exclude id, user_id, created_at)
