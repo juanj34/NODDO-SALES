@@ -3,6 +3,7 @@ import { getAuthContext } from "@/lib/auth-context";
 import { checkFeature } from "@/lib/feature-flags";
 import { checkFeatureAccess, FEATURE_LABELS } from "@/lib/feature-access";
 import { sendFeatureBlocked } from "@/lib/email";
+import { shouldSendFeatureBlockedEmail } from "@/lib/email-throttle";
 import { getPresignedUploadUrls, type FileToSign } from "@/lib/r2";
 
 const MAX_FILES = 2000;
@@ -34,17 +35,25 @@ export async function POST(request: NextRequest) {
     // Check plan-based access first
     const planAccess = await checkFeatureAccess(auth.supabase, auth.adminUserId, "tour_360");
     if (!planAccess.allowed) {
-      // Send feature blocked email (fire-and-forget)
+      // Send feature blocked email (throttled: max 1 per 7 days)
       if (auth.user.email && planAccess.requiredPlan) {
-        sendFeatureBlocked({
-          email: auth.user.email,
-          name: auth.user.user_metadata?.full_name || auth.user.email.split("@")[0],
-          feature: FEATURE_LABELS.tour_360.es,
-          currentPlan: planAccess.currentPlan,
-          requiredPlan: planAccess.requiredPlan,
-        }).catch((err) => {
-          console.error("[tours/presign] Failed to send feature blocked email:", err);
-        });
+        const shouldSend = await shouldSendFeatureBlockedEmail(
+          auth.supabase,
+          auth.adminUserId,
+          "tour_360"
+        );
+
+        if (shouldSend) {
+          sendFeatureBlocked({
+            email: auth.user.email,
+            name: auth.user.user_metadata?.full_name || auth.user.email.split("@")[0],
+            feature: FEATURE_LABELS.tour_360.es,
+            currentPlan: planAccess.currentPlan,
+            requiredPlan: planAccess.requiredPlan,
+          }).catch((err) => {
+            console.error("[tours/presign] Failed to send feature blocked email:", err);
+          });
+        }
       }
 
       return NextResponse.json(
