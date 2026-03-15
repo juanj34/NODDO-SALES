@@ -18,6 +18,7 @@ import { calcularCotizacion, buildPrecioBaseComplementos } from "@/lib/cotizador
 import type { CotizadorConfig, ResultadoCotizacion } from "@/types";
 import { Minus } from "lucide-react";
 import { CurrencyInput } from "@/components/dashboard/CurrencyInput";
+import { NodDoDropdown } from "@/components/ui/NodDoDropdown";
 
 /* ── Types ─────────────────────────────────────────────── */
 
@@ -833,18 +834,17 @@ export default function CotizadorPage() {
                           {/* Type */}
                           <div className="col-span-2">
                             <label className="text-[9px] text-[var(--text-muted)] uppercase tracking-wider block mb-1">Tipo</label>
-                            <div className="relative">
-                              <select
-                                value={fase.tipo}
-                                onChange={(e) => updateFase(fase.id, "tipo", e.target.value)}
-                                className="input-glass w-full text-xs py-1.5 appearance-none pr-6"
-                              >
-                                <option value="fijo">Fijo ($)</option>
-                                <option value="porcentaje">Porcentaje (%)</option>
-                                <option value="resto">Resto</option>
-                              </select>
-                              <ChevronDown size={12} className="absolute right-2 top-1/2 -translate-y-1/2 text-[var(--text-muted)] pointer-events-none" />
-                            </div>
+                            <NodDoDropdown
+                              variant="form"
+                              size="sm"
+                              value={fase.tipo}
+                              onChange={(val) => updateFase(fase.id, "tipo", val)}
+                              options={[
+                                { value: "fijo", label: "Fijo ($)" },
+                                { value: "porcentaje", label: "Porcentaje (%)" },
+                                { value: "resto", label: "Resto" },
+                              ]}
+                            />
                           </div>
                           {/* Value */}
                           <div className="col-span-2">
@@ -881,19 +881,18 @@ export default function CotizadorPage() {
                           {/* Frecuencia */}
                           <div className="col-span-2">
                             <label className="text-[9px] text-[var(--text-muted)] uppercase tracking-wider block mb-1">Frec.</label>
-                            <div className="relative">
-                              <select
-                                value={fase.frecuencia}
-                                onChange={(e) => updateFase(fase.id, "frecuencia", e.target.value)}
-                                className="input-glass w-full text-xs py-1.5 appearance-none pr-6"
-                              >
-                                <option value="unica">Única</option>
-                                <option value="mensual">Mensual</option>
-                                <option value="bimestral">Bimestral</option>
-                                <option value="trimestral">Trimestral</option>
-                              </select>
-                              <ChevronDown size={12} className="absolute right-2 top-1/2 -translate-y-1/2 text-[var(--text-muted)] pointer-events-none" />
-                            </div>
+                            <NodDoDropdown
+                              variant="form"
+                              size="sm"
+                              value={fase.frecuencia}
+                              onChange={(val) => updateFase(fase.id, "frecuencia", val)}
+                              options={[
+                                { value: "unica", label: "Única" },
+                                { value: "mensual", label: "Mensual" },
+                                { value: "bimestral", label: "Bimestral" },
+                                { value: "trimestral", label: "Trimestral" },
+                              ]}
+                            />
                           </div>
                           {/* Delete */}
                           <div className="col-span-2 flex items-center gap-2 justify-end">

@@ -1,5 +1,5 @@
 /**
- * Daily Digest Email - Sends a daily summary email with all key metrics
+ * Daily Digest Email - Sends a personalized daily summary to each opted-in admin
  * Runs every day at 9:00 AM Colombia time (UTC-5)
  * Endpoint: /api/cron/daily-digest
  *
@@ -8,10 +8,10 @@
 
 import { NextRequest, NextResponse } from "next/server";
 import { Resend } from "resend";
-import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
 import { Redis } from "@upstash/redis";
 
-// Lazy initialization - only create when needed (avoids build-time errors)
+// Lazy initialization
 function getResend() {
   if (!process.env.RESEND_API_KEY) {
     throw new Error("RESEND_API_KEY environment variable is not set");
@@ -31,157 +31,231 @@ function getRedis() {
 
 /**
  * Vercel Cron authorization
- * https://vercel.com/docs/cron-jobs/manage-cron-jobs#securing-cron-jobs
  */
 function isAuthorizedCronRequest(request: NextRequest): boolean {
   const authHeader = request.headers.get("authorization");
   const cronSecret = process.env.CRON_SECRET;
 
   if (!cronSecret) {
-    // If no secret is set, allow in development only
     return process.env.NODE_ENV === "development";
   }
 
   return authHeader === `Bearer ${cronSecret}`;
 }
 
+interface AdminDigestTarget {
+  userId: string;
+  email: string;
+  projectIds: string[];
+  projectNames: string[];
+}
+
 /**
- * Get activity summary from last 24 hours
+ * Get all admins who have daily digest enabled
  */
-async function getActivitySummary() {
-  const supabase = await createClient();
+async function getDigestRecipients(): Promise<AdminDigestTarget[]> {
+  const supabase = createAdminClient();
+
+  // Get all admin users (those who own at least one project)
+  const { data: projectOwners } = await supabase
+    .from("proyectos")
+    .select("user_id");
+
+  if (!projectOwners?.length) return [];
+
+  const uniqueOwnerIds = [...new Set(projectOwners.map((p) => p.user_id))];
+
+  // Check which owners have daily digest enabled (or no config = default enabled)
+  const { data: configs } = await supabase
+    .from("email_report_config")
+    .select("user_id, daily_digest_enabled, email_override")
+    .in("user_id", uniqueOwnerIds);
+
+  const configMap = new Map(
+    (configs || []).map((c) => [c.user_id, c])
+  );
+
+  // Filter: include if no config (default=enabled) or daily_digest_enabled=true
+  const enabledOwnerIds = uniqueOwnerIds.filter((uid) => {
+    const cfg = configMap.get(uid);
+    return !cfg || cfg.daily_digest_enabled !== false;
+  });
+
+  if (enabledOwnerIds.length === 0) return [];
+
+  // Get emails for enabled owners
+  const recipients: AdminDigestTarget[] = [];
+
+  for (const userId of enabledOwnerIds) {
+    const { data: userData } = await supabase.auth.admin.getUserById(userId);
+    if (!userData?.user?.email) continue;
+
+    const cfg = configMap.get(userId);
+    const email = cfg?.email_override || userData.user.email;
+
+    // Get this admin's projects
+    const { data: projects } = await supabase
+      .from("proyectos")
+      .select("id, nombre")
+      .eq("user_id", userId);
+
+    if (!projects?.length) continue;
+
+    recipients.push({
+      userId,
+      email,
+      projectIds: projects.map((p) => p.id),
+      projectNames: projects.map((p) => p.nombre),
+    });
+  }
+
+  return recipients;
+}
+
+/**
+ * Get metrics for a specific admin's projects (last 24h)
+ */
+async function getAdminMetrics(projectIds: string[]) {
+  const supabase = createAdminClient();
+  const yesterday = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
+  const twoDaysAgo = new Date(Date.now() - 48 * 60 * 60 * 1000).toISOString();
+
+  // Leads today vs yesterday
+  const { count: leadsToday } = await supabase
+    .from("leads")
+    .select("*", { count: "exact", head: true })
+    .in("proyecto_id", projectIds)
+    .gte("created_at", yesterday);
+
+  const { count: leadsYesterday } = await supabase
+    .from("leads")
+    .select("*", { count: "exact", head: true })
+    .in("proyecto_id", projectIds)
+    .gte("created_at", twoDaysAgo)
+    .lt("created_at", yesterday);
+
+  // Projects status
+  const { count: totalProjects } = await supabase
+    .from("proyectos")
+    .select("*", { count: "exact", head: true })
+    .in("id", projectIds);
+
+  const { count: publishedProjects } = await supabase
+    .from("proyectos")
+    .select("*", { count: "exact", head: true })
+    .in("id", projectIds)
+    .eq("estado", "publicado");
+
+  // Unit changes (from activity_logs)
+  const { count: unitChanges } = await supabase
+    .from("activity_logs")
+    .select("*", { count: "exact", head: true })
+    .in("proyecto_id", projectIds)
+    .eq("action_category", "unit")
+    .gte("created_at", yesterday);
+
+  // Cotizaciones
+  const { count: cotizaciones } = await supabase
+    .from("cotizaciones")
+    .select("*", { count: "exact", head: true })
+    .in("proyecto_id", projectIds)
+    .gte("created_at", yesterday);
+
+  const leadsChange = leadsYesterday
+    ? (((leadsToday || 0) - leadsYesterday) / leadsYesterday) * 100
+    : 0;
+
+  return {
+    leads: { today: leadsToday || 0, yesterday: leadsYesterday || 0, change: leadsChange },
+    projects: { total: totalProjects || 0, published: publishedProjects || 0 },
+    unitChanges: unitChanges || 0,
+    cotizaciones: cotizaciones || 0,
+  };
+}
+
+/**
+ * Get activity summary for a specific admin's projects (last 24h)
+ */
+async function getAdminActivitySummary(projectIds: string[]) {
+  const supabase = createAdminClient();
   const yesterday = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
 
-  try {
-    // Count by category
-    const { data: activities } = await supabase
-      .from("activity_logs")
-      .select("action_category, description")
-      .gte("created_at", yesterday)
-      .order("created_at", { ascending: false })
-      .limit(200);
+  const { data: activities } = await supabase
+    .from("activity_logs")
+    .select("action_category, description")
+    .in("proyecto_id", projectIds)
+    .gte("created_at", yesterday)
+    .order("created_at", { ascending: false })
+    .limit(200);
 
-    if (!activities || activities.length === 0) {
-      return { total: 0, byCategory: {} as Record<string, number>, recent: [] as string[] };
-    }
-
-    const byCategory: Record<string, number> = {};
-    for (const a of activities) {
-      byCategory[a.action_category] = (byCategory[a.action_category] || 0) + 1;
-    }
-
-    // Last 5 notable descriptions
-    const recent = activities.slice(0, 5).map((a) => a.description);
-
-    return { total: activities.length, byCategory, recent };
-  } catch (error) {
-    console.error("Error getting activity summary:", error);
+  if (!activities || activities.length === 0) {
     return { total: 0, byCategory: {} as Record<string, number>, recent: [] as string[] };
   }
+
+  const byCategory: Record<string, number> = {};
+  for (const a of activities) {
+    byCategory[a.action_category] = (byCategory[a.action_category] || 0) + 1;
+  }
+
+  const recent = activities.slice(0, 5).map((a) => a.description);
+
+  return { total: activities.length, byCategory, recent };
 }
 
 /**
- * Get metrics from last 24 hours
+ * Get platform-level stats (only for platform admin)
  */
-async function getDailyMetrics() {
-  const supabase = await createClient();
-  const yesterday = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
+async function getPlatformStats() {
+  let redisStats = { commandsToday: 0, memoryUsageMB: 0, maxMemoryMB: 25, rateLimitBlocked: 0 };
 
   try {
-    // Leads (last 24h vs previous 24h)
-    const { count: leadsToday } = await supabase
-      .from("leads")
-      .select("*", { count: "exact", head: true })
-      .gte("created_at", yesterday);
-
-    const { count: leadsYesterday } = await supabase
-      .from("leads")
-      .select("*", { count: "exact", head: true })
-      .gte("created_at", new Date(Date.now() - 48 * 60 * 60 * 1000).toISOString())
-      .lt("created_at", yesterday);
-
-    // Projects count
-    const { count: totalProjects } = await supabase
-      .from("proyectos")
-      .select("*", { count: "exact", head: true });
-
-    const { count: publishedProjects } = await supabase
-      .from("proyectos")
-      .select("*", { count: "exact", head: true })
-      .eq("estado", "publicado");
-
-    // Recent errors from dashboard analytics
-    const { data: recentErrors } = await supabase
-      .from("dashboard_analytics")
-      .select("event_data")
-      .eq("event_type", "error")
-      .gte("timestamp", yesterday)
-      .order("timestamp", { ascending: false })
-      .limit(5);
-
-    // Redis stats (estimate from info command)
-    const redisStats = {
-      commandsToday: 0,
-      memoryUsageMB: 0,
-      maxMemoryMB: 25,
-      rateLimitBlocked: 0,
-    };
-
-    try {
-      // Rate limit blocked (from custom counter if exists)
-      const redis = getRedis();
-      const blocked = await redis.get("stats:rate_limit:blocked:today");
-      redisStats.rateLimitBlocked = typeof blocked === "number" ? blocked : 0;
-    } catch (error) {
-      console.error("Error getting Redis stats:", error);
-    }
-
-    const leadsChange = leadsYesterday ? ((leadsToday || 0) - leadsYesterday) / leadsYesterday * 100 : 0;
-
-    return {
-      leads: {
-        today: leadsToday || 0,
-        yesterday: leadsYesterday || 0,
-        change: leadsChange,
-      },
-      projects: {
-        total: totalProjects || 0,
-        published: publishedProjects || 0,
-      },
-      errors: {
-        count: recentErrors?.length || 0,
-        recent: (recentErrors || []).map(e => ({
-          type: e.event_data?.error_type || "Unknown",
-          message: e.event_data?.error_message || "No message",
-          count: 1,
-        })),
-      },
-      redis: redisStats,
-    };
-  } catch (error) {
-    console.error("Error getting daily metrics:", error);
-    throw error;
+    const redis = getRedis();
+    const blocked = await redis.get("stats:rate_limit:blocked:today");
+    redisStats.rateLimitBlocked = typeof blocked === "number" ? blocked : 0;
+  } catch {
+    // Redis stats are optional
   }
+
+  const supabase = createAdminClient();
+  const yesterday = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
+
+  const { data: recentErrors } = await supabase
+    .from("dashboard_analytics")
+    .select("event_data")
+    .eq("event_type", "error")
+    .gte("timestamp", yesterday)
+    .order("timestamp", { ascending: false })
+    .limit(5);
+
+  return {
+    redis: redisStats,
+    errors: {
+      count: recentErrors?.length || 0,
+      recent: (recentErrors || []).map((e) => ({
+        type: e.event_data?.error_type || "Unknown",
+        message: e.event_data?.error_message || "No message",
+      })),
+    },
+  };
 }
 
+type AdminMetrics = Awaited<ReturnType<typeof getAdminMetrics>>;
+type ActivitySummary = Awaited<ReturnType<typeof getAdminActivitySummary>>;
+type PlatformStats = Awaited<ReturnType<typeof getPlatformStats>> | null;
+
 /**
- * Generate HTML email content
+ * Generate personalized HTML email
  */
 function generateEmailHTML(
-  metrics: Awaited<ReturnType<typeof getDailyMetrics>>,
-  activitySummary: Awaited<ReturnType<typeof getActivitySummary>>,
+  metrics: AdminMetrics,
+  activitySummary: ActivitySummary,
+  platformStats: PlatformStats,
   date: string,
 ) {
-  const { leads, projects, errors, redis } = metrics;
+  const { leads, projects, unitChanges, cotizaciones } = metrics;
 
   const leadsEmoji = leads.change > 0 ? "📈" : leads.change < 0 ? "📉" : "➡️";
   const leadsColor = leads.change > 0 ? "#10b981" : leads.change < 0 ? "#ef4444" : "#6b7280";
-
-  const redisMemoryPercent = (redis.memoryUsageMB / redis.maxMemoryMB * 100).toFixed(1);
-  const redisCommandsPercent = (redis.commandsToday / 10000 * 100).toFixed(1);
-
-  const redisMemoryColor = parseFloat(redisMemoryPercent) > 80 ? "#ef4444" : parseFloat(redisMemoryPercent) > 60 ? "#f59e0b" : "#10b981";
-  const redisCommandsColor = parseFloat(redisCommandsPercent) > 80 ? "#ef4444" : parseFloat(redisCommandsPercent) > 60 ? "#f59e0b" : "#10b981";
 
   return `
 <!DOCTYPE html>
@@ -201,7 +275,7 @@ function generateEmailHTML(
           <tr>
             <td style="padding: 40px 40px 20px; background: linear-gradient(135deg, #b8973a 0%, #d4b05a 100%); border-radius: 8px 8px 0 0;">
               <h1 style="margin: 0; color: #1a1a1a; font-size: 28px; font-weight: 600;">
-                📊 NODDO - Resumen Diario
+                NODDO - Resumen Diario
               </h1>
               <p style="margin: 8px 0 0; color: #2a2a2a; font-size: 14px; opacity: 0.9;">
                 ${date}
@@ -213,14 +287,14 @@ function generateEmailHTML(
           <tr>
             <td style="padding: 30px 40px;">
               <h2 style="margin: 0 0 20px; color: #1a1a1a; font-size: 18px; font-weight: 600;">
-                🎯 Métricas Clave
+                Metricas Clave
               </h2>
 
               <table role="presentation" style="width: 100%; border-collapse: collapse;">
                 <tr>
-                  <td style="padding: 16px; background-color: #f9fafb; border-radius: 6px; margin-bottom: 8px;">
+                  <td style="padding: 16px; background-color: #f9fafb; border-radius: 6px;">
                     <div style="display: flex; justify-content: space-between; align-items: center;">
-                      <span style="color: #6b7280; font-size: 14px;">Leads (últimas 24h)</span>
+                      <span style="color: #6b7280; font-size: 14px;">Leads (ultimas 24h)</span>
                       <div style="text-align: right;">
                         <strong style="color: #1a1a1a; font-size: 24px;">${leads.today}</strong>
                         <span style="color: ${leadsColor}; font-size: 14px; margin-left: 8px;">
@@ -249,10 +323,19 @@ function generateEmailHTML(
                 <tr>
                   <td style="padding: 16px; background-color: #f9fafb; border-radius: 6px;">
                     <div style="display: flex; justify-content: space-between; align-items: center;">
-                      <span style="color: #6b7280; font-size: 14px;">Errores (últimas 24h)</span>
-                      <strong style="color: ${errors.count > 0 ? "#ef4444" : "#10b981"}; font-size: 24px;">
-                        ${errors.count}
-                      </strong>
+                      <span style="color: #6b7280; font-size: 14px;">Cambios de inventario</span>
+                      <strong style="color: #1a1a1a; font-size: 24px;">${unitChanges}</strong>
+                    </div>
+                  </td>
+                </tr>
+
+                <tr><td style="height: 8px;"></td></tr>
+
+                <tr>
+                  <td style="padding: 16px; background-color: #f9fafb; border-radius: 6px;">
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                      <span style="color: #6b7280; font-size: 14px;">Cotizaciones generadas</span>
+                      <strong style="color: #1a1a1a; font-size: 24px;">${cotizaciones}</strong>
                     </div>
                   </td>
                 </tr>
@@ -265,7 +348,7 @@ function generateEmailHTML(
           <tr>
             <td style="padding: 0 40px 30px;">
               <h2 style="margin: 0 0 20px; color: #1a1a1a; font-size: 18px; font-weight: 600;">
-                📋 Resumen de Actividad (${activitySummary.total} acciones)
+                Resumen de Actividad (${activitySummary.total} acciones)
               </h2>
 
               <table role="presentation" style="width: 100%; border-collapse: collapse;">
@@ -274,18 +357,12 @@ function generateEmailHTML(
                     ${Object.entries(activitySummary.byCategory).map(([cat, count]) => {
                       const labels: Record<string, string> = {
                         project: "Proyectos", unit: "Unidades", lead: "Leads",
-                        cotizacion: "Cotizaciones", gallery: "Galería", video: "Videos",
-                        tipologia: "Tipologías", colaborador: "Colaboradores",
+                        cotizacion: "Cotizaciones", gallery: "Galeria", video: "Videos",
+                        tipologia: "Tipologias", colaborador: "Colaboradores",
                         content: "Contenido", other: "Otros",
                       };
-                      const emojis: Record<string, string> = {
-                        project: "📁", unit: "🏠", lead: "📩",
-                        cotizacion: "📄", gallery: "🖼", video: "🎬",
-                        tipologia: "📦", colaborador: "👥",
-                        content: "📝", other: "⚙️",
-                      };
                       return `<span style="display: inline-block; margin: 3px 6px 3px 0; padding: 4px 10px; background-color: #e5e7eb; border-radius: 12px; font-size: 12px; color: #374151;">
-                        ${emojis[cat] || "⚙️"} ${labels[cat] || cat}: <strong>${count}</strong>
+                        ${labels[cat] || cat}: <strong>${count}</strong>
                       </span>`;
                     }).join("")}
                   </td>
@@ -294,10 +371,10 @@ function generateEmailHTML(
 
               ${activitySummary.recent.length > 0 ? `
               <div style="margin-top: 12px;">
-                <p style="margin: 0 0 8px; color: #6b7280; font-size: 12px; font-weight: 600;">Últimas acciones:</p>
+                <p style="margin: 0 0 8px; color: #6b7280; font-size: 12px; font-weight: 600;">Ultimas acciones:</p>
                 ${activitySummary.recent.map((desc) => `
                   <div style="padding: 6px 0; border-bottom: 1px solid #f3f4f6; font-size: 12px; color: #4b5563;">
-                    • ${desc}
+                    &bull; ${desc}
                   </div>
                 `).join("")}
               </div>
@@ -306,115 +383,73 @@ function generateEmailHTML(
           </tr>
           ` : ""}
 
-          <!-- Redis Stats -->
+          ${platformStats ? `
+          <!-- Platform Stats (admin only) -->
           <tr>
             <td style="padding: 0 40px 30px;">
               <h2 style="margin: 0 0 20px; color: #1a1a1a; font-size: 18px; font-weight: 600;">
-                ⚡ Upstash Redis
+                Plataforma
               </h2>
 
               <table role="presentation" style="width: 100%; border-collapse: collapse;">
-                <tr>
-                  <td style="padding: 12px 0;">
-                    <div style="display: flex; justify-content: space-between; margin-bottom: 6px;">
-                      <span style="color: #6b7280; font-size: 13px;">Comandos hoy</span>
-                      <span style="color: #1a1a1a; font-size: 13px; font-weight: 500;">
-                        ${redis.commandsToday.toLocaleString()} / 10,000 (${redisCommandsPercent}%)
-                      </span>
-                    </div>
-                    <div style="width: 100%; height: 6px; background-color: #e5e7eb; border-radius: 3px; overflow: hidden;">
-                      <div style="width: ${redisCommandsPercent}%; height: 100%; background-color: ${redisCommandsColor}; transition: width 0.3s;"></div>
-                    </div>
-                  </td>
-                </tr>
-
-                <tr>
-                  <td style="padding: 12px 0;">
-                    <div style="display: flex; justify-content: space-between; margin-bottom: 6px;">
-                      <span style="color: #6b7280; font-size: 13px;">Memoria</span>
-                      <span style="color: #1a1a1a; font-size: 13px; font-weight: 500;">
-                        ${redis.memoryUsageMB.toFixed(1)} MB / ${redis.maxMemoryMB} MB (${redisMemoryPercent}%)
-                      </span>
-                    </div>
-                    <div style="width: 100%; height: 6px; background-color: #e5e7eb; border-radius: 3px; overflow: hidden;">
-                      <div style="width: ${redisMemoryPercent}%; height: 100%; background-color: ${redisMemoryColor}; transition: width 0.3s;"></div>
-                    </div>
-                  </td>
-                </tr>
-
-                ${redis.rateLimitBlocked > 0 ? `
+                ${platformStats.redis.rateLimitBlocked > 0 ? `
                 <tr>
                   <td style="padding: 12px 0;">
                     <div style="display: flex; justify-content: space-between;">
                       <span style="color: #6b7280; font-size: 13px;">Rate limiting bloqueados</span>
                       <span style="color: #ef4444; font-size: 13px; font-weight: 500;">
-                        ${redis.rateLimitBlocked} requests
+                        ${platformStats.redis.rateLimitBlocked} requests
                       </span>
                     </div>
                   </td>
                 </tr>
-                ` : ''}
+                ` : ""}
+
+                <tr>
+                  <td style="padding: 12px 0;">
+                    <div style="display: flex; justify-content: space-between;">
+                      <span style="color: #6b7280; font-size: 13px;">Errores (ultimas 24h)</span>
+                      <span style="color: ${platformStats.errors.count > 0 ? "#ef4444" : "#10b981"}; font-size: 13px; font-weight: 500;">
+                        ${platformStats.errors.count}
+                      </span>
+                    </div>
+                  </td>
+                </tr>
               </table>
+
+              ${platformStats.errors.recent.length > 0 ? `
+              <div style="margin-top: 8px;">
+                ${platformStats.errors.recent.slice(0, 3).map((error, i) => `
+                  <div style="padding: 8px; background-color: #fef2f2; border-left: 3px solid #ef4444; border-radius: 4px; margin-bottom: 6px;">
+                    <strong style="color: #991b1b; font-size: 12px;">${i + 1}. ${error.type}</strong>
+                    <p style="margin: 2px 0 0; color: #7f1d1d; font-size: 11px;">
+                      ${error.message.substring(0, 100)}${error.message.length > 100 ? "..." : ""}
+                    </p>
+                  </div>
+                `).join("")}
+              </div>
+              ` : ""}
             </td>
           </tr>
-
-          ${errors.recent.length > 0 ? `
-          <!-- Recent Errors -->
-          <tr>
-            <td style="padding: 0 40px 30px;">
-              <h2 style="margin: 0 0 16px; color: #1a1a1a; font-size: 18px; font-weight: 600;">
-                🔴 Errores Recientes
-              </h2>
-
-              ${errors.recent.slice(0, 3).map((error, i) => `
-                <div style="padding: 12px; background-color: #fef2f2; border-left: 3px solid #ef4444; border-radius: 4px; margin-bottom: 8px;">
-                  <strong style="color: #991b1b; font-size: 13px;">${i + 1}. ${error.type}</strong>
-                  <p style="margin: 4px 0 0; color: #7f1d1d; font-size: 12px;">
-                    ${error.message.substring(0, 100)}${error.message.length > 100 ? '...' : ''}
-                  </p>
-                </div>
-              `).join('')}
-            </td>
-          </tr>
-          ` : ''}
+          ` : ""}
 
           <!-- Quick Links -->
           <tr>
             <td style="padding: 0 40px 40px;">
-              <h2 style="margin: 0 0 16px; color: #1a1a1a; font-size: 18px; font-weight: 600;">
-                🔗 Links Rápidos
-              </h2>
-
               <table role="presentation" style="width: 100%;">
-                <tr>
-                  <td style="padding: 8px 0;">
-                    <a href="https://sentry.io/organizations/noddo/projects/noddo-app/"
-                       style="color: #b8973a; text-decoration: none; font-size: 14px;">
-                      → Sentry (Errores)
-                    </a>
-                  </td>
-                </tr>
-                <tr>
-                  <td style="padding: 8px 0;">
-                    <a href="https://console.upstash.com/redis/d7364351-4963-49c6-a83d-c58a4c03c8da"
-                       style="color: #b8973a; text-decoration: none; font-size: 14px;">
-                      → Upstash (Redis)
-                    </a>
-                  </td>
-                </tr>
-                <tr>
-                  <td style="padding: 8px 0;">
-                    <a href="https://vercel.com/juanj34s-projects/noddo"
-                       style="color: #b8973a; text-decoration: none; font-size: 14px;">
-                      → Vercel (Deployments)
-                    </a>
-                  </td>
-                </tr>
                 <tr>
                   <td style="padding: 8px 0;">
                     <a href="https://noddo.io/dashboard"
                        style="color: #b8973a; text-decoration: none; font-size: 14px;">
-                      → Dashboard NODDO
+                      &rarr; Ir a tu Dashboard
+                    </a>
+                  </td>
+                </tr>
+                <tr>
+                  <td style="padding: 8px 0;">
+                    <a href="https://noddo.io/bitacora"
+                       style="color: #b8973a; text-decoration: none; font-size: 14px;">
+                      &rarr; Ver Bitacora completa
                     </a>
                   </td>
                 </tr>
@@ -426,8 +461,10 @@ function generateEmailHTML(
           <tr>
             <td style="padding: 20px 40px; background-color: #f9fafb; border-radius: 0 0 8px 8px; text-align: center;">
               <p style="margin: 0; color: #6b7280; font-size: 12px;">
-                Este es un email automático enviado diariamente a las 9:00 AM.<br>
-                Para cambiar la configuración, visita tu dashboard de NODDO.
+                Recibes este email porque tienes habilitado el resumen diario.<br>
+                <a href="https://noddo.io/cuenta" style="color: #b8973a; text-decoration: none;">
+                  Desactivar en Cuenta &rarr; Notificaciones
+                </a>
               </p>
             </td>
           </tr>
@@ -440,6 +477,11 @@ function generateEmailHTML(
 </html>
   `.trim();
 }
+
+/**
+ * Platform admin user ID (from .env or hardcoded for the main account)
+ */
+const PLATFORM_ADMIN_EMAIL = "juanjaramillo34@gmail.com";
 
 /**
  * POST handler for manual trigger (for testing)
@@ -460,40 +502,89 @@ export async function POST(request: NextRequest) {
       day: "numeric",
     });
 
-    console.log("📧 Generating daily digest for:", today);
+    console.log("[daily-digest] Generating daily digest for:", today);
 
-    const [metrics, activitySummary] = await Promise.all([
-      getDailyMetrics(),
-      getActivitySummary(),
-    ]);
-    const htmlContent = generateEmailHTML(metrics, activitySummary, today);
+    // Get all opted-in admins
+    const recipients = await getDigestRecipients();
 
-    const resend = getResend();
-    const { data, error } = await resend.emails.send({
-      from: "NODDO Analytics <analytics@noddo.io>",
-      to: ["juanjaramillo34@gmail.com"],
-      subject: `📊 NODDO - Resumen Diario (${new Date().toLocaleDateString("es-CO", { day: "numeric", month: "short" })})`,
-      html: htmlContent,
-    });
-
-    if (error) {
-      console.error("❌ Error sending digest email:", error);
-      return NextResponse.json(
-        { error: "Failed to send email", details: error },
-        { status: 500 }
-      );
+    if (recipients.length === 0) {
+      console.log("[daily-digest] No recipients with daily digest enabled");
+      return NextResponse.json({ success: true, message: "No recipients", sent: 0 });
     }
 
-    console.log("✅ Daily digest sent successfully:", data);
+    console.log(`[daily-digest] Sending to ${recipients.length} recipient(s)`);
+
+    // Platform stats only fetched once (for platform admin)
+    let platformStats: PlatformStats = null;
+    const hasPlatformAdmin = recipients.some((r) => r.email === PLATFORM_ADMIN_EMAIL);
+    if (hasPlatformAdmin) {
+      platformStats = await getPlatformStats();
+    }
+
+    const resend = getResend();
+    const supabase = createAdminClient();
+    const results: { email: string; success: boolean; error?: string }[] = [];
+
+    for (const recipient of recipients) {
+      try {
+        // Get personalized metrics and activity
+        const [metrics, activitySummary] = await Promise.all([
+          getAdminMetrics(recipient.projectIds),
+          getAdminActivitySummary(recipient.projectIds),
+        ]);
+
+        // Only include platform stats for the platform admin
+        const includePlatformStats =
+          recipient.email === PLATFORM_ADMIN_EMAIL ? platformStats : null;
+
+        const htmlContent = generateEmailHTML(
+          metrics,
+          activitySummary,
+          includePlatformStats,
+          today,
+        );
+
+        const { error } = await resend.emails.send({
+          from: "NODDO <analytics@noddo.io>",
+          to: [recipient.email],
+          subject: `NODDO - Resumen Diario (${new Date().toLocaleDateString("es-CO", { day: "numeric", month: "short" })})`,
+          html: htmlContent,
+        });
+
+        if (error) {
+          console.error(`[daily-digest] Error sending to ${recipient.email}:`, error);
+          results.push({ email: recipient.email, success: false, error: String(error) });
+        } else {
+          results.push({ email: recipient.email, success: true });
+
+          // Update last_daily_sent
+          await supabase
+            .from("email_report_config")
+            .upsert(
+              { user_id: recipient.userId, last_daily_sent: new Date().toISOString(), updated_at: new Date().toISOString() },
+              { onConflict: "user_id" }
+            );
+        }
+      } catch (err) {
+        console.error(`[daily-digest] Error processing ${recipient.email}:`, err);
+        results.push({ email: recipient.email, success: false, error: String(err) });
+      }
+    }
+
+    const sent = results.filter((r) => r.success).length;
+    const failed = results.filter((r) => !r.success).length;
+
+    console.log(`[daily-digest] Done: ${sent} sent, ${failed} failed`);
 
     return NextResponse.json({
       success: true,
-      message: "Daily digest sent",
-      emailId: data?.id,
-      metrics,
+      message: `Daily digest sent to ${sent} recipients`,
+      sent,
+      failed,
+      results,
     });
   } catch (error) {
-    console.error("❌ Error in daily digest cron:", error);
+    console.error("[daily-digest] Error in daily digest cron:", error);
     return NextResponse.json(
       { error: "Internal server error", details: String(error) },
       { status: 500 }

@@ -28,11 +28,13 @@ export async function GET() {
   return NextResponse.json(data || {
     weekly_enabled: true,
     monthly_enabled: true,
+    daily_digest_enabled: true,
     project_ids: null,
     email_override: null,
     timezone: "America/Bogota",
     last_weekly_sent: null,
     last_monthly_sent: null,
+    last_daily_sent: null,
   });
 }
 
@@ -47,19 +49,22 @@ export async function PUT(request: NextRequest) {
   }
 
   const body = await request.json();
-  const { weekly_enabled, monthly_enabled, project_ids, email_override, timezone } = body;
+  const { weekly_enabled, monthly_enabled, daily_digest_enabled, project_ids, email_override, timezone } = body;
+
+  const updateFields: Record<string, unknown> = {
+    user_id: auth.user.id,
+    updated_at: new Date().toISOString(),
+  };
+  if (weekly_enabled !== undefined) updateFields.weekly_enabled = weekly_enabled;
+  if (monthly_enabled !== undefined) updateFields.monthly_enabled = monthly_enabled;
+  if (daily_digest_enabled !== undefined) updateFields.daily_digest_enabled = daily_digest_enabled;
+  if (project_ids !== undefined) updateFields.project_ids = project_ids;
+  if (email_override !== undefined) updateFields.email_override = email_override;
+  if (timezone !== undefined) updateFields.timezone = timezone;
 
   const { data, error } = await auth.supabase
     .from("email_report_config")
-    .upsert({
-      user_id: auth.user.id,
-      weekly_enabled,
-      monthly_enabled,
-      project_ids,
-      email_override,
-      timezone,
-      updated_at: new Date().toISOString(),
-    }, { onConflict: "user_id" })
+    .upsert(updateFields, { onConflict: "user_id" })
     .select()
     .single();
 

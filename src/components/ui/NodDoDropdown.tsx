@@ -1,11 +1,11 @@
 "use client";
 
-import { useState, useRef, useEffect, useMemo } from "react";
+import { useState, useRef, useEffect, useMemo, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { ChevronDown, Check } from "lucide-react";
 
 // Types
-type Variant = "dashboard" | "marketing" | "site" | "table";
+type Variant = "dashboard" | "marketing" | "site" | "table" | "form";
 type Size = "sm" | "md" | "lg";
 
 export interface Option {
@@ -13,6 +13,7 @@ export interface Option {
   label: string;
   icon?: React.ReactNode;
   metadata?: Record<string, unknown>;
+  disabled?: boolean;
 }
 
 interface Props {
@@ -72,6 +73,16 @@ const variantStyles = {
     optionHover: "hover:bg-[var(--surface-3)] hover:text-white",
     optionText: "text-[var(--text-secondary)]",
   },
+  form: {
+    trigger: "bg-[var(--surface-3)] border-[var(--border-default)] hover:border-[var(--border-strong)]",
+    triggerOpen: "border-[rgba(var(--site-primary-rgb),0.5)] shadow-[0_0_0_3px_rgba(var(--site-primary-rgb),0.10)]",
+    triggerText: "text-white",
+    triggerTextPlaceholder: "text-[var(--text-muted)]",
+    panel: "bg-[rgba(26,26,29,0.95)] border-[var(--border-default)]",
+    optionSelected: "bg-[rgba(184,151,58,0.12)] text-[var(--site-primary)]",
+    optionHover: "hover:bg-[var(--surface-3)] hover:text-white",
+    optionText: "text-[var(--text-secondary)]",
+  },
 };
 
 const sizeStyles = {
@@ -95,6 +106,16 @@ const sizeStyles = {
   },
 };
 
+// Helper: find next enabled index in a direction
+function findNextEnabledIndex(options: Option[], from: number, direction: 1 | -1): number {
+  let idx = from + direction;
+  while (idx >= 0 && idx < options.length) {
+    if (!options[idx].disabled) return idx;
+    idx += direction;
+  }
+  return from; // stay if nothing found
+}
+
 export function NodDoDropdown({
   value,
   onChange,
@@ -111,6 +132,7 @@ export function NodDoDropdown({
 }: Props) {
   const [isOpen, setIsOpen] = useState(false);
   const [focusedIndex, setFocusedIndex] = useState(-1);
+  const [dropUp, setDropUp] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const panelRef = useRef<HTMLDivElement>(null);
   const triggerRef = useRef<HTMLButtonElement>(null);
@@ -123,6 +145,11 @@ export function NodDoDropdown({
   const vStyles = variantStyles[variant];
   const szStyles = sizeStyles[size];
 
+  // Font classes: form variant uses mono/normal, others use Syne uppercase
+  const triggerFontClass = variant === "form"
+    ? "font-mono font-normal normal-case tracking-normal"
+    : "font-ui font-bold uppercase tracking-[0.08em]";
+
   // Inline styles for marketing variant (special case)
   const marketingTriggerStyle = variant === "marketing" ? {
     background: "rgba(255,255,255,0.04)",
@@ -130,12 +157,14 @@ export function NodDoDropdown({
   } : undefined;
 
   // Handler functions - defined before effects that use them
-  const handleSelect = (optionValue: string) => {
+  const handleSelect = useCallback((optionValue: string) => {
+    const opt = options.find((o) => o.value === optionValue);
+    if (opt?.disabled) return;
     onChange(optionValue);
     setIsOpen(false);
     setFocusedIndex(-1);
     triggerRef.current?.focus();
-  };
+  }, [onChange, options]);
 
   // Close dropdown when clicking outside
   useEffect(() => {
@@ -165,33 +194,34 @@ export function NodDoDropdown({
           break;
         case "ArrowDown":
           e.preventDefault();
-          setFocusedIndex((prev) => Math.min(prev + 1, options.length - 1));
+          setFocusedIndex((prev) => findNextEnabledIndex(options, prev, 1));
           break;
         case "ArrowUp":
           e.preventDefault();
-          setFocusedIndex((prev) => Math.max(prev - 1, -1));
+          setFocusedIndex((prev) => findNextEnabledIndex(options, prev, -1));
           break;
         case "Enter":
           e.preventDefault();
-          if (focusedIndex >= 0) {
+          if (focusedIndex >= 0 && !options[focusedIndex]?.disabled) {
             handleSelect(options[focusedIndex].value);
           }
           break;
         case "Home":
           e.preventDefault();
-          setFocusedIndex(0);
+          setFocusedIndex(options.findIndex((o) => !o.disabled));
           break;
         case "End":
           e.preventDefault();
-          setFocusedIndex(options.length - 1);
+          for (let i = options.length - 1; i >= 0; i--) {
+            if (!options[i].disabled) { setFocusedIndex(i); break; }
+          }
           break;
       }
     };
 
     document.addEventListener("keydown", handleKeyDown);
     return () => document.removeEventListener("keydown", handleKeyDown);
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- handleSelect is stable, defined before this effect
-  }, [isOpen, focusedIndex, options]);
+  }, [isOpen, focusedIndex, options, handleSelect]);
 
   // Scroll focused option into view
   useEffect(() => {
@@ -205,11 +235,19 @@ export function NodDoDropdown({
 
   const handleToggle = () => {
     if (!disabled) {
-      setIsOpen(!isOpen);
-      if (!isOpen) {
+      const opening = !isOpen;
+      setIsOpen(opening);
+      if (opening) {
         // Set focused index to current selection when opening
         const selectedIndex = options.findIndex((opt) => opt.value === value);
         setFocusedIndex(selectedIndex >= 0 ? selectedIndex : -1);
+        // Auto-flip: check if there's enough space below
+        if (triggerRef.current) {
+          const rect = triggerRef.current.getBoundingClientRect();
+          const spaceBelow = window.innerHeight - rect.bottom;
+          const panelMaxH = 252; // 240px max-h + 6px gap + 6px padding
+          setDropUp(spaceBelow < panelMaxH && rect.top > panelMaxH);
+        }
       }
     }
   };
@@ -229,7 +267,7 @@ export function NodDoDropdown({
         aria-label={placeholder || "Select option"}
         className={`
           group relative w-full flex items-center rounded-[0.625rem]
-          border transition-all font-ui font-bold uppercase tracking-[0.08em]
+          border transition-all ${triggerFontClass}
           ${szStyles.trigger}
           ${isOpen ? vStyles.triggerOpen : vStyles.trigger}
           ${!selectedOption ? vStyles.triggerTextPlaceholder : vStyles.triggerText}
@@ -274,14 +312,14 @@ export function NodDoDropdown({
         {isOpen && (
           <motion.div
             ref={panelRef}
-            initial={{ opacity: 0, y: -8, scale: 0.96 }}
+            initial={{ opacity: 0, y: dropUp ? 8 : -8, scale: 0.96 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: -8, scale: 0.96 }}
+            exit={{ opacity: 0, y: dropUp ? 8 : -8, scale: 0.96 }}
             transition={{ duration: 0.15, ease: "easeOut" }}
             id="noddo-dropdown-panel"
             role="listbox"
             className={`
-              absolute z-50 top-[calc(100%+6px)] left-0 w-full min-w-[160px]
+              absolute z-50 ${dropUp ? "bottom-[calc(100%+6px)]" : "top-[calc(100%+6px)]"} left-0 w-full min-w-[160px]
               overflow-hidden rounded-[0.75rem]
               shadow-[0_8px_40px_rgba(0,0,0,0.5)]
               ${vStyles.panel}
@@ -296,6 +334,7 @@ export function NodDoDropdown({
               {options.map((option, index) => {
                 const isSelected = option.value === value;
                 const isFocused = index === focusedIndex;
+                const isDisabled = !!option.disabled;
 
                 return (
                   <button
@@ -303,13 +342,15 @@ export function NodDoDropdown({
                     type="button"
                     role="option"
                     aria-selected={isSelected}
-                    onClick={() => handleSelect(option.value)}
+                    aria-disabled={isDisabled}
+                    onClick={() => !isDisabled && handleSelect(option.value)}
                     onMouseEnter={() => setFocusedIndex(index)}
                     className={`
                       w-full flex items-center transition-all font-mono text-left
                       ${szStyles.option}
-                      ${isSelected ? vStyles.optionSelected : `${vStyles.optionText} ${vStyles.optionHover}`}
-                      ${isFocused && !isSelected ? "bg-[var(--surface-2)]" : ""}
+                      ${isDisabled ? "opacity-40 cursor-not-allowed" : ""}
+                      ${isSelected ? vStyles.optionSelected : `${vStyles.optionText} ${!isDisabled ? vStyles.optionHover : ""}`}
+                      ${isFocused && !isSelected && !isDisabled ? "bg-[var(--surface-2)]" : ""}
                     `}
                   >
                     {/* Check icon for selected */}

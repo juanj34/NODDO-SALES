@@ -22,6 +22,7 @@ import {
   Building2,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { NodDoDropdown } from "@/components/ui/NodDoDropdown";
 import { formatCurrency } from "@/lib/currency";
 import {
   inputClass,
@@ -279,18 +280,16 @@ function ComplementoForm({
           {/* Tipo */}
           <div>
             <label className={labelClass}>Tipo</label>
-            <select
+            <NodDoDropdown
+              variant="form"
+              size="lg"
               value={form.tipo}
-              onChange={(e) => set("tipo", e.target.value)}
-              className={inputClass}
-            >
-              <option value="parqueadero" className="bg-[var(--surface-2)]">
-                Parqueadero
-              </option>
-              <option value="deposito" className="bg-[var(--surface-2)]">
-                Deposito
-              </option>
-            </select>
+              onChange={(val) => set("tipo", val)}
+              options={[
+                { value: "parqueadero", label: "Parqueadero" },
+                { value: "deposito", label: "Deposito" },
+              ]}
+            />
           </div>
 
           {/* Subtipo */}
@@ -346,41 +345,30 @@ function ComplementoForm({
           {/* Estado */}
           <div>
             <label className={labelClass}>Estado</label>
-            <select
+            <NodDoDropdown
+              variant="form"
+              size="lg"
               value={form.estado}
-              onChange={(e) => set("estado", e.target.value)}
-              className={inputClass}
-            >
-              {ESTADOS.map((e) => (
-                <option
-                  key={e.value}
-                  value={e.value}
-                  className="bg-[var(--surface-2)]"
-                >
-                  {e.label}
-                </option>
-              ))}
-            </select>
+              onChange={(val) => set("estado", val)}
+              options={ESTADOS.map((e) => ({ value: e.value, label: e.label }))}
+            />
           </div>
 
           {/* Torre */}
           {torres.length > 0 && (
             <div>
               <label className={labelClass}>Torre</label>
-              <select
+              <NodDoDropdown
+                variant="form"
+                size="lg"
                 value={form.torre_id}
-                onChange={(e) => set("torre_id", e.target.value)}
-                className={inputClass}
-              >
-                <option value="" className="bg-[var(--surface-2)]">
-                  Sin torre
-                </option>
-                {torres.map((t) => (
-                  <option key={t.id} value={t.id} className="bg-[var(--surface-2)]">
-                    {t.nombre}
-                  </option>
-                ))}
-              </select>
+                onChange={(val) => set("torre_id", val)}
+                placeholder="Sin torre"
+                options={[
+                  { value: "", label: "Sin torre" },
+                  ...torres.map((t) => ({ value: t.id, label: t.nombre })),
+                ]}
+              />
             </div>
           )}
 
@@ -1020,29 +1008,14 @@ export function ComplementosSection({ project, onRefresh, parqueaderosMode, depo
               {/* Change status */}
               <div className="flex items-center gap-2 ml-auto">
                 <span className="text-xs text-[var(--text-tertiary)]">Estado:</span>
-                <div className="relative">
-                  <select
-                    value={bulkEstado}
-                    onChange={(e) =>
-                      setBulkEstado(e.target.value as EstadoComplemento)
-                    }
-                    className={inputClass + " w-36 appearance-none pr-8 py-1.5"}
-                  >
-                    {ESTADOS.map((e) => (
-                      <option
-                        key={e.value}
-                        value={e.value}
-                        className="bg-[var(--surface-2)]"
-                      >
-                        {e.label}
-                      </option>
-                    ))}
-                  </select>
-                  <ChevronDown
-                    size={14}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-[var(--text-muted)] pointer-events-none"
-                  />
-                </div>
+                <NodDoDropdown
+                  variant="dashboard"
+                  size="sm"
+                  value={bulkEstado}
+                  onChange={(val) => setBulkEstado(val as EstadoComplemento)}
+                  options={ESTADOS.map((e) => ({ value: e.value, label: e.label }))}
+                  className="w-36"
+                />
                 <button
                   onClick={handleBulkStatusChange}
                   disabled={bulkLoading}
@@ -1061,26 +1034,18 @@ export function ComplementosSection({ project, onRefresh, parqueaderosMode, depo
               <div className="w-px h-5 bg-[var(--border-subtle)] mx-1" />
               <div className="flex items-center gap-2">
                 <span className="text-xs text-[var(--text-tertiary)]">Asignar:</span>
-                <div className="relative">
-                  <select
-                    value={bulkUnidadId}
-                    onChange={(e) => setBulkUnidadId(e.target.value)}
-                    className={inputClass + " w-40 appearance-none pr-8 py-1.5"}
-                  >
-                    <option value="" className="bg-[var(--surface-2)]">
-                      Seleccionar unidad
-                    </option>
-                    {unidades.map((u) => (
-                      <option key={u.id} value={u.id} className="bg-[var(--surface-2)]">
-                        {u.identificador}
-                      </option>
-                    ))}
-                  </select>
-                  <ChevronDown
-                    size={14}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-[var(--text-muted)] pointer-events-none"
-                  />
-                </div>
+                <NodDoDropdown
+                  variant="dashboard"
+                  size="sm"
+                  value={bulkUnidadId}
+                  onChange={(val) => setBulkUnidadId(val)}
+                  placeholder="Seleccionar unidad"
+                  options={[
+                    { value: "", label: "Seleccionar unidad" },
+                    ...unidades.map((u) => ({ value: u.id, label: u.identificador })),
+                  ]}
+                  className="w-40"
+                />
                 <button
                   onClick={handleBulkAssign}
                   disabled={bulkLoading || !bulkUnidadId}

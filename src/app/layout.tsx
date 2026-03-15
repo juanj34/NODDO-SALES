@@ -1,7 +1,5 @@
 import type { Metadata, Viewport } from "next";
 import { Cormorant_Garamond, DM_Mono, Inter, Syne } from "next/font/google";
-import { Analytics } from "@vercel/analytics/react";
-import { SpeedInsights } from "@vercel/speed-insights/next";
 import { LanguageProvider } from "@/i18n";
 import { ReactQueryProvider } from "@/lib/react-query";
 import "./globals.css";
@@ -91,8 +89,6 @@ export default function RootLayout({
             {children}
           </LanguageProvider>
         </ReactQueryProvider>
-        <Analytics />
-        <SpeedInsights />
       </body>
     </html>
   );

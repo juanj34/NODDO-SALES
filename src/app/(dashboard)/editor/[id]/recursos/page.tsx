@@ -37,6 +37,7 @@ import {
   File,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
+import { NodDoDropdown } from "@/components/ui/NodDoDropdown";
 
 const tipoIcons: Record<string, typeof FileText> = {
   brochure: BookOpen,
@@ -195,22 +196,24 @@ export default function RecursosPage() {
                 </div>
                 <div>
                   <label className={labelClass}>{t("recursos.type")}</label>
-                  <select
+                  <NodDoDropdown
+                    variant="form"
+                    size="lg"
                     value={form.tipo}
-                    onChange={(e) =>
+                    onChange={(val) =>
                       setForm((p) => ({
                         ...p,
-                        tipo: e.target.value as Recurso["tipo"],
+                        tipo: val as Recurso["tipo"],
                       }))
                     }
-                    className={inputClass}
-                  >
-                    <option value="brochure">{t("recursos.types.brochure")}</option>
-                    <option value="ficha_tecnica">{t("recursos.types.ficha_tecnica")}</option>
-                    <option value="acabados">{t("recursos.types.acabados")}</option>
-                    <option value="precios">{t("recursos.types.lista_precios")}</option>
-                    <option value="otro">{t("recursos.types.otro")}</option>
-                  </select>
+                    options={[
+                      { value: "brochure", label: t("recursos.types.brochure") },
+                      { value: "ficha_tecnica", label: t("recursos.types.ficha_tecnica") },
+                      { value: "acabados", label: t("recursos.types.acabados") },
+                      { value: "precios", label: t("recursos.types.lista_precios") },
+                      { value: "otro", label: t("recursos.types.otro") },
+                    ]}
+                  />
                 </div>
               </div>
 

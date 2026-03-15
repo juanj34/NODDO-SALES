@@ -19,6 +19,7 @@ import {
   Mail,
   Clock,
   Calendar,
+  Bell,
 } from "lucide-react";
 
 function formatDate(iso: string | undefined | null, fallback: string): string {
