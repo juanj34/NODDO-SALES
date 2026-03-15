@@ -18,22 +18,20 @@ export async function middleware(request: NextRequest) {
   const domainInfo = parseDomain(hostname);
 
   // Detect locale from cookie or Accept-Language header
-  let locale = defaultLocale;
+  let locale: string = defaultLocale;
   const cookieLocale = request.cookies.get('noddo-lang')?.value;
 
-  if (cookieLocale && locales.includes(cookieLocale as any)) {
-    // Use cookie if it exists and is valid
-    locale = cookieLocale as typeof defaultLocale;
+  if (cookieLocale && (locales as readonly string[]).includes(cookieLocale)) {
+    locale = cookieLocale;
   } else {
-    // No valid cookie: parse Accept-Language header
     const acceptLanguage = request.headers.get('accept-language');
     if (acceptLanguage) {
       const languages = acceptLanguage.split(',').map(lang => lang.split(';')[0].trim().toLowerCase());
       const preferredLocale = languages.find(lang =>
-        locales.includes(lang.split('-')[0] as any)
+        (locales as readonly string[]).includes(lang.split('-')[0])
       );
       if (preferredLocale) {
-        locale = preferredLocale.split('-')[0] as typeof defaultLocale;
+        locale = preferredLocale.split('-')[0];
       }
     }
   }
