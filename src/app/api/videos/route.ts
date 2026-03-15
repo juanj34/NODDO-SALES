@@ -1,9 +1,7 @@
 import { pick } from "@/lib/api-utils";
 import { getAuthContext } from "@/lib/auth-context";
 import { checkFeature } from "@/lib/feature-flags";
-import { checkFeatureAccess, FEATURE_LABELS } from "@/lib/feature-access";
-import { sendFeatureBlocked } from "@/lib/email";
-import { shouldSendFeatureBlockedEmail } from "@/lib/email-throttle";
+import { checkFeatureAccess } from "@/lib/feature-access";
 import { NextRequest, NextResponse } from "next/server";
 
 export async function POST(request: NextRequest) {
@@ -25,27 +23,6 @@ export async function POST(request: NextRequest) {
     // Check plan-based access first
     const planAccess = await checkFeatureAccess(auth.supabase, auth.adminUserId, "video_hosting");
     if (!planAccess.allowed) {
-      // Send feature blocked email (throttled: max 1 per 7 days)
-      if (auth.user.email && planAccess.requiredPlan) {
-        const shouldSend = await shouldSendFeatureBlockedEmail(
-          auth.supabase,
-          auth.adminUserId,
-          "video_hosting"
-        );
-
-        if (shouldSend) {
-          sendFeatureBlocked({
-            email: auth.user.email,
-            name: auth.user.user_metadata?.full_name || auth.user.email.split("@")[0],
-            feature: FEATURE_LABELS.video_hosting.es,
-            currentPlan: planAccess.currentPlan,
-            requiredPlan: planAccess.requiredPlan,
-          }).catch((err) => {
-            console.error("[videos] Failed to send feature blocked email:", err);
-          });
-        }
-      }
-
       return NextResponse.json(
         {
           error: `Video hosting requiere plan ${planAccess.requiredPlan}`,

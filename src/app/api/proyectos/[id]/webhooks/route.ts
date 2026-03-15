@@ -1,8 +1,6 @@
 import { getAuthContext } from "@/lib/auth-context";
 import { checkFeature } from "@/lib/feature-flags";
-import { checkFeatureAccess, FEATURE_LABELS } from "@/lib/feature-access";
-import { sendFeatureBlocked } from "@/lib/email";
-import { shouldSendFeatureBlockedEmail } from "@/lib/email-throttle";
+import { checkFeatureAccess } from "@/lib/feature-access";
 import { generateWebhookSecret } from "@/lib/webhooks";
 import { NextRequest, NextResponse } from "next/server";
 import type { WebhookConfig, WebhookEventType } from "@/types";
@@ -22,27 +20,6 @@ export async function GET(
     // Check plan-based access first
     const planAccess = await checkFeatureAccess(auth.supabase, auth.adminUserId, "webhooks");
     if (!planAccess.allowed) {
-      // Send feature blocked email (throttled: max 1 per 7 days)
-      if (auth.user.email && planAccess.requiredPlan) {
-        const shouldSend = await shouldSendFeatureBlockedEmail(
-          auth.supabase,
-          auth.adminUserId,
-          "webhooks"
-        );
-
-        if (shouldSend) {
-          sendFeatureBlocked({
-            email: auth.user.email,
-            name: (auth.user as any).user_metadata?.full_name || auth.user.email.split("@")[0],
-            feature: FEATURE_LABELS.webhooks.es,
-            currentPlan: planAccess.currentPlan,
-            requiredPlan: planAccess.requiredPlan,
-          }).catch((err) => {
-            console.error("[webhooks/GET] Failed to send feature blocked email:", err);
-          });
-        }
-      }
-
       return NextResponse.json(
         {
           error: `Webhooks requieren plan ${planAccess.requiredPlan}`,
@@ -89,27 +66,6 @@ export async function PUT(
     // Check plan-based access first
     const planAccess = await checkFeatureAccess(auth.supabase, auth.adminUserId, "webhooks");
     if (!planAccess.allowed) {
-      // Send feature blocked email (throttled: max 1 per 7 days)
-      if (auth.user.email && planAccess.requiredPlan) {
-        const shouldSend = await shouldSendFeatureBlockedEmail(
-          auth.supabase,
-          auth.adminUserId,
-          "webhooks"
-        );
-
-        if (shouldSend) {
-          sendFeatureBlocked({
-            email: auth.user.email,
-            name: (auth.user as any).user_metadata?.full_name || auth.user.email.split("@")[0],
-            feature: FEATURE_LABELS.webhooks.es,
-            currentPlan: planAccess.currentPlan,
-            requiredPlan: planAccess.requiredPlan,
-          }).catch((err) => {
-            console.error("[webhooks/PUT] Failed to send feature blocked email:", err);
-          });
-        }
-      }
-
       return NextResponse.json(
         {
           error: `Webhooks requieren plan ${planAccess.requiredPlan}`,
