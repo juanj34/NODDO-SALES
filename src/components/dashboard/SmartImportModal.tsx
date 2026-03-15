@@ -349,12 +349,28 @@ export function SmartImportModal({
       setCsvAllRows(allRows);
       setTotalRows(total);
 
+      // Extract up to 10 unique non-empty values per column (helps AI see all
+      // status values, etapas, etc. even from just 5 sample rows)
+      const uniqueValues: Record<string, string[]> = {};
+      for (let col = 0; col < headers.length; col++) {
+        const seen = new Set<string>();
+        for (const row of allRows) {
+          const v = row[col]?.trim();
+          if (v && v.length < 80) seen.add(v);
+          if (seen.size >= 10) break;
+        }
+        if (seen.size > 0 && seen.size <= 10) {
+          uniqueValues[headers[col]] = [...seen];
+        }
+      }
+
       const res = await fetch("/api/ai/analyze-csv", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           headers,
           sampleRows,
+          uniqueValues,
           tipologias: tipologias.map((t) => ({ id: t.id, nombre: t.nombre })),
           torres: torres.map((t) => ({ id: t.id, nombre: t.nombre })),
           fachadas: fachadas.map((f) => ({ id: f.id, nombre: f.nombre })),

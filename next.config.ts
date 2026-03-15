@@ -110,8 +110,5 @@ export default sentryEnabled
 
       // Route Sentry requests through a Next.js rewrite to avoid ad-blockers
       tunnelRoute: "/monitoring",
-
-      // Automatically tree-shake Sentry logger statements to reduce bundle size
-      disableLogger: true,
     })
   : nextConfig;

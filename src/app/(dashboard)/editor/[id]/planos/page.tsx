@@ -51,8 +51,8 @@ export default function PlanoInteractivoPage() {
   const [selectedPlanoId, setSelectedPlanoId] = useState<string | null>(null);
 
   // Tab state for plano detail view
-  type PlanoDetailTab = "info" | "amenidades" | "hotspots";
-  const [planoDetailTab, setPlanoDetailTab] = useState<PlanoDetailTab>("hotspots");
+  type PlanoDetailTab = "info" | "hotspots";
+  const [planoDetailTab, setPlanoDetailTab] = useState<PlanoDetailTab>("info");
 
   // Modal "add plano" form
   const [showAddForm, setShowAddForm] = useState(false);
@@ -456,80 +456,38 @@ export default function PlanoInteractivoPage() {
                   className="space-y-4"
                 >
                   {/* Plano info bar */}
-                  <div className="px-3 py-2 bg-[var(--surface-1)] rounded-xl border border-[var(--border-subtle)] space-y-2">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-3">
-                        <span className="text-sm font-medium text-white">
-                          {selectedPlano.nombre}
-                        </span>
-                        <span className="text-[10px] text-[var(--text-muted)]">
-                          {t("planos.pointCount", { n: selectedPuntos.length })}
-                        </span>
-                        <span
-                          className={`text-[10px] px-1.5 py-0.5 rounded-full ${
-                            selectedPlano.visible
-                              ? "bg-green-500/15 text-green-400"
-                              : "bg-[var(--surface-3)] text-[var(--text-muted)]"
-                          }`}
-                        >
-                          {selectedPlano.visible ? t("planos.visible") : t("planos.hidden")}
-                        </span>
-                      </div>
-                      <button
-                        onClick={() => handleToggleVisibility(selectedPlano)}
-                        disabled={togglingId === selectedPlano.id}
-                        className={btnSecondary}
+                  <div className="px-4 py-2.5 bg-[var(--surface-1)] rounded-xl border border-[var(--border-subtle)] flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <span className="text-sm font-medium text-white">
+                        {selectedPlano.nombre}
+                      </span>
+                      <span className="text-[10px] text-[var(--text-muted)]">
+                        {t("planos.pointCount", { n: selectedPuntos.length })}
+                      </span>
+                      <span
+                        className={`text-[10px] px-1.5 py-0.5 rounded-full ${
+                          selectedPlano.visible
+                            ? "bg-green-500/15 text-green-400"
+                            : "bg-[var(--surface-3)] text-[var(--text-muted)]"
+                        }`}
                       >
-                        {togglingId === selectedPlano.id ? (
-                          <Loader2 size={12} className="animate-spin" />
-                        ) : selectedPlano.visible ? (
-                          <EyeOff size={12} />
-                        ) : (
-                          <Eye size={12} />
-                        )}
-                        {selectedPlano.visible ? t("planos.hide") : t("planos.show")}
-                      </button>
+                        {selectedPlano.visible ? t("planos.visible") : t("planos.hidden")}
+                      </span>
                     </div>
-
-                    {/* Inline description */}
-                    {editingDescripcion ? (
-                      <div className="flex items-start gap-2">
-                        <textarea
-                          value={descTemp}
-                          onChange={(e) => setDescTemp(e.target.value)}
-                          placeholder={t("planos.descriptionPlaceholder")}
-                          rows={2}
-                          className={`${inputClass} text-xs !py-1.5 flex-1 resize-none`}
-                          autoFocus
-                        />
-                        <button
-                          onClick={() => handleSaveDescripcion(selectedPlano.id, descTemp)}
-                          className="p-1.5 rounded-lg bg-[rgba(var(--site-primary-rgb),0.15)] text-[var(--site-primary)] hover:bg-[rgba(var(--site-primary-rgb),0.25)] transition-colors"
-                        >
-                          <Check size={12} />
-                        </button>
-                        <button
-                          onClick={() => setEditingDescripcion(false)}
-                          className="p-1.5 rounded-lg bg-[var(--surface-3)] text-[var(--text-tertiary)] hover:text-[var(--text-secondary)] transition-colors"
-                        >
-                          <X size={12} />
-                        </button>
-                      </div>
-                    ) : (
-                      <button
-                        onClick={() => {
-                          setDescTemp(selectedPlano.descripcion || "");
-                          setEditingDescripcion(true);
-                        }}
-                        className="group flex items-center gap-1.5 text-[11px] text-[var(--text-tertiary)] hover:text-[var(--text-secondary)] transition-colors"
-                      >
-                        <Pencil size={10} className="opacity-0 group-hover:opacity-100 transition-opacity" />
-                        {selectedPlano.descripcion
-                          ? <span className="text-[var(--text-secondary)] line-clamp-1">{selectedPlano.descripcion}</span>
-                          : <span className="italic">{t("planos.descriptionPlaceholder")}</span>
-                        }
-                      </button>
-                    )}
+                    <button
+                      onClick={() => handleToggleVisibility(selectedPlano)}
+                      disabled={togglingId === selectedPlano.id}
+                      className={btnSecondary}
+                    >
+                      {togglingId === selectedPlano.id ? (
+                        <Loader2 size={12} className="animate-spin" />
+                      ) : selectedPlano.visible ? (
+                        <EyeOff size={12} />
+                      ) : (
+                        <Eye size={12} />
+                      )}
+                      {selectedPlano.visible ? t("planos.hide") : t("planos.show")}
+                    </button>
                   </div>
 
                   {/* Tab navigation */}
@@ -539,12 +497,6 @@ export default function PlanoInteractivoPage() {
                         id: "info" as const,
                         label: "Información",
                         icon: Map,
-                        count: null,
-                      },
-                      {
-                        id: "amenidades" as const,
-                        label: "Amenidades",
-                        icon: Sparkles,
                         count: selectedPlano.amenidades_data?.length ?? 0,
                       },
                       {
@@ -568,7 +520,7 @@ export default function PlanoInteractivoPage() {
                         >
                           <tab.icon size={14} />
                           <span>{tab.label}</span>
-                          {tab.count !== null && tab.count > 0 && (
+                          {tab.count > 0 && (
                             <span
                               className={cn(
                                 "px-1.5 py-0.5 rounded-full text-[10px] font-bold",
