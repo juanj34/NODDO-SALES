@@ -15,6 +15,7 @@ import {
 import { FileUploader } from "@/components/dashboard/FileUploader";
 import type { PlanoPunto, Fachada, Torre } from "@/types";
 import { useTranslation } from "@/i18n";
+import { NodDoDropdown } from "@/components/ui/NodDoDropdown";
 
 /* ------------------------------------------------------------------
    Props
@@ -594,36 +595,37 @@ export function PlanoHotspotEditor({
                       {isMultiTorre ? t("planoHotspot.towerLabel") : t("planoHotspot.fachadaOrTower")}
                     </label>
                     {isMultiTorre ? (
-                      <select
+                      <NodDoDropdown
+                        variant="form"
+                        size="sm"
                         value={formTorreId}
-                        onChange={(e) => { setFormTorreId(e.target.value); setFormFachadaId(""); }}
-                        className={cn(
-                          inputClass,
-                          "text-xs !py-1.5",
-                          isImplantacionMultiTorre && !formTorreId && "!border-red-500/40"
-                        )}
-                      >
-                        <option value="">— {t("planoHotspot.selectTower")} —</option>
-                        {torres.map((torre) => {
-                          const isUsed = usedTorreIds.has(torre.id) && torre.id !== editingTorreId;
-                          return (
-                            <option key={torre.id} value={torre.id} disabled={isUsed}>
-                              {torre.nombre}{isUsed ? ` (${t("planoHotspot.assigned")})` : ""}
-                            </option>
-                          );
-                        })}
-                      </select>
+                        onChange={(val) => { setFormTorreId(val); setFormFachadaId(""); }}
+                        placeholder={`— ${t("planoHotspot.selectTower")} —`}
+                        error={isImplantacionMultiTorre && !formTorreId ? " " : undefined}
+                        options={[
+                          { value: "", label: `— ${t("planoHotspot.selectTower")} —` },
+                          ...torres.map((torre) => {
+                            const isUsed = usedTorreIds.has(torre.id) && torre.id !== editingTorreId;
+                            return {
+                              value: torre.id,
+                              label: `${torre.nombre}${isUsed ? ` (${t("planoHotspot.assigned")})` : ""}`,
+                              disabled: isUsed,
+                            };
+                          }),
+                        ]}
+                      />
                     ) : (
-                      <select
+                      <NodDoDropdown
+                        variant="form"
+                        size="sm"
                         value={formFachadaId}
-                        onChange={(e) => { setFormFachadaId(e.target.value); setFormTorreId(""); }}
-                        className={cn(inputClass, "text-xs !py-1.5")}
-                      >
-                        <option value="">{t("planoHotspot.unassigned")}</option>
-                        {fachadas.map((fachada) => (
-                          <option key={fachada.id} value={fachada.id}>{fachada.nombre}</option>
-                        ))}
-                      </select>
+                        onChange={(val) => { setFormFachadaId(val); setFormTorreId(""); }}
+                        placeholder={t("planoHotspot.unassigned")}
+                        options={[
+                          { value: "", label: t("planoHotspot.unassigned") },
+                          ...fachadas.map((fachada) => ({ value: fachada.id, label: fachada.nombre })),
+                        ]}
+                      />
                     )}
                   </div>
                 </>

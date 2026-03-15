@@ -46,6 +46,7 @@ function isAuthorizedCronRequest(request: NextRequest): boolean {
 interface AdminDigestTarget {
   userId: string;
   email: string;
+  locale: "es" | "en";
   projectIds: string[];
   projectNames: string[];
 }
@@ -83,6 +84,16 @@ async function getDigestRecipients(): Promise<AdminDigestTarget[]> {
 
   if (enabledOwnerIds.length === 0) return [];
 
+  // Get locale preferences for all enabled owners
+  const { data: profiles } = await supabase
+    .from("user_profiles")
+    .select("id, locale")
+    .in("id", enabledOwnerIds);
+
+  const localeMap = new Map(
+    (profiles || []).map((p) => [p.id, p.locale as "es" | "en"])
+  );
+
   // Get emails for enabled owners
   const recipients: AdminDigestTarget[] = [];
 
@@ -92,6 +103,7 @@ async function getDigestRecipients(): Promise<AdminDigestTarget[]> {
 
     const cfg = configMap.get(userId);
     const email = cfg?.email_override || userData.user.email;
+    const locale = localeMap.get(userId) || "es";
 
     // Get this admin's projects
     const { data: projects } = await supabase
@@ -104,6 +116,7 @@ async function getDigestRecipients(): Promise<AdminDigestTarget[]> {
     recipients.push({
       userId,
       email,
+      locale,
       projectIds: projects.map((p) => p.id),
       projectNames: projects.map((p) => p.nombre),
     });
@@ -182,14 +195,14 @@ async function getAdminActivitySummary(projectIds: string[]) {
 
   const { data: activities } = await supabase
     .from("activity_logs")
-    .select("action_category, description")
+    .select("action_category, description, description_en")
     .in("proyecto_id", projectIds)
     .gte("created_at", yesterday)
     .order("created_at", { ascending: false })
     .limit(200);
 
   if (!activities || activities.length === 0) {
-    return { total: 0, byCategory: {} as Record<string, number>, recent: [] as string[] };
+    return { total: 0, byCategory: {} as Record<string, number>, recentEs: [] as string[], recentEn: [] as string[] };
   }
 
   const byCategory: Record<string, number> = {};
@@ -197,9 +210,11 @@ async function getAdminActivitySummary(projectIds: string[]) {
     byCategory[a.action_category] = (byCategory[a.action_category] || 0) + 1;
   }
 
-  const recent = activities.slice(0, 5).map((a) => a.description);
+  const top5 = activities.slice(0, 5);
+  const recentEs = top5.map((a) => a.description);
+  const recentEn = top5.map((a) => a.description_en || a.description);
 
-  return { total: activities.length, byCategory, recent };
+  return { total: activities.length, byCategory, recentEs, recentEn };
 }
 
 /**
@@ -244,6 +259,48 @@ type ActivitySummary = Awaited<ReturnType<typeof getAdminActivitySummary>>;
 type PlatformStats = Awaited<ReturnType<typeof getPlatformStats>> | null;
 
 /**
+ * Email copy in both languages
+ */
+const EMAIL_COPY = {
+  es: {
+    title: "NODDO - Resumen Diario",
+    keyMetrics: "Metricas Clave",
+    leads24h: "Leads (ultimas 24h)",
+    publishedProjects: "Proyectos Publicados",
+    inventoryChanges: "Cambios de inventario",
+    quotesGenerated: "Cotizaciones generadas",
+    activitySummary: (n: number) => `Resumen de Actividad (${n} acciones)`,
+    recentActions: "Ultimas acciones:",
+    platform: "Plataforma",
+    rateLimitBlocked: "Rate limiting bloqueados",
+    errors24h: "Errores (ultimas 24h)",
+    goToDashboard: "Ir a tu Dashboard",
+    viewActivityLog: "Ver Bitacora completa",
+    footer: "Recibes este email porque tienes habilitado el resumen diario.",
+    disableLink: "Desactivar en Cuenta &rarr; Notificaciones",
+    catLabels: { project: "Proyectos", unit: "Unidades", lead: "Leads", cotizacion: "Cotizaciones", gallery: "Galeria", video: "Videos", tipologia: "Tipologias", colaborador: "Colaboradores", content: "Contenido", other: "Otros" } as Record<string, string>,
+  },
+  en: {
+    title: "NODDO - Daily Digest",
+    keyMetrics: "Key Metrics",
+    leads24h: "Leads (last 24h)",
+    publishedProjects: "Published Projects",
+    inventoryChanges: "Inventory changes",
+    quotesGenerated: "Quotes generated",
+    activitySummary: (n: number) => `Activity Summary (${n} actions)`,
+    recentActions: "Recent actions:",
+    platform: "Platform",
+    rateLimitBlocked: "Rate limit blocked",
+    errors24h: "Errors (last 24h)",
+    goToDashboard: "Go to Dashboard",
+    viewActivityLog: "View Activity Log",
+    footer: "You receive this email because you have the daily digest enabled.",
+    disableLink: "Disable in Account &rarr; Notifications",
+    catLabels: { project: "Projects", unit: "Units", lead: "Leads", cotizacion: "Quotes", gallery: "Gallery", video: "Videos", tipologia: "Types", colaborador: "Collaborators", content: "Content", other: "Other" } as Record<string, string>,
+  },
+};
+
+/**
  * Generate personalized HTML email
  */
 function generateEmailHTML(
@@ -251,8 +308,11 @@ function generateEmailHTML(
   activitySummary: ActivitySummary,
   platformStats: PlatformStats,
   date: string,
+  locale: "es" | "en",
 ) {
   const { leads, projects, unitChanges, cotizaciones } = metrics;
+  const t = EMAIL_COPY[locale];
+  const recent = locale === "en" ? activitySummary.recentEn : activitySummary.recentEs;
 
   const leadsEmoji = leads.change > 0 ? "📈" : leads.change < 0 ? "📉" : "➡️";
   const leadsColor = leads.change > 0 ? "#10b981" : leads.change < 0 ? "#ef4444" : "#6b7280";
@@ -263,7 +323,7 @@ function generateEmailHTML(
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>NODDO - Resumen Diario</title>
+  <title>${t.title}</title>
 </head>
 <body style="margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; background-color: #f3f4f6;">
   <table role="presentation" style="width: 100%; border-collapse: collapse;">
@@ -275,7 +335,7 @@ function generateEmailHTML(
           <tr>
             <td style="padding: 40px 40px 20px; background: linear-gradient(135deg, #b8973a 0%, #d4b05a 100%); border-radius: 8px 8px 0 0;">
               <h1 style="margin: 0; color: #1a1a1a; font-size: 28px; font-weight: 600;">
-                NODDO - Resumen Diario
+                ${t.title}
               </h1>
               <p style="margin: 8px 0 0; color: #2a2a2a; font-size: 14px; opacity: 0.9;">
                 ${date}
@@ -287,14 +347,14 @@ function generateEmailHTML(
           <tr>
             <td style="padding: 30px 40px;">
               <h2 style="margin: 0 0 20px; color: #1a1a1a; font-size: 18px; font-weight: 600;">
-                Metricas Clave
+                ${t.keyMetrics}
               </h2>
 
               <table role="presentation" style="width: 100%; border-collapse: collapse;">
                 <tr>
                   <td style="padding: 16px; background-color: #f9fafb; border-radius: 6px;">
                     <div style="display: flex; justify-content: space-between; align-items: center;">
-                      <span style="color: #6b7280; font-size: 14px;">Leads (ultimas 24h)</span>
+                      <span style="color: #6b7280; font-size: 14px;">${t.leads24h}</span>
                       <div style="text-align: right;">
                         <strong style="color: #1a1a1a; font-size: 24px;">${leads.today}</strong>
                         <span style="color: ${leadsColor}; font-size: 14px; margin-left: 8px;">
@@ -310,7 +370,7 @@ function generateEmailHTML(
                 <tr>
                   <td style="padding: 16px; background-color: #f9fafb; border-radius: 6px;">
                     <div style="display: flex; justify-content: space-between; align-items: center;">
-                      <span style="color: #6b7280; font-size: 14px;">Proyectos Publicados</span>
+                      <span style="color: #6b7280; font-size: 14px;">${t.publishedProjects}</span>
                       <strong style="color: #1a1a1a; font-size: 24px;">
                         ${projects.published} <span style="color: #6b7280; font-size: 14px;">/ ${projects.total}</span>
                       </strong>
@@ -323,7 +383,7 @@ function generateEmailHTML(
                 <tr>
                   <td style="padding: 16px; background-color: #f9fafb; border-radius: 6px;">
                     <div style="display: flex; justify-content: space-between; align-items: center;">
-                      <span style="color: #6b7280; font-size: 14px;">Cambios de inventario</span>
+                      <span style="color: #6b7280; font-size: 14px;">${t.inventoryChanges}</span>
                       <strong style="color: #1a1a1a; font-size: 24px;">${unitChanges}</strong>
                     </div>
                   </td>
@@ -334,7 +394,7 @@ function generateEmailHTML(
                 <tr>
                   <td style="padding: 16px; background-color: #f9fafb; border-radius: 6px;">
                     <div style="display: flex; justify-content: space-between; align-items: center;">
-                      <span style="color: #6b7280; font-size: 14px;">Cotizaciones generadas</span>
+                      <span style="color: #6b7280; font-size: 14px;">${t.quotesGenerated}</span>
                       <strong style="color: #1a1a1a; font-size: 24px;">${cotizaciones}</strong>
                     </div>
                   </td>
@@ -348,31 +408,25 @@ function generateEmailHTML(
           <tr>
             <td style="padding: 0 40px 30px;">
               <h2 style="margin: 0 0 20px; color: #1a1a1a; font-size: 18px; font-weight: 600;">
-                Resumen de Actividad (${activitySummary.total} acciones)
+                ${t.activitySummary(activitySummary.total)}
               </h2>
 
               <table role="presentation" style="width: 100%; border-collapse: collapse;">
                 <tr>
                   <td style="padding: 12px 16px; background-color: #f9fafb; border-radius: 6px;">
                     ${Object.entries(activitySummary.byCategory).map(([cat, count]) => {
-                      const labels: Record<string, string> = {
-                        project: "Proyectos", unit: "Unidades", lead: "Leads",
-                        cotizacion: "Cotizaciones", gallery: "Galeria", video: "Videos",
-                        tipologia: "Tipologias", colaborador: "Colaboradores",
-                        content: "Contenido", other: "Otros",
-                      };
                       return `<span style="display: inline-block; margin: 3px 6px 3px 0; padding: 4px 10px; background-color: #e5e7eb; border-radius: 12px; font-size: 12px; color: #374151;">
-                        ${labels[cat] || cat}: <strong>${count}</strong>
+                        ${t.catLabels[cat] || cat}: <strong>${count}</strong>
                       </span>`;
                     }).join("")}
                   </td>
                 </tr>
               </table>
 
-              ${activitySummary.recent.length > 0 ? `
+              ${recent.length > 0 ? `
               <div style="margin-top: 12px;">
-                <p style="margin: 0 0 8px; color: #6b7280; font-size: 12px; font-weight: 600;">Ultimas acciones:</p>
-                ${activitySummary.recent.map((desc) => `
+                <p style="margin: 0 0 8px; color: #6b7280; font-size: 12px; font-weight: 600;">${t.recentActions}</p>
+                ${recent.map((desc) => `
                   <div style="padding: 6px 0; border-bottom: 1px solid #f3f4f6; font-size: 12px; color: #4b5563;">
                     &bull; ${desc}
                   </div>
@@ -388,7 +442,7 @@ function generateEmailHTML(
           <tr>
             <td style="padding: 0 40px 30px;">
               <h2 style="margin: 0 0 20px; color: #1a1a1a; font-size: 18px; font-weight: 600;">
-                Plataforma
+                ${t.platform}
               </h2>
 
               <table role="presentation" style="width: 100%; border-collapse: collapse;">
@@ -396,7 +450,7 @@ function generateEmailHTML(
                 <tr>
                   <td style="padding: 12px 0;">
                     <div style="display: flex; justify-content: space-between;">
-                      <span style="color: #6b7280; font-size: 13px;">Rate limiting bloqueados</span>
+                      <span style="color: #6b7280; font-size: 13px;">${t.rateLimitBlocked}</span>
                       <span style="color: #ef4444; font-size: 13px; font-weight: 500;">
                         ${platformStats.redis.rateLimitBlocked} requests
                       </span>
@@ -408,7 +462,7 @@ function generateEmailHTML(
                 <tr>
                   <td style="padding: 12px 0;">
                     <div style="display: flex; justify-content: space-between;">
-                      <span style="color: #6b7280; font-size: 13px;">Errores (ultimas 24h)</span>
+                      <span style="color: #6b7280; font-size: 13px;">${t.errors24h}</span>
                       <span style="color: ${platformStats.errors.count > 0 ? "#ef4444" : "#10b981"}; font-size: 13px; font-weight: 500;">
                         ${platformStats.errors.count}
                       </span>
@@ -441,7 +495,7 @@ function generateEmailHTML(
                   <td style="padding: 8px 0;">
                     <a href="https://noddo.io/dashboard"
                        style="color: #b8973a; text-decoration: none; font-size: 14px;">
-                      &rarr; Ir a tu Dashboard
+                      &rarr; ${t.goToDashboard}
                     </a>
                   </td>
                 </tr>
@@ -449,7 +503,7 @@ function generateEmailHTML(
                   <td style="padding: 8px 0;">
                     <a href="https://noddo.io/bitacora"
                        style="color: #b8973a; text-decoration: none; font-size: 14px;">
-                      &rarr; Ver Bitacora completa
+                      &rarr; ${t.viewActivityLog}
                     </a>
                   </td>
                 </tr>
@@ -461,9 +515,9 @@ function generateEmailHTML(
           <tr>
             <td style="padding: 20px 40px; background-color: #f9fafb; border-radius: 0 0 8px 8px; text-align: center;">
               <p style="margin: 0; color: #6b7280; font-size: 12px;">
-                Recibes este email porque tienes habilitado el resumen diario.<br>
+                ${t.footer}<br>
                 <a href="https://noddo.io/cuenta" style="color: #b8973a; text-decoration: none;">
-                  Desactivar en Cuenta &rarr; Notificaciones
+                  ${t.disableLink}
                 </a>
               </p>
             </td>
@@ -495,14 +549,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const today = new Date().toLocaleDateString("es-CO", {
-      weekday: "long",
-      year: "numeric",
-      month: "long",
-      day: "numeric",
-    });
-
-    console.log("[daily-digest] Generating daily digest for:", today);
+    console.log("[daily-digest] Generating daily digests");
 
     // Get all opted-in admins
     const recipients = await getDigestRecipients();
@@ -537,17 +584,26 @@ export async function POST(request: NextRequest) {
         const includePlatformStats =
           recipient.email === PLATFORM_ADMIN_EMAIL ? platformStats : null;
 
+        // Format date in recipient's locale
+        const dateFmt = recipient.locale === "en" ? "en-US" : "es-CO";
+        const dateStr = new Date().toLocaleDateString(dateFmt, {
+          weekday: "long", year: "numeric", month: "long", day: "numeric",
+        });
+        const shortDate = new Date().toLocaleDateString(dateFmt, { day: "numeric", month: "short" });
+        const subjectPrefix = recipient.locale === "en" ? "NODDO - Daily Digest" : "NODDO - Resumen Diario";
+
         const htmlContent = generateEmailHTML(
           metrics,
           activitySummary,
           includePlatformStats,
-          today,
+          dateStr,
+          recipient.locale,
         );
 
         const { error } = await resend.emails.send({
           from: "NODDO <analytics@noddo.io>",
           to: [recipient.email],
-          subject: `NODDO - Resumen Diario (${new Date().toLocaleDateString("es-CO", { day: "numeric", month: "short" })})`,
+          subject: `${subjectPrefix} (${shortDate})`,
           html: htmlContent,
         });
 

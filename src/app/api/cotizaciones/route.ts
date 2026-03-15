@@ -3,7 +3,8 @@ import { createClient } from "@supabase/supabase-js";
 import sharp from "sharp";
 import { calcularCotizacion, buildPrecioBaseComplementos } from "@/lib/cotizador/calcular";
 import { generarPDF } from "@/lib/cotizador/generar-pdf";
-import { sendCotizacionBuyer, sendCotizacionAdmin } from "@/lib/email";
+import { sendCotizacionBuyer, sendCotizacionAdmin, getUserLocale } from "@/lib/email";
+import type { EmailLocale } from "@/lib/email-i18n";
 import { isRateLimited, apiLimiter } from "@/lib/rate-limit";
 import { getWebhookConfig, dispatchWebhook } from "@/lib/webhooks";
 import type { WebhookPayload } from "@/lib/webhooks";
@@ -205,7 +206,7 @@ export async function POST(request: NextRequest) {
     // Fetch project with cotizador config
     const { data: proyecto, error: projErr } = await supabase
       .from("proyectos")
-      .select("id, nombre, constructora_nombre, constructora_logo_url, color_primario, cotizador_enabled, cotizador_config, user_id, render_principal_url, tour_360_url, whatsapp_numero, disclaimer, parqueaderos_mode, depositos_mode, parqueaderos_precio_base, depositos_precio_base")
+      .select("id, nombre, constructora_nombre, constructora_logo_url, color_primario, cotizador_enabled, cotizador_config, user_id, render_principal_url, tour_360_url, whatsapp_numero, disclaimer, parqueaderos_mode, depositos_mode, parqueaderos_precio_base, depositos_precio_base, idioma")
       .eq("id", proyecto_id)
       .single();
 
@@ -347,7 +348,9 @@ export async function POST(request: NextRequest) {
 
     // Generate PDF
     const now = new Date();
-    const fecha = now.toLocaleDateString("es-CO", { day: "numeric", month: "long", year: "numeric" });
+    const projectLocale: EmailLocale = (proyecto.idioma as EmailLocale) || "es";
+    const dateIntlLocale = projectLocale === "en" ? "en-US" : "es-CO";
+    const fecha = now.toLocaleDateString(dateIntlLocale, { day: "numeric", month: "long", year: "numeric" });
     const cotizacionId = crypto.randomUUID();
     const refNumber = `COT-${now.getFullYear()}-${cotizacionId.slice(0, 4).toUpperCase()}`;
 
@@ -384,6 +387,7 @@ export async function POST(request: NextRequest) {
       pdfSaludo: config.pdf_saludo ?? null,
       pdfDespedida: config.pdf_despedida ?? null,
       fechaEstimadaEntrega: config.fecha_estimada_entrega ?? null,
+      idioma: projectLocale,
     });
 
     // Snapshot unit data
@@ -487,7 +491,7 @@ export async function POST(request: NextRequest) {
     // Send emails (async, non-blocking)
     const totalFormatted = formatCurrency(resultado.precio_total ?? resultado.precio_neto, moneda);
 
-    // Email to buyer with PDF
+    // Email to buyer with PDF (project's language)
     sendCotizacionBuyer({
       buyerEmail: sanitize(email, 320),
       buyerName: sanitize(nombre, 200),
@@ -495,11 +499,13 @@ export async function POST(request: NextRequest) {
       unidadId: unit.identificador,
       totalFormatted,
       pdfBuffer,
+      locale: projectLocale,
     }).catch((err) => console.error("[cotizaciones] Buyer email failed:", err));
 
-    // Email to admin
+    // Email to admin (admin's language)
     const { data: adminUser } = await supabase.auth.admin.getUserById(proyecto.user_id);
     if (adminUser?.user?.email) {
+      const adminLocale = await getUserLocale(supabase, proyecto.user_id);
       sendCotizacionAdmin({
         adminEmail: adminUser.user.email,
         projectName: proyecto.nombre,
@@ -508,6 +514,7 @@ export async function POST(request: NextRequest) {
         buyerPhone: telefono ? sanitize(telefono, 30) : null,
         unidadId: unit.identificador,
         totalFormatted,
+        locale: adminLocale,
       }).catch((err) => console.error("[cotizaciones] Admin email failed:", err));
     }
 

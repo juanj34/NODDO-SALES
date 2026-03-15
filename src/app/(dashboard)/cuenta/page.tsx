@@ -2,7 +2,7 @@
 
 export const dynamic = "force-dynamic";
 
-import { useState } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { motion } from "framer-motion";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
@@ -57,6 +57,50 @@ export default function CuentaPage() {
   const [deleteConfirmEmail, setDeleteConfirmEmail] = useState("");
   const [deleteLoading, setDeleteLoading] = useState(false);
   const [deleteError, setDeleteError] = useState<string | null>(null);
+
+  // Notification preferences state
+  const [notifLoading, setNotifLoading] = useState(true);
+  const [notifSaving, setNotifSaving] = useState(false);
+  const [notifSuccess, setNotifSuccess] = useState(false);
+  const [notifError, setNotifError] = useState<string | null>(null);
+  const [dailyDigest, setDailyDigest] = useState(true);
+  const [weeklyReport, setWeeklyReport] = useState(true);
+  const [monthlyReport, setMonthlyReport] = useState(true);
+
+  // Fetch notification preferences
+  useEffect(() => {
+    if (role !== "admin") { setNotifLoading(false); return; }
+    fetch("/api/user/email-reports")
+      .then((r) => r.json())
+      .then((data) => {
+        setDailyDigest(data.daily_digest_enabled ?? true);
+        setWeeklyReport(data.weekly_enabled ?? true);
+        setMonthlyReport(data.monthly_enabled ?? true);
+      })
+      .catch(() => {})
+      .finally(() => setNotifLoading(false));
+  }, [role]);
+
+  const saveNotifPref = useCallback(async (field: string, value: boolean) => {
+    setNotifSaving(true);
+    setNotifError(null);
+    setNotifSuccess(false);
+    try {
+      const res = await fetch("/api/user/email-reports", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ [field]: value }),
+      });
+      if (!res.ok) throw new Error("Error");
+      setNotifSuccess(true);
+      setTimeout(() => setNotifSuccess(false), 2500);
+    } catch {
+      setNotifError(t("cuenta.notificationsError"));
+      setTimeout(() => setNotifError(null), 3000);
+    } finally {
+      setNotifSaving(false);
+    }
+  }, [t]);
 
   const handlePasswordChange = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -225,6 +269,139 @@ export default function CuentaPage() {
             </div>
           </div>
         </section>
+
+        {/* Notifications Section (admin only) */}
+        {role === "admin" && (
+          <section className="glass-card p-6 mb-6">
+            <div className="flex items-center gap-2 mb-4">
+              <Bell size={16} className="text-[var(--site-primary)]" />
+              <h2 className="font-ui text-xs font-bold uppercase tracking-[0.1em] text-[var(--text-secondary)]">
+                {t("cuenta.notificationsSection")}
+              </h2>
+            </div>
+
+            {notifSuccess && (
+              <motion.div
+                initial={{ opacity: 0, y: -8 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="mb-4 p-3 rounded-xl flex items-center gap-2"
+                style={{
+                  background: "rgba(52, 211, 153, 0.08)",
+                  border: "1px solid rgba(52, 211, 153, 0.2)",
+                }}
+              >
+                <CheckCircle size={14} className="text-emerald-400" />
+                <span className="font-mono text-xs text-emerald-300 font-light">
+                  {t("cuenta.notificationsSaved")}
+                </span>
+              </motion.div>
+            )}
+
+            {notifError && (
+              <motion.div
+                initial={{ opacity: 0, y: -8 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="mb-4 p-3 rounded-xl flex items-center gap-2"
+                style={{
+                  background: "rgba(239, 68, 68, 0.08)",
+                  border: "1px solid rgba(239, 68, 68, 0.2)",
+                }}
+              >
+                <AlertTriangle size={14} className="text-red-400" />
+                <span className="font-mono text-xs text-red-300 font-light">
+                  {notifError}
+                </span>
+              </motion.div>
+            )}
+
+            {notifLoading ? (
+              <div className="flex items-center gap-2 py-4">
+                <Loader2 size={14} className="animate-spin text-[var(--text-muted)]" />
+                <span className="font-mono text-xs text-[var(--text-muted)]">Cargando...</span>
+              </div>
+            ) : (
+              <div className="space-y-4">
+                {/* Daily Digest */}
+                <label className="flex items-start gap-3 cursor-pointer group">
+                  <div className="relative mt-0.5">
+                    <input
+                      type="checkbox"
+                      checked={dailyDigest}
+                      disabled={notifSaving}
+                      onChange={(e) => {
+                        setDailyDigest(e.target.checked);
+                        saveNotifPref("daily_digest_enabled", e.target.checked);
+                      }}
+                      className="sr-only peer"
+                    />
+                    <div className="w-9 h-5 rounded-full bg-[var(--surface-3)] border border-[var(--border-default)] peer-checked:bg-[rgba(var(--site-primary-rgb),0.3)] peer-checked:border-[var(--site-primary)] transition-colors" />
+                    <div className="absolute left-0.5 top-0.5 w-4 h-4 rounded-full bg-[var(--text-muted)] peer-checked:bg-[var(--site-primary)] peer-checked:translate-x-4 transition-all" />
+                  </div>
+                  <div className="flex-1">
+                    <span className="font-mono text-sm text-[var(--text-primary)] font-light block">
+                      {t("cuenta.dailyDigest")}
+                    </span>
+                    <span className="font-mono text-[11px] text-[var(--text-muted)] font-light">
+                      {t("cuenta.dailyDigestDescription")}
+                    </span>
+                  </div>
+                </label>
+
+                {/* Weekly Report */}
+                <label className="flex items-start gap-3 cursor-pointer group">
+                  <div className="relative mt-0.5">
+                    <input
+                      type="checkbox"
+                      checked={weeklyReport}
+                      disabled={notifSaving}
+                      onChange={(e) => {
+                        setWeeklyReport(e.target.checked);
+                        saveNotifPref("weekly_enabled", e.target.checked);
+                      }}
+                      className="sr-only peer"
+                    />
+                    <div className="w-9 h-5 rounded-full bg-[var(--surface-3)] border border-[var(--border-default)] peer-checked:bg-[rgba(var(--site-primary-rgb),0.3)] peer-checked:border-[var(--site-primary)] transition-colors" />
+                    <div className="absolute left-0.5 top-0.5 w-4 h-4 rounded-full bg-[var(--text-muted)] peer-checked:bg-[var(--site-primary)] peer-checked:translate-x-4 transition-all" />
+                  </div>
+                  <div className="flex-1">
+                    <span className="font-mono text-sm text-[var(--text-primary)] font-light block">
+                      {t("cuenta.weeklyReport")}
+                    </span>
+                    <span className="font-mono text-[11px] text-[var(--text-muted)] font-light">
+                      {t("cuenta.weeklyReportDescription")}
+                    </span>
+                  </div>
+                </label>
+
+                {/* Monthly Report */}
+                <label className="flex items-start gap-3 cursor-pointer group">
+                  <div className="relative mt-0.5">
+                    <input
+                      type="checkbox"
+                      checked={monthlyReport}
+                      disabled={notifSaving}
+                      onChange={(e) => {
+                        setMonthlyReport(e.target.checked);
+                        saveNotifPref("monthly_enabled", e.target.checked);
+                      }}
+                      className="sr-only peer"
+                    />
+                    <div className="w-9 h-5 rounded-full bg-[var(--surface-3)] border border-[var(--border-default)] peer-checked:bg-[rgba(var(--site-primary-rgb),0.3)] peer-checked:border-[var(--site-primary)] transition-colors" />
+                    <div className="absolute left-0.5 top-0.5 w-4 h-4 rounded-full bg-[var(--text-muted)] peer-checked:bg-[var(--site-primary)] peer-checked:translate-x-4 transition-all" />
+                  </div>
+                  <div className="flex-1">
+                    <span className="font-mono text-sm text-[var(--text-primary)] font-light block">
+                      {t("cuenta.monthlyReport")}
+                    </span>
+                    <span className="font-mono text-[11px] text-[var(--text-muted)] font-light">
+                      {t("cuenta.monthlyReportDescription")}
+                    </span>
+                  </div>
+                </label>
+              </div>
+            )}
+          </section>
+        )}
 
         {/* Change Email Section */}
         <section className="glass-card p-6 mb-6">

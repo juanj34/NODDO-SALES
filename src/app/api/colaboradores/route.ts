@@ -1,6 +1,6 @@
 import { getAuthContext } from "@/lib/auth-context";
 import { createAdminClient } from "@/lib/supabase/admin";
-import { sendCollaboratorInvite } from "@/lib/email";
+import { sendCollaboratorInvite, getUserLocale } from "@/lib/email";
 import { checkCollaboratorLimit } from "@/lib/plan-limits";
 import { NextRequest, NextResponse } from "next/server";
 
@@ -123,10 +123,12 @@ export async function POST(request: NextRequest) {
       throw error;
     }
 
-    // Send invite email (non-blocking)
+    // Send invite email (non-blocking, admin's locale)
+    const adminLocale = await getUserLocale(auth.supabase, auth.user.id);
     sendCollaboratorInvite({
       email: email.toLowerCase(),
       inviterName: auth.user.email || "Un administrador",
+      locale: adminLocale,
     }).catch((err) => console.error("[collab] invite email error:", err));
 
     return NextResponse.json(data, { status: 201 });

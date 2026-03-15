@@ -29,7 +29,7 @@ export async function POST(
     // Fetch cotización with project data
     const { data: cotizacion, error } = await supabase
       .from("cotizaciones")
-      .select("*, proyectos(nombre, user_id)")
+      .select("*, proyectos(nombre, user_id, idioma)")
       .eq("id", id)
       .single();
 
@@ -57,7 +57,7 @@ export async function POST(
     const moneda = (cotizacion.config_snapshot?.moneda || "COP") as Currency;
     const totalFormatted = formatCurrency(cotizacion.resultado.precio_neto, moneda);
 
-    // Resend email
+    // Resend email (project's language)
     await sendCotizacionBuyer({
       buyerEmail: cotizacion.email,
       buyerName: cotizacion.nombre,
@@ -65,6 +65,7 @@ export async function POST(
       unidadId: cotizacion.unidad_snapshot.identificador,
       totalFormatted,
       pdfBuffer,
+      locale: cotizacion.proyectos.idioma || "es",
     });
 
     return NextResponse.json({ success: true });

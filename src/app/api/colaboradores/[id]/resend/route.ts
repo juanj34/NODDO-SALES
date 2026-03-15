@@ -1,5 +1,5 @@
 import { getAuthContext } from "@/lib/auth-context";
-import { sendCollaboratorInvite } from "@/lib/email";
+import { sendCollaboratorInvite, getUserLocale } from "@/lib/email";
 import { NextRequest, NextResponse } from "next/server";
 
 export async function POST(
@@ -30,9 +30,11 @@ export async function POST(
       return NextResponse.json({ error: "Solo se puede reenviar a invitaciones pendientes" }, { status: 400 });
     }
 
+    const adminLocale = await getUserLocale(auth.supabase, auth.user.id);
     await sendCollaboratorInvite({
       email: colab.email,
       inviterName: auth.user.email || "Un administrador",
+      locale: adminLocale,
     });
 
     return NextResponse.json({ ok: true });

@@ -2,7 +2,7 @@ import { createServerClient, type CookieOptions } from "@supabase/ssr";
 import { cookies } from "next/headers";
 import { NextResponse, type NextRequest } from "next/server";
 import { linkPendingCollaborator } from "@/lib/auth-context";
-import { sendWelcomeEmail } from "@/lib/email";
+import { sendWelcomeEmail, getUserLocale } from "@/lib/email";
 
 export async function GET(request: NextRequest) {
   const { searchParams, origin } = new URL(request.url);
@@ -60,10 +60,12 @@ export async function GET(request: NextRequest) {
             .eq("user_id", user.id)
             .single();
 
+          const userLocale = await getUserLocale(supabase, user.id);
           sendWelcomeEmail({
             email: user.email,
             name: user.user_metadata?.full_name || user.email.split("@")[0],
             plan: userPlan?.plan as "basic" | "premium" | "enterprise" | undefined,
+            locale: userLocale,
           }).catch(() => {});
         }
       }

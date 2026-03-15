@@ -66,6 +66,7 @@ export interface Proyecto {
   etapa_label: string;
   background_audio_url: string | null;
   hide_noddo_badge: boolean;
+  idioma: "es" | "en";
   moneda_base: Currency;
   unidad_medida_base: UnitOfMeasurement;
   cotizador_enabled: boolean;

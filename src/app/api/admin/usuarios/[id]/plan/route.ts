@@ -2,7 +2,7 @@ import { getAuthContext } from "@/lib/auth-context";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { logAdminAction } from "@/lib/admin-audit";
 import { PLAN_DEFAULTS, type Plan } from "@/lib/plan-limits";
-import { sendPlanUpgrade } from "@/lib/email";
+import { sendPlanUpgrade, getUserLocale } from "@/lib/email";
 import { NextRequest, NextResponse } from "next/server";
 
 const VALID_PLANS: Plan[] = ["proyecto", "studio", "enterprise"];
@@ -87,6 +87,7 @@ export async function PUT(
   if (oldPlan && oldPlan !== plan) {
     const { data: user } = await admin.auth.admin.getUserById(userId);
     if (user?.user?.email) {
+      const targetLocale = await getUserLocale(admin, userId);
       sendPlanUpgrade({
         email: user.user.email,
         name: user.user.user_metadata?.full_name || user.user.email.split("@")[0],
@@ -94,6 +95,7 @@ export async function PUT(
         newPlan: plan as "basic" | "premium" | "enterprise",
         maxProjects: finalMaxProjects,
         maxUnits: finalMaxUnits,
+        locale: targetLocale,
       }).catch((err) => {
         console.error("[admin/plan] Failed to send upgrade email:", err);
       });

@@ -130,6 +130,10 @@ const editor = {
       backgroundHint: "Fondo general del micrositio",
     },
     advanced: {
+      languageTitle: "Idioma y Region",
+      languageDescription: "Idioma de las comunicaciones del micrositio: emails, PDFs y cotizaciones para los clientes",
+      micrositeLanguage: "Idioma del micrositio",
+      micrositeLanguageHint: "Afecta los emails de confirmacion, cotizaciones PDF y toda comunicacion enviada a los clientes de este proyecto.",
       legalTitle: "Legal",
       legalDescription: "Texto legal que aparece en el pie de página del micrositio",
       disclaimer: "Disclaimer",

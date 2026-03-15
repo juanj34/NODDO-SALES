@@ -1,7 +1,8 @@
 import { createClient } from "@/lib/supabase/server";
 import { getAuthContext } from "@/lib/auth-context";
 import { createAdminClient } from "@/lib/supabase/admin";
-import { sendLeadNotification, sendLeadConfirmation } from "@/lib/email";
+import { sendLeadNotification, sendLeadConfirmation, getUserLocale } from "@/lib/email";
+import type { EmailLocale } from "@/lib/email-i18n";
 import { leadLimiter, checkRateLimit, rateLimitExceeded } from "@/lib/rate-limit";
 import { getWebhookConfig, dispatchWebhook } from "@/lib/webhooks";
 import { verifyRecaptcha, getRecaptchaToken } from "@/lib/recaptcha";
@@ -114,22 +115,25 @@ async function sendLeadNotificationAsync(
   try {
     const adminSupabase = createAdminClient();
 
-    // Fetch project name and owner
+    // Fetch project name, owner, and idioma
     const { data: proyecto } = await adminSupabase
       .from("proyectos")
-      .select("nombre, user_id")
+      .select("nombre, user_id, idioma")
       .eq("id", projectId)
       .single();
 
     if (!proyecto) return;
 
-    // Fetch admin email
+    // Fetch admin email + locale
     const { data: userData } = await adminSupabase.auth.admin.getUserById(proyecto.user_id);
     if (!userData?.user?.email) return;
+
+    const adminLocale = await getUserLocale(adminSupabase, proyecto.user_id);
 
     await sendLeadNotification({
       adminEmail: userData.user.email,
       projectName: proyecto.nombre,
+      locale: adminLocale,
       ...leadData,
     });
   } catch (err) {
@@ -142,7 +146,7 @@ async function sendLeadConfirmationAsync(projectId: string, name: string, email:
     const adminSupabase = createAdminClient();
     const { data: proyecto } = await adminSupabase
       .from("proyectos")
-      .select("nombre")
+      .select("nombre, idioma")
       .eq("id", projectId)
       .single();
     if (!proyecto) return;
@@ -151,6 +155,7 @@ async function sendLeadConfirmationAsync(projectId: string, name: string, email:
       email,
       name,
       projectName: proyecto.nombre,
+      locale: (proyecto.idioma as EmailLocale) || "es",
     });
   } catch (err) {
     console.error("[leads] Error sending lead confirmation:", err);

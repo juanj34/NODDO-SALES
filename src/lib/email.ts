@@ -1,4 +1,5 @@
 import { Resend } from "resend";
+import { type EmailLocale, getEmailStrings, t, dateLocale } from "./email-i18n";
 
 // Lazy initialization - only create when needed (avoids build-time errors)
 function getResend() {
@@ -7,6 +8,14 @@ function getResend() {
   }
   return new Resend(process.env.RESEND_API_KEY);
 }
+
+const PLAN_LABELS: Record<string, string> = {
+  basic: "Basic",
+  premium: "Premium",
+  enterprise: "Enterprise",
+};
+
+/* ── Lead notification: sent to admin when a new lead comes in ─────── */
 
 interface LeadNotificationData {
   adminEmail: string;
@@ -17,6 +26,7 @@ interface LeadNotificationData {
   leadTypology?: string | null;
   leadMessage?: string | null;
   leadCountry?: string | null;
+  locale?: EmailLocale;
 }
 
 export async function sendLeadNotification(data: LeadNotificationData) {
@@ -26,30 +36,33 @@ export async function sendLeadNotification(data: LeadNotificationData) {
     return;
   }
 
+  const locale = data.locale || "es";
+  const s = getEmailStrings(locale);
   const fromAddress = process.env.RESEND_FROM_EMAIL || "NODDO <notificaciones@noddo.io>";
   const appUrl = process.env.NEXT_PUBLIC_APP_URL || "https://noddo.io";
 
   const rows = [
-    { label: "Nombre", value: data.leadName },
-    { label: "Email", value: data.leadEmail },
-    data.leadPhone ? { label: "Telefono", value: data.leadPhone } : null,
-    data.leadCountry ? { label: "Pais", value: data.leadCountry } : null,
-    data.leadTypology ? { label: "Tipologia de interes", value: data.leadTypology } : null,
-    data.leadMessage ? { label: "Mensaje", value: data.leadMessage } : null,
+    { label: s.leadNotification.labels.name, value: data.leadName },
+    { label: s.leadNotification.labels.email, value: data.leadEmail },
+    data.leadPhone ? { label: s.leadNotification.labels.phone, value: data.leadPhone } : null,
+    data.leadCountry ? { label: s.leadNotification.labels.country, value: data.leadCountry } : null,
+    data.leadTypology ? { label: s.leadNotification.labels.typology, value: data.leadTypology } : null,
+    data.leadMessage ? { label: s.leadNotification.labels.message, value: data.leadMessage } : null,
   ].filter(Boolean) as { label: string; value: string }[];
 
   const html = emailWrapper(
-    "Nuevo lead recibido",
+    s.leadNotification.heading,
     escapeHtml(data.projectName),
     `${detailTable(rows)}
-    ${ctaButton(appUrl + "/leads", "Ver Leads")}`,
+    ${ctaButton(appUrl + "/leads", s.shared.viewLeads)}`,
+    locale,
   );
 
   try {
     await resend.emails.send({
       from: fromAddress,
       to: data.adminEmail,
-      subject: `Nuevo lead en ${data.projectName} — NODDO`,
+      subject: t(s.leadNotification.subject, { project: data.projectName }),
       html,
       headers: { "List-Unsubscribe": "<mailto:hola@noddo.io?subject=Cancelar%20suscripcion>" },
     });
@@ -67,6 +80,7 @@ interface CotizacionBuyerData {
   unidadId: string;
   totalFormatted: string;
   pdfBuffer: Buffer;
+  locale?: EmailLocale;
 }
 
 export async function sendCotizacionBuyer(data: CotizacionBuyerData) {
@@ -76,35 +90,35 @@ export async function sendCotizacionBuyer(data: CotizacionBuyerData) {
     return;
   }
 
+  const locale = data.locale || "es";
+  const s = getEmailStrings(locale);
   const fromAddress = process.env.RESEND_FROM_EMAIL || "NODDO <notificaciones@noddo.io>";
 
   const html = emailWrapper(
-    "Tu cotización está lista",
+    s.cotizacionBuyer.heading,
     escapeHtml(data.projectName),
     `${detailTable([
-      { label: "Unidad", value: data.unidadId },
-      { label: "Total", value: data.totalFormatted, highlight: true },
+      { label: s.cotizacionBuyer.labels.unit, value: data.unidadId },
+      { label: s.cotizacionBuyer.labels.total, value: data.totalFormatted, highlight: true },
     ])}
     <tr><td align="center" style="padding:0 40px 16px;">
       <p style="margin:0;font-size:13px;color:#8a8580;line-height:1.6;">
-        Adjunto encontrarás tu cotización en PDF con el desglose completo del plan de pagos.
+        ${s.cotizacionBuyer.body}
       </p>
     </td></tr>`,
+    locale,
   );
+
+  const filename = `${s.cotizacionBuyer.filename}_${data.unidadId.replace(/\s+/g, "_")}.pdf`;
 
   try {
     await resend.emails.send({
       from: fromAddress,
       to: data.buyerEmail,
-      subject: `Tu cotización — ${data.projectName}`,
+      subject: t(s.cotizacionBuyer.subject, { project: data.projectName }),
       html,
       headers: { "List-Unsubscribe": "<mailto:hola@noddo.io?subject=Cancelar%20suscripcion>" },
-      attachments: [
-        {
-          filename: `Cotizacion_${data.unidadId.replace(/\s+/g, "_")}.pdf`,
-          content: data.pdfBuffer,
-        },
-      ],
+      attachments: [{ filename, content: data.pdfBuffer }],
     });
   } catch (err) {
     console.error("[email] Failed to send cotización to buyer:", err);
@@ -121,6 +135,7 @@ interface CotizacionAdminData {
   buyerPhone?: string | null;
   unidadId: string;
   totalFormatted: string;
+  locale?: EmailLocale;
 }
 
 export async function sendCotizacionAdmin(data: CotizacionAdminData) {
@@ -130,29 +145,32 @@ export async function sendCotizacionAdmin(data: CotizacionAdminData) {
     return;
   }
 
+  const locale = data.locale || "es";
+  const s = getEmailStrings(locale);
   const fromAddress = process.env.RESEND_FROM_EMAIL || "NODDO <notificaciones@noddo.io>";
   const appUrl = process.env.NEXT_PUBLIC_APP_URL || "https://noddo.io";
 
   const rows = [
-    { label: "Cliente", value: data.buyerName },
-    { label: "Email", value: data.buyerEmail },
-    data.buyerPhone ? { label: "Teléfono", value: data.buyerPhone } : null,
-    { label: "Unidad", value: data.unidadId },
-    { label: "Total", value: data.totalFormatted },
+    { label: s.cotizacionAdmin.labels.client, value: data.buyerName },
+    { label: s.cotizacionAdmin.labels.email, value: data.buyerEmail },
+    data.buyerPhone ? { label: s.cotizacionAdmin.labels.phone, value: data.buyerPhone } : null,
+    { label: s.cotizacionAdmin.labels.unit, value: data.unidadId },
+    { label: s.cotizacionAdmin.labels.total, value: data.totalFormatted },
   ].filter(Boolean) as { label: string; value: string }[];
 
   const html = emailWrapper(
-    "Nueva cotización solicitada",
+    s.cotizacionAdmin.heading,
     escapeHtml(data.projectName),
     `${detailTable(rows)}
-    ${ctaButton(appUrl + "/leads", "Ver Leads")}`,
+    ${ctaButton(appUrl + "/leads", s.shared.viewLeads)}`,
+    locale,
   );
 
   try {
     await resend.emails.send({
       from: fromAddress,
       to: data.adminEmail,
-      subject: `Nueva cotización — ${data.projectName}`,
+      subject: t(s.cotizacionAdmin.subject, { project: data.projectName }),
       html,
       headers: { "List-Unsubscribe": "<mailto:hola@noddo.io?subject=Cancelar%20suscripcion>" },
     });
@@ -167,19 +185,8 @@ interface WelcomeEmailData {
   email: string;
   name: string;
   plan?: "basic" | "premium" | "enterprise";
+  locale?: EmailLocale;
 }
-
-const PLAN_LABELS: Record<string, string> = {
-  basic: "Basic",
-  premium: "Premium",
-  enterprise: "Enterprise",
-};
-
-const PLAN_PRICES: Record<string, string> = {
-  basic: "$79/mes",
-  premium: "$149/mes",
-  enterprise: "desde $499/mes",
-};
 
 export async function sendWelcomeEmail(data: WelcomeEmailData) {
   const resend = getResend();
@@ -188,39 +195,42 @@ export async function sendWelcomeEmail(data: WelcomeEmailData) {
     return;
   }
 
+  const locale = data.locale || "es";
+  const s = getEmailStrings(locale);
   const fromAddress = process.env.RESEND_FROM_EMAIL || "NODDO <notificaciones@noddo.io>";
   const appUrl = process.env.NEXT_PUBLIC_APP_URL || "https://noddo.io";
 
   const plan = data.plan || "basic";
   const planLabel = PLAN_LABELS[plan];
-  const planPrice = PLAN_PRICES[plan];
+  const planPrice = s.welcome.planPrices[plan];
 
   const html = emailWrapper(
-    "Bienvenido a NODDO",
+    s.welcome.heading,
     undefined,
     `<tr><td align="center" style="padding:0 40px 16px;">
       <p style="margin:0;font-size:14px;color:#f4f0e8;line-height:1.7;font-weight:300;">
-        Hola ${escapeHtml(data.name)},
+        ${s.shared.hello} ${escapeHtml(data.name)},
       </p>
     </td></tr>
     <tr><td align="center" style="padding:0 40px 24px;">
       <p style="margin:0;font-size:13px;color:#8a8580;line-height:1.7;">
-        Tu cuenta está lista con el plan <strong style="color:#f4f0e8;">${planLabel}</strong> (${planPrice}). Crea tu primer proyecto y lanza un micrositio premium para tu desarrollo inmobiliario en minutos.
+        ${t(s.welcome.body, { plan: planLabel, price: planPrice })}
       </p>
     </td></tr>
-    ${ctaButton(appUrl + "/proyectos", "Crear mi primer proyecto")}
+    ${ctaButton(appUrl + "/proyectos", s.welcome.createProject)}
     <tr><td align="center" style="padding:0 40px 24px;">
       <p style="margin:0;font-size:12px;color:#5a5550;line-height:1.6;">
-        ¿Necesitas más features? <a href="${appUrl}/pricing" style="color:#b8973a;text-decoration:underline;">Ver planes</a>
+        ${s.welcome.needMore} <a href="${appUrl}/pricing" style="color:#b8973a;text-decoration:underline;">${s.welcome.viewPlans}</a>
       </p>
     </td></tr>`,
+    locale,
   );
 
   try {
     await resend.emails.send({
       from: fromAddress,
       to: data.email,
-      subject: "Bienvenido a NODDO",
+      subject: s.welcome.subject,
       html,
       headers: { "List-Unsubscribe": "<mailto:hola@noddo.io?subject=Cancelar%20suscripcion>" },
     });
@@ -235,6 +245,7 @@ interface LeadConfirmationData {
   email: string;
   name: string;
   projectName: string;
+  locale?: EmailLocale;
 }
 
 export async function sendLeadConfirmation(data: LeadConfirmationData) {
@@ -244,28 +255,31 @@ export async function sendLeadConfirmation(data: LeadConfirmationData) {
     return;
   }
 
+  const locale = data.locale || "es";
+  const s = getEmailStrings(locale);
   const fromAddress = process.env.RESEND_FROM_EMAIL || "NODDO <notificaciones@noddo.io>";
 
   const html = emailWrapper(
-    "Gracias por tu interés",
+    s.leadConfirmation.heading,
     escapeHtml(data.projectName),
     `<tr><td align="center" style="padding:0 40px 16px;">
       <p style="margin:0;font-size:14px;color:#f4f0e8;line-height:1.7;font-weight:300;">
-        Hola ${escapeHtml(data.name)},
+        ${s.shared.hello} ${escapeHtml(data.name)},
       </p>
     </td></tr>
     <tr><td align="center" style="padding:0 40px 24px;">
       <p style="margin:0;font-size:13px;color:#8a8580;line-height:1.7;">
-        Hemos recibido tu solicitud de información sobre <strong style="color:#f4f0e8;">${escapeHtml(data.projectName)}</strong>. Un asesor especializado se pondrá en contacto contigo en las próximas 24 horas.
+        ${t(s.leadConfirmation.body, { project: escapeHtml(data.projectName) })}
       </p>
     </td></tr>`,
+    locale,
   );
 
   try {
     await resend.emails.send({
       from: fromAddress,
       to: data.email,
-      subject: `Gracias por tu interés en ${data.projectName}`,
+      subject: t(s.leadConfirmation.subject, { project: data.projectName }),
       html,
       headers: { "List-Unsubscribe": "<mailto:hola@noddo.io?subject=Cancelar%20suscripcion>" },
     });
@@ -279,6 +293,7 @@ export async function sendLeadConfirmation(data: LeadConfirmationData) {
 interface CollaboratorInviteData {
   email: string;
   inviterName: string;
+  locale?: EmailLocale;
 }
 
 export async function sendCollaboratorInvite(data: CollaboratorInviteData) {
@@ -288,25 +303,28 @@ export async function sendCollaboratorInvite(data: CollaboratorInviteData) {
     return;
   }
 
+  const locale = data.locale || "es";
+  const s = getEmailStrings(locale);
   const fromAddress = process.env.RESEND_FROM_EMAIL || "NODDO <notificaciones@noddo.io>";
   const appUrl = process.env.NEXT_PUBLIC_APP_URL || "https://noddo.io";
 
   const html = emailWrapper(
-    "Has sido invitado",
+    s.collaboratorInvite.heading,
     undefined,
     `<tr><td align="center" style="padding:0 40px 24px;">
       <p style="margin:0;font-size:13px;color:#8a8580;line-height:1.7;">
-        <strong style="color:#f4f0e8;">${escapeHtml(data.inviterName)}</strong> te ha invitado como colaborador en NODDO. Podrás gestionar el inventario de sus proyectos inmobiliarios.
+        ${t(s.collaboratorInvite.body, { inviter: escapeHtml(data.inviterName) })}
       </p>
     </td></tr>
-    ${ctaButton(appUrl + "/login", "Acceder a NODDO")}`,
+    ${ctaButton(appUrl + "/login", s.collaboratorInvite.cta)}`,
+    locale,
   );
 
   try {
     await resend.emails.send({
       from: fromAddress,
       to: data.email,
-      subject: `${data.inviterName} te invita a colaborar en NODDO`,
+      subject: t(s.collaboratorInvite.subject, { inviter: data.inviterName }),
       html,
       headers: { "List-Unsubscribe": "<mailto:hola@noddo.io?subject=Cancelar%20suscripcion>" },
     });
@@ -324,6 +342,7 @@ interface BookingConfirmationData {
   timezone: string;
   durationMinutes: number;
   meetingLink?: string;
+  locale?: EmailLocale;
 }
 
 export async function sendBookingConfirmation(data: BookingConfirmationData) {
@@ -333,57 +352,60 @@ export async function sendBookingConfirmation(data: BookingConfirmationData) {
     return;
   }
 
+  const locale = data.locale || "es";
+  const s = getEmailStrings(locale);
   const fromAddress = process.env.RESEND_FROM_EMAIL || "NODDO <notificaciones@noddo.io>";
   const appUrl = process.env.NEXT_PUBLIC_APP_URL || "https://noddo.io";
-  const bookingUrl = `${appUrl}/`;
 
-  const dateFormatted = formatDateTime(data.scheduledFor, data.timezone);
+  const dateFormatted = formatDateTime(data.scheduledFor, data.timezone, locale);
+
+  const bulletsHtml = s.bookingConfirmation.bullets
+    .map(
+      (b) =>
+        `<tr><td style="padding:4px 0;font-size:13px;color:#8a8580;line-height:1.6;">
+          &bull; ${b}
+        </td></tr>`
+    )
+    .join("");
 
   const html = emailWrapper(
-    "Tu demo está confirmada",
+    s.bookingConfirmation.heading,
     "NODDO",
     `<tr><td align="center" style="padding:0 40px 16px;">
       <p style="margin:0;font-size:14px;color:#f4f0e8;line-height:1.7;font-weight:300;">
-        Hola ${escapeHtml(data.name)},
+        ${s.shared.hello} ${escapeHtml(data.name)},
       </p>
     </td></tr>
     <tr><td align="center" style="padding:0 40px 24px;">
       <p style="margin:0;font-size:13px;color:#8a8580;line-height:1.7;">
-        Tu demo con el equipo de NODDO ha sido agendada. Nos veremos para mostrarte cómo crear un showroom digital premium para tus proyectos.
+        ${s.bookingConfirmation.body}
       </p>
     </td></tr>
     ${detailTable([
-      { label: "Fecha", value: dateFormatted.date },
-      { label: "Hora", value: `${dateFormatted.time} (${data.timezone})` },
-      { label: "Duración", value: `${data.durationMinutes} minutos` },
-      { label: "Formato", value: "Videollamada" },
+      { label: s.bookingConfirmation.labels.date, value: dateFormatted.date },
+      { label: s.bookingConfirmation.labels.time, value: `${dateFormatted.time} (${data.timezone})` },
+      { label: s.bookingConfirmation.labels.duration, value: `${data.durationMinutes} ${s.bookingConfirmation.durationUnit}` },
+      { label: s.bookingConfirmation.labels.format, value: s.bookingConfirmation.formatValue },
     ])}
     <tr><td align="center" style="padding:0 40px 8px;">
       <p style="margin:0;font-size:12px;color:#b8973a;font-weight:600;text-transform:uppercase;letter-spacing:0.1em;">
-        Qué esperar en la demo
+        ${s.bookingConfirmation.whatToExpect}
       </p>
     </td></tr>
     <tr><td style="padding:0 40px 24px;">
       <table width="100%" cellpadding="0" cellspacing="0" border="0">
-        <tr><td style="padding:4px 0;font-size:13px;color:#8a8580;line-height:1.6;">
-          &bull; Recorrido completo por la plataforma
-        </td></tr>
-        <tr><td style="padding:4px 0;font-size:13px;color:#8a8580;line-height:1.6;">
-          &bull; Configuración personalizada para tu proyecto
-        </td></tr>
-        <tr><td style="padding:4px 0;font-size:13px;color:#8a8580;line-height:1.6;">
-          &bull; Resolución de dudas y próximos pasos
-        </td></tr>
+        ${bulletsHtml}
       </table>
     </td></tr>
-    ${data.meetingLink ? ctaButton(data.meetingLink, "Unirme a la videollamada") : ctaButton(bookingUrl, "Ir a NODDO")}`,
+    ${data.meetingLink ? ctaButton(data.meetingLink, s.bookingConfirmation.joinCall) : ctaButton(appUrl, s.bookingConfirmation.goToNoddo)}`,
+    locale,
   );
 
   try {
     await resend.emails.send({
       from: fromAddress,
       to: data.email,
-      subject: `Tu demo con NODDO — ${dateFormatted.date}`,
+      subject: t(s.bookingConfirmation.subject, { date: dateFormatted.date }),
       html,
       headers: { "List-Unsubscribe": "<mailto:hola@noddo.io?subject=Cancelar%20suscripcion>" },
     });
@@ -405,6 +427,7 @@ interface BookingAdminNotificationData {
   utmSource?: string | null;
   utmMedium?: string | null;
   utmCampaign?: string | null;
+  locale?: EmailLocale;
 }
 
 export async function sendBookingAdminNotification(data: BookingAdminNotificationData) {
@@ -414,32 +437,35 @@ export async function sendBookingAdminNotification(data: BookingAdminNotificatio
     return;
   }
 
+  const locale = data.locale || "es";
+  const s = getEmailStrings(locale);
   const fromAddress = process.env.RESEND_FROM_EMAIL || "NODDO <notificaciones@noddo.io>";
 
-  const dateFormatted = formatDateTime(data.scheduledFor, data.timezone);
+  const dateFormatted = formatDateTime(data.scheduledFor, data.timezone, locale);
 
   const rows = [
-    { label: "Nombre", value: data.leadName },
-    { label: "Email", value: data.leadEmail },
-    data.leadPhone ? { label: "Teléfono", value: data.leadPhone } : null,
-    data.leadCompany ? { label: "Empresa", value: data.leadCompany } : null,
-    { label: "Fecha", value: dateFormatted.date },
-    { label: "Hora", value: `${dateFormatted.time} (${data.timezone})` },
-    data.utmSource ? { label: "Fuente", value: `${data.utmSource} / ${data.utmMedium || "—"}` } : null,
-    data.utmCampaign ? { label: "Campaña", value: data.utmCampaign } : null,
+    { label: s.bookingAdmin.labels.name, value: data.leadName },
+    { label: s.bookingAdmin.labels.email, value: data.leadEmail },
+    data.leadPhone ? { label: s.bookingAdmin.labels.phone, value: data.leadPhone } : null,
+    data.leadCompany ? { label: s.bookingAdmin.labels.company, value: data.leadCompany } : null,
+    { label: s.bookingAdmin.labels.date, value: dateFormatted.date },
+    { label: s.bookingAdmin.labels.time, value: `${dateFormatted.time} (${data.timezone})` },
+    data.utmSource ? { label: s.bookingAdmin.labels.source, value: `${data.utmSource} / ${data.utmMedium || "—"}` } : null,
+    data.utmCampaign ? { label: s.bookingAdmin.labels.campaign, value: data.utmCampaign } : null,
   ].filter(Boolean) as { label: string; value: string }[];
 
   const html = emailWrapper(
-    "Nueva demo agendada",
+    s.bookingAdmin.heading,
     "NODDO",
     `${detailTable(rows)}`,
+    locale,
   );
 
   try {
     await resend.emails.send({
       from: fromAddress,
       to: data.adminEmail,
-      subject: `Nueva demo agendada — ${data.leadName}${data.leadCompany ? ` de ${data.leadCompany}` : ""}`,
+      subject: t(s.bookingAdmin.subject, { lead: data.leadName }) + (data.leadCompany ? ` de ${data.leadCompany}` : ""),
       html,
       headers: { "List-Unsubscribe": "<mailto:hola@noddo.io?subject=Cancelar%20suscripcion>" },
     });
@@ -457,6 +483,7 @@ interface BookingReminderData {
   timezone: string;
   meetingLink?: string;
   type: "24h" | "2h";
+  locale?: EmailLocale;
 }
 
 export async function sendBookingReminder(data: BookingReminderData) {
@@ -466,36 +493,40 @@ export async function sendBookingReminder(data: BookingReminderData) {
     return;
   }
 
+  const locale = data.locale || "es";
+  const s = getEmailStrings(locale);
   const fromAddress = process.env.RESEND_FROM_EMAIL || "NODDO <notificaciones@noddo.io>";
   const appUrl = process.env.NEXT_PUBLIC_APP_URL || "https://noddo.io";
-  const dateFormatted = formatDateTime(data.scheduledFor, data.timezone);
+  const dateFormatted = formatDateTime(data.scheduledFor, data.timezone, locale);
 
   const is24h = data.type === "24h";
 
+  const bodyText = is24h
+    ? t(s.bookingReminder.body24h, { date: dateFormatted.date, time: dateFormatted.time })
+    : t(s.bookingReminder.body2h, { time: dateFormatted.time });
+
   const html = emailWrapper(
-    is24h ? "Tu demo es mañana" : "Tu demo es en 2 horas",
+    is24h ? s.bookingReminder.heading24h : s.bookingReminder.heading2h,
     "NODDO",
     `<tr><td align="center" style="padding:0 40px 16px;">
       <p style="margin:0;font-size:14px;color:#f4f0e8;line-height:1.7;font-weight:300;">
-        Hola ${escapeHtml(data.name)},
+        ${s.shared.hello} ${escapeHtml(data.name)},
       </p>
     </td></tr>
     <tr><td align="center" style="padding:0 40px 24px;">
       <p style="margin:0;font-size:13px;color:#8a8580;line-height:1.7;">
-        ${is24h
-          ? `Solo un recordatorio: tu demo con NODDO es mañana <strong style="color:#f4f0e8;">${dateFormatted.date}</strong> a las <strong style="color:#f4f0e8;">${dateFormatted.time}</strong>. Prepara tus preguntas — queremos que aproveches al máximo la sesión.`
-          : `Tu demo con NODDO comienza en 2 horas a las <strong style="color:#f4f0e8;">${dateFormatted.time}</strong>. ¡Te esperamos!`
-        }
+        ${bodyText}
       </p>
     </td></tr>
-    ${data.meetingLink ? ctaButton(data.meetingLink, "Unirme a la videollamada") : ctaButton(appUrl, "Ir a NODDO")}`,
+    ${data.meetingLink ? ctaButton(data.meetingLink, s.bookingReminder.joinCall) : ctaButton(appUrl, s.bookingReminder.goToNoddo)}`,
+    locale,
   );
 
   try {
     await resend.emails.send({
       from: fromAddress,
       to: data.email,
-      subject: is24h ? "Tu demo es mañana — NODDO" : "Tu demo es en 2 horas — NODDO",
+      subject: is24h ? s.bookingReminder.subject24h : s.bookingReminder.subject2h,
       html,
       headers: { "List-Unsubscribe": "<mailto:hola@noddo.io?subject=Cancelar%20suscripcion>" },
     });
@@ -509,6 +540,7 @@ export async function sendBookingReminder(data: BookingReminderData) {
 interface NoShowFollowupData {
   email: string;
   name: string;
+  locale?: EmailLocale;
 }
 
 export async function sendNoShowFollowup(data: NoShowFollowupData) {
@@ -518,35 +550,38 @@ export async function sendNoShowFollowup(data: NoShowFollowupData) {
     return;
   }
 
+  const locale = data.locale || "es";
+  const s = getEmailStrings(locale);
   const fromAddress = process.env.RESEND_FROM_EMAIL || "NODDO <notificaciones@noddo.io>";
   const appUrl = process.env.NEXT_PUBLIC_APP_URL || "https://noddo.io";
 
   const html = emailWrapper(
-    "¿Todo bien?",
+    s.noShow.heading,
     "NODDO",
     `<tr><td align="center" style="padding:0 40px 16px;">
       <p style="margin:0;font-size:14px;color:#f4f0e8;line-height:1.7;font-weight:300;">
-        Hola ${escapeHtml(data.name)},
+        ${s.shared.hello} ${escapeHtml(data.name)},
       </p>
     </td></tr>
     <tr><td align="center" style="padding:0 40px 24px;">
       <p style="margin:0;font-size:13px;color:#8a8580;line-height:1.7;">
-        Vimos que no pudiste conectarte a la demo de hoy. No te preocupes, entendemos que las agendas se complican. Si aún te interesa ver cómo NODDO puede transformar la comercialización de tus proyectos, puedes reagendar cuando quieras.
+        ${s.noShow.body}
       </p>
     </td></tr>
-    ${ctaButton(appUrl + "/#booking", "Reagendar demo")}
+    ${ctaButton(appUrl + "/#booking", s.noShow.rescheduleCta)}
     <tr><td align="center" style="padding:0 40px 24px;">
       <p style="margin:0;font-size:12px;color:#5a5550;line-height:1.6;">
-        También puedes escribirnos por <a href="https://wa.me/971585407848?text=Hola,%20quiero%20reagendar%20mi%20demo%20de%20NODDO" style="color:#b8973a;text-decoration:underline;">WhatsApp</a> si prefieres.
+        ${s.noShow.whatsappNote}
       </p>
     </td></tr>`,
+    locale,
   );
 
   try {
     await resend.emails.send({
       from: fromAddress,
       to: data.email,
-      subject: "¿Todo bien? Tu demo con NODDO",
+      subject: s.noShow.subject,
       html,
       headers: { "List-Unsubscribe": "<mailto:hola@noddo.io?subject=Cancelar%20suscripcion>" },
     });
@@ -564,6 +599,7 @@ interface PlanUpgradeData {
   newPlan: "basic" | "premium" | "enterprise";
   maxProjects: number;
   maxUnits: number | null;
+  locale?: EmailLocale;
 }
 
 export async function sendPlanUpgrade(data: PlanUpgradeData) {
@@ -573,31 +609,15 @@ export async function sendPlanUpgrade(data: PlanUpgradeData) {
     return;
   }
 
+  const locale = data.locale || "es";
+  const s = getEmailStrings(locale);
   const fromAddress = process.env.RESEND_FROM_EMAIL || "NODDO <notificaciones@noddo.io>";
   const appUrl = process.env.NEXT_PUBLIC_APP_URL || "https://noddo.io";
 
   const newPlanLabel = PLAN_LABELS[data.newPlan];
-  const newPlanPrice = PLAN_PRICES[data.newPlan];
+  const newPlanPrice = s.welcome.planPrices[data.newPlan];
 
-  // Feature highlights per plan
-  const features: Record<string, string[]> = {
-    premium: [
-      "Videos inmersivos (Cloudflare Stream)",
-      "Mapas interactivos con POIs",
-      "Tours 360° (Matterport/Kuula)",
-      "Analytics avanzado",
-      "Dominio personalizado",
-    ],
-    enterprise: [
-      "Todo en Premium +",
-      "White-label (sin marca NODDO)",
-      "API REST + Webhooks",
-      "Importación CSV masiva",
-      "Soporte 24/7 con SLA",
-    ],
-  };
-
-  const planFeatures = features[data.newPlan] || ["Todas las features básicas"];
+  const planFeatures = s.planUpgrade.features[data.newPlan] || [];
 
   const featuresHtml = planFeatures
     .map(
@@ -609,41 +629,42 @@ export async function sendPlanUpgrade(data: PlanUpgradeData) {
     .join("");
 
   const html = emailWrapper(
-    `Bienvenido a ${newPlanLabel}`,
+    t(s.planUpgrade.heading, { plan: newPlanLabel }),
     "NODDO",
     `<tr><td align="center" style="padding:0 40px 16px;">
       <p style="margin:0;font-size:14px;color:#f4f0e8;line-height:1.7;font-weight:300;">
-        Hola ${escapeHtml(data.name)},
+        ${s.shared.hello} ${escapeHtml(data.name)},
       </p>
     </td></tr>
     <tr><td align="center" style="padding:0 40px 24px;">
       <p style="margin:0;font-size:13px;color:#8a8580;line-height:1.7;">
-        Tu plan ha sido actualizado de <strong style="color:#f4f0e8;">${PLAN_LABELS[data.oldPlan]}</strong> a <strong style="color:#b8973a;">${newPlanLabel}</strong> (${newPlanPrice}). Ya puedes aprovechar todas las nuevas features.
+        ${t(s.planUpgrade.body, { oldPlan: PLAN_LABELS[data.oldPlan], newPlan: newPlanLabel, price: newPlanPrice })}
       </p>
     </td></tr>
     ${detailTable([
-      { label: "Plan nuevo", value: newPlanLabel, highlight: true },
-      { label: "Max proyectos", value: data.maxProjects === 999 ? "Ilimitados" : String(data.maxProjects) },
-      { label: "Max unidades", value: data.maxUnits === null ? "Ilimitadas" : String(data.maxUnits) },
+      { label: s.planUpgrade.labels.newPlan, value: newPlanLabel, highlight: true },
+      { label: s.planUpgrade.labels.maxProjects, value: data.maxProjects === 999 ? s.planUpgrade.unlimited : String(data.maxProjects) },
+      { label: s.planUpgrade.labels.maxUnits, value: data.maxUnits === null ? s.planUpgrade.unlimitedFem : String(data.maxUnits) },
     ])}
-    <tr><td align="center" style="padding:0 40px 8px;">
+    ${planFeatures.length > 0 ? `<tr><td align="center" style="padding:0 40px 8px;">
       <p style="margin:0;font-size:12px;color:#b8973a;font-weight:600;text-transform:uppercase;letter-spacing:0.1em;">
-        Nuevas features desbloqueadas
+        ${s.planUpgrade.featuresUnlocked}
       </p>
     </td></tr>
     <tr><td style="padding:0 40px 24px;">
       <table width="100%" cellpadding="0" cellspacing="0" border="0">
         ${featuresHtml}
       </table>
-    </td></tr>
-    ${ctaButton(appUrl + "/proyectos", "Explorar mis proyectos")}`,
+    </td></tr>` : ""}
+    ${ctaButton(appUrl + "/proyectos", s.planUpgrade.exploreCta)}`,
+    locale,
   );
 
   try {
     await resend.emails.send({
       from: fromAddress,
       to: data.email,
-      subject: `Bienvenido a ${newPlanLabel} — NODDO`,
+      subject: t(s.planUpgrade.subject, { plan: newPlanLabel }),
       html,
       headers: { "List-Unsubscribe": "<mailto:hola@noddo.io?subject=Cancelar%20suscripcion>" },
     });
@@ -660,6 +681,7 @@ interface FeatureBlockedData {
   feature: string;
   currentPlan: "basic" | "premium" | "enterprise";
   requiredPlan: "basic" | "premium" | "enterprise";
+  locale?: EmailLocale;
 }
 
 export async function sendFeatureBlocked(data: FeatureBlockedData) {
@@ -669,43 +691,46 @@ export async function sendFeatureBlocked(data: FeatureBlockedData) {
     return;
   }
 
+  const locale = data.locale || "es";
+  const s = getEmailStrings(locale);
   const fromAddress = process.env.RESEND_FROM_EMAIL || "NODDO <notificaciones@noddo.io>";
   const appUrl = process.env.NEXT_PUBLIC_APP_URL || "https://noddo.io";
 
   const requiredPlanLabel = PLAN_LABELS[data.requiredPlan];
-  const requiredPlanPrice = PLAN_PRICES[data.requiredPlan];
+  const requiredPlanPrice = s.welcome.planPrices[data.requiredPlan];
 
   const html = emailWrapper(
-    `Desbloquea ${data.feature}`,
+    t(s.featureBlocked.heading, { feature: data.feature }),
     "NODDO",
     `<tr><td align="center" style="padding:0 40px 16px;">
       <p style="margin:0;font-size:14px;color:#f4f0e8;line-height:1.7;font-weight:300;">
-        Hola ${escapeHtml(data.name)},
+        ${s.shared.hello} ${escapeHtml(data.name)},
       </p>
     </td></tr>
     <tr><td align="center" style="padding:0 40px 24px;">
       <p style="margin:0;font-size:13px;color:#8a8580;line-height:1.7;">
-        Intentaste usar <strong style="color:#f4f0e8;">${data.feature}</strong>, pero esta feature requiere el plan <strong style="color:#b8973a;">${requiredPlanLabel}</strong> (${requiredPlanPrice}).
+        ${t(s.featureBlocked.body, { feature: data.feature, plan: requiredPlanLabel, price: requiredPlanPrice })}
       </p>
     </td></tr>
     <tr><td align="center" style="padding:0 40px 24px;">
       <p style="margin:0;font-size:13px;color:#8a8580;line-height:1.7;">
-        Actualiza tu plan y desbloquea esta y muchas otras features premium para maximizar la comercialización de tus proyectos.
+        ${s.featureBlocked.body2}
       </p>
     </td></tr>
-    ${ctaButton(appUrl + "/pricing", `Actualizar a ${requiredPlanLabel}`)}
+    ${ctaButton(appUrl + "/pricing", t(s.featureBlocked.upgradeCta, { plan: requiredPlanLabel }))}
     <tr><td align="center" style="padding:0 40px 24px;">
       <p style="margin:0;font-size:12px;color:#5a5550;line-height:1.6;">
-        ¿Preguntas? Escríbenos a <a href="mailto:hola@noddo.io" style="color:#b8973a;text-decoration:underline;">hola@noddo.io</a>
+        ${s.shared.questions}
       </p>
     </td></tr>`,
+    locale,
   );
 
   try {
     await resend.emails.send({
       from: fromAddress,
       to: data.email,
-      subject: `Desbloquea ${data.feature} — NODDO`,
+      subject: t(s.featureBlocked.subject, { feature: data.feature }),
       html,
       headers: { "List-Unsubscribe": "<mailto:hola@noddo.io?subject=Cancelar%20suscripcion>" },
     });
@@ -714,11 +739,28 @@ export async function sendFeatureBlocked(data: FeatureBlockedData) {
   }
 }
 
+/* ── Helper: fetch a user's locale from user_profiles ── */
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export async function getUserLocale(supabaseClient: any, userId: string): Promise<EmailLocale> {
+  try {
+    const { data } = await supabaseClient
+      .from("user_profiles")
+      .select("locale")
+      .eq("id", userId)
+      .single();
+    return (data?.locale as EmailLocale) || "es";
+  } catch {
+    return "es";
+  }
+}
+
 /* ── Shared email template helpers ── */
 
-function emailWrapper(heading: string, subLabel: string | undefined, bodyRows: string): string {
+function emailWrapper(heading: string, subLabel: string | undefined, bodyRows: string, locale: EmailLocale = "es"): string {
+  const s = getEmailStrings(locale);
   return `<!DOCTYPE html>
-<html lang="es">
+<html lang="${locale}">
 <head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"></head>
 <body style="margin:0;padding:0;background-color:#0a0a0a;font-family:'Helvetica Neue',Helvetica,Arial,sans-serif;-webkit-font-smoothing:antialiased;">
   <table width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color:#0a0a0a;padding:40px 20px;">
@@ -740,21 +782,21 @@ function emailWrapper(heading: string, subLabel: string | undefined, bodyRows: s
         <tr><td style="padding:0 40px;"><div style="height:1px;background-color:#222222;"></div></td></tr>
         <tr><td style="padding:24px 40px 12px;">
           <p style="margin:0;font-size:11px;color:#5a5550;text-align:center;line-height:1.6;">
-            Noddo Technologies SAS · Bogotá, Colombia
+            ${s.shared.footer.company}
           </p>
         </td></tr>
         <tr><td style="padding:0 40px 12px;">
           <p style="margin:0;font-size:11px;text-align:center;line-height:1.6;">
-            <a href="https://noddo.io/privacidad" style="color:#5a5550;text-decoration:underline;">Privacidad</a>
+            <a href="https://noddo.io/privacidad" style="color:#5a5550;text-decoration:underline;">${s.shared.footer.privacy}</a>
             <span style="color:#3a3530;"> · </span>
-            <a href="https://noddo.io/terminos" style="color:#5a5550;text-decoration:underline;">Términos</a>
+            <a href="https://noddo.io/terminos" style="color:#5a5550;text-decoration:underline;">${s.shared.footer.terms}</a>
             <span style="color:#3a3530;"> · </span>
             <a href="mailto:hola@noddo.io" style="color:#5a5550;text-decoration:underline;">hola@noddo.io</a>
           </p>
         </td></tr>
         <tr><td style="padding:0 40px 32px;">
           <p style="margin:0;font-size:10px;text-align:center;line-height:1.5;">
-            <a href="mailto:hola@noddo.io?subject=Cancelar%20suscripci%C3%B3n" style="color:#3a3530;text-decoration:underline;">Cancelar suscripción</a>
+            <a href="mailto:hola@noddo.io?subject=Cancelar%20suscripci%C3%B3n" style="color:#3a3530;text-decoration:underline;">${s.shared.footer.unsubscribe}</a>
           </p>
         </td></tr>
       </table>
@@ -796,15 +838,16 @@ function ctaButton(href: string, label: string): string {
   </td></tr>`;
 }
 
-function formatDateTime(isoString: string, timezone: string): { date: string; time: string } {
+function formatDateTime(isoString: string, timezone: string, locale: EmailLocale = "es"): { date: string; time: string } {
+  const intlLocale = dateLocale(locale);
   const d = new Date(isoString);
-  const date = new Intl.DateTimeFormat("es-CO", {
+  const date = new Intl.DateTimeFormat(intlLocale, {
     weekday: "long",
     day: "numeric",
     month: "long",
     timeZone: timezone,
   }).format(d);
-  const time = new Intl.DateTimeFormat("es-CO", {
+  const time = new Intl.DateTimeFormat(intlLocale, {
     hour: "2-digit",
     minute: "2-digit",
     hour12: true,

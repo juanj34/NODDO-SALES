@@ -77,6 +77,7 @@ export default function EditorGeneralPage() {
   const audioInputRef = useRef<HTMLInputElement>(null);
   const [validationError, setValidationError] = useState<string | null>(null);
   const [tipoProyecto, setTipoProyecto] = useState<"apartamentos" | "casas" | "hibrido">("hibrido");
+  const [idioma, setIdioma] = useState<"es" | "en">("es");
 
   useEffect(() => {
     if (!project) return;
@@ -98,6 +99,7 @@ export default function EditorGeneralPage() {
     setOgImageUrl(project.og_image_url || "");
     setBackgroundAudioUrl(project.background_audio_url || "");
     setTipoProyecto(project.tipo_proyecto || "hibrido");
+    setIdioma(project.idioma || "es");
   }, [project]);
 
   const handleSave = async () => {
@@ -122,6 +124,7 @@ export default function EditorGeneralPage() {
       og_image_url: ogImageUrl || null,
       background_audio_url: backgroundAudioUrl || null,
       tipo_proyecto: tipoProyecto,
+      idioma,
     };
 
     try {
@@ -540,6 +543,26 @@ export default function EditorGeneralPage() {
 
           {/* ═══ Avanzado (Legal) ═══ */}
           {activeTab === "avanzado" && (
+            <>
+            <div className={sectionCard}>
+              <h3 className={sectionTitle}>
+                <Globe size={15} className="text-[var(--site-primary)]" />
+                {t("general.advanced.languageTitle")}
+              </h3>
+              <p className={sectionDescription}>
+                {t("general.advanced.languageDescription")}
+              </p>
+
+              <div>
+                <label className={labelClass}>{t("general.advanced.micrositeLanguage")}</label>
+                <select value={idioma} onChange={(e) => { setIdioma(e.target.value as "es" | "en"); scheduleAutoSave(); }} className={inputClass}>
+                  <option value="es">Espanol</option>
+                  <option value="en">English</option>
+                </select>
+                <p className={fieldHint}>{t("general.advanced.micrositeLanguageHint")}</p>
+              </div>
+            </div>
+
             <div className={sectionCard}>
               <h3 className={sectionTitle}>
                 <Scale size={15} className="text-[var(--site-primary)]" />
@@ -565,6 +588,7 @@ export default function EditorGeneralPage() {
                 </div>
               </div>
             </div>
+            </>
           )}
         </motion.div>
       </AnimatePresence>

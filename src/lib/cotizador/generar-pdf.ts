@@ -1,6 +1,7 @@
 import jsPDF from "jspdf";
 import type { ResultadoCotizacion, CotizadorConfig, Currency, ComplementoSeleccion } from "@/types";
 import { formatCurrency } from "@/lib/currency";
+import type { EmailLocale } from "@/lib/email-i18n";
 
 type RGB = [number, number, number];
 
@@ -48,6 +49,8 @@ export interface PDFData {
   pdfSaludo: string | null;
   pdfDespedida: string | null;
   fechaEstimadaEntrega: string | null;
+  // Locale
+  idioma?: EmailLocale;
 }
 
 /* ── Helpers ── */
@@ -61,11 +64,135 @@ function hexToRgb(hex: string): RGB {
   ];
 }
 
-const frecLabels: Record<string, string> = {
-  unica: "Pago único",
-  mensual: "Mensual",
-  bimestral: "Bimestral",
-  trimestral: "Trimestral",
+const frecLabels: Record<EmailLocale, Record<string, string>> = {
+  es: { unica: "Pago único", mensual: "Mensual", bimestral: "Bimestral", trimestral: "Trimestral" },
+  en: { unica: "One-time", mensual: "Monthly", bimestral: "Bimonthly", trimestral: "Quarterly" },
+};
+
+/* ── PDF i18n ── */
+
+interface PDFStrings {
+  quotation: string;
+  purchaseOffer: string;
+  advisor: string;
+  unitDetail: string;
+  unit: string;
+  typology: string;
+  area: string;
+  floor: string;
+  bedrooms: string;
+  bathrooms: string;
+  view: string;
+  orientation: string;
+  parking: string;
+  storage: string;
+  estimatedDelivery: string;
+  complements: string;
+  parking_label: string;
+  storage_label: string;
+  additional: string;
+  included: string;
+  complementsSubtotal: string;
+  totalPrice: string;
+  paymentPlan: string;
+  concept: string;
+  amount: string;
+  installments: string;
+  installmentValue: string;
+  total: string;
+  defaultGreeting: string;
+  defaultClosing: string;
+  virtualTour: string;
+  virtualTourDesc: string;
+  viewTour: string;
+  contact: string;
+  contactDesc: string;
+  legalNotice: string;
+  preparedFor: string;
+  generatedBy: string;
+}
+
+const PDF_STRINGS: Record<EmailLocale, PDFStrings> = {
+  es: {
+    quotation: "COTIZACIÓN",
+    purchaseOffer: "Oferta de Compra",
+    advisor: "Asesor",
+    unitDetail: "DETALLE DE LA UNIDAD",
+    unit: "Unidad",
+    typology: "Tipología",
+    area: "Área",
+    floor: "Piso",
+    bedrooms: "Habitaciones",
+    bathrooms: "Baños",
+    view: "Vista",
+    orientation: "Orientación",
+    parking: "Parqueaderos",
+    storage: "Depósitos",
+    estimatedDelivery: "Entrega estimada",
+    complements: "COMPLEMENTOS",
+    parking_label: "Parqueadero",
+    storage_label: "Depósito",
+    additional: "adicional",
+    included: "Incluido",
+    complementsSubtotal: "Subtotal complementos:",
+    totalPrice: "PRECIO TOTAL",
+    paymentPlan: "PLAN DE PAGOS",
+    concept: "CONCEPTO",
+    amount: "MONTO",
+    installments: "CUOTAS",
+    installmentValue: "VALOR CUOTA",
+    total: "TOTAL",
+    defaultGreeting: "Estimado(a) {name}, gracias por considerar {project} como su nuevo hogar. A continuación le presentamos la oferta detallada para la unidad seleccionada.",
+    defaultClosing: "Cordialmente,",
+    virtualTour: "RECORRIDO VIRTUAL",
+    virtualTourDesc: "Descubra el interior de su unidad {unit} a través de nuestro recorrido virtual interactivo. Haga clic en el siguiente enlace para explorar cada detalle de su futuro hogar.",
+    viewTour: "Ver Recorrido Virtual →",
+    contact: "CONTACTO",
+    contactDesc: "Escríbanos por WhatsApp para agendar una visita o resolver sus dudas:",
+    legalNotice: "AVISO LEGAL",
+    preparedFor: "PREPARADA PARA",
+    generatedBy: "Generado por NODDO — noddo.io",
+  },
+  en: {
+    quotation: "QUOTATION",
+    purchaseOffer: "Purchase Offer",
+    advisor: "Advisor",
+    unitDetail: "UNIT DETAILS",
+    unit: "Unit",
+    typology: "Typology",
+    area: "Area",
+    floor: "Floor",
+    bedrooms: "Bedrooms",
+    bathrooms: "Bathrooms",
+    view: "View",
+    orientation: "Orientation",
+    parking: "Parking spaces",
+    storage: "Storage units",
+    estimatedDelivery: "Estimated delivery",
+    complements: "ADD-ONS",
+    parking_label: "Parking",
+    storage_label: "Storage",
+    additional: "additional",
+    included: "Included",
+    complementsSubtotal: "Add-ons subtotal:",
+    totalPrice: "TOTAL PRICE",
+    paymentPlan: "PAYMENT PLAN",
+    concept: "ITEM",
+    amount: "AMOUNT",
+    installments: "INSTALLMENTS",
+    installmentValue: "PER INSTALLMENT",
+    total: "TOTAL",
+    defaultGreeting: "Dear {name}, thank you for considering {project} as your new home. Below you will find the detailed offer for the selected unit.",
+    defaultClosing: "Best regards,",
+    virtualTour: "VIRTUAL TOUR",
+    virtualTourDesc: "Discover the interior of unit {unit} through our interactive virtual tour. Click the link below to explore every detail of your future home.",
+    viewTour: "View Virtual Tour →",
+    contact: "CONTACT",
+    contactDesc: "Reach out via WhatsApp to schedule a visit or ask any questions:",
+    legalNotice: "LEGAL NOTICE",
+    preparedFor: "PREPARED FOR",
+    generatedBy: "Generated by NODDO — noddo.io",
+  },
 };
 
 // Dark surface colors matching NODDO brand
@@ -123,7 +250,7 @@ function drawSectionLabel(
 
 /* ── COVER PAGE (Page 1) ── */
 
-function drawCoverPage(doc: jsPDF, data: PDFData, accent: RGB) {
+function drawCoverPage(doc: jsPDF, data: PDFData, accent: RGB, strings: PDFStrings) {
   const pageW = doc.internal.pageSize.getWidth();
   const pageH = doc.internal.pageSize.getHeight();
 
@@ -216,7 +343,7 @@ function drawCoverPage(doc: jsPDF, data: PDFData, accent: RGB) {
   doc.setFontSize(10);
   doc.setFont("helvetica", "bold");
   doc.setTextColor(accent[0], accent[1], accent[2]);
-  doc.text("COTIZACIÓN", 22, afterNameY + 12);
+  doc.text(strings.quotation, 22, afterNameY + 12);
 
   // Reference number
   doc.setFontSize(8);
@@ -233,7 +360,7 @@ function drawCoverPage(doc: jsPDF, data: PDFData, accent: RGB) {
   doc.setFontSize(9);
   doc.setFont("helvetica", "bold");
   doc.setTextColor(TEXT_WHITE[0], TEXT_WHITE[1], TEXT_WHITE[2]);
-  doc.text(`Unidad ${data.unidadId}`, 22, pageH - 16);
+  doc.text(`${strings.unit} ${data.unidadId}`, 22, pageH - 16);
 
   // Bottom gold bar
   doc.setFillColor(accent[0], accent[1], accent[2]);
@@ -242,7 +369,7 @@ function drawCoverPage(doc: jsPDF, data: PDFData, accent: RGB) {
 
 /* ── OFFER PAGE (Page 2) ── */
 
-function drawOfferPage(doc: jsPDF, data: PDFData, accent: RGB, accentLight: RGB) {
+function drawOfferPage(doc: jsPDF, data: PDFData, accent: RGB, accentLight: RGB, strings: PDFStrings, locale: EmailLocale) {
   const pageW = doc.internal.pageSize.getWidth();
   const pageH = doc.internal.pageSize.getHeight();
   const margin = 22;
@@ -266,7 +393,7 @@ function drawOfferPage(doc: jsPDF, data: PDFData, accent: RGB, accentLight: RGB)
     y += 4.5;
     doc.setFontSize(7.5);
     doc.setTextColor(accent[0], accent[1], accent[2]);
-    doc.text(`Asesor: ${data.agenteName}`, pageW - margin, y, { align: "right" });
+    doc.text(`${strings.advisor}: ${data.agenteName}`, pageW - margin, y, { align: "right" });
   }
 
   y = 32;
@@ -275,7 +402,7 @@ function drawOfferPage(doc: jsPDF, data: PDFData, accent: RGB, accentLight: RGB)
   doc.setFontSize(22);
   doc.setFont("helvetica", "bold");
   doc.setTextColor(25, 25, 25);
-  doc.text("Oferta de Compra", margin, y);
+  doc.text(strings.purchaseOffer, margin, y);
 
   // Reference number
   doc.setFontSize(8);
@@ -298,7 +425,7 @@ function drawOfferPage(doc: jsPDF, data: PDFData, accent: RGB, accentLight: RGB)
   // ── Greeting ──
   const saludo =
     data.pdfSaludo ||
-    `Estimado(a) ${data.buyerName}, gracias por considerar ${data.projectName} como su nuevo hogar. A continuación le presentamos la oferta detallada para la unidad seleccionada.`;
+    strings.defaultGreeting.replace("{name}", data.buyerName).replace("{project}", data.projectName);
   doc.setFontSize(9);
   doc.setFont("helvetica", "normal");
   doc.setTextColor(80, 80, 80);
@@ -307,7 +434,7 @@ function drawOfferPage(doc: jsPDF, data: PDFData, accent: RGB, accentLight: RGB)
   y += saludoLines.length * 4.2 + 6;
 
   // ── DETALLE DE LA UNIDAD ──
-  y = drawSectionLabel(doc, "DETALLE DE LA UNIDAD", margin, y, accent, contentW);
+  y = drawSectionLabel(doc, strings.unitDetail, margin, y, accent, contentW);
 
   // Unit details grid (2-column layout with light background)
   const gridX = margin;
@@ -317,17 +444,17 @@ function drawOfferPage(doc: jsPDF, data: PDFData, accent: RGB, accentLight: RGB)
 
   // Build detail pairs: [label, value][]
   const detailPairs: [string, string][] = [];
-  detailPairs.push(["Unidad", data.unidadId]);
-  if (data.tipologiaName) detailPairs.push(["Tipología", data.tipologiaName]);
-  if (data.area) detailPairs.push(["Área", `${data.area} m²`]);
-  if (data.piso !== null && data.piso !== undefined) detailPairs.push(["Piso", `${data.piso}`]);
-  if (data.habitaciones) detailPairs.push(["Habitaciones", `${data.habitaciones}`]);
-  if (data.banos) detailPairs.push(["Baños", `${data.banos}`]);
-  if (data.vista) detailPairs.push(["Vista", data.vista]);
-  if (data.orientacion) detailPairs.push(["Orientación", data.orientacion]);
-  if (data.parqueaderos) detailPairs.push(["Parqueaderos", `${data.parqueaderos}`]);
-  if (data.depositos) detailPairs.push(["Depósitos", `${data.depositos}`]);
-  if (data.fechaEstimadaEntrega) detailPairs.push(["Entrega estimada", data.fechaEstimadaEntrega]);
+  detailPairs.push([strings.unit, data.unidadId]);
+  if (data.tipologiaName) detailPairs.push([strings.typology, data.tipologiaName]);
+  if (data.area) detailPairs.push([strings.area, `${data.area} m²`]);
+  if (data.piso !== null && data.piso !== undefined) detailPairs.push([strings.floor, `${data.piso}`]);
+  if (data.habitaciones) detailPairs.push([strings.bedrooms, `${data.habitaciones}`]);
+  if (data.banos) detailPairs.push([strings.bathrooms, `${data.banos}`]);
+  if (data.vista) detailPairs.push([strings.view, data.vista]);
+  if (data.orientacion) detailPairs.push([strings.orientation, data.orientacion]);
+  if (data.parqueaderos) detailPairs.push([strings.parking, `${data.parqueaderos}`]);
+  if (data.depositos) detailPairs.push([strings.storage, `${data.depositos}`]);
+  if (data.fechaEstimadaEntrega) detailPairs.push([strings.estimatedDelivery, data.fechaEstimadaEntrega]);
 
   // Background for the grid
   const rows = Math.ceil(detailPairs.length / 2);
@@ -362,7 +489,7 @@ function drawOfferPage(doc: jsPDF, data: PDFData, accent: RGB, accentLight: RGB)
   // ── Complementos section (if any) ──
   const complementos = data.complementos || data.resultado.complementos;
   if (complementos && complementos.length > 0) {
-    y = drawSectionLabel(doc, "COMPLEMENTOS", margin, y, accent, contentW);
+    y = drawSectionLabel(doc, strings.complements, margin, y, accent, contentW);
 
     // Separate included vs extras/precio_base for cleaner display
     const includedComps = complementos.filter((c) => !c.es_extra && !c.es_precio_base);
@@ -375,8 +502,8 @@ function drawOfferPage(doc: jsPDF, data: PDFData, accent: RGB, accentLight: RGB)
         : comp.subtipo
           ? `${comp.identificador} — ${comp.subtipo}`
           : comp.identificador;
-      const tipoLabel = comp.tipo === "parqueadero" ? "Parqueadero" : "Depósito";
-      const prefix = isExtra ? `${tipoLabel} (adicional)` : tipoLabel;
+      const tipoLabel = comp.tipo === "parqueadero" ? strings.parking_label : strings.storage_label;
+      const prefix = isExtra ? `${tipoLabel} (${strings.additional})` : tipoLabel;
 
       doc.setFontSize(8.5);
       doc.setFont("helvetica", "normal");
@@ -389,7 +516,7 @@ function drawOfferPage(doc: jsPDF, data: PDFData, accent: RGB, accentLight: RGB)
       } else {
         doc.setFontSize(7.5);
         doc.setTextColor(130, 130, 130);
-        doc.text("Incluido", pageW - margin - 4, y, { align: "right" });
+        doc.text(strings.included, pageW - margin - 4, y, { align: "right" });
       }
 
       y += 7;
@@ -405,7 +532,7 @@ function drawOfferPage(doc: jsPDF, data: PDFData, accent: RGB, accentLight: RGB)
       doc.setFontSize(8);
       doc.setFont("helvetica", "bold");
       doc.setTextColor(50, 50, 50);
-      doc.text("Subtotal complementos:", margin + contentW * 0.6, y + 3);
+      doc.text(strings.complementsSubtotal, margin + contentW * 0.6, y + 3);
       doc.setTextColor(accent[0], accent[1], accent[2]);
       doc.text(formatCurrency(compTotal, moneda), pageW - margin - 4, y + 3, { align: "right" });
       y += 10;
@@ -421,7 +548,7 @@ function drawOfferPage(doc: jsPDF, data: PDFData, accent: RGB, accentLight: RGB)
   doc.setFontSize(8);
   doc.setFont("helvetica", "bold");
   doc.setTextColor(255, 255, 255);
-  doc.text("PRECIO TOTAL", gridX + 6, y + 5.5);
+  doc.text(strings.totalPrice, gridX + 6, y + 5.5);
   doc.setFontSize(14);
   doc.text(
     formatCurrency(displayTotal, moneda),
@@ -433,7 +560,7 @@ function drawOfferPage(doc: jsPDF, data: PDFData, accent: RGB, accentLight: RGB)
   y += 20;
 
   // ── PLAN DE PAGOS ──
-  y = drawSectionLabel(doc, "PLAN DE PAGOS", margin, y, accent, contentW);
+  y = drawSectionLabel(doc, strings.paymentPlan, margin, y, accent, contentW);
 
   // Table columns
   const colConcepto = margin + 4;
@@ -448,11 +575,11 @@ function drawOfferPage(doc: jsPDF, data: PDFData, accent: RGB, accentLight: RGB)
   doc.setFontSize(7);
   doc.setFont("helvetica", "bold");
   doc.setTextColor(255, 255, 255);
-  doc.text("CONCEPTO", colConcepto, y);
+  doc.text(strings.concept, colConcepto, y);
   doc.text("%", colPct, y);
-  doc.text("MONTO", colMonto, y);
-  doc.text("CUOTAS", colCuotas, y);
-  doc.text("VALOR CUOTA", colValorCuota, y);
+  doc.text(strings.amount, colMonto, y);
+  doc.text(strings.installments, colCuotas, y);
+  doc.text(strings.installmentValue, colValorCuota, y);
 
   y += 9;
 
@@ -488,10 +615,11 @@ function drawOfferPage(doc: jsPDF, data: PDFData, accent: RGB, accentLight: RGB)
     // Cuotas
     doc.setFontSize(7.5);
     doc.setTextColor(110, 110, 110);
+    const fl = frecLabels[locale];
     const cuotaText =
       fase.cuotas > 1
-        ? `${fase.cuotas}x ${frecLabels[fase.frecuencia] || fase.frecuencia}`
-        : frecLabels[fase.frecuencia] || fase.frecuencia;
+        ? `${fase.cuotas}x ${fl[fase.frecuencia] || fase.frecuencia}`
+        : fl[fase.frecuencia] || fase.frecuencia;
     doc.text(cuotaText, colCuotas, y);
 
     // Valor cuota
@@ -529,14 +657,14 @@ function drawOfferPage(doc: jsPDF, data: PDFData, accent: RGB, accentLight: RGB)
   doc.setFont("helvetica", "bold");
   doc.setTextColor(255, 255, 255);
   const finalTotal = data.resultado.precio_total ?? data.resultado.precio_neto;
-  doc.text("TOTAL", colConcepto, y);
+  doc.text(strings.total, colConcepto, y);
   doc.text("100%", colPct, y);
   doc.text(formatCurrency(finalTotal, moneda), colMonto, y);
 
   y += 18;
 
   // ── Sign-off ──
-  const despedida = data.pdfDespedida || "Cordialmente,";
+  const despedida = data.pdfDespedida || strings.defaultClosing;
 
   doc.setFontSize(9);
   doc.setFont("helvetica", "italic");
@@ -563,14 +691,14 @@ function drawOfferPage(doc: jsPDF, data: PDFData, accent: RGB, accentLight: RGB)
   doc.setFontSize(6.5);
   doc.setFont("helvetica", "normal");
   doc.setTextColor(170, 170, 170);
-  doc.text("Generado por NODDO — noddo.io", pageW / 2, pageH - 8, {
+  doc.text(strings.generatedBy, pageW / 2, pageH - 8, {
     align: "center",
   });
 }
 
 /* ── ADDITIONAL INFO PAGE (Page 3, conditional) ── */
 
-function drawInfoPage(doc: jsPDF, data: PDFData, accent: RGB, accentLight: RGB) {
+function drawInfoPage(doc: jsPDF, data: PDFData, accent: RGB, accentLight: RGB, strings: PDFStrings) {
   const pageW = doc.internal.pageSize.getWidth();
   const pageH = doc.internal.pageSize.getHeight();
   const margin = 22;
@@ -582,12 +710,12 @@ function drawInfoPage(doc: jsPDF, data: PDFData, accent: RGB, accentLight: RGB) 
 
   // ── Virtual Tour ──
   if (data.tour360Url) {
-    y = drawSectionLabel(doc, "RECORRIDO VIRTUAL", margin, y, accent, contentW);
+    y = drawSectionLabel(doc, strings.virtualTour, margin, y, accent, contentW);
 
     doc.setFontSize(9);
     doc.setFont("helvetica", "normal");
     doc.setTextColor(60, 60, 60);
-    const tourDesc = `Descubra el interior de su unidad ${data.unidadId} a través de nuestro recorrido virtual interactivo. Haga clic en el siguiente enlace para explorar cada detalle de su futuro hogar.`;
+    const tourDesc = strings.virtualTourDesc.replace("{unit}", data.unidadId);
     const tourLines = doc.splitTextToSize(tourDesc, contentW);
     doc.text(tourLines, margin, y);
     y += tourLines.length * 4 + 4;
@@ -596,7 +724,7 @@ function drawInfoPage(doc: jsPDF, data: PDFData, accent: RGB, accentLight: RGB) 
     doc.setFontSize(9);
     doc.setFont("helvetica", "bold");
     doc.setTextColor(accent[0], accent[1], accent[2]);
-    doc.textWithLink("Ver Recorrido Virtual →", margin, y, {
+    doc.textWithLink(strings.viewTour, margin, y, {
       url: data.tour360Url,
     });
 
@@ -605,13 +733,13 @@ function drawInfoPage(doc: jsPDF, data: PDFData, accent: RGB, accentLight: RGB) 
 
   // ── Contact ──
   if (data.whatsappNumero) {
-    y = drawSectionLabel(doc, "CONTACTO", margin, y, accent, contentW);
+    y = drawSectionLabel(doc, strings.contact, margin, y, accent, contentW);
 
     doc.setFontSize(9);
     doc.setFont("helvetica", "normal");
     doc.setTextColor(60, 60, 60);
     doc.text(
-      "Escríbanos por WhatsApp para agendar una visita o resolver sus dudas:",
+      strings.contactDesc,
       margin,
       y,
     );
@@ -632,7 +760,7 @@ function drawInfoPage(doc: jsPDF, data: PDFData, accent: RGB, accentLight: RGB) 
   const legalText = legalParts.join("\n\n");
 
   if (legalText) {
-    y = drawSectionLabel(doc, "AVISO LEGAL", margin, y, accent, contentW);
+    y = drawSectionLabel(doc, strings.legalNotice, margin, y, accent, contentW);
 
     doc.setFontSize(7.5);
     doc.setFont("helvetica", "normal");
@@ -652,7 +780,7 @@ function drawInfoPage(doc: jsPDF, data: PDFData, accent: RGB, accentLight: RGB) 
   doc.setFontSize(7);
   doc.setFont("helvetica", "normal");
   doc.setTextColor(accent[0], accent[1], accent[2]);
-  doc.text("PREPARADA PARA", margin, y);
+  doc.text(strings.preparedFor, margin, y);
   y += 5;
 
   doc.setFontSize(10);
@@ -674,7 +802,7 @@ function drawInfoPage(doc: jsPDF, data: PDFData, accent: RGB, accentLight: RGB) 
   doc.setFontSize(6.5);
   doc.setFont("helvetica", "normal");
   doc.setTextColor(170, 170, 170);
-  doc.text("Generado por NODDO — noddo.io", pageW / 2, pageH - 8, {
+  doc.text(strings.generatedBy, pageW / 2, pageH - 8, {
     align: "center",
   });
 }
@@ -689,13 +817,15 @@ export function generarPDF(data: PDFData): Buffer {
     Math.min(255, accent[1] + 40),
     Math.min(255, accent[2] + 20),
   ];
+  const locale: EmailLocale = data.idioma || "es";
+  const strings = PDF_STRINGS[locale];
 
   // ── Page 1: Cover ──
-  drawCoverPage(doc, data, accent);
+  drawCoverPage(doc, data, accent, strings);
 
   // ── Page 2: Offer Details ──
   doc.addPage();
-  drawOfferPage(doc, data, accent, accentLight);
+  drawOfferPage(doc, data, accent, accentLight, strings, locale);
 
   // ── Page 3: Additional Info (conditional) ──
   const hasInfoContent =
@@ -706,7 +836,7 @@ export function generarPDF(data: PDFData): Buffer {
 
   if (hasInfoContent) {
     doc.addPage();
-    drawInfoPage(doc, data, accent, accentLight);
+    drawInfoPage(doc, data, accent, accentLight, strings);
   }
 
   // Return as Buffer

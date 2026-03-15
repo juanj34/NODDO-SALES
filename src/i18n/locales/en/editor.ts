@@ -130,6 +130,10 @@ const editor = {
       backgroundHint: "General microsite background",
     },
     advanced: {
+      languageTitle: "Language & Region",
+      languageDescription: "Language for microsite communications: emails, PDFs and quotes sent to clients",
+      micrositeLanguage: "Microsite language",
+      micrositeLanguageHint: "Affects confirmation emails, PDF quotes and all communications sent to clients of this project.",
       legalTitle: "Legal",
       legalDescription: "Legal text displayed in the microsite footer",
       disclaimer: "Disclaimer",

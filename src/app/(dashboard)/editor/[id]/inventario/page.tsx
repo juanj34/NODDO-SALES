@@ -44,6 +44,7 @@ import type { Unidad, Tipologia, Torre, Fachada, Complemento, ComplementoMode, C
 import { ComplementosSection } from "@/components/dashboard/ComplementosSection";
 import { CurrencyInput } from "@/components/dashboard/CurrencyInput";
 import { SmartImportModal } from "@/components/dashboard/SmartImportModal";
+import { NodDoDropdown } from "@/components/ui/NodDoDropdown";
 
 // ---------------------------------------------------------------------------
 // Types
@@ -304,38 +305,32 @@ function UnitForm({
           </div>
           <div>
             <label className={labelClass}>{t("inventario.fields.typology")}</label>
-            <select
+            <NodDoDropdown
+              variant="form"
+              size="lg"
               value={form.tipologia_id}
-              onChange={(e) => set("tipologia_id", e.target.value)}
-              className={inputClass}
-            >
-              <option value="" className="bg-[var(--surface-2)]">
-                {t("inventario.noTypology")}
-              </option>
-              {tipologias.map((t) => (
-                <option key={t.id} value={t.id} className="bg-[var(--surface-2)]">
-                  {t.nombre}
-                </option>
-              ))}
-            </select>
+              onChange={(val) => set("tipologia_id", val)}
+              placeholder={t("inventario.noTypology")}
+              options={[
+                { value: "", label: t("inventario.noTypology") },
+                ...tipologias.map((tp) => ({ value: tp.id, label: tp.nombre })),
+              ]}
+            />
           </div>
           {fachadas.length > 0 && (
             <div>
               <label className={labelClass}>{t("inventario.fields.fachada")}</label>
-              <select
+              <NodDoDropdown
+                variant="form"
+                size="lg"
                 value={form.fachada_id}
-                onChange={(e) => set("fachada_id", e.target.value)}
-                className={inputClass}
-              >
-                <option value="" className="bg-[var(--surface-2)]">
-                  {t("inventario.allFachadas")}
-                </option>
-                {fachadas.map((f) => (
-                  <option key={f.id} value={f.id} className="bg-[var(--surface-2)]">
-                    {f.nombre}
-                  </option>
-                ))}
-              </select>
+                onChange={(val) => set("fachada_id", val)}
+                placeholder={t("inventario.allFachadas")}
+                options={[
+                  { value: "", label: t("inventario.allFachadas") },
+                  ...fachadas.map((f) => ({ value: f.id, label: f.nombre })),
+                ]}
+              />
             </div>
           )}
           <div>
@@ -370,21 +365,13 @@ function UnitForm({
           </div>
           <div>
             <label className={labelClass}>{t("inventario.fields.state")}</label>
-            <select
+            <NodDoDropdown
+              variant="form"
+              size="lg"
               value={form.estado}
-              onChange={(e) => set("estado", e.target.value)}
-              className={inputClass}
-            >
-              {ESTADOS.map((e) => (
-                <option
-                  key={e.value}
-                  value={e.value}
-                  className="bg-[var(--surface-2)]"
-                >
-                  {e.label}
-                </option>
-              ))}
-            </select>
+              onChange={(val) => set("estado", val)}
+              options={ESTADOS.map((e) => ({ value: e.value, label: e.label }))}
+            />
           </div>
           <div>
             <label className={labelClass}>{t("inventario.fields.bedrooms")}</label>
@@ -1724,46 +1711,28 @@ export default function InventarioPage() {
               className={inputClass + " pl-8 py-1.5 text-xs"}
             />
           </div>
-          <div className="relative">
-            <select
-              value={filterTipologia}
-              onChange={(e) => setFilterTipologia(e.target.value)}
-              className={inputClass + " w-36 appearance-none pr-7 py-1.5 text-xs"}
-            >
-              <option value="" className="bg-[var(--surface-2)]">
-                {t("inventario.allTypologies")}
-              </option>
-              {tipologias.map((t) => (
-                <option key={t.id} value={t.id} className="bg-[var(--surface-2)]">
-                  {t.nombre}
-                </option>
-              ))}
-            </select>
-            <ChevronDown
-              size={12}
-              className="absolute right-2.5 top-1/2 -translate-y-1/2 text-[var(--text-muted)] pointer-events-none"
-            />
-          </div>
-          <div className="relative">
-            <select
-              value={filterEstado}
-              onChange={(e) => setFilterEstado(e.target.value)}
-              className={inputClass + " w-32 appearance-none pr-7 py-1.5 text-xs"}
-            >
-              <option value="" className="bg-[var(--surface-2)]">
-                {t("inventario.allStates")}
-              </option>
-              {ESTADOS.map((e) => (
-                <option key={e.value} value={e.value} className="bg-[var(--surface-2)]">
-                  {e.label}
-                </option>
-              ))}
-            </select>
-            <ChevronDown
-              size={12}
-              className="absolute right-2.5 top-1/2 -translate-y-1/2 text-[var(--text-muted)] pointer-events-none"
-            />
-          </div>
+          <NodDoDropdown
+            variant="dashboard"
+            size="sm"
+            value={filterTipologia}
+            onChange={(val) => setFilterTipologia(val)}
+            options={[
+              { value: "", label: t("inventario.allTypologies") },
+              ...tipologias.map((tp) => ({ value: tp.id, label: tp.nombre })),
+            ]}
+            className="w-36"
+          />
+          <NodDoDropdown
+            variant="dashboard"
+            size="sm"
+            value={filterEstado}
+            onChange={(val) => setFilterEstado(val)}
+            options={[
+              { value: "", label: t("inventario.allStates") },
+              ...ESTADOS.map((e) => ({ value: e.value, label: e.label })),
+            ]}
+            className="w-32"
+          />
           <button
             onClick={() => {
               setShowCreateForm(true);
@@ -1809,29 +1778,14 @@ export default function InventarioPage() {
               </span>
               <div className="flex items-center gap-2 ml-auto flex-wrap">
                 <span className="text-xs text-[var(--text-tertiary)]">{t("inventario.bulkState")}</span>
-                <div className="relative">
-                  <select
-                    value={bulkEstado}
-                    onChange={(e) =>
-                      setBulkEstado(e.target.value as EstadoUnidad)
-                    }
-                    className={inputClass + " w-36 appearance-none pr-8 py-1.5"}
-                  >
-                    {ESTADOS.map((e) => (
-                      <option
-                        key={e.value}
-                        value={e.value}
-                        className="bg-[var(--surface-2)]"
-                      >
-                        {e.label}
-                      </option>
-                    ))}
-                  </select>
-                  <ChevronDown
-                    size={14}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-[var(--text-muted)] pointer-events-none"
-                  />
-                </div>
+                <NodDoDropdown
+                  variant="dashboard"
+                  size="sm"
+                  value={bulkEstado}
+                  onChange={(val) => setBulkEstado(val as EstadoUnidad)}
+                  options={ESTADOS.map((e) => ({ value: e.value, label: e.label }))}
+                  className="w-36"
+                />
                 <button
                   onClick={handleBulkStatusChange}
                   disabled={bulkLoading}
@@ -1849,29 +1803,19 @@ export default function InventarioPage() {
                   <>
                     <div className="w-px h-5 bg-[var(--border-subtle)] mx-1" />
                     <span className="text-xs text-[var(--text-tertiary)]">{t("inventario.bulkMoveTo")}</span>
-                    <div className="relative">
-                      <select
-                        value={bulkTorreId}
-                        onChange={(e) => setBulkTorreId(e.target.value)}
-                        className={inputClass + " w-40 appearance-none pr-8 py-1.5"}
-                      >
-                        <option value="" className="bg-[var(--surface-2)]">
-                          {t("inventario.selectTower")}
-                        </option>
-                        {torres.map((torre) => (
-                          <option key={torre.id} value={torre.id} className="bg-[var(--surface-2)]">
-                            {torre.nombre}
-                          </option>
-                        ))}
-                        <option value="__none__" className="bg-[var(--surface-2)]">
-                          {t("inventario.noTower")}
-                        </option>
-                      </select>
-                      <ChevronDown
-                        size={14}
-                        className="absolute right-3 top-1/2 -translate-y-1/2 text-[var(--text-muted)] pointer-events-none"
-                      />
-                    </div>
+                    <NodDoDropdown
+                      variant="dashboard"
+                      size="sm"
+                      value={bulkTorreId}
+                      onChange={(val) => setBulkTorreId(val)}
+                      placeholder={t("inventario.selectTower")}
+                      options={[
+                        { value: "", label: t("inventario.selectTower") },
+                        ...torres.map((torre) => ({ value: torre.id, label: torre.nombre })),
+                        { value: "__none__", label: t("inventario.noTower") },
+                      ]}
+                      className="w-40"
+                    />
                     <button
                       onClick={handleBulkTorreChange}
                       disabled={bulkLoading || !bulkTorreId}
@@ -1890,27 +1834,19 @@ export default function InventarioPage() {
                 {/* Bulk tipología */}
                 <div className="w-px h-5 bg-[var(--border-subtle)] mx-1" />
                 <span className="text-xs text-[var(--text-tertiary)]">{t("inventario.bulkTypology")}</span>
-                <div className="relative">
-                  <select
-                    value={bulkTipologiaId}
-                    onChange={(e) => setBulkTipologiaId(e.target.value)}
-                    className={inputClass + " w-36 appearance-none pr-8 py-1.5"}
-                  >
-                    <option value="" className="bg-[var(--surface-2)]">
-                      {t("inventario.selectTypology")}
-                    </option>
-                    {tipologiasForDropdown.map((tp) => (
-                      <option key={tp.id} value={tp.id} className="bg-[var(--surface-2)]">
-                        {tp.nombre}
-                      </option>
-                    ))}
-                    <option value="__none__" className="bg-[var(--surface-2)]">—</option>
-                  </select>
-                  <ChevronDown
-                    size={14}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-[var(--text-muted)] pointer-events-none"
-                  />
-                </div>
+                <NodDoDropdown
+                  variant="dashboard"
+                  size="sm"
+                  value={bulkTipologiaId}
+                  onChange={(val) => setBulkTipologiaId(val)}
+                  placeholder={t("inventario.selectTypology")}
+                  options={[
+                    { value: "", label: t("inventario.selectTypology") },
+                    ...tipologiasForDropdown.map((tp) => ({ value: tp.id, label: tp.nombre })),
+                    { value: "__none__", label: "—" },
+                  ]}
+                  className="w-36"
+                />
                 <button
                   onClick={handleBulkTipologiaChange}
                   disabled={bulkLoading || !bulkTipologiaId}
@@ -1923,27 +1859,19 @@ export default function InventarioPage() {
                   <>
                     <div className="w-px h-5 bg-[var(--border-subtle)] mx-1" />
                     <span className="text-xs text-[var(--text-tertiary)]">{t("inventario.bulkFachada")}</span>
-                    <div className="relative">
-                      <select
-                        value={bulkFachadaId}
-                        onChange={(e) => setBulkFachadaId(e.target.value)}
-                        className={inputClass + " w-36 appearance-none pr-8 py-1.5"}
-                      >
-                        <option value="" className="bg-[var(--surface-2)]">
-                          {t("inventario.selectFachada")}
-                        </option>
-                        {fachadas.map((f) => (
-                          <option key={f.id} value={f.id} className="bg-[var(--surface-2)]">
-                            {f.nombre}
-                          </option>
-                        ))}
-                        <option value="__none__" className="bg-[var(--surface-2)]">—</option>
-                      </select>
-                      <ChevronDown
-                        size={14}
-                        className="absolute right-3 top-1/2 -translate-y-1/2 text-[var(--text-muted)] pointer-events-none"
-                      />
-                    </div>
+                    <NodDoDropdown
+                      variant="dashboard"
+                      size="sm"
+                      value={bulkFachadaId}
+                      onChange={(val) => setBulkFachadaId(val)}
+                      placeholder={t("inventario.selectFachada")}
+                      options={[
+                        { value: "", label: t("inventario.selectFachada") },
+                        ...fachadas.map((f) => ({ value: f.id, label: f.nombre })),
+                        { value: "__none__", label: "—" },
+                      ]}
+                      className="w-36"
+                    />
                     <button
                       onClick={handleBulkFachadaChange}
                       disabled={bulkLoading || !bulkFachadaId}
@@ -2121,33 +2049,29 @@ export default function InventarioPage() {
                             {unit.identificador}
                           </td>
                           <td className="py-3 px-4">
-                            <select
+                            <NodDoDropdown
+                              variant="table"
+                              size="sm"
                               value={unit.tipologia_id || ""}
-                              onChange={(e) => handleInlineUpdate(unit.id, "tipologia_id", e.target.value || null)}
-                              className="bg-transparent text-xs text-[var(--text-secondary)] hover:text-white cursor-pointer focus:outline-none border-none appearance-none"
-                            >
-                              <option value="" className="bg-[var(--surface-2)]">—</option>
-                              {tipologiasForDropdown.map((tp) => (
-                                <option key={tp.id} value={tp.id} className="bg-[var(--surface-2)]">
-                                  {tp.nombre}
-                                </option>
-                              ))}
-                            </select>
+                              onChange={(val) => handleInlineUpdate(unit.id, "tipologia_id", val || null)}
+                              options={[
+                                { value: "", label: "—" },
+                                ...tipologiasForDropdown.map((tp) => ({ value: tp.id, label: tp.nombre })),
+                              ]}
+                            />
                           </td>
                           {fachadas.length > 0 && (
                             <td className="py-3 px-4">
-                              <select
+                              <NodDoDropdown
+                                variant="table"
+                                size="sm"
                                 value={unit.fachada_id || ""}
-                                onChange={(e) => handleInlineUpdate(unit.id, "fachada_id", e.target.value || null)}
-                                className="bg-transparent text-xs text-[var(--text-secondary)] hover:text-white cursor-pointer focus:outline-none border-none appearance-none"
-                              >
-                                <option value="" className="bg-[var(--surface-2)]">—</option>
-                                {fachadas.map((f) => (
-                                  <option key={f.id} value={f.id} className="bg-[var(--surface-2)]">
-                                    {f.nombre}
-                                  </option>
-                                ))}
-                              </select>
+                                onChange={(val) => handleInlineUpdate(unit.id, "fachada_id", val || null)}
+                                options={[
+                                  { value: "", label: "—" },
+                                  ...fachadas.map((f) => ({ value: f.id, label: f.nombre })),
+                                ]}
+                              />
                             </td>
                           )}
                           <td className="py-3 px-4 text-[var(--text-secondary)]">
