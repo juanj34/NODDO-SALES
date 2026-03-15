@@ -5,7 +5,7 @@ import { useCookieConsent } from "./CookieConsent";
 
 declare global {
   interface Window {
-    $crisp: any;
+    $crisp: Array<[string, ...unknown[]]>;
     CRISP_WEBSITE_ID: string;
   }
 }

@@ -1,4 +1,5 @@
 import { Metadata } from "next";
+import Link from "next/link";
 
 export const metadata: Metadata = {
   title: "Términos de Servicio - NODDO",
@@ -107,9 +108,9 @@ export default function TermsOfServicePage() {
           <p>
             Ofrecemos diferentes planes (Proyecto, Studio, Enterprise) con distintas funcionalidades
             y límites. Los detalles de cada plan están en nuestra{" "}
-            <a href="/#pricing" className="text-[var(--site-primary)] hover:underline">
+            <Link href="/#pricing" className="text-[var(--site-primary)] hover:underline">
               página de precios
-            </a>
+            </Link>
             .
           </p>
 

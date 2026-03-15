@@ -11,7 +11,37 @@ interface CookiePreferences {
   timestamp: number;
 }
 
+declare global {
+  interface Window {
+    __COOKIE_CONSENT__?: CookiePreferences;
+  }
+}
+
 const COOKIE_CONSENT_KEY = "noddo_cookie_consent";
+
+// Declare function before using it to fix "Cannot access variable before it is declared"
+function applyConsent(prefs: CookiePreferences) {
+  // Store in window for other components to check
+  if (typeof window !== "undefined") {
+    window.__COOKIE_CONSENT__ = prefs;
+
+    // Enable/disable analytics
+    if (prefs.analytics) {
+      // Enable Vercel Analytics, PostHog, etc.
+      console.log("[Cookie Consent] Analytics enabled");
+    } else {
+      console.log("[Cookie Consent] Analytics disabled");
+    }
+
+    // Enable/disable marketing
+    if (prefs.marketing) {
+      // Enable Meta Pixel, GTM, etc.
+      console.log("[Cookie Consent] Marketing cookies enabled");
+    } else {
+      console.log("[Cookie Consent] Marketing cookies disabled");
+    }
+  }
+}
 
 export function CookieConsent() {
   const [showBanner, setShowBanner] = useState(false);
@@ -20,7 +50,7 @@ export function CookieConsent() {
     necessary: true,
     analytics: false,
     marketing: false,
-    timestamp: Date.now(),
+    timestamp: 0, // Will be set in useEffect or on user action
   });
 
   useEffect(() => {
@@ -30,35 +60,12 @@ export function CookieConsent() {
       // Small delay for better UX (let page load first)
       setTimeout(() => setShowBanner(true), 1000);
     } else {
-      // Load saved preferences
+      // Load saved preferences - use queueMicrotask to avoid setState sync error
       const parsed = JSON.parse(saved) as CookiePreferences;
-      setPreferences(parsed);
+      queueMicrotask(() => setPreferences(parsed));
       applyConsent(parsed);
     }
   }, []);
-
-  const applyConsent = (prefs: CookiePreferences) => {
-    // Store in window for other components to check
-    if (typeof window !== "undefined") {
-      (window as any).__COOKIE_CONSENT__ = prefs;
-
-      // Enable/disable analytics
-      if (prefs.analytics) {
-        // Enable Vercel Analytics, PostHog, etc.
-        console.log("[Cookie Consent] Analytics enabled");
-      } else {
-        console.log("[Cookie Consent] Analytics disabled");
-      }
-
-      // Enable/disable marketing
-      if (prefs.marketing) {
-        // Enable Meta Pixel, GTM, etc.
-        console.log("[Cookie Consent] Marketing cookies enabled");
-      } else {
-        console.log("[Cookie Consent] Marketing cookies disabled");
-      }
-    }
-  };
 
   const acceptAll = () => {
     const prefs: CookiePreferences = {
@@ -255,19 +262,24 @@ export function useCookieConsent() {
   const [consent, setConsent] = useState<CookiePreferences | null>(null);
 
   useEffect(() => {
-    // Check both localStorage and window object
-    const saved = localStorage.getItem(COOKIE_CONSENT_KEY);
-    if (saved) {
-      setConsent(JSON.parse(saved));
-    } else if ((window as any).__COOKIE_CONSENT__) {
-      setConsent((window as any).__COOKIE_CONSENT__);
-    }
+    // Use queueMicrotask to avoid "Calling setState synchronously within an effect" error
+    queueMicrotask(() => {
+      // Check both localStorage and window object
+      const saved = localStorage.getItem(COOKIE_CONSENT_KEY);
+      if (saved) {
+        const parsed = JSON.parse(saved) as CookiePreferences;
+        setConsent(parsed);
+      } else if (window.__COOKIE_CONSENT__) {
+        setConsent(window.__COOKIE_CONSENT__);
+      }
+    });
 
     // Listen for changes
     const handler = () => {
       const updated = localStorage.getItem(COOKIE_CONSENT_KEY);
       if (updated) {
-        setConsent(JSON.parse(updated));
+        const parsed = JSON.parse(updated) as CookiePreferences;
+        setConsent(parsed);
       }
     };
 

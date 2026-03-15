@@ -2,6 +2,13 @@
 
 import { useEffect } from "react";
 
+declare global {
+  interface Window {
+    $crisp?: Array<[string, ...unknown[]]>;
+    CRISP_WEBSITE_ID?: string;
+  }
+}
+
 /**
  * Crisp Chat widget for dashboard support
  * Only loads in dashboard/editor - NOT in public microsites
@@ -17,8 +24,8 @@ export function CrispSupport() {
     }
 
     // Initialize Crisp
-    (window as any).$crisp = [];
-    (window as any).CRISP_WEBSITE_ID = CRISP_WEBSITE_ID;
+    window.$crisp = [];
+    window.CRISP_WEBSITE_ID = CRISP_WEBSITE_ID;
 
     const script = document.createElement("script");
     script.src = "https://client.crisp.chat/l.js";
@@ -30,8 +37,8 @@ export function CrispSupport() {
       // Remove Crisp widget when leaving dashboard
       const crispElements = document.querySelectorAll('[id^="crisp-chatbox"]');
       crispElements.forEach((el) => el.remove());
-      delete (window as any).$crisp;
-      delete (window as any).CRISP_WEBSITE_ID;
+      delete window.$crisp;
+      delete window.CRISP_WEBSITE_ID;
     };
   }, []);
 

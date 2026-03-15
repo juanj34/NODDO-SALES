@@ -329,7 +329,13 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
 });
 
 // Simple FAQ search (in production, use embeddings or full-text search)
-async function searchFAQs(query: string): Promise<any[]> {
+interface FAQResult {
+  pregunta: string;
+  respuesta: string;
+  categoria?: string;
+}
+
+async function searchFAQs(query: string): Promise<FAQResult[]> {
   // Load FAQ data from noddo-faq.md
   // For now, return sample results
   const sampleFAQs = [
