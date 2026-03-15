@@ -1,5 +1,8 @@
 import type { NextConfig } from "next";
 import { withSentryConfig } from "@sentry/nextjs";
+import createNextIntlPlugin from 'next-intl/plugin';
+
+const withNextIntl = createNextIntlPlugin('./src/i18n/request.ts');
 
 const nextConfig: NextConfig = {
   poweredByHeader: false,
@@ -95,9 +98,12 @@ const sentryEnabled =
   process.env.SENTRY_ORG &&
   process.env.SENTRY_PROJECT;
 
+// Wrap with next-intl first, then Sentry
+const configWithIntl = withNextIntl(nextConfig);
+
 // Only wrap with Sentry if all required env vars are present
 export default sentryEnabled
-  ? withSentryConfig(nextConfig, {
+  ? withSentryConfig(configWithIntl, {
       // Suppresses source map uploading logs during build
       silent: !process.env.CI,
 
@@ -114,4 +120,4 @@ export default sentryEnabled
       // Automatically tree-shake Sentry logger statements to reduce bundle size
       disableLogger: true,
     })
-  : nextConfig;
+  : configWithIntl;

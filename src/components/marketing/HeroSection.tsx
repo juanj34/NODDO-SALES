@@ -7,9 +7,9 @@ import { IsometricBuilding } from "./illustrations/IsometricBuilding";
 import { useBooking } from "./BookingProvider";
 
 const stats = [
-  { value: "1 día", label: "De idea a publicado" },
-  { value: "$0", label: "Costo de agencia" },
-  { value: "24/7", label: "Sala de ventas activa" },
+  { value: "24h", label: "De renders a showroom" },
+  { value: "Tú actualizas", label: "Sin depender de técnicos" },
+  { value: "$0", label: "Agencias 3D y mantenimiento" },
 ];
 
 export function HeroSection() {
@@ -225,19 +225,12 @@ export function HeroSection() {
       </motion.div>
 
       {/* Scroll pulse keyframes */}
-      <style jsx>{`
+      <style dangerouslySetInnerHTML={{__html: `
         @keyframes scrollPulse {
-          0%,
-          100% {
-            opacity: 0.6;
-            transform: scaleY(1);
-          }
-          50% {
-            opacity: 0.2;
-            transform: scaleY(0.6);
-          }
+          0%, 100% { opacity: 0.6; transform: scaleY(1); }
+          50% { opacity: 0.2; transform: scaleY(0.6); }
         }
-      `}</style>
+      `}} />
     </section>
   );
 }

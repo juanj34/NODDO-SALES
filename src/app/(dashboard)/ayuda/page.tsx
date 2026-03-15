@@ -22,6 +22,9 @@ import {
   Save,
   Sparkles,
   Upload,
+  Calculator,
+  BarChart3,
+  Zap,
 } from "lucide-react";
 import { useLanguage } from "@/i18n/LanguageProvider";
 import { HelpSidebar } from "@/components/help/HelpSidebar";
@@ -38,10 +41,13 @@ const iconMap: Record<string, LucideIcon> = {
   proyectos: FolderOpen,
   equipo: Users,
   leads: Mail,
+  disponibilidad: Package,
+  estadisticas: BarChart3,
   general: Settings2,
   torres: Building2,
   tipologias: Layers,
   inventario: Package,
+  cotizador: Calculator,
   fachadas: Grid3X3,
   planos: MapIcon,
   galeria: ImageIcon,
@@ -51,6 +57,7 @@ const iconMap: Record<string, LucideIcon> = {
   avances: HardHat,
   config: Settings2,
   dominio: Globe,
+  webhooks: Zap,
   publicacion: Rocket,
   autoguardado: Save,
   iaCreacion: Sparkles,
@@ -59,13 +66,14 @@ const iconMap: Record<string, LucideIcon> = {
 
 /* ─── Category → article IDs structure ─── */
 const categoryStructure = [
-  { id: "dashboard", articleIds: ["proyectos", "equipo", "leads"] },
+  { id: "dashboard", articleIds: ["proyectos", "equipo", "leads", "disponibilidad", "estadisticas"] },
   { id: "proyecto", articleIds: ["general", "torres"] },
   {
     id: "contenido",
     articleIds: [
       "tipologias",
       "inventario",
+      "cotizador",
       "fachadas",
       "planos",
       "galeria",
@@ -75,7 +83,7 @@ const categoryStructure = [
       "avances",
     ],
   },
-  { id: "ajustes", articleIds: ["config", "dominio"] },
+  { id: "ajustes", articleIds: ["config", "dominio", "webhooks"] },
   {
     id: "flujos",
     articleIds: ["publicacion", "autoguardado", "iaCreacion", "archivos"],

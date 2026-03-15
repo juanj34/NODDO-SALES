@@ -155,3 +155,34 @@ export function rateLimitExceeded(headers: Record<string, string>) {
     }
   );
 }
+
+/**
+ * Legacy helper functions for backward compatibility
+ */
+export function getClientIp(req: Request): string {
+  const forwardedFor = req.headers.get("x-forwarded-for");
+  if (forwardedFor) {
+    return forwardedFor.split(",")[0].trim();
+  }
+
+  const realIp = req.headers.get("x-real-ip");
+  if (realIp) {
+    return realIp;
+  }
+
+  return "unknown";
+}
+
+export async function isRateLimited(
+  req: Request,
+  limiter: typeof apiLimiter
+): Promise<boolean> {
+  if (!limiter) {
+    return false;
+  }
+
+  const identifier = getIdentifier(req);
+  const { success } = await limiter.limit(identifier);
+
+  return !success;
+}

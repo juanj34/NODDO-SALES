@@ -2,7 +2,7 @@ import { createClient } from "@/lib/supabase/server";
 import { getAuthContext } from "@/lib/auth-context";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { sendLeadNotification, sendLeadConfirmation } from "@/lib/email";
-import { isRateLimited, getClientIp } from "@/lib/rate-limit";
+import { leadLimiter, checkRateLimit, rateLimitExceeded } from "@/lib/rate-limit";
 import { getWebhookConfig, dispatchWebhook } from "@/lib/webhooks";
 import { verifyRecaptcha, getRecaptchaToken } from "@/lib/recaptcha";
 import type { WebhookPayload } from "@/lib/webhooks";
@@ -10,13 +10,10 @@ import { NextRequest, NextResponse } from "next/server";
 
 export async function POST(request: NextRequest) {
   try {
-    // Rate limit: 5 leads per minute per IP
-    const ip = getClientIp(request);
-    if (isRateLimited("leads", ip, 5, 60_000)) {
-      return NextResponse.json(
-        { error: "Demasiadas solicitudes. Intenta de nuevo en un momento." },
-        { status: 429 }
-      );
+    // Rate limit: 3 leads per hour per IP (via Upstash Redis)
+    const { success, headers } = await checkRateLimit(request, leadLimiter);
+    if (!success) {
+      return rateLimitExceeded(headers);
     }
 
     // POST is public — no auth needed for lead creation
