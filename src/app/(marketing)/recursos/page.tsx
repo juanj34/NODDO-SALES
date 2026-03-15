@@ -4,6 +4,7 @@ import React from "react";
 import { motion } from "framer-motion";
 import { BookOpen, Clock, ArrowRight, TrendingUp, Target, Lightbulb, CheckSquare, DollarSign } from "lucide-react";
 import Link from "next/link";
+import { usePageView } from "@/hooks/usePageView";
 
 const articles = [
   {
@@ -71,6 +72,8 @@ const articles = [
 const ease = [0.25, 0.46, 0.45, 0.94] as const;
 
 export default function RecursosPage() {
+  usePageView("Recursos");
+
   return (
     <div className="min-h-screen pt-32 pb-24 px-6">
       <div className="max-w-7xl mx-auto">

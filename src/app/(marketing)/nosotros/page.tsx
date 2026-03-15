@@ -1,8 +1,10 @@
 "use client";
 
 import { Target, Rocket, Users, Heart, Zap, Globe, Award, TrendingUp } from "lucide-react";
+import { usePageView } from "@/hooks/usePageView";
 
 export default function NosotrosPage() {
+  usePageView("Nosotros");
   return (
     <div className="min-h-screen pt-32 pb-24 px-6">
       <div className="max-w-5xl mx-auto">

@@ -3,6 +3,7 @@
 import { motion } from "framer-motion";
 import { TrendingUp, Clock, DollarSign, Users, ArrowRight, Quote, CheckCircle2, Target } from "lucide-react";
 import Link from "next/link";
+import { usePageView } from "@/hooks/usePageView";
 
 const caseStudies = [
   {
@@ -232,6 +233,8 @@ const caseStudies = [
 const ease = [0.25, 0.46, 0.45, 0.94] as const;
 
 export default function CasosDeEstudioPage() {
+  usePageView("Casos de Estudio");
+
   return (
     <div className="min-h-screen pt-32 pb-24 px-6">
       <div className="max-w-7xl mx-auto">

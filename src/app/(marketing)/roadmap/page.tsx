@@ -2,6 +2,7 @@
 
 import { motion } from "framer-motion";
 import { Rocket, CheckCircle2, Clock, Lightbulb, ArrowRight, Sparkles } from "lucide-react";
+import { usePageView } from "@/hooks/usePageView";
 
 const roadmapItems = [
   {
@@ -154,6 +155,8 @@ const roadmapItems = [
 const ease = [0.25, 0.46, 0.45, 0.94] as const;
 
 export default function RoadmapPage() {
+  usePageView("Roadmap");
+
   return (
     <div className="min-h-screen pt-32 pb-24 px-6">
       <div className="max-w-6xl mx-auto">

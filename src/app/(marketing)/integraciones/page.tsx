@@ -3,35 +3,7 @@
 import { motion } from "framer-motion";
 import { Plug, Zap, Globe, BarChart3, Send, Webhook, CheckCircle2, ArrowRight } from "lucide-react";
 import Link from "next/link";
-import { useEffect } from "react";
-
-export const metadata = {
-  title: "Integraciones | NODDO - Conecta tu CRM, Analytics y Marketing",
-  description: "NODDO se integra con HubSpot, Salesforce, GoHighLevel, Google Analytics, Facebook Pixel, Zapier y más. Conecta tu stack tecnológico en minutos sin código.",
-  keywords: "integraciones CRM, HubSpot, Salesforce, GoHighLevel, Google Analytics, Zapier, webhooks, API inmobiliaria",
-  openGraph: {
-    title: "Integraciones | NODDO",
-    description: "Conecta NODDO con las herramientas que ya usas. CRM, analytics, marketing y más de 5000 apps vía Zapier.",
-    url: "https://noddo.io/integraciones",
-    siteName: "NODDO",
-    images: [
-      {
-        url: "https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=1200&h=630&fit=crop",
-        width: 1200,
-        height: 630,
-        alt: "NODDO Integraciones",
-      },
-    ],
-    locale: "es_ES",
-    type: "website",
-  },
-  twitter: {
-    card: "summary_large_image",
-    title: "Integraciones | NODDO",
-    description: "Conecta tu CRM, analytics y herramientas de marketing en minutos. Sin código.",
-    images: ["https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=1200&h=630&fit=crop"],
-  },
-};
+import { usePageView } from "@/hooks/usePageView";
 
 const integrations = [
   {
@@ -168,16 +140,7 @@ const integrations = [
 const ease = [0.25, 0.46, 0.45, 0.94] as const;
 
 export default function IntegracionesPage() {
-  // Analytics tracking
-  useEffect(() => {
-    if (typeof window !== "undefined" && (window as any).gtag) {
-      (window as any).gtag("event", "page_view", {
-        page_title: "Integraciones",
-        page_location: window.location.href,
-        page_path: "/integraciones",
-      });
-    }
-  }, []);
+  usePageView("Integraciones");
 
   return (
     <div className="min-h-screen pt-32 pb-24 px-6">
