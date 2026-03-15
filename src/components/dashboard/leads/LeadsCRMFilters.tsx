@@ -84,14 +84,18 @@ export function LeadsCRMFilters({
       {/* Row 1: Search + Export */}
       <div className="flex gap-3 items-center">
         <div className="relative flex-1 max-w-md">
+          <label htmlFor="search-leads" className="block text-[10px] tracking-[0.12em] uppercase text-[var(--text-muted)] mb-1.5 font-ui font-bold">
+            {locale === "es" ? "Buscar" : "Search"}
+          </label>
           <Search
             size={14}
-            className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--text-muted)]"
+            className="absolute left-3 bottom-1/2 translate-y-1/2 text-[var(--text-muted)]"
             aria-hidden="true"
           />
           <input
+            id="search-leads"
             type="text"
-            placeholder={locale === "es" ? "Buscar nombre, email o teléfono..." : "Search name, email or phone..."}
+            placeholder={locale === "es" ? "Nombre, email o teléfono..." : "Name, email or phone..."}
             value={search}
             onChange={(e) => onSearchChange(e.target.value)}
             className="w-full bg-[var(--surface-2)] border border-[var(--border-default)] rounded-lg pl-9 pr-4 py-2 text-sm text-white placeholder:text-[var(--text-muted)] focus:outline-none focus:border-[rgba(var(--site-primary-rgb),0.5)] transition-colors"

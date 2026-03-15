@@ -183,11 +183,15 @@ export default function AyudaPage() {
 
       {/* Search */}
       <div className="relative max-w-md mb-8">
+        <label htmlFor="search-help" className="block text-[10px] tracking-[0.12em] uppercase text-[var(--text-muted)] mb-1.5 font-ui font-bold">
+          Buscar en ayuda
+        </label>
         <Search
           size={15}
-          className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[var(--text-muted)]"
+          className="absolute left-3.5 bottom-1/2 translate-y-1/2 text-[var(--text-muted)]"
         />
         <input
+          id="search-help"
           type="text"
           value={search}
           onChange={(e) => setSearch(e.target.value)}

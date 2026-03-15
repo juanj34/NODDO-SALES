@@ -276,12 +276,16 @@ export default function ProyectosPage() {
             <div className="flex flex-wrap items-center gap-2">
               {/* Search */}
               <div className="relative flex-1 min-w-0 sm:min-w-[200px] max-w-xs">
-                <Search size={14} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[var(--text-muted)]" aria-hidden="true" />
+                <label htmlFor="search-proyectos" className="block text-[10px] tracking-[0.12em] uppercase text-[var(--text-muted)] mb-1.5 font-ui font-bold">
+                  Buscar
+                </label>
+                <Search size={14} className="absolute left-3.5 bottom-1/2 translate-y-1/2 text-[var(--text-muted)]" aria-hidden="true" />
                 <input
+                  id="search-proyectos"
                   type="text"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  placeholder="Buscar proyecto..."
+                  placeholder="Nombre o slug..."
                   className="input-glass w-full pl-10 pr-3 py-2 text-xs"
                   aria-label="Buscar proyectos por nombre o slug"
                 />

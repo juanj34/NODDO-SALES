@@ -294,8 +294,12 @@ export default function CotizadorPage() {
             {/* Search */}
             <div className="p-3 border-b border-[var(--border-subtle)]">
               <div className="relative">
-                <Search size={13} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[var(--text-muted)]" />
+                <label htmlFor="search-cotizador" className="block text-[10px] tracking-[0.12em] uppercase text-[var(--text-muted)] mb-1.5 font-ui font-bold">
+                  {t("cotizador.search")}
+                </label>
+                <Search size={13} className="absolute left-3.5 bottom-1/2 translate-y-1/2 text-[var(--text-muted)]" />
                 <input
+                  id="search-cotizador"
                   type="text"
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}

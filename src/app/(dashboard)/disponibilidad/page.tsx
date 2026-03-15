@@ -409,18 +409,23 @@ export default function DisponibilidadPage() {
           <div className="space-y-3">
             {/* Search bar */}
             <div className="relative">
-              <Search size={14} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[var(--text-muted)]" />
+              <label htmlFor="search-units" className="block text-[10px] tracking-[0.12em] uppercase text-[var(--text-muted)] mb-1.5 font-ui font-bold">
+                Buscar
+              </label>
+              <Search size={14} className="absolute left-3.5 bottom-1/2 translate-y-1/2 text-[var(--text-muted)]" />
               <input
+                id="search-units"
                 type="text"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Buscar por identificador o tipología..."
+                placeholder="Identificador o tipología..."
                 className="input-glass text-xs w-full pl-10 pr-10"
               />
               {searchQuery && (
                 <button
                   onClick={() => setSearchQuery("")}
-                  className="absolute right-2.5 top-1/2 -translate-y-1/2 text-[var(--text-muted)] hover:text-[var(--text-secondary)] transition-colors"
+                  className="absolute right-2.5 bottom-1/2 translate-y-1/2 text-[var(--text-muted)] hover:text-[var(--text-secondary)] transition-colors"
+                  aria-label="Limpiar búsqueda"
                 >
                   <X size={14} />
                 </button>
