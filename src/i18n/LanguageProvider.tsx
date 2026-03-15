@@ -18,20 +18,40 @@ const LanguageContext = createContext<LanguageContextValue | null>(null);
 const STORAGE_KEY = "noddo-lang";
 
 export function LanguageProvider({ children }: { children: ReactNode }) {
-  // Initialize from localStorage
+  // Initialize from localStorage OR cookie (auto-detection)
   const [locale, setLocaleState] = useState<Locale>(() => {
     if (typeof window === "undefined") return "es";
+
+    // 1️⃣ PRIMERO: Revisar localStorage (preferencia guardada explícitamente)
     const stored = localStorage.getItem(STORAGE_KEY) as Locale | null;
     if (stored === "en" || stored === "es") {
       document.documentElement.lang = stored;
       return stored;
     }
+
+    // 2️⃣ SEGUNDO: Revisar cookie (auto-detectada por middleware)
+    const cookieLocale = document.cookie
+      .split('; ')
+      .find(row => row.startsWith('noddo-lang='))
+      ?.split('=')[1] as Locale | undefined;
+
+    if (cookieLocale === "en" || cookieLocale === "es") {
+      document.documentElement.lang = cookieLocale;
+      // Guardar en localStorage para futuras visitas
+      localStorage.setItem(STORAGE_KEY, cookieLocale);
+      return cookieLocale;
+    }
+
+    // 3️⃣ FALLBACK: Español por defecto
+    document.documentElement.lang = "es";
     return "es";
   });
 
   const setLocale = useCallback((newLocale: Locale) => {
     setLocaleState(newLocale);
     localStorage.setItem(STORAGE_KEY, newLocale);
+    // Also update cookie for sync across tabs and server-side detection
+    document.cookie = `noddo-lang=${newLocale}; path=/; max-age=${60 * 60 * 24 * 365}; samesite=lax`;
     document.documentElement.lang = newLocale;
   }, []);
 

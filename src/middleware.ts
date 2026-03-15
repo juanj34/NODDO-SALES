@@ -18,9 +18,14 @@ export async function middleware(request: NextRequest) {
   const domainInfo = parseDomain(hostname);
 
   // Detect locale from cookie or Accept-Language header
-  let locale = request.cookies.get('noddo-lang')?.value || defaultLocale;
-  if (!locales.includes(locale as any)) {
-    // Fallback: parse Accept-Language header
+  let locale = defaultLocale;
+  const cookieLocale = request.cookies.get('noddo-lang')?.value;
+
+  if (cookieLocale && locales.includes(cookieLocale as any)) {
+    // Use cookie if it exists and is valid
+    locale = cookieLocale;
+  } else {
+    // No valid cookie: parse Accept-Language header
     const acceptLanguage = request.headers.get('accept-language');
     if (acceptLanguage) {
       const languages = acceptLanguage.split(',').map(lang => lang.split(';')[0].trim().toLowerCase());
@@ -80,6 +85,16 @@ export async function middleware(request: NextRequest) {
     });
     response.headers.set("x-site-base-path", "");
     response.headers.set("x-noddo-locale", locale);
+
+    // Set cookie if not exists (for auto-detection on client)
+    if (!request.cookies.get('noddo-lang')) {
+      response.cookies.set('noddo-lang', locale, {
+        path: '/',
+        maxAge: 60 * 60 * 24 * 365, // 1 year
+        sameSite: 'lax',
+      });
+    }
+
     return response;
   }
 
@@ -118,6 +133,16 @@ export async function middleware(request: NextRequest) {
     // Other public routes (API, sites, etc.) — pass through with locale header
     const response = NextResponse.next();
     response.headers.set('x-noddo-locale', locale);
+
+    // Set cookie if not exists (for auto-detection on client)
+    if (!request.cookies.get('noddo-lang')) {
+      response.cookies.set('noddo-lang', locale, {
+        path: '/',
+        maxAge: 60 * 60 * 24 * 365, // 1 year
+        sameSite: 'lax',
+      });
+    }
+
     return response;
   }
 
@@ -193,6 +218,15 @@ export async function middleware(request: NextRequest) {
 
   // Set locale header for dashboard routes
   response.headers.set('x-noddo-locale', locale);
+
+  // Set cookie if not exists (for auto-detection on client)
+  if (!request.cookies.get('noddo-lang')) {
+    response.cookies.set('noddo-lang', locale, {
+      path: '/',
+      maxAge: 60 * 60 * 24 * 365, // 1 year
+      sameSite: 'lax',
+    });
+  }
 
   return response;
 }
