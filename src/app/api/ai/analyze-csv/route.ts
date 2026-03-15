@@ -12,6 +12,7 @@ interface AnalysisResult {
   statusMapping: Record<string, string>;
   detectedEtapas: string[];
   detectedTipologias: string[];
+  detectedFachadas: string[];
   missingFields: string[];
   notes: string;
 }
@@ -45,7 +46,7 @@ const VALID_DB_FIELDS_COMPLEMENTOS = [
   "notas",
 ] as const;
 
-const VALID_SPECIAL_FIELDS_UNIDADES = ["_etapa", "_tipologia"] as const;
+const VALID_SPECIAL_FIELDS_UNIDADES = ["_etapa", "_tipologia", "_fachada"] as const;
 const VALID_SPECIAL_FIELDS_COMPLEMENTOS = ["_etapa"] as const;
 
 type ImportMode = "unidades" | "parqueaderos" | "depositos";
@@ -87,7 +88,7 @@ export async function POST(request: NextRequest) {
         { status: 403 }
       );
 
-    const { headers, sampleRows, tipologias, torres, importMode: rawMode } = await request.json();
+    const { headers, sampleRows, tipologias, torres, fachadas, importMode: rawMode } = await request.json();
     const importMode: ImportMode = (rawMode === "parqueaderos" || rawMode === "depositos") ? rawMode : "unidades";
     const { dbFields, allTargets } = getValidFields(importMode);
 
@@ -109,6 +110,10 @@ export async function POST(request: NextRequest) {
 
     const torresList = (torres || [])
       .map((t: { id: string; nombre: string }) => `- ${sanitizeInput(t.nombre, 100)} (ID: ${t.id})`)
+      .join("\n");
+
+    const fachadasList = (fachadas || [])
+      .map((f: { id: string; nombre: string }) => `- ${sanitizeInput(f.nombre, 100)} (ID: ${f.id})`)
       .join("\n");
 
     // Format CSV sample for AI
@@ -151,7 +156,8 @@ CAMPOS ESPECIALES:
 
 CAMPOS ESPECIALES:
 - _etapa: columna que indica torre/etapa/sector/manzana/bloque (se mapeará manualmente a torre)
-- _tipologia: columna que indica el tipo de unidad (se mapeará manualmente a tipología)`;
+- _tipologia: columna que indica el tipo de unidad (se mapeará manualmente a tipología)
+- _fachada: columna que indica la fachada/elevación/bloque visual del edificio (se mapeará manualmente a fachada)`;
 
     const systemPrompt = `Eres un analizador de archivos CSV/Excel de inventario inmobiliario. Tu tarea es analizar los encabezados y datos de muestra de un archivo para determinar qué columnas son útiles y cómo mapearlas.
 
@@ -159,6 +165,7 @@ ${fieldsDescription}
 
 ${tipologiasList ? `TIPOLOGÍAS DEL PROYECTO:\n${tipologiasList}` : ""}
 ${torresList ? `TORRES/MANZANAS DEL PROYECTO:\n${torresList}` : ""}
+${fachadasList ? `FACHADAS DEL PROYECTO:\n${fachadasList}` : ""}
 
 ESTADOS VÁLIDOS: disponible, separado, reservada, vendida
 
@@ -169,6 +176,7 @@ FORMATO DE RESPUESTA (JSON):
   "statusMapping": { "valor_csv": "estado_valido", ... },
   "detectedEtapas": ["valor1", "valor2", ...],
   "detectedTipologias": ["valor1", "valor2", ...],
+  "detectedFachadas": ["valor1", "valor2", ...],
   "missingFields": ["campo_db_sin_columna_1", ...],
   "notes": "Explicación breve de lo detectado"
 }
@@ -179,7 +187,8 @@ REGLAS:
 3. statusMapping: para CADA valor único de estado encontrado en los datos, mapear al estado válido más cercano. Si un valor no coincide exactamente (ej: "pronto", "sold", "libre"), elegir el más apropiado.
 4. detectedEtapas: valores ÚNICOS encontrados en la columna mapeada a _etapa. Array vacío si no hay columna de etapa.
 5. detectedTipologias: valores ÚNICOS encontrados en la columna mapeada a _tipologia. Array vacío si no hay columna de tipología.
-6. missingFields: campos de BD que NO tienen columna correspondiente en el CSV.
+6. detectedFachadas: valores ÚNICOS encontrados en la columna mapeada a _fachada. Array vacío si no hay columna de fachada.
+7. missingFields: campos de BD que NO tienen columna correspondiente en el CSV.
 7. notes: breve explicación en español de qué tipo de archivo parece ser y qué se detectó.
 
 IMPORTANTE:
@@ -254,6 +263,13 @@ ${csvSample}
         )
       : [];
 
+    // Validate detectedFachadas
+    const detectedFachadas: string[] = Array.isArray(parsed.detectedFachadas)
+      ? parsed.detectedFachadas.filter(
+          (v): v is string => typeof v === "string" && v.trim() !== ""
+        )
+      : [];
+
     // Validate missingFields
     const dbFieldSet = new Set<string>(dbFields);
     const missingFields: string[] = Array.isArray(parsed.missingFields)
@@ -271,6 +287,7 @@ ${csvSample}
       statusMapping,
       detectedEtapas,
       detectedTipologias,
+      detectedFachadas,
       missingFields,
       notes,
     };

@@ -12,7 +12,6 @@ import {
   btnSecondary,
   btnDanger,
 } from "@/components/dashboard/editor-styles";
-import { parseCSV } from "@/lib/csv-parser";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Plus,
@@ -26,7 +25,6 @@ import {
   ChevronDown,
   Loader2,
   AlertTriangle,
-  FileSpreadsheet,
   CheckSquare,
   Square,
   MinusSquare,
@@ -35,7 +33,6 @@ import {
   TrendingUp,
   MessageSquare,
   Send,
-  Download,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { formatCurrency } from "@/lib/currency";
@@ -44,6 +41,7 @@ import { useToast } from "@/components/dashboard/Toast";
 import { useMediaQuery } from "@/hooks/useMediaQuery";
 import type { Unidad, Tipologia, Torre, Fachada, ComplementoMode } from "@/types";
 import { ComplementosSection } from "@/components/dashboard/ComplementosSection";
+import { SmartImportModal } from "@/components/dashboard/SmartImportModal";
 
 // ---------------------------------------------------------------------------
 // Types
@@ -63,22 +61,6 @@ interface UnitFormData {
   banos: string;
   parqueaderos: string;
   depositos: string;
-  orientacion: string;
-  vista: string;
-  notas: string;
-}
-
-interface ParsedPreviewUnit {
-  identificador: string;
-  tipologia_id: string;
-  piso: number | null;
-  area_m2: number | null;
-  precio: number | null;
-  estado: EstadoUnidad;
-  habitaciones: number | null;
-  banos: number | null;
-  parqueaderos: number | null;
-  depositos: number | null;
   orientacion: string;
   vista: string;
   notas: string;
@@ -266,990 +248,6 @@ function ConfirmDialog({
             <Trash2 size={12} />
             {t("galeria.delete")}
           </button>
-        </div>
-      </motion.div>
-    </motion.div>
-  );
-}
-
-// ---------------------------------------------------------------------------
-// Import CSV Modal
-// ---------------------------------------------------------------------------
-
-function ImportCSVModal({
-  tipologias,
-  torres,
-  proyectoId,
-  activeTorreId,
-  onClose,
-  onDone,
-}: {
-  tipologias: Tipologia[];
-  torres: Torre[];
-  proyectoId: string;
-  activeTorreId: string | null;
-  onClose: () => void;
-  onDone: () => void;
-}) {
-  const { t } = useTranslation("editor");
-  const [step, setStep] = useState<"input" | "preview">("input");
-  const [rawCSV, setRawCSV] = useState("");
-  const [parsed, setParsed] = useState<ParsedPreviewUnit[]>([]);
-  const [submitting, setSubmitting] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [dragging, setDragging] = useState(false);
-  const fileInputRef = useRef<HTMLInputElement>(null);
-
-  const processFile = async (file: File) => {
-    if (file.name.match(/\.xlsx?$/i)) {
-      const XLSX = (await import("xlsx")).default;
-      const buffer = await file.arrayBuffer();
-      const wb = XLSX.read(buffer);
-      const ws = wb.Sheets[wb.SheetNames[0]];
-      const csv = XLSX.utils.sheet_to_csv(ws);
-      setRawCSV(csv);
-    } else {
-      const text = await file.text();
-      setRawCSV(text);
-    }
-  };
-
-  const handleFileDrop = async (e: React.DragEvent) => {
-    e.preventDefault();
-    setDragging(false);
-    const file = e.dataTransfer.files[0];
-    if (file) await processFile(file);
-  };
-
-  const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) await processFile(file);
-  };
-
-  const handleDownloadExample = () => {
-    const torreNombre = torres.length > 0
-      ? (torres.find((t) => t.id === activeTorreId)?.prefijo || torres[0].prefijo || "T1")
-      : "T1";
-    const rows = [
-      "identificador,piso,area_m2,precio,estado,habitaciones,banos,parqueaderos,depositos,orientacion,vista",
-      `${torreNombre}-101,1,65.5,350000000,disponible,2,2,1,1,Norte,Interior`,
-      `${torreNombre}-102,1,72.3,380000000,disponible,3,2,2,0,Sur,Exterior`,
-      `${torreNombre}-201,2,65.5,360000000,disponible,2,2,1,1,Norte,Interior`,
-      `${torreNombre}-202,2,72.3,390000000,disponible,3,2,2,0,Sur,Exterior`,
-    ];
-    const csv = rows.join("\n");
-    const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = "ejemplo_inventario.csv";
-    a.click();
-    URL.revokeObjectURL(url);
-  };
-
-  const handleParse = () => {
-    setError(null);
-    try {
-      const units = parseCSV(rawCSV);
-      if (units.length === 0) {
-        setError(t("inventario.csvModal.noValidUnits"));
-        return;
-      }
-      const preview: ParsedPreviewUnit[] = units.map((u) => ({
-        identificador: u.identificador || "",
-        tipologia_id: "",
-        piso: u.piso ?? null,
-        area_m2: u.area_m2 ?? null,
-        precio: u.precio ?? null,
-        estado: u.estado || "disponible",
-        habitaciones: u.habitaciones ?? null,
-        banos: u.banos ?? null,
-        parqueaderos: u.parqueaderos ?? null,
-        depositos: u.depositos ?? null,
-        orientacion: u.orientacion || "",
-        vista: u.vista || "",
-        notas: u.notas || "",
-      }));
-      setParsed(preview);
-      setStep("preview");
-    } catch {
-      setError(t("inventario.csvModal.parseError"));
-    }
-  };
-
-  const handleConfirm = async () => {
-    setSubmitting(true);
-    setError(null);
-    try {
-      const torreId = activeTorreId && activeTorreId !== "__none__" ? activeTorreId : null;
-      const payload = parsed.map((u) => ({
-        proyecto_id: proyectoId,
-        identificador: u.identificador,
-        tipologia_id: u.tipologia_id || null,
-        piso: u.piso,
-        area_m2: u.area_m2,
-        precio: u.precio,
-        estado: u.estado,
-        habitaciones: u.habitaciones,
-        banos: u.banos,
-        parqueaderos: u.parqueaderos,
-        depositos: u.depositos,
-        orientacion: u.orientacion || null,
-        vista: u.vista || null,
-        notas: u.notas || null,
-        torre_id: torreId,
-      }));
-      const res = await fetch("/api/unidades/bulk", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ proyecto_id: proyectoId, unidades: payload }),
-      });
-      if (!res.ok) throw new Error("Error al crear unidades");
-      onDone();
-    } catch {
-      setError("Error al crear las unidades. Intenta de nuevo.");
-    } finally {
-      setSubmitting(false);
-    }
-  };
-
-  const updatePreviewUnit = (
-    index: number,
-    field: keyof ParsedPreviewUnit,
-    value: string
-  ) => {
-    setParsed((prev) => {
-      const copy = [...prev];
-      const unit = { ...copy[index] };
-      if (
-        field === "piso" ||
-        field === "habitaciones" ||
-        field === "banos" ||
-        field === "parqueaderos" ||
-        field === "depositos"
-      ) {
-        unit[field] = value ? parseInt(value) || null : null;
-      } else if (field === "area_m2" || field === "precio") {
-        unit[field] = value ? parseFloat(value) || null : null;
-      } else if (field === "estado") {
-        unit.estado = value as EstadoUnidad;
-      } else {
-        (unit as unknown as Record<string, string>)[field] = value;
-      }
-      copy[index] = unit;
-      return copy;
-    });
-  };
-
-  return (
-    <motion.div
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      exit={{ opacity: 0 }}
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4"
-      onClick={onClose}
-    >
-      <motion.div
-        initial={{ scale: 0.95, opacity: 0 }}
-        animate={{ scale: 1, opacity: 1 }}
-        exit={{ scale: 0.95, opacity: 0 }}
-        onClick={(e) => e.stopPropagation()}
-        className="bg-[var(--surface-2)] border border-[var(--border-default)] rounded-2xl w-full max-w-[calc(100vw-2rem)] sm:max-w-2xl lg:max-w-4xl max-h-[85vh] flex flex-col shadow-2xl"
-      >
-        {/* Header */}
-        <div className="flex items-center justify-between p-6 border-b border-[var(--border-subtle)]">
-          <div className="flex items-center gap-3">
-            <div className="p-2 bg-[rgba(var(--site-primary-rgb),0.1)] rounded-lg">
-              <FileSpreadsheet size={18} className="text-[var(--site-primary)]" />
-            </div>
-            <div>
-              <h3 className="text-sm font-medium text-white">{t("inventario.csvModal.title")}</h3>
-              <p className="text-xs text-[var(--text-tertiary)]">
-                {step === "input"
-                  ? t("inventario.csvModal.description")
-                  : t("inventario.csvModal.unitsDetected", { n: String(parsed.length) })}
-              </p>
-            </div>
-          </div>
-          <button
-            onClick={onClose}
-            className="p-2 hover:bg-[var(--surface-2)] rounded-lg transition-colors"
-          >
-            <X size={16} className="text-[var(--text-tertiary)]" />
-          </button>
-        </div>
-
-        {/* Body */}
-        <div className="flex-1 overflow-y-auto p-6">
-          {step === "input" ? (
-            <div className="space-y-4">
-              {/* Drop zone + file picker */}
-              <div
-                onDragOver={(e) => { e.preventDefault(); setDragging(true); }}
-                onDragLeave={() => setDragging(false)}
-                onDrop={handleFileDrop}
-                onClick={() => fileInputRef.current?.click()}
-                className={cn(
-                  "border-2 border-dashed rounded-xl p-8 text-center cursor-pointer transition-all",
-                  dragging
-                    ? "border-[var(--site-primary)] bg-[rgba(var(--site-primary-rgb),0.05)]"
-                    : "border-[var(--border-default)] hover:border-[var(--site-primary)]"
-                )}
-              >
-                <Upload size={24} className="mx-auto text-[var(--text-muted)] mb-2" />
-                <p className="text-xs text-[var(--text-secondary)]">{t("inventario.dragDropFile")}</p>
-                <p className="text-[10px] text-[var(--text-muted)] mt-1">{t("inventario.dragDropFormats")}</p>
-                <input
-                  ref={fileInputRef}
-                  type="file"
-                  accept=".csv,.tsv,.txt,.xlsx,.xls"
-                  hidden
-                  onChange={handleFileSelect}
-                />
-              </div>
-              <button
-                type="button"
-                onClick={handleDownloadExample}
-                className="inline-flex items-center gap-1.5 text-[11px] text-[var(--site-primary)] hover:underline"
-              >
-                <Download size={12} />
-                Descargar ejemplo CSV
-              </button>
-              <div className="flex items-center gap-3">
-                <div className="flex-1 h-px bg-[var(--border-subtle)]" />
-                <span className="text-[10px] text-[var(--text-muted)]">{t("inventario.orPaste")}</span>
-                <div className="flex-1 h-px bg-[var(--border-subtle)]" />
-              </div>
-              <textarea
-                value={rawCSV}
-                onChange={(e) => setRawCSV(e.target.value)}
-                placeholder={`identificador,piso,area_m2,precio,estado,habitaciones,banos\nApto 101,1,65,350000000,disponible,2,2\nApto 102,1,72,380000000,disponible,3,2`}
-                rows={8}
-                className={inputClass + " resize-none font-mono text-xs"}
-              />
-              {error && (
-                <p className="text-xs text-red-400 flex items-center gap-1.5">
-                  <AlertTriangle size={12} />
-                  {error}
-                </p>
-              )}
-            </div>
-          ) : (
-            <div className="space-y-4">
-              <p className="text-xs text-[var(--text-secondary)]">
-                {t("inventario.csvModal.reviewDescription")}
-              </p>
-              <div className="overflow-x-auto">
-                <table className="w-full text-xs">
-                  <thead>
-                    <tr className="border-b border-[var(--border-default)]">
-                      <th className="text-left py-2 px-2 text-[var(--text-tertiary)] font-normal">
-                        ID
-                      </th>
-                      <th className="text-left py-2 px-2 text-[var(--text-tertiary)] font-normal">
-                        {t("inventario.fields.typology")}
-                      </th>
-                      <th className="text-left py-2 px-2 text-[var(--text-tertiary)] font-normal">
-                        {t("inventario.fields.floor")}
-                      </th>
-                      <th className="text-left py-2 px-2 text-[var(--text-tertiary)] font-normal">
-                        {t("inventario.fields.area")}
-                      </th>
-                      <th className="text-left py-2 px-2 text-[var(--text-tertiary)] font-normal">
-                        {t("inventario.fields.price")}
-                      </th>
-                      <th className="text-left py-2 px-2 text-[var(--text-tertiary)] font-normal">
-                        {t("inventario.fields.state")}
-                      </th>
-                      <th className="text-left py-2 px-2 text-[var(--text-tertiary)] font-normal">
-                        {t("inventario.fields.bedrooms")}
-                      </th>
-                      <th className="text-left py-2 px-2 text-[var(--text-tertiary)] font-normal">
-                        {t("inventario.fields.bathrooms")}
-                      </th>
-                      <th className="text-left py-2 px-2 text-[var(--text-tertiary)] font-normal">
-                        {t("inventario.fields.parking")}
-                      </th>
-                      <th className="text-left py-2 px-2 text-[var(--text-tertiary)] font-normal">
-                        {t("inventario.fields.storage")}
-                      </th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {parsed.map((u, i) => (
-                      <tr
-                        key={i}
-                        className="border-b border-[var(--border-subtle)] hover:bg-[var(--surface-2)]"
-                      >
-                        <td className="py-1.5 px-2">
-                          <input
-                            value={u.identificador}
-                            onChange={(e) =>
-                              updatePreviewUnit(
-                                i,
-                                "identificador",
-                                e.target.value
-                              )
-                            }
-                            className="bg-transparent border-b border-[var(--border-default)] text-white text-xs px-1 py-0.5 w-24 focus:outline-none focus:border-[rgba(var(--site-primary-rgb),0.5)]"
-                          />
-                        </td>
-                        <td className="py-1.5 px-2">
-                          <select
-                            value={u.tipologia_id}
-                            onChange={(e) =>
-                              updatePreviewUnit(
-                                i,
-                                "tipologia_id",
-                                e.target.value
-                              )
-                            }
-                            className="bg-transparent border-b border-[var(--border-default)] text-white text-xs px-1 py-0.5 w-28 focus:outline-none focus:border-[rgba(var(--site-primary-rgb),0.5)]"
-                          >
-                            <option value="" className="bg-[var(--surface-2)]">
-                              --
-                            </option>
-                            {tipologias.map((t) => (
-                              <option
-                                key={t.id}
-                                value={t.id}
-                                className="bg-[var(--surface-2)]"
-                              >
-                                {t.nombre}
-                              </option>
-                            ))}
-                          </select>
-                        </td>
-                        <td className="py-1.5 px-2">
-                          <input
-                            value={u.piso ?? ""}
-                            onChange={(e) =>
-                              updatePreviewUnit(i, "piso", e.target.value)
-                            }
-                            className="bg-transparent border-b border-[var(--border-default)] text-white text-xs px-1 py-0.5 w-12 focus:outline-none focus:border-[rgba(var(--site-primary-rgb),0.5)]"
-                            type="number"
-                          />
-                        </td>
-                        <td className="py-1.5 px-2">
-                          <input
-                            value={u.area_m2 ?? ""}
-                            onChange={(e) =>
-                              updatePreviewUnit(i, "area_m2", e.target.value)
-                            }
-                            className="bg-transparent border-b border-[var(--border-default)] text-white text-xs px-1 py-0.5 w-16 focus:outline-none focus:border-[rgba(var(--site-primary-rgb),0.5)]"
-                            type="number"
-                          />
-                        </td>
-                        <td className="py-1.5 px-2">
-                          <input
-                            value={u.precio ?? ""}
-                            onChange={(e) =>
-                              updatePreviewUnit(i, "precio", e.target.value)
-                            }
-                            className="bg-transparent border-b border-[var(--border-default)] text-white text-xs px-1 py-0.5 w-28 focus:outline-none focus:border-[rgba(var(--site-primary-rgb),0.5)]"
-                            type="number"
-                          />
-                        </td>
-                        <td className="py-1.5 px-2">
-                          <select
-                            value={u.estado}
-                            onChange={(e) =>
-                              updatePreviewUnit(i, "estado", e.target.value)
-                            }
-                            className="bg-transparent border-b border-[var(--border-default)] text-white text-xs px-1 py-0.5 w-24 focus:outline-none focus:border-[rgba(var(--site-primary-rgb),0.5)]"
-                          >
-                            {ESTADOS.map((e) => (
-                              <option
-                                key={e.value}
-                                value={e.value}
-                                className="bg-[var(--surface-2)]"
-                              >
-                                {e.label}
-                              </option>
-                            ))}
-                          </select>
-                        </td>
-                        <td className="py-1.5 px-2">
-                          <input
-                            value={u.habitaciones ?? ""}
-                            onChange={(e) =>
-                              updatePreviewUnit(
-                                i,
-                                "habitaciones",
-                                e.target.value
-                              )
-                            }
-                            className="bg-transparent border-b border-[var(--border-default)] text-white text-xs px-1 py-0.5 w-12 focus:outline-none focus:border-[rgba(var(--site-primary-rgb),0.5)]"
-                            type="number"
-                          />
-                        </td>
-                        <td className="py-1.5 px-2">
-                          <input
-                            value={u.banos ?? ""}
-                            onChange={(e) =>
-                              updatePreviewUnit(i, "banos", e.target.value)
-                            }
-                            className="bg-transparent border-b border-[var(--border-default)] text-white text-xs px-1 py-0.5 w-12 focus:outline-none focus:border-[rgba(var(--site-primary-rgb),0.5)]"
-                            type="number"
-                          />
-                        </td>
-                        <td className="py-1.5 px-2">
-                          <input
-                            value={u.parqueaderos ?? ""}
-                            onChange={(e) =>
-                              updatePreviewUnit(i, "parqueaderos", e.target.value)
-                            }
-                            className="bg-transparent border-b border-[var(--border-default)] text-white text-xs px-1 py-0.5 w-12 focus:outline-none focus:border-[rgba(var(--site-primary-rgb),0.5)]"
-                            type="number"
-                          />
-                        </td>
-                        <td className="py-1.5 px-2">
-                          <input
-                            value={u.depositos ?? ""}
-                            onChange={(e) =>
-                              updatePreviewUnit(i, "depositos", e.target.value)
-                            }
-                            className="bg-transparent border-b border-[var(--border-default)] text-white text-xs px-1 py-0.5 w-12 focus:outline-none focus:border-[rgba(var(--site-primary-rgb),0.5)]"
-                            type="number"
-                          />
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-              {error && (
-                <p className="text-xs text-red-400 flex items-center gap-1.5">
-                  <AlertTriangle size={12} />
-                  {error}
-                </p>
-              )}
-            </div>
-          )}
-        </div>
-
-        {/* Footer */}
-        <div className="flex items-center justify-end gap-3 p-6 border-t border-[var(--border-subtle)]">
-          <button onClick={onClose} className={btnSecondary}>
-            {t("inventario.cancel")}
-          </button>
-          {step === "input" ? (
-            <button
-              onClick={handleParse}
-              disabled={!rawCSV.trim()}
-              className={btnPrimary}
-            >
-              <Upload size={14} />
-              {t("inventario.csvModal.parse")}
-            </button>
-          ) : (
-            <>
-              <button onClick={() => setStep("input")} className={btnSecondary}>
-                {t("inventario.back")}
-              </button>
-              <button
-                onClick={handleConfirm}
-                disabled={submitting}
-                className={btnPrimary}
-              >
-                {submitting ? (
-                  <Loader2 size={14} className="animate-spin" />
-                ) : (
-                  <Check size={14} />
-                )}
-                {submitting
-                  ? t("inventario.creating")
-                  : t("inventario.createUnits", { n: String(parsed.length) })}
-              </button>
-            </>
-          )}
-        </div>
-      </motion.div>
-    </motion.div>
-  );
-}
-
-// ---------------------------------------------------------------------------
-// Import AI Modal
-// ---------------------------------------------------------------------------
-
-function ImportAIModal({
-  tipologias,
-  proyectoId,
-  activeTorreId,
-  onClose,
-  onDone,
-}: {
-  tipologias: Tipologia[];
-  proyectoId: string;
-  activeTorreId: string | null;
-  onClose: () => void;
-  onDone: () => void;
-}) {
-  const { t } = useTranslation("editor");
-  const [step, setStep] = useState<"input" | "preview">("input");
-  const [rawText, setRawText] = useState("");
-  const [parsed, setParsed] = useState<ParsedPreviewUnit[]>([]);
-  const [processing, setProcessing] = useState(false);
-  const [submitting, setSubmitting] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [draggingAI, setDraggingAI] = useState(false);
-  const fileInputAIRef = useRef<HTMLInputElement>(null);
-
-  const processFileAI = async (file: File) => {
-    if (file.name.match(/\.xlsx?$/i)) {
-      const XLSX = (await import("xlsx")).default;
-      const buffer = await file.arrayBuffer();
-      const wb = XLSX.read(buffer);
-      const ws = wb.Sheets[wb.SheetNames[0]];
-      const csv = XLSX.utils.sheet_to_csv(ws);
-      setRawText(csv);
-    } else {
-      const text = await file.text();
-      setRawText(text);
-    }
-  };
-
-  const handleFileDropAI = async (e: React.DragEvent) => {
-    e.preventDefault();
-    setDraggingAI(false);
-    const file = e.dataTransfer.files[0];
-    if (file) await processFileAI(file);
-  };
-
-  const handleFileSelectAI = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) await processFileAI(file);
-  };
-
-  const handleParse = async () => {
-    setProcessing(true);
-    setError(null);
-    try {
-      const res = await fetch("/api/ai/parse-units", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          rawText,
-          tipologias: tipologias.map((t) => ({ id: t.id, nombre: t.nombre })),
-        }),
-      });
-      if (!res.ok) throw new Error("Error al procesar con IA");
-      const data = await res.json();
-      const units: ParsedPreviewUnit[] = (
-        data.unidades as Record<string, unknown>[]
-      ).map((u) => ({
-        identificador: (u.identificador as string) || "",
-        tipologia_id: (u.tipologia_id as string) || "",
-        piso: (u.piso as number) ?? null,
-        area_m2: (u.area_m2 as number) ?? null,
-        precio: (u.precio as number) ?? null,
-        estado: ((u.estado as string) || "disponible") as EstadoUnidad,
-        habitaciones: (u.habitaciones as number) ?? null,
-        banos: (u.banos as number) ?? null,
-        parqueaderos: (u.parqueaderos as number) ?? null,
-        depositos: (u.depositos as number) ?? null,
-        orientacion: (u.orientacion as string) || "",
-        vista: (u.vista as string) || "",
-        notas: (u.notas as string) || "",
-      }));
-      if (units.length === 0) {
-        setError(t("inventario.aiModal.noUnitsDetected"));
-        return;
-      }
-      setParsed(units);
-      setStep("preview");
-    } catch {
-      setError(t("inventario.aiModal.processingError"));
-    } finally {
-      setProcessing(false);
-    }
-  };
-
-  const handleConfirm = async () => {
-    setSubmitting(true);
-    setError(null);
-    try {
-      const torreId = activeTorreId && activeTorreId !== "__none__" ? activeTorreId : null;
-      const payload = parsed.map((u) => ({
-        proyecto_id: proyectoId,
-        identificador: u.identificador,
-        tipologia_id: u.tipologia_id || null,
-        piso: u.piso,
-        area_m2: u.area_m2,
-        precio: u.precio,
-        estado: u.estado,
-        habitaciones: u.habitaciones,
-        banos: u.banos,
-        parqueaderos: u.parqueaderos,
-        depositos: u.depositos,
-        orientacion: u.orientacion || null,
-        vista: u.vista || null,
-        notas: u.notas || null,
-        torre_id: torreId,
-      }));
-      const res = await fetch("/api/unidades/bulk", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ proyecto_id: proyectoId, unidades: payload }),
-      });
-      if (!res.ok) throw new Error("Error al crear unidades");
-      onDone();
-    } catch {
-      setError("Error al crear las unidades. Intenta de nuevo.");
-    } finally {
-      setSubmitting(false);
-    }
-  };
-
-  const updatePreviewUnit = (
-    index: number,
-    field: keyof ParsedPreviewUnit,
-    value: string
-  ) => {
-    setParsed((prev) => {
-      const copy = [...prev];
-      const unit = { ...copy[index] };
-      if (
-        field === "piso" ||
-        field === "habitaciones" ||
-        field === "banos" ||
-        field === "parqueaderos" ||
-        field === "depositos"
-      ) {
-        unit[field] = value ? parseInt(value) || null : null;
-      } else if (field === "area_m2" || field === "precio") {
-        unit[field] = value ? parseFloat(value) || null : null;
-      } else if (field === "estado") {
-        unit.estado = value as EstadoUnidad;
-      } else {
-        (unit as unknown as Record<string, string>)[field] = value;
-      }
-      copy[index] = unit;
-      return copy;
-    });
-  };
-
-  return (
-    <motion.div
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      exit={{ opacity: 0 }}
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4"
-      onClick={onClose}
-    >
-      <motion.div
-        initial={{ scale: 0.95, opacity: 0 }}
-        animate={{ scale: 1, opacity: 1 }}
-        exit={{ scale: 0.95, opacity: 0 }}
-        onClick={(e) => e.stopPropagation()}
-        className="bg-[var(--surface-2)] border border-[var(--border-default)] rounded-2xl w-full max-w-[calc(100vw-2rem)] sm:max-w-2xl lg:max-w-4xl max-h-[85vh] flex flex-col shadow-2xl"
-      >
-        {/* Header */}
-        <div className="flex items-center justify-between p-6 border-b border-[var(--border-subtle)]">
-          <div className="flex items-center gap-3">
-            <div className="p-2 bg-purple-500/10 rounded-lg">
-              <Sparkles size={18} className="text-purple-400" />
-            </div>
-            <div>
-              <h3 className="text-sm font-medium text-white">
-                {t("inventario.aiModal.title")}
-              </h3>
-              <p className="text-xs text-[var(--text-tertiary)]">
-                {step === "input"
-                  ? t("inventario.aiModal.description")
-                  : t("inventario.csvModal.unitsDetected", { n: String(parsed.length) })}
-              </p>
-            </div>
-          </div>
-          <button
-            onClick={onClose}
-            className="p-2 hover:bg-[var(--surface-2)] rounded-lg transition-colors"
-          >
-            <X size={16} className="text-[var(--text-tertiary)]" />
-          </button>
-        </div>
-
-        {/* Body */}
-        <div className="flex-1 overflow-y-auto p-6">
-          {step === "input" ? (
-            <div className="space-y-4">
-              {/* Drop zone + file picker */}
-              <div
-                onDragOver={(e) => { e.preventDefault(); setDraggingAI(true); }}
-                onDragLeave={() => setDraggingAI(false)}
-                onDrop={handleFileDropAI}
-                onClick={() => fileInputAIRef.current?.click()}
-                className={cn(
-                  "border-2 border-dashed rounded-xl p-8 text-center cursor-pointer transition-all",
-                  draggingAI
-                    ? "border-purple-400 bg-purple-500/5"
-                    : "border-[var(--border-default)] hover:border-purple-400"
-                )}
-              >
-                <Upload size={24} className="mx-auto text-[var(--text-muted)] mb-2" />
-                <p className="text-xs text-[var(--text-secondary)]">{t("inventario.dragDropFile")}</p>
-                <p className="text-[10px] text-[var(--text-muted)] mt-1">{t("inventario.dragDropFormats")}</p>
-                <input
-                  ref={fileInputAIRef}
-                  type="file"
-                  accept=".csv,.tsv,.txt,.xlsx,.xls"
-                  hidden
-                  onChange={handleFileSelectAI}
-                />
-              </div>
-              <div className="flex items-center gap-3">
-                <div className="flex-1 h-px bg-[var(--border-subtle)]" />
-                <span className="text-[10px] text-[var(--text-muted)]">{t("inventario.orPaste")}</span>
-                <div className="flex-1 h-px bg-[var(--border-subtle)]" />
-              </div>
-              <textarea
-                value={rawText}
-                onChange={(e) => setRawText(e.target.value)}
-                placeholder={`Ejemplo:\nEl proyecto tiene los siguientes apartamentos:\n- Apto 101, piso 1, 65m2, 3 habitaciones, 2 banos, $350.000.000\n- Apto 102, piso 1, 72m2, 2 habitaciones, 2 banos, $380.000.000\n- Apto 201, piso 2, 65m2, 3 habitaciones, 2 banos, $370.000.000`}
-                rows={8}
-                className={inputClass + " resize-none text-xs"}
-              />
-              {error && (
-                <p className="text-xs text-red-400 flex items-center gap-1.5">
-                  <AlertTriangle size={12} />
-                  {error}
-                </p>
-              )}
-            </div>
-          ) : (
-            <div className="space-y-4">
-              <p className="text-xs text-[var(--text-secondary)]">
-                {t("inventario.csvModal.reviewDescription")}
-              </p>
-              <div className="overflow-x-auto">
-                <table className="w-full text-xs">
-                  <thead>
-                    <tr className="border-b border-[var(--border-default)]">
-                      <th className="text-left py-2 px-2 text-[var(--text-tertiary)] font-normal">
-                        ID
-                      </th>
-                      <th className="text-left py-2 px-2 text-[var(--text-tertiary)] font-normal">
-                        {t("inventario.fields.typology")}
-                      </th>
-                      <th className="text-left py-2 px-2 text-[var(--text-tertiary)] font-normal">
-                        {t("inventario.fields.floor")}
-                      </th>
-                      <th className="text-left py-2 px-2 text-[var(--text-tertiary)] font-normal">
-                        {t("inventario.fields.area")}
-                      </th>
-                      <th className="text-left py-2 px-2 text-[var(--text-tertiary)] font-normal">
-                        {t("inventario.fields.price")}
-                      </th>
-                      <th className="text-left py-2 px-2 text-[var(--text-tertiary)] font-normal">
-                        {t("inventario.fields.state")}
-                      </th>
-                      <th className="text-left py-2 px-2 text-[var(--text-tertiary)] font-normal">
-                        {t("inventario.fields.bedrooms")}
-                      </th>
-                      <th className="text-left py-2 px-2 text-[var(--text-tertiary)] font-normal">
-                        {t("inventario.fields.bathrooms")}
-                      </th>
-                      <th className="text-left py-2 px-2 text-[var(--text-tertiary)] font-normal">
-                        {t("inventario.fields.parking")}
-                      </th>
-                      <th className="text-left py-2 px-2 text-[var(--text-tertiary)] font-normal">
-                        {t("inventario.fields.storage")}
-                      </th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {parsed.map((u, i) => (
-                      <tr
-                        key={i}
-                        className="border-b border-[var(--border-subtle)] hover:bg-[var(--surface-2)]"
-                      >
-                        <td className="py-1.5 px-2">
-                          <input
-                            value={u.identificador}
-                            onChange={(e) =>
-                              updatePreviewUnit(
-                                i,
-                                "identificador",
-                                e.target.value
-                              )
-                            }
-                            className="bg-transparent border-b border-[var(--border-default)] text-white text-xs px-1 py-0.5 w-24 focus:outline-none focus:border-[rgba(var(--site-primary-rgb),0.5)]"
-                          />
-                        </td>
-                        <td className="py-1.5 px-2">
-                          <select
-                            value={u.tipologia_id}
-                            onChange={(e) =>
-                              updatePreviewUnit(
-                                i,
-                                "tipologia_id",
-                                e.target.value
-                              )
-                            }
-                            className="bg-transparent border-b border-[var(--border-default)] text-white text-xs px-1 py-0.5 w-28 focus:outline-none focus:border-[rgba(var(--site-primary-rgb),0.5)]"
-                          >
-                            <option value="" className="bg-[var(--surface-2)]">
-                              --
-                            </option>
-                            {tipologias.map((t) => (
-                              <option
-                                key={t.id}
-                                value={t.id}
-                                className="bg-[var(--surface-2)]"
-                              >
-                                {t.nombre}
-                              </option>
-                            ))}
-                          </select>
-                        </td>
-                        <td className="py-1.5 px-2">
-                          <input
-                            value={u.piso ?? ""}
-                            onChange={(e) =>
-                              updatePreviewUnit(i, "piso", e.target.value)
-                            }
-                            className="bg-transparent border-b border-[var(--border-default)] text-white text-xs px-1 py-0.5 w-12 focus:outline-none focus:border-[rgba(var(--site-primary-rgb),0.5)]"
-                            type="number"
-                          />
-                        </td>
-                        <td className="py-1.5 px-2">
-                          <input
-                            value={u.area_m2 ?? ""}
-                            onChange={(e) =>
-                              updatePreviewUnit(i, "area_m2", e.target.value)
-                            }
-                            className="bg-transparent border-b border-[var(--border-default)] text-white text-xs px-1 py-0.5 w-16 focus:outline-none focus:border-[rgba(var(--site-primary-rgb),0.5)]"
-                            type="number"
-                          />
-                        </td>
-                        <td className="py-1.5 px-2">
-                          <input
-                            value={u.precio ?? ""}
-                            onChange={(e) =>
-                              updatePreviewUnit(i, "precio", e.target.value)
-                            }
-                            className="bg-transparent border-b border-[var(--border-default)] text-white text-xs px-1 py-0.5 w-28 focus:outline-none focus:border-[rgba(var(--site-primary-rgb),0.5)]"
-                            type="number"
-                          />
-                        </td>
-                        <td className="py-1.5 px-2">
-                          <select
-                            value={u.estado}
-                            onChange={(e) =>
-                              updatePreviewUnit(i, "estado", e.target.value)
-                            }
-                            className="bg-transparent border-b border-[var(--border-default)] text-white text-xs px-1 py-0.5 w-24 focus:outline-none focus:border-[rgba(var(--site-primary-rgb),0.5)]"
-                          >
-                            {ESTADOS.map((e) => (
-                              <option
-                                key={e.value}
-                                value={e.value}
-                                className="bg-[var(--surface-2)]"
-                              >
-                                {e.label}
-                              </option>
-                            ))}
-                          </select>
-                        </td>
-                        <td className="py-1.5 px-2">
-                          <input
-                            value={u.habitaciones ?? ""}
-                            onChange={(e) =>
-                              updatePreviewUnit(
-                                i,
-                                "habitaciones",
-                                e.target.value
-                              )
-                            }
-                            className="bg-transparent border-b border-[var(--border-default)] text-white text-xs px-1 py-0.5 w-12 focus:outline-none focus:border-[rgba(var(--site-primary-rgb),0.5)]"
-                            type="number"
-                          />
-                        </td>
-                        <td className="py-1.5 px-2">
-                          <input
-                            value={u.banos ?? ""}
-                            onChange={(e) =>
-                              updatePreviewUnit(i, "banos", e.target.value)
-                            }
-                            className="bg-transparent border-b border-[var(--border-default)] text-white text-xs px-1 py-0.5 w-12 focus:outline-none focus:border-[rgba(var(--site-primary-rgb),0.5)]"
-                            type="number"
-                          />
-                        </td>
-                        <td className="py-1.5 px-2">
-                          <input
-                            value={u.parqueaderos ?? ""}
-                            onChange={(e) =>
-                              updatePreviewUnit(i, "parqueaderos", e.target.value)
-                            }
-                            className="bg-transparent border-b border-[var(--border-default)] text-white text-xs px-1 py-0.5 w-12 focus:outline-none focus:border-[rgba(var(--site-primary-rgb),0.5)]"
-                            type="number"
-                          />
-                        </td>
-                        <td className="py-1.5 px-2">
-                          <input
-                            value={u.depositos ?? ""}
-                            onChange={(e) =>
-                              updatePreviewUnit(i, "depositos", e.target.value)
-                            }
-                            className="bg-transparent border-b border-[var(--border-default)] text-white text-xs px-1 py-0.5 w-12 focus:outline-none focus:border-[rgba(var(--site-primary-rgb),0.5)]"
-                            type="number"
-                          />
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-              {error && (
-                <p className="text-xs text-red-400 flex items-center gap-1.5">
-                  <AlertTriangle size={12} />
-                  {error}
-                </p>
-              )}
-            </div>
-          )}
-        </div>
-
-        {/* Footer */}
-        <div className="flex items-center justify-end gap-3 p-6 border-t border-[var(--border-subtle)]">
-          <button onClick={onClose} className={btnSecondary}>
-            {t("inventario.cancel")}
-          </button>
-          {step === "input" ? (
-            <button
-              onClick={handleParse}
-              disabled={!rawText.trim() || processing}
-              className={btnPrimary}
-            >
-              {processing ? (
-                <Loader2 size={14} className="animate-spin" />
-              ) : (
-                <Sparkles size={14} />
-              )}
-              {processing ? t("inventario.aiModal.processing") : t("inventario.aiModal.process")}
-            </button>
-          ) : (
-            <>
-              <button onClick={() => setStep("input")} className={btnSecondary}>
-                {t("inventario.back")}
-              </button>
-              <button
-                onClick={handleConfirm}
-                disabled={submitting}
-                className={btnPrimary}
-              >
-                {submitting ? (
-                  <Loader2 size={14} className="animate-spin" />
-                ) : (
-                  <Check size={14} />
-                )}
-                {submitting
-                  ? t("inventario.creating")
-                  : t("inventario.createUnits", { n: String(parsed.length) })}
-              </button>
-            </>
-          )}
         </div>
       </motion.div>
     </motion.div>
@@ -1979,10 +977,10 @@ export default function InventarioPage() {
   const [showMobileActions, setShowMobileActions] = useState(false);
 
   // --- Modals ---
-  const [showCSVModal, setShowCSVModal] = useState(false);
-  const [showAIModal, setShowAIModal] = useState(false);
+  const [showImportModal, setShowImportModal] = useState(false);
   const [showPriceAdjust, setShowPriceAdjust] = useState(false);
   const [showAIChat, setShowAIChat] = useState(false);
+  const [showToolsMenu, setShowToolsMenu] = useState(false);
   const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null);
   const [vendidaWarning, setVendidaWarning] = useState<{ callback: () => void } | null>(null);
 
@@ -2287,8 +1285,7 @@ export default function InventarioPage() {
   }, [selectedIds, bulkFachadaId, refresh, toast]);
 
   const handleImportDone = useCallback(async () => {
-    setShowCSVModal(false);
-    setShowAIModal(false);
+    setShowImportModal(false);
     await refresh();
   }, [refresh]);
 
@@ -2359,27 +1356,59 @@ export default function InventarioPage() {
           <div className="flex flex-wrap items-center gap-2">
           {!isMobile && (
             <>
+              {/* Import button */}
               <button
-                onClick={() => setShowCSVModal(true)}
+                onClick={() => setShowImportModal(true)}
                 className={btnSecondary}
               >
                 <Upload size={14} />
-                {t("inventario.importCsv")}
+                {t("inventario.import")}
               </button>
-              <button onClick={() => setShowAIModal(true)} className={btnSecondary}>
-                <Sparkles size={14} />
-                {t("inventario.importWithAI")}
-              </button>
-              <button onClick={() => setShowPriceAdjust(true)} className={btnSecondary}>
-                <TrendingUp size={14} />
-                {t("inventario.priceAdjust")}
-              </button>
-              <button onClick={() => setShowAIChat(true)} className={btnSecondary}>
-                <MessageSquare size={14} />
-                {t("inventario.aiChat")}
-              </button>
+
+              {/* Tools dropdown */}
+              <div className="relative">
+                <button
+                  onClick={() => setShowToolsMenu((p) => !p)}
+                  className={btnSecondary}
+                >
+                  <Sparkles size={14} />
+                  {t("inventario.tools")}
+                  <ChevronDown size={12} className={cn("transition-transform", showToolsMenu && "rotate-180")} />
+                </button>
+                <AnimatePresence>
+                  {showToolsMenu && (
+                    <>
+                      <div className="fixed inset-0 z-20" onClick={() => setShowToolsMenu(false)} />
+                      <motion.div
+                        initial={{ opacity: 0, y: -4, scale: 0.97 }}
+                        animate={{ opacity: 1, y: 0, scale: 1 }}
+                        exit={{ opacity: 0, y: -4, scale: 0.97 }}
+                        transition={{ duration: 0.15 }}
+                        className="absolute right-0 top-full mt-1 w-52 bg-[var(--surface-2)] border border-[var(--border-default)] rounded-xl shadow-[0_16px_48px_rgba(0,0,0,0.4)] z-30 overflow-hidden"
+                      >
+                        <button
+                          onClick={() => { setShowPriceAdjust(true); setShowToolsMenu(false); }}
+                          className="flex items-center gap-2.5 w-full px-4 py-2.5 text-xs text-[var(--text-secondary)] hover:bg-[var(--surface-3)] hover:text-white transition-colors"
+                        >
+                          <TrendingUp size={13} className="text-[var(--site-primary)]" />
+                          {t("inventario.priceAdjust")}
+                        </button>
+                        <button
+                          onClick={() => { setShowAIChat(true); setShowToolsMenu(false); }}
+                          className="flex items-center gap-2.5 w-full px-4 py-2.5 text-xs text-[var(--text-secondary)] hover:bg-[var(--surface-3)] hover:text-white transition-colors"
+                        >
+                          <MessageSquare size={13} className="text-[var(--site-primary)]" />
+                          {t("inventario.aiChat")}
+                        </button>
+                      </motion.div>
+                    </>
+                  )}
+                </AnimatePresence>
+              </div>
             </>
           )}
+
+          {/* Primary: New Unit */}
           <button
             onClick={() => {
               setShowCreateForm(true);
@@ -2390,6 +1419,8 @@ export default function InventarioPage() {
             <Plus size={14} />
             {isMobile ? t("inventario.newUnit").split(" ").pop() : t("inventario.newUnit")}
           </button>
+
+          {/* Mobile: single dropdown for all actions */}
           {isMobile && (
             <div className="relative">
               <button
@@ -2404,19 +1435,16 @@ export default function InventarioPage() {
                     initial={{ opacity: 0, y: -4 }}
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0, y: -4 }}
-                    className="absolute right-0 top-full mt-1 w-48 bg-[var(--surface-2)] border border-[var(--border-default)] rounded-xl shadow-2xl z-30 overflow-hidden"
+                    className="absolute right-0 top-full mt-1 w-52 bg-[var(--surface-2)] border border-[var(--border-default)] rounded-xl shadow-2xl z-30 overflow-hidden"
                   >
-                    <button onClick={() => { setShowCSVModal(true); setShowMobileActions(false); }} className="flex items-center gap-2 w-full px-4 py-2.5 text-xs text-[var(--text-secondary)] hover:bg-[var(--surface-3)] transition-colors">
-                      <Upload size={13} /> {t("inventario.importCsv")}
+                    <button onClick={() => { setShowImportModal(true); setShowMobileActions(false); }} className="flex items-center gap-2.5 w-full px-4 py-2.5 text-xs text-[var(--text-secondary)] hover:bg-[var(--surface-3)] transition-colors">
+                      <Upload size={13} className="text-[var(--site-primary)]" /> {t("inventario.import")}
                     </button>
-                    <button onClick={() => { setShowAIModal(true); setShowMobileActions(false); }} className="flex items-center gap-2 w-full px-4 py-2.5 text-xs text-[var(--text-secondary)] hover:bg-[var(--surface-3)] transition-colors">
-                      <Sparkles size={13} /> {t("inventario.importWithAI")}
+                    <button onClick={() => { setShowPriceAdjust(true); setShowMobileActions(false); }} className="flex items-center gap-2.5 w-full px-4 py-2.5 text-xs text-[var(--text-secondary)] hover:bg-[var(--surface-3)] transition-colors">
+                      <TrendingUp size={13} className="text-[var(--site-primary)]" /> {t("inventario.priceAdjust")}
                     </button>
-                    <button onClick={() => { setShowPriceAdjust(true); setShowMobileActions(false); }} className="flex items-center gap-2 w-full px-4 py-2.5 text-xs text-[var(--text-secondary)] hover:bg-[var(--surface-3)] transition-colors">
-                      <TrendingUp size={13} /> {t("inventario.priceAdjust")}
-                    </button>
-                    <button onClick={() => { setShowAIChat(true); setShowMobileActions(false); }} className="flex items-center gap-2 w-full px-4 py-2.5 text-xs text-[var(--text-secondary)] hover:bg-[var(--surface-3)] transition-colors">
-                      <MessageSquare size={13} /> {t("inventario.aiChat")}
+                    <button onClick={() => { setShowAIChat(true); setShowMobileActions(false); }} className="flex items-center gap-2.5 w-full px-4 py-2.5 text-xs text-[var(--text-secondary)] hover:bg-[var(--surface-3)] transition-colors">
+                      <MessageSquare size={13} className="text-[var(--site-primary)]" /> {t("inventario.aiChat")}
                     </button>
                   </motion.div>
                 )}
@@ -3023,25 +2051,14 @@ export default function InventarioPage() {
       </AnimatePresence>
 
       <AnimatePresence>
-        {showCSVModal && (
-          <ImportCSVModal
+        {showImportModal && (
+          <SmartImportModal
             tipologias={tipologias}
             torres={torres}
+            fachadas={fachadas}
             proyectoId={projectId}
             activeTorreId={activeTorreId}
-            onClose={() => setShowCSVModal(false)}
-            onDone={handleImportDone}
-          />
-        )}
-      </AnimatePresence>
-
-      <AnimatePresence>
-        {showAIModal && (
-          <ImportAIModal
-            tipologias={tipologias}
-            proyectoId={projectId}
-            activeTorreId={activeTorreId}
-            onClose={() => setShowAIModal(false)}
+            onClose={() => setShowImportModal(false)}
             onDone={handleImportDone}
           />
         )}

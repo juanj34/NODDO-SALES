@@ -320,6 +320,8 @@ const editor = {
     description: "Manage available units, pricing and statuses",
     importCsv: "Import CSV",
     importWithAI: "Import with AI",
+    import: "Import",
+    tools: "Tools",
     newUnit: "New unit",
     all: "All",
     noTower: "No tower",

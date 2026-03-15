@@ -17,6 +17,7 @@ export interface MappedUnit {
   notas: string | null;
   _etapa: string | null;
   _tipologia: string | null;
+  _fachada: string | null;
 }
 
 export interface MappedComplemento {
@@ -306,6 +307,7 @@ export function parseCSVWithMapping(
       notas: (unit.notas as string | null) ?? null,
       _etapa: (unit._etapa as string | null) ?? null,
       _tipologia: (unit._tipologia as string | null) ?? null,
+      _fachada: (unit._fachada as string | null) ?? null,
     });
   }
 

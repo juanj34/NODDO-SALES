@@ -328,6 +328,8 @@ const editor = {
     description: "Gestiona las unidades disponibles, precios y estados",
     importCsv: "Importar CSV",
     importWithAI: "Importar con IA",
+    import: "Importar",
+    tools: "Herramientas",
     newUnit: "Nueva unidad",
     all: "Todas",
     noTower: "Sin torre",

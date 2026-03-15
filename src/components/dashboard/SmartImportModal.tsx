@@ -23,6 +23,8 @@ import {
   CircleDot,
   CheckCircle2,
   MinusCircle,
+  PanelTop,
+  Info,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import {
@@ -39,7 +41,7 @@ import {
   type EstadoUnidad,
   type ColumnMapping,
 } from "@/lib/csv-parser";
-import type { Tipologia, Torre } from "@/types";
+import type { Tipologia, Torre, Fachada } from "@/types";
 
 type ImportMode = "unidades" | "parqueaderos" | "depositos";
 
@@ -55,6 +57,7 @@ interface AIAnalysis {
   statusMapping: Record<string, string>;
   detectedEtapas: string[];
   detectedTipologias: string[];
+  detectedFachadas: string[];
   missingFields: string[];
   notes: string;
 }
@@ -63,6 +66,7 @@ interface PreviewUnit extends MappedUnit {
   _selected: boolean;
   _torre_id: string;
   _tipologia_id: string;
+  _fachada_id: string;
 }
 
 // ---------------------------------------------------------------------------
@@ -98,6 +102,7 @@ const DB_FIELD_LABELS_UNIDADES: Record<string, string> = {
   notas: "Notas",
   _etapa: "Torre / Etapa",
   _tipologia: "Tipología",
+  _fachada: "Fachada",
 };
 
 const DB_FIELD_LABELS_COMPLEMENTOS: Record<string, string> = {
@@ -183,6 +188,7 @@ function EstadoDot({ estado, size = 8 }: { estado: string; size?: number }) {
 export function SmartImportModal({
   tipologias,
   torres,
+  fachadas = [],
   proyectoId,
   activeTorreId,
   onClose,
@@ -191,6 +197,7 @@ export function SmartImportModal({
 }: {
   tipologias: Tipologia[];
   torres: Torre[];
+  fachadas?: Fachada[];
   proyectoId: string;
   activeTorreId: string | null;
   onClose: () => void;
@@ -220,6 +227,7 @@ export function SmartImportModal({
   const [statusMap, setStatusMap] = useState<Record<string, EstadoUnidad>>({});
   const [etapaToTorre, setEtapaToTorre] = useState<Record<string, string>>({});
   const [tipologiaMap, setTipologiaMap] = useState<Record<string, string>>({});
+  const [fachadaMap, setFachadaMap] = useState<Record<string, string>>({});
   const [defaults, setDefaults] = useState<Record<string, string>>({});
 
   // Preview
@@ -262,24 +270,58 @@ export function SmartImportModal({
   };
 
   const handleDownloadExample = () => {
-    const torreNombre =
-      torres.length > 0
-        ? torres.find((t) => t.id === activeTorreId)?.nombre ||
-          torres[0].nombre ||
-          "Torre 1"
-        : "Torre 1";
-    const tipNombre =
-      tipologias.length > 0 ? tipologias[0].nombre || "Tipo A" : "Tipo A";
+    const torreNames = torres.length > 0
+      ? torres.map((t) => t.nombre)
+      : ["Torre 1"];
+    const tipNames = tipologias.length > 0
+      ? tipologias.map((t) => t.nombre)
+      : ["Tipo A"];
+    const fachadaNames = fachadas.length > 0
+      ? fachadas.map((f) => f.nombre)
+      : [];
 
-    const rows = [
-      "identificador,piso,area_m2,precio,estado,habitaciones,banos,parqueaderos,depositos,orientacion,vista,torre,tipologia,notas",
-      `101,1,65.5,350000000,disponible,2,2,1,1,Norte,Interior,${torreNombre},${tipNombre},`,
-      `102,1,72.3,380000000,disponible,3,2,2,0,Sur,Exterior,${torreNombre},${tipNombre},`,
-      `201,2,65.5,360000000,separado,2,2,1,1,Norte,Interior,${torreNombre},${tipNombre},Separada por cliente`,
-      `202,2,72.3,390000000,disponible,3,2,2,0,Sur,Exterior,${torreNombre},${tipNombre},`,
-      `301,3,80.1,420000000,vendida,3,3,2,1,Oriente,Montaña,${torreNombre},${tipNombre},`,
+    const headers = [
+      "identificador", "piso", "area_m2", "precio", "estado",
+      "habitaciones", "banos", "parqueaderos", "depositos",
+      "orientacion", "vista", "torre", "tipologia",
+      ...(fachadaNames.length > 0 ? ["fachada"] : []),
+      "notas",
     ];
-    const csv = rows.join("\n");
+
+    const orientaciones = ["Norte", "Sur", "Oriente", "Occidente", "Noreste"];
+    const vistas = ["Interior", "Exterior", "Montaña", "Ciudad", "Parque"];
+    const estados: string[] = ["disponible", "disponible", "disponible", "separado", "vendida"];
+
+    const dataRows: string[][] = [];
+    let unitNum = 100;
+
+    for (const tName of torreNames) {
+      for (const tipName of tipNames) {
+        // 2 sample units per torre/tipologia combo
+        for (let r = 0; r < 2 && dataRows.length < 20; r++) {
+          const piso = r + 1;
+          const area = (55 + Math.floor(Math.random() * 35)).toFixed(1);
+          const precio = String(280_000_000 + Math.floor(Math.random() * 200_000_000));
+          const estado = estados[dataRows.length % estados.length];
+          const hab = String(2 + (dataRows.length % 2));
+          const banos = String(1 + (dataRows.length % 2));
+          const orientacion = orientaciones[dataRows.length % orientaciones.length];
+          const vista = vistas[dataRows.length % vistas.length];
+          unitNum++;
+
+          const row = [
+            String(unitNum), String(piso), area, precio, estado,
+            hab, banos, "1", "1", orientacion, vista,
+            tName, tipName,
+            ...(fachadaNames.length > 0 ? [fachadaNames[dataRows.length % fachadaNames.length]] : []),
+            "",
+          ];
+          dataRows.push(row);
+        }
+      }
+    }
+
+    const csv = [headers.join(","), ...dataRows.map((r) => r.join(","))].join("\n");
     const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
@@ -315,6 +357,7 @@ export function SmartImportModal({
           sampleRows,
           tipologias: tipologias.map((t) => ({ id: t.id, nombre: t.nombre })),
           torres: torres.map((t) => ({ id: t.id, nombre: t.nombre })),
+          fachadas: fachadas.map((f) => ({ id: f.id, nombre: f.nombre })),
           importMode,
         }),
       });
@@ -355,6 +398,18 @@ export function SmartImportModal({
         tipMap[tipVal] = match?.id || "";
       }
       setTipologiaMap(tipMap);
+
+      // Initialize fachada mapping
+      const facMap: Record<string, string> = {};
+      for (const facVal of data.detectedFachadas || []) {
+        const match = fachadas.find(
+          (f) =>
+            f.nombre.toLowerCase().includes(facVal.toLowerCase()) ||
+            facVal.toLowerCase().includes(f.nombre.toLowerCase())
+        );
+        facMap[facVal] = match?.id || "";
+      }
+      setFachadaMap(facMap);
 
       setStep("config");
     } catch {
@@ -404,6 +459,7 @@ export function SmartImportModal({
             _selected: true,
             _torre_id: torreId,
             _tipologia_id: "",
+            _fachada_id: "",
             _subtipo: c.subtipo,
             _nivel: c.nivel,
           } as PreviewUnit & { _subtipo?: string | null; _nivel?: string | null };
@@ -427,6 +483,7 @@ export function SmartImportModal({
             ? activeTorreId
             : "";
         const tipId = u._tipologia ? tipologiaMap[u._tipologia] || "" : "";
+        const facId = u._fachada ? fachadaMap[u._fachada] || "" : "";
 
         return {
           ...u,
@@ -448,6 +505,7 @@ export function SmartImportModal({
           _selected: true,
           _torre_id: torreId,
           _tipologia_id: tipId,
+          _fachada_id: facId,
         };
       });
 
@@ -463,6 +521,7 @@ export function SmartImportModal({
     csvHeaders,
     etapaToTorre,
     tipologiaMap,
+    fachadaMap,
     defaults,
     activeTorreId,
     importMode,
@@ -510,6 +569,7 @@ export function SmartImportModal({
           proyecto_id: proyectoId,
           identificador: u.identificador,
           tipologia_id: u._tipologia_id || null,
+          fachada_id: u._fachada_id || null,
           torre_id: u._torre_id || null,
           piso: u.piso,
           area_m2: u.area_m2,
@@ -752,6 +812,37 @@ export function SmartImportModal({
                     </button>
                   ))}
                 </div>
+
+                {/* Prerequisites warning */}
+                {(torres.length === 0 || tipologias.length === 0) && (
+                  <div className="flex items-start gap-3 p-4 rounded-xl bg-[rgba(184,151,58,0.06)] border border-[rgba(184,151,58,0.18)]">
+                    <div className="w-7 h-7 rounded-lg bg-[rgba(184,151,58,0.12)] flex items-center justify-center shrink-0 mt-0.5">
+                      <Info size={13} className="text-[#b8973a]" />
+                    </div>
+                    <div className="space-y-1.5">
+                      <span className="font-ui text-[10px] font-bold uppercase tracking-[0.1em] text-[#b8973a]">
+                        Antes de importar
+                      </span>
+                      <div className="space-y-1">
+                        {torres.length === 0 && (
+                          <p className="flex items-center gap-1.5 text-[11px] text-[var(--text-secondary)] leading-relaxed">
+                            <Building2 size={11} className="text-[#b8973a] shrink-0" />
+                            Crea al menos una torre o etapa en la pestaña &quot;Torres&quot;
+                          </p>
+                        )}
+                        {tipologias.length === 0 && (
+                          <p className="flex items-center gap-1.5 text-[11px] text-[var(--text-secondary)] leading-relaxed">
+                            <Layers size={11} className="text-[#b8973a] shrink-0" />
+                            Crea al menos una tipología en la pestaña &quot;Tipologías&quot;
+                          </p>
+                        )}
+                      </div>
+                      <p className="text-[10px] text-[var(--text-muted)] leading-relaxed">
+                        Puedes continuar sin ellas, pero tendrás que asignarlas manualmente después.
+                      </p>
+                    </div>
+                  </div>
+                )}
 
                 {/* Drop zone */}
                 <div
@@ -1169,6 +1260,70 @@ export function SmartImportModal({
                     </SectionCard>
                   )}
 
+                {/* Fachada Mapping */}
+                {Object.keys(fachadaMap).length > 0 &&
+                  fachadas.length > 0 && (
+                    <SectionCard
+                      icon={PanelTop}
+                      title="Fachadas"
+                      description="Asigna cada fachada detectada en el archivo a una fachada del proyecto"
+                      count={Object.keys(fachadaMap).length}
+                    >
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                        {Object.entries(fachadaMap).map(
+                          ([facVal, facId]) => {
+                            const isAssigned = !!facId;
+                            return (
+                              <div
+                                key={facVal}
+                                className={cn(
+                                  "flex items-center gap-2.5 p-2.5 rounded-lg border transition-all",
+                                  isAssigned
+                                    ? "bg-[rgba(var(--site-primary-rgb),0.03)] border-[rgba(var(--site-primary-rgb),0.12)]"
+                                    : "bg-[var(--surface-1)] border-[var(--border-subtle)]"
+                                )}
+                              >
+                                <span className="text-[11px] text-[var(--text-secondary)] w-24 shrink-0 font-mono">
+                                  &quot;{facVal}&quot;
+                                </span>
+                                <ArrowRight
+                                  size={9}
+                                  className="text-[var(--text-muted)]/30 shrink-0"
+                                />
+                                <select
+                                  value={facId}
+                                  onChange={(e) =>
+                                    setFachadaMap((prev) => ({
+                                      ...prev,
+                                      [facVal]: e.target.value,
+                                    }))
+                                  }
+                                  className={selectClass}
+                                >
+                                  <option
+                                    value=""
+                                    className="bg-[var(--surface-3)]"
+                                  >
+                                    — Sin asignar
+                                  </option>
+                                  {fachadas.map((f) => (
+                                    <option
+                                      key={f.id}
+                                      value={f.id}
+                                      className="bg-[var(--surface-3)]"
+                                    >
+                                      {f.nombre}
+                                    </option>
+                                  ))}
+                                </select>
+                              </div>
+                            );
+                          }
+                        )}
+                      </div>
+                    </SectionCard>
+                  )}
+
                 {/* Default values for missing fields */}
                 {analysis.missingFields.length > 0 && (
                   <SectionCard
@@ -1283,6 +1438,7 @@ export function SmartImportModal({
                           "ID",
                           "Torre",
                           "Tipología",
+                          ...(fachadas.length > 0 ? ["Fachada"] : []),
                           "Piso",
                           "Área m²",
                           "Precio",
@@ -1397,6 +1553,37 @@ export function SmartImportModal({
                               ))}
                             </select>
                           </td>
+                          {fachadas.length > 0 && (
+                            <td className="py-1.5 px-2">
+                              <select
+                                value={u._fachada_id}
+                                onChange={(e) =>
+                                  updatePreviewField(
+                                    i,
+                                    "_fachada_id",
+                                    e.target.value
+                                  )
+                                }
+                                className={cn(cellInputClass, "w-24")}
+                              >
+                                <option
+                                  value=""
+                                  className="bg-[var(--surface-2)]"
+                                >
+                                  --
+                                </option>
+                                {fachadas.map((f) => (
+                                  <option
+                                    key={f.id}
+                                    value={f.id}
+                                    className="bg-[var(--surface-2)]"
+                                  >
+                                    {f.nombre}
+                                  </option>
+                                ))}
+                              </select>
+                            </td>
+                          )}
                           <td className="py-1.5 px-2">
                             <input
                               value={u.piso ?? ""}

@@ -163,7 +163,7 @@ export async function getCategoriasByProyecto(
   if (!categorias) return [];
 
   // Fetch all images in a single query (avoids N+1)
-  const catIds = categorias.map((c) => c.id);
+  const catIds = categorias.map((c: GaleriaCategoria) => c.id);
   const { data: allImages } = catIds.length > 0
     ? await supabase
         .from("galeria_imagenes")
@@ -174,14 +174,14 @@ export async function getCategoriasByProyecto(
     : { data: [] };
 
   // Group images by category in JavaScript
-  const imgs = allImages || [];
-  const imagesByCategory: Record<string, typeof imgs> = {};
-  imgs.forEach((img) => {
+  const imgs = (allImages as GaleriaImagen[] | null) || [];
+  const imagesByCategory: Record<string, GaleriaImagen[]> = {};
+  imgs.forEach((img: GaleriaImagen) => {
     if (!imagesByCategory[img.categoria_id]) imagesByCategory[img.categoria_id] = [];
     imagesByCategory[img.categoria_id].push(img);
   });
 
-  const categoriasConImagenes = categorias.map((cat) => ({
+  const categoriasConImagenes = categorias.map((cat: GaleriaCategoria) => ({
     ...cat,
     imagenes: imagesByCategory[cat.id] || [],
   }));
@@ -364,7 +364,7 @@ export async function getLeadsByUser(filters?: {
   const { data: proyectos } = await supabase.from("proyectos").select("id").limit(500);
   if (!proyectos?.length) return [];
 
-  const projectIds = proyectos.map((p) => p.id);
+  const projectIds = proyectos.map((p: { id: string }) => p.id);
 
   let query = supabase
     .from("leads")
