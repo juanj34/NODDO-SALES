@@ -1,8 +1,12 @@
 import { Resend } from "resend";
 
-const resend = process.env.RESEND_API_KEY
-  ? new Resend(process.env.RESEND_API_KEY)
-  : null;
+// Lazy initialization - only create when needed (avoids build-time errors)
+function getResend() {
+  if (!process.env.RESEND_API_KEY) {
+    return null;
+  }
+  return new Resend(process.env.RESEND_API_KEY);
+}
 
 interface LeadNotificationData {
   adminEmail: string;
@@ -16,6 +20,7 @@ interface LeadNotificationData {
 }
 
 export async function sendLeadNotification(data: LeadNotificationData) {
+  const resend = getResend();
   if (!resend) {
     console.warn("[email] RESEND_API_KEY not configured — skipping lead notification");
     return;
@@ -65,6 +70,7 @@ interface CotizacionBuyerData {
 }
 
 export async function sendCotizacionBuyer(data: CotizacionBuyerData) {
+  const resend = getResend();
   if (!resend) {
     console.warn("[email] RESEND_API_KEY not configured — skipping cotización email");
     return;
@@ -118,6 +124,7 @@ interface CotizacionAdminData {
 }
 
 export async function sendCotizacionAdmin(data: CotizacionAdminData) {
+  const resend = getResend();
   if (!resend) {
     console.warn("[email] RESEND_API_KEY not configured — skipping admin cotización notification");
     return;
@@ -175,6 +182,7 @@ const PLAN_PRICES: Record<string, string> = {
 };
 
 export async function sendWelcomeEmail(data: WelcomeEmailData) {
+  const resend = getResend();
   if (!resend) {
     console.warn("[email] RESEND_API_KEY not configured — skipping welcome email");
     return;
@@ -230,6 +238,7 @@ interface LeadConfirmationData {
 }
 
 export async function sendLeadConfirmation(data: LeadConfirmationData) {
+  const resend = getResend();
   if (!resend) {
     console.warn("[email] RESEND_API_KEY not configured — skipping lead confirmation");
     return;
@@ -273,6 +282,7 @@ interface CollaboratorInviteData {
 }
 
 export async function sendCollaboratorInvite(data: CollaboratorInviteData) {
+  const resend = getResend();
   if (!resend) {
     console.warn("[email] RESEND_API_KEY not configured — skipping collaborator invite");
     return;
@@ -317,6 +327,7 @@ interface BookingConfirmationData {
 }
 
 export async function sendBookingConfirmation(data: BookingConfirmationData) {
+  const resend = getResend();
   if (!resend) {
     console.warn("[email] RESEND_API_KEY not configured — skipping booking confirmation");
     return;
@@ -397,6 +408,7 @@ interface BookingAdminNotificationData {
 }
 
 export async function sendBookingAdminNotification(data: BookingAdminNotificationData) {
+  const resend = getResend();
   if (!resend) {
     console.warn("[email] RESEND_API_KEY not configured — skipping booking admin notification");
     return;
@@ -448,6 +460,7 @@ interface BookingReminderData {
 }
 
 export async function sendBookingReminder(data: BookingReminderData) {
+  const resend = getResend();
   if (!resend) {
     console.warn("[email] RESEND_API_KEY not configured — skipping booking reminder");
     return;
@@ -499,6 +512,7 @@ interface NoShowFollowupData {
 }
 
 export async function sendNoShowFollowup(data: NoShowFollowupData) {
+  const resend = getResend();
   if (!resend) {
     console.warn("[email] RESEND_API_KEY not configured — skipping no-show followup");
     return;
@@ -553,6 +567,7 @@ interface PlanUpgradeData {
 }
 
 export async function sendPlanUpgrade(data: PlanUpgradeData) {
+  const resend = getResend();
   if (!resend) {
     console.warn("[email] RESEND_API_KEY not configured — skipping plan upgrade email");
     return;
@@ -648,6 +663,7 @@ interface FeatureBlockedData {
 }
 
 export async function sendFeatureBlocked(data: FeatureBlockedData) {
+  const resend = getResend();
   if (!resend) {
     console.warn("[email] RESEND_API_KEY not configured — skipping feature blocked email");
     return;

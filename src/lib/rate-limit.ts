@@ -13,76 +13,98 @@ import { Redis } from "@upstash/redis";
  * If env vars are missing, rate limiting is disabled (dev mode).
  */
 
-const redis = process.env.UPSTASH_REDIS_REST_URL && process.env.UPSTASH_REDIS_REST_TOKEN
-  ? new Redis({
-      url: process.env.UPSTASH_REDIS_REST_URL,
-      token: process.env.UPSTASH_REDIS_REST_TOKEN,
-    })
-  : null;
+// Lazy initialization - only create when needed (avoids build-time errors)
+function getRedis() {
+  if (!process.env.UPSTASH_REDIS_REST_URL || !process.env.UPSTASH_REDIS_REST_TOKEN) {
+    return null;
+  }
+  return new Redis({
+    url: process.env.UPSTASH_REDIS_REST_URL,
+    token: process.env.UPSTASH_REDIS_REST_TOKEN,
+  });
+}
 
 /**
  * Rate limiters by use case
  */
 
 // API endpoints - 100 requests per 10 seconds per IP
-export const apiLimiter = redis
-  ? new Ratelimit({
-      redis,
-      limiter: Ratelimit.slidingWindow(100, "10 s"),
-      analytics: true,
-      prefix: "@noddo/api",
-    })
-  : null;
+export const apiLimiter = (() => {
+  const redis = getRedis();
+  return redis
+    ? new Ratelimit({
+        redis,
+        limiter: Ratelimit.slidingWindow(100, "10 s"),
+        analytics: true,
+        prefix: "@noddo/api",
+      })
+    : null;
+})();
 
 // Auth endpoints (login, signup) - 5 requests per minute per IP
-export const authLimiter = redis
-  ? new Ratelimit({
-      redis,
-      limiter: Ratelimit.slidingWindow(5, "1 m"),
-      analytics: true,
-      prefix: "@noddo/auth",
-    })
-  : null;
+export const authLimiter = (() => {
+  const redis = getRedis();
+  return redis
+    ? new Ratelimit({
+        redis,
+        limiter: Ratelimit.slidingWindow(5, "1 m"),
+        analytics: true,
+        prefix: "@noddo/auth",
+      })
+    : null;
+})();
 
 // Lead submissions - 3 per hour per IP (prevent spam)
-export const leadLimiter = redis
-  ? new Ratelimit({
-      redis,
-      limiter: Ratelimit.slidingWindow(3, "1 h"),
-      analytics: true,
-      prefix: "@noddo/lead",
-    })
-  : null;
+export const leadLimiter = (() => {
+  const redis = getRedis();
+  return redis
+    ? new Ratelimit({
+        redis,
+        limiter: Ratelimit.slidingWindow(3, "1 h"),
+        analytics: true,
+        prefix: "@noddo/lead",
+      })
+    : null;
+})();
 
 // Upload endpoints - 20 uploads per minute per user
-export const uploadLimiter = redis
-  ? new Ratelimit({
-      redis,
-      limiter: Ratelimit.slidingWindow(20, "1 m"),
-      analytics: true,
-      prefix: "@noddo/upload",
-    })
-  : null;
+export const uploadLimiter = (() => {
+  const redis = getRedis();
+  return redis
+    ? new Ratelimit({
+        redis,
+        limiter: Ratelimit.slidingWindow(20, "1 m"),
+        analytics: true,
+        prefix: "@noddo/upload",
+      })
+    : null;
+})();
 
 // Email sending - 10 emails per hour per user
-export const emailLimiter = redis
-  ? new Ratelimit({
-      redis,
-      limiter: Ratelimit.slidingWindow(10, "1 h"),
-      analytics: true,
-      prefix: "@noddo/email",
-    })
-  : null;
+export const emailLimiter = (() => {
+  const redis = getRedis();
+  return redis
+    ? new Ratelimit({
+        redis,
+        limiter: Ratelimit.slidingWindow(10, "1 h"),
+        analytics: true,
+        prefix: "@noddo/email",
+      })
+    : null;
+})();
 
 // AI text improvement - 50 requests per 24h per user
-export const aiImprovementLimiter = redis
-  ? new Ratelimit({
-      redis,
-      limiter: Ratelimit.slidingWindow(50, "24 h"),
-      analytics: true,
-      prefix: "@noddo/ai-improve",
-    })
-  : null;
+export const aiImprovementLimiter = (() => {
+  const redis = getRedis();
+  return redis
+    ? new Ratelimit({
+        redis,
+        limiter: Ratelimit.slidingWindow(50, "24 h"),
+        analytics: true,
+        prefix: "@noddo/ai-improve",
+      })
+    : null;
+})();
 
 /**
  * Helper to apply rate limiting in API routes
