@@ -51,13 +51,13 @@ export function HeroSection() {
           initial={{ opacity: 0, y: 24 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8, delay: 0.6, ease: "easeOut" }}
-          className="text-[15px] leading-[1.85] max-w-[480px] mb-14"
+          className="text-[15px] leading-[1.85] max-w-[580px] mb-14"
           style={{ color: "rgba(244, 240, 232, 0.5)" }}
         >
           El comprador ya no pide información — <em className="italic text-[var(--mk-accent-light)]">la busca</em>.
           Dale un showroom que responda solo: <strong className="text-[var(--mk-text-primary)] font-normal">inventario
           en vivo, planos, recorridos 360° y leads cualificados</strong>.
-          Listo en <strong className="text-[var(--mk-text-primary)] font-normal">3 días</strong>, sin código.
+          En vivo en <strong className="text-[var(--mk-text-primary)] font-normal">24 horas</strong>. Tú lo manejas — sin agencias, sin esperas.
         </motion.p>
 
         {/* CTAs */}

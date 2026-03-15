@@ -1,0 +1,99 @@
+{
+  "buttons": {
+    "save": "Guardar",
+    "saving": "Guardando...",
+    "create": "Crear",
+    "creating": "Creando...",
+    "cancel": "Cancelar",
+    "delete": "Eliminar",
+    "deleting": "Eliminando...",
+    "confirm": "Confirmar",
+    "close": "Cerrar",
+    "send": "Enviar",
+    "sending": "Enviando...",
+    "edit": "Editar",
+    "duplicate": "Duplicar",
+    "upload": "Subir",
+    "uploading": "Subiendo...",
+    "download": "Descargar",
+    "loading": "Cargando...",
+    "back": "Volver",
+    "next": "Siguiente",
+    "previous": "Anterior",
+    "viewMore": "Ver más",
+    "showLess": "Ver menos"
+  },
+  "estados": {
+    "disponible": "Disponible",
+    "separado": "Separado",
+    "reservada": "Reservada",
+    "vendida": "Vendida"
+  },
+  "errors": {
+    "connectionError": "Error de conexión",
+    "unknownError": "Error desconocido",
+    "submitFailed": "No se pudo enviar",
+    "saveFailed": "Error al guardar",
+    "loadFailed": "Error al cargar",
+    "notFound": "No encontrado",
+    "unauthorized": "No autorizado",
+    "validationError": "Error de validación"
+  },
+  "success": {
+    "saved": "Guardado correctamente",
+    "created": "Creado correctamente",
+    "updated": "Actualizado correctamente",
+    "deleted": "Eliminado correctamente",
+    "sent": "Enviado correctamente",
+    "uploaded": "Subido correctamente"
+  },
+  "time": {
+    "justNow": "ahora",
+    "minutesAgo": "hace {minutes}m",
+    "hoursAgo": "hace {hours}h",
+    "daysAgo": "hace {days}d",
+    "weeksAgo": "hace {weeks} semanas",
+    "today": "Hoy",
+    "yesterday": "Ayer"
+  },
+  "labels": {
+    "name": "Nombre",
+    "email": "Email",
+    "phone": "Teléfono",
+    "message": "Mensaje",
+    "description": "Descripción",
+    "price": "Precio",
+    "area": "Área",
+    "floor": "Piso",
+    "bedrooms": "Habitaciones",
+    "bathrooms": "Baños",
+    "parking": "Parqueaderos",
+    "storage": "Depósitos",
+    "type": "Tipo",
+    "status": "Estado",
+    "date": "Fecha",
+    "actions": "Acciones",
+    "search": "Buscar",
+    "filter": "Filtrar",
+    "sort": "Ordenar"
+  },
+  "placeholders": {
+    "search": "Buscar...",
+    "selectOption": "Selecciona una opción",
+    "enterName": "Ingresa un nombre",
+    "enterEmail": "Ingresa un email",
+    "enterPhone": "Ingresa un teléfono"
+  },
+  "confirmations": {
+    "areYouSure": "¿Estás seguro?",
+    "thisActionCannotBeUndone": "Esta acción no se puede deshacer",
+    "typeToConfirm": "Escribe \"{text}\" para confirmar"
+  },
+  "empty": {
+    "noResults": "Sin resultados",
+    "noData": "Sin datos",
+    "noItems": "Sin elementos",
+    "notConfigured": "Aún no configurado",
+    "notAvailable": "No disponible"
+  }
+}
