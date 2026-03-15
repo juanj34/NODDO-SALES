@@ -1,6 +1,7 @@
 import { getAuthContext, getAccessibleProjectIds } from "@/lib/auth-context";
 import { pick } from "@/lib/api-utils";
 import { checkProjectLimit } from "@/lib/plan-limits";
+import { logActivity } from "@/lib/activity-logger";
 import { NextRequest, NextResponse } from "next/server";
 
 export async function GET() {
@@ -103,6 +104,14 @@ export async function POST(request: NextRequest) {
       .single();
 
     if (error) throw error;
+
+    logActivity({
+      userId: auth.user.id, userEmail: auth.user.email!, userRole: auth.role,
+      proyectoId: data.id, proyectoNombre: data.nombre,
+      actionType: "project.create", actionCategory: "project",
+      entityType: "proyecto", entityId: data.id,
+    });
+
     return NextResponse.json(data, { status: 201 });
   } catch (err) {
     return NextResponse.json(

@@ -42,6 +42,7 @@ import { useToast } from "@/components/dashboard/Toast";
 import { useMediaQuery } from "@/hooks/useMediaQuery";
 import type { Unidad, Tipologia, Torre, Fachada, Complemento, ComplementoMode, Currency } from "@/types";
 import { ComplementosSection } from "@/components/dashboard/ComplementosSection";
+import { CurrencyInput } from "@/components/dashboard/CurrencyInput";
 import { SmartImportModal } from "@/components/dashboard/SmartImportModal";
 
 // ---------------------------------------------------------------------------
@@ -266,6 +267,7 @@ function UnitForm({
   onSubmit,
   onCancel,
   submitting,
+  currency,
 }: {
   initial: UnitFormData;
   tipologias: Tipologia[];
@@ -273,6 +275,7 @@ function UnitForm({
   onSubmit: (data: UnitFormData) => void;
   onCancel: () => void;
   submitting: boolean;
+  currency: Currency;
 }) {
   const { t } = useTranslation("editor");
   const [form, setForm] = useState<UnitFormData>(initial);
@@ -357,12 +360,12 @@ function UnitForm({
           </div>
           <div>
             <label className={labelClass}>{t("inventario.fields.price")}</label>
-            <input
-              type="number"
+            <CurrencyInput
               value={form.precio}
-              onChange={(e) => set("precio", e.target.value)}
-              placeholder="350000000"
-              className={inputClass}
+              onChange={(v) => set("precio", v)}
+              currency={currency}
+              placeholder="350,000,000"
+              inputClassName={inputClass}
             />
           </div>
           <div>
@@ -730,15 +733,25 @@ function PriceAdjustModal({
 
           {/* Value input */}
           <div className="flex items-center gap-3">
-            <input
-              type="number"
-              value={adjustValue}
-              onChange={(e) => setAdjustValue(e.target.value)}
-              placeholder={adjustType === "percentage" ? "5" : "10000000"}
-              className={inputClass + " flex-1"}
-            />
+            {adjustType === "fixed" ? (
+              <CurrencyInput
+                value={adjustValue}
+                onChange={setAdjustValue}
+                currency={moneda}
+                inputClassName={inputClass + " flex-1"}
+                className="flex-1"
+              />
+            ) : (
+              <input
+                type="number"
+                value={adjustValue}
+                onChange={(e) => setAdjustValue(e.target.value)}
+                placeholder="5"
+                className={inputClass + " flex-1"}
+              />
+            )}
             <span className="text-sm text-[var(--text-tertiary)]">
-              {adjustType === "percentage" ? "%" : moneda}
+              {adjustType === "percentage" ? "%" : ""}
             </span>
           </div>
 
@@ -1101,8 +1114,8 @@ export default function InventarioPage() {
   const isMultiTorre = torres.length > 1;
 
   // --- Complemento modes & counts ---
-  const hasParqueaderos = (project.parqueaderos_mode as ComplementoMode) !== "sin_inventario";
-  const hasDepositos = (project.depositos_mode as ComplementoMode) !== "sin_inventario";
+  const hasParqueaderos = (project.parqueaderos_mode as ComplementoMode) === "inventario_incluido" || (project.parqueaderos_mode as ComplementoMode) === "inventario_separado";
+  const hasDepositos = (project.depositos_mode as ComplementoMode) === "inventario_incluido" || (project.depositos_mode as ComplementoMode) === "inventario_separado";
   const hasComplementos = hasParqueaderos || hasDepositos;
   const complementos = useMemo(() => (project.complementos || []) as Array<{ tipo: string }>, [project.complementos]);
   const parqCount = useMemo(() => complementos.filter((c) => c.tipo === "parqueadero").length, [complementos]);
@@ -1259,26 +1272,51 @@ export default function InventarioPage() {
   );
 
   // Check if units have complementos assigned (for warning dialog)
-  const hasInventoryModes = (project.parqueaderos_mode as ComplementoMode) !== "sin_inventario" ||
-    (project.depositos_mode as ComplementoMode) !== "sin_inventario";
+  const parqMode = project.parqueaderos_mode as ComplementoMode;
+  const depoMode = project.depositos_mode as ComplementoMode;
+  const parqInventory = parqMode === "inventario_incluido" || parqMode === "inventario_separado";
+  const depoInventory = depoMode === "inventario_incluido" || depoMode === "inventario_separado";
+  const hasInventoryModes = parqInventory || depoInventory;
+
+  const [vendidaWarningMessage, setVendidaWarningMessage] = useState<string>("");
 
   const checkComplementosBeforeEstado = useCallback(
     (unitIds: string[], newEstado: string, proceed: () => void) => {
-      if (!hasInventoryModes || !["vendida", "separado", "reservada"].includes(newEstado)) {
+      if (!hasInventoryModes || newEstado !== "vendida") {
         proceed();
         return;
       }
-      const complementos = project.complementos || [];
-      const unitsWithout = unitIds.filter(
-        (uid) => !complementos.some((c) => c.unidad_id === uid)
-      );
-      if (unitsWithout.length > 0) {
+      const allComplementos = project.complementos || [];
+      const missingParts: string[] = [];
+
+      for (const uid of unitIds) {
+        const unit = unidades.find((u) => u.id === uid);
+        if (!unit) continue;
+        const tip = tipologias.find((t) => t.id === unit.tipologia_id);
+        const expectedParq = unit.parqueaderos ?? tip?.parqueaderos ?? 0;
+        const expectedDepo = unit.depositos ?? tip?.depositos ?? 0;
+        const assigned = allComplementos.filter((c) => c.unidad_id === uid);
+        const assignedParq = assigned.filter((c) => c.tipo === "parqueadero").length;
+        const assignedDepo = assigned.filter((c) => c.tipo === "deposito").length;
+
+        if (parqInventory && assignedParq < expectedParq) {
+          const diff = expectedParq - assignedParq;
+          missingParts.push(`${unit.identificador}: faltan ${diff} parqueadero(s)`);
+        }
+        if (depoInventory && assignedDepo < expectedDepo) {
+          const diff = expectedDepo - assignedDepo;
+          missingParts.push(`${unit.identificador}: faltan ${diff} depósito(s)`);
+        }
+      }
+
+      if (missingParts.length > 0) {
+        setVendidaWarningMessage(missingParts.join("\n"));
         setVendidaWarning({ callback: proceed });
       } else {
         proceed();
       }
     },
-    [hasInventoryModes, project.complementos]
+    [hasInventoryModes, parqInventory, depoInventory, project.complementos, unidades, tipologias]
   );
 
   const handleBulkStatusChange = useCallback(async () => {
@@ -1534,16 +1572,6 @@ export default function InventarioPage() {
               </div>
             </>
           )}
-          <button
-            onClick={() => {
-              setShowCreateForm(true);
-              setEditingId(null);
-            }}
-            className={btnPrimary}
-          >
-            <Plus size={14} />
-            {isMobile ? t("inventario.newUnit").split(" ").pop() : t("inventario.newUnit")}
-          </button>
           {isMobile && (
             <div className="relative">
               <button
@@ -1736,6 +1764,16 @@ export default function InventarioPage() {
               className="absolute right-2.5 top-1/2 -translate-y-1/2 text-[var(--text-muted)] pointer-events-none"
             />
           </div>
+          <button
+            onClick={() => {
+              setShowCreateForm(true);
+              setEditingId(null);
+            }}
+            className={btnPrimary}
+          >
+            <Plus size={14} />
+            {isMobile ? t("inventario.newUnit").split(" ").pop() : t("inventario.newUnit")}
+          </button>
         </div>
       </div>
 
@@ -1750,6 +1788,7 @@ export default function InventarioPage() {
             onSubmit={handleCreate}
             onCancel={() => setShowCreateForm(false)}
             submitting={formLoading}
+            currency={(project?.moneda_base as Currency) || "COP"}
           />
         )}
       </AnimatePresence>
@@ -1949,6 +1988,7 @@ export default function InventarioPage() {
                   onSubmit={(data) => handleUpdate(unit.id, data)}
                   onCancel={() => setEditingId(null)}
                   submitting={formLoading}
+                  currency={(project?.moneda_base as Currency) || "COP"}
                 />
               ) : (
                 <MobileUnitCard
@@ -2057,6 +2097,7 @@ export default function InventarioPage() {
                             onSubmit={(data) => handleUpdate(unit.id, data)}
                             onCancel={() => setEditingId(null)}
                             submitting={formLoading}
+                            currency={(project?.moneda_base as Currency) || "COP"}
                           />
                         </td>
                       ) : (
@@ -2183,13 +2224,14 @@ export default function InventarioPage() {
       <AnimatePresence>
         {vendidaWarning && (
           <ConfirmDialog
-            title="Sin complementos asignados"
-            message="Esta unidad no tiene parqueadero o depósito asignado. ¿Deseas continuar de todas formas? Los complementos se pueden asignar después."
+            title="Complementos pendientes de asignar"
+            message={`${vendidaWarningMessage}\n\n¿Deseas marcar como vendida de todas formas? Los complementos se pueden asignar después.`}
             onConfirm={() => {
               vendidaWarning.callback();
               setVendidaWarning(null);
+              setVendidaWarningMessage("");
             }}
-            onCancel={() => setVendidaWarning(null)}
+            onCancel={() => { setVendidaWarning(null); setVendidaWarningMessage(""); }}
           />
         )}
       </AnimatePresence>

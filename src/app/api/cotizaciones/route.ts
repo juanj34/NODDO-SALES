@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 import sharp from "sharp";
-import { calcularCotizacion } from "@/lib/cotizador/calcular";
+import { calcularCotizacion, buildPrecioBaseComplementos } from "@/lib/cotizador/calcular";
 import { generarPDF } from "@/lib/cotizador/generar-pdf";
 import { sendCotizacionBuyer, sendCotizacionAdmin } from "@/lib/email";
 import { isRateLimited, apiLimiter } from "@/lib/rate-limit";
@@ -9,6 +9,7 @@ import { getWebhookConfig, dispatchWebhook } from "@/lib/webhooks";
 import type { WebhookPayload } from "@/lib/webhooks";
 import type { CotizadorConfig, FaseConfig, Unidad, Currency, ComplementoSeleccion } from "@/types";
 import { formatCurrency } from "@/lib/currency";
+import { logActivity } from "@/lib/activity-logger";
 import { getAuthContext } from "@/lib/auth-context";
 
 // Use service-role client for public endpoint (no user auth required)
@@ -167,6 +168,9 @@ export async function POST(request: NextRequest) {
       custom_fases,
       descuentos_seleccionados,
       complemento_ids,
+      complemento_selections,
+      precio_base_parqueaderos,
+      precio_base_depositos,
       separacion_incluida,
     } = body as {
       proyecto_id: string;
@@ -182,6 +186,9 @@ export async function POST(request: NextRequest) {
       custom_fases?: FaseConfig[];
       descuentos_seleccionados?: string[];
       complemento_ids?: string[];
+      complemento_selections?: { complemento_id: string; es_extra: boolean; precio_negociado?: number }[];
+      precio_base_parqueaderos?: number;
+      precio_base_depositos?: number;
       separacion_incluida?: boolean;
     };
 
@@ -198,7 +205,7 @@ export async function POST(request: NextRequest) {
     // Fetch project with cotizador config
     const { data: proyecto, error: projErr } = await supabase
       .from("proyectos")
-      .select("id, nombre, constructora_nombre, constructora_logo_url, color_primario, cotizador_enabled, cotizador_config, user_id, render_principal_url, tour_360_url, whatsapp_numero, disclaimer, parqueaderos_mode, depositos_mode")
+      .select("id, nombre, constructora_nombre, constructora_logo_url, color_primario, cotizador_enabled, cotizador_config, user_id, render_principal_url, tour_360_url, whatsapp_numero, disclaimer, parqueaderos_mode, depositos_mode, parqueaderos_precio_base, depositos_precio_base")
       .eq("id", proyecto_id)
       .single();
 
@@ -264,15 +271,32 @@ export async function POST(request: NextRequest) {
 
     // Fetch selected complementos from DB
     let complementoSelecciones: ComplementoSeleccion[] = [];
-    if (complemento_ids && complemento_ids.length > 0) {
+    const compIds = complemento_ids ?? complemento_selections?.map((s) => s.complemento_id) ?? [];
+    if (compIds.length > 0) {
       const { data: compRows } = await supabase
         .from("complementos")
         .select("id, tipo, identificador, subtipo, precio")
-        .in("id", complemento_ids)
+        .in("id", compIds)
         .eq("proyecto_id", proyecto_id);
 
       if (compRows) {
         complementoSelecciones = compRows.map((c: { id: string; tipo: string; identificador: string; subtipo: string | null; precio: number | null }) => {
+          // Check if new format (complemento_selections) was provided
+          const sel = complemento_selections?.find((s) => s.complemento_id === c.id);
+          if (sel) {
+            // New format: respect es_extra and precio_negociado
+            return {
+              complemento_id: c.id,
+              tipo: c.tipo as "parqueadero" | "deposito",
+              identificador: c.identificador,
+              subtipo: c.subtipo,
+              precio: sel.es_extra ? (sel.precio_negociado ?? c.precio) : null,
+              suma_al_total: sel.es_extra,
+              es_extra: sel.es_extra,
+              precio_negociado: sel.precio_negociado,
+            };
+          }
+          // Legacy format: use mode-based logic
           const mode = c.tipo === "parqueadero"
             ? proyecto.parqueaderos_mode
             : proyecto.depositos_mode;
@@ -286,6 +310,18 @@ export async function POST(request: NextRequest) {
           };
         });
       }
+    }
+
+    // Add virtual precio_base complementos
+    if (proyecto.parqueaderos_mode === "precio_base" && precio_base_parqueaderos && precio_base_parqueaderos > 0) {
+      complementoSelecciones.push(...buildPrecioBaseComplementos(
+        precio_base_parqueaderos, proyecto.parqueaderos_precio_base ?? 0, 0, null
+      ));
+    }
+    if (proyecto.depositos_mode === "precio_base" && precio_base_depositos && precio_base_depositos > 0) {
+      complementoSelecciones.push(...buildPrecioBaseComplementos(
+        0, null, precio_base_depositos, proyecto.depositos_precio_base ?? 0
+      ));
     }
 
     // Calculate quotation (server-side — source of truth)
@@ -474,6 +510,15 @@ export async function POST(request: NextRequest) {
         totalFormatted,
       }).catch((err) => console.error("[cotizaciones] Admin email failed:", err));
     }
+
+    // Log cotización activity (fire-and-forget)
+    logActivity({
+      userId: proyecto.user_id, userEmail: sanitize(email, 320), userRole: "admin",
+      proyectoId: proyecto_id, proyectoNombre: proyecto.nombre,
+      actionType: "cotizacion.create", actionCategory: "cotizacion",
+      metadata: { buyerName: sanitize(nombre, 200), email: sanitize(email, 320), unidad: unit.identificador },
+      entityType: "cotizacion", entityId: cotizacionId,
+    });
 
     return NextResponse.json({ id: cotizacionId, pdf_url: pdfUrl }, { status: 201 });
   } catch (err) {

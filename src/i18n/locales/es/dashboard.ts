@@ -14,6 +14,7 @@ const dashboard = {
     home: "Inicio",
     allProjects: "Todos los proyectos",
     financiero: "Financiero",
+    bitacora: "Bitacora",
   },
   cuenta: {
     title: "Cuenta",

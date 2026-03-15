@@ -367,7 +367,7 @@ export default function CasosDeEstudioPage() {
 
                   <Image src={study.image} alt="" width={400} height={300} className="w-full md:w-80 h-48 object-cover rounded-xl" style={{
                       border: "1px solid rgba(255, 255, 255, 0.1)",
-                    } />
+                    }} />
                 </div>
               </div>
 

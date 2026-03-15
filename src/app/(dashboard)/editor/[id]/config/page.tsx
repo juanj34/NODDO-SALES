@@ -13,6 +13,7 @@ import { PageHeader } from "@/components/dashboard/base/PageHeader";
 import { Settings, MessageCircle, Tags, Eye, Car, Package } from "lucide-react";
 import { motion } from "framer-motion";
 import { useTranslation, useLanguage } from "@/i18n";
+import { CurrencyInput } from "@/components/dashboard/CurrencyInput";
 import type { ComplementoMode } from "@/types";
 
 export default function ConfigPage() {
@@ -28,12 +29,16 @@ export default function ConfigPage() {
   const initialBadge = useMemo(() => project?.hide_noddo_badge ?? false, [project?.hide_noddo_badge]);
   const initialParqMode = useMemo(() => (project?.parqueaderos_mode ?? "sin_inventario") as ComplementoMode, [project?.parqueaderos_mode]);
   const initialDepoMode = useMemo(() => (project?.depositos_mode ?? "sin_inventario") as ComplementoMode, [project?.depositos_mode]);
+  const initialParqPrecioBase = useMemo(() => project?.parqueaderos_precio_base ?? null, [project?.parqueaderos_precio_base]);
+  const initialDepoPrecioBase = useMemo(() => project?.depositos_precio_base ?? null, [project?.depositos_precio_base]);
 
   const [whatsappNumero, setWhatsappNumero] = useState(initialWhatsapp);
   const [etapaLabel, setEtapaLabel] = useState(initialEtapa);
   const [hideNoddoBadge, setHideNoddoBadge] = useState(initialBadge);
   const [parqueaderosMode, setParqueaderosMode] = useState<ComplementoMode>(initialParqMode);
   const [depositosMode, setDepositosMode] = useState<ComplementoMode>(initialDepoMode);
+  const [parqueaderosPrecioBase, setParqueaderosPrecioBase] = useState<number | null>(initialParqPrecioBase);
+  const [depositosPrecioBase, setDepositosPrecioBase] = useState<number | null>(initialDepoPrecioBase);
 
   // Sync state when project ID changes (not in effect to avoid warning)
   if (whatsappNumero === "" && initialWhatsapp !== whatsappNumero && project) {
@@ -42,6 +47,8 @@ export default function ConfigPage() {
     setHideNoddoBadge(initialBadge);
     setParqueaderosMode(initialParqMode);
     setDepositosMode(initialDepoMode);
+    setParqueaderosPrecioBase(initialParqPrecioBase);
+    setDepositosPrecioBase(initialDepoPrecioBase);
   }
 
   const handleSave = useCallback(async () => {
@@ -51,9 +58,11 @@ export default function ConfigPage() {
       hide_noddo_badge: hideNoddoBadge,
       parqueaderos_mode: parqueaderosMode,
       depositos_mode: depositosMode,
+      parqueaderos_precio_base: parqueaderosMode === "precio_base" ? parqueaderosPrecioBase : null,
+      depositos_precio_base: depositosMode === "precio_base" ? depositosPrecioBase : null,
     });
     if (!ok) toast.error(t("general.saveError"));
-  }, [save, whatsappNumero, etapaLabel, hideNoddoBadge, parqueaderosMode, depositosMode, toast, t]);
+  }, [save, whatsappNumero, etapaLabel, hideNoddoBadge, parqueaderosMode, depositosMode, parqueaderosPrecioBase, depositosPrecioBase, toast, t]);
 
   /* ── Auto-save ── */
   const handleSaveRef = useRef(handleSave);
@@ -182,6 +191,7 @@ export default function ConfigPage() {
         <div className="grid gap-3">
           {([
             { value: "sin_inventario" as ComplementoMode, label: "Sin inventario", desc: "Cantidad por unidad, incluido en el precio" },
+            { value: "precio_base" as ComplementoMode, label: "Precio base", desc: "Precio fijo por item sin inventario individual — cantidad × precio base" },
             { value: "inventario_incluido" as ComplementoMode, label: "Inventario incluido", desc: "Items individuales asignables, precio incluido en la unidad" },
             { value: "inventario_separado" as ComplementoMode, label: "Inventario separado", desc: "Items individuales con precio propio que suma al total" },
           ]).map((opt) => (
@@ -213,6 +223,19 @@ export default function ConfigPage() {
             </button>
           ))}
         </div>
+        {parqueaderosMode === "precio_base" && (
+          <div className="mt-4">
+            <label className={labelClass}>Precio base por parqueadero</label>
+            <CurrencyInput
+              value={parqueaderosPrecioBase ?? ""}
+              onChange={(v) => { setParqueaderosPrecioBase(v ? Number(v) : null); scheduleAutoSave(); }}
+              currency={project.moneda_base || "COP"}
+              placeholder="50,000,000"
+              inputClassName={inputClass}
+            />
+            <p className={fieldHint}>Este valor se multiplica por la cantidad de parqueaderos de cada unidad/tipología</p>
+          </div>
+        )}
       </div>
 
       <div className={sectionCard}>
@@ -226,6 +249,7 @@ export default function ConfigPage() {
         <div className="grid gap-3">
           {([
             { value: "sin_inventario" as ComplementoMode, label: "Sin inventario", desc: "Cantidad por unidad, incluido en el precio" },
+            { value: "precio_base" as ComplementoMode, label: "Precio base", desc: "Precio fijo por item sin inventario individual — cantidad × precio base" },
             { value: "inventario_incluido" as ComplementoMode, label: "Inventario incluido", desc: "Items individuales asignables, precio incluido en la unidad" },
             { value: "inventario_separado" as ComplementoMode, label: "Inventario separado", desc: "Items individuales con precio propio que suma al total" },
           ]).map((opt) => (
@@ -257,6 +281,19 @@ export default function ConfigPage() {
             </button>
           ))}
         </div>
+        {depositosMode === "precio_base" && (
+          <div className="mt-4">
+            <label className={labelClass}>Precio base por depósito</label>
+            <CurrencyInput
+              value={depositosPrecioBase ?? ""}
+              onChange={(v) => { setDepositosPrecioBase(v ? Number(v) : null); scheduleAutoSave(); }}
+              currency={project.moneda_base || "COP"}
+              placeholder="25,000,000"
+              inputClassName={inputClass}
+            />
+            <p className={fieldHint}>Este valor se multiplica por la cantidad de depósitos de cada unidad/tipología</p>
+          </div>
+        )}
       </div>
     </motion.div>
   );

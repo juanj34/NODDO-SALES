@@ -1,6 +1,48 @@
 import type { CotizadorConfig, ResultadoCotizacion, FaseResultado, ComplementoSeleccion } from "@/types";
 
 /**
+ * Build virtual ComplementoSeleccion items for precio_base mode.
+ * These are not real DB records — just count × price items that flow
+ * through the same suma_al_total calculation path.
+ */
+export function buildPrecioBaseComplementos(
+  parqCount: number,
+  parqPrecio: number | null,
+  depoCount: number,
+  depoPrecio: number | null,
+): ComplementoSeleccion[] {
+  const result: ComplementoSeleccion[] = [];
+
+  if (parqCount > 0 && parqPrecio != null && parqPrecio > 0) {
+    result.push({
+      complemento_id: "__precio_base_parqueadero__",
+      tipo: "parqueadero",
+      identificador: `${parqCount} parqueadero${parqCount > 1 ? "s" : ""}`,
+      subtipo: null,
+      precio: parqCount * parqPrecio,
+      suma_al_total: true,
+      cantidad: parqCount,
+      es_precio_base: true,
+    });
+  }
+
+  if (depoCount > 0 && depoPrecio != null && depoPrecio > 0) {
+    result.push({
+      complemento_id: "__precio_base_deposito__",
+      tipo: "deposito",
+      identificador: `${depoCount} depósito${depoCount > 1 ? "s" : ""}`,
+      subtipo: null,
+      precio: depoCount * depoPrecio,
+      suma_al_total: true,
+      cantidad: depoCount,
+      es_precio_base: true,
+    });
+  }
+
+  return result;
+}
+
+/**
  * Pure calculation engine for real estate quotations.
  * Takes a unit price + project config → returns full payment breakdown.
  * Used in: editor preview, microsite modal, server-side API (source of truth).
@@ -31,10 +73,10 @@ export function calcularCotizacion(
 
   const precio_neto = precio_base - totalDescuento;
 
-  // Sum complementos that add to total (inventario_separado mode)
+  // Sum complementos that add to total (inventario_separado / precio_base / extras)
   const complementos_total = complementos
-    .filter((c) => c.suma_al_total && c.precio != null)
-    .reduce((sum, c) => sum + (c.precio ?? 0), 0);
+    .filter((c) => c.suma_al_total && (c.precio != null || c.precio_negociado != null))
+    .reduce((sum, c) => sum + (c.precio_negociado ?? c.precio ?? 0), 0);
 
   const precio_total = precio_neto + complementos_total;
 

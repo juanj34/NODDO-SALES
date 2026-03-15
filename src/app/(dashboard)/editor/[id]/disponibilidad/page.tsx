@@ -15,8 +15,10 @@ import { cn } from "@/lib/utils";
 import { formatCurrency as formatCurrencyFn } from "@/lib/currency";
 import { Package, Upload, Loader2 } from "lucide-react";
 import { useToast } from "@/components/dashboard/Toast";
-import type { Unidad } from "@/types";
+import type { Unidad, ComplementoMode } from "@/types";
 import { NodDoDropdown } from "@/components/ui/NodDoDropdown";
+import { AnimatePresence, motion } from "framer-motion";
+import { AlertTriangle } from "lucide-react";
 
 // Compact currency formatter
 const formatCurrency = (n: number) => formatCurrencyFn(n, "COP", { compact: true });
@@ -77,10 +79,18 @@ export default function DisponibilidadPage() {
     return c;
   }, [filtered]);
 
+  // Pre-sale complementos validation
+  const parqMode = project.parqueaderos_mode as ComplementoMode;
+  const depoMode = project.depositos_mode as ComplementoMode;
+  const parqInventory = parqMode === "inventario_incluido" || parqMode === "inventario_separado";
+  const depoInventory = depoMode === "inventario_incluido" || depoMode === "inventario_separado";
+  const [vendidaWarning, setVendidaWarning] = useState<{ callback: () => void } | null>(null);
+  const [vendidaWarningMessage, setVendidaWarningMessage] = useState("");
+
   // Status change handler
-  const handleStatusChange = useCallback(async (unitId: string, newEstado: EstadoUnidad) => {
+  const doStatusChange = useCallback(async (unitId: string, newEstado: EstadoUnidad) => {
     const unit = unidades.find((u) => u.id === unitId);
-    if (!unit || unit.estado === newEstado) return;
+    if (!unit) return;
 
     const oldEstado = unit.estado;
 
@@ -116,6 +126,38 @@ export default function DisponibilidadPage() {
       });
     }
   }, [unidades, updateLocal, toast]);
+
+  const handleStatusChange = useCallback((unitId: string, newEstado: EstadoUnidad) => {
+    const unit = unidades.find((u) => u.id === unitId);
+    if (!unit || unit.estado === newEstado) return;
+
+    // Pre-sale validation: check complementos before marking as vendida
+    if (newEstado === "vendida" && (parqInventory || depoInventory)) {
+      const allComplementos = project.complementos || [];
+      const tip = tipologias.find((t) => t.id === unit.tipologia_id);
+      const expectedParq = unit.parqueaderos ?? tip?.parqueaderos ?? 0;
+      const expectedDepo = unit.depositos ?? tip?.depositos ?? 0;
+      const assigned = allComplementos.filter((c) => c.unidad_id === unitId);
+      const assignedParq = assigned.filter((c) => c.tipo === "parqueadero").length;
+      const assignedDepo = assigned.filter((c) => c.tipo === "deposito").length;
+
+      const missing: string[] = [];
+      if (parqInventory && assignedParq < expectedParq) {
+        missing.push(`${expectedParq - assignedParq} parqueadero(s)`);
+      }
+      if (depoInventory && assignedDepo < expectedDepo) {
+        missing.push(`${expectedDepo - assignedDepo} depósito(s)`);
+      }
+
+      if (missing.length > 0) {
+        setVendidaWarningMessage(`${unit.identificador}: faltan ${missing.join(" y ")}`);
+        setVendidaWarning({ callback: () => doStatusChange(unitId, newEstado) });
+        return;
+      }
+    }
+
+    doStatusChange(unitId, newEstado);
+  }, [unidades, tipologias, parqInventory, depoInventory, project.complementos, doStatusChange]);
 
   // Group by floor
   const grouped = useMemo(() => {
@@ -277,6 +319,51 @@ export default function DisponibilidadPage() {
           </div>
         ))}
       </div>
+
+      {/* Warning: selling without complementos */}
+      <AnimatePresence>
+        {vendidaWarning && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm"
+            onClick={() => { setVendidaWarning(null); setVendidaWarningMessage(""); }}
+          >
+            <motion.div
+              initial={{ scale: 0.95, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.95, opacity: 0 }}
+              onClick={(e) => e.stopPropagation()}
+              className="bg-[var(--surface-2)] border border-[var(--border-default)] rounded-2xl p-6 max-w-md w-full mx-4 shadow-2xl"
+            >
+              <div className="flex items-center gap-3 mb-4">
+                <div className="p-2 bg-amber-500/10 rounded-lg">
+                  <AlertTriangle size={18} className="text-amber-400" />
+                </div>
+                <h3 className="text-sm font-medium text-white">Complementos pendientes de asignar</h3>
+              </div>
+              <p className="text-sm text-[var(--text-secondary)] mb-6 whitespace-pre-line">
+                {vendidaWarningMessage}{"\n\n"}¿Deseas marcar como vendida de todas formas? Los complementos se pueden asignar después.
+              </p>
+              <div className="flex items-center justify-end gap-3">
+                <button
+                  onClick={() => { setVendidaWarning(null); setVendidaWarningMessage(""); }}
+                  className="px-4 py-2 text-xs font-ui uppercase tracking-wider text-[var(--text-secondary)] bg-[var(--surface-3)] border border-[var(--border-default)] rounded-xl hover:bg-[var(--surface-4)] transition-colors"
+                >
+                  Cancelar
+                </button>
+                <button
+                  onClick={() => { vendidaWarning.callback(); setVendidaWarning(null); setVendidaWarningMessage(""); }}
+                  className="px-4 py-2 text-xs font-ui uppercase tracking-wider text-white bg-amber-600 rounded-xl hover:bg-amber-500 transition-colors"
+                >
+                  Continuar
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }

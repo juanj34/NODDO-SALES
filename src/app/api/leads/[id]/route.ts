@@ -1,4 +1,5 @@
 import { getAuthContext } from "@/lib/auth-context";
+import { logActivity } from "@/lib/activity-logger";
 import { NextRequest, NextResponse } from "next/server";
 
 const VALID_STATUSES = ["nuevo", "contactado", "calificado", "cerrado"];
@@ -47,6 +48,16 @@ export async function PUT(
     if (!data) {
       return NextResponse.json({ error: "Lead no encontrado" }, { status: 404 });
     }
+
+    // Fetch project name for the log
+    const { data: proj } = await auth.supabase.from("proyectos").select("nombre").eq("id", data.proyecto_id).single();
+    logActivity({
+      userId: auth.user.id, userEmail: auth.user.email!, userRole: auth.role,
+      proyectoId: data.proyecto_id, proyectoNombre: proj?.nombre,
+      actionType: "lead.status_change", actionCategory: "lead",
+      metadata: { nombre: data.nombre, statusNuevo: status },
+      entityType: "lead", entityId: id,
+    });
 
     return NextResponse.json(data);
   } catch (err) {

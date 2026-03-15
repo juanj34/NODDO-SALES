@@ -364,20 +364,28 @@ function drawOfferPage(doc: jsPDF, data: PDFData, accent: RGB, accentLight: RGB)
   if (complementos && complementos.length > 0) {
     y = drawSectionLabel(doc, "COMPLEMENTOS", margin, y, accent, contentW);
 
-    for (const comp of complementos) {
-      const label = comp.subtipo
-        ? `${comp.identificador} — ${comp.subtipo}`
-        : comp.identificador;
+    // Separate included vs extras/precio_base for cleaner display
+    const includedComps = complementos.filter((c) => !c.es_extra && !c.es_precio_base);
+    const extraComps = complementos.filter((c) => c.es_extra || c.es_precio_base);
+
+    for (const comp of [...includedComps, ...extraComps]) {
+      const isExtra = comp.es_extra || comp.es_precio_base;
+      const label = comp.es_precio_base && comp.cantidad
+        ? comp.identificador
+        : comp.subtipo
+          ? `${comp.identificador} — ${comp.subtipo}`
+          : comp.identificador;
       const tipoLabel = comp.tipo === "parqueadero" ? "Parqueadero" : "Depósito";
+      const prefix = isExtra ? `${tipoLabel} (adicional)` : tipoLabel;
 
       doc.setFontSize(8.5);
       doc.setFont("helvetica", "normal");
       doc.setTextColor(35, 35, 35);
-      doc.text(`${tipoLabel}: ${label}`, margin + 4, y);
+      doc.text(`${prefix}: ${label}`, margin + 4, y);
 
-      if (comp.suma_al_total && comp.precio != null) {
+      if (comp.suma_al_total && (comp.precio != null || comp.precio_negociado != null)) {
         doc.setTextColor(accent[0], accent[1], accent[2]);
-        doc.text(formatCurrency(comp.precio, moneda), pageW - margin - 4, y, { align: "right" });
+        doc.text(formatCurrency(comp.precio_negociado ?? comp.precio ?? 0, moneda), pageW - margin - 4, y, { align: "right" });
       } else {
         doc.setFontSize(7.5);
         doc.setTextColor(130, 130, 130);

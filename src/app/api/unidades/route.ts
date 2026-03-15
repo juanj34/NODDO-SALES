@@ -1,6 +1,7 @@
 import { pick } from "@/lib/api-utils";
 import { getAuthContext, getAccessibleProjectIds } from "@/lib/auth-context";
 import { checkUnitLimit } from "@/lib/plan-limits";
+import { logActivity } from "@/lib/activity-logger";
 import { NextRequest, NextResponse } from "next/server";
 
 export async function GET(request: NextRequest) {
@@ -23,7 +24,7 @@ export async function GET(request: NextRequest) {
 
     const { data, error } = await auth.supabase
       .from("unidades")
-      .select("*, tipologia:tipologias(nombre), torre:torres(nombre)")
+      .select("*, tipologia:tipologias(nombre, parqueaderos, depositos), torre:torres(nombre)")
       .eq("proyecto_id", proyectoId)
       .order("piso", { ascending: false })
       .order("identificador");
@@ -68,6 +69,17 @@ export async function POST(request: NextRequest) {
       .single();
 
     if (error) throw error;
+
+    // Log activity (fire-and-forget)
+    const { data: proj } = await auth.supabase.from("proyectos").select("nombre").eq("id", body.proyecto_id).single();
+    logActivity({
+      userId: auth.user.id, userEmail: auth.user.email!, userRole: auth.role,
+      proyectoId: body.proyecto_id, proyectoNombre: proj?.nombre,
+      actionType: "unit.create", actionCategory: "unit",
+      metadata: { identificador: data.identificador, precio: data.precio },
+      entityType: "unidad", entityId: data.id,
+    });
+
     return NextResponse.json(data, { status: 201 });
   } catch (err) {
     return NextResponse.json(

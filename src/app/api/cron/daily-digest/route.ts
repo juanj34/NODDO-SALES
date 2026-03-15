@@ -46,6 +46,41 @@ function isAuthorizedCronRequest(request: NextRequest): boolean {
 }
 
 /**
+ * Get activity summary from last 24 hours
+ */
+async function getActivitySummary() {
+  const supabase = await createClient();
+  const yesterday = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
+
+  try {
+    // Count by category
+    const { data: activities } = await supabase
+      .from("activity_logs")
+      .select("action_category, description")
+      .gte("created_at", yesterday)
+      .order("created_at", { ascending: false })
+      .limit(200);
+
+    if (!activities || activities.length === 0) {
+      return { total: 0, byCategory: {} as Record<string, number>, recent: [] as string[] };
+    }
+
+    const byCategory: Record<string, number> = {};
+    for (const a of activities) {
+      byCategory[a.action_category] = (byCategory[a.action_category] || 0) + 1;
+    }
+
+    // Last 5 notable descriptions
+    const recent = activities.slice(0, 5).map((a) => a.description);
+
+    return { total: activities.length, byCategory, recent };
+  } catch (error) {
+    console.error("Error getting activity summary:", error);
+    return { total: 0, byCategory: {} as Record<string, number>, recent: [] as string[] };
+  }
+}
+
+/**
  * Get metrics from last 24 hours
  */
 async function getDailyMetrics() {
@@ -132,7 +167,11 @@ async function getDailyMetrics() {
 /**
  * Generate HTML email content
  */
-function generateEmailHTML(metrics: Awaited<ReturnType<typeof getDailyMetrics>>, date: string) {
+function generateEmailHTML(
+  metrics: Awaited<ReturnType<typeof getDailyMetrics>>,
+  activitySummary: Awaited<ReturnType<typeof getActivitySummary>>,
+  date: string,
+) {
   const { leads, projects, errors, redis } = metrics;
 
   const leadsEmoji = leads.change > 0 ? "📈" : leads.change < 0 ? "📉" : "➡️";
@@ -220,6 +259,52 @@ function generateEmailHTML(metrics: Awaited<ReturnType<typeof getDailyMetrics>>,
               </table>
             </td>
           </tr>
+
+          <!-- Activity Summary -->
+          ${activitySummary.total > 0 ? `
+          <tr>
+            <td style="padding: 0 40px 30px;">
+              <h2 style="margin: 0 0 20px; color: #1a1a1a; font-size: 18px; font-weight: 600;">
+                📋 Resumen de Actividad (${activitySummary.total} acciones)
+              </h2>
+
+              <table role="presentation" style="width: 100%; border-collapse: collapse;">
+                <tr>
+                  <td style="padding: 12px 16px; background-color: #f9fafb; border-radius: 6px;">
+                    ${Object.entries(activitySummary.byCategory).map(([cat, count]) => {
+                      const labels: Record<string, string> = {
+                        project: "Proyectos", unit: "Unidades", lead: "Leads",
+                        cotizacion: "Cotizaciones", gallery: "Galería", video: "Videos",
+                        tipologia: "Tipologías", colaborador: "Colaboradores",
+                        content: "Contenido", other: "Otros",
+                      };
+                      const emojis: Record<string, string> = {
+                        project: "📁", unit: "🏠", lead: "📩",
+                        cotizacion: "📄", gallery: "🖼", video: "🎬",
+                        tipologia: "📦", colaborador: "👥",
+                        content: "📝", other: "⚙️",
+                      };
+                      return `<span style="display: inline-block; margin: 3px 6px 3px 0; padding: 4px 10px; background-color: #e5e7eb; border-radius: 12px; font-size: 12px; color: #374151;">
+                        ${emojis[cat] || "⚙️"} ${labels[cat] || cat}: <strong>${count}</strong>
+                      </span>`;
+                    }).join("")}
+                  </td>
+                </tr>
+              </table>
+
+              ${activitySummary.recent.length > 0 ? `
+              <div style="margin-top: 12px;">
+                <p style="margin: 0 0 8px; color: #6b7280; font-size: 12px; font-weight: 600;">Últimas acciones:</p>
+                ${activitySummary.recent.map((desc) => `
+                  <div style="padding: 6px 0; border-bottom: 1px solid #f3f4f6; font-size: 12px; color: #4b5563;">
+                    • ${desc}
+                  </div>
+                `).join("")}
+              </div>
+              ` : ""}
+            </td>
+          </tr>
+          ` : ""}
 
           <!-- Redis Stats -->
           <tr>
@@ -377,8 +462,11 @@ export async function POST(request: NextRequest) {
 
     console.log("📧 Generating daily digest for:", today);
 
-    const metrics = await getDailyMetrics();
-    const htmlContent = generateEmailHTML(metrics, today);
+    const [metrics, activitySummary] = await Promise.all([
+      getDailyMetrics(),
+      getActivitySummary(),
+    ]);
+    const htmlContent = generateEmailHTML(metrics, activitySummary, today);
 
     const resend = getResend();
     const { data, error } = await resend.emails.send({

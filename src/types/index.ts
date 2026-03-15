@@ -811,6 +811,37 @@ export interface VistaPiso {
   created_at: string;
 }
 
+/* ── Activity Log (Bitácora) ── */
+
+export type ActivityCategory =
+  | "project"
+  | "unit"
+  | "tipologia"
+  | "gallery"
+  | "video"
+  | "lead"
+  | "cotizacion"
+  | "colaborador"
+  | "content"
+  | "other";
+
+export interface ActivityLog {
+  id: string;
+  user_id: string | null;
+  user_email: string;
+  user_role: "admin" | "colaborador";
+  proyecto_id: string | null;
+  proyecto_nombre: string | null;
+  action_type: string;
+  action_category: ActivityCategory;
+  description: string;
+  description_en: string | null;
+  metadata: Record<string, unknown>;
+  entity_type: string | null;
+  entity_id: string | null;
+  created_at: string;
+}
+
 /* ── Plans & Billing ── */
 
 export type Plan = "proyecto" | "studio" | "enterprise";

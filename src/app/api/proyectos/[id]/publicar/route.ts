@@ -1,4 +1,5 @@
 import { getAuthContext } from "@/lib/auth-context";
+import { logActivity } from "@/lib/activity-logger";
 import { NextRequest, NextResponse } from "next/server";
 
 export async function POST(
@@ -131,6 +132,14 @@ export async function POST(
       .eq("user_id", auth.adminUserId);
 
     if (updateErr) throw updateErr;
+
+    logActivity({
+      userId: auth.user.id, userEmail: auth.user.email!, userRole: auth.role,
+      proyectoId: id, proyectoNombre: proyecto.nombre,
+      actionType: "project.publish", actionCategory: "project",
+      metadata: { version: nextVersion },
+      entityType: "proyecto", entityId: id,
+    });
 
     return NextResponse.json({
       version_number: nextVersion,

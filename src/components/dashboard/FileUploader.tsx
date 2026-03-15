@@ -114,6 +114,9 @@ export function FileUploader({
   // Quality warning
   const [qualityWarning, setQualityWarning] = useState<string | null>(null);
 
+  // Pending file for aspect warnings
+  const [pendingFile, setPendingFile] = useState<File | null>(null);
+
   // Sync preview with currentUrl prop
   useEffect(() => {
     setPreview(currentUrl || null);
@@ -534,7 +537,7 @@ export function FileUploader({
       >
         {preview && !cropSrc && !aspectWarning ? (
           <>
-            <Image src={preview} alt="undefined" fill className={`w-full h-full ${aspect === "logo" ? "object-contain bg-[var(--surface-3)]" : "object-cover"} />
+            <Image src={preview} alt="undefined" fill className={`w-full h-full ${aspect === "logo" ? "object-contain bg-[var(--surface-3)]" : "object-cover"}`} />
             {/* Remove button */}
             <button
               onClick={() => {

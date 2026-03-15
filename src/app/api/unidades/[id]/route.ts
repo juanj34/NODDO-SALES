@@ -1,5 +1,6 @@
 import { pick } from "@/lib/api-utils";
 import { getAuthContext, getAccessibleProjectIds, verifyProjectOwnership } from "@/lib/auth-context";
+import { logActivity } from "@/lib/activity-logger";
 import { NextRequest, NextResponse } from "next/server";
 
 export async function PUT(
@@ -98,6 +99,26 @@ export async function PUT(
           }
         }
       }
+    }
+
+    // Log activity — detect estado and price changes
+    const { data: proj } = await auth.supabase.from("proyectos").select("nombre").eq("id", proyectoId).single();
+    if (body.estado !== undefined) {
+      logActivity({
+        userId: auth.user.id, userEmail: auth.user.email!, userRole: auth.role,
+        proyectoId, proyectoNombre: proj?.nombre,
+        actionType: "unit.state_change", actionCategory: "unit",
+        metadata: { identificador: data.identificador, estadoNuevo: body.estado },
+        entityType: "unidad", entityId: id,
+      });
+    } else {
+      logActivity({
+        userId: auth.user.id, userEmail: auth.user.email!, userRole: auth.role,
+        proyectoId, proyectoNombre: proj?.nombre,
+        actionType: "unit.update", actionCategory: "unit",
+        metadata: { identificador: data.identificador },
+        entityType: "unidad", entityId: id,
+      });
     }
 
     // Strip tipologias join from response

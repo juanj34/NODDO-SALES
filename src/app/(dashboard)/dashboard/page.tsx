@@ -13,6 +13,7 @@ import { DashboardGreeting } from "@/components/dashboard/home/DashboardGreeting
 import { DashboardKPIStrip } from "@/components/dashboard/home/DashboardKPIStrip";
 import { DashboardShortcutsEnhanced } from "@/components/dashboard/home/DashboardShortcutsEnhanced";
 import { RecentProjectsPreview } from "@/components/dashboard/home/RecentProjectsPreview";
+import { RecentActivityWidget } from "@/components/dashboard/bitacora/RecentActivityWidget";
 
 export default function DashboardPage() {
   const { data: projects = [], isLoading: loading, refetch: refresh } = useProjects();
@@ -95,6 +96,11 @@ export default function DashboardPage() {
         onClone={isAdmin ? handleClone : undefined}
         onCreateProject={isAdmin ? handleCreateProject : undefined}
       />
+
+      {/* 5. Recent Activity (admin only) */}
+      {isAdmin && projects.length > 0 && (
+        <RecentActivityWidget locale="es" />
+      )}
     </div>
   );
 }

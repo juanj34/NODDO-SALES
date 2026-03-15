@@ -1,6 +1,7 @@
 import { getAuthContext } from "@/lib/auth-context";
 import { pick } from "@/lib/api-utils";
 import { getProjectFeatures } from "@/lib/feature-flags";
+import { logActivity } from "@/lib/activity-logger";
 import { NextRequest, NextResponse } from "next/server";
 
 const PROYECTO_FIELDS = [
@@ -161,6 +162,14 @@ export async function PUT(
       .single();
 
     if (error) throw error;
+
+    logActivity({
+      userId: auth.user.id, userEmail: auth.user.email!, userRole: auth.role,
+      proyectoId: id, proyectoNombre: data.nombre,
+      actionType: "project.update", actionCategory: "project",
+      entityType: "proyecto", entityId: id,
+    });
+
     return NextResponse.json(data);
   } catch (err) {
     return NextResponse.json(
@@ -184,6 +193,9 @@ export async function DELETE(
       return NextResponse.json({ error: "Solo administradores" }, { status: 403 });
     }
 
+    // Fetch name before deleting for the log
+    const { data: proj } = await auth.supabase.from("proyectos").select("nombre").eq("id", id).single();
+
     const { error } = await auth.supabase
       .from("proyectos")
       .delete()
@@ -191,6 +203,15 @@ export async function DELETE(
       .eq("user_id", auth.user.id);
 
     if (error) throw error;
+
+    logActivity({
+      userId: auth.user.id, userEmail: auth.user.email!, userRole: auth.role,
+      proyectoId: id, proyectoNombre: proj?.nombre,
+      actionType: "project.delete", actionCategory: "project",
+      metadata: { nombre: proj?.nombre },
+      entityType: "proyecto", entityId: id,
+    });
+
     return NextResponse.json({ success: true });
   } catch (err) {
     return NextResponse.json(

@@ -455,7 +455,7 @@ export default function NosotrosPage() {
               <div key={member.name} className="glass-card p-6 text-center hover:bg-white/5 transition-all duration-300">
                 <Image src={member.avatar} alt="" width={400} height={300} className="w-32 h-32 rounded-full mx-auto mb-4 object-cover" style={{
                     border: "3px solid rgba(184, 151, 58, 0.3)",
-                  } />
+                  }} />
                 <h3
                   className="text-xl mb-1"
                   style={{

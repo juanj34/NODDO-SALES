@@ -10,7 +10,7 @@ import { cn } from "@/lib/utils";
 import {
   FolderOpen, Users, Settings, LogOut, Loader2, HelpCircle,
   Menu, X, Shield, ToggleLeft, Calculator, ContactRound,
-  BarChart3, FileText, LayoutDashboard, CircleDollarSign,
+  BarChart3, FileText, LayoutDashboard, CircleDollarSign, Clock,
 } from "lucide-react";
 import { ToastProvider } from "@/components/dashboard/Toast";
 import { ConfirmProvider } from "@/components/dashboard/ConfirmModal";
@@ -239,6 +239,14 @@ function DashboardShell({ children }: { children: React.ReactNode }) {
             href="/financiero"
             icon={CircleDollarSign}
             label={t("sidebar.financiero")}
+            pathname={pathname}
+            onClick={closeDrawer}
+            iconSize={15}
+          />
+          <SidebarLink
+            href="/bitacora"
+            icon={Clock}
+            label={t("sidebar.bitacora")}
             pathname={pathname}
             onClick={closeDrawer}
             iconSize={15}

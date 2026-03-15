@@ -5,6 +5,7 @@ import { sendLeadNotification, sendLeadConfirmation } from "@/lib/email";
 import { leadLimiter, checkRateLimit, rateLimitExceeded } from "@/lib/rate-limit";
 import { getWebhookConfig, dispatchWebhook } from "@/lib/webhooks";
 import { verifyRecaptcha, getRecaptchaToken } from "@/lib/recaptcha";
+import { logActivity } from "@/lib/activity-logger";
 import type { WebhookPayload } from "@/lib/webhooks";
 import { NextRequest, NextResponse } from "next/server";
 
@@ -70,6 +71,9 @@ export async function POST(request: NextRequest) {
       .single();
 
     if (error) throw error;
+
+    // Log new lead activity (fire-and-forget — public endpoint, no auth user)
+    logNewLeadActivity(body.proyecto_id, data);
 
     // Dispatch webhook (fire-and-forget)
     fireLeadWebhook(body.proyecto_id, data);
@@ -150,6 +154,33 @@ async function sendLeadConfirmationAsync(projectId: string, name: string, email:
     });
   } catch (err) {
     console.error("[leads] Error sending lead confirmation:", err);
+  }
+}
+
+async function logNewLeadActivity(projectId: string, lead: Record<string, unknown>) {
+  try {
+    const adminSupabase = createAdminClient();
+    const { data: proyecto } = await adminSupabase
+      .from("proyectos")
+      .select("nombre, user_id")
+      .eq("id", projectId)
+      .single();
+    if (!proyecto) return;
+    const { data: userData } = await adminSupabase.auth.admin.getUserById(proyecto.user_id);
+    logActivity({
+      userId: proyecto.user_id,
+      userEmail: userData?.user?.email || "visitor",
+      userRole: "admin",
+      proyectoId: projectId,
+      proyectoNombre: proyecto.nombre,
+      actionType: "lead.new",
+      actionCategory: "lead",
+      metadata: { nombre: lead.nombre, email: lead.email },
+      entityType: "lead",
+      entityId: lead.id as string,
+    });
+  } catch (err) {
+    console.error("[leads] Activity log error:", err);
   }
 }
 

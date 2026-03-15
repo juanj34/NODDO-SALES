@@ -25,6 +25,7 @@ import { NodDoDropdown } from "@/components/ui/NodDoDropdown";
 import { InfoTooltip } from "@/components/ui/InfoTooltip";
 import { formatCurrency } from "@/lib/currency";
 import type { Currency } from "@/lib/currency";
+import { CurrencyInput } from "@/components/dashboard/CurrencyInput";
 import tooltips from "@/i18n/locales/es/tooltips";
 
 /* ─── Helpers ─── */
@@ -135,13 +136,21 @@ function FaseCard({
             <div className="bg-[var(--surface-3)] border border-[var(--border-default)] rounded-lg px-3 py-2 text-xs text-[var(--text-muted)]">
               Calculado automáticamente
             </div>
+          ) : fase.tipo === "fijo" ? (
+            <CurrencyInput
+              value={fase.valor || ""}
+              onChange={(v) => onChange({ ...fase, valor: Number(v) })}
+              currency={moneda as Currency}
+              placeholder="5,000,000"
+              inputClassName="w-full bg-[var(--surface-3)] border border-[var(--border-default)] rounded-lg px-3 py-2 text-xs text-white focus:outline-none focus:border-[rgba(var(--site-primary-rgb),0.5)]"
+            />
           ) : (
             <input
               type="number"
               value={fase.valor || ""}
               onChange={(e) => onChange({ ...fase, valor: Number(e.target.value) })}
               className="w-full bg-[var(--surface-3)] border border-[var(--border-default)] rounded-lg px-3 py-2 text-xs text-white focus:outline-none focus:border-[rgba(var(--site-primary-rgb),0.5)]"
-              placeholder={fase.tipo === "porcentaje" ? "30" : "5000000"}
+              placeholder="30"
             />
           )}
         </div>
@@ -409,13 +418,23 @@ export default function CotizadorConfigPage() {
                       <label className="block text-[10px] text-[var(--text-muted)] mb-1 uppercase tracking-wider">
                         {desc.tipo === "porcentaje" ? "%" : config.moneda}
                       </label>
-                      <input
-                        type="number"
-                        value={desc.valor || ""}
-                        onChange={(e) => updateDescuento(desc.id, { ...desc, valor: Number(e.target.value) })}
-                        className="w-full bg-[var(--surface-3)] border border-[var(--border-default)] rounded-lg px-3 py-2 text-xs text-white focus:outline-none focus:border-[rgba(var(--site-primary-rgb),0.5)]"
-                        placeholder={desc.tipo === "porcentaje" ? "5" : "10000000"}
-                      />
+                      {desc.tipo === "fijo" ? (
+                        <CurrencyInput
+                          value={desc.valor || ""}
+                          onChange={(v) => updateDescuento(desc.id, { ...desc, valor: Number(v) })}
+                          currency={moneda as Currency}
+                          placeholder="10,000,000"
+                          inputClassName="w-full bg-[var(--surface-3)] border border-[var(--border-default)] rounded-lg px-3 py-2 text-xs text-white focus:outline-none focus:border-[rgba(var(--site-primary-rgb),0.5)]"
+                        />
+                      ) : (
+                        <input
+                          type="number"
+                          value={desc.valor || ""}
+                          onChange={(e) => updateDescuento(desc.id, { ...desc, valor: Number(e.target.value) })}
+                          className="w-full bg-[var(--surface-3)] border border-[var(--border-default)] rounded-lg px-3 py-2 text-xs text-white focus:outline-none focus:border-[rgba(var(--site-primary-rgb),0.5)]"
+                          placeholder="5"
+                        />
+                      )}
                     </div>
                   </div>
                 </div>
@@ -520,11 +539,11 @@ export default function CotizadorConfigPage() {
               <label className="block text-[10px] text-[var(--text-muted)] mb-1 uppercase tracking-wider">
                 Precio de ejemplo ({config.moneda})
               </label>
-              <input
-                type="number"
+              <CurrencyInput
                 value={samplePrice || ""}
-                onChange={(e) => setSamplePrice(Number(e.target.value))}
-                className="w-full bg-[var(--surface-3)] border border-[var(--border-default)] rounded-lg px-3 py-2.5 text-sm text-white focus:outline-none focus:border-[rgba(var(--site-primary-rgb),0.5)]"
+                onChange={(v) => setSamplePrice(Number(v))}
+                currency={moneda as Currency}
+                inputClassName="w-full bg-[var(--surface-3)] border border-[var(--border-default)] rounded-lg px-3 py-2.5 text-sm text-white focus:outline-none focus:border-[rgba(var(--site-primary-rgb),0.5)]"
               />
             </div>
 

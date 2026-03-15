@@ -14,8 +14,10 @@ import type { Currency, ComplementoMode, ComplementoSeleccion, Complemento } fro
 import { useTranslation } from "@/i18n";
 import { useToast } from "@/components/dashboard/Toast";
 import { useAuthRole } from "@/hooks/useAuthContext";
-import { calcularCotizacion } from "@/lib/cotizador/calcular";
+import { calcularCotizacion, buildPrecioBaseComplementos } from "@/lib/cotizador/calcular";
 import type { CotizadorConfig, ResultadoCotizacion } from "@/types";
+import { Minus } from "lucide-react";
+import { CurrencyInput } from "@/components/dashboard/CurrencyInput";
 
 /* ── Types ─────────────────────────────────────────────── */
 
@@ -29,7 +31,9 @@ interface UnitRow {
   habitaciones: number | null;
   banos: number | null;
   vista: string | null;
-  tipologia: { nombre: string } | null;
+  parqueaderos: number | null;
+  depositos: number | null;
+  tipologia: { nombre: string; parqueaderos: number | null; depositos: number | null } | null;
   torre: { nombre: string } | null;
 }
 
@@ -42,6 +46,8 @@ interface ProjectForCotizador {
   color_primario: string | null;
   parqueaderos_mode: ComplementoMode;
   depositos_mode: ComplementoMode;
+  parqueaderos_precio_base: number | null;
+  depositos_precio_base: number | null;
 }
 
 interface EditableFase {
@@ -113,6 +119,10 @@ export default function CotizadorPage() {
   // Sandbox: selected complementos
   const [selectedComplementos, setSelectedComplementos] = useState<ComplementoSeleccion[]>([]);
 
+  // Sandbox: precio_base counts
+  const [precioBaseParqCount, setPrecioBaseParqCount] = useState<number>(0);
+  const [precioBaseDepoCount, setPrecioBaseDepoCount] = useState<number>(0);
+
   // Client info
   const [clientName, setClientName] = useState("");
   const [clientEmail, setClientEmail] = useState("");
@@ -140,6 +150,8 @@ export default function CotizadorPage() {
               color_primario: p.color_primario as string | null,
               parqueaderos_mode: (p.parqueaderos_mode as ComplementoMode) || "sin_inventario",
               depositos_mode: (p.depositos_mode as ComplementoMode) || "sin_inventario",
+              parqueaderos_precio_base: (p.parqueaderos_precio_base as number | null) ?? null,
+              depositos_precio_base: (p.depositos_precio_base as number | null) ?? null,
             })
           );
           setProjects(mapped);
@@ -206,20 +218,77 @@ export default function CotizadorPage() {
     );
   }, [cotizableUnits, search]);
 
-  // Available complementos (not sold, tipo-filtered)
+  // Complemento mode detection
+  const hasParqInventory = selectedProject?.parqueaderos_mode === "inventario_incluido" || selectedProject?.parqueaderos_mode === "inventario_separado";
+  const hasDepoInventory = selectedProject?.depositos_mode === "inventario_incluido" || selectedProject?.depositos_mode === "inventario_separado";
+  const hasParqPrecioBase = selectedProject?.parqueaderos_mode === "precio_base";
+  const hasDepoPrecioBase = selectedProject?.depositos_mode === "precio_base";
+  const showComplementos = hasParqInventory || hasDepoInventory || hasParqPrecioBase || hasDepoPrecioBase;
+
+  // Initialize precio_base counts from unit/tipologia when unit changes
+  useEffect(() => {
+    if (!selectedUnit) {
+      setPrecioBaseParqCount(0);
+      setPrecioBaseDepoCount(0);
+      return;
+    }
+    if (hasParqPrecioBase) {
+      setPrecioBaseParqCount(selectedUnit.parqueaderos ?? selectedUnit.tipologia?.parqueaderos ?? 0);
+    }
+    if (hasDepoPrecioBase) {
+      setPrecioBaseDepoCount(selectedUnit.depositos ?? selectedUnit.tipologia?.depositos ?? 0);
+    }
+  }, [selectedUnitId]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Auto-populate included complementos when unit is selected (for inventory modes)
+  const includedComplementos = useMemo(() => {
+    if (!selectedUnit || !selectedUnitId) return [];
+    const parqCount = selectedUnit.parqueaderos ?? selectedUnit.tipologia?.parqueaderos ?? 0;
+    const depoCount = selectedUnit.depositos ?? selectedUnit.tipologia?.depositos ?? 0;
+    const assigned = complementos.filter((c) => c.unidad_id === selectedUnitId);
+    const assignedParq = assigned.filter((c) => c.tipo === "parqueadero").slice(0, parqCount);
+    const assignedDepo = assigned.filter((c) => c.tipo === "deposito").slice(0, depoCount);
+    return [...assignedParq, ...assignedDepo];
+  }, [selectedUnitId, selectedUnit, complementos]);
+
+  // Available complementos (not sold, not already included, tipo-filtered)
+  const includedIds = useMemo(() => new Set(includedComplementos.map((c) => c.id)), [includedComplementos]);
   const availableParqueaderos = useMemo(
-    () => complementos.filter((c) => c.tipo === "parqueadero" && c.estado === "disponible"),
-    [complementos]
+    () => complementos.filter((c) => c.tipo === "parqueadero" && c.estado === "disponible" && !includedIds.has(c.id)),
+    [complementos, includedIds]
   );
   const availableDepositos = useMemo(
-    () => complementos.filter((c) => c.tipo === "deposito" && c.estado === "disponible"),
-    [complementos]
+    () => complementos.filter((c) => c.tipo === "deposito" && c.estado === "disponible" && !includedIds.has(c.id)),
+    [complementos, includedIds]
   );
 
-  // Has inventory modes?
-  const hasParqInventory = selectedProject?.parqueaderos_mode !== "sin_inventario";
-  const hasDepoInventory = selectedProject?.depositos_mode !== "sin_inventario";
-  const showComplementos = hasParqInventory || hasDepoInventory;
+  // Auto-set included complementos when unit changes
+  useEffect(() => {
+    if (!selectedUnitId) { setSelectedComplementos([]); return; }
+    if (!hasParqInventory && !hasDepoInventory) return;
+    const included: ComplementoSeleccion[] = includedComplementos.map((c) => ({
+      complemento_id: c.id,
+      tipo: c.tipo,
+      identificador: c.identificador,
+      subtipo: c.subtipo,
+      precio: null,
+      suma_al_total: false,
+      es_extra: false,
+    }));
+    setSelectedComplementos(included);
+  }, [selectedUnitId, includedComplementos.length]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Merge all complementos for calculation: inventory + precio_base virtual items
+  const allComplementos = useMemo(() => {
+    const items = [...selectedComplementos];
+    if (hasParqPrecioBase && precioBaseParqCount > 0 && selectedProject?.parqueaderos_precio_base) {
+      items.push(...buildPrecioBaseComplementos(precioBaseParqCount, selectedProject.parqueaderos_precio_base, 0, null));
+    }
+    if (hasDepoPrecioBase && precioBaseDepoCount > 0 && selectedProject?.depositos_precio_base) {
+      items.push(...buildPrecioBaseComplementos(0, null, precioBaseDepoCount, selectedProject.depositos_precio_base));
+    }
+    return items;
+  }, [selectedComplementos, hasParqPrecioBase, hasDepoPrecioBase, precioBaseParqCount, precioBaseDepoCount, selectedProject]);
 
   // Build custom config from editable fases
   const customConfig = useMemo((): CotizadorConfig | null => {
@@ -245,9 +314,9 @@ export default function CotizadorPage() {
       selectedUnit.precio,
       customConfig,
       selectedDiscounts,
-      selectedComplementos
+      allComplementos
     );
-  }, [selectedUnit, customConfig, selectedDiscounts, selectedComplementos]);
+  }, [selectedUnit, customConfig, selectedDiscounts, allComplementos]);
 
   // Client form validation
   const clientFormValid = clientName.trim().length > 0 && EMAIL_RE.test(clientEmail.trim());
@@ -282,11 +351,8 @@ export default function CotizadorPage() {
     (comp: Complemento) => {
       const already = selectedComplementos.find((c) => c.complemento_id === comp.id);
       if (already) return;
-      const mode = comp.tipo === "parqueadero"
-        ? selectedProject?.parqueaderos_mode
-        : selectedProject?.depositos_mode;
-      const sumaAlTotal = mode === "inventario_separado";
 
+      // Manually added items are always "extras" — they always add to total
       setSelectedComplementos((prev) => [
         ...prev,
         {
@@ -295,15 +361,25 @@ export default function CotizadorPage() {
           identificador: comp.identificador,
           subtipo: comp.subtipo,
           precio: comp.precio,
-          suma_al_total: sumaAlTotal,
+          suma_al_total: true,
+          es_extra: true,
         },
       ]);
     },
-    [selectedComplementos, selectedProject]
+    [selectedComplementos]
   );
 
   const removeComplemento = useCallback((compId: string) => {
-    setSelectedComplementos((prev) => prev.filter((c) => c.complemento_id !== compId));
+    // Only allow removing extras, not included items
+    setSelectedComplementos((prev) => prev.filter((c) => c.complemento_id !== compId || !c.es_extra));
+  }, []);
+
+  const updateExtraPrice = useCallback((compId: string, newPrice: number) => {
+    setSelectedComplementos((prev) =>
+      prev.map((c) =>
+        c.complemento_id === compId ? { ...c, precio: newPrice, precio_negociado: newPrice } : c
+      )
+    );
   }, []);
 
   // Generate PDF
@@ -330,7 +406,14 @@ export default function CotizadorPage() {
             frecuencia: f.frecuencia,
           })),
           descuentos_seleccionados: selectedDiscounts,
-          complemento_ids: selectedComplementos.map((c) => c.complemento_id),
+          complemento_ids: selectedComplementos.filter((c) => !c.es_precio_base).map((c) => c.complemento_id),
+          complemento_selections: selectedComplementos.filter((c) => !c.es_precio_base).map((c) => ({
+            complemento_id: c.complemento_id,
+            es_extra: c.es_extra ?? false,
+            precio_negociado: c.precio_negociado,
+          })),
+          precio_base_parqueaderos: hasParqPrecioBase ? precioBaseParqCount : undefined,
+          precio_base_depositos: hasDepoPrecioBase ? precioBaseDepoCount : undefined,
           separacion_incluida: separacionIncluidaEnInicial,
         }),
       });
@@ -539,29 +622,97 @@ export default function CotizadorPage() {
                       Complementos
                     </span>
 
-                    {/* Add complemento selectors */}
-                    <div className="space-y-3">
+                    <div className="space-y-4">
+                      {/* Precio Base: Parqueaderos */}
+                      {hasParqPrecioBase && selectedProject?.parqueaderos_precio_base && (
+                        <PrecioBaseCounter
+                          label="Parqueaderos"
+                          icon={Car}
+                          count={precioBaseParqCount}
+                          onChange={setPrecioBaseParqCount}
+                          precioUnitario={selectedProject.parqueaderos_precio_base}
+                          moneda={moneda as Currency}
+                        />
+                      )}
+                      {/* Precio Base: Depósitos */}
+                      {hasDepoPrecioBase && selectedProject?.depositos_precio_base && (
+                        <PrecioBaseCounter
+                          label="Depósitos"
+                          icon={Package}
+                          count={precioBaseDepoCount}
+                          onChange={setPrecioBaseDepoCount}
+                          precioUnitario={selectedProject.depositos_precio_base}
+                          moneda={moneda as Currency}
+                        />
+                      )}
+
+                      {/* Inventory mode: Included items (read-only) */}
+                      {(hasParqInventory || hasDepoInventory) && (() => {
+                        const includedItems = selectedComplementos.filter((c) => !c.es_extra);
+                        const parqCount = selectedUnit?.parqueaderos ?? selectedUnit?.tipologia?.parqueaderos ?? 0;
+                        const depoCount = selectedUnit?.depositos ?? selectedUnit?.tipologia?.depositos ?? 0;
+                        const includedParq = includedItems.filter((c) => c.tipo === "parqueadero");
+                        const includedDepo = includedItems.filter((c) => c.tipo === "deposito");
+
+                        return (includedParq.length > 0 || includedDepo.length > 0 || parqCount > 0 || depoCount > 0) ? (
+                          <div>
+                            <span className="text-[10px] text-[var(--text-muted)] block mb-2">Incluidos con la unidad</span>
+                            <div className="flex flex-wrap gap-1.5">
+                              {includedParq.map((s) => (
+                                <span key={s.complemento_id} className="inline-flex items-center gap-1.5 px-2 py-1 rounded-lg bg-green-500/8 border border-green-500/20 text-[11px]">
+                                  <Car size={11} className="text-green-400" />
+                                  <span className="text-[var(--text-primary)]">{s.identificador}</span>
+                                  <span className="text-green-400 text-[9px] font-ui uppercase">incluido</span>
+                                </span>
+                              ))}
+                              {hasParqInventory && includedParq.length < parqCount && (
+                                <span className="inline-flex items-center gap-1.5 px-2 py-1 rounded-lg bg-amber-500/8 border border-amber-500/20 text-[11px] text-amber-400 italic">
+                                  {parqCount - includedParq.length} parq. sin asignar
+                                </span>
+                              )}
+                              {includedDepo.map((s) => (
+                                <span key={s.complemento_id} className="inline-flex items-center gap-1.5 px-2 py-1 rounded-lg bg-green-500/8 border border-green-500/20 text-[11px]">
+                                  <Package size={11} className="text-green-400" />
+                                  <span className="text-[var(--text-primary)]">{s.identificador}</span>
+                                  <span className="text-green-400 text-[9px] font-ui uppercase">incluido</span>
+                                </span>
+                              ))}
+                              {hasDepoInventory && includedDepo.length < depoCount && (
+                                <span className="inline-flex items-center gap-1.5 px-2 py-1 rounded-lg bg-amber-500/8 border border-amber-500/20 text-[11px] text-amber-400 italic">
+                                  {depoCount - includedDepo.length} dep. sin asignar
+                                </span>
+                              )}
+                            </div>
+                          </div>
+                        ) : null;
+                      })()}
+
+                      {/* Inventory mode: Extra items (addable) */}
                       {hasParqInventory && (
                         <ComplementoSelector
-                          label="Parqueadero"
+                          label="Parqueadero extra"
                           icon={Car}
                           items={availableParqueaderos}
-                          selected={selectedComplementos.filter((c) => c.tipo === "parqueadero")}
+                          selected={selectedComplementos.filter((c) => c.tipo === "parqueadero" && c.es_extra)}
                           onAdd={addComplemento}
                           onRemove={removeComplemento}
-                          showPrecio={selectedProject?.parqueaderos_mode === "inventario_separado"}
+                          onPriceChange={updateExtraPrice}
+                          showPrecio
+                          isExtra
                           moneda={moneda as Currency}
                         />
                       )}
                       {hasDepoInventory && (
                         <ComplementoSelector
-                          label="Depósito"
+                          label="Depósito extra"
                           icon={Package}
                           items={availableDepositos}
-                          selected={selectedComplementos.filter((c) => c.tipo === "deposito")}
+                          selected={selectedComplementos.filter((c) => c.tipo === "deposito" && c.es_extra)}
                           onAdd={addComplemento}
                           onRemove={removeComplemento}
-                          showPrecio={selectedProject?.depositos_mode === "inventario_separado"}
+                          onPriceChange={updateExtraPrice}
+                          showPrecio
+                          isExtra
                           moneda={moneda as Currency}
                         />
                       )}
@@ -698,14 +849,23 @@ export default function CotizadorPage() {
                           {/* Value */}
                           <div className="col-span-2">
                             <label className="text-[9px] text-[var(--text-muted)] uppercase tracking-wider block mb-1">Valor</label>
-                            <input
-                              type="number"
-                              value={fase.tipo === "resto" ? "" : fase.valor}
-                              onChange={(e) => updateFase(fase.id, "valor", parseFloat(e.target.value) || 0)}
-                              disabled={fase.tipo === "resto"}
-                              className="input-glass w-full text-xs py-1.5 disabled:opacity-40"
-                              placeholder={fase.tipo === "resto" ? "Auto" : ""}
-                            />
+                            {fase.tipo === "fijo" ? (
+                              <CurrencyInput
+                                value={fase.valor || ""}
+                                onChange={(v) => updateFase(fase.id, "valor", parseFloat(v) || 0)}
+                                currency={moneda as Currency}
+                                inputClassName="input-glass w-full text-xs py-1.5"
+                              />
+                            ) : (
+                              <input
+                                type="number"
+                                value={fase.tipo === "resto" ? "" : fase.valor}
+                                onChange={(e) => updateFase(fase.id, "valor", parseFloat(e.target.value) || 0)}
+                                disabled={fase.tipo === "resto"}
+                                className="input-glass w-full text-xs py-1.5 disabled:opacity-40"
+                                placeholder={fase.tipo === "resto" ? "Auto" : ""}
+                              />
+                            )}
                           </div>
                           {/* Cuotas */}
                           <div className="col-span-1">
@@ -833,6 +993,52 @@ function DetailBox({ label, value }: { label: string; value: string }) {
   );
 }
 
+function PrecioBaseCounter({
+  label,
+  icon: Icon,
+  count,
+  onChange,
+  precioUnitario,
+  moneda,
+}: {
+  label: string;
+  icon: React.ComponentType<{ size?: number; className?: string }>;
+  count: number;
+  onChange: (n: number) => void;
+  precioUnitario: number;
+  moneda: Currency;
+}) {
+  return (
+    <div className="p-3 rounded-xl bg-[var(--surface-2)] border border-[var(--border-subtle)]">
+      <div className="flex items-center gap-2 mb-2">
+        <Icon size={13} className="text-[var(--text-tertiary)]" />
+        <span className="text-xs text-[var(--text-secondary)]">{label}</span>
+      </div>
+      <div className="flex items-center gap-3">
+        <button
+          onClick={() => onChange(Math.max(0, count - 1))}
+          className="w-7 h-7 rounded-lg bg-[var(--surface-3)] border border-[var(--border-subtle)] flex items-center justify-center text-[var(--text-secondary)] hover:text-white hover:border-[var(--border-default)] transition-all"
+        >
+          <Minus size={12} />
+        </button>
+        <span className="text-sm text-[var(--text-primary)] font-medium min-w-[20px] text-center">{count}</span>
+        <button
+          onClick={() => onChange(count + 1)}
+          className="w-7 h-7 rounded-lg bg-[var(--surface-3)] border border-[var(--border-subtle)] flex items-center justify-center text-[var(--text-secondary)] hover:text-white hover:border-[var(--border-default)] transition-all"
+        >
+          <Plus size={12} />
+        </button>
+        <span className="text-[10px] text-[var(--text-muted)] ml-1">
+          × {formatCurrency(precioUnitario, moneda, { compact: true })}
+        </span>
+        <span className="ml-auto text-xs text-[var(--site-primary)] font-medium">
+          = {formatCurrency(count * precioUnitario, moneda, { compact: true })}
+        </span>
+      </div>
+    </div>
+  );
+}
+
 function ComplementoSelector({
   label,
   icon: Icon,
@@ -840,7 +1046,9 @@ function ComplementoSelector({
   selected,
   onAdd,
   onRemove,
+  onPriceChange,
   showPrecio,
+  isExtra,
   moneda,
 }: {
   label: string;
@@ -849,7 +1057,9 @@ function ComplementoSelector({
   selected: ComplementoSeleccion[];
   onAdd: (comp: Complemento) => void;
   onRemove: (compId: string) => void;
+  onPriceChange?: (compId: string, price: number) => void;
   showPrecio: boolean;
+  isExtra?: boolean;
   moneda: Currency;
 }) {
   const [open, setOpen] = useState(false);
@@ -861,12 +1071,14 @@ function ComplementoSelector({
       <div className="flex items-center gap-2 mb-2">
         <Icon size={13} className="text-[var(--text-tertiary)]" />
         <span className="text-xs text-[var(--text-secondary)]">{label}</span>
-        <button
-          onClick={() => setOpen(!open)}
-          className="ml-auto text-[10px] text-[var(--site-primary)] hover:text-white transition-colors flex items-center gap-1"
-        >
-          <Plus size={11} /> Agregar
-        </button>
+        {available.length > 0 && (
+          <button
+            onClick={() => setOpen(!open)}
+            className="ml-auto text-[10px] text-[var(--site-primary)] hover:text-white transition-colors flex items-center gap-1"
+          >
+            <Plus size={11} /> Agregar
+          </button>
+        )}
       </div>
 
       {/* Selected chips */}
@@ -875,19 +1087,45 @@ function ComplementoSelector({
           {selected.map((s) => (
             <span
               key={s.complemento_id}
-              className="inline-flex items-center gap-1.5 px-2 py-1 rounded-lg bg-[var(--surface-2)] border border-[var(--border-subtle)] text-[11px]"
+              className={cn(
+                "inline-flex items-center gap-1.5 px-2 py-1 rounded-lg text-[11px]",
+                isExtra
+                  ? "bg-[rgba(184,151,58,0.06)] border border-[rgba(184,151,58,0.2)]"
+                  : "bg-[var(--surface-2)] border border-[var(--border-subtle)]"
+              )}
             >
               <span className="text-[var(--text-primary)]">{s.identificador}</span>
               {s.subtipo && (
                 <span className="text-[var(--text-muted)]">({s.subtipo})</span>
               )}
-              {showPrecio && s.precio != null ? (
-                <span className="text-[var(--site-primary)]">
-                  {formatCurrency(s.precio, moneda, { compact: true })}
-                </span>
-              ) : (
-                !showPrecio && <span className="text-[var(--text-muted)] italic text-[9px]">incluido</span>
+              {isExtra && (
+                <span className="text-[var(--site-primary)] text-[9px] font-ui uppercase">extra</span>
               )}
+              {showPrecio && (s.precio != null || s.precio_negociado != null) ? (
+                isExtra && onPriceChange ? (
+                  <input
+                    type="number"
+                    value={s.precio_negociado ?? s.precio ?? ""}
+                    onChange={(e) => onPriceChange(s.complemento_id, parseFloat(e.target.value) || 0)}
+                    className="w-20 text-right text-[10px] bg-transparent border-b border-[var(--border-default)] text-[var(--site-primary)] focus:outline-none"
+                    placeholder="Precio"
+                  />
+                ) : (
+                  <span className="text-[var(--site-primary)]">
+                    {formatCurrency(s.precio_negociado ?? s.precio ?? 0, moneda, { compact: true })}
+                  </span>
+                )
+              ) : isExtra ? (
+                onPriceChange ? (
+                  <input
+                    type="number"
+                    value={s.precio_negociado ?? ""}
+                    onChange={(e) => onPriceChange(s.complemento_id, parseFloat(e.target.value) || 0)}
+                    className="w-20 text-right text-[10px] bg-transparent border-b border-[var(--border-default)] text-[var(--site-primary)] focus:outline-none"
+                    placeholder="Precio"
+                  />
+                ) : null
+              ) : null}
               <button
                 onClick={() => onRemove(s.complemento_id)}
                 className="text-[var(--text-muted)] hover:text-red-400 ml-0.5"

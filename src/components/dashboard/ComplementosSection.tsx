@@ -30,7 +30,8 @@ import {
   btnSecondary,
   btnDanger,
 } from "@/components/dashboard/editor-styles";
-import type { ProyectoCompleto, Complemento, ComplementoMode, Unidad, Torre } from "@/types";
+import { CurrencyInput } from "@/components/dashboard/CurrencyInput";
+import type { ProyectoCompleto, Complemento, ComplementoMode, Unidad, Torre, Currency } from "@/types";
 
 // ---------------------------------------------------------------------------
 // Types
@@ -226,6 +227,7 @@ function ComplementoForm({
   onCancel,
   submitting,
   showPrecio = true,
+  currency = "COP",
 }: {
   initial: ComplementoFormData;
   unidades: Unidad[];
@@ -234,6 +236,7 @@ function ComplementoForm({
   onCancel: () => void;
   submitting: boolean;
   showPrecio?: boolean;
+  currency?: Currency;
 }) {
   const [form, setForm] = useState<ComplementoFormData>(initial);
   const [unitSearch, setUnitSearch] = useState("");
@@ -257,7 +260,7 @@ function ComplementoForm({
       initial={{ opacity: 0, height: 0 }}
       animate={{ opacity: 1, height: "auto" }}
       exit={{ opacity: 0, height: 0 }}
-      className="overflow-hidden"
+      className={showUnitDropdown ? "overflow-visible" : "overflow-hidden"}
     >
       <div className="p-5 bg-[var(--surface-2)] border border-[var(--border-subtle)] rounded-xl space-y-4">
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
@@ -330,12 +333,12 @@ function ComplementoForm({
           {showPrecio && (
             <div>
               <label className={labelClass}>Precio</label>
-              <input
-                type="number"
+              <CurrencyInput
                 value={form.precio}
-                onChange={(e) => set("precio", e.target.value)}
-                placeholder="45000000"
-                className={inputClass}
+                onChange={(v) => set("precio", v)}
+                currency={currency}
+                placeholder="45,000,000"
+                inputClassName={inputClass}
               />
             </div>
           )}
@@ -414,7 +417,7 @@ function ComplementoForm({
                   initial={{ opacity: 0, y: -4 }}
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, y: -4 }}
-                  className="absolute left-0 right-0 top-full mt-1 bg-[var(--surface-3)] border border-[var(--border-default)] rounded-lg shadow-2xl z-30 max-h-48 overflow-y-auto"
+                  className="absolute left-0 right-0 top-full mt-1 bg-[var(--surface-3)] border border-[var(--border-default)] rounded-lg shadow-2xl z-50 max-h-64 overflow-y-auto"
                 >
                   <button
                     onClick={() => {
@@ -995,6 +998,7 @@ export function ComplementosSection({ project, onRefresh, parqueaderosMode, depo
             onCancel={() => setShowCreateForm(false)}
             submitting={formLoading}
             showPrecio={activeTab === "parqueadero" ? showPrecioParq : showPrecioDepo}
+            currency={project.moneda_base || "COP"}
           />
         )}
       </AnimatePresence>
@@ -1109,8 +1113,11 @@ export function ComplementosSection({ project, onRefresh, parqueaderosMode, depo
       </AnimatePresence>
 
       {/* Data table */}
-      <div className="bg-[var(--surface-2)] border border-[var(--border-subtle)] rounded-xl overflow-hidden">
-        <div className="overflow-x-auto">
+      <div className={cn(
+        "bg-[var(--surface-2)] border border-[var(--border-subtle)] rounded-xl",
+        editingId ? "overflow-visible" : "overflow-hidden"
+      )}>
+        <div className={editingId ? "overflow-visible" : "overflow-x-auto"}>
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b border-[var(--border-default)]">
@@ -1189,6 +1196,7 @@ export function ComplementosSection({ project, onRefresh, parqueaderosMode, depo
                           onCancel={() => setEditingId(null)}
                           submitting={formLoading}
                           showPrecio={activeTab === "parqueadero" ? showPrecioParq : showPrecioDepo}
+                          currency={project.moneda_base || "COP"}
                         />
                       </td>
                     ) : (
