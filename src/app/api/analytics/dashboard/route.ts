@@ -59,7 +59,7 @@ export async function GET(request: NextRequest) {
   }
 }
 
-function processAnalytics(events: Array<{ user_id?: string; session_id?: string; event_type: string; metadata?: Record<string, unknown> }>) {
+function processAnalytics(events: Array<{ id?: string; user_id?: string; session_id?: string; event_type: string; created_at: string; device_type?: string; user_role?: string; metadata?: Record<string, unknown> }>) {
   // Overview metrics
   const totalEvents = events.length;
   const uniqueUsers = new Set(events.map((e) => e.user_id).filter(Boolean)).size;
@@ -99,7 +99,7 @@ function processAnalytics(events: Array<{ user_id?: string; session_id?: string;
   const searchEvents = events.filter((e) => e.event_type === "projects_search");
   const searchQueries: Record<string, number> = {};
   searchEvents.forEach((e) => {
-    const query = e.metadata?.query;
+    const query = e.metadata?.query as string | undefined;
     if (query) {
       searchQueries[query] = (searchQueries[query] || 0) + 1;
     }

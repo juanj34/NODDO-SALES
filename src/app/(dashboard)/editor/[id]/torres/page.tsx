@@ -9,6 +9,7 @@ import {
   labelClass,
   btnPrimary,
   btnSecondary,
+  btnDanger,
   sectionCard,
 } from "@/components/dashboard/editor-styles";
 import { PageHeader } from "@/components/dashboard/base/PageHeader";

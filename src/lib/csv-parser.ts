@@ -1,3 +1,31 @@
+/* ── Types used by SmartImportModal ──────────────────────────────────────── */
+
+export type EstadoUnidad = "disponible" | "separado" | "reservada" | "vendida";
+
+export interface MappedUnit {
+  identificador: string;
+  piso: number | null;
+  area_m2: number | null;
+  precio: number | null;
+  estado: EstadoUnidad;
+  habitaciones: number | null;
+  banos: number | null;
+  parqueaderos: number | null;
+  depositos: number | null;
+  orientacion: string | null;
+  vista: string | null;
+  notas: string | null;
+  _etapa: string | null;
+  _tipologia: string | null;
+}
+
+export interface ColumnMapping {
+  columnMap: Record<string, string>;
+  statusMap: Record<string, EstadoUnidad>;
+}
+
+/* ── Original ParsedUnit (used by parseCSV) ─────────────────────────────── */
+
 interface ParsedUnit {
   identificador?: string;
   etapa?: string;
@@ -161,6 +189,113 @@ export function parseCSV(text: string): ParsedUnit[] {
     if (unit.identificador) {
       results.push(unit);
     }
+  }
+
+  return results;
+}
+
+/* ── Smart Import helpers ───────────────────────────────────────────────── */
+
+/**
+ * Split raw CSV text into headers + sample rows (first 5) + all data rows.
+ * Used by SmartImportModal to send a sample to the AI for analysis.
+ */
+export function extractCSVHeadersAndSample(text: string): {
+  headers: string[];
+  sampleRows: string[][];
+  allRows: string[][];
+  totalRows: number;
+} {
+  const lines = text
+    .split("\n")
+    .map((l) => l.trim())
+    .filter((l) => l.length > 0);
+
+  if (lines.length < 2) {
+    return { headers: [], sampleRows: [], allRows: [], totalRows: 0 };
+  }
+
+  const delimiter = detectDelimiter(text);
+  const headers = lines[0].split(delimiter).map((h) => h.trim());
+
+  const dataLines = lines.slice(1);
+  const allRows = dataLines.map((line) =>
+    line.split(delimiter).map((v) => v.trim().replace(/^["']|["']$/g, ""))
+  );
+
+  const sampleRows = allRows.slice(0, 5);
+
+  return { headers, sampleRows, allRows, totalRows: allRows.length };
+}
+
+/**
+ * Parse all CSV rows using a user-supplied column mapping + status mapping.
+ * Returns MappedUnit[] with all fields normalised.
+ */
+export function parseCSVWithMapping(
+  allRows: string[][],
+  headers: string[],
+  mapping: ColumnMapping
+): MappedUnit[] {
+  const { columnMap, statusMap } = mapping;
+
+  // Invert columnMap: csvHeader → dbField
+  const headerToField: Record<string, string> = {};
+  for (const [csvCol, dbField] of Object.entries(columnMap)) {
+    headerToField[csvCol] = dbField;
+  }
+
+  // Build header-index lookup
+  const headerIndex: Record<string, number> = {};
+  headers.forEach((h, i) => {
+    headerIndex[h] = i;
+  });
+
+  const results: MappedUnit[] = [];
+
+  for (const row of allRows) {
+    const unit: Record<string, string | number | null> = {};
+
+    for (const [csvCol, dbField] of Object.entries(headerToField)) {
+      const idx = headerIndex[csvCol];
+      if (idx === undefined || idx >= row.length) continue;
+      const rawValue = row[idx];
+      if (!rawValue) continue;
+
+      const intFields = ["piso", "habitaciones", "banos", "parqueaderos", "depositos"];
+      const floatFields = ["area_m2", "precio"];
+
+      if (intFields.includes(dbField)) {
+        unit[dbField] = parseInt(rawValue) || null;
+      } else if (floatFields.includes(dbField)) {
+        unit[dbField] = parseFloat(rawValue.replace(/[,$\s]/g, "")) || null;
+      } else if (dbField === "estado") {
+        const mapped = statusMap[rawValue] || statusMap[rawValue.toLowerCase()];
+        unit[dbField] = mapped || "disponible";
+      } else {
+        unit[dbField] = rawValue;
+      }
+    }
+
+    const identificador = unit.identificador as string | undefined;
+    if (!identificador) continue;
+
+    results.push({
+      identificador,
+      piso: (unit.piso as number | null) ?? null,
+      area_m2: (unit.area_m2 as number | null) ?? null,
+      precio: (unit.precio as number | null) ?? null,
+      estado: (unit.estado as EstadoUnidad) || "disponible",
+      habitaciones: (unit.habitaciones as number | null) ?? null,
+      banos: (unit.banos as number | null) ?? null,
+      parqueaderos: (unit.parqueaderos as number | null) ?? null,
+      depositos: (unit.depositos as number | null) ?? null,
+      orientacion: (unit.orientacion as string | null) ?? null,
+      vista: (unit.vista as string | null) ?? null,
+      notas: (unit.notas as string | null) ?? null,
+      _etapa: (unit._etapa as string | null) ?? null,
+      _tipologia: (unit._tipologia as string | null) ?? null,
+    });
   }
 
   return results;

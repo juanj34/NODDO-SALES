@@ -9,7 +9,7 @@ interface Props {
 
 const SHORTCUT_CONFIG: Record<
   string,
-  { label: string; icon: React.ComponentType<{ size?: number }>; color: string }
+  { label: string; icon: React.ComponentType<{ size?: number; style?: React.CSSProperties }>; color: string }
 > = {
   leads: {
     label: "Leads",

@@ -101,6 +101,7 @@ export function FileUploader({
 
   // Crop state
   const [cropSrc, setCropSrc] = useState<string | null>(null);
+  const [pendingFile, setPendingFile] = useState<File | null>(null);
 
   // Aspect ratio warning
   const [aspectWarning, setAspectWarning] = useState<{

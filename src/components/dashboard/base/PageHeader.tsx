@@ -28,7 +28,7 @@ interface PageHeaderProps {
   /** Page title (main heading) */
   title: string;
   /** Optional description text below title */
-  description?: string;
+  description?: React.ReactNode;
   /** Optional action buttons/elements to display on the right */
   actions?: React.ReactNode;
 }

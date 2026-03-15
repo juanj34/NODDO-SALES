@@ -17,10 +17,11 @@ export async function POST(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const { user } = await getAuthContext(request);
-    if (!user) {
+    const auth = await getAuthContext();
+    if (!auth?.user) {
       return NextResponse.json({ error: "No autorizado" }, { status: 401 });
     }
+    const { user } = auth;
 
     const { id } = await params;
     const supabase = getServiceClient();

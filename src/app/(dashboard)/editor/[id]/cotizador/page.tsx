@@ -22,7 +22,8 @@ import type { CotizadorConfig, FaseConfig, DescuentoConfig, ResultadoCotizacion 
 import { NodDoDropdown } from "@/components/ui/NodDoDropdown";
 import { InfoTooltip } from "@/components/ui/InfoTooltip";
 import { formatCurrency } from "@/lib/currency";
-import { useLanguage } from "@/i18n/LanguageProvider";
+import type { Currency } from "@/lib/currency";
+import tooltips from "@/i18n/locales/es/tooltips";
 
 /* ─── Helpers ─── */
 
@@ -69,7 +70,6 @@ function FaseCard({
   moneda: string;
 }) {
   const controls = useDragControls();
-  const { t } = useLanguage();
 
   return (
     <Reorder.Item
@@ -106,7 +106,7 @@ function FaseCard({
           <label className="flex items-center gap-2 text-[10px] text-[var(--text-muted)] mb-1 uppercase tracking-wider">
             Tipo
             <InfoTooltip
-              content={t.tooltips.cotizador.tipoFase.long}
+              content={tooltips.cotizador.tipoFase.long}
               variant="dashboard"
               placement="auto"
             />
@@ -176,7 +176,6 @@ function FaseCard({
 
 export default function CotizadorConfigPage() {
   const { project, save } = useEditorProject();
-  const { t } = useLanguage();
 
   const cotizadorEnabled = project.cotizador_enabled;
 
@@ -315,7 +314,7 @@ export default function CotizadorConfigPage() {
             <label className={`${labelClass} flex items-center gap-2`}>
               Moneda
               <InfoTooltip
-                content={t.tooltips.cotizador.moneda.long}
+                content={tooltips.cotizador.moneda.long}
                 variant="dashboard"
                 placement="auto"
               />
@@ -436,7 +435,7 @@ export default function CotizadorConfigPage() {
               <span className="text-xs text-[var(--text-secondary)] flex items-center gap-2">
                 La separación se descuenta de la cuota inicial
                 <InfoTooltip
-                  content={t.tooltips.cotizador.separacionIncluida.long}
+                  content={tooltips.cotizador.separacionIncluida.long}
                   variant="dashboard"
                   placement="auto"
                 />
@@ -447,7 +446,7 @@ export default function CotizadorConfigPage() {
               <label className="flex items-center gap-2 text-[10px] text-[var(--text-muted)] mb-1 uppercase tracking-wider">
                 Notas legales (aparecen en el PDF)
                 <InfoTooltip
-                  content={t.tooltips.cotizador.notasLegales.long}
+                  content={tooltips.cotizador.notasLegales.long}
                   variant="dashboard"
                   placement="auto"
                 />

@@ -1,14 +1,18 @@
-import type { CotizadorConfig, ResultadoCotizacion, FaseResultado } from "@/types";
+import type { CotizadorConfig, ResultadoCotizacion, FaseResultado, ComplementoSeleccion } from "@/types";
 
 /**
  * Pure calculation engine for real estate quotations.
  * Takes a unit price + project config → returns full payment breakdown.
  * Used in: editor preview, microsite modal, server-side API (source of truth).
+ *
+ * When complementos are provided with suma_al_total=true, their prices
+ * add to the total before phase calculations.
  */
 export function calcularCotizacion(
   precioUnidad: number,
   config: CotizadorConfig,
-  descuentosSeleccionados: string[] = []
+  descuentosSeleccionados: string[] = [],
+  complementos: ComplementoSeleccion[] = []
 ): ResultadoCotizacion {
   const precio_base = precioUnidad;
 
@@ -27,7 +31,14 @@ export function calcularCotizacion(
 
   const precio_neto = precio_base - totalDescuento;
 
-  // Calculate phases
+  // Sum complementos that add to total (inventario_separado mode)
+  const complementos_total = complementos
+    .filter((c) => c.suma_al_total && c.precio != null)
+    .reduce((sum, c) => sum + (c.precio ?? 0), 0);
+
+  const precio_total = precio_neto + complementos_total;
+
+  // Calculate phases on precio_total (includes complementos if any)
   const fases: FaseResultado[] = [];
   let acumulado = 0;
 
@@ -39,10 +50,10 @@ export function calcularCotizacion(
         monto_total = fase.valor;
         break;
       case "porcentaje":
-        monto_total = Math.round(precio_neto * (fase.valor / 100));
+        monto_total = Math.round(precio_total * (fase.valor / 100));
         break;
       case "resto":
-        monto_total = precio_neto - acumulado;
+        monto_total = precio_total - acumulado;
         break;
       default:
         monto_total = 0;
@@ -79,5 +90,8 @@ export function calcularCotizacion(
     descuentos_aplicados,
     precio_neto,
     fases,
+    complementos: complementos.length > 0 ? complementos : undefined,
+    complementos_total: complementos.length > 0 ? complementos_total : undefined,
+    precio_total: complementos.length > 0 ? precio_total : undefined,
   };
 }

@@ -69,6 +69,8 @@ export interface Proyecto {
   moneda_base: Currency;
   unidad_medida_base: UnitOfMeasurement;
   cotizador_enabled: boolean;
+  parqueaderos_mode: ComplementoMode;
+  depositos_mode: ComplementoMode;
   cotizador_config: CotizadorConfig | null;
   webhook_config: WebhookConfig | null;
   created_at: string;
@@ -336,6 +338,7 @@ export interface ProyectoCompleto extends Proyecto {
   planos_interactivos: PlanoInteractivo[];
   plano_puntos: PlanoPunto[];
   avances_obra: AvanceObra[];
+  complementos?: Complemento[];
 }
 
 export interface AvanceObra {
@@ -584,6 +587,9 @@ export interface ResultadoCotizacion {
   descuentos_aplicados: { nombre: string; monto: number }[];
   precio_neto: number;
   fases: FaseResultado[];
+  complementos?: ComplementoSeleccion[];
+  complementos_total?: number;
+  precio_total?: number;
 }
 
 export interface Cotizacion {
@@ -616,7 +622,8 @@ export type AuditAction =
   | "project_deleted"
   | "admin_added"
   | "admin_removed"
-  | "features_updated";
+  | "features_updated"
+  | "project_moderated";
 
 export type AuditTargetType = "user" | "project" | "admin";
 
@@ -716,6 +723,36 @@ export interface PlatformAlert {
   message: string;
   details: Record<string, unknown>;
   created_at: string;
+}
+
+/* ── Complementos (Parking & Storage) ── */
+
+export type ComplementoMode = "sin_inventario" | "inventario_incluido" | "inventario_separado";
+
+export interface Complemento {
+  id: string;
+  proyecto_id: string;
+  torre_id: string | null;
+  unidad_id: string | null;
+  tipo: "parqueadero" | "deposito";
+  subtipo: string | null;
+  identificador: string;
+  nivel: string | null;
+  area_m2: number | null;
+  precio: number | null;
+  estado: "disponible" | "separado" | "reservada" | "vendida";
+  notas: string | null;
+  orden: number;
+  created_at: string;
+}
+
+export interface ComplementoSeleccion {
+  complemento_id: string;
+  tipo: "parqueadero" | "deposito";
+  identificador: string;
+  subtipo: string | null;
+  precio: number | null;
+  suma_al_total: boolean;
 }
 
 /* ── Plans & Billing ── */

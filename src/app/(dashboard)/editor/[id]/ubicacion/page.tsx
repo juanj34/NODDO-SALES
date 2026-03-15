@@ -13,6 +13,10 @@ import {
   labelClass,
   btnPrimary,
   btnSecondary,
+  emptyState,
+  emptyStateIcon,
+  emptyStateTitle,
+  emptyStateDescription,
 } from "@/components/dashboard/editor-styles";
 import type { PuntoInteres } from "@/types";
 import {

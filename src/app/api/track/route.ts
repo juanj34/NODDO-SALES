@@ -1,5 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
-import { isRateLimited, getClientIp } from "@/lib/rate-limit";
+import { isRateLimited, apiLimiter } from "@/lib/rate-limit";
 import { NextRequest, NextResponse } from "next/server";
 
 const VALID_EVENT_TYPES = new Set([
@@ -32,8 +32,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Rate limit: 100 events per minute per IP
-    const ip = getClientIp(request);
-    if (isRateLimited("track", ip, 100, 60_000)) {
+    if (await isRateLimited(request, apiLimiter)) {
       return NextResponse.json({ error: "Too many requests" }, { status: 429 });
     }
 
