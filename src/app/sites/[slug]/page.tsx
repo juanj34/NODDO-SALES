@@ -163,6 +163,11 @@ export default function SiteLanding() {
           : { type: "spring", stiffness: 50, damping: 20 }
         }
       >
+        {/* Hidden H1 for SEO when logo is shown */}
+        {hasBothLogos && (
+          <h1 className="sr-only">{proyecto.nombre}</h1>
+        )}
+
         <motion.div
           variants={stagger}
           initial="hidden"

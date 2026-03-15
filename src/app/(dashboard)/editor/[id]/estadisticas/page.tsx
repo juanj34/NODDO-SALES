@@ -124,7 +124,7 @@ export default function EstadisticasPage() {
       >
         <div className="flex items-start justify-between flex-wrap gap-4 mb-6">
           <div>
-            <h1 className={pageTitle}>Estadísticas</h1>
+            <h2 className={pageTitle}>Estadísticas</h2>
             <p className={pageDescription}>
               Visualiza el rendimiento de tu micrositio
             </p>
@@ -167,7 +167,7 @@ export default function EstadisticasPage() {
       >
         <div className="flex items-start justify-between flex-wrap gap-4 mb-6">
           <div>
-            <h1 className={pageTitle}>Estadísticas</h1>
+            <h2 className={pageTitle}>Estadísticas</h2>
             <p className={pageDescription}>
               Visualiza el rendimiento de tu micrositio
             </p>

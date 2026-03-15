@@ -40,10 +40,31 @@ export async function generateMetadata({
   const ogImage = proyecto.og_image_url || proyecto.render_principal_url;
   const favicon = proyecto.favicon_url || proyecto.logo_url;
 
+  // Canonical URL
+  const subdomain = proyecto.subdomain || proyecto.slug;
+  const canonicalUrl =
+    proyecto.custom_domain && proyecto.domain_verified
+      ? `https://${proyecto.custom_domain}`
+      : ROOT_DOMAIN.includes("localhost")
+        ? `http://localhost:3000/sites/${proyecto.slug}`
+        : `https://${subdomain}.noddo.io`;
+
   return {
     title,
     description,
-    // Canonical is handled per-page in SiteLayoutClient via <link> tag
+    alternates: {
+      canonical: canonicalUrl,
+    },
+    robots: {
+      index: true,
+      follow: true,
+      googleBot: {
+        index: true,
+        follow: true,
+        "max-image-preview": "large",
+        "max-snippet": -1,
+      },
+    },
     // Favicon + Apple Touch Icon (per-project)
     ...(favicon
       ? { icons: { icon: favicon, apple: favicon } }
@@ -54,8 +75,10 @@ export async function generateMetadata({
       title: proyecto.nombre,
       description,
       siteName: proyecto.constructora_nombre || "NODDO",
+      url: canonicalUrl,
+      locale: "es_CO",
       ...(ogImage
-        ? { images: [{ url: ogImage, width: 1200, height: 630 }] }
+        ? { images: [{ url: ogImage, width: 1200, height: 630, alt: proyecto.nombre }] }
         : {}),
     },
     // Twitter Card
@@ -91,17 +114,33 @@ export default async function SiteLayout({ params, children }: Props) {
         ? `http://localhost:3000/sites/${proyecto.slug}`
         : `https://${subdomain}.noddo.io`;
 
-  const jsonLd = {
+  // Rich Schema.org structured data for real estate
+  const realEstateSchema = {
     "@context": "https://schema.org",
-    "@type": "WebPage",
+    "@type": "RealEstateListing",
     name: proyecto.nombre,
     description: proyecto.descripcion || undefined,
     url: siteUrl,
-    publisher: {
-      "@type": "Organization",
-      name: "NODDO",
-      url: "https://noddo.io",
-    },
+    ...(proyecto.render_principal_url
+      ? { image: proyecto.render_principal_url }
+      : {}),
+    ...(proyecto.ubicacion_lat && proyecto.ubicacion_lng
+      ? {
+          geo: {
+            "@type": "GeoCoordinates",
+            latitude: proyecto.ubicacion_lat,
+            longitude: proyecto.ubicacion_lng,
+          },
+        }
+      : {}),
+    address: proyecto.ubicacion_direccion
+      ? {
+          "@type": "PostalAddress",
+          streetAddress: proyecto.ubicacion_direccion,
+          addressLocality: proyecto.ciudad || undefined,
+          addressCountry: "CO",
+        }
+      : undefined,
     ...(proyecto.constructora_nombre
       ? {
           provider: {
@@ -113,32 +152,29 @@ export default async function SiteLayout({ params, children }: Props) {
           },
         }
       : {}),
-    about: {
-      "@type": "Residence",
-      name: proyecto.nombre,
-      description: proyecto.descripcion || undefined,
-      ...(proyecto.render_principal_url
-        ? { image: proyecto.render_principal_url }
-        : {}),
-      ...(proyecto.ubicacion_lat && proyecto.ubicacion_lng
-        ? {
-            geo: {
-              "@type": "GeoCoordinates",
-              latitude: proyecto.ubicacion_lat,
-              longitude: proyecto.ubicacion_lng,
-            },
-          }
-        : {}),
-      ...(proyecto.ubicacion_direccion
-        ? {
-            address: {
-              "@type": "PostalAddress",
-              streetAddress: proyecto.ubicacion_direccion,
-            },
-          }
-        : {}),
-    },
   };
+
+  // Breadcrumb schema for navigation
+  const breadcrumbSchema = {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    itemListElement: [
+      {
+        "@type": "ListItem",
+        position: 1,
+        name: "Inicio",
+        item: "https://noddo.io",
+      },
+      {
+        "@type": "ListItem",
+        position: 2,
+        name: proyecto.nombre,
+        item: siteUrl,
+      },
+    ],
+  };
+
+  const jsonLd = [realEstateSchema, breadcrumbSchema];
 
   return (
     <>

@@ -216,9 +216,9 @@ export default function CotizadorPage() {
   if (projects.length === 0) {
     return (
       <div className="p-8 max-w-3xl mx-auto text-center py-24">
-        <h1 className="font-heading text-2xl font-light text-[var(--text-primary)] mb-3">
+        <h2 className="font-heading text-2xl font-light text-[var(--text-primary)] mb-3">
           {t("cotizador.title")}
-        </h1>
+        </h2>
         <p className="text-sm text-[var(--text-tertiary)]">
           No tienes proyectos configurados.
         </p>

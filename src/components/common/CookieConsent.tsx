@@ -97,7 +97,7 @@ export function CookieConsent() {
   return (
     <div className="fixed inset-x-0 bottom-0 z-[100] pointer-events-none">
       <div className="container max-w-7xl mx-auto px-4 sm:px-6 pb-4 sm:pb-6">
-        <div className="glass-card pointer-events-auto relative overflow-hidden">
+        <div className="pointer-events-auto relative overflow-hidden rounded-[1.25rem] border border-[#b8973a]/30 shadow-[0_8px_32px_rgba(0,0,0,0.4)] backdrop-blur-md" style={{ background: 'linear-gradient(135deg, rgba(20,20,20,0.98) 0%, rgba(26,26,26,0.98) 100%)' }}>
           {/* Close button */}
           <button
             onClick={acceptNecessaryOnly}
