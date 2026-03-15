@@ -471,6 +471,17 @@ export default function AdminUsuariosPage() {
                                     {/* Action buttons */}
                                     <div className="flex flex-wrap gap-2 pt-2">
                                       <button
+                                        onClick={() => {
+                                          const subject = encodeURIComponent("NODDO - Actualización de tu cuenta");
+                                          const body = encodeURIComponent(`Hola,\n\nNos comunicamos desde NODDO respecto a tu cuenta.\n\nSaludos,\nEquipo NODDO`);
+                                          window.location.href = `mailto:${userDetail.email}?subject=${subject}&body=${body}`;
+                                        }}
+                                        className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[10px] font-ui font-bold uppercase tracking-wider text-[var(--site-primary)] bg-[rgba(var(--site-primary-rgb),0.1)] border border-[rgba(var(--site-primary-rgb),0.2)] hover:bg-[rgba(var(--site-primary-rgb),0.2)] transition-all"
+                                      >
+                                        <Mail size={11} />
+                                        Enviar Email
+                                      </button>
+                                      <button
                                         onClick={() => handleToggleBan(userDetail.id, !userDetail.banned)}
                                         className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[10px] font-ui font-bold uppercase tracking-wider border transition-all ${
                                           userDetail.banned

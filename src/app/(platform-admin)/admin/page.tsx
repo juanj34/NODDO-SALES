@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { motion } from "framer-motion";
+import Link from "next/link";
 import {
   Users,
   FolderOpen,
@@ -10,6 +11,11 @@ import {
   Loader2,
   AlertTriangle,
   RefreshCw,
+  Activity,
+  CalendarCheck,
+  ShieldCheck,
+  Download,
+  ArrowRight,
 } from "lucide-react";
 import { KPICard } from "@/components/dashboard/analytics/KPICard";
 import { ViewsChart } from "@/components/dashboard/analytics/ViewsChart";
@@ -138,6 +144,97 @@ export default function AdminOverviewPage() {
           suffix={`${stats.platformSummary.unique_visitors.toLocaleString("es-CO")} únicos`}
         />
       </div>
+
+      {/* Quick Actions */}
+      <motion.div
+        initial={{ opacity: 0, y: 12 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.05, duration: 0.3 }}
+      >
+        <h2 className="font-ui text-xs font-bold uppercase tracking-wider text-[var(--text-secondary)] mb-4">
+          Acciones Rápidas
+        </h2>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          {/* Ver actividad */}
+          <Link
+            href="/admin/actividad"
+            className="group bg-[var(--surface-1)] border border-[var(--border-subtle)] rounded-xl p-5 hover:border-[var(--site-primary)] hover:bg-[var(--surface-2)] transition-all"
+          >
+            <div className="flex items-start justify-between mb-3">
+              <div className="w-12 h-12 rounded-xl bg-[var(--surface-2)] border border-[var(--border-subtle)] flex items-center justify-center group-hover:bg-[rgba(var(--site-primary-rgb),0.1)] group-hover:border-[var(--site-primary)] transition-all">
+                <Activity size={20} className="text-[var(--site-primary)]" />
+              </div>
+              <ArrowRight size={14} className="text-[var(--text-muted)] group-hover:text-[var(--site-primary)] transition-colors" />
+            </div>
+            <h3 className="font-ui text-xs font-bold uppercase tracking-wider text-[var(--text-secondary)] group-hover:text-white transition-colors mb-1">
+              Ver Actividad
+            </h3>
+            <p className="text-[10px] text-[var(--text-muted)] font-mono font-light">
+              Logs de auditoría recientes
+            </p>
+          </Link>
+
+          {/* Citas de hoy */}
+          <Link
+            href="/admin/citas?filter=today"
+            className="group bg-[var(--surface-1)] border border-[var(--border-subtle)] rounded-xl p-5 hover:border-[var(--site-primary)] hover:bg-[var(--surface-2)] transition-all"
+          >
+            <div className="flex items-start justify-between mb-3">
+              <div className="w-12 h-12 rounded-xl bg-[var(--surface-2)] border border-[var(--border-subtle)] flex items-center justify-center group-hover:bg-[rgba(var(--site-primary-rgb),0.1)] group-hover:border-[var(--site-primary)] transition-all">
+                <CalendarCheck size={20} className="text-[var(--site-primary)]" />
+              </div>
+              <ArrowRight size={14} className="text-[var(--text-muted)] group-hover:text-[var(--site-primary)] transition-colors" />
+            </div>
+            <h3 className="font-ui text-xs font-bold uppercase tracking-wider text-[var(--text-secondary)] group-hover:text-white transition-colors mb-1">
+              Citas de Hoy
+            </h3>
+            <p className="text-[10px] text-[var(--text-muted)] font-mono font-light">
+              Ver demos programadas hoy
+            </p>
+          </Link>
+
+          {/* Gestionar admins */}
+          <Link
+            href="/admin/admins"
+            className="group bg-[var(--surface-1)] border border-[var(--border-subtle)] rounded-xl p-5 hover:border-[var(--site-primary)] hover:bg-[var(--surface-2)] transition-all"
+          >
+            <div className="flex items-start justify-between mb-3">
+              <div className="w-12 h-12 rounded-xl bg-[var(--surface-2)] border border-[var(--border-subtle)] flex items-center justify-center group-hover:bg-[rgba(var(--site-primary-rgb),0.1)] group-hover:border-[var(--site-primary)] transition-all">
+                <ShieldCheck size={20} className="text-[var(--site-primary)]" />
+              </div>
+              <ArrowRight size={14} className="text-[var(--text-muted)] group-hover:text-[var(--site-primary)] transition-colors" />
+            </div>
+            <h3 className="font-ui text-xs font-bold uppercase tracking-wider text-[var(--text-secondary)] group-hover:text-white transition-colors mb-1">
+              Gestionar Admins
+            </h3>
+            <p className="text-[10px] text-[var(--text-muted)] font-mono font-light">
+              Permisos de plataforma
+            </p>
+          </Link>
+
+          {/* Exportar reporte */}
+          <button
+            onClick={() => {
+              // TODO: Implementar export completo
+              alert("Función de exportación completa en desarrollo");
+            }}
+            className="group bg-[var(--surface-1)] border border-[var(--border-subtle)] rounded-xl p-5 hover:border-[var(--site-primary)] hover:bg-[var(--surface-2)] transition-all text-left"
+          >
+            <div className="flex items-start justify-between mb-3">
+              <div className="w-12 h-12 rounded-xl bg-[var(--surface-2)] border border-[var(--border-subtle)] flex items-center justify-center group-hover:bg-[rgba(var(--site-primary-rgb),0.1)] group-hover:border-[var(--site-primary)] transition-all">
+                <Download size={20} className="text-[var(--site-primary)]" />
+              </div>
+              <ArrowRight size={14} className="text-[var(--text-muted)] group-hover:text-[var(--site-primary)] transition-colors" />
+            </div>
+            <h3 className="font-ui text-xs font-bold uppercase tracking-wider text-[var(--text-secondary)] group-hover:text-white transition-colors mb-1">
+              Exportar Reporte
+            </h3>
+            <p className="text-[10px] text-[var(--text-muted)] font-mono font-light">
+              Descargar CSV completo
+            </p>
+          </button>
+        </div>
+      </motion.div>
 
       {/* Row 1: Views + Leads charts */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">

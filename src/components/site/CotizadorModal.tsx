@@ -23,6 +23,7 @@ import { trackEvent } from "@/lib/tracking";
 import { calcularCotizacion } from "@/lib/cotizador/calcular";
 import { NodDoDropdown } from "@/components/ui/NodDoDropdown";
 import { formatCurrency } from "@/lib/currency";
+import { TrustBadges, trustBadgePresets } from "@/components/site/TrustBadges";
 
 const COUNTRY_CODES = [
   { code: "+57", flag: "\u{1F1E8}\u{1F1F4}", label: "CO" },
@@ -314,6 +315,10 @@ function LeadCaptureFlow({
         </label>
         <textarea name="mensaje" placeholder="..." rows={2} value={formData.mensaje} onChange={handleChange} className="input-glass w-full resize-none" />
       </div>
+
+      {/* Trust Badges */}
+      <TrustBadges badges={trustBadgePresets.cotizador(tSite)} className="mt-4" />
+
       <motion.button
         type="submit"
         disabled={isSubmitting}
@@ -478,6 +483,10 @@ function CotizadorFlow({
             onCountryChange={setCountryCode2}
           />
         </div>
+
+        {/* Trust Badges */}
+        <TrustBadges badges={trustBadgePresets.cotizador(tSite)} className="mt-4" />
+
         <motion.button
           type="submit"
           disabled={isSubmitting}

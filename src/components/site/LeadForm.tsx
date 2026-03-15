@@ -9,6 +9,8 @@ import { trackEvent } from "@/lib/tracking";
 import { NodDoDropdown } from "@/components/ui/NodDoDropdown";
 import { leadFormSchema } from "@/lib/validation/schemas";
 import { ZodError } from "zod";
+import { TrustBadges, trustBadgePresets } from "@/components/site/TrustBadges";
+import { ProcessTimeline, timelinePresets } from "@/components/site/ProcessTimeline";
 
 interface LeadFormProps {
   proyectoId: string;
@@ -275,6 +277,16 @@ export function LeadForm({
           className="input-glass w-full resize-none"
         />
       </div>
+
+      {/* Trust Badges */}
+      <TrustBadges badges={trustBadgePresets.contactForm(tSite)} className="mt-6" />
+
+      {/* Process Timeline */}
+      <ProcessTimeline
+        steps={timelinePresets.contactFlow(tSite)}
+        className="mt-6 pt-6 border-t border-[var(--border-subtle)]"
+      />
+
       <motion.button
         type="submit"
         disabled={isSubmitting}

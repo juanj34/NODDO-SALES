@@ -19,6 +19,7 @@ import { PlanoHotspotEditor } from "@/components/dashboard/PlanoHotspotEditor";
 import { AmenidadesEditor } from "@/components/dashboard/AmenidadesEditor";
 import { useToast } from "@/components/dashboard/Toast";
 import { motion, AnimatePresence } from "framer-motion";
+import { AITextImprover } from "@/components/dashboard/AITextImprover";
 import {
   Map,
   Plus,
@@ -810,13 +811,13 @@ export default function PlanoInteractivoPage() {
                 />
               </div>
               <div>
-                <label className={labelClass}>{t("planos.descriptionLabel")}</label>
-                <textarea
+                <AITextImprover
                   value={newDescripcion}
-                  onChange={(e) => setNewDescripcion(e.target.value)}
+                  onChange={(newValue) => setNewDescripcion(newValue)}
                   placeholder={t("planos.descriptionPlaceholder")}
+                  label={t("planos.descriptionLabel")}
                   rows={3}
-                  className={`${inputClass} resize-none`}
+                  maxLength={2000}
                 />
               </div>
               <div>
