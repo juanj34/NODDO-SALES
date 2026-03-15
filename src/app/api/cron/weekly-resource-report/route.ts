@@ -557,7 +557,7 @@ export async function GET(request: NextRequest) {
     }
 
     // Enviar email
-    const adminEmail = process.env.ADMIN_EMAIL || "juanj34@gmail.com";
+    const adminEmail = process.env.ADMIN_EMAIL || "juanjaramillo34@gmail.com";
 
     const { error: emailError } = await resend.emails.send({
       from: "NODDO Monitoring <noreply@noddo.io>",

@@ -1,4 +1,3 @@
-import { execSync } from "child_process";
 import * as dotenv from "dotenv";
 import { resolve } from "path";
 
@@ -7,12 +6,10 @@ dotenv.config({ path: resolve(__dirname, "../.env.local") });
 const TOKEN = process.env.VERCEL_API_TOKEN || process.env.AUTH_BEARER_TOKEN;
 const PROJECT_ID = process.env.VERCEL_PROJECT_ID;
 const TEAM_ID = process.env.VERCEL_TEAM_ID;
+const CORRECT_EMAIL = "juanjaramillo34@gmail.com";
 
 async function main() {
-  console.log("🔧 Configurando monitoreo semanal...\n");
-
-  // Generar secret
-  const secret = execSync("openssl rand -base64 32", { encoding: "utf-8" }).trim();
+  console.log("📧 Actualizando email de administrador...\n");
 
   // Obtener variables existentes
   const listUrl = `https://api.vercel.com/v9/projects/${PROJECT_ID}/env?teamId=${TEAM_ID}`;
@@ -21,30 +18,30 @@ async function main() {
   });
 
   const { envs } = await listRes.json();
-  const cronSecretEnv = envs.find((e: { key: string }) => e.key === "CRON_SECRET");
+  const adminEmailEnv = envs.find((e: { key: string }) => e.key === "ADMIN_EMAIL");
 
-  if (cronSecretEnv) {
+  if (adminEmailEnv) {
     // Actualizar
-    console.log("📝 Actualizando CRON_SECRET...");
-    const updateUrl = `https://api.vercel.com/v9/projects/${PROJECT_ID}/env/${cronSecretEnv.id}?teamId=${TEAM_ID}`;
+    console.log(`📝 Actualizando ADMIN_EMAIL a: ${CORRECT_EMAIL}`);
+    const updateUrl = `https://api.vercel.com/v9/projects/${PROJECT_ID}/env/${adminEmailEnv.id}?teamId=${TEAM_ID}`;
     const updateRes = await fetch(updateUrl, {
       method: "PATCH",
       headers: {
         Authorization: `Bearer ${TOKEN}`,
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({ value: secret }),
+      body: JSON.stringify({ value: CORRECT_EMAIL }),
     });
 
     if (updateRes.ok) {
-      console.log(`✅ CRON_SECRET actualizado\n`);
+      console.log(`✅ ADMIN_EMAIL actualizado en Vercel\n`);
     } else {
       console.error("❌ Error:", await updateRes.text());
       process.exit(1);
     }
   } else {
-    // Crear
-    console.log("➕ Creando CRON_SECRET...");
+    // Crear si no existe
+    console.log(`➕ Creando ADMIN_EMAIL: ${CORRECT_EMAIL}`);
     const createUrl = `https://api.vercel.com/v10/projects/${PROJECT_ID}/env?teamId=${TEAM_ID}`;
     const createRes = await fetch(createUrl, {
       method: "POST",
@@ -53,15 +50,15 @@ async function main() {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        key: "CRON_SECRET",
-        value: secret,
-        type: "encrypted",
-        target: ["production", "preview"],
+        key: "ADMIN_EMAIL",
+        value: CORRECT_EMAIL,
+        type: "plain",
+        target: ["production", "preview", "development"],
       }),
     });
 
     if (createRes.ok) {
-      console.log(`✅ CRON_SECRET creado\n`);
+      console.log(`✅ ADMIN_EMAIL creado en Vercel\n`);
     } else {
       console.error("❌ Error:", await createRes.text());
       process.exit(1);
@@ -69,16 +66,11 @@ async function main() {
   }
 
   console.log("=".repeat(60));
-  console.log("✅ SISTEMA DE MONITOREO CONFIGURADO");
+  console.log("✅ EMAIL ACTUALIZADO");
   console.log("=".repeat(60));
-  console.log(`\n📧 Recibirás reportes semanales en: ${process.env.ADMIN_EMAIL || "juanjaramillo34@gmail.com"}`);
-  console.log("📅 Cada lunes a las 8:00 AM (hora Colombia)");
-  console.log("\n🔐 CRON_SECRET configurado en Vercel (encriptado)");
-  console.log("\n🧪 Para probar ahora:");
-  console.log(`   curl -X GET "https://noddo.io/api/cron/weekly-resource-report" \\`);
-  console.log(`     -H "Authorization: Bearer ${secret}"`);
-  console.log("\n⏳ Deploy automático en progreso...");
-  console.log("\n🎉 Todo configurado automáticamente. No necesitas hacer nada más.\n");
+  console.log(`\n📧 Nuevo email: ${CORRECT_EMAIL}`);
+  console.log("\n📬 Recibirás los reportes semanales en este email");
+  console.log("⏳ Deploy automático en progreso para aplicar cambios...\n");
 }
 
 main();

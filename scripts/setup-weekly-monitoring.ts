@@ -13,7 +13,7 @@ dotenv.config({ path: resolve(__dirname, "../.env.local") });
 const VERCEL_TOKEN = process.env.VERCEL_API_TOKEN || process.env.AUTH_BEARER_TOKEN;
 const VERCEL_PROJECT_ID = process.env.VERCEL_PROJECT_ID;
 const VERCEL_TEAM_ID = process.env.VERCEL_TEAM_ID;
-const ADMIN_EMAIL = process.env.ADMIN_EMAIL || "juanj34@gmail.com";
+const ADMIN_EMAIL = process.env.ADMIN_EMAIL || "juanjaramillo34@gmail.com";
 
 if (!VERCEL_TOKEN || !VERCEL_PROJECT_ID) {
   console.error("❌ Faltan credenciales de Vercel en .env.local");
