@@ -1,7 +1,7 @@
 "use client";
 
 import { use, useMemo, useState, useCallback, useEffect, useRef } from "react";
-import { useProject } from "@/hooks/useProject";
+import { useProject, useUpdateProject } from "@/hooks/useProjectsQuery";
 import { EditorProjectContext } from "@/hooks/useEditorProject";
 import { useToast } from "@/components/dashboard/Toast";
 import { cn } from "@/lib/utils";
@@ -165,7 +165,24 @@ export default function EditorLayout({
   params: Promise<{ id: string }>;
 }) {
   const { id } = use(params);
-  const { project, loading, saving, save, refresh, updateLocal } = useProject(id);
+  const { project, loading, updateLocal, refresh } = useProject(id);
+  const { mutate: saveProject, isPending: saving } = useUpdateProject(id);
+
+  // Wrapper for save to maintain same API
+  const save = useCallback(async (data: Parameters<typeof saveProject>[0]) => {
+    return new Promise<boolean>((resolve) => {
+      saveProject(data, {
+        onSuccess: () => resolve(true),
+        onError: () => resolve(false),
+      });
+    });
+  }, [saveProject]);
+
+  // Wrapper for refresh to match context signature
+  const wrappedRefresh = useCallback(async () => {
+    await refresh();
+  }, [refresh]);
+
   const pathname = usePathname();
   const toast = useToast();
   const { t } = useTranslation("editor");
@@ -354,8 +371,8 @@ export default function EditorLayout({
 
   const contextValue = useMemo(() => {
     if (!project) return null;
-    return { project, loading, saving, save, refresh, updateLocal, projectId: id };
-  }, [project, loading, saving, save, refresh, updateLocal, id]);
+    return { project, loading, saving, save, refresh: wrappedRefresh, updateLocal, projectId: id };
+  }, [project, loading, saving, save, wrappedRefresh, updateLocal, id]);
 
   // Dynamic torres label based on torre types
   const torresLabel = useMemo(() => {

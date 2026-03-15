@@ -1,6 +1,7 @@
 "use client";
 
 import { ExternalLink, User } from "lucide-react";
+import { formatCurrency } from "@/lib/currency";
 import type { LeadCotizacionSummary, ResultadoCotizacion } from "@/types";
 
 interface Props {
@@ -14,17 +15,6 @@ export function LeadCotizacionCard({ cotizacion, locale }: Props) {
   const tipologia = (snapshot.tipologia_nombre as string) || "";
   const resultado = cotizacion.resultado as ResultadoCotizacion | null;
   const precioNeto = resultado?.precio_neto ?? 0;
-
-  // Try to get currency from config_snapshot if available
-  const moneda = "COP"; // default
-
-  const formatPrice = (n: number) =>
-    new Intl.NumberFormat(locale === "es" ? "es-CO" : "en-US", {
-      style: "currency",
-      currency: moneda,
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 0,
-    }).format(n);
 
   const formatDate = (d: string) =>
     new Date(d).toLocaleDateString(locale === "es" ? "es-CO" : "en-US", {
@@ -45,7 +35,7 @@ export function LeadCotizacionCard({ cotizacion, locale }: Props) {
           )}
         </div>
         <span className="text-sm font-medium text-[var(--site-primary)] whitespace-nowrap">
-          {precioNeto > 0 ? formatPrice(precioNeto) : "—"}
+          {precioNeto > 0 ? formatCurrency(precioNeto, "COP") : "—"}
         </span>
       </div>
 
