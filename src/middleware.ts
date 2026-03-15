@@ -1,40 +1,11 @@
 import { createServerClient, type CookieOptions } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
-import createIntlMiddleware from 'next-intl/middleware';
 import { parseDomain, resolveCustomDomainToSlug } from "@/lib/domains";
-import { locales, defaultLocale } from '@/i18n/config';
-
-// Create next-intl middleware for marketing pages
-const intlMiddleware = createIntlMiddleware({
-  locales,
-  defaultLocale,
-  localePrefix: 'as-needed', // No prefix for default locale (es)
-  localeDetection: true, // Auto-detect from Accept-Language header
-});
 
 export async function middleware(request: NextRequest) {
   const hostname = request.headers.get("host") || "localhost:3000";
   const { pathname } = request.nextUrl;
   const domainInfo = parseDomain(hostname);
-
-  // Detect locale from cookie or Accept-Language header
-  let locale: string = defaultLocale;
-  const cookieLocale = request.cookies.get('noddo-lang')?.value;
-
-  if (cookieLocale && (locales as readonly string[]).includes(cookieLocale)) {
-    locale = cookieLocale;
-  } else {
-    const acceptLanguage = request.headers.get('accept-language');
-    if (acceptLanguage) {
-      const languages = acceptLanguage.split(',').map(lang => lang.split(';')[0].trim().toLowerCase());
-      const preferredLocale = languages.find(lang =>
-        (locales as readonly string[]).includes(lang.split('-')[0])
-      );
-      if (preferredLocale) {
-        locale = preferredLocale.split('-')[0];
-      }
-    }
-  }
 
   // ─── Subdomain or Custom Domain → rewrite to /sites/[slug] ───
   if (domainInfo.type === "subdomain" || domainInfo.type === "custom_domain") {
@@ -75,23 +46,12 @@ export async function middleware(request: NextRequest) {
     const url = request.nextUrl.clone();
     url.pathname = rewritePath;
 
-    // Set headers so the site layout knows to use root-relative links and locale
     const response = NextResponse.rewrite(url, {
       request: {
         headers: new Headers(request.headers),
       },
     });
     response.headers.set("x-site-base-path", "");
-    response.headers.set("x-noddo-locale", locale);
-
-    // Set cookie if not exists (for auto-detection on client)
-    if (!request.cookies.get('noddo-lang')) {
-      response.cookies.set('noddo-lang', locale, {
-        path: '/',
-        maxAge: 60 * 60 * 24 * 365, // 1 year
-        sameSite: 'lax',
-      });
-    }
 
     return response;
   }
@@ -115,33 +75,8 @@ export async function middleware(request: NextRequest) {
   const isLoginRoute = pathname === "/login";
 
   if (!isDashboardRoute && !isLoginRoute) {
-    // Check if this is a marketing page that should use i18n routing
-    const isMarketingRoute =
-      !pathname.startsWith('/sites/') &&
-      !pathname.startsWith('/api/') &&
-      !pathname.startsWith('/auth/') &&
-      !pathname.startsWith('/_next/') &&
-      pathname !== '/favicon.ico';
-
-    if (isMarketingRoute) {
-      // Use next-intl middleware for marketing pages
-      return intlMiddleware(request);
-    }
-
-    // Other public routes (API, sites, etc.) — pass through with locale header
-    const response = NextResponse.next();
-    response.headers.set('x-noddo-locale', locale);
-
-    // Set cookie if not exists (for auto-detection on client)
-    if (!request.cookies.get('noddo-lang')) {
-      response.cookies.set('noddo-lang', locale, {
-        path: '/',
-        maxAge: 60 * 60 * 24 * 365, // 1 year
-        sameSite: 'lax',
-      });
-    }
-
-    return response;
+    // Public routes (marketing, API, sites, etc.) — pass through
+    return NextResponse.next();
   }
 
   // Auth check needed — create Supabase client
@@ -212,18 +147,6 @@ export async function middleware(request: NextRequest) {
 
   if (isLoginRoute && user) {
     return NextResponse.redirect(new URL("/dashboard", request.url));
-  }
-
-  // Set locale header for dashboard routes
-  response.headers.set('x-noddo-locale', locale);
-
-  // Set cookie if not exists (for auto-detection on client)
-  if (!request.cookies.get('noddo-lang')) {
-    response.cookies.set('noddo-lang', locale, {
-      path: '/',
-      maxAge: 60 * 60 * 24 * 365, // 1 year
-      sameSite: 'lax',
-    });
   }
 
   return response;
