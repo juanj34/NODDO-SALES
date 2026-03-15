@@ -49,6 +49,49 @@ export async function callAI(
   return text;
 }
 
+/**
+ * Call Gemini Flash for plain text output (not JSON)
+ * Used for text improvement, translations, content generation, etc.
+ */
+export async function callAIText(
+  systemPrompt: string,
+  userMessage: string
+): Promise<string> {
+  const apiKey = process.env.GOOGLE_GEMINI_API_KEY;
+  if (!apiKey) {
+    throw new Error("GOOGLE_GEMINI_API_KEY no configurada");
+  }
+
+  const res = await fetch(`${GEMINI_ENDPOINT}?key=${apiKey}`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      systemInstruction: { parts: [{ text: systemPrompt }] },
+      contents: [{ role: "user", parts: [{ text: userMessage }] }],
+      generationConfig: {
+        maxOutputTokens: 4096,
+        temperature: 0.2,
+        // NO responseMimeType — allows plain text response
+      },
+    }),
+  });
+
+  if (!res.ok) {
+    const errorText = await res.text();
+    console.error(`Gemini API error: ${res.status}`, errorText);
+    throw new Error("Error al procesar con IA. Intenta de nuevo.");
+  }
+
+  const data = await res.json();
+
+  const text = data.candidates?.[0]?.content?.parts?.[0]?.text;
+  if (!text) {
+    throw new Error("La IA no generó una respuesta. Intenta de nuevo.");
+  }
+
+  return text.trim();
+}
+
 // ---------------------------------------------------------------------------
 // Helpers
 // ---------------------------------------------------------------------------

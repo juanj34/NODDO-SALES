@@ -305,6 +305,7 @@ export interface PlanoInteractivo {
   tipo: "implantacion" | "urbanismo";
   visible: boolean;
   orden: number;
+  amenidades_data: AmenidadItem[] | null;
   created_at: string;
 }
 

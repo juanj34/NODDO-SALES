@@ -21,9 +21,13 @@ export function GHLTracker() {
   const pathname = usePathname();
   const tagsSent = useRef<Set<string>>(new Set());
   const startTime = useRef<number | null>(null);
-  if (startTime.current === null) {
-    startTime.current = Date.now();
-  }
+
+  // Initialize and reset on route change
+  useEffect(() => {
+    if (startTime.current === null) {
+      startTime.current = Date.now();
+    }
+  }, []);
 
   // Reset on route change
   useEffect(() => {

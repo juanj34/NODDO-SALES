@@ -20,9 +20,9 @@ export default function ConfigPage() {
   const groupingOptions = ((dictionary.editor as Record<string, Record<string, Record<string, unknown>>>).config.grouping.options) as readonly string[];
 
   // Initialize state from project using memo to avoid re-renders
-  const initialWhatsapp = useMemo(() => project?.whatsapp_numero || "", [project?.id]);
-  const initialEtapa = useMemo(() => project?.etapa_label || "Etapas", [project?.id]);
-  const initialBadge = useMemo(() => project?.hide_noddo_badge ?? false, [project?.id]);
+  const initialWhatsapp = useMemo(() => project?.whatsapp_numero || "", [project?.whatsapp_numero, project?.id]);
+  const initialEtapa = useMemo(() => project?.etapa_label || "Etapas", [project?.etapa_label, project?.id]);
+  const initialBadge = useMemo(() => project?.hide_noddo_badge ?? false, [project?.hide_noddo_badge, project?.id]);
 
   const [whatsappNumero, setWhatsappNumero] = useState(initialWhatsapp);
   const [etapaLabel, setEtapaLabel] = useState(initialEtapa);

@@ -2,6 +2,7 @@
 
 import * as Sentry from "@sentry/nextjs";
 import { useEffect } from "react";
+import Link from "next/link";
 import { NodDoLogo } from "@/components/ui/NodDoLogo";
 
 export default function MarketingError({
@@ -42,12 +43,12 @@ export default function MarketingError({
           >
             Intentar de nuevo
           </button>
-          <a
+          <Link
             href="/"
             className="inline-block px-7 py-3 bg-transparent text-[rgba(244,240,232,0.55)] font-ui text-[11px] font-bold uppercase tracking-[0.15em] rounded-[8px] border border-white/10 no-underline hover:border-white/20 transition-colors"
           >
             Volver al inicio
-          </a>
+          </Link>
         </div>
       </div>
     </div>

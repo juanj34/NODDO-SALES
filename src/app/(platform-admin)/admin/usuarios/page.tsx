@@ -298,6 +298,9 @@ export default function AdminUsuariosPage() {
                     Registro
                   </th>
                   <th className="text-left px-4 py-3 font-ui text-[10px] font-bold uppercase tracking-wider text-[var(--text-muted)]">
+                    Último Acceso
+                  </th>
+                  <th className="text-left px-4 py-3 font-ui text-[10px] font-bold uppercase tracking-wider text-[var(--text-muted)]">
                     Plan
                   </th>
                   <th className="text-center px-4 py-3 font-ui text-[10px] font-bold uppercase tracking-wider text-[var(--text-muted)]">
@@ -337,6 +340,17 @@ export default function AdminUsuariosPage() {
                         <span className="text-xs text-[var(--text-tertiary)]">
                           {formatDate(user.created_at)}
                         </span>
+                      </td>
+                      <td className="px-4 py-3">
+                        {user.last_sign_in_at ? (
+                          <span className="text-xs text-[var(--text-tertiary)]">
+                            {formatDate(user.last_sign_in_at)}
+                          </span>
+                        ) : (
+                          <span className="px-2 py-0.5 rounded-md bg-neutral-500/15 border border-neutral-500/20 font-ui text-[9px] font-bold uppercase tracking-wider text-neutral-400">
+                            Nunca
+                          </span>
+                        )}
                       </td>
                       <td className="px-4 py-3">
                         {user.plan ? (
@@ -402,7 +416,7 @@ export default function AdminUsuariosPage() {
                           exit={{ opacity: 0, height: 0 }}
                           className="border-b border-[var(--border-subtle)]"
                         >
-                          <td colSpan={7} className="p-0">
+                          <td colSpan={8} className="p-0">
                             <div className="px-6 py-5 bg-[var(--surface-2)]/50">
                               {loadingDetail ? (
                                 <div className="flex items-center justify-center py-8">

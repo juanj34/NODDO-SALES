@@ -16,6 +16,7 @@ import {
 import { DashboardEmptyState } from "@/components/dashboard/DashboardEmptyState";
 import { FileUploader } from "@/components/dashboard/FileUploader";
 import { PlanoHotspotEditor } from "@/components/dashboard/PlanoHotspotEditor";
+import { AmenidadesEditor } from "@/components/dashboard/AmenidadesEditor";
 import { useToast } from "@/components/dashboard/Toast";
 import { motion, AnimatePresence } from "framer-motion";
 import {
@@ -30,8 +31,11 @@ import {
   Image as ImageIcon,
   Pencil,
   Check,
+  Sparkles,
+  MapPin,
 } from "lucide-react";
 import type { PlanoInteractivo, PlanoPunto } from "@/types";
+import { cn } from "@/lib/utils";
 
 /* ------------------------------------------------------------------
    Page
@@ -46,12 +50,20 @@ export default function PlanoInteractivoPage() {
   const [puntos, setPuntos] = useState<PlanoPunto[]>([]);
   const [selectedPlanoId, setSelectedPlanoId] = useState<string | null>(null);
 
+  // Tab state for plano detail view
+  type PlanoDetailTab = "info" | "amenidades" | "hotspots";
+  const [planoDetailTab, setPlanoDetailTab] = useState<PlanoDetailTab>("hotspots");
+
   // Modal "add plano" form
   const [showAddForm, setShowAddForm] = useState(false);
   const [newNombre, setNewNombre] = useState("");
   const [newDescripcion, setNewDescripcion] = useState("");
   const [newImagenUrl, setNewImagenUrl] = useState("");
   const [addingPlano, setAddingPlano] = useState(false);
+
+  // Inline name editing
+  const [editingNombre, setEditingNombre] = useState(false);
+  const [nombreTemp, setNombreTemp] = useState("");
 
   // Inline description editing
   const [editingDescripcion, setEditingDescripcion] = useState(false);
@@ -170,6 +182,28 @@ export default function PlanoInteractivoPage() {
   };
 
   /* ------------------------------------------------------------------
+     Update plano name
+     ------------------------------------------------------------------ */
+  const handleSaveNombre = async (planoId: string, nombre: string) => {
+    const trimmed = nombre.trim();
+    if (!trimmed) {
+      toast.error("El nombre no puede estar vacío");
+      return;
+    }
+    setPlanos((prev) =>
+      prev.map((p) => (p.id === planoId ? { ...p, nombre: trimmed } : p))
+    );
+    setEditingNombre(false);
+    await fetch(`/api/planos/${planoId}`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ nombre: trimmed }),
+    });
+    await refresh();
+    toast.success("Nombre actualizado");
+  };
+
+  /* ------------------------------------------------------------------
      Update plano description
      ------------------------------------------------------------------ */
   const handleSaveDescripcion = async (planoId: string, desc: string) => {
@@ -185,6 +219,30 @@ export default function PlanoInteractivoPage() {
     });
     await refresh();
   };
+
+  /* ------------------------------------------------------------------
+     Update plano (generic - for amenidades, etc.)
+     ------------------------------------------------------------------ */
+  const handleUpdatePlano = useCallback(
+    async (planoId: string, data: Partial<PlanoInteractivo>) => {
+      setPlanos((prev) =>
+        prev.map((p) => (p.id === planoId ? { ...p, ...data } : p))
+      );
+      const res = await fetch(`/api/planos/${planoId}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(data),
+      });
+      if (res.ok) {
+        await refresh();
+        toast.success("Plano actualizado");
+      } else {
+        const err = await res.json().catch(() => ({ error: "Error desconocido" }));
+        toast.error(err.error || `Error ${res.status}`);
+      }
+    },
+    [refresh, toast]
+  );
 
   /* ------------------------------------------------------------------
      CRUD: Punto
@@ -480,20 +538,221 @@ export default function PlanoInteractivoPage() {
                     )}
                   </div>
 
-                  {/* Hotspot editor (side-by-side layout) */}
-                  <div className="min-h-[420px]">
-                    <PlanoHotspotEditor
-                      imagenUrl={selectedPlano.imagen_url}
-                      puntos={selectedPuntos}
-                      fachadas={[]}
-                      tipo="urbanismo"
-                      onAddPunto={async (data) => {
-                        await handleAddPunto({ ...data, render_url: data.render_url ?? null, plano_id: selectedPlano.id });
-                      }}
-                      onUpdatePunto={handleUpdatePunto}
-                      onDeletePunto={handleDeletePunto}
-                    />
+                  {/* Tab navigation */}
+                  <div className="flex items-center gap-1 p-1 bg-[var(--surface-1)] rounded-xl border border-[var(--border-subtle)]">
+                    {[
+                      {
+                        id: "info" as const,
+                        label: "Información",
+                        icon: Map,
+                        count: null,
+                      },
+                      {
+                        id: "amenidades" as const,
+                        label: "Amenidades",
+                        icon: Sparkles,
+                        count: selectedPlano.amenidades_data?.length ?? 0,
+                      },
+                      {
+                        id: "hotspots" as const,
+                        label: "Puntos",
+                        icon: MapPin,
+                        count: selectedPuntos.length,
+                      },
+                    ].map((tab) => {
+                      const isActive = planoDetailTab === tab.id;
+                      return (
+                        <button
+                          key={tab.id}
+                          onClick={() => setPlanoDetailTab(tab.id)}
+                          className={cn(
+                            "flex-1 flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg text-xs font-medium transition-all duration-200",
+                            isActive
+                              ? "bg-[var(--surface-2)] text-[var(--site-primary)] shadow-sm"
+                              : "text-[var(--text-tertiary)] hover:text-[var(--text-secondary)] hover:bg-[var(--surface-1)]"
+                          )}
+                        >
+                          <tab.icon size={14} />
+                          <span>{tab.label}</span>
+                          {tab.count !== null && tab.count > 0 && (
+                            <span
+                              className={cn(
+                                "px-1.5 py-0.5 rounded-full text-[10px] font-bold",
+                                isActive
+                                  ? "bg-[rgba(var(--site-primary-rgb),0.15)] text-[var(--site-primary)]"
+                                  : "bg-[var(--surface-3)] text-[var(--text-muted)]"
+                              )}
+                            >
+                              {tab.count}
+                            </span>
+                          )}
+                        </button>
+                      );
+                    })}
                   </div>
+
+                  {/* Tab content */}
+                  <AnimatePresence mode="wait">
+                    {/* Info tab - name & description editor */}
+                    {planoDetailTab === "info" && (
+                      <motion.div
+                        key="info-tab"
+                        initial={{ opacity: 0, y: 4 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: -4 }}
+                        transition={{ duration: 0.2 }}
+                        className="space-y-6"
+                      >
+                        {/* Name editor */}
+                        <div className="px-4 py-6 bg-[var(--surface-1)] rounded-xl border border-[var(--border-subtle)]">
+                          <p className="font-ui text-[10px] text-[var(--text-tertiary)] tracking-wider uppercase font-bold mb-3">
+                            Título del plano
+                          </p>
+                          {editingNombre ? (
+                            <div className="flex items-center gap-2">
+                              <input
+                                type="text"
+                                value={nombreTemp}
+                                onChange={(e) => setNombreTemp(e.target.value)}
+                                placeholder="Ej: Implantación General"
+                                className={`${inputClass} text-sm flex-1`}
+                                autoFocus
+                                onKeyDown={(e) => {
+                                  if (e.key === "Enter") {
+                                    e.preventDefault();
+                                    handleSaveNombre(selectedPlano.id, nombreTemp);
+                                  }
+                                  if (e.key === "Escape") {
+                                    setEditingNombre(false);
+                                  }
+                                }}
+                              />
+                              <button
+                                onClick={() => handleSaveNombre(selectedPlano.id, nombreTemp)}
+                                className="p-2 rounded-lg bg-[rgba(var(--site-primary-rgb),0.15)] text-[var(--site-primary)] hover:bg-[rgba(var(--site-primary-rgb),0.25)] transition-colors"
+                              >
+                                <Check size={14} />
+                              </button>
+                              <button
+                                onClick={() => setEditingNombre(false)}
+                                className="p-2 rounded-lg bg-[var(--surface-3)] text-[var(--text-tertiary)] hover:text-[var(--text-secondary)] transition-colors"
+                              >
+                                <X size={14} />
+                              </button>
+                            </div>
+                          ) : (
+                            <button
+                              onClick={() => {
+                                setNombreTemp(selectedPlano.nombre);
+                                setEditingNombre(true);
+                              }}
+                              className="w-full text-left px-4 py-3 rounded-lg bg-[var(--surface-2)] border border-[var(--border-subtle)] hover:border-[var(--border-default)] transition-colors group"
+                            >
+                              <div className="flex items-center gap-2 mb-1">
+                                <Pencil size={12} className="text-[var(--text-muted)] opacity-0 group-hover:opacity-100 transition-opacity" />
+                                <span className="text-xs text-[var(--text-tertiary)]">
+                                  Editar título
+                                </span>
+                              </div>
+                              <p className="text-sm text-white font-medium">{selectedPlano.nombre}</p>
+                            </button>
+                          )}
+                        </div>
+
+                        {/* Description editor */}
+                        <div className="px-4 py-6 bg-[var(--surface-1)] rounded-xl border border-[var(--border-subtle)]">
+                          <p className="font-ui text-[10px] text-[var(--text-tertiary)] tracking-wider uppercase font-bold mb-3">
+                            Descripción del plano
+                          </p>
+                          {editingDescripcion ? (
+                            <div className="flex items-start gap-2">
+                              <textarea
+                                value={descTemp}
+                                onChange={(e) => setDescTemp(e.target.value)}
+                                placeholder={t("planos.descriptionPlaceholder")}
+                                rows={4}
+                                className={`${inputClass} text-sm flex-1 resize-none`}
+                                autoFocus
+                              />
+                              <button
+                                onClick={() => handleSaveDescripcion(selectedPlano.id, descTemp)}
+                                className="p-2 rounded-lg bg-[rgba(var(--site-primary-rgb),0.15)] text-[var(--site-primary)] hover:bg-[rgba(var(--site-primary-rgb),0.25)] transition-colors"
+                              >
+                                <Check size={14} />
+                              </button>
+                              <button
+                                onClick={() => setEditingDescripcion(false)}
+                                className="p-2 rounded-lg bg-[var(--surface-3)] text-[var(--text-tertiary)] hover:text-[var(--text-secondary)] transition-colors"
+                              >
+                                <X size={14} />
+                              </button>
+                            </div>
+                          ) : (
+                            <button
+                              onClick={() => {
+                                setDescTemp(selectedPlano.descripcion || "");
+                                setEditingDescripcion(true);
+                              }}
+                              className="w-full text-left px-4 py-3 rounded-lg bg-[var(--surface-2)] border border-[var(--border-subtle)] hover:border-[var(--border-default)] transition-colors group"
+                            >
+                              <div className="flex items-center gap-2 mb-1">
+                                <Pencil size={12} className="text-[var(--text-muted)] opacity-0 group-hover:opacity-100 transition-opacity" />
+                                <span className="text-xs text-[var(--text-tertiary)]">
+                                  {selectedPlano.descripcion ? "Editar descripción" : "Agregar descripción"}
+                                </span>
+                              </div>
+                              {selectedPlano.descripcion ? (
+                                <p className="text-sm text-[var(--text-secondary)]">{selectedPlano.descripcion}</p>
+                              ) : (
+                                <p className="text-sm text-[var(--text-muted)] italic">{t("planos.descriptionPlaceholder")}</p>
+                              )}
+                            </button>
+                          )}
+                        </div>
+                      </motion.div>
+                    )}
+
+                    {/* Amenidades tab */}
+                    {planoDetailTab === "amenidades" && (
+                      <motion.div
+                        key="amenidades-tab"
+                        initial={{ opacity: 0, y: 4 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: -4 }}
+                        transition={{ duration: 0.2 }}
+                      >
+                        <AmenidadesEditor
+                          entity={selectedPlano}
+                          projectId={projectId}
+                          onUpdate={handleUpdatePlano}
+                        />
+                      </motion.div>
+                    )}
+
+                    {/* Hotspots tab */}
+                    {planoDetailTab === "hotspots" && (
+                      <motion.div
+                        key="hotspots-tab"
+                        initial={{ opacity: 0, y: 4 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: -4 }}
+                        transition={{ duration: 0.2 }}
+                        className="min-h-[420px]"
+                      >
+                        <PlanoHotspotEditor
+                          imagenUrl={selectedPlano.imagen_url}
+                          puntos={selectedPuntos}
+                          fachadas={[]}
+                          tipo="urbanismo"
+                          onAddPunto={async (data) => {
+                            await handleAddPunto({ ...data, render_url: data.render_url ?? null, plano_id: selectedPlano.id });
+                          }}
+                          onUpdatePunto={handleUpdatePunto}
+                          onDeletePunto={handleDeletePunto}
+                        />
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
                 </motion.div>
               )}
             </AnimatePresence>

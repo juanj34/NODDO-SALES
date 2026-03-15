@@ -71,6 +71,14 @@ const editor = {
       statePublished: "Publicado",
       stateArchived: "Archivado",
       stateHint: "Solo los proyectos publicados son visibles al público",
+      typeLabel: "Tipo de proyecto",
+      typeApartamentos: "Apartamentos",
+      typeApartamentosDesc: "Torres verticales",
+      typeCasas: "Casas",
+      typeCasasDesc: "Urbanismos horizontales",
+      typeHibrido: "Híbrido",
+      typeHibridoDesc: "Ambos tipos",
+      typeHint: "Define el tipo de agrupaciones que podrás crear en este proyecto",
     },
     landing: {
       title: "Página de Inicio",
@@ -516,6 +524,8 @@ const editor = {
     typeUrbanismo: "Urbanismo",
     typeTorreHint: "Edificio vertical con pisos",
     typeUrbanismoHint: "Desarrollo horizontal con lotes",
+    fixedTypeTorre: "Este proyecto solo permite crear torres (edificios verticales)",
+    fixedTypeUrbanismo: "Este proyecto solo permite crear etapas/urbanismos (viviendas horizontales)",
     tabs: {
       info: "Info",
       fachadas: "Fachadas",

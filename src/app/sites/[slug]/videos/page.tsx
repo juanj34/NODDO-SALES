@@ -47,17 +47,6 @@ export default function VideosPage() {
     [proyecto.videos]
   );
 
-  // Empty state — no videos ready
-  if (videos.length === 0) {
-    return (
-      <SiteEmptyState
-        variant="videos"
-        title={t("videos.notAvailable")}
-        description={t("videos.notConfigured")}
-      />
-    );
-  }
-
   const [activeVideo, setActiveVideo] = useState(0);
   const current = videos[activeVideo];
   const stripRef = useRef<HTMLDivElement>(null);
@@ -90,6 +79,17 @@ export default function VideosPage() {
     window.addEventListener("keydown", handleKey);
     return () => window.removeEventListener("keydown", handleKey);
   }, [videos.length]);
+
+  // Empty state — no videos ready (after all hooks)
+  if (videos.length === 0) {
+    return (
+      <SiteEmptyState
+        variant="videos"
+        title={t("videos.notAvailable")}
+        description={t("videos.notConfigured")}
+      />
+    );
+  }
 
   return (
     <SectionTransition className="relative min-h-screen flex flex-col items-center justify-center px-6 lg:px-12 py-12 overflow-hidden">

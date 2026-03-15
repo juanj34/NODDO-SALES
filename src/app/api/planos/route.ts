@@ -61,6 +61,7 @@ export async function POST(request: NextRequest) {
     if (body.descripcion !== undefined) insertData.descripcion = body.descripcion;
     if (body.visible !== undefined) insertData.visible = body.visible;
     if (body.orden !== undefined) insertData.orden = body.orden;
+    if (body.amenidades_data !== undefined) insertData.amenidades_data = body.amenidades_data;
 
     const { data, error } = await auth.supabase
       .from("planos_interactivos")

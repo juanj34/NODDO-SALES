@@ -51,17 +51,6 @@ export default function ExplorarPage() {
   const estadoConfig = useMemo(() => getEstadoConfig(tCommon), [tCommon]);
   const { unidades, tipologias, fachadas } = proyecto;
 
-  // Empty state — no fachadas configured
-  if (!fachadas || fachadas.length === 0) {
-    return (
-      <SiteEmptyState
-        variant="explorar"
-        title={tSite("explorar.notAvailable")}
-        description={tSite("explorar.notConfigured")}
-      />
-    );
-  }
-
   // Fachada filter from query param
   const fachadaIdParam = searchParams.get("fachada");
   const torreIdParam = searchParams.get("torre");
@@ -79,7 +68,7 @@ export default function ExplorarPage() {
 
   // Auto-select first torre when multi-torre and no URL param
   useEffect(() => {
-    if (isMultiTorre && !torreIdParam && !selectedTorreId) {
+    if (isMultiTorre && !torreIdParam && !selectedTorreId && torres.length > 0) {
       setSelectedTorreId(torres[0].id);
     }
   }, [isMultiTorre, torreIdParam, selectedTorreId, torres]);
@@ -117,21 +106,27 @@ export default function ExplorarPage() {
   const [activeFachadaIndex, setActiveFachadaIndex] = useState(initialFachadaIndex);
   const activeFachada = sortedFachadas[activeFachadaIndex] as Fachada | undefined;
 
-  // Sync with URL param on mount / change
-  useEffect(() => {
-    if (fachadaIdParam) {
-      const idx = sortedFachadas.findIndex((f) => f.id === fachadaIdParam);
-      if (idx >= 0) {
-        setActiveFachadaIndex(idx);
-        setImageLoaded(false);
-      }
-    }
-  }, [fachadaIdParam, sortedFachadas]);
-
+  // State declarations - before effects that use them
   const [selectedUnit, setSelectedUnit] = useState<Unidad | null>(null);
   const [hoveredUnit, setHoveredUnit] = useState<string | null>(null);
   const [cotizarUnidad, setCotizarUnidad] = useState<Unidad | null>(null);
   const [imageLoaded, setImageLoaded] = useState(false);
+  const prevFachadaIdRef = useRef<string | null>(null);
+
+  // Sync with URL param on mount / change - use ref to avoid setState in effect
+  useEffect(() => {
+    if (fachadaIdParam && fachadaIdParam !== prevFachadaIdRef.current) {
+      prevFachadaIdRef.current = fachadaIdParam;
+      const idx = sortedFachadas.findIndex((f) => f.id === fachadaIdParam);
+      if (idx >= 0) {
+        // Schedule state updates for after render to avoid cascading renders
+        queueMicrotask(() => {
+          setActiveFachadaIndex(idx);
+          setImageLoaded(false);
+        });
+      }
+    }
+  }, [fachadaIdParam, sortedFachadas]);
   const isMobile = useMediaQuery("(max-width: 1023px)");
   const [sheetOpen, setSheetOpen] = useState(false);
 
@@ -158,9 +153,16 @@ export default function ExplorarPage() {
     || proyecto.fachada_url
     || "https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?w=1200&q=80";
 
-  // Reset imageLoaded only when the actual image URL changes
+  // Reset imageLoaded only when the actual image URL changes - use ref to track
+  const prevFachadaUrlRef = useRef<string | null>(null);
   useEffect(() => {
-    setImageLoaded(false);
+    if (fachadaUrl !== prevFachadaUrlRef.current) {
+      prevFachadaUrlRef.current = fachadaUrl;
+      // Schedule state update for after render to avoid cascading renders
+      queueMicrotask(() => {
+        setImageLoaded(false);
+      });
+    }
   }, [fachadaUrl]);
 
   // Whether we have implantaciones to go back to
@@ -207,6 +209,17 @@ export default function ExplorarPage() {
     window.addEventListener("keydown", handleKey);
     return () => window.removeEventListener("keydown", handleKey);
   }, [selectedUnit, cotizarUnidad, showImplantacionModal]);
+
+  // Empty state — no fachadas configured (after all hooks)
+  if (!fachadas || fachadas.length === 0) {
+    return (
+      <SiteEmptyState
+        variant="explorar"
+        title={tSite("explorar.notAvailable")}
+        description={tSite("explorar.notConfigured")}
+      />
+    );
+  }
 
   /* ── Sidebar content (shared between desktop sidebar + mobile sheet) ── */
   const sidebarContent = (

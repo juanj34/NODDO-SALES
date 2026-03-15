@@ -33,6 +33,15 @@ export function HotspotEditor({
   const [newLabel, setNewLabel] = useState("");
   const [newRenderUrl, setNewRenderUrl] = useState("");
 
+  // Cache image bounds to avoid ref access during render
+  const [cachedBounds, setCachedBounds] = useState<{
+    imgW: number;
+    imgH: number;
+    offsetX: number;
+    offsetY: number;
+    cRect: DOMRect;
+  } | null>(null);
+
   // Force re-render on resize so pixel positions recalculate
   const [, setTick] = useState(0);
   useEffect(() => {
@@ -62,8 +71,15 @@ export function HotspotEditor({
       offsetX = (cRect.width - imgW) / 2;
       offsetY = 0;
     }
-    return { imgW, imgH, offsetX, offsetY, cRect };
+    const bounds = { imgW, imgH, offsetX, offsetY, cRect };
+    setCachedBounds(bounds);
+    return bounds;
   }, []);
+
+  // Update cached bounds on resize and image load
+  useEffect(() => {
+    getImageBounds();
+  }, [getImageBounds]);
 
   /* Convert client coords to image-relative percentages */
   const getPercentCoords = useCallback(
@@ -81,12 +97,11 @@ export function HotspotEditor({
   /* Convert image-relative percentages to pixel positions */
   const toPx = useCallback(
     (x: number, y: number): { left: number; top: number } | null => {
-      const bounds = getImageBounds();
-      if (!bounds) return null;
-      const { imgW, imgH, offsetX, offsetY } = bounds;
+      if (!cachedBounds) return null;
+      const { imgW, imgH, offsetX, offsetY } = cachedBounds;
       return { left: offsetX + (x / 100) * imgW, top: offsetY + (y / 100) * imgH };
     },
-    [getImageBounds]
+    [cachedBounds]
   );
 
   const handleImageClick = (e: React.MouseEvent) => {

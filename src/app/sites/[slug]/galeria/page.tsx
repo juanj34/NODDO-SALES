@@ -18,20 +18,9 @@ interface GalleryScope {
 
 export default function GaleriaPage() {
   const proyecto = useSiteProject();
-  const categorias = proyecto.galeria_categorias;
+  const categorias = proyecto.galeria_categorias || [];
   const torres = proyecto.torres || [];
   const { t } = useTranslation("site");
-
-  // Empty state — no gallery categories configured
-  if (!categorias || categorias.length === 0) {
-    return (
-      <SiteEmptyState
-        variant="galeria"
-        title={t("galeria.notAvailable")}
-        description={t("galeria.notConfigured")}
-      />
-    );
-  }
 
   // Compute scope structure
   const generalCats = categorias.filter((c) => !c.torre_id);
@@ -118,6 +107,17 @@ export default function GaleriaPage() {
     window.addEventListener("keydown", handleKey);
     return () => window.removeEventListener("keydown", handleKey);
   }, [lightboxIndex, goNext, goPrev, activeSlide]);
+
+  // Empty state — no gallery categories configured (after all hooks)
+  if (!categorias || categorias.length === 0) {
+    return (
+      <SiteEmptyState
+        variant="galeria"
+        title={t("galeria.notAvailable")}
+        description={t("galeria.notConfigured")}
+      />
+    );
+  }
 
   return (
     <div className="h-screen w-full relative overflow-hidden bg-black">

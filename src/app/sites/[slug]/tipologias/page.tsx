@@ -51,19 +51,13 @@ export default function TipologiasPage() {
   const searchParams = useSearchParams();
   const { t: tSite, locale } = useTranslation("site");
   const { t: tCommon } = useTranslation("common");
-  const tipologias = proyecto.tipologias;
-  const unidades = proyecto.unidades;
 
-  // Empty state — no tipologías configured
-  if (!tipologias || tipologias.length === 0) {
-    return (
-      <SiteEmptyState
-        variant="tipologias"
-        title={tSite("tipologias.notAvailable")}
-        description={tSite("tipologias.notConfigured")}
-      />
-    );
-  }
+  // ALL HOOKS MUST BE BEFORE ANY EARLY RETURNS
+  // Extract data first (non-hook)
+  const tipologias = proyecto.tipologias ?? [];
+  const unidades = proyecto.unidades ?? [];
+  const torres = proyecto.torres ?? [];
+  const isMultiTorre = torres.length > 1;
 
   // i18n-driven estado config and filters
   const estadoConfigDynamic = useMemo(() => getEstadoConfig(tCommon), [tCommon]);
@@ -76,8 +70,6 @@ export default function TipologiasPage() {
   ], [tCommon]);
 
   // Torre selector state
-  const torres = proyecto.torres ?? [];
-  const isMultiTorre = torres.length > 1;
   const [activeTorreId, setActiveTorreId] = usePersistedState<string | null>(
     "tipologias-torre",
     isMultiTorre ? torres[0]?.id ?? null : null,
@@ -132,35 +124,39 @@ export default function TipologiasPage() {
 
   // Handle query params on mount
   useEffect(() => {
-    if (tipoParam) {
-      const idx = visibleTipologias.findIndex((t) => t.id === tipoParam);
-      if (idx >= 0) setActiveIndex(idx);
-    }
-    if (unidadParam) {
-      const unit = unidades.find((u) => u.id === unidadParam);
-      if (unit) {
-        setSelectedUnit(unit);
-        // Also switch to the correct tipología tab
-        if (unit.tipologia_id) {
-          const idx = visibleTipologias.findIndex((t) => t.id === unit.tipologia_id);
-          if (idx >= 0) setActiveIndex(idx);
+    requestAnimationFrame(() => {
+      if (tipoParam) {
+        const idx = visibleTipologias.findIndex((t) => t.id === tipoParam);
+        if (idx >= 0) setActiveIndex(idx);
+      }
+      if (unidadParam) {
+        const unit = unidades.find((u) => u.id === unidadParam);
+        if (unit) {
+          setSelectedUnit(unit);
+          // Also switch to the correct tipología tab
+          if (unit.tipologia_id) {
+            const idx = visibleTipologias.findIndex((t) => t.id === unit.tipologia_id);
+            if (idx >= 0) setActiveIndex(idx);
+          }
         }
       }
-    }
-  }, [tipoParam, unidadParam, visibleTipologias, unidades]);
+    });
+  }, [tipoParam, unidadParam, visibleTipologias, unidades, setActiveIndex]);
 
   // Reset activeIndex when torre changes — try to restore persisted tipo
   useEffect(() => {
-    if (persistedTipoId) {
-      const idx = visibleTipologias.findIndex((t) => t.id === persistedTipoId);
-      if (idx >= 0) {
-        setActiveIndexRaw(idx);
-        setSelectedUnit(null);
-        return;
+    requestAnimationFrame(() => {
+      if (persistedTipoId) {
+        const idx = visibleTipologias.findIndex((t) => t.id === persistedTipoId);
+        if (idx >= 0) {
+          setActiveIndexRaw(idx);
+          setSelectedUnit(null);
+          return;
+        }
       }
-    }
-    setActiveIndexRaw(0);
-    setSelectedUnit(null);
+      setActiveIndexRaw(0);
+      setSelectedUnit(null);
+    });
   }, [activeTorreId, visibleTipologias, persistedTipoId]);
 
   // Keyboard navigation

@@ -48,7 +48,7 @@ export function SearchPatterns({ searches }: Props) {
                 <div className="flex items-center gap-2 flex-1 min-w-0">
                   <Search size={12} className="text-[var(--text-muted)] shrink-0" />
                   <p className="font-mono text-xs text-white truncate">
-                    "{item.query}"
+                    &quot;{item.query}&quot;
                   </p>
                 </div>
                 <div className="flex items-center gap-2 shrink-0">

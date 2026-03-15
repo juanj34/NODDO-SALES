@@ -219,6 +219,29 @@ const site = {
     showUnits: "Unidades",
     showHotspots: "Zonas",
   },
+  trustBadges: {
+    dataEncrypted: "Datos encriptados",
+    fastResponse: "Respuesta <24h",
+    guaranteed: "Garantizado",
+    familiesTrust: "500+ familias confían",
+    certified: "Certificado",
+    noCommitment: "Sin compromiso",
+    freePDF: "PDF personalizado",
+    fiveMin: "En 5 minutos",
+    flexiblePlans: "Planes flexibles",
+  },
+  timeline: {
+    today: "Hoy",
+    tomorrow: "Mañana",
+    thisWeek: "Esta semana",
+    nextWeek: "Próxima semana",
+    now: "Ahora",
+    fiveMin: "5 minutos",
+    step1: "Envías tu consulta",
+    step2: "Asesor te contacta",
+    step3: "Visita agendada",
+    step4: "Recibes cotización",
+  },
 } as const;
 
 export default site;

@@ -36,6 +36,7 @@ import { useToast } from "@/components/dashboard/Toast";
 import { useConfirm } from "@/components/dashboard/ConfirmModal";
 import { useTranslation } from "@/i18n";
 import type { Tipologia, TipologiaHotspot } from "@/types";
+import { AITextImprover } from "@/components/dashboard/AITextImprover";
 import { tipologiaSchema } from "@/lib/validation/schemas";
 import { InlineError } from "@/components/ui/ErrorBoundary";
 import { ZodError } from "zod";
@@ -681,13 +682,13 @@ export default function TipologiasPage() {
                           </div>
                         )}
                         <div>
-                          <label className={labelClass}>{t("tipologias.description")}</label>
-                          <textarea
+                          <AITextImprover
                             value={form.descripcion}
-                            onChange={(e) => updateForm("descripcion", e.target.value)}
+                            onChange={(newValue) => updateForm("descripcion", newValue)}
                             rows={3}
-                            className={inputClass + " resize-none"}
                             placeholder={t("tipologias.descriptionPlaceholder")}
+                            label={t("tipologias.description")}
+                            maxLength={5000}
                           />
                         </div>
                         <div>

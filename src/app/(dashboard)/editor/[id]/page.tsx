@@ -38,6 +38,7 @@ import { useTranslation } from "@/i18n";
 import { proyectoGeneralSchema } from "@/lib/validation/schemas";
 import { InlineError } from "@/components/ui/ErrorBoundary";
 import { ZodError } from "zod";
+import { AITextImprover } from "@/components/dashboard/AITextImprover";
 
 type GeneralTab = "proyecto" | "inicio" | "constructora" | "diseno" | "avanzado";
 
@@ -408,8 +409,17 @@ export default function EditorGeneralPage() {
 
                   {/* Description */}
                   <div>
-                    <label className={labelClass}>{t("general.landing.descriptionLabel")}</label>
-                    <textarea value={descripcion} onChange={(e) => { setDescripcion(e.target.value); scheduleAutoSave(); }} rows={3} className={inputClass + " resize-none"} placeholder={t("general.landing.descriptionPlaceholder")} />
+                    <AITextImprover
+                      value={descripcion}
+                      onChange={(newValue) => {
+                        setDescripcion(newValue);
+                        scheduleAutoSave();
+                      }}
+                      rows={3}
+                      placeholder={t("general.landing.descriptionPlaceholder")}
+                      label={t("general.landing.descriptionLabel")}
+                      maxLength={5000}
+                    />
                     <p className={fieldHint}>{t("general.landing.descriptionHint")}</p>
                   </div>
 

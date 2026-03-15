@@ -40,7 +40,7 @@ export async function PUT(
     const body = await request.json();
     const { data, error } = await auth.supabase
       .from("planos_interactivos")
-      .update(pick(body, ["nombre", "descripcion", "imagen_url", "tipo", "visible", "orden"]))
+      .update(pick(body, ["nombre", "descripcion", "imagen_url", "tipo", "visible", "orden", "amenidades_data"]))
       .eq("id", id)
       .select()
       .single();

@@ -657,7 +657,7 @@ export default function CookiesPage() {
                         3. Do Not Track (DNT)
                       </h3>
                       <p>
-                        Si activa la señal "Do Not Track" en su navegador, respetaremos esa
+                        Si activa la señal &quot;Do Not Track&quot; en su navegador, respetaremos esa
                         preferencia y no cargaremos cookies de analytics ni marketing (solo las
                         esenciales).
                       </p>
@@ -723,7 +723,7 @@ export default function CookiesPage() {
                   </p>
                   <p>
                     Le recomendamos revisar esta página ocasionalmente para estar informado sobre
-                    cómo usamos las cookies. La fecha de "Última actualización" al inicio del
+                    cómo usamos las cookies. La fecha de &quot;Última actualización&quot; al inicio del
                     documento indica cuándo fue modificada por última vez.
                   </p>
                 </div>

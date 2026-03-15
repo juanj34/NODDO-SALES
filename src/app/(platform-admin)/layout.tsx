@@ -21,12 +21,14 @@ import {
   HardDrive,
   ShieldCheck,
   CalendarCheck,
+  Sparkles,
 } from "lucide-react";
 import { ToastProvider } from "@/components/dashboard/Toast";
 import { ConfirmProvider } from "@/components/dashboard/ConfirmModal";
 import { AuthContextProvider, useAuthRole } from "@/hooks/useAuthContext";
 import { NodDoLogo } from "@/components/ui/NodDoLogo";
 import { AlertsBell } from "@/components/admin/AlertsBell";
+import { GlobalSearch } from "@/components/admin/GlobalSearch";
 import { createClient } from "@/lib/supabase/client";
 import { useMobileDrawer } from "@/hooks/useMobileDrawer";
 
@@ -36,6 +38,7 @@ const navItems = [
   { href: "/admin/proyectos", label: "Proyectos", icon: FolderOpen },
   { href: "/admin/leads", label: "Leads", icon: MessageSquare },
   { href: "/admin/planes", label: "Planes", icon: CreditCard },
+  { href: "/admin/features", label: "Features", icon: Sparkles },
   { href: "/admin/citas", label: "Citas", icon: CalendarCheck },
   { href: "/admin/actividad", label: "Actividad", icon: Activity },
   { href: "/admin/storage", label: "Storage", icon: HardDrive },
@@ -213,6 +216,9 @@ function AdminShell({ children }: { children: React.ReactNode }) {
           </motion.div>
         </AnimatePresence>
       </main>
+
+      {/* Global Search (Cmd+K) */}
+      <GlobalSearch />
     </div>
   );
 }

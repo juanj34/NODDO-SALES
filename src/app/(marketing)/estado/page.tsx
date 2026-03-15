@@ -74,19 +74,6 @@ export default function EstadoPage() {
     }
   };
 
-  const getStatusIcon = (status: string) => {
-    switch (status) {
-      case "operational":
-        return CheckCircle2;
-      case "degraded":
-        return AlertCircle;
-      case "outage":
-        return AlertCircle;
-      default:
-        return Clock;
-    }
-  };
-
   const getStatusText = (status: string) => {
     switch (status) {
       case "operational":
@@ -100,7 +87,20 @@ export default function EstadoPage() {
     }
   };
 
-  const StatusIcon = getStatusIcon(status.overall);
+  // Render status icon inline to avoid component creation during render
+  const renderStatusIcon = (statusType: string, className?: string, style?: React.CSSProperties) => {
+    const iconProps = { className, style };
+    switch (statusType) {
+      case "operational":
+        return <CheckCircle2 {...iconProps} />;
+      case "degraded":
+        return <AlertCircle {...iconProps} />;
+      case "outage":
+        return <AlertCircle {...iconProps} />;
+      default:
+        return <Clock {...iconProps} />;
+    }
+  };
 
   return (
     <div className="min-h-screen pt-32 pb-24 px-6">
@@ -151,10 +151,11 @@ export default function EstadoPage() {
                 className="p-4 rounded-xl"
                 style={{ backgroundColor: "rgba(78, 222, 128, 0.12)" }}
               >
-                <StatusIcon
-                  className="w-8 h-8"
-                  style={{ color: getStatusColor(status.overall) }}
-                />
+                {renderStatusIcon(
+                  status.overall,
+                  "w-8 h-8",
+                  { color: getStatusColor(status.overall) }
+                )}
               </div>
               <div>
                 <h2
@@ -199,7 +200,6 @@ export default function EstadoPage() {
           </h2>
           <div className="space-y-4">
             {status.services.map((service, index) => {
-              const ServiceStatusIcon = getStatusIcon(service.status);
               const icons = [Server, Zap, Database, Globe, Globe, Server];
               const Icon = icons[index] || Server;
 
@@ -259,10 +259,11 @@ export default function EstadoPage() {
                           {service.uptime}
                         </p>
                       </div>
-                      <ServiceStatusIcon
-                        className="w-6 h-6"
-                        style={{ color: getStatusColor(service.status) }}
-                      />
+                      {renderStatusIcon(
+                        service.status,
+                        "w-6 h-6",
+                        { color: getStatusColor(service.status) }
+                      )}
                     </div>
                   </div>
                 </div>

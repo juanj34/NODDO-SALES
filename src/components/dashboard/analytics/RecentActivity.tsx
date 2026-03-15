@@ -109,7 +109,7 @@ export function RecentActivity({ events }: Props) {
                         {event.metadata?.query && (
                           <span className="text-[var(--text-tertiary)]">
                             {" "}
-                            · "{event.metadata.query}"
+                            · &quot;{event.metadata.query}&quot;
                           </span>
                         )}
                       </p>

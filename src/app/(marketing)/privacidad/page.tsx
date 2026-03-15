@@ -674,7 +674,7 @@ export default function PrivacidadPage() {
                     >
                       hola@noddo.io
                     </a>{" "}
-                    con el asunto "Ejercicio de derechos ARCO". Responderemos en un plazo máximo
+                    con el asunto &quot;Ejercicio de derechos ARCO&quot;. Responderemos en un plazo máximo
                     de <strong style={{ color: "rgba(244,240,232,0.92)" }}>15 días hábiles</strong>.
                   </p>
                 </div>
@@ -1092,8 +1092,8 @@ export default function PrivacidadPage() {
                     nuestras prácticas de datos, nuevas funcionalidades, o requisitos legales.
                   </p>
                   <p>
-                    Publicaremos los cambios en esta página y actualizaremos la fecha de "Última
-                    actualización" al inicio del documento. Si los cambios son significativos
+                    Publicaremos los cambios en esta página y actualizaremos la fecha de &quot;Última
+                    actualización&quot; al inicio del documento. Si los cambios son significativos
                     (nuevos usos de datos, nuevos terceros), notificaremos por email con al menos
                     30 días de anticipación.
                   </p>

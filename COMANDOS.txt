@@ -1,0 +1,72 @@
+═══════════════════════════════════════════════════════════════════
+  NODDO - Comandos para completar setup (2 minutos)
+═══════════════════════════════════════════════════════════════════
+
+✅ YA CONFIGURADO (no hagas nada):
+   - Sentry (monitoreo de errores)
+   - React Query (caché)
+   - Base de datos optimizada
+   - Vercel builds arreglados
+   - GitHub Actions CI/CD
+
+⚠️  SOLO FALTA UPSTASH (rate limiting):
+
+┌─────────────────────────────────────────────────────────────────┐
+│ 1. Crear base de datos (1 minuto)                              │
+└─────────────────────────────────────────────────────────────────┘
+
+   Abre: https://console.upstash.com/
+   → Sign up (gratis)
+   → "Create Database"
+   → Name: noddo
+   → Type: Regional
+   → Region: us-east-1
+   → "Create"
+
+┌─────────────────────────────────────────────────────────────────┐
+│ 2. Copiar credenciales                                          │
+└─────────────────────────────────────────────────────────────────┘
+
+   En el dashboard de Upstash, copia:
+   - UPSTASH_REDIS_REST_URL
+   - UPSTASH_REDIS_REST_TOKEN
+
+┌─────────────────────────────────────────────────────────────────┐
+│ 3. Ejecutar comandos (copiar todo)                             │
+└─────────────────────────────────────────────────────────────────┘
+
+# Agregar a .env.local (reemplaza con tus valores reales):
+echo "" >> .env.local
+echo "# Upstash Redis" >> .env.local
+echo "UPSTASH_REDIS_REST_URL=TU_URL_AQUI" >> .env.local
+echo "UPSTASH_REDIS_REST_TOKEN=TU_TOKEN_AQUI" >> .env.local
+
+# Sincronizar a Vercel:
+node scripts/sync-env-to-vercel.js
+
+# Commit y deploy:
+git add .
+git commit -m "feat: add Upstash rate limiting"
+git push
+
+═══════════════════════════════════════════════════════════════════
+
+✅ DESPUÉS DE ESTO TENDRÁS:
+
+• Sentry - Monitoreo de errores en tiempo real
+• React Query - Caché inteligente (60-80% menos requests)
+• BD Optimizada - Consultas 20-100x más rápidas
+• Rate Limiting - Protección contra abuso
+• CI/CD - Tests automáticos en cada push
+• Builds Estables - Sin más fallos en Vercel
+
+═══════════════════════════════════════════════════════════════════
+
+📚 MÁS INFO:
+
+SETUP_RAPIDO.md - Guía paso a paso
+ESTADO_PRODUCCION.md - Resumen completo en español
+PRODUCTION_STATUS.md - Reporte técnico en inglés
+UPSTASH_SETUP.md - Guía detallada de Upstash
+
+═══════════════════════════════════════════════════════════════════

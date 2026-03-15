@@ -129,6 +129,14 @@ export function NodDoDropdown({
     borderColor: isOpen ? "rgba(184,151,58,0.4)" : "rgba(255,255,255,0.08)",
   } : undefined;
 
+  // Handler functions - defined before effects that use them
+  const handleSelect = (optionValue: string) => {
+    onChange(optionValue);
+    setIsOpen(false);
+    setFocusedIndex(-1);
+    triggerRef.current?.focus();
+  };
+
   // Close dropdown when clicking outside
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
@@ -182,7 +190,7 @@ export function NodDoDropdown({
 
     document.addEventListener("keydown", handleKeyDown);
     return () => document.removeEventListener("keydown", handleKeyDown);
-  }, [isOpen, focusedIndex, options]);
+  }, [isOpen, focusedIndex, options, handleSelect]);
 
   // Scroll focused option into view
   useEffect(() => {
@@ -193,13 +201,6 @@ export function NodDoDropdown({
       }
     }
   }, [focusedIndex, isOpen]);
-
-  const handleSelect = (optionValue: string) => {
-    onChange(optionValue);
-    setIsOpen(false);
-    setFocusedIndex(-1);
-    triggerRef.current?.focus();
-  };
 
   const handleToggle = () => {
     if (!disabled) {

@@ -10,6 +10,7 @@ import { MobileBottomSheet } from "@/components/site/MobileBottomSheet";
 import { cn } from "@/lib/utils";
 import type { PlanoInteractivo, PlanoPunto } from "@/types";
 import { useTranslation } from "@/i18n";
+import { DynamicIcon } from "@/data/amenidades-catalog";
 
 /* ── Component ───────────────────────────────────────────── */
 
@@ -130,23 +131,57 @@ export default function ImplantacionesPage() {
   const sidebarContent = (
     <>
       {/* ── Plan title + description ── */}
-      <div className="flex-shrink-0 p-5 pb-0">
+      <div className="flex-shrink-0 p-5 pb-4">
         {activePlano && (
           <>
             <p className="text-[10px] tracking-[0.3em] text-[var(--site-primary)] uppercase mb-2">
               {t("implantaciones.heading")}
             </p>
-            <h2 className="font-site-heading text-xl text-white leading-tight mb-2">
+            <h2 className="font-site-heading text-2xl text-white leading-tight mb-3">
               {activePlano.nombre}
             </h2>
             {activePlano.descripcion && (
-              <p className="text-sm text-[var(--text-secondary)] leading-relaxed mb-4">
+              <p className="text-[13px] text-[var(--text-secondary)] leading-relaxed">
                 {activePlano.descripcion}
               </p>
             )}
           </>
         )}
       </div>
+
+      {/* ── Amenidades section ── */}
+      {activePlano && activePlano.amenidades_data && activePlano.amenidades_data.length > 0 && (
+        <>
+          <div className="border-t border-white/5 mx-5" />
+          <div className="flex-shrink-0 px-5 pt-4 pb-2">
+            <p className="text-[10px] tracking-[0.25em] text-[var(--text-tertiary)] uppercase mb-3">
+              Amenidades
+            </p>
+            <div className="grid grid-cols-2 gap-1.5">
+              {activePlano.amenidades_data.slice(0, 6).map((amenidad) => (
+                <div
+                  key={amenidad.id}
+                  className="flex items-center gap-1.5 px-2 py-1.5 rounded-lg bg-white/[0.03] border border-white/5"
+                >
+                  {amenidad.icon_url ? (
+                    <img src={amenidad.icon_url} alt="" className="w-3.5 h-3.5 object-contain opacity-70" />
+                  ) : (
+                    <DynamicIcon name={amenidad.icono} size={12} className="text-[var(--site-primary)] opacity-70" />
+                  )}
+                  <span className="text-[10px] text-[var(--text-secondary)] truncate">
+                    {amenidad.nombre}
+                  </span>
+                </div>
+              ))}
+            </div>
+            {activePlano.amenidades_data.length > 6 && (
+              <div className="flex items-center justify-center px-2 py-1.5 rounded-lg bg-white/[0.02] border border-white/5 text-[10px] text-[var(--text-muted)] mt-1.5">
+                +{activePlano.amenidades_data.length - 6} más
+              </div>
+            )}
+          </div>
+        </>
+      )}
 
       {/* ── Divider ── */}
       <div className="border-t border-white/5 mx-5" />

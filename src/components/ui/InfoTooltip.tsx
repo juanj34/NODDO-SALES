@@ -61,18 +61,13 @@ export function InfoTooltip({
   const [isOpen, setIsOpen] = useState(false);
   const [isPinned, setIsPinned] = useState(false);
   const [position, setPosition] = useState<TooltipPosition | null>(null);
-  const [isMounted, setIsMounted] = useState(false);
+  const [isMounted, setIsMounted] = useState(typeof window !== "undefined");
 
   const triggerRef = useRef<HTMLButtonElement>(null);
   const tooltipRef = useRef<HTMLDivElement>(null);
   const hoverTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const vStyles = variantStyles[variant];
-
-  // Client-side only mounting
-  useEffect(() => {
-    setIsMounted(true);
-  }, []);
 
   // Calculate position
   useEffect(() => {

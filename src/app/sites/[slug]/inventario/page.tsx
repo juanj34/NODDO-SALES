@@ -50,19 +50,8 @@ export default function InventarioPage() {
   const basePath = useSiteBasePath();
   const { t: tSite, locale } = useTranslation("site");
   const { t: tCommon } = useTranslation("common");
-  const { unidades, tipologias } = proyecto;
 
-  // Empty state — no units configured
-  if (!unidades || unidades.length === 0) {
-    return (
-      <SiteEmptyState
-        variant="inventario"
-        title={tSite("inventario.notAvailable")}
-        description={tSite("inventario.notConfigured")}
-      />
-    );
-  }
-
+  // ALL HOOKS MUST BE CALLED BEFORE ANY EARLY RETURNS
   const estadoConfig = useMemo(() => getEstadoConfig(tCommon), [tCommon]);
 
   const sortOptions: Array<{ value: SortKey; label: string }> = useMemo(() => [
@@ -73,9 +62,6 @@ export default function InventarioPage() {
     { value: "area_asc", label: tSite("inventario.sortAreaAsc") },
     { value: "area_desc", label: tSite("inventario.sortAreaDesc") },
   ], [tSite]);
-
-  const torres = proyecto.torres ?? [];
-  const isMultiTorre = torres.length > 1;
 
   // Filter state
   const [torreFilter, setTorreFilter] = useState<string>("todas");
@@ -94,11 +80,15 @@ export default function InventarioPage() {
   );
   const [cotizarUnidad, setCotizarUnidad] = useState<Unidad | null>(null);
 
+  const { unidades, tipologias } = proyecto;
+  const torres = proyecto.torres ?? [];
+  const isMultiTorre = torres.length > 1;
+
   // Estado counts (scoped to active torre when filtered)
   const estadoCounts = useMemo(() => {
     const base = torreFilter !== "todas"
-      ? unidades.filter((u) => u.torre_id === torreFilter)
-      : unidades;
+      ? (unidades || []).filter((u) => u.torre_id === torreFilter)
+      : (unidades || []);
     return {
       todas: base.length,
       disponible: base.filter((u) => u.estado === "disponible").length,
@@ -110,25 +100,26 @@ export default function InventarioPage() {
 
   // Tipologías filtered by torre for the dropdown
   const tipologiasForFilter = useMemo(() => {
-    if (!isMultiTorre || torreFilter === "todas") return tipologias;
-    return tipologias.filter(t => t.torre_ids?.includes(torreFilter) || !t.torre_ids?.length);
+    if (!isMultiTorre || torreFilter === "todas") return tipologias || [];
+    return (tipologias || []).filter(t => t.torre_ids?.includes(torreFilter) || !t.torre_ids?.length);
   }, [tipologias, isMultiTorre, torreFilter]);
 
   // Unique bedroom counts for filter
   const habOptions = useMemo(() => {
-    const set = new Set(unidades.map((u) => u.habitaciones).filter((h): h is number => h !== null));
+    const set = new Set((unidades || []).map((u) => u.habitaciones).filter((h): h is number => h !== null));
     return [...set].sort((a, b) => a - b);
   }, [unidades]);
 
   // Unique bathroom counts for filter
   const banosOptions = useMemo(() => {
-    const set = new Set(unidades.map((u) => u.banos).filter((b): b is number => b !== null));
+    const set = new Set((unidades || []).map((u) => u.banos).filter((b): b is number => b !== null));
     return [...set].sort((a, b) => a - b);
   }, [unidades]);
 
   // Filtered + sorted units
   const filteredUnidades = useMemo(() => {
-    let result = [...unidades];
+    const units = unidades || [];
+    let result = [...units];
 
     // Torre filter
     if (torreFilter !== "todas") {
@@ -182,6 +173,17 @@ export default function InventarioPage() {
 
     return result;
   }, [unidades, torreFilter, tipologiaFilter, estadoFilter, habFilter, banosFilter, searchQuery, sortBy]);
+
+  // Empty state — no units configured (AFTER all hooks)
+  if (!unidades || unidades.length === 0) {
+    return (
+      <SiteEmptyState
+        variant="inventario"
+        title={tSite("inventario.notAvailable")}
+        description={tSite("inventario.notConfigured")}
+      />
+    );
+  }
 
   const getTipologiaName = (tipologiaId: string | null) => {
     if (!tipologiaId) return null;

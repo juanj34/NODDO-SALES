@@ -169,11 +169,11 @@ export default function TerminosPage() {
                   }}
                 >
                   <p>
-                    Al acceder y utilizar la plataforma NODDO (en adelante, "el Servicio"),
+                    Al acceder y utilizar la plataforma NODDO (en adelante, &quot;el Servicio&quot;),
                     operada por{" "}
                     <strong style={{ color: "rgba(244,240,232,0.92)" }}>Antigravity SAS</strong>{" "}
-                    (en adelante, "la Empresa", "nosotros", "NODDO"), usted (en adelante, "el
-                    Usuario", "usted") acepta quedar vinculado por estos Términos de Servicio en
+                    (en adelante, &quot;la Empresa&quot;, &quot;nosotros&quot;, &quot;NODDO&quot;), usted (en adelante, &quot;el
+                    Usuario&quot;, &quot;usted&quot;) acepta quedar vinculado por estos Términos de Servicio en
                     su totalidad.
                   </p>
                   <p>
@@ -685,7 +685,7 @@ export default function TerminosPage() {
                   </p>
                   <ul className="list-disc pl-6 space-y-2">
                     <li>
-                      El Servicio se proporciona "TAL CUAL" y "SEGÚN DISPONIBILIDAD", sin
+                      El Servicio se proporciona &quot;TAL CUAL&quot; y &quot;SEGÚN DISPONIBILIDAD&quot;, sin
                       garantías de ningún tipo, expresas o implícitas.
                     </li>
                     <li>
@@ -977,8 +977,8 @@ export default function TerminosPage() {
                   </p>
                   <ul className="list-disc pl-6 space-y-1">
                     <li>
-                      Publicaremos los términos actualizados en esta página con la fecha de "Última
-                      actualización"
+                      Publicaremos los términos actualizados en esta página con la fecha de &quot;Última
+                      actualización&quot;
                     </li>
                     <li>
                       Le notificaremos por email con al menos{" "}

@@ -15,6 +15,7 @@ const PROYECTO_FIELDS = [
   "moneda_base", "unidad_medida_base",
   "cotizador_enabled", "cotizador_config",
   "webhook_config",
+  "tipo_proyecto",
 ];
 
 export async function GET(

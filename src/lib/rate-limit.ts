@@ -74,6 +74,16 @@ export const emailLimiter = redis
     })
   : null;
 
+// AI text improvement - 50 requests per 24h per user
+export const aiImprovementLimiter = redis
+  ? new Ratelimit({
+      redis,
+      limiter: Ratelimit.slidingWindow(50, "24 h"),
+      analytics: true,
+      prefix: "@noddo/ai-improve",
+    })
+  : null;
+
 /**
  * Helper to apply rate limiting in API routes
  */
@@ -113,18 +123,18 @@ function getIdentifier(req: Request): string {
     try {
       const token = authHeader.replace("Bearer ", "");
       const payload = JSON.parse(atob(token.split(".")[1]));
-      if (payload.sub) return \`user:\${payload.sub}\`;
+      if (payload.sub) return `user:${payload.sub}`;
     } catch {}
   }
 
   const forwardedFor = req.headers.get("x-forwarded-for");
   if (forwardedFor) {
-    return \`ip:\${forwardedFor.split(",")[0].trim()}\`;
+    return `ip:${forwardedFor.split(",")[0].trim()}`;
   }
 
   const realIp = req.headers.get("x-real-ip");
   if (realIp) {
-    return \`ip:\${realIp}\`;
+    return `ip:${realIp}`;
   }
 
   return "ip:anonymous";

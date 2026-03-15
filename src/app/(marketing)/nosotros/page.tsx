@@ -137,8 +137,8 @@ export default function NosotrosPage() {
                       fontSize: "1.1em",
                     }}
                   >
-                    "¿Y si una constructora pudiera tener un showroom digital premium listo en 1
-                    día?"
+                    &quot;¿Y si una constructora pudiera tener un showroom digital premium listo en 1
+                    día?&quot;
                   </span>
                 </p>
                 <p>
