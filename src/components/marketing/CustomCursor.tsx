@@ -6,16 +6,12 @@ export function CustomCursor() {
   const dotRef = useRef<HTMLDivElement>(null);
   const ringRef = useRef<HTMLDivElement>(null);
 
-  // Always start with true to avoid hydration mismatch, then update on client
-  const [isTouch, setIsTouch] = useState(() => {
-    if (typeof window === "undefined") return true;
-    const mq = window.matchMedia("(hover: hover) and (pointer: fine)");
-    return !mq.matches;
-  });
+  // Always start true (render nothing) to match server HTML and avoid hydration mismatch
+  const [isTouch, setIsTouch] = useState(true);
 
   useEffect(() => {
-    // Listen for pointer type changes
     const mq = window.matchMedia("(hover: hover) and (pointer: fine)");
+    setIsTouch(!mq.matches);
     const handler = (e: MediaQueryListEvent) => setIsTouch(!e.matches);
     mq.addEventListener("change", handler);
     return () => mq.removeEventListener("change", handler);

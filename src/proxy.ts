@@ -71,6 +71,7 @@ export async function proxy(request: NextRequest) {
     pathname === "/cotizador" ||
     pathname === "/cotizaciones" ||
     pathname === "/analytics" ||
+    pathname === "/financiero" ||
     pathname.startsWith("/admin");
   const isLoginRoute = pathname === "/login";
 

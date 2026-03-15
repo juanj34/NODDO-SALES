@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { motion } from "framer-motion";
 import { TrendingUp, Clock, DollarSign, Users, ArrowRight, Quote, CheckCircle2, Target } from "lucide-react";
 import Link from "next/link";
@@ -364,14 +365,9 @@ export default function CasosDeEstudioPage() {
                     </div>
                   </div>
 
-                  <img
-                    src={study.image}
-                    alt={study.project}
-                    className="w-full md:w-80 h-48 object-cover rounded-xl"
-                    style={{
+                  <Image src={study.image} alt="" width={400} height={300} className="w-full md:w-80 h-48 object-cover rounded-xl" style={{
                       border: "1px solid rgba(255, 255, 255, 0.1)",
-                    }}
-                  />
+                    } />
                 </div>
               </div>
 

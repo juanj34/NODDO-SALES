@@ -2,6 +2,7 @@
 
 export const dynamic = "force-dynamic";
 
+import Image from "next/image";
 import { useState, useEffect, useCallback } from "react";
 import { useTranslation } from "@/i18n";
 import { useEditorProject } from "@/hooks/useEditorProject";
@@ -31,7 +32,6 @@ import {
   Image as ImageIcon,
   Pencil,
   Check,
-  Sparkles,
   MapPin,
 } from "lucide-react";
 import type { PlanoInteractivo, PlanoPunto } from "@/types";
@@ -377,11 +377,7 @@ export default function PlanoInteractivoPage() {
                 >
                   <div className="aspect-square bg-black/40">
                     {p.imagen_url ? (
-                      <img
-                        src={p.imagen_url}
-                        alt={p.nombre}
-                        className="w-full h-full object-cover"
-                      />
+                      <Image src={p.imagen_url} alt="" fill className="w-full h-full object-cover" />
                     ) : (
                       <div className="w-full h-full flex items-center justify-center text-[var(--text-muted)]">
                         <ImageIcon size={14} />
@@ -539,7 +535,7 @@ export default function PlanoInteractivoPage() {
 
                   {/* Tab content */}
                   <AnimatePresence mode="wait">
-                    {/* Info tab - name & description editor */}
+                    {/* Info tab — title, description & amenidades combined */}
                     {planoDetailTab === "info" && (
                       <motion.div
                         key="info-tab"
@@ -547,131 +543,118 @@ export default function PlanoInteractivoPage() {
                         animate={{ opacity: 1, y: 0 }}
                         exit={{ opacity: 0, y: -4 }}
                         transition={{ duration: 0.2 }}
-                        className="space-y-6"
                       >
-                        {/* Name editor */}
-                        <div className="px-4 py-6 bg-[var(--surface-1)] rounded-xl border border-[var(--border-subtle)]">
-                          <p className="font-ui text-[10px] text-[var(--text-tertiary)] tracking-wider uppercase font-bold mb-3">
-                            Título del plano
-                          </p>
-                          {editingNombre ? (
-                            <div className="flex items-center gap-2">
-                              <input
-                                type="text"
-                                value={nombreTemp}
-                                onChange={(e) => setNombreTemp(e.target.value)}
-                                placeholder="Ej: Implantación General"
-                                className={`${inputClass} text-sm flex-1`}
-                                autoFocus
-                                onKeyDown={(e) => {
-                                  if (e.key === "Enter") {
-                                    e.preventDefault();
-                                    handleSaveNombre(selectedPlano.id, nombreTemp);
-                                  }
-                                  if (e.key === "Escape") {
-                                    setEditingNombre(false);
-                                  }
+                        <div className="bg-[var(--surface-1)] rounded-xl border border-[var(--border-subtle)] divide-y divide-[var(--border-subtle)]">
+                          {/* Title */}
+                          <div className="px-5 py-4">
+                            <p className="font-ui text-[10px] text-[var(--text-muted)] tracking-[.12em] uppercase font-bold mb-2.5">
+                              Título
+                            </p>
+                            {editingNombre ? (
+                              <div className="flex items-center gap-2">
+                                <input
+                                  type="text"
+                                  value={nombreTemp}
+                                  onChange={(e) => setNombreTemp(e.target.value)}
+                                  placeholder="Ej: Implantación General"
+                                  className={`${inputClass} text-sm flex-1`}
+                                  autoFocus
+                                  onKeyDown={(e) => {
+                                    if (e.key === "Enter") {
+                                      e.preventDefault();
+                                      handleSaveNombre(selectedPlano.id, nombreTemp);
+                                    }
+                                    if (e.key === "Escape") {
+                                      setEditingNombre(false);
+                                    }
+                                  }}
+                                />
+                                <button
+                                  onClick={() => handleSaveNombre(selectedPlano.id, nombreTemp)}
+                                  className="p-2 rounded-lg bg-[rgba(var(--site-primary-rgb),0.15)] text-[var(--site-primary)] hover:bg-[rgba(var(--site-primary-rgb),0.25)] transition-colors"
+                                >
+                                  <Check size={14} />
+                                </button>
+                                <button
+                                  onClick={() => setEditingNombre(false)}
+                                  className="p-2 rounded-lg bg-[var(--surface-3)] text-[var(--text-tertiary)] hover:text-[var(--text-secondary)] transition-colors"
+                                >
+                                  <X size={14} />
+                                </button>
+                              </div>
+                            ) : (
+                              <button
+                                onClick={() => {
+                                  setNombreTemp(selectedPlano.nombre);
+                                  setEditingNombre(true);
                                 }}
-                              />
-                              <button
-                                onClick={() => handleSaveNombre(selectedPlano.id, nombreTemp)}
-                                className="p-2 rounded-lg bg-[rgba(var(--site-primary-rgb),0.15)] text-[var(--site-primary)] hover:bg-[rgba(var(--site-primary-rgb),0.25)] transition-colors"
+                                className="w-full text-left group flex items-center gap-2"
                               >
-                                <Check size={14} />
+                                <p className="text-sm text-white font-medium">{selectedPlano.nombre}</p>
+                                <Pencil size={11} className="text-[var(--text-muted)] opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0" />
                               </button>
-                              <button
-                                onClick={() => setEditingNombre(false)}
-                                className="p-2 rounded-lg bg-[var(--surface-3)] text-[var(--text-tertiary)] hover:text-[var(--text-secondary)] transition-colors"
-                              >
-                                <X size={14} />
-                              </button>
-                            </div>
-                          ) : (
-                            <button
-                              onClick={() => {
-                                setNombreTemp(selectedPlano.nombre);
-                                setEditingNombre(true);
-                              }}
-                              className="w-full text-left px-4 py-3 rounded-lg bg-[var(--surface-2)] border border-[var(--border-subtle)] hover:border-[var(--border-default)] transition-colors group"
-                            >
-                              <div className="flex items-center gap-2 mb-1">
-                                <Pencil size={12} className="text-[var(--text-muted)] opacity-0 group-hover:opacity-100 transition-opacity" />
-                                <span className="text-xs text-[var(--text-tertiary)]">
-                                  Editar título
-                                </span>
-                              </div>
-                              <p className="text-sm text-white font-medium">{selectedPlano.nombre}</p>
-                            </button>
-                          )}
-                        </div>
+                            )}
+                          </div>
 
-                        {/* Description editor */}
-                        <div className="px-4 py-6 bg-[var(--surface-1)] rounded-xl border border-[var(--border-subtle)]">
-                          <p className="font-ui text-[10px] text-[var(--text-tertiary)] tracking-wider uppercase font-bold mb-3">
-                            Descripción del plano
-                          </p>
-                          {editingDescripcion ? (
-                            <div className="flex items-start gap-2">
-                              <textarea
-                                value={descTemp}
-                                onChange={(e) => setDescTemp(e.target.value)}
-                                placeholder={t("planos.descriptionPlaceholder")}
-                                rows={4}
-                                className={`${inputClass} text-sm flex-1 resize-none`}
-                                autoFocus
-                              />
-                              <button
-                                onClick={() => handleSaveDescripcion(selectedPlano.id, descTemp)}
-                                className="p-2 rounded-lg bg-[rgba(var(--site-primary-rgb),0.15)] text-[var(--site-primary)] hover:bg-[rgba(var(--site-primary-rgb),0.25)] transition-colors"
-                              >
-                                <Check size={14} />
-                              </button>
-                              <button
-                                onClick={() => setEditingDescripcion(false)}
-                                className="p-2 rounded-lg bg-[var(--surface-3)] text-[var(--text-tertiary)] hover:text-[var(--text-secondary)] transition-colors"
-                              >
-                                <X size={14} />
-                              </button>
-                            </div>
-                          ) : (
-                            <button
-                              onClick={() => {
-                                setDescTemp(selectedPlano.descripcion || "");
-                                setEditingDescripcion(true);
-                              }}
-                              className="w-full text-left px-4 py-3 rounded-lg bg-[var(--surface-2)] border border-[var(--border-subtle)] hover:border-[var(--border-default)] transition-colors group"
-                            >
-                              <div className="flex items-center gap-2 mb-1">
-                                <Pencil size={12} className="text-[var(--text-muted)] opacity-0 group-hover:opacity-100 transition-opacity" />
-                                <span className="text-xs text-[var(--text-tertiary)]">
-                                  {selectedPlano.descripcion ? "Editar descripción" : "Agregar descripción"}
-                                </span>
+                          {/* Description */}
+                          <div className="px-5 py-4">
+                            <p className="font-ui text-[10px] text-[var(--text-muted)] tracking-[.12em] uppercase font-bold mb-2.5">
+                              Descripción
+                            </p>
+                            {editingDescripcion ? (
+                              <div className="flex items-start gap-2">
+                                <textarea
+                                  value={descTemp}
+                                  onChange={(e) => setDescTemp(e.target.value)}
+                                  placeholder={t("planos.descriptionPlaceholder")}
+                                  rows={3}
+                                  className={`${inputClass} text-sm flex-1 resize-none`}
+                                  autoFocus
+                                />
+                                <button
+                                  onClick={() => handleSaveDescripcion(selectedPlano.id, descTemp)}
+                                  className="p-2 rounded-lg bg-[rgba(var(--site-primary-rgb),0.15)] text-[var(--site-primary)] hover:bg-[rgba(var(--site-primary-rgb),0.25)] transition-colors"
+                                >
+                                  <Check size={14} />
+                                </button>
+                                <button
+                                  onClick={() => setEditingDescripcion(false)}
+                                  className="p-2 rounded-lg bg-[var(--surface-3)] text-[var(--text-tertiary)] hover:text-[var(--text-secondary)] transition-colors"
+                                >
+                                  <X size={14} />
+                                </button>
                               </div>
-                              {selectedPlano.descripcion ? (
-                                <p className="text-sm text-[var(--text-secondary)]">{selectedPlano.descripcion}</p>
-                              ) : (
-                                <p className="text-sm text-[var(--text-muted)] italic">{t("planos.descriptionPlaceholder")}</p>
-                              )}
-                            </button>
-                          )}
-                        </div>
-                      </motion.div>
-                    )}
+                            ) : (
+                              <button
+                                onClick={() => {
+                                  setDescTemp(selectedPlano.descripcion || "");
+                                  setEditingDescripcion(true);
+                                }}
+                                className="w-full text-left group flex items-start gap-2"
+                              >
+                                {selectedPlano.descripcion ? (
+                                  <p className="text-sm text-[var(--text-secondary)] leading-relaxed">{selectedPlano.descripcion}</p>
+                                ) : (
+                                  <p className="text-sm text-[var(--text-muted)] italic">{t("planos.descriptionPlaceholder")}</p>
+                                )}
+                                <Pencil size={11} className="text-[var(--text-muted)] opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0 mt-0.5" />
+                              </button>
+                            )}
+                          </div>
 
-                    {/* Amenidades tab */}
-                    {planoDetailTab === "amenidades" && (
-                      <motion.div
-                        key="amenidades-tab"
-                        initial={{ opacity: 0, y: 4 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        exit={{ opacity: 0, y: -4 }}
-                        transition={{ duration: 0.2 }}
-                      >
-                        <AmenidadesEditor
-                          entity={selectedPlano}
-                          projectId={projectId}
-                          onUpdate={handleUpdatePlano}
-                        />
+                          {/* Amenidades */}
+                          <div className="px-5 py-4">
+                            <p className="font-ui text-[10px] text-[var(--text-muted)] tracking-[.12em] uppercase font-bold mb-3">
+                              Amenidades
+                            </p>
+                            <AmenidadesEditor
+                              entity={selectedPlano}
+                              projectId={projectId}
+                              onUpdate={handleUpdatePlano}
+                              embedded
+                            />
+                          </div>
+                        </div>
                       </motion.div>
                     )}
 

@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { motion } from "framer-motion";
 import { ArrowRight } from "lucide-react";
 
@@ -74,9 +75,11 @@ export function ShowcaseCarousel() {
                         >
                             {/* Image */}
                             <div className="aspect-[4/3] rounded-xl overflow-hidden bg-[var(--mk-surface-2)] border border-[var(--mk-border-subtle)] group-hover:border-[rgba(212,165,116,0.15)] group-hover:shadow-[0_0_30px_rgba(212,165,116,0.06)] transition-all duration-500">
-                                <img
+                                <Image
                                     src={project.image}
                                     alt={project.name}
+                                    width={800}
+                                    height={600}
                                     className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
                                 />
                             </div>

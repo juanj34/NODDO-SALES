@@ -1,9 +1,9 @@
 "use client";
 
+import Image from "next/image";
 import React from "react";
 import { motion } from "framer-motion";
-import { BookOpen, Clock, ArrowRight, TrendingUp, Target, Lightbulb, CheckSquare, DollarSign } from "lucide-react";
-import Link from "next/link";
+import { BookOpen, ArrowRight, TrendingUp, Target, Lightbulb, CheckSquare, DollarSign } from "lucide-react";
 import { usePageView } from "@/hooks/usePageView";
 
 const articles = [
@@ -169,11 +169,7 @@ export default function RecursosPage() {
           <div className="glass-card overflow-hidden group hover:bg-white/5 transition-all duration-300">
             <div className="grid grid-cols-1 lg:grid-cols-2">
               <div className="relative h-64 lg:h-auto overflow-hidden">
-                <img
-                  src={articles[0].image}
-                  alt={articles[0].title}
-                  className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
-                />
+                <Image src={articles[0].image} alt="" fill className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
                 <div
                   className="absolute top-4 left-4 px-3 py-1.5 rounded-lg text-xs uppercase tracking-wider"
                   style={{
@@ -285,11 +281,7 @@ export default function RecursosPage() {
                 className="glass-card overflow-hidden group hover:bg-white/5 transition-all duration-300"
               >
                 <div className="relative h-48 overflow-hidden">
-                  <img
-                    src={article.image}
-                    alt={article.title}
-                    className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
-                  />
+                  <Image src={article.image} alt="" fill className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
                 </div>
 
                 <div className="p-6">

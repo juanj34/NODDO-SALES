@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Command } from "cmdk";
-import { Search, FolderOpen, LogOut, Settings, Users, BarChart3, ToggleLeft, Calculator, FileText, ContactRound } from "lucide-react";
+import { Search, FolderOpen, LogOut, Settings, Users, BarChart3, ToggleLeft, Calculator, FileText, ContactRound, CircleDollarSign } from "lucide-react";
 import { useTranslation } from "@/i18n";
 
 export function CommandPalette() {
@@ -78,6 +78,13 @@ export function CommandPalette() {
                             >
                                 <BarChart3 className="mr-3 shrink-0" size={16} />
                                 Analytics
+                            </Command.Item>
+                            <Command.Item
+                                onSelect={() => runCommand(() => router.push("/financiero"))}
+                                className="flex items-center px-4 py-3 rounded-lg text-sm text-[var(--text-secondary)] hover:bg-[var(--surface-3)] hover:text-white cursor-pointer transition-colors aria-selected:bg-[var(--surface-3)] aria-selected:text-white"
+                            >
+                                <CircleDollarSign className="mr-3 shrink-0" size={16} />
+                                Financiero
                             </Command.Item>
                             <Command.Item
                                 onSelect={() => runCommand(() => router.push("/disponibilidad"))}

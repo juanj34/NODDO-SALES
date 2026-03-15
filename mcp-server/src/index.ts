@@ -260,7 +260,7 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
           mensaje?: string;
         };
 
-        const { data: lead, error } = await supabase
+        const { error } = await supabase
           .from("leads")
           .insert({
             proyecto_id: project_id,

@@ -2,6 +2,7 @@
 
 export const dynamic = "force-dynamic";
 
+import Image from "next/image";
 import { useState, useEffect, useCallback, useMemo } from "react";
 import { useTranslation } from "@/i18n";
 import { useEditorProject } from "@/hooks/useEditorProject";
@@ -577,6 +578,21 @@ export default function NoddoGridPage() {
   };
 
   /* ------------------------------------------------------------------
+     Sync empty dots from editor back to local fachadas state
+     (prevents data loss when switching tabs)
+     ------------------------------------------------------------------ */
+  const handleEmptyDotsChange = useCallback(
+    (fachadaId: string, puntos: { x: number; y: number }[]) => {
+      setFachadas((prev) =>
+        prev.map((f) =>
+          f.id === fachadaId ? { ...f, puntos_vacios: puntos } : f
+        )
+      );
+    },
+    []
+  );
+
+  /* ------------------------------------------------------------------
      Derived data for the editor
      ------------------------------------------------------------------ */
   const selectedFachada = visibleFachadas.find((f) => f.id === selectedFachadaId) ?? null;
@@ -689,7 +705,7 @@ export default function NoddoGridPage() {
           >
             <div className="aspect-square bg-black/40">
               {f.imagen_url ? (
-                <img src={f.imagen_url} alt={f.nombre} className="w-full h-full object-cover" />
+                <Image src={f.imagen_url} alt="" fill className="w-full h-full object-cover" />
               ) : (
                 <div className="w-full h-full flex items-center justify-center text-[var(--text-muted)]">
                   <ImageIcon size={14} />
@@ -834,6 +850,7 @@ export default function NoddoGridPage() {
                 onUpdateUnit={handleUpdateUnit}
                 onRemoveUnit={handleRemoveUnit}
                 onClearAll={handleClearAll}
+                onEmptyDotsChange={handleEmptyDotsChange}
               />
             </motion.div>
           )}

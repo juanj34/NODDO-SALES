@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { motion, useMotionValue } from "framer-motion";
 import { useRouter } from "next/navigation";
 import { ArrowRight } from "lucide-react";
@@ -90,11 +91,13 @@ export default function SiteLanding() {
             <source src={proyecto.hero_video_url!} type={proyecto.hero_video_url!.endsWith(".webm") ? "video/webm" : "video/mp4"} />
           </video>
         ) : hasImage ? (
-          <img
+          <Image
             src={proyecto.render_principal_url!}
             alt={proyecto.nombre}
+            fill
+            priority
             onLoad={() => window.dispatchEvent(new Event("hero-ready"))}
-            className={`absolute inset-0 w-full h-full object-cover ${isExiting ? "" : "animate-[kenBurns_20s_ease-in-out_infinite_alternate]"}`}
+            className={`object-cover ${isExiting ? "" : "animate-[kenBurns_20s_ease-in-out_infinite_alternate]"}`}
           />
         ) : null}
 
@@ -117,18 +120,20 @@ export default function SiteLanding() {
           {/* Constructora logo */}
           {proyecto.constructora_website ? (
             <a href={proyecto.constructora_website} target="_blank" rel="noopener noreferrer" className="hover:opacity-90 transition-opacity">
-              <img
+              <Image
                 src={proyecto.constructora_logo_url!}
                 alt={proyecto.constructora_nombre || "Constructora"}
-                loading="lazy"
+                width={120}
+                height={32}
                 className="h-8 w-auto object-contain opacity-60 hover:opacity-90 transition-opacity"
               />
             </a>
           ) : (
-            <img
+            <Image
               src={proyecto.constructora_logo_url!}
               alt={proyecto.constructora_nombre || "Constructora"}
-              loading="lazy"
+              width={120}
+              height={32}
               className="h-8 w-auto object-contain opacity-60"
             />
           )}
@@ -177,9 +182,11 @@ export default function SiteLanding() {
           {/* Project logo or fallback initial */}
           <motion.div variants={slowScaleFade} className={hasBothLogos ? "mb-12" : "mb-8"}>
             {proyecto.logo_url ? (
-              <img
+              <Image
                 src={proyecto.logo_url}
                 alt={proyecto.nombre}
+                width={hasBothLogos ? 400 : 200}
+                height={hasBothLogos ? 208 : 96}
                 className={`w-auto object-contain drop-shadow-2xl ${hasBothLogos ? "h-28 sm:h-40 lg:h-52" : "h-24"}`}
               />
             ) : (
@@ -200,18 +207,20 @@ export default function SiteLanding() {
               {proyecto.constructora_logo_url && (
                 proyecto.constructora_website ? (
                   <a href={proyecto.constructora_website} target="_blank" rel="noopener noreferrer" className="hover:opacity-100 transition-opacity">
-                    <img
+                    <Image
                       src={proyecto.constructora_logo_url}
                       alt={proyecto.constructora_nombre || "Constructora"}
-                      loading="lazy"
+                      width={120}
+                      height={32}
                       className="h-8 w-auto object-contain opacity-80 hover:opacity-100 transition-opacity"
                     />
                   </a>
                 ) : (
-                  <img
+                  <Image
                     src={proyecto.constructora_logo_url}
                     alt={proyecto.constructora_nombre || "Constructora"}
-                    loading="lazy"
+                    width={120}
+                    height={32}
                     className="h-8 w-auto object-contain opacity-80"
                   />
                 )

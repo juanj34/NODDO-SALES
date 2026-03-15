@@ -52,13 +52,15 @@ export async function PUT(
       .from("unidades")
       .update(pick(body, ["tipologia_id", "identificador", "piso", "area_m2", "precio", "estado", "habitaciones", "banos", "orientacion", "vista", "vista_piso_id", "notas", "fachada_id", "fachada_x", "fachada_y", "planta_id", "planta_x", "planta_y", "torre_id", "parqueaderos", "depositos", "orden"]))
       .eq("id", id)
-      .select()
+      .select("*, tipologias(parqueaderos, depositos)")
       .single();
 
     if (error) throw error;
 
-    // Cascade estado to assigned complementos
+    // Cascade estado to assigned complementos + pre-sale validation
     let complementosCascaded = 0;
+    const _warnings: string[] = [];
+
     if (body.estado !== undefined) {
       const { data: proyecto } = await auth.supabase
         .from("proyectos")
@@ -66,21 +68,41 @@ export async function PUT(
         .eq("id", proyectoId)
         .single();
 
-      const hasInventory =
-        (proyecto?.parqueaderos_mode && proyecto.parqueaderos_mode !== "sin_inventario") ||
-        (proyecto?.depositos_mode && proyecto.depositos_mode !== "sin_inventario");
+      const parqMode = proyecto?.parqueaderos_mode ?? "sin_inventario";
+      const depoMode = proyecto?.depositos_mode ?? "sin_inventario";
+      const parqInventory = parqMode === "inventario_incluido" || parqMode === "inventario_separado";
+      const depoInventory = depoMode === "inventario_incluido" || depoMode === "inventario_separado";
 
-      if (hasInventory) {
+      if (parqInventory || depoInventory) {
+        // Cascade estado
         const { data: cascaded } = await auth.supabase
           .from("complementos")
           .update({ estado: body.estado })
           .eq("unidad_id", id)
-          .select("id");
+          .select("id, tipo");
         complementosCascaded = cascaded?.length ?? 0;
+
+        // Pre-sale warning: check if required complementos are assigned
+        if (body.estado === "vendida") {
+          const tipData = data.tipologias as unknown as { parqueaderos: number | null; depositos: number | null } | null;
+          const expectedParq = data.parqueaderos ?? tipData?.parqueaderos ?? 0;
+          const expectedDepo = data.depositos ?? tipData?.depositos ?? 0;
+          const assignedParq = cascaded?.filter((c: { tipo: string }) => c.tipo === "parqueadero").length ?? 0;
+          const assignedDepo = cascaded?.filter((c: { tipo: string }) => c.tipo === "deposito").length ?? 0;
+
+          if (parqInventory && assignedParq < expectedParq) {
+            _warnings.push(`Faltan ${expectedParq - assignedParq} parqueadero(s) por asignar`);
+          }
+          if (depoInventory && assignedDepo < expectedDepo) {
+            _warnings.push(`Faltan ${expectedDepo - assignedDepo} depósito(s) por asignar`);
+          }
+        }
       }
     }
 
-    return NextResponse.json({ ...data, _complementos_cascaded: complementosCascaded });
+    // Strip tipologias join from response
+    const { tipologias: _tip, ...responseData } = data as Record<string, unknown>;
+    return NextResponse.json({ ...responseData, _complementos_cascaded: complementosCascaded, _warnings });
   } catch (err) {
     return NextResponse.json(
       { error: err instanceof Error ? err.message : "Error" },

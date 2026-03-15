@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { useState, useRef, useEffect, useCallback } from "react";
 import { Upload, X, Loader2, AlertTriangle, Crop, Image as ImageIcon } from "lucide-react";
 import { AnimatePresence, motion } from "framer-motion";
@@ -101,7 +102,6 @@ export function FileUploader({
 
   // Crop state
   const [cropSrc, setCropSrc] = useState<string | null>(null);
-  const [pendingFile, setPendingFile] = useState<File | null>(null);
 
   // Aspect ratio warning
   const [aspectWarning, setAspectWarning] = useState<{
@@ -534,11 +534,7 @@ export function FileUploader({
       >
         {preview && !cropSrc && !aspectWarning ? (
           <>
-            <img
-              src={preview}
-              alt=""
-              className={`w-full h-full ${aspect === "logo" ? "object-contain bg-[var(--surface-3)]" : "object-cover"}`}
-            />
+            <Image src={preview} alt="undefined" fill className={`w-full h-full ${aspect === "logo" ? "object-contain bg-[var(--surface-3)]" : "object-cover"} />
             {/* Remove button */}
             <button
               onClick={() => {
@@ -705,11 +701,7 @@ export function FileUploader({
 
               {/* Preview */}
               <div className="aspect-video rounded-lg overflow-hidden bg-[var(--surface-2)] border border-[var(--border-subtle)]">
-                <img
-                  src={aspectWarning.objectUrl}
-                  alt=""
-                  className="w-full h-full object-contain"
-                />
+                <Image src={aspectWarning.objectUrl} alt="undefined" fill className="w-full h-full object-contain" />
               </div>
 
               <div className="flex gap-2">

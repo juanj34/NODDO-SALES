@@ -56,6 +56,7 @@ interface FacadeHotspotEditorProps {
   ) => Promise<void>;
   onRemoveUnit: (unitId: string) => Promise<void>;
   onClearAll: (fachadaId: string) => Promise<void>;
+  onEmptyDotsChange?: (fachadaId: string, puntos: { x: number; y: number }[]) => void;
 }
 
 /* ------------------------------------------------------------------
@@ -116,6 +117,7 @@ export function FacadeHotspotEditor({
   onUpdateUnit,
   onRemoveUnit,
   onClearAll,
+  onEmptyDotsChange,
 }: FacadeHotspotEditorProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const imgRef = useRef<HTMLImageElement>(null);
@@ -230,6 +232,9 @@ export function FacadeHotspotEditor({
     const current = JSON.stringify(emptyDots.map(({ x, y }) => ({ x, y })));
     if (current === lastSavedDots.current) return;
 
+    // Sync dots to parent immediately so tab switches don't lose data
+    onEmptyDotsChange?.(fachada.id, emptyDots.map(({ x, y }) => ({ x, y })));
+
     setDotsSaveStatus("saving");
     const timeout = setTimeout(async () => {
       try {
@@ -249,7 +254,7 @@ export function FacadeHotspotEditor({
       }
     }, 500);
     return () => clearTimeout(timeout);
-  }, [emptyDots, fachada.id]);
+  }, [emptyDots, fachada.id, onEmptyDotsChange]);
 
   /* Flush pending save on unmount (e.g. navigating away) */
   useEffect(() => {
@@ -853,6 +858,7 @@ export function FacadeHotspotEditor({
       >
         {/* Image wrapper */}
         <div className="absolute inset-0 rounded-xl overflow-hidden border border-[var(--border-default)] bg-[var(--surface-2)]">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
             ref={imgRef}
             src={fachada.imagen_url}

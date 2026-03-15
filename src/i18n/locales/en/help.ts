@@ -50,6 +50,46 @@ const help = {
         "The maximum limit is 3 collaborators per admin account.",
       ],
     },
+    disponibilidad: {
+      title: "Unit Availability",
+      description: "Update unit status in real time",
+      content:
+        "The Availability section lets you quickly update unit status (available, separated, reserved, sold). Changes reflect immediately on the public microsite. Both administrators and collaborators have access to this functionality.",
+      steps: [
+        "Go to 'Availability' from the dashboard sidebar.",
+        "Select the project you want to manage.",
+        "Filter units by tower or typology using the selectors at the top.",
+        "Click on any unit's status badge to change availability: available (green), separated (yellow), reserved (blue) or sold (red).",
+        "The change saves automatically and reflects instantly on the public microsite.",
+        "You can see a summary with the total units in each status at the top of the page.",
+      ],
+      tips: [
+        "This is the only function collaborators can execute. It's ideal for your sales team to keep inventory updated without needing access to the full editor.",
+        "Sold units disappear from the microsite's public view but remain visible in the editor and this section.",
+        "Status changes sync in real time — if two people are editing simultaneously, they'll see each other's changes immediately.",
+      ],
+    },
+    estadisticas: {
+      title: "Statistics & Analytics",
+      description: "Complete performance metrics for your microsite",
+      content:
+        "The Statistics tab within each project's editor offers a complete analytics dashboard: views, unique visitors, lead conversion, device distribution, countries, most visited pages and traffic sources. You can select the time range (7, 30 or 90 days) and export data to CSV.",
+      steps: [
+        "From your project editor, click the 'Statistics' tab.",
+        "At the top you'll see 6 main KPIs: total views, unique visitors, total leads, conversion rate, bounce rate and pages per session.",
+        "Select the desired time range (7d, 30d, 90d) to update all metrics.",
+        "Review the time evolution charts for views, visitors and leads.",
+        "In the Distribution section you'll see: devices (desktop/mobile/tablet), most visited pages, main traffic sources (referrers) and visitor countries of origin.",
+        "If you have units with configured prices, you'll also see financial metrics: total inventory, average value per unit, units sold and total value sold.",
+        "Click 'Export CSV' to download all metrics in Excel format.",
+      ],
+      tips: [
+        "Conversion rate is calculated as: (total leads / unique visitors) × 100.",
+        "Data updates in real time. If you don't see data, verify your microsite is published and has received visits.",
+        "Financial metrics only appear if you've configured prices in your unit inventory.",
+        "Use traffic source data to identify which marketing channels are generating more visits and optimize your advertising investment.",
+      ],
+    },
     leads: {
       title: "Leads & Contacts",
       description: "View and export contact form submissions",
@@ -139,6 +179,29 @@ const help = {
         "Collaborators can only change unit status, not create or delete. Ideal for your sales team to update availability in real time.",
         "AI can extract data from unstructured text — try pasting a table from a PDF or a listing from an email.",
         "Statuses reflect immediately on the public microsite. When a unit is marked 'sold', visitors stop seeing it as available.",
+      ],
+    },
+    cotizador: {
+      title: "Quotation & Simulator",
+      description: "Configure payment phases, discounts and interactive simulator",
+      content:
+        "The quotation tool lets you configure a financing simulator that microsite visitors can use to calculate installments and payment plans. You define phases (reservation, down payment, on delivery), applicable discounts and legal notes. The simulator generates downloadable PDFs with personalized payment plans.",
+      steps: [
+        "In the editor, go to the 'Quotation' tab.",
+        "Select your project currency (COP, USD, MXN).",
+        "Configure payment phases: each phase can be 'fixed' (currency amount), 'percentage' (% of unit price) or 'remainder' (remaining balance).",
+        "For each phase define: name, type, value, number of installments and frequency (one-time, monthly, bi-monthly, quarterly).",
+        "Reorder phases by dragging. The order determines how the simulator calculates.",
+        "Activate 'Reservation included in down payment' if you want the reservation amount deducted from the down payment.",
+        "Optionally add discounts: you can create early payment, early bird, launch discounts, etc. Each discount has a percentage and can apply to base price or a specific phase.",
+        "Write legal notes that will appear in the quotation PDF (conditions, interest rate, policies, etc.).",
+        "Use the interactive preview to test the simulator before publishing.",
+      ],
+      tips: [
+        "The simulator is a powerful conversion tool — visitors who generate a quotation are highly qualified leads.",
+        "Generated quotations are automatically saved in the dashboard's 'Quotations' section, where you can view complete history and download PDFs.",
+        "If you change quotation settings, previous quotations are NOT updated — they're preserved with the settings they had when generated.",
+        "The simulator only appears on the microsite if you have at least one unit with configured price in inventory.",
       ],
     },
     fachadas: {
@@ -292,6 +355,30 @@ const help = {
       tips: [
         "DNS propagation can take up to 48 hours, though it usually completes in less than 1 hour.",
         "SSL certificate is generated automatically once the domain is verified.",
+      ],
+    },
+    webhooks: {
+      title: "Webhooks & Integrations",
+      description: "Connect NODDO with your external systems via webhooks",
+      content:
+        "Webhooks allow you to integrate NODDO with your external systems (CRM, automations, databases). When an event occurs on your microsite (new lead, quotation generated), NODDO automatically sends data to a URL you configure. This lets you sync information in real time without manual intervention.",
+      steps: [
+        "In the editor, go to the 'Webhooks' tab.",
+        "Activate webhooks with the toggle at the top.",
+        "Enter your endpoint URL (must be HTTPS). NODDO will send POST requests to this URL whenever an event occurs.",
+        "Select the events you want to receive: 'lead.created' (new lead from contact form) and/or 'cotizacion.created' (new quotation from simulator).",
+        "Copy the secret (secret key) that NODDO automatically generates. Use it on your server to verify requests really come from NODDO via HMAC-SHA256 signature.",
+        "Click 'Save' to activate the configuration.",
+        "Use the 'Send Test' button to verify your endpoint is receiving correctly. NODDO will send a test payload.",
+        "Review delivery history in the logs table: you'll see each request sent, its status (success/failure), HTTP response code and timestamp.",
+        "Click 'Retry' on any failed log to resend the payload.",
+      ],
+      tips: [
+        "Your endpoint must respond with HTTP 200-299 code in less than 10 seconds. If it doesn't respond in time or returns an error, NODDO will automatically retry up to 3 times with exponential backoff.",
+        "The secret is used to generate an HMAC-SHA256 signature of the payload sent in the `X-NODDO-Signature` header. Verify this signature on your server to ensure the request is authentic and wasn't tampered with.",
+        "Webhooks are ideal for integrating with CRMs like HubSpot, Salesforce, Pipedrive, GoHighLevel, or automations in Make.com, Zapier, n8n.",
+        "The payload includes all event data: for leads includes name, email, phone, message, typology of interest, UTMs; for quotations includes client data, selected unit, complete payment plan and PDF URL.",
+        "If you disable webhooks, requests will stop being sent but the log history is preserved.",
       ],
     },
     publicacion: {

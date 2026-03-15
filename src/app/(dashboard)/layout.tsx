@@ -10,7 +10,7 @@ import { cn } from "@/lib/utils";
 import {
   FolderOpen, Users, Settings, LogOut, Loader2, HelpCircle,
   Menu, X, Shield, ToggleLeft, Calculator, ContactRound,
-  BarChart3, FileText, LayoutDashboard,
+  BarChart3, FileText, LayoutDashboard, CircleDollarSign,
 } from "lucide-react";
 import { ToastProvider } from "@/components/dashboard/Toast";
 import { ConfirmProvider } from "@/components/dashboard/ConfirmModal";
@@ -201,14 +201,16 @@ function DashboardShell({ children }: { children: React.ReactNode }) {
             onClick={closeDrawer}
             iconSize={15}
           />
-          <SidebarLink
-            href="/cotizaciones"
-            icon={FileText}
-            label="Cotizaciones"
-            pathname={pathname}
-            onClick={closeDrawer}
-            iconSize={15}
-          />
+
+          {/* ── Divider ────────────────────────── */}
+          <div className="!my-3 h-px bg-[var(--border-subtle)]" />
+
+          {/* ── DATOS section ──────────────────── */}
+          <div className="px-3 py-1.5">
+            <span className="font-ui text-[9px] font-bold uppercase tracking-[0.14em] text-[var(--text-muted)]">
+              {t("sidebar.data")}
+            </span>
+          </div>
           <SidebarLink
             href="/leads"
             icon={ContactRound}
@@ -218,9 +220,25 @@ function DashboardShell({ children }: { children: React.ReactNode }) {
             iconSize={15}
           />
           <SidebarLink
+            href="/cotizaciones"
+            icon={FileText}
+            label="Cotizaciones"
+            pathname={pathname}
+            onClick={closeDrawer}
+            iconSize={15}
+          />
+          <SidebarLink
             href="/analytics"
             icon={BarChart3}
             label="Analytics"
+            pathname={pathname}
+            onClick={closeDrawer}
+            iconSize={15}
+          />
+          <SidebarLink
+            href="/financiero"
+            icon={CircleDollarSign}
+            label={t("sidebar.financiero")}
             pathname={pathname}
             onClick={closeDrawer}
             iconSize={15}

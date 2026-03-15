@@ -1,7 +1,7 @@
 "use client";
 
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import type { Proyecto, ProyectoCompleto, AnalyticsResponse, DashboardSummary } from "@/types";
+import type { Proyecto, ProyectoCompleto, AnalyticsResponse, DashboardSummary, FinancieroResponse } from "@/types";
 
 /**
  * Query keys for React Query caching
@@ -293,5 +293,40 @@ export function useDashboardSummary() {
     staleTime: 3 * 60 * 1000,
     retry: 3,
     retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
+  });
+}
+
+/**
+ * Fetch financial summary data for one or all projects (cached for 2 minutes)
+ *
+ * @param projectId - project UUID or "all" for aggregate
+ * @param from - start date
+ * @param to - end date
+ */
+export function useFinancialSummary(projectId: string, from: Date, to: Date) {
+  return useQuery({
+    queryKey: [
+      "financiero",
+      projectId,
+      from.toISOString(),
+      to.toISOString(),
+    ],
+    queryFn: async () => {
+      const params = new URLSearchParams({
+        from: from.toISOString(),
+        to: to.toISOString(),
+      });
+      if (projectId && projectId !== "all") {
+        params.set("projectId", projectId);
+      }
+      const res = await fetch(`/api/analytics/financiero?${params}`);
+      if (!res.ok) {
+        const err = await res.json();
+        throw new Error(err.error || "Error al cargar datos financieros");
+      }
+      return (await res.json()) as FinancieroResponse;
+    },
+    staleTime: 2 * 60 * 1000,
+    retry: 1,
   });
 }

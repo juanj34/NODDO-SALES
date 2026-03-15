@@ -2,6 +2,7 @@
 
 export const dynamic = "force-dynamic";
 
+import Image from "next/image";
 import { useState, useEffect, useMemo, useCallback } from "react";
 import { useEditorProject } from "@/hooks/useEditorProject";
 import { useToast } from "@/components/dashboard/Toast";
@@ -14,7 +15,6 @@ import {
   labelClass,
   btnPrimary,
   btnSecondary,
-  btnDanger,
   badgeGold,
   badgeMuted,
   sectionCard,
@@ -411,11 +411,7 @@ export default function VistasPage() {
                 {/* Thumbnail */}
                 <div className="relative aspect-video bg-[var(--surface-2)] overflow-hidden">
                   {vista.thumbnail_url || vista.imagen_url ? (
-                    <img
-                      src={vista.thumbnail_url || vista.imagen_url}
-                      alt={vista.nombre}
-                      className="w-full h-full object-cover transition-transform group-hover:scale-[1.02]"
-                    />
+                    <Image src={vista.thumbnail_url || vista.imagen_url} alt="" fill className="w-full h-full object-cover transition-transform group-hover:scale-[1.02]" />
                   ) : (
                     <div className="w-full h-full flex items-center justify-center">
                       <ImageIcon

@@ -2,6 +2,7 @@
 
 export const dynamic = "force-dynamic";
 
+import Image from "next/image";
 import { useState } from "react";
 import { useTranslation } from "@/i18n";
 import { useEditorProject } from "@/hooks/useEditorProject";
@@ -65,11 +66,7 @@ function AvanceCard({
       {/* Thumbnail */}
       <div className="relative aspect-video bg-[var(--surface-2)] overflow-hidden">
         {avance.imagen_url ? (
-          <img
-            src={avance.imagen_url}
-            alt=""
-            className="w-full h-full object-cover"
-          />
+          <Image src={avance.imagen_url} alt="undefined" fill className="w-full h-full object-cover" />
         ) : (
           <div className="w-full h-full flex items-center justify-center">
             <HardHat size={28} className="text-[var(--text-muted)]" />

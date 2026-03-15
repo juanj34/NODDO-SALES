@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { useState, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { SectionTransition } from "@/components/site/SectionTransition";
@@ -283,11 +284,7 @@ export default function AvancesPage() {
                 {/* Image (if no video) */}
                 {!selectedAvance.video_url && selectedAvance.imagen_url && (
                   <div className="rounded-xl overflow-hidden">
-                    <img
-                      src={selectedAvance.imagen_url}
-                      alt={selectedAvance.titulo}
-                      className="w-full h-auto object-cover"
-                    />
+                    <Image src={selectedAvance.imagen_url} alt="" width={400} height={300} className="w-full h-auto object-cover" />
                   </div>
                 )}
 
@@ -340,7 +337,7 @@ function TimelineCard({
         <div className="flex gap-4">
           {avance.imagen_url && (
             <div className="w-20 h-14 rounded-lg overflow-hidden bg-[var(--surface-2)] flex-shrink-0">
-              <img src={avance.imagen_url} alt="" className="w-full h-full object-cover" />
+              <Image src={avance.imagen_url} alt="undefined" fill className="w-full h-full object-cover" />
             </div>
           )}
           <div className="flex-1 min-w-0">
@@ -398,7 +395,7 @@ function SingleAvanceCard({
         {/* Image */}
         {avance.imagen_url && (
           <div className="w-full aspect-video rounded-xl overflow-hidden bg-[var(--surface-2)] mb-4">
-            <img src={avance.imagen_url} alt="" className="w-full h-full object-cover" />
+            <Image src={avance.imagen_url} alt="undefined" fill className="w-full h-full object-cover" />
           </div>
         )}
 

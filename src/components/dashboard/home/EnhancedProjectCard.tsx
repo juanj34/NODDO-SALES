@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { motion } from "framer-motion";
 import Tilt from "react-parallax-tilt";
 import Link from "next/link";
@@ -74,11 +75,7 @@ export function EnhancedProjectCard({ proyecto, stats, index, isAdmin, onDelete,
         {/* Image */}
         <div className="h-[200px] relative overflow-hidden">
           {proyecto.render_principal_url ? (
-            <img
-              src={proyecto.render_principal_url}
-              alt={proyecto.nombre}
-              className="w-full h-full object-cover group-hover:scale-[1.05] transition-transform duration-[3000ms] ease-out"
-            />
+            <Image src={proyecto.render_principal_url} alt="" fill className="w-full h-full object-cover group-hover:scale-[1.05] transition-transform duration-[3000ms] ease-out" />
           ) : (
             <div className="w-full h-full bg-[var(--surface-2)] flex items-center justify-center text-[var(--text-muted)] text-sm">
               {t("proyectos.noImage")}

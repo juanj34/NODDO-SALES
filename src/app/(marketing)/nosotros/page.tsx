@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { Target, Rocket, Users, Heart, Zap, Globe, Award, TrendingUp } from "lucide-react";
 import { usePageView } from "@/hooks/usePageView";
 
@@ -343,7 +344,7 @@ export default function NosotrosPage() {
                   desc: "Próxima expansión a Dubai, UAE y mercados europeos. Objetivo: ser la plataforma #1 de ventas inmobiliarias digitales en LATAM y MENA.",
                   side: "right",
                 },
-              ].map((item, i) => (
+              ].map((item) => (
                 <div key={item.year} className={`flex items-center ${item.side === "right" ? "flex-row-reverse" : ""}`}>
                   <div className={`w-1/2 ${item.side === "left" ? "pr-12 text-right" : "pl-12"}`}>
                     <div className="glass-card p-6 inline-block">
@@ -452,14 +453,9 @@ export default function NosotrosPage() {
               },
             ].map((member) => (
               <div key={member.name} className="glass-card p-6 text-center hover:bg-white/5 transition-all duration-300">
-                <img
-                  src={member.avatar}
-                  alt={member.name}
-                  className="w-32 h-32 rounded-full mx-auto mb-4 object-cover"
-                  style={{
+                <Image src={member.avatar} alt="" width={400} height={300} className="w-32 h-32 rounded-full mx-auto mb-4 object-cover" style={{
                     border: "3px solid rgba(184, 151, 58, 0.3)",
-                  }}
-                />
+                  } />
                 <h3
                   className="text-xl mb-1"
                   style={{

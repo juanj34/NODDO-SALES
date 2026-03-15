@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { useState } from "react";
 import { motion } from "framer-motion";
 import { usePathname } from "next/navigation";
@@ -65,12 +66,7 @@ export default function GaleriaCategoria() {
             onClick={() => setLightboxIndex(idx)}
             className="group relative aspect-video overflow-hidden rounded-lg cursor-pointer"
           >
-            <img
-              src={img.thumbnail_url || img.url}
-              alt={img.alt_text || ""}
-              className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
-              loading="lazy"
-            />
+            <Image src={img.thumbnail_url || img.url} alt="" fill priority className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
             <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors duration-300" />
           </motion.button>
         ))}

@@ -2,6 +2,7 @@
 
 export const dynamic = "force-dynamic";
 
+import Image from "next/image";
 import { useState, useEffect } from "react";
 import { useAsyncAction } from "@/hooks/useAsyncAction";
 import { useEditorProject } from "@/hooks/useEditorProject";
@@ -409,11 +410,7 @@ export default function GaleriaPage() {
                       key={img.id}
                       className="relative aspect-video rounded-lg overflow-hidden bg-[var(--surface-2)] group"
                     >
-                      <img
-                        src={img.thumbnail_url || img.url}
-                        alt={img.alt_text || ""}
-                        className="w-full h-full object-cover"
-                      />
+                      <Image src={img.thumbnail_url || img.url} alt="" fill className="w-full h-full object-cover" />
                       <button
                         onClick={() => deleteImage(img.id)}
                         className="absolute top-1 right-1 w-5 h-5 bg-black/70 rounded-full flex items-center justify-center text-[var(--text-secondary)] hover:text-red-400 opacity-0 group-hover:opacity-100 transition-all"

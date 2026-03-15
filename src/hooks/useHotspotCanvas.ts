@@ -143,6 +143,33 @@ export function useHotspotCanvas(
     return () => window.removeEventListener("resize", onResize);
   }, []);
 
+  /**
+   * Watch container size changes (e.g. when image loads and aspectRatio
+   * switches from the default 4/3 to the actual ratio). Without this,
+   * cachedBounds stays stale until the next user interaction.
+   */
+  useEffect(() => {
+    const container = containerRef.current;
+    if (!container) return;
+    const ro = new ResizeObserver(() => {
+      getImageBounds();
+    });
+    ro.observe(container);
+    return () => ro.disconnect();
+  }, [containerRef, getImageBounds]);
+
+  /**
+   * Recalculate bounds when the image finishes loading so dots placed
+   * before the image was ready get correct positions immediately.
+   */
+  useEffect(() => {
+    const img = imgRef.current;
+    if (!img) return;
+    const onLoad = () => setTick((t) => t + 1);
+    img.addEventListener("load", onLoad);
+    return () => img.removeEventListener("load", onLoad);
+  }, [imgRef]);
+
   return {
     getImageBounds,
     toPercent,

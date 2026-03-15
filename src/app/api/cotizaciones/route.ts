@@ -32,7 +32,7 @@ export async function GET(request: NextRequest) {
     if (!auth?.user) {
       return NextResponse.json({ error: "No autorizado" }, { status: 401 });
     }
-    const { user, role, adminUserId, supabase } = auth;
+    const { role, adminUserId, supabase } = auth;
 
     const url = new URL(request.url);
     const proyectoId = url.searchParams.get("proyecto_id");

@@ -1,6 +1,7 @@
 "use client";
 
-import { motion, AnimatePresence } from "framer-motion";
+import Image from "next/image";
+import { motion } from "framer-motion";
 import { X, Compass, Building2 } from "lucide-react";
 import { useEffect, useCallback } from "react";
 
@@ -60,11 +61,7 @@ export default function VistaModal({ vista, onClose }: VistaModalProps) {
         onClick={(e) => e.stopPropagation()}
       >
         {/* Image */}
-        <img
-          src={vista.imagen_url}
-          alt={vista.nombre}
-          className="block max-w-[90vw] max-h-[85vh] object-contain"
-        />
+        <Image src={vista.imagen_url} alt="" width={400} height={300} className="block max-w-[90vw] max-h-[85vh] object-contain" />
 
         {/* Close button */}
         <button

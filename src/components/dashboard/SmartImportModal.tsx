@@ -37,7 +37,6 @@ import {
   parseCSVWithMapping,
   parseCSVWithMappingComplementos,
   type MappedUnit,
-  type MappedComplemento,
   type EstadoUnidad,
   type ColumnMapping,
 } from "@/lib/csv-parser";

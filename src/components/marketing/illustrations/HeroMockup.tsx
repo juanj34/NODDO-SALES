@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { motion } from "framer-motion";
 
 /**
@@ -43,10 +44,12 @@ export function HeroMockup({ className = "" }: { className?: string }) {
         {/* Microsite content */}
         <div className="relative aspect-[16/10] bg-[#0A0A0B] overflow-hidden">
           {/* Hero background image */}
-          <img
+          <Image
             src="https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?auto=format&fit=crop&w=900&q=75"
             alt=""
-            className="absolute inset-0 w-full h-full object-cover opacity-40"
+            fill
+            priority
+            className="object-cover opacity-40"
           />
           {/* Gradient overlay */}
           <div className="absolute inset-0 bg-gradient-to-t from-[#0A0A0B] via-[#0A0A0B]/60 to-transparent" />
@@ -143,11 +146,7 @@ export function HeroMockup({ className = "" }: { className?: string }) {
                   key={i}
                   className="aspect-[4/3] rounded overflow-hidden bg-[#1A1A1D]"
                 >
-                  <img
-                    src={src}
-                    alt=""
-                    className="w-full h-full object-cover"
-                  />
+                  <Image src={src} alt="undefined" fill className="w-full h-full object-cover" />
                 </div>
               ))}
             </div>

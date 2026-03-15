@@ -71,6 +71,8 @@ export interface Proyecto {
   cotizador_enabled: boolean;
   parqueaderos_mode: ComplementoMode;
   depositos_mode: ComplementoMode;
+  parqueaderos_precio_base: number | null;
+  depositos_precio_base: number | null;
   cotizador_config: CotizadorConfig | null;
   webhook_config: WebhookConfig | null;
   created_at: string;
@@ -502,6 +504,32 @@ export interface UnitSoldDetail {
   month: string; // YYYY-MM
 }
 
+/* ── Financiero Response ── */
+
+export interface FinancieroProjectBreakdown {
+  id: string;
+  nombre: string;
+  currency: Currency;
+  financial: FinancialMetrics;
+}
+
+export interface FinancieroResponse {
+  total_revenue: number;
+  total_available_value: number;
+  total_reservada_value: number;
+  avg_sales_velocity: number;
+  total_units: number;
+  total_disponible: number;
+  total_separado: number;
+  total_reservada: number;
+  total_vendida: number;
+  sell_through_rate: number;
+  projects: FinancieroProjectBreakdown[];
+  monthly_revenue: MonthlyRevenue[];
+  units_sold_detail: UnitSoldDetail[];
+  primary_currency: Currency;
+}
+
 export interface EmailReportConfig {
   id?: string;
   user_id?: string;
@@ -729,7 +757,7 @@ export interface PlatformAlert {
 
 /* ── Complementos (Parking & Storage) ── */
 
-export type ComplementoMode = "sin_inventario" | "inventario_incluido" | "inventario_separado";
+export type ComplementoMode = "sin_inventario" | "inventario_incluido" | "inventario_separado" | "precio_base";
 
 export interface Complemento {
   id: string;
@@ -755,6 +783,14 @@ export interface ComplementoSeleccion {
   subtipo: string | null;
   precio: number | null;
   suma_al_total: boolean;
+  /** precio_base mode: how many items at the base price */
+  cantidad?: number;
+  /** precio_base mode: virtual item, not a real complemento record */
+  es_precio_base?: boolean;
+  /** extras: distinguishes included vs extra complementos */
+  es_extra?: boolean;
+  /** extras: negotiated price override (for inventario_incluido extras) */
+  precio_negociado?: number;
 }
 
 /* ── Vistas por Piso (Floor Views) ── */

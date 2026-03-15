@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { useSearchParams } from "next/navigation";
 import { Suspense, useEffect, useState } from "react";
 import { motion } from "framer-motion";
@@ -445,11 +446,7 @@ function DemoConfirmadaContent() {
                 {/* Author */}
                 <div className="flex items-center gap-3">
                   {t.avatarUrl ? (
-                    <img
-                      src={t.avatarUrl}
-                      alt={t.name}
-                      className="w-9 h-9 rounded-full object-cover"
-                    />
+                    <Image src={t.avatarUrl} alt="" width={400} height={300} className="w-9 h-9 rounded-full object-cover" />
                   ) : (
                     <div className="w-9 h-9 rounded-full bg-[rgba(184,151,58,0.15)] border border-[rgba(184,151,58,0.2)] flex items-center justify-center">
                       <span

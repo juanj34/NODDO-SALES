@@ -2,6 +2,7 @@
 
 export const dynamic = "force-dynamic";
 
+import Image from "next/image";
 import { useState, useCallback, useEffect } from "react";
 import Link from "next/link";
 import { useTranslation } from "@/i18n";
@@ -688,7 +689,7 @@ function FachadasTabContent({ torre, fachadas: fachadasList, projectId }: Fachad
           {fachadasList.map((f) => (
             <div key={f.id} className="flex items-center gap-3 p-2.5 rounded-lg bg-[var(--surface-2)]">
               {f.imagen_url && (
-                <img src={f.imagen_url} alt="" className="w-12 h-8 rounded object-cover" />
+                <Image src={f.imagen_url} alt="undefined" width={400} height={300} className="w-12 h-8 rounded object-cover" />
               )}
               <span className="text-xs text-[var(--text-secondary)]">{f.nombre}</span>
             </div>

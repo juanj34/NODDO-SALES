@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { useState } from "react";
 import { motion } from "framer-motion";
 import { SectionTransition } from "@/components/site/SectionTransition";
@@ -36,11 +37,7 @@ export default function ContactoPage() {
       {/* Blurred background image */}
       {proyecto.render_principal_url && (
         <div className="absolute inset-0 z-0">
-          <img
-            src={proyecto.render_principal_url}
-            alt=""
-            className="w-full h-full object-cover blur-sm scale-105"
-          />
+          <Image src={proyecto.render_principal_url} alt="undefined" fill className="w-full h-full object-cover blur-sm scale-105" />
           <div className="absolute inset-0 bg-[var(--site-bg)]/85" />
         </div>
       )}

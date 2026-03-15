@@ -2,6 +2,7 @@
 
 export const dynamic = "force-dynamic";
 
+import Image from "next/image";
 import { useState, useEffect, useRef } from "react";
 import { useAsyncAction } from "@/hooks/useAsyncAction";
 import { useTranslation } from "@/i18n";
@@ -105,7 +106,7 @@ function DraggableVideo({
             <span className="text-[9px] text-red-400">Error</span>
           </div>
         ) : thumb ? (
-          <img src={thumb} alt="" className="w-full h-full object-cover" />
+          <Image src={thumb} alt="undefined" fill className="w-full h-full object-cover" />
         ) : (
           <Film size={20} className="text-[var(--text-muted)]" />
         )}
@@ -490,11 +491,7 @@ export default function VideosPage() {
                   </div>
                   {videoForm.url && getYouTubeThumbnail(videoForm.url) && (
                     <div className="w-48 aspect-video rounded-lg overflow-hidden bg-[var(--surface-2)]">
-                      <img
-                        src={getYouTubeThumbnail(videoForm.url)!}
-                        alt="Preview"
-                        className="w-full h-full object-cover"
-                      />
+                      <Image src={getYouTubeThumbnail(videoForm.url)!} alt="Preview" fill className="w-full h-full object-cover" />
                     </div>
                   )}
                   <div className="flex items-center gap-3 pt-2">

@@ -10,7 +10,7 @@ import {
 import Link from "next/link";
 import { cn } from "@/lib/utils";
 import { formatCurrency } from "@/lib/currency";
-import type { Currency, ComplementoMode, ComplementoSeleccion, FaseConfig, Complemento } from "@/types";
+import type { Currency, ComplementoMode, ComplementoSeleccion, Complemento } from "@/types";
 import { useTranslation } from "@/i18n";
 import { useToast } from "@/components/dashboard/Toast";
 import { useAuthRole } from "@/hooks/useAuthContext";

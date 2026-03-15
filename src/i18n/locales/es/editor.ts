@@ -393,6 +393,7 @@ const editor = {
     applyTo: "Aplicar a",
     applyToSelected: "Seleccionadas ({{n}})",
     applyToAvailable: "Todas las disponibles ({{n}})",
+    includeEstados: "Estados a incluir",
     adjustType: "Tipo de ajuste",
     percentage: "Porcentaje",
     fixedAmount: "Monto fijo",

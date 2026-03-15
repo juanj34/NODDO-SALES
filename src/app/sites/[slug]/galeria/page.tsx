@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { useState, useCallback, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useSiteProject } from "@/hooks/useSiteProject";
@@ -139,11 +140,7 @@ export default function GaleriaPage() {
               else if (info.offset.x > 80) goPrev();
             }}
           >
-            <img
-              src={current.url}
-              alt={current.alt_text || proyecto.nombre}
-              className="w-full h-full object-cover pointer-events-none"
-            />
+            <Image src={current.url} alt="" fill className="w-full h-full object-cover pointer-events-none" />
             {/* Dark gradient overlay for readability */}
             <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/10 to-black/30 pointer-events-none" />
           </motion.div>
@@ -288,12 +285,7 @@ export default function GaleriaPage() {
                         : "border-transparent opacity-40 hover:opacity-100 grayscale-[0.3]"
                     )}
                   >
-                    <img
-                      src={img.url}
-                      alt={`Thumbnail ${idx + 1}`}
-                      className="w-full h-full object-cover"
-                      loading="lazy"
-                    />
+                    <Image src={img.url} alt="" fill priority className="w-full h-full object-cover" />
                   </motion.button>
                 ))}
               </AnimatePresence>

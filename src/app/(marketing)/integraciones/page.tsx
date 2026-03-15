@@ -153,7 +153,7 @@ export default function IntegracionesPage() {
             <circle cx="700" cy="400" r="40" stroke="#b8973a" strokeWidth="0.8" opacity="0.5" />
 
             {/* Radiating connections */}
-            {[0, 45, 90, 135, 180, 225, 270, 315].map((angle, i) => {
+            {[0, 45, 90, 135, 180, 225, 270, 315].map((angle) => {
               const rad = (angle * Math.PI) / 180;
               const x1 = 700 + Math.cos(rad) * 60;
               const y1 = 400 + Math.sin(rad) * 60;

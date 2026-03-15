@@ -1,8 +1,8 @@
 "use client";
 
+import Image from "next/image";
 import { motion } from "framer-motion";
-import Link from "next/link";
-import { ArrowRight, ExternalLink } from "lucide-react";
+import { ArrowRight } from "lucide-react";
 import { HeroSection } from "@/components/marketing/HeroSection";
 import { ComparisonStrip } from "@/components/marketing/ComparisonStrip";
 import { TrustBar } from "@/components/marketing/TrustBar";
@@ -256,9 +256,11 @@ export default function MarketingHomePage() {
                     overflow: "hidden",
                   }}
                 >
-                  <img
+                  <Image
                     src={photoUrl}
                     alt=""
+                    width={36}
+                    height={36}
                     style={{
                       width: "100%",
                       height: "100%",

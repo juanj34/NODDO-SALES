@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { useEffect, useRef, useState } from "react";
 import { motion } from "framer-motion";
 import { ArrowRight, TrendingUp } from "lucide-react";
@@ -550,15 +551,11 @@ export function SalesImpactSection() {
                       overflow: "hidden",
                     }}
                   >
-                    <img
-                      src={photoUrl}
-                      alt=""
-                      style={{
+                    <Image src={photoUrl} alt="undefined" width={400} height={300} style={{
                         width: "100%",
                         height: "100%",
                         objectFit: "cover",
-                      }}
-                    />
+                      }} />
                   </div>
                 ))}
               </div>

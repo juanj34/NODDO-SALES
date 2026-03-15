@@ -2,6 +2,7 @@
 
 export const dynamic = "force-dynamic";
 
+import Image from "next/image";
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import {
@@ -248,11 +249,7 @@ export default function AdminModeracionPage() {
                 {/* Preview */}
                 {project.render_principal_url && (
                   <div className="w-24 h-24 rounded-lg overflow-hidden bg-[var(--surface-3)] shrink-0">
-                    <img
-                      src={project.render_principal_url}
-                      alt={project.nombre}
-                      className="w-full h-full object-cover"
-                    />
+                    <Image src={project.render_principal_url} alt="" fill className="w-full h-full object-cover" />
                   </div>
                 )}
 

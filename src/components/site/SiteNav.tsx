@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
@@ -125,20 +126,12 @@ export function SiteNav({ basePath, projectName, logoUrl, faviconUrl, constructo
           )}
         >
           {!expanded && faviconUrl ? (
-            <img
-              src={faviconUrl}
-              alt={projectName}
-              className="h-7 w-7 rounded-md object-cover flex-shrink-0"
-            />
+            <Image src={faviconUrl} alt="" width={400} height={300} className="h-7 w-7 rounded-md object-cover flex-shrink-0" />
           ) : logoUrl ? (
-            <img
-              src={logoUrl}
-              alt={projectName}
-              className={cn(
+            <Image src={logoUrl} alt="" width={400} height={300} className={cn(
                 "object-contain flex-shrink-0",
                 expanded ? "h-14 max-w-[160px]" : "h-7 w-7 rounded-md"
-              )}
-            />
+              )} />
           ) : (
             <div
               className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0"
@@ -242,18 +235,10 @@ export function SiteNav({ basePath, projectName, logoUrl, faviconUrl, constructo
           <div className="px-4 mb-3 flex-shrink-0 flex justify-center">
             {constructoraWebsite ? (
               <a href={constructoraWebsite} target="_blank" rel="noopener noreferrer" className="hover:opacity-60 transition-opacity">
-                <img
-                  src={constructoraLogoUrl}
-                  alt="Constructora"
-                  className="h-6 w-auto object-contain opacity-40 hover:opacity-60 transition-opacity"
-                />
+                <Image src={constructoraLogoUrl} alt="Constructora" width={400} height={300} className="h-6 w-auto object-contain opacity-40 hover:opacity-60 transition-opacity" />
               </a>
             ) : (
-              <img
-                src={constructoraLogoUrl}
-                alt="Constructora"
-                className="h-6 w-auto object-contain opacity-40"
-              />
+              <Image src={constructoraLogoUrl} alt="Constructora" width={400} height={300} className="h-6 w-auto object-contain opacity-40" />
             )}
           </div>
         )}

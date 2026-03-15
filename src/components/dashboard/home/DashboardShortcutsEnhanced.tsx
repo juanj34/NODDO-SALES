@@ -2,7 +2,7 @@
 
 import { motion } from "framer-motion";
 import Link from "next/link";
-import { Users, BarChart3, ToggleLeft, Calculator } from "lucide-react";
+import { Users, BarChart3, ToggleLeft, Calculator, CircleDollarSign } from "lucide-react";
 import { useTranslation } from "@/i18n";
 import { useAuthRole } from "@/hooks/useAuthContext";
 import { trackDashboardEvent, type DashboardEventType } from "@/lib/dashboard-tracking";
@@ -30,6 +30,13 @@ export function DashboardShortcutsEnhanced({ leadCount }: Props) {
       icon: BarChart3,
       href: "/analytics",
       trackEvent: "shortcut_analytics_click" as DashboardEventType,
+    },
+    {
+      label: t("financiero.title"),
+      description: "Ventas e inventario",
+      icon: CircleDollarSign,
+      href: "/financiero",
+      trackEvent: "shortcut_financiero_click" as DashboardEventType,
     },
     {
       label: t("disponibilidad.title"),

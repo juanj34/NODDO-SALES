@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { useState, useCallback, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { ChevronLeft, ChevronRight } from "lucide-react";
@@ -83,7 +84,7 @@ export function Lightbox({ images, initialIndex = 0, onClose }: LightboxProps) {
         {/* Image + label */}
         <div className="relative max-w-full max-h-[calc(100vh-200px)]">
           <AnimatePresence mode="wait" custom={direction}>
-            <motion.img
+            <motion.div
               key={current.id}
               custom={direction}
               variants={variants}
@@ -91,10 +92,16 @@ export function Lightbox({ images, initialIndex = 0, onClose }: LightboxProps) {
               animate="center"
               exit="exit"
               transition={{ duration: 0.3, ease: "easeInOut" }}
-              src={current.url}
-              alt={current.alt_text || ""}
-              className="max-w-full max-h-[calc(100vh-200px)] object-contain rounded-lg"
-            />
+              className="relative max-w-full max-h-[calc(100vh-200px)]"
+            >
+              <Image
+                src={current.url}
+                alt={current.alt_text || ""}
+                width={1920}
+                height={1080}
+                className="max-w-full max-h-[calc(100vh-200px)] object-contain rounded-lg"
+              />
+            </motion.div>
           </AnimatePresence>
 
           {/* Label overlay */}
@@ -132,9 +139,11 @@ export function Lightbox({ images, initialIndex = 0, onClose }: LightboxProps) {
                 : "border-transparent opacity-40 hover:opacity-70"
             }`}
           >
-            <img
+            <Image
               src={img.thumbnail_url || img.url}
               alt={img.alt_text || ""}
+              width={64}
+              height={48}
               className="w-full h-full object-cover"
             />
           </button>

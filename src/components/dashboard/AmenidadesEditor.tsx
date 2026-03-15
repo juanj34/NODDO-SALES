@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { useState, useEffect, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
@@ -38,9 +39,11 @@ interface AmenidadesEditorProps {
   entity: { id: string; amenidades_data: AmenidadItem[] | null };
   projectId: string;
   onUpdate: (entityId: string, data: { amenidades_data: AmenidadItem[] }) => Promise<void>;
+  /** When true, renders without the outer sectionCard wrapper (for embedding inside another card) */
+  embedded?: boolean;
 }
 
-export function AmenidadesEditor({ entity, projectId, onUpdate }: AmenidadesEditorProps) {
+export function AmenidadesEditor({ entity, projectId, onUpdate, embedded }: AmenidadesEditorProps) {
   const [search, setSearch] = useState("");
   const [collapsedCats, setCollapsedCats] = useState<Set<string>>(new Set());
   const [customNombre, setCustomNombre] = useState("");
@@ -121,7 +124,7 @@ export function AmenidadesEditor({ entity, projectId, onUpdate }: AmenidadesEdit
   );
 
   return (
-    <div className={sectionCard}>
+    <div className={embedded ? "" : sectionCard}>
       {/* Save / discard bar */}
       <AnimatePresence>
         {isDirty && (
@@ -159,7 +162,7 @@ export function AmenidadesEditor({ entity, projectId, onUpdate }: AmenidadesEdit
                 className="inline-flex items-center gap-1.5 pl-2 pr-1 py-1 bg-[rgba(var(--site-primary-rgb),0.1)] border border-[rgba(var(--site-primary-rgb),0.2)] rounded-lg text-xs text-[var(--site-primary)]"
               >
                 {a.icon_url ? (
-                  <img src={a.icon_url} alt="" className="w-3.5 h-3.5 object-contain" />
+                  <Image src={a.icon_url} alt="undefined" width={400} height={300} className="w-3.5 h-3.5 object-contain" />
                 ) : (
                   <DynamicIcon name={a.icono} size={12} />
                 )}

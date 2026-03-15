@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Search, User, FolderOpen, MessageSquare, Loader2, X } from "lucide-react";
@@ -258,11 +259,7 @@ export function GlobalSearch() {
                           }`}
                         >
                           {project.render_principal_url ? (
-                            <img
-                              src={project.render_principal_url}
-                              alt={project.nombre}
-                              className="w-8 h-8 rounded object-cover shrink-0"
-                            />
+                            <Image src={project.render_principal_url} alt="" width={400} height={300} className="w-8 h-8 rounded object-cover shrink-0" />
                           ) : (
                             <div className="w-8 h-8 rounded bg-[var(--surface-3)] flex items-center justify-center shrink-0">
                               <FolderOpen size={14} className="text-[var(--site-primary)]" />

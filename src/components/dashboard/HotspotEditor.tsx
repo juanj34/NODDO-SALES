@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, useRef, useCallback, type SetStateAction } from "react";
+import Image from "next/image";
+import { useState, useRef } from "react";
 import type { TipologiaHotspot } from "@/types";
 import { FileUploader } from "./FileUploader";
 import { useHotspotCanvas } from "@/hooks/useHotspotCanvas";
@@ -124,6 +125,7 @@ export function HotspotEditor({
           onPointerMove={handlePointerMove}
           onPointerUp={handlePointerUp}
         >
+          {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
             ref={imgRef}
             src={imageUrl}
@@ -363,11 +365,7 @@ export function HotspotEditor({
                         </div>
                         {hs.render_url && (
                           <div className="w-8 h-6 rounded overflow-hidden bg-[var(--surface-3)] shrink-0">
-                            <img
-                              src={hs.render_url}
-                              alt=""
-                              className="w-full h-full object-cover"
-                            />
+                            <Image src={hs.render_url} alt="undefined" fill className="w-full h-full object-cover" />
                           </div>
                         )}
                       </button>

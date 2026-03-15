@@ -17,6 +17,7 @@ const PROYECTO_FIELDS = [
   "webhook_config",
   "tipo_proyecto",
   "parqueaderos_mode", "depositos_mode",
+  "parqueaderos_precio_base", "depositos_precio_base",
 ];
 
 export async function GET(

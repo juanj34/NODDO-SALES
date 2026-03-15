@@ -1,8 +1,8 @@
 "use client";
 
+import Image from "next/image";
 import { motion } from "framer-motion";
-import Link from "next/link";
-import { ArrowRight, ExternalLink } from "lucide-react";
+import { ArrowRight } from "lucide-react";
 import { IsometricBuilding } from "./illustrations/IsometricBuilding";
 import { useBooking } from "./BookingProvider";
 
@@ -114,9 +114,11 @@ export function HeroSection() {
                       overflow: "hidden",
                     }}
                   >
-                    <img
+                    <Image
                       src={photoUrl}
                       alt=""
+                      width={28}
+                      height={28}
                       style={{
                         width: "100%",
                         height: "100%",

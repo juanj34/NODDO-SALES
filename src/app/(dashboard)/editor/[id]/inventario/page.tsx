@@ -4,7 +4,6 @@ export const dynamic = "force-dynamic";
 
 import { useState, useMemo, useCallback, useRef } from "react";
 import { useEditorProject } from "@/hooks/useEditorProject";
-import { PageHeader } from "@/components/dashboard/base/PageHeader";
 import {
   inputClass,
   labelClass,
@@ -33,13 +32,15 @@ import {
   TrendingUp,
   MessageSquare,
   Send,
+  Car,
+  Warehouse,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { formatCurrency } from "@/lib/currency";
 import { useTranslation } from "@/i18n";
 import { useToast } from "@/components/dashboard/Toast";
 import { useMediaQuery } from "@/hooks/useMediaQuery";
-import type { Unidad, Tipologia, Torre, Fachada, ComplementoMode } from "@/types";
+import type { Unidad, Tipologia, Torre, Fachada, Complemento, ComplementoMode, Currency } from "@/types";
 import { ComplementosSection } from "@/components/dashboard/ComplementosSection";
 import { SmartImportModal } from "@/components/dashboard/SmartImportModal";
 
@@ -480,31 +481,68 @@ function UnitForm({
 // Price Adjust Modal
 // ---------------------------------------------------------------------------
 
+type InventoryTab = "unidades" | "parqueadero" | "deposito";
+
 function PriceAdjustModal({
   unidades,
+  complementos,
   selectedIds,
+  activeInventoryTab,
+  hasParqueaderos,
+  hasDepositos,
+  moneda,
   onClose,
   onDone,
 }: {
   unidades: Unidad[];
+  complementos: Complemento[];
   selectedIds: Set<string>;
+  activeInventoryTab: InventoryTab;
+  hasParqueaderos: boolean;
+  hasDepositos: boolean;
+  moneda: Currency;
   onClose: () => void;
   onDone: () => void;
 }) {
   const { t } = useTranslation("editor");
-  const [scope, setScope] = useState<"selected" | "available">(
-    selectedIds.size > 0 ? "selected" : "available"
-  );
+  const hasComplementos = hasParqueaderos || hasDepositos;
+
+  // --- State ---
+  const [useSelected, setUseSelected] = useState(selectedIds.size > 0);
+  const [targetType, setTargetType] = useState<InventoryTab>(activeInventoryTab);
+  const [includeEstados, setIncludeEstados] = useState<Set<EstadoUnidad>>(new Set(["disponible"]));
   const [adjustType, setAdjustType] = useState<"percentage" | "fixed">("percentage");
   const [adjustValue, setAdjustValue] = useState("");
   const [applying, setApplying] = useState(false);
 
-  const affectedUnits = useMemo(() => {
-    if (scope === "selected") {
-      return unidades.filter((u) => selectedIds.has(u.id) && u.precio != null);
+  const toggleEstado = (estado: EstadoUnidad) => {
+    setIncludeEstados((prev) => {
+      const next = new Set(prev);
+      if (next.has(estado)) {
+        if (next.size > 1) next.delete(estado); // keep at least one
+      } else {
+        next.add(estado);
+      }
+      return next;
+    });
+  };
+
+  // --- Affected items (unified: unidades or complementos) ---
+  const affectedItems = useMemo(() => {
+    if (useSelected && selectedIds.size > 0) {
+      return unidades
+        .filter((u) => selectedIds.has(u.id) && u.precio != null)
+        .map((u) => ({ id: u.id, identificador: u.identificador, precio: u.precio!, type: "unidad" as const }));
     }
-    return unidades.filter((u) => u.estado === "disponible" && u.precio != null);
-  }, [unidades, selectedIds, scope]);
+    if (targetType === "unidades") {
+      return unidades
+        .filter((u) => includeEstados.has(u.estado) && u.precio != null)
+        .map((u) => ({ id: u.id, identificador: u.identificador, precio: u.precio!, type: "unidad" as const }));
+    }
+    return complementos
+      .filter((c) => c.tipo === targetType && includeEstados.has(c.estado) && c.precio != null)
+      .map((c) => ({ id: c.id, identificador: c.identificador, precio: c.precio!, type: "complemento" as const }));
+  }, [unidades, complementos, selectedIds, useSelected, targetType, includeEstados]);
 
   const numValue = parseFloat(adjustValue) || 0;
 
@@ -516,16 +554,19 @@ function PriceAdjustModal({
   };
 
   const handleApply = async () => {
-    if (affectedUnits.length === 0 || numValue === 0) return;
+    if (affectedItems.length === 0 || numValue === 0) return;
     setApplying(true);
     try {
-      const promises = affectedUnits.map((u) =>
-        fetch(`/api/unidades/${u.id}`, {
+      const promises = affectedItems.map((item) => {
+        const endpoint = item.type === "unidad"
+          ? `/api/unidades/${item.id}`
+          : `/api/complementos/${item.id}`;
+        return fetch(endpoint, {
           method: "PUT",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ precio: computeNewPrice(u.precio!) }),
-        })
-      );
+          body: JSON.stringify({ precio: computeNewPrice(item.precio) }),
+        });
+      });
       await Promise.all(promises);
       onDone();
     } catch {
@@ -535,7 +576,11 @@ function PriceAdjustModal({
     }
   };
 
-  const availableCount = unidades.filter((u) => u.estado === "disponible" && u.precio != null).length;
+  const ESTADO_FILTER_OPTIONS: { value: EstadoUnidad; label: string; dot: string }[] = [
+    { value: "disponible", label: "Disponible", dot: "bg-green-500" },
+    { value: "separado", label: "Separado", dot: "bg-yellow-500" },
+    { value: "reservada", label: "Reservada", dot: "bg-orange-500" },
+  ];
 
   return (
     <motion.div
@@ -567,38 +612,92 @@ function PriceAdjustModal({
 
         {/* Body */}
         <div className="flex-1 overflow-y-auto p-6 space-y-5">
-          {/* Scope */}
-          <div className="space-y-2">
-            <p className="font-ui text-[10px] text-[var(--text-tertiary)] uppercase tracking-wider font-bold">{t("inventario.applyTo")}</p>
-            <div className="flex flex-col gap-2">
-              {selectedIds.size > 0 && (
-                <label className="flex items-center gap-2 cursor-pointer">
-                  <input
-                    type="radio"
-                    name="scope"
-                    checked={scope === "selected"}
-                    onChange={() => setScope("selected")}
-                    className="accent-[var(--site-primary)]"
-                  />
-                  <span className="text-xs text-[var(--text-secondary)]">
-                    {t("inventario.applyToSelected", { n: String(selectedIds.size) })}
-                  </span>
-                </label>
-              )}
-              <label className="flex items-center gap-2 cursor-pointer">
-                <input
-                  type="radio"
-                  name="scope"
-                  checked={scope === "available"}
-                  onChange={() => setScope("available")}
-                  className="accent-[var(--site-primary)]"
-                />
-                <span className="text-xs text-[var(--text-secondary)]">
-                  {t("inventario.applyToAvailable", { n: String(availableCount) })}
-                </span>
-              </label>
+          {/* Selected items toggle */}
+          {selectedIds.size > 0 && (
+            <label className="flex items-center gap-2.5 cursor-pointer p-2.5 rounded-lg bg-[rgba(var(--site-primary-rgb),0.05)] border border-[rgba(var(--site-primary-rgb),0.15)]">
+              <input
+                type="checkbox"
+                checked={useSelected}
+                onChange={(e) => setUseSelected(e.target.checked)}
+                className="accent-[var(--site-primary)] w-3.5 h-3.5"
+              />
+              <span className="text-xs text-[var(--text-secondary)]">
+                {t("inventario.applyToSelected", { n: String(selectedIds.size) })}
+              </span>
+            </label>
+          )}
+
+          {/* Target type — only shown when complementos exist and not using selected */}
+          {hasComplementos && !useSelected && (
+            <div className="space-y-2">
+              <p className="font-ui text-[10px] text-[var(--text-tertiary)] uppercase tracking-wider font-bold">{t("inventario.applyTo")}</p>
+              <div className="flex gap-1 p-1 bg-[var(--surface-1)] rounded-lg border border-[var(--border-subtle)]">
+                <button
+                  onClick={() => setTargetType("unidades")}
+                  className={cn(
+                    "flex items-center gap-1.5 px-3 py-1.5 rounded-md text-[11px] font-medium transition-all flex-1 justify-center",
+                    targetType === "unidades"
+                      ? "bg-[var(--surface-3)] text-white shadow-sm"
+                      : "text-[var(--text-tertiary)] hover:text-[var(--text-secondary)]"
+                  )}
+                >
+                  <Package size={12} />
+                  Unidades
+                </button>
+                {hasParqueaderos && (
+                  <button
+                    onClick={() => setTargetType("parqueadero")}
+                    className={cn(
+                      "flex items-center gap-1.5 px-3 py-1.5 rounded-md text-[11px] font-medium transition-all flex-1 justify-center",
+                      targetType === "parqueadero"
+                        ? "bg-[var(--surface-3)] text-white shadow-sm"
+                        : "text-[var(--text-tertiary)] hover:text-[var(--text-secondary)]"
+                    )}
+                  >
+                    <Car size={12} />
+                    Parqueaderos
+                  </button>
+                )}
+                {hasDepositos && (
+                  <button
+                    onClick={() => setTargetType("deposito")}
+                    className={cn(
+                      "flex items-center gap-1.5 px-3 py-1.5 rounded-md text-[11px] font-medium transition-all flex-1 justify-center",
+                      targetType === "deposito"
+                        ? "bg-[var(--surface-3)] text-white shadow-sm"
+                        : "text-[var(--text-tertiary)] hover:text-[var(--text-secondary)]"
+                    )}
+                  >
+                    <Warehouse size={12} />
+                    Depósitos
+                  </button>
+                )}
+              </div>
             </div>
-          </div>
+          )}
+
+          {/* Estado filter — hidden when using selected */}
+          {!useSelected && (
+            <div className="space-y-2">
+              <p className="font-ui text-[10px] text-[var(--text-tertiary)] uppercase tracking-wider font-bold">
+                {t("inventario.includeEstados")}
+              </p>
+              <div className="flex items-center gap-3">
+                {ESTADO_FILTER_OPTIONS.map((e) => (
+                  <label key={e.value} className="flex items-center gap-1.5 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={includeEstados.has(e.value)}
+                      onChange={() => toggleEstado(e.value)}
+                      className="accent-[var(--site-primary)] w-3.5 h-3.5"
+                    />
+                    <span className={cn("w-2 h-2 rounded-full", e.dot)} />
+                    <span className="text-xs text-[var(--text-secondary)]">{e.label}</span>
+                  </label>
+                ))}
+              </div>
+            </div>
+          )}
 
           {/* Adjust type */}
           <div className="space-y-2">
@@ -639,12 +738,12 @@ function PriceAdjustModal({
               className={inputClass + " flex-1"}
             />
             <span className="text-sm text-[var(--text-tertiary)]">
-              {adjustType === "percentage" ? "%" : "COP"}
+              {adjustType === "percentage" ? "%" : moneda}
             </span>
           </div>
 
           {/* Preview */}
-          {numValue !== 0 && affectedUnits.length > 0 && (
+          {numValue !== 0 && affectedItems.length > 0 && (
             <div className="space-y-2">
               <p className="font-ui text-[10px] text-[var(--text-tertiary)] uppercase tracking-wider font-bold">{t("inventario.preview")}</p>
               <div className="max-h-48 overflow-y-auto rounded-lg border border-[var(--border-subtle)]">
@@ -658,25 +757,25 @@ function PriceAdjustModal({
                     </tr>
                   </thead>
                   <tbody>
-                    {affectedUnits.slice(0, 20).map((u) => {
-                      const newP = computeNewPrice(u.precio!);
-                      const diff = newP - u.precio!;
+                    {affectedItems.slice(0, 20).map((item) => {
+                      const newP = computeNewPrice(item.precio);
+                      const diff = newP - item.precio;
                       return (
-                        <tr key={u.id} className="border-b border-[var(--border-subtle)]">
-                          <td className="py-1.5 px-3 text-white">{u.identificador}</td>
-                          <td className="py-1.5 px-3 text-right text-[var(--text-secondary)]">{u.precio ? formatCurrency(u.precio, "COP", { compact: true }) : "-"}</td>
-                          <td className="py-1.5 px-3 text-right text-white">{formatCurrency(newP, "COP", { compact: true })}</td>
+                        <tr key={item.id} className="border-b border-[var(--border-subtle)]">
+                          <td className="py-1.5 px-3 text-white">{item.identificador}</td>
+                          <td className="py-1.5 px-3 text-right text-[var(--text-secondary)]">{formatCurrency(item.precio, moneda, { compact: true })}</td>
+                          <td className="py-1.5 px-3 text-right text-white">{formatCurrency(newP, moneda, { compact: true })}</td>
                           <td className={cn("py-1.5 px-3 text-right", diff > 0 ? "text-green-400" : "text-red-400")}>
-                            {diff > 0 ? "+" : ""}{formatCurrency(diff, "COP", { compact: true })}
+                            {diff > 0 ? "+" : ""}{formatCurrency(diff, moneda, { compact: true })}
                           </td>
                         </tr>
                       );
                     })}
                   </tbody>
                 </table>
-                {affectedUnits.length > 20 && (
+                {affectedItems.length > 20 && (
                   <p className="text-[10px] text-[var(--text-muted)] text-center py-2">
-                    +{affectedUnits.length - 20} más...
+                    +{affectedItems.length - 20} más...
                   </p>
                 )}
               </div>
@@ -691,7 +790,7 @@ function PriceAdjustModal({
           </button>
           <button
             onClick={handleApply}
-            disabled={applying || numValue === 0 || affectedUnits.length === 0}
+            disabled={applying || numValue === 0 || affectedItems.length === 0}
             className={btnPrimary}
           >
             {applying ? (
@@ -701,7 +800,7 @@ function PriceAdjustModal({
             )}
             {applying
               ? t("inventario.applying")
-              : t("inventario.applyToN", { n: String(affectedUnits.length) })}
+              : t("inventario.applyToN", { n: String(affectedItems.length) })}
           </button>
         </div>
       </motion.div>
@@ -991,12 +1090,23 @@ export default function InventarioPage() {
   // --- Torre state ---
   const [activeTorreId, setActiveTorreId] = useState<string | null>(null);
 
+  // --- Inventory tab (unidades vs parqueaderos vs depositos) ---
+  const [activeInventoryTab, setActiveInventoryTab] = useState<InventoryTab>("unidades");
+
   // --- Data ---
   const unidades = useMemo(() => project.unidades || [], [project.unidades]);
   const tipologias = useMemo(() => project.tipologias || [], [project.tipologias]);
   const fachadas: Fachada[] = useMemo(() => project.fachadas || [], [project.fachadas]);
   const torres: Torre[] = useMemo(() => project.torres || [], [project.torres]);
   const isMultiTorre = torres.length > 1;
+
+  // --- Complemento modes & counts ---
+  const hasParqueaderos = (project.parqueaderos_mode as ComplementoMode) !== "sin_inventario";
+  const hasDepositos = (project.depositos_mode as ComplementoMode) !== "sin_inventario";
+  const hasComplementos = hasParqueaderos || hasDepositos;
+  const complementos = useMemo(() => (project.complementos || []) as Array<{ tipo: string }>, [project.complementos]);
+  const parqCount = useMemo(() => complementos.filter((c) => c.tipo === "parqueadero").length, [complementos]);
+  const depoCount = useMemo(() => complementos.filter((c) => c.tipo === "deposito").length, [complementos]);
 
   // --- Filtering (includes torre filter) ---
   const filteredUnidades = useMemo(() => {
@@ -1345,18 +1455,37 @@ export default function InventarioPage() {
     <motion.div
       initial={{ opacity: 0, y: 8 }}
       animate={{ opacity: 1, y: 0 }}
-      className="space-y-6"
+      className="space-y-3"
     >
-      {/* Header */}
-      <PageHeader
-        icon={Package}
-        title={t("inventario.title")}
-        description={t("inventario.description")}
-        actions={
-          <div className="flex flex-wrap items-center gap-2">
+      {/* Compact header: icon + title + stats pills + actions */}
+      <div className="flex items-center gap-3 flex-wrap">
+        <div className="flex items-center gap-2.5 mr-auto">
+          <div className="w-8 h-8 rounded-lg bg-[var(--surface-2)] border border-[var(--border-subtle)] flex items-center justify-center shrink-0">
+            <Package size={15} className="text-[var(--site-primary)]" />
+          </div>
+          <h2 className="text-base font-light text-white whitespace-nowrap">
+            {t("inventario.title")}
+          </h2>
+        </div>
+
+        {/* Inline stats pills */}
+        <div className="flex items-center gap-2 order-3 sm:order-none w-full sm:w-auto">
+          {ESTADOS.map((e) => (
+            <div
+              key={e.value}
+              className="flex items-center gap-1.5 px-2 py-1 rounded-lg bg-[var(--surface-2)] border border-[var(--border-subtle)]"
+            >
+              <span className={cn("w-2 h-2 rounded-full shrink-0", ESTADO_DOT_BG[e.value])} />
+              <span className="text-[10px] text-[var(--text-tertiary)] hidden sm:inline">{e.label}</span>
+              <span className="text-xs font-medium text-white">{stats[e.value]}</span>
+            </div>
+          ))}
+        </div>
+
+        {/* Action buttons */}
+        <div className="flex items-center gap-2">
           {!isMobile && (
             <>
-              {/* Import button */}
               <button
                 onClick={() => setShowImportModal(true)}
                 className={btnSecondary}
@@ -1364,8 +1493,6 @@ export default function InventarioPage() {
                 <Upload size={14} />
                 {t("inventario.import")}
               </button>
-
-              {/* Tools dropdown */}
               <div className="relative">
                 <button
                   onClick={() => setShowToolsMenu((p) => !p)}
@@ -1407,8 +1534,6 @@ export default function InventarioPage() {
               </div>
             </>
           )}
-
-          {/* Primary: New Unit */}
           <button
             onClick={() => {
               setShowCreateForm(true);
@@ -1419,8 +1544,6 @@ export default function InventarioPage() {
             <Plus size={14} />
             {isMobile ? t("inventario.newUnit").split(" ").pop() : t("inventario.newUnit")}
           </button>
-
-          {/* Mobile: single dropdown for all actions */}
           {isMobile && (
             <div className="relative">
               <button
@@ -1451,82 +1574,169 @@ export default function InventarioPage() {
               </AnimatePresence>
             </div>
           )}
-          </div>
-        }
-      />
+        </div>
+      </div>
 
-      {/* Torre tabs (when multi-torre) */}
-      {isMultiTorre && (
-        <div className="flex items-center gap-1 p-1 bg-[var(--surface-1)] rounded-xl border border-[var(--border-subtle)] overflow-x-auto scrollbar-thin">
-          {/* All units tab */}
+      {/* Inventory type tabs — shown when complemento modes are enabled */}
+      {hasComplementos && (
+        <div className="flex items-center gap-1 p-1 bg-[var(--surface-1)] rounded-xl border border-[var(--border-subtle)]">
           <button
-            onClick={() => setActiveTorreId(null)}
+            onClick={() => setActiveInventoryTab("unidades")}
             className={cn(
-              "flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-medium transition-all whitespace-nowrap shrink-0",
-              activeTorreId === null
+              "flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-medium transition-all",
+              activeInventoryTab === "unidades"
                 ? "bg-[var(--surface-3)] text-white shadow-sm"
                 : "text-[var(--text-tertiary)] hover:text-[var(--text-secondary)] hover:bg-[var(--surface-2)]"
             )}
           >
-            {t("inventario.all")}
+            <Package size={14} />
+            {t("inventario.title")}
             <span className="text-[10px] text-[var(--text-muted)]">{unidades.length}</span>
           </button>
-
-          {/* Per-torre tabs */}
-          {torres.map((torre) => {
-            const count = unidades.filter((u) => u.torre_id === torre.id).length;
-            return (
-              <button
-                key={torre.id}
-                onClick={() => setActiveTorreId(torre.id)}
-                className={cn(
-                  "flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-medium transition-all whitespace-nowrap shrink-0",
-                  activeTorreId === torre.id
-                    ? "bg-[var(--surface-3)] text-white shadow-sm"
-                    : "text-[var(--text-tertiary)] hover:text-[var(--text-secondary)] hover:bg-[var(--surface-2)]"
-                )}
-              >
-                <Building2 size={13} />
-                {torre.nombre}
-                <span className="text-[10px] text-[var(--text-muted)]">{count}</span>
-              </button>
-            );
-          })}
-
-          {/* Unassigned tab */}
-          {unidades.some((u) => !u.torre_id) && (
+          {hasParqueaderos && (
             <button
-              onClick={() => setActiveTorreId("__none__")}
+              onClick={() => setActiveInventoryTab("parqueadero")}
               className={cn(
-                "flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-medium transition-all whitespace-nowrap shrink-0",
-                activeTorreId === "__none__"
+                "flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-medium transition-all",
+                activeInventoryTab === "parqueadero"
                   ? "bg-[var(--surface-3)] text-white shadow-sm"
                   : "text-[var(--text-tertiary)] hover:text-[var(--text-secondary)] hover:bg-[var(--surface-2)]"
               )}
             >
-              {t("inventario.noTower")}
-              <span className="text-[10px] text-[var(--text-muted)]">
-                {unidades.filter((u) => !u.torre_id).length}
-              </span>
+              <Car size={14} />
+              Parqueaderos
+              <span className="text-[10px] text-[var(--text-muted)]">{parqCount}</span>
+            </button>
+          )}
+          {hasDepositos && (
+            <button
+              onClick={() => setActiveInventoryTab("deposito")}
+              className={cn(
+                "flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-medium transition-all",
+                activeInventoryTab === "deposito"
+                  ? "bg-[var(--surface-3)] text-white shadow-sm"
+                  : "text-[var(--text-tertiary)] hover:text-[var(--text-secondary)] hover:bg-[var(--surface-2)]"
+              )}
+            >
+              <Warehouse size={14} />
+              Depósitos
+              <span className="text-[10px] text-[var(--text-muted)]">{depoCount}</span>
             </button>
           )}
         </div>
       )}
 
-      {/* Stats */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-        {ESTADOS.map((e) => (
-          <div
-            key={e.value}
-            className="p-3 bg-[var(--surface-2)] border border-[var(--border-subtle)] rounded-xl"
-          >
-            <div className="flex items-center justify-between mb-1">
-              <span className="text-xs text-[var(--text-tertiary)]">{e.label}</span>
-              <EstadoBadge estado={e.value} />
-            </div>
-            <p className="text-xl font-light text-white">{stats[e.value]}</p>
+      {/* Unidades content — only shown when unidades tab is active */}
+      {activeInventoryTab === "unidades" && (<>
+
+      {/* Torre tabs + Filters — single row */}
+      <div className="flex items-center gap-3 flex-wrap">
+        {isMultiTorre && (
+          <div className="flex items-center gap-0.5 p-0.5 bg-[var(--surface-1)] rounded-lg border border-[var(--border-subtle)] overflow-x-auto scrollbar-thin shrink-0">
+            <button
+              onClick={() => setActiveTorreId(null)}
+              className={cn(
+                "flex items-center gap-1.5 px-3 py-1.5 rounded-md text-[11px] font-medium transition-all whitespace-nowrap shrink-0",
+                activeTorreId === null
+                  ? "bg-[var(--surface-3)] text-white shadow-sm"
+                  : "text-[var(--text-tertiary)] hover:text-[var(--text-secondary)] hover:bg-[var(--surface-2)]"
+              )}
+            >
+              {t("inventario.all")}
+              <span className="text-[10px] text-[var(--text-muted)]">{unidades.length}</span>
+            </button>
+            {torres.map((torre) => {
+              const count = unidades.filter((u) => u.torre_id === torre.id).length;
+              return (
+                <button
+                  key={torre.id}
+                  onClick={() => setActiveTorreId(torre.id)}
+                  className={cn(
+                    "flex items-center gap-1.5 px-3 py-1.5 rounded-md text-[11px] font-medium transition-all whitespace-nowrap shrink-0",
+                    activeTorreId === torre.id
+                      ? "bg-[var(--surface-3)] text-white shadow-sm"
+                      : "text-[var(--text-tertiary)] hover:text-[var(--text-secondary)] hover:bg-[var(--surface-2)]"
+                  )}
+                >
+                  {torre.nombre}
+                  <span className="text-[10px] text-[var(--text-muted)]">{count}</span>
+                </button>
+              );
+            })}
+            {unidades.some((u) => !u.torre_id) && (
+              <button
+                onClick={() => setActiveTorreId("__none__")}
+                className={cn(
+                  "flex items-center gap-1.5 px-3 py-1.5 rounded-md text-[11px] font-medium transition-all whitespace-nowrap shrink-0",
+                  activeTorreId === "__none__"
+                    ? "bg-[var(--surface-3)] text-white shadow-sm"
+                    : "text-[var(--text-tertiary)] hover:text-[var(--text-secondary)] hover:bg-[var(--surface-2)]"
+                )}
+              >
+                {t("inventario.noTower")}
+                <span className="text-[10px] text-[var(--text-muted)]">
+                  {unidades.filter((u) => !u.torre_id).length}
+                </span>
+              </button>
+            )}
           </div>
-        ))}
+        )}
+
+        <div className={cn("flex items-center gap-2", !isMultiTorre && "flex-1")}>
+          <div className="relative flex-1 min-w-0 sm:min-w-[180px] sm:max-w-[240px]">
+            <Search
+              size={13}
+              className="absolute left-2.5 top-1/2 -translate-y-1/2 text-[var(--text-muted)]"
+            />
+            <input
+              type="text"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder={t("inventario.searchPlaceholder")}
+              className={inputClass + " pl-8 py-1.5 text-xs"}
+            />
+          </div>
+          <div className="relative">
+            <select
+              value={filterTipologia}
+              onChange={(e) => setFilterTipologia(e.target.value)}
+              className={inputClass + " w-36 appearance-none pr-7 py-1.5 text-xs"}
+            >
+              <option value="" className="bg-[var(--surface-2)]">
+                {t("inventario.allTypologies")}
+              </option>
+              {tipologias.map((t) => (
+                <option key={t.id} value={t.id} className="bg-[var(--surface-2)]">
+                  {t.nombre}
+                </option>
+              ))}
+            </select>
+            <ChevronDown
+              size={12}
+              className="absolute right-2.5 top-1/2 -translate-y-1/2 text-[var(--text-muted)] pointer-events-none"
+            />
+          </div>
+          <div className="relative">
+            <select
+              value={filterEstado}
+              onChange={(e) => setFilterEstado(e.target.value)}
+              className={inputClass + " w-32 appearance-none pr-7 py-1.5 text-xs"}
+            >
+              <option value="" className="bg-[var(--surface-2)]">
+                {t("inventario.allStates")}
+              </option>
+              {ESTADOS.map((e) => (
+                <option key={e.value} value={e.value} className="bg-[var(--surface-2)]">
+                  {e.label}
+                </option>
+              ))}
+            </select>
+            <ChevronDown
+              size={12}
+              className="absolute right-2.5 top-1/2 -translate-y-1/2 text-[var(--text-muted)] pointer-events-none"
+            />
+          </div>
+        </div>
       </div>
 
       {/* Create form */}
@@ -1543,63 +1753,6 @@ export default function InventarioPage() {
           />
         )}
       </AnimatePresence>
-
-      {/* Filters & Search */}
-      <div className="flex flex-col sm:flex-row sm:items-center gap-3 flex-wrap">
-        <div className="relative flex-1 min-w-0 sm:min-w-[200px] sm:max-w-xs">
-          <Search
-            size={14}
-            className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--text-muted)]"
-          />
-          <input
-            type="text"
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder={t("inventario.searchPlaceholder")}
-            className={inputClass + " pl-9"}
-          />
-        </div>
-        <div className="relative">
-          <select
-            value={filterTipologia}
-            onChange={(e) => setFilterTipologia(e.target.value)}
-            className={inputClass + " w-44 appearance-none pr-8"}
-          >
-            <option value="" className="bg-[var(--surface-2)]">
-              {t("inventario.allTypologies")}
-            </option>
-            {tipologias.map((t) => (
-              <option key={t.id} value={t.id} className="bg-[var(--surface-2)]">
-                {t.nombre}
-              </option>
-            ))}
-          </select>
-          <ChevronDown
-            size={14}
-            className="absolute right-3 top-1/2 -translate-y-1/2 text-[var(--text-muted)] pointer-events-none"
-          />
-        </div>
-        <div className="relative">
-          <select
-            value={filterEstado}
-            onChange={(e) => setFilterEstado(e.target.value)}
-            className={inputClass + " w-40 appearance-none pr-8"}
-          >
-            <option value="" className="bg-[var(--surface-2)]">
-              {t("inventario.allStates")}
-            </option>
-            {ESTADOS.map((e) => (
-              <option key={e.value} value={e.value} className="bg-[var(--surface-2)]">
-                {e.label}
-              </option>
-            ))}
-          </select>
-          <ChevronDown
-            size={14}
-            className="absolute right-3 top-1/2 -translate-y-1/2 text-[var(--text-muted)] pointer-events-none"
-          />
-        </div>
-      </div>
 
       {/* Bulk actions */}
       <AnimatePresence>
@@ -2012,14 +2165,16 @@ export default function InventarioPage() {
         </div>
       )}
 
-      {/* Complementos Section — shown when project has inventory modes */}
-      {((project.parqueaderos_mode as ComplementoMode) !== "sin_inventario" ||
-        (project.depositos_mode as ComplementoMode) !== "sin_inventario") && (
+      </>)}
+
+      {/* Complementos content — shown when parqueadero or deposito tab is active */}
+      {activeInventoryTab !== "unidades" && (
         <ComplementosSection
           project={project}
           onRefresh={refresh}
           parqueaderosMode={project.parqueaderos_mode as ComplementoMode}
           depositosMode={project.depositos_mode as ComplementoMode}
+          fixedTab={activeInventoryTab}
         />
       )}
 
@@ -2068,7 +2223,12 @@ export default function InventarioPage() {
         {showPriceAdjust && (
           <PriceAdjustModal
             unidades={unidades}
+            complementos={(project.complementos || []) as Complemento[]}
             selectedIds={selectedIds}
+            activeInventoryTab={activeInventoryTab}
+            hasParqueaderos={hasParqueaderos}
+            hasDepositos={hasDepositos}
+            moneda={project.moneda_base || "COP"}
             onClose={() => setShowPriceAdjust(false)}
             onDone={async () => {
               setShowPriceAdjust(false);

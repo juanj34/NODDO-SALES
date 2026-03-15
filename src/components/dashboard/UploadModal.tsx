@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { useState, useRef, useCallback, useEffect } from "react";
 import { Upload, Loader2, FolderOpen, Image as ImageIcon, AlertTriangle, X } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
@@ -291,11 +292,7 @@ export function UploadModal({
                       key={staged.id}
                       className="relative aspect-video rounded-lg overflow-hidden bg-[var(--surface-2)] group"
                     >
-                      <img
-                        src={staged.previewUrl}
-                        alt=""
-                        className="w-full h-full object-cover"
-                      />
+                      <Image src={staged.previewUrl} alt="undefined" fill className="w-full h-full object-cover" />
                       {!uploading && !compressing && (
                         <button
                           onClick={() => removeStaged(staged.id)}

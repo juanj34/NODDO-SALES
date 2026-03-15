@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { useState, useRef, useCallback, useEffect, useMemo } from "react";
 import { motion } from "framer-motion";
 import { SectionTransition } from "@/components/site/SectionTransition";
@@ -165,11 +166,7 @@ export default function VideosPage() {
                       : "ring-1 ring-[var(--border-default)] group-hover:ring-white/20"
                   )}>
                     {thumb ? (
-                      <img
-                        src={thumb}
-                        alt={video.titulo || ""}
-                        className="w-full h-full object-cover"
-                      />
+                      <Image src={thumb} alt="" fill className="w-full h-full object-cover" />
                     ) : (
                       <div className="w-full h-full bg-white/5 flex items-center justify-center">
                         <Film size={20} className="text-[var(--text-muted)]" />

@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { useState, useRef, useCallback, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Trash2, MapPin, Loader2 } from "lucide-react";
@@ -385,6 +386,7 @@ export function PlanoHotspotEditor({
           onClick={handleContainerClick}
         >
           <div className="absolute inset-0 rounded-xl overflow-hidden border border-[var(--border-default)] bg-[var(--surface-2)]">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               ref={imgRef}
               src={imagenUrl}
@@ -704,11 +706,7 @@ export function PlanoHotspotEditor({
                         </span>
                         {/* Render thumbnail */}
                         {tipo === "urbanismo" && punto.render_url && (
-                          <img
-                            src={punto.render_url}
-                            alt=""
-                            className="w-10 h-10 rounded object-cover shrink-0"
-                          />
+                          <Image src={punto.render_url} alt="undefined" width={400} height={300} className="w-10 h-10 rounded object-cover shrink-0" />
                         )}
                         {/* Info */}
                         <div className="flex-1 min-w-0">

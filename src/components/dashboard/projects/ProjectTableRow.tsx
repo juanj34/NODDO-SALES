@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { useState } from "react";
 import Link from "next/link";
 import { Edit2, ExternalLink, MoreVertical, Trash2, Copy } from "lucide-react";
@@ -64,9 +65,11 @@ export function ProjectTableRow({
       <td className="px-5 py-3">
         <div className="w-16 h-10 rounded-lg overflow-hidden bg-[var(--surface-3)] border border-[var(--border-subtle)]">
           {proyecto.render_principal_url ? (
-            <img
+            <Image
               src={proyecto.render_principal_url}
               alt={proyecto.nombre}
+              width={64}
+              height={40}
               className="w-full h-full object-cover"
             />
           ) : (

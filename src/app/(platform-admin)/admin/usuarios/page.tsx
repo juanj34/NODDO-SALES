@@ -2,6 +2,7 @@
 
 export const dynamic = "force-dynamic";
 
+import Image from "next/image";
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
@@ -518,7 +519,7 @@ export default function AdminUsuariosPage() {
                                             <div className="flex items-center gap-3">
                                               {proj.render_principal_url ? (
                                                 <div className="w-10 h-7 rounded overflow-hidden bg-[var(--surface-4)] shrink-0">
-                                                  <img src={proj.render_principal_url} alt="" className="w-full h-full object-cover" />
+                                                  <Image src={proj.render_principal_url} alt="undefined" fill className="w-full h-full object-cover" />
                                                 </div>
                                               ) : (
                                                 <div className="w-10 h-7 rounded bg-[var(--surface-4)] flex items-center justify-center shrink-0">

@@ -45,6 +45,8 @@ interface ComplementosSectionProps {
   onRefresh: () => void;
   parqueaderosMode?: ComplementoMode;
   depositosMode?: ComplementoMode;
+  /** When set, locks the view to this type and hides the internal type tabs + stats strip */
+  fixedTab?: "parqueadero" | "deposito";
 }
 
 interface ComplementoFormData {
@@ -497,7 +499,7 @@ function ComplementoForm({
 // Main Component
 // ---------------------------------------------------------------------------
 
-export function ComplementosSection({ project, onRefresh, parqueaderosMode, depositosMode }: ComplementosSectionProps) {
+export function ComplementosSection({ project, onRefresh, parqueaderosMode, depositosMode, fixedTab }: ComplementosSectionProps) {
   // --- Modes ---
   const pMode = parqueaderosMode ?? (project.parqueaderos_mode as ComplementoMode) ?? "sin_inventario";
   const dMode = depositosMode ?? (project.depositos_mode as ComplementoMode) ?? "sin_inventario";
@@ -514,7 +516,8 @@ export function ComplementosSection({ project, onRefresh, parqueaderosMode, depo
 
   // --- UI state ---
   const defaultTab: ActiveTab = showParqueaderos ? "parqueadero" : "deposito";
-  const [activeTab, setActiveTab] = useState<ActiveTab>(defaultTab);
+  const [internalTab, setInternalTab] = useState<ActiveTab>(defaultTab);
+  const activeTab = fixedTab ?? internalTab;
   const [activeTorreId, setActiveTorreId] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
@@ -813,39 +816,41 @@ export function ComplementosSection({ project, onRefresh, parqueaderosMode, depo
       animate={{ opacity: 1, y: 0 }}
       className="space-y-6"
     >
-      {/* Stats strip */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-        <StatCard
-          label="Parqueaderos"
-          value={stats.parqueaderos}
-          icon={Car}
-          accent="bg-[rgba(184,151,58,0.15)]"
-        />
-        <StatCard
-          label="Depositos"
-          value={stats.depositos}
-          icon={Warehouse}
-          accent="bg-[rgba(184,151,58,0.15)]"
-        />
-        <StatCard
-          label="Asignados"
-          value={stats.asignados}
-          icon={Link}
-          accent="bg-emerald-500/15"
-        />
-        <StatCard
-          label="Sin asignar"
-          value={stats.sinAsignar}
-          icon={Unlink}
-        />
-      </div>
+      {/* Stats strip — hidden when parent controls the tab */}
+      {!fixedTab && (
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+          <StatCard
+            label="Parqueaderos"
+            value={stats.parqueaderos}
+            icon={Car}
+            accent="bg-[rgba(184,151,58,0.15)]"
+          />
+          <StatCard
+            label="Depositos"
+            value={stats.depositos}
+            icon={Warehouse}
+            accent="bg-[rgba(184,151,58,0.15)]"
+          />
+          <StatCard
+            label="Asignados"
+            value={stats.asignados}
+            icon={Link}
+            accent="bg-emerald-500/15"
+          />
+          <StatCard
+            label="Sin asignar"
+            value={stats.sinAsignar}
+            icon={Unlink}
+          />
+        </div>
+      )}
 
-      {/* Type tabs — only show tabs for enabled modes */}
-      {showParqueaderos && showDepositos ? (
+      {/* Type tabs — hidden when parent controls the tab */}
+      {!fixedTab && (showParqueaderos && showDepositos ? (
         <div className="flex items-center gap-1 p-1 bg-[var(--surface-1)] rounded-xl border border-[var(--border-subtle)]">
           <button
             onClick={() => {
-              setActiveTab("parqueadero");
+              setInternalTab("parqueadero");
               setSelectedIds(new Set());
               setSearchQuery("");
             }}
@@ -862,7 +867,7 @@ export function ComplementosSection({ project, onRefresh, parqueaderosMode, depo
           </button>
           <button
             onClick={() => {
-              setActiveTab("deposito");
+              setInternalTab("deposito");
               setSelectedIds(new Set());
               setSearchQuery("");
             }}
@@ -883,7 +888,7 @@ export function ComplementosSection({ project, onRefresh, parqueaderosMode, depo
           {showParqueaderos && <><Car size={14} /> Parqueaderos ({parqueaderoCount})</>}
           {showDepositos && <><Warehouse size={14} /> Depósitos ({depositoCount})</>}
         </div>
-      )}
+      ))}
 
       {/* Torre tabs (when multi-torre) */}
       {isMultiTorre && (
