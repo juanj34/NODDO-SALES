@@ -356,7 +356,7 @@ export default function ProyectosPage() {
                     setSlug(generateSlug(e.target.value));
                   }}
                   required
-                  placeholder="Alto de Yeguas"
+                  placeholder="Ciudadela Los Pinos"
                   className="input-glass w-full"
                 />
               </div>
