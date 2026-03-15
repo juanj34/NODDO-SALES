@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
+import { PLAN_DEFAULTS } from "@/lib/plan-limits";
 import {
   Users,
   Search,
@@ -51,19 +52,17 @@ interface UserDetail {
 }
 
 const PLAN_COLORS: Record<string, string> = {
-  trial: "text-neutral-400 bg-neutral-500/15 border-neutral-500/20",
-  proyecto: "text-[var(--site-primary)] bg-[rgba(184,151,58,0.15)] border-[rgba(184,151,58,0.20)]",
-  studio: "text-[#d4b05a] bg-[rgba(212,176,90,0.15)] border-[rgba(212,176,90,0.20)]",
-  enterprise: "text-[var(--site-primary)] bg-[rgba(var(--site-primary-rgb),0.15)] border-[rgba(var(--site-primary-rgb),0.20)]",
+  basic: "text-neutral-400 bg-neutral-500/15 border-neutral-500/20",
+  premium: "text-[var(--site-primary)] bg-[rgba(184,151,58,0.15)] border-[rgba(184,151,58,0.20)]",
+  enterprise: "text-[#E5E7EB] bg-[rgba(229,231,235,0.15)] border-[rgba(229,231,235,0.20)]",
 };
 
-const PLANS = ["trial", "proyecto", "studio", "enterprise"] as const;
+const PLANS = ["basic", "premium", "enterprise"] as const;
 
-const PLAN_DEFAULTS: Record<string, { max_projects: number; max_units_per_project: number | null; max_collaborators: number }> = {
-  trial: { max_projects: 1, max_units_per_project: 50, max_collaborators: 2 },
-  proyecto: { max_projects: 1, max_units_per_project: 200, max_collaborators: 5 },
-  studio: { max_projects: 5, max_units_per_project: null, max_collaborators: 5 },
-  enterprise: { max_projects: 999, max_units_per_project: null, max_collaborators: 5 },
+const PLAN_LABELS: Record<string, string> = {
+  basic: "Basic",
+  premium: "Premium",
+  enterprise: "Enterprise",
 };
 
 const estadoColors: Record<string, string> = {
@@ -258,13 +257,13 @@ export default function AdminUsuariosPage() {
 
       {/* Search */}
       <div className="relative max-w-sm">
-        <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--text-muted)]" />
+        <Search size={14} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[var(--text-muted)]" />
         <input
           type="text"
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           placeholder="Buscar por email..."
-          className="input-glass w-full pl-9 text-sm"
+          className="input-glass w-full pl-10 text-sm"
         />
       </div>
 
@@ -342,7 +341,7 @@ export default function AdminUsuariosPage() {
                       <td className="px-4 py-3">
                         {user.plan ? (
                           <span className={`inline-flex items-center px-2 py-0.5 rounded-md font-ui text-[10px] font-bold uppercase tracking-wider border ${PLAN_COLORS[user.plan] || "text-neutral-400 bg-neutral-500/15 border-neutral-500/20"}`}>
-                            {user.plan}
+                            {PLAN_LABELS[user.plan] || user.plan}
                           </span>
                         ) : (
                           <span className="text-[10px] text-[var(--text-muted)]">&mdash;</span>
@@ -362,9 +361,9 @@ export default function AdminUsuariosPage() {
                                 setChangingPlan(null);
                               } else {
                                 setChangingPlan(user.id);
-                                const plan = user.plan || "trial";
+                                const plan = user.plan || "basic";
                                 setSelectedPlan(plan);
-                                const defaults = PLAN_DEFAULTS[plan] || PLAN_DEFAULTS.trial;
+                                const defaults = PLAN_DEFAULTS[plan as keyof typeof PLAN_DEFAULTS] || PLAN_DEFAULTS.basic;
                                 setCustomMaxProjects(user.maxProjects ?? defaults.max_projects);
                                 setCustomMaxUnits(defaults.max_units_per_project);
                                 setCustomMaxCollabs(defaults.max_collaborators);
@@ -445,7 +444,7 @@ export default function AdminUsuariosPage() {
                                         <div className="flex items-center gap-2 mb-1">
                                           <CreditCard size={12} className="text-[var(--text-muted)]" />
                                           <span className={`px-2 py-0.5 rounded-md font-ui text-[10px] font-bold uppercase tracking-wider border ${PLAN_COLORS[userDetail.plan.plan] || ""}`}>
-                                            {userDetail.plan.plan}
+                                            {PLAN_LABELS[userDetail.plan.plan] || userDetail.plan.plan}
                                           </span>
                                         </div>
                                         <p className="text-[10px] text-[var(--text-muted)] mt-1">
@@ -593,7 +592,7 @@ export default function AdminUsuariosPage() {
                 {users.find((u) => u.id === changingPlan)?.email}
               </p>
 
-              <div className="grid grid-cols-2 gap-2">
+              <div className="grid grid-cols-3 gap-2">
                 {PLANS.map((plan) => (
                   <button
                     key={plan}
@@ -610,7 +609,7 @@ export default function AdminUsuariosPage() {
                         : "text-[var(--text-tertiary)] bg-[var(--surface-2)] border-[var(--border-subtle)] hover:border-[var(--border-default)]"
                     }`}
                   >
-                    {plan}
+                    {PLAN_LABELS[plan]}
                   </button>
                 ))}
               </div>

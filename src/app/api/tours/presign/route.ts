@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getAuthContext } from "@/lib/auth-context";
 import { checkFeature } from "@/lib/feature-flags";
+import { checkFeatureAccess, FEATURE_LABELS } from "@/lib/feature-access";
+import { sendFeatureBlocked } from "@/lib/email";
 import { getPresignedUploadUrls, type FileToSign } from "@/lib/r2";
 
 const MAX_FILES = 2000;
@@ -26,6 +28,33 @@ export async function POST(request: NextRequest) {
       return NextResponse.json(
         { error: "proyecto_id y files son requeridos" },
         { status: 400 }
+      );
+    }
+
+    // Check plan-based access first
+    const planAccess = await checkFeatureAccess(auth.supabase, auth.adminUserId, "tour_360");
+    if (!planAccess.allowed) {
+      // Send feature blocked email (fire-and-forget)
+      if (auth.user.email && planAccess.requiredPlan) {
+        sendFeatureBlocked({
+          email: auth.user.email,
+          name: auth.user.user_metadata?.full_name || auth.user.email.split("@")[0],
+          feature: FEATURE_LABELS.tour_360,
+          currentPlan: planAccess.currentPlan,
+          requiredPlan: planAccess.requiredPlan,
+        }).catch((err) => {
+          console.error("[tours/presign] Failed to send feature blocked email:", err);
+        });
+      }
+
+      return NextResponse.json(
+        {
+          error: `Tours 360° requieren plan ${planAccess.requiredPlan}`,
+          upgrade_required: true,
+          current_plan: planAccess.currentPlan,
+          required_plan: planAccess.requiredPlan,
+        },
+        { status: 403 }
       );
     }
 

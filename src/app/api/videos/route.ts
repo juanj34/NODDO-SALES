@@ -1,6 +1,8 @@
 import { pick } from "@/lib/api-utils";
 import { getAuthContext } from "@/lib/auth-context";
 import { checkFeature } from "@/lib/feature-flags";
+import { checkFeatureAccess, FEATURE_LABELS } from "@/lib/feature-access";
+import { sendFeatureBlocked } from "@/lib/email";
 import { NextRequest, NextResponse } from "next/server";
 
 export async function POST(request: NextRequest) {
@@ -19,7 +21,34 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Check feature flag
+    // Check plan-based access first
+    const planAccess = await checkFeatureAccess(auth.supabase, auth.adminUserId, "video_hosting");
+    if (!planAccess.allowed) {
+      // Send feature blocked email (fire-and-forget)
+      if (auth.user.email && planAccess.requiredPlan) {
+        sendFeatureBlocked({
+          email: auth.user.email,
+          name: auth.user.user_metadata?.full_name || auth.user.email.split("@")[0],
+          feature: FEATURE_LABELS.video_hosting,
+          currentPlan: planAccess.currentPlan,
+          requiredPlan: planAccess.requiredPlan,
+        }).catch((err) => {
+          console.error("[videos] Failed to send feature blocked email:", err);
+        });
+      }
+
+      return NextResponse.json(
+        {
+          error: `Video hosting requiere plan ${planAccess.requiredPlan}`,
+          upgrade_required: true,
+          current_plan: planAccess.currentPlan,
+          required_plan: planAccess.requiredPlan,
+        },
+        { status: 403 }
+      );
+    }
+
+    // Check feature flag for project (allows Enterprise to disable per-project)
     const videoEnabled = await checkFeature(auth.supabase, body.proyecto_id, "video_hosting");
     if (!videoEnabled) {
       return NextResponse.json(

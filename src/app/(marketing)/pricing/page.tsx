@@ -69,102 +69,112 @@ interface FAQ {
 const plans: Plan[] = [
   {
     icon: Zap,
-    name: "Basico",
-    monthlyPrice: "$149.000",
-    annualPrice: "$119.000",
-    priceLabel: "COP/mes",
-    description: "Para empezar con tu primer proyecto digital.",
+    name: "Basic",
+    monthlyPrice: "$79",
+    annualPrice: "$63",
+    priceLabel: "USD/mes",
+    description: "Perfecto para proyectos pequeños que necesitan una presencia digital profesional.",
     cta: "Comenzar gratis",
     ctaHref: "/login",
     ctaStyle: "outline",
     highlighted: false,
     features: [
       { text: "1 proyecto activo", included: true },
-      { text: "Galeria de imagenes", included: true },
-      { text: "Formulario de contacto", included: true },
-      { text: "Subdominio gratuito", included: true },
+      { text: "Hasta 200 unidades", included: true },
+      { text: "Galería de imágenes ilimitada", included: true },
+      { text: "Formulario de contacto con CRM", included: true },
+      { text: "Gestión de disponibilidad", included: true },
+      { text: "Subdominio personalizado (.noddo.io)", included: true },
+      { text: "10GB de almacenamiento", included: true },
       { text: "Soporte por email", included: true },
+      { text: "Videos inmersivos", included: false },
       { text: "Mapas interactivos", included: false },
-      { text: "Videos integrados", included: false },
-      { text: "Fachadas interactivas", included: false },
       { text: "Dominio personalizado", included: false },
-      { text: "Asistencia de IA", included: false },
     ],
   },
   {
     icon: Sparkles,
-    name: "Profesional",
-    monthlyPrice: "$349.000",
-    annualPrice: "$279.000",
-    priceLabel: "COP/mes",
-    description: "Todo lo que necesitas para vender mas rapido.",
+    name: "Premium",
+    monthlyPrice: "$149",
+    annualPrice: "$119",
+    priceLabel: "USD/mes",
+    description: "La opción más popular. TODO incluido para maximizar tus ventas.",
     cta: "Comenzar ahora",
     ctaHref: "/login",
     ctaStyle: "primary",
     highlighted: true,
-    badge: "Mas Popular",
+    badge: "Más Popular",
     features: [
       { text: "5 proyectos activos", included: true },
-      { text: "Todo del plan Basico", included: true },
+      { text: "Unidades ilimitadas", included: true },
+      { text: "Todo en Basic +", included: true },
+      { text: "Videos inmersivos (Cloudflare Stream)", included: true },
       { text: "Mapas interactivos con POIs", included: true },
-      { text: "Videos de YouTube integrados", included: true },
-      { text: "Fachadas interactivas multi-torre", included: true },
+      { text: "Fachadas interactivas", included: true },
+      { text: "Tours 360° (Matterport/Kuula)", included: true },
+      { text: "Analytics avanzado", included: true },
       { text: "Dominio personalizado", included: true },
-      { text: "Inventario de unidades", included: true },
-      { text: "Soporte prioritario", included: true },
-      { text: "Proyectos ilimitados", included: false },
-      { text: "Asistencia de IA", included: false },
+      { text: "50GB de almacenamiento por proyecto", included: true },
+      { text: "Soporte prioritario (24-48h)", included: true },
     ],
   },
   {
     icon: Building2,
-    name: "Empresarial",
-    monthlyPrice: null,
+    name: "Enterprise",
+    monthlyPrice: "Desde $499",
     annualPrice: null,
-    priceLabel: "",
-    description: "Para constructoras con multiples proyectos.",
+    priceLabel: "USD/mes",
+    description: "Para desarrolladoras que necesitan control total y soporte premium.",
     cta: "Contactar ventas",
     ctaHref: "mailto:hola@noddo.io",
     ctaStyle: "outline",
     highlighted: false,
     features: [
       { text: "Proyectos ilimitados", included: true },
-      { text: "Todo del plan Profesional", included: true },
-      { text: "Asistencia de IA para contenido", included: true },
-      { text: "Importacion masiva CSV", included: true },
-      { text: "Multi-usuario y roles", included: true },
-      { text: "API de integracion", included: true },
-      { text: "SLA garantizado", included: true },
-      { text: "Soporte dedicado 24/7", included: true },
+      { text: "Todo en Premium +", included: true },
+      { text: "White-label completo (sin marca NODDO)", included: true },
+      { text: "API REST + Webhooks", included: true },
+      { text: "Importación CSV masiva", included: true },
+      { text: "Multi-usuario ilimitado", included: true },
+      { text: "Asistencia IA para contenido", included: true },
+      { text: "500GB de almacenamiento total", included: true },
+      { text: "Onboarding dedicado", included: true },
+      { text: "Soporte 24/7 (chat/email)", included: true },
+      { text: "SLA 99.9%", included: true },
     ],
   },
 ];
 
 const faqs: FAQ[] = [
   {
+    question: "¿Todos los planes incluyen todas las características?",
+    answer:
+      "Sí. Cada plan incluye TODAS las características de su tier sin costos adicionales. No hay add-ons ni cargos ocultos. Solo eliges el plan según el número de proyectos que necesitas.",
+  },
+  {
     question: "¿Puedo cambiar de plan en cualquier momento?",
     answer:
-      "Si, puedes actualizar o degradar tu plan en cualquier momento. Los cambios se aplican inmediatamente y se ajusta el cobro de forma proporcional.",
+      "Sí, puedes actualizar o degradar tu plan en cualquier momento. Los cambios se aplican inmediatamente y se ajusta el cobro de forma proporcional.",
   },
   {
-    question: "¿Que metodos de pago aceptan?",
+    question: "¿Qué métodos de pago aceptan?",
     answer:
-      "Aceptamos tarjetas de credito y debito (Visa, Mastercard, American Express). Para planes empresariales ofrecemos facturacion directa.",
+      "Aceptamos tarjetas de crédito y débito (Visa, Mastercard, American Express). Para planes Enterprise ofrecemos facturación directa y pagos trimestrales/anuales.",
   },
   {
-    question: "¿Hay algun contrato o permanencia minima?",
+    question: "¿Hay algún contrato o permanencia mínima?",
     answer:
-      "No, todos nuestros planes son mes a mes sin clausulas de permanencia. Puedes cancelar cuando quieras sin penalidades.",
+      "No, todos nuestros planes son mes a mes sin cláusulas de permanencia. Puedes cancelar cuando quieras sin penalidades. Para planes anuales ofrecemos 2 meses gratis.",
   },
   {
-    question: "¿Que pasa con mis datos si cancelo?",
+    question: "¿Qué sucede cuando mi proyecto se vende?",
     answer:
-      "Tus proyectos y datos se mantienen disponibles por 30 dias despues de cancelar. Puedes exportar toda tu informacion en cualquier momento.",
+      "Puedes pausar o archivar proyectos vendidos sin costo. Solo pagas por los proyectos activos en preventa. Esto te permite gestionar tu inversión según tus necesidades reales.",
   },
   {
     question: "¿Ofrecen descuentos por volumen?",
     answer:
-      "Si, para constructoras con mas de 10 proyectos ofrecemos descuentos especiales. Contacta a nuestro equipo de ventas para una cotizacion personalizada.",
+      "Sí. Premium incluye descuentos automáticos: 10% de 2-5 proyectos, 20% de 6-10 proyectos. Para más de 10 proyectos, contacta a nuestro equipo de ventas para un plan Enterprise personalizado.",
   },
 ];
 
@@ -394,9 +404,9 @@ function PricingCard({
 
 // Map plan names to slugs for tracking
 const PLAN_SLUGS: Record<string, string> = {
-  Basico: "proyecto",
-  Profesional: "studio",
-  Empresarial: "enterprise",
+  Basic: "basic",
+  Premium: "premium",
+  Enterprise: "enterprise",
 };
 
 export default function PricingPage() {
@@ -413,7 +423,7 @@ export default function PricingPage() {
     const slug = PLAN_SLUGS[plan.name] || plan.name.toLowerCase();
     trackPricingPlanClicked(slug, PLAN_VALUES[slug] || 149);
 
-    if (plan.name === "Empresarial") {
+    if (plan.name === "Enterprise") {
       openContact("enterprise", "pricing-enterprise");
     } else {
       openBooking();
@@ -445,7 +455,7 @@ export default function PricingPage() {
             className="font-heading text-4xl md:text-6xl font-light tracking-wider mb-5"
             style={{ color: "var(--mk-text-primary)" }}
           >
-            Elige tu plan
+            Todo lo que necesitas para vender tu proyecto
           </motion.h1>
 
           <motion.p
@@ -455,7 +465,7 @@ export default function PricingPage() {
             className="text-base md:text-lg leading-relaxed"
             style={{ color: "var(--mk-text-tertiary)" }}
           >
-            Sin costos ocultos. Cancela cuando quieras.
+            Sin costos ocultos. Sin add-ons. Todo incluido.
           </motion.p>
         </div>
       </section>

@@ -376,6 +376,8 @@ export interface AnalyticsSummary {
   total_views: number;
   unique_visitors: number;
   total_sessions: number;
+  avg_session_duration: number;
+  bounce_rate: number;
   whatsapp_clicks: number;
   brochure_downloads: number;
   video_plays: number;
@@ -617,5 +619,23 @@ export interface PlatformAlert {
   severity: "info" | "warning" | "critical";
   message: string;
   details: Record<string, unknown>;
+  created_at: string;
+}
+
+/* ── Plans & Billing ── */
+
+export type Plan = "basic" | "premium" | "enterprise";
+
+export interface UserPlan {
+  id: string;
+  user_id: string;
+  plan: Plan;
+  status: "active" | "trial" | "cancelled" | "suspended";
+  max_projects: number;
+  max_units_per_project: number | null;
+  max_collaborators: number;
+  started_at: string;
+  expires_at: string | null;
+  notes: string | null;
   created_at: string;
 }

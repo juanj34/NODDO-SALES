@@ -53,9 +53,17 @@ export async function GET(request: NextRequest) {
         const createdAt = new Date(user.created_at).getTime();
         const isNewUser = Date.now() - createdAt < 5 * 60 * 1000;
         if (isNewUser && user.email) {
+          // Fetch user plan to include in welcome email
+          const { data: userPlan } = await supabase
+            .from("user_plans")
+            .select("plan")
+            .eq("user_id", user.id)
+            .single();
+
           sendWelcomeEmail({
             email: user.email,
             name: user.user_metadata?.full_name || user.email.split("@")[0],
+            plan: userPlan?.plan as "basic" | "premium" | "enterprise" | undefined,
           }).catch(() => {});
         }
       }

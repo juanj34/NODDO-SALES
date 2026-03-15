@@ -1,14 +1,11 @@
 import { getAuthContext } from "@/lib/auth-context";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { logAdminAction } from "@/lib/admin-audit";
+import { PLAN_DEFAULTS, type Plan } from "@/lib/plan-limits";
+import { sendPlanUpgrade } from "@/lib/email";
 import { NextRequest, NextResponse } from "next/server";
 
-const PLAN_DEFAULTS: Record<string, { max_projects: number; max_units_per_project: number | null; max_collaborators: number }> = {
-  trial: { max_projects: 1, max_units_per_project: 50, max_collaborators: 2 },
-  proyecto: { max_projects: 1, max_units_per_project: 200, max_collaborators: 5 },
-  studio: { max_projects: 5, max_units_per_project: null, max_collaborators: 5 },
-  enterprise: { max_projects: 999, max_units_per_project: null, max_collaborators: 5 },
-};
+const VALID_PLANS: Plan[] = ["basic", "premium", "enterprise"];
 
 export async function PUT(
   request: NextRequest,
@@ -23,8 +20,8 @@ export async function PUT(
   const body = await request.json();
   const { plan, status, max_projects, max_units_per_project, max_collaborators } = body;
 
-  if (!plan || !PLAN_DEFAULTS[plan]) {
-    return NextResponse.json({ error: "Plan inválido" }, { status: 400 });
+  if (!plan || !VALID_PLANS.includes(plan)) {
+    return NextResponse.json({ error: "Plan inválido. Debe ser: basic, premium, o enterprise" }, { status: 400 });
   }
 
   const VALID_STATUSES = ["active", "trial", "cancelled", "suspended"];
@@ -32,7 +29,7 @@ export async function PUT(
     return NextResponse.json({ error: "Estado de plan inválido" }, { status: 400 });
   }
 
-  const defaults = PLAN_DEFAULTS[plan];
+  const defaults = PLAN_DEFAULTS[plan as Plan];
 
   // Use custom overrides if provided, otherwise fall back to plan defaults
   const finalMaxProjects = max_projects !== undefined ? max_projects : defaults.max_projects;
@@ -40,6 +37,15 @@ export async function PUT(
   const finalMaxCollabs = max_collaborators !== undefined ? max_collaborators : defaults.max_collaborators;
 
   const admin = createAdminClient();
+
+  // Fetch existing plan to compare
+  const { data: existingPlan } = await admin
+    .from("user_plans")
+    .select("plan")
+    .eq("user_id", userId)
+    .single();
+
+  const oldPlan = existingPlan?.plan as Plan | null;
 
   // Upsert the plan
   const { error } = await admin
@@ -68,13 +74,31 @@ export async function PUT(
     targetType: "user",
     targetId: userId,
     details: {
-      plan,
+      oldPlan,
+      newPlan: plan,
       status: status || "active",
       max_projects: finalMaxProjects,
       max_units_per_project: finalMaxUnits,
       max_collaborators: finalMaxCollabs,
     },
   });
+
+  // Send upgrade email if plan changed and it's an upgrade (not a new plan)
+  if (oldPlan && oldPlan !== plan) {
+    const { data: user } = await admin.auth.admin.getUserById(userId);
+    if (user?.user?.email) {
+      sendPlanUpgrade({
+        email: user.user.email,
+        name: user.user.user_metadata?.full_name || user.user.email.split("@")[0],
+        oldPlan: oldPlan as "basic" | "premium" | "enterprise",
+        newPlan: plan as "basic" | "premium" | "enterprise",
+        maxProjects: finalMaxProjects,
+        maxUnits: finalMaxUnits,
+      }).catch((err) => {
+        console.error("[admin/plan] Failed to send upgrade email:", err);
+      });
+    }
+  }
 
   return NextResponse.json({ ok: true });
 }

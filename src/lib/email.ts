@@ -159,7 +159,20 @@ export async function sendCotizacionAdmin(data: CotizacionAdminData) {
 interface WelcomeEmailData {
   email: string;
   name: string;
+  plan?: "basic" | "premium" | "enterprise";
 }
+
+const PLAN_LABELS: Record<string, string> = {
+  basic: "Basic",
+  premium: "Premium",
+  enterprise: "Enterprise",
+};
+
+const PLAN_PRICES: Record<string, string> = {
+  basic: "$79/mes",
+  premium: "$149/mes",
+  enterprise: "desde $499/mes",
+};
 
 export async function sendWelcomeEmail(data: WelcomeEmailData) {
   if (!resend) {
@@ -169,6 +182,10 @@ export async function sendWelcomeEmail(data: WelcomeEmailData) {
 
   const fromAddress = process.env.RESEND_FROM_EMAIL || "NODDO <notificaciones@noddo.io>";
   const appUrl = process.env.NEXT_PUBLIC_APP_URL || "https://noddo.io";
+
+  const plan = data.plan || "basic";
+  const planLabel = PLAN_LABELS[plan];
+  const planPrice = PLAN_PRICES[plan];
 
   const html = emailWrapper(
     "Bienvenido a NODDO",
@@ -180,10 +197,15 @@ export async function sendWelcomeEmail(data: WelcomeEmailData) {
     </td></tr>
     <tr><td align="center" style="padding:0 40px 24px;">
       <p style="margin:0;font-size:13px;color:#8a8580;line-height:1.7;">
-        Tu cuenta está lista. Crea tu primer proyecto y lanza un micrositio premium para tu desarrollo inmobiliario en minutos.
+        Tu cuenta está lista con el plan <strong style="color:#f4f0e8;">${planLabel}</strong> (${planPrice}). Crea tu primer proyecto y lanza un micrositio premium para tu desarrollo inmobiliario en minutos.
       </p>
     </td></tr>
-    ${ctaButton(appUrl + "/proyectos", "Crear mi primer proyecto")}`,
+    ${ctaButton(appUrl + "/proyectos", "Crear mi primer proyecto")}
+    <tr><td align="center" style="padding:0 40px 24px;">
+      <p style="margin:0;font-size:12px;color:#5a5550;line-height:1.6;">
+        ¿Necesitas más features? <a href="${appUrl}/pricing" style="color:#b8973a;text-decoration:underline;">Ver planes</a>
+      </p>
+    </td></tr>`,
   );
 
   try {
@@ -516,6 +538,163 @@ export async function sendNoShowFollowup(data: NoShowFollowupData) {
     });
   } catch (err) {
     console.error("[email] Failed to send no-show followup:", err);
+  }
+}
+
+/* ── Plan upgrade confirmation: sent when admin upgrades user's plan ── */
+
+interface PlanUpgradeData {
+  email: string;
+  name: string;
+  oldPlan: "basic" | "premium" | "enterprise";
+  newPlan: "basic" | "premium" | "enterprise";
+  maxProjects: number;
+  maxUnits: number | null;
+}
+
+export async function sendPlanUpgrade(data: PlanUpgradeData) {
+  if (!resend) {
+    console.warn("[email] RESEND_API_KEY not configured — skipping plan upgrade email");
+    return;
+  }
+
+  const fromAddress = process.env.RESEND_FROM_EMAIL || "NODDO <notificaciones@noddo.io>";
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL || "https://noddo.io";
+
+  const newPlanLabel = PLAN_LABELS[data.newPlan];
+  const newPlanPrice = PLAN_PRICES[data.newPlan];
+
+  // Feature highlights per plan
+  const features: Record<string, string[]> = {
+    premium: [
+      "Videos inmersivos (Cloudflare Stream)",
+      "Mapas interactivos con POIs",
+      "Tours 360° (Matterport/Kuula)",
+      "Analytics avanzado",
+      "Dominio personalizado",
+    ],
+    enterprise: [
+      "Todo en Premium +",
+      "White-label (sin marca NODDO)",
+      "API REST + Webhooks",
+      "Importación CSV masiva",
+      "Soporte 24/7 con SLA",
+    ],
+  };
+
+  const planFeatures = features[data.newPlan] || ["Todas las features básicas"];
+
+  const featuresHtml = planFeatures
+    .map(
+      (f) =>
+        `<tr><td style="padding:4px 0;font-size:13px;color:#8a8580;line-height:1.6;">
+          &bull; ${f}
+        </td></tr>`
+    )
+    .join("");
+
+  const html = emailWrapper(
+    `Bienvenido a ${newPlanLabel}`,
+    "NODDO",
+    `<tr><td align="center" style="padding:0 40px 16px;">
+      <p style="margin:0;font-size:14px;color:#f4f0e8;line-height:1.7;font-weight:300;">
+        Hola ${escapeHtml(data.name)},
+      </p>
+    </td></tr>
+    <tr><td align="center" style="padding:0 40px 24px;">
+      <p style="margin:0;font-size:13px;color:#8a8580;line-height:1.7;">
+        Tu plan ha sido actualizado de <strong style="color:#f4f0e8;">${PLAN_LABELS[data.oldPlan]}</strong> a <strong style="color:#b8973a;">${newPlanLabel}</strong> (${newPlanPrice}). Ya puedes aprovechar todas las nuevas features.
+      </p>
+    </td></tr>
+    ${detailTable([
+      { label: "Plan nuevo", value: newPlanLabel, highlight: true },
+      { label: "Max proyectos", value: data.maxProjects === 999 ? "Ilimitados" : String(data.maxProjects) },
+      { label: "Max unidades", value: data.maxUnits === null ? "Ilimitadas" : String(data.maxUnits) },
+    ])}
+    <tr><td align="center" style="padding:0 40px 8px;">
+      <p style="margin:0;font-size:12px;color:#b8973a;font-weight:600;text-transform:uppercase;letter-spacing:0.1em;">
+        Nuevas features desbloqueadas
+      </p>
+    </td></tr>
+    <tr><td style="padding:0 40px 24px;">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        ${featuresHtml}
+      </table>
+    </td></tr>
+    ${ctaButton(appUrl + "/proyectos", "Explorar mis proyectos")}`,
+  );
+
+  try {
+    await resend.emails.send({
+      from: fromAddress,
+      to: data.email,
+      subject: `Bienvenido a ${newPlanLabel} — NODDO`,
+      html,
+      headers: { "List-Unsubscribe": "<mailto:hola@noddo.io?subject=Cancelar%20suscripcion>" },
+    });
+  } catch (err) {
+    console.error("[email] Failed to send plan upgrade email:", err);
+  }
+}
+
+/* ── Feature blocked: sent when user tries to use a feature they don't have ── */
+
+interface FeatureBlockedData {
+  email: string;
+  name: string;
+  feature: string;
+  currentPlan: "basic" | "premium" | "enterprise";
+  requiredPlan: "basic" | "premium" | "enterprise";
+}
+
+export async function sendFeatureBlocked(data: FeatureBlockedData) {
+  if (!resend) {
+    console.warn("[email] RESEND_API_KEY not configured — skipping feature blocked email");
+    return;
+  }
+
+  const fromAddress = process.env.RESEND_FROM_EMAIL || "NODDO <notificaciones@noddo.io>";
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL || "https://noddo.io";
+
+  const requiredPlanLabel = PLAN_LABELS[data.requiredPlan];
+  const requiredPlanPrice = PLAN_PRICES[data.requiredPlan];
+
+  const html = emailWrapper(
+    `Desbloquea ${data.feature}`,
+    "NODDO",
+    `<tr><td align="center" style="padding:0 40px 16px;">
+      <p style="margin:0;font-size:14px;color:#f4f0e8;line-height:1.7;font-weight:300;">
+        Hola ${escapeHtml(data.name)},
+      </p>
+    </td></tr>
+    <tr><td align="center" style="padding:0 40px 24px;">
+      <p style="margin:0;font-size:13px;color:#8a8580;line-height:1.7;">
+        Intentaste usar <strong style="color:#f4f0e8;">${data.feature}</strong>, pero esta feature requiere el plan <strong style="color:#b8973a;">${requiredPlanLabel}</strong> (${requiredPlanPrice}).
+      </p>
+    </td></tr>
+    <tr><td align="center" style="padding:0 40px 24px;">
+      <p style="margin:0;font-size:13px;color:#8a8580;line-height:1.7;">
+        Actualiza tu plan y desbloquea esta y muchas otras features premium para maximizar la comercialización de tus proyectos.
+      </p>
+    </td></tr>
+    ${ctaButton(appUrl + "/pricing", `Actualizar a ${requiredPlanLabel}`)}
+    <tr><td align="center" style="padding:0 40px 24px;">
+      <p style="margin:0;font-size:12px;color:#5a5550;line-height:1.6;">
+        ¿Preguntas? Escríbenos a <a href="mailto:hola@noddo.io" style="color:#b8973a;text-decoration:underline;">hola@noddo.io</a>
+      </p>
+    </td></tr>`,
+  );
+
+  try {
+    await resend.emails.send({
+      from: fromAddress,
+      to: data.email,
+      subject: `Desbloquea ${data.feature} — NODDO`,
+      html,
+      headers: { "List-Unsubscribe": "<mailto:hola@noddo.io?subject=Cancelar%20suscripcion>" },
+    });
+  } catch (err) {
+    console.error("[email] Failed to send feature blocked email:", err);
   }
 }
 

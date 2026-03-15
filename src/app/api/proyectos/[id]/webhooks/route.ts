@@ -1,5 +1,7 @@
 import { getAuthContext } from "@/lib/auth-context";
 import { checkFeature } from "@/lib/feature-flags";
+import { checkFeatureAccess, FEATURE_LABELS } from "@/lib/feature-access";
+import { sendFeatureBlocked } from "@/lib/email";
 import { generateWebhookSecret } from "@/lib/webhooks";
 import { NextRequest, NextResponse } from "next/server";
 import type { WebhookConfig, WebhookEventType } from "@/types";
@@ -15,6 +17,33 @@ export async function GET(
     const auth = await getAuthContext();
     if (!auth) return NextResponse.json({ error: "No autorizado" }, { status: 401 });
     if (auth.role !== "admin") return NextResponse.json({ error: "Solo administradores" }, { status: 403 });
+
+    // Check plan-based access first
+    const planAccess = await checkFeatureAccess(auth.supabase, auth.adminUserId, "webhooks");
+    if (!planAccess.allowed) {
+      // Send feature blocked email (fire-and-forget)
+      if (auth.user.email && planAccess.requiredPlan) {
+        sendFeatureBlocked({
+          email: auth.user.email,
+          name: auth.user.user_metadata?.full_name || auth.user.email.split("@")[0],
+          feature: FEATURE_LABELS.webhooks,
+          currentPlan: planAccess.currentPlan,
+          requiredPlan: planAccess.requiredPlan,
+        }).catch((err) => {
+          console.error("[webhooks/GET] Failed to send feature blocked email:", err);
+        });
+      }
+
+      return NextResponse.json(
+        {
+          error: `Webhooks requieren plan ${planAccess.requiredPlan}`,
+          upgrade_required: true,
+          current_plan: planAccess.currentPlan,
+          required_plan: planAccess.requiredPlan,
+        },
+        { status: 403 }
+      );
+    }
 
     const { data: proyecto, error } = await auth.supabase
       .from("proyectos")
@@ -47,6 +76,33 @@ export async function PUT(
     const auth = await getAuthContext();
     if (!auth) return NextResponse.json({ error: "No autorizado" }, { status: 401 });
     if (auth.role !== "admin") return NextResponse.json({ error: "Solo administradores" }, { status: 403 });
+
+    // Check plan-based access first
+    const planAccess = await checkFeatureAccess(auth.supabase, auth.adminUserId, "webhooks");
+    if (!planAccess.allowed) {
+      // Send feature blocked email (fire-and-forget)
+      if (auth.user.email && planAccess.requiredPlan) {
+        sendFeatureBlocked({
+          email: auth.user.email,
+          name: auth.user.user_metadata?.full_name || auth.user.email.split("@")[0],
+          feature: FEATURE_LABELS.webhooks,
+          currentPlan: planAccess.currentPlan,
+          requiredPlan: planAccess.requiredPlan,
+        }).catch((err) => {
+          console.error("[webhooks/PUT] Failed to send feature blocked email:", err);
+        });
+      }
+
+      return NextResponse.json(
+        {
+          error: `Webhooks requieren plan ${planAccess.requiredPlan}`,
+          upgrade_required: true,
+          current_plan: planAccess.currentPlan,
+          required_plan: planAccess.requiredPlan,
+        },
+        { status: 403 }
+      );
+    }
 
     // Check feature flag
     const webhooksEnabled = await checkFeature(auth.supabase, id, "webhooks");
