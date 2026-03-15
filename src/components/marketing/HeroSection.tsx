@@ -128,7 +128,7 @@ export function HeroSection() {
                   </div>
                 ))}
               </div>
-              <span style={{ fontSize: 12, color: "rgba(244,240,232,0.5)" }}>
+              <span style={{ fontSize: 13, color: "rgba(244,240,232,0.5)" }}>
                 <strong style={{ color: "var(--mk-text-primary)", fontWeight: 500 }}>100+</strong> desarrolladores
               </span>
             </div>
@@ -137,7 +137,7 @@ export function HeroSection() {
             <div style={{ width: 1, height: 20, background: "rgba(255,255,255,0.1)" }} />
 
             {/* Micro-copy trust elements */}
-            <div className="flex items-center gap-4 text-[11px]" style={{ color: "rgba(244,240,232,0.4)" }}>
+            <div className="flex items-center gap-4 text-[12px]" style={{ color: "rgba(244,240,232,0.4)" }}>
               <div className="flex items-center gap-1.5">
                 <span style={{ color: "var(--mk-accent)" }}>✓</span>
                 Sin tarjeta

@@ -205,7 +205,7 @@ export function SalesImpactSection() {
               delay={0}
             />
             <p
-              className="text-[13px] leading-[1.8] mt-4 max-w-[420px]"
+              className="text-[14px] leading-[1.8] mt-4 max-w-[420px]"
               style={{ color: "rgba(244,240,232,0.5)" }}
             >
               {featured.description}
@@ -219,7 +219,7 @@ export function SalesImpactSection() {
               }}
             />
             <div
-              className="font-ui text-[9px] tracking-[0.18em] uppercase"
+              className="font-ui text-[10px] tracking-[0.18em] uppercase"
               style={{ color: "rgba(244,240,232,0.25)" }}
             >
               {featured.category}
@@ -244,7 +244,7 @@ export function SalesImpactSection() {
               delay={100}
             />
             <p
-              className="text-[12px] leading-[1.8] mt-4"
+              className="text-[14px] leading-[1.8] mt-4"
               style={{ color: "rgba(244,240,232,0.45)" }}
             >
               {right1.description}
@@ -258,7 +258,7 @@ export function SalesImpactSection() {
               }}
             />
             <div
-              className="font-ui text-[9px] tracking-[0.18em] uppercase"
+              className="font-ui text-[10px] tracking-[0.18em] uppercase"
               style={{ color: "rgba(244,240,232,0.25)" }}
             >
               {right1.category}
@@ -283,7 +283,7 @@ export function SalesImpactSection() {
               delay={200}
             />
             <p
-              className="text-[12px] leading-[1.8] mt-4"
+              className="text-[14px] leading-[1.8] mt-4"
               style={{ color: "rgba(244,240,232,0.45)" }}
             >
               {bottom1.description}
@@ -297,7 +297,7 @@ export function SalesImpactSection() {
               }}
             />
             <div
-              className="font-ui text-[9px] tracking-[0.18em] uppercase"
+              className="font-ui text-[10px] tracking-[0.18em] uppercase"
               style={{ color: "rgba(244,240,232,0.25)" }}
             >
               {bottom1.category}
@@ -322,7 +322,7 @@ export function SalesImpactSection() {
               delay={300}
             />
             <p
-              className="text-[12px] leading-[1.8] mt-4"
+              className="text-[14px] leading-[1.8] mt-4"
               style={{ color: "rgba(244,240,232,0.45)" }}
             >
               {bottom2.description}
@@ -336,7 +336,7 @@ export function SalesImpactSection() {
               }}
             />
             <div
-              className="font-ui text-[9px] tracking-[0.18em] uppercase"
+              className="font-ui text-[10px] tracking-[0.18em] uppercase"
               style={{ color: "rgba(244,240,232,0.25)" }}
             >
               {bottom2.category}
@@ -367,7 +367,7 @@ export function SalesImpactSection() {
               &ldquo;{quote.text}&rdquo;
             </p>
             <div
-              className="font-ui text-[9px] tracking-[0.18em] uppercase"
+              className="font-ui text-[10px] tracking-[0.18em] uppercase"
               style={{ color: "rgba(184,151,58,0.4)" }}
             >
               — {quote.role}
@@ -400,7 +400,7 @@ export function SalesImpactSection() {
                 delay={i * 80}
               />
               <p
-                className="text-[12px] leading-[1.8] mt-3"
+                className="text-[14px] leading-[1.8] mt-3"
                 style={{ color: "rgba(244,240,232,0.45)" }}
               >
                 {stat.description}
@@ -414,7 +414,7 @@ export function SalesImpactSection() {
                 }}
               />
               <div
-                className="font-ui text-[9px] tracking-[0.18em] uppercase"
+                className="font-ui text-[10px] tracking-[0.18em] uppercase"
                 style={{ color: "rgba(244,240,232,0.25)" }}
               >
                 {stat.category}
@@ -444,7 +444,7 @@ export function SalesImpactSection() {
               &ldquo;{quote.text}&rdquo;
             </p>
             <div
-              className="font-ui text-[9px] tracking-[0.18em] uppercase"
+              className="font-ui text-[10px] tracking-[0.18em] uppercase"
               style={{ color: "rgba(184,151,58,0.4)" }}
             >
               — {quote.role}
@@ -500,7 +500,7 @@ export function SalesImpactSection() {
             </h3>
 
             <p
-              className="text-[13px] leading-[1.8] mb-8"
+              className="text-[14px] leading-[1.8] mb-8"
               style={{ color: "rgba(244,240,232,0.5)" }}
             >
               Los mejores equipos comerciales usan NODDO para presentar más rápido,
@@ -559,7 +559,7 @@ export function SalesImpactSection() {
                   </div>
                 ))}
               </div>
-              <span style={{ fontSize: 11, color: "rgba(244,240,232,0.4)" }}>
+              <span style={{ fontSize: 12, color: "rgba(244,240,232,0.4)" }}>
                 <strong style={{ color: "var(--mk-text-primary)", fontWeight: 500 }}>100+</strong> equipos comerciales
               </span>
             </div>

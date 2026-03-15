@@ -256,18 +256,18 @@ export function HowItWorks() {
               </div>
 
               {/* Title */}
-              <div className="font-ui text-[13px] font-bold uppercase tracking-[0.08em] mb-3" style={{ color: "var(--mk-text-primary)" }}>
+              <div className="font-ui text-[14px] font-bold uppercase tracking-[0.08em] mb-3" style={{ color: "var(--mk-text-primary)" }}>
                 {step.title}
               </div>
 
               {/* Body */}
-              <div className="text-[12px] leading-[1.8]" style={{ color: "rgba(244,240,232,0.55)" }}>
+              <div className="text-[14px] leading-[1.8]" style={{ color: "rgba(244,240,232,0.55)" }}>
                 {step.body}
               </div>
 
               {/* Tag */}
               <span
-                className="inline-block mt-5 font-ui text-[9px] tracking-[0.2em] uppercase"
+                className="inline-block mt-5 font-ui text-[10px] tracking-[0.2em] uppercase"
                 style={{
                   color: "var(--mk-accent)",
                   padding: "5px 12px",
@@ -317,7 +317,7 @@ export function HowItWorks() {
             </div>
           </div>
 
-          <div className="flex items-center justify-center gap-6 text-[11px]" style={{ color: "rgba(244,240,232,0.35)" }}>
+          <div className="flex items-center justify-center gap-6 text-[12px]" style={{ color: "rgba(244,240,232,0.35)" }}>
             <div className="flex items-center gap-1.5">
               <span style={{ color: "var(--mk-accent)" }}>✓</span>
               Sin código

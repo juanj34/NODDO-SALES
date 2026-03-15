@@ -437,7 +437,7 @@ export function ProblemSection() {
 
           <div className="flex items-end">
             <p
-              className="text-[13px] leading-[1.9] max-w-[480px]"
+              className="text-[15px] leading-[1.9] max-w-[480px]"
               style={{ color: "rgba(244,240,232,0.5)" }}
             >
               Las constructoras invierten fortunas en renders, videos y brochures
@@ -483,7 +483,7 @@ export function ProblemSection() {
 
               {/* Title */}
               <div
-                className="font-ui text-[13px] font-bold uppercase tracking-[0.08em] mb-3"
+                className="font-ui text-[14px] font-bold uppercase tracking-[0.08em] mb-3"
                 style={{ color: "rgba(244,240,232,0.85)" }}
               >
                 {problem.title}
@@ -491,7 +491,7 @@ export function ProblemSection() {
 
               {/* Body */}
               <div
-                className="text-[12px] leading-[1.8]"
+                className="text-[14px] leading-[1.8]"
                 style={{ color: "rgba(244,240,232,0.45)" }}
               >
                 {problem.body}

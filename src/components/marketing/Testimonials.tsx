@@ -101,7 +101,7 @@ export function Testimonials() {
 
               {/* Quote text */}
               <p
-                className="text-[13px] leading-[1.9] mb-7 flex-1 italic"
+                className="text-[14px] leading-[1.9] mb-7 flex-1 italic"
                 style={{ color: "rgba(244, 240, 232, 0.6)" }}
               >
                 {t.quote}
@@ -133,11 +133,11 @@ export function Testimonials() {
                   }}
                 />
                 <div>
-                  <p className="font-ui text-[11px] font-bold tracking-[0.06em] text-[var(--mk-text-primary)] mb-0.5">
+                  <p className="font-ui text-[12px] font-bold tracking-[0.06em] text-[var(--mk-text-primary)] mb-0.5">
                     {t.name}
                   </p>
                   <p
-                    className="text-[9px] tracking-[0.1em]"
+                    className="text-[10px] tracking-[0.1em]"
                     style={{ color: "rgba(244, 240, 232, 0.3)" }}
                   >
                     {t.role}

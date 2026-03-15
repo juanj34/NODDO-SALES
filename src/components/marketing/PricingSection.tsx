@@ -163,7 +163,7 @@ export function PricingSection() {
 
               {/* Period */}
               <div
-                className="text-[9px] tracking-[0.1em] mb-8"
+                className="text-[10px] tracking-[0.1em] mb-8"
                 style={{ color: "rgba(244,240,232,0.3)" }}
               >
                 {plan.period}
@@ -174,7 +174,7 @@ export function PricingSection() {
                 {plan.features.map((f) => (
                   <li
                     key={f.text}
-                    className="flex items-baseline gap-2.5 text-[11px]"
+                    className="flex items-baseline gap-2.5 text-[12px]"
                     style={{
                       padding: "9px 0",
                       borderBottom: "1px solid rgba(255,255,255,0.04)",
@@ -242,7 +242,7 @@ export function PricingSection() {
           </div>
 
           {/* Trust micro-copy */}
-          <div className="flex items-center justify-center gap-6 flex-wrap text-[11px]" style={{ color: "rgba(244,240,232,0.3)" }}>
+          <div className="flex items-center justify-center gap-6 flex-wrap text-[12px]" style={{ color: "rgba(244,240,232,0.3)" }}>
             <div className="flex items-center gap-1.5">
               <span style={{ color: "var(--mk-accent)" }}>✓</span>
               Implementación asistida incluida

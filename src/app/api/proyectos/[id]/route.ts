@@ -170,6 +170,10 @@ export async function PUT(
       entityType: "proyecto", entityId: id,
     });
 
+    // Revalidate cached project data
+    const { revalidateProyecto } = await import("@/lib/supabase/cached-queries");
+    await revalidateProyecto(data.slug);
+
     return NextResponse.json(data);
   } catch (err) {
     return NextResponse.json(

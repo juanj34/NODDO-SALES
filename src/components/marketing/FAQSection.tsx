@@ -63,7 +63,7 @@ export function FAQSection() {
                 style={{
                   padding: "24px 0",
                   fontFamily: "'Syne', sans-serif",
-                  fontSize: "clamp(13px, 1.5vw, 14px)",
+                  fontSize: "clamp(14px, 1.5vw, 15px)",
                   fontWeight: 600,
                   letterSpacing: "0.04em",
                   color: openIdx === i ? "var(--mk-text-primary)" : "rgba(244,240,232,0.65)",
@@ -98,7 +98,7 @@ export function FAQSection() {
                   overflow: "hidden",
                   transition: "max-height 0.4s ease, padding 0.3s ease",
                   paddingBottom: openIdx === i ? 24 : 0,
-                  fontSize: 13,
+                  fontSize: 14,
                   lineHeight: 1.9,
                   color: "rgba(244,240,232,0.55)",
                 }}

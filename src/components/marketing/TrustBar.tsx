@@ -23,7 +23,7 @@ export function TrustBar() {
           whileInView={{ opacity: 1 }}
           viewport={{ once: true }}
           transition={{ duration: 0.7, ease }}
-          className="text-center text-[9px] tracking-[0.3em] uppercase text-[var(--mk-text-muted)] mb-10"
+          className="text-center text-[10px] tracking-[0.3em] uppercase text-[var(--mk-text-muted)] mb-10"
         >
           Constructoras que confían en Noddo
         </motion.p>
@@ -54,7 +54,7 @@ export function TrustBar() {
                   {logo.initials}
                 </div>
                 <span
-                  className="text-[11px] font-medium whitespace-nowrap"
+                  className="text-[12px] font-medium whitespace-nowrap"
                   style={{ color: "rgba(255, 255, 255, 0.25)" }}
                 >
                   {logo.name}

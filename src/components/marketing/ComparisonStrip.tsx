@@ -135,7 +135,7 @@ export function ComparisonStrip() {
           className="hidden md:block"
           style={{ border: "1px solid rgba(255,255,255,0.06)" }}
         >
-          <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 12 }}>
+          <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 13 }}>
             <thead>
               <tr style={{ borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
                 <th
@@ -153,7 +153,7 @@ export function ComparisonStrip() {
                   }}
                 >
                   <div style={{ marginBottom: 10 }}><IconBrochure /></div>
-                  <div className="font-ui text-[10px] font-bold tracking-[0.15em] uppercase" style={{ color: "rgba(244,240,232,0.5)", marginBottom: 6 }}>
+                  <div className="font-ui text-[11px] font-bold tracking-[0.15em] uppercase" style={{ color: "rgba(244,240,232,0.5)", marginBottom: 6 }}>
                     Brochure PDF
                   </div>
                   <div className="font-heading text-[16px] font-light" style={{ color: "rgba(244,240,232,0.5)" }}>
@@ -202,7 +202,7 @@ export function ComparisonStrip() {
                   }}
                 >
                   <div style={{ marginBottom: 10 }}><IconSoftware3D /></div>
-                  <div className="font-ui text-[10px] font-bold tracking-[0.15em] uppercase" style={{ color: "rgba(244,240,232,0.5)", marginBottom: 6 }}>
+                  <div className="font-ui text-[11px] font-bold tracking-[0.15em] uppercase" style={{ color: "rgba(244,240,232,0.5)", marginBottom: 6 }}>
                     Software 3D · Maqueta
                   </div>
                   <div className="font-heading text-[16px] font-light" style={{ color: "rgba(244,240,232,0.5)" }}>
@@ -222,10 +222,10 @@ export function ComparisonStrip() {
                   onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.background = "rgba(255,255,255,0.03)"; }}
                   onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.background = ""; }}
                 >
-                  <td style={{ padding: "16px 20px 16px 28px", color: "rgba(244,240,232,0.65)", fontSize: 12 }}>
+                  <td style={{ padding: "16px 20px 16px 28px", color: "rgba(244,240,232,0.65)", fontSize: 13 }}>
                     {f.label}
                   </td>
-                  <td className="text-center" style={{ padding: "16px 12px", color: "rgba(244,240,232,0.5)", fontSize: 11, borderLeft: "1px solid rgba(255,255,255,0.04)", verticalAlign: "middle" }}>
+                  <td className="text-center" style={{ padding: "16px 12px", color: "rgba(244,240,232,0.5)", fontSize: 12, borderLeft: "1px solid rgba(255,255,255,0.04)", verticalAlign: "middle" }}>
                     <span style={{ color: iconColor(f.brochure.icon), marginRight: 5 }}>{f.brochure.icon}</span>
                     {f.brochure.text}
                   </td>
@@ -235,7 +235,7 @@ export function ComparisonStrip() {
                       padding: "16px 12px",
                       background: "rgba(184,151,58,0.04)",
                       color: "rgba(244,240,232,0.85)",
-                      fontSize: 11,
+                      fontSize: 12,
                       borderLeft: "1px solid rgba(184,151,58,0.2)",
                       borderRight: "1px solid rgba(184,151,58,0.2)",
                       fontWeight: 500,
@@ -245,7 +245,7 @@ export function ComparisonStrip() {
                     <span style={{ color: iconColor(f.noddo.icon), marginRight: 5 }}>{f.noddo.icon}</span>
                     {f.noddo.text}
                   </td>
-                  <td className="text-center" style={{ padding: "16px 12px", color: "rgba(244,240,232,0.5)", fontSize: 11, borderLeft: "1px solid rgba(255,255,255,0.04)", verticalAlign: "middle" }}>
+                  <td className="text-center" style={{ padding: "16px 12px", color: "rgba(244,240,232,0.5)", fontSize: 12, borderLeft: "1px solid rgba(255,255,255,0.04)", verticalAlign: "middle" }}>
                     <span style={{ color: iconColor(f.agency.icon), marginRight: 5 }}>{f.agency.icon}</span>
                     {f.agency.text}
                   </td>
@@ -270,20 +270,20 @@ export function ComparisonStrip() {
               style={{ background: "var(--mk-bg)", padding: "16px 0" }}
             >
               <div
-                className="font-ui text-[11px] font-semibold tracking-[0.04em] mb-3"
+                className="font-ui text-[12px] font-semibold tracking-[0.04em] mb-3"
                 style={{ color: "rgba(244,240,232,0.7)" }}
               >
                 {f.label}
               </div>
-              <div className="grid grid-cols-3 gap-2 text-[10px]">
-                <div style={{ fontSize: 11, color: "rgba(244,240,232,0.45)" }}>
-                  <div className="font-ui text-[8px] tracking-[0.12em] uppercase mb-1" style={{ color: "rgba(244,240,232,0.3)" }}>Brochure</div>
+              <div className="grid grid-cols-3 gap-2 text-[11px]">
+                <div style={{ fontSize: 12, color: "rgba(244,240,232,0.45)" }}>
+                  <div className="font-ui text-[9px] tracking-[0.12em] uppercase mb-1" style={{ color: "rgba(244,240,232,0.3)" }}>Brochure</div>
                   <span style={{ color: iconColor(f.brochure.icon), marginRight: 3 }}>{f.brochure.icon}</span>
                   {f.brochure.text}
                 </div>
                 <div
                   style={{
-                    fontSize: 11,
+                    fontSize: 12,
                     color: "rgba(244,240,232,0.85)",
                     fontWeight: 500,
                     background: "rgba(184,151,58,0.06)",
@@ -291,12 +291,12 @@ export function ComparisonStrip() {
                     border: "1px solid rgba(184,151,58,0.15)",
                   }}
                 >
-                  <div className="font-ui text-[8px] tracking-[0.12em] uppercase mb-1" style={{ color: "var(--mk-accent)" }}>Noddo</div>
+                  <div className="font-ui text-[9px] tracking-[0.12em] uppercase mb-1" style={{ color: "var(--mk-accent)" }}>Noddo</div>
                   <span style={{ color: iconColor(f.noddo.icon), marginRight: 3 }}>{f.noddo.icon}</span>
                   {f.noddo.text}
                 </div>
-                <div style={{ fontSize: 11, color: "rgba(244,240,232,0.45)" }}>
-                  <div className="font-ui text-[8px] tracking-[0.12em] uppercase mb-1" style={{ color: "rgba(244,240,232,0.3)" }}>Software 3D</div>
+                <div style={{ fontSize: 12, color: "rgba(244,240,232,0.45)" }}>
+                  <div className="font-ui text-[9px] tracking-[0.12em] uppercase mb-1" style={{ color: "rgba(244,240,232,0.3)" }}>Software 3D</div>
                   <span style={{ color: iconColor(f.agency.icon), marginRight: 3 }}>{f.agency.icon}</span>
                   {f.agency.text}
                 </div>
@@ -310,7 +310,7 @@ export function ComparisonStrip() {
           {badges.map((b) => (
             <div
               key={b.label}
-              className="flex items-center gap-1.5 font-ui text-[9px] tracking-[0.18em] uppercase"
+              className="flex items-center gap-1.5 font-ui text-[10px] tracking-[0.18em] uppercase"
               style={{
                 padding: "7px 14px",
                 border: "1px solid rgba(255,255,255,0.06)",

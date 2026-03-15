@@ -3,6 +3,7 @@
 import { useState, useCallback, useMemo, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import Image from "next/image";
+import dynamic from "next/dynamic";
 import {
   MapPin,
   Navigation,
@@ -18,16 +19,29 @@ import {
   Dumbbell,
   ChevronRight,
   Image as ImageIcon,
+  Loader2,
 } from "lucide-react";
 import { useSiteProject } from "@/hooks/useSiteProject";
 import { CloseButton } from "@/components/ui/CloseButton";
 import { usePersistedState } from "@/hooks/usePersistedState";
 import { useTranslation } from "@/i18n";
 import { useMediaQuery } from "@/hooks/useMediaQuery";
-import { MapboxMap } from "@/components/site/MapboxMap";
 import { MobileBottomSheet } from "@/components/site/MobileBottomSheet";
 import { cn } from "@/lib/utils";
 import type { PuntoInteres } from "@/types";
+
+// Lazy load Mapbox (~250KB) only when this page loads
+const MapboxMap = dynamic(
+  () => import("@/components/site/MapboxMap").then((mod) => ({ default: mod.MapboxMap })),
+  {
+    ssr: false, // Mapbox requires browser APIs
+    loading: () => (
+      <div className="w-full h-full flex items-center justify-center bg-[var(--surface-1)]">
+        <Loader2 className="animate-spin text-[var(--site-primary)]" size={32} />
+      </div>
+    ),
+  }
+);
 
 type MapStyle = "satellite" | "streets";
 

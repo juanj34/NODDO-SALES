@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { headers } from "next/headers";
 import { notFound } from "next/navigation";
-import { getProyectoBySlug } from "@/lib/supabase/server-queries";
+import { getProyectoBySlug } from "@/lib/supabase/cached-queries";
 import { SiteLayoutClient } from "./SiteLayoutClient";
 import { ReCaptchaProvider } from "@/components/site/ReCaptchaProvider";
 import type { ProyectoCompleto } from "@/types";
