@@ -396,6 +396,32 @@ body {
   box-shadow: 0 0 0 3px rgba(var(--site-primary-rgb), 0.10), inset 0 1px 3px rgba(0, 0, 0, 0.2);
 }
 
+/* ====== NODDO DROPDOWN SCROLLBAR ====== */
+.noddo-dropdown-panel::-webkit-scrollbar {
+  width: 4px;
+}
+
+.noddo-dropdown-panel::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.03);
+  border-radius: 2px;
+}
+
+.noddo-dropdown-panel::-webkit-scrollbar-thumb {
+  background: rgba(184, 151, 58, 0.3);
+  border-radius: 2px;
+  transition: background 0.2s ease;
+}
+
+.noddo-dropdown-panel::-webkit-scrollbar-thumb:hover {
+  background: rgba(184, 151, 58, 0.5);
+}
+
+/* Firefox scrollbar */
+.noddo-dropdown-panel {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(184, 151, 58, 0.3) rgba(255, 255, 255, 0.03);
+}
+
 /* ====== ATMOSPHERE & TEXTURES ====== */
 
 .bg-noise {
@@ -1247,4 +1273,40 @@ body.scroll-locked {
   position: fixed;
   width: 100%;
   top: var(--scroll-position, 0);
+}
+/* ══════════════════════════════════════════════════════════════════
+   SHIMMER LOADING ANIMATION (Consistent across platform)
+   ══════════════════════════════════════════════════════════════════ */
+
+@keyframes shimmer {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+.shimmer-gradient {
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(255, 255, 255, 0.08) 50%,
+    transparent 100%
+  );
+  animation: shimmer 1.5s infinite;
+}
+
+/* Alternative: subtle pulse for very small elements */
+@keyframes subtle-pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.6;
+  }
+}
+
+.subtle-pulse {
+  animation: subtle-pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
 }
