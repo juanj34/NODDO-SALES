@@ -60,9 +60,9 @@ export function CookieConsent() {
       // Small delay for better UX (let page load first)
       setTimeout(() => setShowBanner(true), 1000);
     } else {
-      // Load saved preferences - use queueMicrotask to avoid setState sync error
+      // Load saved preferences - use setTimeout to avoid setState sync error
       const parsed = JSON.parse(saved) as CookiePreferences;
-      queueMicrotask(() => setPreferences(parsed));
+      setTimeout(() => setPreferences(parsed), 0);
       applyConsent(parsed);
     }
   }, []);
@@ -262,17 +262,14 @@ export function useCookieConsent() {
   const [consent, setConsent] = useState<CookiePreferences | null>(null);
 
   useEffect(() => {
-    // Use queueMicrotask to avoid "Calling setState synchronously within an effect" error
-    queueMicrotask(() => {
-      // Check both localStorage and window object
-      const saved = localStorage.getItem(COOKIE_CONSENT_KEY);
-      if (saved) {
-        const parsed = JSON.parse(saved) as CookiePreferences;
-        setConsent(parsed);
-      } else if (window.__COOKIE_CONSENT__) {
-        setConsent(window.__COOKIE_CONSENT__);
-      }
-    });
+    // Check both localStorage and window object - use setTimeout to avoid setState sync error
+    const saved = localStorage.getItem(COOKIE_CONSENT_KEY);
+    if (saved) {
+      const parsed = JSON.parse(saved) as CookiePreferences;
+      setTimeout(() => setConsent(parsed), 0);
+    } else if (window.__COOKIE_CONSENT__) {
+      setTimeout(() => setConsent(window.__COOKIE_CONSENT__!), 0);
+    }
 
     // Listen for changes
     const handler = () => {

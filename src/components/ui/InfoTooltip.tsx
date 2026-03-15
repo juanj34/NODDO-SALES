@@ -68,8 +68,8 @@ export function InfoTooltip({
   const hoverTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
-    // Use a microtask to avoid "Calling setState synchronously within an effect" error
-    queueMicrotask(() => setIsMounted(true));
+    // Use setTimeout to avoid setState sync error
+    setTimeout(() => setIsMounted(true), 0);
   }, []);
 
   const vStyles = variantStyles[variant];

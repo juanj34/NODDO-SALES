@@ -2,7 +2,7 @@
 
 import { motion } from "framer-motion";
 import Link from "next/link";
-import { Users, BarChart3, ToggleLeft, Calculator, FileText, ArrowRight } from "lucide-react";
+import { Users, BarChart3, ToggleLeft, Calculator } from "lucide-react";
 import { useTranslation } from "@/i18n";
 import { useAuthRole } from "@/hooks/useAuthContext";
 import { trackDashboardEvent, type DashboardEventType } from "@/lib/dashboard-tracking";
@@ -44,13 +44,6 @@ export function DashboardShortcutsEnhanced({ leadCount }: Props) {
       icon: Calculator,
       href: "/cotizador",
       trackEvent: "shortcut_cotizador_click" as DashboardEventType,
-    },
-    {
-      label: "Cotizaciones",
-      description: "Historial de cotizaciones generadas",
-      icon: FileText,
-      href: "/cotizaciones",
-      trackEvent: "shortcut_cotizaciones_click" as DashboardEventType,
     },
   ];
 

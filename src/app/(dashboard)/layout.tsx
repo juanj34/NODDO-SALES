@@ -8,7 +8,7 @@ import { cn } from "@/lib/utils";
 import {
   FolderOpen, Users, Settings, LogOut, Loader2, HelpCircle,
   Menu, X, Shield, ToggleLeft, Calculator, ContactRound,
-  BarChart3, FileText,
+  BarChart3, FileText, LayoutDashboard,
 } from "lucide-react";
 import { ToastProvider } from "@/components/dashboard/Toast";
 import { ConfirmProvider } from "@/components/dashboard/ConfirmModal";
@@ -33,6 +33,7 @@ function SidebarLink({
   onClick,
   iconSize = 16,
   className: extraClass,
+  exact,
 }: {
   href: string;
   icon: React.ComponentType<{ size: number }>;
@@ -41,8 +42,11 @@ function SidebarLink({
   onClick?: () => void;
   iconSize?: number;
   className?: string;
+  exact?: boolean;
 }) {
-  const isActive = pathname === href || pathname.startsWith(href + "/");
+  const isActive = exact
+    ? pathname === href
+    : pathname === href || pathname.startsWith(href + "/");
   return (
     <Link
       href={href}
@@ -151,6 +155,16 @@ function DashboardShell({ children }: { children: React.ReactNode }) {
 
         {/* Navigation */}
         <nav className="flex-1 overflow-y-auto p-4 space-y-1">
+          {/* ── HOME ─────────────────────────────── */}
+          <SidebarLink
+            href="/dashboard"
+            icon={LayoutDashboard}
+            label={t("sidebar.home")}
+            pathname={pathname}
+            onClick={closeDrawer}
+            exact
+          />
+
           {/* ── PROYECTOS section ────────────────── */}
           <SidebarLink
             href="/proyectos"
@@ -248,21 +262,21 @@ function DashboardShell({ children }: { children: React.ReactNode }) {
           </div>
         )}
 
-        {/* Help link */}
-        <div className="px-4 pb-1">
-          <SidebarLink
+        {/* Help + Language — polished bottom strip */}
+        <div className="px-4 py-3 flex items-center justify-between">
+          <Link
             href="/ayuda"
-            icon={HelpCircle}
-            label={t("sidebar.help")}
-            pathname={pathname}
             onClick={closeDrawer}
-            iconSize={14}
-            className="!text-[var(--text-muted)]"
-          />
-        </div>
-
-        {/* Language Toggle */}
-        <div className="px-4 py-2 flex justify-center">
+            className={cn(
+              "flex items-center gap-2 px-2.5 py-1.5 rounded-lg font-ui text-[10px] font-semibold uppercase tracking-[0.08em] transition-all",
+              pathname === "/ayuda"
+                ? "text-[var(--site-primary)] bg-[rgba(var(--site-primary-rgb),0.08)]"
+                : "text-[var(--text-muted)] hover:text-[var(--text-tertiary)] hover:bg-[var(--surface-2)]"
+            )}
+          >
+            <HelpCircle size={13} />
+            {t("sidebar.help")}
+          </Link>
           <LanguageToggle />
         </div>
 

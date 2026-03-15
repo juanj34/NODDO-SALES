@@ -10,6 +10,7 @@ const dashboard = {
     disponibilidad: "Availability",
     cotizador: "Quotation",
     registros: "Leads",
+    home: "Home",
     allProjects: "All projects",
   },
   cuenta: {

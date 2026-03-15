@@ -3,7 +3,7 @@ import { useEffect } from "react";
 declare global {
   interface Window {
     gtag?: (command: string, eventName: string, params: Record<string, unknown>) => void;
-    fbq?: (command: string, eventName: string, params: Record<string, unknown>) => void;
+    fbq?: (...args: unknown[]) => void;
     trackDashboardEvent?: (eventName: string, params: Record<string, unknown>) => void;
   }
 }
