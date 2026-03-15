@@ -370,7 +370,7 @@ export default function ProyectosPage() {
                   value={slug}
                   onChange={(e) => setSlug(generateSlug(e.target.value))}
                   required
-                  placeholder="alto-de-yeguas"
+                  placeholder="mi-proyecto"
                   className="input-glass w-full"
                 />
                 <div className="flex items-center gap-2 mt-2">

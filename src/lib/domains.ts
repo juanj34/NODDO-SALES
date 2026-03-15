@@ -26,7 +26,7 @@ export function parseDomain(hostname: string): DomainInfo {
     return { type: "platform" };
   }
 
-  // Subdomain of main domain (e.g., alto-de-yeguas.nodesites.com)
+  // Subdomain of main domain (e.g., mi-proyecto.noddo.io)
   if (host.endsWith(`.${rootWithoutPort}`)) {
     const subdomain = host.replace(`.${rootWithoutPort}`, "");
     // Ignore www subdomain
