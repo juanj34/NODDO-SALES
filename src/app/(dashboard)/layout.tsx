@@ -19,6 +19,7 @@ import { AuthContextProvider, useAuthRole } from "@/hooks/useAuthContext";
 import { NodDoLogo } from "@/components/ui/NodDoLogo";
 import { useMobileDrawer } from "@/hooks/useMobileDrawer";
 import { RouteProgressBar } from "@/components/ui/RouteProgressBar";
+import { CrispSupport } from "@/components/dashboard/CrispSupport";
 
 // SidebarProject interface removed - no longer using dropdown
 
@@ -317,6 +318,7 @@ export default function DashboardLayout({
       <ConfirmProvider>
         <AuthContextProvider>
           <DashboardShell>{children}</DashboardShell>
+          <CrispSupport />
         </AuthContextProvider>
       </ConfirmProvider>
     </ToastProvider>
