@@ -45,6 +45,8 @@ export async function getProyectoById(
     { data: torres },
     { data: planos },
     { data: avancesObra },
+    { data: complementos },
+    { data: vistasPiso },
   ] = await Promise.all([
     supabase
       .from("tipologias")
@@ -64,6 +66,8 @@ export async function getProyectoById(
     supabase.from("torres").select("*").eq("proyecto_id", id).order("orden"),
     supabase.from("planos_interactivos").select("*").eq("proyecto_id", id).order("orden"),
     supabase.from("avances_obra").select("*").eq("proyecto_id", id).order("orden"),
+    supabase.from("complementos").select("*").eq("proyecto_id", id).order("orden"),
+    supabase.from("vistas_piso").select("*").eq("proyecto_id", id).order("orden"),
   ]);
 
   // Load images for each category
@@ -97,6 +101,8 @@ export async function getProyectoById(
     planos_interactivos: planos || [],
     plano_puntos: planoPuntos || [],
     avances_obra: avancesObra || [],
+    complementos: complementos || [],
+    vistas_piso: vistasPiso || [],
   };
 }
 
@@ -143,6 +149,8 @@ export async function getProyectoBySlug(
     planos_interactivos: (snap.planos_interactivos as ProyectoCompleto["planos_interactivos"]) || [],
     plano_puntos: (snap.plano_puntos as ProyectoCompleto["plano_puntos"]) || [],
     avances_obra: (snap.avances_obra as ProyectoCompleto["avances_obra"]) || [],
+    complementos: (snap.complementos as ProyectoCompleto["complementos"]) || [],
+    vistas_piso: (snap.vistas_piso as ProyectoCompleto["vistas_piso"]) || [],
   } as ProyectoCompleto;
 }
 

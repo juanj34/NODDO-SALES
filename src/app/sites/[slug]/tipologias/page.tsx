@@ -28,7 +28,8 @@ import {
   Archive,
 } from "lucide-react";
 import { SiteEmptyState } from "@/components/site/SiteEmptyState";
-import type { Unidad, LightboxImage } from "@/types";
+import VistaModal from "@/components/site/VistaModal";
+import type { Unidad, LightboxImage, VistaPiso } from "@/types";
 
 function formatPrecio(precio: number): string {
   if (precio >= 1000000000) {
@@ -112,6 +113,7 @@ export default function TipologiasPage() {
   const [activeHotspot, setActiveHotspot] = useState<{ label: string; render_url: string } | null>(null);
   const [showUbicacion, setShowUbicacion] = useState(false);
   const [showRenderGallery, setShowRenderGallery] = useState(false);
+  const [showVistaModal, setShowVistaModal] = useState<VistaPiso | null>(null);
 
   // Image ref for hotspot container
   const planoImgRef = useRef<HTMLImageElement>(null);
@@ -166,8 +168,8 @@ export default function TipologiasPage() {
 
       switch (e.key) {
         case "Escape":
-          // Lightbox handles its own ESC
-          if (showRenderGallery) return;
+          // Lightbox and VistaModal handle their own ESC
+          if (showRenderGallery || showVistaModal) return;
           if (showUbicacion) {
             setShowUbicacion(false);
           } else if (activeHotspot) {
@@ -197,7 +199,7 @@ export default function TipologiasPage() {
     window.addEventListener("keydown", handleKey);
     return () => window.removeEventListener("keydown", handleKey);
     // eslint-disable-next-line react-hooks/exhaustive-deps -- setActiveIndex is a state setter, stable
-  }, [activeHotspot, closeHotspot, selectedUnit, showRenderGallery, showUbicacion, visibleTipologias.length]);
+  }, [activeHotspot, closeHotspot, selectedUnit, showRenderGallery, showVistaModal, showUbicacion, visibleTipologias.length]);
 
   const active = visibleTipologias[activeIndex] ?? visibleTipologias[0];
 
@@ -538,18 +540,47 @@ export default function TipologiasPage() {
                                 <Compass size={11} /> {selectedUnit.orientacion}
                               </span>
                             )}
-                            {selectedUnit.vista && (
-                              <span className="flex items-center gap-1">
-                                <Eye size={11} /> {selectedUnit.vista}
-                              </span>
-                            )}
+                            {(() => {
+                              const unitVista = selectedUnit.vista_piso_id
+                                ? (proyecto.vistas_piso ?? []).find(v => v.id === selectedUnit.vista_piso_id)
+                                : null;
+                              return unitVista ? (
+                                <button
+                                  onClick={() => setShowVistaModal(unitVista)}
+                                  className="flex items-center gap-1 text-[var(--site-primary)] hover:opacity-80 transition-opacity cursor-pointer"
+                                >
+                                  <Eye size={11} />
+                                  {tSite("tipologias.verVista")}
+                                </button>
+                              ) : selectedUnit.vista ? (
+                                <span className="flex items-center gap-1">
+                                  <Eye size={11} /> {selectedUnit.vista}
+                                </span>
+                              ) : null;
+                            })()}
                           </div>
 
-                          {selectedUnit.precio && (
-                            <p className="text-lg font-semibold text-[var(--site-primary)]">
-                              {formatPrecioFull(selectedUnit.precio, locale)}
-                            </p>
-                          )}
+                          {selectedUnit.precio && (() => {
+                            const unitComplementos = (proyecto.parqueaderos_mode !== "sin_inventario" || proyecto.depositos_mode !== "sin_inventario")
+                              ? (proyecto.complementos ?? []).filter(c => c.unidad_id === selectedUnit.id)
+                              : [];
+                            const complementosTotal = unitComplementos.reduce((s, c) => s + (c.precio ?? 0), 0);
+                            const totalPrecio = selectedUnit.precio + complementosTotal;
+                            return unitComplementos.length > 0 ? (
+                              <div>
+                                <p className="text-lg font-semibold text-[var(--site-primary)]">
+                                  {formatPrecioFull(totalPrecio, locale)}
+                                </p>
+                                <p className="text-[9px] text-[var(--text-tertiary)]">
+                                  Inmueble {formatPrecioFull(selectedUnit.precio, locale)} + {unitComplementos.length} complemento(s)
+                                </p>
+                              </div>
+                            ) : (
+                              <p className="text-lg font-semibold text-[var(--site-primary)]">
+                                {formatPrecioFull(selectedUnit.precio, locale)}
+                              </p>
+                            );
+                          })()}
                         </div>
 
                         {/* Cotizar button */}
@@ -907,6 +938,13 @@ export default function TipologiasPage() {
             initialIndex={0}
             onClose={() => setShowRenderGallery(false)}
           />
+        )}
+      </AnimatePresence>
+
+      {/* ====== VISTA MODAL ====== */}
+      <AnimatePresence>
+        {showVistaModal && (
+          <VistaModal vista={showVistaModal} onClose={() => setShowVistaModal(null)} />
         )}
       </AnimatePresence>
 

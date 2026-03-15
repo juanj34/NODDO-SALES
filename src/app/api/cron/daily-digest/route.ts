@@ -11,12 +11,23 @@ import { Resend } from "resend";
 import { createClient } from "@/lib/supabase/server";
 import { Redis } from "@upstash/redis";
 
-const resend = new Resend(process.env.RESEND_API_KEY);
+// Lazy initialization - only create when needed (avoids build-time errors)
+function getResend() {
+  if (!process.env.RESEND_API_KEY) {
+    throw new Error("RESEND_API_KEY environment variable is not set");
+  }
+  return new Resend(process.env.RESEND_API_KEY);
+}
 
-const redis = new Redis({
-  url: process.env.UPSTASH_REDIS_REST_URL!,
-  token: process.env.UPSTASH_REDIS_REST_TOKEN!,
-});
+function getRedis() {
+  if (!process.env.UPSTASH_REDIS_REST_URL || !process.env.UPSTASH_REDIS_REST_TOKEN) {
+    throw new Error("Upstash Redis environment variables are not set");
+  }
+  return new Redis({
+    url: process.env.UPSTASH_REDIS_REST_URL,
+    token: process.env.UPSTASH_REDIS_REST_TOKEN,
+  });
+}
 
 /**
  * Vercel Cron authorization
@@ -83,6 +94,7 @@ async function getDailyMetrics() {
 
     try {
       // Rate limit blocked (from custom counter if exists)
+      const redis = getRedis();
       const blocked = await redis.get("stats:rate_limit:blocked:today");
       redisStats.rateLimitBlocked = typeof blocked === "number" ? blocked : 0;
     } catch (error) {
@@ -368,6 +380,7 @@ export async function POST(request: NextRequest) {
     const metrics = await getDailyMetrics();
     const htmlContent = generateEmailHTML(metrics, today);
 
+    const resend = getResend();
     const { data, error } = await resend.emails.send({
       from: "NODDO Analytics <analytics@noddo.io>",
       to: ["juanjaramillo34@gmail.com"],

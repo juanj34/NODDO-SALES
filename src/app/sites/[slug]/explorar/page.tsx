@@ -31,8 +31,9 @@ import { SectionTransition } from "@/components/site/SectionTransition";
 import { SiteEmptyState } from "@/components/site/SiteEmptyState";
 import { useMediaQuery } from "@/hooks/useMediaQuery";
 import { MobileBottomSheet } from "@/components/site/MobileBottomSheet";
+import VistaModal from "@/components/site/VistaModal";
 import { cn } from "@/lib/utils";
-import type { Unidad, Fachada, Torre, PlanoInteractivo, PlanoPunto } from "@/types";
+import type { Unidad, Fachada, Torre, PlanoInteractivo, PlanoPunto, VistaPiso } from "@/types";
 
 function formatPrecio(precio: number, locale: string): string {
   return new Intl.NumberFormat(locale === "es" ? "es-CO" : "en-US", {
@@ -111,6 +112,7 @@ export default function ExplorarPage() {
   const [selectedUnit, setSelectedUnit] = useState<Unidad | null>(null);
   const [hoveredUnit, setHoveredUnit] = useState<string | null>(null);
   const [cotizarUnidad, setCotizarUnidad] = useState<Unidad | null>(null);
+  const [showVistaModal, setShowVistaModal] = useState<VistaPiso | null>(null);
   const [imageLoaded, setImageLoaded] = useState(false);
   const prevFachadaIdRef = useRef<string | null>(null);
 
@@ -516,7 +518,7 @@ export default function ExplorarPage() {
               </div>
 
               {/* Orientation + View */}
-              {(selectedUnit.orientacion || selectedUnit.vista) && (
+              {(selectedUnit.orientacion || selectedUnit.vista || selectedUnit.vista_piso_id) && (
                 <div className="flex flex-wrap gap-2">
                   {selectedUnit.orientacion && (
                     <span className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-white/5 rounded-full text-xs text-[var(--text-secondary)]">
@@ -524,12 +526,25 @@ export default function ExplorarPage() {
                       {selectedUnit.orientacion}
                     </span>
                   )}
-                  {selectedUnit.vista && (
-                    <span className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-white/5 rounded-full text-xs text-[var(--text-secondary)]">
-                      <Eye size={12} className="text-[var(--text-tertiary)]" />
-                      {tSite("explorar.view")} {selectedUnit.vista}
-                    </span>
-                  )}
+                  {(() => {
+                    const unitVista = selectedUnit.vista_piso_id
+                      ? (proyecto.vistas_piso ?? []).find(v => v.id === selectedUnit.vista_piso_id)
+                      : null;
+                    return unitVista ? (
+                      <button
+                        onClick={() => setShowVistaModal(unitVista)}
+                        className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-[rgba(var(--site-primary-rgb),0.12)] rounded-full text-xs text-[var(--site-primary)] hover:bg-[rgba(var(--site-primary-rgb),0.2)] transition-colors cursor-pointer"
+                      >
+                        <Eye size={12} />
+                        {tSite("explorar.verVista")}
+                      </button>
+                    ) : selectedUnit.vista ? (
+                      <span className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-white/5 rounded-full text-xs text-[var(--text-secondary)]">
+                        <Eye size={12} className="text-[var(--text-tertiary)]" />
+                        {tSite("explorar.view")} {selectedUnit.vista}
+                      </span>
+                    ) : null;
+                  })()}
                 </div>
               )}
 
@@ -540,14 +555,26 @@ export default function ExplorarPage() {
             </div>
 
             {/* Price */}
-            {selectedUnit.precio && (
-              <div className="mx-4 mb-3 p-3 bg-[rgba(var(--site-primary-rgb),0.08)] rounded-2xl border border-[rgba(var(--site-primary-rgb),0.15)]">
-                <p className="text-[8px] text-[var(--site-primary)] opacity-60 tracking-wider uppercase mb-1">{tSite("explorar.price")}</p>
-                <p className="text-lg font-semibold text-[var(--site-primary)]">
-                  {formatPrecio(selectedUnit.precio, locale)}
-                </p>
-              </div>
-            )}
+            {selectedUnit.precio && (() => {
+              const unitComplementos = (proyecto.parqueaderos_mode !== "sin_inventario" || proyecto.depositos_mode !== "sin_inventario")
+                ? (proyecto.complementos ?? []).filter(c => c.unidad_id === selectedUnit.id)
+                : [];
+              const complementosTotal = unitComplementos.reduce((s, c) => s + (c.precio ?? 0), 0);
+              const totalPrecio = selectedUnit.precio + complementosTotal;
+              return (
+                <div className="mx-4 mb-3 p-3 bg-[rgba(var(--site-primary-rgb),0.08)] rounded-2xl border border-[rgba(var(--site-primary-rgb),0.15)]">
+                  <p className="text-[8px] text-[var(--site-primary)] opacity-60 tracking-wider uppercase mb-1">{tSite("explorar.price")}</p>
+                  <p className="text-lg font-semibold text-[var(--site-primary)]">
+                    {formatPrecio(unitComplementos.length > 0 ? totalPrecio : selectedUnit.precio, locale)}
+                  </p>
+                  {unitComplementos.length > 0 && (
+                    <p className="text-[9px] text-[var(--text-tertiary)] mt-1">
+                      Inmueble {formatPrecio(selectedUnit.precio, locale)} + {unitComplementos.length} complemento(s)
+                    </p>
+                  )}
+                </div>
+              );
+            })()}
 
             {/* Actions */}
             <div className="px-4 pb-5 mt-auto space-y-2">
@@ -1036,6 +1063,12 @@ export default function ExplorarPage() {
               </motion.div>
             </motion.div>
           </motion.div>
+        )}
+      </AnimatePresence>
+      {/* ====== VISTA MODAL ====== */}
+      <AnimatePresence>
+        {showVistaModal && (
+          <VistaModal vista={showVistaModal} onClose={() => setShowVistaModal(null)} />
         )}
       </AnimatePresence>
     </SectionTransition>

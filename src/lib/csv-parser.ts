@@ -19,6 +19,17 @@ export interface MappedUnit {
   _tipologia: string | null;
 }
 
+export interface MappedComplemento {
+  identificador: string;
+  subtipo: string | null;
+  nivel: string | null;
+  area_m2: number | null;
+  precio: number | null;
+  estado: EstadoUnidad;
+  notas: string | null;
+  _etapa: string | null;
+}
+
 export interface ColumnMapping {
   columnMap: Record<string, string>;
   statusMap: Record<string, EstadoUnidad>;
@@ -295,6 +306,67 @@ export function parseCSVWithMapping(
       notas: (unit.notas as string | null) ?? null,
       _etapa: (unit._etapa as string | null) ?? null,
       _tipologia: (unit._tipologia as string | null) ?? null,
+    });
+  }
+
+  return results;
+}
+
+/**
+ * Parse CSV rows for complementos (parking/storage) using AI-provided mapping.
+ */
+export function parseCSVWithMappingComplementos(
+  allRows: string[][],
+  headers: string[],
+  mapping: ColumnMapping
+): MappedComplemento[] {
+  const { columnMap, statusMap } = mapping;
+
+  const headerToField: Record<string, string> = {};
+  for (const [csvCol, dbField] of Object.entries(columnMap)) {
+    headerToField[csvCol] = dbField;
+  }
+
+  const headerIndex: Record<string, number> = {};
+  headers.forEach((h, i) => {
+    headerIndex[h] = i;
+  });
+
+  const results: MappedComplemento[] = [];
+
+  for (const row of allRows) {
+    const item: Record<string, string | number | null> = {};
+
+    for (const [csvCol, dbField] of Object.entries(headerToField)) {
+      const idx = headerIndex[csvCol];
+      if (idx === undefined || idx >= row.length) continue;
+      const rawValue = row[idx];
+      if (!rawValue) continue;
+
+      const floatFields = ["area_m2", "precio"];
+
+      if (floatFields.includes(dbField)) {
+        item[dbField] = parseFloat(rawValue.replace(/[,$\s]/g, "")) || null;
+      } else if (dbField === "estado") {
+        const mapped = statusMap[rawValue] || statusMap[rawValue.toLowerCase()];
+        item[dbField] = mapped || "disponible";
+      } else {
+        item[dbField] = rawValue;
+      }
+    }
+
+    const identificador = item.identificador as string | undefined;
+    if (!identificador) continue;
+
+    results.push({
+      identificador,
+      subtipo: (item.subtipo as string | null) ?? null,
+      nivel: (item.nivel as string | null) ?? null,
+      area_m2: (item.area_m2 as number | null) ?? null,
+      precio: (item.precio as number | null) ?? null,
+      estado: (item.estado as EstadoUnidad) || "disponible",
+      notas: (item.notas as string | null) ?? null,
+      _etapa: (item._etapa as string | null) ?? null,
     });
   }
 

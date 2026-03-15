@@ -20,7 +20,7 @@ interface AnalysisResult {
 // Constants
 // ---------------------------------------------------------------------------
 
-const VALID_DB_FIELDS = [
+const VALID_DB_FIELDS_UNIDADES = [
   "identificador",
   "piso",
   "area_m2",
@@ -35,12 +35,35 @@ const VALID_DB_FIELDS = [
   "notas",
 ] as const;
 
-const VALID_SPECIAL_FIELDS = ["_etapa", "_tipologia"] as const;
-
-const ALL_VALID_TARGETS = [
-  ...VALID_DB_FIELDS,
-  ...VALID_SPECIAL_FIELDS,
+const VALID_DB_FIELDS_COMPLEMENTOS = [
+  "identificador",
+  "subtipo",
+  "nivel",
+  "area_m2",
+  "precio",
+  "estado",
+  "notas",
 ] as const;
+
+const VALID_SPECIAL_FIELDS_UNIDADES = ["_etapa", "_tipologia"] as const;
+const VALID_SPECIAL_FIELDS_COMPLEMENTOS = ["_etapa"] as const;
+
+type ImportMode = "unidades" | "parqueaderos" | "depositos";
+
+function getValidFields(mode: ImportMode) {
+  if (mode === "parqueaderos" || mode === "depositos") {
+    return {
+      dbFields: VALID_DB_FIELDS_COMPLEMENTOS,
+      specialFields: VALID_SPECIAL_FIELDS_COMPLEMENTOS,
+      allTargets: [...VALID_DB_FIELDS_COMPLEMENTOS, ...VALID_SPECIAL_FIELDS_COMPLEMENTOS] as string[],
+    };
+  }
+  return {
+    dbFields: VALID_DB_FIELDS_UNIDADES,
+    specialFields: VALID_SPECIAL_FIELDS_UNIDADES,
+    allTargets: [...VALID_DB_FIELDS_UNIDADES, ...VALID_SPECIAL_FIELDS_UNIDADES] as string[],
+  };
+}
 
 const VALID_ESTADOS = [
   "disponible",
@@ -64,7 +87,9 @@ export async function POST(request: NextRequest) {
         { status: 403 }
       );
 
-    const { headers, sampleRows, tipologias, torres } = await request.json();
+    const { headers, sampleRows, tipologias, torres, importMode: rawMode } = await request.json();
+    const importMode: ImportMode = (rawMode === "parqueaderos" || rawMode === "depositos") ? rawMode : "unidades";
+    const { dbFields, allTargets } = getValidFields(importMode);
 
     if (
       !Array.isArray(headers) ||
@@ -95,9 +120,22 @@ export async function POST(request: NextRequest) {
       ),
     ].join("\n");
 
-    const systemPrompt = `Eres un analizador de archivos CSV/Excel de inventario inmobiliario. Tu tarea es analizar los encabezados y datos de muestra de un archivo para determinar qué columnas son útiles y cómo mapearlas.
+    const isComplemento = importMode !== "unidades";
+    const tipoLabel = importMode === "parqueaderos" ? "parqueaderos" : importMode === "depositos" ? "depósitos" : "unidades";
 
-CAMPOS DE BASE DE DATOS DISPONIBLES:
+    const fieldsDescription = isComplemento
+      ? `CAMPOS DE BASE DE DATOS DISPONIBLES (${tipoLabel}):
+- identificador: ID único del item (ej: "P-101", "D-03", "Parq. 5")
+- subtipo: tipo/categoría (ej: "Subterráneo", "Cubierto", "Doble", "Sencillo")
+- nivel: nivel/piso donde está ubicado (ej: "Sótano 1", "Nivel 2")
+- area_m2: área en metros cuadrados
+- precio: precio del item
+- estado: estado (disponible, separado, reservada, vendida)
+- notas: observaciones
+
+CAMPOS ESPECIALES:
+- _etapa: columna que indica torre/etapa/sector (se mapeará a torre)`
+      : `CAMPOS DE BASE DE DATOS DISPONIBLES:
 - identificador: ID único de la unidad (ej: "Apto 101", "Casa 5", "1", "T1-301")
 - piso: número de piso
 - area_m2: área en metros cuadrados
@@ -113,7 +151,11 @@ CAMPOS DE BASE DE DATOS DISPONIBLES:
 
 CAMPOS ESPECIALES:
 - _etapa: columna que indica torre/etapa/sector/manzana/bloque (se mapeará manualmente a torre)
-- _tipologia: columna que indica el tipo de unidad (se mapeará manualmente a tipología)
+- _tipologia: columna que indica el tipo de unidad (se mapeará manualmente a tipología)`;
+
+    const systemPrompt = `Eres un analizador de archivos CSV/Excel de inventario inmobiliario. Tu tarea es analizar los encabezados y datos de muestra de un archivo para determinar qué columnas son útiles y cómo mapearlas.
+
+${fieldsDescription}
 
 ${tipologiasList ? `TIPOLOGÍAS DEL PROYECTO:\n${tipologiasList}` : ""}
 ${torresList ? `TORRES/MANZANAS DEL PROYECTO:\n${torresList}` : ""}
@@ -158,7 +200,7 @@ ${csvSample}
     const parsed = parseAIJson<Partial<AnalysisResult>>(result, {});
 
     // Validate and sanitize response
-    const validTargets = new Set<string>(ALL_VALID_TARGETS);
+    const validTargets = new Set<string>(allTargets);
     const validEstados = new Set<string>(VALID_ESTADOS);
 
     // Validate columnMapping
@@ -213,7 +255,7 @@ ${csvSample}
       : [];
 
     // Validate missingFields
-    const dbFieldSet = new Set<string>(VALID_DB_FIELDS);
+    const dbFieldSet = new Set<string>(dbFields);
     const missingFields: string[] = Array.isArray(parsed.missingFields)
       ? parsed.missingFields.filter(
           (f): f is string => typeof f === "string" && dbFieldSet.has(f)

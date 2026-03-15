@@ -50,13 +50,37 @@ export async function PUT(
 
     const { data, error } = await auth.supabase
       .from("unidades")
-      .update(pick(body, ["tipologia_id", "identificador", "piso", "area_m2", "precio", "estado", "habitaciones", "banos", "orientacion", "vista", "notas", "fachada_id", "fachada_x", "fachada_y", "planta_id", "planta_x", "planta_y", "torre_id", "parqueaderos", "depositos", "orden"]))
+      .update(pick(body, ["tipologia_id", "identificador", "piso", "area_m2", "precio", "estado", "habitaciones", "banos", "orientacion", "vista", "vista_piso_id", "notas", "fachada_id", "fachada_x", "fachada_y", "planta_id", "planta_x", "planta_y", "torre_id", "parqueaderos", "depositos", "orden"]))
       .eq("id", id)
       .select()
       .single();
 
     if (error) throw error;
-    return NextResponse.json(data);
+
+    // Cascade estado to assigned complementos
+    let complementosCascaded = 0;
+    if (body.estado !== undefined) {
+      const { data: proyecto } = await auth.supabase
+        .from("proyectos")
+        .select("parqueaderos_mode, depositos_mode")
+        .eq("id", proyectoId)
+        .single();
+
+      const hasInventory =
+        (proyecto?.parqueaderos_mode && proyecto.parqueaderos_mode !== "sin_inventario") ||
+        (proyecto?.depositos_mode && proyecto.depositos_mode !== "sin_inventario");
+
+      if (hasInventory) {
+        const { data: cascaded } = await auth.supabase
+          .from("complementos")
+          .update({ estado: body.estado })
+          .eq("unidad_id", id)
+          .select("id");
+        complementosCascaded = cascaded?.length ?? 0;
+      }
+    }
+
+    return NextResponse.json({ ...data, _complementos_cascaded: complementosCascaded });
   } catch (err) {
     return NextResponse.json(
       { error: err instanceof Error ? err.message : "Error" },

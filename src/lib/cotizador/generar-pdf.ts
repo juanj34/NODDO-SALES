@@ -1,5 +1,5 @@
 import jsPDF from "jspdf";
-import type { ResultadoCotizacion, CotizadorConfig, Currency } from "@/types";
+import type { ResultadoCotizacion, CotizadorConfig, Currency, ComplementoSeleccion } from "@/types";
 import { formatCurrency } from "@/lib/currency";
 
 type RGB = [number, number, number];
@@ -42,6 +42,8 @@ export interface PDFData {
   tour360Url: string | null;
   whatsappNumero: string | null;
   disclaimer: string | null;
+  // Complementos
+  complementos?: ComplementoSeleccion[];
   // PDF customization
   pdfSaludo: string | null;
   pdfDespedida: string | null;
@@ -357,7 +359,55 @@ function drawOfferPage(doc: jsPDF, data: PDFData, accent: RGB, accentLight: RGB)
 
   y += gridH + 4;
 
+  // ── Complementos section (if any) ──
+  const complementos = data.complementos || data.resultado.complementos;
+  if (complementos && complementos.length > 0) {
+    y = drawSectionLabel(doc, "COMPLEMENTOS", margin, y, accent, contentW);
+
+    for (const comp of complementos) {
+      const label = comp.subtipo
+        ? `${comp.identificador} — ${comp.subtipo}`
+        : comp.identificador;
+      const tipoLabel = comp.tipo === "parqueadero" ? "Parqueadero" : "Depósito";
+
+      doc.setFontSize(8.5);
+      doc.setFont("helvetica", "normal");
+      doc.setTextColor(35, 35, 35);
+      doc.text(`${tipoLabel}: ${label}`, margin + 4, y);
+
+      if (comp.suma_al_total && comp.precio != null) {
+        doc.setTextColor(accent[0], accent[1], accent[2]);
+        doc.text(formatCurrency(comp.precio, moneda), pageW - margin - 4, y, { align: "right" });
+      } else {
+        doc.setFontSize(7.5);
+        doc.setTextColor(130, 130, 130);
+        doc.text("Incluido", pageW - margin - 4, y, { align: "right" });
+      }
+
+      y += 7;
+    }
+
+    // Complementos subtotal (if any have pricing)
+    const compTotal = data.resultado.complementos_total;
+    if (compTotal && compTotal > 0) {
+      doc.setDrawColor(230, 225, 215);
+      doc.setLineWidth(0.15);
+      doc.line(margin + contentW * 0.6, y - 2, pageW - margin, y - 2);
+
+      doc.setFontSize(8);
+      doc.setFont("helvetica", "bold");
+      doc.setTextColor(50, 50, 50);
+      doc.text("Subtotal complementos:", margin + contentW * 0.6, y + 3);
+      doc.setTextColor(accent[0], accent[1], accent[2]);
+      doc.text(formatCurrency(compTotal, moneda), pageW - margin - 4, y + 3, { align: "right" });
+      y += 10;
+    }
+
+    y += 4;
+  }
+
   // ── Total Price (prominent) ──
+  const displayTotal = data.resultado.precio_total ?? data.resultado.precio_neto;
   doc.setFillColor(accent[0], accent[1], accent[2]);
   doc.roundedRect(gridX, y, gridW, 13, 2, 2, "F");
   doc.setFontSize(8);
@@ -366,7 +416,7 @@ function drawOfferPage(doc: jsPDF, data: PDFData, accent: RGB, accentLight: RGB)
   doc.text("PRECIO TOTAL", gridX + 6, y + 5.5);
   doc.setFontSize(14);
   doc.text(
-    formatCurrency(data.resultado.precio_neto, moneda),
+    formatCurrency(displayTotal, moneda),
     pageW - margin - 6,
     y + 8.5,
     { align: "right" },
@@ -415,8 +465,9 @@ function drawOfferPage(doc: jsPDF, data: PDFData, accent: RGB, accentLight: RGB)
     doc.text(fase.nombre, colConcepto, y);
 
     // Percentage
-    const pct = data.resultado.precio_neto > 0
-      ? Math.round((fase.monto_total / data.resultado.precio_neto) * 100)
+    const totalBase = data.resultado.precio_total ?? data.resultado.precio_neto;
+    const pct = totalBase > 0
+      ? Math.round((fase.monto_total / totalBase) * 100)
       : 0;
     doc.setFontSize(8);
     doc.setTextColor(accent[0], accent[1], accent[2]);
@@ -469,9 +520,10 @@ function drawOfferPage(doc: jsPDF, data: PDFData, accent: RGB, accentLight: RGB)
   doc.setFontSize(9);
   doc.setFont("helvetica", "bold");
   doc.setTextColor(255, 255, 255);
+  const finalTotal = data.resultado.precio_total ?? data.resultado.precio_neto;
   doc.text("TOTAL", colConcepto, y);
   doc.text("100%", colPct, y);
-  doc.text(formatCurrency(data.resultado.precio_neto, moneda), colMonto, y);
+  doc.text(formatCurrency(finalTotal, moneda), colMonto, y);
 
   y += 18;
 

@@ -41,6 +41,7 @@ import {
   HardDrive,
   Plus,
   Webhook,
+  Binoculars,
 } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -102,6 +103,7 @@ interface BadgeCounts {
   videos: number;
   recursos: number;
   puntos_interes: number;
+  vistas: number;
   planos: number;
   torres: number;
   avances: number;
@@ -126,6 +128,7 @@ const editorSections: TabSection[] = [
       { id: "videos", label: "Videos", icon: Film, href: "/videos", badgeKey: "videos", featureKey: "video_hosting" },
       { id: "tour", label: "Tour 360", icon: View, href: "/tour", featureKey: "tour_360" },
       { id: "ubicacion", label: "Ubicacion", icon: MapPin, href: "/ubicacion", badgeKey: "puntos_interes" },
+      { id: "vistas", label: "Vistas", icon: Binoculars, href: "/vistas", badgeKey: "vistas" },
       { id: "recursos", label: "Recursos", icon: FileText, href: "/recursos", badgeKey: "recursos" },
       { id: "avances", label: "Avances", icon: HardHat, href: "/avances", badgeKey: "avances" },
     ],
@@ -365,6 +368,7 @@ export default function EditorLayout({
       videos: project.videos?.length || 0,
       recursos: project.recursos?.length || 0,
       puntos_interes: project.puntos_interes?.length || 0,
+      vistas: project.vistas_piso?.length || 0,
       planos: project.planos_interactivos?.length ?? 0,
       torres: project.torres?.length || 0,
       avances: project.avances_obra?.length || 0,

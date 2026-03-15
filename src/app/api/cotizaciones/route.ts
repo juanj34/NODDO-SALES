@@ -7,7 +7,7 @@ import { sendCotizacionBuyer, sendCotizacionAdmin } from "@/lib/email";
 import { isRateLimited, apiLimiter } from "@/lib/rate-limit";
 import { getWebhookConfig, dispatchWebhook } from "@/lib/webhooks";
 import type { WebhookPayload } from "@/lib/webhooks";
-import type { CotizadorConfig, Unidad, Currency } from "@/types";
+import type { CotizadorConfig, FaseConfig, Unidad, Currency, ComplementoSeleccion } from "@/types";
 import { formatCurrency } from "@/lib/currency";
 import { getAuthContext } from "@/lib/auth-context";
 
@@ -160,7 +160,30 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json();
-    const { proyecto_id, unidad_id, nombre, email, telefono, utm_source, utm_medium, utm_campaign, agente_id, agente_nombre } = body;
+    const {
+      proyecto_id, unidad_id, nombre, email, telefono,
+      utm_source, utm_medium, utm_campaign, agente_id, agente_nombre,
+      // Sandbox fields
+      custom_fases,
+      descuentos_seleccionados,
+      complemento_ids,
+      separacion_incluida,
+    } = body as {
+      proyecto_id: string;
+      unidad_id: string;
+      nombre: string;
+      email: string;
+      telefono?: string;
+      utm_source?: string;
+      utm_medium?: string;
+      utm_campaign?: string;
+      agente_id?: string;
+      agente_nombre?: string;
+      custom_fases?: FaseConfig[];
+      descuentos_seleccionados?: string[];
+      complemento_ids?: string[];
+      separacion_incluida?: boolean;
+    };
 
     // Validate required fields
     if (!proyecto_id || !unidad_id || !nombre || !email) {
@@ -175,7 +198,7 @@ export async function POST(request: NextRequest) {
     // Fetch project with cotizador config
     const { data: proyecto, error: projErr } = await supabase
       .from("proyectos")
-      .select("id, nombre, constructora_nombre, constructora_logo_url, color_primario, cotizador_enabled, cotizador_config, user_id, render_principal_url, tour_360_url, whatsapp_numero, disclaimer")
+      .select("id, nombre, constructora_nombre, constructora_logo_url, color_primario, cotizador_enabled, cotizador_config, user_id, render_principal_url, tour_360_url, whatsapp_numero, disclaimer, parqueaderos_mode, depositos_mode")
       .eq("id", proyecto_id)
       .single();
 
@@ -230,8 +253,48 @@ export async function POST(request: NextRequest) {
       tipologiaRenders = tipo?.renders ?? [];
     }
 
+    // Build effective config (custom phases override project defaults)
+    const effectiveConfig: CotizadorConfig = custom_fases
+      ? { ...config, fases: custom_fases }
+      : config;
+
+    if (separacion_incluida !== undefined) {
+      effectiveConfig.separacion_incluida_en_inicial = separacion_incluida;
+    }
+
+    // Fetch selected complementos from DB
+    let complementoSelecciones: ComplementoSeleccion[] = [];
+    if (complemento_ids && complemento_ids.length > 0) {
+      const { data: compRows } = await supabase
+        .from("complementos")
+        .select("id, tipo, identificador, subtipo, precio")
+        .in("id", complemento_ids)
+        .eq("proyecto_id", proyecto_id);
+
+      if (compRows) {
+        complementoSelecciones = compRows.map((c: { id: string; tipo: string; identificador: string; subtipo: string | null; precio: number | null }) => {
+          const mode = c.tipo === "parqueadero"
+            ? proyecto.parqueaderos_mode
+            : proyecto.depositos_mode;
+          return {
+            complemento_id: c.id,
+            tipo: c.tipo as "parqueadero" | "deposito",
+            identificador: c.identificador,
+            subtipo: c.subtipo,
+            precio: mode === "inventario_separado" ? c.precio : null,
+            suma_al_total: mode === "inventario_separado",
+          };
+        });
+      }
+    }
+
     // Calculate quotation (server-side — source of truth)
-    const resultado = calcularCotizacion(unit.precio, config, []);
+    const resultado = calcularCotizacion(
+      unit.precio,
+      effectiveConfig,
+      descuentos_seleccionados || [],
+      complementoSelecciones,
+    );
 
     // Determine cover image URL (config override > project render > tipología render)
     const coverUrl =
@@ -267,7 +330,8 @@ export async function POST(request: NextRequest) {
       parqueaderos: unit.parqueaderos,
       depositos: unit.depositos,
       resultado,
-      config,
+      config: effectiveConfig,
+      complementos: complementoSelecciones.length > 0 ? complementoSelecciones : undefined,
       buyerName: sanitize(nombre, 200),
       buyerEmail: sanitize(email, 320),
       buyerPhone: telefono ? sanitize(telefono, 30) : null,
@@ -287,7 +351,7 @@ export async function POST(request: NextRequest) {
     });
 
     // Snapshot unit data
-    const unidadSnapshot = {
+    const unidadSnapshot: Record<string, unknown> = {
       identificador: unit.identificador,
       tipologia: tipologiaName,
       precio: unit.precio,
@@ -298,6 +362,9 @@ export async function POST(request: NextRequest) {
       banos: unit.banos,
       orientacion: unit.orientacion,
     };
+    if (complementoSelecciones.length > 0) {
+      unidadSnapshot.complementos = complementoSelecciones;
+    }
 
     // Upload PDF to Supabase Storage
     const pdfPath = `cotizaciones/${proyecto_id}/${cotizacionId}.pdf`;
@@ -328,7 +395,7 @@ export async function POST(request: NextRequest) {
         email: sanitize(email, 320),
         telefono: telefono ? sanitize(telefono, 30) : null,
         unidad_snapshot: unidadSnapshot,
-        config_snapshot: config,
+        config_snapshot: effectiveConfig,
         resultado,
         pdf_url: pdfUrl,
         utm_source: utm_source ? sanitize(utm_source, 200) : null,
@@ -351,8 +418,8 @@ export async function POST(request: NextRequest) {
       telefono: telefono ? sanitize(telefono, 30) : null,
       unidad_id,
       unidad_identificador: unit.identificador,
-      precio_neto: resultado.precio_neto,
-      moneda: config.moneda,
+      precio_neto: resultado.precio_total ?? resultado.precio_neto,
+      moneda: effectiveConfig.moneda,
       pdf_url: pdfUrl,
       utm_source: utm_source || null,
       utm_medium: utm_medium || null,
@@ -382,7 +449,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Send emails (async, non-blocking)
-    const totalFormatted = formatCurrency(resultado.precio_neto, moneda);
+    const totalFormatted = formatCurrency(resultado.precio_total ?? resultado.precio_neto, moneda);
 
     // Email to buyer with PDF
     sendCotizacionBuyer({

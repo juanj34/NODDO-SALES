@@ -40,7 +40,8 @@ import { formatCurrency } from "@/lib/currency";
 import { useTranslation } from "@/i18n";
 import { useToast } from "@/components/dashboard/Toast";
 import { useMediaQuery } from "@/hooks/useMediaQuery";
-import type { Unidad, Tipologia, Torre, Fachada } from "@/types";
+import type { Unidad, Tipologia, Torre, Fachada, ComplementoMode } from "@/types";
+import { ComplementosSection } from "@/components/dashboard/ComplementosSection";
 
 // ---------------------------------------------------------------------------
 // Types
@@ -1981,6 +1982,7 @@ export default function InventarioPage() {
   const [showPriceAdjust, setShowPriceAdjust] = useState(false);
   const [showAIChat, setShowAIChat] = useState(false);
   const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null);
+  const [vendidaWarning, setVendidaWarning] = useState<{ callback: () => void } | null>(null);
 
   // --- Bulk tipología/fachada ---
   const [bulkTipologiaId, setBulkTipologiaId] = useState("");
@@ -2146,26 +2148,52 @@ export default function InventarioPage() {
     [refresh, toast]
   );
 
+  // Check if units have complementos assigned (for warning dialog)
+  const hasInventoryModes = (project.parqueaderos_mode as ComplementoMode) !== "sin_inventario" ||
+    (project.depositos_mode as ComplementoMode) !== "sin_inventario";
+
+  const checkComplementosBeforeEstado = useCallback(
+    (unitIds: string[], newEstado: string, proceed: () => void) => {
+      if (!hasInventoryModes || !["vendida", "separado", "reservada"].includes(newEstado)) {
+        proceed();
+        return;
+      }
+      const complementos = project.complementos || [];
+      const unitsWithout = unitIds.filter(
+        (uid) => !complementos.some((c) => c.unidad_id === uid)
+      );
+      if (unitsWithout.length > 0) {
+        setVendidaWarning({ callback: proceed });
+      } else {
+        proceed();
+      }
+    },
+    [hasInventoryModes, project.complementos]
+  );
+
   const handleBulkStatusChange = useCallback(async () => {
     if (selectedIds.size === 0) return;
-    setBulkLoading(true);
-    try {
-      const promises = Array.from(selectedIds).map((id) =>
-        fetch(`/api/unidades/${id}`, {
-          method: "PUT",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ estado: bulkEstado }),
-        })
-      );
-      await Promise.all(promises);
-      setSelectedIds(new Set());
-      await refresh();
-    } catch {
-      toast.error("Error al cambiar estado");
-    } finally {
-      setBulkLoading(false);
-    }
-  }, [selectedIds, bulkEstado, refresh, toast]);
+    const doBulk = async () => {
+      setBulkLoading(true);
+      try {
+        const promises = Array.from(selectedIds).map((uid) =>
+          fetch(`/api/unidades/${uid}`, {
+            method: "PUT",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ estado: bulkEstado }),
+          })
+        );
+        await Promise.all(promises);
+        setSelectedIds(new Set());
+        await refresh();
+      } catch {
+        toast.error("Error al cambiar estado");
+      } finally {
+        setBulkLoading(false);
+      }
+    };
+    checkComplementosBeforeEstado(Array.from(selectedIds), bulkEstado, doBulk);
+  }, [selectedIds, bulkEstado, refresh, toast, checkComplementosBeforeEstado]);
 
   const handleBulkTorreChange = useCallback(async () => {
     if (selectedIds.size === 0 || !bulkTorreId) return;
@@ -2191,18 +2219,25 @@ export default function InventarioPage() {
 
   const handleInlineUpdate = useCallback(
     async (unitId: string, field: string, value: string | null) => {
-      try {
-        await fetch(`/api/unidades/${unitId}`, {
-          method: "PUT",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ [field]: value }),
-        });
-        await refresh();
-      } catch {
-        toast.error("Error al actualizar");
+      const doUpdate = async () => {
+        try {
+          await fetch(`/api/unidades/${unitId}`, {
+            method: "PUT",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ [field]: value }),
+          });
+          await refresh();
+        } catch {
+          toast.error("Error al actualizar");
+        }
+      };
+      if (field === "estado" && value) {
+        checkComplementosBeforeEstado([unitId], value, doUpdate);
+      } else {
+        doUpdate();
       }
     },
-    [refresh, toast]
+    [refresh, toast, checkComplementosBeforeEstado]
   );
 
   const handleBulkTipologiaChange = useCallback(async () => {
@@ -2947,7 +2982,33 @@ export default function InventarioPage() {
         </div>
       )}
 
+      {/* Complementos Section — shown when project has inventory modes */}
+      {((project.parqueaderos_mode as ComplementoMode) !== "sin_inventario" ||
+        (project.depositos_mode as ComplementoMode) !== "sin_inventario") && (
+        <ComplementosSection
+          project={project}
+          onRefresh={refresh}
+          parqueaderosMode={project.parqueaderos_mode as ComplementoMode}
+          depositosMode={project.depositos_mode as ComplementoMode}
+        />
+      )}
+
       {/* Modals */}
+      {/* Warning: selling without complementos */}
+      <AnimatePresence>
+        {vendidaWarning && (
+          <ConfirmDialog
+            title="Sin complementos asignados"
+            message="Esta unidad no tiene parqueadero o depósito asignado. ¿Deseas continuar de todas formas? Los complementos se pueden asignar después."
+            onConfirm={() => {
+              vendidaWarning.callback();
+              setVendidaWarning(null);
+            }}
+            onCancel={() => setVendidaWarning(null)}
+          />
+        )}
+      </AnimatePresence>
+
       <AnimatePresence>
         {deleteConfirm && (
           <ConfirmDialog

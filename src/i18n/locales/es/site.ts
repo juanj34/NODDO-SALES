@@ -28,6 +28,7 @@ const site = {
     renders: "Renders",
     image: "imagen",
     images: "imágenes",
+    verVista: "Ver Vista",
   },
   galeria: {
     prevImage: "Imagen anterior",
@@ -107,6 +108,7 @@ const site = {
     storage: "Depósitos",
     studio: "Studio",
     view: "Vista",
+    verVista: "Ver Vista",
     price: "Precio",
     enquireUnit: "COTIZAR UNIDAD",
     moreInfo: "Más Información",

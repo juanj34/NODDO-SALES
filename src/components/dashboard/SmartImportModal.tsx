@@ -33,11 +33,15 @@ import {
 import {
   extractCSVHeadersAndSample,
   parseCSVWithMapping,
+  parseCSVWithMappingComplementos,
   type MappedUnit,
+  type MappedComplemento,
   type EstadoUnidad,
   type ColumnMapping,
 } from "@/lib/csv-parser";
 import type { Tipologia, Torre } from "@/types";
+
+type ImportMode = "unidades" | "parqueaderos" | "depositos";
 
 // ---------------------------------------------------------------------------
 // Types
@@ -79,7 +83,7 @@ const ESTADO_COLORS: Record<string, string> = {
   vendida: "#ef4444",
 };
 
-const DB_FIELD_LABELS: Record<string, string> = {
+const DB_FIELD_LABELS_UNIDADES: Record<string, string> = {
   identificador: "Identificador",
   piso: "Piso",
   area_m2: "Área (m²)",
@@ -96,7 +100,20 @@ const DB_FIELD_LABELS: Record<string, string> = {
   _tipologia: "Tipología",
 };
 
-const ALL_DB_FIELDS = Object.keys(DB_FIELD_LABELS);
+const DB_FIELD_LABELS_COMPLEMENTOS: Record<string, string> = {
+  identificador: "Identificador",
+  subtipo: "Subtipo",
+  nivel: "Nivel",
+  area_m2: "Área (m²)",
+  precio: "Precio",
+  estado: "Estado",
+  notas: "Notas",
+  _etapa: "Torre / Etapa",
+};
+
+function getFieldLabels(mode: ImportMode) {
+  return mode === "unidades" ? DB_FIELD_LABELS_UNIDADES : DB_FIELD_LABELS_COMPLEMENTOS;
+}
 
 // ---------------------------------------------------------------------------
 // Small reusable pieces
@@ -170,6 +187,7 @@ export function SmartImportModal({
   activeTorreId,
   onClose,
   onDone,
+  importMode: initialMode = "unidades",
 }: {
   tipologias: Tipologia[];
   torres: Torre[];
@@ -177,9 +195,13 @@ export function SmartImportModal({
   activeTorreId: string | null;
   onClose: () => void;
   onDone: () => void;
+  importMode?: ImportMode;
 }) {
   // ---- State ----
   const [step, setStep] = useState<Step>("upload");
+  const [importMode, setImportMode] = useState<ImportMode>(initialMode);
+  const DB_FIELD_LABELS = getFieldLabels(importMode);
+  const ALL_DB_FIELDS = Object.keys(DB_FIELD_LABELS);
   const [rawCSV, setRawCSV] = useState("");
   const [dragging, setDragging] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -293,6 +315,7 @@ export function SmartImportModal({
           sampleRows,
           tipologias: tipologias.map((t) => ({ id: t.id, nombre: t.nombre })),
           torres: torres.map((t) => ({ id: t.id, nombre: t.nombre })),
+          importMode,
         }),
       });
 
@@ -350,6 +373,46 @@ export function SmartImportModal({
         statusMap,
       };
 
+      if (importMode !== "unidades") {
+        // Complemento mode
+        const parsed = parseCSVWithMappingComplementos(csvAllRows, csvHeaders, mapping);
+        if (parsed.length === 0) {
+          setError("No se encontraron items válidos con el mapeo actual.");
+          return;
+        }
+        const preview: PreviewUnit[] = parsed.map((c) => {
+          const torreId = c._etapa
+            ? etapaToTorre[c._etapa] || ""
+            : activeTorreId && activeTorreId !== "__none__"
+              ? activeTorreId
+              : "";
+          return {
+            identificador: c.identificador,
+            piso: null,
+            area_m2: c.area_m2 ?? (defaults.area_m2 ? parseFloat(defaults.area_m2) : null),
+            precio: c.precio ?? (defaults.precio ? parseFloat(defaults.precio) : null),
+            estado: c.estado,
+            habitaciones: null,
+            banos: null,
+            parqueaderos: null,
+            depositos: null,
+            orientacion: null,
+            vista: null,
+            notas: c.notas,
+            _etapa: c._etapa,
+            _tipologia: c.subtipo,
+            _selected: true,
+            _torre_id: torreId,
+            _tipologia_id: "",
+            _subtipo: c.subtipo,
+            _nivel: c.nivel,
+          } as PreviewUnit & { _subtipo?: string | null; _nivel?: string | null };
+        });
+        setPreviewUnits(preview);
+        setStep("preview");
+        return;
+      }
+
       const parsed = parseCSVWithMapping(csvAllRows, csvHeaders, mapping);
 
       if (parsed.length === 0) {
@@ -402,6 +465,7 @@ export function SmartImportModal({
     tipologiaMap,
     defaults,
     activeTorreId,
+    importMode,
   ]);
 
   // ---- Import ----
@@ -412,40 +476,64 @@ export function SmartImportModal({
 
   const handleConfirm = async () => {
     if (selectedUnits.length === 0) {
-      setError("No hay unidades seleccionadas para importar.");
+      setError("No hay items seleccionados para importar.");
       return;
     }
     setSubmitting(true);
     setStep("importing");
     setError(null);
     try {
-      const payload = selectedUnits.map((u) => ({
-        proyecto_id: proyectoId,
-        identificador: u.identificador,
-        tipologia_id: u._tipologia_id || null,
-        torre_id: u._torre_id || null,
-        piso: u.piso,
-        area_m2: u.area_m2,
-        precio: u.precio,
-        estado: u.estado,
-        habitaciones: u.habitaciones,
-        banos: u.banos,
-        parqueaderos: u.parqueaderos,
-        depositos: u.depositos,
-        orientacion: u.orientacion || null,
-        vista: u.vista || null,
-        notas: u.notas || null,
-      }));
+      if (importMode !== "unidades") {
+        // Complemento import
+        const tipo = importMode === "parqueaderos" ? "parqueadero" : "deposito";
+        const payload = selectedUnits.map((u) => ({
+          proyecto_id: proyectoId,
+          identificador: u.identificador,
+          tipo,
+          subtipo: (u as PreviewUnit & { _subtipo?: string | null })._subtipo || u._tipologia || null,
+          nivel: (u as PreviewUnit & { _nivel?: string | null })._nivel || null,
+          torre_id: u._torre_id || null,
+          area_m2: u.area_m2,
+          precio: u.precio,
+          estado: u.estado,
+          notas: u.notas || null,
+        }));
 
-      const res = await fetch("/api/unidades/bulk", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ proyecto_id: proyectoId, unidades: payload }),
-      });
-      if (!res.ok) throw new Error("Error al crear unidades");
+        const res = await fetch("/api/complementos/bulk", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ proyecto_id: proyectoId, complementos: payload }),
+        });
+        if (!res.ok) throw new Error("Error al crear complementos");
+      } else {
+        const payload = selectedUnits.map((u) => ({
+          proyecto_id: proyectoId,
+          identificador: u.identificador,
+          tipologia_id: u._tipologia_id || null,
+          torre_id: u._torre_id || null,
+          piso: u.piso,
+          area_m2: u.area_m2,
+          precio: u.precio,
+          estado: u.estado,
+          habitaciones: u.habitaciones,
+          banos: u.banos,
+          parqueaderos: u.parqueaderos,
+          depositos: u.depositos,
+          orientacion: u.orientacion || null,
+          vista: u.vista || null,
+          notas: u.notas || null,
+        }));
+
+        const res = await fetch("/api/unidades/bulk", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ proyecto_id: proyectoId, unidades: payload }),
+        });
+        if (!res.ok) throw new Error("Error al crear unidades");
+      }
       onDone();
     } catch {
-      setError("Error al crear las unidades. Intenta de nuevo.");
+      setError("Error al importar. Intenta de nuevo.");
       setStep("preview");
     } finally {
       setSubmitting(false);
@@ -643,6 +731,28 @@ export function SmartImportModal({
                 transition={{ duration: 0.2 }}
                 className="space-y-5"
               >
+                {/* Import mode selector */}
+                <div className="flex items-center gap-1 p-1 bg-[var(--surface-1)] rounded-xl border border-[var(--border-subtle)]">
+                  {([
+                    { value: "unidades" as ImportMode, label: "Unidades" },
+                    { value: "parqueaderos" as ImportMode, label: "Parqueaderos" },
+                    { value: "depositos" as ImportMode, label: "Depósitos" },
+                  ]).map((opt) => (
+                    <button
+                      key={opt.value}
+                      onClick={() => setImportMode(opt.value)}
+                      className={cn(
+                        "flex-1 px-3 py-2 rounded-lg text-xs font-medium transition-all text-center",
+                        importMode === opt.value
+                          ? "bg-[var(--surface-3)] text-white shadow-sm"
+                          : "text-[var(--text-tertiary)] hover:text-[var(--text-secondary)] hover:bg-[var(--surface-2)]"
+                      )}
+                    >
+                      {opt.label}
+                    </button>
+                  ))}
+                </div>
+
                 {/* Drop zone */}
                 <div
                   onDragOver={(e) => {

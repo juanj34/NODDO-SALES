@@ -2,9 +2,24 @@ import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 import { Resend } from "resend";
 
-const resend = new Resend(process.env.RESEND_API_KEY);
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
+// Lazy initialization - only create when needed (avoids build-time errors)
+function getResend() {
+  if (!process.env.RESEND_API_KEY) {
+    throw new Error("RESEND_API_KEY environment variable is not set");
+  }
+  return new Resend(process.env.RESEND_API_KEY);
+}
+
+function getSupabase() {
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+
+  if (!supabaseUrl || !supabaseServiceKey) {
+    throw new Error("Supabase environment variables are not set");
+  }
+
+  return createClient(supabaseUrl, supabaseServiceKey);
+}
 
 // Verificar autorización del cron
 function isAuthorized(request: NextRequest): boolean {
@@ -120,7 +135,7 @@ async function getVercelMetrics(): Promise<ResourceMetrics[]> {
 
 // Obtener métricas de Supabase
 async function getSupabaseMetrics(): Promise<ResourceMetrics[]> {
-  const supabase = createClient(supabaseUrl, supabaseServiceKey);
+  const supabase = getSupabase();
   const metrics: ResourceMetrics[] = [];
 
   try {
@@ -276,7 +291,7 @@ async function getResendMetrics(): Promise<ResourceMetrics[]> {
   try {
     // Nota: Resend API no expone uso actual en el plan Free
     // Podríamos trackear esto manualmente en una tabla
-    const supabase = createClient(supabaseUrl, supabaseServiceKey);
+    const supabase = getSupabase();
 
     // Contar emails enviados en el último mes
     const lastMonth = new Date();
@@ -559,6 +574,7 @@ export async function GET(request: NextRequest) {
     // Enviar email
     const adminEmail = process.env.ADMIN_EMAIL || "juanjaramillo34@gmail.com";
 
+    const resend = getResend();
     const { error: emailError } = await resend.emails.send({
       from: "NODDO Monitoring <noreply@noddo.io>",
       to: adminEmail,

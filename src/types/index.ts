@@ -237,6 +237,7 @@ export interface Unidad {
   banos: number | null;
   orientacion: string | null;
   vista: string | null;
+  vista_piso_id: string | null;
   notas: string | null;
   fachada_id: string | null;
   fachada_x: number | null;
@@ -338,7 +339,8 @@ export interface ProyectoCompleto extends Proyecto {
   planos_interactivos: PlanoInteractivo[];
   plano_puntos: PlanoPunto[];
   avances_obra: AvanceObra[];
-  complementos?: Complemento[];
+  complementos: Complemento[];
+  vistas_piso: VistaPiso[];
 }
 
 export interface AvanceObra {
@@ -753,6 +755,24 @@ export interface ComplementoSeleccion {
   subtipo: string | null;
   precio: number | null;
   suma_al_total: boolean;
+}
+
+/* ── Vistas por Piso (Floor Views) ── */
+
+export interface VistaPiso {
+  id: string;
+  proyecto_id: string;
+  torre_id: string | null;
+  nombre: string;
+  descripcion: string | null;
+  orientacion: string | null;
+  piso_min: number | null;
+  piso_max: number | null;
+  tipologia_ids: string[];
+  imagen_url: string;
+  thumbnail_url: string | null;
+  orden: number;
+  created_at: string;
 }
 
 /* ── Plans & Billing ── */
