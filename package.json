@@ -9,7 +9,9 @@
     "start": "next start",
     "lint": "eslint",
     "typecheck": "tsc --noEmit",
-    "verify:vercel": "tsx scripts/verify-vercel-token.ts"
+    "verify:vercel": "tsx scripts/verify-vercel-token.ts",
+    "create-admin": "tsx scripts/create-first-admin.ts",
+    "setup:prod": "bash scripts/quick-setup.sh"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.1008.0",
@@ -62,9 +64,11 @@
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
+    "dotenv": "^17.3.1",
     "eslint": "^9",
     "eslint-config-next": "16.1.6",
     "tailwindcss": "^4",
+    "tsx": "^4.21.0",
     "typescript": "^5"
   }
 }

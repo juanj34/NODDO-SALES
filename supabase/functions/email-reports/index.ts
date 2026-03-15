@@ -1,6 +1,27 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { Resend } from "https://esm.sh/resend@3";
 
+interface EmailReportConfig {
+  id: string;
+  user_id: string;
+  project_ids?: string[] | null;
+  weekly_enabled: boolean;
+  monthly_enabled: boolean;
+  last_weekly_sent?: string | null;
+  last_monthly_sent?: string | null;
+}
+
+interface ProjectReportData {
+  project: {
+    id: string;
+    nombre: string;
+    moneda_base: string;
+  };
+  analytics: Record<string, unknown>;
+  financial: Record<string, unknown>;
+  leads: number;
+}
+
 const supabase = createClient(
   Deno.env.get("SUPABASE_URL")!,
   Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
@@ -61,7 +82,7 @@ Deno.serve(async (req) => {
   }
 });
 
-async function sendReport(config: any, type: "weekly" | "monthly") {
+async function sendReport(config: EmailReportConfig, type: "weekly" | "monthly") {
   const userId = config.user_id;
   console.log(`[email-reports] sendReport START for user ${userId}`);
 
@@ -175,7 +196,7 @@ async function sendReport(config: any, type: "weekly" | "monthly") {
   console.log(`[email-reports] SUCCESS - Sent ${type} report to ${userEmail}, email ID: ${emailResult.data?.id}`);
 }
 
-function generateReportHTML(data: any[], type: string, from: Date, to: Date, userName: string): string {
+function generateReportHTML(data: ProjectReportData[], type: string, from: Date, to: Date, userName: string): string {
   const periodLabel = type === "weekly" ? "última semana" : "último mes";
   const dateRange = `${formatDateShort(from)} - ${formatDateShort(to)}`;
 

@@ -151,10 +151,9 @@ export default function UbicacionPage() {
       if (!ok) toast.error(t("general.saveError"));
     } catch (err) {
       if (err instanceof ZodError) {
-        const zodError = err as ZodError<any>;
-        if (zodError.issues?.length > 0) {
-          setUbicacionErrors(zodError.issues[0].message);
-          toast.error(zodError.issues[0].message);
+        if (err.issues?.length > 0) {
+          setUbicacionErrors(err.issues[0].message);
+          toast.error(err.issues[0].message);
         }
       }
     }
@@ -274,10 +273,9 @@ export default function UbicacionPage() {
       cancelPoiForm();
     } catch (err) {
       if (err instanceof ZodError) {
-        const zodError = err as ZodError<any>;
-        if (zodError.issues?.length > 0) {
-          setPoiErrors(zodError.issues[0].message);
-          toast.error(zodError.issues[0].message);
+        if (err.issues?.length > 0) {
+          setPoiErrors(err.issues[0].message);
+          toast.error(err.issues[0].message);
         }
       } else {
         toast.error("Error de conexión");

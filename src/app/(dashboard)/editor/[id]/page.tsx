@@ -31,6 +31,7 @@ import {
   Music,
   Upload,
   Loader2,
+  Layers,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useTranslation } from "@/i18n";
@@ -74,6 +75,7 @@ export default function EditorGeneralPage() {
   const [audioUploading, setAudioUploading] = useState(false);
   const audioInputRef = useRef<HTMLInputElement>(null);
   const [validationError, setValidationError] = useState<string | null>(null);
+  const [tipoProyecto, setTipoProyecto] = useState<"apartamentos" | "casas" | "hibrido">("hibrido");
 
   useEffect(() => {
     if (!project) return;
@@ -94,6 +96,7 @@ export default function EditorGeneralPage() {
     setFaviconUrl(project.favicon_url || "");
     setOgImageUrl(project.og_image_url || "");
     setBackgroundAudioUrl(project.background_audio_url || "");
+    setTipoProyecto(project.tipo_proyecto || "hibrido");
   }, [project]);
 
   const handleSave = async () => {
@@ -117,6 +120,7 @@ export default function EditorGeneralPage() {
       favicon_url: faviconUrl || null,
       og_image_url: ogImageUrl || null,
       background_audio_url: backgroundAudioUrl || null,
+      tipo_proyecto: tipoProyecto,
     };
 
     try {
@@ -261,6 +265,43 @@ export default function EditorGeneralPage() {
                     <label className={labelClass}>{t("general.project.slug")}</label>
                     <input type="text" value={slug} onChange={(e) => { setSlug(e.target.value); scheduleAutoSave(); }} className={inputClass} placeholder={t("general.project.slugPlaceholder")} />
                     <p className={fieldHint}>{t("general.project.slugHint", { slug: slug || "your-project" })}</p>
+                  </div>
+
+                  <div>
+                    <label className={labelClass}>{t("general.project.typeLabel")}</label>
+                    <div className="grid grid-cols-3 gap-2 mt-1">
+                      {[
+                        { id: "apartamentos" as const, icon: Building2, labelKey: "general.project.typeApartamentos", descKey: "general.project.typeApartamentosDesc" },
+                        { id: "casas" as const, icon: Home, labelKey: "general.project.typeCasas", descKey: "general.project.typeCasasDesc" },
+                        { id: "hibrido" as const, icon: Layers, labelKey: "general.project.typeHibrido", descKey: "general.project.typeHibridoDesc" },
+                      ].map((tipo) => {
+                        const isActive = tipoProyecto === tipo.id;
+                        const Icon = tipo.icon;
+                        return (
+                          <button
+                            key={tipo.id}
+                            type="button"
+                            onClick={() => { setTipoProyecto(tipo.id); scheduleAutoSave(); }}
+                            className={`flex flex-col gap-2 p-3 rounded-xl border transition-all text-left ${
+                              isActive
+                                ? "bg-[rgba(var(--site-primary-rgb),0.08)] border-[rgba(var(--site-primary-rgb),0.3)]"
+                                : "bg-[var(--surface-1)] border-[var(--border-subtle)] hover:border-[var(--border-default)]"
+                            }`}
+                          >
+                            <Icon size={18} className={`shrink-0 ${isActive ? "text-[var(--site-primary)]" : "text-[var(--text-tertiary)]"}`} />
+                            <div>
+                              <p className={`text-xs font-medium ${isActive ? "text-white" : "text-[var(--text-secondary)]"}`}>
+                                {t(tipo.labelKey)}
+                              </p>
+                              <p className="text-[10px] text-[var(--text-muted)] mt-0.5">
+                                {t(tipo.descKey)}
+                              </p>
+                            </div>
+                          </button>
+                        );
+                      })}
+                    </div>
+                    <p className={fieldHint}>{t("general.project.typeHint")}</p>
                   </div>
                 </div>
               </div>

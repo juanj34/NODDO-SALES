@@ -348,7 +348,7 @@ const problems = [
     num: "03",
     illustration: <IllustrationFragmented />,
     title: "Proceso fragmentado",
-    body: "Brochure aquí, planos allá, disponibilidad en Excel. Tu equipo comercial pierde minutos valiosos saltando entre archivos — especialmente en videollamadas.",
+    body: "Comprador en oficina, sales rep abre laptop: '¿Esta unidad está disponible? Déjame buscar el Excel...' → 5 minutos buscando → comprador se enfría → momento de venta se pierde. Y el comprador que googlea tu proyecto a las 11pm? Se va a la competencia que tiene microsite 24/7.",
   },
   {
     num: "04",

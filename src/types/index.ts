@@ -45,6 +45,7 @@ export interface Proyecto {
   color_secundario: string;
   color_fondo: string;
   estado: "borrador" | "publicado" | "archivado";
+  tipo_proyecto: "apartamentos" | "casas" | "hibrido";
   disclaimer: string;
   politica_privacidad_url: string | null;
   whatsapp_numero: string | null;

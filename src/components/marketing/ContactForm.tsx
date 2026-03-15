@@ -55,9 +55,9 @@ export function ContactForm({ onClose, defaultPlan, source }: ContactFormProps) 
 
     // Build tags based on plan interest
     const tags: string[] = [GHL_TAGS.contact_form];
-    if (plan === "proyecto") tags.push((GHL_TAGS as any).plan_proyecto);
-    else if (plan === "studio") tags.push((GHL_TAGS as any).plan_studio);
-    else if (plan === "enterprise") tags.push((GHL_TAGS as any).plan_enterprise);
+    if (plan === "proyecto") tags.push(GHL_TAGS.plan_proyecto);
+    else if (plan === "studio") tags.push(GHL_TAGS.plan_studio);
+    else if (plan === "enterprise") tags.push(GHL_TAGS.plan_enterprise);
 
     // Get UTM from URL
     const params = new URLSearchParams(window.location.search);

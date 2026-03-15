@@ -42,18 +42,21 @@ export function HelpArticle({
       {/* Header — always visible */}
       <button
         onClick={onToggle}
-        className="w-full flex items-center gap-3 px-5 py-4 text-left group cursor-pointer"
+        className="w-full flex items-center gap-3 px-6 py-5 text-left group cursor-pointer hover:bg-[var(--surface-2)] transition-colors rounded-xl"
       >
         <div
-          className="w-8 h-8 rounded-lg flex items-center justify-center shrink-0 transition-colors"
+          className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0 transition-all duration-300"
           style={{
             background: isExpanded
-              ? `rgba(var(--site-primary-rgb), 0.12)`
+              ? `rgba(var(--site-primary-rgb), 0.15)`
               : "var(--surface-2)",
+            boxShadow: isExpanded
+              ? `0 0 20px rgba(var(--site-primary-rgb), 0.15)`
+              : "none",
           }}
         >
           <Icon
-            size={15}
+            size={18}
             style={{
               color: isExpanded
                 ? "var(--site-primary)"
@@ -62,20 +65,20 @@ export function HelpArticle({
           />
         </div>
         <div className="flex-1 min-w-0">
-          <h3 className="text-sm font-medium text-[var(--text-primary)]">
+          <h3 className="text-[15px] font-medium text-[var(--text-primary)]">
             {title}
           </h3>
-          <p className="text-[11px] text-[var(--text-muted)] mt-0.5 truncate">
+          <p className="text-xs text-[var(--text-muted)] mt-1 truncate">
             {description}
           </p>
         </div>
         <motion.div
           animate={{ rotate: isExpanded ? 90 : 0 }}
-          transition={{ duration: 0.2 }}
+          transition={{ duration: 0.3, ease: [0.4, 0, 0.2, 1] }}
           className="shrink-0"
         >
           <ChevronRight
-            size={14}
+            size={16}
             className="text-[var(--text-muted)] group-hover:text-[var(--site-primary)] transition-colors"
           />
         </motion.div>
@@ -88,18 +91,18 @@ export function HelpArticle({
             initial={{ height: 0, opacity: 0 }}
             animate={{ height: "auto", opacity: 1 }}
             exit={{ height: 0, opacity: 0 }}
-            transition={{ duration: 0.3, ease: [0.4, 0, 0.2, 1] }}
+            transition={{ duration: 0.4, ease: [0.4, 0, 0.2, 1] }}
             className="overflow-hidden"
           >
-            <div className="px-5 pb-5 space-y-5">
+            <div className="px-6 pb-6 space-y-6">
               {/* Divider */}
               <div
                 className="border-t"
-                style={{ borderColor: "var(--border-subtle)" }}
+                style={{ borderColor: "rgba(var(--site-primary-rgb), 0.1)" }}
               />
 
               {/* Content body */}
-              <p className="text-xs text-[var(--text-secondary)] leading-relaxed">
+              <p className="text-[13px] text-[var(--text-secondary)] leading-[1.8]">
                 {content}
               </p>
 
@@ -115,22 +118,25 @@ export function HelpArticle({
 
               {/* Tips */}
               {tips && tips.length > 0 && (
-                <div className="space-y-2">
+                <div className="space-y-3">
+                  <h4 className="font-ui text-[10px] uppercase tracking-[0.12em] text-[var(--text-muted)] font-bold">
+                    Consejos
+                  </h4>
                   {tips.map((tip, i) => (
                     <div
                       key={i}
-                      className="flex gap-2.5 rounded-lg px-3.5 py-3"
+                      className="flex gap-3 rounded-xl px-4 py-3.5"
                       style={{
-                        background: `rgba(var(--site-primary-rgb), 0.05)`,
-                        border: `1px solid rgba(var(--site-primary-rgb), 0.12)`,
+                        background: `rgba(var(--site-primary-rgb), 0.08)`,
+                        border: `1px solid rgba(var(--site-primary-rgb), 0.2)`,
                       }}
                     >
                       <Lightbulb
-                        size={13}
+                        size={16}
                         className="shrink-0 mt-0.5"
                         style={{ color: "var(--site-primary)" }}
                       />
-                      <p className="text-[11px] text-[var(--text-secondary)] leading-relaxed">
+                      <p className="text-xs text-[var(--text-secondary)] leading-[1.7]">
                         {tip}
                       </p>
                     </div>

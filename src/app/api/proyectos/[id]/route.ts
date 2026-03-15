@@ -139,17 +139,11 @@ export async function PUT(
 
     const updateData: Record<string, unknown> = { ...pick(body, PROYECTO_FIELDS), updated_at: new Date().toISOString() };
 
-    // Auto-sync subdomain when slug changes (if subdomain was never independently customized)
+    // Auto-sync subdomain when slug changes (unless subdomain is explicitly provided)
+    // This ensures the public URL matches the slug by default.
+    // Users can customize subdomain independently via the Dominio page (/editor/[id]/dominio).
     if (body.slug !== undefined && body.subdomain === undefined) {
-      const { data: current } = await auth.supabase
-        .from("proyectos")
-        .select("slug, subdomain")
-        .eq("id", id)
-        .single();
-
-      if (current && (current.subdomain === current.slug || !current.subdomain)) {
-        updateData.subdomain = body.slug;
-      }
+      updateData.subdomain = body.slug;
     }
 
     const { data, error } = await auth.supabase

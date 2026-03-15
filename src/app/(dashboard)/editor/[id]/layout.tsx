@@ -374,22 +374,27 @@ export default function EditorLayout({
     return { project, loading, saving, save, refresh: wrappedRefresh, updateLocal, projectId: id };
   }, [project, loading, saving, save, wrappedRefresh, updateLocal, id]);
 
-  // Dynamic torres label based on torre types
+  // Dynamic torres label based on project type
   const torresLabel = useMemo(() => {
-    const torres = project?.torres ?? [];
-    if (torres.length === 0) return "Torres";
-    const hasTorre = torres.some((t) => (t.tipo ?? "torre") === "torre");
-    const hasUrbanismo = torres.some((t) => t.tipo === "urbanismo");
-    if (hasTorre && hasUrbanismo) return "Agrupaciones";
-    if (hasUrbanismo) return "Urbanismos";
-    return "Torres";
-  }, [project?.torres]);
+    const tipoProyecto = project?.tipo_proyecto ?? "hibrido";
+
+    if (tipoProyecto === "apartamentos") return "Torres";
+    if (tipoProyecto === "casas") return "Etapas";
+
+    // Híbrido: always show "Etapas"
+    return "Etapas";
+  }, [project?.tipo_proyecto]);
 
   const torresIcon = useMemo(() => {
+    const tipoProyecto = project?.tipo_proyecto ?? "hibrido";
+
+    if (tipoProyecto === "apartamentos") return Building2;
+
+    // Casas e Híbrido: dynamic based on actual content
     const torres = project?.torres ?? [];
-    const allUrbanismo = torres.length > 0 && torres.every((t) => t.tipo === "urbanismo");
-    return allUrbanismo ? Home : Building2;
-  }, [project?.torres]);
+    const allTorre = torres.length > 0 && torres.every((t) => (t.tipo ?? "torre") === "torre");
+    return allTorre ? Building2 : Home;
+  }, [project?.tipo_proyecto, project?.torres]);
 
   // Collaborators see Inventario + Disponibilidad (both allow estado changes)
   const filteredSections = useMemo(() => {

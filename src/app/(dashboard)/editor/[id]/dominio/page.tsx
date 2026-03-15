@@ -24,10 +24,13 @@ import {
   Info,
 } from "lucide-react";
 import { useToast } from "@/components/dashboard/Toast";
+import { InfoTooltip } from "@/components/ui/InfoTooltip";
+import { useLanguage } from "@/i18n/LanguageProvider";
 
 export default function DominioPage() {
   const { project, refresh, projectId } = useEditorProject();
   const { t } = useTranslation("editor");
+  const { t: tLang } = useLanguage();
   const toast = useToast();
 
   const [subdomain, setSubdomain] = useState(
@@ -326,8 +329,13 @@ export default function DominioPage() {
               <div className="space-y-3">
                 <div className="flex items-center gap-2">
                   <Info size={14} className="text-[var(--site-primary)]" />
-                  <span className="text-xs text-[var(--text-secondary)]">
+                  <span className="text-xs text-[var(--text-secondary)] flex items-center gap-2">
                     {t("dominio.custom.dnsInstruction")}
+                    <InfoTooltip
+                      content={tLang.tooltips.dominio.dnsRecords.long}
+                      variant="dashboard"
+                      placement="auto"
+                    />
                   </span>
                 </div>
 

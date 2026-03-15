@@ -43,6 +43,8 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import type { Fachada, Unidad, Torre, PlanoInteractivo, PlanoPunto } from "@/types";
+import { InfoTooltip } from "@/components/ui/InfoTooltip";
+import { useLanguage } from "@/i18n/LanguageProvider";
 
 /* ------------------------------------------------------------------
    Page
@@ -50,6 +52,7 @@ import type { Fachada, Unidad, Torre, PlanoInteractivo, PlanoPunto } from "@/typ
 export default function NoddoGridPage() {
   const { project, projectId, refresh } = useEditorProject();
   const { t } = useTranslation("editor");
+  const { t: tLang } = useLanguage();
   const toast = useToast();
   const { confirm } = useConfirm();
 
@@ -1120,7 +1123,14 @@ export default function NoddoGridPage() {
             <Eye size={18} className="text-[var(--site-primary)]" />
           </div>
           <div>
-            <h2 className={pageTitle}>{t("fachadas.title")}</h2>
+            <h2 className={`${pageTitle} flex items-center gap-2`}>
+              {t("fachadas.title")}
+              <InfoTooltip
+                content={tLang.tooltips.fachadas.hotspotEditor.long}
+                variant="dashboard"
+                placement="auto"
+              />
+            </h2>
             <p className={pageDescription}>
               {t("fachadas.description")}
               {selectedFachada && !isMultiTorre && (

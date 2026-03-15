@@ -1,0 +1,595 @@
+
+> nodesites@0.1.0 lint
+> eslint
+
+
+C:\Users\Juan\Documents\ANTIGRAVITY\NODDO\src\app\(dashboard)\analytics\page.tsx
+  41:11  warning  't' is assigned a value but never used                @typescript-eslint/no-unused-vars
+  54:9   warning  'selectedProject' is assigned a value but never used  @typescript-eslint/no-unused-vars
+
+C:\Users\Juan\Documents\ANTIGRAVITY\NODDO\src\app\(dashboard)\dashboard\page.tsx
+  21:11  warning  't' is assigned a value but never used  @typescript-eslint/no-unused-vars
+  36:37  warning  'name' is defined but never used        @typescript-eslint/no-unused-vars
+
+C:\Users\Juan\Documents\ANTIGRAVITY\NODDO\src\app\(dashboard)\editor\[id]\avances\page.tsx
+  68:11  warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+
+C:\Users\Juan\Documents\ANTIGRAVITY\NODDO\src\app\(dashboard)\editor\[id]\config\page.tsx
+  23:73  warning  React Hook useMemo has a missing dependency: 'project?.whatsapp_numero'. Either include it or remove the dependency array                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  react-hooks/exhaustive-deps
+  24:32  error    Compilation Skipped: Existing memoization could not be preserved
+
+React Compiler has skipped optimizing this component because the existing manual memoization could not be preserved. The inferred dependencies did not match the manually specified dependencies, which could cause the value to change more or less frequently than expected. The inferred dependency was `project?.etapa_label`, but the source dependencies were [project?.id]. Inferred different dependency than source.
+
+C:\Users\Juan\Documents\ANTIGRAVITY\NODDO\src\app\(dashboard)\editor\[id]\config\page.tsx:24:32
+  22 |   // Initialize state from project using memo to avoid re-renders
+  23 |   const initialWhatsapp = useMemo(() => project?.whatsapp_numero || "", [project?.id]);
+> 24 |   const initialEtapa = useMemo(() => project?.etapa_label || "Etapas", [project?.id]);
+     |                                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ Could not preserve existing manual memoization
+  25 |   const initialBadge = useMemo(() => project?.hide_noddo_badge ?? false, [project?.id]);
+  26 |
+  27 |   const [whatsappNumero, setWhatsappNumero] = useState(initialWhatsapp);  react-hooks/preserve-manual-memoization
+  24:72  warning  React Hook useMemo has a missing dependency: 'project?.etapa_label'. Either include it or remove the dependency array                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      react-hooks/exhaustive-deps
+  25:74  warning  React Hook useMemo has a missing dependency: 'project?.hide_noddo_badge'. Either include it or remove the dependency array                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 react-hooks/exhaustive-deps
+  38:9   warning  The 'handleSave' function makes the dependencies of useEffect Hook (at line 54) change on every render. To fix this, wrap the definition of 'handleSave' in its own useCallback() Hook                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     react-hooks/exhaustive-deps
+
+C:\Users\Juan\Documents\ANTIGRAVITY\NODDO\src\app\(dashboard)\editor\[id]\cotizador\page.tsx
+  182:9  warning  'toast' is assigned a value but never used  @typescript-eslint/no-unused-vars
+
+C:\Users\Juan\Documents\ANTIGRAVITY\NODDO\src\app\(dashboard)\editor\[id]\disponibilidad\page.tsx
+   37:9  warning  The 'unidades' logical expression could make the dependencies of useMemo Hook (at line 71) change on every render. To fix this, wrap the initialization of 'unidades' in its own useMemo() Hook  react-hooks/exhaustive-deps
+  118:6  warning  React Hook useCallback has an unnecessary dependency: 'project'. Either exclude it or remove the dependency array                                                                                react-hooks/exhaustive-deps
+
+C:\Users\Juan\Documents\ANTIGRAVITY\NODDO\src\app\(dashboard)\editor\[id]\fachadas\page.tsx
+    72:25  warning  'setAddingFachada' is assigned a value but never used                                                                                                                                                                                                                                    @typescript-eslint/no-unused-vars
+    81:10  warning  'showAddTorreForm' is assigned a value but never used                                                                                                                                                                                                                                    @typescript-eslint/no-unused-vars
+    89:10  warning  'savingTorre' is assigned a value but never used                                                                                                                                                                                                                                         @typescript-eslint/no-unused-vars
+    93:10  warning  'enablingMultiTorre' is assigned a value but never used                                                                                                                                                                                                                                  @typescript-eslint/no-unused-vars
+   113:10  warning  'deletingTorreId' is assigned a value but never used                                                                                                                                                                                                                                     @typescript-eslint/no-unused-vars
+   499:9   warning  'handleAddTorre' is assigned a value but never used                                                                                                                                                                                                                                      @typescript-eslint/no-unused-vars
+   528:9   warning  'handleUpdateTorre' is assigned a value but never used                                                                                                                                                                                                                                   @typescript-eslint/no-unused-vars
+   537:9   warning  'handleDeleteTorre' is assigned a value but never used                                                                                                                                                                                                                                   @typescript-eslint/no-unused-vars
+   560:9   warning  'handleEnableMultiTorre' is assigned a value but never used                                                                                                                                                                                                                              @typescript-eslint/no-unused-vars
+   593:9   warning  'handleDisableMultiTorre' is assigned a value but never used                                                                                                                                                                                                                             @typescript-eslint/no-unused-vars
+   839:17  warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+  1777:10  warning  'TorreInfoCard' is defined but never used                                                                                                                                                                                                                                                @typescript-eslint/no-unused-vars
+  1839:13  warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+
+C:\Users\Juan\Documents\ANTIGRAVITY\NODDO\src\app\(dashboard)\editor\[id]\galeria\page.tsx
+   19:3   warning  'emptyState' is defined but never used                                                                                                                                                                                                                                                   @typescript-eslint/no-unused-vars
+   20:3   warning  'emptyStateIcon' is defined but never used                                                                                                                                                                                                                                               @typescript-eslint/no-unused-vars
+   21:3   warning  'emptyStateTitle' is defined but never used                                                                                                                                                                                                                                              @typescript-eslint/no-unused-vars
+   22:3   warning  'emptyStateDescription' is defined but never used                                                                                                                                                                                                                                        @typescript-eslint/no-unused-vars
+  424:23  warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+
+C:\Users\Juan\Documents\ANTIGRAVITY\NODDO\src\app\(dashboard)\editor\[id]\inventario\page.tsx
+    14:3   warning  'emptyState' is defined but never used                                                                                                                                                                 @typescript-eslint/no-unused-vars
+    15:3   warning  'emptyStateIcon' is defined but never used                                                                                                                                                             @typescript-eslint/no-unused-vars
+    16:3   warning  'emptyStateTitle' is defined but never used                                                                                                                                                            @typescript-eslint/no-unused-vars
+    17:3   warning  'emptyStateDescription' is defined but never used                                                                                                                                                      @typescript-eslint/no-unused-vars
+   129:10  warning  'tipologiaName' is defined but never used                                                                                                                                                              @typescript-eslint/no-unused-vars
+   138:10  warning  'fachadaName' is defined but never used                                                                                                                                                                @typescript-eslint/no-unused-vars
+  2017:9   warning  The 'unidades' logical expression could make the dependencies of useMemo Hook (at line 2043) change on every render. To fix this, wrap the initialization of 'unidades' in its own useMemo() Hook      react-hooks/exhaustive-deps
+  2017:9   warning  The 'unidades' logical expression could make the dependencies of useMemo Hook (at line 2322) change on every render. To fix this, wrap the initialization of 'unidades' in its own useMemo() Hook      react-hooks/exhaustive-deps
+  2018:9   warning  The 'tipologias' logical expression could make the dependencies of useMemo Hook (at line 2304) change on every render. To fix this, wrap the initialization of 'tipologias' in its own useMemo() Hook  react-hooks/exhaustive-deps
+  2020:9   warning  The 'torres' logical expression could make the dependencies of useMemo Hook (at line 2314) change on every render. To fix this, wrap the initialization of 'torres' in its own useMemo() Hook          react-hooks/exhaustive-deps
+  2111:5   warning  React Hook useCallback has a missing dependency: 'toast'. Either include it or remove the dependency array                                                                                             react-hooks/exhaustive-deps
+  2149:5   warning  React Hook useCallback has a missing dependency: 'toast'. Either include it or remove the dependency array                                                                                             react-hooks/exhaustive-deps
+
+C:\Users\Juan\Documents\ANTIGRAVITY\NODDO\src\app\(dashboard)\editor\[id]\layout.tsx
+  194:11  warning  'isMobile' is assigned a value but never used                                                           @typescript-eslint/no-unused-vars
+  248:6   warning  React Hook useCallback has a missing dependency: 't'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+  270:6   warning  React Hook useCallback has a missing dependency: 't'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+
+C:\Users\Juan\Documents\ANTIGRAVITY\NODDO\src\app\(dashboard)\editor\[id]\page.tsx
+  52:20  warning  'saving' is assigned a value but never used  @typescript-eslint/no-unused-vars
+
+C:\Users\Juan\Documents\ANTIGRAVITY\NODDO\src\app\(dashboard)\editor\[id]\planos\page.tsx
+   11:3   warning  'btnDanger' is defined but never used                                                                                                                                                                                                                                                    @typescript-eslint/no-unused-vars
+  328:23  warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+
+C:\Users\Juan\Documents\ANTIGRAVITY\NODDO\src\app\(dashboard)\editor\[id]\tipologias\page.tsx
+  126:9  warning  The 'tipologias' logical expression could make the dependencies of useMemo Hook (at line 146) change on every render. To fix this, wrap the initialization of 'tipologias' in its own useMemo() Hook                                     react-hooks/exhaustive-deps
+  127:9  warning  The 'unidades' logical expression could make the dependencies of useMemo Hook (at line 216) change on every render. Move it inside the useMemo callback. Alternatively, wrap the initialization of 'unidades' in its own useMemo() Hook  react-hooks/exhaustive-deps
+
+C:\Users\Juan\Documents\ANTIGRAVITY\NODDO\src\app\(dashboard)\editor\[id]\torres\page.tsx
+   33:3   warning  'Upload' is defined but never used                                                                                                                                                                                                                                                       @typescript-eslint/no-unused-vars
+  276:5   warning  React Hook useCallback has missing dependencies: 'confirm' and 't'. Either include them or remove the dependency array                                                                                                                                                                   react-hooks/exhaustive-deps
+  690:17  warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+  894:19  warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+
+C:\Users\Juan\Documents\ANTIGRAVITY\NODDO\src\app\(dashboard)\editor\[id]\ubicacion\page.tsx
+   15:3   warning  'btnDanger' is defined but never used        @typescript-eslint/no-unused-vars
+   93:20  warning  'saving' is assigned a value but never used  @typescript-eslint/no-unused-vars
+  154:42  error    Unexpected any. Specify a different type     @typescript-eslint/no-explicit-any
+  277:42  error    Unexpected any. Specify a different type     @typescript-eslint/no-explicit-any
+
+C:\Users\Juan\Documents\ANTIGRAVITY\NODDO\src\app\(dashboard)\editor\[id]\videos\page.tsx
+   38:3   warning  'Clock' is defined but never used                                                                                                                                                                                                                                                        @typescript-eslint/no-unused-vars
+   40:3   warning  'CheckCircle2' is defined but never used                                                                                                                                                                                                                                                 @typescript-eslint/no-unused-vars
+  110:11  warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+  501:23  warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+
+C:\Users\Juan\Documents\ANTIGRAVITY\NODDO\src\app\(dashboard)\equipo\page.tsx
+  178:49  warning  'email' is defined but never used  @typescript-eslint/no-unused-vars
+
+C:\Users\Juan\Documents\ANTIGRAVITY\NODDO\src\app\(dashboard)\layout.tsx
+  5:10  warning  'useState' is defined but never used     @typescript-eslint/no-unused-vars
+  5:20  warning  'useEffect' is defined but never used    @typescript-eslint/no-unused-vars
+  5:31  warning  'useCallback' is defined but never used  @typescript-eslint/no-unused-vars
+
+C:\Users\Juan\Documents\ANTIGRAVITY\NODDO\src\app\(dashboard)\leads\page.tsx
+  128:6  warning  React Hook useCallback has a missing dependency: 'toast'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+
+C:\Users\Juan\Documents\ANTIGRAVITY\NODDO\src\app\(dashboard)\proyectos\page.tsx
+  40:10  warning  'cloning' is assigned a value but never used  @typescript-eslint/no-unused-vars
+
+C:\Users\Juan\Documents\ANTIGRAVITY\NODDO\src\app\(marketing)\cookies\page.tsx
+  660:44  error  `"` can be escaped with `&quot;`, `&ldquo;`, `&#34;`, `&rdquo;`  react/no-unescaped-entities
+  660:57  error  `"` can be escaped with `&quot;`, `&ldquo;`, `&#34;`, `&rdquo;`  react/no-unescaped-entities
+  726:58  error  `"` can be escaped with `&quot;`, `&ldquo;`, `&#34;`, `&rdquo;`  react/no-unescaped-entities
+  726:79  error  `"` can be escaped with `&quot;`, `&ldquo;`, `&#34;`, `&rdquo;`  react/no-unescaped-entities
+
+C:\Users\Juan\Documents\ANTIGRAVITY\NODDO\src\app\(marketing)\demo-confirmada\page.tsx
+  448:21  warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+
+C:\Users\Juan\Documents\ANTIGRAVITY\NODDO\src\app\(marketing)\error.tsx
+  45:11  error  Do not use an `<a>` element to navigate to `/`. Use `<Link />` from `next/link` instead. See: https://nextjs.org/docs/messages/no-html-link-for-pages  @next/next/no-html-link-for-pages
+
+C:\Users\Juan\Documents\ANTIGRAVITY\NODDO\src\app\(marketing)\estado\page.tsx
+  154:18  error  Error: Cannot create components during render
+
+Components created during render will reset their state each time they are created. Declare components outside of render.
+
+C:\Users\Juan\Documents\ANTIGRAVITY\NODDO\src\app\(marketing)\estado\page.tsx:154:18
+  152 |                 style={{ backgroundColor: "rgba(78, 222, 128, 0.12)" }}
+  153 |               >
+> 154 |                 <StatusIcon
+      |                  ^^^^^^^^^^ This component is created during render
+  155 |                   className="w-8 h-8"
+  156 |                   style={{ color: getStatusColor(status.overall) }}
+  157 |                 />
+
+C:\Users\Juan\Documents\ANTIGRAVITY\NODDO\src\app\(marketing)\estado\page.tsx:103:22
+  101 |   };
+  102 |
+> 103 |   const StatusIcon = getStatusIcon(status.overall);
+      |                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ The component is created during render here
+  104 |
+  105 |   return (
+  106 |     <div className="min-h-screen pt-32 pb-24 px-6">  react-hooks/static-components
+
+C:\Users\Juan\Documents\ANTIGRAVITY\NODDO\src\app\(marketing)\layout.tsx
+  58:11  warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+
+C:\Users\Juan\Documents\ANTIGRAVITY\NODDO\src\app\(marketing)\nosotros\page.tsx
+  140:21  error  `"` can be escaped with `&quot;`, `&ldquo;`, `&#34;`, `&rdquo;`  react/no-unescaped-entities
+  141:25  error  `"` can be escaped with `&quot;`, `&ldquo;`, `&#34;`, `&rdquo;`  react/no-unescaped-entities
+
+C:\Users\Juan\Documents\ANTIGRAVITY\NODDO\src\app\(marketing)\nueva-contrasena\page.tsx
+  3:20  warning  'useEffect' is defined but never used  @typescript-eslint/no-unused-vars
+
+C:\Users\Juan\Documents\ANTIGRAVITY\NODDO\src\app\(marketing)\privacidad\page.tsx
+   677:35  error  `"` can be escaped with `&quot;`, `&ldquo;`, `&#34;`, `&rdquo;`  react/no-unescaped-entities
+   677:62  error  `"` can be escaped with `&quot;`, `&ldquo;`, `&#34;`, `&rdquo;`  react/no-unescaped-entities
+  1095:90  error  `"` can be escaped with `&quot;`, `&ldquo;`, `&#34;`, `&rdquo;`  react/no-unescaped-entities
+  1096:34  error  `"` can be escaped with `&quot;`, `&ldquo;`, `&#34;`, `&rdquo;`  react/no-unescaped-entities
+
+C:\Users\Juan\Documents\ANTIGRAVITY\NODDO\src\app\(marketing)\terminos\page.tsx
+  172:77  error  `"` can be escaped with `&quot;`, `&ldquo;`, `&#34;`, `&rdquo;`  react/no-unescaped-entities
+  172:89  error  `"` can be escaped with `&quot;`, `&ldquo;`, `&#34;`, `&rdquo;`  react/no-unescaped-entities
+  175:35  error  `"` can be escaped with `&quot;`, `&ldquo;`, `&#34;`, `&rdquo;`  react/no-unescaped-entities
+  175:46  error  `"` can be escaped with `&quot;`, `&ldquo;`, `&#34;`, `&rdquo;`  react/no-unescaped-entities
+  175:49  error  `"` can be escaped with `&quot;`, `&ldquo;`, `&#34;`, `&rdquo;`  react/no-unescaped-entities
+  175:58  error  `"` can be escaped with `&quot;`, `&ldquo;`, `&#34;`, `&rdquo;`  react/no-unescaped-entities
+  175:61  error  `"` can be escaped with `&quot;`, `&ldquo;`, `&#34;`, `&rdquo;`  react/no-unescaped-entities
+  175:67  error  `"` can be escaped with `&quot;`, `&ldquo;`, `&#34;`, `&rdquo;`  react/no-unescaped-entities
+  175:91  error  `"` can be escaped with `&quot;`, `&ldquo;`, `&#34;`, `&rdquo;`  react/no-unescaped-entities
+  176:28  error  `"` can be escaped with `&quot;`, `&ldquo;`, `&#34;`, `&rdquo;`  react/no-unescaped-entities
+  176:31  error  `"` can be escaped with `&quot;`, `&ldquo;`, `&#34;`, `&rdquo;`  react/no-unescaped-entities
+  176:37  error  `"` can be escaped with `&quot;`, `&ldquo;`, `&#34;`, `&rdquo;`  react/no-unescaped-entities
+  688:50  error  `"` can be escaped with `&quot;`, `&ldquo;`, `&#34;`, `&rdquo;`  react/no-unescaped-entities
+  688:59  error  `"` can be escaped with `&quot;`, `&ldquo;`, `&#34;`, `&rdquo;`  react/no-unescaped-entities
+  688:63  error  `"` can be escaped with `&quot;`, `&ldquo;`, `&#34;`, `&rdquo;`  react/no-unescaped-entities
+  688:84  error  `"` can be escaped with `&quot;`, `&ldquo;`, `&#34;`, `&rdquo;`  react/no-unescaped-entities
+  980:93  error  `"` can be escaped with `&quot;`, `&ldquo;`, `&#34;`, `&rdquo;`  react/no-unescaped-entities
+  981:36  error  `"` can be escaped with `&quot;`, `&ldquo;`, `&#34;`, `&rdquo;`  react/no-unescaped-entities
+
+C:\Users\Juan\Documents\ANTIGRAVITY\NODDO\src\app\(platform-admin)\admin\proyectos\page.tsx
+  337:31  warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+
+C:\Users\Juan\Documents\ANTIGRAVITY\NODDO\src\app\(platform-admin)\admin\usuarios\page.tsx
+   17:3   warning  'ChevronDown' is defined but never used                                                                                                                                                                                                                                                  @typescript-eslint/no-unused-vars
+  495:51  warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+
+C:\Users\Juan\Documents\ANTIGRAVITY\NODDO\src\app\(platform-admin)\layout.tsx
+  51:11  warning  'isMobile' is assigned a value but never used  @typescript-eslint/no-unused-vars
+
+C:\Users\Juan\Documents\ANTIGRAVITY\NODDO\src\app\api\admin\proyectos\route.ts
+  25:9  warning  'userIds' is assigned a value but never used  @typescript-eslint/no-unused-vars
+
+C:\Users\Juan\Documents\ANTIGRAVITY\NODDO\src\app\api\proyectos\[id]\clonar\route.ts
+   41:5   warning  Unused eslint-disable directive (no problems were reported from 'no-constant-condition')
+   55:11  warning  '_id' is assigned a value but never used                                                  @typescript-eslint/no-unused-vars
+   55:28  warning  '_ca' is assigned a value but never used                                                  @typescript-eslint/no-unused-vars
+   55:45  warning  '_ua' is assigned a value but never used                                                  @typescript-eslint/no-unused-vars
+   55:58  warning  '_e' is assigned a value but never used                                                   @typescript-eslint/no-unused-vars
+   56:13  warning  '_slug' is assigned a value but never used                                                @typescript-eslint/no-unused-vars
+   56:31  warning  '_sub' is assigned a value but never used                                                 @typescript-eslint/no-unused-vars
+   56:52  warning  '_cd' is assigned a value but never used                                                  @typescript-eslint/no-unused-vars
+   56:74  warning  '_dv' is assigned a value but never used                                                  @typescript-eslint/no-unused-vars
+   85:31  warning  '_tid' is defined but never used                                                          @typescript-eslint/no-unused-vars
+   85:50  warning  '_pid' is defined but never used                                                          @typescript-eslint/no-unused-vars
+   85:68  warning  '_tca' is defined but never used                                                          @typescript-eslint/no-unused-vars
+  101:41  warning  '_cpid' is assigned a value but never used                                                @typescript-eslint/no-unused-vars
+  117:31  warning  '_iid' is defined but never used                                                          @typescript-eslint/no-unused-vars
+  117:51  warning  '_cid' is defined but never used                                                          @typescript-eslint/no-unused-vars
+  136:25  warning  '_pid2' is defined but never used                                                         @typescript-eslint/no-unused-vars
+  136:45  warning  '_ppid' is defined but never used                                                         @typescript-eslint/no-unused-vars
+  152:27  warning  '_tid2' is defined but never used                                                         @typescript-eslint/no-unused-vars
+  152:47  warning  '_tpid' is defined but never used                                                         @typescript-eslint/no-unused-vars
+  168:27  warning  '_vid' is defined but never used                                                          @typescript-eslint/no-unused-vars
+  168:46  warning  '_vpid' is defined but never used                                                         @typescript-eslint/no-unused-vars
+  168:65  warning  '_su' is defined but never used                                                           @typescript-eslint/no-unused-vars
+  168:85  warning  '_ss' is defined but never used                                                           @typescript-eslint/no-unused-vars
+
+C:\Users\Juan\Documents\ANTIGRAVITY\NODDO\src\app\api\proyectos\[id]\versiones\[versionId]\restaurar\route.ts
+  110:65  warning  '_imgs' is defined but never used          @typescript-eslint/no-unused-vars
+  153:17  warning  '_id' is assigned a value but never used   @typescript-eslint/no-unused-vars
+  153:31  warning  '_uid' is assigned a value but never used  @typescript-eslint/no-unused-vars
+  153:49  warning  '_ca' is assigned a value but never used   @typescript-eslint/no-unused-vars
+
+C:\Users\Juan\Documents\ANTIGRAVITY\NODDO\src\app\sites\[slug]\avances\page.tsx
+  286:21  warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+  343:15  warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+  401:13  warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+
+C:\Users\Juan\Documents\ANTIGRAVITY\NODDO\src\app\sites\[slug]\contacto\page.tsx
+  39:11  warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+
+C:\Users\Juan\Documents\ANTIGRAVITY\NODDO\src\app\sites\[slug]\explorar\page.tsx
+   70:49  error    React Hook "usePersistedState" is called conditionally. React Hooks must be called in the exact same order in every component render. Did you accidentally call a React Hook after an early return?  react-hooks/rules-of-hooks
+   74:9   warning  The 'torres' logical expression could make the dependencies of useMemo Hook (at line 91) change on every render. To fix this, wrap the initialization of 'torres' in its own useMemo() Hook          react-hooks/exhaustive-deps
+   78:61  error    React Hook "useState" is called conditionally. React Hooks must be called in the exact same order in every component render. Did you accidentally call a React Hook after an early return?           react-hooks/rules-of-hooks
+   81:3   error    React Hook "useEffect" is called conditionally. React Hooks must be called in the exact same order in every component render. Did you accidentally call a React Hook after an early return?          react-hooks/rules-of-hooks
+   85:6   warning  React Hook useEffect has a missing dependency: 'setSelectedTorreId'. Either include it or remove the dependency array                                                                                react-hooks/exhaustive-deps
+   87:23  error    React Hook "useMemo" is called conditionally. React Hooks must be called in the exact same order in every component render. Did you accidentally call a React Hook after an early return?            react-hooks/rules-of-hooks
+   94:23  error    React Hook "useMemo" is called conditionally. React Hooks must be called in the exact same order in every component render. Did you accidentally call a React Hook after an early return?            react-hooks/rules-of-hooks
+   95:22  error    React Hook "useMemo" is called conditionally. React Hooks must be called in the exact same order in every component render. Did you accidentally call a React Hook after an early return?            react-hooks/rules-of-hooks
+   96:43  error    React Hook "usePersistedState" is called conditionally. React Hooks must be called in the exact same order in every component render. Did you accidentally call a React Hook after an early return?  react-hooks/rules-of-hooks
+  102:26  error    React Hook "useMemo" is called conditionally. React Hooks must be called in the exact same order in every component render. Did you accidentally call a React Hook after an early return?            react-hooks/rules-of-hooks
+  111:31  error    React Hook "useMemo" is called conditionally. React Hooks must be called in the exact same order in every component render. Did you accidentally call a React Hook after an early return?            react-hooks/rules-of-hooks
+  117:55  error    React Hook "useState" is called conditionally. React Hooks must be called in the exact same order in every component render. Did you accidentally call a React Hook after an early return?           react-hooks/rules-of-hooks
+  121:3   error    React Hook "useEffect" is called conditionally. React Hooks must be called in the exact same order in every component render. Did you accidentally call a React Hook after an early return?          react-hooks/rules-of-hooks
+  131:43  error    React Hook "useState" is called conditionally. React Hooks must be called in the exact same order in every component render. Did you accidentally call a React Hook after an early return?           react-hooks/rules-of-hooks
+  132:41  error    React Hook "useState" is called conditionally. React Hooks must be called in the exact same order in every component render. Did you accidentally call a React Hook after an early return?           react-hooks/rules-of-hooks
+  133:45  error    React Hook "useState" is called conditionally. React Hooks must be called in the exact same order in every component render. Did you accidentally call a React Hook after an early return?           react-hooks/rules-of-hooks
+  134:41  error    React Hook "useState" is called conditionally. React Hooks must be called in the exact same order in every component render. Did you accidentally call a React Hook after an early return?           react-hooks/rules-of-hooks
+  135:20  error    React Hook "useMediaQuery" is called conditionally. React Hooks must be called in the exact same order in every component render. Did you accidentally call a React Hook after an early return?      react-hooks/rules-of-hooks
+  136:37  error    React Hook "useState" is called conditionally. React Hooks must be called in the exact same order in every component render. Did you accidentally call a React Hook after an early return?           react-hooks/rules-of-hooks
+  140:27  error    React Hook "useMemo" is called conditionally. React Hooks must be called in the exact same order in every component render. Did you accidentally call a React Hook after an early return?            react-hooks/rules-of-hooks
+  151:29  error    React Hook "useMemo" is called conditionally. React Hooks must be called in the exact same order in every component render. Did you accidentally call a React Hook after an early return?            react-hooks/rules-of-hooks
+  162:3   error    React Hook "useEffect" is called conditionally. React Hooks must be called in the exact same order in every component render. Did you accidentally call a React Hook after an early return?          react-hooks/rules-of-hooks
+  172:29  error    React Hook "useMemo" is called conditionally. React Hooks must be called in the exact same order in every component render. Did you accidentally call a React Hook after an early return?            react-hooks/rules-of-hooks
+  177:30  error    React Hook "useMemo" is called conditionally. React Hooks must be called in the exact same order in every component render. Did you accidentally call a React Hook after an early return?            react-hooks/rules-of-hooks
+  185:23  error    React Hook "useRef" is called conditionally. React Hooks must be called in the exact same order in every component render. Did you accidentally call a React Hook after an early return?             react-hooks/rules-of-hooks
+  186:24  error    React Hook "useCallback" is called conditionally. React Hooks must be called in the exact same order in every component render. Did you accidentally call a React Hook after an early return?        react-hooks/rules-of-hooks
+  192:25  error    React Hook "useCallback" is called conditionally. React Hooks must be called in the exact same order in every component render. Did you accidentally call a React Hook after an early return?        react-hooks/rules-of-hooks
+  198:3   error    React Hook "useEffect" is called conditionally. React Hooks must be called in the exact same order in every component render. Did you accidentally call a React Hook after an early return?          react-hooks/rules-of-hooks
+
+C:\Users\Juan\Documents\ANTIGRAVITY\NODDO\src\app\sites\[slug]\galeria\[categoria]\page.tsx
+  68:13  warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+
+C:\Users\Juan\Documents\ANTIGRAVITY\NODDO\src\app\sites\[slug]\galeria\page.tsx
+   58:41  error    React Hook "useState" is called conditionally. React Hooks must be called in the exact same order in every component render. Did you accidentally call a React Hook after an early return?                                                                                               react-hooks/rules-of-hooks
+   59:47  error    React Hook "useState" is called conditionally. React Hooks must be called in the exact same order in every component render. Did you accidentally call a React Hook after an early return?                                                                                               react-hooks/rules-of-hooks
+   60:41  error    React Hook "useState" is called conditionally. React Hooks must be called in the exact same order in every component render. Did you accidentally call a React Hook after an early return?                                                                                               react-hooks/rules-of-hooks
+   61:45  error    React Hook "useState" is called conditionally. React Hooks must be called in the exact same order in every component render. Did you accidentally call a React Hook after an early return?                                                                                               react-hooks/rules-of-hooks
+   73:18  error    React Hook "useCallback" is called conditionally. React Hooks must be called in the exact same order in every component render. Did you accidentally call a React Hook after an early return?                                                                                            react-hooks/rules-of-hooks
+   79:18  error    React Hook "useCallback" is called conditionally. React Hooks must be called in the exact same order in every component render. Did you accidentally call a React Hook after an early return?                                                                                            react-hooks/rules-of-hooks
+   97:3   error    React Hook "useEffect" is called conditionally. React Hooks must be called in the exact same order in every component render. Did you accidentally call a React Hook after an early return?                                                                                              react-hooks/rules-of-hooks
+  142:13  warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+  291:21  warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+
+C:\Users\Juan\Documents\ANTIGRAVITY\NODDO\src\app\sites\[slug]\inventario\page.tsx
+   35:10  warning  'formatPrecio' is defined but never used                                                                                                                                                             @typescript-eslint/no-unused-vars
+   51:21  warning  'locale' is assigned a value but never used                                                                                                                                                          @typescript-eslint/no-unused-vars
+   66:24  error    React Hook "useMemo" is called conditionally. React Hooks must be called in the exact same order in every component render. Did you accidentally call a React Hook after an early return?            react-hooks/rules-of-hooks
+   68:65  error    React Hook "useMemo" is called conditionally. React Hooks must be called in the exact same order in every component render. Did you accidentally call a React Hook after an early return?            react-hooks/rules-of-hooks
+   81:41  error    React Hook "useState" is called conditionally. React Hooks must be called in the exact same order in every component render. Did you accidentally call a React Hook after an early return?           react-hooks/rules-of-hooks
+   82:49  error    React Hook "useState" is called conditionally. React Hooks must be called in the exact same order in every component render. Did you accidentally call a React Hook after an early return?           react-hooks/rules-of-hooks
+   83:43  error    React Hook "useState" is called conditionally. React Hooks must be called in the exact same order in every component render. Did you accidentally call a React Hook after an early return?           react-hooks/rules-of-hooks
+   84:37  error    React Hook "useState" is called conditionally. React Hooks must be called in the exact same order in every component render. Did you accidentally call a React Hook after an early return?           react-hooks/rules-of-hooks
+   85:41  error    React Hook "useState" is called conditionally. React Hooks must be called in the exact same order in every component render. Did you accidentally call a React Hook after an early return?           react-hooks/rules-of-hooks
+   86:41  error    React Hook "useState" is called conditionally. React Hooks must be called in the exact same order in every component render. Did you accidentally call a React Hook after an early return?           react-hooks/rules-of-hooks
+   87:31  error    React Hook "useState" is called conditionally. React Hooks must be called in the exact same order in every component render. Did you accidentally call a React Hook after an early return?           react-hooks/rules-of-hooks
+   90:35  error    React Hook "usePersistedState" is called conditionally. React Hooks must be called in the exact same order in every component render. Did you accidentally call a React Hook after an early return?  react-hooks/rules-of-hooks
+   95:45  error    React Hook "useState" is called conditionally. React Hooks must be called in the exact same order in every component render. Did you accidentally call a React Hook after an early return?           react-hooks/rules-of-hooks
+   98:24  error    React Hook "useMemo" is called conditionally. React Hooks must be called in the exact same order in every component render. Did you accidentally call a React Hook after an early return?            react-hooks/rules-of-hooks
+  112:31  error    React Hook "useMemo" is called conditionally. React Hooks must be called in the exact same order in every component render. Did you accidentally call a React Hook after an early return?            react-hooks/rules-of-hooks
+  118:22  error    React Hook "useMemo" is called conditionally. React Hooks must be called in the exact same order in every component render. Did you accidentally call a React Hook after an early return?            react-hooks/rules-of-hooks
+  124:24  error    React Hook "useMemo" is called conditionally. React Hooks must be called in the exact same order in every component render. Did you accidentally call a React Hook after an early return?            react-hooks/rules-of-hooks
+  130:28  error    React Hook "useMemo" is called conditionally. React Hooks must be called in the exact same order in every component render. Did you accidentally call a React Hook after an early return?            react-hooks/rules-of-hooks
+
+C:\Users\Juan\Documents\ANTIGRAVITY\NODDO\src\app\sites\[slug]\page.tsx
+   93:11  warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+  120:15  warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+  128:13  warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+  175:15  warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+  198:21  warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+  206:19  warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+
+C:\Users\Juan\Documents\ANTIGRAVITY\NODDO\src\app\sites\[slug]\tipologias\page.tsx
+   24:3   warning  'ChevronRight' is defined but never used                                                                                                                                                                                                                                                 @typescript-eslint/no-unused-vars
+   69:31  error    React Hook "useMemo" is called conditionally. React Hooks must be called in the exact same order in every component render. Did you accidentally call a React Hook after an early return?                                                                                                react-hooks/rules-of-hooks
+   70:32  error    React Hook "useMemo" is called conditionally. React Hooks must be called in the exact same order in every component render. Did you accidentally call a React Hook after an early return?                                                                                                react-hooks/rules-of-hooks
+   81:45  error    React Hook "usePersistedState" is called conditionally. React Hooks must be called in the exact same order in every component render. Did you accidentally call a React Hook after an early return?                                                                                      react-hooks/rules-of-hooks
+   88:29  error    React Hook "useMemo" is called conditionally. React Hooks must be called in the exact same order in every component render. Did you accidentally call a React Hook after an early return?                                                                                                react-hooks/rules-of-hooks
+   98:49  error    React Hook "usePersistedState" is called conditionally. React Hooks must be called in the exact same order in every component render. Did you accidentally call a React Hook after an early return?                                                                                      react-hooks/rules-of-hooks
+  103:44  error    React Hook "useState" is called conditionally. React Hooks must be called in the exact same order in every component render. Did you accidentally call a React Hook after an early return?                                                                                               react-hooks/rules-of-hooks
+  111:26  error    React Hook "useCallback" is called conditionally. React Hooks must be called in the exact same order in every component render. Did you accidentally call a React Hook after an early return?                                                                                            react-hooks/rules-of-hooks
+  119:43  error    React Hook "useState" is called conditionally. React Hooks must be called in the exact same order in every component render. Did you accidentally call a React Hook after an early return?                                                                                               react-hooks/rules-of-hooks
+  120:47  error    React Hook "useState" is called conditionally. React Hooks must be called in the exact same order in every component render. Did you accidentally call a React Hook after an early return?                                                                                               react-hooks/rules-of-hooks
+  121:45  error    React Hook "useState" is called conditionally. React Hooks must be called in the exact same order in every component render. Did you accidentally call a React Hook after an early return?                                                                                               react-hooks/rules-of-hooks
+  122:45  error    React Hook "useState" is called conditionally. React Hooks must be called in the exact same order in every component render. Did you accidentally call a React Hook after an early return?                                                                                               react-hooks/rules-of-hooks
+  123:53  error    React Hook "useState" is called conditionally. React Hooks must be called in the exact same order in every component render. Did you accidentally call a React Hook after an early return?                                                                                               react-hooks/rules-of-hooks
+  126:23  error    React Hook "useRef" is called conditionally. React Hooks must be called in the exact same order in every component render. Did you accidentally call a React Hook after an early return?                                                                                                 react-hooks/rules-of-hooks
+  129:43  error    React Hook "useState" is called conditionally. React Hooks must be called in the exact same order in every component render. Did you accidentally call a React Hook after an early return?                                                                                               react-hooks/rules-of-hooks
+  130:45  error    React Hook "useState" is called conditionally. React Hooks must be called in the exact same order in every component render. Did you accidentally call a React Hook after an early return?                                                                                               react-hooks/rules-of-hooks
+  131:43  error    React Hook "useState" is called conditionally. React Hooks must be called in the exact same order in every component render. Did you accidentally call a React Hook after an early return?                                                                                               react-hooks/rules-of-hooks
+  134:3   error    React Hook "useEffect" is called conditionally. React Hooks must be called in the exact same order in every component render. Did you accidentally call a React Hook after an early return?                                                                                              react-hooks/rules-of-hooks
+  150:6   warning  React Hook useEffect has a missing dependency: 'setActiveIndex'. Either include it or remove the dependency array                                                                                                                                                                        react-hooks/exhaustive-deps
+  153:3   error    React Hook "useEffect" is called conditionally. React Hooks must be called in the exact same order in every component render. Did you accidentally call a React Hook after an early return?                                                                                              react-hooks/rules-of-hooks
+  167:24  error    React Hook "useCallback" is called conditionally. React Hooks must be called in the exact same order in every component render. Did you accidentally call a React Hook after an early return?                                                                                            react-hooks/rules-of-hooks
+  168:3   error    React Hook "useEffect" is called conditionally. React Hooks must be called in the exact same order in every component render. Did you accidentally call a React Hook after an early return?                                                                                              react-hooks/rules-of-hooks
+  204:6   warning  React Hook useEffect has a missing dependency: 'setActiveIndex'. Either include it or remove the dependency array                                                                                                                                                                        react-hooks/exhaustive-deps
+  209:28  error    React Hook "useMemo" is called conditionally. React Hooks must be called in the exact same order in every component render. Did you accidentally call a React Hook after an early return?                                                                                                react-hooks/rules-of-hooks
+  219:24  error    React Hook "useMemo" is called conditionally. React Hooks must be called in the exact same order in every component render. Did you accidentally call a React Hook after an early return?                                                                                                react-hooks/rules-of-hooks
+  232:23  error    React Hook "useMemo" is called conditionally. React Hooks must be called in the exact same order in every component render. Did you accidentally call a React Hook after an early return?                                                                                                react-hooks/rules-of-hooks
+  242:41  error    React Hook "useMemo" is called conditionally. React Hooks must be called in the exact same order in every component render. Did you accidentally call a React Hook after an early return?                                                                                                react-hooks/rules-of-hooks
+  256:24  error    React Hook "useMemo" is called conditionally. React Hooks must be called in the exact same order in every component render. Did you accidentally call a React Hook after an early return?                                                                                                react-hooks/rules-of-hooks
+  842:15  warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+  885:15  warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+
+C:\Users\Juan\Documents\ANTIGRAVITY\NODDO\src\app\sites\[slug]\ubicacion\page.tsx
+   21:3   warning  'X' is defined but never used                        @typescript-eslint/no-unused-vars
+  106:14  warning  'tCommon' is assigned a value but never used         @typescript-eslint/no-unused-vars
+  138:9   warning  'handleClosePOI' is assigned a value but never used  @typescript-eslint/no-unused-vars
+
+C:\Users\Juan\Documents\ANTIGRAVITY\NODDO\src\app\sites\[slug]\videos\page.tsx
+   61:41  error    React Hook "useState" is called conditionally. React Hooks must be called in the exact same order in every component render                                                                                                                                                              react-hooks/rules-of-hooks
+   63:20  error    React Hook "useRef" is called conditionally. React Hooks must be called in the exact same order in every component render                                                                                                                                                                react-hooks/rules-of-hooks
+   65:18  error    React Hook "useCallback" is called conditionally. React Hooks must be called in the exact same order in every component render                                                                                                                                                           react-hooks/rules-of-hooks
+   75:3   error    React Hook "useEffect" is called conditionally. React Hooks must be called in the exact same order in every component render                                                                                                                                                             react-hooks/rules-of-hooks
+  168:23  warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+
+C:\Users\Juan\Documents\ANTIGRAVITY\NODDO\src\components\dashboard\FacadeHotspotEditor.tsx
+    5:29  warning  'Link2' is defined but never used                                                                                                                                                                                                                                                        @typescript-eslint/no-unused-vars
+  268:3   warning  Unused eslint-disable directive (no problems were reported from 'react-hooks/exhaustive-deps')
+  895:11  warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+
+C:\Users\Juan\Documents\ANTIGRAVITY\NODDO\src\components\dashboard\FileUploader.tsx
+   92:10  warning  'compressing' is assigned a value but never used                                                                                                                                                                                                                                         @typescript-eslint/no-unused-vars
+   92:23  warning  'setCompressing' is assigned a value but never used                                                                                                                                                                                                                                      @typescript-eslint/no-unused-vars
+  106:10  warning  'pendingFile' is assigned a value but never used                                                                                                                                                                                                                                         @typescript-eslint/no-unused-vars
+  539:13  warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+  710:17  warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+
+C:\Users\Juan\Documents\ANTIGRAVITY\NODDO\src\components\dashboard\HotspotEditor.tsx
+  159:9   warning  'showingForm' is assigned a value but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            @typescript-eslint/no-unused-vars
+  179:11  warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     @next/next/no-img-element
+  189:25  error    Error: Cannot access refs during render
+
+React refs are values that are not needed for rendering. Refs should only be accessed outside of render, such as in event handlers or effects. Accessing a ref value (the `current` property) during render can cause your component not to update as expected (https://react.dev/reference/react/useRef).
+
+C:\Users\Juan\Documents\ANTIGRAVITY\NODDO\src\components\dashboard\HotspotEditor.tsx:189:25
+  187 |
+  188 |           {/* Existing hotspots — pixel positioned via toPx() */}
+> 189 |           {hotspots.map((hs, i) => {
+      |                         ^^^^^^^^^^^^
+> 190 |             const px = toPx(hs.x, hs.y);
+      | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 191 |             if (!px) return null;
+      …
+      | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 221 |             );
+      | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 222 |           })}
+      | ^^^^^^^^^^^^ Cannot access ref value during render
+  223 |
+  224 |           {/* New hotspot preview */}
+  225 |           {newHotspot && (() => {  react-hooks/refs
+  225:27  error    Error: Cannot access refs during render
+
+React refs are values that are not needed for rendering. Refs should only be accessed outside of render, such as in event handlers or effects. Accessing a ref value (the `current` property) during render can cause your component not to update as expected (https://react.dev/reference/react/useRef).
+
+C:\Users\Juan\Documents\ANTIGRAVITY\NODDO\src\components\dashboard\HotspotEditor.tsx:225:27
+  223 |
+  224 |           {/* New hotspot preview */}
+> 225 |           {newHotspot && (() => {
+      |                           ^^^^^^^
+> 226 |             const px = toPx(newHotspot.x, newHotspot.y);
+      | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 227 |             if (!px) return null;
+      …
+      | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 241 |             );
+      | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 242 |           })()}
+      | ^^^^^^^^^^^^ This function accesses a ref value
+  243 |         </div>
+  244 |       </div>
+  245 |                 react-hooks/refs
+  418:29  warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     @next/next/no-img-element
+
+C:\Users\Juan\Documents\ANTIGRAVITY\NODDO\src\components\dashboard\PlanoHotspotEditor.tsx
+   45:10  warning  'MiniUploader' is defined but never used                                                                                                                                                                                                                                                 @typescript-eslint/no-unused-vars
+   83:9   warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+  523:13  warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+  836:23  warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+
+C:\Users\Juan\Documents\ANTIGRAVITY\NODDO\src\components\dashboard\Toast.tsx
+  3:20  warning  'useEffect' is defined but never used    @typescript-eslint/no-unused-vars
+  4:20  warning  'AlertCircle' is defined but never used  @typescript-eslint/no-unused-vars
+
+C:\Users\Juan\Documents\ANTIGRAVITY\NODDO\src\components\dashboard\UpgradePrompt.tsx
+  49:3  warning  'currentPlan' is defined but never used  @typescript-eslint/no-unused-vars
+
+C:\Users\Juan\Documents\ANTIGRAVITY\NODDO\src\components\dashboard\UploadModal.tsx
+   31:3   warning  'projectId' is defined but never used                                                                                                                                                                                                                                                    @typescript-eslint/no-unused-vars
+  294:23  warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+
+C:\Users\Juan\Documents\ANTIGRAVITY\NODDO\src\components\dashboard\home\EnhancedProjectCard.tsx
+  77:13  warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+
+C:\Users\Juan\Documents\ANTIGRAVITY\NODDO\src\components\dashboard\leads\LeadDetailPanel.tsx
+  21:10  warning  'LeadStatusBadge' is defined but never used  @typescript-eslint/no-unused-vars
+
+C:\Users\Juan\Documents\ANTIGRAVITY\NODDO\src\components\dashboard\leads\LeadsCRMTable.tsx
+  117:15  warning  The attribute aria-selected is not supported by the role button  jsx-a11y/role-supports-aria-props
+
+C:\Users\Juan\Documents\ANTIGRAVITY\NODDO\src\components\dashboard\projects\ProjectTableRow.tsx
+  45:5   warning  The attribute aria-selected is not supported by the role button                                                                                                                                                                                                                          jsx-a11y/role-supports-aria-props
+  67:13  warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+
+C:\Users\Juan\Documents\ANTIGRAVITY\NODDO\src\components\dashboard\projects\ProjectsFilters.tsx
+  46:11  warning  't' is assigned a value but never used  @typescript-eslint/no-unused-vars
+
+C:\Users\Juan\Documents\ANTIGRAVITY\NODDO\src\components\dashboard\projects\ProjectsTable.tsx
+  127:38  warning  'idx' is defined but never used  @typescript-eslint/no-unused-vars
+
+C:\Users\Juan\Documents\ANTIGRAVITY\NODDO\src\components\marketing\ContactForm.tsx
+  44:25  warning  'setWhatsappOptin' is assigned a value but never used  @typescript-eslint/no-unused-vars
+  58:53  error    Unexpected any. Specify a different type               @typescript-eslint/no-explicit-any
+  59:56  error    Unexpected any. Specify a different type               @typescript-eslint/no-explicit-any
+  60:60  error    Unexpected any. Specify a different type               @typescript-eslint/no-explicit-any
+
+C:\Users\Juan\Documents\ANTIGRAVITY\NODDO\src\components\marketing\GHLTracker.tsx
+  25:25  error  Error: Cannot call impure function during render
+
+`Date.now` is an impure function. Calling an impure function can produce unstable results that update unpredictably when the component happens to re-render. (https://react.dev/reference/rules/components-and-hooks-must-be-pure#components-and-hooks-must-be-idempotent).
+
+C:\Users\Juan\Documents\ANTIGRAVITY\NODDO\src\components\marketing\GHLTracker.tsx:25:25
+  23 |   const startTime = useRef<number | null>(null);
+  24 |   if (startTime.current === null) {
+> 25 |     startTime.current = Date.now();
+     |                         ^^^^^^^^^^ Cannot call impure function
+  26 |   }
+  27 |
+  28 |   // Reset on route change  react-hooks/purity
+
+C:\Users\Juan\Documents\ANTIGRAVITY\NODDO\src\components\marketing\ShowcaseCarousel.tsx
+  77:33  warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+
+C:\Users\Juan\Documents\ANTIGRAVITY\NODDO\src\components\marketing\Testimonials.tsx
+  122:17  warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+
+C:\Users\Juan\Documents\ANTIGRAVITY\NODDO\src\components\marketing\illustrations\HeroMockup.tsx
+   46:11  warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+  146:19  warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+
+C:\Users\Juan\Documents\ANTIGRAVITY\NODDO\src\components\site\CotizadorModal.tsx
+  345:3  warning  'locale' is defined but never used  @typescript-eslint/no-unused-vars
+
+C:\Users\Juan\Documents\ANTIGRAVITY\NODDO\src\components\site\CurrencySelector.tsx
+  6:10  warning  'TrendingUp' is defined but never used  @typescript-eslint/no-unused-vars
+
+C:\Users\Juan\Documents\ANTIGRAVITY\NODDO\src\components\site\Lightbox.tsx
+  135:13  warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+
+C:\Users\Juan\Documents\ANTIGRAVITY\NODDO\src\components\site\MapboxMap.tsx
+  247:21  warning  The ref value 'poiMarkersRef.current' will likely have changed by the time this effect cleanup function runs. If this ref points to a node rendered by React, copy 'poiMarkersRef.current' to a variable inside the effect, and use that variable in the cleanup function  react-hooks/exhaustive-deps
+
+C:\Users\Juan\Documents\ANTIGRAVITY\NODDO\src\components\site\POIPanel.tsx
+  6:49  warning  'X' is defined but never used  @typescript-eslint/no-unused-vars
+
+C:\Users\Juan\Documents\ANTIGRAVITY\NODDO\src\components\site\SiteNav.tsx
+  128:13  warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+  134:13  warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+  245:17  warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+  252:15  warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+
+C:\Users\Juan\Documents\ANTIGRAVITY\NODDO\src\components\ui\InfoTooltip.tsx
+  74:5  error  Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+C:\Users\Juan\Documents\ANTIGRAVITY\NODDO\src\components\ui\InfoTooltip.tsx:74:5
+  72 |   // Client-side only mounting
+  73 |   useEffect(() => {
+> 74 |     setIsMounted(true);
+     |     ^^^^^^^^^^^^ Avoid calling setState() directly within an effect
+  75 |   }, []);
+  76 |
+  77 |   // Calculate position  react-hooks/set-state-in-effect
+
+C:\Users\Juan\Documents\ANTIGRAVITY\NODDO\src\components\ui\NodDoDropdown.tsx
+  169:13  error    Error: Cannot access variable before it is declared
+
+`handleSelect` is accessed before it is declared, which prevents the earlier access from updating when this value changes over time.
+
+C:\Users\Juan\Documents\ANTIGRAVITY\NODDO\src\components\ui\NodDoDropdown.tsx:169:13
+  167 |           e.preventDefault();
+  168 |           if (focusedIndex >= 0) {
+> 169 |             handleSelect(options[focusedIndex].value);
+      |             ^^^^^^^^^^^^ `handleSelect` accessed before it is declared
+  170 |           }
+  171 |           break;
+  172 |         case "Home":
+
+C:\Users\Juan\Documents\ANTIGRAVITY\NODDO\src\components\ui\NodDoDropdown.tsx:197:3
+  195 |   }, [focusedIndex, isOpen]);
+  196 |
+> 197 |   const handleSelect = (optionValue: string) => {
+      |   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 198 |     onChange(optionValue);
+      | ^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 199 |     setIsOpen(false);
+      | ^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 200 |     setFocusedIndex(-1);
+      | ^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 201 |     triggerRef.current?.focus();
+      | ^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 202 |   };
+      | ^^^^^ `handleSelect` is declared here
+  203 |
+  204 |   const handleToggle = () => {
+  205 |     if (!disabled) {  react-hooks/immutability
+  185:6   warning  React Hook useEffect has a missing dependency: 'handleSelect'. Either include it or remove the dependency array                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                react-hooks/exhaustive-deps
+
+C:\Users\Juan\Documents\ANTIGRAVITY\NODDO\src\hooks\useProject.ts
+  89:14  warning  'err' is defined but never used  @typescript-eslint/no-unused-vars
+
+C:\Users\Juan\Documents\ANTIGRAVITY\NODDO\src\hooks\useTourUpload.ts
+  355:27  warning  'prefix' is assigned a value but never used  @typescript-eslint/no-unused-vars
+
+C:\Users\Juan\Documents\ANTIGRAVITY\NODDO\src\hooks\useUnsavedChanges.ts
+  14:9  warning  'router' is assigned a value but never used  @typescript-eslint/no-unused-vars
+
+C:\Users\Juan\Documents\ANTIGRAVITY\NODDO\src\i18n\LanguageProvider.tsx
+  3:47  warning  'useEffect' is defined but never used  @typescript-eslint/no-unused-vars
+
+C:\Users\Juan\Documents\ANTIGRAVITY\NODDO\src\lib\cotizador\generar-pdf.ts
+   71:7   warning  'SURFACE_1' is assigned a value but never used  @typescript-eslint/no-unused-vars
+   72:7   warning  'SURFACE_2' is assigned a value but never used  @typescript-eslint/no-unused-vars
+  126:64  warning  'accentLight' is defined but never used         @typescript-eslint/no-unused-vars
+
+C:\Users\Juan\Documents\ANTIGRAVITY\NODDO\src\lib\feature-access.ts
+  112:9  warning  'planOrder' is assigned a value but never used  @typescript-eslint/no-unused-vars
+
+C:\Users\Juan\Documents\ANTIGRAVITY\NODDO\src\lib\rate-limit.ts
+  116:30  error  Parsing error: Invalid character
+
+C:\Users\Juan\Documents\ANTIGRAVITY\NODDO\src\lib\supabase\server-queries.ts
+  9:3  warning  'Unidad' is defined but never used  @typescript-eslint/no-unused-vars
+
+C:\Users\Juan\Documents\ANTIGRAVITY\NODDO\supabase\functions\booking-handler\index.ts
+  213:16  warning  'moveGHLOpportunity' is defined but never used    @typescript-eslint/no-unused-vars
+  292:9   warning  'meetingLink' is assigned a value but never used  @typescript-eslint/no-unused-vars
+
+✖ 300 problems (120 errors, 180 warnings)
+  0 errors and 2 warnings potentially fixable with the `--fix` option.
+

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useMemo, useEffect } from "react";
-import { Search, BookOpen } from "lucide-react";
+import { Search, BookOpen, Menu } from "lucide-react";
 import {
   FolderOpen,
   Users,
@@ -31,6 +31,7 @@ import {
   type HelpArticleData,
 } from "@/components/help/HelpCategorySection";
 import type { LucideIcon } from "lucide-react";
+import { BottomSheet } from "@/components/ui/BottomSheet";
 
 /* ─── Article ID → icon mapping ─── */
 const iconMap: Record<string, LucideIcon> = {
@@ -108,6 +109,7 @@ export default function AyudaPage() {
   const [search, setSearch] = useState("");
   const [activeCategory, setActiveCategory] = useState<string | null>(null);
   const [expandedArticle, setExpandedArticle] = useState<string | null>(null);
+  const [showCategories, setShowCategories] = useState(false);
 
   /* ─── Build structured data from translations ─── */
   const allCategories: HelpCategoryData[] = useMemo(() => {
@@ -174,12 +176,24 @@ export default function AyudaPage() {
 
   return (
     <div className="p-4 md:p-8 max-w-5xl mx-auto">
+      {/* Breadcrumbs */}
+      <nav className="flex items-center gap-2 text-xs text-[var(--text-muted)] mb-4">
+        <a
+          href="/dashboard"
+          className="hover:text-[var(--site-primary)] transition-colors"
+        >
+          Dashboard
+        </a>
+        <span>/</span>
+        <span className="text-[var(--text-secondary)]">Ayuda</span>
+      </nav>
+
       {/* Header */}
-      <div className="mb-8">
-        <h1 className="font-heading text-2xl font-light text-[var(--text-primary)]">
+      <div className="mb-10">
+        <h1 className="font-heading text-[32px] font-light text-[var(--text-primary)]">
           {helpDict.page.title}
         </h1>
-        <p className="text-[var(--text-tertiary)] text-xs mt-1.5">
+        <p className="text-[var(--text-tertiary)] text-[13px] mt-2 leading-relaxed max-w-2xl">
           {helpDict.page.description}
         </p>
       </div>
@@ -235,6 +249,38 @@ export default function AyudaPage() {
           )}
         </div>
       </div>
+
+      {/* Mobile FAB for categories */}
+      <button
+        onClick={() => setShowCategories(true)}
+        className="md:hidden fixed bottom-6 right-6 w-14 h-14 rounded-full flex items-center justify-center shadow-[0_8px_32px_rgba(0,0,0,0.4)] z-50 transition-transform hover:scale-105 active:scale-95"
+        style={{
+          background: "var(--site-primary)",
+        }}
+        aria-label="Abrir categorías"
+      >
+        <Menu size={20} className="text-[#141414]" />
+      </button>
+
+      {/* Mobile BottomSheet */}
+      <BottomSheet
+        isOpen={showCategories}
+        onClose={() => setShowCategories(false)}
+      >
+        <div className="p-6">
+          <h3 className="font-ui text-xs uppercase tracking-[0.12em] text-[var(--text-muted)] font-bold mb-4">
+            Categorías
+          </h3>
+          <HelpSidebar
+            categories={filteredCategories}
+            activeCategory={activeCategory}
+            onSelectCategory={(cat) => {
+              setActiveCategory(cat);
+              setShowCategories(false);
+            }}
+          />
+        </div>
+      </BottomSheet>
     </div>
   );
 }

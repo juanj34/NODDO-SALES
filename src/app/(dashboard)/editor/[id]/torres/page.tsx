@@ -105,7 +105,12 @@ export default function TorresPage() {
   /* ── Add form state ───────────────────────────────────────────── */
   const [addNombre, setAddNombre] = useState(torres.length === 0 ? DEFAULTS.nombre : "");
   const [addPrefijo, setAddPrefijo] = useState("");
-  const [addTipo, setAddTipo] = useState<"torre" | "urbanismo">("torre");
+  const [addTipo, setAddTipo] = useState<"torre" | "urbanismo">(() => {
+    const tipoProyecto = project?.tipo_proyecto ?? "hibrido";
+    if (tipoProyecto === "casas") return "urbanismo";
+    if (tipoProyecto === "apartamentos") return "torre";
+    return "torre"; // Default for hibrido
+  });
   const [addNameError, setAddNameError] = useState(false);
 
   /* ── Dynamic page title based on torre types ─────────────────── */
@@ -416,40 +421,53 @@ export default function TorresPage() {
                 <div className={sectionCard + " border-[rgba(var(--site-primary-rgb),0.3)]"}>
                   <h3 className="text-sm font-medium text-white mb-3">{t("torres.newTower")}</h3>
 
-                  {/* Type selector */}
-                  <div className="mb-4">
-                    <label className={labelClass}>{t("torres.typeLabel")}</label>
-                    <div className="grid grid-cols-2 gap-2 mt-1">
-                      {(["torre", "urbanismo"] as const).map((tipo) => (
-                        <button
-                          key={tipo}
-                          type="button"
-                          onClick={() => {
-                            setAddTipo(tipo);
-                            if (!addNombre || addNombre === DEFAULTS.nombre || addNombre === "Urbanismo Principal") {
-                              setAddNombre(tipo === "urbanismo" ? "Urbanismo Principal" : DEFAULTS.nombre);
-                            }
-                          }}
-                          className={cn(
-                            "flex items-center gap-2.5 p-3 rounded-xl border transition-all text-left",
-                            addTipo === tipo
-                              ? "bg-[rgba(var(--site-primary-rgb),0.08)] border-[rgba(var(--site-primary-rgb),0.3)]"
-                              : "bg-[var(--surface-1)] border-[var(--border-subtle)] hover:border-[var(--border-default)]"
-                          )}
-                        >
-                          {tipo === "torre" ? <Building2 size={16} className="text-[var(--site-primary)] shrink-0" /> : <Home size={16} className="text-[var(--site-primary)] shrink-0" />}
-                          <div>
-                            <p className="text-xs font-medium text-white">
-                              {t(tipo === "torre" ? "torres.typeTorre" : "torres.typeUrbanismo")}
-                            </p>
-                            <p className="text-[10px] text-[var(--text-muted)]">
-                              {t(tipo === "torre" ? "torres.typeTorreHint" : "torres.typeUrbanismoHint")}
-                            </p>
-                          </div>
-                        </button>
-                      ))}
+                  {/* Type selector - only show for hibrido projects */}
+                  {project?.tipo_proyecto === "hibrido" && (
+                    <div className="mb-4">
+                      <label className={labelClass}>{t("torres.typeLabel")}</label>
+                      <div className="grid grid-cols-2 gap-2 mt-1">
+                        {(["torre", "urbanismo"] as const).map((tipo) => (
+                          <button
+                            key={tipo}
+                            type="button"
+                            onClick={() => {
+                              setAddTipo(tipo);
+                              if (!addNombre || addNombre === DEFAULTS.nombre || addNombre === "Urbanismo Principal") {
+                                setAddNombre(tipo === "urbanismo" ? "Urbanismo Principal" : DEFAULTS.nombre);
+                              }
+                            }}
+                            className={cn(
+                              "flex items-center gap-2.5 p-3 rounded-xl border transition-all text-left",
+                              addTipo === tipo
+                                ? "bg-[rgba(var(--site-primary-rgb),0.08)] border-[rgba(var(--site-primary-rgb),0.3)]"
+                                : "bg-[var(--surface-1)] border-[var(--border-subtle)] hover:border-[var(--border-default)]"
+                            )}
+                          >
+                            {tipo === "torre" ? <Building2 size={16} className="text-[var(--site-primary)] shrink-0" /> : <Home size={16} className="text-[var(--site-primary)] shrink-0" />}
+                            <div>
+                              <p className="text-xs font-medium text-white">
+                                {t(tipo === "torre" ? "torres.typeTorre" : "torres.typeUrbanismo")}
+                              </p>
+                              <p className="text-[10px] text-[var(--text-muted)]">
+                                {t(tipo === "torre" ? "torres.typeTorreHint" : "torres.typeUrbanismoHint")}
+                              </p>
+                            </div>
+                          </button>
+                        ))}
+                      </div>
                     </div>
-                  </div>
+                  )}
+
+                  {/* Helper text for non-hibrido projects */}
+                  {project?.tipo_proyecto !== "hibrido" && (
+                    <div className="mb-3 p-2.5 rounded-lg bg-[rgba(var(--site-primary-rgb),0.06)] border border-[rgba(var(--site-primary-rgb),0.15)]">
+                      <p className="text-[10px] text-[var(--text-secondary)]">
+                        {project?.tipo_proyecto === "apartamentos"
+                          ? t("torres.fixedTypeTorre")
+                          : t("torres.fixedTypeUrbanismo")}
+                      </p>
+                    </div>
+                  )}
 
                   <div
                     className="grid grid-cols-[1fr_100px] gap-3 items-end"
