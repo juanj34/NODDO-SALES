@@ -38,7 +38,9 @@ export function SitePreloader({ logoUrl, projectName, onComplete }: SitePreloade
 
   // When hero is ready, trigger exit (respecting minimum display time)
   useEffect(() => {
-    if (readyAt) startExit();
+    if (readyAt) {
+      requestAnimationFrame(() => startExit());
+    }
   }, [readyAt, startExit]);
 
   // Max timeout fallback

@@ -53,9 +53,11 @@ export default function ImplantacionesPage() {
 
   /* ── Reset on plano change ──────────────────────────── */
   useEffect(() => {
-    setSelectedPuntoId(null);
-    setImageLoaded(false);
-    setImageError(false);
+    requestAnimationFrame(() => {
+      setSelectedPuntoId(null);
+      setImageLoaded(false);
+      setImageError(false);
+    });
   }, [activePlanoIndex]);
 
   /* ── Scroll to punto in list ────────────────────────── */

@@ -13,7 +13,7 @@ export function BookingModal() {
   useEffect(() => {
     if (isBookingOpen) {
       document.body.style.overflow = "hidden";
-      setMountKey((k) => k + 1);
+      requestAnimationFrame(() => setMountKey((k) => k + 1));
     } else {
       document.body.style.overflow = "";
     }

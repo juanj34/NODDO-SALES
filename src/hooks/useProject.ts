@@ -66,7 +66,7 @@ export function useProject(id: string) {
   });
 
   useEffect(() => {
-    setLoading(true); // Only on initial load / id change
+    requestAnimationFrame(() => setLoading(true));
     refresh();
   }, [refresh]);
 

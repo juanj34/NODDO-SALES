@@ -43,9 +43,11 @@ export function CurrencyProvider({ children }: { children: ReactNode }) {
     if (cached) {
       try {
         const { rates, timestamp } = JSON.parse(cached);
-        setExchangeRates(rates);
-        setLastUpdated(timestamp);
-        setLoading(false);
+        requestAnimationFrame(() => {
+          setExchangeRates(rates);
+          setLastUpdated(timestamp);
+          setLoading(false);
+        });
         return;
       } catch {
         // Invalid cache, fetch fresh

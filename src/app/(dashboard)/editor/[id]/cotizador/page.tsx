@@ -178,6 +178,8 @@ export default function CotizadorConfigPage() {
     return project.cotizador_config ?? DEFAULT_CONFIG;
   });
 
+  const moneda = (config.moneda || "COP") as Currency;
+
   // Sample price for preview
   const cheapestUnit = useMemo(() => {
     const available = (project.unidades ?? []).filter((u) => u.estado === "disponible" && u.precio != null);
@@ -513,13 +515,13 @@ export default function CotizadorConfigPage() {
                         <p className="text-xs text-white font-medium">{fase.nombre}</p>
                         {fase.cuotas > 1 && (
                           <p className="text-[10px] text-[var(--text-muted)] mt-0.5">
-                            {fase.cuotas} cuotas de {formatCurrency(fase.monto_por_cuota, config.moneda)}
+                            {fase.cuotas} cuotas de {formatCurrency(fase.monto_por_cuota, moneda)}
                             {fase.frecuencia !== "unica" && ` (${fase.frecuencia})`}
                           </p>
                         )}
                       </div>
                       <p className="text-xs text-[var(--text-secondary)] font-medium">
-                        {formatCurrency(fase.monto_total, config.moneda)}
+                        {formatCurrency(fase.monto_total, moneda)}
                       </p>
                     </div>
                   ))}
@@ -529,7 +531,7 @@ export default function CotizadorConfigPage() {
                 <div className="flex items-center justify-between pt-3 border-t border-[var(--border-default)]">
                   <p className="text-sm font-medium text-white">Total</p>
                   <p className="text-sm font-semibold text-[var(--site-primary)]">
-                    {formatCurrency(preview.precio_neto, config.moneda)}
+                    {formatCurrency(preview.precio_neto, moneda)}
                   </p>
                 </div>
 
@@ -540,7 +542,7 @@ export default function CotizadorConfigPage() {
                   if (diff > 1) {
                     return (
                       <p className="text-[10px] text-yellow-400 mt-2">
-                        ⚠ Las fases suman {formatCurrency(totalFases, config.moneda)} — diferencia de {formatCurrency(diff, config.moneda)} con el total
+                        ⚠ Las fases suman {formatCurrency(totalFases, moneda)} — diferencia de {formatCurrency(diff, moneda)} con el total
                       </p>
                     );
                   }

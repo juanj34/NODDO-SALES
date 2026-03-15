@@ -7,7 +7,8 @@ import { sendCotizacionBuyer, sendCotizacionAdmin } from "@/lib/email";
 import { isRateLimited, getClientIp } from "@/lib/rate-limit";
 import { getWebhookConfig, dispatchWebhook } from "@/lib/webhooks";
 import type { WebhookPayload } from "@/lib/webhooks";
-import type { CotizadorConfig, Unidad } from "@/types";
+import type { CotizadorConfig, Unidad, Currency } from "@/types";
+import { formatCurrency } from "@/lib/currency";
 
 // Use service-role client for public endpoint (no user auth required)
 function getServiceClient() {
@@ -15,15 +16,6 @@ function getServiceClient() {
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.SUPABASE_SERVICE_ROLE_KEY!
   );
-}
-
-function formatCurrency(n: number, moneda: string): string {
-  const locale = moneda === "USD" ? "en-US" : moneda === "MXN" ? "es-MX" : "es-CO";
-  return new Intl.NumberFormat(locale, {
-    style: "currency",
-    currency: moneda,
-    maximumFractionDigits: 0,
-  }).format(n);
 }
 
 function sanitize(str: string, maxLen: number): string {
@@ -119,6 +111,7 @@ export async function POST(request: NextRequest) {
     }
 
     const config = proyecto.cotizador_config as CotizadorConfig;
+    const moneda = (config.moneda || "COP") as Currency;
 
     // Fetch unit
     const { data: unidad, error: unitErr } = await supabase
@@ -290,7 +283,7 @@ export async function POST(request: NextRequest) {
       tipologia_interes: tipologiaName
         ? `${tipologiaName} - ${unit.identificador}`
         : unit.identificador,
-      mensaje: `Cotización automática — ${unit.identificador} — ${formatCurrency(resultado.precio_neto, config.moneda)}`,
+      mensaje: `Cotización automática — ${unit.identificador} — ${formatCurrency(resultado.precio_neto, moneda)}`,
       utm_source: utm_source || null,
       utm_medium: utm_medium || null,
       utm_campaign: utm_campaign || null,
@@ -302,7 +295,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Send emails (async, non-blocking)
-    const totalFormatted = formatCurrency(resultado.precio_neto, config.moneda);
+    const totalFormatted = formatCurrency(resultado.precio_neto, moneda);
 
     // Email to buyer with PDF
     sendCotizacionBuyer({

@@ -20,7 +20,10 @@ import { pushToGHL } from "@/lib/marketing-tracking";
 export function GHLTracker() {
   const pathname = usePathname();
   const tagsSent = useRef<Set<string>>(new Set());
-  const startTime = useRef(Date.now());
+  const startTime = useRef<number | null>(null);
+  if (startTime.current === null) {
+    startTime.current = Date.now();
+  }
 
   // Reset on route change
   useEffect(() => {

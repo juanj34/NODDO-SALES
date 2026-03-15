@@ -41,16 +41,32 @@ export default function ProyectosPage() {
   const router = useRouter();
   const { t } = useTranslation("dashboard");
   const toast = useToast();
-  const { role } = useAuthRole();
+  const { user, role } = useAuthRole();
   const isAdmin = role === "admin";
+
+  // Track page view
+  useEffect(() => {
+    if (!loading) {
+      trackDashboardEvent("projects_view", {
+        projects_count: projects.length,
+      }, user?.id, role || undefined);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [loading]);
 
   // Debounce search query
   useEffect(() => {
     const timer = setTimeout(() => {
       setDebouncedSearch(searchQuery);
+      // Track search if query is not empty
+      if (searchQuery) {
+        trackDashboardEvent("projects_search", {
+          query: searchQuery,
+        }, user?.id, role || undefined);
+      }
     }, 400);
     return () => clearTimeout(timer);
-  }, [searchQuery]);
+  }, [searchQuery, user?.id, role]);
 
   const handleCreate = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -58,6 +74,10 @@ export default function ProyectosPage() {
     createProject({ nombre, slug }, {
       onSuccess: (proyecto) => {
         setShowCreate(false);
+        trackDashboardEvent("project_create", {
+          project_id: proyecto.id,
+          project_name: nombre,
+        }, user?.id, role || undefined);
         router.push(`/editor/${proyecto.id}`);
       },
       onError: (error) => {
@@ -73,6 +93,10 @@ export default function ProyectosPage() {
   const handleDelete = (id: string, name: string) => {
     setDeleteTarget({ id, name });
     setDeleteConfirmText("");
+    trackDashboardEvent("project_table_delete_click", {
+      project_id: id,
+      project_name: name,
+    }, user?.id, role || undefined);
   };
 
   const confirmDelete = async () => {
@@ -80,6 +104,10 @@ export default function ProyectosPage() {
 
     deleteProject(deleteTarget.id, {
       onSuccess: () => {
+        trackDashboardEvent("project_delete", {
+          project_id: deleteTarget.id,
+          project_name: deleteTarget.name,
+        }, user?.id, role || undefined);
         setDeleteTarget(null);
         setDeleteConfirmText("");
         toast.success("Proyecto eliminado");
@@ -164,9 +192,17 @@ export default function ProyectosPage() {
 
   const handleClone = async (id: string) => {
     setCloning(id);
+    trackDashboardEvent("project_table_clone_click", {
+      project_id: id,
+    }, user?.id, role || undefined);
     try {
       const res = await fetch(`/api/proyectos/${id}/clonar`, { method: "POST" });
       if (res.ok) {
+        const clonedProject = await res.json();
+        trackDashboardEvent("project_clone", {
+          original_id: id,
+          cloned_id: clonedProject.id,
+        }, user?.id, role || undefined);
         toast.success("Proyecto clonado");
         refresh();
       } else {

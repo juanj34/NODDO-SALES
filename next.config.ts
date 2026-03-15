@@ -22,22 +22,29 @@ const nextConfig: NextConfig = {
   },
 };
 
-export default withSentryConfig(nextConfig, {
-  // Suppresses source map uploading logs during build
-  silent: !process.env.CI,
+// Sentry configuration (optional - only enabled if auth token is present)
+const sentryEnabled =
+  process.env.SENTRY_AUTH_TOKEN &&
+  process.env.SENTRY_ORG &&
+  process.env.SENTRY_PROJECT;
 
-  // Organization and project (from env)
-  org: process.env.SENTRY_ORG,
-  project: process.env.SENTRY_PROJECT,
+// Only wrap with Sentry if all required env vars are present
+export default sentryEnabled
+  ? withSentryConfig(nextConfig, {
+      // Suppresses source map uploading logs during build
+      silent: !process.env.CI,
 
-  // Upload source maps for readable error traces
-  widenClientFileUpload: true,
+      // Organization and project (from env)
+      org: process.env.SENTRY_ORG,
+      project: process.env.SENTRY_PROJECT,
 
-  // Route Sentry requests through a Next.js rewrite to avoid ad-blockers
-  tunnelRoute: "/monitoring",
+      // Upload source maps for readable error traces
+      widenClientFileUpload: true,
 
-  // Delete source maps after upload (don't expose to client)
-  sourcemaps: {
-    deleteSourcemapsAfterUpload: true,
-  },
-});
+      // Route Sentry requests through a Next.js rewrite to avoid ad-blockers
+      tunnelRoute: "/monitoring",
+
+      // Automatically tree-shake Sentry logger statements to reduce bundle size
+      disableLogger: true,
+    })
+  : nextConfig;

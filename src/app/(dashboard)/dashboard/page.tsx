@@ -28,7 +28,7 @@ export default function DashboardPage() {
       trackDashboardEvent("dashboard_view", {
         projects_count: projects.length,
         total_leads: summary?.total_leads || 0,
-      }, user?.id, role);
+      }, user?.id, role || undefined);
     }
   }, [loading, projects.length, summary?.total_leads, user?.id, role]);
 

@@ -18,15 +18,16 @@ const LanguageContext = createContext<LanguageContextValue | null>(null);
 const STORAGE_KEY = "noddo-lang";
 
 export function LanguageProvider({ children }: { children: ReactNode }) {
-  const [locale, setLocaleState] = useState<Locale>("es");
-
-  useEffect(() => {
+  // Initialize from localStorage
+  const [locale, setLocaleState] = useState<Locale>(() => {
+    if (typeof window === "undefined") return "es";
     const stored = localStorage.getItem(STORAGE_KEY) as Locale | null;
     if (stored === "en" || stored === "es") {
-      setLocaleState(stored);
       document.documentElement.lang = stored;
+      return stored;
     }
-  }, []);
+    return "es";
+  });
 
   const setLocale = useCallback((newLocale: Locale) => {
     setLocaleState(newLocale);

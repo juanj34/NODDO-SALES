@@ -4,6 +4,8 @@ import { motion } from "framer-motion";
 import Link from "next/link";
 import { Users, BarChart3, ToggleLeft, Calculator, ArrowRight } from "lucide-react";
 import { useTranslation } from "@/i18n";
+import { useAuthRole } from "@/hooks/useAuthContext";
+import { trackDashboardEvent, type DashboardEventType } from "@/lib/dashboard-tracking";
 
 interface Props {
   leadCount?: number;
@@ -11,6 +13,7 @@ interface Props {
 
 export function DashboardShortcutsEnhanced({ leadCount }: Props) {
   const { t } = useTranslation("dashboard");
+  const { user, role } = useAuthRole();
 
   const shortcuts = [
     {
@@ -19,26 +22,36 @@ export function DashboardShortcutsEnhanced({ leadCount }: Props) {
       icon: Users,
       href: "/leads",
       badge: leadCount && leadCount > 0 ? leadCount : undefined,
+      trackEvent: "shortcut_leads_click" as DashboardEventType,
     },
     {
       label: t("home.analytics"),
       description: "Métricas y estadísticas detalladas",
       icon: BarChart3,
       href: "/analytics",
+      trackEvent: "shortcut_analytics_click" as DashboardEventType,
     },
     {
       label: t("disponibilidad.title"),
       description: "Estado de unidades por proyecto",
       icon: ToggleLeft,
       href: "/disponibilidad",
+      trackEvent: "shortcut_disponibilidad_click" as DashboardEventType,
     },
     {
       label: t("cotizador.title"),
       description: "Calculadora de financiamiento",
       icon: Calculator,
       href: "/cotizador",
+      trackEvent: "shortcut_cotizador_click" as DashboardEventType,
     },
   ];
+
+  const handleShortcutClick = (trackEvent: DashboardEventType, href: string) => {
+    trackDashboardEvent(trackEvent, {
+      destination: href,
+    }, user?.id, role || undefined);
+  };
 
   return (
     <div className="space-y-3">
@@ -58,6 +71,7 @@ export function DashboardShortcutsEnhanced({ leadCount }: Props) {
             >
               <Link
                 href={item.href}
+                onClick={() => handleShortcutClick(item.trackEvent, item.href)}
                 className="
                   p-6
                   bg-gradient-to-br from-[var(--surface-1)] to-[var(--surface-2)]

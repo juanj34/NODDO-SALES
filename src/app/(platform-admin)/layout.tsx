@@ -55,7 +55,7 @@ function AdminShell({ children }: { children: React.ReactNode }) {
       if (!isPlatformAdmin) {
         router.replace("/proyectos");
       } else {
-        setReady(true);
+        requestAnimationFrame(() => setReady(true));
       }
     }
   }, [loading, isPlatformAdmin, router]);

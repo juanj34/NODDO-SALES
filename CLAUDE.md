@@ -118,21 +118,49 @@ Three fonts. Each has a specific role. Never mix them up.
 ### Route Groups
 
 - **`src/app/sites/[slug]/`** — Public microsite. Server layout fetches project from Supabase (with mock fallback), passes to client via React context. All pages use `"use client"` + Framer Motion.
-- **`src/app/(dashboard)/`** — Admin panel with sidebar layout. Route group means pages live at `/proyectos`, `/editor/[id]`, `/leads`, `/login`. Protected by middleware auth.
+- **`src/app/(dashboard)/`** — Admin panel with sidebar layout. Route group means pages live at `/dashboard`, `/proyectos`, `/editor/[id]`, `/leads`, `/analytics`, `/login`. Protected by middleware auth.
 - **`src/app/api/`** — RESTful API routes for all CRUD: proyectos, tipologias, galeria (categorias + imagenes), videos, leads, upload.
 - **`src/app/auth/callback/`** — OAuth callback handler for Supabase Auth.
+
+### Dashboard Architecture (Updated March 2026)
+
+**Navigation Structure:**
+```
+/dashboard (Home)
+├── Analytics overview with KPI strip
+├── Enhanced shortcuts (large icons, descriptions, hover effects)
+└── Recent projects preview (3 most recent)
+
+/proyectos (Projects Table)
+├── Searchable/sortable table view
+├── Filters: search, status chips, sort dropdown (6 options)
+├── CRUD operations: create, edit, delete, clone
+└── Row selection with keyboard navigation
+
+/editor/[id] (Project Editor)
+├── Tabs: General, Tipologías, Galería, Videos, etc.
+└── Back navigation to /proyectos
+```
+
+**Key Components:**
+- **`DashboardShortcutsEnhanced`** — 2-column grid with 64px icons, gold backgrounds, hover animations
+- **`RecentProjectsPreview`** — Shows last 3 projects, "Ver todos" CTA to `/proyectos`
+- **`ProjectsTable`** — Searchable table based on LeadsCRMTable pattern
+- **`ProjectsFilters`** — Search + status chips + sort dropdown
+- **`ProjectStatusBadge`** — Pulse animation for published projects
 
 ### Data Flow
 
 - **Microsite pages** use `useSiteProject()` hook (React context) to access the `ProyectoCompleto` object. Context is provided by `SiteLayoutClient` which receives data from the server layout.
-- **Dashboard pages** fetch data via `/api/*` routes using `useProjects()` and `useProject(id)` hooks. All API routes use server-side Supabase client with auth checks.
+- **Dashboard pages** use React Query hooks (`useProjects`, `useCreateProject`, `useDeleteProject`) from `@/hooks/useProjectsQuery`. All API routes use server-side Supabase client with auth checks.
+- **Analytics tracking** via `trackDashboardEvent()` from `@/lib/dashboard-tracking` — tracks navigation, CRUD actions, search/filter usage, shortcut clicks. Events sent to `/api/track/dashboard`.
 - **Mock fallback**: `src/data/mock.ts` provides demo data with Unsplash images when Supabase is not configured.
 
 ### Authentication
 
-- **Middleware** (`src/middleware.ts`) protects `/proyectos`, `/editor/*`, `/leads` — redirects to `/login` if not authenticated.
-- **Login** supports email/password + Google OAuth via Supabase Auth.
-- **Auth callback** at `/auth/callback` exchanges OAuth code for session.
+- **Middleware** (`src/middleware.ts`) protects `/dashboard`, `/proyectos`, `/editor/*`, `/leads`, `/analytics` — redirects to `/login` if not authenticated.
+- **Login** supports email/password + Google OAuth via Supabase Auth. Default redirect: `/dashboard`.
+- **Auth callback** at `/auth/callback` exchanges OAuth code for session, redirects to `/dashboard`.
 
 ### Key Component Patterns
 
