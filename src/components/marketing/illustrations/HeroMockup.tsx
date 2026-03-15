@@ -35,7 +35,7 @@ export function HeroMockup({ className = "" }: { className?: string }) {
           <div className="w-2.5 h-2.5 rounded-full bg-[#27C93F]/70" />
           <div className="ml-4 flex-1 max-w-[200px] h-4 rounded bg-white/5 flex items-center px-2">
             <span className="text-[7px] text-white/25 font-mono truncate">
-              noddo.io/sites/alto-de-yeguas
+              noddo.io/sites/tu-proyecto
             </span>
           </div>
         </div>

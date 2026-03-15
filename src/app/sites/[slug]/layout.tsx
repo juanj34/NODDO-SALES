@@ -2,7 +2,6 @@ import type { Metadata } from "next";
 import { headers } from "next/headers";
 import { notFound } from "next/navigation";
 import { getProyectoBySlug } from "@/lib/supabase/server-queries";
-import { mockProyecto } from "@/data/mock";
 import { SiteLayoutClient } from "./SiteLayoutClient";
 import { ReCaptchaProvider } from "@/components/site/ReCaptchaProvider";
 import type { ProyectoCompleto } from "@/types";
@@ -15,17 +14,13 @@ interface Props {
 }
 
 async function loadProyecto(slug: string): Promise<ProyectoCompleto | null> {
-  // Try Supabase first, fallback to mock for demo
+  // Load from Supabase only (no mock fallback)
   try {
     const proyecto = await getProyectoBySlug(slug);
-    if (proyecto) return proyecto;
+    return proyecto;
   } catch {
-    // Supabase not configured yet — fallback to mock
+    return null;
   }
-
-  // Mock fallback
-  if (slug === mockProyecto.slug) return mockProyecto;
-  return null;
 }
 
 export async function generateMetadata({

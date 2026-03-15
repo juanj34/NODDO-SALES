@@ -197,19 +197,14 @@ export function ContactForm({ onClose, defaultPlan, source }: ContactFormProps) 
             </div>
 
             <div className="flex items-start gap-3">
-              <div className="text-xl">👀</div>
+              <div className="text-xl">✓</div>
               <div>
                 <p className="text-[12px] font-ui font-bold tracking-[0.1em] uppercase mb-1" style={{ color: "#b8973a" }}>
-                  Mientras tanto
+                  Gracias
                 </p>
-                <a
-                  href="/sites/alto-de-yeguas"
-                  target="_blank"
-                  className="text-[13px] underline hover:text-[#d4b05a] transition-colors"
-                  style={{ color: "rgba(244,240,232,0.7)" }}
-                >
-                  Ver NODDO en acción con un proyecto real →
-                </a>
+                <p className="text-[13px]" style={{ color: "rgba(244,240,232,0.7)" }}>
+                  Te contactaremos pronto para mostrarte NODDO en acción
+                </p>
               </div>
             </div>
           </div>

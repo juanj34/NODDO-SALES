@@ -214,15 +214,6 @@ export default function MarketingHomePage() {
                 <ArrowRight size={16} strokeWidth={2.5} className="group-hover:translate-x-1 transition-transform" />
               </button>
             </div>
-
-            <Link
-              href="/sites/alto-de-yeguas"
-              className="btn-mk-outline inline-flex items-center gap-2.5"
-              style={{ fontSize: 12, padding: "12px 32px" }}
-            >
-              Ver Demo en Vivo
-              <ExternalLink size={13} strokeWidth={2} />
-            </Link>
           </div>
 
           {/* Trust guarantees */}

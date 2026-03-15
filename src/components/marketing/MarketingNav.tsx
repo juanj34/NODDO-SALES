@@ -16,7 +16,6 @@ interface NavLink {
 const navLinks: NavLink[] = [
   { label: "Producto", href: "#capacidades" },
   { label: "Precios", href: "/pricing" },
-  { label: "Casos", href: "/sites/alto-de-yeguas" },
   { label: "Contacto", action: "booking" },
 ];
 

@@ -87,11 +87,6 @@ export function HeroSection() {
                 <ArrowRight size={15} strokeWidth={2.5} />
               </button>
             </div>
-
-            <Link href="/sites/alto-de-yeguas" className="btn-mk-outline inline-flex items-center gap-2.5 whitespace-nowrap" style={{ fontSize: 13, padding: "14px 28px" }}>
-              Demo en Vivo
-              <ExternalLink size={13} strokeWidth={2} />
-            </Link>
           </div>
 
           {/* Trust elements below CTAs */}
