@@ -1,5 +1,7 @@
 "use client";
 
+export const dynamic = "force-dynamic";
+
 import { PageHeader } from "@/components/dashboard/base/PageHeader";
 import {
   Settings,

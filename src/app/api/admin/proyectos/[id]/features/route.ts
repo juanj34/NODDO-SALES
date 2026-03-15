@@ -25,10 +25,10 @@ export async function GET(
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 
-  // Build full features map (missing = false)
+  // Build full features map (missing = true / unlocked)
   const features: Record<string, boolean> = {};
   for (const f of ALL_FEATURES) {
-    features[f] = false;
+    features[f] = true;
   }
   for (const row of data ?? []) {
     if (row.feature in features) {

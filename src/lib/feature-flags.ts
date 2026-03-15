@@ -24,7 +24,7 @@ export const FEATURE_LABELS: Record<ProjectFeature, { es: string; en: string }> 
 
 /**
  * Get all feature flags for a project.
- * Missing features default to false.
+ * Missing features default to true (unlocked).
  */
 export async function getProjectFeatures(
   supabase: SupabaseClient,
@@ -32,7 +32,7 @@ export async function getProjectFeatures(
 ): Promise<Record<ProjectFeature, boolean>> {
   const result: Record<string, boolean> = {};
   for (const f of ALL_FEATURES) {
-    result[f] = false;
+    result[f] = true;
   }
 
   const { data } = await supabase
@@ -66,7 +66,7 @@ export async function checkFeature(
     .eq("feature", feature)
     .maybeSingle();
 
-  return data?.enabled === true;
+  return data ? data.enabled : true;
 }
 
 /**

@@ -1,5 +1,7 @@
 "use client";
 
+export const dynamic = "force-dynamic";
+
 import { useState, useEffect, useCallback, useMemo } from "react";
 import { Loader2, ExternalLink, Search, ArrowUpDown, ArrowUp, ArrowDown, X, Upload } from "lucide-react";
 import Link from "next/link";

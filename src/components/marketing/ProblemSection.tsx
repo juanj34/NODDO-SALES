@@ -13,6 +13,12 @@ function IllustrationBrochure() {
           <stop offset="0%" stopColor="rgba(244,240,232,0.06)" />
           <stop offset="100%" stopColor="rgba(244,240,232,0.01)" />
         </linearGradient>
+        <style>{`
+          @keyframes pb-float { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-6px)} }
+          @keyframes pb-x-pulse { 0%,100%{opacity:.25} 50%{opacity:.5} }
+          @keyframes pb-ring-pulse { 0%,100%{opacity:.15} 50%{opacity:.32} }
+          @keyframes pb-blink { 0%,40%,100%{opacity:1} 50%,60%{opacity:.4} }
+        `}</style>
       </defs>
 
       {/* Back pages (stacked offset) */}
@@ -47,27 +53,31 @@ function IllustrationBrochure() {
       <rect x="94" y="128" width="28" height="10" rx="1.5" fill="rgba(200,80,60,0.1)" stroke="rgba(200,80,60,0.25)" strokeWidth="0.6" />
       <text x="108" y="136" textAnchor="middle" fill="rgba(200,80,60,0.5)" fontSize="6" fontFamily="monospace">.PDF</text>
 
-      {/* Large red X overlay — "unread / ignored" */}
-      <line x1="150" y1="28" x2="196" y2="74" stroke="rgba(200,80,60,0.25)" strokeWidth="2" strokeLinecap="round" />
-      <line x1="196" y1="28" x2="150" y2="74" stroke="rgba(200,80,60,0.25)" strokeWidth="2" strokeLinecap="round" />
-      {/* Circle around X */}
-      <circle cx="173" cy="51" r="28" stroke="rgba(200,80,60,0.15)" strokeWidth="1" fill="none" />
+      {/* Large red X overlay — pulsing */}
+      <g style={{ animation: "pb-x-pulse 3s ease-in-out infinite" }}>
+        <line x1="150" y1="28" x2="196" y2="74" stroke="rgba(200,80,60,0.25)" strokeWidth="2" strokeLinecap="round" />
+        <line x1="196" y1="28" x2="150" y2="74" stroke="rgba(200,80,60,0.25)" strokeWidth="2" strokeLinecap="round" />
+      </g>
+      {/* Circle around X — pulsing */}
+      <circle cx="173" cy="51" r="28" stroke="rgba(200,80,60,0.15)" strokeWidth="1" fill="none" style={{ animation: "pb-ring-pulse 3s ease-in-out infinite" }} />
 
-      {/* Dust particles — neglect */}
-      <circle cx="28" cy="68" r="1.5" fill="rgba(244,240,232,0.05)" />
-      <circle cx="22" cy="48" r="1" fill="rgba(244,240,232,0.04)" />
-      <circle cx="16" cy="88" r="1.2" fill="rgba(244,240,232,0.03)" />
-      <circle cx="150" cy="110" r="1.5" fill="rgba(244,240,232,0.04)" />
-      <circle cx="170" cy="120" r="1" fill="rgba(244,240,232,0.03)" />
-      <circle cx="190" cy="98" r="1.3" fill="rgba(244,240,232,0.04)" />
+      {/* Dust particles — floating upward */}
+      <circle cx="28" cy="68" r="1.5" fill="rgba(244,240,232,0.05)" style={{ animation: "pb-float 5s ease-in-out infinite" }} />
+      <circle cx="22" cy="48" r="1" fill="rgba(244,240,232,0.04)" style={{ animation: "pb-float 6.5s ease-in-out infinite .8s" }} />
+      <circle cx="16" cy="88" r="1.2" fill="rgba(244,240,232,0.03)" style={{ animation: "pb-float 7s ease-in-out infinite 1.5s" }} />
+      <circle cx="150" cy="110" r="1.5" fill="rgba(244,240,232,0.04)" style={{ animation: "pb-float 5.5s ease-in-out infinite .3s" }} />
+      <circle cx="170" cy="120" r="1" fill="rgba(244,240,232,0.03)" style={{ animation: "pb-float 6s ease-in-out infinite 2s" }} />
+      <circle cx="190" cy="98" r="1.3" fill="rgba(244,240,232,0.04)" style={{ animation: "pb-float 7.5s ease-in-out infinite 1s" }} />
 
-      {/* "0 views" indicator */}
-      <rect x="152" y="90" width="48" height="18" rx="2" fill="rgba(244,240,232,0.02)" stroke="rgba(244,240,232,0.06)" strokeWidth="0.5" />
-      {/* Eye icon crossed out */}
-      <ellipse cx="164" cy="99" rx="4" ry="2.5" stroke="rgba(244,240,232,0.15)" strokeWidth="0.5" fill="none" />
-      <circle cx="164" cy="99" r="1" fill="rgba(244,240,232,0.1)" />
-      <line x1="160" y1="102" x2="168" y2="96" stroke="rgba(200,80,60,0.3)" strokeWidth="0.6" strokeLinecap="round" />
-      <text x="182" y="101.5" textAnchor="middle" fill="rgba(244,240,232,0.2)" fontSize="6" fontFamily="monospace">0</text>
+      {/* "0 views" indicator — blinking */}
+      <g style={{ animation: "pb-blink 2.5s ease-in-out infinite" }}>
+        <rect x="152" y="90" width="48" height="18" rx="2" fill="rgba(244,240,232,0.02)" stroke="rgba(244,240,232,0.06)" strokeWidth="0.5" />
+        {/* Eye icon crossed out */}
+        <ellipse cx="164" cy="99" rx="4" ry="2.5" stroke="rgba(244,240,232,0.15)" strokeWidth="0.5" fill="none" />
+        <circle cx="164" cy="99" r="1" fill="rgba(244,240,232,0.1)" />
+        <line x1="160" y1="102" x2="168" y2="96" stroke="rgba(200,80,60,0.3)" strokeWidth="0.6" strokeLinecap="round" />
+        <text x="182" y="101.5" textAnchor="middle" fill="rgba(244,240,232,0.2)" fontSize="6" fontFamily="monospace">0</text>
+      </g>
     </svg>
   );
 }
@@ -81,6 +91,11 @@ function IllustrationCGI() {
           <stop offset="0%" stopColor="rgba(244,240,232,0.05)" />
           <stop offset="100%" stopColor="rgba(244,240,232,0.015)" />
         </linearGradient>
+        <style>{`
+          @keyframes pc-float { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-5px)} }
+          @keyframes pc-stamp { 0%,100%{opacity:1} 50%{opacity:.35} }
+          @keyframes pc-arc { from{stroke-dashoffset:0} to{stroke-dashoffset:-8} }
+        `}</style>
       </defs>
 
       {/* Large back folder */}
@@ -98,20 +113,25 @@ function IllustrationCGI() {
       <line x1="80" y1="72" x2="66" y2="79" stroke="rgba(244,240,232,0.04)" strokeWidth="0.3" />
       <line x1="80" y1="72" x2="94" y2="65" stroke="rgba(244,240,232,0.04)" strokeWidth="0.3" />
 
-      {/* 360° rotation arc with arrow */}
-      <path d="M88 55 A30 30 0 1 1 72 55" stroke="rgba(244,240,232,0.1)" strokeWidth="0.6" fill="none" strokeDasharray="2 2" />
+      {/* 360° rotation arc with arrow — animated dash flow */}
+      <path d="M88 55 A30 30 0 1 1 72 55" stroke="rgba(244,240,232,0.1)" strokeWidth="0.6" fill="none" strokeDasharray="2 2" style={{ animation: "pc-arc 4s linear infinite" }} />
       <polygon points="72,55 74,50 69,53" fill="rgba(244,240,232,0.12)" />
 
-      {/* Film reel icon (video asset) */}
-      <circle cx="38" cy="64" r="8" stroke="rgba(244,240,232,0.12)" strokeWidth="0.6" fill="none" />
-      <circle cx="38" cy="64" r="3" stroke="rgba(244,240,232,0.08)" strokeWidth="0.4" fill="none" />
-      {/* Sprocket holes */}
-      {[0, 60, 120, 180, 240, 300].map((angle) => {
-        const r = 6;
-        const cx = 38 + r * Math.cos((angle * Math.PI) / 180);
-        const cy = 64 + r * Math.sin((angle * Math.PI) / 180);
-        return <circle key={angle} cx={cx} cy={cy} r="0.8" fill="rgba(244,240,232,0.08)" />;
-      })}
+      {/* Film reel icon (video asset) — rotating sprockets */}
+      <g>
+        <circle cx="38" cy="64" r="8" stroke="rgba(244,240,232,0.12)" strokeWidth="0.6" fill="none" />
+        <circle cx="38" cy="64" r="3" stroke="rgba(244,240,232,0.08)" strokeWidth="0.4" fill="none" />
+        {/* Sprocket holes — rotating */}
+        <g>
+          {[0, 60, 120, 180, 240, 300].map((angle) => {
+            const r = 6;
+            const cx = 38 + r * Math.cos((angle * Math.PI) / 180);
+            const cy = 64 + r * Math.sin((angle * Math.PI) / 180);
+            return <circle key={angle} cx={cx} cy={cy} r="0.8" fill="rgba(244,240,232,0.08)" />;
+          })}
+          <animateTransform attributeName="transform" type="rotate" from="0 38 64" to="360 38 64" dur="12s" repeatCount="indefinite" />
+        </g>
+      </g>
 
       {/* Small render thumbnail — window showing building */}
       <rect x="106" y="54" width="28" height="20" rx="1" stroke="rgba(244,240,232,0.1)" strokeWidth="0.5" fill="rgba(244,240,232,0.02)" />
@@ -130,15 +150,17 @@ function IllustrationCGI() {
         <rect x="30" y="42" width="18" height="14" rx="1" stroke="rgba(244,240,232,0.05)" strokeWidth="0.4" fill="rgba(244,240,232,0.01)" />
       </g>
 
-      {/* "Lost" / dust particles */}
-      <circle cx="18" cy="100" r="1.2" fill="rgba(244,240,232,0.04)" />
-      <circle cx="12" cy="80" r="1" fill="rgba(244,240,232,0.03)" />
-      <circle cx="8" cy="56" r="0.8" fill="rgba(244,240,232,0.04)" />
-      <circle cx="200" cy="48" r="1" fill="rgba(244,240,232,0.03)" />
+      {/* "Lost" / dust particles — floating */}
+      <circle cx="18" cy="100" r="1.2" fill="rgba(244,240,232,0.04)" style={{ animation: "pc-float 5.5s ease-in-out infinite" }} />
+      <circle cx="12" cy="80" r="1" fill="rgba(244,240,232,0.03)" style={{ animation: "pc-float 6.5s ease-in-out infinite .5s" }} />
+      <circle cx="8" cy="56" r="0.8" fill="rgba(244,240,232,0.04)" style={{ animation: "pc-float 7s ease-in-out infinite 1.2s" }} />
+      <circle cx="200" cy="48" r="1" fill="rgba(244,240,232,0.03)" style={{ animation: "pc-float 6s ease-in-out infinite .8s" }} />
 
-      {/* Red "unused" stamp */}
-      <rect x="56" y="118" width="56" height="16" rx="2" stroke="rgba(200,80,60,0.2)" strokeWidth="0.7" fill="rgba(200,80,60,0.04)" transform="rotate(-4,84,126)" />
-      <text x="84" y="129" textAnchor="middle" fill="rgba(200,80,60,0.35)" fontSize="7" fontFamily="monospace" transform="rotate(-4,84,126)">SIN USO</text>
+      {/* Red "unused" stamp — pulsing */}
+      <g style={{ animation: "pc-stamp 3s ease-in-out infinite" }}>
+        <rect x="56" y="118" width="56" height="16" rx="2" stroke="rgba(200,80,60,0.2)" strokeWidth="0.7" fill="rgba(200,80,60,0.04)" transform="rotate(-4,84,126)" />
+        <text x="84" y="129" textAnchor="middle" fill="rgba(200,80,60,0.35)" fontSize="7" fontFamily="monospace" transform="rotate(-4,84,126)">SIN USO</text>
+      </g>
     </svg>
   );
 }
@@ -147,6 +169,14 @@ function IllustrationCGI() {
 function IllustrationFragmented() {
   return (
     <svg viewBox="0 0 220 150" fill="none" className="w-full" style={{ maxWidth: 220 }}>
+      <defs>
+        <style>{`
+          @keyframes pf-flow { from{stroke-dashoffset:0} to{stroke-dashoffset:-8} }
+          @keyframes pf-x-pulse { 0%,100%{opacity:1} 50%{opacity:.35} }
+          @keyframes pf-float { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-4px)} }
+        `}</style>
+      </defs>
+
       {/* Excel spreadsheet (top-left) */}
       <g>
         <rect x="12" y="16" width="56" height="42" rx="2" stroke="rgba(244,240,232,0.18)" strokeWidth="0.7" fill="rgba(244,240,232,0.025)" />
@@ -206,45 +236,48 @@ function IllustrationFragmented() {
         <polyline points="144,92 172,114 200,92" stroke="rgba(244,240,232,0.12)" strokeWidth="0.5" fill="none" />
         <line x1="144" y1="130" x2="160" y2="112" stroke="rgba(244,240,232,0.06)" strokeWidth="0.4" />
         <line x1="200" y1="130" x2="184" y2="112" stroke="rgba(244,240,232,0.06)" strokeWidth="0.4" />
-        {/* Unread badge */}
-        <circle cx="196" cy="92" r="5" fill="rgba(200,80,60,0.2)" stroke="rgba(200,80,60,0.3)" strokeWidth="0.5" />
+        {/* Unread badge — pulsing via SMIL */}
+        <circle cx="196" cy="92" r="5" fill="rgba(200,80,60,0.2)" stroke="rgba(200,80,60,0.3)" strokeWidth="0.5">
+          <animate attributeName="r" values="5;6.2;5" dur="2s" repeatCount="indefinite" />
+          <animate attributeName="opacity" values="1;.5;1" dur="2s" repeatCount="indefinite" />
+        </circle>
         <text x="196" y="94.5" textAnchor="middle" fill="rgba(200,80,60,0.5)" fontSize="5" fontFamily="monospace">3</text>
       </g>
 
-      {/* Center chaos — broken dashed connections */}
+      {/* Center chaos — broken dashed connections — animated dash flow */}
       {/* Excel → PDF */}
-      <line x1="68" y1="34" x2="142" y2="28" stroke="rgba(200,80,60,0.15)" strokeWidth="0.6" strokeDasharray="4 4" />
+      <line x1="68" y1="34" x2="142" y2="28" stroke="rgba(200,80,60,0.15)" strokeWidth="0.6" strokeDasharray="4 4" style={{ animation: "pf-flow 2s linear infinite" }} />
       {/* Excel → Phone */}
-      <line x1="40" y1="58" x2="36" y2="88" stroke="rgba(200,80,60,0.12)" strokeWidth="0.6" strokeDasharray="4 4" />
+      <line x1="40" y1="58" x2="36" y2="88" stroke="rgba(200,80,60,0.12)" strokeWidth="0.6" strokeDasharray="4 4" style={{ animation: "pf-flow 2.3s linear infinite .2s" }} />
       {/* PDF → Email */}
-      <line x1="164" y1="64" x2="172" y2="92" stroke="rgba(200,80,60,0.12)" strokeWidth="0.6" strokeDasharray="4 4" />
+      <line x1="164" y1="64" x2="172" y2="92" stroke="rgba(200,80,60,0.12)" strokeWidth="0.6" strokeDasharray="4 4" style={{ animation: "pf-flow 2.1s linear infinite .5s" }} />
       {/* Phone → Email */}
-      <line x1="52" y1="114" x2="144" y2="111" stroke="rgba(200,80,60,0.1)" strokeWidth="0.6" strokeDasharray="4 4" />
+      <line x1="52" y1="114" x2="144" y2="111" stroke="rgba(200,80,60,0.1)" strokeWidth="0.6" strokeDasharray="4 4" style={{ animation: "pf-flow 2.5s linear infinite .3s" }} />
       {/* Excel → Email diagonal */}
-      <line x1="68" y1="50" x2="144" y2="100" stroke="rgba(200,80,60,0.08)" strokeWidth="0.5" strokeDasharray="3 5" />
+      <line x1="68" y1="50" x2="144" y2="100" stroke="rgba(200,80,60,0.08)" strokeWidth="0.5" strokeDasharray="3 5" style={{ animation: "pf-flow 3s linear infinite .7s" }} />
 
-      {/* Break marks on the lines — small X marks */}
-      <g transform="translate(104,30)">
+      {/* Break marks on the lines — pulsing X marks */}
+      <g transform="translate(104,30)" style={{ animation: "pf-x-pulse 2s ease-in-out infinite" }}>
         <line x1="-3" y1="-3" x2="3" y2="3" stroke="rgba(200,80,60,0.3)" strokeWidth="0.8" strokeLinecap="round" />
         <line x1="3" y1="-3" x2="-3" y2="3" stroke="rgba(200,80,60,0.3)" strokeWidth="0.8" strokeLinecap="round" />
       </g>
-      <g transform="translate(38,74)">
+      <g transform="translate(38,74)" style={{ animation: "pf-x-pulse 2s ease-in-out infinite .4s" }}>
         <line x1="-2.5" y1="-2.5" x2="2.5" y2="2.5" stroke="rgba(200,80,60,0.25)" strokeWidth="0.7" strokeLinecap="round" />
         <line x1="2.5" y1="-2.5" x2="-2.5" y2="2.5" stroke="rgba(200,80,60,0.25)" strokeWidth="0.7" strokeLinecap="round" />
       </g>
-      <g transform="translate(168,78)">
+      <g transform="translate(168,78)" style={{ animation: "pf-x-pulse 2s ease-in-out infinite .8s" }}>
         <line x1="-2.5" y1="-2.5" x2="2.5" y2="2.5" stroke="rgba(200,80,60,0.25)" strokeWidth="0.7" strokeLinecap="round" />
         <line x1="2.5" y1="-2.5" x2="-2.5" y2="2.5" stroke="rgba(200,80,60,0.25)" strokeWidth="0.7" strokeLinecap="round" />
       </g>
-      <g transform="translate(98,112)">
+      <g transform="translate(98,112)" style={{ animation: "pf-x-pulse 2s ease-in-out infinite 1.2s" }}>
         <line x1="-3" y1="-3" x2="3" y2="3" stroke="rgba(200,80,60,0.2)" strokeWidth="0.7" strokeLinecap="round" />
         <line x1="3" y1="-3" x2="-3" y2="3" stroke="rgba(200,80,60,0.2)" strokeWidth="0.7" strokeLinecap="round" />
       </g>
 
       {/* Floating question marks */}
-      <text x="92" y="56" fill="rgba(244,240,232,0.08)" fontSize="14" fontFamily="serif">?</text>
-      <text x="108" y="82" fill="rgba(244,240,232,0.06)" fontSize="10" fontFamily="serif">?</text>
-      <text x="82" y="96" fill="rgba(244,240,232,0.05)" fontSize="8" fontFamily="serif">?</text>
+      <text x="92" y="56" fill="rgba(244,240,232,0.08)" fontSize="14" fontFamily="serif" style={{ animation: "pf-float 3.5s ease-in-out infinite" }}>?</text>
+      <text x="108" y="82" fill="rgba(244,240,232,0.06)" fontSize="10" fontFamily="serif" style={{ animation: "pf-float 4s ease-in-out infinite .6s" }}>?</text>
+      <text x="82" y="96" fill="rgba(244,240,232,0.05)" fontSize="8" fontFamily="serif" style={{ animation: "pf-float 3s ease-in-out infinite 1.2s" }}>?</text>
     </svg>
   );
 }
@@ -258,6 +291,13 @@ function IllustrationLeads() {
           <stop offset="0%" stopColor="rgba(244,240,232,0.08)" />
           <stop offset="100%" stopColor="rgba(244,240,232,0.02)" />
         </linearGradient>
+        <style>{`
+          @keyframes pl-drip { 0%,100%{transform:translateY(0);opacity:1} 50%{transform:translateY(4px);opacity:.3} }
+          @keyframes pl-crack { 0%,100%{opacity:1} 50%{opacity:.35} }
+          @keyframes pl-fade { 0%,100%{opacity:1} 50%{opacity:.35} }
+          @keyframes pl-flicker { 0%,100%{opacity:1} 50%{opacity:.4} }
+          @keyframes pl-dash { from{stroke-dashoffset:0} to{stroke-dashoffset:-6} }
+        `}</style>
       </defs>
 
       {/* Broken funnel (center) */}
@@ -266,34 +306,45 @@ function IllustrationLeads() {
       {/* Funnel bottom — broken / cracked */}
       <line x1="92" y1="62" x2="96" y2="76" stroke="rgba(244,240,232,0.15)" strokeWidth="0.7" />
       <line x1="128" y1="62" x2="124" y2="76" stroke="rgba(244,240,232,0.15)" strokeWidth="0.7" />
-      {/* Crack in funnel */}
-      <path d="M108 48 L112 56 L106 62 L110 70" stroke="rgba(200,80,60,0.3)" strokeWidth="0.8" strokeLinecap="round" fill="none" />
-      <path d="M100 44 L96 52 L102 58" stroke="rgba(200,80,60,0.2)" strokeWidth="0.6" strokeLinecap="round" fill="none" />
+      {/* Crack in funnel — pulsing red */}
+      <g style={{ animation: "pl-crack 2.5s ease-in-out infinite" }}>
+        <path d="M108 48 L112 56 L106 62 L110 70" stroke="rgba(200,80,60,0.3)" strokeWidth="0.8" strokeLinecap="round" fill="none" />
+        <path d="M100 44 L96 52 L102 58" stroke="rgba(200,80,60,0.2)" strokeWidth="0.6" strokeLinecap="round" fill="none" />
+      </g>
 
-      {/* User silhouettes entering funnel (top) — fading */}
+      {/* User silhouettes entering funnel (top) — fading in and out */}
       {/* Person 1 */}
-      <circle cx="84" cy="8" r="3.5" stroke="rgba(244,240,232,0.2)" strokeWidth="0.6" fill="none" />
-      <path d="M78 18 C78 14 80 12 84 12 C88 12 90 14 90 18" stroke="rgba(244,240,232,0.15)" strokeWidth="0.6" fill="none" />
+      <g style={{ animation: "pl-fade 4s ease-in-out infinite" }}>
+        <circle cx="84" cy="8" r="3.5" stroke="rgba(244,240,232,0.2)" strokeWidth="0.6" fill="none" />
+        <path d="M78 18 C78 14 80 12 84 12 C88 12 90 14 90 18" stroke="rgba(244,240,232,0.15)" strokeWidth="0.6" fill="none" />
+      </g>
       {/* Person 2 */}
-      <circle cx="110" cy="6" r="3.5" stroke="rgba(244,240,232,0.15)" strokeWidth="0.6" fill="none" />
-      <path d="M104 16 C104 12 106 10 110 10 C114 10 116 12 116 16" stroke="rgba(244,240,232,0.12)" strokeWidth="0.6" fill="none" />
+      <g style={{ animation: "pl-fade 4.5s ease-in-out infinite .8s" }}>
+        <circle cx="110" cy="6" r="3.5" stroke="rgba(244,240,232,0.15)" strokeWidth="0.6" fill="none" />
+        <path d="M104 16 C104 12 106 10 110 10 C114 10 116 12 116 16" stroke="rgba(244,240,232,0.12)" strokeWidth="0.6" fill="none" />
+      </g>
       {/* Person 3 */}
-      <circle cx="136" cy="8" r="3.5" stroke="rgba(244,240,232,0.12)" strokeWidth="0.6" fill="none" />
-      <path d="M130 18 C130 14 132 12 136 12 C140 12 142 14 142 18" stroke="rgba(244,240,232,0.1)" strokeWidth="0.6" fill="none" />
+      <g style={{ animation: "pl-fade 5s ease-in-out infinite 1.6s" }}>
+        <circle cx="136" cy="8" r="3.5" stroke="rgba(244,240,232,0.12)" strokeWidth="0.6" fill="none" />
+        <path d="M130 18 C130 14 132 12 136 12 C140 12 142 14 142 18" stroke="rgba(244,240,232,0.1)" strokeWidth="0.6" fill="none" />
+      </g>
 
-      {/* Dripping out — leads lost as dots falling into void */}
-      <circle cx="104" cy="82" r="2" fill="rgba(244,240,232,0.12)" />
-      <circle cx="110" cy="92" r="1.8" fill="rgba(244,240,232,0.08)" />
-      <circle cx="106" cy="102" r="1.5" fill="rgba(244,240,232,0.05)" />
-      <circle cx="112" cy="110" r="1.2" fill="rgba(244,240,232,0.03)" />
-      <circle cx="108" cy="118" r="1" fill="rgba(244,240,232,0.02)" />
+      {/* Dripping out — leads lost as dots falling into void — cascading pulse */}
+      <circle cx="104" cy="82" r="2" fill="rgba(244,240,232,0.12)" style={{ animation: "pl-drip 2.5s ease-in-out infinite" }} />
+      <circle cx="110" cy="92" r="1.8" fill="rgba(244,240,232,0.08)" style={{ animation: "pl-drip 2.5s ease-in-out infinite .3s" }} />
+      <circle cx="106" cy="102" r="1.5" fill="rgba(244,240,232,0.05)" style={{ animation: "pl-drip 2.5s ease-in-out infinite .6s" }} />
+      <circle cx="112" cy="110" r="1.2" fill="rgba(244,240,232,0.03)" style={{ animation: "pl-drip 2.5s ease-in-out infinite .9s" }} />
+      <circle cx="108" cy="118" r="1" fill="rgba(244,240,232,0.02)" style={{ animation: "pl-drip 2.5s ease-in-out infinite 1.2s" }} />
 
       {/* Side: ghost user profiles — no data */}
       {/* Left ghost user card */}
       <rect x="8" y="36" width="48" height="56" rx="2" stroke="rgba(244,240,232,0.08)" strokeWidth="0.5" fill="rgba(244,240,232,0.015)" />
       <circle cx="32" cy="52" r="8" stroke="rgba(244,240,232,0.1)" strokeWidth="0.5" fill="none" />
-      {/* Question mark inside avatar */}
-      <text x="32" y="56" textAnchor="middle" fill="rgba(200,80,60,0.3)" fontSize="10" fontFamily="serif">?</text>
+      {/* Question mark inside avatar — pulsing */}
+      <text x="32" y="56" textAnchor="middle" fill="rgba(200,80,60,0.3)" fontSize="10" fontFamily="serif">
+        ?
+        <animate attributeName="opacity" values=".3;.6;.3" dur="3s" repeatCount="indefinite" />
+      </text>
       {/* Empty data lines */}
       <line x1="16" y1="68" x2="48" y2="68" stroke="rgba(244,240,232,0.04)" strokeWidth="0.5" strokeDasharray="2 3" />
       <line x1="16" y1="74" x2="42" y2="74" stroke="rgba(244,240,232,0.03)" strokeWidth="0.5" strokeDasharray="2 3" />
@@ -302,7 +353,10 @@ function IllustrationLeads() {
       {/* Right ghost user card */}
       <rect x="164" y="40" width="48" height="56" rx="2" stroke="rgba(244,240,232,0.08)" strokeWidth="0.5" fill="rgba(244,240,232,0.015)" />
       <circle cx="188" cy="56" r="8" stroke="rgba(244,240,232,0.1)" strokeWidth="0.5" fill="none" />
-      <text x="188" y="60" textAnchor="middle" fill="rgba(200,80,60,0.3)" fontSize="10" fontFamily="serif">?</text>
+      <text x="188" y="60" textAnchor="middle" fill="rgba(200,80,60,0.3)" fontSize="10" fontFamily="serif">
+        ?
+        <animate attributeName="opacity" values=".3;.6;.3" dur="3.5s" repeatCount="indefinite" begin=".5s" />
+      </text>
       <line x1="172" y1="72" x2="204" y2="72" stroke="rgba(244,240,232,0.04)" strokeWidth="0.5" strokeDasharray="2 3" />
       <line x1="172" y1="78" x2="198" y2="78" stroke="rgba(244,240,232,0.03)" strokeWidth="0.5" strokeDasharray="2 3" />
       <line x1="172" y1="84" x2="200" y2="84" stroke="rgba(244,240,232,0.03)" strokeWidth="0.5" strokeDasharray="2 3" />
@@ -312,21 +366,27 @@ function IllustrationLeads() {
         {/* Axes */}
         <line x1="24" y1="140" x2="24" y2="110" stroke="rgba(244,240,232,0.08)" strokeWidth="0.5" />
         <line x1="24" y1="140" x2="80" y2="140" stroke="rgba(244,240,232,0.08)" strokeWidth="0.5" />
-        {/* Flat line — no data */}
-        <line x1="28" y1="136" x2="76" y2="136" stroke="rgba(200,80,60,0.15)" strokeWidth="0.6" strokeDasharray="3 3" />
+        {/* Flat line — no data — animated dash */}
+        <line x1="28" y1="136" x2="76" y2="136" stroke="rgba(200,80,60,0.15)" strokeWidth="0.6" strokeDasharray="3 3" style={{ animation: "pl-dash 3s linear infinite" }} />
         {/* Ghost grid */}
         <line x1="24" y1="130" x2="80" y2="130" stroke="rgba(244,240,232,0.03)" strokeWidth="0.3" />
         <line x1="24" y1="120" x2="80" y2="120" stroke="rgba(244,240,232,0.03)" strokeWidth="0.3" />
         <text x="52" y="148" textAnchor="middle" fill="rgba(244,240,232,0.08)" fontSize="4" fontFamily="monospace">SIN DATOS</text>
       </g>
 
-      {/* UTM source labels — scattered and disconnected */}
-      <rect x="140" y="110" width="36" height="10" rx="1.5" stroke="rgba(244,240,232,0.06)" strokeWidth="0.4" fill="rgba(244,240,232,0.01)" />
-      <text x="158" y="117" textAnchor="middle" fill="rgba(244,240,232,0.08)" fontSize="4" fontFamily="monospace">utm_source=?</text>
-      <rect x="140" y="124" width="42" height="10" rx="1.5" stroke="rgba(244,240,232,0.06)" strokeWidth="0.4" fill="rgba(244,240,232,0.01)" />
-      <text x="161" y="131" textAnchor="middle" fill="rgba(244,240,232,0.08)" fontSize="4" fontFamily="monospace">utm_campaign=?</text>
-      <rect x="148" y="138" width="34" height="10" rx="1.5" stroke="rgba(244,240,232,0.06)" strokeWidth="0.4" fill="rgba(244,240,232,0.01)" />
-      <text x="165" y="145" textAnchor="middle" fill="rgba(244,240,232,0.08)" fontSize="4" fontFamily="monospace">utm_medium=?</text>
+      {/* UTM source labels — flickering */}
+      <g style={{ animation: "pl-flicker 4s ease-in-out infinite" }}>
+        <rect x="140" y="110" width="36" height="10" rx="1.5" stroke="rgba(244,240,232,0.06)" strokeWidth="0.4" fill="rgba(244,240,232,0.01)" />
+        <text x="158" y="117" textAnchor="middle" fill="rgba(244,240,232,0.08)" fontSize="4" fontFamily="monospace">utm_source=?</text>
+      </g>
+      <g style={{ animation: "pl-flicker 4.5s ease-in-out infinite .6s" }}>
+        <rect x="140" y="124" width="42" height="10" rx="1.5" stroke="rgba(244,240,232,0.06)" strokeWidth="0.4" fill="rgba(244,240,232,0.01)" />
+        <text x="161" y="131" textAnchor="middle" fill="rgba(244,240,232,0.08)" fontSize="4" fontFamily="monospace">utm_campaign=?</text>
+      </g>
+      <g style={{ animation: "pl-flicker 3.5s ease-in-out infinite 1.2s" }}>
+        <rect x="148" y="138" width="34" height="10" rx="1.5" stroke="rgba(244,240,232,0.06)" strokeWidth="0.4" fill="rgba(244,240,232,0.01)" />
+        <text x="165" y="145" textAnchor="middle" fill="rgba(244,240,232,0.08)" fontSize="4" fontFamily="monospace">utm_medium=?</text>
+      </g>
     </svg>
   );
 }

@@ -1,5 +1,7 @@
 "use client";
 
+export const dynamic = "force-dynamic";
+
 import { useState, useEffect, useRef } from "react";
 import { useAsyncAction } from "@/hooks/useAsyncAction";
 import { useTranslation } from "@/i18n";

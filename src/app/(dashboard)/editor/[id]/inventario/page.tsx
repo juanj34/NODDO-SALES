@@ -1,5 +1,7 @@
 "use client";
 
+export const dynamic = "force-dynamic";
+
 import { useState, useMemo, useCallback, useRef } from "react";
 import { useEditorProject } from "@/hooks/useEditorProject";
 import { PageHeader } from "@/components/dashboard/base/PageHeader";

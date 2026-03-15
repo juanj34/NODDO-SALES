@@ -1,5 +1,7 @@
 "use client";
 
+export const dynamic = "force-dynamic";
+
 import { useState, useEffect } from "react";
 import { useAsyncAction } from "@/hooks/useAsyncAction";
 import { useEditorProject } from "@/hooks/useEditorProject";

@@ -51,7 +51,7 @@ export async function GET() {
   for (const row of allFeatures ?? []) {
     if (!featuresMap.has(row.proyecto_id)) {
       const defaults: Record<string, boolean> = {};
-      for (const f of ALL_FEATURES) defaults[f] = false;
+      for (const f of ALL_FEATURES) defaults[f] = true;
       featuresMap.set(row.proyecto_id, defaults);
     }
     featuresMap.get(row.proyecto_id)![row.feature] = row.enabled;
@@ -59,7 +59,7 @@ export async function GET() {
 
   const result = (projects ?? []).map((p) => {
     // Build default features map if none exist
-    const features = featuresMap.get(p.id) ?? Object.fromEntries(ALL_FEATURES.map((f) => [f, false]));
+    const features = featuresMap.get(p.id) ?? Object.fromEntries(ALL_FEATURES.map((f) => [f, true]));
     return {
       ...p,
       ownerEmail: emailMap.get(p.user_id) || "",

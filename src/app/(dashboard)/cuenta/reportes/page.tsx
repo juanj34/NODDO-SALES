@@ -1,5 +1,7 @@
 "use client";
 
+export const dynamic = "force-dynamic";
+
 import { useState, useEffect } from "react";
 import { pageTitle, pageDescription, sectionCard } from "@/components/dashboard/editor-styles";
 import { Mail, Clock, Loader2 } from "lucide-react";
