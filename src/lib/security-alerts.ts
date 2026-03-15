@@ -5,7 +5,13 @@ import { Resend } from "resend";
  * Sends email notifications for suspicious activity
  */
 
-const resend = process.env.RESEND_API_KEY ? new Resend(process.env.RESEND_API_KEY) : null;
+// Lazy initialization - only create when needed (avoids build-time errors)
+function getResend() {
+  if (!process.env.RESEND_API_KEY) {
+    return null;
+  }
+  return new Resend(process.env.RESEND_API_KEY);
+}
 
 export type SecurityAlertType =
   | "rate_limit_exceeded"
@@ -44,8 +50,9 @@ export async function sendSecurityAlert(params: SecurityAlertParams): Promise<vo
   const subject = `[SECURITY ${severity.toUpperCase()}] ${formatAlertType(type)}`;
   const body = buildAlertEmailBody(type, severity, details, timestamp);
 
-  // If Resend is not configured, log to console
+  const resend = getResend();
   if (!resend) {
+    console.error("[security-alert] Resend not configured, logging to console");
     console.error(`[SECURITY ALERT] ${subject}`);
     console.error(JSON.stringify(details, null, 2));
     return;

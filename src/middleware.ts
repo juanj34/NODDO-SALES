@@ -23,7 +23,7 @@ export async function middleware(request: NextRequest) {
 
   if (cookieLocale && locales.includes(cookieLocale as any)) {
     // Use cookie if it exists and is valid
-    locale = cookieLocale;
+    locale = cookieLocale as typeof defaultLocale;
   } else {
     // No valid cookie: parse Accept-Language header
     const acceptLanguage = request.headers.get('accept-language');
@@ -33,7 +33,7 @@ export async function middleware(request: NextRequest) {
         locales.includes(lang.split('-')[0] as any)
       );
       if (preferredLocale) {
-        locale = preferredLocale.split('-')[0];
+        locale = preferredLocale.split('-')[0] as typeof defaultLocale;
       }
     }
   }
