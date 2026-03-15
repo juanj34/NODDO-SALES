@@ -4,7 +4,6 @@ import { useState, useMemo } from "react";
 import { motion } from "framer-motion";
 import {
   BarChart3,
-  ChevronDown,
   Activity,
   Globe,
   Monitor,
@@ -20,6 +19,7 @@ import { DeviceChart } from "@/components/dashboard/analytics/DeviceChart";
 import { RankedList } from "@/components/dashboard/analytics/RankedList";
 import { TimeRangeSelector, type TimeRange } from "@/components/dashboard/analytics/TimeRangeSelector";
 import { useTranslation } from "@/i18n";
+import { NodDoDropdown } from "@/components/ui/NodDoDropdown";
 
 function getDateRange(range: TimeRange): { from: Date; to: Date } {
   const to = new Date();
@@ -82,23 +82,13 @@ export default function AnalyticsPage() {
       >
         {/* Project selector */}
         {projects.length > 0 && (
-          <div className="relative">
-            <select
-              value={projectId}
-              onChange={(e) => setProjectId(e.target.value)}
-              className="appearance-none bg-[var(--surface-2)] border border-[var(--border-subtle)] rounded-xl px-4 py-2.5 pr-10 text-sm font-mono text-[var(--text-primary)] cursor-pointer hover:border-[var(--border-default)] transition-colors focus:outline-none focus:ring-2 focus:ring-[rgba(var(--site-primary-rgb),0.3)]"
-            >
-              {projects.map((p) => (
-                <option key={p.id} value={p.id}>
-                  {p.nombre}
-                </option>
-              ))}
-            </select>
-            <ChevronDown
-              size={16}
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-[var(--text-muted)] pointer-events-none"
-            />
-          </div>
+          <NodDoDropdown
+            variant="dashboard"
+            size="md"
+            value={projectId}
+            onChange={setProjectId}
+            options={projects.map((p) => ({ value: p.id, label: p.nombre }))}
+          />
         )}
 
         {/* Time range selector */}

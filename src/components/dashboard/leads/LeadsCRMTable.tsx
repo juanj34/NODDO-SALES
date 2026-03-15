@@ -74,37 +74,38 @@ export function LeadsCRMTable({
       animate={{ opacity: 1 }}
       className="bg-[var(--surface-1)] border border-[var(--border-subtle)] rounded-xl overflow-hidden"
     >
-      <table className="w-full">
+      <table className="w-full" role="table" aria-label={locale === "es" ? "Tabla de leads" : "Leads table"}>
         <thead>
           <tr className="border-b border-[var(--border-subtle)]">
-            <th className="text-left px-5 py-3 font-ui text-[10px] text-[var(--text-tertiary)] tracking-wider uppercase font-bold">
+            <th scope="col" className="text-left px-5 py-3 font-ui text-[10px] text-[var(--text-tertiary)] tracking-wider uppercase font-bold">
               {locale === "es" ? "Nombre" : "Name"}
             </th>
-            <th className="text-left px-5 py-3 font-ui text-[10px] text-[var(--text-tertiary)] tracking-wider uppercase font-bold hidden md:table-cell">
+            <th scope="col" className="text-left px-5 py-3 font-ui text-[10px] text-[var(--text-tertiary)] tracking-wider uppercase font-bold hidden md:table-cell">
               {locale === "es" ? "Email" : "Email"}
             </th>
-            <th className="text-left px-5 py-3 font-ui text-[10px] text-[var(--text-tertiary)] tracking-wider uppercase font-bold hidden lg:table-cell">
+            <th scope="col" className="text-left px-5 py-3 font-ui text-[10px] text-[var(--text-tertiary)] tracking-wider uppercase font-bold hidden lg:table-cell">
               {locale === "es" ? "Teléfono" : "Phone"}
             </th>
             {multiProject && (
-              <th className="text-left px-5 py-3 font-ui text-[10px] text-[var(--text-tertiary)] tracking-wider uppercase font-bold hidden xl:table-cell">
+              <th scope="col" className="text-left px-5 py-3 font-ui text-[10px] text-[var(--text-tertiary)] tracking-wider uppercase font-bold hidden xl:table-cell">
                 {locale === "es" ? "Proyecto" : "Project"}
               </th>
             )}
-            <th className="text-left px-5 py-3 font-ui text-[10px] text-[var(--text-tertiary)] tracking-wider uppercase font-bold">
+            <th scope="col" className="text-left px-5 py-3 font-ui text-[10px] text-[var(--text-tertiary)] tracking-wider uppercase font-bold">
               Status
             </th>
-            <th className="text-center px-5 py-3 font-ui text-[10px] text-[var(--text-tertiary)] tracking-wider uppercase font-bold">
+            <th scope="col" className="text-center px-5 py-3 font-ui text-[10px] text-[var(--text-tertiary)] tracking-wider uppercase font-bold">
               <span className="hidden sm:inline">{locale === "es" ? "Cotiz." : "Quotes"}</span>
-              <FileText size={12} className="sm:hidden inline" />
+              <FileText size={12} className="sm:hidden inline" aria-label={locale === "es" ? "Cotizaciones" : "Quotes"} />
             </th>
-            <th className="text-left px-5 py-3 font-ui text-[10px] text-[var(--text-tertiary)] tracking-wider uppercase font-bold">
+            <th scope="col" className="text-left px-5 py-3 font-ui text-[10px] text-[var(--text-tertiary)] tracking-wider uppercase font-bold">
               <button
                 onClick={() => onSortChange(sortDir === "newest" ? "oldest" : "newest")}
                 className="inline-flex items-center gap-1 hover:text-[var(--text-secondary)] transition-colors"
+                aria-label={locale === "es" ? `Ordenar por fecha: ${sortDir === "newest" ? "más reciente primero" : "más antiguo primero"}` : `Sort by date: ${sortDir === "newest" ? "newest first" : "oldest first"}`}
               >
                 {locale === "es" ? "Fecha" : "Date"}
-                <ArrowUpDown size={10} />
+                <ArrowUpDown size={10} aria-hidden="true" />
               </button>
             </th>
           </tr>
@@ -125,6 +126,16 @@ export function LeadsCRMTable({
                     ? "bg-[var(--surface-2)] border-l-2 border-l-[var(--site-primary)]"
                     : "hover:bg-[var(--surface-2)]"
                 )}
+                role="button"
+                tabIndex={0}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" || e.key === " ") {
+                    e.preventDefault();
+                    onSelect(lead.id);
+                  }
+                }}
+                aria-label={locale === "es" ? `Seleccionar lead: ${lead.nombre}` : `Select lead: ${lead.nombre}`}
+                aria-selected={isSelected}
               >
                 {/* Name + email on mobile */}
                 <td className="px-5 py-3.5">

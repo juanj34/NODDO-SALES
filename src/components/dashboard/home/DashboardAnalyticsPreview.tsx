@@ -2,13 +2,14 @@
 
 import { useState, useMemo, forwardRef } from "react";
 import { motion } from "framer-motion";
-import { BarChart3, ChevronDown, Activity, Globe, Monitor } from "lucide-react";
+import { BarChart3, Activity, Globe, Monitor } from "lucide-react";
 import { useAnalytics } from "@/hooks/useAnalytics";
 import { ViewsChart } from "@/components/dashboard/analytics/ViewsChart";
 import { DeviceChart } from "@/components/dashboard/analytics/DeviceChart";
 import { RankedList } from "@/components/dashboard/analytics/RankedList";
 import { TimeRangeSelector, type TimeRange } from "@/components/dashboard/analytics/TimeRangeSelector";
 import { useTranslation } from "@/i18n";
+import { NodDoDropdown } from "@/components/ui/NodDoDropdown";
 
 interface Props {
   projects: { id: string; nombre: string }[];
@@ -64,23 +65,13 @@ export const DashboardAnalyticsPreview = forwardRef<HTMLDivElement, Props>(
           <div className="flex items-center gap-2">
             {/* Project selector */}
             {projects.length > 1 && (
-              <div className="relative">
-                <select
-                  value={projectId}
-                  onChange={(e) => setProjectId(e.target.value)}
-                  className="appearance-none bg-[var(--surface-2)] border border-[var(--border-subtle)] rounded-lg px-3 py-1.5 pr-7 text-[10px] font-ui font-bold uppercase tracking-[0.08em] text-[var(--text-secondary)] cursor-pointer hover:border-[var(--border-default)] transition-colors focus:outline-none focus:ring-1 focus:ring-[rgba(184,151,58,0.3)]"
-                >
-                  {projects.map((p) => (
-                    <option key={p.id} value={p.id}>
-                      {p.nombre}
-                    </option>
-                  ))}
-                </select>
-                <ChevronDown
-                  size={10}
-                  className="absolute right-2 top-1/2 -translate-y-1/2 text-[var(--text-muted)] pointer-events-none"
-                />
-              </div>
+              <NodDoDropdown
+                variant="dashboard"
+                size="sm"
+                value={projectId}
+                onChange={setProjectId}
+                options={projects.map((p) => ({ value: p.id, label: p.nombre }))}
+              />
             )}
 
             {/* Time range */}

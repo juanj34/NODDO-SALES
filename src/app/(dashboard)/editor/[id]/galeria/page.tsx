@@ -6,6 +6,7 @@ import { useEditorProject } from "@/hooks/useEditorProject";
 import { useConfirm } from "@/components/dashboard/ConfirmModal";
 import { useToast } from "@/components/dashboard/Toast";
 import { UploadModal } from "@/components/dashboard/UploadModal";
+import { NodDoDropdown } from "@/components/ui/NodDoDropdown";
 import {
   inputClass,
   btnPrimary,
@@ -344,18 +345,18 @@ export default function GaleriaPage() {
                     autoFocus
                   />
                   {hasTorres && (
-                    <select
-                      value={newCatTorreId ?? ""}
-                      onChange={(e) => setNewCatTorreId(e.target.value || null)}
-                      className={`${inputClass} w-auto min-w-[140px]`}
-                    >
-                      <option value="">{t("galeria.scopeProjectWide")}</option>
-                      {torres.map((torre) => (
-                        <option key={torre.id} value={torre.id}>
-                          {torre.nombre}
-                        </option>
-                      ))}
-                    </select>
+                    <div className="w-auto min-w-[140px]">
+                      <NodDoDropdown
+                        variant="dashboard"
+                        size="md"
+                        value={newCatTorreId ?? ""}
+                        onChange={(val) => setNewCatTorreId(val || null)}
+                        options={[
+                          { value: "", label: t("galeria.scopeProjectWide") },
+                          ...torres.map((torre) => ({ value: torre.id, label: torre.nombre })),
+                        ]}
+                      />
+                    </div>
                   )}
                   <button
                     onClick={addCategoria}

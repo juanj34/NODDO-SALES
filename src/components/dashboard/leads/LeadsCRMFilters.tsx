@@ -4,6 +4,7 @@ import { useState } from "react";
 import { Search, Download, SlidersHorizontal, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { STATUS_CONFIG } from "./LeadStatusBadge";
+import { NodDoDropdown } from "@/components/ui/NodDoDropdown";
 
 export type DatePreset = "7d" | "30d" | "90d" | "all" | "custom";
 
@@ -86,6 +87,7 @@ export function LeadsCRMFilters({
           <Search
             size={14}
             className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--text-muted)]"
+            aria-hidden="true"
           />
           <input
             type="text"
@@ -93,14 +95,16 @@ export function LeadsCRMFilters({
             value={search}
             onChange={(e) => onSearchChange(e.target.value)}
             className="w-full bg-[var(--surface-2)] border border-[var(--border-default)] rounded-lg pl-9 pr-4 py-2 text-sm text-white placeholder:text-[var(--text-muted)] focus:outline-none focus:border-[rgba(var(--site-primary-rgb),0.5)] transition-colors"
+            aria-label={locale === "es" ? "Buscar leads por nombre, email o teléfono" : "Search leads by name, email or phone"}
           />
         </div>
         <button
           onClick={onExport}
           disabled={total === 0 || loading}
           className="flex items-center gap-2 px-4 py-2 border border-[var(--border-default)] rounded-lg font-ui text-[10px] font-bold uppercase tracking-[0.1em] text-[var(--text-secondary)] hover:text-white hover:border-[var(--border-default)] transition-all disabled:opacity-30 shrink-0"
+          aria-label={locale === "es" ? "Exportar leads a CSV" : "Export leads to CSV"}
         >
-          <Download size={14} />
+          <Download size={14} aria-hidden="true" />
           CSV
         </button>
       </div>
@@ -120,12 +124,15 @@ export function LeadsCRMFilters({
                   ? cfg.bg
                   : "border-[var(--border-subtle)] text-[var(--text-muted)] hover:text-[var(--text-secondary)] hover:border-[var(--border-default)]"
               )}
+              aria-label={locale === "es" ? `Filtrar por estado ${cfg.label}` : `Filter by status ${cfg.labelEn}`}
+              aria-pressed={isActive}
             >
               <span
                 className={cn(
                   "w-1.5 h-1.5 rounded-full",
                   isActive ? cfg.dot : "bg-[var(--text-muted)]"
                 )}
+                aria-hidden="true"
               />
               {locale === "es" ? cfg.label : cfg.labelEn}
             </button>
@@ -136,7 +143,7 @@ export function LeadsCRMFilters({
         <div className="w-px h-5 bg-[var(--border-subtle)] mx-1" />
 
         {/* Date presets */}
-        <div className="flex items-center bg-[var(--surface-2)] border border-[var(--border-subtle)] rounded-lg p-0.5">
+        <div className="flex items-center bg-[var(--surface-2)] border border-[var(--border-subtle)] rounded-lg p-0.5" role="group" aria-label={locale === "es" ? "Filtros de fecha" : "Date filters"}>
           {datePresets.map((opt) => (
             <button
               key={opt.value}
@@ -147,6 +154,8 @@ export function LeadsCRMFilters({
                   ? "bg-[var(--site-primary)] text-[#141414] shadow-sm"
                   : "text-[var(--text-muted)] hover:text-[var(--text-secondary)]"
               )}
+              aria-label={locale === "es" ? `Últimos ${opt.label}` : `Last ${opt.label}`}
+              aria-pressed={datePreset === opt.value}
             >
               {opt.label}
             </button>
@@ -159,6 +168,8 @@ export function LeadsCRMFilters({
                 ? "bg-[var(--site-primary)] text-[#141414] shadow-sm"
                 : "text-[var(--text-muted)] hover:text-[var(--text-secondary)]"
             )}
+            aria-label={locale === "es" ? "Rango personalizado" : "Custom range"}
+            aria-pressed={datePreset === "custom"}
           >
             Custom
           </button>
@@ -173,8 +184,9 @@ export function LeadsCRMFilters({
               max={customDateTo || toInputDate(new Date())}
               onChange={(e) => onCustomDateChange(e.target.value, customDateTo)}
               className="input-glass px-2 py-1 text-[11px] font-mono w-full sm:w-[125px]"
+              aria-label={locale === "es" ? "Fecha desde" : "Date from"}
             />
-            <span className="text-[var(--text-muted)] text-[10px]">—</span>
+            <span className="text-[var(--text-muted)] text-[10px]" aria-hidden="true">—</span>
             <input
               type="date"
               value={customDateTo}
@@ -182,6 +194,7 @@ export function LeadsCRMFilters({
               max={toInputDate(new Date())}
               onChange={(e) => onCustomDateChange(customDateFrom, e.target.value)}
               className="input-glass px-2 py-1 text-[11px] font-mono w-full sm:w-[125px]"
+              aria-label={locale === "es" ? "Fecha hasta" : "Date to"}
             />
           </div>
         )}
@@ -190,18 +203,16 @@ export function LeadsCRMFilters({
         {projects.length > 1 && (
           <>
             <div className="w-px h-5 bg-[var(--border-subtle)] mx-1" />
-            <select
+            <NodDoDropdown
+              variant="dashboard"
+              size="sm"
               value={proyectoId || ""}
-              onChange={(e) => onProyectoChange(e.target.value || null)}
-              className="bg-[var(--surface-2)] border border-[var(--border-subtle)] rounded-lg px-3 py-1.5 text-[11px] text-[var(--text-secondary)] focus:outline-none focus:border-[rgba(var(--site-primary-rgb),0.5)]"
-            >
-              <option value="">{locale === "es" ? "Todos los proyectos" : "All projects"}</option>
-              {projects.map((p) => (
-                <option key={p.id} value={p.id}>
-                  {p.nombre}
-                </option>
-              ))}
-            </select>
+              onChange={(val) => onProyectoChange(val || null)}
+              options={[
+                { value: "", label: locale === "es" ? "Todos los proyectos" : "All projects" },
+                ...projects.map((p) => ({ value: p.id, label: p.nombre })),
+              ]}
+            />
           </>
         )}
 
@@ -214,8 +225,10 @@ export function LeadsCRMFilters({
               ? "border-[rgba(var(--site-primary-rgb),0.3)] text-[var(--site-primary)] bg-[rgba(var(--site-primary-rgb),0.08)]"
               : "border-[var(--border-subtle)] text-[var(--text-muted)] hover:text-[var(--text-secondary)]"
           )}
+          aria-label={locale === "es" ? "Mostrar más filtros" : "Show more filters"}
+          aria-expanded={showMoreFilters}
         >
-          <SlidersHorizontal size={12} />
+          <SlidersHorizontal size={12} aria-hidden="true" />
           {locale === "es" ? "Más" : "More"}
         </button>
 
@@ -224,8 +237,9 @@ export function LeadsCRMFilters({
           <button
             onClick={clearAll}
             className="inline-flex items-center gap-1 px-2 py-1.5 rounded-lg text-[10px] font-bold uppercase tracking-wider text-[var(--text-muted)] hover:text-white transition-all"
+            aria-label={locale === "es" ? "Limpiar todos los filtros" : "Clear all filters"}
           >
-            <X size={11} />
+            <X size={11} aria-hidden="true" />
             {locale === "es" ? "Limpiar" : "Clear"}
           </button>
         )}

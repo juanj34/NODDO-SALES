@@ -3,6 +3,7 @@
 import { useState, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
+import { NodDoDropdown } from "@/components/ui/NodDoDropdown";
 
 import {
   Search,
@@ -269,16 +270,16 @@ export default function InventarioPage() {
           </div>
 
           {/* Tipología dropdown */}
-          <select
+          <NodDoDropdown
+            variant="site"
+            size="sm"
             value={tipologiaFilter}
-            onChange={(e) => setTipologiaFilter(e.target.value)}
-            className="bg-white/5 border border-white/[0.08] rounded-lg px-2.5 py-1.5 text-[11px] text-white/70 cursor-pointer focus:outline-none shrink-0"
-          >
-            <option value="todas">{tSite("inventario.typeAll")}</option>
-            {tipologiasForFilter.map((t) => (
-              <option key={t.id} value={t.id}>{t.nombre}</option>
-            ))}
-          </select>
+            onChange={setTipologiaFilter}
+            options={[
+              { value: "todas", label: tSite("inventario.typeAll") },
+              ...tipologiasForFilter.map((t) => ({ value: t.id, label: t.nombre })),
+            ]}
+          />
 
           <div className="w-px h-5 bg-white/[0.06] shrink-0" />
 
@@ -354,15 +355,14 @@ export default function InventarioPage() {
           {/* Sort */}
           <div className="flex items-center gap-1 shrink-0">
             <ArrowUpDown size={11} className="text-[var(--text-muted)]" />
-            <select
+            <NodDoDropdown
+              variant="site"
+              size="sm"
               value={sortBy}
-              onChange={(e) => setSortBy(e.target.value as SortKey)}
-              className="bg-white/5 border border-white/[0.08] rounded-lg px-2 py-1.5 text-[11px] text-white/70 cursor-pointer focus:outline-none shrink-0"
-            >
-              {sortOptions.map((opt) => (
-                <option key={opt.value} value={opt.value}>{opt.label}</option>
-              ))}
-            </select>
+              onChange={(val) => setSortBy(val as SortKey)}
+              options={sortOptions.map((opt) => ({ value: opt.value, label: opt.label }))}
+              icon={<ArrowUpDown size={11} />}
+            />
           </div>
 
           <div className="w-px h-5 bg-white/[0.06] shrink-0" />

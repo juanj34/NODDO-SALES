@@ -49,6 +49,8 @@ export const GHL_TAGS = {
   plan_basic: "plan-basic",
   plan_premium: "plan-premium",
   plan_enterprise: "plan-enterprise",
+  plan_proyecto: "plan-proyecto",
+  plan_studio: "plan-studio",
 
   // Booking
   demo_booked: "demo-booked",

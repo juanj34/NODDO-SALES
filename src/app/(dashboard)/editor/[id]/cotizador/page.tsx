@@ -17,12 +17,12 @@ import {
   GripVertical,
   Lock,
   Calculator,
-  ChevronDown,
 } from "lucide-react";
 import { Reorder, useDragControls } from "framer-motion";
 import { useToast } from "@/components/dashboard/Toast";
 import { calcularCotizacion } from "@/lib/cotizador/calcular";
 import type { CotizadorConfig, FaseConfig, DescuentoConfig, ResultadoCotizacion } from "@/types";
+import { NodDoDropdown } from "@/components/ui/NodDoDropdown";
 
 /* ─── Helpers ─── */
 
@@ -112,18 +112,17 @@ function FaseCard({
         {/* Type */}
         <div>
           <label className="block text-[10px] text-[var(--text-muted)] mb-1 uppercase tracking-wider">Tipo</label>
-          <div className="relative">
-            <select
-              value={fase.tipo}
-              onChange={(e) => onChange({ ...fase, tipo: e.target.value as FaseConfig["tipo"] })}
-              className="appearance-none w-full bg-[var(--surface-3)] border border-[var(--border-default)] rounded-lg px-3 py-2 pr-7 text-xs text-white focus:outline-none focus:border-[rgba(var(--site-primary-rgb),0.5)]"
-            >
-              <option value="fijo">Monto fijo</option>
-              <option value="porcentaje">Porcentaje</option>
-              <option value="resto">Resto</option>
-            </select>
-            <ChevronDown size={11} className="absolute right-2 top-1/2 -translate-y-1/2 text-[var(--text-muted)] pointer-events-none" />
-          </div>
+          <NodDoDropdown
+            variant="dashboard"
+            size="sm"
+            value={fase.tipo}
+            onChange={(val) => onChange({ ...fase, tipo: val as FaseConfig["tipo"] })}
+            options={[
+              { value: "fijo", label: "Monto fijo" },
+              { value: "porcentaje", label: "Porcentaje" },
+              { value: "resto", label: "Resto" },
+            ]}
+          />
         </div>
 
         {/* Value */}
@@ -161,18 +160,13 @@ function FaseCard({
         {/* Frequency */}
         <div>
           <label className="block text-[10px] text-[var(--text-muted)] mb-1 uppercase tracking-wider">Frecuencia</label>
-          <div className="relative">
-            <select
-              value={fase.frecuencia}
-              onChange={(e) => onChange({ ...fase, frecuencia: e.target.value as FaseConfig["frecuencia"] })}
-              className="appearance-none w-full bg-[var(--surface-3)] border border-[var(--border-default)] rounded-lg px-3 py-2 pr-7 text-xs text-white focus:outline-none focus:border-[rgba(var(--site-primary-rgb),0.5)]"
-            >
-              {FRECUENCIAS.map((f) => (
-                <option key={f.value} value={f.value}>{f.label}</option>
-              ))}
-            </select>
-            <ChevronDown size={11} className="absolute right-2 top-1/2 -translate-y-1/2 text-[var(--text-muted)] pointer-events-none" />
-          </div>
+          <NodDoDropdown
+            variant="dashboard"
+            size="sm"
+            value={fase.frecuencia}
+            onChange={(val) => onChange({ ...fase, frecuencia: val as FaseConfig["frecuencia"] })}
+            options={FRECUENCIAS.map((f) => ({ value: f.value, label: f.label }))}
+          />
         </div>
       </div>
     </Reorder.Item>
@@ -320,17 +314,14 @@ export default function CotizadorConfigPage() {
           {/* Currency */}
           <div>
             <label className={labelClass}>Moneda</label>
-            <div className="relative w-32">
-              <select
+            <div className="w-32">
+              <NodDoDropdown
+                variant="dashboard"
+                size="md"
                 value={config.moneda}
-                onChange={(e) => saveConfig({ ...config, moneda: e.target.value })}
-                className="appearance-none w-full bg-[var(--surface-3)] border border-[var(--border-default)] rounded-lg px-3 py-2.5 pr-8 text-sm text-white focus:outline-none focus:border-[rgba(var(--site-primary-rgb),0.5)]"
-              >
-                {MONEDAS.map((m) => (
-                  <option key={m.value} value={m.value}>{m.label}</option>
-                ))}
-              </select>
-              <ChevronDown size={12} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-[var(--text-muted)] pointer-events-none" />
+                onChange={(val) => saveConfig({ ...config, moneda: val })}
+                options={MONEDAS.map((m) => ({ value: m.value, label: m.label }))}
+              />
             </div>
           </div>
 
@@ -396,17 +387,16 @@ export default function CotizadorConfigPage() {
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     <div>
                       <label className="block text-[10px] text-[var(--text-muted)] mb-1 uppercase tracking-wider">Tipo</label>
-                      <div className="relative">
-                        <select
-                          value={desc.tipo}
-                          onChange={(e) => updateDescuento(desc.id, { ...desc, tipo: e.target.value as DescuentoConfig["tipo"] })}
-                          className="appearance-none w-full bg-[var(--surface-3)] border border-[var(--border-default)] rounded-lg px-3 py-2 pr-7 text-xs text-white focus:outline-none focus:border-[rgba(var(--site-primary-rgb),0.5)]"
-                        >
-                          <option value="porcentaje">Porcentaje</option>
-                          <option value="fijo">Monto fijo</option>
-                        </select>
-                        <ChevronDown size={11} className="absolute right-2 top-1/2 -translate-y-1/2 text-[var(--text-muted)] pointer-events-none" />
-                      </div>
+                      <NodDoDropdown
+                        variant="dashboard"
+                        size="sm"
+                        value={desc.tipo}
+                        onChange={(val) => updateDescuento(desc.id, { ...desc, tipo: val as DescuentoConfig["tipo"] })}
+                        options={[
+                          { value: "porcentaje", label: "Porcentaje" },
+                          { value: "fijo", label: "Monto fijo" },
+                        ]}
+                      />
                     </div>
                     <div>
                       <label className="block text-[10px] text-[var(--text-muted)] mb-1 uppercase tracking-wider">

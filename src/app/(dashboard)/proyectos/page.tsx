@@ -276,13 +276,14 @@ export default function ProyectosPage() {
             <div className="flex flex-wrap items-center gap-2">
               {/* Search */}
               <div className="relative flex-1 min-w-0 sm:min-w-[200px] max-w-xs">
-                <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--text-muted)]" />
+                <Search size={14} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[var(--text-muted)]" aria-hidden="true" />
                 <input
                   type="text"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   placeholder="Buscar proyecto..."
-                  className="input-glass w-full pl-9 pr-3 py-2 text-xs"
+                  className="input-glass w-full pl-10 pr-3 py-2 text-xs"
+                  aria-label="Buscar proyectos por nombre o slug"
                 />
               </div>
 
@@ -303,8 +304,9 @@ export default function ProyectosPage() {
               <button
                 onClick={() => setSortBy((s) => (s === "reciente" ? "nombre" : "reciente"))}
                 className="flex items-center gap-1.5 px-3 py-2 border border-[var(--border-default)] rounded-[0.625rem] bg-[var(--surface-3)] text-[10px] font-ui font-bold uppercase tracking-wider text-[var(--text-secondary)] hover:text-white hover:border-[var(--border-strong)] transition-all"
+                aria-label={`Ordenar proyectos: ${sortBy === "reciente" ? "más recientes primero" : "alfabéticamente"}`}
               >
-                <ArrowUpDown size={12} />
+                <ArrowUpDown size={12} aria-hidden="true" />
                 {sortBy === "reciente" ? "Reciente" : "A-Z"}
               </button>
             </div>
@@ -439,6 +441,9 @@ export default function ProyectosPage() {
             exit={{ opacity: 0 }}
             className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4"
             onClick={() => !deleting && setDeleteTarget(null)}
+            role="alertdialog"
+            aria-labelledby="delete-dialog-title"
+            aria-describedby="delete-dialog-description"
           >
             <motion.div
               initial={{ scale: 0.95, opacity: 0 }}
@@ -450,10 +455,10 @@ export default function ProyectosPage() {
             >
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-xl bg-red-500/15 flex items-center justify-center shrink-0">
-                  <AlertTriangle size={20} className="text-red-400" />
+                  <AlertTriangle size={20} className="text-red-400" aria-hidden="true" />
                 </div>
                 <div>
-                  <h3 className="text-sm font-medium text-[var(--text-primary)]">
+                  <h3 id="delete-dialog-title" className="text-sm font-medium text-[var(--text-primary)]">
                     {t("proyectos.deleteTitle")}
                   </h3>
                   <p className="text-[11px] text-[var(--text-tertiary)]">
@@ -464,29 +469,32 @@ export default function ProyectosPage() {
                   onClick={() => setDeleteTarget(null)}
                   disabled={deleting}
                   className="ml-auto text-[var(--text-muted)] hover:text-[var(--text-secondary)] transition-colors p-1 rounded-lg hover:bg-white/5"
+                  aria-label="Cerrar diálogo"
                 >
-                  <X size={16} />
+                  <X size={16} aria-hidden="true" />
                 </button>
               </div>
 
-              <p className="text-xs text-[var(--text-secondary)] leading-relaxed">
+              <p id="delete-dialog-description" className="text-xs text-[var(--text-secondary)] leading-relaxed">
                 {t("proyectos.deleteDescription")}
               </p>
 
               <div>
-                <label className="block text-xs text-[var(--text-secondary)] mb-2">
+                <label htmlFor="delete-confirm-input" className="block text-xs text-[var(--text-secondary)] mb-2">
                   {t("proyectos.deleteTypeToConfirm")}{" "}
                   <span className="font-medium text-[var(--text-primary)] font-mono">
                     {deleteTarget.name}
                   </span>
                 </label>
                 <input
+                  id="delete-confirm-input"
                   type="text"
                   value={deleteConfirmText}
                   onChange={(e) => setDeleteConfirmText(e.target.value)}
                   placeholder={deleteTarget.name}
                   className="input-glass w-full"
                   autoFocus
+                  aria-label={`Escribe "${deleteTarget.name}" para confirmar eliminación`}
                 />
               </div>
 
@@ -495,6 +503,7 @@ export default function ProyectosPage() {
                   onClick={() => setDeleteTarget(null)}
                   disabled={deleting}
                   className="flex-1 px-4 py-2.5 font-ui text-xs font-bold uppercase tracking-[0.1em] border border-[var(--border-default)] rounded-[0.75rem] text-[var(--text-secondary)] hover:text-white hover:border-[var(--border-strong)] transition-all"
+                  aria-label="Cancelar eliminación"
                 >
                   Cancelar
                 </button>
@@ -502,8 +511,9 @@ export default function ProyectosPage() {
                   onClick={confirmDelete}
                   disabled={deleting || deleteConfirmText !== deleteTarget.name}
                   className="flex-1 px-4 py-2.5 font-ui text-xs font-bold uppercase tracking-[0.1em] rounded-[0.75rem] flex items-center justify-center gap-2 whitespace-nowrap bg-red-500/15 text-red-400 border border-red-500/20 hover:bg-red-500/25 hover:border-red-500/40 transition-all disabled:opacity-40 disabled:cursor-not-allowed"
+                  aria-label={`Confirmar eliminación del proyecto ${deleteTarget.name}`}
                 >
-                  {deleting ? <Loader2 size={13} className="animate-spin" /> : <Trash2 size={13} />}
+                  {deleting ? <Loader2 size={13} className="animate-spin" aria-hidden="true" /> : <Trash2 size={13} aria-hidden="true" />}
                   {deleting ? t("proyectos.deleting") : t("proyectos.deleteButton")}
                 </button>
               </div>

@@ -5,7 +5,6 @@ import Tilt from "react-parallax-tilt";
 import Link from "next/link";
 import { Edit2, ExternalLink, Trash2, Eye, UserCheck, Zap, Copy, Loader2 } from "lucide-react";
 import { useTranslation } from "@/i18n";
-import { MiniSparkline } from "./MiniSparkline";
 import type { Proyecto } from "@/types";
 
 interface Props {
@@ -113,14 +112,6 @@ export function EnhancedProjectCard({ proyecto, stats, index, isAdmin, onDelete,
             </div>
           </div>
 
-          {/* Sparkline overlay — top right */}
-          {stats?.sparkline && stats.sparkline.length > 0 && (
-            <div className="absolute top-3 right-3 px-2 py-1 rounded-lg backdrop-blur-md bg-black/40 border border-white/10">
-              <div className="w-[60px] h-[20px]">
-                <MiniSparkline data={stats.sparkline} />
-              </div>
-            </div>
-          )}
         </div>
 
         {/* Content */}

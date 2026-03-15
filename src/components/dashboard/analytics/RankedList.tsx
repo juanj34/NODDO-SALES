@@ -1,13 +1,16 @@
 "use client";
 
+import type { LucideIcon } from "lucide-react";
 import type { AnalyticsBreakdown } from "@/types";
 
 interface Props {
   data: AnalyticsBreakdown[];
   maxItems?: number;
+  title?: string;
+  icon?: LucideIcon;
 }
 
-export function RankedList({ data, maxItems = 6 }: Props) {
+export function RankedList({ data, maxItems = 6, title, icon: Icon }: Props) {
   if (data.length === 0) {
     return (
       <div className="flex items-center justify-center py-8 text-[var(--text-muted)] text-xs">
@@ -21,7 +24,16 @@ export function RankedList({ data, maxItems = 6 }: Props) {
   const total = data.reduce((sum, d) => sum + d.count, 0);
 
   return (
-    <div className="flex flex-col gap-2">
+    <div className="glass-card p-5">
+      {title && (
+        <div className="flex items-center gap-2 mb-4">
+          {Icon && <Icon size={14} className="text-[var(--site-primary)]" />}
+          <span className="font-ui text-[10px] font-bold uppercase tracking-[0.12em] text-[var(--text-muted)]">
+            {title}
+          </span>
+        </div>
+      )}
+      <div className="flex flex-col gap-2">
       {items.map((item, idx) => {
         const pct = total > 0 ? Math.round((item.count / total) * 100) : 0;
         const barWidth = Math.max((item.count / maxCount) * 100, 2);
@@ -49,6 +61,7 @@ export function RankedList({ data, maxItems = 6 }: Props) {
           </div>
         );
       })}
+      </div>
     </div>
   );
 }

@@ -16,6 +16,7 @@ import {
   FileText,
 } from "lucide-react";
 import { useTranslation } from "@/i18n";
+import { NodDoDropdown } from "@/components/ui/NodDoDropdown";
 import {
   GHL_BOOKING_URL,
   SUPABASE_FN_URL,
@@ -1007,21 +1008,25 @@ const BookingFlow = ({ onClose }: BookingFlowProps) => {
                 {t("booking.labelPhone")}
               </label>
               <div className="flex gap-2">
-                <select
-                  value={formCountryCode}
-                  onChange={(e) => setFormCountryCode(e.target.value)}
-                  className="input-booking w-[90px] sm:w-[110px] shrink-0 appearance-none cursor-pointer"
-                >
-                  {COUNTRY_CODES.map((c) => (
-                    <option
-                      key={c.code}
-                      value={c.code}
-                      className="bg-[#1a1a1a] text-white"
-                    >
-                      {c.flag} {c.code}
-                    </option>
-                  ))}
-                </select>
+                <div className="w-[90px] sm:w-[110px] shrink-0">
+                  <NodDoDropdown
+                    variant="marketing"
+                    size="md"
+                    value={formCountryCode}
+                    onChange={setFormCountryCode}
+                    options={COUNTRY_CODES.map((c) => ({
+                      value: c.code,
+                      label: c.code,
+                      metadata: { flag: c.flag },
+                    }))}
+                    renderOption={(opt) => (
+                      <span>{opt.metadata?.flag} {opt.label}</span>
+                    )}
+                    renderSelected={(opt) => (
+                      <span>{opt.metadata?.flag} {opt.label}</span>
+                    )}
+                  />
+                </div>
                 <input
                   type="tel"
                   value={formPhone}

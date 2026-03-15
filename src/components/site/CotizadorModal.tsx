@@ -21,6 +21,7 @@ import type { Unidad, Tipologia, CotizadorConfig, ResultadoCotizacion } from "@/
 import { useTranslation, getEstadoConfig } from "@/i18n";
 import { trackEvent } from "@/lib/tracking";
 import { calcularCotizacion } from "@/lib/cotizador/calcular";
+import { NodDoDropdown } from "@/components/ui/NodDoDropdown";
 
 const COUNTRY_CODES = [
   { code: "+57", flag: "\u{1F1E8}\u{1F1F4}", label: "CO" },
@@ -46,18 +47,25 @@ function PhoneInput({
 }) {
   return (
     <div className="flex gap-1.5">
-      <select
-        value={countryCode}
-        onChange={(e) => onCountryChange(e.target.value)}
-        className="input-glass w-[90px] shrink-0 text-xs appearance-none cursor-pointer"
-        style={{ backgroundImage: "none" }}
-      >
-        {COUNTRY_CODES.map((c) => (
-          <option key={c.code} value={c.code}>
-            {c.flag} {c.code}
-          </option>
-        ))}
-      </select>
+      <div className="w-[90px] shrink-0">
+        <NodDoDropdown
+          variant="site"
+          size="sm"
+          value={countryCode}
+          onChange={onCountryChange}
+          options={COUNTRY_CODES.map((c) => ({
+            value: c.code,
+            label: c.code,
+            metadata: { flag: c.flag },
+          }))}
+          renderOption={(opt) => (
+            <span>{opt.metadata?.flag} {opt.label}</span>
+          )}
+          renderSelected={(opt) => (
+            <span>{opt.metadata?.flag} {opt.label}</span>
+          )}
+        />
+      </div>
       <input
         type="tel"
         placeholder="300 000 0000"

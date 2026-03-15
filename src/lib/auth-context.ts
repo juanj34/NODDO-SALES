@@ -4,7 +4,11 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 export type UserRole = "admin" | "colaborador";
 
 export interface AuthContext {
-  user: { id: string; email: string };
+  user: {
+    id: string;
+    email: string;
+    user_metadata?: Record<string, any>;
+  };
   role: UserRole;
   adminUserId: string;
   isPlatformAdmin: boolean;
@@ -44,7 +48,7 @@ export async function getAuthContext(): Promise<AuthContext | null> {
 
   if (collab) {
     return {
-      user: { id: user.id, email: user.email },
+      user: { id: user.id, email: user.email, user_metadata: user.user_metadata },
       role: "colaborador",
       adminUserId: collab.admin_user_id,
       isPlatformAdmin: !!platformAdmin,
@@ -53,7 +57,7 @@ export async function getAuthContext(): Promise<AuthContext | null> {
   }
 
   return {
-    user: { id: user.id, email: user.email },
+    user: { id: user.id, email: user.email, user_metadata: user.user_metadata },
     role: "admin",
     adminUserId: user.id,
     isPlatformAdmin: !!platformAdmin,
@@ -72,7 +76,8 @@ export async function getAccessibleProjectIds(
 
   const { data: assigned } = await auth.supabase
     .from("colaborador_proyectos")
-    .select("proyecto_id");
+    .select("proyecto_id")
+    .eq("colaborador_user_id", auth.user.id);
 
   if (!assigned || assigned.length === 0) return null; // backward compat
   return assigned.map((r: { proyecto_id: string }) => r.proyecto_id);

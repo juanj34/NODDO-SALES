@@ -1,11 +1,12 @@
 "use client";
 
 import { useState, useEffect, useCallback, useMemo } from "react";
-import { Loader2, ChevronDown, ExternalLink, Search, ArrowUpDown, ArrowUp, ArrowDown, X } from "lucide-react";
+import { Loader2, ExternalLink, Search, ArrowUpDown, ArrowUp, ArrowDown, X, Upload } from "lucide-react";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
 import { useTranslation } from "@/i18n";
 import { useToast } from "@/components/dashboard/Toast";
+import { NodDoDropdown } from "@/components/ui/NodDoDropdown";
 
 /* ── Types ─────────────────────────────────────────────── */
 
@@ -61,10 +62,12 @@ export default function DisponibilidadPage() {
   const [projects, setProjects] = useState<ProjectTab[]>([]);
   const [selectedProjectId, setSelectedProjectId] = useState<string | null>(null);
   const [loadingProjects, setLoadingProjects] = useState(true);
+  const [projectsError, setProjectsError] = useState<string | null>(null);
 
   // Units
   const [units, setUnits] = useState<UnitRow[]>([]);
   const [loadingUnits, setLoadingUnits] = useState(false);
+  const [unitsError, setUnitsError] = useState<string | null>(null);
 
   // Filters
   const [filterTorre, setFilterTorre] = useState<string>("all");
@@ -75,6 +78,7 @@ export default function DisponibilidadPage() {
   // Sorting
   const [sortField, setSortField] = useState<SortField | null>(null);
   const [sortDir, setSortDir] = useState<SortDir>("asc");
+  const [publishing, setPublishing] = useState(false);
 
   // Fetch projects
   useEffect(() => {
@@ -89,17 +93,26 @@ export default function DisponibilidadPage() {
           }));
           setProjects(tabs);
           if (tabs.length > 0) setSelectedProjectId(tabs[0].id);
+        } else {
+          const errorData = await res.json().catch(() => ({ error: "Error desconocido" }));
+          setProjectsError(errorData.error || `Error ${res.status}`);
+          toast.error(`Error al cargar proyectos: ${errorData.error || res.status}`);
         }
+      } catch (err) {
+        const msg = err instanceof Error ? err.message : "Error de conexión";
+        setProjectsError(msg);
+        toast.error(`Error al cargar proyectos: ${msg}`);
       } finally {
         setLoadingProjects(false);
       }
     })();
-  }, []);
+  }, [toast]);
 
   // Fetch units when project changes
   useEffect(() => {
     if (!selectedProjectId) return;
     setLoadingUnits(true);
+    setUnitsError(null);
     setFilterTorre("all");
     setFilterTipo("all");
     setFilterEstado("all");
@@ -111,12 +124,20 @@ export default function DisponibilidadPage() {
         const res = await fetch(`/api/unidades?proyecto_id=${selectedProjectId}`);
         if (res.ok) {
           setUnits(await res.json());
+        } else {
+          const errorData = await res.json().catch(() => ({ error: "Error desconocido" }));
+          setUnitsError(errorData.error || `Error ${res.status}`);
+          toast.error(`Error al cargar unidades: ${errorData.error || res.status}`);
         }
+      } catch (err) {
+        const msg = err instanceof Error ? err.message : "Error de conexión";
+        setUnitsError(msg);
+        toast.error(`Error al cargar unidades: ${msg}`);
       } finally {
         setLoadingUnits(false);
       }
     })();
-  }, [selectedProjectId]);
+  }, [selectedProjectId, toast]);
 
   // Derived filter options
   const torres = useMemo(() => {
@@ -177,24 +198,28 @@ export default function DisponibilidadPage() {
 
   const grouped = useMemo(() => {
     const map = new Map<number | null, UnitRow[]>();
+
+    // Group units by floor while preserving sorted order
     for (const u of sortedFiltered) {
       const key = u.piso;
       if (!map.has(key)) map.set(key, []);
       map.get(key)!.push(u);
     }
-    // If sorting by non-piso field, keep piso groups in default desc order
-    if (sortField && sortField !== "piso") {
-      return Array.from(map.entries()).sort((a, b) => (b[0] ?? -1) - (a[0] ?? -1));
+
+    // Keep floors in the order they appear in sortedFiltered
+    // This preserves the sort order chosen by the user
+    const entries: [number | null, UnitRow[]][] = [];
+    const seenFloors = new Set<number | null>();
+
+    for (const u of sortedFiltered) {
+      if (!seenFloors.has(u.piso)) {
+        seenFloors.add(u.piso);
+        entries.push([u.piso, map.get(u.piso)!]);
+      }
     }
-    // If sorting by piso, respect sort direction for group order
-    if (sortField === "piso") {
-      return Array.from(map.entries()).sort((a, b) => {
-        const cmp = (a[0] ?? -1) - (b[0] ?? -1);
-        return sortDir === "desc" ? -cmp : cmp;
-      });
-    }
-    return Array.from(map.entries()).sort((a, b) => (b[0] ?? -1) - (a[0] ?? -1));
-  }, [sortedFiltered, sortField, sortDir]);
+
+    return entries;
+  }, [sortedFiltered]);
 
   // Summary counts
   const summary = useMemo(() => {
@@ -252,11 +277,50 @@ export default function DisponibilidadPage() {
     setSortDir("asc");
   }, []);
 
+  // Publish availability
+  const handlePublishAvailability = useCallback(async () => {
+    if (!selectedProjectId) return;
+
+    setPublishing(true);
+    try {
+      const res = await fetch(`/api/proyectos/${selectedProjectId}/publicar-disponibilidad`, {
+        method: "POST",
+      });
+
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({ error: "Error" }));
+        toast.error(data.error || "Error al publicar disponibilidad");
+        return;
+      }
+
+      const data = await res.json();
+      toast.success(`Disponibilidad publicada: ${data.unidades_count} unidades actualizadas`);
+    } catch {
+      toast.error("Error de conexión");
+    } finally {
+      setPublishing(false);
+    }
+  }, [selectedProjectId, toast]);
+
   // Loading
   if (loadingProjects) {
     return (
       <div className="min-h-[60vh] flex items-center justify-center">
         <Loader2 className="animate-spin text-[var(--site-primary)]" size={28} />
+      </div>
+    );
+  }
+
+  if (projectsError) {
+    return (
+      <div className="p-8 max-w-3xl mx-auto text-center py-24">
+        <h1 className="font-heading text-2xl font-light text-[var(--text-primary)] mb-3">
+          {t("disponibilidad.title")}
+        </h1>
+        <div className="bg-red-500/10 border border-red-500/30 rounded-xl p-6 text-center">
+          <p className="text-sm text-red-400 mb-2">Error al cargar proyectos</p>
+          <p className="text-xs text-red-300/70">{projectsError}</p>
+        </div>
       </div>
     );
   }
@@ -277,13 +341,26 @@ export default function DisponibilidadPage() {
   return (
     <div className="p-4 md:p-8 max-w-6xl mx-auto space-y-6">
       {/* Header */}
-      <div>
-        <h1 className="font-heading text-2xl font-light text-[var(--text-primary)] mb-1">
-          {t("disponibilidad.title")}
-        </h1>
-        <p className="text-xs text-[var(--text-tertiary)]">
-          {t("disponibilidad.description")}
-        </p>
+      <div className="flex items-center justify-between mb-2">
+        <div>
+          <h1 className="font-heading text-2xl font-light text-[var(--text-primary)] mb-1">
+            {t("disponibilidad.title")}
+          </h1>
+          <p className="text-xs text-[var(--text-tertiary)]">
+            {t("disponibilidad.description")}
+          </p>
+        </div>
+
+        {selectedProjectId && units.length > 0 && (
+          <button
+            onClick={handlePublishAvailability}
+            disabled={publishing}
+            className="inline-flex items-center gap-2 px-4 py-2 bg-[rgba(184,151,58,0.1)] border border-[rgba(184,151,58,0.3)] text-[var(--site-primary)] rounded-xl text-xs font-ui font-semibold uppercase tracking-wider hover:bg-[rgba(184,151,58,0.15)] transition-all disabled:opacity-50"
+          >
+            {publishing ? <Loader2 size={14} className="animate-spin" /> : <Upload size={14} />}
+            {publishing ? "Publicando..." : "Publicar disponibilidad"}
+          </button>
+        )}
       </div>
 
       {/* Project tabs */}
@@ -308,6 +385,11 @@ export default function DisponibilidadPage() {
         <div className="flex items-center justify-center py-20">
           <Loader2 className="animate-spin text-[var(--site-primary)]" size={24} />
         </div>
+      ) : unitsError ? (
+        <div className="bg-red-500/10 border border-red-500/30 rounded-xl p-10 text-center">
+          <p className="text-sm text-red-400 mb-2">Error al cargar unidades</p>
+          <p className="text-xs text-red-300/70">{unitsError}</p>
+        </div>
       ) : units.length === 0 ? (
         <div className="bg-[var(--surface-1)] rounded-xl border border-[var(--border-subtle)] p-10 text-center">
           <p className="text-sm text-[var(--text-tertiary)] mb-3">
@@ -327,13 +409,13 @@ export default function DisponibilidadPage() {
           <div className="space-y-3">
             {/* Search bar */}
             <div className="relative">
-              <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--text-muted)]" />
+              <Search size={14} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[var(--text-muted)]" />
               <input
                 type="text"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder="Buscar por identificador o tipología..."
-                className="input-glass text-xs w-full pl-9 pr-8"
+                className="input-glass text-xs w-full pl-10 pr-10"
               />
               {searchQuery && (
                 <button
@@ -349,54 +431,46 @@ export default function DisponibilidadPage() {
             <div className="flex gap-2 flex-wrap items-center">
               {/* Torre filter */}
               {torres.length > 1 && (
-                <div className="relative">
-                  <select
-                    value={filterTorre}
-                    onChange={(e) => setFilterTorre(e.target.value)}
-                    className="input-glass text-xs pr-8 appearance-none cursor-pointer"
-                  >
-                    <option value="all">{t("disponibilidad.allTorres")}</option>
-                    {torres.map((tn) => (
-                      <option key={tn} value={tn}>{tn}</option>
-                    ))}
-                  </select>
-                  <ChevronDown size={12} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-[var(--text-muted)] pointer-events-none" />
-                </div>
+                <NodDoDropdown
+                  variant="dashboard"
+                  size="sm"
+                  value={filterTorre}
+                  onChange={setFilterTorre}
+                  options={[
+                    { value: "all", label: t("disponibilidad.allTorres") },
+                    ...torres.map((tn) => ({ value: tn, label: tn })),
+                  ]}
+                />
               )}
 
               {/* Tipologia filter */}
               {tipologias.length > 1 && (
-                <div className="relative">
-                  <select
-                    value={filterTipo}
-                    onChange={(e) => setFilterTipo(e.target.value)}
-                    className="input-glass text-xs pr-8 appearance-none cursor-pointer"
-                  >
-                    <option value="all">{t("disponibilidad.allTipos")}</option>
-                    {tipologias.map((tn) => (
-                      <option key={tn} value={tn}>{tn}</option>
-                    ))}
-                  </select>
-                  <ChevronDown size={12} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-[var(--text-muted)] pointer-events-none" />
-                </div>
+                <NodDoDropdown
+                  variant="dashboard"
+                  size="sm"
+                  value={filterTipo}
+                  onChange={setFilterTipo}
+                  options={[
+                    { value: "all", label: t("disponibilidad.allTipos") },
+                    ...tipologias.map((tn) => ({ value: tn, label: tn })),
+                  ]}
+                />
               )}
 
               {/* Estado filter */}
-              <div className="relative">
-                <select
-                  value={filterEstado}
-                  onChange={(e) => setFilterEstado(e.target.value)}
-                  className="input-glass text-xs pr-8 appearance-none cursor-pointer"
-                >
-                  <option value="all">Todos los estados</option>
-                  {ESTADOS.map((e) => (
-                    <option key={e.key} value={e.key}>
-                      {e.key.charAt(0).toUpperCase() + e.key.slice(1)}
-                    </option>
-                  ))}
-                </select>
-                <ChevronDown size={12} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-[var(--text-muted)] pointer-events-none" />
-              </div>
+              <NodDoDropdown
+                variant="dashboard"
+                size="sm"
+                value={filterEstado}
+                onChange={setFilterEstado}
+                options={[
+                  { value: "all", label: "Todos los estados" },
+                  ...ESTADOS.map((e) => ({
+                    value: e.key,
+                    label: e.key.charAt(0).toUpperCase() + e.key.slice(1),
+                  })),
+                ]}
+              />
 
               {/* Clear all */}
               {hasActiveFilters && (
@@ -509,6 +583,16 @@ export default function DisponibilidadPage() {
                       <span className="font-ui text-[11px] font-bold uppercase tracking-[0.14em] text-[var(--text-secondary)]">
                         {piso !== null ? `Piso ${piso}` : "Sin piso"}
                       </span>
+                      {sortField && sortField !== "piso" && (
+                        <span className="text-[9px] text-[var(--text-muted)] font-mono">
+                          (ordenado por {
+                            sortField === "precio" ? "precio" :
+                            sortField === "area" ? "área" :
+                            sortField === "estado" ? "estado" :
+                            "ID"
+                          })
+                        </span>
+                      )}
                       <span className="text-[10px] text-[var(--text-muted)]">
                         {floorUnits.length} {floorUnits.length === 1 ? "unidad" : "unidades"}
                       </span>

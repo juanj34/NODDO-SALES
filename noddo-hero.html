@@ -1,0 +1,1232 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NODDO — Hero Concept</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=DM+Mono:wght@300;400;500&family=Syne:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --ink: #0a0a0a;
+  --gold: #b8973a;
+  --gold-light: #d4b05a;
+  --gold-glow: rgba(184,151,58,0.15);
+  --paper: #f4f0e8;
+  --charcoal: #141414;
+  --mid: #6b6560;
+  --available: #4a9e6b;
+  --reserved: #c4853a;
+  --sold: #888;
+}
+
+html { scroll-behavior: smooth; }
+
+body {
+  background: var(--charcoal);
+  color: var(--paper);
+  font-family: 'DM Mono', monospace;
+  overflow-x: hidden;
+  cursor: none;
+}
+
+/* ── CUSTOM CURSOR ── */
+.cursor {
+  position: fixed;
+  width: 8px; height: 8px;
+  background: var(--gold);
+  border-radius: 50%;
+  pointer-events: none;
+  z-index: 9999;
+  transform: translate(-50%, -50%);
+  transition: transform 0.1s, width 0.2s, height 0.2s, background 0.2s;
+  mix-blend-mode: screen;
+}
+
+.cursor-ring {
+  position: fixed;
+  width: 32px; height: 32px;
+  border: 1px solid rgba(184,151,58,0.4);
+  border-radius: 50%;
+  pointer-events: none;
+  z-index: 9998;
+  transform: translate(-50%, -50%);
+  transition: transform 0.15s ease-out, width 0.3s, height 0.3s;
+}
+
+/* ── NOISE OVERLAY ── */
+body::before {
+  content: '';
+  position: fixed; inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.035'/%3E%3C/svg%3E");
+  pointer-events: none;
+  z-index: 100;
+  opacity: 0.5;
+}
+
+/* ── GRID BACKGROUND ── */
+body::after {
+  content: '';
+  position: fixed; inset: 0;
+  background-image:
+    linear-gradient(rgba(184,151,58,0.04) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(184,151,58,0.04) 1px, transparent 1px);
+  background-size: 48px 48px;
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* ── HERO SECTION ── */
+.hero {
+  position: relative;
+  min-height: 100vh;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  align-items: center;
+  padding: 0 80px;
+  gap: 60px;
+  z-index: 1;
+  overflow: hidden;
+}
+
+/* ── LEFT: COPY ── */
+.hero-copy {
+  position: relative;
+  z-index: 2;
+}
+
+.hero-label {
+  font-size: 9px;
+  letter-spacing: 0.4em;
+  text-transform: uppercase;
+  color: var(--gold);
+  margin-bottom: 28px;
+  opacity: 0;
+  animation: fadeUp 0.8s 0.2s ease forwards;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.hero-label::before {
+  content: '';
+  width: 32px; height: 1px;
+  background: var(--gold);
+}
+
+.hero-title {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: clamp(48px, 6vw, 86px);
+  font-weight: 300;
+  line-height: 1.05;
+  letter-spacing: -0.02em;
+  margin-bottom: 28px;
+  opacity: 0;
+  animation: fadeUp 0.8s 0.4s ease forwards;
+}
+
+.hero-title em {
+  font-style: italic;
+  color: var(--gold-light);
+}
+
+.hero-sub {
+  font-size: 13px;
+  line-height: 1.8;
+  color: rgba(244,240,232,0.5);
+  max-width: 380px;
+  margin-bottom: 48px;
+  opacity: 0;
+  animation: fadeUp 0.8s 0.6s ease forwards;
+}
+
+.hero-sub strong { color: var(--paper); font-weight: 400; }
+
+.hero-ctas {
+  display: flex;
+  gap: 16px;
+  align-items: center;
+  opacity: 0;
+  animation: fadeUp 0.8s 0.8s ease forwards;
+}
+
+.btn-primary {
+  display: inline-block;
+  padding: 14px 32px;
+  background: var(--gold);
+  color: var(--charcoal);
+  font-family: 'Syne', sans-serif;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  text-decoration: none;
+  border: none;
+  cursor: none;
+  transition: background 0.2s, transform 0.2s;
+}
+
+.btn-primary:hover { background: var(--gold-light); transform: translateY(-1px); }
+
+.btn-ghost {
+  display: inline-block;
+  padding: 14px 32px;
+  border: 1px solid rgba(244,240,232,0.15);
+  color: rgba(244,240,232,0.6);
+  font-family: 'Syne', sans-serif;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  text-decoration: none;
+  cursor: none;
+  transition: border-color 0.2s, color 0.2s;
+}
+
+.btn-ghost:hover { border-color: var(--gold); color: var(--gold); }
+
+.hero-stats {
+  display: flex;
+  gap: 40px;
+  margin-top: 60px;
+  padding-top: 40px;
+  border-top: 1px solid rgba(244,240,232,0.06);
+  opacity: 0;
+  animation: fadeUp 0.8s 1s ease forwards;
+}
+
+.stat-value {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 36px;
+  font-weight: 300;
+  color: var(--gold-light);
+  line-height: 1;
+  margin-bottom: 4px;
+}
+
+.stat-label {
+  font-size: 9px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: rgba(244,240,232,0.3);
+}
+
+/* ── RIGHT: BUILDING SCENE ── */
+.hero-visual {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100vh;
+  opacity: 0;
+  animation: fadeIn 1.2s 0.5s ease forwards;
+}
+
+.scene-wrapper {
+  position: relative;
+  width: 520px;
+  height: 520px;
+}
+
+/* ── ISOMETRIC BUILDING SVG ── */
+.building-svg {
+  position: absolute;
+  top: 50%; left: 50%;
+  transform: translate(-50%, -50%);
+  width: 460px;
+  filter: drop-shadow(0 40px 80px rgba(0,0,0,0.8));
+}
+
+/* ── FLOATING ELEMENTS ── */
+.float-el {
+  position: absolute;
+  opacity: 0;
+  transition: opacity 0.5s ease, transform 0.5s ease;
+}
+
+.float-el.visible {
+  opacity: 1;
+}
+
+/* Floor plan card */
+.card-floorplan {
+  top: 2%;
+  left: -8%;
+  width: 180px;
+  background: rgba(20,20,20,0.95);
+  border: 1px solid rgba(184,151,58,0.25);
+  padding: 14px;
+  backdrop-filter: blur(12px);
+  transform: translateX(-20px);
+}
+
+.card-floorplan.visible { transform: translateX(0); }
+
+/* Price tag */
+.card-price {
+  top: 22%;
+  right: -5%;
+  background: var(--gold);
+  color: var(--charcoal);
+  padding: 12px 18px;
+  transform: translateX(20px);
+}
+
+.card-price.visible { transform: translateX(0); }
+
+/* Availability */
+.card-avail {
+  bottom: 28%;
+  left: -10%;
+  width: 160px;
+  background: rgba(20,20,20,0.95);
+  border: 1px solid rgba(255,255,255,0.06);
+  padding: 14px;
+  transform: translateX(-20px);
+}
+
+.card-avail.visible { transform: translateX(0); }
+
+/* Lead notification */
+.card-lead {
+  bottom: 8%;
+  right: -2%;
+  width: 200px;
+  background: rgba(20,20,20,0.95);
+  border: 1px solid rgba(74,158,107,0.3);
+  padding: 14px;
+  transform: translateX(20px);
+}
+
+.card-lead.visible { transform: translateX(0); }
+
+/* Progress card */
+.card-progress {
+  top: 50%;
+  right: -8%;
+  width: 170px;
+  background: rgba(20,20,20,0.95);
+  border: 1px solid rgba(255,255,255,0.06);
+  padding: 14px;
+  transform: translateX(20px) translateY(-50%);
+}
+
+.card-progress.visible { transform: translateX(0) translateY(-50%); }
+
+/* ── CARD INTERNALS ── */
+.card-tag {
+  font-size: 8px;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  color: var(--gold);
+  margin-bottom: 8px;
+  display: block;
+}
+
+.card-tag.green { color: var(--available); }
+.card-tag.white { color: var(--charcoal); }
+
+.card-main {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 22px;
+  font-weight: 300;
+  color: var(--paper);
+  line-height: 1.1;
+  margin-bottom: 4px;
+}
+
+.card-main.dark { color: var(--charcoal); font-size: 26px; }
+
+.card-sub {
+  font-size: 9px;
+  color: rgba(244,240,232,0.4);
+  letter-spacing: 0.1em;
+}
+
+.card-sub.dark { color: rgba(28,28,28,0.6); }
+
+/* mini floor plan svg */
+.mini-plan {
+  width: 100%;
+  height: 60px;
+  margin-bottom: 8px;
+}
+
+/* availability dots */
+.avail-row {
+  display: flex;
+  gap: 4px;
+  flex-wrap: wrap;
+  margin-top: 8px;
+}
+
+.avail-dot {
+  width: 10px; height: 10px;
+  border-radius: 1px;
+}
+
+/* progress bar */
+.prog-bar {
+  height: 3px;
+  background: rgba(255,255,255,0.08);
+  margin-top: 8px;
+  position: relative;
+  overflow: hidden;
+}
+
+.prog-fill {
+  position: absolute;
+  top: 0; left: 0;
+  height: 100%;
+  background: var(--gold);
+  width: 0%;
+  transition: width 1.5s 0.3s ease;
+}
+
+.prog-fill.animated { width: 68%; }
+
+/* lead dot pulse */
+.lead-dot {
+  width: 8px; height: 8px;
+  background: var(--available);
+  border-radius: 50%;
+  display: inline-block;
+  margin-right: 6px;
+  position: relative;
+}
+
+.lead-dot::after {
+  content: '';
+  position: absolute;
+  inset: -4px;
+  border-radius: 50%;
+  background: rgba(74,158,107,0.2);
+  animation: pulse 2s infinite;
+}
+
+/* glow behind building */
+.building-glow {
+  position: absolute;
+  top: 50%; left: 50%;
+  transform: translate(-50%, -50%);
+  width: 300px; height: 300px;
+  background: radial-gradient(circle, rgba(184,151,58,0.08) 0%, transparent 70%);
+  border-radius: 50%;
+  pointer-events: none;
+}
+
+/* ── UNIT HIGHLIGHTS on building ── */
+.unit-highlight {
+  position: absolute;
+  border: 1px solid rgba(184,151,58,0.6);
+  background: rgba(184,151,58,0.08);
+  opacity: 0;
+  transition: opacity 0.5s ease;
+  cursor: none;
+}
+
+.unit-highlight.visible { opacity: 1; }
+.unit-highlight:hover { background: rgba(184,151,58,0.2); border-color: var(--gold); }
+
+/* ── SCROLL SECTION ── */
+.scroll-section {
+  position: relative;
+  z-index: 1;
+  padding: 120px 80px;
+  border-top: 1px solid rgba(255,255,255,0.04);
+}
+
+.section-label {
+  font-size: 9px;
+  letter-spacing: 0.4em;
+  text-transform: uppercase;
+  color: var(--gold);
+  margin-bottom: 60px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.section-label::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: rgba(255,255,255,0.06);
+}
+
+.features-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1px;
+  background: rgba(255,255,255,0.04);
+}
+
+.feature-cell {
+  background: var(--charcoal);
+  padding: 40px 36px;
+  opacity: 0;
+  transform: translateY(30px);
+  transition: opacity 0.6s ease, transform 0.6s ease;
+}
+
+.feature-cell.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.feature-number {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 48px;
+  font-weight: 300;
+  color: rgba(184,151,58,0.2);
+  line-height: 1;
+  margin-bottom: 20px;
+}
+
+.feature-title {
+  font-family: 'Syne', sans-serif;
+  font-size: 13px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  margin-bottom: 12px;
+  color: var(--paper);
+}
+
+.feature-body {
+  font-size: 12px;
+  line-height: 1.8;
+  color: rgba(244,240,232,0.4);
+}
+
+/* ── COMPARISON STRIP ── */
+.comparison {
+  padding: 120px 80px;
+  border-top: 1px solid rgba(255,255,255,0.04);
+  position: relative;
+  z-index: 1;
+}
+
+.vs-grid {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  gap: 60px;
+  align-items: center;
+}
+
+.vs-side { }
+.vs-label {
+  font-family: 'Syne', sans-serif;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  margin-bottom: 24px;
+}
+
+.vs-label.them { color: rgba(255,255,255,0.2); }
+.vs-label.us { color: var(--gold); }
+
+.vs-item {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+  padding: 14px 0;
+  border-bottom: 1px solid rgba(255,255,255,0.04);
+  font-size: 13px;
+  color: rgba(255,255,255,0.3);
+}
+
+.vs-item.us-item { color: rgba(244,240,232,0.8); }
+
+.vs-item::before {
+  content: '✗';
+  color: rgba(255,80,80,0.4);
+  font-size: 12px;
+  flex-shrink: 0;
+}
+
+.vs-item.us-item::before { content: '✓'; color: var(--available); }
+
+.vs-divider {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+}
+
+.vs-word {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 48px;
+  font-weight: 300;
+  font-style: italic;
+  color: rgba(255,255,255,0.1);
+  writing-mode: vertical-rl;
+  text-orientation: mixed;
+  letter-spacing: 0.1em;
+}
+
+/* ── NAV ── */
+nav {
+  position: fixed;
+  top: 0; left: 0; right: 0;
+  z-index: 50;
+  padding: 24px 80px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: linear-gradient(to bottom, rgba(20,20,20,0.9), transparent);
+  backdrop-filter: blur(8px);
+}
+
+.nav-logo {
+  font-family: 'Syne', sans-serif;
+  font-size: 20px;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  color: var(--paper);
+}
+
+.nav-logo span { color: var(--gold); }
+
+.nav-links {
+  display: flex;
+  gap: 40px;
+  list-style: none;
+}
+
+.nav-links a {
+  font-size: 10px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: rgba(244,240,232,0.4);
+  text-decoration: none;
+  transition: color 0.2s;
+  cursor: none;
+}
+
+.nav-links a:hover { color: var(--gold); }
+
+.nav-cta {
+  font-family: 'Syne', sans-serif;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--charcoal);
+  background: var(--gold);
+  padding: 10px 22px;
+  text-decoration: none;
+  cursor: none;
+  transition: background 0.2s;
+}
+
+.nav-cta:hover { background: var(--gold-light); }
+
+/* ── SCROLL INDICATOR ── */
+.scroll-hint {
+  position: absolute;
+  bottom: 40px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  opacity: 0;
+  animation: fadeIn 1s 2s ease forwards;
+}
+
+.scroll-hint span {
+  font-size: 8px;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  color: rgba(244,240,232,0.2);
+}
+
+.scroll-line {
+  width: 1px;
+  height: 40px;
+  background: linear-gradient(to bottom, rgba(184,151,58,0.6), transparent);
+  animation: scrollPulse 2s infinite;
+}
+
+/* ── ANIMATIONS ── */
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(24px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes pulse {
+  0%, 100% { transform: scale(1); opacity: 1; }
+  50% { transform: scale(2.5); opacity: 0; }
+}
+
+@keyframes scrollPulse {
+  0%, 100% { opacity: 0.6; transform: scaleY(1); }
+  50% { opacity: 0.2; transform: scaleY(0.6); }
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-8px); }
+}
+
+.building-svg { animation: float 6s ease-in-out infinite; }
+
+/* window blink on building */
+@keyframes winBlink {
+  0%, 90%, 100% { opacity: 0.5; }
+  95% { opacity: 1; }
+}
+
+/* ── CTA SECTION ── */
+.cta-section {
+  position: relative;
+  z-index: 1;
+  padding: 140px 80px;
+  text-align: center;
+  border-top: 1px solid rgba(255,255,255,0.04);
+}
+
+.cta-title {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: clamp(48px, 6vw, 96px);
+  font-weight: 300;
+  line-height: 1.1;
+  margin-bottom: 24px;
+  letter-spacing: -0.02em;
+}
+
+.cta-title em { font-style: italic; color: var(--gold-light); }
+
+.cta-sub {
+  font-size: 13px;
+  color: rgba(244,240,232,0.4);
+  margin-bottom: 48px;
+  letter-spacing: 0.05em;
+}
+
+/* ── FOOTER ── */
+footer {
+  position: relative;
+  z-index: 1;
+  padding: 40px 80px;
+  border-top: 1px solid rgba(255,255,255,0.04);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.footer-logo {
+  font-family: 'Syne', sans-serif;
+  font-size: 16px;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  color: rgba(244,240,232,0.2);
+}
+
+.footer-logo span { color: rgba(184,151,58,0.4); }
+
+footer p {
+  font-size: 10px;
+  color: rgba(244,240,232,0.15);
+  letter-spacing: 0.2em;
+}
+</style>
+</head>
+<body>
+
+<div class="cursor" id="cursor"></div>
+<div class="cursor-ring" id="cursorRing"></div>
+
+<!-- NAV -->
+<nav>
+  <div class="nav-logo">NOD<span>DO</span></div>
+  <ul class="nav-links">
+    <li><a href="#">Producto</a></li>
+    <li><a href="#">Precios</a></li>
+    <li><a href="#">Casos</a></li>
+    <li><a href="#">Contacto</a></li>
+  </ul>
+  <a href="#" class="nav-cta">Demo gratis</a>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+  <!-- COPY LEFT -->
+  <div class="hero-copy">
+    <div class="hero-label">Plataforma de showroom digital</div>
+    <h1 class="hero-title">
+      Lo que antes<br>
+      tardaba <em>4 meses,</em><br>
+      hoy es 1 día.
+    </h1>
+    <p class="hero-sub">
+      NODDO le da a tu proyecto una <strong>sala de ventas digital premium</strong> — con inventario en vivo, exploración de unidades, y captura de leads — sin agencia, sin código, sin esperar.
+    </p>
+    <div class="hero-ctas">
+      <a href="#" class="btn-primary">Empezar gratis</a>
+      <a href="#" class="btn-ghost">Ver demo en vivo</a>
+    </div>
+    <div class="hero-stats">
+      <div>
+        <div class="stat-value">1 día</div>
+        <div class="stat-label">De idea a publicado</div>
+      </div>
+      <div>
+        <div class="stat-value">$0</div>
+        <div class="stat-label">Costo de agencia</div>
+      </div>
+      <div>
+        <div class="stat-value">24/7</div>
+        <div class="stat-label">Sala de ventas activa</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- VISUAL RIGHT -->
+  <div class="hero-visual" id="heroVisual">
+    <div class="scene-wrapper">
+
+      <!-- GLOW -->
+      <div class="building-glow"></div>
+
+      <!-- ISOMETRIC BUILDING -->
+      <svg class="building-svg" viewBox="0 0 460 500" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <linearGradient id="facadeLeft" x1="0" y1="0" x2="1" y2="0">
+            <stop offset="0%" stop-color="#1a1a1a"/>
+            <stop offset="100%" stop-color="#242424"/>
+          </linearGradient>
+          <linearGradient id="facadeRight" x1="0" y1="0" x2="1" y2="0">
+            <stop offset="0%" stop-color="#111111"/>
+            <stop offset="100%" stop-color="#181818"/>
+          </linearGradient>
+          <linearGradient id="roofGrad" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stop-color="#2a2a2a"/>
+            <stop offset="100%" stop-color="#1c1c1c"/>
+          </linearGradient>
+          <linearGradient id="goldEdge" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stop-color="#d4b05a" stop-opacity="0.8"/>
+            <stop offset="100%" stop-color="#b8973a" stop-opacity="0.3"/>
+          </linearGradient>
+          <linearGradient id="windowGlow" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0%" stop-color="#d4b05a" stop-opacity="0.15"/>
+            <stop offset="100%" stop-color="#b8973a" stop-opacity="0.05"/>
+          </linearGradient>
+        </defs>
+
+        <!-- SHADOW -->
+        <ellipse cx="230" cy="488" rx="140" ry="12" fill="rgba(0,0,0,0.4)"/>
+
+        <!-- BASE PLATFORM -->
+        <polygon points="80,420 230,460 380,420 230,380" fill="#1a1a1a" stroke="rgba(184,151,58,0.2)" stroke-width="1"/>
+        <polygon points="80,420 80,430 230,470 230,460" fill="#111"/>
+        <polygon points="380,420 380,430 230,470 230,460" fill="#161616"/>
+
+        <!-- BUILDING LEFT FACE (10 floors) -->
+        <polygon points="80,420 80,120 230,80 230,380" fill="url(#facadeLeft)"/>
+
+        <!-- LEFT FACE WINDOWS -->
+        <!-- Floor 1 -->
+        <rect x="92" y="390" width="22" height="14" rx="1" fill="rgba(184,151,58,0.08)" stroke="rgba(184,151,58,0.15)" stroke-width="0.5"/>
+        <rect x="120" y="390" width="22" height="14" rx="1" fill="rgba(184,151,58,0.12)" stroke="rgba(184,151,58,0.2)" stroke-width="0.5"/>
+        <rect x="148" y="388" width="22" height="14" rx="1" fill="rgba(184,151,58,0.06)" stroke="rgba(184,151,58,0.12)" stroke-width="0.5"/>
+        <rect x="176" y="386" width="22" height="14" rx="1" fill="rgba(184,151,58,0.15)" stroke="rgba(184,151,58,0.25)" stroke-width="0.5"/>
+        <rect x="204" y="384" width="22" height="14" rx="1" fill="rgba(184,151,58,0.08)" stroke="rgba(184,151,58,0.15)" stroke-width="0.5"/>
+
+        <!-- Floor 2 -->
+        <rect x="92" y="360" width="22" height="14" rx="1" fill="rgba(184,151,58,0.15)" stroke="rgba(184,151,58,0.25)" stroke-width="0.5"/>
+        <rect x="120" y="358" width="22" height="14" rx="1" fill="rgba(184,151,58,0.06)" stroke="rgba(184,151,58,0.12)" stroke-width="0.5"/>
+        <rect x="148" y="356" width="22" height="14" rx="1" fill="rgba(184,151,58,0.2)" stroke="rgba(184,151,58,0.35)" stroke-width="0.5"/>
+        <rect x="176" y="354" width="22" height="14" rx="1" fill="rgba(184,151,58,0.08)" stroke="rgba(184,151,58,0.15)" stroke-width="0.5"/>
+        <rect x="204" y="352" width="22" height="14" rx="1" fill="rgba(184,151,58,0.12)" stroke="rgba(184,151,58,0.2)" stroke-width="0.5"/>
+
+        <!-- Floor 3 -->
+        <rect x="92" y="330" width="22" height="14" rx="1" fill="rgba(184,151,58,0.08)" stroke="rgba(184,151,58,0.15)" stroke-width="0.5"/>
+        <rect x="120" y="328" width="22" height="14" rx="1" fill="rgba(184,151,58,0.18)" stroke="rgba(184,151,58,0.3)" stroke-width="0.5"/>
+        <rect x="148" y="326" width="22" height="14" rx="1" fill="rgba(184,151,58,0.06)" stroke="rgba(184,151,58,0.12)" stroke-width="0.5"/>
+        <rect x="176" y="324" width="22" height="14" rx="1" fill="rgba(184,151,58,0.12)" stroke="rgba(184,151,58,0.2)" stroke-width="0.5"/>
+        <rect x="204" y="322" width="22" height="14" rx="1" fill="rgba(184,151,58,0.08)" stroke="rgba(184,151,58,0.15)" stroke-width="0.5"/>
+
+        <!-- Floor 4 -->
+        <rect x="95" y="300" width="22" height="14" rx="1" fill="rgba(184,151,58,0.12)" stroke="rgba(184,151,58,0.2)" stroke-width="0.5"/>
+        <rect x="123" y="297" width="22" height="14" rx="1" fill="rgba(184,151,58,0.06)" stroke="rgba(184,151,58,0.12)" stroke-width="0.5"/>
+        <rect x="151" y="294" width="22" height="14" rx="1" fill="rgba(184,151,58,0.2)" stroke="rgba(184,151,58,0.35)" stroke-width="0.5" style="animation: winBlink 4s 1s infinite;"/>
+        <rect x="179" y="291" width="22" height="14" rx="1" fill="rgba(184,151,58,0.08)" stroke="rgba(184,151,58,0.15)" stroke-width="0.5"/>
+        <rect x="207" y="288" width="22" height="14" rx="1" fill="rgba(184,151,58,0.15)" stroke="rgba(184,151,58,0.25)" stroke-width="0.5"/>
+
+        <!-- Floor 5 -->
+        <rect x="98" y="268" width="22" height="14" rx="1" fill="rgba(184,151,58,0.06)" stroke="rgba(184,151,58,0.12)" stroke-width="0.5"/>
+        <rect x="126" y="265" width="22" height="14" rx="1" fill="rgba(184,151,58,0.15)" stroke="rgba(184,151,58,0.25)" stroke-width="0.5"/>
+        <rect x="154" y="262" width="22" height="14" rx="1" fill="rgba(184,151,58,0.08)" stroke="rgba(184,151,58,0.15)" stroke-width="0.5"/>
+        <rect x="182" y="259" width="22" height="14" rx="1" fill="rgba(184,151,58,0.12)" stroke="rgba(184,151,58,0.2)" stroke-width="0.5"/>
+        <rect x="210" y="256" width="22" height="14" rx="1" fill="rgba(184,151,58,0.18)" stroke="rgba(184,151,58,0.3)" stroke-width="0.5"/>
+
+        <!-- Floor 6 -->
+        <rect x="101" y="236" width="22" height="14" rx="1" fill="rgba(184,151,58,0.2)" stroke="rgba(184,151,58,0.35)" stroke-width="0.5"/>
+        <rect x="129" y="233" width="22" height="14" rx="1" fill="rgba(184,151,58,0.08)" stroke="rgba(184,151,58,0.15)" stroke-width="0.5"/>
+        <rect x="157" y="230" width="22" height="14" rx="1" fill="rgba(184,151,58,0.12)" stroke="rgba(184,151,58,0.2)" stroke-width="0.5"/>
+        <rect x="185" y="227" width="22" height="14" rx="1" fill="rgba(184,151,58,0.06)" stroke="rgba(184,151,58,0.12)" stroke-width="0.5"/>
+        <rect x="213" y="224" width="22" height="14" rx="1" fill="rgba(184,151,58,0.15)" stroke="rgba(184,151,58,0.25)" stroke-width="0.5"/>
+
+        <!-- Floor 7 -->
+        <rect x="104" y="204" width="22" height="14" rx="1" fill="rgba(184,151,58,0.08)" stroke="rgba(184,151,58,0.15)" stroke-width="0.5"/>
+        <rect x="132" y="201" width="22" height="14" rx="1" fill="rgba(184,151,58,0.18)" stroke="rgba(184,151,58,0.3)" stroke-width="0.5"/>
+        <rect x="160" y="198" width="22" height="14" rx="1" fill="rgba(184,151,58,0.06)" stroke="rgba(184,151,58,0.12)" stroke-width="0.5"/>
+        <rect x="188" y="195" width="22" height="14" rx="1" fill="rgba(184,151,58,0.12)" stroke="rgba(184,151,58,0.2)" stroke-width="0.5"/>
+        <rect x="216" y="192" width="22" height="14" rx="1" fill="rgba(184,151,58,0.08)" stroke="rgba(184,151,58,0.15)" stroke-width="0.5"/>
+
+        <!-- Floor 8 -->
+        <rect x="107" y="172" width="22" height="14" rx="1" fill="rgba(184,151,58,0.15)" stroke="rgba(184,151,58,0.25)" stroke-width="0.5"/>
+        <rect x="135" y="169" width="22" height="14" rx="1" fill="rgba(184,151,58,0.06)" stroke="rgba(184,151,58,0.12)" stroke-width="0.5"/>
+        <rect x="163" y="166" width="22" height="14" rx="1" fill="rgba(184,151,58,0.2)" stroke="rgba(184,151,58,0.35)" stroke-width="0.5"/>
+        <rect x="191" y="163" width="22" height="14" rx="1" fill="rgba(184,151,58,0.08)" stroke="rgba(184,151,58,0.15)" stroke-width="0.5"/>
+        <rect x="219" y="160" width="22" height="14" rx="1" fill="rgba(184,151,58,0.12)" stroke="rgba(184,151,58,0.2)" stroke-width="0.5"/>
+
+        <!-- Floor 9 -->
+        <rect x="110" y="140" width="22" height="14" rx="1" fill="rgba(184,151,58,0.08)" stroke="rgba(184,151,58,0.15)" stroke-width="0.5"/>
+        <rect x="138" y="137" width="22" height="14" rx="1" fill="rgba(184,151,58,0.12)" stroke="rgba(184,151,58,0.2)" stroke-width="0.5"/>
+        <rect x="166" y="134" width="22" height="14" rx="1" fill="rgba(184,151,58,0.06)" stroke="rgba(184,151,58,0.12)" stroke-width="0.5"/>
+        <rect x="194" y="131" width="22" height="14" rx="1" fill="rgba(184,151,58,0.18)" stroke="rgba(184,151,58,0.3)" stroke-width="0.5"/>
+        <rect x="222" y="128" width="22" height="14" rx="1" fill="rgba(184,151,58,0.08)" stroke="rgba(184,151,58,0.15)" stroke-width="0.5"/>
+
+        <!-- Floor 10 -->
+        <rect x="113" y="108" width="22" height="14" rx="1" fill="rgba(184,151,58,0.2)" stroke="rgba(184,151,58,0.35)" stroke-width="0.5"/>
+        <rect x="141" y="105" width="22" height="14" rx="1" fill="rgba(184,151,58,0.08)" stroke="rgba(184,151,58,0.15)" stroke-width="0.5"/>
+        <rect x="169" y="102" width="22" height="14" rx="1" fill="rgba(184,151,58,0.15)" stroke="rgba(184,151,58,0.25)" stroke-width="0.5"/>
+        <rect x="197" y="99" width="22" height="14" rx="1" fill="rgba(184,151,58,0.06)" stroke="rgba(184,151,58,0.12)" stroke-width="0.5"/>
+        <rect x="225" y="96" width="22" height="14" rx="1" fill="rgba(184,151,58,0.12)" stroke="rgba(184,151,58,0.2)" stroke-width="0.5"/>
+
+        <!-- BUILDING RIGHT FACE -->
+        <polygon points="230,380 230,80 380,120 380,420" fill="url(#facadeRight)"/>
+
+        <!-- Right face windows -->
+        <rect x="242" y="384" width="20" height="13" rx="1" fill="rgba(255,255,255,0.03)" stroke="rgba(255,255,255,0.06)" stroke-width="0.5"/>
+        <rect x="268" y="386" width="20" height="13" rx="1" fill="rgba(255,255,255,0.05)" stroke="rgba(255,255,255,0.08)" stroke-width="0.5"/>
+        <rect x="294" y="388" width="20" height="13" rx="1" fill="rgba(255,255,255,0.03)" stroke="rgba(255,255,255,0.06)" stroke-width="0.5"/>
+        <rect x="320" y="390" width="20" height="13" rx="1" fill="rgba(255,255,255,0.05)" stroke="rgba(255,255,255,0.08)" stroke-width="0.5"/>
+        <rect x="346" y="392" width="20" height="13" rx="1" fill="rgba(255,255,255,0.03)" stroke="rgba(255,255,255,0.06)" stroke-width="0.5"/>
+
+        <rect x="244" y="352" width="20" height="13" rx="1" fill="rgba(255,255,255,0.05)" stroke="rgba(255,255,255,0.08)" stroke-width="0.5"/>
+        <rect x="270" y="354" width="20" height="13" rx="1" fill="rgba(255,255,255,0.03)" stroke="rgba(255,255,255,0.06)" stroke-width="0.5"/>
+        <rect x="296" y="356" width="20" height="13" rx="1" fill="rgba(255,255,255,0.06)" stroke="rgba(255,255,255,0.1)" stroke-width="0.5"/>
+        <rect x="322" y="358" width="20" height="13" rx="1" fill="rgba(255,255,255,0.03)" stroke="rgba(255,255,255,0.06)" stroke-width="0.5"/>
+        <rect x="348" y="360" width="20" height="13" rx="1" fill="rgba(255,255,255,0.05)" stroke="rgba(255,255,255,0.08)" stroke-width="0.5"/>
+
+        <rect x="246" y="320" width="20" height="13" rx="1" fill="rgba(255,255,255,0.03)" stroke="rgba(255,255,255,0.06)" stroke-width="0.5"/>
+        <rect x="272" y="322" width="20" height="13" rx="1" fill="rgba(255,255,255,0.06)" stroke="rgba(255,255,255,0.1)" stroke-width="0.5"/>
+        <rect x="298" y="324" width="20" height="13" rx="1" fill="rgba(255,255,255,0.03)" stroke="rgba(255,255,255,0.06)" stroke-width="0.5"/>
+        <rect x="324" y="326" width="20" height="13" rx="1" fill="rgba(255,255,255,0.05)" stroke="rgba(255,255,255,0.08)" stroke-width="0.5"/>
+        <rect x="350" y="328" width="20" height="13" rx="1" fill="rgba(255,255,255,0.03)" stroke="rgba(255,255,255,0.06)" stroke-width="0.5"/>
+
+        <!-- ROOF -->
+        <polygon points="80,120 230,80 380,120 230,160" fill="url(#roofGrad)"/>
+        <!-- Roof detail lines -->
+        <line x1="80" y1="120" x2="230" y2="160" stroke="rgba(184,151,58,0.15)" stroke-width="0.5"/>
+        <line x1="380" y1="120" x2="230" y2="160" stroke="rgba(184,151,58,0.1)" stroke-width="0.5"/>
+        <line x1="80" y1="120" x2="230" y2="80" stroke="rgba(184,151,58,0.2)" stroke-width="0.5"/>
+        <line x1="380" y1="120" x2="230" y2="80" stroke="rgba(184,151,58,0.15)" stroke-width="0.5"/>
+        <!-- Roof accent -->
+        <polygon points="200,90 230,82 260,90 230,98" fill="rgba(184,151,58,0.1)" stroke="rgba(184,151,58,0.3)" stroke-width="0.5"/>
+
+        <!-- EDGES in gold -->
+        <!-- Left edge -->
+        <line x1="80" y1="120" x2="80" y2="420" stroke="url(#goldEdge)" stroke-width="1"/>
+        <!-- Center edge -->
+        <line x1="230" y1="80" x2="230" y2="380" stroke="url(#goldEdge)" stroke-width="1.5"/>
+        <!-- Right edge -->
+        <line x1="380" y1="120" x2="380" y2="420" stroke="rgba(184,151,58,0.2)" stroke-width="0.5"/>
+
+        <!-- Floor separation lines - left -->
+        <line x1="80" y1="390" x2="230" y2="370" stroke="rgba(184,151,58,0.06)" stroke-width="0.5"/>
+        <line x1="80" y1="360" x2="230" y2="340" stroke="rgba(184,151,58,0.06)" stroke-width="0.5"/>
+        <line x1="80" y1="330" x2="230" y2="310" stroke="rgba(184,151,58,0.06)" stroke-width="0.5"/>
+        <line x1="80" y1="300" x2="230" y2="280" stroke="rgba(184,151,58,0.06)" stroke-width="0.5"/>
+        <line x1="80" y1="270" x2="230" y2="250" stroke="rgba(184,151,58,0.06)" stroke-width="0.5"/>
+        <line x1="80" y1="240" x2="230" y2="220" stroke="rgba(184,151,58,0.06)" stroke-width="0.5"/>
+        <line x1="80" y1="210" x2="230" y2="190" stroke="rgba(184,151,58,0.06)" stroke-width="0.5"/>
+        <line x1="80" y1="180" x2="230" y2="160" stroke="rgba(184,151,58,0.06)" stroke-width="0.5"/>
+        <line x1="80" y1="150" x2="230" y2="130" stroke="rgba(184,151,58,0.06)" stroke-width="0.5"/>
+
+        <!-- GROUND FLOOR entrance -->
+        <rect x="195" y="395" width="30" height="20" rx="1" fill="rgba(184,151,58,0.06)" stroke="rgba(184,151,58,0.2)" stroke-width="0.5"/>
+        <line x1="210" y1="395" x2="210" y2="415" stroke="rgba(184,151,58,0.15)" stroke-width="0.5"/>
+
+        <!-- NODDO Grid highlight — 3 units on floor 4 left face, highlighted -->
+        <rect x="148" y="294" width="22" height="14" rx="1" fill="rgba(184,151,58,0.35)" stroke="rgba(184,151,58,0.8)" stroke-width="1" id="selectedUnit"/>
+      </svg>
+
+      <!-- FLOATING CARDS -->
+
+      <!-- Floor Plan -->
+      <div class="float-el card-floorplan" id="cardFloorplan">
+        <span class="card-tag">Plano — Tipo B</span>
+        <svg class="mini-plan" viewBox="0 0 150 55">
+          <!-- Simple floor plan lines -->
+          <rect x="5" y="5" width="140" height="45" fill="none" stroke="rgba(184,151,58,0.3)" stroke-width="1"/>
+          <line x1="80" y1="5" x2="80" y2="50" stroke="rgba(184,151,58,0.2)" stroke-width="0.5"/>
+          <line x1="5" y1="30" x2="80" y2="30" stroke="rgba(184,151,58,0.2)" stroke-width="0.5"/>
+          <rect x="10" y="8" width="25" height="19" fill="rgba(184,151,58,0.06)" stroke="rgba(184,151,58,0.15)" stroke-width="0.5"/>
+          <rect x="40" y="8" width="35" height="19" fill="rgba(184,151,58,0.08)" stroke="rgba(184,151,58,0.15)" stroke-width="0.5"/>
+          <rect x="84" y="8" width="55" height="42" fill="rgba(184,151,58,0.05)" stroke="rgba(184,151,58,0.12)" stroke-width="0.5"/>
+          <rect x="10" y="33" width="35" height="17" fill="rgba(184,151,58,0.08)" stroke="rgba(184,151,58,0.15)" stroke-width="0.5"/>
+          <!-- bathroom -->
+          <rect x="50" y="33" width="25" height="17" fill="rgba(184,151,58,0.04)" stroke="rgba(184,151,58,0.1)" stroke-width="0.5"/>
+          <ellipse cx="62" cy="42" rx="6" ry="4" fill="none" stroke="rgba(184,151,58,0.2)" stroke-width="0.5"/>
+        </svg>
+        <div class="card-sub">78 m² · 2 hab · 2 baños</div>
+      </div>
+
+      <!-- Price -->
+      <div class="float-el card-price" id="cardPrice">
+        <span class="card-tag white">Piso 4 · Unidad 4C</span>
+        <div class="card-main dark">$287,000</div>
+        <div class="card-sub dark">USD · Precio de lanzamiento</div>
+      </div>
+
+      <!-- Availability -->
+      <div class="float-el card-avail" id="cardAvail">
+        <span class="card-tag">Disponibilidad</span>
+        <div class="avail-row">
+          <div class="avail-dot" style="background:#4a9e6b;" title="Disponible"></div>
+          <div class="avail-dot" style="background:#4a9e6b;"></div>
+          <div class="avail-dot" style="background:#c4853a;"></div>
+          <div class="avail-dot" style="background:#4a9e6b;"></div>
+          <div class="avail-dot" style="background:#888;"></div>
+          <div class="avail-dot" style="background:#4a9e6b;"></div>
+          <div class="avail-dot" style="background:#4a9e6b;"></div>
+          <div class="avail-dot" style="background:#888;"></div>
+          <div class="avail-dot" style="background:#c4853a;"></div>
+          <div class="avail-dot" style="background:#4a9e6b;"></div>
+          <div class="avail-dot" style="background:#4a9e6b;"></div>
+          <div class="avail-dot" style="background:#888;"></div>
+        </div>
+        <div style="display:flex;gap:12px;margin-top:10px;">
+          <span style="font-size:9px;color:var(--available);">● Disponible</span>
+          <span style="font-size:9px;color:var(--reserved);">● Separado</span>
+          <span style="font-size:9px;color:var(--sold);">● Vendido</span>
+        </div>
+      </div>
+
+      <!-- Lead notification -->
+      <div class="float-el card-lead" id="cardLead">
+        <div style="display:flex;align-items:center;margin-bottom:8px;">
+          <span class="lead-dot"></span>
+          <span class="card-tag green" style="margin-bottom:0;">Nuevo lead</span>
+        </div>
+        <div class="card-main" style="font-size:16px;margin-bottom:4px;">María García</div>
+        <div class="card-sub">Interesada en Piso 4 · Tipo B<br>Fuente: Instagram Ads</div>
+      </div>
+
+      <!-- Progress -->
+      <div class="float-el card-progress" id="cardProgress">
+        <span class="card-tag">Avance de obra</span>
+        <div class="card-main" style="font-size:28px;">68%</div>
+        <div class="prog-bar"><div class="prog-fill" id="progFill"></div></div>
+        <div class="card-sub" style="margin-top:8px;">Entrega: Q2 2026</div>
+      </div>
+
+    </div><!-- /scene-wrapper -->
+  </div><!-- /hero-visual -->
+
+  <div class="scroll-hint">
+    <div class="scroll-line"></div>
+    <span>Scroll</span>
+  </div>
+</section>
+
+<!-- FEATURES -->
+<section class="scroll-section">
+  <div style="max-width:1200px;margin:0 auto;">
+    <div class="section-label">Por qué NODDO</div>
+    <div class="features-grid">
+      <div class="feature-cell" data-scroll>
+        <div class="feature-number">01</div>
+        <div class="feature-title">El Noddo Grid</div>
+        <div class="feature-body">El comprador hace clic en la fachada real del edificio y ve precio, área, plano y disponibilidad — sin llamar, sin esperar, sin formularios genéricos.</div>
+      </div>
+      <div class="feature-cell" data-scroll style="transition-delay:0.1s">
+        <div class="feature-number">02</div>
+        <div class="feature-title">Un día, no 4 meses</div>
+        <div class="feature-body">Lo que las agencias especializadas tardan meses en construir, tú lo configuras en una tarde. Sin coordinación externa, sin dependencias.</div>
+      </div>
+      <div class="feature-cell" data-scroll style="transition-delay:0.2s">
+        <div class="feature-number">03</div>
+        <div class="feature-title">Inventario en vivo</div>
+        <div class="feature-body">Disponible → Separado → Reservado → Vendido. El estado de cada unidad se actualiza en tiempo real. El comprador ve la verdad.</div>
+      </div>
+      <div class="feature-cell" data-scroll style="transition-delay:0.3s">
+        <div class="feature-number">04</div>
+        <div class="feature-title">Leads calificados</div>
+        <div class="feature-body">Cada cotización viene con la unidad específica, tipología, piso, y UTM de origen. No hay leads genéricos — solo compradores con intención real.</div>
+      </div>
+      <div class="feature-cell" data-scroll style="transition-delay:0.4s">
+        <div class="feature-number">05</div>
+        <div class="feature-title">Multi-proyecto</div>
+        <div class="feature-body">Lanzas cinco proyectos en un año. Todos desde un solo dashboard. Sin contratar una agencia por cada uno. Sin volverte loco.</div>
+      </div>
+      <div class="feature-cell" data-scroll style="transition-delay:0.5s">
+        <div class="feature-number">06</div>
+        <div class="feature-title">Dark-luxury by default</div>
+        <div class="feature-body">Cada micrositio se ve como si lo hubiera hecho una agencia de $30M. El estándar visual está incluido. Tú solo pones el proyecto.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- COMPARISON -->
+<section class="comparison">
+  <div style="max-width:1000px;margin:0 auto;">
+    <div class="section-label">La alternativa real</div>
+    <div class="vs-grid">
+      <div class="vs-side">
+        <div class="vs-label them">Agencia de visualización 3D</div>
+        <div class="vs-item">$30,000 – $80,000 por proyecto</div>
+        <div class="vs-item">3 a 6 meses de desarrollo</div>
+        <div class="vs-item">Cada cambio requiere coordinación</div>
+        <div class="vs-item">Inventario siempre desactualizado</div>
+        <div class="vs-item">No captura leads ni UTMs</div>
+        <div class="vs-item">No escala entre proyectos</div>
+      </div>
+      <div class="vs-divider">
+        <div class="vs-word">vs</div>
+      </div>
+      <div class="vs-side">
+        <div class="vs-label us">NODDO</div>
+        <div class="vs-item us-item">Desde $149 / mes</div>
+        <div class="vs-item us-item">Publicado en 1 día</div>
+        <div class="vs-item us-item">Editas tú, en tiempo real</div>
+        <div class="vs-item us-item">Inventario siempre actualizado</div>
+        <div class="vs-item us-item">Leads con UTM por unidad</div>
+        <div class="vs-item us-item">Multi-proyecto en un dashboard</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- CTA -->
+<section class="cta-section">
+  <h2 class="cta-title">Tu edificio merece<br>mostrarse <em>como lo que es.</em></h2>
+  <p class="cta-sub">14 días gratis. Sin tarjeta de crédito. Sin agencia.</p>
+  <div style="display:flex;gap:16px;justify-content:center;">
+    <a href="#" class="btn-primary" style="font-size:12px;padding:16px 40px;">Crear mi sala de ventas</a>
+    <a href="#" class="btn-ghost" style="font-size:12px;padding:16px 40px;">Ver demo en vivo</a>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div class="footer-logo">NOD<span>DO</span></div>
+  <p>© 2025 Noddo Technologies · Todos los derechos reservados</p>
+  <p>noddo.io</p>
+</footer>
+
+<script>
+// ── CUSTOM CURSOR ──
+const cursor = document.getElementById('cursor');
+const ring = document.getElementById('cursorRing');
+let mx = 0, my = 0, rx = 0, ry = 0;
+
+document.addEventListener('mousemove', e => {
+  mx = e.clientX; my = e.clientY;
+  cursor.style.left = mx + 'px';
+  cursor.style.top = my + 'px';
+});
+
+function animRing() {
+  rx += (mx - rx) * 0.12;
+  ry += (my - ry) * 0.12;
+  ring.style.left = rx + 'px';
+  ring.style.top = ry + 'px';
+  requestAnimationFrame(animRing);
+}
+animRing();
+
+document.querySelectorAll('a, button').forEach(el => {
+  el.addEventListener('mouseenter', () => {
+    cursor.style.width = '16px';
+    cursor.style.height = '16px';
+    ring.style.width = '48px';
+    ring.style.height = '48px';
+  });
+  el.addEventListener('mouseleave', () => {
+    cursor.style.width = '8px';
+    cursor.style.height = '8px';
+    ring.style.width = '32px';
+    ring.style.height = '32px';
+  });
+});
+
+// ── FLOATING CARD ANIMATION ──
+// Staggered reveal on load
+const cards = [
+  { el: document.getElementById('cardFloorplan'), delay: 1200 },
+  { el: document.getElementById('cardPrice'), delay: 1600 },
+  { el: document.getElementById('cardAvail'), delay: 2000 },
+  { el: document.getElementById('cardProgress'), delay: 2400 },
+  { el: document.getElementById('cardLead'), delay: 2800 },
+];
+
+cards.forEach(({ el, delay }) => {
+  setTimeout(() => {
+    el.classList.add('visible');
+    // trigger progress bar
+    if (el.id === 'cardProgress') {
+      setTimeout(() => {
+        document.getElementById('progFill').classList.add('animated');
+      }, 300);
+    }
+  }, delay);
+});
+
+// ── SCROLL ANIMATIONS ──
+const observer = new IntersectionObserver((entries) => {
+  entries.forEach(entry => {
+    if (entry.isIntersecting) {
+      entry.target.classList.add('visible');
+    }
+  });
+}, { threshold: 0.15 });
+
+document.querySelectorAll('[data-scroll]').forEach(el => observer.observe(el));
+
+// ── UNIT HIGHLIGHT PULSE ──
+const selectedUnit = document.getElementById('selectedUnit');
+let highlighted = true;
+setInterval(() => {
+  highlighted = !highlighted;
+  if (highlighted) {
+    selectedUnit.setAttribute('fill', 'rgba(184,151,58,0.35)');
+    selectedUnit.setAttribute('stroke', 'rgba(184,151,58,0.8)');
+    selectedUnit.setAttribute('stroke-width', '1');
+  } else {
+    selectedUnit.setAttribute('fill', 'rgba(184,151,58,0.15)');
+    selectedUnit.setAttribute('stroke', 'rgba(184,151,58,0.4)');
+    selectedUnit.setAttribute('stroke-width', '0.5');
+  }
+}, 1800);
+
+// ── PARALLAX on building ──
+document.addEventListener('mousemove', e => {
+  const cx = window.innerWidth / 2;
+  const cy = window.innerHeight / 2;
+  const dx = (e.clientX - cx) / cx;
+  const dy = (e.clientY - cy) / cy;
+  const svg = document.querySelector('.building-svg');
+  if (svg) {
+    svg.style.transform = `translate(-50%, -50%) rotateY(${dx * 3}deg) rotateX(${-dy * 2}deg)`;
+  }
+});
+</script>
+</body>
+</html>

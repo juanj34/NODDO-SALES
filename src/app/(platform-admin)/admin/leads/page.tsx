@@ -127,13 +127,13 @@ export default function AdminLeadsPage() {
 
       {/* Search */}
       <div className="relative max-w-sm">
-        <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--text-muted)]" />
+        <Search size={14} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[var(--text-muted)]" />
         <input
           type="text"
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           placeholder="Buscar por nombre, email o proyecto..."
-          className="input-glass w-full pl-9 text-sm"
+          className="input-glass w-full pl-10 text-sm"
         />
       </div>
 

@@ -12,9 +12,10 @@ import {
   emptyStateDescription,
 } from "@/components/dashboard/editor-styles";
 import { cn } from "@/lib/utils";
-import { Package, ChevronDown, Upload, Loader2 } from "lucide-react";
+import { Package, Upload, Loader2 } from "lucide-react";
 import { useToast } from "@/components/dashboard/Toast";
 import type { Unidad } from "@/types";
+import { NodDoDropdown } from "@/components/ui/NodDoDropdown";
 
 type EstadoUnidad = Unidad["estado"];
 
@@ -168,34 +169,28 @@ export default function DisponibilidadPage() {
       {/* Filters */}
       <div className="flex flex-wrap items-center gap-3 mb-6">
         {torres.length > 1 && (
-          <div className="relative">
-            <select
-              value={filterTorre}
-              onChange={(e) => setFilterTorre(e.target.value)}
-              className="appearance-none bg-[var(--surface-2)] border border-[var(--border-default)] rounded-lg px-3 py-2 pr-8 text-xs text-[var(--text-secondary)] font-ui uppercase tracking-wider focus:outline-none focus:border-[rgba(var(--site-primary-rgb),0.5)]"
-            >
-              <option value="">Todas las torres</option>
-              {torres.map((t) => (
-                <option key={t.id} value={t.id}>{t.nombre}</option>
-              ))}
-            </select>
-            <ChevronDown size={12} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-[var(--text-muted)] pointer-events-none" />
-          </div>
+          <NodDoDropdown
+            variant="dashboard"
+            size="sm"
+            value={filterTorre}
+            onChange={setFilterTorre}
+            options={[
+              { value: "", label: "Todas las torres" },
+              ...torres.map((t) => ({ value: t.id, label: t.nombre })),
+            ]}
+          />
         )}
         {tipologias.length > 1 && (
-          <div className="relative">
-            <select
-              value={filterTipo}
-              onChange={(e) => setFilterTipo(e.target.value)}
-              className="appearance-none bg-[var(--surface-2)] border border-[var(--border-default)] rounded-lg px-3 py-2 pr-8 text-xs text-[var(--text-secondary)] font-ui uppercase tracking-wider focus:outline-none focus:border-[rgba(var(--site-primary-rgb),0.5)]"
-            >
-              <option value="">Todas las tipologías</option>
-              {tipologias.map((t) => (
-                <option key={t.id} value={t.id}>{t.nombre}</option>
-              ))}
-            </select>
-            <ChevronDown size={12} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-[var(--text-muted)] pointer-events-none" />
-          </div>
+          <NodDoDropdown
+            variant="dashboard"
+            size="sm"
+            value={filterTipo}
+            onChange={setFilterTipo}
+            options={[
+              { value: "", label: "Todas las tipologías" },
+              ...tipologias.map((t) => ({ value: t.id, label: t.nombre })),
+            ]}
+          />
         )}
       </div>
 

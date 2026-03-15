@@ -1,10 +1,11 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { Eye, Users, UserCheck, Zap, ChevronDown } from "lucide-react";
+import { Eye, Users, UserCheck, Zap } from "lucide-react";
 import { AnimatedCounter } from "./AnimatedCounter";
 import { MiniSparkline } from "./MiniSparkline";
 import { useTranslation } from "@/i18n";
+import { NodDoDropdown } from "@/components/ui/NodDoDropdown";
 import type { DashboardSummary } from "@/types";
 
 interface Props {
@@ -57,19 +58,14 @@ export function DashboardKPIStrip({ data, projects, selectedProjectId, onSelectP
           <span className="font-ui text-[9px] font-bold uppercase tracking-[0.14em] text-[var(--text-muted)]">
             {t("home.last7Days")}
           </span>
-          <div className="relative">
-            <select
-              value={selectedProjectId || "all"}
-              onChange={(e) => onSelectProject(e.target.value === "all" ? null : e.target.value)}
-              className="appearance-none bg-[var(--surface-2)] border border-[var(--border-subtle)] rounded-lg px-3 py-1.5 pr-7 text-[10px] font-ui font-bold uppercase tracking-[0.08em] text-[var(--text-secondary)] cursor-pointer hover:border-[var(--border-default)] transition-colors focus:outline-none focus:ring-1 focus:ring-[rgba(184,151,58,0.3)]"
-            >
-              <option value="all">{t("sidebar.allProjects")}</option>
-              {projects.map((p) => (
-                <option key={p.id} value={p.id}>{p.nombre}</option>
-              ))}
-            </select>
-            <ChevronDown size={10} className="absolute right-2 top-1/2 -translate-y-1/2 text-[var(--text-muted)] pointer-events-none" />
-          </div>
+          <NodDoDropdown
+            value={selectedProjectId || "all"}
+            onChange={(val) => onSelectProject(val === "all" ? null : val)}
+            options={[
+              { value: "all", label: t("sidebar.allProjects") },
+              ...projects.map((p) => ({ value: p.id, label: p.nombre })),
+            ]}
+          />
         </div>
       )}
 

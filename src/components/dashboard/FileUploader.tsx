@@ -6,6 +6,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import { ImageCropper } from "@/components/dashboard/ImageCropper";
 import { compressImage } from "@/lib/compress-image";
 import { useTranslation } from "@/i18n";
+import { UploadProgress, UploadProgressOverlay, type UploadState } from "@/components/ui/UploadProgress";
 
 /* ------------------------------------------------------------------
    Types
@@ -89,7 +90,8 @@ export function FileUploader({
   const { t } = useTranslation("editor");
   const [uploading, setUploading] = useState(false);
   const [compressing, setCompressing] = useState(false);
-  const [videoProgress, setVideoProgress] = useState(0);
+  const [uploadState, setUploadState] = useState<UploadState>("idle");
+  const [uploadProgressPercent, setUploadProgressPercent] = useState(0);
   const [uploadError, setUploadError] = useState<string | null>(null);
   const [uploadProgress, setUploadProgress] = useState({ done: 0, total: 0 });
   const [preview, setPreview] = useState<string | null>(currentUrl || null);
@@ -127,11 +129,14 @@ export function FileUploader({
       // Compress large images client-side before uploading
       let fileToUpload = file;
       if (file.type.startsWith("image/") && file.size > 4 * 1024 * 1024) {
-        setCompressing(true);
+        setUploadState("processing");
+        setUploadProgressPercent(0);
         try {
           fileToUpload = await compressImage(file);
+          setUploadProgressPercent(100);
         } finally {
-          setCompressing(false);
+          setUploadState("uploading");
+          setUploadProgressPercent(0);
         }
       }
 
@@ -142,17 +147,23 @@ export function FileUploader({
 
       // Compress large videos client-side (FFmpeg WASM, lazy-loaded)
       if (file.type.startsWith("video/") && file.size > 5 * 1024 * 1024) {
-        setCompressing(true);
-        setVideoProgress(0);
+        setUploadState("processing");
+        setUploadProgressPercent(0);
         try {
           const { compressVideo } = await import("@/lib/compress-video");
           fileToUpload = await compressVideo(file, (ratio) => {
-            setVideoProgress(Math.round(ratio * 100));
+            setUploadProgressPercent(Math.round(ratio * 100));
           });
         } finally {
-          setCompressing(false);
-          setVideoProgress(0);
+          setUploadState("uploading");
+          setUploadProgressPercent(0);
         }
+      }
+
+      // Set uploading state
+      if (uploadState !== "uploading") {
+        setUploadState("uploading");
+        setUploadProgressPercent(0);
       }
 
       const formData = new FormData();
@@ -170,9 +181,13 @@ export function FileUploader({
         throw new Error(data.error || t("fileUploader.uploadError"));
       }
 
+      // Simulate upload progress complete
+      setUploadProgressPercent(100);
+      setUploadState("complete");
+
       return await res.json();
     },
-    [folder, t]
+    [folder, t, uploadState]
   );
 
   const uploadBlob = useCallback(
@@ -203,16 +218,26 @@ export function FileUploader({
   const processSingleFile = useCallback(
     async (file: File) => {
       setUploadError(null);
+      setUploadState("idle");
+      setUploadProgressPercent(0);
       const isImage = file.type.startsWith("image/");
       if (!isImage) {
         // Non-image: upload directly
         setUploading(true);
+        setUploadState("uploading");
         try {
           const result = await uploadSingleFile(file);
           onUpload(result.url);
           setPreview(result.url);
+          setUploadState("complete");
+          // Reset after brief delay
+          setTimeout(() => setUploadState("idle"), 1500);
         } catch (err) {
-          setUploadError(t("fileUploader.uploadFailed", { error: err instanceof Error ? err.message : t("fileUploader.uploadError") }));
+          const errorMsg = t("fileUploader.uploadFailed", { error: err instanceof Error ? err.message : t("fileUploader.uploadError") });
+          setUploadError(errorMsg);
+          setUploadState("error");
+          // Reset error state after delay
+          setTimeout(() => setUploadState("idle"), 3000);
         } finally {
           setUploading(false);
         }
@@ -251,13 +276,19 @@ export function FileUploader({
         // No crop needed - upload directly
         setPreview(objectUrl);
         setUploading(true);
+        setUploadState("uploading");
         try {
           const result = await uploadSingleFile(file);
           onUpload(result.url);
           setPreview(result.url);
+          setUploadState("complete");
+          setTimeout(() => setUploadState("idle"), 1500);
         } catch (err) {
-          setUploadError(t("fileUploader.uploadFailed", { error: err instanceof Error ? err.message : t("fileUploader.uploadError") }));
+          const errorMsg = t("fileUploader.uploadFailed", { error: err instanceof Error ? err.message : t("fileUploader.uploadError") });
+          setUploadError(errorMsg);
           setPreview(null);
+          setUploadState("error");
+          setTimeout(() => setUploadState("idle"), 3000);
         } finally {
           setUploading(false);
         }
@@ -265,13 +296,19 @@ export function FileUploader({
         URL.revokeObjectURL(objectUrl);
         // If dimension check fails, upload anyway
         setUploading(true);
+        setUploadState("uploading");
         try {
           const result = await uploadSingleFile(file);
           onUpload(result.url);
           setPreview(result.url);
+          setUploadState("complete");
+          setTimeout(() => setUploadState("idle"), 1500);
         } catch (err) {
-          setUploadError(t("fileUploader.uploadFailed", { error: err instanceof Error ? err.message : t("fileUploader.uploadError") }));
+          const errorMsg = t("fileUploader.uploadFailed", { error: err instanceof Error ? err.message : t("fileUploader.uploadError") });
+          setUploadError(errorMsg);
           setPreview(null);
+          setUploadState("error");
+          setTimeout(() => setUploadState("idle"), 3000);
         } finally {
           setUploading(false);
         }
@@ -514,67 +551,56 @@ export function FileUploader({
             >
               <X size={14} />
             </button>
-            {/* Compressing / Uploading overlay */}
-            {(uploading || compressing) && (
-              <div className="absolute inset-0 bg-black/60 backdrop-blur-sm flex flex-col items-center justify-center gap-3 px-6">
-                <Loader2 size={24} className="animate-spin text-[var(--site-primary)]" />
-                {compressing && videoProgress > 0 ? (
-                  <>
-                    <div className="w-full max-w-[180px] h-1 bg-white/10 rounded-full overflow-hidden">
-                      <div
-                        className="h-full bg-[var(--site-primary)] rounded-full transition-all duration-300"
-                        style={{ width: `${videoProgress}%` }}
-                      />
-                    </div>
-                    <span className="text-[11px] text-[var(--text-tertiary)]">
-                      {t("fileUploader.optimizingVideo")} {videoProgress}%
-                    </span>
-                    <span className="text-[10px] text-[var(--text-muted)] text-center">
-                      {t("fileUploader.canContinueWorking")}
-                    </span>
-                  </>
-                ) : compressing ? (
-                  <span className="text-[11px] text-[var(--text-tertiary)]">{t("fileUploader.compressingFile")}</span>
-                ) : null}
-              </div>
-            )}
+            {/* Upload progress overlay */}
+            <AnimatePresence>
+              {uploadState !== "idle" && (
+                <UploadProgressOverlay
+                  state={uploadState}
+                  progress={uploadProgressPercent}
+                  error={uploadError}
+                  label={
+                    uploadState === "processing"
+                      ? t("fileUploader.compressingFile")
+                      : uploadState === "uploading"
+                      ? t("fileUploader.uploading")
+                      : uploadState === "complete"
+                      ? t("fileUploader.uploadComplete")
+                      : undefined
+                  }
+                  message={
+                    uploadState === "processing"
+                      ? t("fileUploader.canContinueWorking")
+                      : undefined
+                  }
+                />
+              )}
+            </AnimatePresence>
           </>
         ) : (
           <button
             onClick={() => inputRef.current?.click()}
-            disabled={uploading || compressing}
+            disabled={uploading || uploadState === "processing"}
             className="w-full h-full flex flex-col items-center justify-center gap-2 text-[var(--text-muted)] hover:text-[var(--text-tertiary)] transition-colors"
           >
-            {compressing ? (
-              <div className="flex flex-col items-center gap-3 px-6 text-center">
-                <Loader2 size={24} className="animate-spin text-[var(--site-primary)]" />
-                {videoProgress > 0 ? (
-                  <>
-                    <div className="w-full max-w-[200px] h-1 bg-white/10 rounded-full overflow-hidden">
-                      <div
-                        className="h-full bg-[var(--site-primary)] rounded-full transition-all duration-300"
-                        style={{ width: `${videoProgress}%` }}
-                      />
-                    </div>
-                    <span className="text-xs text-[var(--text-tertiary)]">
-                      {t("fileUploader.optimizingVideo")} {videoProgress}%
-                    </span>
-                    <span className="text-[10px] text-[var(--text-muted)]">
-                      {t("fileUploader.canContinueWorking")}
-                    </span>
-                  </>
-                ) : (
-                  <span className="text-xs text-[var(--text-tertiary)]">{t("fileUploader.compressing")}</span>
-                )}
+            {uploadState === "processing" || uploadState === "uploading" ? (
+              <div className="w-full max-w-[240px] px-6">
+                <UploadProgress
+                  state={uploadState}
+                  progress={uploadProgressPercent}
+                  variant="circular"
+                  label={
+                    uploadState === "processing"
+                      ? t("fileUploader.compressingFile")
+                      : t("fileUploader.uploading")
+                  }
+                />
               </div>
-            ) : uploading ? (
+            ) : uploading && showProgress ? (
               <div className="flex flex-col items-center gap-2">
                 <Loader2 size={24} className="animate-spin text-[var(--site-primary)]" />
-                {showProgress && (
-                  <span className="text-xs text-[var(--text-tertiary)]">
-                    {uploadProgress.done}/{uploadProgress.total} {t("fileUploader.images")}
-                  </span>
-                )}
+                <span className="text-xs text-[var(--text-tertiary)]">
+                  {uploadProgress.done}/{uploadProgress.total} {t("fileUploader.images")}
+                </span>
               </div>
             ) : isDragging ? (
               <>

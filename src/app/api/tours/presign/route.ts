@@ -39,7 +39,7 @@ export async function POST(request: NextRequest) {
         sendFeatureBlocked({
           email: auth.user.email,
           name: auth.user.user_metadata?.full_name || auth.user.email.split("@")[0],
-          feature: FEATURE_LABELS.tour_360,
+          feature: FEATURE_LABELS.tour_360.es,
           currentPlan: planAccess.currentPlan,
           requiredPlan: planAccess.requiredPlan,
         }).catch((err) => {
