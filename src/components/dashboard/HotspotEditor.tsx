@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useCallback } from "react";
+import { useState, useRef, useCallback, type SetStateAction } from "react";
 import type { TipologiaHotspot } from "@/types";
 import { FileUploader } from "./FileUploader";
 import { useHotspotCanvas } from "@/hooks/useHotspotCanvas";
@@ -33,6 +33,7 @@ export function HotspotEditor({
   } | null>(null);
   const [newLabel, setNewLabel] = useState("");
   const [newRenderUrl, setNewRenderUrl] = useState("");
+  const [, setTick] = useState(0);
 
   // Use shared hotspot canvas hook for image bounds & coordinate conversion
   const { toPercent, toPx } = useHotspotCanvas(containerRef, imgRef);

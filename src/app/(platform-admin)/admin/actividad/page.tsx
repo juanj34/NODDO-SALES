@@ -22,12 +22,13 @@ const ACTION_CONFIG: Record<AuditAction, { label: string; color: string; bg: str
   admin_added: { label: "Admin agregado", color: "text-green-400", bg: "bg-green-500/15" },
   admin_removed: { label: "Admin removido", color: "text-red-400", bg: "bg-red-500/15" },
   features_updated: { label: "Features actualizadas", color: "text-[var(--site-primary)]", bg: "bg-[rgba(184,151,58,0.15)]" },
+  project_moderated: { label: "Moderado", color: "text-blue-400", bg: "bg-blue-500/15" },
 };
 
 const ALL_ACTIONS: AuditAction[] = [
   "user_banned", "user_unbanned", "user_deleted",
   "plan_changed", "project_archived", "project_deleted",
-  "admin_added", "admin_removed", "features_updated",
+  "admin_added", "admin_removed", "features_updated", "project_moderated",
 ];
 
 export default function AdminActividadPage() {

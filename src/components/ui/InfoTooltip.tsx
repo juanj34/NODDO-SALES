@@ -61,10 +61,15 @@ export function InfoTooltip({
   const [isOpen, setIsOpen] = useState(false);
   const [isPinned, setIsPinned] = useState(false);
   const [position, setPosition] = useState<TooltipPosition | null>(null);
+  const [isMounted, setIsMounted] = useState(false);
 
   const triggerRef = useRef<HTMLButtonElement>(null);
   const tooltipRef = useRef<HTMLDivElement>(null);
   const hoverTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
 
   const vStyles = variantStyles[variant];
 
@@ -289,7 +294,7 @@ export function InfoTooltip({
   };
 
   // Animation variants
-  const tooltipVariants = {
+  const tooltipVariants: import("framer-motion").Variants = {
     hidden: (p: PlacementType) => ({
       opacity: 0,
       y: p === "top" ? 4 : p === "bottom" ? -4 : 0,

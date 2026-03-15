@@ -51,16 +51,16 @@ interface UserDetail {
 }
 
 const PLAN_COLORS: Record<string, string> = {
-  basic: "text-neutral-400 bg-neutral-500/15 border-neutral-500/20",
-  premium: "text-[var(--site-primary)] bg-[rgba(184,151,58,0.15)] border-[rgba(184,151,58,0.20)]",
+  proyecto: "text-neutral-400 bg-neutral-500/15 border-neutral-500/20",
+  studio: "text-[var(--site-primary)] bg-[rgba(184,151,58,0.15)] border-[rgba(184,151,58,0.20)]",
   enterprise: "text-[#E5E7EB] bg-[rgba(229,231,235,0.15)] border-[rgba(229,231,235,0.20)]",
 };
 
-const PLANS = ["basic", "premium", "enterprise"] as const;
+const PLANS = ["proyecto", "studio", "enterprise"] as const;
 
 const PLAN_LABELS: Record<string, string> = {
-  basic: "Basic",
-  premium: "Premium",
+  proyecto: "Proyecto",
+  studio: "Studio",
   enterprise: "Enterprise",
 };
 
@@ -374,9 +374,9 @@ export default function AdminUsuariosPage() {
                                 setChangingPlan(null);
                               } else {
                                 setChangingPlan(user.id);
-                                const plan = user.plan || "basic";
+                                const plan = user.plan || "proyecto";
                                 setSelectedPlan(plan);
-                                const defaults = PLAN_DEFAULTS[plan as keyof typeof PLAN_DEFAULTS] || PLAN_DEFAULTS.basic;
+                                const defaults = PLAN_DEFAULTS[plan as keyof typeof PLAN_DEFAULTS] || PLAN_DEFAULTS.proyecto;
                                 setCustomMaxProjects(user.maxProjects ?? defaults.max_projects);
                                 setCustomMaxUnits(defaults.max_units_per_project);
                                 setCustomMaxCollabs(defaults.max_collaborators);

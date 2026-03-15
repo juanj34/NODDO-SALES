@@ -44,7 +44,7 @@ export default function AdminModeracionPage() {
   const [actionLoading, setActionLoading] = useState<string | null>(null);
 
   const toast = useToast();
-  const confirm = useConfirm();
+  const { confirm } = useConfirm();
 
   const fetchData = async () => {
     setLoading(true);

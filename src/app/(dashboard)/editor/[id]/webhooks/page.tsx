@@ -16,7 +16,7 @@ import {
 import { PageHeader } from "@/components/dashboard/base/PageHeader";
 import { cn } from "@/lib/utils";
 import { InfoTooltip } from "@/components/ui/InfoTooltip";
-import { useLanguage } from "@/i18n/LanguageProvider";
+import tooltips from "@/i18n/locales/es/tooltips";
 import {
   Webhook,
   Check,
@@ -38,7 +38,6 @@ import type { WebhookConfig, WebhookLog } from "@/types";
 export default function WebhooksPage() {
   const { project } = useEditorProject();
   const toast = useToast();
-  const { t } = useLanguage();
 
   const [enabled, setEnabled] = useState(false);
   const [url, setUrl] = useState("");
@@ -250,7 +249,7 @@ export default function WebhooksPage() {
               <label className={`${labelClass} flex items-center gap-2`}>
                 URL del Webhook
                 <InfoTooltip
-                  content={t.tooltips.webhooks.urlWebhook.long}
+                  content={tooltips.webhooks.urlWebhook.long}
                   variant="dashboard"
                   placement="auto"
                 />
@@ -305,7 +304,7 @@ export default function WebhooksPage() {
                 <KeyRound size={15} className="text-[var(--site-primary)]" />
                 Secret de Firma
                 <InfoTooltip
-                  content={t.tooltips.webhooks.secretFirma.long}
+                  content={tooltips.webhooks.secretFirma.long}
                   variant="dashboard"
                   placement="auto"
                 />

@@ -100,16 +100,16 @@ export function RecentActivity({ events }: Props) {
                     <div className="flex-1 min-w-0">
                       <p className="font-mono text-xs text-white mb-0.5">
                         {config.label}
-                        {event.metadata?.project_name && (
+                        {!!event.metadata?.project_name && (
                           <span className="text-[var(--text-tertiary)]">
                             {" "}
-                            · {event.metadata.project_name}
+                            · {String(event.metadata.project_name)}
                           </span>
                         )}
-                        {event.metadata?.query && (
+                        {!!event.metadata?.query && (
                           <span className="text-[var(--text-tertiary)]">
                             {" "}
-                            · &quot;{event.metadata.query}&quot;
+                            · &quot;{String(event.metadata.query)}&quot;
                           </span>
                         )}
                       </p>

@@ -137,7 +137,6 @@ export default async function SiteLayout({ params, children }: Props) {
       ? {
           "@type": "PostalAddress",
           streetAddress: proyecto.ubicacion_direccion,
-          addressLocality: proyecto.ciudad || undefined,
           addressCountry: "CO",
         }
       : undefined,

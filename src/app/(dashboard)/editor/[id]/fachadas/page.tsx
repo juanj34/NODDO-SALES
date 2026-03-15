@@ -42,7 +42,7 @@ import {
 import Link from "next/link";
 import type { Fachada, Unidad, Torre, PlanoInteractivo, PlanoPunto } from "@/types";
 import { InfoTooltip } from "@/components/ui/InfoTooltip";
-import { useLanguage } from "@/i18n/LanguageProvider";
+import tooltips from "@/i18n/locales/es/tooltips";
 
 /* ------------------------------------------------------------------
    Page
@@ -50,7 +50,6 @@ import { useLanguage } from "@/i18n/LanguageProvider";
 export default function NoddoGridPage() {
   const { project, projectId, refresh } = useEditorProject();
   const { t } = useTranslation("editor");
-  const { t: tLang } = useLanguage();
   const toast = useToast();
   const { confirm } = useConfirm();
 
@@ -976,7 +975,7 @@ export default function NoddoGridPage() {
           <span className="flex items-center gap-2">
             {t("fachadas.description")}
             <InfoTooltip
-              content={tLang.tooltips.fachadas.hotspotEditor.long}
+              content={tooltips.fachadas.hotspotEditor.long}
               variant="dashboard"
               placement="auto"
             />
@@ -1365,9 +1364,9 @@ export default function NoddoGridPage() {
                 </>
               )}
               <div className="flex items-center gap-2 pt-1">
-                <button onClick={handleAddFachada} disabled={addingFachada || !newNombre.trim() || !newImagenUrl} className={btnPrimary}>
-                  {addingFachada ? <Loader2 size={14} className="animate-spin" /> : <Save size={14} />}
-                  {addingFachada ? t("fachadas.saving") : t("fachadas.saveGrid")}
+                <button onClick={handleAddFachada} disabled={!newNombre.trim() || !newImagenUrl} className={btnPrimary}>
+                  <Save size={14} />
+                  {t("fachadas.saveGrid")}
                 </button>
                 <button onClick={resetAddForm} className={btnSecondary}>{t("fachadas.cancel")}</button>
               </div>

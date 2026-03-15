@@ -15,8 +15,8 @@ interface UpgradePromptProps {
 }
 
 const PLAN_PRICES: Record<Plan, string> = {
-  basic: "$79/mes",
-  premium: "$149/mes",
+  proyecto: "$149/mes",
+  studio: "$399/mes",
   enterprise: "Desde $499/mes",
 };
 
@@ -50,7 +50,7 @@ export function UpgradePrompt({
   onUpgrade,
 }: UpgradePromptProps) {
   const featureLabel = FEATURE_LABELS[feature]?.es || feature;
-  const benefits = requiredPlan === "premium" ? PREMIUM_BENEFITS : ENTERPRISE_BENEFITS;
+  const benefits = requiredPlan === "studio" ? PREMIUM_BENEFITS : ENTERPRISE_BENEFITS;
 
   return (
     <AnimatePresence>

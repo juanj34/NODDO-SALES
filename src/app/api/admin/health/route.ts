@@ -14,7 +14,7 @@ export async function GET() {
     // Queries en paralelo
     const [dbConnections, storageData, webhookLogsData, healthMetrics] = await Promise.all([
       // DB connections (pg_stat_activity)
-      admin.rpc("get_db_connection_count").catch(() => ({ data: null, error: null })),
+      admin.rpc("get_db_connection_count").then((res) => res, () => ({ data: null, error: null })),
 
       // Storage usage
       admin
@@ -63,7 +63,7 @@ export async function GET() {
           : "healthy";
 
     // Storage check (supongamos límite de 100GB)
-    const storageGB = parseFloat(storageData.totalGB);
+    const storageGB = Number(storageData.totalGB);
     const storageStatus =
       storageGB >= 90 ? "critical" : storageGB >= 75 ? "warning" : "healthy";
 
@@ -81,9 +81,9 @@ export async function GET() {
     // Calcular últimos incidentes críticos
     const criticalIncidents =
       healthMetrics.data
-        ?.filter((m) => m.status === "critical")
+        ?.filter((m: Record<string, unknown>) => m.status === "critical")
         .slice(0, 10)
-        .map((m) => ({
+        .map((m: Record<string, unknown>) => ({
           id: m.id,
           metric_type: m.metric_type,
           value: m.value,

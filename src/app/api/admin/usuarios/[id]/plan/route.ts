@@ -5,7 +5,7 @@ import { PLAN_DEFAULTS, type Plan } from "@/lib/plan-limits";
 import { sendPlanUpgrade } from "@/lib/email";
 import { NextRequest, NextResponse } from "next/server";
 
-const VALID_PLANS: Plan[] = ["basic", "premium", "enterprise"];
+const VALID_PLANS: Plan[] = ["proyecto", "studio", "enterprise"];
 
 export async function PUT(
   request: NextRequest,
@@ -21,7 +21,7 @@ export async function PUT(
   const { plan, status, max_projects, max_units_per_project, max_collaborators } = body;
 
   if (!plan || !VALID_PLANS.includes(plan)) {
-    return NextResponse.json({ error: "Plan inválido. Debe ser: basic, premium, o enterprise" }, { status: 400 });
+    return NextResponse.json({ error: "Plan inválido. Debe ser: proyecto, studio, o enterprise" }, { status: 400 });
   }
 
   const VALID_STATUSES = ["active", "trial", "cancelled", "suspended"];

@@ -36,8 +36,8 @@ interface ImageBounds {
 }
 
 export function useHotspotCanvas(
-  containerRef: RefObject<HTMLDivElement>,
-  imgRef: RefObject<HTMLImageElement>
+  containerRef: RefObject<HTMLDivElement | null>,
+  imgRef: RefObject<HTMLImageElement | null>
 ) {
   const [cachedBounds, setCachedBounds] = useState<ImageBounds | null>(null);
   const [tick, setTick] = useState(0);

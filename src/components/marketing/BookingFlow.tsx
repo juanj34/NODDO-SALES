@@ -1020,10 +1020,10 @@ const BookingFlow = ({ onClose }: BookingFlowProps) => {
                       metadata: { flag: c.flag },
                     }))}
                     renderOption={(opt) => (
-                      <span>{opt.metadata?.flag} {opt.label}</span>
+                      <span>{String(opt.metadata?.flag ?? "")} {opt.label}</span>
                     )}
                     renderSelected={(opt) => (
-                      <span>{opt.metadata?.flag} {opt.label}</span>
+                      <span>{String(opt.metadata?.flag ?? "")} {opt.label}</span>
                     )}
                   />
                 </div>

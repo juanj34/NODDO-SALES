@@ -43,11 +43,12 @@ export async function PUT(
 
   // Audit log
   await logAdminAction({
-    userId: auth.user.id,
+    adminId: auth.user.id,
+    adminEmail: auth.user.email ?? "",
     action: "project_moderated",
-    resourceType: "proyecto",
-    resourceId: id,
-    metadata: {
+    targetType: "project",
+    targetId: id,
+    details: {
       moderation_status,
       moderation_notes,
       project_name: data.nombre,

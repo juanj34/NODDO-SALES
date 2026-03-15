@@ -53,7 +53,7 @@ export function TrustBadges({ badges, className = "" }: TrustBadgesProps) {
             className={`flex items-center gap-2.5 p-3 rounded-xl border border-[var(--border-subtle)] ${styles.bg} backdrop-blur-sm`}
           >
             <div className={`shrink-0 ${styles.accent}`}>
-              {Icon ? <Icon size={18} /> : badge.icon}
+              {Icon ? <Icon size={18} /> : (badge.icon as React.ReactNode)}
             </div>
             <div className="flex-1 min-w-0">
               <p className="text-xs font-medium text-white truncate">

@@ -4,7 +4,7 @@ import sharp from "sharp";
 import { calcularCotizacion } from "@/lib/cotizador/calcular";
 import { generarPDF } from "@/lib/cotizador/generar-pdf";
 import { sendCotizacionBuyer, sendCotizacionAdmin } from "@/lib/email";
-import { isRateLimited, getClientIp } from "@/lib/rate-limit";
+import { isRateLimited, apiLimiter } from "@/lib/rate-limit";
 import { getWebhookConfig, dispatchWebhook } from "@/lib/webhooks";
 import type { WebhookPayload } from "@/lib/webhooks";
 import type { CotizadorConfig, Unidad, Currency } from "@/types";
@@ -28,10 +28,11 @@ const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 /* ── GET /api/cotizaciones - List cotizaciones with filters ── */
 export async function GET(request: NextRequest) {
   try {
-    const { user, role, adminUserId, supabase } = await getAuthContext(request);
-    if (!user) {
+    const auth = await getAuthContext();
+    if (!auth?.user) {
       return NextResponse.json({ error: "No autorizado" }, { status: 401 });
     }
+    const { user, role, adminUserId, supabase } = auth;
 
     const url = new URL(request.url);
     const proyectoId = url.searchParams.get("proyecto_id");
@@ -58,7 +59,7 @@ export async function GET(request: NextRequest) {
         .eq(role === "admin" ? "user_id" : "id", role === "admin" ? adminUserId : "");
 
       if (userProjects && userProjects.length > 0) {
-        const projectIds = userProjects.map((p) => p.id);
+        const projectIds = userProjects.map((p: { id: string }) => p.id);
         query = query.in("proyecto_id", projectIds);
       } else {
         // No projects, return empty
@@ -96,8 +97,8 @@ export async function GET(request: NextRequest) {
 
     const stats = {
       total: count || 0,
-      thisMonth: cotizaciones?.filter((c) => new Date(c.created_at) >= thirtyDaysAgo).length || 0,
-      totalValue: cotizaciones?.reduce((sum, c) => sum + (c.resultado?.precio_neto || 0), 0) || 0,
+      thisMonth: cotizaciones?.filter((c: { created_at: string }) => new Date(c.created_at) >= thirtyDaysAgo).length || 0,
+      totalValue: cotizaciones?.reduce((sum: number, c: { resultado?: { precio_neto?: number } }) => sum + (c.resultado?.precio_neto || 0), 0) || 0,
     };
 
     return NextResponse.json({
@@ -150,9 +151,8 @@ async function fetchImageAsBase64(
 
 export async function POST(request: NextRequest) {
   try {
-    // Rate limit: 3 cotizaciones per minute per IP (PDF generation is expensive)
-    const ip = getClientIp(request);
-    if (isRateLimited("cotizaciones", ip, 3, 60_000)) {
+    // Rate limit: PDF generation is expensive
+    if (await isRateLimited(request, apiLimiter)) {
       return NextResponse.json(
         { error: "Demasiadas solicitudes. Intenta de nuevo en un momento." },
         { status: 429 }

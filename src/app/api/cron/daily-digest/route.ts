@@ -82,21 +82,6 @@ async function getDailyMetrics() {
     };
 
     try {
-      // Get approximate command count from Redis info
-      const info = await redis.info();
-      const commandsMatch = info?.match(/total_commands_processed:(\d+)/);
-      if (commandsMatch) {
-        redisStats.commandsToday = parseInt(commandsMatch[1]);
-      }
-
-      // Memory usage
-      const memoryMatch = info?.match(/used_memory_human:(\d+\.?\d*)([KMG])/);
-      if (memoryMatch) {
-        const value = parseFloat(memoryMatch[1]);
-        const unit = memoryMatch[2];
-        redisStats.memoryUsageMB = unit === 'M' ? value : unit === 'G' ? value * 1024 : value / 1024;
-      }
-
       // Rate limit blocked (from custom counter if exists)
       const blocked = await redis.get("stats:rate_limit:blocked:today");
       redisStats.rateLimitBlocked = typeof blocked === "number" ? blocked : 0;

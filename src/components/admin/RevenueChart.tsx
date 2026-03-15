@@ -57,7 +57,7 @@ export function RevenueChart({ data }: RevenueChartProps) {
           }}
           labelStyle={{ color: "rgba(255,255,255,0.9)", fontSize: 11, marginBottom: 4 }}
           itemStyle={{ color: "#b8973a", fontSize: 11 }}
-          formatter={(value: number) => [`$${value.toLocaleString("es-CO")}`, "Revenue"]}
+          formatter={(value) => [`$${Number(value).toLocaleString("es-CO")}`, "Revenue"]}
         />
         <Area
           type="monotone"
