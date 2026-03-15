@@ -30,12 +30,12 @@ const FEATURE_PLANS: Record<Feature, Plan[]> = {
   tour_360: ["proyecto", "studio", "enterprise"],
   analytics: ["proyecto", "studio", "enterprise"],
 
-  // Enterprise-only features
-  webhooks: ["enterprise"],
-  white_label: ["enterprise"],
-  api_access: ["enterprise"],
-  csv_import: ["enterprise"],
-  ai_content: ["enterprise"],
+  // Previously Enterprise-only — now available in ALL plans (limits coming later)
+  webhooks: ["proyecto", "studio", "enterprise"],
+  white_label: ["proyecto", "studio", "enterprise"],
+  api_access: ["proyecto", "studio", "enterprise"],
+  csv_import: ["proyecto", "studio", "enterprise"],
+  ai_content: ["proyecto", "studio", "enterprise"],
 };
 
 /**
