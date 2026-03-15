@@ -7,11 +7,11 @@ import { sendWelcomeEmail } from "@/lib/email";
 export async function GET(request: NextRequest) {
   const { searchParams, origin } = new URL(request.url);
   const code = searchParams.get("code");
-  const rawRedirect = searchParams.get("redirect") || "/proyectos";
+  const rawRedirect = searchParams.get("redirect") || "/dashboard";
   // Prevent open redirect: only allow relative paths starting with /
   const redirect = rawRedirect.startsWith("/") && !rawRedirect.startsWith("//")
     ? rawRedirect
-    : "/proyectos";
+    : "/dashboard";
 
   if (code) {
     const cookieStore = await cookies();

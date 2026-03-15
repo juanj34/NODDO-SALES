@@ -1,11 +1,12 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useProjects, useDashboardSummary } from "@/hooks/useProjectsQuery";
 import { Loader2 } from "lucide-react";
 import { useTranslation } from "@/i18n";
 import { useAuthRole } from "@/hooks/useAuthContext";
+import { trackDashboardEvent } from "@/lib/dashboard-tracking";
 
 import { DashboardGreeting } from "@/components/dashboard/home/DashboardGreeting";
 import { DashboardKPIStrip } from "@/components/dashboard/home/DashboardKPIStrip";
@@ -20,6 +21,16 @@ export default function DashboardPage() {
   const { t } = useTranslation("dashboard");
   const { user, role } = useAuthRole();
   const isAdmin = role === "admin";
+
+  // Track page view
+  useEffect(() => {
+    if (!loading) {
+      trackDashboardEvent("dashboard_view", {
+        projects_count: projects.length,
+        total_leads: summary?.total_leads || 0,
+      }, user?.id, role);
+    }
+  }, [loading, projects.length, summary?.total_leads, user?.id, role]);
 
   // Simple delete handler (navigates to /proyectos for actual deletion)
   const handleDelete = (id: string, name: string) => {

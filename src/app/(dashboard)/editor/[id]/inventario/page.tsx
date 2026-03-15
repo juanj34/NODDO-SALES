@@ -42,6 +42,7 @@ import {
   Download,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { formatCurrency } from "@/lib/currency";
 import { useTranslation } from "@/i18n";
 import { useToast } from "@/components/dashboard/Toast";
 import { useMediaQuery } from "@/hooks/useMediaQuery";
@@ -125,15 +126,6 @@ const EMPTY_FORM: UnitFormData = {
 // Helpers
 // ---------------------------------------------------------------------------
 
-function formatPrice(value: number | null): string {
-  if (value == null) return "-";
-  return new Intl.NumberFormat("es-CO", {
-    style: "currency",
-    currency: "COP",
-    maximumFractionDigits: 0,
-  }).format(value);
-}
-
 function tipologiaName(
   tipologias: Tipologia[],
   tipologiaId: string | null
@@ -204,7 +196,7 @@ function MobileUnitCard({
       {/* Row 3: Price */}
       {unit.precio != null && (
         <p className="text-xs text-[var(--text-secondary)] font-medium">
-          {formatPrice(unit.precio)}
+          {unit.precio ? formatCurrency(unit.precio, "COP", { compact: true }) : "-"}
         </p>
       )}
       {/* Row 4: Status dots + actions */}
@@ -1695,10 +1687,10 @@ function PriceAdjustModal({
                       return (
                         <tr key={u.id} className="border-b border-[var(--border-subtle)]">
                           <td className="py-1.5 px-3 text-white">{u.identificador}</td>
-                          <td className="py-1.5 px-3 text-right text-[var(--text-secondary)]">{formatPrice(u.precio)}</td>
-                          <td className="py-1.5 px-3 text-right text-white">{formatPrice(newP)}</td>
+                          <td className="py-1.5 px-3 text-right text-[var(--text-secondary)]">{u.precio ? formatCurrency(u.precio, "COP", { compact: true }) : "-"}</td>
+                          <td className="py-1.5 px-3 text-right text-white">{formatCurrency(newP, "COP", { compact: true })}</td>
                           <td className={cn("py-1.5 px-3 text-right", diff > 0 ? "text-green-400" : "text-red-400")}>
-                            {diff > 0 ? "+" : ""}{formatPrice(diff)}
+                            {diff > 0 ? "+" : ""}{formatCurrency(diff, "COP", { compact: true })}
                           </td>
                         </tr>
                       );
@@ -2932,7 +2924,7 @@ export default function InventarioPage() {
                             {unit.area_m2 != null ? `${unit.area_m2} m²` : "-"}
                           </td>
                           <td className="py-3 px-4 text-[var(--text-secondary)]">
-                            {formatPrice(unit.precio)}
+                            {unit.precio ? formatCurrency(unit.precio, "COP", { compact: true }) : "-"}
                           </td>
                           <td className="py-3 px-4">
                             <EstadoBadge estado={unit.estado} />

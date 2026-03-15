@@ -16,23 +16,27 @@ export function usePersistedState<T>(
   slug?: string,
 ): [T, (value: T | ((prev: T) => T)) => void] {
   const storageKey = slug ? `noddo:${slug}:${key}` : `noddo:${key}`;
-  const initialized = useRef(false);
+  const isFirstRender = useRef(true);
 
-  const [value, setValueRaw] = useState<T>(defaultValue);
-
-  // Hydrate from localStorage on mount, then persist on subsequent changes
-  useEffect(() => {
-    if (!initialized.current) {
-      initialized.current = true;
-      try {
-        const stored = localStorage.getItem(storageKey);
-        if (stored !== null) {
-          setValueRaw(JSON.parse(stored) as T);
-          return; // Don't persist the default back — wait for hydrated value
-        }
-      } catch {
-        // ignore
+  // Initialize state from localStorage or default
+  const [value, setValueRaw] = useState<T>(() => {
+    if (typeof window === "undefined") return defaultValue;
+    try {
+      const stored = localStorage.getItem(storageKey);
+      if (stored !== null) {
+        return JSON.parse(stored) as T;
       }
+    } catch {
+      // ignore parse errors
+    }
+    return defaultValue;
+  });
+
+  // Persist to localStorage on changes (skip first render to avoid re-saving initial value)
+  useEffect(() => {
+    if (isFirstRender.current) {
+      isFirstRender.current = false;
+      return;
     }
     try {
       localStorage.setItem(storageKey, JSON.stringify(value));

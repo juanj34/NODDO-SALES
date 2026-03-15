@@ -5,12 +5,17 @@ import { useEffect, useRef, useState } from "react";
 export function CustomCursor() {
   const dotRef = useRef<HTMLDivElement>(null);
   const ringRef = useRef<HTMLDivElement>(null);
-  const [isTouch, setIsTouch] = useState(true); // default hidden until we know
+
+  // Initialize from media query if available
+  const [isTouch, setIsTouch] = useState(() => {
+    if (typeof window === "undefined") return true;
+    const mq = window.matchMedia("(hover: hover) and (pointer: fine)");
+    return !mq.matches;
+  });
 
   useEffect(() => {
-    // Only show on devices with a fine pointer (no touch)
+    // Listen for changes to pointer type
     const mq = window.matchMedia("(hover: hover) and (pointer: fine)");
-    setIsTouch(!mq.matches);
     const handler = (e: MediaQueryListEvent) => setIsTouch(!e.matches);
     mq.addEventListener("change", handler);
     return () => mq.removeEventListener("change", handler);

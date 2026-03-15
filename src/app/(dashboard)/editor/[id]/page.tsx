@@ -127,7 +127,7 @@ export default function EditorGeneralPage() {
       if (!ok) toast.error(t("general.saveError"));
     } catch (err) {
       if (err instanceof ZodError) {
-        const zodError = err as ZodError<any>;
+        const zodError = err as ZodError;
         if (zodError.issues?.length > 0) {
           setValidationError(zodError.issues[0].message);
           toast.error(zodError.issues[0].message);

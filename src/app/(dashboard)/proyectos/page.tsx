@@ -1,80 +1,74 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useRouter } from "next/navigation";
-import { useProjects } from "@/hooks/useProject";
-import { useDashboardSummary } from "@/hooks/useDashboardSummary";
+import { useProjects, useCreateProject, useDeleteProject } from "@/hooks/useProjectsQuery";
 import {
   Plus,
   Loader2,
   X,
   AlertTriangle,
   Trash2,
-  ArrowRight,
-  Search,
-  SlidersHorizontal,
-  ArrowUpDown,
-  Copy,
 } from "lucide-react";
 import { MagneticButton } from "@/components/ui/MagneticButton";
 import { NodDoLogo } from "@/components/ui/NodDoLogo";
 import { useTranslation } from "@/i18n";
 import { useToast } from "@/components/dashboard/Toast";
 import { useAuthRole } from "@/hooks/useAuthContext";
+import { trackDashboardEvent } from "@/lib/dashboard-tracking";
 
-import { DashboardGreeting } from "@/components/dashboard/home/DashboardGreeting";
-import { DashboardKPIStrip } from "@/components/dashboard/home/DashboardKPIStrip";
-import { DashboardShortcuts } from "@/components/dashboard/home/DashboardShortcuts";
-import { EnhancedProjectCard } from "@/components/dashboard/home/EnhancedProjectCard";
-import { DashboardSkeleton, KPIStripSkeleton } from "@/components/dashboard/home/DashboardSkeleton";
-import { NodDoDropdown } from "@/components/ui/NodDoDropdown";
+import { ProjectsFilters } from "@/components/dashboard/projects/ProjectsFilters";
+import { ProjectsTable } from "@/components/dashboard/projects/ProjectsTable";
 
 export default function ProyectosPage() {
-  const { projects, loading, refresh } = useProjects();
-  const { data: summary, loading: summaryLoading } = useDashboardSummary();
+  const { data: projects = [], isLoading: loading, refetch: refresh } = useProjects();
+  const { mutate: createProject, isPending: creating } = useCreateProject();
+  const { mutate: deleteProject, isPending: deleting } = useDeleteProject();
+
   const [showCreate, setShowCreate] = useState(false);
-  const [creating, setCreating] = useState(false);
   const [nombre, setNombre] = useState("");
   const [slug, setSlug] = useState("");
   const [slugAvailable, setSlugAvailable] = useState<boolean | null>(null);
   const [checkingSlug, setCheckingSlug] = useState(false);
   const slugCheckTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const [kpiProjectFilter, setKpiProjectFilter] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
+  const [debouncedSearch, setDebouncedSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("todos");
-  const [sortBy, setSortBy] = useState<"reciente" | "nombre">("reciente");
+  const [sortBy, setSortBy] = useState<string>("reciente");
+  const [selectedId, setSelectedId] = useState<string | null>(null);
   const [cloning, setCloning] = useState<string | null>(null);
   const router = useRouter();
   const { t } = useTranslation("dashboard");
   const toast = useToast();
-  const { user, role } = useAuthRole();
+  const { role } = useAuthRole();
   const isAdmin = role === "admin";
+
+  // Debounce search query
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearch(searchQuery);
+    }, 400);
+    return () => clearTimeout(timer);
+  }, [searchQuery]);
 
   const handleCreate = async (e: React.FormEvent) => {
     e.preventDefault();
-    setCreating(true);
 
-    const res = await fetch("/api/proyectos", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ nombre, slug }),
+    createProject({ nombre, slug }, {
+      onSuccess: (proyecto) => {
+        setShowCreate(false);
+        router.push(`/editor/${proyecto.id}`);
+      },
+      onError: (error) => {
+        toast.error(error.message || "Error al crear proyecto");
+      }
     });
-
-    if (res.ok) {
-      const proyecto = await res.json();
-      router.push(`/editor/${proyecto.id}`);
-    } else {
-      const data = await res.json();
-      toast.error(data.error || "Error al crear proyecto");
-    }
-    setCreating(false);
   };
 
   // Delete confirmation modal state
   const [deleteTarget, setDeleteTarget] = useState<{ id: string; name: string } | null>(null);
   const [deleteConfirmText, setDeleteConfirmText] = useState("");
-  const [deleting, setDeleting] = useState(false);
 
   const handleDelete = (id: string, name: string) => {
     setDeleteTarget({ id, name });
@@ -83,16 +77,17 @@ export default function ProyectosPage() {
 
   const confirmDelete = async () => {
     if (!deleteTarget) return;
-    setDeleting(true);
-    try {
-      const res = await fetch(`/api/proyectos/${deleteTarget.id}`, { method: "DELETE" });
-      if (res.ok) {
+
+    deleteProject(deleteTarget.id, {
+      onSuccess: () => {
         setDeleteTarget(null);
-        refresh();
+        setDeleteConfirmText("");
+        toast.success("Proyecto eliminado");
+      },
+      onError: (error) => {
+        toast.error(error.message || "Error al eliminar");
       }
-    } finally {
-      setDeleting(false);
-    }
+    });
   };
 
   const generateSlug = (text: string) =>
@@ -127,19 +122,45 @@ export default function ProyectosPage() {
   }, [slug]);
 
   // Filtered and sorted projects
-  const filteredProjects = projects
-    .filter((p) => {
-      if (searchQuery) {
-        const q = searchQuery.toLowerCase();
-        if (!p.nombre.toLowerCase().includes(q) && !p.slug.toLowerCase().includes(q)) return false;
-      }
-      if (statusFilter !== "todos" && p.estado !== statusFilter) return false;
-      return true;
-    })
-    .sort((a, b) => {
-      if (sortBy === "nombre") return a.nombre.localeCompare(b.nombre);
-      return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
-    });
+  const filteredProjects = useMemo(() => {
+    return projects
+      .filter((p: typeof projects[number]) => {
+        // Search filter
+        if (debouncedSearch) {
+          const q = debouncedSearch.toLowerCase();
+          if (!p.nombre.toLowerCase().includes(q) && !p.slug.toLowerCase().includes(q)) {
+            return false;
+          }
+        }
+        // Status filter
+        if (statusFilter !== "todos" && p.estado !== statusFilter) {
+          return false;
+        }
+        return true;
+      })
+      .sort((a: typeof projects[number], b: typeof projects[number]) => {
+        switch (sortBy) {
+          case "nombre":
+            return a.nombre.localeCompare(b.nombre);
+          case "nombre-desc":
+            return b.nombre.localeCompare(a.nombre);
+          case "antiguo":
+            return new Date(a.created_at).getTime() - new Date(b.created_at).getTime();
+          case "leads": {
+            const bStats = (b as unknown as { stats?: { leads_7d?: number } }).stats;
+            const aStats = (a as unknown as { stats?: { leads_7d?: number } }).stats;
+            return (bStats?.leads_7d || 0) - (aStats?.leads_7d || 0);
+          }
+          case "visitas": {
+            const bStats = (b as unknown as { stats?: { views_7d?: number } }).stats;
+            const aStats = (a as unknown as { stats?: { views_7d?: number } }).stats;
+            return (bStats?.views_7d || 0) - (aStats?.views_7d || 0);
+          }
+          default: // "reciente"
+            return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
+        }
+      });
+  }, [projects, debouncedSearch, statusFilter, sortBy]);
 
   const handleClone = async (id: string) => {
     setCloning(id);
@@ -159,188 +180,99 @@ export default function ProyectosPage() {
     }
   };
 
-  // Full-page skeleton while projects are loading
-  if (loading) {
-    return <DashboardSkeleton />;
-  }
-
   return (
-    <div className="p-4 md:p-8 max-w-7xl mx-auto space-y-8">
-      {/* Greeting */}
-      <DashboardGreeting
-        userEmail={user?.email || ""}
-        isAdmin={isAdmin}
-        onCreateClick={() => setShowCreate(true)}
-      />
+    <div className="p-4 md:p-8 max-w-7xl mx-auto space-y-6">
+      {/* Page Header */}
+      <div>
+        <h1 className="font-heading text-3xl font-light text-[var(--text-primary)] mb-2">
+          Proyectos
+        </h1>
+        <p className="font-mono text-sm text-[var(--text-tertiary)]">
+          Gestiona todos tus proyectos inmobiliarios
+        </p>
+      </div>
 
-      {/* KPI Strip — admin only, with projects */}
-      {isAdmin && projects.length > 0 && (
-        summaryLoading ? (
-          <KPIStripSkeleton />
-        ) : summary ? (
-          <DashboardKPIStrip
-            data={summary}
-            projects={projects.map((p) => ({ id: p.id, nombre: p.nombre }))}
-            selectedProjectId={kpiProjectFilter}
-            onSelectProject={setKpiProjectFilter}
-          />
-        ) : null
-      )}
-
-      {/* Quick shortcuts — admin only, with projects */}
-      {isAdmin && projects.length > 0 && (
-        <DashboardShortcuts
-          totalLeads={summary?.total_leads || 0}
-          onAnalyticsClick={() => {
-            document.getElementById("analytics-section")?.scrollIntoView({ behavior: "smooth" });
-          }}
-        />
-      )}
-
-      {/* Projects section */}
-      {projects.length === 0 ? (
+      {/* Content */}
+      {projects.length === 0 && !loading ? (
         /* Empty state */
-        <div className="flex flex-col items-center justify-center py-16 max-w-2xl mx-auto">
-          <motion.div
-            initial={{ opacity: 0, y: 12 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5 }}
-            className="text-center mb-10"
-          >
-            <div
-              className="inline-flex items-center justify-center w-16 h-16 rounded-2xl mb-6"
-              style={{
-                background: "linear-gradient(135deg, rgba(184,151,58,0.15), rgba(184,151,58,0.05))",
-                border: "1px solid rgba(184,151,58,0.15)",
-                boxShadow: "0 0 40px rgba(184,151,58,0.08)",
-              }}
-            >
-              <NodDoLogo height={14} colorNod="var(--text-secondary)" colorDo="var(--site-primary)" />
-            </div>
-            <h2 className="font-heading text-3xl font-light text-[var(--text-primary)] mb-3 tracking-wide">
-              {t("proyectos.noProjects")}
-            </h2>
-            <p className="text-[var(--text-tertiary)] text-sm max-w-md mx-auto leading-relaxed">
-              {t("proyectos.noProjectsDescription")}
-            </p>
-          </motion.div>
-
-          {isAdmin && (
-            <motion.button
-              initial={{ opacity: 0, y: 16 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.4, delay: 0.1 }}
-              onClick={() => setShowCreate(true)}
-              className="group glass-card p-6 text-left hover:border-[var(--border-default)] transition-all duration-300 cursor-pointer w-full max-w-sm"
-              style={{ borderRadius: "1.25rem" }}
-            >
-              <div className="w-10 h-10 rounded-xl bg-[var(--surface-3)] border border-[var(--border-subtle)] flex items-center justify-center mb-4 group-hover:border-[rgba(var(--site-primary-rgb),0.25)] group-hover:bg-[rgba(var(--site-primary-rgb),0.08)] transition-all">
-                <Plus size={18} className="text-[var(--text-muted)] group-hover:text-[var(--site-primary)] transition-colors" />
-              </div>
-              <h3 className="font-ui text-xs font-bold uppercase tracking-wider text-[var(--text-primary)] mb-1.5">
-                {t("proyectos.newProject")}
-              </h3>
-              <p className="text-[11px] text-[var(--text-tertiary)] leading-relaxed mb-4">
-                Configura cada detalle manualmente desde cero.
-              </p>
-              <span className="inline-flex items-center gap-1.5 font-ui text-[10px] font-bold uppercase tracking-wider text-[var(--site-primary)] opacity-0 group-hover:opacity-100 transition-opacity">
-                Crear <ArrowRight size={10} />
-              </span>
-            </motion.button>
-          )}
-
-          {!isAdmin && (
-            <motion.div
-              initial={{ opacity: 0, y: 12 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.4, delay: 0.15 }}
-              className="glass-card p-8 text-center max-w-sm"
-            >
-              <p className="text-sm text-[var(--text-secondary)] leading-relaxed">
-                Tu administrador aun no ha creado proyectos. Los veras aqui cuando esten disponibles.
-              </p>
-            </motion.div>
-          )}
-        </div>
-      ) : (
-        <>
-          {/* Section label + Search/Filter bar */}
-          <div className="space-y-3">
-            <div className="flex items-center gap-3">
-              <span className="font-ui text-[10px] font-bold uppercase tracking-[0.12em] text-[var(--text-muted)]">
-                {t("home.yourProjects")}
-              </span>
-              <div className="h-px flex-1 bg-[var(--border-subtle)]" />
-            </div>
-
-            <div className="flex flex-wrap items-center gap-2">
-              {/* Search */}
-              <div className="relative flex-1 min-w-0 sm:min-w-[200px] max-w-xs">
-                <label htmlFor="search-proyectos" className="block text-[10px] tracking-[0.12em] uppercase text-[var(--text-muted)] mb-1.5 font-ui font-bold">
-                  Buscar
-                </label>
-                <Search size={14} className="absolute left-3.5 bottom-1/2 translate-y-1/2 text-[var(--text-muted)]" aria-hidden="true" />
-                <input
-                  id="search-proyectos"
-                  type="text"
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  placeholder="Nombre o slug..."
-                  className="input-glass w-full pl-10 pr-3 py-2 text-xs"
-                  aria-label="Buscar proyectos por nombre o slug"
-                />
-              </div>
-
-              {/* Status filter */}
-              <NodDoDropdown
-                value={statusFilter}
-                onChange={setStatusFilter}
-                options={[
-                  { value: "todos", label: "Todos" },
-                  { value: "borrador", label: "Borrador" },
-                  { value: "publicado", label: "Publicado" },
-                  { value: "archivado", label: "Archivado" },
-                ]}
-                icon={<SlidersHorizontal size={12} />}
-              />
-
-              {/* Sort */}
-              <button
-                onClick={() => setSortBy((s) => (s === "reciente" ? "nombre" : "reciente"))}
-                className="flex items-center gap-1.5 px-3 py-2 border border-[var(--border-default)] rounded-[0.625rem] bg-[var(--surface-3)] text-[10px] font-ui font-bold uppercase tracking-wider text-[var(--text-secondary)] hover:text-white hover:border-[var(--border-strong)] transition-all"
-                aria-label={`Ordenar proyectos: ${sortBy === "reciente" ? "más recientes primero" : "alfabéticamente"}`}
-              >
-                <ArrowUpDown size={12} aria-hidden="true" />
-                {sortBy === "reciente" ? "Reciente" : "A-Z"}
-              </button>
-            </div>
+        <motion.div
+          initial={{ opacity: 0, y: 12 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.4 }}
+          className="
+            flex flex-col items-center justify-center
+            py-20 px-6
+            bg-[var(--surface-1)]
+            border-2 border-dashed border-[var(--border-subtle)]
+            rounded-2xl
+          "
+        >
+          <div className="
+            w-16 h-16 mb-4
+            rounded-2xl
+            bg-[rgba(var(--site-primary-rgb),0.08)]
+            border border-[rgba(var(--site-primary-rgb),0.15)]
+            flex items-center justify-center
+          ">
+            <NodDoLogo height={14} colorNod="var(--text-secondary)" colorDo="var(--site-primary)" />
           </div>
 
-          {/* Project grid */}
-          {filteredProjects.length === 0 ? (
-            <div className="text-center py-12">
-              <p className="text-sm text-[var(--text-muted)]">
-                No se encontraron proyectos
-                {searchQuery && ` para "${searchQuery}"`}
-                {statusFilter !== "todos" && ` con estado "${statusFilter}"`}
-              </p>
-            </div>
-          ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-              {filteredProjects.map((proyecto, idx) => (
-                <EnhancedProjectCard
-                  key={proyecto.id}
-                  proyecto={proyecto}
-                  stats={summary?.project_stats[proyecto.id]}
-                  index={idx}
-                  isAdmin={isAdmin}
-                  onDelete={handleDelete}
-                  onClone={handleClone}
-                  cloning={cloning === proyecto.id}
-                />
-              ))}
-            </div>
+          <h3 className="font-heading text-xl font-light text-white mb-2">
+            {isAdmin ? "Aún no tienes proyectos" : "No hay proyectos disponibles"}
+          </h3>
+
+          <p className="font-mono text-sm text-[var(--text-tertiary)] text-center max-w-md mb-6">
+            {isAdmin
+              ? "Crea tu primer proyecto para empezar a gestionar tus desarrollos inmobiliarios"
+              : "El administrador aún no ha creado proyectos"}
+          </p>
+
+          {isAdmin && (
+            <button
+              onClick={() => setShowCreate(true)}
+              className="
+                flex items-center gap-2
+                px-6 py-3
+                bg-[var(--site-primary)]
+                text-[#141414]
+                rounded-[0.75rem]
+                font-ui text-xs font-bold uppercase tracking-[0.1em]
+                hover:brightness-110
+                transition-all
+                shadow-[0_4px_16px_rgba(var(--site-primary-rgb),0.2)]
+              "
+            >
+              <Plus size={16} />
+              Crear Proyecto
+            </button>
           )}
+        </motion.div>
+      ) : (
+        <>
+          {/* Filters */}
+          <ProjectsFilters
+            search={searchQuery}
+            onSearchChange={setSearchQuery}
+            statusFilter={statusFilter}
+            onStatusFilterChange={setStatusFilter}
+            sortBy={sortBy}
+            onSortChange={setSortBy}
+            onCreateClick={() => setShowCreate(true)}
+            isAdmin={isAdmin}
+            total={filteredProjects.length}
+          />
+
+          {/* Table */}
+          <ProjectsTable
+            projects={filteredProjects}
+            loading={loading}
+            selectedId={selectedId}
+            onSelect={setSelectedId}
+            onEdit={(id) => router.push(`/editor/${id}`)}
+            onDelete={handleDelete}
+            onClone={handleClone}
+            isAdmin={isAdmin}
+          />
         </>
       )}
 

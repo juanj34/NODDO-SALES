@@ -1,3 +1,36 @@
+/* ── Currency & Units ────────────────────────────────────────────────────── */
+
+export type Currency = "COP" | "USD" | "AED" | "MXN" | "EUR";
+
+export type UnitOfMeasurement = "m2" | "sqft";
+
+export interface ExchangeRate {
+  id: string;
+  base_currency: string;
+  target_currency: string;
+  rate: number;
+  fetched_at: string;
+  source: string;
+  created_at: string;
+}
+
+export interface CurrencyConversionResult {
+  amount: number;
+  fromCurrency: Currency;
+  toCurrency: Currency;
+  rate: number;
+  timestamp: string;
+}
+
+export interface AreaConversionResult {
+  value: number;
+  fromUnit: UnitOfMeasurement;
+  toUnit: UnitOfMeasurement;
+  conversionFactor: number;
+}
+
+/* ── Projects ────────────────────────────────────────────────────────────── */
+
 export interface Proyecto {
   id: string;
   user_id: string;
@@ -32,11 +65,27 @@ export interface Proyecto {
   etapa_label: string;
   background_audio_url: string | null;
   hide_noddo_badge: boolean;
+  moneda_base: Currency;
+  unidad_medida_base: UnitOfMeasurement;
   cotizador_enabled: boolean;
   cotizador_config: CotizadorConfig | null;
   webhook_config: WebhookConfig | null;
   created_at: string;
   updated_at: string;
+}
+
+export interface ProyectoStats {
+  unidades_total?: number;
+  leads_7d?: number;
+  views_7d?: number;
+  visitors_7d?: number;
+  interactions_7d?: number;
+  conversion_rate?: number;
+  sparkline?: { bucket: string; views: number }[];
+}
+
+export interface ProyectoWithStats extends Proyecto {
+  stats?: ProyectoStats;
 }
 
 export interface TipologiaHotspot {
@@ -411,6 +460,51 @@ export interface AnalyticsResponse {
   leads_by_source: AnalyticsBreakdown[];
   leads_by_tipologia: AnalyticsBreakdown[];
   leads_by_country: AnalyticsBreakdown[];
+  financial?: FinancialMetrics;
+}
+
+/* ── Financial Analytics ── */
+
+export interface FinancialMetrics {
+  total_revenue: number;
+  available_inventory_value: number;
+  reservada_inventory_value: number;
+  sales_velocity: number; // unidades/mes
+  monthly_revenue: MonthlyRevenue[];
+  units_sold_detail: UnitSoldDetail[];
+  currency: Currency;
+  total_units: number;
+  disponible_count: number;
+  vendida_count: number;
+  reservada_count: number;
+}
+
+export interface MonthlyRevenue {
+  month: string; // YYYY-MM
+  revenue: number;
+  count: number;
+}
+
+export interface UnitSoldDetail {
+  unidad_id: string;
+  identificador: string;
+  tipologia: string | null;
+  precio: number;
+  area_m2: number | null;
+  sold_at: string;
+  month: string; // YYYY-MM
+}
+
+export interface EmailReportConfig {
+  id?: string;
+  user_id?: string;
+  weekly_enabled: boolean;
+  monthly_enabled: boolean;
+  project_ids: string[] | null;
+  email_override: string | null;
+  timezone: string;
+  last_weekly_sent: string | null;
+  last_monthly_sent: string | null;
 }
 
 /* ── Dashboard Home ── */

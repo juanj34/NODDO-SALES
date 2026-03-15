@@ -60,6 +60,7 @@ export async function middleware(request: NextRequest) {
 
   // Only run auth check on routes that need it
   const isDashboardRoute =
+    pathname === "/dashboard" ||
     pathname === "/proyectos" ||
     pathname.startsWith("/editor") ||
     pathname === "/leads" ||
@@ -68,6 +69,7 @@ export async function middleware(request: NextRequest) {
     pathname === "/cuenta" ||
     pathname === "/disponibilidad" ||
     pathname === "/cotizador" ||
+    pathname === "/analytics" ||
     pathname.startsWith("/admin");
   const isLoginRoute = pathname === "/login";
 
@@ -138,12 +140,12 @@ export async function middleware(request: NextRequest) {
       .maybeSingle();
 
     if (!platformAdmin) {
-      return NextResponse.redirect(new URL("/proyectos", request.url));
+      return NextResponse.redirect(new URL("/dashboard", request.url));
     }
   }
 
   if (isLoginRoute && user) {
-    return NextResponse.redirect(new URL("/proyectos", request.url));
+    return NextResponse.redirect(new URL("/dashboard", request.url));
   }
 
   return response;

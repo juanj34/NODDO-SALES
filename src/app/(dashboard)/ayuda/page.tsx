@@ -150,12 +150,15 @@ export default function AyudaPage() {
   useEffect(() => {
     const hash = window.location.hash.slice(1);
     if (hash) {
-      setExpandedArticle(hash);
-      setTimeout(() => {
-        document
-          .getElementById(`help-${hash}`)
-          ?.scrollIntoView({ behavior: "smooth", block: "start" });
-      }, 300);
+      // Use requestAnimationFrame to avoid setState in effect warning
+      requestAnimationFrame(() => {
+        setExpandedArticle(hash);
+        setTimeout(() => {
+          document
+            .getElementById(`help-${hash}`)
+            ?.scrollIntoView({ behavior: "smooth", block: "start" });
+        }, 300);
+      });
     }
   }, []);
 

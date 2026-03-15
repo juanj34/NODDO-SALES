@@ -3,7 +3,7 @@
 import { useState, useMemo, forwardRef } from "react";
 import { motion } from "framer-motion";
 import { BarChart3, Activity, Globe, Monitor } from "lucide-react";
-import { useAnalytics } from "@/hooks/useAnalytics";
+import { useAnalytics } from "@/hooks/useProjectsQuery";
 import { ViewsChart } from "@/components/dashboard/analytics/ViewsChart";
 import { DeviceChart } from "@/components/dashboard/analytics/DeviceChart";
 import { RankedList } from "@/components/dashboard/analytics/RankedList";
@@ -40,7 +40,7 @@ export const DashboardAnalyticsPreview = forwardRef<HTMLDivElement, Props>(
     const [timeRange, setTimeRange] = useState<TimeRange>("7d");
 
     const { from, to } = useMemo(() => getDateRange(timeRange), [timeRange]);
-    const { data, loading } = useAnalytics(projectId, from, to);
+    const { data, isLoading: loading } = useAnalytics(projectId, from, to);
 
     if (projects.length === 0) return null;
 

@@ -8,7 +8,7 @@ import { createClient } from "@/lib/supabase/client";
 import { cn } from "@/lib/utils";
 import {
   FolderOpen, Users, Settings, LogOut, Loader2, HelpCircle,
-  Menu, X, Shield, ChevronDown, ToggleLeft, Calculator, ContactRound,
+  Menu, X, Shield, ToggleLeft, Calculator, ContactRound,
   BarChart3,
 } from "lucide-react";
 import { ToastProvider } from "@/components/dashboard/Toast";
@@ -21,11 +21,7 @@ import { NodDoLogo } from "@/components/ui/NodDoLogo";
 import { useMobileDrawer } from "@/hooks/useMobileDrawer";
 import { RouteProgressBar } from "@/components/ui/RouteProgressBar";
 
-interface SidebarProject {
-  id: string;
-  nombre: string;
-  estado: string;
-}
+// SidebarProject interface removed - no longer using dropdown
 
 /* ── Active link helper ─────────────────────────────────── */
 
@@ -79,31 +75,7 @@ function DashboardShell({ children }: { children: React.ReactNode }) {
   const { user, role, isPlatformAdmin, loading } = useAuthRole();
   const { open: drawerOpen, toggle: toggleDrawer, close: closeDrawer } = useMobileDrawer();
 
-  // Sidebar projects
-  const [sidebarProjects, setSidebarProjects] = useState<SidebarProject[]>([]);
-  const [projectsExpanded, setProjectsExpanded] = useState(true);
-
-  const fetchSidebarProjects = useCallback(async () => {
-    try {
-      const res = await fetch("/api/proyectos");
-      if (res.ok) {
-        const data = await res.json();
-        setSidebarProjects(
-          data.map((p: { id: string; nombre: string; estado: string }) => ({
-            id: p.id,
-            nombre: p.nombre,
-            estado: p.estado,
-          }))
-        );
-      }
-    } catch {
-      // silent
-    }
-  }, []);
-
-  useEffect(() => {
-    if (!loading && user) fetchSidebarProjects();
-  }, [loading, user, fetchSidebarProjects]);
+  // Sidebar projects state removed - using simple link now
 
   // Editor gets its own layout (has its own sidebar)
   if (pathname.startsWith("/editor/")) {
@@ -172,7 +144,7 @@ function DashboardShell({ children }: { children: React.ReactNode }) {
       >
         {/* Logo */}
         <div className="p-6 border-b border-[var(--border-subtle)]">
-          <Link href="/proyectos" className="hover:opacity-80 transition-opacity" onClick={closeDrawer}>
+          <Link href="/dashboard" className="hover:opacity-80 transition-opacity" onClick={closeDrawer}>
             <NodDoLogo height={18} colorNod="var(--text-primary)" colorDo="var(--site-primary)" />
           </Link>
         </div>
@@ -180,96 +152,13 @@ function DashboardShell({ children }: { children: React.ReactNode }) {
         {/* Navigation */}
         <nav className="flex-1 overflow-y-auto p-4 space-y-1">
           {/* ── PROYECTOS section ────────────────── */}
-          <div>
-            <button
-              onClick={() => {
-                if (sidebarProjects.length > 0) {
-                  setProjectsExpanded(!projectsExpanded);
-                } else {
-                  router.push("/proyectos");
-                  closeDrawer();
-                }
-              }}
-              className={cn(
-                "w-full flex items-center gap-3 px-3 py-2.5 rounded-[0.625rem] font-ui text-xs font-semibold uppercase tracking-[0.08em] transition-all",
-                pathname === "/proyectos" || pathname.startsWith("/proyectos/")
-                  ? "bg-[var(--surface-2)] text-white border-l-2 border-[var(--site-primary)]"
-                  : "text-[var(--text-tertiary)] hover:text-[var(--text-secondary)] hover:bg-[var(--surface-2)]"
-              )}
-              style={
-                pathname === "/proyectos" || pathname.startsWith("/proyectos/")
-                  ? { boxShadow: "inset 3px 0 8px -2px rgba(var(--site-primary-rgb), 0.15)" }
-                  : undefined
-              }
-            >
-              <FolderOpen size={16} />
-              <span className="flex-1 text-left">{t("sidebar.projects")}</span>
-              {sidebarProjects.length > 0 && (
-                <ChevronDown
-                  size={14}
-                  className={cn(
-                    "text-[var(--text-muted)] transition-transform",
-                    !projectsExpanded && "-rotate-90"
-                  )}
-                />
-              )}
-            </button>
-
-            {/* Collapsible project list */}
-            {sidebarProjects.length > 0 && (
-              <AnimatePresence initial={false}>
-                {projectsExpanded && (
-                  <motion.div
-                    initial={{ height: 0, opacity: 0 }}
-                    animate={{ height: "auto", opacity: 1 }}
-                    exit={{ height: 0, opacity: 0 }}
-                    transition={{ duration: 0.2 }}
-                    className="overflow-hidden ml-1"
-                  >
-                    <div className="space-y-0.5 pt-1.5 pb-1">
-                      {sidebarProjects.map((project) => {
-                        const isProjectActive = pathname === `/editor/${project.id}` || pathname.startsWith(`/editor/${project.id}/`);
-                        return (
-                          <Link
-                            key={project.id}
-                            href={`/editor/${project.id}`}
-                            onClick={closeDrawer}
-                            className={cn(
-                              "flex items-center gap-2.5 px-3 py-2 rounded-lg transition-all group",
-                              isProjectActive
-                                ? "bg-[var(--surface-2)]"
-                                : "hover:bg-[var(--surface-2)]"
-                            )}
-                          >
-                            <span
-                              className="w-2 h-2 rounded-full shrink-0"
-                              style={{
-                                background:
-                                  project.estado === "publicado"
-                                    ? "#4ade80"
-                                    : "rgba(184,151,58,0.5)",
-                              }}
-                            />
-                            <span
-                              className={cn(
-                                "text-[13px] truncate transition-colors",
-                                isProjectActive
-                                  ? "text-[var(--text-primary)]"
-                                  : "text-[var(--text-tertiary)] group-hover:text-[var(--text-secondary)]"
-                              )}
-                              style={{ fontFamily: "var(--font-body)" }}
-                            >
-                              {project.nombre}
-                            </span>
-                          </Link>
-                        );
-                      })}
-                    </div>
-                  </motion.div>
-                )}
-              </AnimatePresence>
-            )}
-          </div>
+          <SidebarLink
+            href="/proyectos"
+            icon={FolderOpen}
+            label={t("sidebar.projects")}
+            pathname={pathname}
+            onClick={closeDrawer}
+          />
 
           {/* ── Divider ────────────────────────── */}
           <div className="!my-3 h-px bg-[var(--border-subtle)]" />

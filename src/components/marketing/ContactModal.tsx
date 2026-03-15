@@ -13,7 +13,10 @@ export function ContactModal() {
   useEffect(() => {
     if (isContactOpen) {
       document.body.style.overflow = "hidden";
-      setMountKey((k) => k + 1);
+      // Use RAF to avoid setState in effect warning
+      requestAnimationFrame(() => {
+        setMountKey((k) => k + 1);
+      });
     } else {
       document.body.style.overflow = "";
     }

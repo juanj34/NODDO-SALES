@@ -16,6 +16,8 @@ import { WhatsAppButton } from "@/components/site/WhatsAppButton";
 import { SiteTracker } from "@/components/site/SiteTracker";
 import { RouteProgressBar } from "@/components/ui/RouteProgressBar";
 import { SiteProjectContext } from "@/hooks/useSiteProject";
+import { CurrencyProvider } from "@/contexts/CurrencyContext";
+import { UnitPreferenceProvider } from "@/contexts/UnitPreferenceContext";
 import type { ProyectoCompleto } from "@/types";
 
 interface Props {
@@ -49,10 +51,12 @@ export function SiteLayoutClient({ proyecto, basePath, children }: Props) {
 
   return (
     <SiteProjectContext.Provider value={{ proyecto, basePath }}>
-      <link rel="canonical" href={canonicalUrl} />
-      <RouteProgressBar />
-      <SiteTracker proyectoId={proyecto.id} />
-      <AudioProvider audioUrl={proyecto.background_audio_url}>
+      <CurrencyProvider>
+        <UnitPreferenceProvider>
+          <link rel="canonical" href={canonicalUrl} />
+          <RouteProgressBar />
+          <SiteTracker proyectoId={proyecto.id} />
+          <AudioProvider audioUrl={proyecto.background_audio_url}>
         <div
           className="h-screen overflow-hidden"
           style={{
@@ -146,6 +150,8 @@ export function SiteLayoutClient({ proyecto, basePath, children }: Props) {
           </SmoothScroll>
         </div>
       </AudioProvider>
+        </UnitPreferenceProvider>
+      </CurrencyProvider>
     </SiteProjectContext.Provider>
   );
 }

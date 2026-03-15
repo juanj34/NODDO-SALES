@@ -17,11 +17,12 @@ import {
 } from "lucide-react";
 import { CloseButton } from "@/components/ui/CloseButton";
 import { cn } from "@/lib/utils";
-import type { Unidad, Tipologia, CotizadorConfig, ResultadoCotizacion } from "@/types";
+import type { Unidad, Tipologia, CotizadorConfig, ResultadoCotizacion, Currency } from "@/types";
 import { useTranslation, getEstadoConfig } from "@/i18n";
 import { trackEvent } from "@/lib/tracking";
 import { calcularCotizacion } from "@/lib/cotizador/calcular";
 import { NodDoDropdown } from "@/components/ui/NodDoDropdown";
+import { formatCurrency } from "@/lib/currency";
 
 const COUNTRY_CODES = [
   { code: "+57", flag: "\u{1F1E8}\u{1F1F4}", label: "CO" },
@@ -93,15 +94,6 @@ function formatPrecio(precio: number, locale: string): string {
     currency: "COP",
     maximumFractionDigits: 0,
   }).format(precio);
-}
-
-function formatCurrency(n: number, moneda: string): string {
-  const locale = moneda === "USD" ? "en-US" : moneda === "MXN" ? "es-MX" : "es-CO";
-  return new Intl.NumberFormat(locale, {
-    style: "currency",
-    currency: moneda,
-    maximumFractionDigits: 0,
-  }).format(n);
 }
 
 interface FormData {
@@ -381,7 +373,7 @@ function CotizadorFlow({
     }
   }, [unidad.precio, config]);
 
-  const moneda = config.moneda || "COP";
+  const moneda = (config.moneda || "COP") as Currency;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

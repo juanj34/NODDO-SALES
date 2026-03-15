@@ -7,6 +7,7 @@ import { cn } from "@/lib/utils";
 import { useTranslation } from "@/i18n";
 import { useToast } from "@/components/dashboard/Toast";
 import { NodDoDropdown } from "@/components/ui/NodDoDropdown";
+import { formatCurrency } from "@/lib/currency";
 
 /* ── Types ─────────────────────────────────────────────── */
 
@@ -45,12 +46,7 @@ const ESTADOS: { key: EstadoUnidad; color: string; bg: string }[] = [
 ];
 
 /* ── Helpers ───────────────────────────────────────────── */
-
-function formatPrice(n: number): string {
-  if (n >= 1_000_000_000) return `$${(n / 1_000_000_000).toFixed(1)}B`;
-  if (n >= 1_000_000) return `$${Math.round(n / 1_000_000)}M`;
-  return `$${n.toLocaleString("es-CO")}`;
-}
+// formatPrice moved to src/lib/currency.ts → formatCurrency(, "COP", { compact: true }) with compact option
 
 /* ── Page ──────────────────────────────────────────────── */
 
@@ -647,7 +643,7 @@ export default function DisponibilidadPage() {
 
                         {/* Price */}
                         <span className="text-[11px] text-[var(--text-tertiary)] shrink-0 w-16 text-right hidden sm:block">
-                          {unit.precio ? formatPrice(unit.precio) : "—"}
+                          {unit.precio ? formatCurrency(unit.precio, "COP", { compact: true }) : "—"}
                         </span>
 
                         {/* Status selector */}

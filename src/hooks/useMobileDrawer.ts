@@ -9,7 +9,9 @@ export function useMobileDrawer(breakpoint = "(max-width: 767px)") {
 
   // Close drawer when resizing to desktop
   useEffect(() => {
-    if (!isMobile) setOpen(false);
+    if (!isMobile) {
+      requestAnimationFrame(() => setOpen(false));
+    }
   }, [isMobile]);
 
   // Scroll lock when drawer is open

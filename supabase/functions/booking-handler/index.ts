@@ -25,6 +25,7 @@ const RESEND_FROM = Deno.env.get("RESEND_FROM_EMAIL") || "NODDO <notificaciones@
 const ADMIN_EMAIL = Deno.env.get("NODDO_ADMIN_EMAIL") || "hola@noddo.io";
 const APP_URL = Deno.env.get("NEXT_PUBLIC_APP_URL") || "https://noddo.io";
 const MEETING_LINK = Deno.env.get("NODDO_MEETING_LINK") || "";
+const WHATSAPP_SUPPORT = Deno.env.get("WHATSAPP_SUPPORT_NUMBER") || "+1234567890";
 
 async function sendEmail(to: string, subject: string, html: string) {
   if (!RESEND_API_KEY) {
@@ -736,7 +737,7 @@ async function handleNoShow(supabase: ReturnType<typeof createClient>) {
         ${ctaButton(`${APP_URL}/#booking`, "Reagendar demo")}
         <tr><td align="center" style="padding:0 40px 24px;">
           <p style="margin:0;font-size:12px;color:#5a5550;line-height:1.6;">
-            Tambi&eacute;n puedes escribirnos por <a href="https://wa.me/971585407848?text=Hola,%20quiero%20reagendar%20mi%20demo%20de%20NODDO" style="color:#b8973a;text-decoration:underline;">WhatsApp</a> si prefieres.
+            Tambi&eacute;n puedes escribirnos por <a href="https://wa.me/${WHATSAPP_SUPPORT.replace(/[^0-9]/g, "")}?text=Hola,%20quiero%20reagendar%20mi%20demo%20de%20NODDO" style="color:#b8973a;text-decoration:underline;">WhatsApp</a> si prefieres.
           </p>
         </td></tr>`,
       );

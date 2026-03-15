@@ -2,7 +2,7 @@
 
 import { useState, useMemo } from "react";
 import { useEditorProject } from "@/hooks/useEditorProject";
-import { useAnalytics } from "@/hooks/useAnalytics";
+import { useAnalytics } from "@/hooks/useProjectsQuery";
 import {
   pageTitle,
   pageDescription,
@@ -36,10 +36,11 @@ import { LeadsChart } from "@/components/dashboard/analytics/LeadsChart";
 import { DeviceChart } from "@/components/dashboard/analytics/DeviceChart";
 import { RankedList } from "@/components/dashboard/analytics/RankedList";
 import { InteractionCards } from "@/components/dashboard/analytics/InteractionCards";
+import { FinancialSection } from "@/components/dashboard/analytics/FinancialSection";
 
 const RANGE_DAYS: Record<string, number> = { "7d": 7, "30d": 30, "90d": 90 };
 
-function exportAnalyticsCSV(data: NonNullable<ReturnType<typeof import("@/hooks/useAnalytics").useAnalytics>["data"]>, projectName: string) {
+function exportAnalyticsCSV(data: NonNullable<ReturnType<typeof import("@/hooks/useProjectsQuery").useAnalytics>["data"]>, projectName: string) {
   const rows: string[][] = [
     ["Metric", "Value"],
     ["Total Views", String(data.summary.total_views)],
@@ -92,7 +93,7 @@ export default function EstadisticasPage() {
     };
   }, [range, customFrom, customTo]);
 
-  const { data, loading, error, refresh } = useAnalytics(project.id, from, to);
+  const { data, isLoading: loading, error, refetch: refresh } = useAnalytics(project.id, from, to);
 
   // Inventory breakdown from existing project data
   const inventoryBreakdown = useMemo(() => {
@@ -134,9 +135,9 @@ export default function EstadisticasPage() {
             <AlertTriangle size={24} className="text-amber-400" />
           </div>
           <p className={emptyStateTitle}>Error al cargar datos</p>
-          <p className={emptyStateDescription}>{error}</p>
+          <p className={emptyStateDescription}>{error?.message || "Error desconocido"}</p>
           <button
-            onClick={refresh}
+            onClick={() => refresh()}
             className="mt-4 flex items-center gap-2 px-4 py-2 bg-[var(--surface-3)] border border-[var(--border-default)] rounded-lg font-ui text-[11px] font-bold uppercase tracking-[0.08em] text-[var(--text-secondary)] hover:text-white hover:bg-[var(--surface-4)] transition-all"
           >
             <RefreshCw size={13} />
@@ -218,7 +219,7 @@ export default function EstadisticasPage() {
             </button>
           )}
           <button
-            onClick={refresh}
+            onClick={() => refresh()}
             disabled={loading}
             className="w-8 h-8 flex items-center justify-center rounded-lg border border-[var(--border-default)] bg-[var(--surface-2)] text-[var(--text-tertiary)] hover:text-white hover:bg-[var(--surface-3)] transition-all disabled:opacity-50"
             title="Actualizar datos"
@@ -397,6 +398,20 @@ export default function EstadisticasPage() {
               );
             })}
           </div>
+        </div>
+      )}
+
+      {/* Financial Statistics Section */}
+      {data.financial && (
+        <div className="space-y-4">
+          <div className="flex items-center gap-2 mt-8">
+            <div className="h-px flex-1 bg-[var(--border-subtle)]" />
+            <h2 className="font-ui text-[11px] font-bold uppercase tracking-[0.15em] text-[var(--text-muted)]">
+              Estadísticas Financieras
+            </h2>
+            <div className="h-px flex-1 bg-[var(--border-subtle)]" />
+          </div>
+          <FinancialSection financial={data.financial} />
         </div>
       )}
     </motion.div>

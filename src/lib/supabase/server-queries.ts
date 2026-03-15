@@ -16,7 +16,8 @@ export async function getProyectosByUser(): Promise<Proyecto[]> {
   const { data, error } = await supabase
     .from("proyectos")
     .select("*")
-    .order("created_at", { ascending: false });
+    .order("created_at", { ascending: false })
+    .limit(500); // Reasonable limit - most users won't have 500+ projects
 
   if (error) throw error;
   return data || [];
@@ -148,7 +149,7 @@ export async function getProyectoBySlug(
 
 export async function getLeadsByProyectos(): Promise<Lead[]> {
   const supabase = await createClient();
-  const { data: proyectos } = await supabase.from("proyectos").select("id");
+  const { data: proyectos } = await supabase.from("proyectos").select("id").limit(500);
   if (!proyectos?.length) return [];
 
   const { data, error } = await supabase
@@ -158,7 +159,8 @@ export async function getLeadsByProyectos(): Promise<Lead[]> {
       "proyecto_id",
       proyectos.map((p) => p.id)
     )
-    .order("created_at", { ascending: false });
+    .order("created_at", { ascending: false })
+    .limit(1000); // Limit to most recent 1000 leads for performance
 
   if (error) throw error;
   return data || [];
@@ -172,7 +174,8 @@ export async function getTipologiasByProyecto(
     .from("tipologias")
     .select("*")
     .eq("proyecto_id", proyectoId)
-    .order("orden");
+    .order("orden")
+    .limit(100); // Max 100 tipologías per project (reasonable limit)
 
   if (error) throw error;
   return data || [];
@@ -186,7 +189,8 @@ export async function getVideosByProyecto(
     .from("videos")
     .select("*")
     .eq("proyecto_id", proyectoId)
-    .order("orden");
+    .order("orden")
+    .limit(50); // Max 50 videos per project (reasonable limit)
 
   if (error) throw error;
   return data || [];

@@ -21,6 +21,8 @@ import {
 import { useTranslation } from "@/i18n";
 import { LanguageToggle } from "@/components/ui/LanguageToggle";
 import { AudioMuteButton } from "@/components/site/AudioPlayer";
+import { CurrencySelector } from "@/components/site/CurrencySelector";
+import { UnitToggle } from "@/components/site/UnitToggle";
 import { NodDoLogo } from "@/components/ui/NodDoLogo";
 
 interface SiteNavProps {
@@ -275,10 +277,19 @@ export function SiteNav({ basePath, projectName, logoUrl, faviconUrl, constructo
           </a>
         )}
 
-        {/* Language toggle + Audio mute */}
-        <div className={cn("flex-shrink-0 mt-3 flex items-center gap-2", expanded ? "px-4 w-full justify-center" : "flex-col")}>
-          <LanguageToggle compact={!expanded} />
-          <AudioMuteButton size={14} />
+        {/* Preferencias: Language, Currency, Unit, Audio */}
+        <div className={cn("flex-shrink-0 mt-3 space-y-2", expanded ? "px-4 w-full" : "flex flex-col items-center")}>
+          {expanded && (
+            <p className="text-[9px] font-ui uppercase tracking-[0.15em] text-[var(--text-muted)] mb-1">
+              Preferencias
+            </p>
+          )}
+          <div className={cn("flex items-center gap-2", expanded ? "w-full justify-start flex-wrap" : "flex-col")}>
+            <LanguageToggle compact={!expanded} />
+            <CurrencySelector />
+            <UnitToggle />
+            <AudioMuteButton size={14} />
+          </div>
         </div>
 
         {/* Powered by Noddo */}

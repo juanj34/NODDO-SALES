@@ -21,22 +21,14 @@ import {
 import { Reorder, useDragControls } from "framer-motion";
 import { useToast } from "@/components/dashboard/Toast";
 import { calcularCotizacion } from "@/lib/cotizador/calcular";
-import type { CotizadorConfig, FaseConfig, DescuentoConfig, ResultadoCotizacion } from "@/types";
+import type { CotizadorConfig, FaseConfig, DescuentoConfig, ResultadoCotizacion, Currency } from "@/types";
 import { NodDoDropdown } from "@/components/ui/NodDoDropdown";
+import { formatCurrency } from "@/lib/currency";
 
 /* ─── Helpers ─── */
 
 function uid(): string {
   return crypto.randomUUID();
-}
-
-function formatCurrency(n: number, moneda: string): string {
-  const locale = moneda === "USD" ? "en-US" : moneda === "MXN" ? "es-MX" : "es-CO";
-  return new Intl.NumberFormat(locale, {
-    style: "currency",
-    currency: moneda,
-    maximumFractionDigits: 0,
-  }).format(n);
 }
 
 const FRECUENCIAS = [

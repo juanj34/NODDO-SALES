@@ -44,7 +44,14 @@ const STORAGE_KEY = "noddo-audio-muted";
 
 export function AudioProvider({ audioUrl, children }: AudioProviderProps) {
   const audioRef = useRef<HTMLAudioElement | null>(null);
-  const [isMuted, setIsMuted] = useState(true);
+
+  // Initialize from localStorage
+  const [isMuted, setIsMuted] = useState(() => {
+    if (typeof window === "undefined") return true;
+    const stored = localStorage.getItem(STORAGE_KEY);
+    return stored === "true";
+  });
+
   const hasAudio = !!audioUrl;
 
   // Create audio element once
@@ -56,12 +63,6 @@ export function AudioProvider({ audioUrl, children }: AudioProviderProps) {
     audio.preload = "auto";
     audio.volume = 0.3;
     audioRef.current = audio;
-
-    // Restore mute preference from localStorage
-    const stored = localStorage.getItem(STORAGE_KEY);
-    if (stored === "true") {
-      setIsMuted(true);
-    }
 
     return () => {
       audio.pause();

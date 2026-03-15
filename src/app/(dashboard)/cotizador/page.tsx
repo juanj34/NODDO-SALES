@@ -4,6 +4,8 @@ import { useState, useEffect, useMemo } from "react";
 import { Loader2, ExternalLink, FileText, Search, Download, User } from "lucide-react";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
+import { formatCurrency } from "@/lib/currency";
+import type { Currency } from "@/types";
 import { useTranslation } from "@/i18n";
 import { useToast } from "@/components/dashboard/Toast";
 import { useAuthRole } from "@/hooks/useAuthContext";
@@ -36,18 +38,7 @@ interface ProjectForCotizador {
 }
 
 /* ── Helpers ───────────────────────────────────────────── */
-
-function formatPrice(n: number): string {
-  if (n >= 1_000_000_000) return `$${(n / 1_000_000_000).toFixed(1)}B`;
-  if (n >= 1_000_000) return `$${Math.round(n / 1_000_000)}M`;
-  return `$${n.toLocaleString("es-CO")}`;
-}
-
-function formatFullPrice(n: number, moneda: string): string {
-  const locale = moneda === "USD" ? "en-US" : "es-CO";
-  const prefix = moneda === "USD" ? "USD " : "$";
-  return `${prefix}${n.toLocaleString(locale)}`;
-}
+// formatCurrency and formatFullPrice moved to src/lib/currency.ts
 
 const frecLabels: Record<string, string> = {
   unica: "Pago unico",
@@ -343,7 +334,7 @@ export default function CotizadorPage() {
                       </span>
                     </div>
                     <span className="text-xs text-[var(--text-tertiary)] shrink-0">
-                      {unit.precio ? formatPrice(unit.precio) : "—"}
+                      {unit.precio ? formatCurrency(unit.precio, "COP", { compact: true }) : "—"}
                     </span>
                   </button>
                 ))
@@ -400,11 +391,11 @@ export default function CotizadorPage() {
                     Precio
                   </span>
                   <span className="font-heading text-2xl font-light text-[var(--site-primary)]">
-                    {formatFullPrice(cotizacion.precio_base, moneda)}
+                    {formatCurrency(cotizacion.precio_base, moneda as Currency)}
                   </span>
                   {cotizacion.descuentos_aplicados.length > 0 && (
                     <div className="mt-2 text-xs text-green-400">
-                      Neto: {formatFullPrice(cotizacion.precio_neto, moneda)}
+                      Neto: {formatCurrency(cotizacion.precio_neto, moneda as Currency)}
                     </div>
                   )}
                 </div>
@@ -432,11 +423,11 @@ export default function CotizadorPage() {
                         </div>
                         <div className="text-right">
                           <span className="text-xs text-[var(--text-primary)] block">
-                            {formatFullPrice(fase.monto_total, moneda)}
+                            {formatCurrency(fase.monto_total, moneda as Currency)}
                           </span>
                           {fase.cuotas > 1 && (
                             <span className="text-[10px] text-[var(--text-muted)]">
-                              {formatFullPrice(fase.monto_por_cuota, moneda)} / cuota
+                              {formatCurrency(fase.monto_por_cuota, moneda as Currency)} / cuota
                             </span>
                           )}
                         </div>

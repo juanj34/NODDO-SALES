@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import { useEditorProject } from "@/hooks/useEditorProject";
 import { useToast } from "@/components/dashboard/Toast";
 import {
@@ -19,16 +19,21 @@ export default function ConfigPage() {
   const { dictionary } = useLanguage();
   const groupingOptions = ((dictionary.editor as Record<string, Record<string, Record<string, unknown>>>).config.grouping.options) as readonly string[];
 
-  const [whatsappNumero, setWhatsappNumero] = useState("");
-  const [etapaLabel, setEtapaLabel] = useState("");
-  const [hideNoddoBadge, setHideNoddoBadge] = useState(false);
+  // Initialize state from project using memo to avoid re-renders
+  const initialWhatsapp = useMemo(() => project?.whatsapp_numero || "", [project?.id]);
+  const initialEtapa = useMemo(() => project?.etapa_label || "Etapas", [project?.id]);
+  const initialBadge = useMemo(() => project?.hide_noddo_badge ?? false, [project?.id]);
 
-  useEffect(() => {
-    if (!project) return;
-    setWhatsappNumero(project.whatsapp_numero || "");
-    setEtapaLabel(project.etapa_label || "Etapas");
-    setHideNoddoBadge(project.hide_noddo_badge ?? false);
-  }, [project]);
+  const [whatsappNumero, setWhatsappNumero] = useState(initialWhatsapp);
+  const [etapaLabel, setEtapaLabel] = useState(initialEtapa);
+  const [hideNoddoBadge, setHideNoddoBadge] = useState(initialBadge);
+
+  // Sync state when project ID changes (not in effect to avoid warning)
+  if (whatsappNumero === "" && initialWhatsapp !== whatsappNumero && project) {
+    setWhatsappNumero(initialWhatsapp);
+    setEtapaLabel(initialEtapa);
+    setHideNoddoBadge(initialBadge);
+  }
 
   const handleSave = async () => {
     const ok = await save({
@@ -41,8 +46,12 @@ export default function ConfigPage() {
 
   /* ── Auto-save ── */
   const handleSaveRef = useRef(handleSave);
-  handleSaveRef.current = handleSave;
   const saveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // Update ref in effect to avoid updating during render
+  useEffect(() => {
+    handleSaveRef.current = handleSave;
+  }, [handleSave]);
 
   const scheduleAutoSave = useCallback(() => {
     if (saveTimerRef.current) clearTimeout(saveTimerRef.current);

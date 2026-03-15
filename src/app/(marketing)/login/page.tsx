@@ -33,7 +33,7 @@ function LoginForm() {
   const [error, setError] = useState<string | null>(null);
   const [successMsg, setSuccessMsg] = useState<string | null>(null);
   const searchParams = useSearchParams();
-  const redirect = searchParams.get("redirect") || "/proyectos";
+  const redirect = searchParams.get("redirect") || "/dashboard";
 
   const supabase = createClient();
 

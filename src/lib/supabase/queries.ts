@@ -19,7 +19,8 @@ export async function getProyectosByUser(): Promise<Proyecto[]> {
   const { data, error } = await supabase
     .from("proyectos")
     .select("*")
-    .order("created_at", { ascending: false });
+    .order("created_at", { ascending: false })
+    .limit(500); // Reasonable limit - most users won't have 500+ projects
 
   if (error) throw error;
   return data || [];
@@ -106,7 +107,8 @@ export async function getTipologiasByProyecto(proyectoId: string): Promise<Tipol
     .from("tipologias")
     .select("*")
     .eq("proyecto_id", proyectoId)
-    .order("orden");
+    .order("orden")
+    .limit(100); // Max 100 tipologías per project
 
   if (error) throw error;
   return data || [];
@@ -154,22 +156,35 @@ export async function getCategoriasByProyecto(
     .from("galeria_categorias")
     .select("*")
     .eq("proyecto_id", proyectoId)
-    .order("orden");
+    .order("orden")
+    .limit(50); // Max 50 categories per project
 
   if (error) throw error;
   if (!categorias) return [];
 
-  const categoriasConImagenes = await Promise.all(
-    categorias.map(async (cat) => {
-      const { data: imagenes } = await supabase
+  // Fetch all images in a single query (avoids N+1)
+  const catIds = categorias.map((c) => c.id);
+  const { data: allImages } = catIds.length > 0
+    ? await supabase
         .from("galeria_imagenes")
         .select("*")
-        .eq("categoria_id", cat.id)
-        .order("orden");
+        .in("categoria_id", catIds)
+        .order("orden")
+        .limit(1000) // Max 1000 images total across all categories
+    : { data: [] };
 
-      return { ...cat, imagenes: imagenes || [] };
-    })
-  );
+  // Group images by category in JavaScript
+  const imgs = allImages || [];
+  const imagesByCategory: Record<string, typeof imgs> = {};
+  imgs.forEach((img) => {
+    if (!imagesByCategory[img.categoria_id]) imagesByCategory[img.categoria_id] = [];
+    imagesByCategory[img.categoria_id].push(img);
+  });
+
+  const categoriasConImagenes = categorias.map((cat) => ({
+    ...cat,
+    imagenes: imagesByCategory[cat.id] || [],
+  }));
 
   return categoriasConImagenes;
 }
@@ -238,9 +253,12 @@ export async function deleteImagen(id: string): Promise<void> {
 export async function reorderImagenes(
   updates: { id: string; orden: number }[]
 ): Promise<void> {
-  for (const { id, orden } of updates) {
-    await supabase.from("galeria_imagenes").update({ orden }).eq("id", id);
-  }
+  // Use batch RPC for efficient updates (single query instead of N queries)
+  const { error } = await supabase.rpc("batch_reorder_galeria_imagenes", {
+    p_updates: updates,
+  });
+
+  if (error) throw error;
 }
 
 // ==================== VIDEOS ====================
@@ -250,7 +268,8 @@ export async function getVideosByProyecto(proyectoId: string): Promise<Video[]> 
     .from("videos")
     .select("*")
     .eq("proyecto_id", proyectoId)
-    .order("orden");
+    .order("orden")
+    .limit(50); // Max 50 videos per project
 
   if (error) throw error;
   return data || [];
@@ -296,7 +315,8 @@ export async function getPuntosInteresByProyecto(proyectoId: string): Promise<Pu
     .from("puntos_interes")
     .select("*")
     .eq("proyecto_id", proyectoId)
-    .order("orden");
+    .order("orden")
+    .limit(100); // Max 100 POIs per project
 
   if (error) throw error;
   return data || [];
@@ -309,7 +329,8 @@ export async function getRecursosByProyecto(proyectoId: string): Promise<Recurso
     .from("recursos")
     .select("*")
     .eq("proyecto_id", proyectoId)
-    .order("orden");
+    .order("orden")
+    .limit(50); // Max 50 recursos per project
 
   if (error) throw error;
   return data || [];
@@ -340,7 +361,7 @@ export async function getLeadsByUser(filters?: {
   search?: string;
 }): Promise<Lead[]> {
   // First get user's projects
-  const { data: proyectos } = await supabase.from("proyectos").select("id");
+  const { data: proyectos } = await supabase.from("proyectos").select("id").limit(500);
   if (!proyectos?.length) return [];
 
   const projectIds = proyectos.map((p) => p.id);
@@ -349,7 +370,8 @@ export async function getLeadsByUser(filters?: {
     .from("leads")
     .select("*")
     .in("proyecto_id", projectIds)
-    .order("created_at", { ascending: false });
+    .order("created_at", { ascending: false })
+    .limit(1000); // Max 1000 leads for client-side queries
 
   if (filters?.proyectoId) {
     query = query.eq("proyecto_id", filters.proyectoId);

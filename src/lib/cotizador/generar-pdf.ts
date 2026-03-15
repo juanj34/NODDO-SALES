@@ -1,5 +1,6 @@
 import jsPDF from "jspdf";
-import type { ResultadoCotizacion, CotizadorConfig } from "@/types";
+import type { ResultadoCotizacion, CotizadorConfig, Currency } from "@/types";
+import { formatCurrency } from "@/lib/currency";
 
 type RGB = [number, number, number];
 
@@ -56,15 +57,6 @@ function hexToRgb(hex: string): RGB {
     parseInt(h.substring(2, 4), 16),
     parseInt(h.substring(4, 6), 16),
   ];
-}
-
-function formatCurrency(n: number, moneda: string): string {
-  const locale = moneda === "USD" ? "en-US" : moneda === "MXN" ? "es-MX" : "es-CO";
-  return new Intl.NumberFormat(locale, {
-    style: "currency",
-    currency: moneda,
-    maximumFractionDigits: 0,
-  }).format(n);
 }
 
 const frecLabels: Record<string, string> = {
@@ -255,7 +247,7 @@ function drawOfferPage(doc: jsPDF, data: PDFData, accent: RGB, accentLight: RGB)
   const pageH = doc.internal.pageSize.getHeight();
   const margin = 22;
   const contentW = pageW - margin * 2;
-  const moneda = data.config.moneda || "COP";
+  const moneda = (data.config.moneda || "COP") as Currency;
 
   drawPageFrame(doc, pageW, pageH, accent, accentLight);
 

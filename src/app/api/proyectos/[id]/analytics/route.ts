@@ -35,6 +35,7 @@ export async function GET(
       timeSeriesResult,
       eventsResult,
       leadsResult,
+      financialResult,
     ] = await Promise.all([
       // 1. Summary via RPC
       auth.supabase.rpc("analytics_summary", {
@@ -65,6 +66,12 @@ export async function GET(
         .gte("created_at", from)
         .lte("created_at", to)
         .order("created_at", { ascending: false }),
+      // 5. Financial metrics via RPC
+      auth.supabase.rpc("analytics_financial_summary", {
+        p_proyecto_id: id,
+        p_from: from,
+        p_to: to,
+      }),
     ]);
 
     const summary = summaryResult.data || {
@@ -132,6 +139,9 @@ export async function GET(
     const totalPageviews = summary.total_views || pageviews.length;
     const avgPagesPerSession = totalSessions > 0 ? totalPageviews / totalSessions : 0;
 
+    // Financial metrics
+    const financial = financialResult.data || null;
+
     const response: AnalyticsResponse = {
       summary,
       total_leads: totalLeads,
@@ -147,6 +157,7 @@ export async function GET(
       leads_by_source: leadsBySource,
       leads_by_tipologia: leadsByTipologia,
       leads_by_country: leadsByCountry,
+      financial,
     };
 
     return NextResponse.json(response);

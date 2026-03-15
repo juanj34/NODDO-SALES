@@ -28,19 +28,17 @@ function NuevaContrasenaForm() {
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [success, setSuccess] = useState(false);
   const router = useRouter();
   const searchParams = useSearchParams();
   const errorParam = searchParams.get("error");
 
-  const supabase = createClient();
+  // Initialize error state from search params
+  const [error, setError] = useState<string | null>(
+    errorParam ? "El enlace de recuperacion es invalido o ha expirado. Solicita uno nuevo." : null
+  );
+  const [success, setSuccess] = useState(false);
 
-  useEffect(() => {
-    if (errorParam) {
-      setError("El enlace de recuperacion es invalido o ha expirado. Solicita uno nuevo.");
-    }
-  }, [errorParam]);
+  const supabase = createClient();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

@@ -192,8 +192,11 @@ export const mockProyecto: ProyectoCompleto = {
   etapa_label: "Torres",
   background_audio_url: null,
   hide_noddo_badge: false,
+  moneda_base: "COP",
+  unidad_medida_base: "m2",
   cotizador_enabled: false,
   cotizador_config: null,
+  webhook_config: null,
   updated_at: new Date().toISOString(),
 
   tipologias: [
@@ -749,5 +752,4 @@ export const mockProyecto: ProyectoCompleto = {
   ] as PlanoPunto[],
 
   avances_obra: [] as AvanceObra[],
-  webhook_config: null,
 };

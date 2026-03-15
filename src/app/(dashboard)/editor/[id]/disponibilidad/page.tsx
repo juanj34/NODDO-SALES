@@ -12,10 +12,14 @@ import {
   emptyStateDescription,
 } from "@/components/dashboard/editor-styles";
 import { cn } from "@/lib/utils";
+import { formatCurrency as formatCurrencyFn } from "@/lib/currency";
 import { Package, Upload, Loader2 } from "lucide-react";
 import { useToast } from "@/components/dashboard/Toast";
 import type { Unidad } from "@/types";
 import { NodDoDropdown } from "@/components/ui/NodDoDropdown";
+
+// Compact currency formatter
+const formatCurrency = (n: number) => formatCurrencyFn(n, "COP", { compact: true });
 
 type EstadoUnidad = Unidad["estado"];
 
@@ -25,12 +29,6 @@ const ESTADOS: { value: EstadoUnidad; label: string; dot: string; bg: string }[]
   { value: "reservada", label: "Reservada", dot: "bg-orange-500", bg: "bg-orange-500/20 text-orange-400" },
   { value: "vendida", label: "Vendida", dot: "bg-red-500", bg: "bg-red-500/20 text-red-400" },
 ];
-
-function formatPrice(n: number): string {
-  if (n >= 1_000_000_000) return `$${(n / 1_000_000_000).toFixed(1)}B`;
-  if (n >= 1_000_000) return `$${Math.round(n / 1_000_000)}M`;
-  return `$${n.toLocaleString("es-CO")}`;
-}
 
 export default function DisponibilidadPage() {
   const { project, updateLocal } = useEditorProject();
@@ -245,7 +243,7 @@ export default function DisponibilidadPage() {
                   </span>
                   {/* Price */}
                   <span className="text-xs text-[var(--text-secondary)] min-w-[60px] text-right hidden sm:block">
-                    {unit.precio ? formatPrice(unit.precio) : "—"}
+                    {unit.precio ? formatCurrency(unit.precio) : "—"}
                   </span>
                   {/* Spacer */}
                   <div className="flex-1" />

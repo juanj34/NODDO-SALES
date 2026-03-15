@@ -12,8 +12,7 @@ import {
   Clock,
   TrendingUp,
 } from "lucide-react";
-import { useProjects } from "@/hooks/useProject";
-import { useAnalytics } from "@/hooks/useAnalytics";
+import { useProjects, useAnalytics } from "@/hooks/useProjectsQuery";
 import { ViewsChart } from "@/components/dashboard/analytics/ViewsChart";
 import { DeviceChart } from "@/components/dashboard/analytics/DeviceChart";
 import { RankedList } from "@/components/dashboard/analytics/RankedList";
@@ -40,7 +39,7 @@ function getDateRange(range: TimeRange): { from: Date; to: Date } {
 
 export default function AnalyticsPage() {
   const { t } = useTranslation("dashboard");
-  const { projects, loading: projectsLoading } = useProjects();
+  const { data: projects = [], isLoading: projectsLoading } = useProjects();
   const [projectId, setProjectId] = useState("");
   const [timeRange, setTimeRange] = useState<TimeRange>("7d");
 
@@ -50,7 +49,7 @@ export default function AnalyticsPage() {
   }
 
   const { from, to } = useMemo(() => getDateRange(timeRange), [timeRange]);
-  const { data, loading } = useAnalytics(projectId, from, to);
+  const { data, isLoading: loading } = useAnalytics(projectId, from, to);
 
   const selectedProject = projects.find((p) => p.id === projectId);
 
