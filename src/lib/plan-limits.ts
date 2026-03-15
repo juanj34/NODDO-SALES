@@ -12,16 +12,16 @@ interface PlanLimits {
 
 export const PLAN_DEFAULTS: Record<Plan, Omit<PlanLimits, "plan">> = {
   proyecto: {
-    max_projects: 1,
+    max_projects: 999, // unlimited — limits coming later
     max_units_per_project: null, // unlimited
     max_collaborators: 999, // unlimited
-    storage_limit_gb: 50,
+    storage_limit_gb: 500,
   },
   studio: {
-    max_projects: 5,
+    max_projects: 999, // unlimited — limits coming later
     max_units_per_project: null, // unlimited
     max_collaborators: 999, // unlimited
-    storage_limit_gb: 250,
+    storage_limit_gb: 500,
   },
   enterprise: {
     max_projects: 999, // unlimited
