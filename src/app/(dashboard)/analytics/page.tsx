@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { motion } from "framer-motion";
 import {
   BarChart3,
@@ -11,6 +11,8 @@ import {
   MousePointerClick,
   Clock,
   TrendingUp,
+  Gauge,
+  ChartBar,
 } from "lucide-react";
 import { useProjects, useAnalytics } from "@/hooks/useProjectsQuery";
 import { ViewsChart } from "@/components/dashboard/analytics/ViewsChart";
@@ -19,6 +21,15 @@ import { RankedList } from "@/components/dashboard/analytics/RankedList";
 import { TimeRangeSelector, type TimeRange } from "@/components/dashboard/analytics/TimeRangeSelector";
 import { useTranslation } from "@/i18n";
 import { NodDoDropdown } from "@/components/ui/NodDoDropdown";
+import { trackDashboardEvent } from "@/lib/dashboard-tracking";
+import { useAuthRole } from "@/hooks/useAuthContext";
+
+// Dashboard Analytics Components
+import { AnalyticsOverview } from "@/components/dashboard/analytics/AnalyticsOverview";
+import { EventsChart } from "@/components/dashboard/analytics/EventsChart";
+import { PopularShortcuts } from "@/components/dashboard/analytics/PopularShortcuts";
+import { RecentActivity } from "@/components/dashboard/analytics/RecentActivity";
+import { SearchPatterns } from "@/components/dashboard/analytics/SearchPatterns";
 
 function getDateRange(range: TimeRange): { from: Date; to: Date } {
   const to = new Date();
@@ -37,11 +48,69 @@ function getDateRange(range: TimeRange): { from: Date; to: Date } {
   return { from, to };
 }
 
+type AnalyticsTab = "projects" | "dashboard";
+
+interface DashboardAnalyticsData {
+  overview: {
+    total_events: number;
+    unique_users: number;
+    unique_sessions: number;
+    avg_events_per_session: string;
+  };
+  events_by_day: Array<{ day: string; count: number }>;
+  popular_shortcuts: Array<{ shortcut: string; clicks: number }>;
+  top_searches: Array<{ query: string; count: number }>;
+  recent_activity: Array<{
+    id: string;
+    event_type: string;
+    user_role: string | null;
+    created_at: string;
+    metadata: Record<string, unknown>;
+  }>;
+  period_days: number;
+  total_events: number;
+}
+
 export default function AnalyticsPage() {
   const { t } = useTranslation("dashboard");
   const { data: projects = [], isLoading: projectsLoading } = useProjects();
+  const { user, role } = useAuthRole();
+  const [activeTab, setActiveTab] = useState<AnalyticsTab>("dashboard");
   const [projectId, setProjectId] = useState("");
   const [timeRange, setTimeRange] = useState<TimeRange>("7d");
+  const [dashboardPeriod, setDashboardPeriod] = useState(7);
+  const [dashboardData, setDashboardData] = useState<DashboardAnalyticsData | null>(null);
+  const [dashboardLoading, setDashboardLoading] = useState(false);
+
+  // Track page view
+  useEffect(() => {
+    trackDashboardEvent("dashboard_view", {
+      page: "analytics",
+      tab: activeTab,
+    }, user?.id, role || undefined);
+  }, [activeTab, user?.id, role]);
+
+  // Fetch dashboard analytics
+  useEffect(() => {
+    if (activeTab !== "dashboard") return;
+
+    const fetchDashboardData = async () => {
+      setDashboardLoading(true);
+      try {
+        const res = await fetch(`/api/analytics/dashboard?days=${dashboardPeriod}`);
+        if (res.ok) {
+          const json = await res.json();
+          setDashboardData(json);
+        }
+      } catch (err) {
+        console.error("Failed to fetch dashboard analytics:", err);
+      } finally {
+        setDashboardLoading(false);
+      }
+    };
+
+    fetchDashboardData();
+  }, [activeTab, dashboardPeriod]);
 
   // Set default project when projects load
   if (!projectId && projects.length > 0 && !projectsLoading) {
@@ -68,31 +137,151 @@ export default function AnalyticsPage() {
           </h1>
         </div>
         <p className="text-sm text-[var(--text-tertiary)] font-mono font-light">
-          Análisis completo de tráfico y comportamiento de usuarios
+          {activeTab === "dashboard"
+            ? "Métricas de uso del dashboard y comportamiento de usuarios"
+            : "Análisis completo de tráfico y comportamiento de usuarios en microsites"}
         </p>
       </motion.div>
 
-      {/* Project selector + Time range */}
+      {/* Tabs */}
       <motion.div
         initial={{ opacity: 0, y: 8 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.4, delay: 0.1 }}
-        className="flex flex-col sm:flex-row gap-3 items-start sm:items-center justify-between"
+        transition={{ duration: 0.4, delay: 0.05 }}
+        className="flex gap-2 border-b border-[var(--border-subtle)]"
       >
-        {/* Project selector */}
-        {projects.length > 0 && (
-          <NodDoDropdown
-            variant="dashboard"
-            size="md"
-            value={projectId}
-            onChange={setProjectId}
-            options={projects.map((p) => ({ value: p.id, label: p.nombre }))}
-          />
-        )}
-
-        {/* Time range selector */}
-        <TimeRangeSelector value={timeRange} onChange={setTimeRange} />
+        <button
+          onClick={() => setActiveTab("dashboard")}
+          className={`
+            px-4 py-2.5 font-ui text-xs font-bold uppercase tracking-wider
+            border-b-2 transition-all
+            ${
+              activeTab === "dashboard"
+                ? "border-[var(--site-primary)] text-[var(--site-primary)]"
+                : "border-transparent text-[var(--text-tertiary)] hover:text-[var(--text-secondary)]"
+            }
+          `}
+        >
+          <div className="flex items-center gap-2">
+            <Gauge size={14} />
+            Dashboard
+          </div>
+        </button>
+        <button
+          onClick={() => setActiveTab("projects")}
+          className={`
+            px-4 py-2.5 font-ui text-xs font-bold uppercase tracking-wider
+            border-b-2 transition-all
+            ${
+              activeTab === "projects"
+                ? "border-[var(--site-primary)] text-[var(--site-primary)]"
+                : "border-transparent text-[var(--text-tertiary)] hover:text-[var(--text-secondary)]"
+            }
+          `}
+        >
+          <div className="flex items-center gap-2">
+            <ChartBar size={14} />
+            Proyectos
+          </div>
+        </button>
       </motion.div>
+
+      {/* Dashboard Analytics Tab */}
+      {activeTab === "dashboard" && (
+        <div className="space-y-6">
+          {/* Period selector */}
+          <motion.div
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.4, delay: 0.1 }}
+            className="flex justify-end"
+          >
+            <select
+              value={dashboardPeriod}
+              onChange={(e) => setDashboardPeriod(parseInt(e.target.value, 10))}
+              className="
+                px-4 py-2
+                bg-[var(--surface-2)]
+                border border-[var(--border-default)]
+                rounded-lg
+                font-mono text-xs text-white
+                focus:outline-none focus:border-[var(--site-primary)]
+                transition-colors
+              "
+            >
+              <option value={7}>Últimos 7 días</option>
+              <option value={14}>Últimos 14 días</option>
+              <option value={30}>Últimos 30 días</option>
+              <option value={90}>Últimos 90 días</option>
+            </select>
+          </motion.div>
+
+          {dashboardLoading || !dashboardData ? (
+            <div className="flex items-center justify-center py-12">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[var(--site-primary)]" />
+            </div>
+          ) : (
+            <>
+              <AnalyticsOverview
+                totalEvents={dashboardData.overview.total_events}
+                uniqueUsers={dashboardData.overview.unique_users}
+                uniqueSessions={dashboardData.overview.unique_sessions}
+                avgEventsPerSession={dashboardData.overview.avg_events_per_session}
+              />
+
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <div className="lg:col-span-2">
+                  <EventsChart data={dashboardData.events_by_day} />
+                </div>
+                <div>
+                  <PopularShortcuts shortcuts={dashboardData.popular_shortcuts} />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <RecentActivity events={dashboardData.recent_activity} />
+                <SearchPatterns searches={dashboardData.top_searches} />
+              </div>
+
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ delay: 0.5, duration: 0.4 }}
+                className="text-center pt-4"
+              >
+                <p className="font-mono text-xs text-[var(--text-muted)]">
+                  {dashboardData.total_events.toLocaleString()} eventos registrados en los últimos {dashboardData.period_days} días
+                </p>
+              </motion.div>
+            </>
+          )}
+        </div>
+      )}
+
+      {/* Projects Analytics Tab (existing content) */}
+      {activeTab === "projects" && (
+        <>
+          {/* Project selector + Time range */}
+          <motion.div
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.4, delay: 0.1 }}
+            className="flex flex-col sm:flex-row gap-3 items-start sm:items-center justify-between"
+          >
+            {/* Project selector */}
+            {projects.length > 0 && (
+              <NodDoDropdown
+                variant="dashboard"
+                size="md"
+                value={projectId}
+                onChange={setProjectId}
+                options={projects.map((p) => ({ value: p.id, label: p.nombre }))}
+              />
+            )}
+
+            {/* Time range selector */}
+            <TimeRangeSelector value={timeRange} onChange={setTimeRange} />
+          </motion.div>
 
       {projects.length === 0 ? (
         /* Empty state */
@@ -257,6 +446,8 @@ export default function AnalyticsPage() {
                               />
             </motion.div>
           </div>
+        </>
+      )}
         </>
       )}
     </div>
