@@ -41,7 +41,6 @@ export default function NosotrosPage() {
           <p
             className="text-lg max-w-2xl mx-auto leading-relaxed"
             style={{
-              fontFamily: "var(--font-dm-mono)",
               fontWeight: 300,
               color: "rgba(244,240,232,0.55)",
             }}
@@ -75,7 +74,6 @@ export default function NosotrosPage() {
               <p
                 className="text-base leading-[1.9]"
                 style={{
-                  fontFamily: "var(--font-dm-mono)",
                   fontWeight: 300,
                   color: "rgba(244,240,232,0.70)",
                 }}
@@ -111,7 +109,6 @@ export default function NosotrosPage() {
               <div
                 className="space-y-4 text-base leading-[1.9]"
                 style={{
-                  fontFamily: "var(--font-dm-mono)",
                   fontWeight: 300,
                   color: "rgba(244,240,232,0.70)",
                 }}
@@ -191,7 +188,6 @@ export default function NosotrosPage() {
               <p
                 className="text-sm leading-[1.8]"
                 style={{
-                  fontFamily: "var(--font-dm-mono)",
                   fontWeight: 300,
                   color: "rgba(244,240,232,0.70)",
                 }}
@@ -222,7 +218,6 @@ export default function NosotrosPage() {
               <p
                 className="text-sm leading-[1.8]"
                 style={{
-                  fontFamily: "var(--font-dm-mono)",
                   fontWeight: 300,
                   color: "rgba(244,240,232,0.70)",
                 }}
@@ -253,7 +248,6 @@ export default function NosotrosPage() {
               <p
                 className="text-sm leading-[1.8]"
                 style={{
-                  fontFamily: "var(--font-dm-mono)",
                   fontWeight: 300,
                   color: "rgba(244,240,232,0.70)",
                 }}
@@ -284,7 +278,6 @@ export default function NosotrosPage() {
               <p
                 className="text-sm leading-[1.8]"
                 style={{
-                  fontFamily: "var(--font-dm-mono)",
                   fontWeight: 300,
                   color: "rgba(244,240,232,0.70)",
                 }}
@@ -370,7 +363,6 @@ export default function NosotrosPage() {
                       <p
                         className="text-sm leading-[1.7]"
                         style={{
-                          fontFamily: "var(--font-dm-mono)",
                           fontWeight: 300,
                           color: "rgba(244,240,232,0.70)",
                         }}
@@ -418,7 +410,6 @@ export default function NosotrosPage() {
             <p
               className="text-base max-w-2xl mx-auto leading-[1.9]"
               style={{
-                fontFamily: "var(--font-dm-mono)",
                 fontWeight: 300,
                 color: "rgba(244,240,232,0.70)",
               }}
@@ -479,7 +470,6 @@ export default function NosotrosPage() {
                 <p
                   className="text-sm leading-[1.7] mb-4"
                   style={{
-                    fontFamily: "var(--font-dm-mono)",
                     fontWeight: 300,
                     color: "rgba(244,240,232,0.70)",
                   }}
@@ -532,7 +522,6 @@ export default function NosotrosPage() {
               <p
                 className="text-base leading-[1.9]"
                 style={{
-                  fontFamily: "var(--font-dm-mono)",
                   fontWeight: 300,
                   color: "rgba(244,240,232,0.70)",
                 }}
@@ -561,7 +550,6 @@ export default function NosotrosPage() {
             <p
               className="text-base mb-6 max-w-xl mx-auto"
               style={{
-                fontFamily: "var(--font-dm-mono)",
                 fontWeight: 300,
                 color: "rgba(244,240,232,0.55)",
               }}

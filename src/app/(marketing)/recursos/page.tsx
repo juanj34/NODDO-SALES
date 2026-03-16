@@ -148,7 +148,6 @@ export default function RecursosPage() {
             transition={{ duration: 0.7, delay: 0.2, ease }}
             className="text-lg max-w-3xl mx-auto leading-relaxed"
             style={{
-              fontFamily: "var(--font-dm-mono)",
               fontWeight: 300,
               color: "rgba(244,240,232,0.55)",
             }}
@@ -202,7 +201,6 @@ export default function RecursosPage() {
                   <span
                     className="text-xs"
                     style={{
-                      fontFamily: "var(--font-dm-mono)",
                       fontWeight: 300,
                       color: "rgba(244,240,232,0.35)",
                     }}
@@ -225,7 +223,6 @@ export default function RecursosPage() {
                 <p
                   className="text-base leading-[1.8] mb-6"
                   style={{
-                    fontFamily: "var(--font-dm-mono)",
                     fontWeight: 300,
                     color: "rgba(244,240,232,0.70)",
                   }}
@@ -239,7 +236,6 @@ export default function RecursosPage() {
                       key={tag}
                       className="px-3 py-1 rounded-lg text-xs"
                       style={{
-                        fontFamily: "var(--font-dm-mono)",
                         fontWeight: 400,
                         backgroundColor: "rgba(255, 255, 255, 0.05)",
                         color: "rgba(244,240,232,0.55)",
@@ -300,7 +296,6 @@ export default function RecursosPage() {
                     <span
                       className="text-xs"
                       style={{
-                        fontFamily: "var(--font-dm-mono)",
                         fontWeight: 300,
                         color: "rgba(244,240,232,0.35)",
                       }}
@@ -323,7 +318,6 @@ export default function RecursosPage() {
                   <p
                     className="text-sm leading-[1.7] mb-4"
                     style={{
-                      fontFamily: "var(--font-dm-mono)",
                       fontWeight: 300,
                       color: "rgba(244,240,232,0.70)",
                     }}
@@ -337,7 +331,6 @@ export default function RecursosPage() {
                         key={tag}
                         className="px-2 py-0.5 rounded text-[10px]"
                         style={{
-                          fontFamily: "var(--font-dm-mono)",
                           fontWeight: 400,
                           backgroundColor: "rgba(255, 255, 255, 0.05)",
                           color: "rgba(244,240,232,0.45)",
@@ -408,7 +401,6 @@ export default function RecursosPage() {
             <p
               className="text-base mb-8 max-w-2xl mx-auto relative z-10"
               style={{
-                fontFamily: "var(--font-dm-mono)",
                 fontWeight: 300,
                 color: "rgba(244,240,232,0.55)",
               }}
@@ -423,7 +415,6 @@ export default function RecursosPage() {
                 placeholder="tu@email.com"
                 className="flex-1 px-6 py-4 rounded-xl input-glass text-sm"
                 style={{
-                  fontFamily: "var(--font-dm-mono)",
                   fontWeight: 300,
                   backgroundColor: "rgba(255, 255, 255, 0.05)",
                   border: "1px solid rgba(255, 255, 255, 0.1)",
@@ -447,7 +438,6 @@ export default function RecursosPage() {
             <p
               className="text-xs mt-4 relative z-10"
               style={{
-                fontFamily: "var(--font-dm-mono)",
                 fontWeight: 300,
                 color: "rgba(244,240,232,0.35)",
               }}

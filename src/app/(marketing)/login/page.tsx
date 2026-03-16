@@ -146,7 +146,7 @@ function LoginForm() {
               colorDo="#b8973a"
             />
           </Link>
-          <p className="font-mono text-[var(--mk-text-tertiary)] text-xs mt-4 tracking-wide font-light">
+          <p className="text-[var(--mk-text-tertiary)] text-xs mt-4 tracking-wide font-light">
             {isLogin
               ? "Inicia sesion en tu cuenta"
               : "Crea tu cuenta para comenzar"}
@@ -181,7 +181,7 @@ function LoginForm() {
                   size={16}
                   className="shrink-0 mt-0.5 text-emerald-400"
                 />
-                <span className="text-emerald-300 font-mono text-xs font-light leading-relaxed">
+                <span className="text-emerald-300 text-xs font-light leading-relaxed">
                   {successMsg}
                 </span>
               </motion.div>
@@ -202,7 +202,7 @@ function LoginForm() {
                   size={16}
                   className="shrink-0 mt-0.5 text-red-400"
                 />
-                <span className="text-red-300 font-mono text-xs font-light leading-relaxed">
+                <span className="text-red-300 text-xs font-light leading-relaxed">
                   {error}
                 </span>
               </motion.div>
@@ -241,7 +241,7 @@ function LoginForm() {
             {/* Divider */}
             <div className="flex items-center gap-4 my-6">
               <div className="flex-1 h-px bg-[var(--mk-border-subtle)]" />
-              <span className="font-mono text-[10px] text-[var(--mk-text-muted)] uppercase tracking-[0.2em]">
+              <span className="text-[10px] text-[var(--mk-text-muted)] uppercase tracking-[0.2em]">
                 o con email
               </span>
               <div className="flex-1 h-px bg-[var(--mk-border-subtle)]" />
@@ -313,7 +313,7 @@ function LoginForm() {
                 <div className="text-center mt-3">
                   <Link
                     href="/recuperar"
-                    className="text-[11px] font-mono font-light text-[var(--mk-text-muted)] hover:text-[var(--mk-accent)] transition-colors"
+                    className="text-[11px] font-light text-[var(--mk-text-muted)] hover:text-[var(--mk-accent)] transition-colors"
                   >
                     Olvidaste tu contrasena?
                   </Link>
@@ -328,7 +328,7 @@ function LoginForm() {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.3 }}
-          className="text-center mt-8 text-xs font-mono font-light text-[var(--mk-text-tertiary)]"
+          className="text-center mt-8 text-xs font-light text-[var(--mk-text-tertiary)]"
         >
           {isLogin ? "No tienes cuenta?" : "Ya tienes cuenta?"}{" "}
           <button
@@ -348,7 +348,7 @@ function LoginForm() {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.4 }}
-          className="text-center mt-4 text-[10px] font-mono font-light text-[var(--mk-text-muted)]"
+          className="text-center mt-4 text-[10px] font-light text-[var(--mk-text-muted)]"
         >
           Micrositios premium para inmobiliarias
         </motion.p>

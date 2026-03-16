@@ -51,7 +51,8 @@ function shouldSkip(path: string): boolean {
   return SKIP_PATTERNS.some((p) => path.includes(p));
 }
 
-const CONCURRENT_UPLOADS = 6;
+const CONCURRENT_UPLOADS = 12;
+const PRESIGN_BATCH_SIZE = 3000;
 
 /** Detect and strip common root folder from paths */
 function stripCommonRoot(
@@ -238,38 +239,51 @@ export function useTourUpload(): TourUploadHook {
     setFilesTotal(0);
   }, []);
 
-  /** Shared: presign + concurrent upload */
+  /** Shared: presign in batches + concurrent upload */
   const presignAndUpload = useCallback(
     async (filesToUpload: FileToUpload[], projectId: string) => {
       setFilesTotal(filesToUpload.length);
       setStatus("uploading");
 
-      const presignRes = await fetch("/api/tours/presign", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          proyecto_id: projectId,
-          files: filesToUpload.map((f) => ({
-            path: f.path,
-            contentType: f.contentType,
-            size: f.size,
-          })),
-        }),
-      });
+      // Batch presign requests to stay within Vercel body size limits
+      const uploadMap = new Map<string, string>();
+      let tourBaseUrl = "";
+      const totalTourBytes = filesToUpload.reduce((sum, f) => sum + f.size, 0);
 
-      if (!presignRes.ok) {
-        const data = await presignRes.json();
-        throw new Error(data.error || "Error al obtener URLs de subida");
+      for (let i = 0; i < filesToUpload.length; i += PRESIGN_BATCH_SIZE) {
+        if (cancelledRef.current) return;
+        const batch = filesToUpload.slice(i, i + PRESIGN_BATCH_SIZE);
+        const isFirstBatch = i === 0;
+
+        const presignRes = await fetch("/api/tours/presign", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            proyecto_id: projectId,
+            files: batch.map((f) => ({
+              path: f.path,
+              contentType: f.contentType,
+              size: f.size,
+            })),
+            // Send total size only on first batch for storage tracking
+            ...(isFirstBatch ? { total_tour_bytes: totalTourBytes } : {}),
+          }),
+        });
+
+        if (!presignRes.ok) {
+          const data = await presignRes.json();
+          throw new Error(data.error || "Error al obtener URLs de subida");
+        }
+
+        const result = await presignRes.json();
+        if (i === 0) tourBaseUrl = result.tourBaseUrl;
+
+        for (const sf of result.files as { path: string; uploadUrl: string }[]) {
+          uploadMap.set(sf.path, sf.uploadUrl);
+        }
       }
 
-      const { files: signedFiles, tourBaseUrl } = await presignRes.json();
-
-      const uploadMap = new Map<string, string>(
-        signedFiles.map((sf: { path: string; uploadUrl: string }) => [
-          sf.path,
-          sf.uploadUrl,
-        ])
-      );
+      if (cancelledRef.current) return;
 
       let uploaded = 0;
       const queue = [...filesToUpload];

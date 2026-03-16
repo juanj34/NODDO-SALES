@@ -19,7 +19,7 @@ import {
 } from "lucide-react";
 import { CloseButton } from "@/components/ui/CloseButton";
 import { cn } from "@/lib/utils";
-import { getInventoryColumns } from "@/lib/inventory-columns";
+import { getInventoryColumns, getHybridInventoryColumns, getPrimaryArea } from "@/lib/inventory-columns";
 import type { Unidad, Tipologia, CotizadorConfig, InventoryColumnConfig } from "@/types";
 import { useTranslation, getEstadoConfig } from "@/i18n";
 import { useSiteProject } from "@/hooks/useSiteProject";
@@ -154,7 +154,25 @@ function UnitSummary({
       </div>
 
       <div className="flex flex-wrap gap-x-4 gap-y-1.5 text-xs text-[var(--text-secondary)]">
-        {columns.area_m2 && unidad.area_m2 && (
+        {columns.area_construida && unidad.area_construida != null && (
+          <span className="flex items-center gap-1">
+            <Maximize size={12} className="text-[var(--text-tertiary)]" />
+            {unidad.area_construida} m²
+          </span>
+        )}
+        {columns.area_privada && unidad.area_privada != null && (
+          <span className="flex items-center gap-1">
+            <Maximize size={12} className="text-[var(--text-tertiary)]" />
+            {unidad.area_privada} m²
+          </span>
+        )}
+        {columns.area_lote && unidad.area_lote != null && (
+          <span className="flex items-center gap-1">
+            <Maximize size={12} className="text-[var(--text-tertiary)]" />
+            {unidad.area_lote} m²
+          </span>
+        )}
+        {columns.area_m2 && unidad.area_m2 != null && !columns.area_construida && !columns.area_privada && !columns.area_lote && (
           <span className="flex items-center gap-1">
             <Maximize size={12} className="text-[var(--text-tertiary)]" />
             {unidad.area_m2} m²
@@ -383,15 +401,19 @@ export function CotizadorModal({
   const [selectedTipo, setSelectedTipo] = useState<Tipologia | null>(null);
   const activeTipologia = tipologia ?? selectedTipo ?? undefined;
 
-  const isLotes = tipoProyecto === "lotes";
+  const isHibrido = tipoProyecto === "hibrido";
+  const unitTipoTipologia = activeTipologia?.tipo_tipologia ?? tipologia?.tipo_tipologia ?? null;
+  const isLotes = isHibrido ? unitTipoTipologia === "lote" : tipoProyecto === "lotes";
 
-  const columns = useMemo(
-    () => getInventoryColumns(
+  const columns = useMemo(() => {
+    if (isHibrido && unitTipoTipologia) {
+      return getHybridInventoryColumns(unitTipoTipologia, proyecto.inventory_columns_by_type);
+    }
+    return getInventoryColumns(
       (proyecto.tipo_proyecto ?? "hibrido") as "apartamentos" | "casas" | "lotes" | "hibrido",
       proyecto.inventory_columns
-    ),
-    [proyecto.tipo_proyecto, proyecto.inventory_columns]
-  );
+    );
+  }, [isHibrido, unitTipoTipologia, proyecto.tipo_proyecto, proyecto.inventory_columns, proyecto.inventory_columns_by_type]);
 
   // Build a virtual unidad with tipología specs when one is selected
   const activeUnidad = useMemo(() => {
@@ -408,6 +430,9 @@ export function CotizadorModal({
       return {
         ...unidad,
         area_m2: selectedTipo.area_m2 ?? unidad.area_m2,
+        area_construida: selectedTipo.area_construida ?? unidad.area_construida,
+        area_privada: selectedTipo.area_privada ?? unidad.area_privada,
+        area_lote: selectedTipo.area_lote ?? unidad.area_lote,
         precio,
         habitaciones: selectedTipo.habitaciones ?? unidad.habitaciones,
         banos: selectedTipo.banos ?? unidad.banos,
@@ -545,10 +570,28 @@ export function CotizadorModal({
                         <ChevronRight size={16} className="text-[var(--text-muted)]" />
                       </div>
                       <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-[var(--text-secondary)]">
-                        {columns.area_m2 && tipo.area_m2 && (
+                        {columns.area_construida && tipo.area_construida != null && (
+                          <span className="flex items-center gap-1">
+                            <Maximize size={11} className="text-[var(--text-tertiary)]" />
+                            {tipo.area_construida} m²
+                          </span>
+                        )}
+                        {columns.area_m2 && tipo.area_m2 != null && !columns.area_construida && (
                           <span className="flex items-center gap-1">
                             <Maximize size={11} className="text-[var(--text-tertiary)]" />
                             {tipo.area_m2} m²
+                          </span>
+                        )}
+                        {columns.area_privada && tipo.area_privada != null && (
+                          <span className="flex items-center gap-1">
+                            <Maximize size={11} className="text-[var(--text-tertiary)]" />
+                            {tipo.area_privada} m²
+                          </span>
+                        )}
+                        {columns.area_lote && tipo.area_lote != null && (
+                          <span className="flex items-center gap-1">
+                            <Maximize size={11} className="text-[var(--text-tertiary)]" />
+                            {tipo.area_lote} m²
                           </span>
                         )}
                         {columns.habitaciones && tipo.habitaciones !== null && tipo.habitaciones !== undefined && (

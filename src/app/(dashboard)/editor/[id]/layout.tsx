@@ -466,18 +466,18 @@ export default function EditorLayout({
     return (
       <div className="flex h-screen bg-[var(--surface-0)]">
         {/* Skeleton sidebar */}
-        <aside className="w-56 bg-[var(--surface-1)] border-r border-[var(--border-subtle)] flex flex-col shrink-0 hidden md:flex">
-          <div className="px-5 py-4 border-b border-[var(--border-subtle)]">
-            <div className="h-3.5 w-16 bg-[var(--surface-3)] rounded animate-pulse mb-2" />
-            <div className="h-2.5 w-24 bg-[var(--surface-2)] rounded animate-pulse mb-3" />
-            <div className="h-4 w-32 bg-[var(--surface-3)] rounded animate-pulse" />
-            <div className="h-2.5 w-28 bg-[var(--surface-2)] rounded animate-pulse mt-1.5" />
+        <aside className="w-60 bg-[var(--surface-1)] border-r border-[var(--border-subtle)] flex flex-col shrink-0 hidden md:flex">
+          <div className="px-4 py-3 border-b border-[var(--border-subtle)]">
+            <div className="h-4 w-20 bg-[var(--surface-3)] rounded animate-pulse mb-2" />
+            <div className="h-2.5 w-24 bg-[var(--surface-2)] rounded animate-pulse mb-2.5" />
+            <div className="h-3.5 w-32 bg-[var(--surface-3)] rounded animate-pulse" />
+            <div className="h-2.5 w-28 bg-[var(--surface-2)] rounded animate-pulse mt-1" />
           </div>
-          <nav className="flex-1 py-2 px-3 space-y-1">
+          <nav className="flex-1 py-1 px-2.5 space-y-px">
             {[...Array(8)].map((_, i) => (
-              <div key={i} className="flex items-center gap-2.5 px-3 py-[7px]">
-                <div className="w-4 h-4 bg-[var(--surface-3)] rounded animate-pulse" />
-                <div className="h-3 bg-[var(--surface-2)] rounded animate-pulse" style={{ width: `${60 + (i % 3) * 20}px` }} />
+              <div key={i} className="flex items-center gap-2 px-2.5 py-[6px]">
+                <div className="w-3.5 h-3.5 bg-[var(--surface-3)] rounded animate-pulse" />
+                <div className="h-3 bg-[var(--surface-2)] rounded animate-pulse" style={{ width: `${65 + (i % 3) * 20}px` }} />
               </div>
             ))}
           </nav>
@@ -521,7 +521,7 @@ export default function EditorLayout({
         {/* Editor Sidebar */}
         <aside
           className={cn(
-            "w-56 bg-[var(--surface-1)] border-r border-[var(--border-subtle)] flex flex-col shrink-0",
+            "w-60 bg-[var(--surface-1)] border-r border-[var(--border-subtle)] flex flex-col shrink-0",
             "fixed inset-y-0 left-0 z-[40] transition-transform duration-300 ease-[cubic-bezier(0.4,0,0.2,1)]",
             "md:relative md:translate-x-0",
             drawerOpen ? "translate-x-0" : "-translate-x-full"
@@ -529,11 +529,11 @@ export default function EditorLayout({
         >
           {/* Back + project name */}
           <div className="px-4 py-3 border-b border-[var(--border-subtle)]">
-            <Link href="/proyectos" onClick={closeDrawer} className="inline-block hover:opacity-80 transition-opacity mb-0.5">
-              <NodDoLogo height={13} colorNod="var(--text-primary)" colorDo="var(--site-primary)" />
+            <Link href="/proyectos" onClick={closeDrawer} className="inline-block hover:opacity-80 transition-opacity mb-1.5">
+              <NodDoLogo height={16} colorNod="var(--text-primary)" colorDo="var(--site-primary)" />
             </Link>
-            <Link href="/proyectos" onClick={closeDrawer} className="flex items-center gap-1.5 text-[9px] text-[var(--text-muted)] hover:text-[var(--text-secondary)] transition-colors mb-2">
-              <ArrowLeft size={9} />
+            <Link href="/proyectos" onClick={closeDrawer} className="flex items-center gap-1.5 text-[10px] text-[var(--text-tertiary)] hover:text-[var(--text-secondary)] transition-colors mb-2">
+              <ArrowLeft size={10} />
               {t("layout.backToProjects")}
             </Link>
             <h2 className="text-[13px] font-semibold text-white truncate leading-tight">
@@ -545,10 +545,10 @@ export default function EditorLayout({
           </div>
 
           {/* Grouped navigation */}
-          <nav className="flex-1 overflow-y-auto py-1.5">
+          <nav className="flex-1 overflow-y-auto py-1">
             {filteredSections.map((section) => (
               <div key={section.label}>
-                <p className="font-ui text-[9px] uppercase tracking-wider text-[var(--text-muted)] px-4 pt-3 pb-1 font-bold select-none">
+                <p className="font-ui text-[9px] uppercase tracking-wider text-[var(--text-muted)] px-4 pt-2.5 pb-1 font-bold select-none">
                   {section.label}
                 </p>
                 <div className="px-2.5 space-y-px">
@@ -565,10 +565,10 @@ export default function EditorLayout({
                       return (
                         <div
                           key={tab.id}
-                          className="flex items-center gap-2 px-2.5 py-[5px] rounded-lg font-ui text-[10px] font-semibold uppercase tracking-[0.08em] text-[var(--text-muted)] opacity-50 cursor-not-allowed"
+                          className="flex items-center gap-2 px-2.5 py-[6px] rounded-lg font-ui text-[10.5px] font-semibold uppercase tracking-[0.08em] text-[var(--text-muted)] opacity-50 cursor-not-allowed"
                           title="Feature no habilitada"
                         >
-                          <TabIcon size={14} className="shrink-0" />
+                          <TabIcon size={15} className="shrink-0" />
                           <span className="flex-1 truncate">{tabLabel}</span>
                           <Lock size={10} className="shrink-0" />
                         </div>
@@ -581,14 +581,14 @@ export default function EditorLayout({
                         href={`${basePath}${tab.href}`}
                         onClick={closeDrawer}
                         className={cn(
-                          "flex items-center gap-2 px-2.5 py-[5px] rounded-lg font-ui text-[10px] font-semibold uppercase tracking-[0.08em] transition-all duration-150",
+                          "flex items-center gap-2 px-2.5 py-[6px] rounded-lg font-ui text-[10.5px] font-semibold uppercase tracking-[0.08em] transition-all duration-150",
                           isActive
                             ? "bg-[var(--surface-2)] text-white"
                             : "text-[var(--text-tertiary)] hover:text-[var(--text-secondary)] hover:bg-[var(--surface-2)]/50"
                         )}
                       >
                         <TabIcon
-                          size={14}
+                          size={15}
                           className={cn(
                             "shrink-0",
                             isActive ? "text-[var(--site-primary)]" : ""
@@ -619,7 +619,7 @@ export default function EditorLayout({
           {storageData && (
             <div className="px-4 pb-1.5">
               <div className="flex items-center gap-1.5 mb-1">
-                <HardDrive size={10} className="text-[var(--text-muted)]" />
+                <HardDrive size={11} className="text-[var(--text-muted)]" />
                 <span className="text-[9px] text-[var(--text-muted)]">
                   {formatBytes(storageData.total_bytes)} / {formatBytes(storageData.limit_bytes)}
                 </span>
@@ -641,21 +641,21 @@ export default function EditorLayout({
           )}
 
           {/* Help link — opens in new tab with contextual hash */}
-          <div className="px-2.5 pb-1">
+          <div className="px-2.5 pt-1.5 pb-1 border-t border-[var(--border-subtle)]">
             <a
               href={`/ayuda#${activeTab}`}
               target="_blank"
               rel="noopener noreferrer"
-              className="flex items-center gap-2 px-2.5 py-[5px] rounded-lg font-ui text-[10px] font-semibold uppercase tracking-[0.08em] text-[var(--text-tertiary)] hover:text-[var(--site-primary)] hover:bg-[rgba(var(--site-primary-rgb),0.06)] transition-all duration-150"
+              className="flex items-center gap-2 px-2.5 py-[6px] rounded-lg font-ui text-[10.5px] font-semibold uppercase tracking-[0.08em] text-[var(--text-secondary)] hover:text-[var(--site-primary)] hover:bg-[rgba(var(--site-primary-rgb),0.06)] transition-all duration-150"
             >
-              <HelpCircle size={14} className="shrink-0" />
+              <HelpCircle size={15} className="shrink-0" />
               <span className="flex-1 truncate">{t("layout.help")}</span>
-              <ExternalLink size={9} className="shrink-0 text-[var(--text-muted)]" />
+              <ExternalLink size={10} className="shrink-0 text-[var(--text-muted)]" />
             </a>
           </div>
 
           {/* Preview link */}
-          <div className="px-3 py-2 border-t border-[var(--border-subtle)]">
+          <div className="px-3 py-2.5 border-t border-[var(--border-subtle)]">
             {(() => {
               const rootDomain = process.env.NEXT_PUBLIC_ROOT_DOMAIN || "noddo.io";
               const isLocal = rootDomain.includes("localhost");
@@ -668,7 +668,7 @@ export default function EditorLayout({
                 <Link
                   href={previewUrl}
                   target="_blank"
-                  className="flex items-center justify-center gap-2 w-full px-3 py-2 bg-[var(--surface-2)] border border-[var(--border-default)] rounded-lg font-ui text-[9px] font-bold uppercase tracking-[0.1em] text-[var(--text-secondary)] hover:text-white hover:border-[var(--border-strong)] hover:bg-[var(--surface-3)] transition-all"
+                  className="flex items-center justify-center gap-2 w-full px-3 py-2 bg-[var(--surface-2)] border border-[var(--border-default)] rounded-lg font-ui text-[10px] font-bold uppercase tracking-[0.1em] text-[var(--text-secondary)] hover:text-white hover:border-[var(--border-strong)] hover:bg-[var(--surface-3)] transition-all"
                 >
                   <ExternalLink size={13} />
                   {t("layout.viewMicrosite")}
@@ -678,7 +678,7 @@ export default function EditorLayout({
                   href={previewUrl}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="flex items-center justify-center gap-2 w-full px-3 py-2 bg-[var(--surface-2)] border border-[var(--border-default)] rounded-lg font-ui text-[9px] font-bold uppercase tracking-[0.1em] text-[var(--text-secondary)] hover:text-white hover:border-[var(--border-strong)] hover:bg-[var(--surface-3)] transition-all"
+                  className="flex items-center justify-center gap-2 w-full px-3 py-2 bg-[var(--surface-2)] border border-[var(--border-default)] rounded-lg font-ui text-[10px] font-bold uppercase tracking-[0.1em] text-[var(--text-secondary)] hover:text-white hover:border-[var(--border-strong)] hover:bg-[var(--surface-3)] transition-all"
                 >
                   <ExternalLink size={13} />
                   {t("layout.viewMicrosite")}

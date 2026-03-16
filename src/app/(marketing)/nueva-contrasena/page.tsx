@@ -131,7 +131,7 @@ function NuevaContrasenaForm() {
               colorDo="#b8973a"
             />
           </Link>
-          <p className="font-mono text-[var(--mk-text-tertiary)] text-xs mt-4 tracking-wide font-light">
+          <p className="text-[var(--mk-text-tertiary)] text-xs mt-4 tracking-wide font-light">
             Crea tu nueva contrasena
           </p>
         </motion.div>
@@ -166,10 +166,10 @@ function NuevaContrasenaForm() {
                     className="shrink-0 mt-0.5 text-emerald-400"
                   />
                   <div>
-                    <span className="text-emerald-300 font-mono text-xs font-light leading-relaxed block">
+                    <span className="text-emerald-300 text-xs font-light leading-relaxed block">
                       Contrasena actualizada correctamente
                     </span>
-                    <span className="text-emerald-300/60 font-mono text-[11px] font-light leading-relaxed block mt-1">
+                    <span className="text-emerald-300/60 text-[11px] font-light leading-relaxed block mt-1">
                       Redirigiendo a tu panel...
                     </span>
                   </div>
@@ -196,7 +196,7 @@ function NuevaContrasenaForm() {
                       size={16}
                       className="shrink-0 mt-0.5 text-red-400"
                     />
-                    <span className="text-red-300 font-mono text-xs font-light leading-relaxed">
+                    <span className="text-red-300 text-xs font-light leading-relaxed">
                       {error}
                     </span>
                   </motion.div>
@@ -274,7 +274,7 @@ function NuevaContrasenaForm() {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.4 }}
-          className="text-center mt-8 text-[10px] font-mono font-light text-[var(--mk-text-muted)]"
+          className="text-center mt-8 text-[10px] font-light text-[var(--mk-text-muted)]"
         >
           Micrositios premium para inmobiliarias
         </motion.p>

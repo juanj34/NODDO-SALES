@@ -8,6 +8,9 @@ export interface MappedUnit {
   lote: string | null;
   etapa_nombre: string | null;
   area_m2: number | null;
+  area_construida: number | null;
+  area_privada: number | null;
+  area_lote: number | null;
   precio: number | null;
   estado: EstadoUnidad;
   habitaciones: number | null;
@@ -45,6 +48,9 @@ interface ParsedUnit {
   etapa?: string;
   piso?: number;
   area_m2?: number;
+  area_construida?: number;
+  area_privada?: number;
+  area_lote?: number;
   precio?: number;
   estado?: "disponible" | "separado" | "reservada" | "vendida";
   habitaciones?: number;
@@ -103,6 +109,15 @@ const HEADER_MAP: Record<string, keyof ParsedUnit> = {
   storage: "depositos",
   bodega: "depositos",
   bodegas: "depositos",
+  areaconstruida: "area_construida",
+  area_construida: "area_construida",
+  builtarea: "area_construida",
+  areaprivada: "area_privada",
+  area_privada: "area_privada",
+  privatearea: "area_privada",
+  arealote: "area_lote",
+  area_lote: "area_lote",
+  lotarea: "area_lote",
   orientacion: "orientacion",
   orientation: "orientacion",
   vista: "vista",
@@ -188,6 +203,9 @@ export function parseCSV(text: string): ParsedUnit[] {
           (unit as Record<string, number>)[field] = parseInt(value) || 0;
           break;
         case "area_m2":
+        case "area_construida":
+        case "area_privada":
+        case "area_lote":
         case "precio":
           (unit as Record<string, number>)[field] =
             parseFloat(value.replace(/[,$]/g, "")) || 0;
@@ -277,7 +295,7 @@ export function parseCSVWithMapping(
       if (!rawValue) continue;
 
       const intFields = ["piso", "habitaciones", "banos", "parqueaderos", "depositos"];
-      const floatFields = ["area_m2", "precio"];
+      const floatFields = ["area_m2", "area_construida", "area_privada", "area_lote", "precio"];
 
       if (intFields.includes(dbField)) {
         unit[dbField] = parseInt(rawValue) || null;
@@ -300,6 +318,9 @@ export function parseCSVWithMapping(
       lote: (unit.lote as string | null) ?? null,
       etapa_nombre: (unit.etapa_nombre as string | null) ?? null,
       area_m2: (unit.area_m2 as number | null) ?? null,
+      area_construida: (unit.area_construida as number | null) ?? null,
+      area_privada: (unit.area_privada as number | null) ?? null,
+      area_lote: (unit.area_lote as number | null) ?? null,
       precio: (unit.precio as number | null) ?? null,
       estado: (unit.estado as EstadoUnidad) || "disponible",
       habitaciones: (unit.habitaciones as number | null) ?? null,

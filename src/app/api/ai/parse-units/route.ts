@@ -18,6 +18,9 @@ interface RawParsedUnit {
   identificador?: unknown;
   piso?: unknown;
   area_m2?: unknown;
+  area_construida?: unknown;
+  area_privada?: unknown;
+  area_lote?: unknown;
   precio?: unknown;
   estado?: unknown;
   habitaciones?: unknown;
@@ -34,6 +37,9 @@ interface ValidUnit {
   identificador: string;
   piso: number | null;
   area_m2: number | null;
+  area_construida: number | null;
+  area_privada: number | null;
+  area_lote: number | null;
   precio: number | null;
   estado: "disponible" | "separado" | "reservada" | "vendida";
   habitaciones: number | null;
@@ -102,7 +108,10 @@ Devuelve un JSON array. Cada elemento debe tener exactamente estos campos:
 {
   "identificador": "string (ej: 'Apt 101', 'T1-301', 'Casa 5')",
   "piso": number | null,
-  "area_m2": number | null,
+  "area_m2": number | null (área total general),
+  "area_construida": number | null (área construida),
+  "area_privada": number | null (área privada),
+  "area_lote": number | null (área del lote/terreno),
   "precio": number | null (en pesos colombianos, sin separadores de miles),
   "estado": "disponible" | "separado" | "reservada" | "vendida",
   "habitaciones": number | null,
@@ -176,6 +185,9 @@ ${cleanText}
         identificador: id.slice(0, 100),
         piso: toNumberOrNull(u.piso),
         area_m2: toPositiveOrNull(u.area_m2),
+        area_construida: toPositiveOrNull(u.area_construida),
+        area_privada: toPositiveOrNull(u.area_privada),
+        area_lote: toPositiveOrNull(u.area_lote),
         precio: toPositiveOrNull(u.precio),
         estado: enumOrDefault(u.estado, [...ALLOWED_ESTADOS], "disponible"),
         habitaciones: toPositiveOrNull(u.habitaciones),

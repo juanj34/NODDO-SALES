@@ -4,8 +4,8 @@ import { checkFeature } from "@/lib/feature-flags";
 import { checkFeatureAccess } from "@/lib/feature-access";
 import { getPresignedUploadUrls, type FileToSign } from "@/lib/r2";
 
-const MAX_FILES = 2000;
-const MAX_TOTAL_SIZE = 2 * 1024 * 1024 * 1024; // 2GB
+const MAX_FILES = 100_000;
+const MAX_TOTAL_SIZE = 5 * 1024 * 1024 * 1024; // 5GB
 
 export async function POST(request: NextRequest) {
   try {
@@ -18,9 +18,10 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json();
-    const { proyecto_id, files } = body as {
+    const { proyecto_id, files, total_tour_bytes } = body as {
       proyecto_id: string;
       files: FileToSign[];
+      total_tour_bytes?: number;
     };
 
     if (!proyecto_id || !Array.isArray(files) || files.length === 0) {
@@ -95,18 +96,20 @@ export async function POST(request: NextRequest) {
 
     if (totalSize > MAX_TOTAL_SIZE) {
       return NextResponse.json(
-        { error: "El tour excede el tamaño máximo de 2GB" },
+        { error: "El tour excede el tamaño máximo de 5GB" },
         { status: 400 }
       );
     }
 
     const result = await getPresignedUploadUrls(proyecto_id, files);
 
-    // Track tour storage size
-    await auth.supabase
-      .from("proyectos")
-      .update({ storage_tours_bytes: totalSize })
-      .eq("id", proyecto_id);
+    // Track tour storage size (only when client sends the total across all batches)
+    if (typeof total_tour_bytes === "number" && total_tour_bytes > 0) {
+      await auth.supabase
+        .from("proyectos")
+        .update({ storage_tours_bytes: total_tour_bytes })
+        .eq("id", proyecto_id);
+    }
 
     return NextResponse.json(result);
   } catch (err) {

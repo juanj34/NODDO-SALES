@@ -31,8 +31,13 @@ export interface AreaConversionResult {
 
 /* ── Inventory Column Visibility ──────────────────────────────────────── */
 
+export type TipoTipologia = "apartamento" | "casa" | "lote";
+
 export interface InventoryColumnConfig {
   area_m2: boolean;
+  area_construida: boolean;
+  area_privada: boolean;
+  area_lote: boolean;
   habitaciones: boolean;
   banos: boolean;
   parqueaderos: boolean;
@@ -44,6 +49,9 @@ export interface InventoryColumnConfig {
   lote: boolean;
   etapa: boolean;
 }
+
+/** Per-type column configs for hybrid projects */
+export type InventoryColumnsByType = Partial<Record<TipoTipologia, InventoryColumnConfig>>;
 
 /* ── Projects ────────────────────────────────────────────────────────────── */
 
@@ -91,9 +99,11 @@ export interface Proyecto {
   parqueaderos_precio_base: number | null;
   depositos_precio_base: number | null;
   tipologia_mode: "fija" | "multiple";
+  precio_source: "unidad" | "tipologia";
   cotizador_config: CotizadorConfig | null;
   webhook_config: WebhookConfig | null;
   inventory_columns: InventoryColumnConfig | null;
+  inventory_columns_by_type: InventoryColumnsByType | null;
   created_at: string;
   updated_at: string;
 }
@@ -136,9 +146,13 @@ export interface Tipologia {
   parqueaderos: number | null;
   depositos: number | null;
   area_balcon: number | null;
+  area_construida: number | null;
+  area_privada: number | null;
+  area_lote: number | null;
   hotspots: TipologiaHotspot[];
   ubicacion_plano_url: string | null;
   torre_ids: string[];
+  tipo_tipologia: TipoTipologia | null;
   orden: number;
   created_at: string;
 }
@@ -253,6 +267,9 @@ export interface Unidad {
   identificador: string;
   piso: number | null;
   area_m2: number | null;
+  area_construida: number | null;
+  area_privada: number | null;
+  area_lote: number | null;
   precio: number | null;
   estado: "disponible" | "separado" | "reservada" | "vendida";
   habitaciones: number | null;
@@ -402,6 +419,9 @@ export interface AITipologiaData {
   nombre: string;
   descripcion: string | null;
   area_m2: number | null;
+  area_construida: number | null;
+  area_privada: number | null;
+  area_lote: number | null;
   habitaciones: number | null;
   banos: number | null;
   precio_desde: number | null;

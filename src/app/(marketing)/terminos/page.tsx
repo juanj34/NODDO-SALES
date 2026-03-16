@@ -15,6 +15,276 @@ import {
   Mail,
 } from "lucide-react";
 import { useState } from "react";
+import { motion } from "framer-motion";
+import { usePageView } from "@/hooks/usePageView";
+
+const ease = [0.25, 0.46, 0.45, 0.94] as const;
+
+/* ══════════════════════════════════════════════
+   DIGITAL CONTRACT & SEAL — Complex animated hero SVG
+   Open contract document with clause markers,
+   wax seal, quill pen, balance scale, ink trails
+══════════════════════════════════════════════ */
+function DigitalContractIllustration() {
+  return (
+    <svg viewBox="0 0 320 180" fill="none" className="w-full" style={{ maxWidth: 420 }}>
+      <defs>
+        <linearGradient id="tm-doc-fill" x1="0.5" y1="0" x2="0.5" y2="1">
+          <stop offset="0%" stopColor="rgba(184,151,58,0.05)" />
+          <stop offset="100%" stopColor="rgba(184,151,58,0.015)" />
+        </linearGradient>
+        <linearGradient id="tm-seal-glow" x1="0.5" y1="0" x2="0.5" y2="1">
+          <stop offset="0%" stopColor="rgba(184,151,58,0.15)" />
+          <stop offset="100%" stopColor="rgba(184,151,58,0.03)" />
+        </linearGradient>
+        <linearGradient id="tm-ink" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0%" stopColor="rgba(184,151,58,0.25)" />
+          <stop offset="100%" stopColor="rgba(184,151,58,0.05)" />
+        </linearGradient>
+      </defs>
+      <style>{`
+        .tm-pen-bob { animation: tm-bob 3s ease-in-out infinite; }
+        .tm-seal-pulse { animation: tm-seal-glow 3s ease-in-out infinite; }
+        .tm-seal-ring1 { animation: tm-ring 3s ease-out infinite; }
+        .tm-seal-ring2 { animation: tm-ring 3s ease-out infinite 1s; }
+        .tm-seal-ring3 { animation: tm-ring 3s ease-out infinite 2s; }
+        .tm-ink-flow { stroke-dasharray: 80; stroke-dashoffset: 80; animation: tm-draw 3s ease-in-out infinite; }
+        .tm-sig-draw { stroke-dasharray: 60; stroke-dashoffset: 60; animation: tm-sig 2.5s ease-in-out infinite 0.5s; }
+        .tm-clause1 { stroke-dasharray: 50; stroke-dashoffset: 50; animation: tm-line-draw 2s ease-in-out infinite; }
+        .tm-clause2 { stroke-dasharray: 45; stroke-dashoffset: 45; animation: tm-line-draw 2.2s ease-in-out infinite 0.3s; }
+        .tm-clause3 { stroke-dasharray: 40; stroke-dashoffset: 40; animation: tm-line-draw 2.4s ease-in-out infinite 0.6s; }
+        .tm-clause4 { stroke-dasharray: 48; stroke-dashoffset: 48; animation: tm-line-draw 2.1s ease-in-out infinite 0.9s; }
+        .tm-clause5 { stroke-dasharray: 42; stroke-dashoffset: 42; animation: tm-line-draw 2.3s ease-in-out infinite 1.2s; }
+        .tm-clause6 { stroke-dasharray: 38; stroke-dashoffset: 38; animation: tm-line-draw 2.5s ease-in-out infinite 1.5s; }
+        .tm-scale-left { animation: tm-sway-l 5s ease-in-out infinite; transform-origin: 260px 50px; }
+        .tm-scale-right { animation: tm-sway-r 5s ease-in-out infinite; transform-origin: 290px 50px; }
+        .tm-badge { animation: tm-badge-breathe 3.5s ease-in-out infinite; }
+        .tm-check { animation: tm-check-pulse 2.5s ease-in-out infinite; }
+        .tm-dust1 { animation: tm-dust 5s ease-in-out infinite; }
+        .tm-dust2 { animation: tm-dust 6s ease-in-out infinite 0.8s; }
+        .tm-dust3 { animation: tm-dust 5.5s ease-in-out infinite 1.5s; }
+        .tm-dust4 { animation: tm-dust 7s ease-in-out infinite 0.4s; }
+        .tm-dust5 { animation: tm-dust 4.5s ease-in-out infinite 2s; }
+        .tm-dust6 { animation: tm-dust 6.5s ease-in-out infinite 1.2s; }
+        .tm-ribbon { animation: tm-ribbon-wave 4s ease-in-out infinite; }
+        .tm-fold { animation: tm-fold-breathe 4s ease-in-out infinite; }
+        @keyframes tm-bob { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-3px)} }
+        @keyframes tm-seal-glow { 0%,100%{opacity:0.06} 50%{opacity:0.22} }
+        @keyframes tm-ring { 0%{r:18;opacity:0.3} 100%{r:32;opacity:0} }
+        @keyframes tm-draw { 0%{stroke-dashoffset:80} 50%{stroke-dashoffset:0} 100%{stroke-dashoffset:-80} }
+        @keyframes tm-sig { 0%{stroke-dashoffset:60} 60%{stroke-dashoffset:0} 100%{stroke-dashoffset:0} }
+        @keyframes tm-line-draw { 0%{stroke-dashoffset:50} 50%{stroke-dashoffset:0} 100%{stroke-dashoffset:0} }
+        @keyframes tm-sway-l { 0%,100%{transform:translateY(0)} 50%{transform:translateY(2px)} }
+        @keyframes tm-sway-r { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-2px)} }
+        @keyframes tm-badge-breathe { 0%,100%{opacity:0.15} 50%{opacity:0.35} }
+        @keyframes tm-check-pulse { 0%,30%{opacity:0.2} 50%{opacity:0.6} 70%,100%{opacity:0.2} }
+        @keyframes tm-dust { 0%,100%{transform:translateY(0);opacity:1} 50%{transform:translateY(-8px);opacity:0.3} }
+        @keyframes tm-ribbon-wave { 0%,100%{transform:rotate(0deg)} 25%{transform:rotate(1deg)} 75%{transform:rotate(-1deg)} }
+        @keyframes tm-fold-breathe { 0%,100%{opacity:0.08} 50%{opacity:0.14} }
+      `}</style>
+
+      {/* Background grid pattern */}
+      <g opacity="0.03">
+        {Array.from({ length: 9 }).map((_, i) => (
+          <line key={`h${i}`} x1="20" y1={20 + i * 18} x2="300" y2={20 + i * 18} stroke="#b8973a" strokeWidth="0.3" />
+        ))}
+        {Array.from({ length: 11 }).map((_, i) => (
+          <line key={`v${i}`} x1={20 + i * 28} y1="8" x2={20 + i * 28} y2="172" stroke="#b8973a" strokeWidth="0.3" />
+        ))}
+      </g>
+
+      {/* ── MAIN DOCUMENT ── */}
+      <rect x="55" y="14" width="145" height="155" rx="3" stroke="rgba(184,151,58,0.18)" strokeWidth="0.7" fill="url(#tm-doc-fill)" />
+      {/* Document header area */}
+      <rect x="55" y="14" width="145" height="16" rx="3" fill="rgba(184,151,58,0.03)" />
+      <line x1="55" y1="30" x2="200" y2="30" stroke="rgba(184,151,58,0.1)" strokeWidth="0.4" />
+      {/* Document title bar dots */}
+      <circle cx="65" cy="22" r="1.8" fill="rgba(184,151,58,0.12)" />
+      <circle cx="72" cy="22" r="1.8" fill="rgba(184,151,58,0.08)" />
+      <circle cx="79" cy="22" r="1.8" fill="rgba(184,151,58,0.06)" />
+      {/* Document title text */}
+      <text x="127" y="24" textAnchor="middle" fill="rgba(184,151,58,0.15)" fontSize="4.5" fontFamily="monospace">CONTRATO DE SERVICIO</text>
+
+      {/* Folded corner */}
+      <path className="tm-fold" d="M185 14 L200 14 L200 29 Z" fill="rgba(184,151,58,0.08)" stroke="rgba(184,151,58,0.12)" strokeWidth="0.4" />
+      <line x1="185" y1="14" x2="200" y2="29" stroke="rgba(184,151,58,0.08)" strokeWidth="0.3" />
+
+      {/* ── CLAUSE MARKERS & TEXT LINES ── */}
+      {/* Clause 1 */}
+      <text x="64" y="42" fill="rgba(184,151,58,0.2)" fontSize="4.5" fontFamily="monospace" fontWeight="500">01</text>
+      <line className="tm-clause1" x1="76" y1="40" x2="190" y2="40" stroke="rgba(184,151,58,0.1)" strokeWidth="0.5" strokeLinecap="round" />
+      <line x1="76" y1="45" x2="175" y2="45" stroke="rgba(184,151,58,0.05)" strokeWidth="0.4" />
+
+      {/* Clause 2 */}
+      <text x="64" y="56" fill="rgba(184,151,58,0.18)" fontSize="4.5" fontFamily="monospace" fontWeight="500">02</text>
+      <line className="tm-clause2" x1="76" y1="54" x2="185" y2="54" stroke="rgba(184,151,58,0.1)" strokeWidth="0.5" strokeLinecap="round" />
+      <line x1="76" y1="59" x2="165" y2="59" stroke="rgba(184,151,58,0.05)" strokeWidth="0.4" />
+
+      {/* Clause 3 */}
+      <text x="64" y="70" fill="rgba(184,151,58,0.16)" fontSize="4.5" fontFamily="monospace" fontWeight="500">03</text>
+      <line className="tm-clause3" x1="76" y1="68" x2="180" y2="68" stroke="rgba(184,151,58,0.1)" strokeWidth="0.5" strokeLinecap="round" />
+      <line x1="76" y1="73" x2="170" y2="73" stroke="rgba(184,151,58,0.05)" strokeWidth="0.4" />
+
+      {/* Clause 4 */}
+      <text x="64" y="84" fill="rgba(184,151,58,0.14)" fontSize="4.5" fontFamily="monospace" fontWeight="500">04</text>
+      <line className="tm-clause4" x1="76" y1="82" x2="188" y2="82" stroke="rgba(184,151,58,0.1)" strokeWidth="0.5" strokeLinecap="round" />
+      <line x1="76" y1="87" x2="160" y2="87" stroke="rgba(184,151,58,0.05)" strokeWidth="0.4" />
+
+      {/* Clause 5 */}
+      <text x="64" y="98" fill="rgba(184,151,58,0.12)" fontSize="4.5" fontFamily="monospace" fontWeight="500">05</text>
+      <line className="tm-clause5" x1="76" y1="96" x2="182" y2="96" stroke="rgba(184,151,58,0.1)" strokeWidth="0.5" strokeLinecap="round" />
+      <line x1="76" y1="101" x2="172" y2="101" stroke="rgba(184,151,58,0.05)" strokeWidth="0.4" />
+
+      {/* Clause 6 */}
+      <text x="64" y="112" fill="rgba(184,151,58,0.1)" fontSize="4.5" fontFamily="monospace" fontWeight="500">06</text>
+      <line className="tm-clause6" x1="76" y1="110" x2="178" y2="110" stroke="rgba(184,151,58,0.1)" strokeWidth="0.5" strokeLinecap="round" />
+      <line x1="76" y1="115" x2="155" y2="115" stroke="rgba(184,151,58,0.05)" strokeWidth="0.4" />
+
+      {/* Section dividers between clauses */}
+      <line x1="62" y1="49" x2="192" y2="49" stroke="rgba(184,151,58,0.04)" strokeWidth="0.3" strokeDasharray="2 2" />
+      <line x1="62" y1="63" x2="192" y2="63" stroke="rgba(184,151,58,0.04)" strokeWidth="0.3" strokeDasharray="2 2" />
+      <line x1="62" y1="77" x2="192" y2="77" stroke="rgba(184,151,58,0.04)" strokeWidth="0.3" strokeDasharray="2 2" />
+      <line x1="62" y1="91" x2="192" y2="91" stroke="rgba(184,151,58,0.04)" strokeWidth="0.3" strokeDasharray="2 2" />
+      <line x1="62" y1="105" x2="192" y2="105" stroke="rgba(184,151,58,0.04)" strokeWidth="0.3" strokeDasharray="2 2" />
+
+      {/* ── SIGNATURE LINE ── */}
+      <line x1="90" y1="145" x2="170" y2="145" stroke="rgba(184,151,58,0.15)" strokeWidth="0.5" />
+      <text x="130" y="152" textAnchor="middle" fill="rgba(184,151,58,0.1)" fontSize="3" fontFamily="monospace">FIRMA AUTORIZADA</text>
+      {/* Animated signature scrawl */}
+      <path className="tm-sig-draw" d="M95 143 C100 138 105 148 112 140 C118 133 122 147 130 141 C137 135 142 146 150 140 C155 136 158 144 165 142" stroke="rgba(184,151,58,0.2)" strokeWidth="0.6" fill="none" strokeLinecap="round" />
+
+      {/* ── QUILL PEN ── */}
+      <g className="tm-pen-bob">
+        {/* Pen body — angled */}
+        <line x1="38" y1="22" x2="58" y2="52" stroke="rgba(184,151,58,0.3)" strokeWidth="1.2" strokeLinecap="round" />
+        {/* Feather vanes */}
+        <path d="M38 22 C30 18 28 24 32 28" stroke="rgba(184,151,58,0.15)" strokeWidth="0.5" fill="rgba(184,151,58,0.03)" />
+        <path d="M38 22 C34 14 40 12 42 18" stroke="rgba(184,151,58,0.15)" strokeWidth="0.5" fill="rgba(184,151,58,0.03)" />
+        <path d="M36 26 C28 28 30 34 36 32" stroke="rgba(184,151,58,0.1)" strokeWidth="0.4" fill="rgba(184,151,58,0.02)" />
+        {/* Feather central shaft */}
+        <line x1="38" y1="22" x2="34" y2="12" stroke="rgba(184,151,58,0.12)" strokeWidth="0.4" />
+        {/* Nib */}
+        <path d="M56 48 L60 56 L54 54 Z" fill="rgba(184,151,58,0.25)" stroke="rgba(184,151,58,0.3)" strokeWidth="0.4" />
+        {/* Ink drop at nib tip */}
+        <circle cx="59" cy="55" r="1.5" fill="rgba(184,151,58,0.2)" />
+      </g>
+
+      {/* Ink trail from pen to document */}
+      <path className="tm-ink-flow" d="M59 55 C62 58 60 62 65 65 Q70 70 75 72 C80 74 85 70 90 75" stroke="url(#tm-ink)" strokeWidth="0.6" fill="none" strokeLinecap="round" />
+
+      {/* ── WAX SEAL ── */}
+      {/* Seal glow */}
+      <circle className="tm-seal-pulse" cx="185" cy="138" r="20" fill="rgba(184,151,58,0.1)" />
+      {/* Expanding rings */}
+      <circle className="tm-seal-ring1" cx="185" cy="138" r="18" stroke="rgba(184,151,58,0.2)" strokeWidth="0.5" fill="none" />
+      <circle className="tm-seal-ring2" cx="185" cy="138" r="18" stroke="rgba(184,151,58,0.15)" strokeWidth="0.4" fill="none" />
+      <circle className="tm-seal-ring3" cx="185" cy="138" r="18" stroke="rgba(184,151,58,0.1)" strokeWidth="0.3" fill="none" />
+      {/* Main seal body */}
+      <circle cx="185" cy="138" r="14" stroke="#b8973a" strokeWidth="0.8" opacity="0.35" fill="url(#tm-seal-glow)" />
+      <circle cx="185" cy="138" r="11" stroke="rgba(184,151,58,0.2)" strokeWidth="0.4" fill="none" />
+      {/* Seal scalloped edge — decorative bumps */}
+      {Array.from({ length: 12 }).map((_, i) => {
+        const angle = (i * 30) * Math.PI / 180;
+        const cx = 185 + Math.cos(angle) * 14;
+        const cy = 138 + Math.sin(angle) * 14;
+        return <circle key={`scallop${i}`} cx={cx} cy={cy} r="1.2" fill="rgba(184,151,58,0.08)" />;
+      })}
+      {/* "N" monogram in seal */}
+      <text x="185" y="142" textAnchor="middle" fill="rgba(184,151,58,0.4)" fontSize="12" fontFamily="serif" fontWeight="300" fontStyle="italic">N</text>
+      {/* Seal ribbon */}
+      <g className="tm-ribbon">
+        <path d="M178 150 L172 168 L178 163 L184 170 L180 152" stroke="rgba(184,151,58,0.15)" strokeWidth="0.4" fill="rgba(184,151,58,0.04)" />
+        <path d="M192 150 L198 168 L192 163 L186 170 L190 152" stroke="rgba(184,151,58,0.15)" strokeWidth="0.4" fill="rgba(184,151,58,0.04)" />
+      </g>
+
+      {/* ── BALANCE SCALE ── */}
+      {/* Fulcrum */}
+      <line x1="275" y1="30" x2="275" y2="70" stroke="rgba(184,151,58,0.2)" strokeWidth="0.6" />
+      <polygon points="270,70 280,70 275,76" fill="rgba(184,151,58,0.08)" stroke="rgba(184,151,58,0.15)" strokeWidth="0.4" />
+      {/* Beam */}
+      <line x1="252" y1="34" x2="298" y2="34" stroke="rgba(184,151,58,0.2)" strokeWidth="0.7" />
+      {/* Pivot ornament */}
+      <circle cx="275" cy="32" r="2.5" stroke="rgba(184,151,58,0.2)" strokeWidth="0.5" fill="rgba(184,151,58,0.04)" />
+      {/* Left pan */}
+      <g className="tm-scale-left">
+        <line x1="255" y1="34" x2="252" y2="48" stroke="rgba(184,151,58,0.12)" strokeWidth="0.4" />
+        <line x1="255" y1="34" x2="258" y2="48" stroke="rgba(184,151,58,0.12)" strokeWidth="0.4" />
+        <ellipse cx="255" cy="50" rx="8" ry="2.5" stroke="rgba(184,151,58,0.15)" strokeWidth="0.4" fill="rgba(184,151,58,0.03)" />
+        {/* Weight on left pan */}
+        <rect x="252" y="46" width="6" height="4" rx="0.5" fill="rgba(184,151,58,0.06)" stroke="rgba(184,151,58,0.1)" strokeWidth="0.3" />
+      </g>
+      {/* Right pan */}
+      <g className="tm-scale-right">
+        <line x1="295" y1="34" x2="292" y2="48" stroke="rgba(184,151,58,0.12)" strokeWidth="0.4" />
+        <line x1="295" y1="34" x2="298" y2="48" stroke="rgba(184,151,58,0.12)" strokeWidth="0.4" />
+        <ellipse cx="295" cy="50" rx="8" ry="2.5" stroke="rgba(184,151,58,0.15)" strokeWidth="0.4" fill="rgba(184,151,58,0.03)" />
+        {/* Weight on right pan */}
+        <rect x="292" y="46" width="6" height="4" rx="0.5" fill="rgba(184,151,58,0.06)" stroke="rgba(184,151,58,0.1)" strokeWidth="0.3" />
+      </g>
+      {/* Scale label */}
+      <text x="275" y="82" textAnchor="middle" fill="rgba(184,151,58,0.08)" fontSize="3" fontFamily="monospace">JUSTICIA</text>
+
+      {/* ── DIGITAL CERTIFICATE BADGE ── */}
+      <g className="tm-badge">
+        {/* Shield outline */}
+        <path d="M260 96 L275 102 L275 114 L267.5 120 L260 114 L260 102 Z" stroke="rgba(184,151,58,0.18)" strokeWidth="0.5" fill="rgba(184,151,58,0.03)" />
+        {/* Checkmark */}
+        <path className="tm-check" d="M264 108 L267 111 L272 104" stroke="rgba(184,151,58,0.35)" strokeWidth="0.7" fill="none" strokeLinecap="round" />
+        {/* Certificate text */}
+        <text x="267.5" y="126" textAnchor="middle" fill="rgba(184,151,58,0.1)" fontSize="2.8" fontFamily="monospace">VERIFIED</text>
+      </g>
+
+      {/* ── CONNECTED CLAUSE NODES (right side) ── */}
+      {/* Vertical trunk */}
+      <line x1="240" y1="90" x2="240" y2="155" stroke="rgba(184,151,58,0.06)" strokeWidth="0.4" strokeDasharray="2 2" />
+      {/* Node 1 — Accepted */}
+      <circle cx="240" cy="95" r="3" stroke="rgba(74,158,107,0.3)" strokeWidth="0.5" fill="rgba(74,158,107,0.06)" />
+      <path d="M238 95 L239.5 96.5 L242 93.5" stroke="rgba(74,158,107,0.4)" strokeWidth="0.5" fill="none" strokeLinecap="round" />
+      <line x1="243" y1="95" x2="254" y2="95" stroke="rgba(184,151,58,0.06)" strokeWidth="0.3" />
+      {/* Node 2 — Accepted */}
+      <circle cx="240" cy="110" r="3" stroke="rgba(74,158,107,0.3)" strokeWidth="0.5" fill="rgba(74,158,107,0.06)" />
+      <path d="M238 110 L239.5 111.5 L242 108.5" stroke="rgba(74,158,107,0.4)" strokeWidth="0.5" fill="none" strokeLinecap="round" />
+      <line x1="243" y1="110" x2="254" y2="110" stroke="rgba(184,151,58,0.06)" strokeWidth="0.3" />
+      {/* Node 3 — Pending */}
+      <circle cx="240" cy="125" r="3" stroke="rgba(184,151,58,0.2)" strokeWidth="0.5" fill="rgba(184,151,58,0.04)" />
+      <circle cx="240" cy="125" r="1" fill="rgba(184,151,58,0.15)" />
+      <line x1="243" y1="125" x2="254" y2="125" stroke="rgba(184,151,58,0.06)" strokeWidth="0.3" />
+      {/* Node 4 — Pending */}
+      <circle cx="240" cy="140" r="3" stroke="rgba(184,151,58,0.15)" strokeWidth="0.5" fill="rgba(184,151,58,0.03)" />
+      <circle cx="240" cy="140" r="1" fill="rgba(184,151,58,0.1)" />
+      <line x1="243" y1="140" x2="254" y2="140" stroke="rgba(184,151,58,0.06)" strokeWidth="0.3" />
+      {/* Node 5 */}
+      <circle cx="240" cy="155" r="3" stroke="rgba(184,151,58,0.1)" strokeWidth="0.5" fill="rgba(184,151,58,0.02)" />
+      <circle cx="240" cy="155" r="1" fill="rgba(184,151,58,0.08)" />
+
+      {/* ── PARAGRAPH MARKERS inside document (small decorative lines) ── */}
+      <rect x="64" y="120" width="22" height="3" rx="0.5" fill="rgba(184,151,58,0.04)" />
+      <rect x="64" y="125" width="18" height="3" rx="0.5" fill="rgba(184,151,58,0.03)" />
+      <rect x="64" y="130" width="25" height="3" rx="0.5" fill="rgba(184,151,58,0.025)" />
+      <rect x="64" y="135" width="14" height="3" rx="0.5" fill="rgba(184,151,58,0.02)" />
+
+      {/* ── FLOATING LEGAL SYMBOLS ── */}
+      {/* Section symbol § */}
+      <text x="22" y="80" fill="rgba(184,151,58,0.08)" fontSize="14" fontFamily="serif">§</text>
+      {/* Paragraph symbol ¶ */}
+      <text x="210" y="22" fill="rgba(184,151,58,0.06)" fontSize="10" fontFamily="serif">¶</text>
+
+      {/* ── BOTTOM STATUS BAR ── */}
+      <rect x="55" y="160" width="145" height="9" rx="1.5" fill="rgba(184,151,58,0.02)" stroke="rgba(184,151,58,0.06)" strokeWidth="0.3" />
+      <circle cx="62" cy="164.5" r="2" fill="rgba(74,158,107,0.2)" stroke="rgba(74,158,107,0.3)" strokeWidth="0.3" />
+      <text x="68" y="166.5" fill="rgba(184,151,58,0.1)" fontSize="3" fontFamily="monospace">VIGENTE — v2.1</text>
+      <text x="160" y="166.5" fill="rgba(184,151,58,0.08)" fontSize="3" fontFamily="monospace">14.03.2026</text>
+
+      {/* ── GOLD DUST PARTICLES ── */}
+      <circle className="tm-dust1" cx="15" cy="50" r="1.3" fill="rgba(184,151,58,0.12)" />
+      <circle className="tm-dust2" cx="305" cy="90" r="1" fill="rgba(184,151,58,0.08)" />
+      <circle className="tm-dust3" cx="120" cy="12" r="1.5" fill="rgba(184,151,58,0.1)" />
+      <circle className="tm-dust4" cx="45" cy="160" r="1" fill="rgba(184,151,58,0.06)" />
+      <circle className="tm-dust5" cx="300" cy="150" r="1.2" fill="rgba(184,151,58,0.08)" />
+      <circle className="tm-dust6" cx="25" cy="130" r="1.1" fill="rgba(184,151,58,0.06)" />
+    </svg>
+  );
+}
 
 const sections = [
   { id: "aceptacion", title: "Aceptación de términos", icon: FileText },
@@ -34,14 +304,20 @@ const sections = [
 ];
 
 export default function TerminosPage() {
+  usePageView("Términos");
   const [activeSection, setActiveSection] = useState<string>("aceptacion");
 
   return (
-    <div className="min-h-screen pt-32 pb-24 px-6">
+    <div className="min-h-screen pt-32 pb-24 px-6 selection:bg-[rgba(184,151,58,0.30)] selection:text-[var(--mk-text-primary)]">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
         <div className="text-center mb-16">
-          <div className="inline-flex items-center gap-3 mb-6 px-6 py-3 rounded-full glass-light">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.7, ease }}
+            className="inline-flex items-center gap-3 mb-6 px-6 py-3 rounded-full glass-light"
+          >
             <Scale className="w-5 h-5" style={{ color: "#b8973a" }} />
             <span
               className="text-sm uppercase tracking-[0.15em]"
@@ -53,43 +329,67 @@ export default function TerminosPage() {
             >
               Legal
             </span>
-          </div>
-          <h1
-            className="text-5xl md:text-6xl mb-6"
+          </motion.div>
+          <motion.h1
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.7, delay: 0.1, ease }}
+            className="text-5xl md:text-7xl mb-6"
             style={{
               fontFamily: "var(--font-cormorant)",
               fontWeight: 300,
               color: "rgba(244,240,232,0.92)",
             }}
           >
-            Términos de Servicio
-          </h1>
-          <p
+            Términos de{" "}
+            <em style={{ fontStyle: "italic", color: "#b8973a" }}>Servicio</em>
+          </motion.h1>
+          <motion.p
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.7, delay: 0.2, ease }}
             className="text-base max-w-2xl mx-auto"
             style={{
-              fontFamily: "var(--font-dm-mono)",
               fontWeight: 300,
               color: "rgba(244,240,232,0.55)",
             }}
           >
             Condiciones generales de uso de la plataforma NODDO. Al utilizar nuestro servicio,
             usted acepta estos términos en su totalidad.
-          </p>
-          <p
-            className="text-xs mt-4"
+          </motion.p>
+          <motion.p
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.7, delay: 0.3, ease }}
+            className="text-xs mt-4 flex items-center justify-center gap-2"
             style={{
-              fontFamily: "var(--font-dm-mono)",
               color: "rgba(244,240,232,0.35)",
             }}
           >
+            <span className="w-1 h-1 rounded-full" style={{ background: "#b8973a" }} />
             Última actualización: 14 de marzo de 2026
-          </p>
+          </motion.p>
+
+          {/* Hero SVG */}
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8, delay: 0.35, ease }}
+            className="mt-12 mb-4 flex justify-center"
+          >
+            <DigitalContractIllustration />
+          </motion.div>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
           {/* Table of Contents - Sticky Sidebar */}
           <aside className="lg:col-span-3">
-            <nav className="glass-card p-6 sticky top-24">
+            <motion.nav
+              initial={{ opacity: 0, x: -20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.6, delay: 0.4, ease }}
+              className="glass-card p-6 sticky top-24"
+            >
               <h2
                 className="text-sm uppercase tracking-[0.15em] mb-4"
                 style={{
@@ -120,7 +420,6 @@ export default function TerminosPage() {
                           color: isActive
                             ? "rgba(244,240,232,0.92)"
                             : "rgba(244,240,232,0.55)",
-                          fontFamily: "var(--font-dm-mono)",
                           fontSize: "0.75rem",
                           fontWeight: 300,
                         }}
@@ -132,14 +431,21 @@ export default function TerminosPage() {
                   );
                 })}
               </ul>
-            </nav>
+            </motion.nav>
           </aside>
 
           {/* Content */}
           <main className="lg:col-span-9">
             <div className="space-y-6">
               {/* 1. Aceptación */}
-              <section id="aceptacion" className="glass-card p-8 scroll-mt-24">
+              <motion.section
+                id="aceptacion"
+                className="glass-card p-8 scroll-mt-24"
+                initial={{ opacity: 0, y: 24 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true, margin: "-60px" }}
+                transition={{ duration: 0.5, ease }}
+              >
                 <div className="flex items-start gap-4 mb-4">
                   <div
                     className="p-3 rounded-xl"
@@ -163,7 +469,6 @@ export default function TerminosPage() {
                 <div
                   className="space-y-3 text-sm leading-[1.8]"
                   style={{
-                    fontFamily: "var(--font-dm-mono)",
                     fontWeight: 300,
                     color: "rgba(244,240,232,0.70)",
                   }}
@@ -193,10 +498,17 @@ export default function TerminosPage() {
                     , que forma parte integral del acuerdo.
                   </p>
                 </div>
-              </section>
+              </motion.section>
 
               {/* 2. Descripción */}
-              <section id="descripcion" className="glass-card p-8 scroll-mt-24">
+              <motion.section
+                id="descripcion"
+                className="glass-card p-8 scroll-mt-24"
+                initial={{ opacity: 0, y: 24 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true, margin: "-60px" }}
+                transition={{ duration: 0.5, ease }}
+              >
                 <div className="flex items-start gap-4 mb-4">
                   <div
                     className="p-3 rounded-xl"
@@ -220,7 +532,6 @@ export default function TerminosPage() {
                 <div
                   className="space-y-3 text-sm leading-[1.8]"
                   style={{
-                    fontFamily: "var(--font-dm-mono)",
                     fontWeight: 300,
                     color: "rgba(244,240,232,0.70)",
                   }}
@@ -251,10 +562,17 @@ export default function TerminosPage() {
                     afecten funcionalidades principales.
                   </p>
                 </div>
-              </section>
+              </motion.section>
 
               {/* 3. Registro */}
-              <section id="registro" className="glass-card p-8 scroll-mt-24">
+              <motion.section
+                id="registro"
+                className="glass-card p-8 scroll-mt-24"
+                initial={{ opacity: 0, y: 24 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true, margin: "-60px" }}
+                transition={{ duration: 0.5, ease }}
+              >
                 <div className="flex items-start gap-4 mb-4">
                   <div
                     className="p-3 rounded-xl"
@@ -278,7 +596,6 @@ export default function TerminosPage() {
                 <div
                   className="space-y-3 text-sm leading-[1.8]"
                   style={{
-                    fontFamily: "var(--font-dm-mono)",
                     fontWeight: 300,
                     color: "rgba(244,240,232,0.70)",
                   }}
@@ -319,10 +636,17 @@ export default function TerminosPage() {
                     responsable de las acciones realizadas por sus colaboradores.
                   </p>
                 </div>
-              </section>
+              </motion.section>
 
               {/* 4. Pagos */}
-              <section id="pagos" className="glass-card p-8 scroll-mt-24">
+              <motion.section
+                id="pagos"
+                className="glass-card p-8 scroll-mt-24"
+                initial={{ opacity: 0, y: 24 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true, margin: "-60px" }}
+                transition={{ duration: 0.5, ease }}
+              >
                 <div className="flex items-start gap-4 mb-4">
                   <div
                     className="p-3 rounded-xl"
@@ -346,7 +670,6 @@ export default function TerminosPage() {
                 <div
                   className="space-y-3 text-sm leading-[1.8]"
                   style={{
-                    fontFamily: "var(--font-dm-mono)",
                     fontWeight: 300,
                     color: "rgba(244,240,232,0.70)",
                   }}
@@ -406,10 +729,17 @@ export default function TerminosPage() {
                     </p>
                   </div>
                 </div>
-              </section>
+              </motion.section>
 
               {/* 5. Uso aceptable */}
-              <section id="uso-aceptable" className="glass-card p-8 scroll-mt-24">
+              <motion.section
+                id="uso-aceptable"
+                className="glass-card p-8 scroll-mt-24"
+                initial={{ opacity: 0, y: 24 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true, margin: "-60px" }}
+                transition={{ duration: 0.5, ease }}
+              >
                 <div className="flex items-start gap-4 mb-4">
                   <div
                     className="p-3 rounded-xl"
@@ -433,7 +763,6 @@ export default function TerminosPage() {
                 <div
                   className="space-y-3 text-sm leading-[1.8]"
                   style={{
-                    fontFamily: "var(--font-dm-mono)",
                     fontWeight: 300,
                     color: "rgba(244,240,232,0.70)",
                   }}
@@ -497,10 +826,17 @@ export default function TerminosPage() {
                     inmediata de la cuenta sin previo aviso y sin derecho a reembolso.
                   </p>
                 </div>
-              </section>
+              </motion.section>
 
               {/* 6. Propiedad intelectual */}
-              <section id="propiedad" className="glass-card p-8 scroll-mt-24">
+              <motion.section
+                id="propiedad"
+                className="glass-card p-8 scroll-mt-24"
+                initial={{ opacity: 0, y: 24 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true, margin: "-60px" }}
+                transition={{ duration: 0.5, ease }}
+              >
                 <div className="flex items-start gap-4 mb-4">
                   <div
                     className="p-3 rounded-xl"
@@ -524,7 +860,6 @@ export default function TerminosPage() {
                 <div
                   className="space-y-3 text-sm leading-[1.8]"
                   style={{
-                    fontFamily: "var(--font-dm-mono)",
                     fontWeight: 300,
                     color: "rgba(244,240,232,0.70)",
                   }}
@@ -586,10 +921,17 @@ export default function TerminosPage() {
                     </p>
                   </div>
                 </div>
-              </section>
+              </motion.section>
 
               {/* 7. Disponibilidad */}
-              <section id="disponibilidad" className="glass-card p-8 scroll-mt-24">
+              <motion.section
+                id="disponibilidad"
+                className="glass-card p-8 scroll-mt-24"
+                initial={{ opacity: 0, y: 24 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true, margin: "-60px" }}
+                transition={{ duration: 0.5, ease }}
+              >
                 <div className="flex items-start gap-4 mb-4">
                   <div
                     className="p-3 rounded-xl"
@@ -613,7 +955,6 @@ export default function TerminosPage() {
                 <div
                   className="space-y-3 text-sm leading-[1.8]"
                   style={{
-                    fontFamily: "var(--font-dm-mono)",
                     fontWeight: 300,
                     color: "rgba(244,240,232,0.70)",
                   }}
@@ -646,10 +987,17 @@ export default function TerminosPage() {
                     crítico.
                   </p>
                 </div>
-              </section>
+              </motion.section>
 
               {/* 8. Limitación de responsabilidad */}
-              <section id="limitacion" className="glass-card p-8 scroll-mt-24">
+              <motion.section
+                id="limitacion"
+                className="glass-card p-8 scroll-mt-24"
+                initial={{ opacity: 0, y: 24 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true, margin: "-60px" }}
+                transition={{ duration: 0.5, ease }}
+              >
                 <div className="flex items-start gap-4 mb-4">
                   <div
                     className="p-3 rounded-xl"
@@ -673,7 +1021,6 @@ export default function TerminosPage() {
                 <div
                   className="space-y-3 text-sm leading-[1.8]"
                   style={{
-                    fontFamily: "var(--font-dm-mono)",
                     fontWeight: 300,
                     color: "rgba(244,240,232,0.70)",
                   }}
@@ -718,10 +1065,17 @@ export default function TerminosPage() {
                     nuestra responsabilidad se limitará en la máxima medida permitida por la ley.
                   </p>
                 </div>
-              </section>
+              </motion.section>
 
               {/* 9. Indemnización */}
-              <section id="indemnizacion" className="glass-card p-8 scroll-mt-24">
+              <motion.section
+                id="indemnizacion"
+                className="glass-card p-8 scroll-mt-24"
+                initial={{ opacity: 0, y: 24 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true, margin: "-60px" }}
+                transition={{ duration: 0.5, ease }}
+              >
                 <div className="flex items-start gap-4 mb-4">
                   <div
                     className="p-3 rounded-xl"
@@ -745,7 +1099,6 @@ export default function TerminosPage() {
                 <div
                   className="space-y-3 text-sm leading-[1.8]"
                   style={{
-                    fontFamily: "var(--font-dm-mono)",
                     fontWeight: 300,
                     color: "rgba(244,240,232,0.70)",
                   }}
@@ -774,10 +1127,17 @@ export default function TerminosPage() {
                     en la defensa de dicha reclamación.
                   </p>
                 </div>
-              </section>
+              </motion.section>
 
               {/* 10. Suspensión */}
-              <section id="suspension" className="glass-card p-8 scroll-mt-24">
+              <motion.section
+                id="suspension"
+                className="glass-card p-8 scroll-mt-24"
+                initial={{ opacity: 0, y: 24 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true, margin: "-60px" }}
+                transition={{ duration: 0.5, ease }}
+              >
                 <div className="flex items-start gap-4 mb-4">
                   <div
                     className="p-3 rounded-xl"
@@ -801,7 +1161,6 @@ export default function TerminosPage() {
                 <div
                   className="space-y-3 text-sm leading-[1.8]"
                   style={{
-                    fontFamily: "var(--font-dm-mono)",
                     fontWeight: 300,
                     color: "rgba(244,240,232,0.70)",
                   }}
@@ -842,10 +1201,17 @@ export default function TerminosPage() {
                     acceso al Servicio.
                   </p>
                 </div>
-              </section>
+              </motion.section>
 
               {/* 11. Cancelación */}
-              <section id="cancelacion" className="glass-card p-8 scroll-mt-24">
+              <motion.section
+                id="cancelacion"
+                className="glass-card p-8 scroll-mt-24"
+                initial={{ opacity: 0, y: 24 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true, margin: "-60px" }}
+                transition={{ duration: 0.5, ease }}
+              >
                 <div className="flex items-start gap-4 mb-4">
                   <div
                     className="p-3 rounded-xl"
@@ -869,7 +1235,6 @@ export default function TerminosPage() {
                 <div
                   className="space-y-3 text-sm leading-[1.8]"
                   style={{
-                    fontFamily: "var(--font-dm-mono)",
                     fontWeight: 300,
                     color: "rgba(244,240,232,0.70)",
                   }}
@@ -937,10 +1302,17 @@ export default function TerminosPage() {
                     tardar 5-10 días hábiles en reflejarse.
                   </p>
                 </div>
-              </section>
+              </motion.section>
 
               {/* 12. Modificaciones */}
-              <section id="modificaciones" className="glass-card p-8 scroll-mt-24">
+              <motion.section
+                id="modificaciones"
+                className="glass-card p-8 scroll-mt-24"
+                initial={{ opacity: 0, y: 24 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true, margin: "-60px" }}
+                transition={{ duration: 0.5, ease }}
+              >
                 <div className="flex items-start gap-4 mb-4">
                   <div
                     className="p-3 rounded-xl"
@@ -964,7 +1336,6 @@ export default function TerminosPage() {
                 <div
                   className="space-y-3 text-sm leading-[1.8]"
                   style={{
-                    fontFamily: "var(--font-dm-mono)",
                     fontWeight: 300,
                     color: "rgba(244,240,232,0.70)",
                   }}
@@ -1001,10 +1372,17 @@ export default function TerminosPage() {
                     derechos u obligaciones) pueden realizarse sin notificación previa.
                   </p>
                 </div>
-              </section>
+              </motion.section>
 
               {/* 13. Legislación */}
-              <section id="legislacion" className="glass-card p-8 scroll-mt-24">
+              <motion.section
+                id="legislacion"
+                className="glass-card p-8 scroll-mt-24"
+                initial={{ opacity: 0, y: 24 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true, margin: "-60px" }}
+                transition={{ duration: 0.5, ease }}
+              >
                 <div className="flex items-start gap-4 mb-4">
                   <div
                     className="p-3 rounded-xl"
@@ -1028,7 +1406,6 @@ export default function TerminosPage() {
                 <div
                   className="space-y-3 text-sm leading-[1.8]"
                   style={{
-                    fontFamily: "var(--font-dm-mono)",
                     fontWeight: 300,
                     color: "rgba(244,240,232,0.70)",
                   }}
@@ -1072,10 +1449,17 @@ export default function TerminosPage() {
                     presentarse a título individual.
                   </p>
                 </div>
-              </section>
+              </motion.section>
 
               {/* 14. Contacto */}
-              <section id="contacto" className="glass-card p-8 scroll-mt-24">
+              <motion.section
+                id="contacto"
+                className="glass-card p-8 scroll-mt-24"
+                initial={{ opacity: 0, y: 24 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true, margin: "-60px" }}
+                transition={{ duration: 0.5, ease }}
+              >
                 <div className="flex items-start gap-4 mb-4">
                   <div
                     className="p-3 rounded-xl"
@@ -1099,7 +1483,6 @@ export default function TerminosPage() {
                 <div
                   className="space-y-4 text-sm leading-[1.8]"
                   style={{
-                    fontFamily: "var(--font-dm-mono)",
                     fontWeight: 300,
                     color: "rgba(244,240,232,0.70)",
                   }}
@@ -1144,18 +1527,23 @@ export default function TerminosPage() {
                     hábiles.
                   </p>
                 </div>
-              </section>
+              </motion.section>
             </div>
           </main>
         </div>
 
         {/* Footer CTA */}
-        <div className="mt-16 text-center">
+        <motion.div
+          initial={{ opacity: 0, y: 24 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.6, ease }}
+          className="mt-16 text-center"
+        >
           <div className="glass-card p-8 max-w-2xl mx-auto">
             <p
               className="text-sm mb-4"
               style={{
-                fontFamily: "var(--font-dm-mono)",
                 fontWeight: 300,
                 color: "rgba(244,240,232,0.70)",
               }}
@@ -1164,19 +1552,13 @@ export default function TerminosPage() {
             </p>
             <a
               href="mailto:hola@noddo.io"
-              className="inline-flex items-center gap-2 px-6 py-3 rounded-xl text-sm font-medium transition-all duration-200"
-              style={{
-                fontFamily: "var(--font-syne)",
-                fontWeight: 700,
-                background: "linear-gradient(135deg, #b8973a 0%, #d4b05a 100%)",
-                color: "#0a0a0b",
-              }}
+              className="btn-mk-primary inline-flex items-center gap-2"
             >
               <Mail className="w-4 h-4" />
-              Contáctenos
+              CONTÁCTENOS
             </a>
           </div>
-        </div>
+        </motion.div>
       </div>
     </div>
   );

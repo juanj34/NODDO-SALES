@@ -180,6 +180,7 @@ const dashboard = {
     viewAllLeads: "View all leads",
     quickActions: "Actions",
     yourProjects: "Your projects",
+    recentProjects: "Recent projects",
     shortcuts: "Quick access",
     analytics: "Analytics",
     bounceRate: "Bounce",

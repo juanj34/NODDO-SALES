@@ -29,7 +29,7 @@ import {
 } from "lucide-react";
 import { SiteEmptyState } from "@/components/site/SiteEmptyState";
 import VistaModal from "@/components/site/VistaModal";
-import { getInventoryColumns } from "@/lib/inventory-columns";
+import { getInventoryColumns, getHybridInventoryColumns, getPrimaryArea } from "@/lib/inventory-columns";
 import { resolveHotspotImages } from "@/lib/hotspot-utils";
 import type { Unidad, UnidadTipologia, LightboxImage, VistaPiso } from "@/types";
 
@@ -66,11 +66,8 @@ export default function TipologiasPage() {
   const isMultiTipo = tipologiaMode === "multiple";
   const isCasas = proyecto.tipo_proyecto === "casas";
   const isLotes = proyecto.tipo_proyecto === "lotes";
-  const isLoteBased = isCasas || isLotes;
-  const columns = useMemo(
-    () => getInventoryColumns(proyecto.tipo_proyecto ?? "hibrido", proyecto.inventory_columns),
-    [proyecto.tipo_proyecto, proyecto.inventory_columns]
-  );
+  const isHibrido = proyecto.tipo_proyecto === "hibrido";
+  const isTipologiaPricing = proyecto.precio_source === "tipologia";
   const unidadTipologias = useMemo(() => proyecto.unidad_tipologias ?? [], [proyecto.unidad_tipologias]);
 
   // i18n-driven estado config and filters
@@ -136,6 +133,8 @@ export default function TipologiasPage() {
   const [selectedUnit, setSelectedUnit] = useState<Unidad | null>(null);
   const [cotizarUnidad, setCotizarUnidad] = useState<Unidad | null>(null);
   const [infoExpanded, setInfoExpanded] = useState(false);
+  // Which tipología is selected in the unit detail banner (for multi-tipo lotes comparison)
+  const [bannerTipoId, setBannerTipoId] = useState<string | null>(null);
 
   // Handle query params on mount
   useEffect(() => {
@@ -217,6 +216,42 @@ export default function TipologiasPage() {
 
   const active = visibleTipologias[activeIndex] ?? visibleTipologias[0];
 
+  // Compute columns & isLoteBased dynamically based on active tipología's tipo_tipologia for hybrid
+  const isLoteBased = isHibrido
+    ? (active?.tipo_tipologia === "casa" || active?.tipo_tipologia === "lote")
+    : (isCasas || isLotes);
+
+  const columns = useMemo(() => {
+    if (isHibrido && active?.tipo_tipologia) {
+      return getHybridInventoryColumns(active.tipo_tipologia, proyecto.inventory_columns_by_type);
+    }
+    return getInventoryColumns(proyecto.tipo_proyecto ?? "hibrido", proyecto.inventory_columns);
+  }, [isHibrido, active?.tipo_tipologia, proyecto.tipo_proyecto, proyecto.inventory_columns, proyecto.inventory_columns_by_type]);
+
+  // Tipologías available for the selected unit (for multi-tipo banner comparison)
+  const unitAvailableTipos = useMemo(() => {
+    if (!selectedUnit || !isMultiTipo) return [];
+    const tipoIds = unidadTipologias
+      .filter(ut => ut.unidad_id === selectedUnit.id)
+      .map(ut => ut.tipologia_id);
+    return tipologias.filter(t => tipoIds.includes(t.id));
+  }, [selectedUnit, isMultiTipo, unidadTipologias, tipologias]);
+
+  // The tipología currently selected in the banner (defaults to active tab)
+  const bannerTipo = useMemo(() => {
+    if (unitAvailableTipos.length === 0) return active;
+    if (bannerTipoId) {
+      const found = unitAvailableTipos.find(t => t.id === bannerTipoId);
+      if (found) return found;
+    }
+    return active;
+  }, [unitAvailableTipos, bannerTipoId, active]);
+
+  // Reset bannerTipoId when selectedUnit changes
+  useEffect(() => {
+    setBannerTipoId(null);
+  }, [selectedUnit?.id]);
+
   // Filter units for current tipología (must be above early return to preserve hook order)
   const filteredUnidades = useMemo(() => {
     if (!active) return [];
@@ -252,8 +287,11 @@ export default function TipologiasPage() {
   }, [unidades, active, isMultiTipo, unidadTipologias]);
 
   // Dynamic "desde" price from cheapest available unit
+  // For lotes: includes construction price (terreno + tipología.precio_desde)
+  // When tipología pricing: price comes directly from tipología.precio_desde
   const precioDesde = useMemo(() => {
     if (!active) return null;
+    if (isTipologiaPricing) return active.precio_desde;
     const tipoUnits = isMultiTipo
       ? unidades.filter(u =>
           u.estado === "disponible" && u.precio != null &&
@@ -262,9 +300,12 @@ export default function TipologiasPage() {
       : unidades.filter(u =>
           u.tipologia_id === active.id && u.estado === "disponible" && u.precio != null
         );
-    if (tipoUnits.length === 0) return active.precio_desde;
-    return Math.min(...tipoUnits.map((u) => u.precio!));
-  }, [active, unidades, isMultiTipo, unidadTipologias]);
+    const construccion = isLoteBased && active.precio_desde ? active.precio_desde : 0;
+    if (tipoUnits.length === 0) {
+      return active.precio_desde;
+    }
+    return Math.min(...tipoUnits.map((u) => u.precio! + construccion));
+  }, [active, unidades, isMultiTipo, unidadTipologias, isLoteBased, isTipologiaPricing]);
 
   // Render images from hotspots for gallery lightbox
   const renderImages: LightboxImage[] = useMemo(() => {
@@ -562,6 +603,21 @@ export default function TipologiasPage() {
                                 <Maximize size={11} /> {selectedUnit.area_m2} m²
                               </span>
                             )}
+                            {columns.area_construida && selectedUnit.area_construida != null && (
+                              <span className="flex items-center gap-1">
+                                <Maximize size={11} /> {selectedUnit.area_construida} m² {tSite("tipologias.areaConstruida").toLowerCase()}
+                              </span>
+                            )}
+                            {columns.area_privada && selectedUnit.area_privada != null && (
+                              <span className="flex items-center gap-1">
+                                <Maximize size={11} /> {selectedUnit.area_privada} m² {tSite("tipologias.areaPrivada").toLowerCase()}
+                              </span>
+                            )}
+                            {columns.area_lote && selectedUnit.area_lote != null && (
+                              <span className="flex items-center gap-1">
+                                <Maximize size={11} /> {selectedUnit.area_lote} m² {tSite("tipologias.areaLote").toLowerCase()}
+                              </span>
+                            )}
                             {columns.piso && selectedUnit.piso && (
                               <span>{tSite("tipologias.floor")} {selectedUnit.piso}</span>
                             )}
@@ -600,24 +656,98 @@ export default function TipologiasPage() {
                             })()}
                           </div>
 
-                          {columns.precio && selectedUnit.precio && (() => {
+                          {columns.precio && (isTipologiaPricing ? active?.precio_desde : (selectedUnit.precio || (isLoteBased && bannerTipo?.precio_desde))) && (() => {
+                            if (isTipologiaPricing && active?.precio_desde) {
+                              return (
+                                <p className="text-lg font-semibold text-[var(--site-primary)]">
+                                  {formatPrecioFull(active.precio_desde, locale)}
+                                </p>
+                              );
+                            }
+                            const terreno = selectedUnit.precio;
                             const unitComplementos = (proyecto.parqueaderos_mode !== "sin_inventario" || proyecto.depositos_mode !== "sin_inventario")
                               ? (proyecto.complementos ?? []).filter(c => c.unidad_id === selectedUnit.id)
                               : [];
                             const complementosTotal = unitComplementos.reduce((s, c) => s + (c.precio ?? 0), 0);
-                            const totalPrecio = selectedUnit.precio + complementosTotal;
+
+                            // Lote-based multi-tipo: show tipología comparison tabs
+                            if (isLoteBased && isMultiTipo && unitAvailableTipos.length > 0 && bannerTipo?.precio_desde) {
+                              const construccion = bannerTipo.precio_desde;
+                              const total = (terreno ?? 0) + construccion;
+                              return (
+                                <div>
+                                  {/* Tipología toggle tabs */}
+                                  {unitAvailableTipos.length > 1 && (
+                                    <div className="flex gap-1 mb-2">
+                                      {unitAvailableTipos.map((t) => (
+                                        <button
+                                          key={t.id}
+                                          onClick={() => setBannerTipoId(t.id)}
+                                          className={cn(
+                                            "px-2.5 py-1 rounded-full text-[10px] tracking-wider transition-all cursor-pointer",
+                                            bannerTipo.id === t.id
+                                              ? "bg-[rgba(var(--site-primary-rgb),0.15)] text-[var(--site-primary)]"
+                                              : "text-[var(--text-tertiary)] hover:text-[var(--text-secondary)] hover:bg-white/5"
+                                          )}
+                                        >
+                                          {t.nombre}
+                                        </button>
+                                      ))}
+                                    </div>
+                                  )}
+                                  {/* Price breakdown */}
+                                  <div className="flex items-baseline gap-3">
+                                    <p className="text-lg font-semibold text-[var(--site-primary)]">
+                                      {terreno
+                                        ? formatPrecioFull(total, locale)
+                                        : formatPrecioFull(construccion, locale)}
+                                    </p>
+                                    <span className="text-[9px] text-[var(--text-tertiary)]">
+                                      {terreno
+                                        ? `${tSite("tipologias.terrain")} ${formatPrecio(terreno)} + ${tSite("tipologias.construction")} ${formatPrecio(construccion)}`
+                                        : tSite("tipologias.construction")}
+                                    </span>
+                                  </div>
+                                </div>
+                              );
+                            }
+
+                            // Lote-based single-tipo: show composite or construction-only
+                            if (isLoteBased && active?.precio_desde) {
+                              const construccion = active.precio_desde;
+                              const total = (terreno ?? 0) + construccion + complementosTotal;
+                              return (
+                                <div>
+                                  <p className="text-lg font-semibold text-[var(--site-primary)]">
+                                    {terreno
+                                      ? formatPrecioFull(total, locale)
+                                      : formatPrecioFull(construccion, locale)}
+                                  </p>
+                                  <p className="text-[9px] text-[var(--text-tertiary)]">
+                                    {terreno
+                                      ? `${tSite("tipologias.terrain")} ${formatPrecio(terreno)} + ${tSite("tipologias.construction")} ${formatPrecio(construccion)}`
+                                      : tSite("tipologias.construction")}
+                                    {complementosTotal > 0 && ` + ${unitComplementos.length} complemento(s)`}
+                                  </p>
+                                </div>
+                              );
+                            }
+
+                            // Regular projects: unit price + complementos
+                            if (!terreno) return null;
+                            const totalPrecio = terreno + complementosTotal;
                             return unitComplementos.length > 0 ? (
                               <div>
                                 <p className="text-lg font-semibold text-[var(--site-primary)]">
                                   {formatPrecioFull(totalPrecio, locale)}
                                 </p>
                                 <p className="text-[9px] text-[var(--text-tertiary)]">
-                                  Inmueble {formatPrecioFull(selectedUnit.precio, locale)} + {unitComplementos.length} complemento(s)
+                                  Inmueble {formatPrecioFull(terreno, locale)} + {unitComplementos.length} complemento(s)
                                 </p>
                               </div>
                             ) : (
                               <p className="text-lg font-semibold text-[var(--site-primary)]">
-                                {formatPrecioFull(selectedUnit.precio, locale)}
+                                {formatPrecioFull(terreno, locale)}
                               </p>
                             );
                           })()}
@@ -648,29 +778,61 @@ export default function TipologiasPage() {
                     </span>
                   </div>
                   <div className="space-y-1">
-                    <div className="flex items-center justify-between">
-                      <span className="text-[10px] text-[var(--text-muted)]">{tSite("tipologias.internalArea")}</span>
-                      <span className="text-xs font-medium text-white">
-                        {active.area_m2 != null ? `${active.area_m2} m²` : "—"}
-                      </span>
-                    </div>
-                    {active.area_balcon != null && active.area_balcon > 0 && (
+                    {columns.area_m2 && (
+                      <>
+                        <div className="flex items-center justify-between">
+                          <span className="text-[10px] text-[var(--text-muted)]">{tSite("tipologias.internalArea")}</span>
+                          <span className="text-xs font-medium text-white">
+                            {active.area_m2 != null ? `${active.area_m2} m²` : "—"}
+                          </span>
+                        </div>
+                        {active.area_balcon != null && active.area_balcon > 0 && (
+                          <div className="flex items-center justify-between">
+                            <span className="text-[10px] text-[var(--text-muted)]">{tSite("tipologias.balcony")}</span>
+                            <span className="text-xs font-medium text-white">
+                              {active.area_balcon} m²
+                            </span>
+                          </div>
+                        )}
+                        {!columns.area_construida && !columns.area_privada && !columns.area_lote && (
+                          <>
+                            <div className="h-px bg-white/[0.06] my-1" />
+                            <div className="flex items-center justify-between">
+                              <span className="text-[10px] text-[var(--text-tertiary)] font-medium">{tSite("tipologias.total")}</span>
+                              <span className="text-sm font-semibold text-[var(--site-primary)]">
+                                {active.area_m2 != null || active.area_balcon != null
+                                  ? `${((active.area_m2 || 0) + (active.area_balcon || 0))} m²`
+                                  : "—"}
+                              </span>
+                            </div>
+                          </>
+                        )}
+                      </>
+                    )}
+                    {columns.area_construida && (
                       <div className="flex items-center justify-between">
-                        <span className="text-[10px] text-[var(--text-muted)]">{tSite("tipologias.balcony")}</span>
+                        <span className="text-[10px] text-[var(--text-muted)]">{tSite("tipologias.areaConstruida")}</span>
                         <span className="text-xs font-medium text-white">
-                          {active.area_balcon} m²
+                          {active.area_construida != null ? `${active.area_construida} m²` : "—"}
                         </span>
                       </div>
                     )}
-                    <div className="h-px bg-white/[0.06] my-1" />
-                    <div className="flex items-center justify-between">
-                      <span className="text-[10px] text-[var(--text-tertiary)] font-medium">{tSite("tipologias.total")}</span>
-                      <span className="text-sm font-semibold text-[var(--site-primary)]">
-                        {active.area_m2 != null || active.area_balcon != null
-                          ? `${((active.area_m2 || 0) + (active.area_balcon || 0))} m²`
-                          : "—"}
-                      </span>
-                    </div>
+                    {columns.area_privada && (
+                      <div className="flex items-center justify-between">
+                        <span className="text-[10px] text-[var(--text-muted)]">{tSite("tipologias.areaPrivada")}</span>
+                        <span className="text-xs font-medium text-white">
+                          {active.area_privada != null ? `${active.area_privada} m²` : "—"}
+                        </span>
+                      </div>
+                    )}
+                    {columns.area_lote && (
+                      <div className="flex items-center justify-between">
+                        <span className="text-[10px] text-[var(--text-muted)]">{tSite("tipologias.areaLote")}</span>
+                        <span className="text-xs font-medium text-white">
+                          {active.area_lote != null ? `${active.area_lote} m²` : "—"}
+                        </span>
+                      </div>
+                    )}
                   </div>
                 </div>
                 {columns.habitaciones && (
@@ -875,7 +1037,7 @@ export default function TipologiasPage() {
                                 <p className="text-[10px] text-[var(--text-tertiary)] tracking-wider">
                                   {[
                                     columns.piso && unit.piso ? `${tSite("tipologias.floor")} ${unit.piso}` : null,
-                                    columns.area_m2 && unit.area_m2 ? `${unit.area_m2} m²` : null,
+                                    (() => { const a = getPrimaryArea(unit, columns); return a != null ? `${a} m²` : null; })(),
                                     columns.orientacion && unit.orientacion ? unit.orientacion : null,
                                   ].filter(Boolean).join(" · ")}
                                 </p>
@@ -883,11 +1045,16 @@ export default function TipologiasPage() {
 
                               {/* Price & Status */}
                               <div className="text-right flex-shrink-0">
-                                {columns.precio && (
-                                  <p className="text-sm text-white/70 font-medium">
-                                    {unit.precio ? formatPrecio(unit.precio) : "—"}
-                                  </p>
-                                )}
+                                {columns.precio && (() => {
+                                  const t = unit.precio;
+                                  const c = isLoteBased && active?.precio_desde ? active.precio_desde : 0;
+                                  const displayPrice = t ? t + c : c || null;
+                                  return (
+                                    <p className="text-sm text-white/70 font-medium">
+                                      {displayPrice ? formatPrecio(displayPrice) : "—"}
+                                    </p>
+                                  );
+                                })()}
                                 <p className={cn("text-[10px] tracking-wider", config.color)}>
                                   {config.label}
                                 </p>
@@ -1033,7 +1200,10 @@ export default function TipologiasPage() {
         <CotizadorModal
           isOpen={!!cotizarUnidad}
           onClose={() => setCotizarUnidad(null)}
-          unidad={cotizarUnidad}
+          unidad={isTipologiaPricing
+            ? { ...cotizarUnidad, precio: tipologias.find(t => t.id === cotizarUnidad.tipologia_id)?.precio_desde ?? cotizarUnidad.precio }
+            : cotizarUnidad
+          }
           tipologia={tipologias.find((t) => t.id === cotizarUnidad.tipologia_id) || undefined}
           proyectoId={proyecto.id}
           cotizadorEnabled={proyecto.cotizador_enabled}

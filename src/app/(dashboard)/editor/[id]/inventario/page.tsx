@@ -36,14 +36,16 @@ import {
   Warehouse,
   Settings,
   RotateCcw,
+  Home,
+  MapPin,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { formatCurrency } from "@/lib/currency";
 import { useTranslation } from "@/i18n";
 import { useToast } from "@/components/dashboard/Toast";
 import { useMediaQuery } from "@/hooks/useMediaQuery";
-import type { Unidad, Tipologia, Torre, Fachada, Complemento, ComplementoMode, Currency, UnidadTipologia, InventoryColumnConfig } from "@/types";
-import { getInventoryColumns, getDefaultColumns, INVENTORY_COLUMN_KEYS } from "@/lib/inventory-columns";
+import type { Unidad, Tipologia, Torre, Fachada, Complemento, ComplementoMode, Currency, UnidadTipologia, InventoryColumnConfig, TipoTipologia } from "@/types";
+import { getInventoryColumns, getDefaultColumns, getHybridInventoryColumns, INVENTORY_COLUMN_KEYS, getPrimaryArea } from "@/lib/inventory-columns";
 import { ComplementosSection } from "@/components/dashboard/ComplementosSection";
 import { CurrencyInput } from "@/components/dashboard/CurrencyInput";
 import { SmartImportModal } from "@/components/dashboard/SmartImportModal";
@@ -63,6 +65,9 @@ interface UnitFormData {
   lote: string;
   etapa_nombre: string;
   area_m2: string;
+  area_construida: string;
+  area_privada: string;
+  area_lote: string;
   precio: string;
   estado: EstadoUnidad;
   habitaciones: string;
@@ -100,6 +105,9 @@ const EMPTY_FORM: UnitFormData = {
   lote: "",
   etapa_nombre: "",
   area_m2: "",
+  area_construida: "",
+  area_privada: "",
+  area_lote: "",
   precio: "",
   estado: "disponible",
   habitaciones: "",
@@ -139,17 +147,23 @@ const ESTADO_DOT_BG: Record<EstadoUnidad, string> = {
 function MobileUnitCard({
   unit,
   tipologias,
+  columns,
+  isTipologiaPricing,
   onStatusChange,
   onEdit,
   onDelete,
 }: {
   unit: Unidad;
   tipologias: Tipologia[];
+  columns: InventoryColumnConfig;
+  isTipologiaPricing?: boolean;
   onStatusChange: (unitId: string, estado: EstadoUnidad) => void;
   onEdit: (unitId: string) => void;
   onDelete: (unitId: string) => void;
 }) {
   const tipo = tipologias.find((t) => t.id === unit.tipologia_id);
+  const displayPrice = isTipologiaPricing ? (tipo?.precio_desde ?? null) : unit.precio;
+  const displayArea = getPrimaryArea(unit, columns);
   return (
     <div className="p-3.5 bg-[var(--surface-2)] border border-[var(--border-subtle)] rounded-xl space-y-2.5">
       {/* Row 1: ID + current badge */}
@@ -161,13 +175,13 @@ function MobileUnitCard({
       <div className="flex items-center gap-2 text-[11px] text-[var(--text-tertiary)] flex-wrap">
         {tipo && <span>{tipo.nombre}</span>}
         {unit.piso != null && <span>· Piso {unit.piso}</span>}
-        {unit.area_m2 != null && <span>· {unit.area_m2} m²</span>}
+        {displayArea != null && <span>· {displayArea} m²</span>}
         {unit.habitaciones != null && <span>· {unit.habitaciones} hab</span>}
       </div>
       {/* Row 3: Price */}
-      {unit.precio != null && (
+      {displayPrice != null && (
         <p className="text-xs text-[var(--text-secondary)] font-medium">
-          {unit.precio ? formatCurrency(unit.precio, "COP", { compact: true }) : "-"}
+          {displayPrice ? formatCurrency(displayPrice, "COP", { compact: true }) : "-"}
         </p>
       )}
       {/* Row 4: Status dots + actions */}
@@ -272,13 +286,11 @@ function InlineMultiTipo({
   unit,
   unitTipos,
   allTipologias,
-  onConfirmTipo,
   onToggleAvailable,
 }: {
   unit: Unidad;
   unitTipos: Tipologia[];
   allTipologias: Tipologia[];
-  onConfirmTipo: (tipoId: string | null) => void;
   onToggleAvailable: (tipoId: string, add: boolean) => void;
 }) {
   const [showPicker, setShowPicker] = useState(false);
@@ -324,21 +336,12 @@ function InlineMultiTipo({
     <div className="relative" ref={pickerRef}>
       <div className="flex flex-wrap gap-1 items-center">
         {unitTipos.length > 0 ? unitTipos.map((tp) => (
-          <button
+          <span
             key={tp.id}
-            type="button"
-            onClick={() => onConfirmTipo(unit.tipologia_id === tp.id ? null : tp.id)}
-            title={unit.tipologia_id === tp.id ? "Quitar confirmación" : "Confirmar tipología"}
-            className={cn(
-              "inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-medium border transition-all cursor-pointer",
-              unit.tipologia_id === tp.id
-                ? "bg-[rgba(var(--site-primary-rgb),0.15)] border-[var(--site-primary)] text-[var(--site-primary)]"
-                : "bg-[var(--surface-3)] border-[var(--border-subtle)] text-[var(--text-tertiary)] hover:border-[var(--border-default)] hover:text-[var(--text-secondary)]"
-            )}
+            className="inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-medium border bg-[var(--surface-3)] border-[var(--border-subtle)] text-[var(--text-tertiary)]"
           >
-            {unit.tipologia_id === tp.id && <Check size={8} className="mr-0.5" />}
             {tp.nombre}
-          </button>
+          </span>
         )) : (
           <span className="text-[var(--text-muted)] text-[10px]">Sin tipologías</span>
         )}
@@ -411,6 +414,7 @@ function UnitForm({
   columns,
   isLoteBased = false,
   isMultiTipo = false,
+  isTipologiaPricing = false,
   unitTipoIds = [],
   onMultiTipoChange,
   existingEtapas = [],
@@ -425,6 +429,7 @@ function UnitForm({
   columns: InventoryColumnConfig;
   isLoteBased?: boolean;
   isMultiTipo?: boolean;
+  isTipologiaPricing?: boolean;
   unitTipoIds?: string[];
   onMultiTipoChange?: (ids: string[]) => void;
   existingEtapas?: string[];
@@ -490,21 +495,6 @@ function UnitForm({
                     {tp.nombre}
                   </button>
                 ))}
-              </div>
-              {/* Confirmed tipología selector */}
-              <div className="mt-2">
-                <label className={labelClass}>Tipología confirmada</label>
-                <NodDoDropdown
-                  variant="form"
-                  size="lg"
-                  value={form.tipologia_id}
-                  onChange={(val) => set("tipologia_id", val)}
-                  placeholder={t("inventario.noTypology")}
-                  options={[
-                    { value: "", label: "Sin confirmar" },
-                    ...tipologias.filter((tp) => selectedTipoIds.includes(tp.id)).map((tp) => ({ value: tp.id, label: tp.nombre })),
-                  ]}
-                />
               </div>
             </div>
           ) : (
@@ -583,26 +573,66 @@ function UnitForm({
               )}
             </div>
           )}
-          <div>
-            <label className={labelClass}>{t("inventario.fields.area")}</label>
-            <input
-              type="number"
-              value={form.area_m2}
-              onChange={(e) => set("area_m2", e.target.value)}
-              placeholder="65"
-              className={inputClass}
-            />
-          </div>
-          <div>
-            <label className={labelClass}>{t("inventario.fields.price")}</label>
-            <CurrencyInput
-              value={form.precio}
-              onChange={(v) => set("precio", v)}
-              currency={currency}
-              placeholder="350,000,000"
-              inputClassName={inputClass}
-            />
-          </div>
+          {columns.area_m2 && (
+            <div>
+              <label className={labelClass}>{t("inventario.columns.area")}</label>
+              <input
+                type="number"
+                value={form.area_m2}
+                onChange={(e) => set("area_m2", e.target.value)}
+                placeholder="65"
+                className={inputClass}
+              />
+            </div>
+          )}
+          {columns.area_construida && (
+            <div>
+              <label className={labelClass}>{t("inventario.columns.areaConstruida")}</label>
+              <input
+                type="number"
+                value={form.area_construida}
+                onChange={(e) => set("area_construida", e.target.value)}
+                placeholder="85"
+                className={inputClass}
+              />
+            </div>
+          )}
+          {columns.area_privada && (
+            <div>
+              <label className={labelClass}>{t("inventario.columns.areaPrivada")}</label>
+              <input
+                type="number"
+                value={form.area_privada}
+                onChange={(e) => set("area_privada", e.target.value)}
+                placeholder="65"
+                className={inputClass}
+              />
+            </div>
+          )}
+          {columns.area_lote && (
+            <div>
+              <label className={labelClass}>{t("inventario.columns.areaLote")}</label>
+              <input
+                type="number"
+                value={form.area_lote}
+                onChange={(e) => set("area_lote", e.target.value)}
+                placeholder="120"
+                className={inputClass}
+              />
+            </div>
+          )}
+          {!isTipologiaPricing && (
+            <div>
+              <label className={labelClass}>{t("inventario.fields.price")}</label>
+              <CurrencyInput
+                value={form.precio}
+                onChange={(v) => set("precio", v)}
+                currency={currency}
+                placeholder="350,000,000"
+                inputClassName={inputClass}
+              />
+            </div>
+          )}
           <div>
             <label className={labelClass}>{t("inventario.fields.state")}</label>
             <NodDoDropdown
@@ -1116,6 +1146,9 @@ function AIChatModal({
             fachada_id: u.fachada_id,
             piso: u.piso,
             area_m2: u.area_m2,
+            area_construida: u.area_construida,
+            area_privada: u.area_privada,
+            area_lote: u.area_lote,
             precio: u.precio,
             estado: u.estado,
             habitaciones: u.habitaciones,
@@ -1492,13 +1525,41 @@ export default function InventarioPage() {
   const tipologiaMode = project.tipologia_mode ?? "fija";
   const tipoProyecto = project.tipo_proyecto ?? "hibrido";
   const isMultiTipo = tipologiaMode === "multiple";
+  const isTipologiaPricing = project.precio_source === "tipologia";
   const isCasas = tipoProyecto === "casas";
   const isLotes = tipoProyecto === "lotes";
-  const isLoteBased = isCasas || isLotes;
-  const columns = useMemo(
-    () => getInventoryColumns(project.tipo_proyecto ?? "hibrido", project.inventory_columns),
-    [project.tipo_proyecto, project.inventory_columns]
-  );
+  const isHibrido = tipoProyecto === "hibrido";
+
+  // --- Hybrid tipo tabs ---
+  const [activeTipoTab, setActiveTipoTab] = useState<TipoTipologia | null>(null);
+  const availableTipoTabs = useMemo(() => {
+    if (!isHibrido) return [] as TipoTipologia[];
+    const types = new Set(tipologias.map(t => t.tipo_tipologia).filter((v): v is TipoTipologia => !!v));
+    return (["apartamento", "casa", "lote"] as TipoTipologia[]).filter(tipo => types.has(tipo));
+  }, [isHibrido, tipologias]);
+
+  useEffect(() => {
+    if (isHibrido && availableTipoTabs.length > 0 && !activeTipoTab) {
+      setActiveTipoTab(availableTipoTabs[0]);
+    }
+  }, [isHibrido, availableTipoTabs, activeTipoTab]);
+
+  // Tipología IDs matching the active tipo tab (for filtering)
+  const tipoTabTipologiaIds = useMemo(() => {
+    if (!isHibrido || !activeTipoTab) return null;
+    return new Set(tipologias.filter(t => t.tipo_tipologia === activeTipoTab).map(t => t.id));
+  }, [isHibrido, activeTipoTab, tipologias]);
+
+  const isLoteBased = isHibrido
+    ? (activeTipoTab === "casa" || activeTipoTab === "lote")
+    : (isCasas || isLotes);
+
+  const columns = useMemo(() => {
+    if (isHibrido && activeTipoTab) {
+      return getHybridInventoryColumns(activeTipoTab, project.inventory_columns_by_type);
+    }
+    return getInventoryColumns(project.tipo_proyecto ?? "hibrido", project.inventory_columns);
+  }, [isHibrido, activeTipoTab, project.tipo_proyecto, project.inventory_columns, project.inventory_columns_by_type]);
   const uniqueEtapas = useMemo(() => {
     if (!columns.etapa) return [];
     const set = new Set(
@@ -1550,6 +1611,8 @@ export default function InventarioPage() {
   // --- Filtering (includes torre filter) ---
   const filteredUnidades = useMemo(() => {
     return unidades.filter((u) => {
+      // Hybrid tipo tab filter
+      if (tipoTabTipologiaIds && u.tipologia_id && !tipoTabTipologiaIds.has(u.tipologia_id)) return false;
       // Torre filter (when multi-torre is active)
       if (isMultiTorre) {
         if (activeTorreId === "__none__") {
@@ -1568,7 +1631,7 @@ export default function InventarioPage() {
         return false;
       return true;
     });
-  }, [unidades, filterTipologia, filterEstado, filterEtapa, searchQuery, isMultiTorre, activeTorreId]);
+  }, [unidades, filterTipologia, filterEstado, filterEtapa, searchQuery, isMultiTorre, activeTorreId, tipoTabTipologiaIds]);
 
   // --- Selection helpers ---
   const allFilteredSelected =
@@ -1611,6 +1674,9 @@ export default function InventarioPage() {
           lote: data.lote || null,
           etapa_nombre: data.etapa_nombre || null,
           area_m2: data.area_m2 ? parseFloat(data.area_m2) : null,
+          area_construida: data.area_construida ? parseFloat(data.area_construida) : null,
+          area_privada: data.area_privada ? parseFloat(data.area_privada) : null,
+          area_lote: data.area_lote ? parseFloat(data.area_lote) : null,
           precio: data.precio ? parseFloat(data.precio) : null,
           estado: data.estado,
           habitaciones: data.habitaciones
@@ -1657,6 +1723,9 @@ export default function InventarioPage() {
           lote: data.lote || null,
           etapa_nombre: data.etapa_nombre || null,
           area_m2: data.area_m2 ? parseFloat(data.area_m2) : null,
+          area_construida: data.area_construida ? parseFloat(data.area_construida) : null,
+          area_privada: data.area_privada ? parseFloat(data.area_privada) : null,
+          area_lote: data.area_lote ? parseFloat(data.area_lote) : null,
           precio: data.precio ? parseFloat(data.precio) : null,
           estado: data.estado,
           habitaciones: data.habitaciones
@@ -1908,7 +1977,7 @@ export default function InventarioPage() {
     } finally {
       setBulkLoading(false);
     }
-  }, [selectedIds, bulkTipologiaId, refresh, toast]);
+  }, [selectedIds, bulkTipologiaId, refresh, toast, unidades]);
 
   const handleBulkFachadaChange = useCallback(async () => {
     if (selectedIds.size === 0 || !bulkFachadaId) return;
@@ -2055,7 +2124,7 @@ export default function InventarioPage() {
     } finally {
       setBulkMultiTipoLoading(false);
     }
-  }, [selectedIds, bulkMultiTipoIds, projectId, refresh, toast]);
+  }, [selectedIds, bulkMultiTipoIds, projectId, refresh, toast, unidades]);
 
   // --- Build edit form initial data ---
   const getEditFormData = (u: Unidad): UnitFormData => ({
@@ -2066,6 +2135,9 @@ export default function InventarioPage() {
     lote: u.lote || "",
     etapa_nombre: u.etapa_nombre || "",
     area_m2: u.area_m2 != null ? String(u.area_m2) : "",
+    area_construida: u.area_construida != null ? String(u.area_construida) : "",
+    area_privada: u.area_privada != null ? String(u.area_privada) : "",
+    area_lote: u.area_lote != null ? String(u.area_lote) : "",
     precio: u.precio != null ? String(u.precio) : "",
     estado: u.estado,
     habitaciones: u.habitaciones != null ? String(u.habitaciones) : "",
@@ -2173,13 +2245,15 @@ export default function InventarioPage() {
                         transition={{ duration: 0.15 }}
                         className="absolute right-0 top-full mt-1 w-52 bg-[var(--surface-2)] border border-[var(--border-default)] rounded-xl shadow-[0_16px_48px_rgba(0,0,0,0.4)] z-30 overflow-hidden"
                       >
-                        <button
-                          onClick={() => { setShowPriceAdjust(true); setShowToolsMenu(false); }}
-                          className="flex items-center gap-2.5 w-full px-4 py-2.5 text-xs text-[var(--text-secondary)] hover:bg-[var(--surface-3)] hover:text-white transition-colors"
-                        >
-                          <TrendingUp size={13} className="text-[var(--site-primary)]" />
-                          {t("inventario.priceAdjust")}
-                        </button>
+                        {!isTipologiaPricing && (
+                          <button
+                            onClick={() => { setShowPriceAdjust(true); setShowToolsMenu(false); }}
+                            className="flex items-center gap-2.5 w-full px-4 py-2.5 text-xs text-[var(--text-secondary)] hover:bg-[var(--surface-3)] hover:text-white transition-colors"
+                          >
+                            <TrendingUp size={13} className="text-[var(--site-primary)]" />
+                            {t("inventario.priceAdjust")}
+                          </button>
+                        )}
                         <button
                           onClick={() => { setShowAIChat(true); setShowToolsMenu(false); }}
                           className="flex items-center gap-2.5 w-full px-4 py-2.5 text-xs text-[var(--text-secondary)] hover:bg-[var(--surface-3)] hover:text-white transition-colors"
@@ -2221,11 +2295,17 @@ export default function InventarioPage() {
                     <button onClick={() => { setShowImportModal(true); setShowMobileActions(false); }} className="flex items-center gap-2.5 w-full px-4 py-2.5 text-xs text-[var(--text-secondary)] hover:bg-[var(--surface-3)] transition-colors">
                       <Upload size={13} className="text-[var(--site-primary)]" /> {t("inventario.import")}
                     </button>
-                    <button onClick={() => { setShowPriceAdjust(true); setShowMobileActions(false); }} className="flex items-center gap-2.5 w-full px-4 py-2.5 text-xs text-[var(--text-secondary)] hover:bg-[var(--surface-3)] transition-colors">
-                      <TrendingUp size={13} className="text-[var(--site-primary)]" /> {t("inventario.priceAdjust")}
-                    </button>
+                    {!isTipologiaPricing && (
+                      <button onClick={() => { setShowPriceAdjust(true); setShowMobileActions(false); }} className="flex items-center gap-2.5 w-full px-4 py-2.5 text-xs text-[var(--text-secondary)] hover:bg-[var(--surface-3)] transition-colors">
+                        <TrendingUp size={13} className="text-[var(--site-primary)]" /> {t("inventario.priceAdjust")}
+                      </button>
+                    )}
                     <button onClick={() => { setShowAIChat(true); setShowMobileActions(false); }} className="flex items-center gap-2.5 w-full px-4 py-2.5 text-xs text-[var(--text-secondary)] hover:bg-[var(--surface-3)] transition-colors">
                       <MessageSquare size={13} className="text-[var(--site-primary)]" /> {t("inventario.aiChat")}
+                    </button>
+                    <div className="border-t border-[var(--border-subtle)]" />
+                    <button onClick={() => { setShowColumnsModal(true); setShowMobileActions(false); }} className="flex items-center gap-2.5 w-full px-4 py-2.5 text-xs text-[var(--text-secondary)] hover:bg-[var(--surface-3)] transition-colors">
+                      <Settings size={13} className="text-[var(--site-primary)]" /> {t("general.project.columnsTitle")}
                     </button>
                   </motion.div>
                 )}
@@ -2234,6 +2314,36 @@ export default function InventarioPage() {
           )}
         </div>
       </div>
+
+      {/* Hybrid tipo tabs — shown for hybrid projects */}
+      {isHibrido && availableTipoTabs.length > 0 && (
+        <div className="flex items-center gap-1 p-1 bg-[var(--surface-1)] rounded-xl border border-[var(--border-subtle)]">
+          {availableTipoTabs.map((tipo) => {
+            const Icon = tipo === "apartamento" ? Building2 : tipo === "casa" ? Home : MapPin;
+            const label = tipo === "apartamento" ? t("inventario.tabApartamentos") : tipo === "casa" ? t("inventario.tabCasas") : t("inventario.tabLotes");
+            const count = unidades.filter(u => {
+              if (!u.tipologia_id) return false;
+              return tipologias.some(t => t.id === u.tipologia_id && t.tipo_tipologia === tipo);
+            }).length;
+            return (
+              <button
+                key={tipo}
+                onClick={() => setActiveTipoTab(tipo)}
+                className={cn(
+                  "flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-medium transition-all",
+                  activeTipoTab === tipo
+                    ? "bg-[rgba(var(--site-primary-rgb),0.12)] text-[var(--site-primary)] shadow-sm"
+                    : "text-[var(--text-tertiary)] hover:text-[var(--text-secondary)] hover:bg-[var(--surface-2)]"
+                )}
+              >
+                <Icon size={14} />
+                {label}
+                <span className="text-[10px] text-[var(--text-muted)]">{count}</span>
+              </button>
+            );
+          })}
+        </div>
+      )}
 
       {/* Inventory type tabs — shown when complemento modes are enabled */}
       {hasComplementos && (
@@ -2361,7 +2471,10 @@ export default function InventarioPage() {
             onChange={(val) => setFilterTipologia(val)}
             options={[
               { value: "", label: t("inventario.allTypologies") },
-              ...tipologias.map((tp) => ({ value: tp.id, label: tp.nombre })),
+              ...(tipoTabTipologiaIds
+                ? tipologias.filter(tp => tipoTabTipologiaIds.has(tp.id))
+                : tipologias
+              ).map((tp) => ({ value: tp.id, label: tp.nombre })),
             ]}
             className="w-36"
           />
@@ -2417,6 +2530,7 @@ export default function InventarioPage() {
             columns={columns}
             isLoteBased={isLoteBased}
             isMultiTipo={isMultiTipo}
+            isTipologiaPricing={isTipologiaPricing}
             existingEtapas={uniqueEtapas}
           />
         )}
@@ -2615,6 +2729,7 @@ export default function InventarioPage() {
                   columns={columns}
                   isLoteBased={isLoteBased}
                   isMultiTipo={isMultiTipo}
+                  isTipologiaPricing={isTipologiaPricing}
                   unitTipoIds={isMultiTipo ? getUnitTipologias(unit.id).map(t => t.id) : []}
                   existingEtapas={uniqueEtapas}
                 />
@@ -2623,6 +2738,8 @@ export default function InventarioPage() {
                   key={unit.id}
                   unit={unit}
                   tipologias={tipologiasForDropdown}
+                  columns={columns}
+                  isTipologiaPricing={isTipologiaPricing}
                   onStatusChange={(unitId, estado) => handleInlineUpdate(unitId, "estado", estado)}
                   onEdit={(unitId) => {
                     setEditingId(unitId);
@@ -2681,9 +2798,26 @@ export default function InventarioPage() {
                       ETAPA
                     </th>
                   )}
-                  <th className="text-left py-3 px-4 text-[var(--text-tertiary)] font-ui font-bold text-[10px] uppercase tracking-wider">
-                    {t("inventario.fields.area")}
-                  </th>
+                  {columns.area_m2 && (
+                    <th className="text-left py-3 px-4 text-[var(--text-tertiary)] font-ui font-bold text-[10px] uppercase tracking-wider">
+                      {t("inventario.columns.area")}
+                    </th>
+                  )}
+                  {columns.area_construida && (
+                    <th className="text-left py-3 px-4 text-[var(--text-tertiary)] font-ui font-bold text-[10px] uppercase tracking-wider">
+                      {t("inventario.columns.areaConstruida")}
+                    </th>
+                  )}
+                  {columns.area_privada && (
+                    <th className="text-left py-3 px-4 text-[var(--text-tertiary)] font-ui font-bold text-[10px] uppercase tracking-wider">
+                      {t("inventario.columns.areaPrivada")}
+                    </th>
+                  )}
+                  {columns.area_lote && (
+                    <th className="text-left py-3 px-4 text-[var(--text-tertiary)] font-ui font-bold text-[10px] uppercase tracking-wider">
+                      {t("inventario.columns.areaLote")}
+                    </th>
+                  )}
                   <th className="text-left py-3 px-4 text-[var(--text-tertiary)] font-ui font-bold text-[10px] uppercase tracking-wider">
                     {t("inventario.fields.price")}
                   </th>
@@ -2755,6 +2889,7 @@ export default function InventarioPage() {
                             columns={columns}
                             isLoteBased={isLoteBased}
                             isMultiTipo={isMultiTipo}
+                            isTipologiaPricing={isTipologiaPricing}
                             unitTipoIds={unitTipos.map(t => t.id)}
                             existingEtapas={uniqueEtapas}
                           />
@@ -2785,7 +2920,6 @@ export default function InventarioPage() {
                                 unit={unit}
                                 unitTipos={unitTipos}
                                 allTipologias={tipologiasForDropdown}
-                                onConfirmTipo={(tipoId) => handleInlineUpdate(unit.id, "tipologia_id", tipoId)}
                                 onToggleAvailable={(tipoId, add) => handleToggleUnitTipo(unit.id, tipoId, add)}
                               />
                             ) : (
@@ -2831,27 +2965,50 @@ export default function InventarioPage() {
                               {unit.etapa_nombre || "-"}
                             </td>
                           )}
+                          {columns.area_m2 && (
+                            <td className="py-3 px-4 text-[var(--text-secondary)]">
+                              {isMultiTipo && !unit.tipologia_id && specRanges
+                                ? specRanges.area_min === specRanges.area_max
+                                  ? `${specRanges.area_min} m²`
+                                  : `${specRanges.area_min}–${specRanges.area_max} m²`
+                                : unit.area_m2 != null
+                                  ? `${unit.area_m2} m²`
+                                  : confirmedTipo?.area_m2 != null
+                                    ? `${confirmedTipo.area_m2} m²`
+                                    : "-"
+                              }
+                            </td>
+                          )}
+                          {columns.area_construida && (
+                            <td className="py-3 px-4 text-[var(--text-secondary)]">
+                              {unit.area_construida != null ? `${unit.area_construida} m²` : "-"}
+                            </td>
+                          )}
+                          {columns.area_privada && (
+                            <td className="py-3 px-4 text-[var(--text-secondary)]">
+                              {unit.area_privada != null ? `${unit.area_privada} m²` : "-"}
+                            </td>
+                          )}
+                          {columns.area_lote && (
+                            <td className="py-3 px-4 text-[var(--text-secondary)]">
+                              {unit.area_lote != null ? `${unit.area_lote} m²` : "-"}
+                            </td>
+                          )}
                           <td className="py-3 px-4 text-[var(--text-secondary)]">
-                            {isMultiTipo && !unit.tipologia_id && specRanges
-                              ? specRanges.area_min === specRanges.area_max
-                                ? `${specRanges.area_min} m²`
-                                : `${specRanges.area_min}–${specRanges.area_max} m²`
-                              : unit.area_m2 != null
-                                ? `${unit.area_m2} m²`
-                                : confirmedTipo?.area_m2 != null
-                                  ? `${confirmedTipo.area_m2} m²`
-                                  : "-"
-                            }
-                          </td>
-                          <td className="py-3 px-4 text-[var(--text-secondary)]">
-                            {isMultiTipo && !unit.tipologia_id && specRanges
-                              ? specRanges.precio_min === specRanges.precio_max
-                                ? formatCurrency(specRanges.precio_min, moneda, { compact: true })
-                                : `${formatCurrency(specRanges.precio_min, moneda, { compact: true })}–${formatCurrency(specRanges.precio_max, moneda, { compact: true })}`
-                              : unit.precio
+                            {(() => {
+                              if (isTipologiaPricing) {
+                                const unitTipo = tipologias.find(tp => tp.id === unit.tipologia_id);
+                                return unitTipo?.precio_desde
+                                  ? formatCurrency(unitTipo.precio_desde, moneda, { compact: true })
+                                  : "-";
+                              }
+                              if (isMultiTipo && !unit.tipologia_id && specRanges) {
+                                return `Desde ${formatCurrency(specRanges.precio_min, moneda, { compact: true })}`;
+                              }
+                              return unit.precio
                                 ? formatCurrency(unit.precio, moneda, { compact: true })
-                                : "-"
-                            }
+                                : "-";
+                            })()}
                           </td>
                           <td className="py-3 px-4">
                             <EstadoBadge estado={unit.estado} />
@@ -3007,6 +3164,18 @@ export default function InventarioPage() {
         )}
       </AnimatePresence>
 
+      {/* Columns config modal */}
+      <AnimatePresence>
+        {showColumnsModal && (
+          <ColumnsConfigModal
+            tipoProyecto={tipoProyecto}
+            currentConfig={project.inventory_columns ?? null}
+            onSave={handleSaveColumns}
+            onClose={() => setShowColumnsModal(false)}
+          />
+        )}
+      </AnimatePresence>
+
       {/* Tipología required modal — shown when multi-tipo unit needs a confirmed tipología for estado change */}
       <AnimatePresence>
         {tipologiaRequiredModal && (
@@ -3043,7 +3212,7 @@ export default function InventarioPage() {
                     <div>
                       <p className="text-xs font-medium text-white">{tp.nombre}</p>
                       <p className="text-[10px] text-[var(--text-tertiary)]">
-                        {tp.area_m2 != null ? `${tp.area_m2} m²` : ""}
+                        {(() => { const a = getPrimaryArea(tp, columns); return a != null ? `${a} m²` : ""; })()}
                         {tp.habitaciones != null ? ` · ${tp.habitaciones} hab` : ""}
                         {tp.precio_desde != null ? ` · ${formatCurrency(tp.precio_desde, (project?.moneda_base as Currency) || "COP", { compact: true })}` : ""}
                       </p>

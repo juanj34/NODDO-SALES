@@ -20,6 +20,9 @@ interface UnitSummary {
   fachada_id: string | null;
   piso: number | null;
   area_m2: number | null;
+  area_construida: number | null;
+  area_privada: number | null;
+  area_lote: number | null;
   precio: number | null;
   estado: string;
   habitaciones: number | null;
@@ -64,6 +67,9 @@ const ALLOWED_UPDATE_FIELDS = new Set([
   "fachada_id",
   "piso",
   "area_m2",
+  "area_construida",
+  "area_privada",
+  "area_lote",
   "habitaciones",
   "banos",
   "parqueaderos",
@@ -120,6 +126,9 @@ export async function POST(request: NextRequest) {
         fachada_id: u.fachada_id,
         piso: u.piso,
         area_m2: u.area_m2,
+        area_construida: u.area_construida,
+        area_privada: u.area_privada,
+        area_lote: u.area_lote,
         precio: u.precio,
         estado: u.estado,
         habitaciones: u.habitaciones,
@@ -172,7 +181,10 @@ CAMPOS MODIFICABLES (solo estos, ningún otro):
 - tipologia_id: string (ID de tipología) o null
 - fachada_id: string (ID de fachada) o null
 - piso: number | null
-- area_m2: number | null (positivo)
+- area_m2: number | null (positivo, área total general)
+- area_construida: number | null (positivo, área construida)
+- area_privada: number | null (positivo, área privada)
+- area_lote: number | null (positivo, área del lote/terreno)
 - habitaciones: number | null (positivo)
 - banos: number | null (positivo)
 - parqueaderos: number | null (positivo)
@@ -249,7 +261,10 @@ SEGURIDAD:
 
         switch (field) {
           case "precio":
-          case "area_m2": {
+          case "area_m2":
+          case "area_construida":
+          case "area_privada":
+          case "area_lote": {
             const n = toPositiveOrNull(value);
             if (n !== null) cleanUpdates[field] = n;
             break;

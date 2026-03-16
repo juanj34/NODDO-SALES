@@ -2,10 +2,9 @@
 
 export const dynamic = "force-dynamic";
 
-import { useState, useEffect, useRef, useCallback, useMemo } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { useEditorProject } from "@/hooks/useEditorProject";
 import { useToast } from "@/components/dashboard/Toast";
-import { useConfirm } from "@/components/dashboard/ConfirmModal";
 import { FileUploader } from "@/components/dashboard/FileUploader";
 import { PageHeader } from "@/components/dashboard/base/PageHeader";
 import {
@@ -32,9 +31,6 @@ import {
   Music,
   Upload,
   Loader2,
-  Layers,
-  MapPin,
-  RotateCcw,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useTranslation } from "@/i18n";
@@ -42,8 +38,6 @@ import { proyectoGeneralSchema } from "@/lib/validation/schemas";
 import { InlineError } from "@/components/ui/ErrorBoundary";
 import { ZodError } from "zod";
 import { AITextImprover } from "@/components/dashboard/AITextImprover";
-import { getInventoryColumns, getDefaultColumns, INVENTORY_COLUMN_KEYS } from "@/lib/inventory-columns";
-import type { InventoryColumnConfig } from "@/types";
 
 type GeneralTab = "proyecto" | "inicio" | "constructora" | "diseno" | "avanzado";
 
@@ -59,11 +53,8 @@ export default function EditorGeneralPage() {
   const { project, save, projectId } = useEditorProject();
   const { t } = useTranslation("editor");
   const toast = useToast();
-  const { confirm } = useConfirm();
-
   const [activeTab, setActiveTab] = useState<GeneralTab>("proyecto");
   const [nombre, setNombre] = useState("");
-  const [slug, setSlug] = useState("");
   const [descripcion, setDescripcion] = useState("");
   const [constructoraNombre, setConstructoraNombre] = useState("");
   const [colorPrimario, setColorPrimario] = useState("#b8973a");
@@ -82,15 +73,15 @@ export default function EditorGeneralPage() {
   const [audioUploading, setAudioUploading] = useState(false);
   const audioInputRef = useRef<HTMLInputElement>(null);
   const [validationError, setValidationError] = useState<string | null>(null);
-  const [tipoProyecto, setTipoProyecto] = useState<"apartamentos" | "casas" | "hibrido" | "lotes">("hibrido");
-  const [tipologiaMode, setTipologiaMode] = useState<"fija" | "multiple">("fija");
   const [idioma, setIdioma] = useState<"es" | "en">("es");
-  const [inventoryColumns, setInventoryColumns] = useState<InventoryColumnConfig | null>(null);
 
+  // Only populate state from project data ONCE on initial mount.
+  // Re-running on every React Query cache update would overwrite unsaved local edits.
+  const initializedRef = useRef(false);
   useEffect(() => {
-    if (!project) return;
+    if (!project || initializedRef.current) return;
+    initializedRef.current = true;
     setNombre(project.nombre || "");
-    setSlug(project.slug || "");
     setDescripcion(project.descripcion || "");
     setConstructoraNombre(project.constructora_nombre || "");
     setColorPrimario(project.color_primario || "#b8973a");
@@ -106,18 +97,15 @@ export default function EditorGeneralPage() {
     setFaviconUrl(project.favicon_url || "");
     setOgImageUrl(project.og_image_url || "");
     setBackgroundAudioUrl(project.background_audio_url || "");
-    setTipoProyecto(project.tipo_proyecto || "hibrido");
-    setTipologiaMode(project.tipologia_mode || "fija");
     setIdioma(project.idioma || "es");
-    setInventoryColumns(project.inventory_columns ?? null);
   }, [project]);
 
   const handleSave = async () => {
+    if (!initializedRef.current) return; // Don't save before project data is loaded
     setValidationError(null);
 
     const payload = {
       nombre,
-      slug,
       descripcion: descripcion || null,
       constructora_nombre: constructoraNombre || null,
       color_primario: colorPrimario,
@@ -133,15 +121,12 @@ export default function EditorGeneralPage() {
       favicon_url: faviconUrl || null,
       og_image_url: ogImageUrl || null,
       background_audio_url: backgroundAudioUrl || null,
-      tipo_proyecto: tipoProyecto,
-      tipologia_mode: tipologiaMode,
       idioma,
-      inventory_columns: inventoryColumns,
     };
 
     try {
-      // Validate general project data
-      proyectoGeneralSchema.parse(payload);
+      // Validate fields managed by this page (slug/tipo_proyecto are now in Config)
+      proyectoGeneralSchema.partial().parse(payload);
 
       const ok = await save(payload);
       if (!ok) toast.error(t("general.saveError"));
@@ -175,48 +160,6 @@ export default function EditorGeneralPage() {
       }
     };
   }, []);
-
-  /* ── Computed inventory columns (respects custom config or tipo_proyecto defaults) ── */
-  const effectiveColumns = useMemo(
-    () => getInventoryColumns(tipoProyecto, inventoryColumns),
-    [tipoProyecto, inventoryColumns]
-  );
-  const isCustomColumns = inventoryColumns !== null;
-
-  /* ── tipo_proyecto change with confirmation ── */
-  const handleTipoProyectoChange = useCallback(async (newTipo: typeof tipoProyecto) => {
-    if (newTipo === tipoProyecto) return;
-
-    const hasData = (project?.unidades?.length ?? 0) > 0 || (project?.torres?.length ?? 0) > 0;
-
-    if (hasData) {
-      const ok = await confirm({
-        title: t("general.project.typeChangeTitle"),
-        message: t("general.project.typeChangeMessage"),
-        confirmLabel: t("general.project.typeChangeConfirm"),
-        cancelLabel: t("general.project.typeChangeCancel"),
-        variant: "warning",
-      });
-      if (!ok) return;
-    }
-
-    setTipoProyecto(newTipo);
-    setInventoryColumns(null); // reset to new type defaults
-    scheduleAutoSave();
-  }, [tipoProyecto, project?.unidades?.length, project?.torres?.length, confirm, t, scheduleAutoSave]);
-
-  /* ── Column toggle handler ── */
-  const handleColumnToggle = useCallback((key: keyof InventoryColumnConfig) => {
-    const current = getInventoryColumns(tipoProyecto, inventoryColumns);
-    const updated = { ...current, [key]: !current[key] };
-    setInventoryColumns(updated);
-    scheduleAutoSave();
-  }, [tipoProyecto, inventoryColumns, scheduleAutoSave]);
-
-  const handleResetColumns = useCallback(() => {
-    setInventoryColumns(null);
-    scheduleAutoSave();
-  }, [scheduleAutoSave]);
 
   const handleAudioUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -314,134 +257,6 @@ export default function EditorGeneralPage() {
                   <div>
                     <label className={labelClass}>{t("general.project.name")}</label>
                     <input type="text" value={nombre} onChange={(e) => { setNombre(e.target.value); scheduleAutoSave(); }} className={inputClass} placeholder={t("general.project.namePlaceholder")} />
-                  </div>
-
-                  <div>
-                    <label className={labelClass}>{t("general.project.slug")}</label>
-                    <input type="text" value={slug} onChange={(e) => { setSlug(e.target.value); scheduleAutoSave(); }} className={inputClass} placeholder={t("general.project.slugPlaceholder")} />
-                    <p className={fieldHint}>{t("general.project.slugHint", { slug: slug || "your-project" })}</p>
-                  </div>
-
-                  <div>
-                    <label className={labelClass}>{t("general.project.typeLabel")}</label>
-                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 mt-1">
-                      {[
-                        { id: "apartamentos" as const, icon: Building2, labelKey: "general.project.typeApartamentos", descKey: "general.project.typeApartamentosDesc" },
-                        { id: "casas" as const, icon: Home, labelKey: "general.project.typeCasas", descKey: "general.project.typeCasasDesc" },
-                        { id: "lotes" as const, icon: MapPin, labelKey: "general.project.typeLotes", descKey: "general.project.typeLotesDesc" },
-                        { id: "hibrido" as const, icon: Layers, labelKey: "general.project.typeHibrido", descKey: "general.project.typeHibridoDesc" },
-                      ].map((tipo) => {
-                        const isActive = tipoProyecto === tipo.id;
-                        const Icon = tipo.icon;
-                        return (
-                          <button
-                            key={tipo.id}
-                            type="button"
-                            onClick={() => handleTipoProyectoChange(tipo.id)}
-                            className={`flex flex-col gap-2 p-3 rounded-xl border transition-all text-left ${
-                              isActive
-                                ? "bg-[rgba(var(--site-primary-rgb),0.08)] border-[rgba(var(--site-primary-rgb),0.3)]"
-                                : "bg-[var(--surface-1)] border-[var(--border-subtle)] hover:border-[var(--border-default)]"
-                            }`}
-                          >
-                            <Icon size={18} className={`shrink-0 ${isActive ? "text-[var(--site-primary)]" : "text-[var(--text-tertiary)]"}`} />
-                            <div>
-                              <p className={`text-xs font-medium ${isActive ? "text-white" : "text-[var(--text-secondary)]"}`}>
-                                {t(tipo.labelKey)}
-                              </p>
-                              <p className="text-[10px] text-[var(--text-muted)] mt-0.5">
-                                {t(tipo.descKey)}
-                              </p>
-                            </div>
-                          </button>
-                        );
-                      })}
-                    </div>
-                    <p className={fieldHint}>{t("general.project.typeHint")}</p>
-                  </div>
-
-                  {/* Tipología mode — only for casas/hibrido */}
-                  {(tipoProyecto === "casas" || tipoProyecto === "hibrido" || tipoProyecto === "lotes") && (
-                    <div>
-                      <label className={labelClass}>Modo de tipología</label>
-                      <div className="grid grid-cols-2 gap-2 mt-1">
-                        {[
-                          { id: "fija" as const, label: "Fija", desc: "Cada unidad tiene 1 tipología asignada" },
-                          { id: "multiple" as const, label: "Múltiple", desc: "Cada lote puede tener varias tipologías. El comprador elige al cotizar." },
-                        ].map((mode) => {
-                          const isActive = tipologiaMode === mode.id;
-                          return (
-                            <button
-                              key={mode.id}
-                              type="button"
-                              onClick={() => { setTipologiaMode(mode.id); scheduleAutoSave(); }}
-                              className={`flex flex-col gap-1.5 p-3 rounded-xl border transition-all text-left ${
-                                isActive
-                                  ? "bg-[rgba(var(--site-primary-rgb),0.08)] border-[rgba(var(--site-primary-rgb),0.3)]"
-                                  : "bg-[var(--surface-1)] border-[var(--border-subtle)] hover:border-[var(--border-default)]"
-                              }`}
-                            >
-                              <p className={`text-xs font-medium ${isActive ? "text-white" : "text-[var(--text-secondary)]"}`}>
-                                {mode.label}
-                              </p>
-                              <p className="text-[10px] text-[var(--text-muted)] mt-0.5">
-                                {mode.desc}
-                              </p>
-                            </button>
-                          );
-                        })}
-                      </div>
-                    </div>
-                  )}
-
-                  {/* ── Inventory Column Visibility ── */}
-                  <div>
-                    <div className="flex items-center justify-between mb-1">
-                      <label className={labelClass}>{t("general.project.columnsTitle")}</label>
-                      {isCustomColumns && (
-                        <button
-                          type="button"
-                          onClick={handleResetColumns}
-                          className="flex items-center gap-1.5 text-[10px] text-[var(--text-tertiary)] hover:text-[var(--site-primary)] transition-colors"
-                        >
-                          <RotateCcw size={11} />
-                          {t("general.project.columnsReset")}
-                        </button>
-                      )}
-                    </div>
-                    <p className={fieldHint + " mb-3"}>{t("general.project.columnsDescription")}</p>
-                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
-                      {INVENTORY_COLUMN_KEYS.map(({ key, labelKey }) => {
-                        const isOn = effectiveColumns[key];
-                        return (
-                          <button
-                            key={key}
-                            type="button"
-                            onClick={() => handleColumnToggle(key)}
-                            className={`flex items-center gap-2.5 px-3 py-2 rounded-lg border transition-all text-left text-xs ${
-                              isOn
-                                ? "bg-[rgba(var(--site-primary-rgb),0.08)] border-[rgba(var(--site-primary-rgb),0.3)] text-white"
-                                : "bg-[var(--surface-1)] border-[var(--border-subtle)] text-[var(--text-muted)] hover:border-[var(--border-default)]"
-                            }`}
-                          >
-                            <div
-                              className={`w-4 h-4 rounded-[4px] border-2 flex items-center justify-center shrink-0 transition-all ${
-                                isOn
-                                  ? "bg-[var(--site-primary)] border-[var(--site-primary)]"
-                                  : "border-[var(--border-default)]"
-                              }`}
-                            >
-                              {isOn && (
-                                <svg viewBox="0 0 12 12" className="w-2.5 h-2.5 text-black">
-                                  <path d="M2 6l3 3 5-5" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                                </svg>
-                              )}
-                            </div>
-                            {t(labelKey)}
-                          </button>
-                        );
-                      })}
-                    </div>
                   </div>
                 </div>
               </div>

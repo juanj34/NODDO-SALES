@@ -253,7 +253,25 @@ export function CotizadorFlowMultiStep({
                     <span className="text-white">{tipologia.nombre}</span>
                   </div>
                 )}
-                {columns.area_m2 && unidad.area_m2 && (
+                {columns.area_construida && unidad.area_construida != null && (
+                  <div className="flex items-center gap-1.5">
+                    <Maximize size={12} className="text-[var(--text-muted)]" />
+                    <span className="text-white">{unidad.area_construida} m²</span>
+                  </div>
+                )}
+                {columns.area_privada && unidad.area_privada != null && (
+                  <div className="flex items-center gap-1.5">
+                    <Maximize size={12} className="text-[var(--text-muted)]" />
+                    <span className="text-white">{unidad.area_privada} m²</span>
+                  </div>
+                )}
+                {columns.area_lote && unidad.area_lote != null && (
+                  <div className="flex items-center gap-1.5">
+                    <Maximize size={12} className="text-[var(--text-muted)]" />
+                    <span className="text-white">{unidad.area_lote} m²</span>
+                  </div>
+                )}
+                {columns.area_m2 && unidad.area_m2 != null && !columns.area_construida && !columns.area_privada && !columns.area_lote && (
                   <div className="flex items-center gap-1.5">
                     <Maximize size={12} className="text-[var(--text-muted)]" />
                     <span className="text-white">{unidad.area_m2} m²</span>

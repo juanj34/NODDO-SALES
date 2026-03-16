@@ -20,7 +20,9 @@ const PROYECTO_FIELDS = [
   "parqueaderos_mode", "depositos_mode",
   "parqueaderos_precio_base", "depositos_precio_base",
   "tipologia_mode",
+  "precio_source",
   "inventory_columns",
+  "inventory_columns_by_type",
 ];
 
 export async function GET(

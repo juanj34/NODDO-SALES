@@ -126,12 +126,12 @@ function DemoConfirmadaContent() {
 
           {date && time && (
             <div className="flex items-center gap-4 mt-4">
-              <div className="flex items-center gap-2 text-sm" style={{ fontFamily: "var(--font-dm-mono)", color: "rgba(244,240,232,0.55)" }}>
+              <div className="flex items-center gap-2 text-sm" style={{ color: "rgba(244,240,232,0.55)" }}>
                 <Calendar className="w-4 h-4 text-[var(--mk-accent)]" />
                 <span className="capitalize">{formatDateLong(date)}</span>
               </div>
               <span style={{ color: "rgba(244,240,232,0.18)" }}>·</span>
-              <div className="flex items-center gap-2 text-sm" style={{ fontFamily: "var(--font-dm-mono)", color: "rgba(244,240,232,0.55)" }}>
+              <div className="flex items-center gap-2 text-sm" style={{ color: "rgba(244,240,232,0.55)" }}>
                 <Clock className="w-4 h-4 text-[var(--mk-accent)]" />
                 <span>{time}</span>
               </div>
@@ -194,7 +194,6 @@ function DemoConfirmadaContent() {
             <p
               className="text-sm text-center max-w-lg mx-auto mb-8"
               style={{
-                fontFamily: "var(--font-dm-mono)",
                 color: "rgba(244,240,232,0.55)",
                 lineHeight: "1.8",
               }}
@@ -262,7 +261,6 @@ function DemoConfirmadaContent() {
             <p
               className="text-sm text-center max-w-lg mx-auto mb-12"
               style={{
-                fontFamily: "var(--font-dm-mono)",
                 color: "rgba(244,240,232,0.55)",
                 lineHeight: "1.8",
               }}
@@ -296,7 +294,6 @@ function DemoConfirmadaContent() {
                         <p
                           className="text-sm font-light mb-1"
                           style={{
-                            fontFamily: "var(--font-dm-mono)",
                             color: "rgba(244,240,232,0.92)",
                           }}
                         >
@@ -305,7 +302,6 @@ function DemoConfirmadaContent() {
                         <p
                           className="text-xs"
                           style={{
-                            fontFamily: "var(--font-dm-mono)",
                             color: "rgba(244,240,232,0.35)",
                           }}
                         >
@@ -329,7 +325,6 @@ function DemoConfirmadaContent() {
                       <p
                         className="text-sm font-light"
                         style={{
-                          fontFamily: "var(--font-dm-mono)",
                           color: "rgba(244,240,232,0.92)",
                         }}
                       >
@@ -348,7 +343,6 @@ function DemoConfirmadaContent() {
                         <p
                           className="text-sm font-light mb-2"
                           style={{
-                            fontFamily: "var(--font-dm-mono)",
                             color: "rgba(244,240,232,0.92)",
                           }}
                         >
@@ -357,7 +351,6 @@ function DemoConfirmadaContent() {
                         <p
                           className="text-xs"
                           style={{
-                            fontFamily: "var(--font-dm-mono)",
                             color: "rgba(244,240,232,0.55)",
                             lineHeight: "1.7",
                           }}
@@ -435,7 +428,6 @@ function DemoConfirmadaContent() {
                 <p
                   className="text-sm font-light flex-1 mb-6"
                   style={{
-                    fontFamily: "var(--font-dm-mono)",
                     color: "rgba(244,240,232,0.85)",
                     lineHeight: "1.8",
                   }}
@@ -465,7 +457,6 @@ function DemoConfirmadaContent() {
                     <p
                       className="text-xs font-medium"
                       style={{
-                        fontFamily: "var(--font-dm-mono)",
                         color: "rgba(244,240,232,0.92)",
                       }}
                     >
@@ -474,7 +465,6 @@ function DemoConfirmadaContent() {
                     <p
                       className="text-[10px]"
                       style={{
-                        fontFamily: "var(--font-dm-mono)",
                         color: "rgba(244,240,232,0.35)",
                       }}
                     >

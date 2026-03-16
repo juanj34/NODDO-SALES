@@ -16,6 +16,9 @@ interface RawTipologia {
   nombre?: unknown;
   descripcion?: unknown;
   area_m2?: unknown;
+  area_construida?: unknown;
+  area_privada?: unknown;
+  area_lote?: unknown;
   habitaciones?: unknown;
   banos?: unknown;
   precio_desde?: unknown;
@@ -28,6 +31,9 @@ interface ValidTipologia {
   nombre: string;
   descripcion: string | null;
   area_m2: number | null;
+  area_construida: number | null;
+  area_privada: number | null;
+  area_lote: number | null;
   habitaciones: number | null;
   banos: number | null;
   precio_desde: number | null;
@@ -118,6 +124,9 @@ function validateTipologia(raw: RawTipologia): ValidTipologia | null {
     nombre: nombre.slice(0, 200),
     descripcion: validString(raw.descripcion, 500),
     area_m2: toPositiveOrNull(raw.area_m2),
+    area_construida: toPositiveOrNull(raw.area_construida),
+    area_privada: toPositiveOrNull(raw.area_privada),
+    area_lote: toPositiveOrNull(raw.area_lote),
     habitaciones: toPositiveOrNull(raw.habitaciones),
     banos: toPositiveOrNull(raw.banos),
     precio_desde: toPositiveOrNull(raw.precio_desde),
@@ -152,7 +161,10 @@ Devuelve un JSON con esta estructura exacta:
       {
         "nombre": "string (ej: 'Apartamento Tipo A')",
         "descripcion": "string o null",
-        "area_m2": number o null,
+        "area_m2": number o null (área total general),
+        "area_construida": number o null (área construida),
+        "area_privada": number o null (área privada),
+        "area_lote": number o null (área del lote/terreno),
         "habitaciones": number o null,
         "banos": number o null,
         "precio_desde": number o null (en COP sin separadores),

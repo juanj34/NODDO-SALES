@@ -209,7 +209,7 @@ export async function POST(request: NextRequest) {
     // Fetch project with cotizador config
     const { data: proyecto, error: projErr } = await supabase
       .from("proyectos")
-      .select("id, nombre, constructora_nombre, constructora_logo_url, color_primario, cotizador_enabled, cotizador_config, user_id, render_principal_url, tour_360_url, whatsapp_numero, disclaimer, parqueaderos_mode, depositos_mode, parqueaderos_precio_base, depositos_precio_base, idioma, tipo_proyecto")
+      .select("id, nombre, constructora_nombre, constructora_logo_url, color_primario, cotizador_enabled, cotizador_config, user_id, render_principal_url, tour_360_url, whatsapp_numero, disclaimer, parqueaderos_mode, depositos_mode, parqueaderos_precio_base, depositos_precio_base, idioma, tipo_proyecto, precio_source")
       .eq("id", proyecto_id)
       .single();
 
@@ -247,9 +247,7 @@ export async function POST(request: NextRequest) {
     }
 
     const unit = unidad as Unidad;
-    if (!unit.precio) {
-      return NextResponse.json({ error: "Unidad sin precio" }, { status: 400 });
-    }
+    const isTipologiaPricing = proyecto.precio_source === "tipologia";
 
     // Fetch tipología name + renders (use buyer-selected tipología for multi-tipo lots)
     const effectiveTipologiaId = unit.tipologia_id || selectedTipologiaId || null;
@@ -258,15 +256,23 @@ export async function POST(request: NextRequest) {
     if (effectiveTipologiaId) {
       const { data: tipo } = await supabase
         .from("tipologias")
-        .select("nombre, renders, area_m2, precio_desde, habitaciones, banos")
+        .select("nombre, renders, area_m2, area_construida, area_privada, area_lote, precio_desde, habitaciones, banos")
         .eq("id", effectiveTipologiaId)
         .single();
       tipologiaName = tipo?.nombre ?? null;
       tipologiaRenders = tipo?.renders ?? [];
 
+      // Tipología pricing: price comes from tipología, not from unit
+      if (isTipologiaPricing && tipo?.precio_desde != null) {
+        unit.precio = tipo.precio_desde;
+      }
+
       // For multi-tipo lots without confirmed tipología, override unit specs from tipología
-      if (!unit.tipologia_id && selectedTipologiaId && tipo) {
+      if (!isTipologiaPricing && !unit.tipologia_id && selectedTipologiaId && tipo) {
         if (tipo.area_m2 !== null) unit.area_m2 = tipo.area_m2;
+        if (tipo.area_construida !== null) unit.area_construida = tipo.area_construida;
+        if (tipo.area_privada !== null) unit.area_privada = tipo.area_privada;
+        if (tipo.area_lote !== null) unit.area_lote = tipo.area_lote;
         if (tipo.precio_desde !== null) {
           // For lotes: sum terrain + construction prices when both exist
           if (proyecto.tipo_proyecto === "lotes" && unit.precio) {
@@ -278,6 +284,10 @@ export async function POST(request: NextRequest) {
         if (tipo.habitaciones !== null) unit.habitaciones = tipo.habitaciones;
         if (tipo.banos !== null) unit.banos = tipo.banos;
       }
+    }
+
+    if (!unit.precio) {
+      return NextResponse.json({ error: "Unidad sin precio" }, { status: 400 });
     }
 
     // Build effective config (custom phases override project defaults)
@@ -421,6 +431,9 @@ export async function POST(request: NextRequest) {
       tipologia: tipologiaName,
       precio: unit.precio,
       area_m2: unit.area_m2,
+      area_construida: unit.area_construida,
+      area_privada: unit.area_privada,
+      area_lote: unit.area_lote,
       piso: unit.piso,
       vista: unit.vista,
       habitaciones: unit.habitaciones,

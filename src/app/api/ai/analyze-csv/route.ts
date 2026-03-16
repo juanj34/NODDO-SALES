@@ -25,6 +25,9 @@ const VALID_DB_FIELDS_UNIDADES = [
   "identificador",
   "piso",
   "area_m2",
+  "area_construida",
+  "area_privada",
+  "area_lote",
   "precio",
   "estado",
   "habitaciones",
@@ -143,7 +146,10 @@ CAMPOS ESPECIALES:
       : `CAMPOS DE BASE DE DATOS DISPONIBLES:
 - identificador: ID único de la unidad (ej: "Apto 101", "Casa 5", "1", "T1-301")
 - piso: número de piso
-- area_m2: área en metros cuadrados
+- area_m2: área total en metros cuadrados (general)
+- area_construida: área construida en metros cuadrados
+- area_privada: área privada en metros cuadrados
+- area_lote: área del lote en metros cuadrados
 - precio: precio de la unidad
 - estado: estado de venta (disponible, separado, reservada, vendida)
 - habitaciones: número de habitaciones/alcobas
@@ -192,7 +198,7 @@ REGLAS:
 7. notes: breve explicación en español de qué tipo de archivo parece ser y qué se detectó.
 
 IMPORTANTE:
-- Si hay múltiples columnas de área (ej: "Área Lote", "Area Construida", "Area Privada"), mapea la que sea más relevante como área habitable (construida o privada) a area_m2. Las demás van a ignoredColumns.
+- Si hay múltiples columnas de área, mapéalas a los campos correspondientes: "Área Construida" → area_construida, "Área Privada" → area_privada, "Área Lote"/"Área Terreno" → area_lote, "Área"/"Área Total" → area_m2. NO ignores columnas de área relevantes.
 - "Numero", "Name", "Unidad" son probablemente el identificador.
 - Columnas con IDs tipo UUID, hashes, o códigos internos de CMS (Collection ID, Item ID, Locale ID) son basura.
 - SVG Code, coordenadas X/Y, Width son metadata de layout, ignorar.

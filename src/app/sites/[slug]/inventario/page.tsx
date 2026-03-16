@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo, useCallback } from "react";
+import { useState, useMemo, useCallback, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
 import { NodDoDropdown } from "@/components/ui/NodDoDropdown";
@@ -20,6 +20,9 @@ import {
   Sparkles,
   LayoutGrid,
   LayoutList,
+  MapPin,
+  X,
+  ChevronRight,
 } from "lucide-react";
 import { useSiteProject, useSiteBasePath } from "@/hooks/useSiteProject";
 import { usePersistedState } from "@/hooks/usePersistedState";
@@ -28,8 +31,8 @@ import { CotizadorModal } from "@/components/site/CotizadorModal";
 import { SectionTransition } from "@/components/site/SectionTransition";
 import { SiteEmptyState } from "@/components/site/SiteEmptyState";
 import { cn } from "@/lib/utils";
-import { getInventoryColumns } from "@/lib/inventory-columns";
-import type { Unidad, UnidadTipologia } from "@/types";
+import { getInventoryColumns, getHybridInventoryColumns, getPrimaryArea } from "@/lib/inventory-columns";
+import type { Unidad, UnidadTipologia, TipoTipologia } from "@/types";
 
 type SortKey = "precio_asc" | "precio_desc" | "area_asc" | "area_desc" | "piso_asc" | "piso_desc";
 
@@ -73,6 +76,7 @@ export default function InventarioPage() {
     proyecto.slug,
   );
   const [cotizarUnidad, setCotizarUnidad] = useState<Unidad | null>(null);
+  const [tipoSelectorUnit, setTipoSelectorUnit] = useState<Unidad | null>(null);
 
   const { unidades, tipologias } = proyecto;
   const torres = proyecto.torres ?? [];
@@ -83,11 +87,46 @@ export default function InventarioPage() {
   const isMultiTipo = tipologiaMode === "multiple";
   const isCasas = proyecto.tipo_proyecto === "casas";
   const isLotes = proyecto.tipo_proyecto === "lotes";
-  const isLoteBased = isCasas || isLotes;
-  const columns = useMemo(
-    () => getInventoryColumns(proyecto.tipo_proyecto ?? "hibrido", proyecto.inventory_columns),
-    [proyecto.tipo_proyecto, proyecto.inventory_columns]
-  );
+  const isHibrido = proyecto.tipo_proyecto === "hibrido";
+  const isTipologiaPricing = proyecto.precio_source === "tipologia";
+
+  // Helper: resolve unit price based on pricing source
+  const getUnitPrice = useCallback((unit: Unidad): number | null => {
+    if (!isTipologiaPricing) return unit.precio;
+    const tipo = (tipologias || []).find(t => t.id === unit.tipologia_id);
+    return tipo?.precio_desde ?? null;
+  }, [isTipologiaPricing, tipologias]);
+
+  // Hybrid tipo tabs
+  const [activeTipoTab, setActiveTipoTab] = useState<TipoTipologia | null>(null);
+  const availableTipoTabs = useMemo(() => {
+    if (!isHibrido) return [] as TipoTipologia[];
+    const types = new Set((tipologias || []).map(t => t.tipo_tipologia).filter((v): v is TipoTipologia => !!v));
+    return (["apartamento", "casa", "lote"] as TipoTipologia[]).filter(tipo => types.has(tipo));
+  }, [isHibrido, tipologias]);
+
+  useEffect(() => {
+    if (isHibrido && availableTipoTabs.length > 0 && !activeTipoTab) {
+      setActiveTipoTab(availableTipoTabs[0]);
+    }
+  }, [isHibrido, availableTipoTabs, activeTipoTab]);
+
+  const tipoTabTipologiaIds = useMemo(() => {
+    if (!isHibrido || !activeTipoTab) return null;
+    return new Set((tipologias || []).filter(t => t.tipo_tipologia === activeTipoTab).map(t => t.id));
+  }, [isHibrido, activeTipoTab, tipologias]);
+
+  const isLoteBased = isHibrido
+    ? (activeTipoTab === "casa" || activeTipoTab === "lote")
+    : (isCasas || isLotes);
+
+  const columns = useMemo(() => {
+    if (isHibrido && activeTipoTab) {
+      return getHybridInventoryColumns(activeTipoTab, proyecto.inventory_columns_by_type);
+    }
+    return getInventoryColumns(proyecto.tipo_proyecto ?? "hibrido", proyecto.inventory_columns);
+  }, [isHibrido, activeTipoTab, proyecto.tipo_proyecto, proyecto.inventory_columns, proyecto.inventory_columns_by_type]);
+
   const unidadTipologias = useMemo<UnidadTipologia[]>(() => proyecto.unidad_tipologias ?? [], [proyecto.unidad_tipologias]);
 
   // Estado counts (scoped to active torre when filtered)
@@ -104,11 +143,17 @@ export default function InventarioPage() {
     };
   }, [unidades, torreFilter]);
 
-  // Tipologías filtered by torre for the dropdown
+  // Tipologías filtered by torre and tipo tab for the dropdown
   const tipologiasForFilter = useMemo(() => {
-    if (!isMultiTorre || torreFilter === "todas") return tipologias || [];
-    return (tipologias || []).filter(t => t.torre_ids?.includes(torreFilter) || !t.torre_ids?.length);
-  }, [tipologias, isMultiTorre, torreFilter]);
+    let list = tipologias || [];
+    if (tipoTabTipologiaIds) {
+      list = list.filter(t => tipoTabTipologiaIds.has(t.id));
+    }
+    if (isMultiTorre && torreFilter !== "todas") {
+      list = list.filter(t => t.torre_ids?.includes(torreFilter) || !t.torre_ids?.length);
+    }
+    return list;
+  }, [tipologias, isMultiTorre, torreFilter, tipoTabTipologiaIds]);
 
   // Unique bedroom counts for filter
   const habOptions = useMemo(() => {
@@ -135,6 +180,11 @@ export default function InventarioPage() {
   const filteredUnidades = useMemo(() => {
     const units = unidades || [];
     let result = [...units];
+
+    // Hybrid tipo tab filter
+    if (tipoTabTipologiaIds) {
+      result = result.filter(u => u.tipologia_id && tipoTabTipologiaIds.has(u.tipologia_id));
+    }
 
     // Torre filter
     if (torreFilter !== "todas") {
@@ -189,10 +239,10 @@ export default function InventarioPage() {
     // Sort
     result.sort((a, b) => {
       switch (sortBy) {
-        case "precio_asc": return (a.precio ?? 0) - (b.precio ?? 0);
-        case "precio_desc": return (b.precio ?? 0) - (a.precio ?? 0);
-        case "area_asc": return (a.area_m2 ?? 0) - (b.area_m2 ?? 0);
-        case "area_desc": return (b.area_m2 ?? 0) - (a.area_m2 ?? 0);
+        case "precio_asc": return (getUnitPrice(a) ?? 0) - (getUnitPrice(b) ?? 0);
+        case "precio_desc": return (getUnitPrice(b) ?? 0) - (getUnitPrice(a) ?? 0);
+        case "area_asc": return (getPrimaryArea(a, columns) ?? 0) - (getPrimaryArea(b, columns) ?? 0);
+        case "area_desc": return (getPrimaryArea(b, columns) ?? 0) - (getPrimaryArea(a, columns) ?? 0);
         case "piso_asc": return (a.piso ?? 0) - (b.piso ?? 0);
         case "piso_desc": return (b.piso ?? 0) - (a.piso ?? 0);
         default: return 0;
@@ -200,7 +250,7 @@ export default function InventarioPage() {
     });
 
     return result;
-  }, [unidades, torreFilter, tipologiaFilter, estadoFilter, habFilter, banosFilter, etapaFilter, searchQuery, sortBy, isMultiTipo, unidadTipologias]);
+  }, [unidades, torreFilter, tipologiaFilter, estadoFilter, habFilter, banosFilter, etapaFilter, searchQuery, sortBy, isMultiTipo, unidadTipologias, tipoTabTipologiaIds, getUnitPrice]);
 
   // Multi-tipo helpers (must be before early return — hooks rule)
   const getUnitTipoCount = useCallback((unitId: string) => {
@@ -222,6 +272,21 @@ export default function InventarioPage() {
       banos: banos.length ? { min: Math.min(...banos), max: Math.max(...banos) } : null,
     };
   }, [unidadTipologias, tipologias]);
+
+  const getUnitAvailableTipologias = useCallback((unitId: string) => {
+    const tipoIds = unidadTipologias.filter(ut => ut.unidad_id === unitId).map(ut => ut.tipologia_id);
+    return (tipologias || []).filter(t => tipoIds.includes(t.id));
+  }, [unidadTipologias, tipologias]);
+
+  // Escape key to close tipo selector
+  useEffect(() => {
+    if (!tipoSelectorUnit) return;
+    const handler = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setTipoSelectorUnit(null);
+    };
+    window.addEventListener("keydown", handler);
+    return () => window.removeEventListener("keydown", handler);
+  }, [tipoSelectorUnit]);
 
   // Empty state — no units configured (AFTER all hooks)
   if (!unidades || unidades.length === 0) {
@@ -279,6 +344,32 @@ export default function InventarioPage() {
             })}
           </div>
         </div>
+
+        {/* ====== HYBRID TIPO TABS ====== */}
+        {isHibrido && availableTipoTabs.length > 0 && (
+          <div className="flex items-center gap-1.5 mb-3">
+            {availableTipoTabs.map((tipo) => {
+              const Icon = tipo === "apartamento" ? Building2 : tipo === "casa" ? Home : MapPin;
+              const label = tipo === "apartamento" ? tSite("inventario.tabApartamentos") : tipo === "casa" ? tSite("inventario.tabCasas") : tSite("inventario.tabLotes");
+              const isActive = activeTipoTab === tipo;
+              return (
+                <button
+                  key={tipo}
+                  onClick={() => setActiveTipoTab(tipo)}
+                  className={cn(
+                    "flex items-center gap-2 px-4 py-2 rounded-full text-xs font-medium transition-all",
+                    isActive
+                      ? "bg-[rgba(var(--site-primary-rgb),0.15)] text-[var(--site-primary)] border border-[rgba(var(--site-primary-rgb),0.3)]"
+                      : "text-[var(--text-tertiary)] hover:text-[var(--text-secondary)] border border-transparent hover:border-[var(--border-subtle)]"
+                  )}
+                >
+                  <Icon size={14} />
+                  {label}
+                </button>
+              );
+            })}
+          </div>
+        )}
 
         {/* ====== TORRE FILTER ====== */}
         {isMultiTorre && (
@@ -567,10 +658,10 @@ export default function InventarioPage() {
                         </>
                       ) : (
                         <>
-                          {unit.area_m2 && (
+                          {getPrimaryArea(unit, columns) != null && (
                             <span className="flex items-center gap-0.5">
                               <Maximize size={10} className="text-[var(--text-muted)]" />
-                              {unit.area_m2}m²
+                              {getPrimaryArea(unit, columns)}m²
                             </span>
                           )}
                           {columns.habitaciones && unit.habitaciones !== null && (
@@ -615,25 +706,44 @@ export default function InventarioPage() {
 
                     {/* Price + actions — single row */}
                     <div className="flex items-center justify-between pt-2 border-t border-white/5">
-                      {unit.precio ? (
-                        <p className="text-sm font-semibold text-white">
-                          {formatPrecioShort(unit.precio)}
-                        </p>
-                      ) : useRanges && specRanges?.precio ? (
-                        <p className="text-sm font-semibold text-white">
-                          {formatRange(specRanges.precio) ? `${formatPrecioShort(specRanges.precio.min)}${specRanges.precio.min !== specRanges.precio.max ? `–${formatPrecioShort(specRanges.precio.max)}` : ""}` : ""}
-                        </p>
-                      ) : (
-                        <span />
-                      )}
+                      {(() => {
+                        const price = getUnitPrice(unit);
+                        if (price) return (
+                          <p className="text-sm font-semibold text-white">
+                            {formatPrecioShort(price)}
+                          </p>
+                        );
+                        if (!isTipologiaPricing && useRanges && specRanges?.precio) return (
+                          <p className="text-sm font-semibold text-white">
+                            {tSite("tipologias.from")} {formatPrecioShort(specRanges.precio.min)}
+                          </p>
+                        );
+                        return <span />;
+                      })()}
                       <div className="flex items-center gap-1">
-                        <Link
-                          href={`${basePath}/tipologias${unit.tipologia_id ? `?tipo=${unit.tipologia_id}&unidad=${unit.id}` : `?unidad=${unit.id}`}`}
-                          className="p-1.5 rounded-lg text-[var(--text-secondary)] hover:text-white bg-white/5 hover:bg-white/10 transition-all"
-                          aria-label={tSite("inventario.viewUnit", { unit: unit.identificador })}
-                        >
-                          <Eye size={13} />
-                        </Link>
+                        {useRanges && tipoCount > 1 ? (
+                          <button
+                            onClick={() => setTipoSelectorUnit(unit)}
+                            className="p-1.5 rounded-lg text-[var(--text-secondary)] hover:text-white bg-white/5 hover:bg-white/10 transition-all cursor-pointer"
+                            aria-label={tSite("inventario.viewUnit", { unit: unit.identificador })}
+                          >
+                            <Eye size={13} />
+                          </button>
+                        ) : (
+                          <Link
+                            href={`${basePath}/tipologias${
+                              unit.tipologia_id
+                                ? `?tipo=${unit.tipologia_id}&unidad=${unit.id}`
+                                : useRanges && tipoCount === 1
+                                  ? `?tipo=${unidadTipologias.find(ut => ut.unidad_id === unit.id)?.tipologia_id}&unidad=${unit.id}`
+                                  : `?unidad=${unit.id}`
+                            }`}
+                            className="p-1.5 rounded-lg text-[var(--text-secondary)] hover:text-white bg-white/5 hover:bg-white/10 transition-all"
+                            aria-label={tSite("inventario.viewUnit", { unit: unit.identificador })}
+                          >
+                            <Eye size={13} />
+                          </Link>
+                        )}
                         <button
                           onClick={() => setCotizarUnidad(unit)}
                           className="p-1.5 rounded-lg text-[var(--site-primary)] hover:text-white bg-[rgba(var(--site-primary-rgb),0.15)] hover:bg-[rgba(var(--site-primary-rgb),0.30)] transition-all cursor-pointer"
@@ -661,7 +771,10 @@ export default function InventarioPage() {
               <span className="w-4 shrink-0" />
               <span className="w-24 shrink-0">{tSite("inventario.unit")}</span>
               <span className="w-28 shrink-0 hidden md:block">{tSite("inventario.type")}</span>
-              <span className="w-16 shrink-0 text-right">{tSite("inventario.area")}</span>
+              {columns.area_m2 && <span className="w-16 shrink-0 text-right">{tSite("inventario.area")}</span>}
+              {columns.area_construida && <span className="w-16 shrink-0 text-right">{tSite("tipologias.areaConstruida")}</span>}
+              {columns.area_privada && <span className="w-16 shrink-0 text-right">{tSite("tipologias.areaPrivada")}</span>}
+              {columns.area_lote && <span className="w-16 shrink-0 text-right">{tSite("tipologias.areaLote")}</span>}
               {columns.habitaciones && <span className="w-10 shrink-0 text-center hidden lg:block">{tSite("inventario.bedrooms")}</span>}
               {columns.banos && <span className="w-10 shrink-0 text-center hidden lg:block">{tSite("inventario.bathrooms")}</span>}
               {columns.parqueaderos && <span className="w-10 shrink-0 text-center hidden lg:block">{tSite("inventario.parking")}</span>}
@@ -705,11 +818,28 @@ export default function InventarioPage() {
                         tipo?.nombre ?? "—"
                       )}
                     </span>
-                    <span className="w-16 shrink-0 text-[11px] text-[var(--text-secondary)] text-right tabular-nums">
-                      {listUseRanges && listSpecRanges?.area
-                        ? formatRange(listSpecRanges.area, " m²")
-                        : unit.area_m2 ? `${unit.area_m2} m²` : "—"}
-                    </span>
+                    {columns.area_m2 && (
+                      <span className="w-16 shrink-0 text-[11px] text-[var(--text-secondary)] text-right tabular-nums">
+                        {listUseRanges && listSpecRanges?.area
+                          ? formatRange(listSpecRanges.area, " m²")
+                          : unit.area_m2 ? `${unit.area_m2} m²` : "—"}
+                      </span>
+                    )}
+                    {columns.area_construida && (
+                      <span className="w-16 shrink-0 text-[11px] text-[var(--text-secondary)] text-right tabular-nums">
+                        {unit.area_construida ? `${unit.area_construida} m²` : "—"}
+                      </span>
+                    )}
+                    {columns.area_privada && (
+                      <span className="w-16 shrink-0 text-[11px] text-[var(--text-secondary)] text-right tabular-nums">
+                        {unit.area_privada ? `${unit.area_privada} m²` : "—"}
+                      </span>
+                    )}
+                    {columns.area_lote && (
+                      <span className="w-16 shrink-0 text-[11px] text-[var(--text-secondary)] text-right tabular-nums">
+                        {unit.area_lote ? `${unit.area_lote} m²` : "—"}
+                      </span>
+                    )}
                     {columns.habitaciones && (
                       <span className="w-10 shrink-0 text-[11px] text-[var(--text-tertiary)] text-center hidden lg:block">
                         {listUseRanges && listSpecRanges?.hab
@@ -744,20 +874,38 @@ export default function InventarioPage() {
                       </span>
                     )}
                     <span className="flex-1 text-xs font-semibold text-white text-right tabular-nums">
-                      {unit.precio
-                        ? formatPrecioShort(unit.precio)
-                        : listUseRanges && listSpecRanges?.precio
-                          ? `${formatPrecioShort(listSpecRanges.precio.min)}${listSpecRanges.precio.min !== listSpecRanges.precio.max ? `–${formatPrecioShort(listSpecRanges.precio.max)}` : ""}`
-                          : "—"}
+                      {(() => {
+                        const price = getUnitPrice(unit);
+                        if (price) return formatPrecioShort(price);
+                        if (!isTipologiaPricing && listUseRanges && listSpecRanges?.precio)
+                          return `${tSite("tipologias.from")} ${formatPrecioShort(listSpecRanges.precio.min)}`;
+                        return "—";
+                      })()}
                     </span>
                     <div className="w-16 shrink-0 flex items-center justify-end gap-0.5">
-                      <Link
-                        href={`${basePath}/tipologias${unit.tipologia_id ? `?tipo=${unit.tipologia_id}&unidad=${unit.id}` : `?unidad=${unit.id}`}`}
-                        className="p-1 rounded-md text-[var(--text-secondary)] hover:text-white bg-white/5 hover:bg-white/10 transition-all"
-                        aria-label={tSite("inventario.viewUnit", { unit: unit.identificador })}
-                      >
-                        <Eye size={12} />
-                      </Link>
+                      {listUseRanges && listTipoCount > 1 ? (
+                        <button
+                          onClick={() => setTipoSelectorUnit(unit)}
+                          className="p-1 rounded-md text-[var(--text-secondary)] hover:text-white bg-white/5 hover:bg-white/10 transition-all cursor-pointer"
+                          aria-label={tSite("inventario.viewUnit", { unit: unit.identificador })}
+                        >
+                          <Eye size={12} />
+                        </button>
+                      ) : (
+                        <Link
+                          href={`${basePath}/tipologias${
+                            unit.tipologia_id
+                              ? `?tipo=${unit.tipologia_id}&unidad=${unit.id}`
+                              : listUseRanges && listTipoCount === 1
+                                ? `?tipo=${unidadTipologias.find(ut => ut.unidad_id === unit.id)?.tipologia_id}&unidad=${unit.id}`
+                                : `?unidad=${unit.id}`
+                          }`}
+                          className="p-1 rounded-md text-[var(--text-secondary)] hover:text-white bg-white/5 hover:bg-white/10 transition-all"
+                          aria-label={tSite("inventario.viewUnit", { unit: unit.identificador })}
+                        >
+                          <Eye size={12} />
+                        </Link>
+                      )}
                       <button
                         onClick={() => setCotizarUnidad(unit)}
                         className="p-1 rounded-md text-[var(--site-primary)] hover:text-white bg-[rgba(var(--site-primary-rgb),0.15)] hover:bg-[rgba(var(--site-primary-rgb),0.30)] transition-all cursor-pointer"
@@ -803,12 +951,119 @@ export default function InventarioPage() {
         </div>{/* end scrollable content */}
       </div>
 
+      {/* Tipología Selector Modal — multi-tipo units */}
+      <AnimatePresence>
+        {tipoSelectorUnit && (() => {
+          const availTipos = getUnitAvailableTipologias(tipoSelectorUnit.id);
+          return (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm"
+              onClick={() => setTipoSelectorUnit(null)}
+            >
+              <motion.div
+                initial={{ scale: 0.95, opacity: 0, y: 10 }}
+                animate={{ scale: 1, opacity: 1, y: 0 }}
+                exit={{ scale: 0.95, opacity: 0, y: 10 }}
+                transition={{ type: "spring", duration: 0.3, bounce: 0.15 }}
+                onClick={(e) => e.stopPropagation()}
+                className="glass-card rounded-2xl p-5 max-w-sm w-full mx-4 shadow-2xl"
+              >
+                <div className="flex items-center justify-between mb-4">
+                  <div>
+                    <h3 className="text-sm font-semibold text-white">
+                      {tipoSelectorUnit.identificador}
+                    </h3>
+                    <p className="text-[10px] text-[var(--text-muted)] uppercase tracking-wider mt-0.5">
+                      {tSite("inventario.chooseTipologia")}
+                    </p>
+                  </div>
+                  <button
+                    onClick={() => setTipoSelectorUnit(null)}
+                    className="p-1.5 rounded-lg text-[var(--text-tertiary)] hover:text-white bg-white/5 hover:bg-white/10 transition-all cursor-pointer"
+                  >
+                    <X size={14} />
+                  </button>
+                </div>
+                <div className="space-y-2">
+                  {availTipos.map((tipo) => (
+                    <Link
+                      key={tipo.id}
+                      href={`${basePath}/tipologias?tipo=${tipo.id}&unidad=${tipoSelectorUnit.id}`}
+                      onClick={() => setTipoSelectorUnit(null)}
+                      className="flex items-center justify-between w-full px-4 py-3 rounded-xl bg-white/5 border border-[var(--border-subtle)] hover:border-[rgba(var(--site-primary-rgb),0.3)] hover:bg-white/[0.08] transition-all group"
+                    >
+                      <div>
+                        <p className="text-xs font-medium text-white group-hover:text-[var(--site-primary)] transition-colors">
+                          {tipo.nombre}
+                        </p>
+                        <div className="flex items-center gap-2 mt-1 text-[10px] text-[var(--text-tertiary)]">
+                          {columns.area_construida && tipo.area_construida != null && (
+                            <span className="flex items-center gap-0.5">
+                              <Maximize size={9} className="text-[var(--text-muted)]" />
+                              {tipo.area_construida} m²
+                            </span>
+                          )}
+                          {columns.area_m2 && tipo.area_m2 != null && !columns.area_construida && (
+                            <span className="flex items-center gap-0.5">
+                              <Maximize size={9} className="text-[var(--text-muted)]" />
+                              {tipo.area_m2} m²
+                            </span>
+                          )}
+                          {columns.area_privada && tipo.area_privada != null && (
+                            <span className="flex items-center gap-0.5">
+                              <Maximize size={9} className="text-[var(--text-muted)]" />
+                              {tipo.area_privada} m²
+                            </span>
+                          )}
+                          {columns.area_lote && tipo.area_lote != null && (
+                            <span className="flex items-center gap-0.5">
+                              <Maximize size={9} className="text-[var(--text-muted)]" />
+                              {tipo.area_lote} m²
+                            </span>
+                          )}
+                          {tipo.habitaciones != null && (
+                            <span className="flex items-center gap-0.5">
+                              <BedDouble size={9} className="text-[var(--text-muted)]" />
+                              {tipo.habitaciones}
+                            </span>
+                          )}
+                          {tipo.banos != null && (
+                            <span className="flex items-center gap-0.5">
+                              <Bath size={9} className="text-[var(--text-muted)]" />
+                              {tipo.banos}
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        {tipo.precio_desde != null && (
+                          <p className="text-xs font-medium text-[var(--site-primary)]">
+                            {formatPrecioShort(tipo.precio_desde)}
+                          </p>
+                        )}
+                        <ChevronRight size={14} className="text-[var(--text-muted)] group-hover:text-[var(--site-primary)] transition-colors" />
+                      </div>
+                    </Link>
+                  ))}
+                </div>
+              </motion.div>
+            </motion.div>
+          );
+        })()}
+      </AnimatePresence>
+
       {/* Cotizador Modal */}
       {cotizarUnidad && (
         <CotizadorModal
           isOpen={!!cotizarUnidad}
           onClose={() => setCotizarUnidad(null)}
-          unidad={cotizarUnidad}
+          unidad={isTipologiaPricing
+            ? { ...cotizarUnidad, precio: getUnitPrice(cotizarUnidad) }
+            : cotizarUnidad
+          }
           tipologia={getTipologiaName(cotizarUnidad.tipologia_id) || undefined}
           proyectoId={proyecto.id}
           cotizadorEnabled={proyecto.cotizador_enabled}

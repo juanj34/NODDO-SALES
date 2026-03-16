@@ -223,7 +223,6 @@ export default function IntegracionesPage() {
             transition={{ duration: 0.7, delay: 0.2, ease }}
             className="text-lg max-w-3xl mx-auto leading-relaxed"
             style={{
-              fontFamily: "var(--font-dm-mono)",
               fontWeight: 300,
               color: "rgba(244,240,232,0.55)",
             }}
@@ -332,7 +331,6 @@ export default function IntegracionesPage() {
                       <p
                         className="text-sm leading-[1.8] mb-4"
                         style={{
-                          fontFamily: "var(--font-dm-mono)",
                           fontWeight: 300,
                           color: "rgba(244,240,232,0.55)",
                         }}
@@ -351,7 +349,6 @@ export default function IntegracionesPage() {
                             <span
                               className="text-xs leading-[1.6]"
                               style={{
-                                fontFamily: "var(--font-dm-mono)",
                                 fontWeight: 300,
                                 color: "rgba(244,240,232,0.70)",
                               }}
@@ -424,7 +421,6 @@ export default function IntegracionesPage() {
             <p
               className="text-base mb-8 max-w-2xl mx-auto"
               style={{
-                fontFamily: "var(--font-dm-mono)",
                 fontWeight: 300,
                 color: "rgba(244,240,232,0.55)",
               }}

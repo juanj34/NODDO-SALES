@@ -27,6 +27,7 @@ export default function TourPage() {
   const [tour360Url, setTour360Url] = useState("");
   const [tour360RawInput, setTour360RawInput] = useState("");
   const [tourTab, setTourTab] = useState<"url" | "upload">("url");
+  const initializedRef = useRef(false);
   const [tourDeleting, setTourDeleting] = useState(false);
   const [dragOver, setDragOver] = useState(false);
   const tourZipInputRef = useRef<HTMLInputElement>(null);
@@ -34,12 +35,14 @@ export default function TourPage() {
   const tourUpload = useTourUpload();
 
   useEffect(() => {
-    if (!project) return;
+    if (!project || initializedRef.current) return;
+    initializedRef.current = true;
     setTour360Url(project.tour_360_url || "");
     setTour360RawInput(project.tour_360_url || "");
   }, [project]);
 
   const handleSave = async () => {
+    if (!initializedRef.current) return;
     const ok = await save({
       tour_360_url: tour360Url || null,
     });

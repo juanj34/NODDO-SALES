@@ -23,7 +23,7 @@ import {
   X,
 } from "lucide-react";
 import { useSiteProject, useSiteBasePath } from "@/hooks/useSiteProject";
-import { getInventoryColumns } from "@/lib/inventory-columns";
+import { getInventoryColumns, getPrimaryArea } from "@/lib/inventory-columns";
 import { DynamicIcon } from "@/data/amenidades-catalog";
 import { usePersistedState } from "@/hooks/usePersistedState";
 import { useTranslation, getEstadoConfig } from "@/i18n";
@@ -501,7 +501,7 @@ export default function ExplorarPage() {
                       >
                         <p className="text-xs font-medium text-white mb-1.5">{tipo.nombre}</p>
                         <div className="space-y-1 text-[10px] text-[var(--text-secondary)]">
-                          {tipo.area_m2 && <p>{tipo.area_m2} m²</p>}
+                          {(tipo.area_construida ?? tipo.area_m2) && <p>{tipo.area_construida ?? tipo.area_m2} m²</p>}
                           {tipo.habitaciones != null && <p>{tipo.habitaciones} hab</p>}
                           {tipo.banos != null && <p>{tipo.banos} baños</p>}
                           {tipo.precio_desde != null && (
@@ -533,7 +533,34 @@ export default function ExplorarPage() {
             {/* Specs grid */}
             <div className="px-4 space-y-3 mb-3">
               <div className="grid grid-cols-2 gap-2">
-                {selectedUnit.area_m2 && (
+                {columns.area_construida && selectedUnit.area_construida != null && (
+                  <div className="bg-white/5 rounded-xl px-3 py-2 flex items-center gap-2">
+                    <Maximize size={14} className="text-[var(--site-primary)]" />
+                    <div>
+                      <p className="text-[8px] text-[var(--text-tertiary)] tracking-wider uppercase">{tSite("tipologias.areaConstruida")}</p>
+                      <p className="text-sm text-white font-medium">{selectedUnit.area_construida} m²</p>
+                    </div>
+                  </div>
+                )}
+                {columns.area_privada && selectedUnit.area_privada != null && (
+                  <div className="bg-white/5 rounded-xl px-3 py-2 flex items-center gap-2">
+                    <Maximize size={14} className="text-[var(--site-primary)]" />
+                    <div>
+                      <p className="text-[8px] text-[var(--text-tertiary)] tracking-wider uppercase">{tSite("tipologias.areaPrivada")}</p>
+                      <p className="text-sm text-white font-medium">{selectedUnit.area_privada} m²</p>
+                    </div>
+                  </div>
+                )}
+                {columns.area_lote && selectedUnit.area_lote != null && (
+                  <div className="bg-white/5 rounded-xl px-3 py-2 flex items-center gap-2">
+                    <Maximize size={14} className="text-[var(--site-primary)]" />
+                    <div>
+                      <p className="text-[8px] text-[var(--text-tertiary)] tracking-wider uppercase">{tSite("tipologias.areaLote")}</p>
+                      <p className="text-sm text-white font-medium">{selectedUnit.area_lote} m²</p>
+                    </div>
+                  </div>
+                )}
+                {columns.area_m2 && selectedUnit.area_m2 != null && !columns.area_construida && !columns.area_privada && !columns.area_lote && (
                   <div className="bg-white/5 rounded-xl px-3 py-2 flex items-center gap-2">
                     <Maximize size={14} className="text-[var(--site-primary)]" />
                     <div>
@@ -756,7 +783,7 @@ export default function ExplorarPage() {
                             ) : (
                               tipologia && <span className="truncate">{tipologia.nombre}</span>
                             )}
-                            {unit.area_m2 && <span className="flex-shrink-0">· {unit.area_m2} m²</span>}
+                            {getPrimaryArea(unit, columns) != null && <span className="flex-shrink-0">· {getPrimaryArea(unit, columns)} m²</span>}
                             {columns.lote && unit.lote
                               ? <span className="flex-shrink-0">· Lote {unit.lote}</span>
                               : columns.piso && unit.piso ? <span className="flex-shrink-0">· P{unit.piso}</span> : null

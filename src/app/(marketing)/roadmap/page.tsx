@@ -228,7 +228,6 @@ export default function RoadmapPage() {
             transition={{ duration: 0.7, delay: 0.2, ease }}
             className="text-lg max-w-3xl mx-auto leading-relaxed"
             style={{
-              fontFamily: "var(--font-dm-mono)",
               fontWeight: 300,
               color: "rgba(244,240,232,0.55)",
             }}
@@ -323,7 +322,6 @@ export default function RoadmapPage() {
                           <p
                             className="text-sm leading-[1.8] mb-3"
                             style={{
-                              fontFamily: "var(--font-dm-mono)",
                               fontWeight: 300,
                               color: "rgba(244,240,232,0.70)",
                             }}
@@ -338,7 +336,6 @@ export default function RoadmapPage() {
                                 <span
                                   className="text-xs"
                                   style={{
-                                    fontFamily: "var(--font-dm-mono)",
                                     fontWeight: 300,
                                     color: "rgba(244,240,232,0.55)",
                                   }}
@@ -376,7 +373,6 @@ export default function RoadmapPage() {
                               <span
                                 className="text-xs"
                                 style={{
-                                  fontFamily: "var(--font-dm-mono)",
                                   fontWeight: 300,
                                   color: "rgba(244,240,232,0.55)",
                                 }}
@@ -420,7 +416,6 @@ export default function RoadmapPage() {
                           <div
                             className="text-sm"
                             style={{
-                              fontFamily: "var(--font-dm-mono)",
                               fontWeight: 400,
                               color: section.color,
                             }}
@@ -467,7 +462,6 @@ export default function RoadmapPage() {
             <p
               className="text-base mb-8 max-w-2xl mx-auto"
               style={{
-                fontFamily: "var(--font-dm-mono)",
                 fontWeight: 300,
                 color: "rgba(244,240,232,0.55)",
               }}

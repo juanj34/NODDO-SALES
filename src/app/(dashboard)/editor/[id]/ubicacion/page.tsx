@@ -113,6 +113,9 @@ export default function UbicacionPage() {
   // Map picker
   const [showMapPicker, setShowMapPicker] = useState(false);
 
+  // Guard: only initialize local state from project once
+  const initializedRef = useRef(false);
+
   // AI Discovery (advanced modal)
   interface DiscoveredPOI {
     nombre: string;
@@ -132,7 +135,8 @@ export default function UbicacionPage() {
   const [addingSaving, setAddingSaving] = useState(false);
 
   useEffect(() => {
-    if (!project) return;
+    if (!project || initializedRef.current) return;
+    initializedRef.current = true;
     setUbicacionDireccion(project.ubicacion_direccion || "");
     setUbicacionLat(
       project.ubicacion_lat != null ? String(project.ubicacion_lat) : ""
@@ -143,6 +147,7 @@ export default function UbicacionPage() {
   }, [project]);
 
   const handleSaveLocation = async () => {
+    if (!initializedRef.current) return;
     try {
       // Validate location data
       proyectoUbicacionSchema.parse({

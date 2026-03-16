@@ -2,6 +2,224 @@
 
 import { Shield, Lock, Database, Eye, FileText, Mail, Globe, UserCheck } from "lucide-react";
 import { useState } from "react";
+import { motion } from "framer-motion";
+import { usePageView } from "@/hooks/usePageView";
+
+const ease = [0.25, 0.46, 0.45, 0.94] as const;
+
+/* ══════════════════════════════════════════════
+   DATA VAULT CONSOLE — Complex animated hero SVG
+   Privacy dashboard with vault, toggle panel,
+   encrypted data streams, user silhouettes
+══════════════════════════════════════════════ */
+function DataVaultIllustration() {
+  return (
+    <svg viewBox="0 0 320 180" fill="none" className="w-full" style={{ maxWidth: 420 }}>
+      <defs>
+        <linearGradient id="pv-vault-glow" x1="0.5" y1="0" x2="0.5" y2="1">
+          <stop offset="0%" stopColor="rgba(184,151,58,0.12)" />
+          <stop offset="100%" stopColor="rgba(184,151,58,0.02)" />
+        </linearGradient>
+        <linearGradient id="pv-stream" x1="0" y1="0.5" x2="1" y2="0.5">
+          <stop offset="0%" stopColor="rgba(184,151,58,0.2)" />
+          <stop offset="50%" stopColor="rgba(184,151,58,0.06)" />
+          <stop offset="100%" stopColor="rgba(184,151,58,0.01)" />
+        </linearGradient>
+        <linearGradient id="pv-panel" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stopColor="rgba(184,151,58,0.05)" />
+          <stop offset="100%" stopColor="rgba(184,151,58,0.015)" />
+        </linearGradient>
+      </defs>
+      <style>{`
+        .pv-vault-rotate { animation: pv-rotate 30s linear infinite; transform-origin: 160px 82px; }
+        .pv-glow { animation: pv-glow-pulse 3s ease-in-out infinite; }
+        .pv-ring1 { animation: pv-ring-expand 3s ease-out infinite; }
+        .pv-ring2 { animation: pv-ring-expand 3s ease-out infinite 1s; }
+        .pv-ring3 { animation: pv-ring-expand 3s ease-out infinite 2s; }
+        .pv-person1 { animation: pv-fade 4s ease-in-out infinite; }
+        .pv-person2 { animation: pv-fade 4.5s ease-in-out infinite 0.6s; }
+        .pv-person3 { animation: pv-fade 5s ease-in-out infinite 1.2s; }
+        .pv-toggle { animation: pv-toggle-flip 4s ease-in-out infinite; }
+        .pv-toggle2 { animation: pv-toggle-flip 4s ease-in-out infinite 2s; }
+        .pv-stream1 { stroke-dasharray: 6 4; animation: pv-flow 2s linear infinite; }
+        .pv-stream2 { stroke-dasharray: 5 5; animation: pv-flow 2.5s linear infinite 0.3s; }
+        .pv-stream3 { stroke-dasharray: 4 6; animation: pv-flow 1.8s linear infinite 0.7s; }
+        .pv-block1 { animation: pv-block-flow 4s linear infinite; }
+        .pv-block2 { animation: pv-block-flow 4s linear infinite 1s; }
+        .pv-block3 { animation: pv-block-flow 4s linear infinite 2s; }
+        .pv-block4 { animation: pv-block-flow 4s linear infinite 3s; }
+        .pv-lock1 { animation: pv-lock-bob 4s ease-in-out infinite; }
+        .pv-lock2 { animation: pv-lock-bob 5s ease-in-out infinite 1s; }
+        .pv-lock3 { animation: pv-lock-bob 4.5s ease-in-out infinite 2s; }
+        .pv-shield { animation: pv-shield-breathe 4s ease-in-out infinite; }
+        .pv-scan { animation: pv-scan-sweep 6s linear infinite; transform-origin: 160px 82px; }
+        .pv-dust1 { animation: pv-dust 5s ease-in-out infinite; }
+        .pv-dust2 { animation: pv-dust 6s ease-in-out infinite 0.8s; }
+        .pv-dust3 { animation: pv-dust 5.5s ease-in-out infinite 1.5s; }
+        .pv-dust4 { animation: pv-dust 7s ease-in-out infinite 0.4s; }
+        .pv-dust5 { animation: pv-dust 4.5s ease-in-out infinite 2s; }
+        .pv-dust6 { animation: pv-dust 6.5s ease-in-out infinite 1.2s; }
+        .pv-fp { animation: pv-fp-pulse 3s ease-in-out infinite; }
+        .pv-check { animation: pv-check-blink 2.5s ease-in-out infinite; }
+        .pv-check2 { animation: pv-check-blink 2.5s ease-in-out infinite 0.8s; }
+        @keyframes pv-rotate { from{transform:rotate(0deg)} to{transform:rotate(360deg)} }
+        @keyframes pv-glow-pulse { 0%,100%{opacity:0.04} 50%{opacity:0.18} }
+        @keyframes pv-ring-expand { 0%{r:22;opacity:0.25} 100%{r:42;opacity:0} }
+        @keyframes pv-fade { 0%,20%{opacity:1} 50%{opacity:0.15} 80%,100%{opacity:1} }
+        @keyframes pv-toggle-flip { 0%,40%{transform:translateX(0)} 50%,90%{transform:translateX(10px)} 100%{transform:translateX(0)} }
+        @keyframes pv-flow { from{stroke-dashoffset:0} to{stroke-dashoffset:-12} }
+        @keyframes pv-block-flow { 0%{transform:translateX(0);opacity:0} 10%{opacity:0.6} 90%{opacity:0.6} 100%{transform:translateX(120px);opacity:0} }
+        @keyframes pv-lock-bob { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-5px)} }
+        @keyframes pv-shield-breathe { 0%,100%{opacity:0.04} 50%{opacity:0.08} }
+        @keyframes pv-scan-sweep { from{transform:rotate(0deg)} to{transform:rotate(360deg)} }
+        @keyframes pv-dust { 0%,100%{transform:translateY(0);opacity:1} 50%{transform:translateY(-8px);opacity:0.3} }
+        @keyframes pv-fp-pulse { 0%,100%{opacity:0.06} 50%{opacity:0.2} }
+        @keyframes pv-check-blink { 0%,30%{opacity:0.15} 50%{opacity:0.6} 70%,100%{opacity:0.15} }
+      `}</style>
+
+      {/* Background shield silhouette */}
+      <path className="pv-shield" d="M160 10 L220 35 L220 95 L160 130 L100 95 L100 35 Z" stroke="rgba(184,151,58,0.06)" strokeWidth="0.5" fill="none" />
+
+      {/* Dashboard panel frame */}
+      <rect x="18" y="8" width="284" height="164" rx="4" stroke="rgba(184,151,58,0.12)" strokeWidth="0.6" fill="rgba(184,151,58,0.015)" />
+      {/* Title bar */}
+      <rect x="18" y="8" width="284" height="14" rx="4" fill="rgba(184,151,58,0.03)" />
+      <line x1="18" y1="22" x2="302" y2="22" stroke="rgba(184,151,58,0.08)" strokeWidth="0.4" />
+      <circle cx="28" cy="15" r="2" fill="rgba(184,151,58,0.15)" />
+      <circle cx="35" cy="15" r="2" fill="rgba(184,151,58,0.1)" />
+      <circle cx="42" cy="15" r="2" fill="rgba(184,151,58,0.08)" />
+      {/* URL bar */}
+      <rect x="54" y="11" width="80" height="8" rx="2" fill="rgba(184,151,58,0.03)" stroke="rgba(184,151,58,0.06)" strokeWidth="0.3" />
+      <circle cx="60" cy="15" r="2.5" stroke="rgba(184,151,58,0.12)" strokeWidth="0.4" fill="none" />
+      <text x="68" y="17" fill="rgba(184,151,58,0.12)" fontSize="3.5" fontFamily="monospace">noddo.io/privacidad</text>
+
+      {/* ── LEFT: User silhouettes flowing into data stream ── */}
+      <g className="pv-person1">
+        <circle cx="42" cy="38" r="4" stroke="#b8973a" strokeWidth="0.6" opacity="0.3" fill="none" />
+        <path d="M35 48 C35 44 37 42 42 42 C47 42 49 44 49 48" stroke="#b8973a" strokeWidth="0.6" opacity="0.25" fill="none" />
+      </g>
+      <g className="pv-person2">
+        <circle cx="60" cy="34" r="3.5" stroke="#b8973a" strokeWidth="0.6" opacity="0.25" fill="none" />
+        <path d="M54 43 C54 39.5 56 38 60 38 C64 38 66 39.5 66 43" stroke="#b8973a" strokeWidth="0.6" opacity="0.2" fill="none" />
+      </g>
+      <g className="pv-person3">
+        <circle cx="78" cy="36" r="3" stroke="#b8973a" strokeWidth="0.6" opacity="0.2" fill="none" />
+        <path d="M73 44 C73 41 74.5 39.5 78 39.5 C81.5 39.5 83 41 83 44" stroke="#b8973a" strokeWidth="0.6" opacity="0.15" fill="none" />
+      </g>
+      {/* Data stream lines from users to vault */}
+      <path className="pv-stream1" d="M49 48 Q70 65 105 72" stroke="rgba(184,151,58,0.18)" strokeWidth="0.6" fill="none" />
+      <path className="pv-stream2" d="M66 43 Q85 60 108 68" stroke="rgba(184,151,58,0.14)" strokeWidth="0.6" fill="none" />
+      <path className="pv-stream3" d="M83 44 Q95 56 110 65" stroke="rgba(184,151,58,0.12)" strokeWidth="0.5" fill="none" />
+
+      {/* ── CENTER: Vault door ── */}
+      {/* Fingerprint glow */}
+      <circle className="pv-fp" cx="160" cy="82" r="36" fill="rgba(184,151,58,0.08)" />
+      {/* Expanding pulse rings */}
+      <circle className="pv-ring1" cx="160" cy="82" r="22" stroke="rgba(184,151,58,0.2)" strokeWidth="0.6" fill="none" />
+      <circle className="pv-ring2" cx="160" cy="82" r="22" stroke="rgba(184,151,58,0.15)" strokeWidth="0.5" fill="none" />
+      <circle className="pv-ring3" cx="160" cy="82" r="22" stroke="rgba(184,151,58,0.1)" strokeWidth="0.4" fill="none" />
+      {/* Main vault circle */}
+      <circle cx="160" cy="82" r="28" stroke="#b8973a" strokeWidth="0.8" opacity="0.3" fill="url(#pv-vault-glow)" />
+      <circle cx="160" cy="82" r="22" stroke="rgba(184,151,58,0.18)" strokeWidth="0.5" fill="none" />
+      {/* Vault spokes — rotating */}
+      <g className="pv-vault-rotate">
+        <line x1="160" y1="58" x2="160" y2="62" stroke="rgba(184,151,58,0.2)" strokeWidth="0.6" />
+        <line x1="160" y1="102" x2="160" y2="106" stroke="rgba(184,151,58,0.2)" strokeWidth="0.6" />
+        <line x1="136" y1="82" x2="140" y2="82" stroke="rgba(184,151,58,0.2)" strokeWidth="0.6" />
+        <line x1="180" y1="82" x2="184" y2="82" stroke="rgba(184,151,58,0.2)" strokeWidth="0.6" />
+        <line x1="143" y1="65" x2="146" y2="67.5" stroke="rgba(184,151,58,0.15)" strokeWidth="0.5" />
+        <line x1="174" y1="96.5" x2="177" y2="99" stroke="rgba(184,151,58,0.15)" strokeWidth="0.5" />
+        <line x1="177" y1="65" x2="174" y2="67.5" stroke="rgba(184,151,58,0.15)" strokeWidth="0.5" />
+        <line x1="146" y1="96.5" x2="143" y2="99" stroke="rgba(184,151,58,0.15)" strokeWidth="0.5" />
+      </g>
+      {/* Keyhole */}
+      <circle cx="160" cy="78" r="4" stroke="rgba(184,151,58,0.3)" strokeWidth="0.7" fill="rgba(184,151,58,0.04)" />
+      <rect x="158" y="80" width="4" height="8" rx="1" stroke="rgba(184,151,58,0.25)" strokeWidth="0.5" fill="rgba(184,151,58,0.03)" />
+      {/* Scanning beam */}
+      <line className="pv-scan" x1="160" y1="82" x2="160" y2="55" stroke="rgba(184,151,58,0.06)" strokeWidth="0.4" />
+
+      {/* ── RIGHT: Privacy toggle panel ── */}
+      <rect x="218" y="32" width="76" height="88" rx="3" fill="url(#pv-panel)" stroke="rgba(184,151,58,0.12)" strokeWidth="0.5" />
+      <text x="228" y="44" fill="rgba(184,151,58,0.2)" fontSize="4" fontFamily="monospace">CONTROL DE DATOS</text>
+      <line x1="224" y1="48" x2="288" y2="48" stroke="rgba(184,151,58,0.06)" strokeWidth="0.3" />
+
+      {/* Toggle 1 — Always ON (essential) */}
+      <rect x="226" y="54" width="40" height="4" rx="1" fill="rgba(184,151,58,0.08)" />
+      <rect x="272" y="52" width="16" height="8" rx="4" fill="rgba(74,158,107,0.15)" stroke="rgba(74,158,107,0.3)" strokeWidth="0.5" />
+      <circle cx="284" cy="56" r="3" fill="rgba(74,158,107,0.4)" />
+      <path className="pv-check" d="M281 56 L283 58 L287 53" stroke="rgba(74,158,107,0.5)" strokeWidth="0.6" fill="none" strokeLinecap="round" />
+
+      {/* Toggle 2 — Animated (analytics) */}
+      <rect x="226" y="70" width="36" height="4" rx="1" fill="rgba(184,151,58,0.06)" />
+      <rect x="272" y="68" width="16" height="8" rx="4" fill="rgba(184,151,58,0.06)" stroke="rgba(184,151,58,0.12)" strokeWidth="0.5" />
+      <circle className="pv-toggle" cx="276" cy="72" r="3" fill="rgba(184,151,58,0.25)" />
+
+      {/* Toggle 3 — Animated offset (marketing) */}
+      <rect x="226" y="86" width="32" height="4" rx="1" fill="rgba(184,151,58,0.06)" />
+      <rect x="272" y="84" width="16" height="8" rx="4" fill="rgba(184,151,58,0.06)" stroke="rgba(184,151,58,0.12)" strokeWidth="0.5" />
+      <circle className="pv-toggle2" cx="276" cy="88" r="3" fill="rgba(184,151,58,0.25)" />
+
+      {/* Toggle labels */}
+      <text x="226" y="64" fill="rgba(184,151,58,0.12)" fontSize="3" fontFamily="monospace">ESENCIALES</text>
+      <text x="226" y="80" fill="rgba(184,151,58,0.1)" fontSize="3" fontFamily="monospace">ANALYTICS</text>
+      <text x="226" y="96" fill="rgba(184,151,58,0.1)" fontSize="3" fontFamily="monospace">MARKETING</text>
+
+      {/* Shield + checkmark in panel */}
+      <path d="M244 104 L256 110 L256 118 L250 122 L244 118 L244 110 Z" stroke="rgba(184,151,58,0.15)" strokeWidth="0.5" fill="rgba(184,151,58,0.025)" />
+      <path className="pv-check2" d="M247 114 L249 116 L253 111" stroke="rgba(184,151,58,0.3)" strokeWidth="0.6" fill="none" strokeLinecap="round" />
+
+      {/* ── BOTTOM: Encrypted data stream ── */}
+      <line x1="30" y1="148" x2="290" y2="148" stroke="rgba(184,151,58,0.06)" strokeWidth="0.3" />
+      <g className="pv-block1">
+        <rect x="30" y="152" width="22" height="9" rx="1.5" stroke="rgba(184,151,58,0.12)" strokeWidth="0.4" fill="rgba(184,151,58,0.02)" />
+        <text x="41" y="158.5" textAnchor="middle" fill="rgba(184,151,58,0.15)" fontSize="4" fontFamily="monospace">0xA3</text>
+      </g>
+      <g className="pv-block2">
+        <rect x="30" y="152" width="22" height="9" rx="1.5" stroke="rgba(184,151,58,0.1)" strokeWidth="0.4" fill="rgba(184,151,58,0.02)" />
+        <text x="41" y="158.5" textAnchor="middle" fill="rgba(184,151,58,0.12)" fontSize="4" fontFamily="monospace">0xF7</text>
+      </g>
+      <g className="pv-block3">
+        <rect x="30" y="152" width="22" height="9" rx="1.5" stroke="rgba(184,151,58,0.08)" strokeWidth="0.4" fill="rgba(184,151,58,0.015)" />
+        <text x="41" y="158.5" textAnchor="middle" fill="rgba(184,151,58,0.1)" fontSize="4" fontFamily="monospace">0x2B</text>
+      </g>
+      <g className="pv-block4">
+        <rect x="30" y="152" width="22" height="9" rx="1.5" stroke="rgba(184,151,58,0.08)" strokeWidth="0.4" fill="rgba(184,151,58,0.015)" />
+        <text x="41" y="158.5" textAnchor="middle" fill="rgba(184,151,58,0.1)" fontSize="4" fontFamily="monospace">0xD1</text>
+      </g>
+      {/* Stream label */}
+      <text x="160" y="172" textAnchor="middle" fill="rgba(184,151,58,0.1)" fontSize="3.5" fontFamily="monospace">ENCRYPTED DATA STREAM — AES-256</text>
+
+      {/* ── Floating padlock icons ── */}
+      <g className="pv-lock1">
+        <rect x="28" y="116" width="8" height="7" rx="1" stroke="rgba(184,151,58,0.18)" strokeWidth="0.5" fill="rgba(184,151,58,0.03)" />
+        <path d="M30 116 L30 113 A2 2 0 0 1 34 113 L34 116" stroke="rgba(184,151,58,0.15)" strokeWidth="0.5" fill="none" />
+        <circle cx="32" cy="119.5" r="0.8" fill="rgba(184,151,58,0.2)" />
+      </g>
+      <g className="pv-lock2">
+        <rect x="90" y="130" width="7" height="6" rx="1" stroke="rgba(184,151,58,0.14)" strokeWidth="0.4" fill="rgba(184,151,58,0.02)" />
+        <path d="M91.5 130 L91.5 127.5 A2 2 0 0 1 95.5 127.5 L95.5 130" stroke="rgba(184,151,58,0.12)" strokeWidth="0.4" fill="none" />
+        <circle cx="93.5" cy="133" r="0.6" fill="rgba(184,151,58,0.15)" />
+      </g>
+      <g className="pv-lock3">
+        <rect x="200" y="126" width="6" height="5" rx="0.8" stroke="rgba(184,151,58,0.1)" strokeWidth="0.4" fill="rgba(184,151,58,0.015)" />
+        <path d="M201.5 126 L201.5 124 A1.5 1.5 0 0 1 204.5 124 L204.5 126" stroke="rgba(184,151,58,0.1)" strokeWidth="0.4" fill="none" />
+      </g>
+
+      {/* ── Fingerprint ridges (inside vault) ── */}
+      <path d="M154 76 A6 6 0 0 1 166 76" stroke="rgba(184,151,58,0.06)" strokeWidth="0.3" fill="none" />
+      <path d="M152 74 A8 8 0 0 1 168 74" stroke="rgba(184,151,58,0.04)" strokeWidth="0.3" fill="none" />
+      <path d="M156 78 A4 4 0 0 1 164 78" stroke="rgba(184,151,58,0.05)" strokeWidth="0.3" fill="none" />
+
+      {/* ── Gold dust particles ── */}
+      <circle className="pv-dust1" cx="15" cy="60" r="1.3" fill="rgba(184,151,58,0.12)" />
+      <circle className="pv-dust2" cx="310" cy="45" r="1" fill="rgba(184,151,58,0.08)" />
+      <circle className="pv-dust3" cx="120" cy="28" r="1.5" fill="rgba(184,151,58,0.1)" />
+      <circle className="pv-dust4" cx="200" cy="30" r="1" fill="rgba(184,151,58,0.06)" />
+      <circle className="pv-dust5" cx="50" cy="145" r="1.2" fill="rgba(184,151,58,0.08)" />
+      <circle className="pv-dust6" cx="280" cy="140" r="1.1" fill="rgba(184,151,58,0.06)" />
+    </svg>
+  );
+}
 
 const sections = [
   { id: "responsable", title: "Responsable del tratamiento", icon: Building },
@@ -49,14 +267,20 @@ function Building(props: React.SVGProps<SVGSVGElement>) {
 }
 
 export default function PrivacidadPage() {
+  usePageView("Privacidad");
   const [activeSection, setActiveSection] = useState<string>("responsable");
 
   return (
-    <div className="min-h-screen pt-32 pb-24 px-6">
+    <div className="min-h-screen pt-32 pb-24 px-6 selection:bg-[rgba(184,151,58,0.30)] selection:text-[var(--mk-text-primary)]">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
         <div className="text-center mb-16">
-          <div className="inline-flex items-center gap-3 mb-6 px-6 py-3 rounded-full glass-light">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.7, ease }}
+            className="inline-flex items-center gap-3 mb-6 px-6 py-3 rounded-full glass-light"
+          >
             <Shield className="w-5 h-5" style={{ color: "#b8973a" }} />
             <span
               className="text-sm uppercase tracking-[0.15em]"
@@ -68,43 +292,67 @@ export default function PrivacidadPage() {
             >
               Legal
             </span>
-          </div>
-          <h1
-            className="text-5xl md:text-6xl mb-6"
+          </motion.div>
+          <motion.h1
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.7, delay: 0.1, ease }}
+            className="text-5xl md:text-7xl mb-6"
             style={{
               fontFamily: "var(--font-cormorant)",
               fontWeight: 300,
               color: "rgba(244,240,232,0.92)",
             }}
           >
-            Política de Privacidad
-          </h1>
-          <p
+            Política de{" "}
+            <em style={{ fontStyle: "italic", color: "#b8973a" }}>Privacidad</em>
+          </motion.h1>
+          <motion.p
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.7, delay: 0.2, ease }}
             className="text-base max-w-2xl mx-auto"
             style={{
-              fontFamily: "var(--font-dm-mono)",
               fontWeight: 300,
               color: "rgba(244,240,232,0.55)",
             }}
           >
             En NODDO protegemos sus datos personales con medidas de seguridad de nivel empresarial
             y cumplimiento total de la Ley 1581 de 2012 de Colombia.
-          </p>
-          <p
-            className="text-xs mt-4"
+          </motion.p>
+          <motion.p
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.7, delay: 0.3, ease }}
+            className="text-xs mt-4 flex items-center justify-center gap-2"
             style={{
-              fontFamily: "var(--font-dm-mono)",
               color: "rgba(244,240,232,0.35)",
             }}
           >
+            <span className="w-1 h-1 rounded-full" style={{ background: "#b8973a" }} />
             Última actualización: 14 de marzo de 2026
-          </p>
+          </motion.p>
+
+          {/* Hero SVG */}
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8, delay: 0.35, ease }}
+            className="mt-12 mb-4 flex justify-center"
+          >
+            <DataVaultIllustration />
+          </motion.div>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
           {/* Table of Contents - Sticky Sidebar */}
           <aside className="lg:col-span-3">
-            <nav className="glass-card p-6 sticky top-24">
+            <motion.nav
+              initial={{ opacity: 0, x: -20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.6, delay: 0.4, ease }}
+              className="glass-card p-6 sticky top-24"
+            >
               <h2
                 className="text-sm uppercase tracking-[0.15em] mb-4"
                 style={{
@@ -135,7 +383,6 @@ export default function PrivacidadPage() {
                           color: isActive
                             ? "rgba(244,240,232,0.92)"
                             : "rgba(244,240,232,0.55)",
-                          fontFamily: "var(--font-dm-mono)",
                           fontSize: "0.75rem",
                           fontWeight: 300,
                         }}
@@ -147,14 +394,21 @@ export default function PrivacidadPage() {
                   );
                 })}
               </ul>
-            </nav>
+            </motion.nav>
           </aside>
 
           {/* Content */}
           <main className="lg:col-span-9">
             <div className="space-y-6">
               {/* 1. Responsable */}
-              <section id="responsable" className="glass-card p-8 scroll-mt-24">
+              <motion.section
+                id="responsable"
+                className="glass-card p-8 scroll-mt-24"
+                initial={{ opacity: 0, y: 24 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true, margin: "-60px" }}
+                transition={{ duration: 0.5, ease }}
+              >
                 <div className="flex items-start gap-4 mb-4">
                   <div
                     className="p-3 rounded-xl"
@@ -178,7 +432,6 @@ export default function PrivacidadPage() {
                 <div
                   className="space-y-3 text-sm leading-[1.8]"
                   style={{
-                    fontFamily: "var(--font-dm-mono)",
                     fontWeight: 300,
                     color: "rgba(244,240,232,0.70)",
                   }}
@@ -210,10 +463,17 @@ export default function PrivacidadPage() {
                     </a>
                   </p>
                 </div>
-              </section>
+              </motion.section>
 
               {/* 2. Datos que recopilamos */}
-              <section id="datos" className="glass-card p-8 scroll-mt-24">
+              <motion.section
+                id="datos"
+                className="glass-card p-8 scroll-mt-24"
+                initial={{ opacity: 0, y: 24 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true, margin: "-60px" }}
+                transition={{ duration: 0.5, ease }}
+              >
                 <div className="flex items-start gap-4 mb-4">
                   <div
                     className="p-3 rounded-xl"
@@ -237,7 +497,6 @@ export default function PrivacidadPage() {
                 <div
                   className="space-y-4 text-sm leading-[1.8]"
                   style={{
-                    fontFamily: "var(--font-dm-mono)",
                     fontWeight: 300,
                     color: "rgba(244,240,232,0.70)",
                   }}
@@ -331,10 +590,17 @@ export default function PrivacidadPage() {
                     </div>
                   </div>
                 </div>
-              </section>
+              </motion.section>
 
               {/* 3. Finalidad */}
-              <section id="finalidad" className="glass-card p-8 scroll-mt-24">
+              <motion.section
+                id="finalidad"
+                className="glass-card p-8 scroll-mt-24"
+                initial={{ opacity: 0, y: 24 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true, margin: "-60px" }}
+                transition={{ duration: 0.5, ease }}
+              >
                 <div className="flex items-start gap-4 mb-4">
                   <div
                     className="p-3 rounded-xl"
@@ -358,7 +624,6 @@ export default function PrivacidadPage() {
                 <div
                   className="space-y-3 text-sm leading-[1.8]"
                   style={{
-                    fontFamily: "var(--font-dm-mono)",
                     fontWeight: 300,
                     color: "rgba(244,240,232,0.70)",
                   }}
@@ -366,828 +631,371 @@ export default function PrivacidadPage() {
                   <p>Los datos personales se utilizan para:</p>
                   <ul className="list-disc pl-6 space-y-2">
                     <li>Gestionar su cuenta y prestar el Servicio contratado</li>
-                    <li>
-                      Transmitir datos de leads en tiempo real al administrador del proyecto
-                      inmobiliario correspondiente y a sistemas CRM externos (GoHighLevel, HubSpot)
-                    </li>
-                    <li>
-                      Enviar notificaciones transaccionales (nuevos leads, cotizaciones, alertas
-                      de inventario, recordatorios de pago)
-                    </li>
-                    <li>
-                      Procesar pagos y emitir facturas (mediante procesadores de pago de terceros)
-                    </li>
-                    <li>
-                      Mejorar el Servicio mediante análisis de uso agregado, A/B testing, y
-                      detección de patrones de comportamiento
-                    </li>
-                    <li>
-                      Proveer soporte técnico y atención al cliente (mediante tickets, chat, email)
-                    </li>
-                    <li>
-                      Cumplir con obligaciones legales (retención de registros contables, fiscales,
-                      respuestas a autoridades)
-                    </li>
-                    <li>
-                      Detectar y prevenir fraude, abuso del Servicio, y accesos no autorizados
-                    </li>
-                    <li>
-                      Enviar comunicaciones de marketing sobre nuevas funcionalidades (puede
-                      darse de baja en cualquier momento)
-                    </li>
+                    <li>Transmitir datos de leads en tiempo real al administrador del proyecto inmobiliario correspondiente y a sistemas CRM externos (GoHighLevel, HubSpot)</li>
+                    <li>Enviar notificaciones transaccionales (nuevos leads, cotizaciones, alertas de inventario, recordatorios de pago)</li>
+                    <li>Procesar pagos y emitir facturas (mediante procesadores de pago de terceros)</li>
+                    <li>Mejorar el Servicio mediante análisis de uso agregado, A/B testing, y detección de patrones de comportamiento</li>
+                    <li>Proveer soporte técnico y atención al cliente (mediante tickets, chat, email)</li>
+                    <li>Cumplir con obligaciones legales (retención de registros contables, fiscales, respuestas a autoridades)</li>
+                    <li>Detectar y prevenir fraude, abuso del Servicio, y accesos no autorizados</li>
+                    <li>Enviar comunicaciones de marketing sobre nuevas funcionalidades (puede darse de baja en cualquier momento)</li>
                   </ul>
                 </div>
-              </section>
+              </motion.section>
 
               {/* 4. Base legal */}
-              <section id="base-legal" className="glass-card p-8 scroll-mt-24">
+              <motion.section
+                id="base-legal"
+                className="glass-card p-8 scroll-mt-24"
+                initial={{ opacity: 0, y: 24 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true, margin: "-60px" }}
+                transition={{ duration: 0.5, ease }}
+              >
                 <div className="flex items-start gap-4 mb-4">
-                  <div
-                    className="p-3 rounded-xl"
-                    style={{ backgroundColor: "rgba(184, 151, 58, 0.12)" }}
-                  >
+                  <div className="p-3 rounded-xl" style={{ backgroundColor: "rgba(184, 151, 58, 0.12)" }}>
                     <FileText className="w-6 h-6" style={{ color: "#b8973a" }} />
                   </div>
                   <div>
-                    <h2
-                      className="text-2xl mb-2"
-                      style={{
-                        fontFamily: "var(--font-cormorant)",
-                        fontWeight: 400,
-                        color: "rgba(244,240,232,0.92)",
-                      }}
-                    >
+                    <h2 className="text-2xl mb-2" style={{ fontFamily: "var(--font-cormorant)", fontWeight: 400, color: "rgba(244,240,232,0.92)" }}>
                       4. Base legal del tratamiento
                     </h2>
                   </div>
                 </div>
-                <div
-                  className="space-y-3 text-sm leading-[1.8]"
-                  style={{
-                    fontFamily: "var(--font-dm-mono)",
-                    fontWeight: 300,
-                    color: "rgba(244,240,232,0.70)",
-                  }}
-                >
+                <div className="space-y-3 text-sm leading-[1.8]" style={{ fontWeight: 300, color: "rgba(244,240,232,0.70)" }}>
                   <p>El tratamiento de datos se realiza con base en:</p>
                   <ul className="list-disc pl-6 space-y-2">
-                    <li>
-                      <strong style={{ color: "rgba(244,240,232,0.92)" }}>
-                        Ejecución del contrato:
-                      </strong>{" "}
-                      El procesamiento de sus datos es necesario para prestar el Servicio que ha
-                      contratado.
-                    </li>
-                    <li>
-                      <strong style={{ color: "rgba(244,240,232,0.92)" }}>
-                        Consentimiento informado:
-                      </strong>{" "}
-                      Al enviar formularios de contacto, agendar demos, o suscribirse a
-                      comunicaciones, usted otorga consentimiento expreso.
-                    </li>
-                    <li>
-                      <strong style={{ color: "rgba(244,240,232,0.92)" }}>
-                        Interés legítimo:
-                      </strong>{" "}
-                      Para análisis de uso agregado, mejora del Servicio, detección de fraude, y
-                      seguridad de la plataforma.
-                    </li>
-                    <li>
-                      <strong style={{ color: "rgba(244,240,232,0.92)" }}>
-                        Obligación legal:
-                      </strong>{" "}
-                      Cumplimiento de normativas fiscales, contables, y respuesta a solicitudes de
-                      autoridades competentes.
-                    </li>
+                    <li><strong style={{ color: "rgba(244,240,232,0.92)" }}>Ejecución del contrato:</strong> El procesamiento de sus datos es necesario para prestar el Servicio que ha contratado.</li>
+                    <li><strong style={{ color: "rgba(244,240,232,0.92)" }}>Consentimiento informado:</strong> Al enviar formularios de contacto, agendar demos, o suscribirse a comunicaciones, usted otorga consentimiento expreso.</li>
+                    <li><strong style={{ color: "rgba(244,240,232,0.92)" }}>Interés legítimo:</strong> Para análisis de uso agregado, mejora del Servicio, detección de fraude, y seguridad de la plataforma.</li>
+                    <li><strong style={{ color: "rgba(244,240,232,0.92)" }}>Obligación legal:</strong> Cumplimiento de normativas fiscales, contables, y respuesta a solicitudes de autoridades competentes.</li>
                   </ul>
                   <p className="pt-3">
-                    En cumplimiento de la{" "}
-                    <strong style={{ color: "rgba(244,240,232,0.92)" }}>
-                      Ley 1581 de 2012
-                    </strong>{" "}
-                    de Colombia y su decreto reglamentario 1377 de 2013 (Régimen General de
-                    Protección de Datos Personales).
+                    En cumplimiento de la <strong style={{ color: "rgba(244,240,232,0.92)" }}>Ley 1581 de 2012</strong> de Colombia y su decreto reglamentario 1377 de 2013 (Régimen General de Protección de Datos Personales).
                   </p>
                 </div>
-              </section>
+              </motion.section>
 
               {/* 5. Terceros */}
-              <section id="terceros" className="glass-card p-8 scroll-mt-24">
+              <motion.section
+                id="terceros"
+                className="glass-card p-8 scroll-mt-24"
+                initial={{ opacity: 0, y: 24 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true, margin: "-60px" }}
+                transition={{ duration: 0.5, ease }}
+              >
                 <div className="flex items-start gap-4 mb-4">
-                  <div
-                    className="p-3 rounded-xl"
-                    style={{ backgroundColor: "rgba(184, 151, 58, 0.12)" }}
-                  >
+                  <div className="p-3 rounded-xl" style={{ backgroundColor: "rgba(184, 151, 58, 0.12)" }}>
                     <Globe className="w-6 h-6" style={{ color: "#b8973a" }} />
                   </div>
                   <div>
-                    <h2
-                      className="text-2xl mb-2"
-                      style={{
-                        fontFamily: "var(--font-cormorant)",
-                        fontWeight: 400,
-                        color: "rgba(244,240,232,0.92)",
-                      }}
-                    >
+                    <h2 className="text-2xl mb-2" style={{ fontFamily: "var(--font-cormorant)", fontWeight: 400, color: "rgba(244,240,232,0.92)" }}>
                       5. Compartir datos con terceros
                     </h2>
                   </div>
                 </div>
-                <div
-                  className="space-y-4 text-sm leading-[1.8]"
-                  style={{
-                    fontFamily: "var(--font-dm-mono)",
-                    fontWeight: 300,
-                    color: "rgba(244,240,232,0.70)",
-                  }}
-                >
-                  <p>
-                    Los datos de leads se comparten con el administrador del proyecto inmobiliario
-                    donde el visitante envió el formulario. Esto es esencial para el
-                    funcionamiento del Servicio.
-                  </p>
-                  <p>
-                    Adicionalmente, utilizamos los siguientes proveedores de servicio (data
-                    processors):
-                  </p>
-
+                <div className="space-y-4 text-sm leading-[1.8]" style={{ fontWeight: 300, color: "rgba(244,240,232,0.70)" }}>
+                  <p>Los datos de leads se comparten con el administrador del proyecto inmobiliario donde el visitante envió el formulario. Esto es esencial para el funcionamiento del Servicio.</p>
+                  <p>Adicionalmente, utilizamos los siguientes proveedores de servicio (data processors):</p>
                   <div className="space-y-2 pl-4">
-                    <div>
-                      <strong style={{ color: "rgba(244,240,232,0.92)" }}>
-                        Supabase (EE.UU.)
-                      </strong>{" "}
-                      — Base de datos PostgreSQL, autenticación, almacenamiento de archivos. Datos
-                      encriptados en tránsito y en reposo.
-                    </div>
-                    <div>
-                      <strong style={{ color: "rgba(244,240,232,0.92)" }}>
-                        Vercel (EE.UU.)
-                      </strong>{" "}
-                      — Hosting de la aplicación web, CDN global para entrega rápida de contenido.
-                    </div>
-                    <div>
-                      <strong style={{ color: "rgba(244,240,232,0.92)" }}>
-                        Cloudflare R2 & Stream (global)
-                      </strong>{" "}
-                      — Almacenamiento de tours 360°, videos de alta resolución, y assets pesados.
-                    </div>
-                    <div>
-                      <strong style={{ color: "rgba(244,240,232,0.92)" }}>
-                        Resend (EE.UU.)
-                      </strong>{" "}
-                      — Envío de emails transaccionales (notificaciones de leads, recuperación de
-                      contraseña).
-                    </div>
-                    <div>
-                      <strong style={{ color: "rgba(244,240,232,0.92)" }}>
-                        Mapbox (EE.UU.)
-                      </strong>{" "}
-                      — Mapas satelitales interactivos (no se envían datos personales, solo
-                      coordenadas de proyectos).
-                    </div>
-                    <div>
-                      <strong style={{ color: "rgba(244,240,232,0.92)" }}>
-                        Sentry (EE.UU.)
-                      </strong>{" "}
-                      — Monitoreo de errores y performance. Datos anonimizados, sin PII.
-                    </div>
-                    <div>
-                      <strong style={{ color: "rgba(244,240,232,0.92)" }}>
-                        Meta Pixel (Facebook/Meta)
-                      </strong>{" "}
-                      — Tracking de conversiones y remarketing. Puede deshabilitarse bloqueando
-                      scripts de terceros.
-                    </div>
-                    <div>
-                      <strong style={{ color: "rgba(244,240,232,0.92)" }}>
-                        Google Tag Manager / Analytics
-                      </strong>{" "}
-                      — Análisis de tráfico web y comportamiento de usuarios. IP anonimizada.
-                    </div>
-                    <div>
-                      <strong style={{ color: "rgba(244,240,232,0.92)" }}>
-                        GoHighLevel (GHL)
-                      </strong>{" "}
-                      — Integración CRM opcional. Si el administrador del proyecto habilita la
-                      integración, los leads se envían a su cuenta GHL en tiempo real.
-                    </div>
-                    <div>
-                      <strong style={{ color: "rgba(244,240,232,0.92)" }}>Stripe</strong> —
-                      Procesamiento de pagos (datos de tarjeta no pasan por servidores de NODDO).
-                    </div>
+                    <div><strong style={{ color: "rgba(244,240,232,0.92)" }}>Supabase (EE.UU.)</strong> — Base de datos PostgreSQL, autenticación, almacenamiento de archivos. Datos encriptados en tránsito y en reposo.</div>
+                    <div><strong style={{ color: "rgba(244,240,232,0.92)" }}>Vercel (EE.UU.)</strong> — Hosting de la aplicación web, CDN global para entrega rápida de contenido.</div>
+                    <div><strong style={{ color: "rgba(244,240,232,0.92)" }}>Cloudflare R2 &amp; Stream (global)</strong> — Almacenamiento de tours 360°, videos de alta resolución, y assets pesados.</div>
+                    <div><strong style={{ color: "rgba(244,240,232,0.92)" }}>Resend (EE.UU.)</strong> — Envío de emails transaccionales (notificaciones de leads, recuperación de contraseña).</div>
+                    <div><strong style={{ color: "rgba(244,240,232,0.92)" }}>Mapbox (EE.UU.)</strong> — Mapas satelitales interactivos (no se envían datos personales, solo coordenadas de proyectos).</div>
+                    <div><strong style={{ color: "rgba(244,240,232,0.92)" }}>Sentry (EE.UU.)</strong> — Monitoreo de errores y performance. Datos anonimizados, sin PII.</div>
+                    <div><strong style={{ color: "rgba(244,240,232,0.92)" }}>Meta Pixel (Facebook/Meta)</strong> — Tracking de conversiones y remarketing. Puede deshabilitarse bloqueando scripts de terceros.</div>
+                    <div><strong style={{ color: "rgba(244,240,232,0.92)" }}>Google Tag Manager / Analytics</strong> — Análisis de tráfico web y comportamiento de usuarios. IP anonimizada.</div>
+                    <div><strong style={{ color: "rgba(244,240,232,0.92)" }}>GoHighLevel (GHL)</strong> — Integración CRM opcional. Si el administrador del proyecto habilita la integración, los leads se envían a su cuenta GHL en tiempo real.</div>
+                    <div><strong style={{ color: "rgba(244,240,232,0.92)" }}>Stripe</strong> — Procesamiento de pagos (datos de tarjeta no pasan por servidores de NODDO).</div>
                   </div>
-
                   <p className="pt-3">
-                    <strong style={{ color: "rgba(244,240,232,0.92)" }}>
-                      NO vendemos, alquilamos ni compartimos datos personales con fines
-                      publicitarios o de marketing de terceros.
-                    </strong>{" "}
-                    Todos los proveedores listados operan bajo acuerdos de procesamiento de datos
-                    (DPA) y cumplen con estándares internacionales de seguridad.
+                    <strong style={{ color: "rgba(244,240,232,0.92)" }}>NO vendemos, alquilamos ni compartimos datos personales con fines publicitarios o de marketing de terceros.</strong> Todos los proveedores listados operan bajo acuerdos de procesamiento de datos (DPA) y cumplen con estándares internacionales de seguridad.
                   </p>
                 </div>
-              </section>
+              </motion.section>
 
               {/* 6. Derechos */}
-              <section id="derechos" className="glass-card p-8 scroll-mt-24">
+              <motion.section
+                id="derechos"
+                className="glass-card p-8 scroll-mt-24"
+                initial={{ opacity: 0, y: 24 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true, margin: "-60px" }}
+                transition={{ duration: 0.5, ease }}
+              >
                 <div className="flex items-start gap-4 mb-4">
-                  <div
-                    className="p-3 rounded-xl"
-                    style={{ backgroundColor: "rgba(184, 151, 58, 0.12)" }}
-                  >
+                  <div className="p-3 rounded-xl" style={{ backgroundColor: "rgba(184, 151, 58, 0.12)" }}>
                     <UserCheck className="w-6 h-6" style={{ color: "#b8973a" }} />
                   </div>
                   <div>
-                    <h2
-                      className="text-2xl mb-2"
-                      style={{
-                        fontFamily: "var(--font-cormorant)",
-                        fontWeight: 400,
-                        color: "rgba(244,240,232,0.92)",
-                      }}
-                    >
+                    <h2 className="text-2xl mb-2" style={{ fontFamily: "var(--font-cormorant)", fontWeight: 400, color: "rgba(244,240,232,0.92)" }}>
                       6. Derechos del titular
                     </h2>
                   </div>
                 </div>
-                <div
-                  className="space-y-3 text-sm leading-[1.8]"
-                  style={{
-                    fontFamily: "var(--font-dm-mono)",
-                    fontWeight: 300,
-                    color: "rgba(244,240,232,0.70)",
-                  }}
-                >
+                <div className="space-y-3 text-sm leading-[1.8]" style={{ fontWeight: 300, color: "rgba(244,240,232,0.70)" }}>
                   <p>De acuerdo con la Ley 1581 de 2012, usted tiene derecho a:</p>
                   <ul className="list-disc pl-6 space-y-2">
-                    <li>
-                      <strong style={{ color: "rgba(244,240,232,0.92)" }}>
-                        Conocer, actualizar y rectificar
-                      </strong>{" "}
-                      sus datos personales. Puede hacerlo desde la configuración de su cuenta o
-                      escribiéndonos.
-                    </li>
-                    <li>
-                      <strong style={{ color: "rgba(244,240,232,0.92)" }}>
-                        Solicitar prueba de la autorización
-                      </strong>{" "}
-                      otorgada para el tratamiento de datos.
-                    </li>
-                    <li>
-                      <strong style={{ color: "rgba(244,240,232,0.92)" }}>
-                        Ser informado del uso
-                      </strong>{" "}
-                      dado a sus datos personales.
-                    </li>
-                    <li>
-                      <strong style={{ color: "rgba(244,240,232,0.92)" }}>
-                        Revocar la autorización y/o solicitar la supresión
-                      </strong>{" "}
-                      de sus datos (sujeto a obligaciones legales de retención).
-                    </li>
-                    <li>
-                      <strong style={{ color: "rgba(244,240,232,0.92)" }}>
-                        Acceder gratuitamente
-                      </strong>{" "}
-                      a los datos objeto de tratamiento.
-                    </li>
-                    <li>
-                      <strong style={{ color: "rgba(244,240,232,0.92)" }}>
-                        Presentar quejas
-                      </strong>{" "}
-                      ante la Superintendencia de Industria y Comercio (SIC) por infracciones a la
-                      ley.
-                    </li>
-                    <li>
-                      <strong style={{ color: "rgba(244,240,232,0.92)" }}>
-                        Portabilidad de datos
-                      </strong>{" "}
-                      — Puede solicitar una exportación completa de sus datos en formato JSON.
-                    </li>
+                    <li><strong style={{ color: "rgba(244,240,232,0.92)" }}>Conocer, actualizar y rectificar</strong> sus datos personales. Puede hacerlo desde la configuración de su cuenta o escribiéndonos.</li>
+                    <li><strong style={{ color: "rgba(244,240,232,0.92)" }}>Solicitar prueba de la autorización</strong> otorgada para el tratamiento de datos.</li>
+                    <li><strong style={{ color: "rgba(244,240,232,0.92)" }}>Ser informado del uso</strong> dado a sus datos personales.</li>
+                    <li><strong style={{ color: "rgba(244,240,232,0.92)" }}>Revocar la autorización y/o solicitar la supresión</strong> de sus datos (sujeto a obligaciones legales de retención).</li>
+                    <li><strong style={{ color: "rgba(244,240,232,0.92)" }}>Acceder gratuitamente</strong> a los datos objeto de tratamiento.</li>
+                    <li><strong style={{ color: "rgba(244,240,232,0.92)" }}>Presentar quejas</strong> ante la Superintendencia de Industria y Comercio (SIC) por infracciones a la ley.</li>
+                    <li><strong style={{ color: "rgba(244,240,232,0.92)" }}>Portabilidad de datos</strong> — Puede solicitar una exportación completa de sus datos en formato JSON.</li>
                   </ul>
                   <p className="pt-3">
                     Para ejercer estos derechos, escriba a{" "}
-                    <a
-                      href="mailto:hola@noddo.io"
-                      className="underline"
-                      style={{ color: "#b8973a" }}
-                    >
-                      hola@noddo.io
-                    </a>{" "}
-                    con el asunto &quot;Ejercicio de derechos ARCO&quot;. Responderemos en un plazo máximo
-                    de <strong style={{ color: "rgba(244,240,232,0.92)" }}>15 días hábiles</strong>.
+                    <a href="mailto:hola@noddo.io" className="underline" style={{ color: "#b8973a" }}>hola@noddo.io</a>{" "}
+                    con el asunto &quot;Ejercicio de derechos ARCO&quot;. Responderemos en un plazo máximo de <strong style={{ color: "rgba(244,240,232,0.92)" }}>15 días hábiles</strong>.
                   </p>
                 </div>
-              </section>
+              </motion.section>
 
               {/* 7. Seguridad */}
-              <section id="seguridad" className="glass-card p-8 scroll-mt-24">
+              <motion.section
+                id="seguridad"
+                className="glass-card p-8 scroll-mt-24"
+                initial={{ opacity: 0, y: 24 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true, margin: "-60px" }}
+                transition={{ duration: 0.5, ease }}
+              >
                 <div className="flex items-start gap-4 mb-4">
-                  <div
-                    className="p-3 rounded-xl"
-                    style={{ backgroundColor: "rgba(184, 151, 58, 0.12)" }}
-                  >
+                  <div className="p-3 rounded-xl" style={{ backgroundColor: "rgba(184, 151, 58, 0.12)" }}>
                     <Lock className="w-6 h-6" style={{ color: "#b8973a" }} />
                   </div>
                   <div>
-                    <h2
-                      className="text-2xl mb-2"
-                      style={{
-                        fontFamily: "var(--font-cormorant)",
-                        fontWeight: 400,
-                        color: "rgba(244,240,232,0.92)",
-                      }}
-                    >
+                    <h2 className="text-2xl mb-2" style={{ fontFamily: "var(--font-cormorant)", fontWeight: 400, color: "rgba(244,240,232,0.92)" }}>
                       7. Seguridad de los datos
                     </h2>
                   </div>
                 </div>
-                <div
-                  className="space-y-3 text-sm leading-[1.8]"
-                  style={{
-                    fontFamily: "var(--font-dm-mono)",
-                    fontWeight: 300,
-                    color: "rgba(244,240,232,0.70)",
-                  }}
-                >
-                  <p>
-                    Implementamos medidas técnicas y organizativas de nivel empresarial para
-                    proteger sus datos:
-                  </p>
+                <div className="space-y-3 text-sm leading-[1.8]" style={{ fontWeight: 300, color: "rgba(244,240,232,0.70)" }}>
+                  <p>Implementamos medidas técnicas y organizativas de nivel empresarial para proteger sus datos:</p>
                   <ul className="list-disc pl-6 space-y-2">
-                    <li>
-                      <strong style={{ color: "rgba(244,240,232,0.92)" }}>
-                        Encriptación en tránsito
-                      </strong>{" "}
-                      — Todas las comunicaciones usan HTTPS/TLS 1.3.
-                    </li>
-                    <li>
-                      <strong style={{ color: "rgba(244,240,232,0.92)" }}>
-                        Encriptación en reposo
-                      </strong>{" "}
-                      — Contraseñas con bcrypt, datos sensibles con AES-256.
-                    </li>
-                    <li>
-                      <strong style={{ color: "rgba(244,240,232,0.92)" }}>
-                        Row Level Security (RLS)
-                      </strong>{" "}
-                      — Control de acceso a nivel de fila en base de datos.
-                    </li>
-                    <li>
-                      <strong style={{ color: "rgba(244,240,232,0.92)" }}>
-                        Control de acceso basado en roles (RBAC)
-                      </strong>{" "}
-                      — Administradores, colaboradores y usuarios públicos con permisos separados.
-                    </li>
-                    <li>
-                      <strong style={{ color: "rgba(244,240,232,0.92)" }}>
-                        Auditoría y logging
-                      </strong>{" "}
-                      — Registro de accesos, cambios sensibles, y eventos de seguridad.
-                    </li>
-                    <li>
-                      <strong style={{ color: "rgba(244,240,232,0.92)" }}>
-                        Backups automáticos
-                      </strong>{" "}
-                      — Copias de seguridad diarias con retención de 30 días.
-                    </li>
-                    <li>
-                      <strong style={{ color: "rgba(244,240,232,0.92)" }}>
-                        Monitoreo 24/7
-                      </strong>{" "}
-                      — Detección de anomalías, intentos de acceso no autorizado, y ataques DDoS.
-                    </li>
-                    <li>
-                      <strong style={{ color: "rgba(244,240,232,0.92)" }}>
-                        Autenticación multifactor (MFA)
-                      </strong>{" "}
-                      — Disponible opcionalmente para administradores.
-                    </li>
+                    <li><strong style={{ color: "rgba(244,240,232,0.92)" }}>Encriptación en tránsito</strong> — Todas las comunicaciones usan HTTPS/TLS 1.3.</li>
+                    <li><strong style={{ color: "rgba(244,240,232,0.92)" }}>Encriptación en reposo</strong> — Contraseñas con bcrypt, datos sensibles con AES-256.</li>
+                    <li><strong style={{ color: "rgba(244,240,232,0.92)" }}>Row Level Security (RLS)</strong> — Control de acceso a nivel de fila en base de datos.</li>
+                    <li><strong style={{ color: "rgba(244,240,232,0.92)" }}>Control de acceso basado en roles (RBAC)</strong> — Administradores, colaboradores y usuarios públicos con permisos separados.</li>
+                    <li><strong style={{ color: "rgba(244,240,232,0.92)" }}>Auditoría y logging</strong> — Registro de accesos, cambios sensibles, y eventos de seguridad.</li>
+                    <li><strong style={{ color: "rgba(244,240,232,0.92)" }}>Backups automáticos</strong> — Copias de seguridad diarias con retención de 30 días.</li>
+                    <li><strong style={{ color: "rgba(244,240,232,0.92)" }}>Monitoreo 24/7</strong> — Detección de anomalías, intentos de acceso no autorizado, y ataques DDoS.</li>
+                    <li><strong style={{ color: "rgba(244,240,232,0.92)" }}>Autenticación multifactor (MFA)</strong> — Disponible opcionalmente para administradores.</li>
                   </ul>
-                  <p className="pt-3">
-                    A pesar de estas medidas, ningún sistema es 100% seguro. En caso de brecha de
-                    seguridad que afecte datos personales, notificaremos a los usuarios afectados
-                    dentro de 72 horas y a la SIC según lo establece la ley.
-                  </p>
+                  <p className="pt-3">A pesar de estas medidas, ningún sistema es 100% seguro. En caso de brecha de seguridad que afecte datos personales, notificaremos a los usuarios afectados dentro de 72 horas y a la SIC según lo establece la ley.</p>
                 </div>
-              </section>
+              </motion.section>
 
               {/* 8. Retención */}
-              <section id="retencion" className="glass-card p-8 scroll-mt-24">
+              <motion.section
+                id="retencion"
+                className="glass-card p-8 scroll-mt-24"
+                initial={{ opacity: 0, y: 24 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true, margin: "-60px" }}
+                transition={{ duration: 0.5, ease }}
+              >
                 <div className="flex items-start gap-4 mb-4">
-                  <div
-                    className="p-3 rounded-xl"
-                    style={{ backgroundColor: "rgba(184, 151, 58, 0.12)" }}
-                  >
+                  <div className="p-3 rounded-xl" style={{ backgroundColor: "rgba(184, 151, 58, 0.12)" }}>
                     <Database className="w-6 h-6" style={{ color: "#b8973a" }} />
                   </div>
                   <div>
-                    <h2
-                      className="text-2xl mb-2"
-                      style={{
-                        fontFamily: "var(--font-cormorant)",
-                        fontWeight: 400,
-                        color: "rgba(244,240,232,0.92)",
-                      }}
-                    >
+                    <h2 className="text-2xl mb-2" style={{ fontFamily: "var(--font-cormorant)", fontWeight: 400, color: "rgba(244,240,232,0.92)" }}>
                       8. Retención de datos
                     </h2>
                   </div>
                 </div>
-                <div
-                  className="space-y-3 text-sm leading-[1.8]"
-                  style={{
-                    fontFamily: "var(--font-dm-mono)",
-                    fontWeight: 300,
-                    color: "rgba(244,240,232,0.70)",
-                  }}
-                >
+                <div className="space-y-3 text-sm leading-[1.8]" style={{ fontWeight: 300, color: "rgba(244,240,232,0.70)" }}>
                   <p>Los períodos de retención varían según el tipo de dato:</p>
                   <ul className="list-disc pl-6 space-y-2">
-                    <li>
-                      <strong style={{ color: "rgba(244,240,232,0.92)" }}>
-                        Datos de cuenta:
-                      </strong>{" "}
-                      Se conservan mientras la suscripción esté activa y 30 días adicionales tras
-                      la cancelación (para permitir reactivación).
-                    </li>
-                    <li>
-                      <strong style={{ color: "rgba(244,240,232,0.92)" }}>Datos de leads:</strong>{" "}
-                      Se conservan mientras el proyecto esté activo. Tras desactivación del
-                      proyecto, se mantienen 90 días antes de eliminación permanente.
-                    </li>
-                    <li>
-                      <strong style={{ color: "rgba(244,240,232,0.92)" }}>
-                        Datos de facturación:
-                      </strong>{" "}
-                      Se conservan por 10 años en cumplimiento de obligaciones fiscales colombianas
-                      (Estatuto Tributario Art. 632).
-                    </li>
-                    <li>
-                      <strong style={{ color: "rgba(244,240,232,0.92)" }}>
-                        Datos de analytics:
-                      </strong>{" "}
-                      Se conservan de forma agregada y anonimizada indefinidamente para análisis
-                      estadístico.
-                    </li>
-                    <li>
-                      <strong style={{ color: "rgba(244,240,232,0.92)" }}>Logs de acceso:</strong>{" "}
-                      Se conservan por 6 meses para auditoría de seguridad.
-                    </li>
-                    <li>
-                      <strong style={{ color: "rgba(244,240,232,0.92)" }}>Backups:</strong>{" "}
-                      Los backups automáticos se conservan por 30 días, luego se eliminan
-                      permanentemente.
-                    </li>
+                    <li><strong style={{ color: "rgba(244,240,232,0.92)" }}>Datos de cuenta:</strong> Se conservan mientras la suscripción esté activa y 30 días adicionales tras la cancelación (para permitir reactivación).</li>
+                    <li><strong style={{ color: "rgba(244,240,232,0.92)" }}>Datos de leads:</strong> Se conservan mientras el proyecto esté activo. Tras desactivación del proyecto, se mantienen 90 días antes de eliminación permanente.</li>
+                    <li><strong style={{ color: "rgba(244,240,232,0.92)" }}>Datos de facturación:</strong> Se conservan por 10 años en cumplimiento de obligaciones fiscales colombianas (Estatuto Tributario Art. 632).</li>
+                    <li><strong style={{ color: "rgba(244,240,232,0.92)" }}>Datos de analytics:</strong> Se conservan de forma agregada y anonimizada indefinidamente para análisis estadístico.</li>
+                    <li><strong style={{ color: "rgba(244,240,232,0.92)" }}>Logs de acceso:</strong> Se conservan por 6 meses para auditoría de seguridad.</li>
+                    <li><strong style={{ color: "rgba(244,240,232,0.92)" }}>Backups:</strong> Los backups automáticos se conservan por 30 días, luego se eliminan permanentemente.</li>
                   </ul>
                 </div>
-              </section>
+              </motion.section>
 
               {/* 9. Cookies */}
-              <section id="cookies" className="glass-card p-8 scroll-mt-24">
+              <motion.section
+                id="cookies"
+                className="glass-card p-8 scroll-mt-24"
+                initial={{ opacity: 0, y: 24 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true, margin: "-60px" }}
+                transition={{ duration: 0.5, ease }}
+              >
                 <div className="flex items-start gap-4 mb-4">
-                  <div
-                    className="p-3 rounded-xl"
-                    style={{ backgroundColor: "rgba(184, 151, 58, 0.12)" }}
-                  >
+                  <div className="p-3 rounded-xl" style={{ backgroundColor: "rgba(184, 151, 58, 0.12)" }}>
                     <Eye className="w-6 h-6" style={{ color: "#b8973a" }} />
                   </div>
                   <div>
-                    <h2
-                      className="text-2xl mb-2"
-                      style={{
-                        fontFamily: "var(--font-cormorant)",
-                        fontWeight: 400,
-                        color: "rgba(244,240,232,0.92)",
-                      }}
-                    >
+                    <h2 className="text-2xl mb-2" style={{ fontFamily: "var(--font-cormorant)", fontWeight: 400, color: "rgba(244,240,232,0.92)" }}>
                       9. Cookies y tecnologías de tracking
                     </h2>
                   </div>
                 </div>
-                <div
-                  className="space-y-4 text-sm leading-[1.8]"
-                  style={{
-                    fontFamily: "var(--font-dm-mono)",
-                    fontWeight: 300,
-                    color: "rgba(244,240,232,0.70)",
-                  }}
-                >
+                <div className="space-y-4 text-sm leading-[1.8]" style={{ fontWeight: 300, color: "rgba(244,240,232,0.70)" }}>
                   <p>NODDO utiliza las siguientes cookies y tecnologías de tracking:</p>
-
                   <div className="space-y-3">
                     <div className="pl-4 border-l-2" style={{ borderColor: "#b8973a" }}>
-                      <h3
-                        className="font-medium mb-1"
-                        style={{ color: "rgba(244,240,232,0.92)" }}
-                      >
-                        Cookies esenciales (no se pueden desactivar)
-                      </h3>
-                      <p>
-                        Sesión de autenticación (Supabase), preferencias de usuario, protección
-                        CSRF. Estas cookies son necesarias para el funcionamiento del Servicio.
-                      </p>
+                      <h3 className="font-medium mb-1" style={{ color: "rgba(244,240,232,0.92)" }}>Cookies esenciales (no se pueden desactivar)</h3>
+                      <p>Sesión de autenticación (Supabase), preferencias de usuario, protección CSRF. Estas cookies son necesarias para el funcionamiento del Servicio.</p>
                     </div>
-
                     <div className="pl-4 border-l-2" style={{ borderColor: "#b8973a" }}>
-                      <h3
-                        className="font-medium mb-1"
-                        style={{ color: "rgba(244,240,232,0.92)" }}
-                      >
-                        Meta Pixel (Facebook)
-                      </h3>
-                      <p>
-                        Rastreo de conversiones, remarketing, y optimización de campañas
-                        publicitarias. Puede bloquearse mediante extensiones anti-tracking o
-                        configuración de privacidad del navegador.
-                      </p>
+                      <h3 className="font-medium mb-1" style={{ color: "rgba(244,240,232,0.92)" }}>Meta Pixel (Facebook)</h3>
+                      <p>Rastreo de conversiones, remarketing, y optimización de campañas publicitarias. Puede bloquearse mediante extensiones anti-tracking o configuración de privacidad del navegador.</p>
                     </div>
-
                     <div className="pl-4 border-l-2" style={{ borderColor: "#b8973a" }}>
-                      <h3
-                        className="font-medium mb-1"
-                        style={{ color: "rgba(244,240,232,0.92)" }}
-                      >
-                        Google Tag Manager / Google Analytics
-                      </h3>
-                      <p>
-                        Análisis de tráfico web, comportamiento de usuarios, embudo de conversión.
-                        Configurado con IP anonimizada. Puede bloquearse mediante{" "}
-                        <a
-                          href="https://tools.google.com/dlpage/gaoptout"
-                          className="underline"
-                          style={{ color: "#b8973a" }}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                        >
-                          Google Analytics Opt-out Browser Add-on
-                        </a>
-                        .
-                      </p>
+                      <h3 className="font-medium mb-1" style={{ color: "rgba(244,240,232,0.92)" }}>Google Tag Manager / Google Analytics</h3>
+                      <p>Análisis de tráfico web, comportamiento de usuarios, embudo de conversión. Configurado con IP anonimizada. Puede bloquearse mediante <a href="https://tools.google.com/dlpage/gaoptout" className="underline" style={{ color: "#b8973a" }} target="_blank" rel="noopener noreferrer">Google Analytics Opt-out Browser Add-on</a>.</p>
                     </div>
-
                     <div className="pl-4 border-l-2" style={{ borderColor: "#b8973a" }}>
-                      <h3
-                        className="font-medium mb-1"
-                        style={{ color: "rgba(244,240,232,0.92)" }}
-                      >
-                        Analytics propios (sin cookies)
-                      </h3>
-                      <p>
-                        Sistema de analytics server-side que no usa cookies de terceros. Rastrea
-                        pageviews, eventos, y conversiones de forma respetuosa con la privacidad.
-                      </p>
+                      <h3 className="font-medium mb-1" style={{ color: "rgba(244,240,232,0.92)" }}>Analytics propios (sin cookies)</h3>
+                      <p>Sistema de analytics server-side que no usa cookies de terceros. Rastrea pageviews, eventos, y conversiones de forma respetuosa con la privacidad.</p>
                     </div>
                   </div>
-
                   <p className="pt-3">
-                    <strong style={{ color: "rgba(244,240,232,0.92)" }}>
-                      NO utilizamos cookies de seguimiento publicitario invasivo.
-                    </strong>{" "}
-                    Puede controlar las cookies desde la configuración de su navegador. Bloquear
-                    cookies esenciales puede afectar la funcionalidad del Servicio.
+                    <strong style={{ color: "rgba(244,240,232,0.92)" }}>NO utilizamos cookies de seguimiento publicitario invasivo.</strong> Puede controlar las cookies desde la configuración de su navegador. Bloquear cookies esenciales puede afectar la funcionalidad del Servicio.
                   </p>
                 </div>
-              </section>
+              </motion.section>
 
               {/* 10. Internacional */}
-              <section id="internacional" className="glass-card p-8 scroll-mt-24">
+              <motion.section
+                id="internacional"
+                className="glass-card p-8 scroll-mt-24"
+                initial={{ opacity: 0, y: 24 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true, margin: "-60px" }}
+                transition={{ duration: 0.5, ease }}
+              >
                 <div className="flex items-start gap-4 mb-4">
-                  <div
-                    className="p-3 rounded-xl"
-                    style={{ backgroundColor: "rgba(184, 151, 58, 0.12)" }}
-                  >
+                  <div className="p-3 rounded-xl" style={{ backgroundColor: "rgba(184, 151, 58, 0.12)" }}>
                     <Globe className="w-6 h-6" style={{ color: "#b8973a" }} />
                   </div>
                   <div>
-                    <h2
-                      className="text-2xl mb-2"
-                      style={{
-                        fontFamily: "var(--font-cormorant)",
-                        fontWeight: 400,
-                        color: "rgba(244,240,232,0.92)",
-                      }}
-                    >
+                    <h2 className="text-2xl mb-2" style={{ fontFamily: "var(--font-cormorant)", fontWeight: 400, color: "rgba(244,240,232,0.92)" }}>
                       10. Transferencia internacional de datos
                     </h2>
                   </div>
                 </div>
-                <div
-                  className="space-y-3 text-sm leading-[1.8]"
-                  style={{
-                    fontFamily: "var(--font-dm-mono)",
-                    fontWeight: 300,
-                    color: "rgba(244,240,232,0.70)",
-                  }}
-                >
-                  <p>
-                    Sus datos pueden ser procesados en servidores ubicados fuera de Colombia,
-                    principalmente en Estados Unidos y Europa, a través de nuestros proveedores de
-                    infraestructura (Supabase, Vercel, Cloudflare).
-                  </p>
-                  <p>
-                    Estos proveedores cumplen con estándares de seguridad equivalentes o superiores
-                    a los exigidos por la legislación colombiana. Las transferencias se realizan
-                    bajo contratos de procesamiento de datos (DPA) que garantizan:
-                  </p>
+                <div className="space-y-3 text-sm leading-[1.8]" style={{ fontWeight: 300, color: "rgba(244,240,232,0.70)" }}>
+                  <p>Sus datos pueden ser procesados en servidores ubicados fuera de Colombia, principalmente en Estados Unidos y Europa, a través de nuestros proveedores de infraestructura (Supabase, Vercel, Cloudflare).</p>
+                  <p>Estos proveedores cumplen con estándares de seguridad equivalentes o superiores a los exigidos por la legislación colombiana. Las transferencias se realizan bajo contratos de procesamiento de datos (DPA) que garantizan:</p>
                   <ul className="list-disc pl-6 space-y-1">
                     <li>Tratamiento conforme a nuestras instrucciones</li>
                     <li>Medidas de seguridad técnicas y organizativas apropiadas</li>
                     <li>Confidencialidad de los datos</li>
                     <li>Eliminación o devolución de datos al finalizar el servicio</li>
-                    <li>
-                      Asistencia en caso de ejercicio de derechos por parte de los titulares
-                    </li>
+                    <li>Asistencia en caso de ejercicio de derechos por parte de los titulares</li>
                   </ul>
-                  <p className="pt-3">
-                    Al utilizar el Servicio, usted autoriza expresamente estas transferencias
-                    internacionales de datos.
-                  </p>
+                  <p className="pt-3">Al utilizar el Servicio, usted autoriza expresamente estas transferencias internacionales de datos.</p>
                 </div>
-              </section>
+              </motion.section>
 
               {/* 11. Menores */}
-              <section id="menores" className="glass-card p-8 scroll-mt-24">
+              <motion.section
+                id="menores"
+                className="glass-card p-8 scroll-mt-24"
+                initial={{ opacity: 0, y: 24 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true, margin: "-60px" }}
+                transition={{ duration: 0.5, ease }}
+              >
                 <div className="flex items-start gap-4 mb-4">
-                  <div
-                    className="p-3 rounded-xl"
-                    style={{ backgroundColor: "rgba(184, 151, 58, 0.12)" }}
-                  >
+                  <div className="p-3 rounded-xl" style={{ backgroundColor: "rgba(184, 151, 58, 0.12)" }}>
                     <Shield className="w-6 h-6" style={{ color: "#b8973a" }} />
                   </div>
                   <div>
-                    <h2
-                      className="text-2xl mb-2"
-                      style={{
-                        fontFamily: "var(--font-cormorant)",
-                        fontWeight: 400,
-                        color: "rgba(244,240,232,0.92)",
-                      }}
-                    >
+                    <h2 className="text-2xl mb-2" style={{ fontFamily: "var(--font-cormorant)", fontWeight: 400, color: "rgba(244,240,232,0.92)" }}>
                       11. Menores de edad
                     </h2>
                   </div>
                 </div>
-                <div
-                  className="space-y-3 text-sm leading-[1.8]"
-                  style={{
-                    fontFamily: "var(--font-dm-mono)",
-                    fontWeight: 300,
-                    color: "rgba(244,240,232,0.70)",
-                  }}
-                >
-                  <p>
-                    NODDO no está dirigido a menores de 18 años. No recopilamos intencionalmente
-                    datos de menores. Si detectamos que un menor de edad ha proporcionado datos
-                    personales sin autorización parental, eliminaremos esos datos de nuestros
-                    sistemas.
-                  </p>
-                  <p>
-                    Si usted es padre/madre/tutor y descubre que su hijo menor ha proporcionado
-                    datos a NODDO, contáctenos inmediatamente en{" "}
-                    <a
-                      href="mailto:hola@noddo.io"
-                      className="underline"
-                      style={{ color: "#b8973a" }}
-                    >
-                      hola@noddo.io
-                    </a>
-                    .
-                  </p>
+                <div className="space-y-3 text-sm leading-[1.8]" style={{ fontWeight: 300, color: "rgba(244,240,232,0.70)" }}>
+                  <p>NODDO no está dirigido a menores de 18 años. No recopilamos intencionalmente datos de menores. Si detectamos que un menor de edad ha proporcionado datos personales sin autorización parental, eliminaremos esos datos de nuestros sistemas.</p>
+                  <p>Si usted es padre/madre/tutor y descubre que su hijo menor ha proporcionado datos a NODDO, contáctenos inmediatamente en <a href="mailto:hola@noddo.io" className="underline" style={{ color: "#b8973a" }}>hola@noddo.io</a>.</p>
                 </div>
-              </section>
+              </motion.section>
 
               {/* 12. Modificaciones */}
-              <section id="modificaciones" className="glass-card p-8 scroll-mt-24">
+              <motion.section
+                id="modificaciones"
+                className="glass-card p-8 scroll-mt-24"
+                initial={{ opacity: 0, y: 24 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true, margin: "-60px" }}
+                transition={{ duration: 0.5, ease }}
+              >
                 <div className="flex items-start gap-4 mb-4">
-                  <div
-                    className="p-3 rounded-xl"
-                    style={{ backgroundColor: "rgba(184, 151, 58, 0.12)" }}
-                  >
+                  <div className="p-3 rounded-xl" style={{ backgroundColor: "rgba(184, 151, 58, 0.12)" }}>
                     <FileText className="w-6 h-6" style={{ color: "#b8973a" }} />
                   </div>
                   <div>
-                    <h2
-                      className="text-2xl mb-2"
-                      style={{
-                        fontFamily: "var(--font-cormorant)",
-                        fontWeight: 400,
-                        color: "rgba(244,240,232,0.92)",
-                      }}
-                    >
+                    <h2 className="text-2xl mb-2" style={{ fontFamily: "var(--font-cormorant)", fontWeight: 400, color: "rgba(244,240,232,0.92)" }}>
                       12. Modificaciones a esta política
                     </h2>
                   </div>
                 </div>
-                <div
-                  className="space-y-3 text-sm leading-[1.8]"
-                  style={{
-                    fontFamily: "var(--font-dm-mono)",
-                    fontWeight: 300,
-                    color: "rgba(244,240,232,0.70)",
-                  }}
-                >
-                  <p>
-                    Esta política puede ser actualizada periódicamente para reflejar cambios en
-                    nuestras prácticas de datos, nuevas funcionalidades, o requisitos legales.
-                  </p>
-                  <p>
-                    Publicaremos los cambios en esta página y actualizaremos la fecha de &quot;Última
-                    actualización&quot; al inicio del documento. Si los cambios son significativos
-                    (nuevos usos de datos, nuevos terceros), notificaremos por email con al menos
-                    30 días de anticipación.
-                  </p>
-                  <p>
-                    Le recomendamos revisar esta política periódicamente para mantenerse informado
-                    sobre cómo protegemos sus datos.
-                  </p>
+                <div className="space-y-3 text-sm leading-[1.8]" style={{ fontWeight: 300, color: "rgba(244,240,232,0.70)" }}>
+                  <p>Esta política puede ser actualizada periódicamente para reflejar cambios en nuestras prácticas de datos, nuevas funcionalidades, o requisitos legales.</p>
+                  <p>Publicaremos los cambios en esta página y actualizaremos la fecha de &quot;Última actualización&quot; al inicio del documento. Si los cambios son significativos (nuevos usos de datos, nuevos terceros), notificaremos por email con al menos 30 días de anticipación.</p>
+                  <p>Le recomendamos revisar esta política periódicamente para mantenerse informado sobre cómo protegemos sus datos.</p>
                 </div>
-              </section>
+              </motion.section>
 
               {/* 13. Contacto */}
-              <section id="contacto" className="glass-card p-8 scroll-mt-24">
+              <motion.section
+                id="contacto"
+                className="glass-card p-8 scroll-mt-24"
+                initial={{ opacity: 0, y: 24 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true, margin: "-60px" }}
+                transition={{ duration: 0.5, ease }}
+              >
                 <div className="flex items-start gap-4 mb-4">
-                  <div
-                    className="p-3 rounded-xl"
-                    style={{ backgroundColor: "rgba(184, 151, 58, 0.12)" }}
-                  >
+                  <div className="p-3 rounded-xl" style={{ backgroundColor: "rgba(184, 151, 58, 0.12)" }}>
                     <Mail className="w-6 h-6" style={{ color: "#b8973a" }} />
                   </div>
                   <div>
-                    <h2
-                      className="text-2xl mb-2"
-                      style={{
-                        fontFamily: "var(--font-cormorant)",
-                        fontWeight: 400,
-                        color: "rgba(244,240,232,0.92)",
-                      }}
-                    >
+                    <h2 className="text-2xl mb-2" style={{ fontFamily: "var(--font-cormorant)", fontWeight: 400, color: "rgba(244,240,232,0.92)" }}>
                       13. Contacto
                     </h2>
                   </div>
                 </div>
-                <div
-                  className="space-y-4 text-sm leading-[1.8]"
-                  style={{
-                    fontFamily: "var(--font-dm-mono)",
-                    fontWeight: 300,
-                    color: "rgba(244,240,232,0.70)",
-                  }}
-                >
-                  <p>
-                    Para cualquier consulta relacionada con esta política, el tratamiento de sus
-                    datos personales, o el ejercicio de sus derechos, contáctenos en:
-                  </p>
+                <div className="space-y-4 text-sm leading-[1.8]" style={{ fontWeight: 300, color: "rgba(244,240,232,0.70)" }}>
+                  <p>Para cualquier consulta relacionada con esta política, el tratamiento de sus datos personales, o el ejercicio de sus derechos, contáctenos en:</p>
                   <div className="pl-4 space-y-2">
-                    <div>
-                      <strong style={{ color: "rgba(244,240,232,0.92)" }}>Email:</strong>{" "}
-                      <a
-                        href="mailto:hola@noddo.io"
-                        className="underline"
-                        style={{ color: "#b8973a" }}
-                      >
-                        hola@noddo.io
-                      </a>
-                    </div>
-                    <div>
-                      <strong style={{ color: "rgba(244,240,232,0.92)" }}>
-                        Responsable de protección de datos:
-                      </strong>{" "}
-                      Antigravity SAS
-                    </div>
-                    <div>
-                      <strong style={{ color: "rgba(244,240,232,0.92)" }}>Ubicación:</strong>{" "}
-                      Medellín, Colombia
-                    </div>
-                    <div>
-                      <strong style={{ color: "rgba(244,240,232,0.92)" }}>Sitio web:</strong>{" "}
-                      <a
-                        href="https://noddo.io"
-                        className="underline"
-                        style={{ color: "#b8973a" }}
-                      >
-                        noddo.io
-                      </a>
-                    </div>
+                    <div><strong style={{ color: "rgba(244,240,232,0.92)" }}>Email:</strong> <a href="mailto:hola@noddo.io" className="underline" style={{ color: "#b8973a" }}>hola@noddo.io</a></div>
+                    <div><strong style={{ color: "rgba(244,240,232,0.92)" }}>Responsable de protección de datos:</strong> Antigravity SAS</div>
+                    <div><strong style={{ color: "rgba(244,240,232,0.92)" }}>Ubicación:</strong> Medellín, Colombia</div>
+                    <div><strong style={{ color: "rgba(244,240,232,0.92)" }}>Sitio web:</strong> <a href="https://noddo.io" className="underline" style={{ color: "#b8973a" }}>noddo.io</a></div>
                   </div>
-                  <p className="pt-3">
-                    Responderemos a su solicitud en un plazo máximo de{" "}
-                    <strong style={{ color: "rgba(244,240,232,0.92)" }}>15 días hábiles</strong> de
-                    acuerdo con la Ley 1581 de 2012.
-                  </p>
+                  <p className="pt-3">Responderemos a su solicitud en un plazo máximo de <strong style={{ color: "rgba(244,240,232,0.92)" }}>15 días hábiles</strong> de acuerdo con la Ley 1581 de 2012.</p>
                 </div>
-              </section>
+              </motion.section>
             </div>
           </main>
         </div>
 
         {/* Footer CTA */}
-        <div className="mt-16 text-center">
+        <motion.div
+          initial={{ opacity: 0, y: 24 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.6, ease }}
+          className="mt-16 text-center"
+        >
           <div className="glass-card p-8 max-w-2xl mx-auto">
             <p
               className="text-sm mb-4"
               style={{
-                fontFamily: "var(--font-dm-mono)",
                 fontWeight: 300,
                 color: "rgba(244,240,232,0.70)",
               }}
@@ -1196,19 +1004,13 @@ export default function PrivacidadPage() {
             </p>
             <a
               href="mailto:hola@noddo.io"
-              className="inline-flex items-center gap-2 px-6 py-3 rounded-xl text-sm font-medium transition-all duration-200"
-              style={{
-                fontFamily: "var(--font-syne)",
-                fontWeight: 700,
-                background: "linear-gradient(135deg, #b8973a 0%, #d4b05a 100%)",
-                color: "#0a0a0b",
-              }}
+              className="btn-mk-primary inline-flex items-center gap-2"
             >
               <Mail className="w-4 h-4" />
-              Contáctenos
+              CONTÁCTENOS
             </a>
           </div>
-        </div>
+        </motion.div>
       </div>
     </div>
   );

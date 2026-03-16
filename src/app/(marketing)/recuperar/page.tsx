@@ -98,7 +98,7 @@ export default function RecuperarPage() {
               colorDo="#b8973a"
             />
           </Link>
-          <p className="font-mono text-[var(--mk-text-tertiary)] text-xs mt-4 tracking-wide font-light">
+          <p className="text-[var(--mk-text-tertiary)] text-xs mt-4 tracking-wide font-light">
             Recupera el acceso a tu cuenta
           </p>
         </motion.div>
@@ -114,7 +114,7 @@ export default function RecuperarPage() {
             <h1 className="font-heading text-2xl font-light text-[var(--mk-text-primary)] mb-2 tracking-wide">
               Recuperar contrasena
             </h1>
-            <p className="font-mono text-xs text-[var(--mk-text-tertiary)] font-light mb-6 leading-relaxed">
+            <p className="text-xs text-[var(--mk-text-tertiary)] font-light mb-6 leading-relaxed">
               Ingresa tu email y te enviaremos un enlace para restablecer tu contrasena.
             </p>
 
@@ -136,10 +136,10 @@ export default function RecuperarPage() {
                     className="shrink-0 mt-0.5 text-emerald-400"
                   />
                   <div>
-                    <span className="text-emerald-300 font-mono text-xs font-light leading-relaxed block">
+                    <span className="text-emerald-300 text-xs font-light leading-relaxed block">
                       Email enviado correctamente
                     </span>
-                    <span className="text-emerald-300/60 font-mono text-[11px] font-light leading-relaxed block mt-1">
+                    <span className="text-emerald-300/60 text-[11px] font-light leading-relaxed block mt-1">
                       Revisa tu bandeja de entrada en <strong className="font-medium">{email}</strong> y haz clic en el enlace para restablecer tu contrasena.
                     </span>
                   </div>
@@ -171,7 +171,7 @@ export default function RecuperarPage() {
                       size={16}
                       className="shrink-0 mt-0.5 text-red-400"
                     />
-                    <span className="text-red-300 font-mono text-xs font-light leading-relaxed">
+                    <span className="text-red-300 text-xs font-light leading-relaxed">
                       {error}
                     </span>
                   </motion.div>
@@ -222,7 +222,7 @@ export default function RecuperarPage() {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.3 }}
-          className="text-center mt-8 text-xs font-mono font-light text-[var(--mk-text-tertiary)]"
+          className="text-center mt-8 text-xs font-light text-[var(--mk-text-tertiary)]"
         >
           <Link
             href="/login"
@@ -238,7 +238,7 @@ export default function RecuperarPage() {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.4 }}
-          className="text-center mt-4 text-[10px] font-mono font-light text-[var(--mk-text-muted)]"
+          className="text-center mt-4 text-[10px] font-light text-[var(--mk-text-muted)]"
         >
           Micrositios premium para inmobiliarias
         </motion.p>

@@ -33,11 +33,17 @@ import {
   Car,
   Archive,
   DollarSign,
+  Home,
+  MapPin,
+  Ruler,
+  LandPlot,
 } from "lucide-react";
 import { useToast } from "@/components/dashboard/Toast";
 import { useConfirm } from "@/components/dashboard/ConfirmModal";
 import { useTranslation } from "@/i18n";
-import type { Tipologia, TipologiaHotspot } from "@/types";
+import type { Tipologia, TipologiaHotspot, TipoTipologia, Currency } from "@/types";
+import { CurrencyInput } from "@/components/dashboard/CurrencyInput";
+import { deriveTipoTipologia, getInventoryColumns, getHybridInventoryColumns } from "@/lib/inventory-columns";
 import { AITextImprover } from "@/components/dashboard/AITextImprover";
 import { tipologiaSchema } from "@/lib/validation/schemas";
 import { InlineError } from "@/components/ui/ErrorBoundary";
@@ -49,6 +55,9 @@ interface TipoForm {
   nombre: string;
   descripcion: string;
   area_m2: string;
+  area_construida: string;
+  area_privada: string;
+  area_lote: string;
   habitaciones: string;
   banos: string;
   precio_desde: string;
@@ -61,12 +70,16 @@ interface TipoForm {
   hotspots: TipologiaHotspot[];
   ubicacion_plano_url: string;
   torre_ids: string[];
+  tipo_tipologia: TipoTipologia | "";
 }
 
 const emptyTipologia: TipoForm = {
   nombre: "",
   descripcion: "",
   area_m2: "",
+  area_construida: "",
+  area_privada: "",
+  area_lote: "",
   habitaciones: "",
   banos: "",
   precio_desde: "",
@@ -79,6 +92,7 @@ const emptyTipologia: TipoForm = {
   hotspots: [],
   ubicacion_plano_url: "",
   torre_ids: [],
+  tipo_tipologia: "",
 };
 
 function tipologiaToForm(t: Tipologia): TipoForm {
@@ -86,6 +100,9 @@ function tipologiaToForm(t: Tipologia): TipoForm {
     nombre: t.nombre,
     descripcion: t.descripcion || "",
     area_m2: t.area_m2 != null ? String(t.area_m2) : "",
+    area_construida: t.area_construida != null ? String(t.area_construida) : "",
+    area_privada: t.area_privada != null ? String(t.area_privada) : "",
+    area_lote: t.area_lote != null ? String(t.area_lote) : "",
     habitaciones: t.habitaciones != null ? String(t.habitaciones) : "",
     banos: t.banos != null ? String(t.banos) : "",
     precio_desde: t.precio_desde != null ? String(t.precio_desde) : "",
@@ -98,6 +115,7 @@ function tipologiaToForm(t: Tipologia): TipoForm {
     hotspots: t.hotspots || [],
     ubicacion_plano_url: t.ubicacion_plano_url || "",
     torre_ids: t.torre_ids || [],
+    tipo_tipologia: t.tipo_tipologia || "",
   };
 }
 
@@ -219,10 +237,22 @@ export default function TipologiasPage() {
     }).format(min);
   }, [selectedId, unidades]);
 
+  const isHibrido = project.tipo_proyecto === "hibrido";
+
+  const effectiveColumns = useMemo(() => {
+    if (isHibrido && form.tipo_tipologia) {
+      return getHybridInventoryColumns(form.tipo_tipologia as "apartamento" | "casa" | "lote", project.inventory_columns_by_type);
+    }
+    return getInventoryColumns(project.tipo_proyecto ?? "hibrido", project.inventory_columns);
+  }, [isHibrido, form.tipo_tipologia, project.tipo_proyecto, project.inventory_columns, project.inventory_columns_by_type]);
+
   const buildPayload = () => ({
     nombre: form.nombre,
     descripcion: form.descripcion || null,
     area_m2: parseOptionalNumber(form.area_m2),
+    area_construida: parseOptionalNumber(form.area_construida),
+    area_privada: parseOptionalNumber(form.area_privada),
+    area_lote: parseOptionalNumber(form.area_lote),
     habitaciones: parseOptionalNumber(form.habitaciones),
     banos: parseOptionalNumber(form.banos),
     precio_desde: parseOptionalNumber(form.precio_desde),
@@ -235,6 +265,9 @@ export default function TipologiasPage() {
     hotspots: form.hotspots,
     ubicacion_plano_url: form.ubicacion_plano_url || null,
     torre_ids: isMultiTorre ? form.torre_ids : [],
+    tipo_tipologia: isHibrido
+      ? (form.tipo_tipologia || null)
+      : deriveTipoTipologia(project.tipo_proyecto),
   });
 
   const handleSave = async () => {
@@ -337,6 +370,9 @@ export default function TipologiasPage() {
         nombre: `${tip.nombre} (copia)`,
         descripcion: tip.descripcion || null,
         area_m2: tip.area_m2,
+        area_construida: tip.area_construida,
+        area_privada: tip.area_privada,
+        area_lote: tip.area_lote,
         habitaciones: tip.habitaciones,
         banos: tip.banos,
         precio_desde: tip.precio_desde,
@@ -658,6 +694,40 @@ export default function TipologiasPage() {
                             className={inputClass}
                           />
                         </div>
+                        {isHibrido && (
+                          <div>
+                            <label className={labelClass}>{t("tipologias.tipoTipologia")}</label>
+                            <div className="grid grid-cols-3 gap-2 mt-1">
+                              {([
+                                { id: "apartamento" as const, icon: Building2, labelKey: "tipologias.tipoApartamento" },
+                                { id: "casa" as const, icon: Home, labelKey: "tipologias.tipoCasa" },
+                                { id: "lote" as const, icon: MapPin, labelKey: "tipologias.tipoLote" },
+                              ] as const).map((tipo) => {
+                                const isActive = form.tipo_tipologia === tipo.id;
+                                const Icon = tipo.icon;
+                                return (
+                                  <button
+                                    key={tipo.id}
+                                    type="button"
+                                    onClick={() => updateForm("tipo_tipologia", tipo.id)}
+                                    className={cn(
+                                      "flex items-center gap-2 px-3 py-2 rounded-lg border transition-all text-left text-xs",
+                                      isActive
+                                        ? "bg-[rgba(var(--site-primary-rgb),0.08)] border-[rgba(var(--site-primary-rgb),0.3)] text-white"
+                                        : "bg-[var(--surface-1)] border-[var(--border-subtle)] text-[var(--text-muted)] hover:border-[var(--border-default)]"
+                                    )}
+                                  >
+                                    <Icon size={14} className={isActive ? "text-[var(--site-primary)]" : ""} />
+                                    {t(tipo.labelKey)}
+                                  </button>
+                                );
+                              })}
+                            </div>
+                            <p className="text-[10px] text-[var(--text-muted)] mt-1.5">
+                              {t("tipologias.tipoTipologiaHint")}
+                            </p>
+                          </div>
+                        )}
                         {isMultiTorre && (
                           <div>
                             <label className={labelClass}>{torresLabel}</label>
@@ -742,39 +812,81 @@ export default function TipologiasPage() {
                             {t("tipologias.specsAreas")}
                           </p>
                           <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-                            <div className="flex items-center gap-3 p-3 bg-[var(--surface-1)] rounded-xl border border-[var(--border-subtle)] hover:border-[var(--border-default)] transition-all">
-                              <div className="w-9 h-9 rounded-lg bg-[var(--surface-2)] flex items-center justify-center shrink-0">
-                                <Maximize size={16} className="text-[var(--text-tertiary)]" />
+                            {effectiveColumns.area_m2 && (
+                              <div className="flex items-center gap-3 p-3 bg-[var(--surface-1)] rounded-xl border border-[var(--border-subtle)] hover:border-[var(--border-default)] transition-all">
+                                <div className="w-9 h-9 rounded-lg bg-[var(--surface-2)] flex items-center justify-center shrink-0">
+                                  <Maximize size={16} className="text-[var(--text-tertiary)]" />
+                                </div>
+                                <div className="flex-1 min-w-0">
+                                  <p className="font-ui text-[10px] text-[var(--text-muted)] uppercase tracking-wider font-bold mb-0.5">{t("tipologias.internalArea")}</p>
+                                  <input type="number" value={form.area_m2} onChange={(e) => updateForm("area_m2", e.target.value)} placeholder="0" className="w-full bg-transparent text-sm text-white placeholder:text-[var(--text-muted)] focus:outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none" />
+                                </div>
+                                {form.area_m2 && <span className="text-[11px] text-[var(--text-muted)] shrink-0">m²</span>}
                               </div>
-                              <div className="flex-1 min-w-0">
-                                <p className="font-ui text-[10px] text-[var(--text-muted)] uppercase tracking-wider font-bold mb-0.5">{t("tipologias.internalArea")}</p>
-                                <input type="number" value={form.area_m2} onChange={(e) => updateForm("area_m2", e.target.value)} placeholder="0" className="w-full bg-transparent text-sm text-white placeholder:text-[var(--text-muted)] focus:outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none" />
+                            )}
+                            {effectiveColumns.area_m2 && (
+                              <div className="flex items-center gap-3 p-3 bg-[var(--surface-1)] rounded-xl border border-[var(--border-subtle)] hover:border-[var(--border-default)] transition-all">
+                                <div className="w-9 h-9 rounded-lg bg-[var(--surface-2)] flex items-center justify-center shrink-0">
+                                  <Palmtree size={16} className="text-[var(--text-tertiary)]" />
+                                </div>
+                                <div className="flex-1 min-w-0">
+                                  <p className="font-ui text-[10px] text-[var(--text-muted)] uppercase tracking-wider font-bold mb-0.5">{t("tipologias.balconyArea")}</p>
+                                  <input type="number" value={form.area_balcon} onChange={(e) => updateForm("area_balcon", e.target.value)} placeholder="0" className="w-full bg-transparent text-sm text-white placeholder:text-[var(--text-muted)] focus:outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none" />
+                                </div>
+                                {form.area_balcon && <span className="text-[11px] text-[var(--text-muted)] shrink-0">m²</span>}
                               </div>
-                              {form.area_m2 && <span className="text-[11px] text-[var(--text-muted)] shrink-0">m²</span>}
-                            </div>
-                            <div className="flex items-center gap-3 p-3 bg-[var(--surface-1)] rounded-xl border border-[var(--border-subtle)] hover:border-[var(--border-default)] transition-all">
-                              <div className="w-9 h-9 rounded-lg bg-[var(--surface-2)] flex items-center justify-center shrink-0">
-                                <Palmtree size={16} className="text-[var(--text-tertiary)]" />
+                            )}
+                            {effectiveColumns.area_m2 && (
+                              <div className="flex items-center gap-3 p-3 bg-[var(--surface-1)] rounded-xl border border-[rgba(var(--site-primary-rgb),0.15)] transition-all">
+                                <div className="w-9 h-9 rounded-lg bg-[rgba(var(--site-primary-rgb),0.12)] flex items-center justify-center shrink-0">
+                                  <LayoutGrid size={16} className="text-[var(--site-primary)]" />
+                                </div>
+                                <div className="flex-1 min-w-0">
+                                  <p className="font-ui text-[10px] text-[var(--text-muted)] uppercase tracking-wider font-bold mb-0.5">{t("tipologias.totalArea")}</p>
+                                  <p className="text-sm font-medium text-[var(--site-primary)]">
+                                    {form.area_m2 || form.area_balcon
+                                      ? `${((parseFloat(form.area_m2) || 0) + (parseFloat(form.area_balcon) || 0)).toFixed(1)} m²`
+                                      : "—"}
+                                  </p>
+                                </div>
                               </div>
-                              <div className="flex-1 min-w-0">
-                                <p className="font-ui text-[10px] text-[var(--text-muted)] uppercase tracking-wider font-bold mb-0.5">{t("tipologias.balconyArea")}</p>
-                                <input type="number" value={form.area_balcon} onChange={(e) => updateForm("area_balcon", e.target.value)} placeholder="0" className="w-full bg-transparent text-sm text-white placeholder:text-[var(--text-muted)] focus:outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none" />
+                            )}
+                            {effectiveColumns.area_construida && (
+                              <div className="flex items-center gap-3 p-3 bg-[var(--surface-1)] rounded-xl border border-[var(--border-subtle)] hover:border-[var(--border-default)] transition-all">
+                                <div className="w-9 h-9 rounded-lg bg-[var(--surface-2)] flex items-center justify-center shrink-0">
+                                  <Ruler size={16} className="text-[var(--text-tertiary)]" />
+                                </div>
+                                <div className="flex-1 min-w-0">
+                                  <p className="font-ui text-[10px] text-[var(--text-muted)] uppercase tracking-wider font-bold mb-0.5">{t("inventario.columns.areaConstruida")}</p>
+                                  <input type="number" value={form.area_construida} onChange={(e) => updateForm("area_construida", e.target.value)} placeholder="0" className="w-full bg-transparent text-sm text-white placeholder:text-[var(--text-muted)] focus:outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none" />
+                                </div>
+                                {form.area_construida && <span className="text-[11px] text-[var(--text-muted)] shrink-0">m²</span>}
                               </div>
-                              {form.area_balcon && <span className="text-[11px] text-[var(--text-muted)] shrink-0">m²</span>}
-                            </div>
-                            <div className="flex items-center gap-3 p-3 bg-[var(--surface-1)] rounded-xl border border-[rgba(var(--site-primary-rgb),0.15)] transition-all">
-                              <div className="w-9 h-9 rounded-lg bg-[rgba(var(--site-primary-rgb),0.12)] flex items-center justify-center shrink-0">
-                                <LayoutGrid size={16} className="text-[var(--site-primary)]" />
+                            )}
+                            {effectiveColumns.area_privada && (
+                              <div className="flex items-center gap-3 p-3 bg-[var(--surface-1)] rounded-xl border border-[var(--border-subtle)] hover:border-[var(--border-default)] transition-all">
+                                <div className="w-9 h-9 rounded-lg bg-[var(--surface-2)] flex items-center justify-center shrink-0">
+                                  <Home size={16} className="text-[var(--text-tertiary)]" />
+                                </div>
+                                <div className="flex-1 min-w-0">
+                                  <p className="font-ui text-[10px] text-[var(--text-muted)] uppercase tracking-wider font-bold mb-0.5">{t("inventario.columns.areaPrivada")}</p>
+                                  <input type="number" value={form.area_privada} onChange={(e) => updateForm("area_privada", e.target.value)} placeholder="0" className="w-full bg-transparent text-sm text-white placeholder:text-[var(--text-muted)] focus:outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none" />
+                                </div>
+                                {form.area_privada && <span className="text-[11px] text-[var(--text-muted)] shrink-0">m²</span>}
                               </div>
-                              <div className="flex-1 min-w-0">
-                                <p className="font-ui text-[10px] text-[var(--text-muted)] uppercase tracking-wider font-bold mb-0.5">{t("tipologias.totalArea")}</p>
-                                <p className="text-sm font-medium text-[var(--site-primary)]">
-                                  {form.area_m2 || form.area_balcon
-                                    ? `${((parseFloat(form.area_m2) || 0) + (parseFloat(form.area_balcon) || 0)).toFixed(1)} m²`
-                                    : "—"}
-                                </p>
+                            )}
+                            {effectiveColumns.area_lote && (
+                              <div className="flex items-center gap-3 p-3 bg-[var(--surface-1)] rounded-xl border border-[var(--border-subtle)] hover:border-[var(--border-default)] transition-all">
+                                <div className="w-9 h-9 rounded-lg bg-[var(--surface-2)] flex items-center justify-center shrink-0">
+                                  <LandPlot size={16} className="text-[var(--text-tertiary)]" />
+                                </div>
+                                <div className="flex-1 min-w-0">
+                                  <p className="font-ui text-[10px] text-[var(--text-muted)] uppercase tracking-wider font-bold mb-0.5">{t("inventario.columns.areaLote")}</p>
+                                  <input type="number" value={form.area_lote} onChange={(e) => updateForm("area_lote", e.target.value)} placeholder="0" className="w-full bg-transparent text-sm text-white placeholder:text-[var(--text-muted)] focus:outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none" />
+                                </div>
+                                {form.area_lote && <span className="text-[11px] text-[var(--text-muted)] shrink-0">m²</span>}
                               </div>
-                            </div>
+                            )}
                           </div>
                         </div>
 
@@ -828,24 +940,44 @@ export default function TipologiasPage() {
                           <p className="font-ui text-[10px] text-[var(--text-muted)] uppercase tracking-wider mb-2 font-bold">
                             {t("tipologias.specsPricing")}
                           </p>
-                          <div className="max-w-xs">
-                            <div className="flex items-center gap-3 p-3 bg-[var(--surface-1)] rounded-xl border border-[rgba(var(--site-primary-rgb),0.15)] transition-all">
-                              <div className="w-9 h-9 rounded-lg bg-[rgba(var(--site-primary-rgb),0.12)] flex items-center justify-center shrink-0">
-                                <DollarSign size={16} className="text-[var(--site-primary)]" />
+                          {project?.precio_source === "tipologia" ? (
+                            <>
+                              <div className="max-w-xs">
+                                <label className={labelClass}>{t("tipologias.precioTipologia")}</label>
+                                <CurrencyInput
+                                  value={form.precio_desde ? Number(form.precio_desde) : ""}
+                                  onChange={(v) => updateForm("precio_desde", v != null ? String(v) : "")}
+                                  currency={(project?.moneda_base as Currency) || "COP"}
+                                  placeholder="350,000,000"
+                                  inputClassName={inputClass}
+                                />
                               </div>
-                              <div className="flex-1 min-w-0">
-                                <p className="font-ui text-[10px] text-[var(--text-muted)] uppercase tracking-wider font-bold mb-0.5">{t("tipologias.priceFromComputed")}</p>
-                                <p className="text-sm font-medium text-[var(--site-primary)]">
-                                  {computedPrecioDesde || "—"}
-                                </p>
+                              <p className="text-[10px] text-[var(--text-muted)] mt-2 leading-relaxed">
+                                {t("tipologias.precioTipologiaHint")}
+                              </p>
+                            </>
+                          ) : (
+                            <>
+                              <div className="max-w-xs">
+                                <div className="flex items-center gap-3 p-3 bg-[var(--surface-1)] rounded-xl border border-[rgba(var(--site-primary-rgb),0.15)] transition-all">
+                                  <div className="w-9 h-9 rounded-lg bg-[rgba(var(--site-primary-rgb),0.12)] flex items-center justify-center shrink-0">
+                                    <DollarSign size={16} className="text-[var(--site-primary)]" />
+                                  </div>
+                                  <div className="flex-1 min-w-0">
+                                    <p className="font-ui text-[10px] text-[var(--text-muted)] uppercase tracking-wider font-bold mb-0.5">{t("tipologias.priceFromComputed")}</p>
+                                    <p className="text-sm font-medium text-[var(--site-primary)]">
+                                      {computedPrecioDesde || "—"}
+                                    </p>
+                                  </div>
+                                </div>
                               </div>
-                            </div>
-                          </div>
-                          <p className="text-[10px] text-[var(--text-muted)] mt-2 leading-relaxed">
-                            {computedPrecioDesde
-                              ? t("tipologias.priceComputedHint")
-                              : t("tipologias.noUnitsHint")}
-                          </p>
+                              <p className="text-[10px] text-[var(--text-muted)] mt-2 leading-relaxed">
+                                {computedPrecioDesde
+                                  ? t("tipologias.priceComputedHint")
+                                  : t("tipologias.noUnitsHint")}
+                              </p>
+                            </>
+                          )}
                         </div>
                       </div>
                     )}

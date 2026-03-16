@@ -282,7 +282,6 @@ export default function CasosDeEstudioPage() {
             transition={{ duration: 0.7, delay: 0.2, ease }}
             className="text-lg max-w-3xl mx-auto leading-relaxed"
             style={{
-              fontFamily: "var(--font-dm-mono)",
               fontWeight: 300,
               color: "rgba(244,240,232,0.55)",
             }}
@@ -333,7 +332,6 @@ export default function CasosDeEstudioPage() {
                         <p
                           className="text-sm"
                           style={{
-                            fontFamily: "var(--font-dm-mono)",
                             fontWeight: 300,
                             color: "rgba(244,240,232,0.55)",
                           }}
@@ -412,7 +410,6 @@ export default function CasosDeEstudioPage() {
                   <p
                     className="text-sm leading-[1.8] mb-4"
                     style={{
-                      fontFamily: "var(--font-dm-mono)",
                       fontWeight: 300,
                       color: "rgba(244,240,232,0.70)",
                     }}
@@ -426,7 +423,6 @@ export default function CasosDeEstudioPage() {
                         key={metric}
                         className="flex items-center gap-2 text-xs"
                         style={{
-                          fontFamily: "var(--font-dm-mono)",
                           fontWeight: 300,
                           color: "rgba(244,240,232,0.55)",
                         }}
@@ -481,7 +477,6 @@ export default function CasosDeEstudioPage() {
                   <p
                     className="text-sm leading-[1.8] mb-4"
                     style={{
-                      fontFamily: "var(--font-dm-mono)",
                       fontWeight: 300,
                       color: "rgba(244,240,232,0.70)",
                     }}
@@ -504,7 +499,6 @@ export default function CasosDeEstudioPage() {
                         <span
                           className="text-xs leading-[1.7]"
                           style={{
-                            fontFamily: "var(--font-dm-mono)",
                             fontWeight: 300,
                             color: "rgba(244,240,232,0.55)",
                           }}
@@ -569,7 +563,6 @@ export default function CasosDeEstudioPage() {
                           <span
                             className="text-2xl"
                             style={{
-                              fontFamily: "var(--font-dm-mono)",
                               fontWeight: 400,
                               color: "rgba(244,240,232,0.92)",
                             }}
@@ -579,7 +572,6 @@ export default function CasosDeEstudioPage() {
                           <span
                             className="text-xs line-through"
                             style={{
-                              fontFamily: "var(--font-dm-mono)",
                               fontWeight: 300,
                               color: "rgba(244,240,232,0.35)",
                             }}
@@ -616,7 +608,6 @@ export default function CasosDeEstudioPage() {
                   <p
                     className="text-base leading-[1.9] italic mb-4 pl-8"
                     style={{
-                      fontFamily: "var(--font-dm-mono)",
                       fontWeight: 300,
                       color: "rgba(244,240,232,0.85)",
                     }}
@@ -648,7 +639,6 @@ export default function CasosDeEstudioPage() {
                       <p
                         className="text-xs"
                         style={{
-                          fontFamily: "var(--font-dm-mono)",
                           fontWeight: 300,
                           color: "rgba(244,240,232,0.55)",
                         }}
@@ -686,7 +676,6 @@ export default function CasosDeEstudioPage() {
             <p
               className="text-base mb-8 max-w-2xl mx-auto"
               style={{
-                fontFamily: "var(--font-dm-mono)",
                 fontWeight: 300,
                 color: "rgba(244,240,232,0.55)",
               }}

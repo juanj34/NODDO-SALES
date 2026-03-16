@@ -72,6 +72,27 @@ export const tipologiaSchema = z.object({
     .multipleOf(0.01, "El área puede tener máximo 2 decimales")
     .nullish(),
 
+  area_construida: z
+    .number()
+    .positive("El área debe ser positiva")
+    .max(100000, "El área parece demasiado grande")
+    .multipleOf(0.01, "El área puede tener máximo 2 decimales")
+    .nullish(),
+
+  area_privada: z
+    .number()
+    .positive("El área debe ser positiva")
+    .max(100000, "El área parece demasiado grande")
+    .multipleOf(0.01, "El área puede tener máximo 2 decimales")
+    .nullish(),
+
+  area_lote: z
+    .number()
+    .positive("El área debe ser positiva")
+    .max(100000, "El área parece demasiado grande")
+    .multipleOf(0.01, "El área puede tener máximo 2 decimales")
+    .nullish(),
+
   habitaciones: z
     .number()
     .int("Las habitaciones deben ser un número entero")
@@ -98,6 +119,8 @@ export const tipologiaSchema = z.object({
     .positive("El precio debe ser positivo")
     .max(999999999999, "El precio es demasiado alto")
     .nullish(),
+
+  tipo_tipologia: z.enum(["apartamento", "casa", "lote"]).nullish(),
 });
 
 // ═══════════════════════════════════════════════════════════
