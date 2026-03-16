@@ -136,7 +136,7 @@ export default function RecursosPage() {
   };
 
   const deleteRecursoAction = useAsyncAction(async (id: string) => {
-    if (!(await confirm({ title: t("recursos.deleteTitle") || "Eliminar recurso", message: t("recursos.deleteConfirm") }))) return;
+    if (!(await confirm({ title: t("recursos.deleteTitle"), message: t("recursos.deleteConfirm") }))) return;
     try {
       const res = await fetch(`/api/recursos/${id}`, { method: "DELETE" });
       if (!res.ok) toast.error("Error al eliminar recurso");

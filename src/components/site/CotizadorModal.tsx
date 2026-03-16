@@ -14,11 +14,15 @@ import {
   ShieldCheck,
   Mail,
   FileDown,
+  Home,
+  ChevronRight,
 } from "lucide-react";
 import { CloseButton } from "@/components/ui/CloseButton";
 import { cn } from "@/lib/utils";
-import type { Unidad, Tipologia, CotizadorConfig } from "@/types";
+import { getInventoryColumns } from "@/lib/inventory-columns";
+import type { Unidad, Tipologia, CotizadorConfig, InventoryColumnConfig } from "@/types";
 import { useTranslation, getEstadoConfig } from "@/i18n";
+import { useSiteProject } from "@/hooks/useSiteProject";
 import { trackEvent } from "@/lib/tracking";
 import { NodDoDropdown } from "@/components/ui/NodDoDropdown";
 import { TrustBadges, trustBadgePresets } from "@/components/site/TrustBadges";
@@ -86,6 +90,10 @@ interface CotizadorModalProps {
   proyectoId: string;
   cotizadorConfig?: CotizadorConfig | null;
   cotizadorEnabled?: boolean;
+  /** Available tipologías for multi-tipo lots (tipologia_mode === 'multiple') */
+  availableTipologias?: Tipologia[];
+  /** Project type — used for lotes pricing logic */
+  tipoProyecto?: string;
 }
 
 function formatPrecio(precio: number, locale: string): string {
@@ -112,12 +120,14 @@ function UnitSummary({
   locale,
   tCommon,
   tSite,
+  columns,
 }: {
   unidad: Unidad;
   tipologia: Tipologia | undefined;
   locale: string;
   tCommon: (key: string) => string;
   tSite: (key: string) => string;
+  columns: InventoryColumnConfig;
 }) {
   const estadoConfigMap = useMemo(() => getEstadoConfig(tCommon), [tCommon]);
   const estado = estadoConfigMap[unidad.estado];
@@ -144,31 +154,37 @@ function UnitSummary({
       </div>
 
       <div className="flex flex-wrap gap-x-4 gap-y-1.5 text-xs text-[var(--text-secondary)]">
-        {unidad.area_m2 && (
+        {columns.area_m2 && unidad.area_m2 && (
           <span className="flex items-center gap-1">
             <Maximize size={12} className="text-[var(--text-tertiary)]" />
             {unidad.area_m2} m²
           </span>
         )}
-        {unidad.habitaciones !== null && (
+        {columns.habitaciones && unidad.habitaciones !== null && (
           <span className="flex items-center gap-1">
             <BedDouble size={12} className="text-[var(--text-tertiary)]" />
             {unidad.habitaciones} {tSite("cotizador.hab")}
           </span>
         )}
-        {unidad.banos !== null && (
+        {columns.banos && unidad.banos !== null && (
           <span className="flex items-center gap-1">
             <Bath size={12} className="text-[var(--text-tertiary)]" />
             {unidad.banos} {tSite("cotizador.banos")}
           </span>
         )}
-        {unidad.piso && (
+        {columns.lote && unidad.lote && (
+          <span className="flex items-center gap-1">
+            <Home size={12} className="text-[var(--text-tertiary)]" />
+            {unidad.lote}
+          </span>
+        )}
+        {columns.piso && unidad.piso && !unidad.lote && (
           <span className="flex items-center gap-1">
             <MapPin size={12} className="text-[var(--text-tertiary)]" />
             {tSite("cotizador.floor")} {unidad.piso}
           </span>
         )}
-        {unidad.vista && (
+        {columns.vista && unidad.vista && (
           <span className="flex items-center gap-1">
             <Eye size={12} className="text-[var(--text-tertiary)]" />
             {unidad.vista}
@@ -176,7 +192,7 @@ function UnitSummary({
         )}
       </div>
 
-      {unidad.precio && (
+      {columns.precio && unidad.precio && (
         <p className="mt-3 text-lg font-semibold text-[var(--site-primary)]">
           {formatPrecio(unidad.precio, locale)}
         </p>
@@ -353,19 +369,65 @@ export function CotizadorModal({
   proyectoId,
   cotizadorConfig,
   cotizadorEnabled,
+  availableTipologias,
+  tipoProyecto,
 }: CotizadorModalProps) {
   const { t: tCommon, locale } = useTranslation("common");
   const { t: tSite } = useTranslation("site");
+  const proyecto = useSiteProject();
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [pdfUrl, setPdfUrl] = useState<string | null>(null);
 
-  const useCotizador = cotizadorEnabled && cotizadorConfig && unidad.precio;
+  // Multi-tipología: user must pick a tipología before proceeding
+  const needsTipologiaSelection = !tipologia && Array.isArray(availableTipologias) && availableTipologias.length > 0;
+  const [selectedTipo, setSelectedTipo] = useState<Tipologia | null>(null);
+  const activeTipologia = tipologia ?? selectedTipo ?? undefined;
+
+  const isLotes = tipoProyecto === "lotes";
+
+  const columns = useMemo(
+    () => getInventoryColumns(
+      (proyecto.tipo_proyecto ?? "hibrido") as "apartamentos" | "casas" | "lotes" | "hibrido",
+      proyecto.inventory_columns
+    ),
+    [proyecto.tipo_proyecto, proyecto.inventory_columns]
+  );
+
+  // Build a virtual unidad with tipología specs when one is selected
+  const activeUnidad = useMemo(() => {
+    if (!activeTipologia) return unidad;
+    // Override unidad specs with tipología specs when no confirmed tipología
+    if (!tipologia && selectedTipo) {
+      // For lotes: sum terrain + construction prices when both exist
+      let precio: number | null;
+      if (isLotes && unidad.precio && selectedTipo.precio_desde) {
+        precio = unidad.precio + selectedTipo.precio_desde;
+      } else {
+        precio = selectedTipo.precio_desde ?? unidad.precio;
+      }
+      return {
+        ...unidad,
+        area_m2: selectedTipo.area_m2 ?? unidad.area_m2,
+        precio,
+        habitaciones: selectedTipo.habitaciones ?? unidad.habitaciones,
+        banos: selectedTipo.banos ?? unidad.banos,
+      };
+    }
+    return unidad;
+  }, [unidad, tipologia, selectedTipo, activeTipologia, isLotes]);
+
+  // For lotes: track breakdown prices for the cotizador display
+  const terrenoPrice = (isLotes && !tipologia && selectedTipo && unidad.precio && selectedTipo.precio_desde) ? unidad.precio : undefined;
+  const construccionPrice = (isLotes && !tipologia && selectedTipo && unidad.precio && selectedTipo.precio_desde) ? selectedTipo.precio_desde : undefined;
+
+  const useCotizador = cotizadorEnabled && cotizadorConfig && activeUnidad.precio;
 
   const handleClose = useCallback(() => {
     onClose();
     setTimeout(() => {
       setIsSubmitted(false);
       setPdfUrl(null);
+      setSelectedTipo(null);
     }, 300);
   }, [onClose]);
 
@@ -455,6 +517,62 @@ export function CotizadorModal({
                   {tCommon("buttons.close")}
                 </button>
               </motion.div>
+            ) : needsTipologiaSelection && !selectedTipo ? (
+              /* ── Tipología Selection Step (multi-tipo lots) ── */
+              <div className="p-6 sm:p-8">
+                <h2 className="text-lg font-semibold text-white mb-1">
+                  {locale === "es" ? "Seleccionar tipología" : "Select typology"}
+                </h2>
+                <p className="text-xs text-[var(--text-tertiary)] mb-5">
+                  {locale === "es"
+                    ? `El lote ${unidad.identificador} tiene ${availableTipologias!.length} tipologías disponibles`
+                    : `Lot ${unidad.identificador} has ${availableTipologias!.length} available typologies`
+                  }
+                </p>
+
+                <div className="space-y-3">
+                  {availableTipologias!.map((tipo) => (
+                    <motion.button
+                      key={tipo.id}
+                      type="button"
+                      onClick={() => setSelectedTipo(tipo)}
+                      whileHover={{ scale: 1.01 }}
+                      whileTap={{ scale: 0.99 }}
+                      className="w-full text-left bg-white/5 hover:bg-white/8 border border-white/8 hover:border-[rgba(var(--site-primary-rgb),0.3)] rounded-2xl p-4 transition-colors cursor-pointer"
+                    >
+                      <div className="flex items-center justify-between mb-2">
+                        <h3 className="text-sm font-semibold text-white">{tipo.nombre}</h3>
+                        <ChevronRight size={16} className="text-[var(--text-muted)]" />
+                      </div>
+                      <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-[var(--text-secondary)]">
+                        {columns.area_m2 && tipo.area_m2 && (
+                          <span className="flex items-center gap-1">
+                            <Maximize size={11} className="text-[var(--text-tertiary)]" />
+                            {tipo.area_m2} m²
+                          </span>
+                        )}
+                        {columns.habitaciones && tipo.habitaciones !== null && tipo.habitaciones !== undefined && (
+                          <span className="flex items-center gap-1">
+                            <BedDouble size={11} className="text-[var(--text-tertiary)]" />
+                            {tipo.habitaciones} {locale === "es" ? "hab" : "beds"}
+                          </span>
+                        )}
+                        {columns.banos && tipo.banos !== null && tipo.banos !== undefined && (
+                          <span className="flex items-center gap-1">
+                            <Bath size={11} className="text-[var(--text-tertiary)]" />
+                            {tipo.banos} {locale === "es" ? "baños" : "baths"}
+                          </span>
+                        )}
+                      </div>
+                      {columns.precio && tipo.precio_desde && (
+                        <p className="mt-2 text-sm font-semibold text-[var(--site-primary)]">
+                          {formatPrecio(tipo.precio_desde, locale)}
+                        </p>
+                      )}
+                    </motion.button>
+                  ))}
+                </div>
+              </div>
             ) : (
               /* ── Form State ── */
               <div className="p-6 sm:p-8">
@@ -469,25 +587,42 @@ export function CotizadorModal({
                   }
                 </p>
 
+                {/* Back to tipología selection for multi-tipo */}
+                {needsTipologiaSelection && selectedTipo && (
+                  <button
+                    type="button"
+                    onClick={() => setSelectedTipo(null)}
+                    className="flex items-center gap-1.5 text-xs text-[var(--text-secondary)] hover:text-white mb-3 transition-colors cursor-pointer"
+                  >
+                    <ChevronRight size={12} className="rotate-180" />
+                    {locale === "es" ? "Cambiar tipología" : "Change typology"}
+                  </button>
+                )}
+
                 {/* Unit Summary */}
                 <UnitSummary
-                  unidad={unidad}
-                  tipologia={tipologia}
+                  unidad={activeUnidad}
+                  tipologia={activeTipologia}
                   locale={locale}
                   tCommon={tCommon}
                   tSite={tSite}
+                  columns={columns}
                 />
 
                 {/* Flow: either enhanced cotizador or legacy lead capture */}
                 {useCotizador ? (
                   <CotizadorFlow
-                    unidad={unidad}
-                    tipologia={tipologia}
+                    unidad={activeUnidad}
+                    tipologia={activeTipologia}
                     proyectoId={proyectoId}
                     config={cotizadorConfig!}
                     locale={locale}
                     tCommon={tCommon}
                     tSite={tSite}
+                    columns={columns}
+                    selectedTipologiaId={selectedTipo?.id}
+                    terrenoPrice={terrenoPrice}
+                    construccionPrice={construccionPrice}
                     onSuccess={(url) => {
                       setPdfUrl(url);
                       setIsSubmitted(true);
@@ -495,8 +630,8 @@ export function CotizadorModal({
                   />
                 ) : (
                   <LeadCaptureFlow
-                    unidad={unidad}
-                    tipologia={tipologia}
+                    unidad={activeUnidad}
+                    tipologia={activeTipologia}
                     proyectoId={proyectoId}
                     locale={locale}
                     tCommon={tCommon}

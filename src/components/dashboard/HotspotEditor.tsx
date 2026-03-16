@@ -3,12 +3,111 @@
 import Image from "next/image";
 import { useState, useRef } from "react";
 import type { TipologiaHotspot } from "@/types";
+import { resolveHotspotImages, syncRenderUrl } from "@/lib/hotspot-utils";
 import { FileUploader } from "./FileUploader";
 import { useHotspotCanvas } from "@/hooks/useHotspotCanvas";
 import { inputClass, labelClass, btnPrimary, btnSecondary, btnDanger } from "./editor-styles";
-import { Plus, X, Trash2, Check, MousePointerClick } from "lucide-react";
+import { Plus, X, Trash2, Check, MousePointerClick, ChevronUp, ChevronDown, Images } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useTranslation } from "@/i18n";
+
+/* ── Multi-image list (reusable within this file) ── */
+function ImageListPanel({
+  images,
+  onChange,
+  uploadFolder,
+  uploadLabel,
+}: {
+  images: string[];
+  onChange: (images: string[]) => void;
+  uploadFolder: string;
+  uploadLabel: string;
+}) {
+  const { t } = useTranslation("editor");
+  const moveUp = (i: number) => {
+    if (i === 0) return;
+    const next = [...images];
+    [next[i - 1], next[i]] = [next[i], next[i - 1]];
+    onChange(next);
+  };
+  const moveDown = (i: number) => {
+    if (i === images.length - 1) return;
+    const next = [...images];
+    [next[i], next[i + 1]] = [next[i + 1], next[i]];
+    onChange(next);
+  };
+  const remove = (i: number) => {
+    onChange(images.filter((_, idx) => idx !== i));
+  };
+  const append = (url: string) => {
+    onChange([...images, url]);
+  };
+
+  return (
+    <div>
+      <label className={labelClass}>
+        <span className="flex items-center gap-1.5">
+          <Images size={11} />
+          {t("hotspotEditor.images")} ({images.length})
+        </span>
+      </label>
+
+      {images.length > 0 && (
+        <div className="space-y-1.5 mb-2">
+          {images.map((url, i) => (
+            <div
+              key={`${url}-${i}`}
+              className="flex items-center gap-2 p-1.5 rounded-lg bg-[var(--surface-3)] border border-[var(--border-subtle)]"
+            >
+              <div className="relative w-10 h-8 rounded overflow-hidden bg-[var(--surface-2)] shrink-0">
+                <Image src={url} alt={`Render ${i + 1}`} fill className="object-cover" />
+              </div>
+              <span className="text-[10px] text-[var(--text-tertiary)] min-w-[16px] text-center shrink-0">
+                {i + 1}
+              </span>
+              <div className="flex-1" />
+              <button
+                type="button"
+                onClick={() => moveUp(i)}
+                disabled={i === 0}
+                className="p-0.5 rounded text-[var(--text-muted)] hover:text-[var(--text-secondary)] disabled:opacity-20 transition-colors"
+                title={t("hotspotEditor.moveUp")}
+              >
+                <ChevronUp size={12} />
+              </button>
+              <button
+                type="button"
+                onClick={() => moveDown(i)}
+                disabled={i === images.length - 1}
+                className="p-0.5 rounded text-[var(--text-muted)] hover:text-[var(--text-secondary)] disabled:opacity-20 transition-colors"
+                title={t("hotspotEditor.moveDown")}
+              >
+                <ChevronDown size={12} />
+              </button>
+              <button
+                type="button"
+                onClick={() => remove(i)}
+                className="p-0.5 rounded text-[var(--text-muted)] hover:text-red-400 transition-colors"
+                title={t("hotspotEditor.removeImage")}
+              >
+                <X size={12} />
+              </button>
+            </div>
+          ))}
+        </div>
+      )}
+
+      <FileUploader
+        currentUrl={null}
+        onUpload={append}
+        folder={uploadFolder}
+        label={uploadLabel}
+      />
+    </div>
+  );
+}
+
+/* ── Main HotspotEditor ── */
 
 interface HotspotEditorProps {
   imageUrl: string;
@@ -33,7 +132,7 @@ export function HotspotEditor({
     y: number;
   } | null>(null);
   const [newLabel, setNewLabel] = useState("");
-  const [newRenderUrl, setNewRenderUrl] = useState("");
+  const [newRenders, setNewRenders] = useState<string[]>([]);
   const [, setTick] = useState(0);
 
   // Use shared hotspot canvas hook for image bounds & coordinate conversion
@@ -49,7 +148,7 @@ export function HotspotEditor({
     const { x, y } = toPercent(e.clientX, e.clientY);
     setNewHotspot({ x, y });
     setNewLabel("");
-    setNewRenderUrl("");
+    setNewRenders([]);
   };
 
   const addHotspot = () => {
@@ -62,12 +161,13 @@ export function HotspotEditor({
         label: newLabel,
         x: newHotspot.x,
         y: newHotspot.y,
-        render_url: newRenderUrl,
+        render_url: syncRenderUrl(newRenders),
+        renders: newRenders,
       },
     ]);
     setNewHotspot(null);
     setNewLabel("");
-    setNewRenderUrl("");
+    setNewRenders([]);
   };
 
   const removeHotspot = (id: string) => {
@@ -107,6 +207,17 @@ export function HotspotEditor({
 
   const editingHotspot = editingId ? hotspots.find((h) => h.id === editingId) : null;
 
+  // Resolve images for the editing hotspot (backward compat)
+  const editingImages = editingHotspot ? resolveHotspotImages(editingHotspot) : [];
+
+  const handleEditImagesChange = (images: string[]) => {
+    if (!editingHotspot) return;
+    updateHotspot(editingHotspot.id, {
+      renders: images,
+      render_url: syncRenderUrl(images),
+    });
+  };
+
   return (
     <div className="flex gap-4 h-full">
       {/* ═══ LEFT: Image with hotspot dots ═══ */}
@@ -139,6 +250,7 @@ export function HotspotEditor({
           {hotspots.map((hs, i) => {
             const px = toPx(hs.x, hs.y);
             if (!px) return null;
+            const imgCount = resolveHotspotImages(hs).length;
             return (
               <div
                 key={hs.id}
@@ -164,8 +276,11 @@ export function HotspotEditor({
                     {i + 1}
                   </span>
                 </div>
-                <div className="absolute top-full mt-1 left-1/2 -translate-x-1/2 whitespace-nowrap px-1.5 py-0.5 bg-black/80 rounded text-[9px] text-white pointer-events-none">
+                <div className="absolute top-full mt-1 left-1/2 -translate-x-1/2 whitespace-nowrap px-1.5 py-0.5 bg-black/80 rounded text-[9px] text-white pointer-events-none flex items-center gap-1">
                   {hs.label}
+                  {imgCount > 1 && (
+                    <span className="opacity-60">({imgCount})</span>
+                  )}
                 </div>
               </div>
             );
@@ -229,15 +344,12 @@ export function HotspotEditor({
                     autoFocus
                   />
                 </div>
-                <div>
-                  <label className={labelClass}>{t("hotspotEditor.associatedRender")}</label>
-                  <FileUploader
-                    currentUrl={newRenderUrl || null}
-                    onUpload={(url) => setNewRenderUrl(url)}
-                    folder={uploadFolder}
-                    label={t("hotspotEditor.uploadRender")}
-                  />
-                </div>
+                <ImageListPanel
+                  images={newRenders}
+                  onChange={setNewRenders}
+                  uploadFolder={uploadFolder}
+                  uploadLabel={t("hotspotEditor.addImage")}
+                />
               </div>
 
               <div className="px-4 py-3 border-t border-[var(--border-subtle)] flex gap-2">
@@ -299,17 +411,12 @@ export function HotspotEditor({
                     ({editingHotspot.x.toFixed(1)}%, {editingHotspot.y.toFixed(1)}%) — {t("hotspotEditor.dragToMove")}
                   </p>
                 </div>
-                <div>
-                  <label className={labelClass}>{t("hotspotEditor.associatedRender")}</label>
-                  <FileUploader
-                    currentUrl={editingHotspot.render_url || null}
-                    onUpload={(url) =>
-                      updateHotspot(editingHotspot.id, { render_url: url })
-                    }
-                    folder={uploadFolder}
-                    label={t("hotspotEditor.changeRender")}
-                  />
-                </div>
+                <ImageListPanel
+                  images={editingImages}
+                  onChange={handleEditImagesChange}
+                  uploadFolder={uploadFolder}
+                  uploadLabel={t("hotspotEditor.addImage")}
+                />
               </div>
 
               <div className="px-4 py-3 border-t border-[var(--border-subtle)] flex gap-2">
@@ -348,28 +455,41 @@ export function HotspotEditor({
               <div className="flex-1 overflow-y-auto">
                 {hotspots.length > 0 ? (
                   <div className="py-1">
-                    {hotspots.map((hs, i) => (
-                      <button
-                        key={hs.id}
-                        onClick={() => setEditingId(hs.id)}
-                        className="w-full flex items-center gap-3 px-4 py-2.5 hover:bg-[var(--surface-2)] transition-colors text-left group"
-                      >
-                        <span className="w-5 h-5 rounded-full bg-[rgba(var(--site-primary-rgb),0.2)] flex items-center justify-center text-[10px] text-[var(--site-primary)] font-bold shrink-0">
-                          {i + 1}
-                        </span>
-                        <div className="flex-1 min-w-0">
-                          <p className="text-xs text-[var(--text-secondary)] truncate">{hs.label}</p>
-                          <p className="text-[10px] text-[var(--text-muted)]">
-                            ({hs.x.toFixed(0)}%, {hs.y.toFixed(0)}%)
-                          </p>
-                        </div>
-                        {hs.render_url && (
-                          <div className="w-8 h-6 rounded overflow-hidden bg-[var(--surface-3)] shrink-0">
-                            <Image src={hs.render_url} alt="undefined" fill className="w-full h-full object-cover" />
+                    {hotspots.map((hs, i) => {
+                      const imgs = resolveHotspotImages(hs);
+                      return (
+                        <button
+                          key={hs.id}
+                          onClick={() => setEditingId(hs.id)}
+                          className="w-full flex items-center gap-3 px-4 py-2.5 hover:bg-[var(--surface-2)] transition-colors text-left group"
+                        >
+                          <span className="w-5 h-5 rounded-full bg-[rgba(var(--site-primary-rgb),0.2)] flex items-center justify-center text-[10px] text-[var(--site-primary)] font-bold shrink-0">
+                            {i + 1}
+                          </span>
+                          <div className="flex-1 min-w-0">
+                            <p className="text-xs text-[var(--text-secondary)] truncate">{hs.label}</p>
+                            <p className="text-[10px] text-[var(--text-muted)]">
+                              ({hs.x.toFixed(0)}%, {hs.y.toFixed(0)}%)
+                              {imgs.length > 0 && (
+                                <span className="ml-1.5">
+                                  <Images size={9} className="inline -mt-px mr-0.5" />
+                                  {imgs.length}
+                                </span>
+                              )}
+                            </p>
                           </div>
-                        )}
-                      </button>
-                    ))}
+                          {imgs.length > 0 && (
+                            <div className="flex -space-x-1 shrink-0">
+                              {imgs.slice(0, 3).map((url, idx) => (
+                                <div key={idx} className="relative w-7 h-5 rounded overflow-hidden bg-[var(--surface-3)] border border-[var(--surface-1)]">
+                                  <Image src={url} alt={hs.label} fill className="object-cover" />
+                                </div>
+                              ))}
+                            </div>
+                          )}
+                        </button>
+                      );
+                    })}
                   </div>
                 ) : (
                   <div className="flex-1 flex flex-col items-center justify-center p-6 text-center">

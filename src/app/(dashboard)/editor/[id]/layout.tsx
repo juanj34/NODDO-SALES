@@ -385,7 +385,7 @@ export default function EditorLayout({
     const tipoProyecto = project?.tipo_proyecto ?? "hibrido";
 
     if (tipoProyecto === "apartamentos") return "Torres";
-    if (tipoProyecto === "casas") return "Etapas";
+    if (tipoProyecto === "casas" || tipoProyecto === "lotes") return "Etapas";
 
     // Híbrido: always show "Etapas"
     return "Etapas";
@@ -528,30 +528,30 @@ export default function EditorLayout({
           )}
         >
           {/* Back + project name */}
-          <div className="px-5 py-4 border-b border-[var(--border-subtle)]">
-            <Link href="/proyectos" onClick={closeDrawer} className="inline-block hover:opacity-80 transition-opacity mb-1">
-              <NodDoLogo height={14} colorNod="var(--text-primary)" colorDo="var(--site-primary)" />
+          <div className="px-4 py-3 border-b border-[var(--border-subtle)]">
+            <Link href="/proyectos" onClick={closeDrawer} className="inline-block hover:opacity-80 transition-opacity mb-0.5">
+              <NodDoLogo height={13} colorNod="var(--text-primary)" colorDo="var(--site-primary)" />
             </Link>
-            <Link href="/proyectos" onClick={closeDrawer} className="flex items-center gap-1.5 text-[10px] text-[var(--text-muted)] hover:text-[var(--text-secondary)] transition-colors mb-3">
-              <ArrowLeft size={10} />
+            <Link href="/proyectos" onClick={closeDrawer} className="flex items-center gap-1.5 text-[9px] text-[var(--text-muted)] hover:text-[var(--text-secondary)] transition-colors mb-2">
+              <ArrowLeft size={9} />
               {t("layout.backToProjects")}
             </Link>
-            <h2 className="text-[14px] font-semibold text-white truncate">
+            <h2 className="text-[13px] font-semibold text-white truncate leading-tight">
               {project.nombre}
             </h2>
-            <p className="text-[var(--text-muted)] text-[11px] mt-0.5 truncate">
+            <p className="text-[var(--text-muted)] text-[10px] mt-0.5 truncate">
               {project.subdomain || project.slug}.noddo.io
             </p>
           </div>
 
           {/* Grouped navigation */}
-          <nav className="flex-1 overflow-y-auto py-2">
+          <nav className="flex-1 overflow-y-auto py-1.5">
             {filteredSections.map((section) => (
               <div key={section.label}>
-                <p className="font-ui text-[10px] uppercase tracking-wider text-[var(--text-muted)] px-5 pt-4 pb-1.5 font-bold select-none">
+                <p className="font-ui text-[9px] uppercase tracking-wider text-[var(--text-muted)] px-4 pt-3 pb-1 font-bold select-none">
                   {section.label}
                 </p>
-                <div className="px-3 space-y-0.5">
+                <div className="px-2.5 space-y-px">
                   {section.tabs.map((tab) => {
                     const isActive = activeTab === tab.id;
                     const count = tab.badgeKey && badgeCounts ? badgeCounts[tab.badgeKey] : null;
@@ -565,12 +565,12 @@ export default function EditorLayout({
                       return (
                         <div
                           key={tab.id}
-                          className="flex items-center gap-2.5 px-3 py-[7px] rounded-lg font-ui text-[11px] font-semibold uppercase tracking-[0.08em] text-[var(--text-muted)] opacity-50 cursor-not-allowed"
+                          className="flex items-center gap-2 px-2.5 py-[5px] rounded-lg font-ui text-[10px] font-semibold uppercase tracking-[0.08em] text-[var(--text-muted)] opacity-50 cursor-not-allowed"
                           title="Feature no habilitada"
                         >
-                          <TabIcon size={15} className="shrink-0" />
+                          <TabIcon size={14} className="shrink-0" />
                           <span className="flex-1 truncate">{tabLabel}</span>
-                          <Lock size={11} className="shrink-0" />
+                          <Lock size={10} className="shrink-0" />
                         </div>
                       );
                     }
@@ -581,14 +581,14 @@ export default function EditorLayout({
                         href={`${basePath}${tab.href}`}
                         onClick={closeDrawer}
                         className={cn(
-                          "flex items-center gap-2.5 px-3 py-[7px] rounded-lg font-ui text-[11px] font-semibold uppercase tracking-[0.08em] transition-all duration-150",
+                          "flex items-center gap-2 px-2.5 py-[5px] rounded-lg font-ui text-[10px] font-semibold uppercase tracking-[0.08em] transition-all duration-150",
                           isActive
                             ? "bg-[var(--surface-2)] text-white"
                             : "text-[var(--text-tertiary)] hover:text-[var(--text-secondary)] hover:bg-[var(--surface-2)]/50"
                         )}
                       >
                         <TabIcon
-                          size={15}
+                          size={14}
                           className={cn(
                             "shrink-0",
                             isActive ? "text-[var(--site-primary)]" : ""
@@ -598,7 +598,7 @@ export default function EditorLayout({
                         {count !== null && count > 0 && (
                           <span
                             className={cn(
-                              "text-[10px] font-medium px-1.5 py-px rounded-full min-w-[20px] text-center",
+                              "text-[9px] font-medium px-1.5 py-px rounded-full min-w-[18px] text-center",
                               isActive
                                 ? "bg-[rgba(var(--site-primary-rgb),0.2)] text-[var(--site-primary)]"
                                 : "bg-[var(--surface-3)] text-[var(--text-muted)]"
@@ -616,11 +616,11 @@ export default function EditorLayout({
           </nav>
 
           {/* Storage meter */}
-          {storageData && storageData.total_bytes > 0 && (
-            <div className="px-5 pb-2">
-              <div className="flex items-center gap-1.5 mb-1.5">
-                <HardDrive size={11} className="text-[var(--text-muted)]" />
-                <span className="text-[10px] text-[var(--text-muted)]">
+          {storageData && (
+            <div className="px-4 pb-1.5">
+              <div className="flex items-center gap-1.5 mb-1">
+                <HardDrive size={10} className="text-[var(--text-muted)]" />
+                <span className="text-[9px] text-[var(--text-muted)]">
                   {formatBytes(storageData.total_bytes)} / {formatBytes(storageData.limit_bytes)}
                 </span>
               </div>
@@ -634,26 +634,28 @@ export default function EditorLayout({
                         ? "bg-yellow-400"
                         : "bg-[var(--site-primary)]"
                   )}
-                  style={{ width: `${Math.min(100, storageData.pct_used)}%` }}
+                  style={{ width: `${Math.max(1, Math.min(100, storageData.pct_used))}%` }}
                 />
               </div>
             </div>
           )}
 
-          {/* Help link */}
-          <div className="px-3 pb-1">
-            <Link
-              href="/ayuda"
-              onClick={closeDrawer}
-              className="flex items-center gap-2.5 px-3 py-[7px] rounded-lg font-ui text-[11px] font-semibold uppercase tracking-[0.08em] text-[var(--text-muted)] hover:text-[var(--text-secondary)] hover:bg-[var(--surface-2)]/50 transition-all duration-150"
+          {/* Help link — opens in new tab with contextual hash */}
+          <div className="px-2.5 pb-1">
+            <a
+              href={`/ayuda#${activeTab}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center gap-2 px-2.5 py-[5px] rounded-lg font-ui text-[10px] font-semibold uppercase tracking-[0.08em] text-[var(--text-tertiary)] hover:text-[var(--site-primary)] hover:bg-[rgba(var(--site-primary-rgb),0.06)] transition-all duration-150"
             >
-              <HelpCircle size={15} className="shrink-0" />
-              <span className="truncate">{t("layout.help")}</span>
-            </Link>
+              <HelpCircle size={14} className="shrink-0" />
+              <span className="flex-1 truncate">{t("layout.help")}</span>
+              <ExternalLink size={9} className="shrink-0 text-[var(--text-muted)]" />
+            </a>
           </div>
 
           {/* Preview link */}
-          <div className="px-4 py-3 border-t border-[var(--border-subtle)]">
+          <div className="px-3 py-2 border-t border-[var(--border-subtle)]">
             {(() => {
               const rootDomain = process.env.NEXT_PUBLIC_ROOT_DOMAIN || "noddo.io";
               const isLocal = rootDomain.includes("localhost");
@@ -666,7 +668,7 @@ export default function EditorLayout({
                 <Link
                   href={previewUrl}
                   target="_blank"
-                  className="flex items-center justify-center gap-2 w-full px-3 py-2.5 bg-[var(--surface-2)] border border-[var(--border-default)] rounded-lg font-ui text-[10px] font-bold uppercase tracking-[0.1em] text-[var(--text-secondary)] hover:text-white hover:border-[var(--border-strong)] hover:bg-[var(--surface-3)] transition-all"
+                  className="flex items-center justify-center gap-2 w-full px-3 py-2 bg-[var(--surface-2)] border border-[var(--border-default)] rounded-lg font-ui text-[9px] font-bold uppercase tracking-[0.1em] text-[var(--text-secondary)] hover:text-white hover:border-[var(--border-strong)] hover:bg-[var(--surface-3)] transition-all"
                 >
                   <ExternalLink size={13} />
                   {t("layout.viewMicrosite")}
@@ -676,7 +678,7 @@ export default function EditorLayout({
                   href={previewUrl}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="flex items-center justify-center gap-2 w-full px-3 py-2.5 bg-[var(--surface-2)] border border-[var(--border-default)] rounded-lg font-ui text-[10px] font-bold uppercase tracking-[0.1em] text-[var(--text-secondary)] hover:text-white hover:border-[var(--border-strong)] hover:bg-[var(--surface-3)] transition-all"
+                  className="flex items-center justify-center gap-2 w-full px-3 py-2 bg-[var(--surface-2)] border border-[var(--border-default)] rounded-lg font-ui text-[9px] font-bold uppercase tracking-[0.1em] text-[var(--text-secondary)] hover:text-white hover:border-[var(--border-strong)] hover:bg-[var(--surface-3)] transition-all"
                 >
                   <ExternalLink size={13} />
                   {t("layout.viewMicrosite")}

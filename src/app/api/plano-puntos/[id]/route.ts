@@ -51,7 +51,7 @@ export async function PUT(
 
     const body = await request.json();
     const updateData: Record<string, unknown> = {};
-    const allowedFields = ["titulo", "descripcion", "imagen_url", "render_url", "fachada_id", "torre_id", "x", "y", "orden"];
+    const allowedFields = ["titulo", "descripcion", "imagen_url", "render_url", "renders", "fachada_id", "torre_id", "x", "y", "orden"];
     for (const field of allowedFields) {
       if (body[field] !== undefined) updateData[field] = body[field];
     }

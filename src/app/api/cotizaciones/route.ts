@@ -165,6 +165,8 @@ export async function POST(request: NextRequest) {
     const {
       proyecto_id, unidad_id, nombre, email, telefono,
       utm_source, utm_medium, utm_campaign, agente_id, agente_nombre,
+      // Multi-tipología: buyer-selected tipología (for lots without confirmed tipologia_id)
+      tipologia_id: selectedTipologiaId,
       // Sandbox fields
       custom_fases,
       descuentos_seleccionados,
@@ -184,6 +186,7 @@ export async function POST(request: NextRequest) {
       utm_campaign?: string;
       agente_id?: string;
       agente_nombre?: string;
+      tipologia_id?: string;
       custom_fases?: FaseConfig[];
       descuentos_seleccionados?: string[];
       complemento_ids?: string[];
@@ -206,7 +209,7 @@ export async function POST(request: NextRequest) {
     // Fetch project with cotizador config
     const { data: proyecto, error: projErr } = await supabase
       .from("proyectos")
-      .select("id, nombre, constructora_nombre, constructora_logo_url, color_primario, cotizador_enabled, cotizador_config, user_id, render_principal_url, tour_360_url, whatsapp_numero, disclaimer, parqueaderos_mode, depositos_mode, parqueaderos_precio_base, depositos_precio_base, idioma")
+      .select("id, nombre, constructora_nombre, constructora_logo_url, color_primario, cotizador_enabled, cotizador_config, user_id, render_principal_url, tour_360_url, whatsapp_numero, disclaimer, parqueaderos_mode, depositos_mode, parqueaderos_precio_base, depositos_precio_base, idioma, tipo_proyecto")
       .eq("id", proyecto_id)
       .single();
 
@@ -248,17 +251,33 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Unidad sin precio" }, { status: 400 });
     }
 
-    // Fetch tipología name + renders
+    // Fetch tipología name + renders (use buyer-selected tipología for multi-tipo lots)
+    const effectiveTipologiaId = unit.tipologia_id || selectedTipologiaId || null;
     let tipologiaName: string | null = null;
     let tipologiaRenders: string[] = [];
-    if (unit.tipologia_id) {
+    if (effectiveTipologiaId) {
       const { data: tipo } = await supabase
         .from("tipologias")
-        .select("nombre, renders")
-        .eq("id", unit.tipologia_id)
+        .select("nombre, renders, area_m2, precio_desde, habitaciones, banos")
+        .eq("id", effectiveTipologiaId)
         .single();
       tipologiaName = tipo?.nombre ?? null;
       tipologiaRenders = tipo?.renders ?? [];
+
+      // For multi-tipo lots without confirmed tipología, override unit specs from tipología
+      if (!unit.tipologia_id && selectedTipologiaId && tipo) {
+        if (tipo.area_m2 !== null) unit.area_m2 = tipo.area_m2;
+        if (tipo.precio_desde !== null) {
+          // For lotes: sum terrain + construction prices when both exist
+          if (proyecto.tipo_proyecto === "lotes" && unit.precio) {
+            unit.precio = unit.precio + tipo.precio_desde;
+          } else {
+            unit.precio = tipo.precio_desde;
+          }
+        }
+        if (tipo.habitaciones !== null) unit.habitaciones = tipo.habitaciones;
+        if (tipo.banos !== null) unit.banos = tipo.banos;
+      }
     }
 
     // Build effective config (custom phases override project defaults)
@@ -325,9 +344,15 @@ export async function POST(request: NextRequest) {
       ));
     }
 
+    // Re-check precio after potential tipología override
+    if (!unit.precio) {
+      return NextResponse.json({ error: "Unidad sin precio" }, { status: 400 });
+    }
+    const precioFinal = unit.precio;
+
     // Calculate quotation (server-side — source of truth)
     const resultado = calcularCotizacion(
-      unit.precio,
+      precioFinal,
       effectiveConfig,
       descuentos_seleccionados || [],
       complementoSelecciones,
@@ -401,7 +426,14 @@ export async function POST(request: NextRequest) {
       habitaciones: unit.habitaciones,
       banos: unit.banos,
       orientacion: unit.orientacion,
+      lote: unit.lote,
+      etapa_nombre: unit.etapa_nombre,
     };
+    // Track if tipología was buyer-selected (not pre-assigned)
+    if (!unit.tipologia_id && selectedTipologiaId) {
+      unidadSnapshot.tipologia_seleccionada_por_comprador = true;
+      unidadSnapshot.tipologia_id_seleccionada = selectedTipologiaId;
+    }
     if (complementoSelecciones.length > 0) {
       unidadSnapshot.complementos = complementoSelecciones;
     }

@@ -2,7 +2,7 @@
 
 export const dynamic = "force-dynamic";
 
-import { useState, useMemo, useCallback, useRef } from "react";
+import { useState, useMemo, useCallback, useRef, useEffect } from "react";
 import { useEditorProject } from "@/hooks/useEditorProject";
 import {
   inputClass,
@@ -34,13 +34,16 @@ import {
   Send,
   Car,
   Warehouse,
+  Settings,
+  RotateCcw,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { formatCurrency } from "@/lib/currency";
 import { useTranslation } from "@/i18n";
 import { useToast } from "@/components/dashboard/Toast";
 import { useMediaQuery } from "@/hooks/useMediaQuery";
-import type { Unidad, Tipologia, Torre, Fachada, Complemento, ComplementoMode, Currency } from "@/types";
+import type { Unidad, Tipologia, Torre, Fachada, Complemento, ComplementoMode, Currency, UnidadTipologia, InventoryColumnConfig } from "@/types";
+import { getInventoryColumns, getDefaultColumns, INVENTORY_COLUMN_KEYS } from "@/lib/inventory-columns";
 import { ComplementosSection } from "@/components/dashboard/ComplementosSection";
 import { CurrencyInput } from "@/components/dashboard/CurrencyInput";
 import { SmartImportModal } from "@/components/dashboard/SmartImportModal";
@@ -57,6 +60,8 @@ interface UnitFormData {
   tipologia_id: string;
   fachada_id: string;
   piso: string;
+  lote: string;
+  etapa_nombre: string;
   area_m2: string;
   precio: string;
   estado: EstadoUnidad;
@@ -92,6 +97,8 @@ const EMPTY_FORM: UnitFormData = {
   tipologia_id: "",
   fachada_id: "",
   piso: "",
+  lote: "",
+  etapa_nombre: "",
   area_m2: "",
   precio: "",
   estado: "disponible",
@@ -258,6 +265,138 @@ function ConfirmDialog({
 }
 
 // ---------------------------------------------------------------------------
+// InlineMultiTipo — interactive multi-tipología cell for table rows
+// ---------------------------------------------------------------------------
+
+function InlineMultiTipo({
+  unit,
+  unitTipos,
+  allTipologias,
+  onConfirmTipo,
+  onToggleAvailable,
+}: {
+  unit: Unidad;
+  unitTipos: Tipologia[];
+  allTipologias: Tipologia[];
+  onConfirmTipo: (tipoId: string | null) => void;
+  onToggleAvailable: (tipoId: string, add: boolean) => void;
+}) {
+  const [showPicker, setShowPicker] = useState(false);
+  const pickerRef = useRef<HTMLDivElement>(null);
+
+  // Units with committed states (vendida, reservada, separado) are locked —
+  // they must keep their single confirmed tipología and can't be edited.
+  const isLocked = ["vendida", "reservada", "separado"].includes(unit.estado);
+
+  useEffect(() => {
+    if (!showPicker) return;
+    const handler = (e: MouseEvent) => {
+      if (pickerRef.current && !pickerRef.current.contains(e.target as Node)) {
+        setShowPicker(false);
+      }
+    };
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, [showPicker]);
+
+  const availableIds = new Set(unitTipos.map((t) => t.id));
+
+  // Locked state: show only the confirmed tipología as a static badge
+  if (isLocked) {
+    const confirmedTipo = unit.tipologia_id
+      ? unitTipos.find((t) => t.id === unit.tipologia_id) ?? allTipologias.find((t) => t.id === unit.tipologia_id)
+      : null;
+    return (
+      <div className="flex flex-wrap gap-1 items-center">
+        {confirmedTipo ? (
+          <span className="inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-medium border bg-[rgba(var(--site-primary-rgb),0.15)] border-[var(--site-primary)] text-[var(--site-primary)]">
+            <Check size={8} className="mr-0.5" />
+            {confirmedTipo.nombre}
+          </span>
+        ) : (
+          <span className="text-[var(--text-muted)] text-[10px]">—</span>
+        )}
+      </div>
+    );
+  }
+
+  return (
+    <div className="relative" ref={pickerRef}>
+      <div className="flex flex-wrap gap-1 items-center">
+        {unitTipos.length > 0 ? unitTipos.map((tp) => (
+          <button
+            key={tp.id}
+            type="button"
+            onClick={() => onConfirmTipo(unit.tipologia_id === tp.id ? null : tp.id)}
+            title={unit.tipologia_id === tp.id ? "Quitar confirmación" : "Confirmar tipología"}
+            className={cn(
+              "inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-medium border transition-all cursor-pointer",
+              unit.tipologia_id === tp.id
+                ? "bg-[rgba(var(--site-primary-rgb),0.15)] border-[var(--site-primary)] text-[var(--site-primary)]"
+                : "bg-[var(--surface-3)] border-[var(--border-subtle)] text-[var(--text-tertiary)] hover:border-[var(--border-default)] hover:text-[var(--text-secondary)]"
+            )}
+          >
+            {unit.tipologia_id === tp.id && <Check size={8} className="mr-0.5" />}
+            {tp.nombre}
+          </button>
+        )) : (
+          <span className="text-[var(--text-muted)] text-[10px]">Sin tipologías</span>
+        )}
+        <button
+          type="button"
+          onClick={() => setShowPicker(!showPicker)}
+          className="inline-flex items-center justify-center w-5 h-5 rounded-md text-[var(--text-muted)] hover:text-[var(--site-primary)] hover:bg-[rgba(var(--site-primary-rgb),0.1)] transition-all border border-transparent hover:border-[rgba(var(--site-primary-rgb),0.2)]"
+          title="Editar tipologías disponibles"
+        >
+          <Plus size={10} />
+        </button>
+      </div>
+
+      {/* Picker popover */}
+      <AnimatePresence>
+        {showPicker && (
+          <motion.div
+            initial={{ opacity: 0, y: -4, scale: 0.96 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: -4, scale: 0.96 }}
+            transition={{ duration: 0.12 }}
+            className="absolute z-50 top-full mt-1 left-0 min-w-[180px] p-1.5 rounded-xl bg-[rgba(26,26,29,0.95)] border border-[var(--border-default)] shadow-[0_8px_40px_rgba(0,0,0,0.5)]"
+            style={{ backdropFilter: "blur(32px)" }}
+          >
+            <p className="px-2 py-1 text-[9px] text-[var(--text-muted)] uppercase tracking-wider font-bold">
+              Tipologías disponibles
+            </p>
+            {allTipologias.map((tp) => {
+              const isAvailable = availableIds.has(tp.id);
+              return (
+                <button
+                  key={tp.id}
+                  type="button"
+                  onClick={() => {
+                    onToggleAvailable(tp.id, !isAvailable);
+                  }}
+                  className={cn(
+                    "w-full flex items-center gap-2 px-2 py-1.5 rounded-lg text-[11px] font-mono transition-all text-left",
+                    isAvailable
+                      ? "bg-[rgba(var(--site-primary-rgb),0.1)] text-[var(--site-primary)]"
+                      : "text-[var(--text-tertiary)] hover:bg-[var(--surface-3)] hover:text-[var(--text-secondary)]"
+                  )}
+                >
+                  <span className="w-3 shrink-0">
+                    {isAvailable && <Check size={10} className="text-[var(--site-primary)]" />}
+                  </span>
+                  {tp.nombre}
+                </button>
+              );
+            })}
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
+  );
+}
+
+// ---------------------------------------------------------------------------
 // Unit Form (Inline Create / Edit)
 // ---------------------------------------------------------------------------
 
@@ -269,20 +408,49 @@ function UnitForm({
   onCancel,
   submitting,
   currency,
+  columns,
+  isLoteBased = false,
+  isMultiTipo = false,
+  unitTipoIds = [],
+  onMultiTipoChange,
+  existingEtapas = [],
 }: {
   initial: UnitFormData;
   tipologias: Tipologia[];
   fachadas: Fachada[];
-  onSubmit: (data: UnitFormData) => void;
+  onSubmit: (data: UnitFormData & { available_tipologia_ids?: string[] }) => void;
   onCancel: () => void;
   submitting: boolean;
   currency: Currency;
+  columns: InventoryColumnConfig;
+  isLoteBased?: boolean;
+  isMultiTipo?: boolean;
+  unitTipoIds?: string[];
+  onMultiTipoChange?: (ids: string[]) => void;
+  existingEtapas?: string[];
 }) {
   const { t } = useTranslation("editor");
   const [form, setForm] = useState<UnitFormData>(initial);
+  const [selectedTipoIds, setSelectedTipoIds] = useState<string[]>(unitTipoIds);
 
   const set = (field: keyof UnitFormData, value: string) =>
     setForm((prev) => ({ ...prev, [field]: value }));
+
+  const toggleTipoId = (id: string) => {
+    setSelectedTipoIds((prev) => {
+      const next = prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id];
+      onMultiTipoChange?.(next);
+      return next;
+    });
+  };
+
+  const handleSubmit = () => {
+    if (isMultiTipo) {
+      onSubmit({ ...form, available_tipologia_ids: selectedTipoIds });
+    } else {
+      onSubmit(form);
+    }
+  };
 
   return (
     <motion.div
@@ -299,25 +467,63 @@ function UnitForm({
               type="text"
               value={form.identificador}
               onChange={(e) => set("identificador", e.target.value)}
-              placeholder="Apto 101"
+              placeholder={isLoteBased ? "Lote 1" : "Apto 101"}
               className={inputClass}
             />
           </div>
-          <div>
-            <label className={labelClass}>{t("inventario.fields.typology")}</label>
-            <NodDoDropdown
-              variant="form"
-              size="lg"
-              value={form.tipologia_id}
-              onChange={(val) => set("tipologia_id", val)}
-              placeholder={t("inventario.noTypology")}
-              options={[
-                { value: "", label: t("inventario.noTypology") },
-                ...tipologias.map((tp) => ({ value: tp.id, label: tp.nombre })),
-              ]}
-            />
-          </div>
-          {fachadas.length > 0 && (
+          {isMultiTipo ? (
+            <div className="md:col-span-2">
+              <label className={labelClass}>Tipologías disponibles</label>
+              <div className="flex flex-wrap gap-1.5 min-h-[38px] p-2 bg-[var(--surface-3)] border border-[var(--border-default)] rounded-[0.625rem]">
+                {tipologias.map((tp) => (
+                  <button
+                    key={tp.id}
+                    type="button"
+                    onClick={() => toggleTipoId(tp.id)}
+                    className={cn(
+                      "px-2.5 py-1 rounded-md text-[11px] font-medium transition-all border",
+                      selectedTipoIds.includes(tp.id)
+                        ? "bg-[rgba(var(--site-primary-rgb),0.15)] border-[var(--site-primary)] text-[var(--site-primary)]"
+                        : "bg-[var(--surface-2)] border-[var(--border-subtle)] text-[var(--text-tertiary)] hover:border-[var(--border-default)] hover:text-[var(--text-secondary)]"
+                    )}
+                  >
+                    {tp.nombre}
+                  </button>
+                ))}
+              </div>
+              {/* Confirmed tipología selector */}
+              <div className="mt-2">
+                <label className={labelClass}>Tipología confirmada</label>
+                <NodDoDropdown
+                  variant="form"
+                  size="lg"
+                  value={form.tipologia_id}
+                  onChange={(val) => set("tipologia_id", val)}
+                  placeholder={t("inventario.noTypology")}
+                  options={[
+                    { value: "", label: "Sin confirmar" },
+                    ...tipologias.filter((tp) => selectedTipoIds.includes(tp.id)).map((tp) => ({ value: tp.id, label: tp.nombre })),
+                  ]}
+                />
+              </div>
+            </div>
+          ) : (
+            <div>
+              <label className={labelClass}>{t("inventario.fields.typology")}</label>
+              <NodDoDropdown
+                variant="form"
+                size="lg"
+                value={form.tipologia_id}
+                onChange={(val) => set("tipologia_id", val)}
+                placeholder={t("inventario.noTypology")}
+                options={[
+                  { value: "", label: t("inventario.noTypology") },
+                  ...tipologias.map((tp) => ({ value: tp.id, label: tp.nombre })),
+                ]}
+              />
+            </div>
+          )}
+          {!isLoteBased && fachadas.length > 0 && (
             <div>
               <label className={labelClass}>{t("inventario.fields.fachada")}</label>
               <NodDoDropdown
@@ -333,16 +539,50 @@ function UnitForm({
               />
             </div>
           )}
-          <div>
-            <label className={labelClass}>{t("inventario.fields.floor")}</label>
-            <input
-              type="number"
-              value={form.piso}
-              onChange={(e) => set("piso", e.target.value)}
-              placeholder="1"
-              className={inputClass}
-            />
-          </div>
+          {columns.piso && (
+            <div>
+              <label className={labelClass}>{t("inventario.fields.floor")}</label>
+              <input
+                type="number"
+                value={form.piso}
+                onChange={(e) => set("piso", e.target.value)}
+                placeholder="1"
+                className={inputClass}
+              />
+            </div>
+          )}
+          {columns.lote && (
+            <div>
+              <label className={labelClass}>Lote</label>
+              <input
+                type="text"
+                value={form.lote}
+                onChange={(e) => set("lote", e.target.value)}
+                placeholder="A-12"
+                className={inputClass}
+              />
+            </div>
+          )}
+          {columns.etapa && (
+            <div>
+              <label className={labelClass}>Etapa</label>
+              <input
+                type="text"
+                list="etapa-suggestions"
+                value={form.etapa_nombre}
+                onChange={(e) => set("etapa_nombre", e.target.value)}
+                placeholder="Etapa 1"
+                className={inputClass}
+              />
+              {existingEtapas.length > 0 && (
+                <datalist id="etapa-suggestions">
+                  {existingEtapas.map((e) => (
+                    <option key={e} value={e} />
+                  ))}
+                </datalist>
+              )}
+            </div>
+          )}
           <div>
             <label className={labelClass}>{t("inventario.fields.area")}</label>
             <input
@@ -373,66 +613,78 @@ function UnitForm({
               options={ESTADOS.map((e) => ({ value: e.value, label: e.label }))}
             />
           </div>
-          <div>
-            <label className={labelClass}>{t("inventario.fields.bedrooms")}</label>
-            <input
-              type="number"
-              value={form.habitaciones}
-              onChange={(e) => set("habitaciones", e.target.value)}
-              placeholder="3"
-              className={inputClass}
-            />
-          </div>
-          <div>
-            <label className={labelClass}>{t("inventario.fields.bathrooms")}</label>
-            <input
-              type="number"
-              value={form.banos}
-              onChange={(e) => set("banos", e.target.value)}
-              placeholder="2"
-              className={inputClass}
-            />
-          </div>
-          <div>
-            <label className={labelClass}>{t("inventario.fields.parking")}</label>
-            <input
-              type="number"
-              value={form.parqueaderos}
-              onChange={(e) => set("parqueaderos", e.target.value)}
-              placeholder="1"
-              className={inputClass}
-            />
-          </div>
-          <div>
-            <label className={labelClass}>{t("inventario.fields.storage")}</label>
-            <input
-              type="number"
-              value={form.depositos}
-              onChange={(e) => set("depositos", e.target.value)}
-              placeholder="1"
-              className={inputClass}
-            />
-          </div>
-          <div>
-            <label className={labelClass}>{t("inventario.fields.orientation")}</label>
-            <input
-              type="text"
-              value={form.orientacion}
-              onChange={(e) => set("orientacion", e.target.value)}
-              placeholder="Norte"
-              className={inputClass}
-            />
-          </div>
-          <div>
-            <label className={labelClass}>{t("inventario.fields.view")}</label>
-            <input
-              type="text"
-              value={form.vista}
-              onChange={(e) => set("vista", e.target.value)}
-              placeholder="Exterior"
-              className={inputClass}
-            />
-          </div>
+          {columns.habitaciones && (
+            <div>
+              <label className={labelClass}>{t("inventario.fields.bedrooms")}</label>
+              <input
+                type="number"
+                value={form.habitaciones}
+                onChange={(e) => set("habitaciones", e.target.value)}
+                placeholder="3"
+                className={inputClass}
+              />
+            </div>
+          )}
+          {columns.banos && (
+            <div>
+              <label className={labelClass}>{t("inventario.fields.bathrooms")}</label>
+              <input
+                type="number"
+                value={form.banos}
+                onChange={(e) => set("banos", e.target.value)}
+                placeholder="2"
+                className={inputClass}
+              />
+            </div>
+          )}
+          {columns.parqueaderos && (
+            <div>
+              <label className={labelClass}>{t("inventario.fields.parking")}</label>
+              <input
+                type="number"
+                value={form.parqueaderos}
+                onChange={(e) => set("parqueaderos", e.target.value)}
+                placeholder="1"
+                className={inputClass}
+              />
+            </div>
+          )}
+          {columns.depositos && (
+            <div>
+              <label className={labelClass}>{t("inventario.fields.storage")}</label>
+              <input
+                type="number"
+                value={form.depositos}
+                onChange={(e) => set("depositos", e.target.value)}
+                placeholder="1"
+                className={inputClass}
+              />
+            </div>
+          )}
+          {columns.orientacion && (
+            <div>
+              <label className={labelClass}>{t("inventario.fields.orientation")}</label>
+              <input
+                type="text"
+                value={form.orientacion}
+                onChange={(e) => set("orientacion", e.target.value)}
+                placeholder="Norte"
+                className={inputClass}
+              />
+            </div>
+          )}
+          {columns.vista && (
+            <div>
+              <label className={labelClass}>{t("inventario.fields.view")}</label>
+              <input
+                type="text"
+                value={form.vista}
+                onChange={(e) => set("vista", e.target.value)}
+                placeholder="Exterior"
+                className={inputClass}
+              />
+            </div>
+          )}
           <div className="md:col-span-2">
             <label className={labelClass}>{t("inventario.fields.notes")}</label>
             <input
@@ -446,7 +698,7 @@ function UnitForm({
         </div>
         <div className="flex items-center gap-3 pt-2">
           <button
-            onClick={() => onSubmit(form)}
+            onClick={handleSubmit}
             disabled={!form.identificador.trim() || submitting}
             className={btnPrimary}
           >
@@ -1049,11 +1301,145 @@ function AIChatModal({
 }
 
 // ---------------------------------------------------------------------------
+// Columns Config Modal
+// ---------------------------------------------------------------------------
+
+function ColumnsConfigModal({
+  tipoProyecto,
+  currentConfig,
+  onSave,
+  onClose,
+}: {
+  tipoProyecto: "apartamentos" | "casas" | "hibrido" | "lotes";
+  currentConfig: InventoryColumnConfig | null;
+  onSave: (config: InventoryColumnConfig | null) => void;
+  onClose: () => void;
+}) {
+  const { t } = useTranslation("editor");
+  const [localConfig, setLocalConfig] = useState<InventoryColumnConfig>(
+    () => getInventoryColumns(tipoProyecto, currentConfig)
+  );
+  const isCustom = currentConfig !== null;
+
+  const handleToggle = (key: keyof InventoryColumnConfig) => {
+    setLocalConfig((prev) => ({ ...prev, [key]: !prev[key] }));
+  };
+
+  const handleReset = () => {
+    setLocalConfig(getDefaultColumns(tipoProyecto));
+    onSave(null);
+    onClose();
+  };
+
+  const handleApply = () => {
+    onSave(localConfig);
+    onClose();
+  };
+
+  return (
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4"
+      onClick={onClose}
+    >
+      <motion.div
+        initial={{ scale: 0.95, opacity: 0 }}
+        animate={{ scale: 1, opacity: 1 }}
+        exit={{ scale: 0.95, opacity: 0 }}
+        onClick={(e) => e.stopPropagation()}
+        className="bg-[var(--surface-2)] border border-[var(--border-default)] rounded-2xl w-full max-w-md shadow-2xl"
+      >
+        {/* Header */}
+        <div className="flex items-center justify-between p-6 border-b border-[var(--border-subtle)]">
+          <div className="flex items-center gap-3">
+            <div className="p-2 bg-[rgba(var(--site-primary-rgb),0.1)] rounded-lg">
+              <Settings size={18} className="text-[var(--site-primary)]" />
+            </div>
+            <div>
+              <h3 className="text-sm font-medium text-white">{t("general.project.columnsTitle")}</h3>
+              <p className="text-[10px] text-[var(--text-tertiary)]">{t("general.project.columnsDescription")}</p>
+            </div>
+          </div>
+          <button onClick={onClose} className="p-2 hover:bg-[var(--surface-3)] rounded-lg transition-colors">
+            <X size={16} className="text-[var(--text-tertiary)]" />
+          </button>
+        </div>
+
+        {/* Body */}
+        <div className="p-6">
+          <div className="grid grid-cols-2 gap-2">
+            {INVENTORY_COLUMN_KEYS.map(({ key, labelKey }) => {
+              const isOn = localConfig[key];
+              return (
+                <button
+                  key={key}
+                  type="button"
+                  onClick={() => handleToggle(key)}
+                  className={cn(
+                    "flex items-center gap-2.5 px-3 py-2 rounded-lg border transition-all text-left text-xs",
+                    isOn
+                      ? "bg-[rgba(var(--site-primary-rgb),0.08)] border-[rgba(var(--site-primary-rgb),0.3)] text-white"
+                      : "bg-[var(--surface-1)] border-[var(--border-subtle)] text-[var(--text-muted)] hover:border-[var(--border-default)]"
+                  )}
+                >
+                  <div
+                    className={cn(
+                      "w-4 h-4 rounded-[4px] border-2 flex items-center justify-center shrink-0 transition-all",
+                      isOn
+                        ? "bg-[var(--site-primary)] border-[var(--site-primary)]"
+                        : "border-[var(--border-default)]"
+                    )}
+                  >
+                    {isOn && (
+                      <svg viewBox="0 0 12 12" className="w-2.5 h-2.5 text-black">
+                        <path d="M2 6l3 3 5-5" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                      </svg>
+                    )}
+                  </div>
+                  {t(labelKey)}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* Footer */}
+        <div className="flex items-center justify-between p-6 border-t border-[var(--border-subtle)]">
+          {isCustom ? (
+            <button
+              type="button"
+              onClick={handleReset}
+              className="flex items-center gap-1.5 text-[10px] text-[var(--text-tertiary)] hover:text-[var(--site-primary)] transition-colors"
+            >
+              <RotateCcw size={11} />
+              {t("general.project.columnsReset")}
+            </button>
+          ) : (
+            <span />
+          )}
+          <div className="flex items-center gap-3">
+            <button onClick={onClose} className={btnSecondary}>
+              {t("inventario.cancel")}
+            </button>
+            <button onClick={handleApply} className={btnPrimary}>
+              <Check size={14} />
+              {t("inventario.save")}
+            </button>
+          </div>
+        </div>
+      </motion.div>
+    </motion.div>
+  );
+}
+
+// ---------------------------------------------------------------------------
 // Main Page Component
 // ---------------------------------------------------------------------------
 
 export default function InventarioPage() {
-  const { project, refresh, projectId } = useEditorProject();
+  const { project, refresh, projectId, updateLocal } = useEditorProject();
   const { t } = useTranslation("editor");
   const toast = useToast();
   const isMobile = useMediaQuery("(max-width: 767px)");
@@ -1062,6 +1448,7 @@ export default function InventarioPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [filterTipologia, setFilterTipologia] = useState("");
   const [filterEstado, setFilterEstado] = useState("");
+  const [filterEtapa, setFilterEtapa] = useState("");
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [bulkEstado, setBulkEstado] = useState<EstadoUnidad>("disponible");
   const [bulkTorreId, setBulkTorreId] = useState("");
@@ -1080,6 +1467,7 @@ export default function InventarioPage() {
   const [showPriceAdjust, setShowPriceAdjust] = useState(false);
   const [showAIChat, setShowAIChat] = useState(false);
   const [showToolsMenu, setShowToolsMenu] = useState(false);
+  const [showColumnsModal, setShowColumnsModal] = useState(false);
   const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null);
   const [vendidaWarning, setVendidaWarning] = useState<{ callback: () => void } | null>(null);
 
@@ -1099,6 +1487,57 @@ export default function InventarioPage() {
   const fachadas: Fachada[] = useMemo(() => project.fachadas || [], [project.fachadas]);
   const torres: Torre[] = useMemo(() => project.torres || [], [project.torres]);
   const isMultiTorre = torres.length > 1;
+
+  // --- Multi-tipología / casas mode ---
+  const tipologiaMode = project.tipologia_mode ?? "fija";
+  const tipoProyecto = project.tipo_proyecto ?? "hibrido";
+  const isMultiTipo = tipologiaMode === "multiple";
+  const isCasas = tipoProyecto === "casas";
+  const isLotes = tipoProyecto === "lotes";
+  const isLoteBased = isCasas || isLotes;
+  const columns = useMemo(
+    () => getInventoryColumns(project.tipo_proyecto ?? "hibrido", project.inventory_columns),
+    [project.tipo_proyecto, project.inventory_columns]
+  );
+  const uniqueEtapas = useMemo(() => {
+    if (!columns.etapa) return [];
+    const set = new Set(
+      unidades.map((u) => u.etapa_nombre).filter((e): e is string => !!e)
+    );
+    return [...set].sort((a, b) => a.localeCompare(b, "es", { numeric: true }));
+  }, [unidades, columns.etapa]);
+  const unidadTipologias: UnidadTipologia[] = useMemo(() => project.unidad_tipologias ?? [], [project.unidad_tipologias]);
+
+  const getUnitTipologias = useCallback((unitId: string) => {
+    const tipoIds = unidadTipologias.filter(ut => ut.unidad_id === unitId).map(ut => ut.tipologia_id);
+    return tipologias.filter(t => tipoIds.includes(t.id));
+  }, [unidadTipologias, tipologias]);
+
+  const getUnitSpecRanges = useCallback((unitId: string) => {
+    const tipos = getUnitTipologias(unitId);
+    if (tipos.length === 0) return null;
+    return {
+      area_min: Math.min(...tipos.map(t => t.area_m2 ?? 0).filter(Boolean)),
+      area_max: Math.max(...tipos.map(t => t.area_m2 ?? 0).filter(Boolean)),
+      precio_min: Math.min(...tipos.map(t => t.precio_desde ?? 0).filter(Boolean)),
+      precio_max: Math.max(...tipos.map(t => t.precio_desde ?? 0).filter(Boolean)),
+      hab_min: Math.min(...tipos.map(t => t.habitaciones ?? 0).filter(Boolean)),
+      hab_max: Math.max(...tipos.map(t => t.habitaciones ?? 0).filter(Boolean)),
+      banos_min: Math.min(...tipos.map(t => t.banos ?? 0).filter(Boolean)),
+      banos_max: Math.max(...tipos.map(t => t.banos ?? 0).filter(Boolean)),
+    };
+  }, [getUnitTipologias]);
+
+  // --- Tipología required modal (for multi-tipo estado changes) ---
+  const [tipologiaRequiredModal, setTipologiaRequiredModal] = useState<{
+    unitId: string;
+    newEstado: EstadoUnidad;
+    availableTipos: Tipologia[];
+  } | null>(null);
+
+  // --- Bulk multi-tipología assignment ---
+  const [bulkMultiTipoIds, setBulkMultiTipoIds] = useState<string[]>([]);
+  const [bulkMultiTipoLoading, setBulkMultiTipoLoading] = useState(false);
 
   // --- Complemento modes & counts ---
   const hasParqueaderos = (project.parqueaderos_mode as ComplementoMode) === "inventario_incluido" || (project.parqueaderos_mode as ComplementoMode) === "inventario_separado";
@@ -1121,6 +1560,7 @@ export default function InventarioPage() {
       }
       if (filterTipologia && u.tipologia_id !== filterTipologia) return false;
       if (filterEstado && u.estado !== filterEstado) return false;
+      if (filterEtapa && u.etapa_nombre !== filterEtapa) return false;
       if (
         searchQuery &&
         !u.identificador.toLowerCase().includes(searchQuery.toLowerCase())
@@ -1128,7 +1568,7 @@ export default function InventarioPage() {
         return false;
       return true;
     });
-  }, [unidades, filterTipologia, filterEstado, searchQuery, isMultiTorre, activeTorreId]);
+  }, [unidades, filterTipologia, filterEstado, filterEtapa, searchQuery, isMultiTorre, activeTorreId]);
 
   // --- Selection helpers ---
   const allFilteredSelected =
@@ -1160,32 +1600,38 @@ export default function InventarioPage() {
 
   // --- CRUD handlers ---
   const handleCreate = useCallback(
-    async (data: UnitFormData) => {
+    async (data: UnitFormData & { available_tipologia_ids?: string[] }) => {
       setFormLoading(true);
       try {
+        const payload: Record<string, unknown> = {
+          proyecto_id: projectId,
+          identificador: data.identificador,
+          tipologia_id: data.tipologia_id || null,
+          piso: data.piso ? parseInt(data.piso) : null,
+          lote: data.lote || null,
+          etapa_nombre: data.etapa_nombre || null,
+          area_m2: data.area_m2 ? parseFloat(data.area_m2) : null,
+          precio: data.precio ? parseFloat(data.precio) : null,
+          estado: data.estado,
+          habitaciones: data.habitaciones
+            ? parseInt(data.habitaciones)
+            : null,
+          banos: data.banos ? parseInt(data.banos) : null,
+          parqueaderos: data.parqueaderos ? parseInt(data.parqueaderos) : null,
+          depositos: data.depositos ? parseInt(data.depositos) : null,
+          orientacion: data.orientacion || null,
+          vista: data.vista || null,
+          notas: data.notas || null,
+          fachada_id: data.fachada_id || null,
+          torre_id: isMultiTorre && activeTorreId && activeTorreId !== "__none__" ? activeTorreId : null,
+        };
+        if (data.available_tipologia_ids !== undefined) {
+          payload.available_tipologia_ids = data.available_tipologia_ids;
+        }
         const res = await fetch("/api/unidades", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            proyecto_id: projectId,
-            identificador: data.identificador,
-            tipologia_id: data.tipologia_id || null,
-            piso: data.piso ? parseInt(data.piso) : null,
-            area_m2: data.area_m2 ? parseFloat(data.area_m2) : null,
-            precio: data.precio ? parseFloat(data.precio) : null,
-            estado: data.estado,
-            habitaciones: data.habitaciones
-              ? parseInt(data.habitaciones)
-              : null,
-            banos: data.banos ? parseInt(data.banos) : null,
-            parqueaderos: data.parqueaderos ? parseInt(data.parqueaderos) : null,
-            depositos: data.depositos ? parseInt(data.depositos) : null,
-            orientacion: data.orientacion || null,
-            vista: data.vista || null,
-            notas: data.notas || null,
-            fachada_id: data.fachada_id || null,
-            torre_id: isMultiTorre && activeTorreId && activeTorreId !== "__none__" ? activeTorreId : null,
-          }),
+          body: JSON.stringify(payload),
         });
         if (!res.ok) throw new Error("Error creating unit");
         setShowCreateForm(false);
@@ -1201,30 +1647,36 @@ export default function InventarioPage() {
   );
 
   const handleUpdate = useCallback(
-    async (id: string, data: UnitFormData) => {
+    async (id: string, data: UnitFormData & { available_tipologia_ids?: string[] }) => {
       setFormLoading(true);
       try {
+        const payload: Record<string, unknown> = {
+          identificador: data.identificador,
+          tipologia_id: data.tipologia_id || null,
+          piso: data.piso ? parseInt(data.piso) : null,
+          lote: data.lote || null,
+          etapa_nombre: data.etapa_nombre || null,
+          area_m2: data.area_m2 ? parseFloat(data.area_m2) : null,
+          precio: data.precio ? parseFloat(data.precio) : null,
+          estado: data.estado,
+          habitaciones: data.habitaciones
+            ? parseInt(data.habitaciones)
+            : null,
+          banos: data.banos ? parseInt(data.banos) : null,
+          parqueaderos: data.parqueaderos ? parseInt(data.parqueaderos) : null,
+          depositos: data.depositos ? parseInt(data.depositos) : null,
+          orientacion: data.orientacion || null,
+          vista: data.vista || null,
+          notas: data.notas || null,
+          fachada_id: data.fachada_id || null,
+        };
+        if (data.available_tipologia_ids !== undefined) {
+          payload.available_tipologia_ids = data.available_tipologia_ids;
+        }
         const res = await fetch(`/api/unidades/${id}`, {
           method: "PUT",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            identificador: data.identificador,
-            tipologia_id: data.tipologia_id || null,
-            piso: data.piso ? parseInt(data.piso) : null,
-            area_m2: data.area_m2 ? parseFloat(data.area_m2) : null,
-            precio: data.precio ? parseFloat(data.precio) : null,
-            estado: data.estado,
-            habitaciones: data.habitaciones
-              ? parseInt(data.habitaciones)
-              : null,
-            banos: data.banos ? parseInt(data.banos) : null,
-            parqueaderos: data.parqueaderos ? parseInt(data.parqueaderos) : null,
-            depositos: data.depositos ? parseInt(data.depositos) : null,
-            orientacion: data.orientacion || null,
-            vista: data.vista || null,
-            notas: data.notas || null,
-            fachada_id: data.fachada_id || null,
-          }),
+          body: JSON.stringify(payload),
         });
         if (!res.ok) throw new Error("Error updating unit");
         setEditingId(null);
@@ -1308,6 +1760,16 @@ export default function InventarioPage() {
 
   const handleBulkStatusChange = useCallback(async () => {
     if (selectedIds.size === 0) return;
+    // Multi-tipo: check if any selected unit lacks a confirmed tipología when changing to a committed state
+    if (isMultiTipo && ["separado", "reservada", "vendida"].includes(bulkEstado)) {
+      const unitsWithoutTipo = Array.from(selectedIds)
+        .map(id => unidades.find(u => u.id === id))
+        .filter((u): u is Unidad => !!u && !u.tipologia_id);
+      if (unitsWithoutTipo.length > 0) {
+        toast.error(`${unitsWithoutTipo.length} unidad(es) sin tipología confirmada. Confirma la tipología antes de cambiar a "${bulkEstado}".`);
+        return;
+      }
+    }
     const doBulk = async () => {
       setBulkLoading(true);
       try {
@@ -1328,7 +1790,7 @@ export default function InventarioPage() {
       }
     };
     checkComplementosBeforeEstado(Array.from(selectedIds), bulkEstado, doBulk);
-  }, [selectedIds, bulkEstado, refresh, toast, checkComplementosBeforeEstado]);
+  }, [selectedIds, bulkEstado, refresh, toast, checkComplementosBeforeEstado, isMultiTipo, unidades]);
 
   const handleBulkTorreChange = useCallback(async () => {
     if (selectedIds.size === 0 || !bulkTorreId) return;
@@ -1354,33 +1816,84 @@ export default function InventarioPage() {
 
   const handleInlineUpdate = useCallback(
     async (unitId: string, field: string, value: string | null) => {
+      // Optimistic local update for immediate UI feedback
+      if (field !== "estado") {
+        updateLocal((prev) => ({
+          ...prev,
+          unidades: prev.unidades.map((u) =>
+            u.id === unitId ? { ...u, [field]: value } : u
+          ),
+        }));
+      }
       const doUpdate = async () => {
         try {
-          await fetch(`/api/unidades/${unitId}`, {
+          const res = await fetch(`/api/unidades/${unitId}`, {
             method: "PUT",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ [field]: value }),
           });
+          if (!res.ok) {
+            const body = await res.json().catch(() => null);
+            if (body?.code === "TIPOLOGIA_REQUIRED") {
+              const unit = unidades.find(u => u.id === unitId);
+              if (unit && isMultiTipo) {
+                const tipos = getUnitTipologias(unitId);
+                setTipologiaRequiredModal({
+                  unitId,
+                  newEstado: value as EstadoUnidad,
+                  availableTipos: tipos.length > 0 ? tipos : tipologias,
+                });
+              }
+              // Revert optimistic update on error
+              await refresh();
+              return;
+            }
+            // Revert optimistic update on error
+            await refresh();
+            throw new Error("Error");
+          }
           await refresh();
         } catch {
           toast.error("Error al actualizar");
         }
       };
+      if (field === "estado" && value && isMultiTipo) {
+        const needsConfirmation = ["separado", "reservada", "vendida"].includes(value);
+        const unit = unidades.find(u => u.id === unitId);
+        if (needsConfirmation && unit && !unit.tipologia_id) {
+          const tipos = getUnitTipologias(unitId);
+          setTipologiaRequiredModal({
+            unitId,
+            newEstado: value as EstadoUnidad,
+            availableTipos: tipos.length > 0 ? tipos : tipologias,
+          });
+          return;
+        }
+      }
       if (field === "estado" && value) {
         checkComplementosBeforeEstado([unitId], value, doUpdate);
       } else {
         doUpdate();
       }
     },
-    [refresh, toast, checkComplementosBeforeEstado]
+    [refresh, toast, checkComplementosBeforeEstado, isMultiTipo, unidades, getUnitTipologias, tipologias, updateLocal]
   );
 
   const handleBulkTipologiaChange = useCallback(async () => {
     if (selectedIds.size === 0 || !bulkTipologiaId) return;
+    // Filter out committed units
+    const eligibleIds = Array.from(selectedIds).filter(id => {
+      const u = unidades.find(un => un.id === id);
+      return u && !["vendida", "reservada", "separado"].includes(u.estado);
+    });
+    if (eligibleIds.length === 0) {
+      toast.error("No se pueden modificar tipologías de unidades vendidas/reservadas/separadas.");
+      return;
+    }
     setBulkLoading(true);
     try {
       const newTipId = bulkTipologiaId === "__none__" ? null : bulkTipologiaId;
-      const promises = Array.from(selectedIds).map((id) =>
+      const promises = eligibleIds.map((id) =>
         fetch(`/api/unidades/${id}`, {
           method: "PUT",
           headers: { "Content-Type": "application/json" },
@@ -1424,12 +1937,134 @@ export default function InventarioPage() {
     await refresh();
   }, [refresh]);
 
+  // Save inventory column config
+  const handleSaveColumns = useCallback(async (config: InventoryColumnConfig | null) => {
+    try {
+      const res = await fetch(`/api/proyectos/${projectId}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ inventory_columns: config }),
+      });
+      if (!res.ok) throw new Error("Error saving columns");
+      await refresh();
+    } catch {
+      toast.error("Error al guardar configuración de columnas");
+    }
+  }, [projectId, refresh, toast]);
+
+  // Toggle a single tipología on/off for a unit (multi-tipo mode)
+  const handleToggleUnitTipo = useCallback(async (unitId: string, tipoId: string, add: boolean) => {
+    // Block changes on committed units (vendida, reservada, separado)
+    const targetUnit = unidades.find(u => u.id === unitId);
+    if (targetUnit && ["vendida", "reservada", "separado"].includes(targetUnit.estado)) return;
+    // Optimistic update
+    updateLocal((prev) => {
+      const existingUT = prev.unidad_tipologias ?? [];
+      const newUT = add
+        ? [...existingUT, { id: crypto.randomUUID(), proyecto_id: projectId, unidad_id: unitId, tipologia_id: tipoId, created_at: new Date().toISOString() }]
+        : existingUT.filter((ut) => !(ut.unidad_id === unitId && ut.tipologia_id === tipoId));
+      // If removing the confirmed tipología, clear it
+      const newUnidades = !add
+        ? prev.unidades.map((u) => u.id === unitId && u.tipologia_id === tipoId ? { ...u, tipologia_id: null } : u)
+        : prev.unidades;
+      return { ...prev, unidad_tipologias: newUT, unidades: newUnidades };
+    });
+    try {
+      if (add) {
+        await fetch("/api/unidad-tipologias", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ proyecto_id: projectId, unidad_ids: [unitId], tipologia_ids: [tipoId] }),
+        });
+      } else {
+        await fetch("/api/unidad-tipologias", {
+          method: "DELETE",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ proyecto_id: projectId, unidad_ids: [unitId], tipologia_ids: [tipoId] }),
+        });
+        // If we removed the confirmed tipología, clear it
+        const unit = unidades.find((u) => u.id === unitId);
+        if (unit?.tipologia_id === tipoId) {
+          await fetch(`/api/unidades/${unitId}`, {
+            method: "PUT",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ tipologia_id: null }),
+          });
+        }
+      }
+      await refresh();
+    } catch {
+      toast.error("Error al actualizar tipologías");
+      await refresh();
+    }
+  }, [projectId, unidades, updateLocal, refresh, toast]);
+
+  // Handle confirming tipología in the required modal (multi-tipo mode)
+  const handleTipologiaRequiredConfirm = useCallback(async (tipoId: string) => {
+    if (!tipologiaRequiredModal) return;
+    const { unitId, newEstado } = tipologiaRequiredModal;
+    try {
+      // First set the confirmed tipología
+      await fetch(`/api/unidades/${unitId}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ tipologia_id: tipoId }),
+      });
+      // Then set the estado
+      await fetch(`/api/unidades/${unitId}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ estado: newEstado }),
+      });
+      setTipologiaRequiredModal(null);
+      await refresh();
+    } catch {
+      toast.error("Error al confirmar tipología");
+    }
+  }, [tipologiaRequiredModal, refresh, toast]);
+
+  // Bulk assign tipologías in multi-tipo mode
+  const handleBulkMultiTipoAssign = useCallback(async () => {
+    if (selectedIds.size === 0 || bulkMultiTipoIds.length === 0) return;
+    // Filter out committed units (vendida, reservada, separado)
+    const eligibleIds = Array.from(selectedIds).filter(id => {
+      const u = unidades.find(un => un.id === id);
+      return u && !["vendida", "reservada", "separado"].includes(u.estado);
+    });
+    if (eligibleIds.length === 0) {
+      toast.error("No se pueden modificar tipologías de unidades vendidas/reservadas/separadas.");
+      return;
+    }
+    setBulkMultiTipoLoading(true);
+    try {
+      const res = await fetch("/api/unidad-tipologias", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          proyecto_id: projectId,
+          unidad_ids: eligibleIds,
+          tipologia_ids: bulkMultiTipoIds,
+        }),
+      });
+      if (!res.ok) throw new Error("Error assigning tipologías");
+      setBulkMultiTipoIds([]);
+      setSelectedIds(new Set());
+      await refresh();
+    } catch {
+      toast.error("Error al asignar tipologías");
+    } finally {
+      setBulkMultiTipoLoading(false);
+    }
+  }, [selectedIds, bulkMultiTipoIds, projectId, refresh, toast]);
+
   // --- Build edit form initial data ---
   const getEditFormData = (u: Unidad): UnitFormData => ({
     identificador: u.identificador,
     tipologia_id: u.tipologia_id || "",
     fachada_id: u.fachada_id || "",
     piso: u.piso != null ? String(u.piso) : "",
+    lote: u.lote || "",
+    etapa_nombre: u.etapa_nombre || "",
     area_m2: u.area_m2 != null ? String(u.area_m2) : "",
     precio: u.precio != null ? String(u.precio) : "",
     estado: u.estado,
@@ -1551,6 +2186,14 @@ export default function InventarioPage() {
                         >
                           <MessageSquare size={13} className="text-[var(--site-primary)]" />
                           {t("inventario.aiChat")}
+                        </button>
+                        <div className="border-t border-[var(--border-subtle)]" />
+                        <button
+                          onClick={() => { setShowColumnsModal(true); setShowToolsMenu(false); }}
+                          className="flex items-center gap-2.5 w-full px-4 py-2.5 text-xs text-[var(--text-secondary)] hover:bg-[var(--surface-3)] hover:text-white transition-colors"
+                        >
+                          <Settings size={13} className="text-[var(--site-primary)]" />
+                          {t("general.project.columnsTitle")}
                         </button>
                       </motion.div>
                     </>
@@ -1733,6 +2376,19 @@ export default function InventarioPage() {
             ]}
             className="w-32"
           />
+          {columns.etapa && uniqueEtapas.length > 1 && (
+            <NodDoDropdown
+              variant="dashboard"
+              size="sm"
+              value={filterEtapa}
+              onChange={(val) => setFilterEtapa(val)}
+              options={[
+                { value: "", label: t("inventario.allEtapas") },
+                ...uniqueEtapas.map((e) => ({ value: e, label: e })),
+              ]}
+              className="w-36"
+            />
+          )}
           <button
             onClick={() => {
               setShowCreateForm(true);
@@ -1758,6 +2414,10 @@ export default function InventarioPage() {
             onCancel={() => setShowCreateForm(false)}
             submitting={formLoading}
             currency={(project?.moneda_base as Currency) || "COP"}
+            columns={columns}
+            isLoteBased={isLoteBased}
+            isMultiTipo={isMultiTipo}
+            existingEtapas={uniqueEtapas}
           />
         )}
       </AnimatePresence>
@@ -1855,7 +2515,7 @@ export default function InventarioPage() {
                   {t("inventario.assign")}
                 </button>
 
-                {fachadas.length > 0 && (
+                {fachadas.length > 0 && !isLoteBased && (
                   <>
                     <div className="w-px h-5 bg-[var(--border-subtle)] mx-1" />
                     <span className="text-xs text-[var(--text-tertiary)]">{t("inventario.bulkFachada")}</span>
@@ -1877,6 +2537,41 @@ export default function InventarioPage() {
                       disabled={bulkLoading || !bulkFachadaId}
                       className={btnPrimary}
                     >
+                      {t("inventario.assign")}
+                    </button>
+                  </>
+                )}
+
+                {isMultiTipo && (
+                  <>
+                    <div className="w-px h-5 bg-[var(--border-subtle)] mx-1" />
+                    <span className="text-xs text-[var(--text-tertiary)]">Asignar tipologías</span>
+                    <div className="flex flex-wrap gap-1">
+                      {tipologiasForDropdown.map((tp) => (
+                        <button
+                          key={tp.id}
+                          onClick={() => setBulkMultiTipoIds((prev) =>
+                            prev.includes(tp.id) ? prev.filter(x => x !== tp.id) : [...prev, tp.id]
+                          )}
+                          className={cn(
+                            "px-2 py-0.5 rounded-md text-[10px] font-medium transition-all border",
+                            bulkMultiTipoIds.includes(tp.id)
+                              ? "bg-[rgba(var(--site-primary-rgb),0.15)] border-[var(--site-primary)] text-[var(--site-primary)]"
+                              : "bg-[var(--surface-3)] border-[var(--border-subtle)] text-[var(--text-tertiary)] hover:border-[var(--border-default)]"
+                          )}
+                        >
+                          {tp.nombre}
+                        </button>
+                      ))}
+                    </div>
+                    <button
+                      onClick={handleBulkMultiTipoAssign}
+                      disabled={bulkMultiTipoLoading || bulkMultiTipoIds.length === 0}
+                      className={btnPrimary}
+                    >
+                      {bulkMultiTipoLoading ? (
+                        <Loader2 size={14} className="animate-spin" />
+                      ) : null}
                       {t("inventario.assign")}
                     </button>
                   </>
@@ -1917,6 +2612,11 @@ export default function InventarioPage() {
                   onCancel={() => setEditingId(null)}
                   submitting={formLoading}
                   currency={(project?.moneda_base as Currency) || "COP"}
+                  columns={columns}
+                  isLoteBased={isLoteBased}
+                  isMultiTipo={isMultiTipo}
+                  unitTipoIds={isMultiTipo ? getUnitTipologias(unit.id).map(t => t.id) : []}
+                  existingEtapas={uniqueEtapas}
                 />
               ) : (
                 <MobileUnitCard
@@ -1959,16 +2659,28 @@ export default function InventarioPage() {
                     {t("inventario.fields.identifier")}
                   </th>
                   <th className="text-left py-3 px-4 text-[var(--text-tertiary)] font-ui font-bold text-[10px] uppercase tracking-wider">
-                    {t("inventario.fields.typology")}
+                    {isMultiTipo ? "TIPOLOGÍAS" : t("inventario.fields.typology")}
                   </th>
-                  {fachadas.length > 0 && (
+                  {!isLoteBased && fachadas.length > 0 && (
                     <th className="text-left py-3 px-4 text-[var(--text-tertiary)] font-ui font-bold text-[10px] uppercase tracking-wider">
                       {t("inventario.fields.fachada")}
                     </th>
                   )}
-                  <th className="text-left py-3 px-4 text-[var(--text-tertiary)] font-ui font-bold text-[10px] uppercase tracking-wider">
-                    {t("inventario.fields.floor")}
-                  </th>
+                  {columns.piso && (
+                    <th className="text-left py-3 px-4 text-[var(--text-tertiary)] font-ui font-bold text-[10px] uppercase tracking-wider">
+                      {t("inventario.fields.floor")}
+                    </th>
+                  )}
+                  {columns.lote && (
+                    <th className="text-left py-3 px-4 text-[var(--text-tertiary)] font-ui font-bold text-[10px] uppercase tracking-wider">
+                      LOTE
+                    </th>
+                  )}
+                  {columns.etapa && (
+                    <th className="text-left py-3 px-4 text-[var(--text-tertiary)] font-ui font-bold text-[10px] uppercase tracking-wider">
+                      ETAPA
+                    </th>
+                  )}
                   <th className="text-left py-3 px-4 text-[var(--text-tertiary)] font-ui font-bold text-[10px] uppercase tracking-wider">
                     {t("inventario.fields.area")}
                   </th>
@@ -1978,18 +2690,26 @@ export default function InventarioPage() {
                   <th className="text-left py-3 px-4 text-[var(--text-tertiary)] font-ui font-bold text-[10px] uppercase tracking-wider">
                     {t("inventario.fields.state")}
                   </th>
-                  <th className="text-left py-3 px-4 text-[var(--text-tertiary)] font-ui font-bold text-[10px] uppercase tracking-wider">
-                    {t("inventario.fields.bedrooms")}
-                  </th>
-                  <th className="text-left py-3 px-4 text-[var(--text-tertiary)] font-ui font-bold text-[10px] uppercase tracking-wider">
-                    {t("inventario.fields.bathrooms")}
-                  </th>
-                  <th className="text-left py-3 px-4 text-[var(--text-tertiary)] font-ui font-bold text-[10px] uppercase tracking-wider">
-                    {t("inventario.fields.parking")}
-                  </th>
-                  <th className="text-left py-3 px-4 text-[var(--text-tertiary)] font-ui font-bold text-[10px] uppercase tracking-wider">
-                    {t("inventario.fields.storage")}
-                  </th>
+                  {columns.habitaciones && (
+                    <th className="text-left py-3 px-4 text-[var(--text-tertiary)] font-ui font-bold text-[10px] uppercase tracking-wider">
+                      {t("inventario.fields.bedrooms")}
+                    </th>
+                  )}
+                  {columns.banos && (
+                    <th className="text-left py-3 px-4 text-[var(--text-tertiary)] font-ui font-bold text-[10px] uppercase tracking-wider">
+                      {t("inventario.fields.bathrooms")}
+                    </th>
+                  )}
+                  {columns.parqueaderos && (
+                    <th className="text-left py-3 px-4 text-[var(--text-tertiary)] font-ui font-bold text-[10px] uppercase tracking-wider">
+                      {t("inventario.fields.parking")}
+                    </th>
+                  )}
+                  {columns.depositos && (
+                    <th className="text-left py-3 px-4 text-[var(--text-tertiary)] font-ui font-bold text-[10px] uppercase tracking-wider">
+                      {t("inventario.fields.storage")}
+                    </th>
+                  )}
                   <th className="text-right py-3 px-4 text-[var(--text-tertiary)] font-ui font-bold text-[10px] uppercase tracking-wider">
 
                   </th>
@@ -1999,7 +2719,7 @@ export default function InventarioPage() {
                 {filteredUnidades.length === 0 ? (
                   <tr>
                     <td
-                      colSpan={fachadas.length > 0 ? 13 : 12}
+                      colSpan={99}
                       className="py-16 text-center text-[var(--text-muted)] text-sm"
                     >
                       {unidades.length === 0
@@ -2008,7 +2728,13 @@ export default function InventarioPage() {
                     </td>
                   </tr>
                 ) : (
-                  filteredUnidades.map((unit) => (
+                  filteredUnidades.map((unit) => {
+                    const unitTipos = isMultiTipo ? getUnitTipologias(unit.id) : [];
+                    const specRanges = isMultiTipo && !unit.tipologia_id ? getUnitSpecRanges(unit.id) : null;
+                    const confirmedTipo = unit.tipologia_id ? tipologias.find(t => t.id === unit.tipologia_id) : null;
+                    const moneda = (project?.moneda_base as Currency) || "COP";
+
+                    return (
                     <motion.tr
                       key={unit.id}
                       layout
@@ -2017,7 +2743,7 @@ export default function InventarioPage() {
                       className="border-b border-[var(--border-subtle)] hover:bg-[var(--surface-2)] transition-colors group"
                     >
                       {editingId === unit.id ? (
-                        <td colSpan={fachadas.length > 0 ? 13 : 12} className="p-4">
+                        <td colSpan={99} className="p-4">
                           <UnitForm
                             initial={getEditFormData(unit)}
                             tipologias={tipologiasForDropdown}
@@ -2025,7 +2751,12 @@ export default function InventarioPage() {
                             onSubmit={(data) => handleUpdate(unit.id, data)}
                             onCancel={() => setEditingId(null)}
                             submitting={formLoading}
-                            currency={(project?.moneda_base as Currency) || "COP"}
+                            currency={moneda}
+                            columns={columns}
+                            isLoteBased={isLoteBased}
+                            isMultiTipo={isMultiTipo}
+                            unitTipoIds={unitTipos.map(t => t.id)}
+                            existingEtapas={uniqueEtapas}
                           />
                         </td>
                       ) : (
@@ -2049,18 +2780,29 @@ export default function InventarioPage() {
                             {unit.identificador}
                           </td>
                           <td className="py-3 px-4">
-                            <NodDoDropdown
-                              variant="table"
-                              size="sm"
-                              value={unit.tipologia_id || ""}
-                              onChange={(val) => handleInlineUpdate(unit.id, "tipologia_id", val || null)}
-                              options={[
-                                { value: "", label: "—" },
-                                ...tipologiasForDropdown.map((tp) => ({ value: tp.id, label: tp.nombre })),
-                              ]}
-                            />
+                            {isMultiTipo ? (
+                              <InlineMultiTipo
+                                unit={unit}
+                                unitTipos={unitTipos}
+                                allTipologias={tipologiasForDropdown}
+                                onConfirmTipo={(tipoId) => handleInlineUpdate(unit.id, "tipologia_id", tipoId)}
+                                onToggleAvailable={(tipoId, add) => handleToggleUnitTipo(unit.id, tipoId, add)}
+                              />
+                            ) : (
+                              <NodDoDropdown
+                                variant="table"
+                                size="sm"
+                                value={unit.tipologia_id || ""}
+                                onChange={(val) => handleInlineUpdate(unit.id, "tipologia_id", val || null)}
+                                disabled={["vendida", "reservada", "separado"].includes(unit.estado)}
+                                options={[
+                                  { value: "", label: "—" },
+                                  ...tipologiasForDropdown.map((tp) => ({ value: tp.id, label: tp.nombre })),
+                                ]}
+                              />
+                            )}
                           </td>
-                          {fachadas.length > 0 && (
+                          {!isLoteBased && fachadas.length > 0 && (
                             <td className="py-3 px-4">
                               <NodDoDropdown
                                 variant="table"
@@ -2074,30 +2816,76 @@ export default function InventarioPage() {
                               />
                             </td>
                           )}
+                          {columns.piso && (
+                            <td className="py-3 px-4 text-[var(--text-secondary)]">
+                              {unit.piso ?? "-"}
+                            </td>
+                          )}
+                          {columns.lote && (
+                            <td className="py-3 px-4 text-[var(--text-secondary)]">
+                              {unit.lote || "-"}
+                            </td>
+                          )}
+                          {columns.etapa && (
+                            <td className="py-3 px-4 text-[var(--text-secondary)]">
+                              {unit.etapa_nombre || "-"}
+                            </td>
+                          )}
                           <td className="py-3 px-4 text-[var(--text-secondary)]">
-                            {unit.piso ?? "-"}
+                            {isMultiTipo && !unit.tipologia_id && specRanges
+                              ? specRanges.area_min === specRanges.area_max
+                                ? `${specRanges.area_min} m²`
+                                : `${specRanges.area_min}–${specRanges.area_max} m²`
+                              : unit.area_m2 != null
+                                ? `${unit.area_m2} m²`
+                                : confirmedTipo?.area_m2 != null
+                                  ? `${confirmedTipo.area_m2} m²`
+                                  : "-"
+                            }
                           </td>
                           <td className="py-3 px-4 text-[var(--text-secondary)]">
-                            {unit.area_m2 != null ? `${unit.area_m2} m²` : "-"}
-                          </td>
-                          <td className="py-3 px-4 text-[var(--text-secondary)]">
-                            {unit.precio ? formatCurrency(unit.precio, "COP", { compact: true }) : "-"}
+                            {isMultiTipo && !unit.tipologia_id && specRanges
+                              ? specRanges.precio_min === specRanges.precio_max
+                                ? formatCurrency(specRanges.precio_min, moneda, { compact: true })
+                                : `${formatCurrency(specRanges.precio_min, moneda, { compact: true })}–${formatCurrency(specRanges.precio_max, moneda, { compact: true })}`
+                              : unit.precio
+                                ? formatCurrency(unit.precio, moneda, { compact: true })
+                                : "-"
+                            }
                           </td>
                           <td className="py-3 px-4">
                             <EstadoBadge estado={unit.estado} />
                           </td>
-                          <td className="py-3 px-4 text-[var(--text-secondary)]">
-                            {unit.habitaciones ?? "-"}
-                          </td>
-                          <td className="py-3 px-4 text-[var(--text-secondary)]">
-                            {unit.banos ?? "-"}
-                          </td>
-                          <td className="py-3 px-4 text-[var(--text-secondary)]">
-                            {unit.parqueaderos ?? "-"}
-                          </td>
-                          <td className="py-3 px-4 text-[var(--text-secondary)]">
-                            {unit.depositos ?? "-"}
-                          </td>
+                          {columns.habitaciones && (
+                            <td className="py-3 px-4 text-[var(--text-secondary)]">
+                              {isMultiTipo && !unit.tipologia_id && specRanges
+                                ? specRanges.hab_min === specRanges.hab_max
+                                  ? specRanges.hab_min
+                                  : `${specRanges.hab_min}–${specRanges.hab_max}`
+                                : unit.habitaciones ?? confirmedTipo?.habitaciones ?? "-"
+                              }
+                            </td>
+                          )}
+                          {columns.banos && (
+                            <td className="py-3 px-4 text-[var(--text-secondary)]">
+                              {isMultiTipo && !unit.tipologia_id && specRanges
+                                ? specRanges.banos_min === specRanges.banos_max
+                                  ? specRanges.banos_min
+                                  : `${specRanges.banos_min}–${specRanges.banos_max}`
+                                : unit.banos ?? confirmedTipo?.banos ?? "-"
+                              }
+                            </td>
+                          )}
+                          {columns.parqueaderos && (
+                            <td className="py-3 px-4 text-[var(--text-secondary)]">
+                              {unit.parqueaderos ?? "-"}
+                            </td>
+                          )}
+                          {columns.depositos && (
+                            <td className="py-3 px-4 text-[var(--text-secondary)]">
+                              {unit.depositos ?? "-"}
+                            </td>
+                          )}
                           <td className="py-3 px-4">
                             <div className="flex items-center justify-end gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                               <button
@@ -2122,7 +2910,8 @@ export default function InventarioPage() {
                         </>
                       )}
                     </motion.tr>
-                  ))
+                    );
+                  })
                 )}
               </tbody>
             </table>
@@ -2215,6 +3004,61 @@ export default function InventarioPage() {
               await refresh();
             }}
           />
+        )}
+      </AnimatePresence>
+
+      {/* Tipología required modal — shown when multi-tipo unit needs a confirmed tipología for estado change */}
+      <AnimatePresence>
+        {tipologiaRequiredModal && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm"
+            onClick={() => setTipologiaRequiredModal(null)}
+          >
+            <motion.div
+              initial={{ scale: 0.95, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.95, opacity: 0 }}
+              onClick={(e) => e.stopPropagation()}
+              className="bg-[var(--surface-2)] border border-[var(--border-default)] rounded-2xl p-6 max-w-md w-full mx-4 shadow-2xl"
+            >
+              <div className="flex items-center gap-3 mb-4">
+                <div className="p-2 bg-[rgba(var(--site-primary-rgb),0.1)] rounded-lg">
+                  <AlertTriangle size={18} className="text-[var(--site-primary)]" />
+                </div>
+                <h3 className="text-sm font-medium text-white">Tipología requerida</h3>
+              </div>
+              <p className="text-sm text-[var(--text-secondary)] mb-4">
+                Para cambiar el estado a <strong>{tipologiaRequiredModal.newEstado}</strong>, debes confirmar una tipología para esta unidad.
+              </p>
+              <div className="space-y-2 mb-6">
+                {tipologiaRequiredModal.availableTipos.map((tp) => (
+                  <button
+                    key={tp.id}
+                    onClick={() => handleTipologiaRequiredConfirm(tp.id)}
+                    className="flex items-center justify-between w-full px-4 py-3 rounded-xl bg-[var(--surface-3)] border border-[var(--border-subtle)] hover:border-[var(--site-primary)] transition-all text-left group"
+                  >
+                    <div>
+                      <p className="text-xs font-medium text-white">{tp.nombre}</p>
+                      <p className="text-[10px] text-[var(--text-tertiary)]">
+                        {tp.area_m2 != null ? `${tp.area_m2} m²` : ""}
+                        {tp.habitaciones != null ? ` · ${tp.habitaciones} hab` : ""}
+                        {tp.precio_desde != null ? ` · ${formatCurrency(tp.precio_desde, (project?.moneda_base as Currency) || "COP", { compact: true })}` : ""}
+                      </p>
+                    </div>
+                    <Check size={14} className="text-[var(--site-primary)] opacity-0 group-hover:opacity-100 transition-opacity" />
+                  </button>
+                ))}
+              </div>
+              <div className="flex items-center justify-end">
+                <button onClick={() => setTipologiaRequiredModal(null)} className={btnSecondary}>
+                  {t("inventario.cancel")}
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
         )}
       </AnimatePresence>
     </motion.div>

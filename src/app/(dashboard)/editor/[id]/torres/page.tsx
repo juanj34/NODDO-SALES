@@ -23,17 +23,20 @@ import {
   Home,
   Plus,
   Trash2,
+  Copy,
   Loader2,
   Eye,
   Package,
   ChevronRight,
   Sparkles,
+  Layers,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/components/dashboard/Toast";
 import { useConfirm } from "@/components/dashboard/ConfirmModal";
 import { useMediaQuery } from "@/hooks/useMediaQuery";
 import type { Torre, Fachada, Unidad } from "@/types";
+import { getInventoryColumns } from "@/lib/inventory-columns";
 import { AITextImprover } from "@/components/dashboard/AITextImprover";
 import { AmenidadesEditor } from "@/components/dashboard/AmenidadesEditor";
 
@@ -100,11 +103,14 @@ export default function TorresPage() {
   const [addPrefijo, setAddPrefijo] = useState("");
   const [addTipo, setAddTipo] = useState<"torre" | "urbanismo">(() => {
     const tipoProyecto = project?.tipo_proyecto ?? "hibrido";
-    if (tipoProyecto === "casas") return "urbanismo";
+    if (tipoProyecto === "casas" || tipoProyecto === "lotes") return "urbanismo";
     if (tipoProyecto === "apartamentos") return "torre";
     return "torre"; // Default for hibrido
   });
   const [addNameError, setAddNameError] = useState(false);
+
+  /* ── Column config (for etapa hint) ──────────────────────────── */
+  const columns = getInventoryColumns(project?.tipo_proyecto ?? "hibrido", project?.inventory_columns);
 
   /* ── Dynamic page title based on torre types ─────────────────── */
   const hasTorre = torres.some((t) => (t.tipo ?? "torre") === "torre");
@@ -230,10 +236,21 @@ export default function TorresPage() {
   /* ── Delete torre ─────────────────────────────────────────────── */
   const handleDelete = useCallback(
     async (torreId: string) => {
+      const torre = torres.find((tr) => tr.id === torreId);
+      if (!torre) return;
+      const nFach = fachadas.filter((f) => f.torre_id === torreId).length;
+      const nUni = unidades.filter((u) => u.torre_id === torreId).length;
+      const parts: string[] = [];
+      if (nUni > 0) parts.push(`${nUni} unidades`);
+      if (nFach > 0) parts.push(`${nFach} fachadas/plantas`);
+
       if (
         !(await confirm({
-          title: t("torres.deleteTitle") || "Eliminar torre",
+          title: t("torres.deleteTitle"),
           message: t("torres.deleteConfirm"),
+          description: torre.nombre,
+          details: parts.length > 0 ? `${parts.join(" y ")} serán desvinculadas` : undefined,
+          typeToConfirm: torre.nombre,
         }))
       )
         return;
@@ -275,6 +292,65 @@ export default function TorresPage() {
     [fachadas, unidades, selectedTorreId, refresh]
   );
 
+  /* ── Duplicate torre ───────────────────────────────────────────── */
+  const [duplicatingId, setDuplicatingId] = useState<string | null>(null);
+
+  const handleDuplicate = useCallback(
+    async (torre: Torre) => {
+      const label = torre.tipo === "urbanismo" ? "urbanismo" : "torre";
+      if (
+        !(await confirm({
+          title: `Duplicar ${label}`,
+          message: `Se creará una copia de "${torre.nombre}" con toda su información. Las fachadas y unidades no se copiarán.`,
+          confirmLabel: "Duplicar",
+          variant: "warning",
+        }))
+      )
+        return;
+      setDuplicatingId(torre.id);
+      try {
+        const res = await fetch("/api/torres", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            proyecto_id: projectId,
+            nombre: `${torre.nombre} (copia)`,
+            tipo: torre.tipo ?? "torre",
+            prefijo: torre.prefijo ? `${torre.prefijo}-2` : null,
+            num_pisos: torre.num_pisos,
+            pisos_sotano: torre.pisos_sotano,
+            pisos_planta_baja: torre.pisos_planta_baja,
+            pisos_podio: torre.pisos_podio,
+            pisos_residenciales: torre.pisos_residenciales,
+            pisos_rooftop: torre.pisos_rooftop,
+            descripcion: torre.descripcion,
+            amenidades: torre.amenidades,
+            amenidades_data: torre.amenidades_data,
+            caracteristicas: torre.caracteristicas,
+            imagen_portada: torre.imagen_portada,
+            logo_url: torre.logo_url,
+          }),
+        });
+        if (res.ok) {
+          const created = await res.json();
+          await refresh();
+          setSelectedTorreId(created.id);
+          setTorreDetailTab("info");
+          toast.success(`${label.charAt(0).toUpperCase() + label.slice(1)} duplicado`);
+        } else {
+          const err = await res.json().catch(() => ({ error: "Error desconocido" }));
+          toast.error(err.error || `Error ${res.status}`);
+        }
+      } catch {
+        toast.error("Error de conexión");
+      } finally {
+        setDuplicatingId(null);
+      }
+    },
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [projectId, refresh, toast]
+  );
+
   /* ════════════════════════════════════════════════════════════════
      Render — Single unified layout: sidebar always visible
      ════════════════════════════════════════════════════════════════ */
@@ -291,6 +367,21 @@ export default function TorresPage() {
         description={pageDesc}
       />
 
+      {/* ── Etapa hint for urbanismo projects ─────────────────── */}
+      {columns.etapa && hasUrbanismo && torres.length > 1 && (
+        <div className="flex items-start gap-3 p-4 mb-4 bg-[rgba(184,151,58,0.05)] border border-[rgba(184,151,58,0.15)] rounded-xl">
+          <Layers size={16} className="text-[#b8973a] mt-0.5 shrink-0" />
+          <div>
+            <p className="text-xs font-medium text-white mb-1">
+              {t("torres.etapaHintTitle")}
+            </p>
+            <p className="text-[11px] text-[var(--text-tertiary)] leading-relaxed">
+              {t("torres.etapaHintDescription")}
+            </p>
+          </div>
+        </div>
+      )}
+
       {/* ── Master-Detail Layout ──────────────────────────────── */}
       <div className={cn("flex gap-4", isMobile && "flex-col")} style={isMobile ? undefined : { minHeight: "480px" }}>
         {/* ── Sidebar (left / top on mobile) ──────────────────────── */}
@@ -306,19 +397,20 @@ export default function TorresPage() {
             const hasFloors = torre.tipo !== "urbanismo" && (torre.pisos_residenciales || torre.num_pisos);
             const nTotalFachadas = counts.fachadas + counts.plantas;
             const hasData = !!(hasFloors || nTotalFachadas > 0 || nUnidades > 0);
+            const isBusy = duplicatingId === torre.id || deletingId === torre.id;
             return (
-              <button
+              <div
                 key={torre.id}
-                onClick={() => {
-                  setSelectedTorreId(torre.id);
-                  setShowAddForm(false);
-                }}
                 className={cn(
-                  "w-full text-left p-3 rounded-xl border transition-all",
+                  "group relative w-full text-left p-3 rounded-xl border transition-all cursor-pointer",
                   isSelected
                     ? "bg-[rgba(var(--site-primary-rgb),0.08)] border-[rgba(var(--site-primary-rgb),0.3)]"
                     : "bg-[var(--surface-1)] border-[var(--border-subtle)] hover:border-[var(--border-default)]"
                 )}
+                onClick={() => {
+                  setSelectedTorreId(torre.id);
+                  setShowAddForm(false);
+                }}
               >
                 <div className="flex items-center gap-2.5">
                   <div className={cn(
@@ -327,12 +419,14 @@ export default function TorresPage() {
                       ? "bg-[rgba(var(--site-primary-rgb),0.15)]"
                       : "bg-[rgba(var(--site-primary-rgb),0.1)]"
                   )}>
-                    {torre.tipo === "urbanismo"
-                      ? <Home size={14} className="text-[var(--site-primary)]" />
-                      : <Building2 size={14} className="text-[var(--site-primary)]" />
+                    {isBusy
+                      ? <Loader2 size={14} className="text-[var(--site-primary)] animate-spin" />
+                      : torre.tipo === "urbanismo"
+                        ? <Home size={14} className="text-[var(--site-primary)]" />
+                        : <Building2 size={14} className="text-[var(--site-primary)]" />
                     }
                   </div>
-                  <div className="min-w-0">
+                  <div className="min-w-0 flex-1">
                     <p className="text-xs font-medium text-white truncate">{torre.nombre}</p>
                     {hasData ? (
                       <div className="flex items-center gap-1.5 text-[10px] text-[var(--text-muted)]">
@@ -348,8 +442,37 @@ export default function TorresPage() {
                       <p className="text-[10px] text-[var(--text-muted)] italic">{t("torres.notConfigured")}</p>
                     )}
                   </div>
+
+                  {/* Action icons — visible on hover */}
+                  <div className={cn(
+                    "flex items-center gap-0.5 shrink-0 transition-opacity",
+                    isSelected ? "opacity-100" : "opacity-0 group-hover:opacity-100"
+                  )}>
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleDuplicate(torre);
+                      }}
+                      disabled={isBusy}
+                      className="p-1.5 rounded-lg text-[var(--text-muted)] hover:text-[var(--site-primary)] hover:bg-[rgba(var(--site-primary-rgb),0.1)] transition-colors disabled:opacity-40"
+                      title="Duplicar"
+                    >
+                      <Copy size={13} />
+                    </button>
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleDelete(torre.id);
+                      }}
+                      disabled={isBusy}
+                      className="p-1.5 rounded-lg text-[var(--text-muted)] hover:text-red-400 hover:bg-red-500/10 transition-colors disabled:opacity-40"
+                      title="Eliminar"
+                    >
+                      <Trash2 size={13} />
+                    </button>
+                  </div>
                 </div>
-              </button>
+              </div>
             );
           })}
 
@@ -585,6 +708,7 @@ export default function TorresPage() {
                         <TorreEditFormInline
                           torre={selectedTorre}
                           projectId={projectId}
+                          tipoProyecto={project?.tipo_proyecto ?? "hibrido"}
                           onUpdate={handleUpdate}
                           onDelete={handleDelete}
                           deletingId={deletingId}
@@ -772,6 +896,7 @@ function UnidadesTabContent({ torre, unidades: unidadesList, tipologias, project
 interface TorreEditFormInlineProps {
   torre: Torre;
   projectId: string;
+  tipoProyecto: "apartamentos" | "casas" | "hibrido" | "lotes";
   onUpdate: (torreId: string, data: Partial<Torre>) => Promise<void>;
   onDelete: (torreId: string) => Promise<void>;
   deletingId: string | null;
@@ -780,6 +905,7 @@ interface TorreEditFormInlineProps {
 function TorreEditFormInline({
   torre,
   projectId,
+  tipoProyecto,
   onUpdate,
   onDelete,
   deletingId,
@@ -822,9 +948,13 @@ function TorreEditFormInline({
 
   return (
     <div className="space-y-4">
-      {/* Type badge */}
+      {/* Type badge — only show toggle for hibrido projects */}
       <div className="flex items-center gap-2">
-        {(["torre", "urbanismo"] as const).map((tipo) => {
+        {(["torre", "urbanismo"] as const).filter((tipo) => {
+          if (tipoProyecto === "apartamentos") return tipo === "torre";
+          if (tipoProyecto === "casas" || tipoProyecto === "lotes") return tipo === "urbanismo";
+          return true; // hibrido: both
+        }).map((tipo) => {
           const isActive = (torre.tipo ?? "torre") === tipo;
           return (
             <button

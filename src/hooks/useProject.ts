@@ -15,20 +15,26 @@ export function useProjects() {
     return await res.json();
   }, []);
 
+  const onSuccess = useCallback((data: Proyecto[]) => {
+    setProjects(data);
+    setError(null);
+  }, []);
+
+  const onError = useCallback((err: Error) => {
+    setError(err instanceof Error ? err.message : "Error al cargar proyectos");
+  }, []);
+
+  const onFinally = useCallback(() => {
+    setLoading(false);
+  }, []);
+
   const { execute: refresh, loading: retrying } = useRetry(fetchProjects, {
     maxRetries: 3,
     delay: 1000,
     backoff: 2,
-    onSuccess: (data) => {
-      setProjects(data);
-      setError(null);
-    },
-    onError: (err) => {
-      setError(err instanceof Error ? err.message : "Error al cargar proyectos");
-    },
-    onFinally: () => {
-      setLoading(false);
-    },
+    onSuccess,
+    onError,
+    onFinally,
   });
 
   useEffect(() => {
@@ -50,19 +56,23 @@ export function useProject(id: string) {
     return await res.json();
   }, [id]);
 
+  const onSuccess = useCallback((data: ProyectoCompleto) => {
+    setProject(data);
+    setError(null);
+    setLoading(false);
+  }, []);
+
+  const onError = useCallback((err: Error) => {
+    setError(err instanceof Error ? err.message : "Error al cargar proyecto");
+    setLoading(false);
+  }, []);
+
   const { execute: refresh, loading: retrying } = useRetry(fetchProject, {
     maxRetries: 3,
     delay: 1000,
     backoff: 2,
-    onSuccess: (data) => {
-      setProject(data);
-      setError(null);
-      setLoading(false);
-    },
-    onError: (err) => {
-      setError(err instanceof Error ? err.message : "Error al cargar proyecto");
-      setLoading(false);
-    },
+    onSuccess,
+    onError,
   });
 
   useEffect(() => {

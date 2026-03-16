@@ -29,7 +29,9 @@ import {
 } from "lucide-react";
 import { SiteEmptyState } from "@/components/site/SiteEmptyState";
 import VistaModal from "@/components/site/VistaModal";
-import type { Unidad, LightboxImage, VistaPiso } from "@/types";
+import { getInventoryColumns } from "@/lib/inventory-columns";
+import { resolveHotspotImages } from "@/lib/hotspot-utils";
+import type { Unidad, UnidadTipologia, LightboxImage, VistaPiso } from "@/types";
 
 function formatPrecio(precio: number): string {
   if (precio >= 1000000000) {
@@ -58,6 +60,18 @@ export default function TipologiasPage() {
   const unidades = useMemo(() => proyecto.unidades ?? [], [proyecto.unidades]);
   const torres = useMemo(() => proyecto.torres ?? [], [proyecto.torres]);
   const isMultiTorre = torres.length > 1;
+
+  // Multi-tipología mode (lot-based projects where a unit can have multiple tipología options)
+  const tipologiaMode = proyecto.tipologia_mode ?? "fija";
+  const isMultiTipo = tipologiaMode === "multiple";
+  const isCasas = proyecto.tipo_proyecto === "casas";
+  const isLotes = proyecto.tipo_proyecto === "lotes";
+  const isLoteBased = isCasas || isLotes;
+  const columns = useMemo(
+    () => getInventoryColumns(proyecto.tipo_proyecto ?? "hibrido", proyecto.inventory_columns),
+    [proyecto.tipo_proyecto, proyecto.inventory_columns]
+  );
+  const unidadTipologias = useMemo(() => proyecto.unidad_tipologias ?? [], [proyecto.unidad_tipologias]);
 
   // i18n-driven estado config and filters
   const estadoConfigDynamic = useMemo(() => getEstadoConfig(tCommon), [tCommon]);
@@ -110,7 +124,7 @@ export default function TipologiasPage() {
   }, [visibleTipologias, setPersistedTipoId]);
   const [estadoFilter, setEstadoFilter] = useState("todas");
   const [hoveredHotspot, setHoveredHotspot] = useState<string | null>(null);
-  const [activeHotspot, setActiveHotspot] = useState<{ label: string; render_url: string } | null>(null);
+  const [activeHotspot, setActiveHotspot] = useState<{ label: string; images: string[] } | null>(null);
   const [showUbicacion, setShowUbicacion] = useState(false);
   const [showRenderGallery, setShowRenderGallery] = useState(false);
   const [showVistaModal, setShowVistaModal] = useState<VistaPiso | null>(null);
@@ -206,17 +220,28 @@ export default function TipologiasPage() {
   // Filter units for current tipología (must be above early return to preserve hook order)
   const filteredUnidades = useMemo(() => {
     if (!active) return [];
-    let filtered = unidades.filter((u) => u.tipologia_id === active.id);
+    let filtered: Unidad[];
+    if (isMultiTipo) {
+      // Multi-tipología: show units that have this tipología as an option
+      const compatibleIds = new Set(
+        unidadTipologias.filter(ut => ut.tipologia_id === active.id).map(ut => ut.unidad_id)
+      );
+      filtered = unidades.filter((u) => compatibleIds.has(u.id));
+    } else {
+      filtered = unidades.filter((u) => u.tipologia_id === active.id);
+    }
     if (estadoFilter !== "todas") {
       filtered = filtered.filter((u) => u.estado === estadoFilter);
     }
     return filtered;
-  }, [unidades, active, estadoFilter]);
+  }, [unidades, active, estadoFilter, isMultiTipo, unidadTipologias]);
 
   // Count units by estado for current tipología
   const estadoCounts = useMemo(() => {
     if (!active) return { todas: 0, disponible: 0, separado: 0, reservada: 0, vendida: 0 };
-    const tipoUnidades = unidades.filter((u) => u.tipologia_id === active.id);
+    const tipoUnidades = isMultiTipo
+      ? unidades.filter(u => unidadTipologias.some(ut => ut.unidad_id === u.id && ut.tipologia_id === active.id))
+      : unidades.filter((u) => u.tipologia_id === active.id);
     return {
       todas: tipoUnidades.length,
       disponible: tipoUnidades.filter((u) => u.estado === "disponible").length,
@@ -224,30 +249,40 @@ export default function TipologiasPage() {
       reservada: tipoUnidades.filter((u) => u.estado === "reservada").length,
       vendida: tipoUnidades.filter((u) => u.estado === "vendida").length,
     };
-  }, [unidades, active]);
+  }, [unidades, active, isMultiTipo, unidadTipologias]);
 
   // Dynamic "desde" price from cheapest available unit
   const precioDesde = useMemo(() => {
     if (!active) return null;
-    const tipoUnits = unidades.filter(
-      (u) => u.tipologia_id === active.id && u.estado === "disponible" && u.precio != null
-    );
+    const tipoUnits = isMultiTipo
+      ? unidades.filter(u =>
+          u.estado === "disponible" && u.precio != null &&
+          unidadTipologias.some(ut => ut.unidad_id === u.id && ut.tipologia_id === active.id)
+        )
+      : unidades.filter(u =>
+          u.tipologia_id === active.id && u.estado === "disponible" && u.precio != null
+        );
     if (tipoUnits.length === 0) return active.precio_desde;
     return Math.min(...tipoUnits.map((u) => u.precio!));
-  }, [active, unidades]);
+  }, [active, unidades, isMultiTipo, unidadTipologias]);
 
   // Render images from hotspots for gallery lightbox
   const renderImages: LightboxImage[] = useMemo(() => {
     if (!active) return [];
-    return active.hotspots
-      .filter((h) => h.render_url)
-      .map((h) => ({
-        id: h.id,
-        url: h.render_url,
-        thumbnail_url: h.render_url,
-        alt_text: h.label,
-        label: h.label,
-      }));
+    const result: LightboxImage[] = [];
+    for (const h of active.hotspots) {
+      const imgs = resolveHotspotImages(h);
+      imgs.forEach((url, i) => {
+        result.push({
+          id: `${h.id}-${i}`,
+          url,
+          thumbnail_url: url,
+          alt_text: imgs.length > 1 ? `${h.label} (${i + 1})` : h.label,
+          label: i === 0 ? h.label : undefined,
+        });
+      });
+    }
+    return result;
   }, [active]);
 
   // Group units by floor
@@ -328,7 +363,9 @@ export default function TipologiasPage() {
         <div className="flex items-end gap-6">
           {visibleTipologias.map((tipo, idx) => {
             const isActive = idx === activeIndex;
-            const tipoUnits = unidades.filter((u) => u.tipologia_id === tipo.id);
+            const tipoUnits = isMultiTipo
+              ? unidades.filter(u => unidadTipologias.some(ut => ut.unidad_id === u.id && ut.tipologia_id === tipo.id))
+              : unidades.filter((u) => u.tipologia_id === tipo.id);
             const disponibles = tipoUnits.filter((u) => u.estado === "disponible").length;
             return (
               <button
@@ -401,7 +438,10 @@ export default function TipologiasPage() {
                           minWidth: "44px",
                           minHeight: "44px",
                         }}
-                        onClick={() => setActiveHotspot({ label: hotspot.label, render_url: hotspot.render_url })}
+                        onClick={() => {
+                          const imgs = resolveHotspotImages(hotspot);
+                          if (imgs.length > 0) setActiveHotspot({ label: hotspot.label, images: imgs });
+                        }}
                         onMouseEnter={() => setHoveredHotspot(hotspot.id)}
                         onMouseLeave={() => setHoveredHotspot(null)}
                       >
@@ -517,30 +557,30 @@ export default function TipologiasPage() {
                           </div>
 
                           <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-[var(--text-secondary)] mb-2">
-                            {selectedUnit.area_m2 && (
+                            {columns.area_m2 && selectedUnit.area_m2 && (
                               <span className="flex items-center gap-1">
                                 <Maximize size={11} /> {selectedUnit.area_m2} m²
                               </span>
                             )}
-                            {selectedUnit.piso && (
+                            {columns.piso && selectedUnit.piso && (
                               <span>{tSite("tipologias.floor")} {selectedUnit.piso}</span>
                             )}
-                            {selectedUnit.habitaciones !== null && (
+                            {columns.habitaciones && selectedUnit.habitaciones !== null && (
                               <span className="flex items-center gap-1">
                                 <BedDouble size={11} /> {selectedUnit.habitaciones} {tSite("cotizador.hab")}
                               </span>
                             )}
-                            {selectedUnit.banos !== null && (
+                            {columns.banos && selectedUnit.banos !== null && (
                               <span className="flex items-center gap-1">
                                 <Bath size={11} /> {selectedUnit.banos} {tSite("cotizador.banos")}
                               </span>
                             )}
-                            {selectedUnit.orientacion && (
+                            {columns.orientacion && selectedUnit.orientacion && (
                               <span className="flex items-center gap-1">
                                 <Compass size={11} /> {selectedUnit.orientacion}
                               </span>
                             )}
-                            {(() => {
+                            {columns.vista && (() => {
                               const unitVista = selectedUnit.vista_piso_id
                                 ? (proyecto.vistas_piso ?? []).find(v => v.id === selectedUnit.vista_piso_id)
                                 : null;
@@ -560,7 +600,7 @@ export default function TipologiasPage() {
                             })()}
                           </div>
 
-                          {selectedUnit.precio && (() => {
+                          {columns.precio && selectedUnit.precio && (() => {
                             const unitComplementos = (proyecto.parqueaderos_mode !== "sin_inventario" || proyecto.depositos_mode !== "sin_inventario")
                               ? (proyecto.complementos ?? []).filter(c => c.unidad_id === selectedUnit.id)
                               : [];
@@ -633,34 +673,42 @@ export default function TipologiasPage() {
                     </div>
                   </div>
                 </div>
-                <StatCard
-                  icon={<BedDouble size={16} />}
-                  label={tSite("explorar.bedrooms")}
-                  value={active.habitaciones === 0 ? tSite("tipologias.studio") : String(active.habitaciones)}
-                />
-                <StatCard
-                  icon={<Bath size={16} />}
-                  label={tSite("explorar.bathrooms")}
-                  value={String(active.banos)}
-                />
-                <StatCard
-                  icon={<Car size={16} />}
-                  label={tSite("explorar.parking")}
-                  value={String(active.parqueaderos ?? 0)}
-                />
-                {(active.depositos ?? 0) > 0 && (
+                {columns.habitaciones && (
+                  <StatCard
+                    icon={<BedDouble size={16} />}
+                    label={tSite("explorar.bedrooms")}
+                    value={active.habitaciones === 0 ? tSite("tipologias.studio") : String(active.habitaciones)}
+                  />
+                )}
+                {columns.banos && (
+                  <StatCard
+                    icon={<Bath size={16} />}
+                    label={tSite("explorar.bathrooms")}
+                    value={String(active.banos)}
+                  />
+                )}
+                {columns.parqueaderos && (
+                  <StatCard
+                    icon={<Car size={16} />}
+                    label={tSite("explorar.parking")}
+                    value={String(active.parqueaderos ?? 0)}
+                  />
+                )}
+                {columns.depositos && (active.depositos ?? 0) > 0 && (
                   <StatCard
                     icon={<Archive size={16} />}
                     label={tSite("explorar.storage")}
                     value={String(active.depositos)}
                   />
                 )}
-                <div className="glass-card rounded-2xl p-3 flex flex-col items-center justify-center text-center">
-                  <span className="text-[10px] tracking-wider text-[var(--text-tertiary)] uppercase mb-1">{tSite("tipologias.from")}</span>
-                  <span className="text-sm font-semibold text-[var(--site-primary)]">
-                    {precioDesde ? formatPrecio(precioDesde) : "—"}
-                  </span>
-                </div>
+                {columns.precio && (
+                  <div className="glass-card rounded-2xl p-3 flex flex-col items-center justify-center text-center">
+                    <span className="text-[10px] tracking-wider text-[var(--text-tertiary)] uppercase mb-1">{tSite("tipologias.from")}</span>
+                    <span className="text-sm font-semibold text-[var(--site-primary)]">
+                      {precioDesde ? formatPrecio(precioDesde) : "—"}
+                    </span>
+                  </div>
+                )}
               </div>
             </motion.div>
           </AnimatePresence>
@@ -815,17 +863,31 @@ export default function TipologiasPage() {
                               <div className="flex-1 min-w-0">
                                 <p className="text-sm text-white/80 font-medium truncate">
                                   {unit.identificador}
+                                  {isMultiTipo && (() => {
+                                    const count = unidadTipologias.filter(ut => ut.unidad_id === unit.id).length;
+                                    return count > 1 ? (
+                                      <span className="text-[10px] text-[var(--text-muted)] ml-1">
+                                        · {count} tipos
+                                      </span>
+                                    ) : null;
+                                  })()}
                                 </p>
                                 <p className="text-[10px] text-[var(--text-tertiary)] tracking-wider">
-                                  {tSite("tipologias.floor")} {unit.piso} · {unit.area_m2} m² · {unit.orientacion}
+                                  {[
+                                    columns.piso && unit.piso ? `${tSite("tipologias.floor")} ${unit.piso}` : null,
+                                    columns.area_m2 && unit.area_m2 ? `${unit.area_m2} m²` : null,
+                                    columns.orientacion && unit.orientacion ? unit.orientacion : null,
+                                  ].filter(Boolean).join(" · ")}
                                 </p>
                               </div>
 
-                              {/* Price */}
+                              {/* Price & Status */}
                               <div className="text-right flex-shrink-0">
-                                <p className="text-sm text-white/70 font-medium">
-                                  {unit.precio ? formatPrecio(unit.precio) : "—"}
-                                </p>
+                                {columns.precio && (
+                                  <p className="text-sm text-white/70 font-medium">
+                                    {unit.precio ? formatPrecio(unit.precio) : "—"}
+                                  </p>
+                                )}
                                 <p className={cn("text-[10px] tracking-wider", config.color)}>
                                   {config.label}
                                 </p>
@@ -843,9 +905,9 @@ export default function TipologiasPage() {
         </div>
       </div>
 
-      {/* ====== HOTSPOT RENDER MODAL ====== */}
+      {/* ====== HOTSPOT RENDER MODAL / SLIDESHOW ====== */}
       <AnimatePresence>
-        {activeHotspot && (
+        {activeHotspot && activeHotspot.images.length === 1 && (
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
@@ -857,7 +919,7 @@ export default function TipologiasPage() {
             {/* Blur backdrop */}
             <div className="absolute inset-0 bg-black/60 backdrop-blur-md" />
 
-            {/* Modal content */}
+            {/* Modal content — single image */}
             <motion.div
               initial={{ opacity: 0, scale: 0.92 }}
               animate={{ opacity: 1, scale: 1 }}
@@ -866,8 +928,9 @@ export default function TipologiasPage() {
               className="relative max-w-[85vw] max-h-[85vh] rounded-2xl overflow-hidden shadow-2xl"
               onClick={(e) => e.stopPropagation()}
             >
+              {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
-                src={activeHotspot.render_url}
+                src={activeHotspot.images[0]}
                 alt={activeHotspot.label}
                 className="max-w-[85vw] max-h-[80vh] object-contain"
               />
@@ -886,6 +949,23 @@ export default function TipologiasPage() {
               />
             </motion.div>
           </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Lightbox slideshow — multi-image hotspot */}
+      <AnimatePresence>
+        {activeHotspot && activeHotspot.images.length > 1 && (
+          <Lightbox
+            images={activeHotspot.images.map((url, i) => ({
+              id: `hotspot-${i}`,
+              url,
+              thumbnail_url: url,
+              alt_text: activeHotspot.images.length > 1 ? `${activeHotspot.label} (${i + 1})` : activeHotspot.label,
+              label: i === 0 ? activeHotspot.label : undefined,
+            }))}
+            initialIndex={0}
+            onClose={() => setActiveHotspot(null)}
+          />
         )}
       </AnimatePresence>
 
@@ -958,6 +1038,7 @@ export default function TipologiasPage() {
           proyectoId={proyecto.id}
           cotizadorEnabled={proyecto.cotizador_enabled}
           cotizadorConfig={proyecto.cotizador_config}
+          tipoProyecto={proyecto.tipo_proyecto}
         />
       )}
     </SectionTransition>

@@ -3,7 +3,7 @@
 import Image from "next/image";
 import { useState, useRef, useCallback, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Trash2, MapPin, Loader2 } from "lucide-react";
+import { Trash2, MapPin, Loader2, ChevronUp, ChevronDown, X, Images } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useHotspotCanvas } from "@/hooks/useHotspotCanvas";
 import {
@@ -14,6 +14,7 @@ import {
 } from "@/components/dashboard/editor-styles";
 import { FileUploader } from "@/components/dashboard/FileUploader";
 import type { PlanoPunto, Fachada, Torre } from "@/types";
+import { resolveHotspotImages, syncRenderUrl } from "@/lib/hotspot-utils";
 import { useTranslation } from "@/i18n";
 import { NodDoDropdown } from "@/components/ui/NodDoDropdown";
 
@@ -32,6 +33,7 @@ interface PlanoHotspotEditorProps {
     descripcion: string | null;
     imagen_url: string | null;
     render_url: string | null;
+    renders: string[];
     fachada_id: string | null;
     torre_id: string | null;
     x: number;
@@ -70,6 +72,7 @@ export function PlanoHotspotEditor({
   const [formDescripcion, setFormDescripcion] = useState("");
   const [formImagenUrl, setFormImagenUrl] = useState("");
   const [formRenderUrl, setFormRenderUrl] = useState("");
+  const [formRenders, setFormRenders] = useState<string[]>([]);
   const [formFachadaId, setFormFachadaId] = useState("");
   const [formTorreId, setFormTorreId] = useState("");
   const [saving, setSaving] = useState(false);
@@ -121,6 +124,7 @@ export function PlanoHotspotEditor({
     setFormDescripcion("");
     setFormImagenUrl("");
     setFormRenderUrl("");
+    setFormRenders([]);
     setFormFachadaId("");
     setFormTorreId("");
   }, []);
@@ -132,6 +136,7 @@ export function PlanoHotspotEditor({
     setFormDescripcion(punto.descripcion || "");
     setFormImagenUrl(punto.imagen_url || "");
     setFormRenderUrl(punto.render_url || "");
+    setFormRenders(resolveHotspotImages(punto));
     setFormFachadaId(punto.fachada_id || "");
     setFormTorreId(punto.torre_id || "");
   }, []);
@@ -156,6 +161,7 @@ export function PlanoHotspotEditor({
     setFormDescripcion("");
     setFormImagenUrl("");
     setFormRenderUrl("");
+    setFormRenders([]);
     setFormFachadaId("");
     setFormTorreId("");
   };
@@ -170,7 +176,8 @@ export function PlanoHotspotEditor({
         titulo: formTitulo.trim(),
         descripcion: formDescripcion.trim() || null,
         imagen_url: formImagenUrl || null,
-        render_url: formRenderUrl || null,
+        render_url: syncRenderUrl(formRenders) || formRenderUrl || null,
+        renders: formRenders,
         fachada_id: formFachadaId || null,
         torre_id: formTorreId || null,
         x: Math.round(previewDot.x * 100) / 100,
@@ -190,7 +197,8 @@ export function PlanoHotspotEditor({
         titulo: formTitulo.trim(),
         descripcion: formDescripcion.trim() || null,
         imagen_url: formImagenUrl || null,
-        render_url: formRenderUrl || null,
+        render_url: syncRenderUrl(formRenders) || formRenderUrl || null,
+        renders: formRenders,
         fachada_id: formFachadaId || null,
         torre_id: formTorreId || null,
       });
@@ -347,6 +355,7 @@ export function PlanoHotspotEditor({
       setFormDescripcion("");
       setFormImagenUrl("");
       setFormRenderUrl("");
+      setFormRenders([]);
       setFormFachadaId("");
       setFormTorreId("");
     };
@@ -567,15 +576,56 @@ export function PlanoHotspotEditor({
                     rows={2}
                     className={cn(inputClass, "resize-none text-xs !py-1.5")}
                   />
+                  {/* Multi-image panel */}
                   <div>
-                    <label className={cn(labelClass, "!text-[10px] !mb-1")}>
-                      {t("planos.renderLabel")}
+                    <label className={cn(labelClass, "!text-[10px] !mb-1 flex items-center gap-1.5")}>
+                      <Images size={10} />
+                      {t("hotspotEditor.images")} ({formRenders.length})
                     </label>
+                    {formRenders.length > 0 && (
+                      <div className="space-y-1 mb-2">
+                        {formRenders.map((url, i) => (
+                          <div
+                            key={`${url}-${i}`}
+                            className="flex items-center gap-1.5 p-1 rounded-lg bg-[var(--surface-3)] border border-[var(--border-subtle)]"
+                          >
+                            <div className="relative w-9 h-7 rounded overflow-hidden bg-[var(--surface-2)] shrink-0">
+                              <Image src={url} alt={`Render ${i + 1}`} fill className="object-cover" />
+                            </div>
+                            <span className="text-[9px] text-[var(--text-tertiary)] shrink-0">{i + 1}</span>
+                            <div className="flex-1" />
+                            <button
+                              type="button"
+                              onClick={() => { const n = [...formRenders]; [n[i - 1], n[i]] = [n[i], n[i - 1]]; setFormRenders(n); }}
+                              disabled={i === 0}
+                              className="p-0.5 text-[var(--text-muted)] hover:text-[var(--text-secondary)] disabled:opacity-20 transition-colors"
+                            >
+                              <ChevronUp size={11} />
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => { const n = [...formRenders]; [n[i], n[i + 1]] = [n[i + 1], n[i]]; setFormRenders(n); }}
+                              disabled={i === formRenders.length - 1}
+                              className="p-0.5 text-[var(--text-muted)] hover:text-[var(--text-secondary)] disabled:opacity-20 transition-colors"
+                            >
+                              <ChevronDown size={11} />
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => setFormRenders(formRenders.filter((_, idx) => idx !== i))}
+                              className="p-0.5 text-[var(--text-muted)] hover:text-red-400 transition-colors"
+                            >
+                              <X size={11} />
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+                    )}
                     <FileUploader
-                      currentUrl={formRenderUrl || null}
-                      onUpload={(url) => setFormRenderUrl(url)}
+                      currentUrl={null}
+                      onUpload={(url) => setFormRenders([...formRenders, url])}
                       folder={uploadFolder}
-                      label={t("planos.renderLabel")}
+                      label={t("hotspotEditor.addImage")}
                     />
                   </div>
                 </div>
@@ -706,10 +756,25 @@ export function PlanoHotspotEditor({
                         >
                           {index + 1}
                         </span>
-                        {/* Render thumbnail */}
-                        {tipo === "urbanismo" && punto.render_url && (
-                          <Image src={punto.render_url} alt="undefined" width={400} height={300} className="w-10 h-10 rounded object-cover shrink-0" />
-                        )}
+                        {/* Render thumbnails */}
+                        {tipo === "urbanismo" && (() => {
+                          const imgs = resolveHotspotImages(punto);
+                          if (imgs.length === 0) return null;
+                          return (
+                            <div className="flex -space-x-1 shrink-0">
+                              {imgs.slice(0, 3).map((url, idx) => (
+                                <div key={idx} className="relative w-8 h-8 rounded overflow-hidden bg-[var(--surface-2)] border border-[var(--surface-1)]">
+                                  <Image src={url} alt={punto.titulo} fill className="object-cover" />
+                                </div>
+                              ))}
+                              {imgs.length > 3 && (
+                                <span className="w-8 h-8 rounded bg-[var(--surface-3)] border border-[var(--surface-1)] flex items-center justify-center text-[9px] text-[var(--text-muted)]">
+                                  +{imgs.length - 3}
+                                </span>
+                              )}
+                            </div>
+                          );
+                        })()}
                         {/* Info */}
                         <div className="flex-1 min-w-0">
                           <p className="text-xs text-[var(--text-primary)] font-medium truncate">

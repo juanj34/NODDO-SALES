@@ -259,7 +259,8 @@ export default function VideosPage() {
           body: JSON.stringify(payload),
         });
         if (!res.ok) {
-          toast.error("Error al guardar video");
+          const err = await res.json().catch(() => null);
+          toast.error(err?.error || "Error al guardar video");
           return;
         }
       } else {
@@ -269,7 +270,8 @@ export default function VideosPage() {
           body: JSON.stringify({ ...payload, proyecto_id: projectId }),
         });
         if (!res.ok) {
-          toast.error("Error al crear video");
+          const err = await res.json().catch(() => null);
+          toast.error(err?.error || "Error al crear video");
           return;
         }
       }

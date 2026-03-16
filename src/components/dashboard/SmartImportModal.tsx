@@ -89,6 +89,8 @@ const ESTADO_COLORS: Record<string, string> = {
 const DB_FIELD_LABELS_UNIDADES: Record<string, string> = {
   identificador: "Identificador",
   piso: "Piso",
+  lote: "Lote",
+  etapa_nombre: "Etapa",
   area_m2: "Área (m²)",
   precio: "Precio",
   estado: "Estado",
@@ -193,6 +195,8 @@ export function SmartImportModal({
   onClose,
   onDone,
   importMode: initialMode = "unidades",
+  tipoProyecto = "apartamentos",
+  tipologiaMode = "fija",
 }: {
   tipologias: Tipologia[];
   torres: Torre[];
@@ -202,7 +206,12 @@ export function SmartImportModal({
   onClose: () => void;
   onDone: () => void;
   importMode?: ImportMode;
+  tipoProyecto?: "apartamentos" | "casas" | "hibrido" | "lotes";
+  tipologiaMode?: "fija" | "multiple";
 }) {
+  const isCasas = tipoProyecto === "casas" || tipoProyecto === "hibrido";
+  const isLotes = tipoProyecto === "lotes";
+  const isLoteBased = isCasas || isLotes;
   // ---- State ----
   const [step, setStep] = useState<Step>("upload");
   const [importMode, setImportMode] = useState<ImportMode>(initialMode);
@@ -502,6 +511,8 @@ export function SmartImportModal({
 
         return {
           ...u,
+          lote: u.lote ?? (defaults.lote || null),
+          etapa_nombre: u.etapa_nombre ?? (defaults.etapa_nombre || null),
           area_m2:
             u.area_m2 ?? (defaults.area_m2 ? parseFloat(defaults.area_m2) : null),
           precio:
@@ -587,6 +598,8 @@ export function SmartImportModal({
           fachada_id: u._fachada_id || null,
           torre_id: u._torre_id || null,
           piso: u.piso,
+          lote: u.lote || null,
+          etapa_nombre: u.etapa_nombre || null,
           area_m2: u.area_m2,
           precio: u.precio,
           estado: u.estado,
@@ -642,6 +655,7 @@ export function SmartImportModal({
       const intFields = ["piso", "habitaciones", "banos", "parqueaderos", "depositos"];
       const floatFields = ["area_m2", "precio"];
 
+      const stringFields = ["lote", "etapa_nombre", "orientacion", "vista", "notas", "identificador"];
       if (intFields.includes(field)) {
         (unit as unknown as Record<string, number | null>)[field] = value
           ? parseInt(value) || null
@@ -652,6 +666,8 @@ export function SmartImportModal({
           : null;
       } else if (field === "estado") {
         unit.estado = value as EstadoUnidad;
+      } else if (stringFields.includes(field)) {
+        (unit as unknown as Record<string, string | null>)[field] = value || null;
       } else if (field === "_torre_id" || field === "_tipologia_id") {
         (unit as unknown as Record<string, string>)[field] = value;
       } else {
@@ -842,7 +858,9 @@ export function SmartImportModal({
                         {torres.length === 0 && (
                           <p className="flex items-center gap-1.5 text-[11px] text-[var(--text-secondary)] leading-relaxed">
                             <Building2 size={11} className="text-[#b8973a] shrink-0" />
-                            Crea al menos una torre o etapa en la pestaña &quot;Torres&quot;
+                            {tipoProyecto === "apartamentos"
+                              ? 'Crea al menos una torre en la pestaña "Torres"'
+                              : 'Crea al menos una etapa en la pestaña "Etapas"'}
                           </p>
                         )}
                         {tipologias.length === 0 && (
@@ -1157,8 +1175,10 @@ export function SmartImportModal({
                 {Object.keys(etapaToTorre).length > 0 && torres.length > 0 && (
                   <SectionCard
                     icon={Building2}
-                    title="Etapas → Torres"
-                    description="Asigna cada valor de etapa detectado a una torre o manzana del proyecto"
+                    title={tipoProyecto === "apartamentos" ? "Etapas → Torres" : "Etapas → Etapas"}
+                    description={tipoProyecto === "apartamentos"
+                      ? "Asigna cada valor de etapa detectado a una torre del proyecto"
+                      : "Asigna cada valor de etapa detectado a una etapa o manzana del proyecto"}
                     count={Object.keys(etapaToTorre).length}
                   >
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
@@ -1453,15 +1473,13 @@ export function SmartImportModal({
                           "ID",
                           "Torre",
                           "Tipología",
-                          ...(fachadas.length > 0 ? ["Fachada"] : []),
-                          "Piso",
+                          ...(fachadas.length > 0 && !isLoteBased ? ["Fachada"] : []),
+                          ...(!isLoteBased ? ["Piso"] : []),
+                          ...(isLoteBased ? ["Lote", "Etapa"] : []),
                           "Área m²",
                           "Precio",
                           "Estado",
-                          "Hab",
-                          "Baños",
-                          "Parq",
-                          "Dep",
+                          ...(!isLotes ? ["Hab", "Baños", "Parq", "Dep"] : []),
                         ].map((h) => (
                           <th
                             key={h}
@@ -1568,7 +1586,7 @@ export function SmartImportModal({
                               ))}
                             </select>
                           </td>
-                          {fachadas.length > 0 && (
+                          {fachadas.length > 0 && !isLoteBased && (
                             <td className="py-1.5 px-2">
                               <select
                                 value={u._fachada_id}
@@ -1599,16 +1617,40 @@ export function SmartImportModal({
                               </select>
                             </td>
                           )}
-                          <td className="py-1.5 px-2">
-                            <input
-                              value={u.piso ?? ""}
-                              onChange={(e) =>
-                                updatePreviewField(i, "piso", e.target.value)
-                              }
-                              className={cn(cellInputClass, "w-10")}
-                              type="number"
-                            />
-                          </td>
+                          {!isLoteBased && (
+                            <td className="py-1.5 px-2">
+                              <input
+                                value={u.piso ?? ""}
+                                onChange={(e) =>
+                                  updatePreviewField(i, "piso", e.target.value)
+                                }
+                                className={cn(cellInputClass, "w-10")}
+                                type="number"
+                              />
+                            </td>
+                          )}
+                          {isLoteBased && (
+                            <>
+                              <td className="py-1.5 px-2">
+                                <input
+                                  value={u.lote ?? ""}
+                                  onChange={(e) =>
+                                    updatePreviewField(i, "lote", e.target.value)
+                                  }
+                                  className={cn(cellInputClass, "w-16")}
+                                />
+                              </td>
+                              <td className="py-1.5 px-2">
+                                <input
+                                  value={u.etapa_nombre ?? ""}
+                                  onChange={(e) =>
+                                    updatePreviewField(i, "etapa_nombre", e.target.value)
+                                  }
+                                  className={cn(cellInputClass, "w-20")}
+                                />
+                              </td>
+                            </>
+                          )}
                           <td className="py-1.5 px-2">
                             <input
                               value={u.area_m2 ?? ""}
@@ -1663,62 +1705,70 @@ export function SmartImportModal({
                               </select>
                             </div>
                           </td>
-                          <td className="py-1.5 px-2">
-                            <input
-                              value={u.habitaciones ?? ""}
-                              onChange={(e) =>
-                                updatePreviewField(
-                                  i,
-                                  "habitaciones",
-                                  e.target.value
-                                )
-                              }
-                              className={cn(cellInputClass, "w-10")}
-                              type="number"
-                            />
-                          </td>
-                          <td className="py-1.5 px-2">
-                            <input
-                              value={u.banos ?? ""}
-                              onChange={(e) =>
-                                updatePreviewField(
-                                  i,
-                                  "banos",
-                                  e.target.value
-                                )
-                              }
-                              className={cn(cellInputClass, "w-10")}
-                              type="number"
-                            />
-                          </td>
-                          <td className="py-1.5 px-2">
-                            <input
-                              value={u.parqueaderos ?? ""}
-                              onChange={(e) =>
-                                updatePreviewField(
-                                  i,
-                                  "parqueaderos",
-                                  e.target.value
-                                )
-                              }
-                              className={cn(cellInputClass, "w-10")}
-                              type="number"
-                            />
-                          </td>
-                          <td className="py-1.5 px-2">
-                            <input
-                              value={u.depositos ?? ""}
-                              onChange={(e) =>
-                                updatePreviewField(
-                                  i,
-                                  "depositos",
-                                  e.target.value
-                                )
-                              }
-                              className={cn(cellInputClass, "w-10")}
-                              type="number"
-                            />
-                          </td>
+                          {!isLotes && (
+                            <td className="py-1.5 px-2">
+                              <input
+                                value={u.habitaciones ?? ""}
+                                onChange={(e) =>
+                                  updatePreviewField(
+                                    i,
+                                    "habitaciones",
+                                    e.target.value
+                                  )
+                                }
+                                className={cn(cellInputClass, "w-10")}
+                                type="number"
+                              />
+                            </td>
+                          )}
+                          {!isLotes && (
+                            <td className="py-1.5 px-2">
+                              <input
+                                value={u.banos ?? ""}
+                                onChange={(e) =>
+                                  updatePreviewField(
+                                    i,
+                                    "banos",
+                                    e.target.value
+                                  )
+                                }
+                                className={cn(cellInputClass, "w-10")}
+                                type="number"
+                              />
+                            </td>
+                          )}
+                          {!isLotes && (
+                            <td className="py-1.5 px-2">
+                              <input
+                                value={u.parqueaderos ?? ""}
+                                onChange={(e) =>
+                                  updatePreviewField(
+                                    i,
+                                    "parqueaderos",
+                                    e.target.value
+                                  )
+                                }
+                                className={cn(cellInputClass, "w-10")}
+                                type="number"
+                              />
+                            </td>
+                          )}
+                          {!isLotes && (
+                            <td className="py-1.5 px-2">
+                              <input
+                                value={u.depositos ?? ""}
+                                onChange={(e) =>
+                                  updatePreviewField(
+                                    i,
+                                    "depositos",
+                                    e.target.value
+                                  )
+                                }
+                                className={cn(cellInputClass, "w-10")}
+                                type="number"
+                              />
+                            </td>
+                          )}
                         </tr>
                       ))}
                     </tbody>

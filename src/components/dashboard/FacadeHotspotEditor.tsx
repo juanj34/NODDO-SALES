@@ -2,14 +2,17 @@
 
 import { useState, useRef, useCallback, useEffect, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { X, Search, Trash2, Unlink, AlertTriangle, XCircle, Copy, Grid3X3, CopyPlus, ArrowUp, ArrowDown, GripVertical } from "lucide-react";
+import {
+  X, Search, Trash2, Unlink, AlertTriangle, XCircle,
+  Copy, Grid3X3, CopyPlus, ArrowUp, ArrowDown, GripVertical,
+} from "lucide-react";
 import { cn } from "@/lib/utils";
 import { AlignmentToolbar } from "@/components/dashboard/AlignmentToolbar";
 import { useHotspotCanvas } from "@/hooks/useHotspotCanvas";
 import type { Unidad, Fachada } from "@/types";
 
 /* ------------------------------------------------------------------
-   Status color map
+   Constants
    ------------------------------------------------------------------ */
 const STATUS_COLORS: Record<Unidad["estado"], string> = {
   disponible: "#22c55e",
@@ -26,8 +29,8 @@ const STATUS_LABELS: Record<Unidad["estado"], string> = {
 };
 
 const EMPTY_DOT_COLOR = "#ffffff";
-
-const SELECTION_COLOR = "#38bdf8";       // sky-400 — high contrast on light/dark
+const SELECTION_COLOR = "#38bdf8";
+const DRAG_THRESHOLD = 5; // px
 
 /* ------------------------------------------------------------------
    Types
@@ -38,6 +41,8 @@ interface HotspotUnit {
   estado: Unidad["estado"];
   fachada_x: number;
   fachada_y: number;
+  tipologiaNombre?: string | null;
+  habitaciones?: number | null;
 }
 
 interface EmptyDot {
@@ -46,21 +51,59 @@ interface EmptyDot {
   y: number;
 }
 
+interface UnassignedUnit {
+  id: string;
+  identificador: string;
+  estado: Unidad["estado"];
+  tipologiaNombre?: string | null;
+  habitaciones?: number | null;
+}
+
 interface FacadeHotspotEditorProps {
   fachada: Fachada;
   assignedUnits: HotspotUnit[];
-  unassignedUnits: { id: string; identificador: string; estado: Unidad["estado"]; tipologiaNombre?: string | null; habitaciones?: number | null }[];
+  unassignedUnits: UnassignedUnit[];
   onUpdateUnit: (
     unitId: string,
     data: { fachada_id: string; fachada_x: number; fachada_y: number }
   ) => Promise<void>;
   onRemoveUnit: (unitId: string) => Promise<void>;
   onClearAll: (fachadaId: string) => Promise<void>;
-  onEmptyDotsChange?: (fachadaId: string, puntos: { x: number; y: number }[]) => void;
+}
+
+/* Transient (non-render) state types */
+interface DragState {
+  dotId: string;
+  isEmptyDot: boolean;
+  startX: number;
+  startY: number;
+  origPositions: Map<string, { x: number; y: number }>;
+  origEmptyDots: EmptyDot[];
+}
+
+interface DotInteraction {
+  dotId: string;
+  isEmptyDot: boolean;
+  startClientX: number;
+  startClientY: number;
+  moved: boolean;
+}
+
+interface CanvasMouseDown {
+  startClientX: number;
+  startClientY: number;
+  pos: { x: number; y: number };
+}
+
+interface RectSelectState {
+  startX: number;
+  startY: number;
+  currentX: number;
+  currentY: number;
 }
 
 /* ------------------------------------------------------------------
-   Grid generation helpers (pure functions)
+   Pure grid generation helpers
    ------------------------------------------------------------------ */
 function generateRowRepeat(
   sourceDots: { x: number; y: number }[],
@@ -85,12 +128,8 @@ function generateRowRepeat(
 }
 
 function generateGrid(
-  cols: number,
-  rows: number,
-  x1: number,
-  y1: number,
-  x2: number,
-  y2: number
+  cols: number, rows: number,
+  x1: number, y1: number, x2: number, y2: number
 ): EmptyDot[] {
   const result: EmptyDot[] = [];
   for (let r = 0; r < rows; r++) {
@@ -117,16 +156,13 @@ export function FacadeHotspotEditor({
   onUpdateUnit,
   onRemoveUnit,
   onClearAll,
-  onEmptyDotsChange,
 }: FacadeHotspotEditorProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const imgRef = useRef<HTMLImageElement>(null);
   const menuSearchRef = useRef<HTMLInputElement>(null);
 
-  // Local positions for assigned units (instant drag feedback; persisted on mouseUp)
+  /* ---- Render-affecting state ---- */
   const [positions, setPositions] = useState<Map<string, { x: number; y: number }>>(new Map());
-
-  // Empty (unassigned) dots — persisted to fachada.puntos_vacios
   const [emptyDots, setEmptyDots] = useState<EmptyDot[]>(() =>
     (fachada.puntos_vacios ?? []).map((p) => ({
       localId: crypto.randomUUID(),
@@ -134,134 +170,121 @@ export function FacadeHotspotEditor({
       y: p.y,
     }))
   );
-
-  // Selection (can contain both unit ids and empty dot localIds)
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
-
-  // Which dot's context menu is open (unit id or empty dot localId)
   const [activeMenuDotId, setActiveMenuDotId] = useState<string | null>(null);
   const [menuSearch, setMenuSearch] = useState("");
-
-  // Drag state
-  const [dragging, setDragging] = useState<{
-    dotId: string;
-    isEmptyDot: boolean;
-    startX: number;
-    startY: number;
-    origPositions: Map<string, { x: number; y: number }>;
-    origEmptyDots: EmptyDot[];
-  } | null>(null);
-
-  // Click/drag disambiguation
-  const dotInteraction = useRef<{
-    dotId: string;
-    isEmptyDot: boolean;
-    startClientX: number;
-    startClientY: number;
-    moved: boolean;
-  } | null>(null);
-
-  // Rectangle selection
-  const [rectSelect, setRectSelect] = useState<{
-    startX: number;
-    startY: number;
-    currentX: number;
-    currentY: number;
-  } | null>(null);
-
-  // Canvas mousedown tracker for rect-select vs dot-placement disambiguation
-  const canvasMouseDown = useRef<{
-    startClientX: number;
-    startClientY: number;
-    pos: { x: number; y: number };
-  } | null>(null);
-
-  // Hovered hotspot (for tooltip)
   const [hoveredId, setHoveredId] = useState<string | null>(null);
-
-  // Confirm clear all prompt
   const [confirmClear, setConfirmClear] = useState(false);
-
-  // Dynamic image aspect ratio
   const [imageAspectRatio, setImageAspectRatio] = useState("4/3");
+  const [dotsSaveStatus, setDotsSaveStatus] = useState<"idle" | "saving" | "saved">("idle");
+  const [isDragging, setIsDragging] = useState(false);
 
-  // Repeat Row popover state
+  // Rect select — state for rendering only
+  const [rectSelect, setRectSelect] = useState<RectSelectState | null>(null);
+
+  // Repeat Row state
   const [showRepeatRow, setShowRepeatRow] = useState(false);
   const [repeatCount, setRepeatCount] = useState(fachada.num_pisos ? Math.max(1, fachada.num_pisos - 1) : 10);
   const [repeatSpacing, setRepeatSpacing] = useState(5);
   const [repeatDirection, setRepeatDirection] = useState<"up" | "down">("up");
 
-  // Quick Grid popover state
+  // Quick Grid state
   const [showQuickGrid, setShowQuickGrid] = useState(false);
   const [gridCols, setGridCols] = useState(4);
   const [gridRows, setGridRows] = useState(fachada.num_pisos || 10);
   const [gridBounds, setGridBounds] = useState({ x1: 15, y1: 10, x2: 85, y2: 90 });
 
-  /* Sync incoming positions */
+  /* ---- Ref mirrors (for stable event handlers) ---- */
+  const positionsRef = useRef(positions);
+  const emptyDotsRef = useRef(emptyDots);
+  const selectedIdsRef = useRef(selectedIds);
+  const lastSavedDotsRef = useRef<string>(JSON.stringify(fachada.puntos_vacios ?? []));
+  const fachadaIdRef = useRef(fachada.id);
+
+  // Keep refs in sync with state
+  positionsRef.current = positions;
+  emptyDotsRef.current = emptyDots;
+  selectedIdsRef.current = selectedIds;
+  fachadaIdRef.current = fachada.id;
+
+  /* ---- Transient refs (no re-renders) ---- */
+  const draggingRef = useRef<DragState | null>(null);
+  const dotInteractionRef = useRef<DotInteraction | null>(null);
+  const canvasMouseDownRef = useRef<CanvasMouseDown | null>(null);
+
+  // Stable ref to latest props
+  const propsRef = useRef({ fachada, onUpdateUnit, onRemoveUnit, onClearAll });
+  propsRef.current = { fachada, onUpdateUnit, onRemoveUnit, onClearAll };
+
+  /* ---- Canvas hook ---- */
+  const { getImageBounds, toPercent, toPx } = useHotspotCanvas(containerRef, imgRef);
+  const toPercentRef = useRef(toPercent);
+  toPercentRef.current = toPercent;
+
+  /* ================================================================
+     Effects
+     ================================================================ */
+
+  /* 1. Sync assignedUnits → positions */
   useEffect(() => {
     const m = new Map<string, { x: number; y: number }>();
     for (const u of assignedUnits) {
       m.set(u.id, { x: u.fachada_x, y: u.fachada_y });
     }
     setPositions(m);
+    positionsRef.current = m;
   }, [assignedUnits]);
 
-  /* Re-initialize empty dots when switching fachadas */
-  const lastSavedDots = useRef<string>(JSON.stringify(fachada.puntos_vacios ?? []));
-  const emptyDotsRef = useRef(emptyDots);
-  emptyDotsRef.current = emptyDots;
-  const fachadaIdRef = useRef(fachada.id);
-  fachadaIdRef.current = fachada.id;
-
-  const [dotsSaveStatus, setDotsSaveStatus] = useState<"idle" | "saving" | "saved">("idle");
-
+  /* 2. Re-init emptyDots on fachada change */
   useEffect(() => {
-    setEmptyDots(
-      (fachada.puntos_vacios ?? []).map((p) => ({
-        localId: crypto.randomUUID(),
-        x: p.x,
-        y: p.y,
-      }))
-    );
-    lastSavedDots.current = JSON.stringify(fachada.puntos_vacios ?? []);
+    const dots = (fachada.puntos_vacios ?? []).map((p) => ({
+      localId: crypto.randomUUID(),
+      x: p.x,
+      y: p.y,
+    }));
+    setEmptyDots(dots);
+    emptyDotsRef.current = dots;
+    lastSavedDotsRef.current = JSON.stringify(fachada.puntos_vacios ?? []);
+    setSelectedIds(new Set());
+    selectedIdsRef.current = new Set();
+    setActiveMenuDotId(null);
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [fachada.id]);
 
-  /* Auto-save empty dots to fachada.puntos_vacios (debounced, with comparison) */
+  /* 3. Auto-save emptyDots to API (debounced) */
   useEffect(() => {
     const current = JSON.stringify(emptyDots.map(({ x, y }) => ({ x, y })));
-    if (current === lastSavedDots.current) return;
-
-    // Sync dots to parent immediately so tab switches don't lose data
-    onEmptyDotsChange?.(fachada.id, emptyDots.map(({ x, y }) => ({ x, y })));
+    if (current === lastSavedDotsRef.current) return;
 
     setDotsSaveStatus("saving");
     const timeout = setTimeout(async () => {
       try {
-        const puntos_vacios = emptyDots.map(({ x, y }) => ({ x, y }));
-        const res = await fetch(`/api/fachadas/${fachada.id}`, {
+        const puntos_vacios = emptyDotsRef.current.map(({ x, y }) => ({ x, y }));
+        const res = await fetch(`/api/fachadas/${fachadaIdRef.current}`, {
           method: "PUT",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ puntos_vacios }),
         });
         if (res.ok) {
-          lastSavedDots.current = current;
+          lastSavedDotsRef.current = JSON.stringify(puntos_vacios);
           setDotsSaveStatus("saved");
           setTimeout(() => setDotsSaveStatus("idle"), 1500);
+        } else {
+          setDotsSaveStatus("idle");
         }
       } catch {
         setDotsSaveStatus("idle");
       }
     }, 500);
     return () => clearTimeout(timeout);
-  }, [emptyDots, fachada.id, onEmptyDotsChange]);
+  }, [emptyDots]);
 
-  /* Flush pending save on unmount (e.g. navigating away) */
+  /* 4. Flush pending save on unmount */
   useEffect(() => {
     return () => {
       const puntos_vacios = emptyDotsRef.current.map(({ x, y }) => ({ x, y }));
       const current = JSON.stringify(puntos_vacios);
-      if (current !== lastSavedDots.current) {
+      if (current !== lastSavedDotsRef.current) {
         fetch(`/api/fachadas/${fachadaIdRef.current}`, {
           method: "PUT",
           headers: { "Content-Type": "application/json" },
@@ -270,10 +293,9 @@ export function FacadeHotspotEditor({
         });
       }
     };
-   
   }, []);
 
-  /* Focus menu search when opened */
+  /* 5. Focus menu search when opened */
   useEffect(() => {
     if (activeMenuDotId) {
       setMenuSearch("");
@@ -281,154 +303,30 @@ export function FacadeHotspotEditor({
     }
   }, [activeMenuDotId]);
 
-  // Use shared hotspot canvas hook for image bounds & coordinate conversion
-  const { getImageBounds, toPercent, toPx } = useHotspotCanvas(containerRef, imgRef);
-
-  /* ------------------------------------------------------------------
-     Helpers for getting/setting dot positions (both types)
-     ------------------------------------------------------------------ */
-  const getDotPos = useCallback(
-    (dotId: string): { x: number; y: number } | null => {
-      // Check assigned positions first
-      const assigned = positions.get(dotId);
-      if (assigned) return assigned;
-      // Check empty dots
-      const empty = emptyDots.find((d) => d.localId === dotId);
-      if (empty) return { x: empty.x, y: empty.y };
-      return null;
-    },
-    [positions, emptyDots]
-  );
-
-  const isEmptyDotId = useCallback(
-    (id: string) => emptyDots.some((d) => d.localId === id),
-    [emptyDots]
-  );
-
-  /* ------------------------------------------------------------------
-     Canvas mousedown: start rect-select tracking or place dot
-     ------------------------------------------------------------------ */
-  const handleContainerMouseDown = (e: React.MouseEvent) => {
-    if ((e.target as HTMLElement).closest("[data-hotspot]")) return;
-    if ((e.target as HTMLElement).closest("[data-context-menu]")) return;
-    if ((e.target as HTMLElement).closest("[data-toolbar]")) return;
-
-    const pos = toPercent(e.clientX, e.clientY);
-    if (!pos) return;
-
-    // Close any open menu
-    setActiveMenuDotId(null);
-
-    // Record the mousedown for later disambiguation
-    canvasMouseDown.current = {
-      startClientX: e.clientX,
-      startClientY: e.clientY,
-      pos,
-    };
-
-    // Don't start rect-select on mousedown — defer to mousemove with threshold.
-  };
-
-  const handleContainerMouseMove = (e: React.MouseEvent) => {
-    // Already tracking a rect-select — update it
-    if (rectSelect) {
-      const pos = toPercent(e.clientX, e.clientY);
-      if (pos) {
-        setRectSelect((prev) => (prev ? { ...prev, currentX: pos.x, currentY: pos.y } : null));
-      }
-      return;
-    }
-
-    // Start rect-select after drag beyond a threshold
-    const down = canvasMouseDown.current;
-    if (down) {
-      const dist = Math.sqrt(
-        (e.clientX - down.startClientX) ** 2 + (e.clientY - down.startClientY) ** 2
-      );
-      if (dist > 5) {
-        const pos = toPercent(e.clientX, e.clientY);
-        if (pos) {
-          setRectSelect({ startX: down.pos.x, startY: down.pos.y, currentX: pos.x, currentY: pos.y });
-        }
-      }
-    }
-  };
-
-  const handleContainerMouseUp = (e: React.MouseEvent) => {
-    const down = canvasMouseDown.current;
-    canvasMouseDown.current = null;
-
-    // Finish rectangle selection
-    if (rectSelect) {
-      const dx = Math.abs(rectSelect.currentX - rectSelect.startX);
-      const dy = Math.abs(rectSelect.currentY - rectSelect.startY);
-
-      if (dx > 1 || dy > 1) {
-        // It was a drag — select dots in rectangle
-        const x1 = Math.min(rectSelect.startX, rectSelect.currentX);
-        const x2 = Math.max(rectSelect.startX, rectSelect.currentX);
-        const y1 = Math.min(rectSelect.startY, rectSelect.currentY);
-        const y2 = Math.max(rectSelect.startY, rectSelect.currentY);
-
-        const ids = new Set<string>();
-        positions.forEach((pos, id) => {
-          if (pos.x >= x1 && pos.x <= x2 && pos.y >= y1 && pos.y <= y2) ids.add(id);
-        });
-        emptyDots.forEach((d) => {
-          if (d.x >= x1 && d.x <= x2 && d.y >= y1 && d.y <= y2) ids.add(d.localId);
-        });
-        setSelectedIds(ids);
-        setRectSelect(null);
-        return;
-      }
-
-      // Drag was too small — treat as a click
-      setRectSelect(null);
-    }
-
-    if (!down) return;
-
-    // Check if the mouse actually moved (if so, it was a drag, not a click)
-    const movedDist = Math.sqrt(
-      (e.clientX - down.startClientX) ** 2 + (e.clientY - down.startClientY) ** 2
-    );
-    if (movedDist > 5) return; // Was a drag, not a click
-
-    // This is a click on empty canvas — create an empty dot
-    const newDot: EmptyDot = {
-      localId: crypto.randomUUID(),
-      x: down.pos.x,
-      y: down.pos.y,
-    };
-
-    setEmptyDots((prev) => [...prev, newDot]);
-    setSelectedIds(new Set());
-  };
-
-  /* ------------------------------------------------------------------
-     Window-level drag listeners (so mouseup fires even outside container)
-     ------------------------------------------------------------------ */
+  /* 6. Window-level drag listeners (mount-only — reads from refs) */
   useEffect(() => {
-    if (!dragging) return;
-
     const handleWindowMouseMove = (e: MouseEvent) => {
+      const drag = draggingRef.current;
+      if (!drag) return;
+
       // Mark interaction as moved
-      if (dotInteraction.current) dotInteraction.current.moved = true;
+      if (dotInteractionRef.current) dotInteractionRef.current.moved = true;
 
-      const pos = toPercent(e.clientX, e.clientY);
+      const pos = toPercentRef.current(e.clientX, e.clientY);
       if (!pos) return;
-      const dx = pos.x - dragging.startX;
-      const dy = pos.y - dragging.startY;
+      const dx = pos.x - drag.startX;
+      const dy = pos.y - drag.startY;
 
-      const idsToMove = selectedIds.has(dragging.dotId)
-        ? [...selectedIds]
-        : [dragging.dotId];
+      const selected = selectedIdsRef.current;
+      const idsToMove = selected.has(drag.dotId)
+        ? [...selected]
+        : [drag.dotId];
 
       // Update assigned unit positions
       setPositions((prev) => {
         const next = new Map(prev);
         for (const id of idsToMove) {
-          const orig = dragging.origPositions.get(id);
+          const orig = drag.origPositions.get(id);
           if (orig) {
             next.set(id, {
               x: Math.max(0, Math.min(100, orig.x + dx)),
@@ -436,88 +334,216 @@ export function FacadeHotspotEditor({
             });
           }
         }
+        positionsRef.current = next;
         return next;
       });
 
       // Update empty dot positions
-      setEmptyDots((prev) =>
-        prev.map((d) => {
+      setEmptyDots((prev) => {
+        const next = prev.map((d) => {
           if (!idsToMove.includes(d.localId)) return d;
-          const orig = dragging.origEmptyDots.find((od) => od.localId === d.localId);
+          const orig = drag.origEmptyDots.find((od) => od.localId === d.localId);
           if (!orig) return d;
           return {
             ...d,
             x: Math.max(0, Math.min(100, orig.x + dx)),
             y: Math.max(0, Math.min(100, orig.y + dy)),
           };
-        })
-      );
+        });
+        emptyDotsRef.current = next;
+        return next;
+      });
     };
 
     const handleWindowMouseUp = async () => {
-      const interaction = dotInteraction.current;
-      dotInteraction.current = null;
+      const drag = draggingRef.current;
+      if (!drag) return;
 
-      // If didn't move much, it was a click → show context menu
+      const interaction = dotInteractionRef.current;
+      dotInteractionRef.current = null;
+      draggingRef.current = null;
+      setIsDragging(false);
+
+      // If didn't move much → it was a click → show context menu
       if (interaction && !interaction.moved) {
-        setActiveMenuDotId(dragging.dotId);
-        if (!selectedIds.has(dragging.dotId)) {
-          setSelectedIds(new Set([dragging.dotId]));
+        setActiveMenuDotId(drag.dotId);
+        const selected = selectedIdsRef.current;
+        if (!selected.has(drag.dotId)) {
+          const next = new Set([drag.dotId]);
+          setSelectedIds(next);
+          selectedIdsRef.current = next;
         }
-        setDragging(null);
         return;
       }
 
       // Persist moved assigned unit positions
-      const idsToSave = selectedIds.has(dragging.dotId)
-        ? [...selectedIds]
-        : [dragging.dotId];
+      const selected = selectedIdsRef.current;
+      const idsToSave = selected.has(drag.dotId)
+        ? [...selected]
+        : [drag.dotId];
+
+      const currentPositions = positionsRef.current;
+      const currentEmptyDots = emptyDotsRef.current;
+      const { fachada: f, onUpdateUnit: update } = propsRef.current;
 
       for (const id of idsToSave) {
-        if (isEmptyDotId(id)) continue; // empty dots don't persist
-        const pos = positions.get(id);
-        if (pos) {
-          await onUpdateUnit(id, {
-            fachada_id: fachada.id,
-            fachada_x: Math.round(pos.x * 100) / 100,
-            fachada_y: Math.round(pos.y * 100) / 100,
+        // Skip empty dots — they auto-save via the emptyDots effect
+        if (currentEmptyDots.some((d) => d.localId === id)) continue;
+        const p = currentPositions.get(id);
+        if (p) {
+          await update(id, {
+            fachada_id: f.id,
+            fachada_x: Math.round(p.x * 100) / 100,
+            fachada_y: Math.round(p.y * 100) / 100,
           });
         }
       }
-      setDragging(null);
     };
 
     window.addEventListener("mousemove", handleWindowMouseMove);
-    window.addEventListener("mouseup", handleWindowMouseUp, { once: true });
+    window.addEventListener("mouseup", handleWindowMouseUp);
     return () => {
       window.removeEventListener("mousemove", handleWindowMouseMove);
       window.removeEventListener("mouseup", handleWindowMouseUp);
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [dragging]);
+  }, []);
 
-  /* ------------------------------------------------------------------
-     Dot mousedown: start click/drag disambiguation
-     ------------------------------------------------------------------ */
-  const handleDotMouseDown = (e: React.MouseEvent, dotId: string, isEmpty: boolean) => {
+  /* ================================================================
+     Helpers
+     ================================================================ */
+  const isEmptyDotId = useCallback(
+    (id: string) => emptyDotsRef.current.some((d) => d.localId === id),
+    []
+  );
+
+  const getDotPos = useCallback(
+    (dotId: string): { x: number; y: number } | null => {
+      const assigned = positionsRef.current.get(dotId);
+      if (assigned) return assigned;
+      const empty = emptyDotsRef.current.find((d) => d.localId === dotId);
+      if (empty) return { x: empty.x, y: empty.y };
+      return null;
+    },
+    []
+  );
+
+  /* ================================================================
+     Canvas event handlers
+     ================================================================ */
+  const handleContainerMouseDown = useCallback((e: React.MouseEvent) => {
+    if ((e.target as HTMLElement).closest("[data-hotspot]")) return;
+    if ((e.target as HTMLElement).closest("[data-context-menu]")) return;
+    if ((e.target as HTMLElement).closest("[data-toolbar]")) return;
+
+    const pos = toPercentRef.current(e.clientX, e.clientY);
+    if (!pos) return;
+
+    setActiveMenuDotId(null);
+    canvasMouseDownRef.current = {
+      startClientX: e.clientX,
+      startClientY: e.clientY,
+      pos,
+    };
+  }, []);
+
+  const handleContainerMouseMove = useCallback((e: React.MouseEvent) => {
+    // Already tracking rect-select
+    if (rectSelect) {
+      const pos = toPercentRef.current(e.clientX, e.clientY);
+      if (pos) {
+        setRectSelect((prev) => prev ? { ...prev, currentX: pos.x, currentY: pos.y } : null);
+      }
+      return;
+    }
+
+    // Start rect-select after threshold
+    const down = canvasMouseDownRef.current;
+    if (down) {
+      const dist = Math.sqrt(
+        (e.clientX - down.startClientX) ** 2 + (e.clientY - down.startClientY) ** 2
+      );
+      if (dist > DRAG_THRESHOLD) {
+        const pos = toPercentRef.current(e.clientX, e.clientY);
+        if (pos) {
+          setRectSelect({ startX: down.pos.x, startY: down.pos.y, currentX: pos.x, currentY: pos.y });
+        }
+      }
+    }
+  }, [rectSelect]);
+
+  const handleContainerMouseUp = useCallback((e: React.MouseEvent) => {
+    const down = canvasMouseDownRef.current;
+    canvasMouseDownRef.current = null;
+
+    // Finish rectangle selection
+    if (rectSelect) {
+      const dx = Math.abs(rectSelect.currentX - rectSelect.startX);
+      const dy = Math.abs(rectSelect.currentY - rectSelect.startY);
+
+      if (dx > 1 || dy > 1) {
+        const x1 = Math.min(rectSelect.startX, rectSelect.currentX);
+        const x2 = Math.max(rectSelect.startX, rectSelect.currentX);
+        const y1 = Math.min(rectSelect.startY, rectSelect.currentY);
+        const y2 = Math.max(rectSelect.startY, rectSelect.currentY);
+
+        const ids = new Set<string>();
+        positionsRef.current.forEach((pos, id) => {
+          if (pos.x >= x1 && pos.x <= x2 && pos.y >= y1 && pos.y <= y2) ids.add(id);
+        });
+        emptyDotsRef.current.forEach((d) => {
+          if (d.x >= x1 && d.x <= x2 && d.y >= y1 && d.y <= y2) ids.add(d.localId);
+        });
+        setSelectedIds(ids);
+        selectedIdsRef.current = ids;
+        setRectSelect(null);
+        return;
+      }
+      setRectSelect(null);
+    }
+
+    if (!down) return;
+
+    // Check if mouse moved — if so it was a drag, not a click
+    const movedDist = Math.sqrt(
+      (e.clientX - down.startClientX) ** 2 + (e.clientY - down.startClientY) ** 2
+    );
+    if (movedDist > DRAG_THRESHOLD) return;
+
+    // Click on empty canvas → create empty dot
+    const newDot: EmptyDot = {
+      localId: crypto.randomUUID(),
+      x: down.pos.x,
+      y: down.pos.y,
+    };
+    setEmptyDots((prev) => {
+      const next = [...prev, newDot];
+      emptyDotsRef.current = next;
+      return next;
+    });
+    setSelectedIds(new Set());
+    selectedIdsRef.current = new Set();
+  }, [rectSelect]);
+
+  /* ================================================================
+     Dot event handlers
+     ================================================================ */
+  const handleDotMouseDown = useCallback((e: React.MouseEvent, dotId: string, isEmpty: boolean) => {
     e.stopPropagation();
 
     if (e.shiftKey) {
-      // Toggle selection
       setSelectedIds((prev) => {
         const next = new Set(prev);
         if (next.has(dotId)) next.delete(dotId);
         else next.add(dotId);
+        selectedIdsRef.current = next;
         return next;
       });
       return;
     }
 
-    // Close any existing menu
     setActiveMenuDotId(null);
 
-    // Record interaction for click/drag detection
-    dotInteraction.current = {
+    dotInteractionRef.current = {
       dotId,
       isEmptyDot: isEmpty,
       startClientX: e.clientX,
@@ -526,65 +552,77 @@ export function FacadeHotspotEditor({
     };
 
     // Select this dot if not already selected
-    if (!selectedIds.has(dotId)) {
-      setSelectedIds(new Set([dotId]));
+    const currentSelected = selectedIdsRef.current;
+    if (!currentSelected.has(dotId)) {
+      const next = new Set([dotId]);
+      setSelectedIds(next);
+      selectedIdsRef.current = next;
     }
 
-    const pos = toPercent(e.clientX, e.clientY);
+    const pos = toPercentRef.current(e.clientX, e.clientY);
     if (!pos) return;
 
     // Build origin snapshots for all positions
-    const origPositions = new Map(positions);
-    // Add empty dot positions to the map for unified movement
-    for (const d of emptyDots) {
+    const origPositions = new Map(positionsRef.current);
+    for (const d of emptyDotsRef.current) {
       if (!origPositions.has(d.localId)) {
         origPositions.set(d.localId, { x: d.x, y: d.y });
       }
     }
 
-    setDragging({
+    draggingRef.current = {
       dotId,
       isEmptyDot: isEmpty,
       startX: pos.x,
       startY: pos.y,
       origPositions,
-      origEmptyDots: [...emptyDots],
-    });
-  };
+      origEmptyDots: [...emptyDotsRef.current],
+    };
+    setIsDragging(true);
+  }, []);
 
-  /* ------------------------------------------------------------------
+  /* ================================================================
      Context menu actions
-     ------------------------------------------------------------------ */
-  const handleAssignUnit = (unitId: string) => {
-    if (!activeMenuDotId) return;
+     ================================================================ */
+  const handleAssignUnit = useCallback((unitId: string) => {
     const dotId = activeMenuDotId;
-    const dot = emptyDots.find((d) => d.localId === dotId);
+    if (!dotId) return;
 
-    // Close menu immediately (optimistic)
+    const currentEmptyDots = emptyDotsRef.current;
+    const dot = currentEmptyDots.find((d) => d.localId === dotId);
+    const { fachada: f, onUpdateUnit: update, onRemoveUnit: remove } = propsRef.current;
+
     setActiveMenuDotId(null);
     setSelectedIds(new Set());
+    selectedIdsRef.current = new Set();
 
     if (dot) {
-      // Remove empty dot immediately (optimistic)
-      setEmptyDots((prev) => prev.filter((d) => d.localId !== dotId));
-      // Save in background with rollback on failure
-      onUpdateUnit(unitId, {
-        fachada_id: fachada.id,
+      // Assigning from empty dot: remove dot optimistically
+      setEmptyDots((prev) => {
+        const next = prev.filter((d) => d.localId !== dotId);
+        emptyDotsRef.current = next;
+        return next;
+      });
+      update(unitId, {
+        fachada_id: f.id,
         fachada_x: Math.round(dot.x * 100) / 100,
         fachada_y: Math.round(dot.y * 100) / 100,
       }).catch(() => {
-        // Rollback: re-add the empty dot
-        setEmptyDots((prev) => [...prev, dot]);
+        // Rollback
+        setEmptyDots((prev) => {
+          const next = [...prev, dot];
+          emptyDotsRef.current = next;
+          return next;
+        });
       });
     } else {
-      // Reassign: the dotId is an existing unit, replace it
-      const pos = positions.get(dotId);
+      // Reassign: dotId is an existing unit
+      const pos = positionsRef.current.get(dotId);
       if (pos) {
-        // Unassign current + assign new in background
-        onRemoveUnit(dotId)
+        remove(dotId)
           .then(() =>
-            onUpdateUnit(unitId, {
-              fachada_id: fachada.id,
+            update(unitId, {
+              fachada_id: f.id,
               fachada_x: Math.round(pos.x * 100) / 100,
               fachada_y: Math.round(pos.y * 100) / 100,
             })
@@ -592,42 +630,54 @@ export function FacadeHotspotEditor({
           .catch(() => {});
       }
     }
-  };
+  }, [activeMenuDotId]);
 
-  const handleDeleteDot = () => {
+  const handleDeleteDot = useCallback(() => {
     if (!activeMenuDotId) return;
     if (isEmptyDotId(activeMenuDotId)) {
-      setEmptyDots((prev) => prev.filter((d) => d.localId !== activeMenuDotId));
+      setEmptyDots((prev) => {
+        const next = prev.filter((d) => d.localId !== activeMenuDotId);
+        emptyDotsRef.current = next;
+        return next;
+      });
     } else {
-      onRemoveUnit(activeMenuDotId).catch(() => {});
+      propsRef.current.onRemoveUnit(activeMenuDotId).catch(() => {});
     }
     setActiveMenuDotId(null);
     setSelectedIds(new Set());
-  };
+    selectedIdsRef.current = new Set();
+  }, [activeMenuDotId, isEmptyDotId]);
 
-  const handleUnassignDot = () => {
+  const handleUnassignDot = useCallback(() => {
     if (!activeMenuDotId || isEmptyDotId(activeMenuDotId)) return;
-    onRemoveUnit(activeMenuDotId).catch(() => {});
+    propsRef.current.onRemoveUnit(activeMenuDotId).catch(() => {});
     setActiveMenuDotId(null);
     setSelectedIds(new Set());
-  };
+    selectedIdsRef.current = new Set();
+  }, [activeMenuDotId, isEmptyDotId]);
 
-  const handleBatchDelete = () => {
-    selectedIds.forEach((id) => {
+  const handleBatchDelete = useCallback(() => {
+    const ids = selectedIdsRef.current;
+    ids.forEach((id) => {
       if (isEmptyDotId(id)) {
-        setEmptyDots((prev) => prev.filter((d) => d.localId !== id));
+        setEmptyDots((prev) => {
+          const next = prev.filter((d) => d.localId !== id);
+          emptyDotsRef.current = next;
+          return next;
+        });
       } else {
-        onRemoveUnit(id).catch(() => {});
+        propsRef.current.onRemoveUnit(id).catch(() => {});
       }
     });
     setSelectedIds(new Set());
+    selectedIdsRef.current = new Set();
     setActiveMenuDotId(null);
-  };
+  }, [isEmptyDotId]);
 
-  const handleBatchDuplicate = () => {
-    // Smart vertical offset: use average vertical gap if detectable, else 3%
+  const handleBatchDuplicate = useCallback(() => {
+    const ids = selectedIdsRef.current;
     const selectedPositions: { x: number; y: number }[] = [];
-    for (const id of selectedIds) {
+    for (const id of ids) {
       const pos = getDotPos(id);
       if (pos) selectedPositions.push(pos);
     }
@@ -644,7 +694,7 @@ export function FacadeHotspotEditor({
       }
     }
     const newDots: EmptyDot[] = [];
-    for (const id of selectedIds) {
+    for (const id of ids) {
       const pos = getDotPos(id);
       if (!pos) continue;
       newDots.push({
@@ -653,91 +703,118 @@ export function FacadeHotspotEditor({
         y: Math.min(100, pos.y + offset),
       });
     }
-    setEmptyDots((prev) => [...prev, ...newDots]);
-    setSelectedIds(new Set(newDots.map((d) => d.localId)));
-  };
+    setEmptyDots((prev) => {
+      const next = [...prev, ...newDots];
+      emptyDotsRef.current = next;
+      return next;
+    });
+    const newIds = new Set(newDots.map((d) => d.localId));
+    setSelectedIds(newIds);
+    selectedIdsRef.current = newIds;
+  }, [getDotPos]);
 
-  // Repeat Row: apply generated dots
-  const handleApplyRepeatRow = () => {
+  const handleApplyRepeatRow = useCallback(() => {
+    const ids = selectedIdsRef.current;
     const sourceDots: { x: number; y: number }[] = [];
-    for (const id of selectedIds) {
+    for (const id of ids) {
       const pos = getDotPos(id);
       if (pos) sourceDots.push(pos);
     }
     if (sourceDots.length === 0) return;
     const newDots = generateRowRepeat(sourceDots, repeatCount, repeatSpacing, repeatDirection);
-    setEmptyDots((prev) => [...prev, ...newDots]);
-    setSelectedIds(new Set(newDots.map((d) => d.localId)));
+    setEmptyDots((prev) => {
+      const next = [...prev, ...newDots];
+      emptyDotsRef.current = next;
+      return next;
+    });
+    const newIds = new Set(newDots.map((d) => d.localId));
+    setSelectedIds(newIds);
+    selectedIdsRef.current = newIds;
     setShowRepeatRow(false);
-  };
+  }, [getDotPos, repeatCount, repeatSpacing, repeatDirection]);
 
-  // Quick Grid: apply generated dots
-  const handleApplyQuickGrid = () => {
+  const handleApplyQuickGrid = useCallback(() => {
     const newDots = generateGrid(gridCols, gridRows, gridBounds.x1, gridBounds.y1, gridBounds.x2, gridBounds.y2);
-    setEmptyDots((prev) => [...prev, ...newDots]);
-    setSelectedIds(new Set(newDots.map((d) => d.localId)));
+    setEmptyDots((prev) => {
+      const next = [...prev, ...newDots];
+      emptyDotsRef.current = next;
+      return next;
+    });
+    const newIds = new Set(newDots.map((d) => d.localId));
+    setSelectedIds(newIds);
+    selectedIdsRef.current = newIds;
     setShowQuickGrid(false);
-  };
+  }, [gridCols, gridRows, gridBounds]);
 
-  const handleClearAll = () => {
-    onClearAll(fachada.id);
+  const handleClearAll = useCallback(() => {
+    propsRef.current.onClearAll(propsRef.current.fachada.id);
     setEmptyDots([]);
+    emptyDotsRef.current = [];
     setSelectedIds(new Set());
+    selectedIdsRef.current = new Set();
     setActiveMenuDotId(null);
     setConfirmClear(false);
-  };
+  }, []);
 
-  /* ------------------------------------------------------------------
-     Alignment callback (handles both assigned + empty dots)
-     ------------------------------------------------------------------ */
-  const handleAlign = async (
+  /* ================================================================
+     Alignment
+     ================================================================ */
+  const handleAlign = useCallback(async (
     updates: { id: string; fachada_x: number; fachada_y: number }[]
   ) => {
     // Update assigned positions optimistically
     setPositions((prev) => {
       const next = new Map(prev);
       for (const u of updates) {
-        if (!isEmptyDotId(u.id)) {
+        if (!emptyDotsRef.current.some((d) => d.localId === u.id)) {
           next.set(u.id, { x: u.fachada_x, y: u.fachada_y });
         }
       }
+      positionsRef.current = next;
       return next;
     });
 
     // Update empty dots
-    setEmptyDots((prev) =>
-      prev.map((d) => {
+    setEmptyDots((prev) => {
+      const next = prev.map((d) => {
         const update = updates.find((u) => u.id === d.localId);
         if (!update) return d;
         return { ...d, x: update.fachada_x, y: update.fachada_y };
-      })
-    );
+      });
+      emptyDotsRef.current = next;
+      return next;
+    });
 
-    // Persist assigned unit updates
+    // Persist assigned units
+    const { fachada: f, onUpdateUnit: update } = propsRef.current;
     for (const u of updates) {
-      if (isEmptyDotId(u.id)) continue;
-      await onUpdateUnit(u.id, {
-        fachada_id: fachada.id,
+      if (emptyDotsRef.current.some((d) => d.localId === u.id)) continue;
+      await update(u.id, {
+        fachada_id: f.id,
         fachada_x: Math.round(u.fachada_x * 100) / 100,
         fachada_y: Math.round(u.fachada_y * 100) / 100,
       });
     }
-  };
+  }, []);
 
-  /* ------------------------------------------------------------------
-     Build selected units data for AlignmentToolbar
-     ------------------------------------------------------------------ */
-  const selectedUnitsData = [...selectedIds]
-    .map((id) => {
+  /* ================================================================
+     Derived data (for rendering)
+     ================================================================ */
+  const unitMap = useMemo(() => {
+    const m = new Map<string, HotspotUnit>();
+    for (const u of assignedUnits) m.set(u.id, u);
+    return m;
+  }, [assignedUnits]);
+
+  const selectedUnitsData = useMemo(() => {
+    const result: { id: string; fachada_x: number; fachada_y: number }[] = [];
+    for (const id of selectedIds) {
       const pos = getDotPos(id);
-      if (!pos) return null;
-      return { id, fachada_x: pos.x, fachada_y: pos.y };
-    })
-    .filter(Boolean) as { id: string; fachada_x: number; fachada_y: number }[];
+      if (pos) result.push({ id, fachada_x: pos.x, fachada_y: pos.y });
+    }
+    return result;
+  }, [selectedIds, getDotPos, positions, emptyDots]);
 
-  /* ------------------------------------------------------------------
-     Ghost preview dots for Repeat Row / Quick Grid
-     ------------------------------------------------------------------ */
   const previewDots = useMemo(() => {
     if (showRepeatRow) {
       const sourceDots: { x: number; y: number }[] = [];
@@ -752,9 +829,8 @@ export function FacadeHotspotEditor({
       return generateGrid(gridCols, gridRows, gridBounds.x1, gridBounds.y1, gridBounds.x2, gridBounds.y2);
     }
     return [];
-  }, [showRepeatRow, showQuickGrid, selectedIds, repeatCount, repeatSpacing, repeatDirection, gridCols, gridRows, gridBounds, getDotPos]);
+  }, [showRepeatRow, showQuickGrid, selectedIds, repeatCount, repeatSpacing, repeatDirection, gridCols, gridRows, gridBounds, getDotPos, positions, emptyDots]);
 
-  // Auto-calculate default spacing for repeat row
   const autoSpacing = useMemo(() => {
     if (selectedIds.size === 0) return 5;
     const sourceDots: { x: number; y: number }[] = [];
@@ -766,19 +842,20 @@ export function FacadeHotspotEditor({
     const avgY = sourceDots.reduce((s, d) => s + d.y, 0) / sourceDots.length;
     const available = repeatDirection === "up" ? avgY : (100 - avgY);
     return repeatCount > 0 ? Math.round((available / repeatCount) * 10) / 10 : 5;
-  }, [selectedIds, repeatCount, repeatDirection, getDotPos]);
+  }, [selectedIds, repeatCount, repeatDirection, getDotPos, positions, emptyDots]);
 
-  /* ------------------------------------------------------------------
-     Lookup helpers
-     ------------------------------------------------------------------ */
-  const unitMap = new Map<string, HotspotUnit>();
-  for (const u of assignedUnits) {
-    unitMap.set(u.id, u);
-  }
+  const filteredUnassigned = useMemo(() => {
+    if (!menuSearch) return unassignedUnits;
+    const q = menuSearch.toLowerCase();
+    return unassignedUnits.filter((u) =>
+      u.identificador.toLowerCase().includes(q) ||
+      (u.tipologiaNombre?.toLowerCase().includes(q) ?? false)
+    );
+  }, [menuSearch, unassignedUnits]);
 
-  /* ------------------------------------------------------------------
-     Rectangle selection geometry (pixel-based from image bounds)
-     ------------------------------------------------------------------ */
+  /* ================================================================
+     Render helpers
+     ================================================================ */
   const getRectStyle = () => {
     if (!rectSelect) return undefined;
     const bounds = getImageBounds();
@@ -795,22 +872,7 @@ export function FacadeHotspotEditor({
       height: ((y2 - y1) / 100) * imgH,
     };
   };
-  const rectStyle = getRectStyle();
 
-  /* ------------------------------------------------------------------
-     Filter unassigned units by search (for context menu)
-     ------------------------------------------------------------------ */
-  const filteredUnassigned = menuSearch
-    ? unassignedUnits.filter((u) => {
-        const q = menuSearch.toLowerCase();
-        return u.identificador.toLowerCase().includes(q) ||
-          (u.tipologiaNombre?.toLowerCase().includes(q) ?? false);
-      })
-    : unassignedUnits;
-
-  /* ------------------------------------------------------------------
-     Context menu position (pixel-based, quadrant-aware)
-     ------------------------------------------------------------------ */
   const getMenuPos = (pos: { x: number; y: number }) => {
     const bounds = getImageBounds();
     if (!bounds) return { left: 0, top: 0, transform: "translate(0,0)" };
@@ -826,13 +888,14 @@ export function FacadeHotspotEditor({
     return { left, top, transform };
   };
 
-  /* ------------------------------------------------------------------
-     Active menu dot info
-     ------------------------------------------------------------------ */
   const activeMenuDot = activeMenuDotId ? getDotPos(activeMenuDotId) : null;
   const activeMenuUnit = activeMenuDotId ? unitMap.get(activeMenuDotId) : null;
   const activeMenuIsEmpty = activeMenuDotId ? isEmptyDotId(activeMenuDotId) : false;
+  const rectStyle = getRectStyle();
 
+  /* ================================================================
+     JSX
+     ================================================================ */
   return (
     <div className="space-y-3">
       {/* Status legend */}
@@ -849,19 +912,19 @@ export function FacadeHotspotEditor({
         ))}
       </div>
 
-      {/* Image canvas — dynamic aspect ratio */}
+      {/* Image canvas */}
       <div
         ref={containerRef}
         className={cn(
           "relative w-full max-h-[65vh] select-none",
-          dragging ? "cursor-grabbing" : "cursor-crosshair"
+          isDragging ? "cursor-grabbing" : "cursor-crosshair"
         )}
         style={{ aspectRatio: imageAspectRatio }}
         onMouseDown={handleContainerMouseDown}
         onMouseMove={handleContainerMouseMove}
         onMouseUp={handleContainerMouseUp}
       >
-        {/* Image wrapper */}
+        {/* Image */}
         <div className="absolute inset-0 rounded-xl overflow-hidden border border-[var(--border-default)] bg-[var(--surface-2)]">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
@@ -875,14 +938,13 @@ export function FacadeHotspotEditor({
                 const { naturalWidth, naturalHeight } = imgRef.current;
                 if (naturalWidth && naturalHeight) {
                   setImageAspectRatio(`${naturalWidth}/${naturalHeight}`);
-                  // useHotspotCanvas hook handles resize/load updates internally
                 }
               }
             }}
           />
         </div>
 
-        {/* Floating toolbar overlay */}
+        {/* Floating toolbar */}
         <div
           data-toolbar
           className="absolute top-3 left-1/2 -translate-x-1/2 z-30 flex flex-col items-center gap-2"
@@ -1000,31 +1062,35 @@ export function FacadeHotspotEditor({
               </motion.div>
             ) : null}
           </AnimatePresence>
-
         </div>
 
-        {/* Hotspot dots — both assigned and empty */}
+        {/* Hotspot dots */}
         <AllDots
           positions={positions}
           emptyDots={emptyDots}
           unitMap={unitMap}
           selectedIds={selectedIds}
           hoveredId={hoveredId}
-          dragging={dragging}
+          isDragging={isDragging}
+          draggingDotId={draggingRef.current?.dotId ?? null}
           activeMenuDotId={activeMenuDotId}
           toPx={toPx}
           onMouseDown={handleDotMouseDown}
           onHover={setHoveredId}
           onContextMenu={(id, isEmpty) => {
             if (isEmpty) {
-              setEmptyDots((prev) => prev.filter((d) => d.localId !== id));
+              setEmptyDots((prev) => {
+                const next = prev.filter((d) => d.localId !== id);
+                emptyDotsRef.current = next;
+                return next;
+              });
             } else {
-              onRemoveUnit(id).catch(() => {});
+              propsRef.current.onRemoveUnit(id).catch(() => {});
             }
           }}
         />
 
-        {/* Ghost preview dots for Repeat Row / Quick Grid */}
+        {/* Ghost preview dots */}
         {previewDots.length > 0 && (() => {
           const bounds = getImageBounds();
           if (!bounds) return null;
@@ -1085,7 +1151,7 @@ export function FacadeHotspotEditor({
               onClick={(e) => e.stopPropagation()}
               onMouseDown={(e) => e.stopPropagation()}
             >
-              {/* Header: unit info or "Sin asignar" */}
+              {/* Header */}
               <div className="px-3 py-2 border-b border-[var(--border-subtle)] bg-[var(--surface-2)]">
                 {activeMenuUnit ? (
                   <div className="flex items-center gap-2">
@@ -1181,7 +1247,7 @@ export function FacadeHotspotEditor({
         />
       )}
 
-      {/* Repeat Row — draggable floating panel */}
+      {/* Repeat Row panel */}
       <AnimatePresence>
         {showRepeatRow && (
           <motion.div
@@ -1197,34 +1263,21 @@ export function FacadeHotspotEditor({
                 <GripVertical size={14} className="text-[var(--text-muted)]" />
                 <span className="text-[12px] font-medium text-[var(--text-primary)]">Repetir fila</span>
               </div>
-              <button
-                onClick={() => setShowRepeatRow(false)}
-                className="text-[var(--text-muted)] hover:text-[var(--text-secondary)] transition-colors"
-              >
+              <button onClick={() => setShowRepeatRow(false)} className="text-[var(--text-muted)] hover:text-[var(--text-secondary)] transition-colors">
                 <X size={14} />
               </button>
             </div>
-
             <div className="grid grid-cols-3 gap-3 mb-3">
               <div>
                 <label className="font-ui text-[10px] text-[var(--text-tertiary)] uppercase tracking-wider font-bold mb-1 block">Copias</label>
-                <input
-                  type="number"
-                  min={1}
-                  max={50}
-                  value={repeatCount}
+                <input type="number" min={1} max={50} value={repeatCount}
                   onChange={(e) => setRepeatCount(Math.max(1, Math.min(50, parseInt(e.target.value) || 1)))}
                   className="w-full px-2 py-1.5 text-[12px] text-white bg-[var(--surface-3)] border border-[var(--border-subtle)] rounded-lg focus:border-[var(--site-primary)] focus:outline-none transition-colors"
                 />
               </div>
               <div>
                 <label className="font-ui text-[10px] text-[var(--text-tertiary)] uppercase tracking-wider font-bold mb-1 block">Espaciado %</label>
-                <input
-                  type="number"
-                  min={0.5}
-                  max={20}
-                  step={0.5}
-                  value={repeatSpacing}
+                <input type="number" min={0.5} max={20} step={0.5} value={repeatSpacing}
                   onChange={(e) => setRepeatSpacing(Math.max(0.5, Math.min(20, parseFloat(e.target.value) || 1)))}
                   className="w-full px-2 py-1.5 text-[12px] text-white bg-[var(--surface-3)] border border-[var(--border-subtle)] rounded-lg focus:border-[var(--site-primary)] focus:outline-none transition-colors"
                 />
@@ -1232,50 +1285,37 @@ export function FacadeHotspotEditor({
               <div>
                 <label className="font-ui text-[10px] text-[var(--text-tertiary)] uppercase tracking-wider font-bold mb-1 block">Dirección</label>
                 <div className="flex gap-1">
-                  <button
-                    onClick={() => setRepeatDirection("up")}
-                    className={cn(
-                      "flex-1 flex items-center justify-center py-1.5 rounded-lg border text-[11px] transition-all",
+                  <button onClick={() => setRepeatDirection("up")}
+                    className={cn("flex-1 flex items-center justify-center py-1.5 rounded-lg border text-[11px] transition-all",
                       repeatDirection === "up"
                         ? "bg-[rgba(var(--site-primary-rgb),0.15)] border-[rgba(var(--site-primary-rgb),0.4)] text-[var(--site-primary)]"
                         : "bg-[var(--surface-3)] border-[var(--border-subtle)] text-[var(--text-secondary)] hover:text-white"
-                    )}
-                  >
+                    )}>
                     <ArrowUp size={13} />
                   </button>
-                  <button
-                    onClick={() => setRepeatDirection("down")}
-                    className={cn(
-                      "flex-1 flex items-center justify-center py-1.5 rounded-lg border text-[11px] transition-all",
+                  <button onClick={() => setRepeatDirection("down")}
+                    className={cn("flex-1 flex items-center justify-center py-1.5 rounded-lg border text-[11px] transition-all",
                       repeatDirection === "down"
                         ? "bg-[rgba(var(--site-primary-rgb),0.15)] border-[rgba(var(--site-primary-rgb),0.4)] text-[var(--site-primary)]"
                         : "bg-[var(--surface-3)] border-[var(--border-subtle)] text-[var(--text-secondary)] hover:text-white"
-                    )}
-                  >
+                    )}>
                     <ArrowDown size={13} />
                   </button>
                 </div>
               </div>
             </div>
-
             {previewDots.length > 0 && (
               <p className="text-[10px] text-[var(--text-tertiary)] mb-3">
                 Vista previa: {previewDots.length} puntos nuevos
               </p>
             )}
-
             <div className="flex items-center justify-end gap-2">
-              <button
-                onClick={() => setShowRepeatRow(false)}
-                className="px-3 py-1.5 text-[11px] text-[var(--text-secondary)] hover:text-white bg-[var(--surface-3)] hover:bg-[var(--surface-4)] rounded-lg border border-[var(--border-subtle)] transition-colors"
-              >
+              <button onClick={() => setShowRepeatRow(false)}
+                className="px-3 py-1.5 text-[11px] text-[var(--text-secondary)] hover:text-white bg-[var(--surface-3)] hover:bg-[var(--surface-4)] rounded-lg border border-[var(--border-subtle)] transition-colors">
                 Cancelar
               </button>
-              <button
-                onClick={handleApplyRepeatRow}
-                disabled={previewDots.length === 0}
-                className="px-4 py-1.5 text-[11px] text-[var(--surface-0)] bg-[var(--site-primary)] hover:brightness-110 rounded-lg font-medium transition-all disabled:opacity-40"
-              >
+              <button onClick={handleApplyRepeatRow} disabled={previewDots.length === 0}
+                className="px-4 py-1.5 text-[11px] text-[var(--surface-0)] bg-[var(--site-primary)] hover:brightness-110 rounded-lg font-medium transition-all disabled:opacity-40">
                 Aplicar ({previewDots.length})
               </button>
             </div>
@@ -1283,7 +1323,7 @@ export function FacadeHotspotEditor({
         )}
       </AnimatePresence>
 
-      {/* Quick Grid — draggable floating panel */}
+      {/* Quick Grid panel */}
       <AnimatePresence>
         {showQuickGrid && (
           <motion.div
@@ -1299,104 +1339,51 @@ export function FacadeHotspotEditor({
                 <GripVertical size={14} className="text-[var(--text-muted)]" />
                 <span className="text-[12px] font-medium text-[var(--text-primary)]">Cuadrícula rápida</span>
               </div>
-              <button
-                onClick={() => setShowQuickGrid(false)}
-                className="text-[var(--text-muted)] hover:text-[var(--text-secondary)] transition-colors"
-              >
+              <button onClick={() => setShowQuickGrid(false)} className="text-[var(--text-muted)] hover:text-[var(--text-secondary)] transition-colors">
                 <X size={14} />
               </button>
             </div>
-
             <div className="grid grid-cols-2 gap-3 mb-3">
               <div>
                 <label className="font-ui text-[10px] text-[var(--text-tertiary)] uppercase tracking-wider font-bold mb-1 block">Columnas</label>
-                <input
-                  type="number"
-                  min={1}
-                  max={20}
-                  value={gridCols}
+                <input type="number" min={1} max={20} value={gridCols}
                   onChange={(e) => setGridCols(Math.max(1, Math.min(20, parseInt(e.target.value) || 1)))}
                   className="w-full px-2 py-1.5 text-[12px] text-white bg-[var(--surface-3)] border border-[var(--border-subtle)] rounded-lg focus:border-[var(--site-primary)] focus:outline-none transition-colors"
                 />
               </div>
               <div>
                 <label className="font-ui text-[10px] text-[var(--text-tertiary)] uppercase tracking-wider font-bold mb-1 block">Filas</label>
-                <input
-                  type="number"
-                  min={1}
-                  max={50}
-                  value={gridRows}
+                <input type="number" min={1} max={50} value={gridRows}
                   onChange={(e) => setGridRows(Math.max(1, Math.min(50, parseInt(e.target.value) || 1)))}
                   className="w-full px-2 py-1.5 text-[12px] text-white bg-[var(--surface-3)] border border-[var(--border-subtle)] rounded-lg focus:border-[var(--site-primary)] focus:outline-none transition-colors"
                 />
               </div>
             </div>
-
             <div className="grid grid-cols-4 gap-2 mb-3">
-              <div>
-                <label className="font-ui text-[10px] text-[var(--text-tertiary)] uppercase tracking-wider font-bold mb-1 block">Izq %</label>
-                <input
-                  type="number"
-                  min={0}
-                  max={100}
-                  value={gridBounds.x1}
-                  onChange={(e) => setGridBounds((b) => ({ ...b, x1: Math.max(0, Math.min(100, parseFloat(e.target.value) || 0)) }))}
-                  className="w-full px-2 py-1.5 text-[12px] text-white bg-[var(--surface-3)] border border-[var(--border-subtle)] rounded-lg focus:border-[var(--site-primary)] focus:outline-none transition-colors"
-                />
-              </div>
-              <div>
-                <label className="font-ui text-[10px] text-[var(--text-tertiary)] uppercase tracking-wider font-bold mb-1 block">Arriba %</label>
-                <input
-                  type="number"
-                  min={0}
-                  max={100}
-                  value={gridBounds.y1}
-                  onChange={(e) => setGridBounds((b) => ({ ...b, y1: Math.max(0, Math.min(100, parseFloat(e.target.value) || 0)) }))}
-                  className="w-full px-2 py-1.5 text-[12px] text-white bg-[var(--surface-3)] border border-[var(--border-subtle)] rounded-lg focus:border-[var(--site-primary)] focus:outline-none transition-colors"
-                />
-              </div>
-              <div>
-                <label className="font-ui text-[10px] text-[var(--text-tertiary)] uppercase tracking-wider font-bold mb-1 block">Der %</label>
-                <input
-                  type="number"
-                  min={0}
-                  max={100}
-                  value={gridBounds.x2}
-                  onChange={(e) => setGridBounds((b) => ({ ...b, x2: Math.max(0, Math.min(100, parseFloat(e.target.value) || 0)) }))}
-                  className="w-full px-2 py-1.5 text-[12px] text-white bg-[var(--surface-3)] border border-[var(--border-subtle)] rounded-lg focus:border-[var(--site-primary)] focus:outline-none transition-colors"
-                />
-              </div>
-              <div>
-                <label className="font-ui text-[10px] text-[var(--text-tertiary)] uppercase tracking-wider font-bold mb-1 block">Abajo %</label>
-                <input
-                  type="number"
-                  min={0}
-                  max={100}
-                  value={gridBounds.y2}
-                  onChange={(e) => setGridBounds((b) => ({ ...b, y2: Math.max(0, Math.min(100, parseFloat(e.target.value) || 0)) }))}
-                  className="w-full px-2 py-1.5 text-[12px] text-white bg-[var(--surface-3)] border border-[var(--border-subtle)] rounded-lg focus:border-[var(--site-primary)] focus:outline-none transition-colors"
-                />
-              </div>
+              {(["x1", "y1", "x2", "y2"] as const).map((key, i) => (
+                <div key={key}>
+                  <label className="font-ui text-[10px] text-[var(--text-tertiary)] uppercase tracking-wider font-bold mb-1 block">
+                    {["Izq %", "Arriba %", "Der %", "Abajo %"][i]}
+                  </label>
+                  <input type="number" min={0} max={100} value={gridBounds[key]}
+                    onChange={(e) => setGridBounds((b) => ({ ...b, [key]: Math.max(0, Math.min(100, parseFloat(e.target.value) || 0)) }))}
+                    className="w-full px-2 py-1.5 text-[12px] text-white bg-[var(--surface-3)] border border-[var(--border-subtle)] rounded-lg focus:border-[var(--site-primary)] focus:outline-none transition-colors"
+                  />
+                </div>
+              ))}
             </div>
-
             {previewDots.length > 0 && (
               <p className="text-[10px] text-[var(--text-tertiary)] mb-3">
                 Vista previa: {gridCols} × {gridRows} = {previewDots.length} puntos
               </p>
             )}
-
             <div className="flex items-center justify-end gap-2">
-              <button
-                onClick={() => setShowQuickGrid(false)}
-                className="px-3 py-1.5 text-[11px] text-[var(--text-secondary)] hover:text-white bg-[var(--surface-3)] hover:bg-[var(--surface-4)] rounded-lg border border-[var(--border-subtle)] transition-colors"
-              >
+              <button onClick={() => setShowQuickGrid(false)}
+                className="px-3 py-1.5 text-[11px] text-[var(--text-secondary)] hover:text-white bg-[var(--surface-3)] hover:bg-[var(--surface-4)] rounded-lg border border-[var(--border-subtle)] transition-colors">
                 Cancelar
               </button>
-              <button
-                onClick={handleApplyQuickGrid}
-                disabled={previewDots.length === 0}
-                className="px-4 py-1.5 text-[11px] text-[var(--surface-0)] bg-[var(--site-primary)] hover:brightness-110 rounded-lg font-medium transition-all disabled:opacity-40"
-              >
+              <button onClick={handleApplyQuickGrid} disabled={previewDots.length === 0}
+                className="px-4 py-1.5 text-[11px] text-[var(--surface-0)] bg-[var(--site-primary)] hover:brightness-110 rounded-lg font-medium transition-all disabled:opacity-40">
                 Generar ({previewDots.length})
               </button>
             </div>
@@ -1416,7 +1403,8 @@ function AllDots({
   unitMap,
   selectedIds,
   hoveredId,
-  dragging,
+  isDragging,
+  draggingDotId,
   activeMenuDotId,
   toPx,
   onMouseDown,
@@ -1428,14 +1416,14 @@ function AllDots({
   unitMap: Map<string, HotspotUnit>;
   selectedIds: Set<string>;
   hoveredId: string | null;
-  dragging: { dotId: string } | null;
+  isDragging: boolean;
+  draggingDotId: string | null;
   activeMenuDotId: string | null;
   toPx: (x: number, y: number) => { left: number; top: number } | null;
   onMouseDown: (e: React.MouseEvent, id: string, isEmpty: boolean) => void;
   onHover: (id: string | null) => void;
   onContextMenu: (id: string, isEmpty: boolean) => void;
 }) {
-
   return (
     <>
       {/* Assigned unit dots */}
@@ -1444,7 +1432,7 @@ function AllDots({
         if (!unit) return null;
         const isSelected = selectedIds.has(id);
         const isHovered = hoveredId === id;
-        const isDragging = dragging?.dotId === id;
+        const isThisDragging = draggingDotId === id;
         const isMenuOpen = activeMenuDotId === id;
         const px = toPx(pos.x, pos.y);
         if (!px) return null;
@@ -1455,7 +1443,7 @@ function AllDots({
             data-hotspot
             className={cn(
               "absolute w-4 h-4 rounded-full border-2 transition-colors",
-              isDragging ? "cursor-grabbing" : "cursor-grab"
+              isThisDragging ? "cursor-grabbing" : "cursor-grab"
             )}
             style={{
               left: px.left,
@@ -1467,7 +1455,7 @@ function AllDots({
                 ? `0 0 0 4px ${STATUS_COLORS[unit.estado]}40`
                 : "0 1px 3px rgba(0,0,0,0.5)",
               zIndex: isSelected || isHovered || isMenuOpen ? 20 : 10,
-              pointerEvents: dragging && !isDragging && !isSelected ? "none" : "auto",
+              pointerEvents: isDragging && !isThisDragging && !isSelected ? "none" : "auto",
             }}
             onMouseDown={(e) => onMouseDown(e, id, false)}
             onMouseEnter={() => onHover(id)}
@@ -1488,7 +1476,7 @@ function AllDots({
       {emptyDots.map((dot) => {
         const isSelected = selectedIds.has(dot.localId);
         const isHovered = hoveredId === dot.localId;
-        const isDragging = dragging?.dotId === dot.localId;
+        const isThisDragging = draggingDotId === dot.localId;
         const isMenuOpen = activeMenuDotId === dot.localId;
         const px = toPx(dot.x, dot.y);
         if (!px) return null;
@@ -1499,7 +1487,7 @@ function AllDots({
             data-hotspot
             className={cn(
               "absolute w-3 h-3 rounded-full transition-colors",
-              isDragging ? "cursor-grabbing" : "cursor-grab"
+              isThisDragging ? "cursor-grabbing" : "cursor-grab"
             )}
             style={{
               left: px.left,
@@ -1511,7 +1499,7 @@ function AllDots({
                 ? `0 0 0 4px ${EMPTY_DOT_COLOR}40`
                 : "0 1px 3px rgba(0,0,0,0.5)",
               zIndex: isSelected || isHovered || isMenuOpen ? 20 : 10,
-              pointerEvents: dragging && !isDragging && !isSelected ? "none" : "auto",
+              pointerEvents: isDragging && !isThisDragging && !isSelected ? "none" : "auto",
             }}
             onMouseDown={(e) => onMouseDown(e, dot.localId, true)}
             onMouseEnter={() => onHover(dot.localId)}

@@ -8,6 +8,7 @@ import { ImageCropper } from "@/components/dashboard/ImageCropper";
 import { compressImage } from "@/lib/compress-image";
 import { useTranslation } from "@/i18n";
 import { UploadProgress, UploadProgressOverlay, type UploadState } from "@/components/ui/UploadProgress";
+import { createClient } from "@/lib/supabase/client";
 
 /* ------------------------------------------------------------------
    Types
@@ -125,11 +126,59 @@ export function FileUploader({
   /* ------------------------------------------------------------------
      Upload helpers
      ------------------------------------------------------------------ */
+  /** Upload non-image files (PDFs, etc.) directly to Supabase Storage
+      to bypass Vercel's 4.5MB serverless body limit */
+  const uploadDirectToStorage = useCallback(
+    async (file: File): Promise<UploadResult> => {
+      const supabase = createClient();
+      const ext = file.name.split(".").pop() || "bin";
+      const prefix = folder ? folder + "/" : "";
+      const baseName = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+      const fileName = `${prefix}${baseName}.${ext}`;
+
+      const { error: uploadError } = await supabase.storage
+        .from("media")
+        .upload(fileName, file, { upsert: true });
+
+      if (uploadError) throw new Error(uploadError.message);
+
+      // Increment storage counter
+      const folderMatch = folder.match(/^proyectos\/([a-f0-9-]+)/i);
+      if (folderMatch?.[1]) {
+        supabase.rpc("increment_storage_media_bytes", {
+          p_id: folderMatch[1],
+          p_bytes: file.size,
+        }).then();
+      }
+
+      const {
+        data: { publicUrl },
+      } = supabase.storage.from("media").getPublicUrl(fileName);
+
+      return { url: publicUrl, width: 0, height: 0 };
+    },
+    [folder]
+  );
+
   const uploadSingleFile = useCallback(
     async (file: File): Promise<UploadResult> => {
+      const isImage = file.type.startsWith("image/");
+      const isVideo = file.type.startsWith("video/");
+
+      // Non-image, non-video files (PDFs, etc.): upload directly to Supabase
+      // to bypass Vercel's 4.5MB serverless function body limit
+      if (!isImage && !isVideo) {
+        setUploadState("uploading");
+        setUploadProgressPercent(0);
+        const result = await uploadDirectToStorage(file);
+        setUploadProgressPercent(100);
+        setUploadState("complete");
+        return result;
+      }
+
       // Compress large images client-side before uploading
       let fileToUpload = file;
-      if (file.type.startsWith("image/") && file.size > 4 * 1024 * 1024) {
+      if (isImage && file.size > 4 * 1024 * 1024) {
         setUploadState("processing");
         setUploadProgressPercent(0);
         try {
@@ -142,12 +191,12 @@ export function FileUploader({
       }
 
       // Reject videos over 100MB (too heavy for browser-based compression)
-      if (file.type.startsWith("video/") && file.size > 100 * 1024 * 1024) {
+      if (isVideo && file.size > 100 * 1024 * 1024) {
         throw new Error("El video excede 100MB. Por favor usa un archivo más liviano.");
       }
 
       // Compress large videos client-side (FFmpeg WASM, lazy-loaded)
-      if (file.type.startsWith("video/") && file.size > 5 * 1024 * 1024) {
+      if (isVideo && file.size > 5 * 1024 * 1024) {
         setUploadState("processing");
         setUploadProgressPercent(0);
         try {
@@ -178,8 +227,20 @@ export function FileUploader({
       });
 
       if (!res.ok) {
-        const data = await res.json();
-        throw new Error(data.error || t("fileUploader.uploadError"));
+        // Handle non-JSON responses (e.g. Vercel "Request Entity Too Large")
+        let errorMsg = t("fileUploader.uploadError");
+        try {
+          const data = await res.json();
+          errorMsg = data.error || errorMsg;
+        } catch {
+          const text = await res.text().catch(() => "");
+          if (text.toLowerCase().includes("entity too large") || res.status === 413) {
+            errorMsg = "El archivo excede el límite de tamaño. Intenta con un archivo más pequeño.";
+          } else if (text) {
+            errorMsg = text.slice(0, 200);
+          }
+        }
+        throw new Error(errorMsg);
       }
 
       // Simulate upload progress complete
@@ -188,7 +249,7 @@ export function FileUploader({
 
       return await res.json();
     },
-    [folder, t, uploadState]
+    [folder, t, uploadState, uploadDirectToStorage]
   );
 
   const uploadBlob = useCallback(
@@ -204,8 +265,15 @@ export function FileUploader({
       });
 
       if (!res.ok) {
-        const data = await res.json();
-        throw new Error(data.error || t("fileUploader.uploadError"));
+        let errorMsg = t("fileUploader.uploadError");
+        try {
+          const data = await res.json();
+          errorMsg = data.error || errorMsg;
+        } catch {
+          const text = await res.text().catch(() => "");
+          if (text) errorMsg = text.slice(0, 200);
+        }
+        throw new Error(errorMsg);
       }
 
       return await res.json();
@@ -703,8 +771,8 @@ export function FileUploader({
               </p>
 
               {/* Preview */}
-              <div className="aspect-video rounded-lg overflow-hidden bg-[var(--surface-2)] border border-[var(--border-subtle)]">
-                <Image src={aspectWarning.objectUrl} alt="undefined" fill className="w-full h-full object-contain" />
+              <div className="relative aspect-video rounded-lg overflow-hidden bg-[var(--surface-2)] border border-[var(--border-subtle)]">
+                <Image src={aspectWarning.objectUrl} alt="Preview" fill className="object-contain" />
               </div>
 
               <div className="flex gap-2">

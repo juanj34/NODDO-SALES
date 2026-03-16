@@ -5,6 +5,8 @@ export type EstadoUnidad = "disponible" | "separado" | "reservada" | "vendida";
 export interface MappedUnit {
   identificador: string;
   piso: number | null;
+  lote: string | null;
+  etapa_nombre: string | null;
   area_m2: number | null;
   precio: number | null;
   estado: EstadoUnidad;
@@ -295,6 +297,8 @@ export function parseCSVWithMapping(
     results.push({
       identificador,
       piso: (unit.piso as number | null) ?? null,
+      lote: (unit.lote as string | null) ?? null,
+      etapa_nombre: (unit.etapa_nombre as string | null) ?? null,
       area_m2: (unit.area_m2 as number | null) ?? null,
       precio: (unit.precio as number | null) ?? null,
       estado: (unit.estado as EstadoUnidad) || "disponible",

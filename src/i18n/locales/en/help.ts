@@ -3,8 +3,18 @@ const help = {
     title: "Help Center",
     description:
       "Everything you need to know to create and manage your real estate microsite",
+    heroSubtitle:
+      "Step-by-step guides for every NODDO feature. Find answers, learn tips, and master the platform.",
     searchPlaceholder: "Search help...",
     noResults: "No results found. Try different terms.",
+    ctaTitle: "Didn't find what you were looking for?",
+    ctaDescription:
+      "Our support team is ready to help you with any questions about the platform.",
+    ctaContact: "Contact Us",
+    ctaWhatsapp: "Message on WhatsApp",
+    stepsLabel: "Step by step",
+    tipsLabel: "Tips",
+    articlesCount: "{{count}} articles",
   },
   categories: {
     dashboard: "Dashboard",
@@ -12,6 +22,18 @@ const help = {
     contenido: "Content",
     ajustes: "Settings",
     flujos: "Workflows",
+  },
+  categoryDescriptions: {
+    dashboard:
+      "Projects, team, leads, availability, and analytics",
+    proyecto:
+      "General settings, towers, and developments",
+    contenido:
+      "Typologies, inventory, gallery, videos, location, and more",
+    ajustes:
+      "Configuration, custom domain, and webhooks",
+    flujos:
+      "Publishing, auto-save, AI, and file management",
   },
   articles: {
     proyectos: {

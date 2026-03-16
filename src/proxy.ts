@@ -65,7 +65,6 @@ export async function proxy(request: NextRequest) {
     pathname.startsWith("/editor") ||
     pathname === "/leads" ||
     pathname === "/equipo" ||
-    pathname === "/ayuda" ||
     pathname === "/cuenta" ||
     pathname === "/disponibilidad" ||
     pathname === "/cotizador" ||

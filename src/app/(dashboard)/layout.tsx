@@ -11,6 +11,7 @@ import {
   FolderOpen, Users, Settings, LogOut, Loader2, HelpCircle,
   Menu, X, Shield, ToggleLeft, Calculator, ContactRound,
   BarChart3, FileText, LayoutDashboard, CircleDollarSign, Clock,
+  ExternalLink,
 } from "lucide-react";
 import { ToastProvider } from "@/components/dashboard/Toast";
 import { ConfirmProvider } from "@/components/dashboard/ConfirmModal";
@@ -290,21 +291,22 @@ function DashboardShell({ children }: { children: React.ReactNode }) {
           </div>
         )}
 
-        {/* Help + Language — polished bottom strip */}
-        <div className="px-4 py-3 flex items-center justify-between">
-          <Link
+        {/* Help — visible link */}
+        <div className="px-4 pb-1">
+          <a
             href="/ayuda"
-            onClick={closeDrawer}
-            className={cn(
-              "flex items-center gap-2 px-2.5 py-1.5 rounded-lg font-ui text-[10px] font-semibold uppercase tracking-[0.08em] transition-all",
-              pathname === "/ayuda"
-                ? "text-[var(--site-primary)] bg-[rgba(var(--site-primary-rgb),0.08)]"
-                : "text-[var(--text-muted)] hover:text-[var(--text-tertiary)] hover:bg-[var(--surface-2)]"
-            )}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center gap-3 px-3 py-2 rounded-[0.625rem] font-ui text-xs font-semibold uppercase tracking-[0.08em] text-[var(--text-tertiary)] hover:text-[var(--site-primary)] hover:bg-[rgba(var(--site-primary-rgb),0.06)] transition-all"
           >
-            <HelpCircle size={13} />
+            <HelpCircle size={16} />
             {t("sidebar.help")}
-          </Link>
+            <ExternalLink size={10} className="ml-auto text-[var(--text-muted)]" />
+          </a>
+        </div>
+
+        {/* Language toggle */}
+        <div className="px-4 py-3 flex items-center justify-center">
           <LanguageToggle />
         </div>
 

@@ -51,12 +51,48 @@ export async function PUT(
 
     const { data, error } = await auth.supabase
       .from("unidades")
-      .update(pick(body, ["tipologia_id", "identificador", "piso", "area_m2", "precio", "estado", "habitaciones", "banos", "orientacion", "vista", "vista_piso_id", "notas", "fachada_id", "fachada_x", "fachada_y", "planta_id", "planta_x", "planta_y", "torre_id", "parqueaderos", "depositos", "orden"]))
+      .update(pick(body, ["tipologia_id", "identificador", "piso", "area_m2", "precio", "estado", "habitaciones", "banos", "orientacion", "vista", "vista_piso_id", "notas", "fachada_id", "fachada_x", "fachada_y", "planta_id", "planta_x", "planta_y", "torre_id", "lote", "etapa_nombre", "parqueaderos", "depositos", "orden"]))
       .eq("id", id)
       .select("*, tipologias(parqueaderos, depositos)")
       .single();
 
     if (error) throw error;
+
+    // Update available tipologías if provided (multi-tipología mode)
+    if (Array.isArray(body.available_tipologia_ids)) {
+      // Delete existing and re-insert
+      await auth.supabase.from("unidad_tipologias").delete().eq("unidad_id", id);
+      if (body.available_tipologia_ids.length > 0) {
+        const junctionRows = body.available_tipologia_ids.map((tid: string) => ({
+          proyecto_id: proyectoId,
+          unidad_id: id,
+          tipologia_id: tid,
+        }));
+        await auth.supabase.from("unidad_tipologias").insert(junctionRows);
+      }
+    }
+
+    // Validate tipología selection when changing estado in multi-tipología mode
+    if (body.estado !== undefined && ["separado", "reservada", "vendida"].includes(body.estado)) {
+      const { data: proyecto } = await auth.supabase
+        .from("proyectos")
+        .select("tipologia_mode")
+        .eq("id", proyectoId)
+        .single();
+      if (proyecto?.tipologia_mode === "multiple" && !data.tipologia_id && body.tipologia_id === undefined) {
+        // Check if this unit has available tipologías
+        const { count } = await auth.supabase
+          .from("unidad_tipologias")
+          .select("id", { count: "exact", head: true })
+          .eq("unidad_id", id);
+        if (count && count > 0) {
+          return NextResponse.json(
+            { error: "Debe seleccionar una tipología antes de cambiar el estado", code: "TIPOLOGIA_REQUIRED" },
+            { status: 422 }
+          );
+        }
+      }
+    }
 
     // Cascade estado to assigned complementos + pre-sale validation
     let complementosCascaded = 0;

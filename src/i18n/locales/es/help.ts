@@ -3,8 +3,18 @@ const help = {
     title: "Centro de Ayuda",
     description:
       "Todo lo que necesitas saber para crear y gestionar tu micrositio inmobiliario",
+    heroSubtitle:
+      "Guías paso a paso para cada función de NODDO. Encuentra respuestas, aprende trucos y domina la plataforma.",
     searchPlaceholder: "Buscar en la ayuda...",
     noResults: "No se encontraron resultados. Intenta con otros términos.",
+    ctaTitle: "¿No encontraste lo que buscabas?",
+    ctaDescription:
+      "Nuestro equipo de soporte está listo para ayudarte con cualquier duda sobre la plataforma.",
+    ctaContact: "Contáctanos",
+    ctaWhatsapp: "Escribir por WhatsApp",
+    stepsLabel: "Paso a paso",
+    tipsLabel: "Consejos",
+    articlesCount: "{{count}} artículos",
   },
   categories: {
     dashboard: "Panel de Control",
@@ -12,6 +22,18 @@ const help = {
     contenido: "Contenido",
     ajustes: "Ajustes",
     flujos: "Flujos de Trabajo",
+  },
+  categoryDescriptions: {
+    dashboard:
+      "Proyectos, equipo, leads, disponibilidad y estadísticas",
+    proyecto:
+      "Configuración general, torres y urbanismos",
+    contenido:
+      "Tipologías, inventario, galería, videos, ubicación y más",
+    ajustes:
+      "Configuración, dominio personalizado y webhooks",
+    flujos:
+      "Publicación, auto-guardado, IA y archivos",
   },
   articles: {
     /* ────────────────────────────────────────────

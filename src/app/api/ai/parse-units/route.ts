@@ -2,6 +2,7 @@ import { getAuthContext } from "@/lib/auth-context";
 import {
   callAI,
   parseAIJson,
+  extractArray,
   sanitizeInput,
   toNumberOrNull,
   toPositiveOrNull,
@@ -138,9 +139,11 @@ ${cleanText}
     const result = await callAI(systemPrompt, userMessage);
 
     // ----- Parse + validate output -----
-    const rawArray = parseAIJson<unknown[]>(result, []);
+    const parsed = parseAIJson<unknown>(result, []);
+    const rawArray = extractArray(parsed);
 
-    if (!Array.isArray(rawArray)) {
+    if (rawArray.length === 0) {
+      console.warn("parse-units: AI returned no parseable array. Raw:", result.slice(0, 500));
       return NextResponse.json({ unidades: [] });
     }
 

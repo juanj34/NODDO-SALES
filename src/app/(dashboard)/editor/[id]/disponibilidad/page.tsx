@@ -3,6 +3,7 @@
 export const dynamic = "force-dynamic";
 
 import { useState, useMemo, useCallback } from "react";
+import { getInventoryColumns } from "@/lib/inventory-columns";
 import { useEditorProject } from "@/hooks/useEditorProject";
 import {
   emptyState,
@@ -39,6 +40,16 @@ export default function DisponibilidadPage() {
   const unidades = useMemo(() => project.unidades ?? [], [project.unidades]);
   const tipologias = useMemo(() => project.tipologias ?? [], [project.tipologias]);
   const torres = useMemo(() => project.torres ?? [], [project.torres]);
+  const isCasas = project.tipo_proyecto === "casas";
+  const isLotes = project.tipo_proyecto === "lotes";
+  const isLoteBased = isCasas || isLotes;
+  const columns = useMemo(
+    () => getInventoryColumns(project.tipo_proyecto ?? "hibrido", project.inventory_columns),
+    [project.tipo_proyecto, project.inventory_columns]
+  );
+  const groupByEtapa = columns.etapa && !columns.piso;
+  const isMultiTipo = project.tipologia_mode === "multiple";
+  const unidadTipologias = useMemo(() => project.unidad_tipologias ?? [], [project.unidad_tipologias]);
 
   const [filterTorre, setFilterTorre] = useState<string>("");
   const [filterTipo, setFilterTipo] = useState<string>("");
@@ -68,9 +79,18 @@ export default function DisponibilidadPage() {
   const filtered = useMemo(() => {
     let result = unidades;
     if (filterTorre) result = result.filter((u) => u.torre_id === filterTorre);
-    if (filterTipo) result = result.filter((u) => u.tipologia_id === filterTipo);
+    if (filterTipo) {
+      if (isMultiTipo) {
+        const compatibleIds = new Set(
+          unidadTipologias.filter(ut => ut.tipologia_id === filterTipo).map(ut => ut.unidad_id)
+        );
+        result = result.filter((u) => compatibleIds.has(u.id));
+      } else {
+        result = result.filter((u) => u.tipologia_id === filterTipo);
+      }
+    }
     return result.sort((a, b) => (a.piso ?? 0) - (b.piso ?? 0) || a.identificador.localeCompare(b.identificador));
-  }, [unidades, filterTorre, filterTipo]);
+  }, [unidades, filterTorre, filterTipo, isMultiTipo, unidadTipologias]);
 
   // Counts
   const counts = useMemo(() => {
@@ -127,9 +147,21 @@ export default function DisponibilidadPage() {
     }
   }, [unidades, updateLocal, toast]);
 
+  // Tipología selection modal for multi-tipo units
+  const [tipoSelectUnit, setTipoSelectUnit] = useState<{ unitId: string; estado: EstadoUnidad } | null>(null);
+
   const handleStatusChange = useCallback((unitId: string, newEstado: EstadoUnidad) => {
     const unit = unidades.find((u) => u.id === unitId);
     if (!unit || unit.estado === newEstado) return;
+
+    // Multi-tipo validation: require tipología selection before selling/reserving
+    if (isMultiTipo && !unit.tipologia_id && ["separado", "reservada", "vendida"].includes(newEstado)) {
+      const hasOptions = unidadTipologias.some(ut => ut.unidad_id === unitId);
+      if (hasOptions) {
+        setTipoSelectUnit({ unitId, estado: newEstado });
+        return;
+      }
+    }
 
     // Pre-sale validation: check complementos before marking as vendida
     if (newEstado === "vendida" && (parqInventory || depoInventory)) {
@@ -157,18 +189,29 @@ export default function DisponibilidadPage() {
     }
 
     doStatusChange(unitId, newEstado);
-  }, [unidades, tipologias, parqInventory, depoInventory, project.complementos, doStatusChange]);
+  }, [unidades, tipologias, parqInventory, depoInventory, project.complementos, doStatusChange, isMultiTipo, unidadTipologias]);
 
-  // Group by floor
+  // Group by floor (apartments) or etapa (houses)
   const grouped = useMemo(() => {
+    if (groupByEtapa) {
+      // Group by etapa_nombre for houses/lotes
+      const groups = new Map<string | null, Unidad[]>();
+      for (const u of filtered) {
+        const key = u.etapa_nombre ?? null;
+        if (!groups.has(key)) groups.set(key, []);
+        groups.get(key)!.push(u);
+      }
+      // Convert to same format as floor grouping (use string key)
+      return Array.from(groups.entries()).map(([etapa, units]) => [etapa, units] as [string | null, Unidad[]]);
+    }
     const groups = new Map<number | null, Unidad[]>();
     for (const u of filtered) {
       const key = u.piso;
       if (!groups.has(key)) groups.set(key, []);
       groups.get(key)!.push(u);
     }
-    return Array.from(groups.entries()).sort((a, b) => (a[0] ?? 0) - (b[0] ?? 0));
-  }, [filtered]);
+    return Array.from(groups.entries()).sort((a, b) => ((a[0] as number) ?? 0) - ((b[0] as number) ?? 0)) as [number | string | null, Unidad[]][];
+  }, [filtered, groupByEtapa]);
 
   if (unidades.length === 0) {
     return (
@@ -215,7 +258,7 @@ export default function DisponibilidadPage() {
             value={filterTorre}
             onChange={setFilterTorre}
             options={[
-              { value: "", label: "Todas las torres" },
+              { value: "", label: isLoteBased ? "Todas las etapas" : "Todas las torres" },
               ...torres.map((t) => ({ value: t.id, label: t.nombre })),
             ]}
           />
@@ -252,13 +295,13 @@ export default function DisponibilidadPage() {
 
       {/* Units list */}
       <div className="space-y-1">
-        {grouped.map(([piso, units]) => (
-          <div key={piso ?? "null"}>
-            {/* Floor divider */}
-            {piso !== null && (
+        {grouped.map(([groupKey, units]) => (
+          <div key={String(groupKey ?? "null")}>
+            {/* Group divider */}
+            {groupKey !== null && (
               <div className="flex items-center gap-2 py-2 mt-3 first:mt-0">
                 <span className="text-[10px] font-ui uppercase tracking-widest text-[var(--text-muted)] font-bold">
-                  Piso {piso}
+                  {groupByEtapa ? (groupKey || "Sin etapa") : `Piso ${groupKey}`}
                 </span>
                 <div className="flex-1 h-px bg-[var(--border-subtle)]" />
               </div>
@@ -281,7 +324,9 @@ export default function DisponibilidadPage() {
                   </span>
                   {/* Tipología */}
                   <span className="text-xs text-[var(--text-tertiary)] min-w-[80px] truncate hidden sm:block">
-                    {tipo?.nombre ?? "—"}
+                    {isMultiTipo && !unit.tipologia_id
+                      ? `${unidadTipologias.filter(ut => ut.unidad_id === unit.id).length} tipos`
+                      : (tipo?.nombre ?? "—")}
                   </span>
                   {/* Price */}
                   <span className="text-xs text-[var(--text-secondary)] min-w-[60px] text-right hidden sm:block">
@@ -319,6 +364,82 @@ export default function DisponibilidadPage() {
           </div>
         ))}
       </div>
+
+      {/* Modal: select tipología before status change (multi-tipo) */}
+      <AnimatePresence>
+        {tipoSelectUnit && (() => {
+          const unit = unidades.find(u => u.id === tipoSelectUnit.unitId);
+          const availTipos = tipologias.filter(t =>
+            unidadTipologias.some(ut => ut.unidad_id === tipoSelectUnit.unitId && ut.tipologia_id === t.id)
+          );
+          return (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm"
+              onClick={() => setTipoSelectUnit(null)}
+            >
+              <motion.div
+                initial={{ scale: 0.95, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                exit={{ scale: 0.95, opacity: 0 }}
+                onClick={(e) => e.stopPropagation()}
+                className="bg-[var(--surface-2)] border border-[var(--border-default)] rounded-2xl p-6 max-w-md w-full mx-4 shadow-2xl"
+              >
+                <h3 className="text-sm font-medium text-white mb-1">Seleccionar tipología</h3>
+                <p className="text-xs text-[var(--text-secondary)] mb-4">
+                  {unit?.identificador}: elige la tipología antes de cambiar a {tipoSelectUnit.estado}
+                </p>
+                <div className="space-y-2 mb-4">
+                  {availTipos.map(tipo => (
+                    <button
+                      key={tipo.id}
+                      onClick={async () => {
+                        // Confirm tipología + change estado
+                        await fetch(`/api/unidades/${tipoSelectUnit.unitId}`, {
+                          method: "PUT",
+                          headers: { "Content-Type": "application/json" },
+                          body: JSON.stringify({ tipologia_id: tipo.id, estado: tipoSelectUnit.estado }),
+                        });
+                        updateLocal((prev) => ({
+                          ...prev,
+                          unidades: prev.unidades.map(u =>
+                            u.id === tipoSelectUnit.unitId
+                              ? { ...u, tipologia_id: tipo.id, estado: tipoSelectUnit.estado }
+                              : u
+                          ),
+                        }));
+                        toast.success(`${unit?.identificador} → ${tipo.nombre} · ${tipoSelectUnit.estado}`);
+                        setTipoSelectUnit(null);
+                      }}
+                      className="w-full flex items-center justify-between p-3 bg-[var(--surface-1)] border border-[var(--border-subtle)] rounded-xl hover:border-[rgba(var(--site-primary-rgb),0.3)] transition-colors text-left"
+                    >
+                      <div>
+                        <p className="text-xs font-medium text-white">{tipo.nombre}</p>
+                        <p className="text-[10px] text-[var(--text-muted)] mt-0.5">
+                          {[tipo.area_m2 && `${tipo.area_m2} m²`, tipo.habitaciones != null && `${tipo.habitaciones} hab`, tipo.banos != null && `${tipo.banos} baños`].filter(Boolean).join(" · ")}
+                        </p>
+                      </div>
+                      {tipo.precio_desde != null && (
+                        <span className="text-xs text-[var(--site-primary)] font-medium">
+                          {formatCurrency(tipo.precio_desde)}
+                        </span>
+                      )}
+                    </button>
+                  ))}
+                </div>
+                <button
+                  onClick={() => setTipoSelectUnit(null)}
+                  className="w-full px-4 py-2 text-xs font-ui uppercase tracking-wider text-[var(--text-secondary)] bg-[var(--surface-3)] border border-[var(--border-default)] rounded-xl hover:bg-[var(--surface-4)] transition-colors"
+                >
+                  Cancelar
+                </button>
+              </motion.div>
+            </motion.div>
+          );
+        })()}
+      </AnimatePresence>
 
       {/* Warning: selling without complementos */}
       <AnimatePresence>

@@ -23,6 +23,7 @@ import {
   X,
 } from "lucide-react";
 import { useSiteProject, useSiteBasePath } from "@/hooks/useSiteProject";
+import { getInventoryColumns } from "@/lib/inventory-columns";
 import { DynamicIcon } from "@/data/amenidades-catalog";
 import { usePersistedState } from "@/hooks/usePersistedState";
 import { useTranslation, getEstadoConfig } from "@/i18n";
@@ -33,7 +34,7 @@ import { useMediaQuery } from "@/hooks/useMediaQuery";
 import { MobileBottomSheet } from "@/components/site/MobileBottomSheet";
 import VistaModal from "@/components/site/VistaModal";
 import { cn } from "@/lib/utils";
-import type { Unidad, Fachada, Torre, PlanoInteractivo, PlanoPunto, VistaPiso } from "@/types";
+import type { Unidad, Fachada, Torre, PlanoInteractivo, PlanoPunto, VistaPiso, UnidadTipologia } from "@/types";
 
 function formatPrecio(precio: number, locale: string): string {
   return new Intl.NumberFormat(locale === "es" ? "es-CO" : "en-US", {
@@ -41,6 +42,11 @@ function formatPrecio(precio: number, locale: string): string {
     currency: "COP",
     maximumFractionDigits: 0,
   }).format(precio);
+}
+
+function formatPrecioShort(precio: number): string {
+  if (precio >= 1000000000) return `$${(precio / 1000000000).toFixed(1)}B`;
+  return `$${(precio / 1000000).toFixed(0)}M`;
 }
 
 export default function ExplorarPage() {
@@ -51,6 +57,28 @@ export default function ExplorarPage() {
   const { t: tCommon } = useTranslation("common");
   const estadoConfig = useMemo(() => getEstadoConfig(tCommon), [tCommon]);
   const { unidades, tipologias, fachadas } = proyecto;
+
+  // Multi-tipología mode
+  const tipologiaMode = proyecto.tipologia_mode ?? "fija";
+  const isMultiTipo = tipologiaMode === "multiple";
+  const isCasas = proyecto.tipo_proyecto === "casas";
+  const isLotes = proyecto.tipo_proyecto === "lotes";
+  const isLoteBased = isCasas || isLotes;
+  const columns = useMemo(
+    () => getInventoryColumns(proyecto.tipo_proyecto ?? "hibrido", proyecto.inventory_columns),
+    [proyecto.tipo_proyecto, proyecto.inventory_columns]
+  );
+  const unidadTipologias = useMemo<UnidadTipologia[]>(
+    () => proyecto.unidad_tipologias ?? [],
+    [proyecto.unidad_tipologias]
+  );
+
+  const getUnitAvailableTipologias = useCallback((unitId: string) => {
+    const tipoIds = unidadTipologias
+      .filter((ut: UnidadTipologia) => ut.unidad_id === unitId)
+      .map((ut: UnidadTipologia) => ut.tipologia_id);
+    return tipologias.filter((t) => tipoIds.includes(t.id));
+  }, [unidadTipologias, tipologias]);
 
   // Fachada filter from query param
   const fachadaIdParam = searchParams.get("fachada");
@@ -438,10 +466,56 @@ export default function ExplorarPage() {
                   );
                 })()}
               </div>
-              {selectedTipologia && (
+              {isMultiTipo && !selectedUnit.tipologia_id ? (
+                <p className="text-sm text-[var(--text-muted)] italic">
+                  {getUnitAvailableTipologias(selectedUnit.id).length} tipologías disponibles
+                </p>
+              ) : selectedTipologia ? (
                 <p className="text-sm text-[var(--text-secondary)]">{selectedTipologia.nombre}</p>
+              ) : null}
+              {/* Lote & Etapa for casas/lotes */}
+              {((columns.lote && selectedUnit.lote) || (columns.etapa && selectedUnit.etapa_nombre)) && (
+                <div className="flex items-center gap-2 mt-1 text-[10px] text-[var(--text-tertiary)]">
+                  {columns.lote && selectedUnit.lote && <span>Lote {selectedUnit.lote}</span>}
+                  {columns.lote && selectedUnit.lote && columns.etapa && selectedUnit.etapa_nombre && <span>·</span>}
+                  {columns.etapa && selectedUnit.etapa_nombre && <span>{selectedUnit.etapa_nombre}</span>}
+                </div>
               )}
             </div>
+
+            {/* Multi-tipo: available tipología cards (when no confirmed tipología) */}
+            {isMultiTipo && selectedUnit && !selectedUnit.tipologia_id && (() => {
+              const availTipos = getUnitAvailableTipologias(selectedUnit.id);
+              if (availTipos.length === 0) return null;
+              return (
+                <div className="px-4 mb-3">
+                  <p className="text-[10px] uppercase tracking-wider text-[var(--text-muted)] mb-2">
+                    Tipologías disponibles
+                  </p>
+                  <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-hide">
+                    {availTipos.map(tipo => (
+                      <button
+                        key={tipo.id}
+                        onClick={() => setCotizarUnidad(selectedUnit)}
+                        className="flex-shrink-0 bg-white/5 border border-[var(--border-subtle)] rounded-xl p-3 text-left hover:border-[rgba(var(--site-primary-rgb),0.3)] transition-colors min-w-[140px] cursor-pointer"
+                      >
+                        <p className="text-xs font-medium text-white mb-1.5">{tipo.nombre}</p>
+                        <div className="space-y-1 text-[10px] text-[var(--text-secondary)]">
+                          {tipo.area_m2 && <p>{tipo.area_m2} m²</p>}
+                          {tipo.habitaciones != null && <p>{tipo.habitaciones} hab</p>}
+                          {tipo.banos != null && <p>{tipo.banos} baños</p>}
+                          {tipo.precio_desde != null && (
+                            <p className="text-[var(--site-primary)] font-medium">
+                              {formatPrecioShort(tipo.precio_desde)}
+                            </p>
+                          )}
+                        </div>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              );
+            })()}
 
             {/* Floor plan */}
             {selectedTipologia?.plano_url && (
@@ -468,7 +542,15 @@ export default function ExplorarPage() {
                     </div>
                   </div>
                 )}
-                {selectedUnit.piso && (
+                {columns.lote && selectedUnit.lote ? (
+                  <div className="bg-white/5 rounded-xl px-3 py-2 flex items-center gap-2">
+                    <Building2 size={14} className="text-[var(--site-primary)]" />
+                    <div>
+                      <p className="text-[8px] text-[var(--text-tertiary)] tracking-wider uppercase">Lote</p>
+                      <p className="text-sm text-white font-medium">{selectedUnit.lote}</p>
+                    </div>
+                  </div>
+                ) : columns.piso && selectedUnit.piso ? (
                   <div className="bg-white/5 rounded-xl px-3 py-2 flex items-center gap-2">
                     <Building2 size={14} className="text-[var(--site-primary)]" />
                     <div>
@@ -476,8 +558,8 @@ export default function ExplorarPage() {
                       <p className="text-sm text-white font-medium">{selectedUnit.piso}</p>
                     </div>
                   </div>
-                )}
-                {selectedUnit.habitaciones !== null && (
+                ) : null}
+                {columns.habitaciones && selectedUnit.habitaciones !== null && (
                   <div className="bg-white/5 rounded-xl px-3 py-2 flex items-center gap-2">
                     <BedDouble size={14} className="text-[var(--site-primary)]" />
                     <div>
@@ -488,7 +570,7 @@ export default function ExplorarPage() {
                     </div>
                   </div>
                 )}
-                {selectedUnit.banos !== null && (
+                {columns.banos && selectedUnit.banos !== null && (
                   <div className="bg-white/5 rounded-xl px-3 py-2 flex items-center gap-2">
                     <Bath size={14} className="text-[var(--site-primary)]" />
                     <div>
@@ -497,7 +579,7 @@ export default function ExplorarPage() {
                     </div>
                   </div>
                 )}
-                {selectedUnit.parqueaderos !== null && selectedUnit.parqueaderos > 0 && (
+                {columns.parqueaderos && selectedUnit.parqueaderos !== null && selectedUnit.parqueaderos > 0 && (
                   <div className="bg-white/5 rounded-xl px-3 py-2 flex items-center gap-2">
                     <Car size={14} className="text-[var(--site-primary)]" />
                     <div>
@@ -506,7 +588,7 @@ export default function ExplorarPage() {
                     </div>
                   </div>
                 )}
-                {selectedUnit.depositos !== null && selectedUnit.depositos > 0 && (
+                {columns.depositos && selectedUnit.depositos !== null && selectedUnit.depositos > 0 && (
                   <div className="bg-white/5 rounded-xl px-3 py-2 flex items-center gap-2">
                     <Archive size={14} className="text-[var(--site-primary)]" />
                     <div>
@@ -515,18 +597,27 @@ export default function ExplorarPage() {
                     </div>
                   </div>
                 )}
+                {columns.etapa && selectedUnit.etapa_nombre && (
+                  <div className="bg-white/5 rounded-xl px-3 py-2 flex items-center gap-2">
+                    <Layers size={14} className="text-[var(--site-primary)]" />
+                    <div>
+                      <p className="text-[8px] text-[var(--text-tertiary)] tracking-wider uppercase">Etapa</p>
+                      <p className="text-sm text-white font-medium">{selectedUnit.etapa_nombre}</p>
+                    </div>
+                  </div>
+                )}
               </div>
 
               {/* Orientation + View */}
-              {(selectedUnit.orientacion || selectedUnit.vista || selectedUnit.vista_piso_id) && (
+              {((columns.orientacion && selectedUnit.orientacion) || (columns.vista && (selectedUnit.vista || selectedUnit.vista_piso_id))) && (
                 <div className="flex flex-wrap gap-2">
-                  {selectedUnit.orientacion && (
+                  {columns.orientacion && selectedUnit.orientacion && (
                     <span className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-white/5 rounded-full text-xs text-[var(--text-secondary)]">
                       <Compass size={12} className="text-[var(--text-tertiary)]" />
                       {selectedUnit.orientacion}
                     </span>
                   )}
-                  {(() => {
+                  {columns.vista && (() => {
                     const unitVista = selectedUnit.vista_piso_id
                       ? (proyecto.vistas_piso ?? []).find(v => v.id === selectedUnit.vista_piso_id)
                       : null;
@@ -555,7 +646,7 @@ export default function ExplorarPage() {
             </div>
 
             {/* Price */}
-            {selectedUnit.precio && (() => {
+            {columns.precio && selectedUnit.precio && (() => {
               const unitComplementos = (proyecto.parqueaderos_mode !== "sin_inventario" || proyecto.depositos_mode !== "sin_inventario")
                 ? (proyecto.complementos ?? []).filter(c => c.unidad_id === selectedUnit.id)
                 : [];
@@ -585,13 +676,15 @@ export default function ExplorarPage() {
                 <Sparkles size={14} />
                 {tSite("explorar.enquireUnit")}
               </button>
-              <Link
-                href={`${basePath}/tipologias?tipo=${selectedUnit.tipologia_id}&unidad=${selectedUnit.id}`}
-                className="w-full flex items-center justify-center gap-2 px-4 py-2 rounded-full border border-[var(--border-default)] text-xs tracking-wider text-[var(--text-secondary)] hover:text-white hover:border-white/30 transition-all duration-300"
-              >
-                {tSite("explorar.moreInfo")}
-                <ChevronRight size={14} />
-              </Link>
+              {selectedUnit.tipologia_id && (
+                <Link
+                  href={`${basePath}/tipologias?tipo=${selectedUnit.tipologia_id}&unidad=${selectedUnit.id}`}
+                  className="w-full flex items-center justify-center gap-2 px-4 py-2 rounded-full border border-[var(--border-default)] text-xs tracking-wider text-[var(--text-secondary)] hover:text-white hover:border-white/30 transition-all duration-300"
+                >
+                  {tSite("explorar.moreInfo")}
+                  <ChevronRight size={14} />
+                </Link>
+              )}
             </div>
           </motion.div>
         ) : (
@@ -656,14 +749,23 @@ export default function ExplorarPage() {
                             {unit.identificador}
                           </p>
                           <div className="flex items-center gap-1 text-[10px] text-[var(--text-tertiary)]">
-                            {tipologia && <span className="truncate">{tipologia.nombre}</span>}
+                            {isMultiTipo && !unit.tipologia_id ? (
+                              <span className="text-[var(--text-muted)]">
+                                {unidadTipologias.filter((ut: UnidadTipologia) => ut.unidad_id === unit.id).length} tipos
+                              </span>
+                            ) : (
+                              tipologia && <span className="truncate">{tipologia.nombre}</span>
+                            )}
                             {unit.area_m2 && <span className="flex-shrink-0">· {unit.area_m2} m²</span>}
-                            {unit.piso && <span className="flex-shrink-0">· P{unit.piso}</span>}
+                            {columns.lote && unit.lote
+                              ? <span className="flex-shrink-0">· Lote {unit.lote}</span>
+                              : columns.piso && unit.piso ? <span className="flex-shrink-0">· P{unit.piso}</span> : null
+                            }
                           </div>
                         </div>
 
                         {/* Price */}
-                        {unit.precio && (
+                        {columns.precio && unit.precio && (
                           <span className="text-[10px] text-[var(--site-primary)] font-medium flex-shrink-0">
                             {formatPrecio(unit.precio, locale)}
                           </span>
@@ -959,6 +1061,7 @@ export default function ExplorarPage() {
           proyectoId={proyecto.id}
           cotizadorEnabled={proyecto.cotizador_enabled}
           cotizadorConfig={proyecto.cotizador_config}
+          tipoProyecto={proyecto.tipo_proyecto}
         />
       )}
 

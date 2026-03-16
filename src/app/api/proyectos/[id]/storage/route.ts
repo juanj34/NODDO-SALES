@@ -1,5 +1,36 @@
 import { getAuthContext } from "@/lib/auth-context";
 import { NextRequest, NextResponse } from "next/server";
+import { SupabaseClient } from "@supabase/supabase-js";
+
+/**
+ * Recursively list all files under a path in a Supabase Storage bucket
+ * and sum their sizes in bytes.
+ */
+async function getStorageFolderBytes(
+  supabase: SupabaseClient,
+  bucket: string,
+  folderPath: string
+): Promise<number> {
+  let totalBytes = 0;
+  const { data, error } = await supabase.storage
+    .from(bucket)
+    .list(folderPath, { limit: 1000 });
+
+  if (error || !data) return 0;
+
+  for (const item of data) {
+    if (item.metadata && item.metadata.size != null) {
+      // It's a file
+      totalBytes += Number(item.metadata.size) || 0;
+    } else if (!item.metadata) {
+      // It's a folder — recurse
+      const subPath = folderPath ? `${folderPath}/${item.name}` : item.name;
+      totalBytes += await getStorageFolderBytes(supabase, bucket, subPath);
+    }
+  }
+
+  return totalBytes;
+}
 
 export async function GET(
   _request: NextRequest,
@@ -46,8 +77,21 @@ export async function GET(
         0
       ) || 0;
 
+    // Calculate actual media storage by listing files in Supabase Storage
+    const mediaBytes = await getStorageFolderBytes(
+      auth.supabase,
+      "media",
+      `proyectos/${id}`
+    );
+
+    // Update cached value in DB (fire-and-forget)
+    auth.supabase
+      .from("proyectos")
+      .update({ storage_media_bytes: mediaBytes })
+      .eq("id", id)
+      .then();
+
     const toursBytes = project.storage_tours_bytes || 0;
-    const mediaBytes = project.storage_media_bytes || 0;
     const totalBytes = videosBytes + toursBytes + mediaBytes;
     const limitBytes = project.storage_limit_bytes || 5368709120;
 

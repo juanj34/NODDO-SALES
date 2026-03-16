@@ -144,9 +144,9 @@ export function HeroMockup({ className = "" }: { className?: string }) {
               ].map((src, i) => (
                 <div
                   key={i}
-                  className="aspect-[4/3] rounded overflow-hidden bg-[#1A1A1D]"
+                  className="relative aspect-[4/3] rounded overflow-hidden bg-[#1A1A1D]"
                 >
-                  <Image src={src} alt="undefined" fill className="w-full h-full object-cover" />
+                  <Image src={src} alt="" fill className="object-cover" />
                 </div>
               ))}
             </div>

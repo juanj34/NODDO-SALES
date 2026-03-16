@@ -20,6 +20,7 @@ const PROYECTO_FIELDS = [
   "parqueaderos_mode", "depositos_mode",
   "parqueaderos_precio_base", "depositos_precio_base",
   "tipologia_mode",
+  "inventory_columns",
 ];
 
 export async function GET(
@@ -60,6 +61,7 @@ export async function GET(
       { data: planos },
       { data: avancesObra },
       { data: complementos },
+      { data: unidadTipologias },
     ] = await Promise.all([
       auth.supabase.from("tipologias").select("*").eq("proyecto_id", id).order("orden"),
       auth.supabase.from("galeria_categorias").select("*").eq("proyecto_id", id).order("orden"),
@@ -72,6 +74,7 @@ export async function GET(
       auth.supabase.from("planos_interactivos").select("*").eq("proyecto_id", id).order("orden"),
       auth.supabase.from("avances_obra").select("*").eq("proyecto_id", id).order("orden"),
       auth.supabase.from("complementos").select("*").eq("proyecto_id", id).order("orden"),
+      auth.supabase.from("unidad_tipologias").select("*").eq("proyecto_id", id),
     ]);
 
     // Fetch all gallery images in a single query (avoids N+1)
@@ -119,6 +122,7 @@ export async function GET(
       plano_puntos: planoPuntos || [],
       avances_obra: avancesObra || [],
       complementos: complementos || [],
+      unidad_tipologias: unidadTipologias || [],
       features,
     });
   } catch (err) {

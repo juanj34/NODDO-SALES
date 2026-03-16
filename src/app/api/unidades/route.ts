@@ -64,11 +64,21 @@ export async function POST(request: NextRequest) {
 
     const { data, error } = await auth.supabase
       .from("unidades")
-      .insert(pick(body, ["proyecto_id", "tipologia_id", "identificador", "piso", "area_m2", "precio", "estado", "habitaciones", "banos", "orientacion", "vista", "vista_piso_id", "notas", "fachada_id", "fachada_x", "fachada_y", "planta_id", "planta_x", "planta_y", "torre_id", "parqueaderos", "depositos", "orden"]))
+      .insert(pick(body, ["proyecto_id", "tipologia_id", "identificador", "piso", "area_m2", "precio", "estado", "habitaciones", "banos", "orientacion", "vista", "vista_piso_id", "notas", "fachada_id", "fachada_x", "fachada_y", "planta_id", "planta_x", "planta_y", "torre_id", "lote", "etapa_nombre", "parqueaderos", "depositos", "orden"]))
       .select()
       .single();
 
     if (error) throw error;
+
+    // Insert available tipologías (multi-tipología mode)
+    if (Array.isArray(body.available_tipologia_ids) && body.available_tipologia_ids.length > 0) {
+      const junctionRows = body.available_tipologia_ids.map((tid: string) => ({
+        proyecto_id: body.proyecto_id,
+        unidad_id: data.id,
+        tipologia_id: tid,
+      }));
+      await auth.supabase.from("unidad_tipologias").insert(junctionRows);
+    }
 
     // Log activity (fire-and-forget)
     const { data: proj } = await auth.supabase.from("proyectos").select("nombre").eq("id", body.proyecto_id).single();

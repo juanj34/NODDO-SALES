@@ -1,6 +1,7 @@
 "use client";
 
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useCallback } from "react";
 import type { Proyecto, ProyectoCompleto, AnalyticsResponse, DashboardSummary, FinancieroResponse } from "@/types";
 
 /**
@@ -80,12 +81,15 @@ export function useProject(id: string) {
    * Update project data optimistically (before server response)
    * Useful for immediate UI updates
    */
-  const updateLocal = (updater: (prev: ProyectoCompleto) => ProyectoCompleto) => {
-    queryClient.setQueryData<ProyectoCompleto>(
-      projectKeys.detail(id),
-      (old) => (old ? updater(old) : old)
-    );
-  };
+  const updateLocal = useCallback(
+    (updater: (prev: ProyectoCompleto) => ProyectoCompleto) => {
+      queryClient.setQueryData<ProyectoCompleto>(
+        projectKeys.detail(id),
+        (old) => (old ? updater(old) : old)
+      );
+    },
+    [queryClient, id]
+  );
 
   return {
     ...query,

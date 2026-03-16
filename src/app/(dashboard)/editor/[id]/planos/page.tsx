@@ -254,6 +254,7 @@ export default function PlanoInteractivoPage() {
       descripcion: string | null;
       imagen_url: string | null;
       render_url: string | null;
+      renders?: string[];
       fachada_id: string | null;
       x: number;
       y: number;

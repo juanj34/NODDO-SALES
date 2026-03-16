@@ -29,6 +29,22 @@ export interface AreaConversionResult {
   conversionFactor: number;
 }
 
+/* ── Inventory Column Visibility ──────────────────────────────────────── */
+
+export interface InventoryColumnConfig {
+  area_m2: boolean;
+  habitaciones: boolean;
+  banos: boolean;
+  parqueaderos: boolean;
+  depositos: boolean;
+  orientacion: boolean;
+  vista: boolean;
+  precio: boolean;
+  piso: boolean;
+  lote: boolean;
+  etapa: boolean;
+}
+
 /* ── Projects ────────────────────────────────────────────────────────────── */
 
 export interface Proyecto {
@@ -45,7 +61,7 @@ export interface Proyecto {
   color_secundario: string;
   color_fondo: string;
   estado: "borrador" | "publicado" | "archivado";
-  tipo_proyecto: "apartamentos" | "casas" | "hibrido";
+  tipo_proyecto: "apartamentos" | "casas" | "hibrido" | "lotes";
   disclaimer: string;
   politica_privacidad_url: string | null;
   whatsapp_numero: string | null;
@@ -77,6 +93,7 @@ export interface Proyecto {
   tipologia_mode: "fija" | "multiple";
   cotizador_config: CotizadorConfig | null;
   webhook_config: WebhookConfig | null;
+  inventory_columns: InventoryColumnConfig | null;
   created_at: string;
   updated_at: string;
 }
@@ -101,6 +118,7 @@ export interface TipologiaHotspot {
   x: number;
   y: number;
   render_url: string;
+  renders?: string[];
 }
 
 export interface Tipologia {
@@ -333,6 +351,7 @@ export interface PlanoPunto {
   descripcion: string | null;
   imagen_url: string | null;
   render_url: string | null;
+  renders?: string[];
   fachada_id: string | null;
   torre_id: string | null;
   x: number;

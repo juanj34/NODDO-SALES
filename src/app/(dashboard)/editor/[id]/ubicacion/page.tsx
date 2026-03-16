@@ -113,13 +113,23 @@ export default function UbicacionPage() {
   // Map picker
   const [showMapPicker, setShowMapPicker] = useState(false);
 
-  // AI Discovery
-  const [discovering, setDiscovering] = useState(false);
-  const [discoveredPois, setDiscoveredPois] = useState<PuntoInteres[]>([]);
-  const [selectedDiscovered, setSelectedDiscovered] = useState<Set<number>>(
-    new Set()
-  );
-  const [showDiscoveryModal, setShowDiscoveryModal] = useState(false);
+  // AI Discovery (advanced modal)
+  interface DiscoveredPOI {
+    nombre: string;
+    descripcion: string | null;
+    categoria: string;
+    lat: number;
+    lng: number;
+    ciudad: string | null;
+    distancia_km: number | null;
+    tiempo_minutos: number | null;
+  }
+  const [discoveryOpen, setDiscoveryOpen] = useState(false);
+  const [discoveryResults, setDiscoveryResults] = useState<DiscoveredPOI[]>([]);
+  const [searchingCategory, setSearchingCategory] = useState<string | null>(null);
+  const [selectedDiscovered, setSelectedDiscovered] = useState<Set<number>>(new Set());
+  const [searchedCategories, setSearchedCategories] = useState<Set<string>>(new Set());
+  const [addingSaving, setAddingSaving] = useState(false);
 
   useEffect(() => {
     if (!project) return;
@@ -295,44 +305,80 @@ export default function UbicacionPage() {
     }
   });
 
-  // AI Discovery
-  const discoverPois = async () => {
+  // AI Discovery — advanced category-by-category search
+  const openDiscoveryModal = () => {
     if (!ubicacionLat || !ubicacionLng) return;
-    setDiscovering(true);
+    setDiscoveryResults([]);
+    setSelectedDiscovered(new Set());
+    setSearchedCategories(new Set());
+    setSearchingCategory(null);
+    setDiscoveryOpen(true);
+  };
+
+  const searchCategory = async (cat: string | null) => {
+    if (!ubicacionLat || !ubicacionLng || searchingCategory) return;
+    setSearchingCategory(cat ?? "Todas");
     try {
+      const body: Record<string, unknown> = {
+        lat: parseFloat(ubicacionLat),
+        lng: parseFloat(ubicacionLng),
+        projectName: project.nombre,
+        address: ubicacionDireccion,
+      };
+      if (cat) body.categoria = cat;
+
       const res = await fetch("/api/ai/discover-pois", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          lat: parseFloat(ubicacionLat),
-          lng: parseFloat(ubicacionLng),
-          projectName: project.nombre,
-          address: ubicacionDireccion,
-        }),
+        body: JSON.stringify(body),
       });
       if (res.ok) {
         const data = await res.json();
-        setDiscoveredPois(data.pois || []);
-        setSelectedDiscovered(
-          new Set(data.pois?.map((_: unknown, i: number) => i) || [])
+        const newPois: DiscoveredPOI[] = data.pois || [];
+        if (newPois.length === 0) {
+          toast.error("No se encontraron puntos de interés. Intenta otra categoría.");
+          return;
+        }
+        // Deduplicate by nombre (case-insensitive)
+        const existingNames = new Set(
+          discoveryResults.map((p) => p.nombre.toLowerCase())
         );
-        setShowDiscoveryModal(true);
+        const unique = newPois.filter(
+          (p) => !existingNames.has(p.nombre.toLowerCase())
+        );
+        const prevLen = discoveryResults.length;
+        const merged = [...discoveryResults, ...unique];
+        setDiscoveryResults(merged);
+        // Pre-select all new ones
+        setSelectedDiscovered((prev) => {
+          const next = new Set(prev);
+          for (let i = prevLen; i < merged.length; i++) next.add(i);
+          return next;
+        });
+        // Track searched category
+        setSearchedCategories((prev) => {
+          const next = new Set(prev);
+          if (cat) next.add(cat);
+          else CATEGORIAS.forEach((c) => next.add(c));
+          return next;
+        });
+        toast.success(`${unique.length} punto(s) encontrado(s)`);
       } else {
-        toast.error("Error al descubrir puntos de interés");
+        const errData = await res.json().catch(() => null);
+        toast.error(errData?.error || "Error al buscar puntos de interés");
       }
     } catch {
-      toast.error("Error de conexión");
+      toast.error("Error de conexión al servicio de IA");
     } finally {
-      setDiscovering(false);
+      setSearchingCategory(null);
     }
   };
 
   const addDiscoveredPois = async () => {
-    setPoiSaving(true);
+    const selected = discoveryResults.filter((_, i) => selectedDiscovered.has(i));
+    if (selected.length === 0) return;
+    setAddingSaving(true);
     try {
-      const selected = discoveredPois.filter((_, i) =>
-        selectedDiscovered.has(i)
-      );
       let failed = 0;
       for (const poi of selected) {
         const res = await fetch("/api/puntos-interes", {
@@ -353,13 +399,13 @@ export default function UbicacionPage() {
         if (!res.ok) failed++;
       }
       if (failed > 0) toast.error(`Error al agregar ${failed} punto(s)`);
+      else toast.success(`${selected.length} punto(s) de interés agregado(s)`);
       await refresh();
-      setShowDiscoveryModal(false);
-      setDiscoveredPois([]);
+      setDiscoveryOpen(false);
     } catch {
       toast.error("Error de conexión");
     } finally {
-      setPoiSaving(false);
+      setAddingSaving(false);
     }
   };
 
@@ -544,15 +590,11 @@ export default function UbicacionPage() {
               </h3>
               <div className="flex items-center gap-2">
                 <button
-                  onClick={discoverPois}
-                  disabled={discovering || !ubicacionLat || !ubicacionLng}
+                  onClick={openDiscoveryModal}
+                  disabled={!ubicacionLat || !ubicacionLng}
                   className={btnSecondary}
                 >
-                  {discovering ? (
-                    <Loader2 size={14} className="animate-spin" />
-                  ) : (
-                    <Sparkles size={14} />
-                  )}
+                  <Sparkles size={14} />
                   {t("ubicacion.pois.discoverWithAI")}
                 </button>
                 {!showPoiForm && (
@@ -825,80 +867,214 @@ export default function UbicacionPage() {
         )}
       </div>
 
-      {/* AI Discovery Modal (always rendered, shown via state) */}
+      {/* AI Discovery Modal — Advanced category-by-category search */}
       <AnimatePresence>
-        {showDiscoveryModal && (
+        {discoveryOpen && (
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-8"
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4"
           >
             <motion.div
               initial={{ scale: 0.95, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.95, opacity: 0 }}
-              className="w-full max-w-3xl max-h-[80vh] bg-[var(--surface-2)] rounded-2xl border border-[var(--border-default)] flex flex-col"
+              className="w-full max-w-4xl max-h-[85vh] bg-[var(--surface-1)] rounded-2xl border border-[var(--border-default)] flex flex-col shadow-2xl"
             >
-              <div className="flex items-center justify-between p-6 border-b border-[var(--border-subtle)]">
-                <h3 className="text-lg font-light">
-                  {t("ubicacion.pois.discoveredPois", { count: String(discoveredPois.length) })}
-                </h3>
+              {/* Header */}
+              <div className="flex items-center justify-between px-6 py-4 border-b border-[var(--border-subtle)]">
                 <div className="flex items-center gap-3">
+                  <div className="w-8 h-8 rounded-lg bg-[rgba(var(--site-primary-rgb),0.15)] flex items-center justify-center">
+                    <Sparkles size={16} className="text-[var(--site-primary)]" />
+                  </div>
+                  <div>
+                    <h3 className="text-sm font-medium">Descubrir Puntos de Interés</h3>
+                    <p className="text-xs text-[var(--text-muted)]">
+                      Selecciona una categoría para buscar con IA
+                    </p>
+                  </div>
+                </div>
+                <button
+                  onClick={() => setDiscoveryOpen(false)}
+                  className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-[var(--surface-3)] transition-colors text-[var(--text-muted)] hover:text-white"
+                >
+                  <X size={16} />
+                </button>
+              </div>
+
+              {/* Category search bar */}
+              <div className="px-6 py-4 border-b border-[var(--border-subtle)]">
+                <div className="flex gap-2 flex-wrap">
+                  <button
+                    onClick={() => searchCategory(null)}
+                    disabled={!!searchingCategory}
+                    className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all flex items-center gap-1.5 ${
+                      searchingCategory === "Todas"
+                        ? "bg-[var(--site-primary)] text-black"
+                        : searchedCategories.size === CATEGORIAS.length
+                          ? "bg-[var(--surface-3)] text-[var(--text-muted)] border border-[var(--border-subtle)]"
+                          : "bg-[var(--surface-2)] text-[var(--text-secondary)] hover:bg-[var(--surface-3)] hover:text-white border border-[var(--border-subtle)]"
+                    }`}
+                  >
+                    {searchingCategory === "Todas" ? (
+                      <Loader2 size={12} className="animate-spin" />
+                    ) : searchedCategories.size === CATEGORIAS.length ? (
+                      <Check size={12} />
+                    ) : (
+                      <Sparkles size={12} />
+                    )}
+                    Todas
+                  </button>
+                  {CATEGORIAS.map((cat) => {
+                    const isSearching = searchingCategory === cat;
+                    const wasSearched = searchedCategories.has(cat);
+                    return (
+                      <button
+                        key={cat}
+                        onClick={() => searchCategory(cat)}
+                        disabled={!!searchingCategory}
+                        className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all flex items-center gap-1.5 ${
+                          isSearching
+                            ? "bg-[var(--site-primary)] text-black"
+                            : wasSearched
+                              ? "bg-[var(--surface-3)] text-[var(--text-muted)] border border-[var(--border-subtle)]"
+                              : "bg-[var(--surface-2)] text-[var(--text-secondary)] hover:bg-[var(--surface-3)] hover:text-white border border-[var(--border-subtle)]"
+                        }`}
+                      >
+                        {isSearching ? (
+                          <Loader2 size={12} className="animate-spin" />
+                        ) : wasSearched ? (
+                          <Check size={12} />
+                        ) : null}
+                        {cat}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* Results area */}
+              <div className="flex-1 overflow-y-auto">
+                {discoveryResults.length === 0 ? (
+                  <div className="flex flex-col items-center justify-center py-16 text-center">
+                    <div className="w-12 h-12 rounded-full bg-[var(--surface-3)] flex items-center justify-center mb-3">
+                      <MapPin size={20} className="text-[var(--text-muted)]" />
+                    </div>
+                    <p className="text-sm text-[var(--text-secondary)] mb-1">
+                      Sin resultados aún
+                    </p>
+                    <p className="text-xs text-[var(--text-muted)] max-w-xs">
+                      Haz clic en una categoría arriba para buscar puntos de interés cercanos con IA
+                    </p>
+                  </div>
+                ) : (
+                  <div className="p-4 space-y-1">
+                    {/* Select all / none */}
+                    <div className="flex items-center justify-between px-2 py-1">
+                      <span className="text-xs text-[var(--text-muted)]">
+                        {selectedDiscovered.size} de {discoveryResults.length} seleccionados
+                      </span>
+                      <div className="flex items-center gap-2">
+                        <button
+                          onClick={() =>
+                            setSelectedDiscovered(
+                              new Set(discoveryResults.map((_, i) => i))
+                            )
+                          }
+                          className="text-xs text-[var(--site-primary)] hover:underline"
+                        >
+                          Seleccionar todos
+                        </button>
+                        <span className="text-[var(--text-muted)]">·</span>
+                        <button
+                          onClick={() => setSelectedDiscovered(new Set())}
+                          className="text-xs text-[var(--text-muted)] hover:text-white hover:underline"
+                        >
+                          Ninguno
+                        </button>
+                      </div>
+                    </div>
+
+                    {/* POI list grouped by category */}
+                    {CATEGORIAS.filter((cat) =>
+                      discoveryResults.some((p) => p.categoria === cat)
+                    ).map((cat) => (
+                      <div key={cat}>
+                        <div className="px-2 pt-3 pb-1">
+                          <span className="text-[10px] font-bold uppercase tracking-widest text-[var(--text-muted)]">
+                            {cat}
+                          </span>
+                        </div>
+                        {discoveryResults
+                          .map((poi, originalIdx) => ({ poi, originalIdx }))
+                          .filter(({ poi }) => poi.categoria === cat)
+                          .map(({ poi, originalIdx }) => (
+                            <label
+                              key={originalIdx}
+                              className="flex items-center gap-3 px-3 py-2.5 rounded-lg cursor-pointer hover:bg-[var(--surface-2)] transition-colors"
+                            >
+                              <input
+                                type="checkbox"
+                                checked={selectedDiscovered.has(originalIdx)}
+                                onChange={() => {
+                                  setSelectedDiscovered((prev) => {
+                                    const next = new Set(prev);
+                                    if (next.has(originalIdx)) next.delete(originalIdx);
+                                    else next.add(originalIdx);
+                                    return next;
+                                  });
+                                }}
+                                className="w-4 h-4 rounded accent-[var(--site-primary)] shrink-0"
+                              />
+                              <div className="flex-1 min-w-0">
+                                <span className="text-sm">{poi.nombre}</span>
+                                {poi.descripcion && (
+                                  <p className="text-xs text-[var(--text-muted)] truncate">
+                                    {poi.descripcion}
+                                  </p>
+                                )}
+                              </div>
+                              <div className="text-right shrink-0">
+                                <span className="text-xs text-[var(--text-tertiary)]">
+                                  {poi.distancia_km != null
+                                    ? `${poi.distancia_km} km`
+                                    : ""}
+                                </span>
+                                {poi.tiempo_minutos != null && (
+                                  <span className="text-xs text-[var(--text-muted)] ml-1">
+                                    · {poi.tiempo_minutos} min
+                                  </span>
+                                )}
+                              </div>
+                            </label>
+                          ))}
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              {/* Footer */}
+              {discoveryResults.length > 0 && (
+                <div className="px-6 py-4 border-t border-[var(--border-subtle)] flex items-center justify-between">
+                  <p className="text-xs text-[var(--text-muted)]">
+                    Puedes buscar más categorías antes de agregar
+                  </p>
                   <button
                     onClick={addDiscoveredPois}
-                    disabled={poiSaving || selectedDiscovered.size === 0}
+                    disabled={addingSaving || selectedDiscovered.size === 0}
                     className={btnPrimary}
                   >
-                    {poiSaving ? (
+                    {addingSaving ? (
                       <Loader2 size={14} className="animate-spin" />
                     ) : (
                       <Check size={14} />
                     )}
-                    {t("ubicacion.pois.addSelected", { n: String(selectedDiscovered.size) })}
-                  </button>
-                  <button
-                    onClick={() => setShowDiscoveryModal(false)}
-                    className={btnSecondary}
-                  >
-                    <X size={14} />
+                    Agregar {selectedDiscovered.size} seleccionado{selectedDiscovered.size !== 1 ? "s" : ""}
                   </button>
                 </div>
-              </div>
-              <div className="flex-1 overflow-y-auto p-6 space-y-2">
-                {discoveredPois.map((poi, i) => (
-                  <label
-                    key={i}
-                    className="flex items-center gap-3 p-3 bg-[var(--surface-2)] rounded-lg cursor-pointer hover:bg-[var(--surface-3)] transition-colors"
-                  >
-                    <input
-                      type="checkbox"
-                      checked={selectedDiscovered.has(i)}
-                      onChange={() => {
-                        setSelectedDiscovered((prev) => {
-                          const next = new Set(prev);
-                          if (next.has(i)) next.delete(i);
-                          else next.add(i);
-                          return next;
-                        });
-                      }}
-                      className="w-4 h-4 rounded accent-[var(--site-primary)]"
-                    />
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2">
-                        <span className="text-sm">{poi.nombre}</span>
-                        <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-[var(--surface-2)] text-[var(--text-tertiary)]">
-                          {poi.categoria}
-                        </span>
-                      </div>
-                      <p className="text-xs text-[var(--text-tertiary)]">
-                        {poi.descripcion ||
-                          `${poi.distancia_km?.toFixed(1) ?? "--"} km · ${poi.tiempo_minutos ?? "--"} min`}
-                      </p>
-                    </div>
-                  </label>
-                ))}
-              </div>
+              )}
             </motion.div>
           </motion.div>
         )}

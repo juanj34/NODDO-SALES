@@ -1,4 +1,4 @@
-import { useCallback, useState, useEffect, RefObject } from "react";
+import { useCallback, useState, useEffect, useRef, RefObject } from "react";
 
 /**
  * useHotspotCanvas Hook
@@ -40,15 +40,16 @@ export function useHotspotCanvas(
   imgRef: RefObject<HTMLImageElement | null>
 ) {
   const [cachedBounds, setCachedBounds] = useState<ImageBounds | null>(null);
+  const boundsRef = useRef<ImageBounds | null>(null);
   const [tick, setTick] = useState(0);
 
   /**
-   * Calculate image bounds accounting for object-contain offset
+   * Calculate image bounds accounting for object-contain offset.
    *
-   * When an image uses object-contain, there may be empty space (letterboxing).
-   * This function calculates the actual rendered image dimensions and position.
-   *
-   * @returns ImageBounds or null if not ready
+   * IMPORTANT: This function is safe to call during render — it only triggers
+   * a state update when the bounds have actually changed (compares numeric
+   * values with a 0.5px threshold). Without this guard, every call creates a
+   * new object → setCachedBounds(newObj) → re-render → infinite loop.
    */
   const getImageBounds = useCallback((): ImageBounds | null => {
     const container = containerRef.current;
@@ -78,7 +79,21 @@ export function useHotspotCanvas(
       offsetY = 0;
     }
 
+    // Only update state if bounds actually changed (prevents infinite re-render
+    // when getImageBounds is called during render via getRectStyle/getMenuPos)
+    const prev = boundsRef.current;
+    if (
+      prev &&
+      Math.abs(prev.imgW - imgW) < 0.5 &&
+      Math.abs(prev.imgH - imgH) < 0.5 &&
+      Math.abs(prev.offsetX - offsetX) < 0.5 &&
+      Math.abs(prev.offsetY - offsetY) < 0.5
+    ) {
+      return prev;
+    }
+
     const bounds = { imgW, imgH, offsetX, offsetY, cRect };
+    boundsRef.current = bounds;
     setCachedBounds(bounds);
     return bounds;
   }, [containerRef, imgRef]);

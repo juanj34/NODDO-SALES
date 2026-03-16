@@ -12,7 +12,8 @@ const GEMINI_ENDPOINT = `https://generativelanguage.googleapis.com/v1beta/models
  */
 export async function callAI(
   systemPrompt: string,
-  userMessage: string
+  userMessage: string,
+  options?: { maxOutputTokens?: number }
 ): Promise<string> {
   const apiKey = process.env.GOOGLE_GEMINI_API_KEY;
   if (!apiKey) {
@@ -26,7 +27,7 @@ export async function callAI(
       systemInstruction: { parts: [{ text: systemPrompt }] },
       contents: [{ role: "user", parts: [{ text: userMessage }] }],
       generationConfig: {
-        maxOutputTokens: 4096,
+        maxOutputTokens: options?.maxOutputTokens ?? 4096,
         temperature: 0.2,
         responseMimeType: "application/json",
       },
@@ -41,7 +42,10 @@ export async function callAI(
 
   const data = await res.json();
 
-  const text = data.candidates?.[0]?.content?.parts?.[0]?.text;
+  // Extract text — skip thinking parts (Gemini 2.5 may include them)
+  const parts = data.candidates?.[0]?.content?.parts || [];
+  const text =
+    parts.filter((p: { thought?: boolean; text?: string }) => p.text && !p.thought).pop()?.text;
   if (!text) {
     throw new Error("La IA no generó una respuesta. Intenta de nuevo.");
   }
@@ -84,7 +88,10 @@ export async function callAIText(
 
   const data = await res.json();
 
-  const text = data.candidates?.[0]?.content?.parts?.[0]?.text;
+  // Extract text — skip thinking parts (Gemini 2.5 may include them)
+  const parts = data.candidates?.[0]?.content?.parts || [];
+  const text =
+    parts.filter((p: { thought?: boolean; text?: string }) => p.text && !p.thought).pop()?.text;
   if (!text) {
     throw new Error("La IA no generó una respuesta. Intenta de nuevo.");
   }
@@ -110,6 +117,20 @@ export function parseAIJson<T>(text: string, fallback: T): T {
     console.error("AI returned invalid JSON:", text.slice(0, 200));
     return fallback;
   }
+}
+
+/**
+ * Extract an array from an AI response that may be a bare array or
+ * an object wrapping an array (e.g. { "pois": [...] } or { "data": [...] }).
+ */
+export function extractArray(parsed: unknown, fallback: unknown[] = []): unknown[] {
+  if (Array.isArray(parsed)) return parsed;
+  if (parsed !== null && typeof parsed === "object") {
+    for (const val of Object.values(parsed as Record<string, unknown>)) {
+      if (Array.isArray(val)) return val;
+    }
+  }
+  return fallback;
 }
 
 /**

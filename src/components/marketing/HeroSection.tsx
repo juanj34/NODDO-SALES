@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 import Image from "next/image";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 import Link from "next/link";
 import { ArrowRight, Play } from "lucide-react";
 import { IsometricBuilding } from "./illustrations/IsometricBuilding";
@@ -129,26 +129,28 @@ export function HeroSection() {
           ))}
         </motion.div>
 
-        {/* Animated subtitle */}
+        {/* Animated subtitle — grid stack so tallest paragraph sets the height */}
         <motion.div
           initial={{ opacity: 0, y: 24 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8, delay: 0.65, ease: "easeOut" }}
-          className="mb-14 min-h-[100px]"
+          className="mb-14 grid"
         >
-          <AnimatePresence mode="wait">
+          {perspectives.map((p, i) => (
             <motion.p
-              key={perspectives[activeIndex].id}
-              initial={{ opacity: 0, y: 8 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -8 }}
+              key={p.id}
+              animate={{ opacity: i === activeIndex ? 1 : 0, y: i === activeIndex ? 0 : 6 }}
               transition={{ duration: 0.4, ease: "easeInOut" }}
               className="text-[15px] leading-[1.85] max-w-[580px]"
-              style={{ color: "rgba(244, 240, 232, 0.5)" }}
+              style={{
+                color: "rgba(244, 240, 232, 0.5)",
+                gridArea: "1 / 1",
+                pointerEvents: i === activeIndex ? "auto" : "none",
+              }}
             >
-              {perspectives[activeIndex].content}
+              {p.content}
             </motion.p>
-          </AnimatePresence>
+          ))}
         </motion.div>
 
         {/* CTAs */}

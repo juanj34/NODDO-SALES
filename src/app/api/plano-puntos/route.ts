@@ -51,7 +51,7 @@ export async function POST(request: NextRequest) {
       x: body.x,
       y: body.y,
     };
-    const optionalFields = ["descripcion", "imagen_url", "render_url", "fachada_id", "torre_id", "orden"];
+    const optionalFields = ["descripcion", "imagen_url", "render_url", "renders", "fachada_id", "torre_id", "orden"];
     for (const field of optionalFields) {
       if (body[field] !== undefined) insertData[field] = body[field];
     }

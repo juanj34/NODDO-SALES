@@ -57,7 +57,7 @@ const CATEGORY_CONFIG: Record<string, CategoryConfig> = {
     color: "text-amber-400",
     bg: "bg-amber-400/15",
   },
-  Recreación: {
+  Recreacion: {
     icon: Trees,
     color: "text-emerald-400",
     bg: "bg-emerald-400/15",
@@ -67,7 +67,7 @@ const CATEGORY_CONFIG: Record<string, CategoryConfig> = {
     color: "text-rose-400",
     bg: "bg-rose-400/15",
   },
-  Educación: {
+  Educacion: {
     icon: GraduationCap,
     color: "text-blue-400",
     bg: "bg-blue-400/15",
@@ -77,7 +77,7 @@ const CATEGORY_CONFIG: Record<string, CategoryConfig> = {
     color: "text-purple-400",
     bg: "bg-purple-400/15",
   },
-  Gastronomía: {
+  Gastronomia: {
     icon: UtensilsCrossed,
     color: "text-orange-400",
     bg: "bg-orange-400/15",

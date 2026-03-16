@@ -130,6 +130,7 @@ export default function TipologiasPage() {
   const unidades = useMemo(() => project.unidades || [], [project.unidades]);
   const torres = useMemo(() => project.torres || [], [project.torres]);
   const isMultiTorre = torres.length > 1;
+  const torresLabel = project.tipo_proyecto === "apartamentos" ? "Torres" : "Etapas";
 
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [isCreating, setIsCreating] = useState(false);
@@ -292,7 +293,16 @@ export default function TipologiasPage() {
   };
 
   const handleDelete = async (id: string) => {
-    if (!(await confirm({ title: "Eliminar tipología", message: "¿Seguro que deseas eliminar esta tipología?" }))) return;
+    const tip = tipologias.find((t) => t.id === id);
+    if (!tip) return;
+    const nUnits = unidades.filter((u) => u.tipologia_id === id).length;
+    if (!(await confirm({
+      title: "Eliminar tipología",
+      message: "Esta acción no se puede deshacer.",
+      description: tip.nombre,
+      details: nUnits > 0 ? `${nUnits} unidades perderán su tipología asignada` : undefined,
+      typeToConfirm: tip.nombre,
+    }))) return;
     setDeletingId(id);
     try {
       const res = await fetch(`/api/tipologias/${id}`, { method: "DELETE" });
@@ -650,7 +660,7 @@ export default function TipologiasPage() {
                         </div>
                         {isMultiTorre && (
                           <div>
-                            <label className={labelClass}>Torres</label>
+                            <label className={labelClass}>{torresLabel}</label>
                             <div className="flex flex-wrap gap-2">
                               {torres.map((torre) => {
                                 const checked = form.torre_ids.includes(torre.id);

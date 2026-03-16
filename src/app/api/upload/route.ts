@@ -80,6 +80,10 @@ export async function POST(request: NextRequest) {
     const prefix = folder ? folder + "/" : "";
     const baseName = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
 
+    // Extract proyecto_id from folder path (e.g. "proyectos/UUID/galeria/slug")
+    const folderMatch = folder.match(/^proyectos\/([a-f0-9-]+)/i);
+    const proyectoId = folderMatch?.[1] || null;
+
     // Non-image files: upload as-is (PDFs, etc.)
     if (!isImage) {
       const ext = file.name.split(".").pop() || "bin";
@@ -90,6 +94,14 @@ export async function POST(request: NextRequest) {
         .upload(fileName, file, { upsert: true });
 
       if (uploadError) throw uploadError;
+
+      // Increment storage counter
+      if (proyectoId) {
+        auth.supabase.rpc("increment_storage_media_bytes", {
+          p_id: proyectoId,
+          p_bytes: file.size,
+        }).then();
+      }
 
       const {
         data: { publicUrl },
@@ -148,6 +160,14 @@ export async function POST(request: NextRequest) {
     const {
       data: { publicUrl: thumbnailUrl },
     } = auth.supabase.storage.from(bucket).getPublicUrl(thumbFileName);
+
+    // Increment storage counter (optimized + thumbnail)
+    if (proyectoId) {
+      auth.supabase.rpc("increment_storage_media_bytes", {
+        p_id: proyectoId,
+        p_bytes: optimized.length + thumbnail.length,
+      }).then();
+    }
 
     // Calculate optimized dimensions
     const scale = origWidth > MAX_OPTIMIZED_WIDTH

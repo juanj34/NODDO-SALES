@@ -118,12 +118,14 @@ export const poiSchema = z.object({
     .max(180, "Longitud inválida"),
 
   categoria: z.enum([
-    "comercio",
-    "educacion",
-    "salud",
-    "transporte",
-    "entretenimiento",
-    "servicios",
+    "Comercio",
+    "Recreacion",
+    "Salud",
+    "Educacion",
+    "Transporte",
+    "Gastronomia",
+    "Cultura",
+    "Deporte",
   ]),
 
   distancia_km: z

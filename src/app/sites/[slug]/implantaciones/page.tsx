@@ -9,6 +9,8 @@ import { useMediaQuery } from "@/hooks/useMediaQuery";
 import { MobileBottomSheet } from "@/components/site/MobileBottomSheet";
 import { cn } from "@/lib/utils";
 import type { PlanoInteractivo, PlanoPunto } from "@/types";
+import { resolveHotspotImages } from "@/lib/hotspot-utils";
+import { Lightbox } from "@/components/site/Lightbox";
 import { useTranslation } from "@/i18n";
 import { DynamicIcon } from "@/data/amenidades-catalog";
 
@@ -490,63 +492,77 @@ export default function ImplantacionesPage() {
         </MobileBottomSheet>
       )}
 
-      {/* ====== RENDER MODAL ====== */}
+      {/* ====== RENDER MODAL / SLIDESHOW ====== */}
       <AnimatePresence>
-        {renderModalPunto && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.2 }}
-            className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-md"
-            onClick={() => setRenderModalPunto(null)}
-          >
+        {renderModalPunto && (() => {
+          const imgs = resolveHotspotImages(renderModalPunto);
+          if (imgs.length > 1) {
+            return (
+              <Lightbox
+                images={imgs.map((url, i) => ({
+                  id: `${renderModalPunto.id}-${i}`,
+                  url,
+                  thumbnail_url: url,
+                  alt_text: imgs.length > 1 ? `${renderModalPunto.titulo} (${i + 1})` : renderModalPunto.titulo,
+                  label: i === 0 ? renderModalPunto.titulo : undefined,
+                }))}
+                initialIndex={0}
+                onClose={() => setRenderModalPunto(null)}
+              />
+            );
+          }
+          // Single image: keep the original modal
+          return (
             <motion.div
-              initial={{ scale: 0.92, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0.92, opacity: 0 }}
-              transition={{ type: "spring", damping: 25, stiffness: 300 }}
-              className="relative max-w-[85vw] max-h-[85vh] flex flex-col items-center"
-              onClick={(e) => e.stopPropagation()}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.2 }}
+              className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-md"
+              onClick={() => setRenderModalPunto(null)}
             >
-              {/* Close button */}
-              <button
-                onClick={() => setRenderModalPunto(null)}
-                aria-label={t("implantaciones.closeRender")}
-                className="absolute -top-4 -right-4 z-10 p-2 rounded-full glass hover:bg-white/20 transition-colors cursor-pointer"
-              >
-                <X size={18} className="text-white" />
-              </button>
-
-              {/* Render image */}
-              <div className="rounded-2xl overflow-hidden shadow-2xl shadow-black/60">
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img
-                  src={(renderModalPunto.render_url || renderModalPunto.imagen_url)!}
-                  alt={renderModalPunto.titulo}
-                  className="max-w-[85vw] max-h-[70vh] object-contain"
-                />
-              </div>
-
-              {/* Title + description below */}
               <motion.div
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.15 }}
-                className="mt-4 text-center max-w-lg"
+                initial={{ scale: 0.92, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                exit={{ scale: 0.92, opacity: 0 }}
+                transition={{ type: "spring", damping: 25, stiffness: 300 }}
+                className="relative max-w-[85vw] max-h-[85vh] flex flex-col items-center"
+                onClick={(e) => e.stopPropagation()}
               >
-                <h3 className="font-site-heading text-lg text-white mb-1">
-                  {renderModalPunto.titulo}
-                </h3>
-                {renderModalPunto.descripcion && (
-                  <p className="text-sm text-[var(--text-secondary)] leading-relaxed">
-                    {renderModalPunto.descripcion}
-                  </p>
-                )}
+                <button
+                  onClick={() => setRenderModalPunto(null)}
+                  aria-label={t("implantaciones.closeRender")}
+                  className="absolute -top-4 -right-4 z-10 p-2 rounded-full glass hover:bg-white/20 transition-colors cursor-pointer"
+                >
+                  <X size={18} className="text-white" />
+                </button>
+                <div className="rounded-2xl overflow-hidden shadow-2xl shadow-black/60">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src={imgs[0] || (renderModalPunto.render_url || renderModalPunto.imagen_url)!}
+                    alt={renderModalPunto.titulo}
+                    className="max-w-[85vw] max-h-[70vh] object-contain"
+                  />
+                </div>
+                <motion.div
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.15 }}
+                  className="mt-4 text-center max-w-lg"
+                >
+                  <h3 className="font-site-heading text-lg text-white mb-1">
+                    {renderModalPunto.titulo}
+                  </h3>
+                  {renderModalPunto.descripcion && (
+                    <p className="text-sm text-[var(--text-secondary)] leading-relaxed">
+                      {renderModalPunto.descripcion}
+                    </p>
+                  )}
+                </motion.div>
               </motion.div>
             </motion.div>
-          </motion.div>
-        )}
+          );
+        })()}
       </AnimatePresence>
     </SectionTransition>
   );

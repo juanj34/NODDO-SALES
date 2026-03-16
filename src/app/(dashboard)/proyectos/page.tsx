@@ -10,8 +10,6 @@ import {
   Plus,
   Loader2,
   X,
-  AlertTriangle,
-  Trash2,
   CheckCircle2,
   XCircle,
   Globe,
@@ -20,6 +18,7 @@ import { MagneticButton } from "@/components/ui/MagneticButton";
 import { NodDoLogo } from "@/components/ui/NodDoLogo";
 import { useTranslation } from "@/i18n";
 import { useToast } from "@/components/dashboard/Toast";
+import { useConfirm } from "@/components/dashboard/ConfirmModal";
 import { useAuthRole } from "@/hooks/useAuthContext";
 import { trackDashboardEvent } from "@/lib/dashboard-tracking";
 
@@ -29,7 +28,7 @@ import { ProjectsTable } from "@/components/dashboard/projects/ProjectsTable";
 export default function ProyectosPage() {
   const { data: projects = [], isLoading: loading, refetch: refresh } = useProjects();
   const { mutate: createProject, isPending: creating } = useCreateProject();
-  const { mutate: deleteProject, isPending: deleting } = useDeleteProject();
+  const { mutate: deleteProject } = useDeleteProject();
 
   const [showCreate, setShowCreate] = useState(false);
   const [nombre, setNombre] = useState("");
@@ -91,30 +90,28 @@ export default function ProyectosPage() {
     });
   };
 
-  // Delete confirmation modal state
-  const [deleteTarget, setDeleteTarget] = useState<{ id: string; name: string } | null>(null);
-  const [deleteConfirmText, setDeleteConfirmText] = useState("");
+  const { confirm } = useConfirm();
 
-  const handleDelete = (id: string, name: string) => {
-    setDeleteTarget({ id, name });
-    setDeleteConfirmText("");
+  const handleDelete = async (id: string, name: string) => {
     trackDashboardEvent("project_table_delete_click", {
       project_id: id,
       project_name: name,
     }, user?.id, role || undefined);
-  };
 
-  const confirmDelete = async () => {
-    if (!deleteTarget) return;
+    if (!(await confirm({
+      title: t("proyectos.deleteTitle"),
+      message: t("proyectos.deleteDescription"),
+      description: name,
+      typeToConfirm: name,
+      confirmLabel: t("proyectos.deleteButton"),
+    }))) return;
 
-    deleteProject(deleteTarget.id, {
+    deleteProject(id, {
       onSuccess: () => {
         trackDashboardEvent("project_delete", {
-          project_id: deleteTarget.id,
-          project_name: deleteTarget.name,
+          project_id: id,
+          project_name: name,
         }, user?.id, role || undefined);
-        setDeleteTarget(null);
-        setDeleteConfirmText("");
         toast.success("Proyecto eliminado");
       },
       onError: (error) => {
@@ -466,95 +463,6 @@ export default function ProyectosPage() {
         )}
       </AnimatePresence>
 
-      {/* Delete confirmation modal */}
-      <AnimatePresence>
-        {deleteTarget && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4"
-            onClick={() => !deleting && setDeleteTarget(null)}
-            role="alertdialog"
-            aria-labelledby="delete-dialog-title"
-            aria-describedby="delete-dialog-description"
-          >
-            <motion.div
-              initial={{ scale: 0.95, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0.95, opacity: 0 }}
-              transition={{ type: "spring", damping: 25, stiffness: 300 }}
-              onClick={(e) => e.stopPropagation()}
-              className="glass-modal p-6 w-full max-w-md space-y-4"
-            >
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-xl bg-red-500/15 flex items-center justify-center shrink-0">
-                  <AlertTriangle size={20} className="text-red-400" aria-hidden="true" />
-                </div>
-                <div>
-                  <h3 id="delete-dialog-title" className="text-sm font-medium text-[var(--text-primary)]">
-                    {t("proyectos.deleteTitle")}
-                  </h3>
-                  <p className="text-[11px] text-[var(--text-tertiary)]">
-                    {deleteTarget.name}
-                  </p>
-                </div>
-                <button
-                  onClick={() => setDeleteTarget(null)}
-                  disabled={deleting}
-                  className="ml-auto text-[var(--text-muted)] hover:text-[var(--text-secondary)] transition-colors p-1 rounded-lg hover:bg-white/5"
-                  aria-label="Cerrar diálogo"
-                >
-                  <X size={16} aria-hidden="true" />
-                </button>
-              </div>
-
-              <p id="delete-dialog-description" className="text-xs text-[var(--text-secondary)] leading-relaxed">
-                {t("proyectos.deleteDescription")}
-              </p>
-
-              <div>
-                <label htmlFor="delete-confirm-input" className="block text-xs text-[var(--text-secondary)] mb-2">
-                  {t("proyectos.deleteTypeToConfirm")}{" "}
-                  <span className="font-medium text-[var(--text-primary)] font-mono">
-                    {deleteTarget.name}
-                  </span>
-                </label>
-                <input
-                  id="delete-confirm-input"
-                  type="text"
-                  value={deleteConfirmText}
-                  onChange={(e) => setDeleteConfirmText(e.target.value)}
-                  placeholder={deleteTarget.name}
-                  className="input-glass w-full"
-                  autoFocus
-                  aria-label={`Escribe "${deleteTarget.name}" para confirmar eliminación`}
-                />
-              </div>
-
-              <div className="flex gap-2 pt-1">
-                <button
-                  onClick={() => setDeleteTarget(null)}
-                  disabled={deleting}
-                  className="flex-1 px-4 py-2.5 font-ui text-xs font-bold uppercase tracking-[0.1em] border border-[var(--border-default)] rounded-[0.75rem] text-[var(--text-secondary)] hover:text-white hover:border-[var(--border-strong)] transition-all"
-                  aria-label="Cancelar eliminación"
-                >
-                  Cancelar
-                </button>
-                <button
-                  onClick={confirmDelete}
-                  disabled={deleting || deleteConfirmText !== deleteTarget.name}
-                  className="flex-1 px-4 py-2.5 font-ui text-xs font-bold uppercase tracking-[0.1em] rounded-[0.75rem] flex items-center justify-center gap-2 whitespace-nowrap bg-red-500/15 text-red-400 border border-red-500/20 hover:bg-red-500/25 hover:border-red-500/40 transition-all disabled:opacity-40 disabled:cursor-not-allowed"
-                  aria-label={`Confirmar eliminación del proyecto ${deleteTarget.name}`}
-                >
-                  {deleting ? <Loader2 size={13} className="animate-spin" aria-hidden="true" /> : <Trash2 size={13} aria-hidden="true" />}
-                  {deleting ? t("proyectos.deleting") : t("proyectos.deleteButton")}
-                </button>
-              </div>
-            </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
     </div>
   );
 }

@@ -198,7 +198,16 @@ export default function GaleriaPage() {
 
   const deleteCategoriaAction = useAsyncAction(async () => {
     if (!selectedCatId) return;
-    if (!(await confirm({ title: "Eliminar categoría", message: "¿Seguro que deseas eliminar esta categoría y todas sus imágenes?" }))) return;
+    const cat = orderedCategories.find((c) => c.id === selectedCatId);
+    if (!cat) return;
+    const nImages = cat.imagenes?.length ?? 0;
+    if (!(await confirm({
+      title: "Eliminar categoría",
+      message: "Se eliminarán permanentemente todas las imágenes de esta categoría.",
+      description: cat.nombre,
+      details: nImages > 0 ? `${nImages} imágenes serán eliminadas permanentemente` : undefined,
+      typeToConfirm: cat.nombre,
+    }))) return;
     try {
       const res = await fetch(`/api/galeria/categorias/${selectedCatId}`, {
         method: "DELETE",

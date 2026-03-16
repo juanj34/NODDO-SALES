@@ -65,10 +65,6 @@ export default function NoddoGridPage() {
   const [showAddForm, setShowAddForm] = useState(false);
   const [newNombre, setNewNombre] = useState("");
   const [newImagenUrl, setNewImagenUrl] = useState("");
-  const [newNumPisos, setNewNumPisos] = useState("");
-  const [newDescripcion, setNewDescripcion] = useState("");
-  const [newAmenidades, setNewAmenidades] = useState("");
-  const [newImagenPortada, setNewImagenPortada] = useState("");
 
   // Implantación
   const [implantacionNombre, setImplantacionNombre] = useState(t("fachadas.implantacionDefaultName"));
@@ -227,10 +223,6 @@ export default function NoddoGridPage() {
   const resetAddForm = () => {
     setNewNombre("");
     setNewImagenUrl("");
-    setNewNumPisos("");
-    setNewDescripcion("");
-    setNewAmenidades("");
-    setNewImagenPortada("");
     setShowAddForm(false);
   };
 
@@ -240,10 +232,6 @@ export default function NoddoGridPage() {
       proyecto_id: projectId,
       nombre: newNombre.trim(),
       imagen_url: newImagenUrl,
-      num_pisos: newNumPisos ? parseInt(newNumPisos) : null,
-      descripcion: newDescripcion.trim() || null,
-      amenidades: newAmenidades.trim() || null,
-      imagen_portada: newImagenPortada || null,
     };
     if (isMultiTorre && activeTorre) {
       body.torre_id = activeTorre.id;
@@ -271,10 +259,15 @@ export default function NoddoGridPage() {
 
   const handleDeleteFachada = async (id: string) => {
     const target = fachadas.find((f) => f.id === id);
-    const label = target?.tipo === "planta" ? "planta" : "fachada";
+    if (!target) return;
+    const label = target.tipo === "planta" ? "planta" : "fachada";
+    const nUnits = unidades.filter((u) => u.fachada_id === id || u.planta_id === id).length;
     if (!(await confirm({
       title: `Eliminar ${label}`,
-      message: `¿Estás seguro de eliminar "${target?.nombre || label}"? Las unidades asignadas serán desvinculadas.`,
+      message: "Las unidades asignadas serán desvinculadas.",
+      description: target.nombre,
+      details: nUnits > 0 ? `${nUnits} unidades perderán su posición en esta ${label}` : undefined,
+      typeToConfirm: target.nombre,
     }))) return;
     setDeletingId(id);
     try {
@@ -440,6 +433,8 @@ export default function NoddoGridPage() {
     titulo: string;
     descripcion: string | null;
     imagen_url: string | null;
+    render_url: string | null;
+    renders: string[];
     fachada_id: string | null;
     torre_id: string | null;
     x: number;
@@ -533,9 +528,15 @@ export default function NoddoGridPage() {
   const handleDeletePlantaTipo = async (tipoNombre: string) => {
     const toDelete = visibleFachadas.filter((f) => f.planta_tipo_nombre === tipoNombre);
     if (toDelete.length === 0) return;
+    const affectedUnits = unidades.filter((u) =>
+      toDelete.some((f) => u.planta_id === f.id || u.fachada_id === f.id)
+    ).length;
     if (!(await confirm({
       title: "Eliminar tipo de planta",
-      message: `¿Eliminar todas las plantas "${tipoNombre}" (${toDelete.length} piso${toDelete.length > 1 ? "s" : ""})? Las unidades asignadas serán desvinculadas.`,
+      message: `Se eliminarán ${toDelete.length} piso${toDelete.length > 1 ? "s" : ""} de esta planta tipo.`,
+      description: tipoNombre,
+      details: affectedUnits > 0 ? `${affectedUnits} unidades perderán sus posiciones` : undefined,
+      typeToConfirm: tipoNombre,
     }))) return;
     try {
       await Promise.all(
@@ -578,79 +579,66 @@ export default function NoddoGridPage() {
   };
 
   /* ------------------------------------------------------------------
-     Sync empty dots from editor back to local fachadas state
-     (prevents data loss when switching tabs)
-     ------------------------------------------------------------------ */
-  const handleEmptyDotsChange = useCallback(
-    (fachadaId: string, puntos: { x: number; y: number }[]) => {
-      setFachadas((prev) =>
-        prev.map((f) =>
-          f.id === fachadaId ? { ...f, puntos_vacios: puntos } : f
-        )
-      );
-    },
-    []
-  );
-
-  /* ------------------------------------------------------------------
      Derived data for the editor
      ------------------------------------------------------------------ */
-  const selectedFachada = visibleFachadas.find((f) => f.id === selectedFachadaId) ?? null;
+  const selectedFachada = useMemo(
+    () => visibleFachadas.find((f) => f.id === selectedFachadaId) ?? null,
+    [visibleFachadas, selectedFachadaId]
+  );
 
   const isPlantaView = viewMode === "planta";
 
-  const assignedUnits = selectedFachada
-    ? unidades
-        .filter((u) =>
-          isPlantaView
-            ? u.planta_id === selectedFachada.id && u.planta_x !== null && u.planta_y !== null
-            : u.fachada_id === selectedFachada.id && u.fachada_x !== null && u.fachada_y !== null
-        )
-        .map((u) => {
-          const tipo = u.tipologia_id ? tipologiaMap.get(u.tipologia_id) : null;
-          return {
-            id: u.id,
-            identificador: u.identificador,
-            estado: u.estado,
-            fachada_x: isPlantaView ? u.planta_x! : u.fachada_x!,
-            fachada_y: isPlantaView ? u.planta_y! : u.fachada_y!,
-            tipologiaNombre: tipo?.nombre ?? null,
-            habitaciones: u.habitaciones ?? tipo?.habitaciones ?? null,
-          };
-        })
-    : [];
+  const assignedUnits = useMemo(() => {
+    if (!selectedFachada) return [];
+    return unidades
+      .filter((u) =>
+        isPlantaView
+          ? u.planta_id === selectedFachada.id && u.planta_x !== null && u.planta_y !== null
+          : u.fachada_id === selectedFachada.id && u.fachada_x !== null && u.fachada_y !== null
+      )
+      .map((u) => {
+        const tipo = u.tipologia_id ? tipologiaMap.get(u.tipologia_id) : null;
+        return {
+          id: u.id,
+          identificador: u.identificador,
+          estado: u.estado,
+          fachada_x: isPlantaView ? u.planta_x! : u.fachada_x!,
+          fachada_y: isPlantaView ? u.planta_y! : u.fachada_y!,
+          tipologiaNombre: tipo?.nombre ?? null,
+          habitaciones: u.habitaciones ?? tipo?.habitaciones ?? null,
+        };
+      });
+  }, [selectedFachada, unidades, isPlantaView, tipologiaMap]);
 
-  const unassignedUnits = unidades
-    .filter((u) => {
-      if (isPlantaView) {
-        // In planta mode, check planta fields for "already placed"
-        if (u.planta_x !== null && u.planta_y !== null) return false;
-        // Only show units for the selected floor
-        if (selectedFachada?.piso_numero != null) {
-          const matchesFloor = u.piso === selectedFachada.piso_numero;
-          const matchesTorre = !selectedFachada.torre_id || u.torre_id === selectedFachada.torre_id;
-          return matchesFloor && matchesTorre;
+  const unassignedUnits = useMemo(() => {
+    return unidades
+      .filter((u) => {
+        if (isPlantaView) {
+          if (u.planta_x !== null && u.planta_y !== null) return false;
+          if (selectedFachada?.piso_numero != null) {
+            const matchesFloor = u.piso === selectedFachada.piso_numero;
+            const matchesTorre = !selectedFachada.torre_id || u.torre_id === selectedFachada.torre_id;
+            return matchesFloor && matchesTorre;
+          }
+          return false;
         }
-        return false;
-      }
-      // Fachada mode — filter by torre + fachada assignment
-      if (u.fachada_x !== null && u.fachada_y !== null) return false;
-      // Only show units from the active torre (or all if single-torre project)
-      const torreId = activeTorre?.id ?? (torres.length === 1 ? torres[0]?.id : null);
-      if (torreId && u.torre_id !== torreId) return false;
-      if (!u.fachada_id) return true;
-      return selectedFachada ? u.fachada_id === selectedFachada.id : false;
-    })
-    .map((u) => {
-      const tipo = u.tipologia_id ? tipologiaMap.get(u.tipologia_id) : null;
-      return {
-        id: u.id,
-        identificador: u.identificador,
-        estado: u.estado,
-        tipologiaNombre: tipo?.nombre ?? null,
-        habitaciones: u.habitaciones ?? tipo?.habitaciones ?? null,
-      };
-    });
+        if (u.fachada_x !== null && u.fachada_y !== null) return false;
+        const torreId = activeTorre?.id ?? (torres.length === 1 ? torres[0]?.id : null);
+        if (torreId && u.torre_id !== torreId) return false;
+        if (!u.fachada_id) return true;
+        return selectedFachada ? u.fachada_id === selectedFachada.id : false;
+      })
+      .map((u) => {
+        const tipo = u.tipologia_id ? tipologiaMap.get(u.tipologia_id) : null;
+        return {
+          id: u.id,
+          identificador: u.identificador,
+          estado: u.estado,
+          tipologiaNombre: tipo?.nombre ?? null,
+          habitaciones: u.habitaciones ?? tipo?.habitaciones ?? null,
+        };
+      });
+  }, [unidades, isPlantaView, selectedFachada, activeTorre, torres, tipologiaMap]);
 
   const STATUS_COLORS: Record<string, string> = {
     disponible: "#22c55e",
@@ -703,9 +691,9 @@ export default function NoddoGridPage() {
                 : "border-[var(--border-subtle)] hover:border-[var(--border-default)]"
             }`}
           >
-            <div className="aspect-square bg-black/40">
+            <div className="relative aspect-square bg-black/40">
               {f.imagen_url ? (
-                <Image src={f.imagen_url} alt="" fill className="w-full h-full object-cover" />
+                <Image src={f.imagen_url} alt="" fill className="object-cover" />
               ) : (
                 <div className="w-full h-full flex items-center justify-center text-[var(--text-muted)]">
                   <ImageIcon size={14} />
@@ -850,7 +838,6 @@ export default function NoddoGridPage() {
                 onUpdateUnit={handleUpdateUnit}
                 onRemoveUnit={handleRemoveUnit}
                 onClearAll={handleClearAll}
-                onEmptyDotsChange={handleEmptyDotsChange}
               />
             </motion.div>
           )}
@@ -1007,16 +994,19 @@ export default function NoddoGridPage() {
         }
         actions={
           <div className="flex items-center gap-2">
-            {(!isMultiTorre || activeTorre) && (viewMode === "fachada" || activeTorre?.tipo === "urbanismo") && (
-              <button onClick={() => setShowAddForm(true)} className={btnPrimary}>
+            {(!isMultiTorre || activeTorre) && (
+              <button
+                onClick={() => {
+                  if (viewMode === "planta" && activeTorre?.tipo !== "urbanismo") {
+                    setShowPlantaTipoForm(true);
+                  } else {
+                    setShowAddForm(true);
+                  }
+                }}
+                className={btnPrimary}
+              >
                 <Plus size={14} />
                 {t("fachadas.addGrid")}
-              </button>
-            )}
-            {(!isMultiTorre || activeTorre) && viewMode === "planta" && activeTorre?.tipo !== "urbanismo" && (
-              <button onClick={() => setShowPlantaTipoForm(true)} className={btnPrimary}>
-                <Plus size={14} />
-                {t("fachadas.plantas.addPlantaTipo")}
               </button>
             )}
           </div>
@@ -1213,7 +1203,7 @@ export default function NoddoGridPage() {
                     <p className={emptyStateDescription}>{t("fachadas.plantas.noPlantasDescription")}</p>
                     <button onClick={() => setShowPlantaTipoForm(true)} className={btnPrimary}>
                       <Plus size={14} />
-                      {t("fachadas.plantas.addPlantaTipo")}
+                      {t("fachadas.addGrid")}
                     </button>
                   </div>
                 ) : (
@@ -1281,7 +1271,7 @@ export default function NoddoGridPage() {
               <p className={emptyStateDescription}>{t("fachadas.plantas.noPlantasDescription")}</p>
               <button onClick={() => setShowPlantaTipoForm(true)} className={btnPrimary}>
                 <Plus size={14} />
-                {t("fachadas.plantas.addPlantaTipo")}
+                {t("fachadas.addGrid")}
               </button>
             </div>
           )}
@@ -1362,26 +1352,6 @@ export default function NoddoGridPage() {
                 <label className={labelClass}>{t("fachadas.gridImageLabel")}</label>
                 <FileUploader currentUrl={newImagenUrl || null} onUpload={(url) => setNewImagenUrl(url)} folder={`proyectos/${projectId}/fachadas`} label={t("fachadas.uploadGridImage")} />
               </div>
-              {!isMultiTorre && (
-                <>
-                  <div>
-                    <label className={labelClass}>{t("fachadas.numFloors")}</label>
-                    <input type="number" value={newNumPisos} onChange={(e) => setNewNumPisos(e.target.value)} placeholder={t("fachadas.numFloorsPlaceholder")} className={inputClass} />
-                  </div>
-                  <div>
-                    <label className={labelClass}>{t("fachadas.descriptionLabel")}</label>
-                    <textarea value={newDescripcion} onChange={(e) => setNewDescripcion(e.target.value)} placeholder={t("fachadas.descriptionPlaceholder")} rows={3} className={inputClass + " resize-none"} />
-                  </div>
-                  <div>
-                    <label className={labelClass}>{t("fachadas.amenities")}</label>
-                    <input type="text" value={newAmenidades} onChange={(e) => setNewAmenidades(e.target.value)} placeholder={t("fachadas.amenitiesPlaceholder")} className={inputClass} />
-                  </div>
-                  <div>
-                    <label className={labelClass}>{t("fachadas.coverImage")}</label>
-                    <FileUploader currentUrl={newImagenPortada || null} onUpload={(url) => setNewImagenPortada(url)} folder={`proyectos/${projectId}/fachadas`} label={t("fachadas.uploadCoverImage")} />
-                  </div>
-                </>
-              )}
               <div className="flex items-center gap-2 pt-1">
                 <button onClick={handleAddFachada} disabled={!newNombre.trim() || !newImagenUrl} className={btnPrimary}>
                   <Save size={14} />

@@ -3,7 +3,7 @@
 import { useState, useMemo } from "react";
 import { motion } from "framer-motion";
 import { Send, Loader2, FileDown, MapPin, BedDouble, Bath, Maximize, Eye } from "lucide-react";
-import type { Unidad, Tipologia, CotizadorConfig, ResultadoCotizacion, Currency } from "@/types";
+import type { Unidad, Tipologia, CotizadorConfig, ResultadoCotizacion, Currency, InventoryColumnConfig } from "@/types";
 import { calcularCotizacion } from "@/lib/cotizador/calcular";
 import { formatCurrency } from "@/lib/currency";
 import { trackEvent } from "@/lib/tracking";
@@ -56,7 +56,15 @@ interface CotizadorFlowMultiStepProps {
   locale: string;
   tCommon: (key: string) => string;
   tSite: (key: string) => string;
+  /** Column visibility configuration */
+  columns: InventoryColumnConfig;
   onSuccess: (pdfUrl: string | null) => void;
+  /** Buyer-selected tipología ID for multi-tipo lots */
+  selectedTipologiaId?: string;
+  /** For lotes: original terrain price before tipología sum */
+  terrenoPrice?: number;
+  /** For lotes: construction price from tipología */
+  construccionPrice?: number;
 }
 
 export function CotizadorFlowMultiStep({
@@ -67,7 +75,11 @@ export function CotizadorFlowMultiStep({
 
   tCommon,
   tSite,
+  columns,
   onSuccess,
+  selectedTipologiaId,
+  terrenoPrice,
+  construccionPrice,
 }: CotizadorFlowMultiStepProps) {
   const { currentStep, nextStep, prevStep } = useMultiStepForm(2);
 
@@ -117,6 +129,7 @@ export function CotizadorFlowMultiStep({
           nombre,
           email,
           telefono: telefono ? `${countryCode} ${telefono}` : null,
+          tipologia_id: selectedTipologiaId || undefined,
           utm_source: new URLSearchParams(window.location.search).get("utm_source"),
           utm_medium: new URLSearchParams(window.location.search).get("utm_medium"),
           utm_campaign: new URLSearchParams(window.location.search).get("utm_campaign"),
@@ -240,31 +253,37 @@ export function CotizadorFlowMultiStep({
                     <span className="text-white">{tipologia.nombre}</span>
                   </div>
                 )}
-                {unidad.area_m2 && (
+                {columns.area_m2 && unidad.area_m2 && (
                   <div className="flex items-center gap-1.5">
                     <Maximize size={12} className="text-[var(--text-muted)]" />
                     <span className="text-white">{unidad.area_m2} m²</span>
                   </div>
                 )}
-                {unidad.habitaciones && (
+                {columns.habitaciones && unidad.habitaciones && (
                   <div className="flex items-center gap-1.5">
                     <BedDouble size={12} className="text-[var(--text-muted)]" />
                     <span className="text-white">{unidad.habitaciones} hab</span>
                   </div>
                 )}
-                {unidad.banos && (
+                {columns.banos && unidad.banos && (
                   <div className="flex items-center gap-1.5">
                     <Bath size={12} className="text-[var(--text-muted)]" />
                     <span className="text-white">{unidad.banos} baños</span>
                   </div>
                 )}
-                {unidad.piso !== null && (
+                {columns.lote && unidad.lote && (
+                  <div className="flex items-center gap-1.5">
+                    <MapPin size={12} className="text-[var(--text-muted)]" />
+                    <span className="text-white">{unidad.lote}</span>
+                  </div>
+                )}
+                {columns.piso && unidad.piso !== null && !unidad.lote && (
                   <div className="flex items-center gap-1.5">
                     <MapPin size={12} className="text-[var(--text-muted)]" />
                     <span className="text-white">Piso {unidad.piso}</span>
                   </div>
                 )}
-                {unidad.vista && (
+                {columns.vista && unidad.vista && (
                   <div className="flex items-center gap-1.5">
                     <Eye size={12} className="text-[var(--text-muted)]" />
                     <span className="text-white">{unidad.vista}</span>
@@ -272,6 +291,28 @@ export function CotizadorFlowMultiStep({
                 )}
               </div>
             </div>
+
+            {/* Lotes: Terrain + Construction price breakdown */}
+            {terrenoPrice != null && construccionPrice != null && (
+              <div className="bg-white/5 rounded-xl p-4 border border-white/8">
+                <p className="text-[10px] tracking-[0.2em] uppercase text-[var(--site-primary)] mb-2 font-ui font-bold">
+                  {tSite("cotizador.priceBreakdown") || "Desglose de precio"}
+                </p>
+                <div className="flex justify-between text-xs mb-1.5">
+                  <span className="text-[var(--text-secondary)]">{tSite("cotizador.terrain") || "Terreno"}</span>
+                  <span className="text-white">{formatCurrency(terrenoPrice, moneda)}</span>
+                </div>
+                <div className="flex justify-between text-xs mb-1.5">
+                  <span className="text-[var(--text-secondary)]">{tSite("cotizador.construction") || "Construcción"}</span>
+                  <span className="text-white">{formatCurrency(construccionPrice, moneda)}</span>
+                </div>
+                <div className="h-px bg-white/10 my-2" />
+                <div className="flex justify-between text-xs font-semibold">
+                  <span className="text-white">Total</span>
+                  <span className="text-[var(--site-primary)]">{formatCurrency(terrenoPrice + construccionPrice, moneda)}</span>
+                </div>
+              </div>
+            )}
 
             {/* Payment Breakdown */}
             {resultado && (
