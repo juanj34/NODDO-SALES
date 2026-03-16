@@ -12,10 +12,10 @@ declare global {
 /**
  * Crisp Chat widget for dashboard support
  * Only loads in dashboard/editor - NOT in public microsites
+ * Idempotent — safe to mount multiple times (e.g. React StrictMode)
  */
 export function CrispSupport() {
   useEffect(() => {
-    // Crisp Website ID from env
     const CRISP_WEBSITE_ID = process.env.NEXT_PUBLIC_CRISP_WEBSITE_ID;
 
     if (!CRISP_WEBSITE_ID) {
@@ -23,7 +23,15 @@ export function CrispSupport() {
       return;
     }
 
-    // Initialize Crisp
+    // Already loaded — just make sure it's visible
+    if (document.querySelector('script[src*="crisp.chat"]')) {
+      if (window.$crisp) {
+        window.$crisp.push(["do", "chat:show"]);
+      }
+      return;
+    }
+
+    // Initialize Crisp globals BEFORE loading script
     window.$crisp = [];
     window.CRISP_WEBSITE_ID = CRISP_WEBSITE_ID;
 
@@ -32,15 +40,9 @@ export function CrispSupport() {
     script.async = true;
     document.head.appendChild(script);
 
-    // Cleanup on unmount
-    return () => {
-      // Remove Crisp widget when leaving dashboard
-      const crispElements = document.querySelectorAll('[id^="crisp-chatbox"]');
-      crispElements.forEach((el) => el.remove());
-      delete window.$crisp;
-      delete window.CRISP_WEBSITE_ID;
-    };
+    // No cleanup — Crisp should persist across dashboard/editor navigations
+    // Removing and re-adding the script causes flickering and breaks the widget
   }, []);
 
-  return null; // No UI, just loads the script
+  return null;
 }
