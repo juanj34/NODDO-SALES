@@ -42,6 +42,7 @@ export async function POST(
       { data: avancesObra },
       { data: complementos },
       { data: vistasPiso },
+      { data: unidadTipologias },
     ] = await Promise.all([
       auth.supabase.from("tipologias").select("*").eq("proyecto_id", id).order("orden"),
       auth.supabase.from("galeria_categorias").select("*").eq("proyecto_id", id).order("orden"),
@@ -55,6 +56,7 @@ export async function POST(
       auth.supabase.from("avances_obra").select("*").eq("proyecto_id", id).eq("estado", "publicado").order("orden"),
       auth.supabase.from("complementos").select("*").eq("proyecto_id", id).order("orden"),
       auth.supabase.from("vistas_piso").select("*").eq("proyecto_id", id).order("orden"),
+      auth.supabase.from("unidad_tipologias").select("*").eq("proyecto_id", id),
     ]);
 
     // Fetch gallery images
@@ -100,6 +102,7 @@ export async function POST(
       avances_obra: avancesObra || [],
       complementos: complementos || [],
       vistas_piso: vistasPiso || [],
+      unidad_tipologias: unidadTipologias || [],
     };
 
     // 4. Get next version number

@@ -19,6 +19,7 @@ const PROYECTO_FIELDS = [
   "tipo_proyecto",
   "parqueaderos_mode", "depositos_mode",
   "parqueaderos_precio_base", "depositos_precio_base",
+  "tipologia_mode",
 ];
 
 export async function GET(

@@ -74,6 +74,7 @@ export interface Proyecto {
   depositos_mode: ComplementoMode;
   parqueaderos_precio_base: number | null;
   depositos_precio_base: number | null;
+  tipologia_mode: "fija" | "multiple";
   cotizador_config: CotizadorConfig | null;
   webhook_config: WebhookConfig | null;
   created_at: string;
@@ -249,9 +250,19 @@ export interface Unidad {
   planta_x: number | null;
   planta_y: number | null;
   torre_id: string | null;
+  lote: string | null;
+  etapa_nombre: string | null;
   parqueaderos: number | null;
   depositos: number | null;
   orden: number;
+  created_at: string;
+}
+
+export interface UnidadTipologia {
+  id: string;
+  proyecto_id: string;
+  unidad_id: string;
+  tipologia_id: string;
   created_at: string;
 }
 
@@ -344,6 +355,7 @@ export interface ProyectoCompleto extends Proyecto {
   avances_obra: AvanceObra[];
   complementos: Complemento[];
   vistas_piso: VistaPiso[];
+  unidad_tipologias: UnidadTipologia[];
 }
 
 export interface AvanceObra {
