@@ -44,7 +44,7 @@ import {
   Binoculars,
 } from "lucide-react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { AnimatePresence, motion } from "framer-motion";
 import type { ProyectoVersion } from "@/types";
 import { useTranslation } from "@/i18n";
@@ -53,6 +53,7 @@ import { useConfirm } from "@/components/dashboard/ConfirmModal";
 import { NodDoLogo } from "@/components/ui/NodDoLogo";
 import { useMobileDrawer } from "@/hooks/useMobileDrawer";
 import { RouteProgressBar } from "@/components/ui/RouteProgressBar";
+import { TourUploadProvider, useTourUploadContext } from "@/contexts/TourUploadContext";
 
 /* ------------------------------------------------------------------ */
 /*  Helpers                                                            */
@@ -76,6 +77,55 @@ function timeAgo(dateStr: string): string {
   const days = Math.floor(hours / 24);
   if (days < 30) return `hace ${days}d`;
   return new Date(dateStr).toLocaleDateString("es");
+}
+
+/* ------------------------------------------------------------------ */
+/*  SafeBackLink — intercepts navigation when tour upload is active    */
+/* ------------------------------------------------------------------ */
+
+function SafeBackLink({
+  href,
+  onClick,
+  className,
+  children,
+}: {
+  href: string;
+  onClick?: () => void;
+  className?: string;
+  children: React.ReactNode;
+}) {
+  const { isActive, cancel } = useTourUploadContext();
+  const { confirm } = useConfirm();
+  const { t } = useTranslation("editor");
+  const router = useRouter();
+
+  const handleClick = async (e: React.MouseEvent) => {
+    if (!isActive) {
+      onClick?.();
+      return; // let Link navigate normally
+    }
+
+    e.preventDefault();
+    const ok = await confirm({
+      title: t("config.tour.leaveWhileUploading"),
+      message: t("config.tour.leaveWhileUploadingMsg"),
+      confirmLabel: t("config.tour.leaveConfirm"),
+      cancelLabel: t("config.tour.stayContinue"),
+      variant: "warning",
+    });
+
+    if (ok) {
+      cancel();
+      onClick?.();
+      router.push(href);
+    }
+  };
+
+  return (
+    <Link href={href} onClick={handleClick} className={className}>
+      {children}
+    </Link>
+  );
 }
 
 /* ------------------------------------------------------------------ */
@@ -493,6 +543,7 @@ export default function EditorLayout({
   /* ---- Render ---- */
   return (
     <EditorProjectContext.Provider value={contextValue!}>
+      <TourUploadProvider>
       <RouteProgressBar color="var(--site-primary)" />
       <div className="flex h-screen bg-[var(--surface-0)]">
         {/* Mobile hamburger button */}
@@ -529,13 +580,13 @@ export default function EditorLayout({
         >
           {/* Back + project name */}
           <div className="px-4 py-3 border-b border-[var(--border-subtle)]">
-            <Link href="/proyectos" onClick={closeDrawer} className="inline-block hover:opacity-80 transition-opacity mb-1.5">
+            <SafeBackLink href="/proyectos" onClick={closeDrawer} className="inline-block hover:opacity-80 transition-opacity mb-1.5">
               <NodDoLogo height={16} colorNod="var(--text-primary)" colorDo="var(--site-primary)" />
-            </Link>
-            <Link href="/proyectos" onClick={closeDrawer} className="flex items-center gap-1.5 text-[10px] text-[var(--text-tertiary)] hover:text-[var(--text-secondary)] transition-colors mb-2">
+            </SafeBackLink>
+            <SafeBackLink href="/proyectos" onClick={closeDrawer} className="flex items-center gap-1.5 text-[10px] text-[var(--text-tertiary)] hover:text-[var(--text-secondary)] transition-colors mb-2">
               <ArrowLeft size={10} />
               {t("layout.backToProjects")}
-            </Link>
+            </SafeBackLink>
             <h2 className="text-[13px] font-semibold text-white truncate leading-tight">
               {project.nombre}
             </h2>
@@ -1048,6 +1099,7 @@ export default function EditorLayout({
           </div>
         </div>
       </div>
+      </TourUploadProvider>
     </EditorProjectContext.Provider>
   );
 }

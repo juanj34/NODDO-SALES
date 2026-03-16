@@ -6,7 +6,8 @@ import { useState, useEffect, useRef, useCallback, DragEvent } from "react";
 import { useEditorProject } from "@/hooks/useEditorProject";
 import { useToast } from "@/components/dashboard/Toast";
 import { useConfirm } from "@/components/dashboard/ConfirmModal";
-import { useTourUpload, readDroppedFolder, pickFolderNative, hasNativeFolderPicker } from "@/hooks/useTourUpload";
+import { useTourUploadContext } from "@/contexts/TourUploadContext";
+import { readDroppedFolder, pickFolderNative, hasNativeFolderPicker } from "@/hooks/useTourUpload";
 import {
   inputClass, labelClass, fieldHint,
   sectionCard,
@@ -32,7 +33,7 @@ export default function TourPage() {
   const [dragOver, setDragOver] = useState(false);
   const tourZipInputRef = useRef<HTMLInputElement>(null);
   const tourFolderInputRef = useRef<HTMLInputElement>(null);
-  const tourUpload = useTourUpload();
+  const tourUpload = useTourUploadContext();
 
   useEffect(() => {
     if (!project || initializedRef.current) return;
@@ -72,26 +73,24 @@ export default function TourPage() {
   const r2ToursUrl = process.env.NEXT_PUBLIC_R2_TOURS_URL || "";
   const isR2Hosted = !!(tour360Url && r2ToursUrl && tour360Url.startsWith(r2ToursUrl));
 
-  // When upload completes, save the tour URL
+  // Sync local state when upload completes (provider handles the actual save)
   useEffect(() => {
     if (tourUpload.status === "complete" && tourUpload.tourUrl) {
       setTour360Url(tourUpload.tourUrl);
       setTour360RawInput(tourUpload.tourUrl);
-      scheduleAutoSave();
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [tourUpload.status, tourUpload.tourUrl]);
 
   const handleTourZipSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (!file || !project) return;
+    if (!file) return;
     if (tourZipInputRef.current) tourZipInputRef.current.value = "";
-    tourUpload.upload(file, project.id);
+    tourUpload.upload(file);
   };
 
   const handleFolderSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
-    if (!files || files.length === 0 || !project) return;
+    if (!files || files.length === 0) return;
     // Snapshot files before clearing — FileList is a live reference that empties on clear
     const snapshot: { file: File; path: string }[] = [];
     for (let i = 0; i < files.length; i++) {
@@ -99,32 +98,30 @@ export default function TourPage() {
       snapshot.push({ file: f, path: f.webkitRelativePath || f.name });
     }
     if (tourFolderInputRef.current) tourFolderInputRef.current.value = "";
-    tourUpload.uploadFolder(snapshot, project.id);
+    tourUpload.uploadFolder(snapshot);
   };
 
   const handleFolderClick = useCallback(async () => {
-    if (!project) return;
     // Use native File System Access API (no scary browser dialog)
     if (hasNativeFolderPicker()) {
       const files = await pickFolderNative();
       if (files && files.length > 0) {
-        tourUpload.uploadFolder(files, project.id);
+        tourUpload.uploadFolder(files);
       }
       return;
     }
     // Fallback to webkitdirectory input
     tourFolderInputRef.current?.click();
-  }, [project, tourUpload]);
+  }, [tourUpload]);
 
   const handleDrop = useCallback(async (e: DragEvent<HTMLDivElement>) => {
     e.preventDefault();
     setDragOver(false);
-    if (!project) return;
 
     // Check if a folder was dropped
     const folderFiles = await readDroppedFolder(e.dataTransfer.items);
     if (folderFiles && folderFiles.length > 0) {
-      tourUpload.uploadFolder(folderFiles, project.id);
+      tourUpload.uploadFolder(folderFiles);
       return;
     }
 
@@ -135,8 +132,8 @@ export default function TourPage() {
       toast.error(t("config.tour.zipOrFolderOnly"));
       return;
     }
-    tourUpload.upload(file, project.id);
-  }, [project, tourUpload, toast, t]);
+    tourUpload.upload(file);
+  }, [tourUpload, toast, t]);
 
   const handleDeleteHostedTour = async () => {
     if (!project) return;
