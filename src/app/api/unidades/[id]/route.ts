@@ -19,13 +19,13 @@ export async function PUT(
     // Lookup the unidad to get its proyecto_id for ownership check
     const { data: unidad } = await auth.supabase
       .from("unidades")
-      .select("tipologia_id, tipologias(proyecto_id)")
+      .select("proyecto_id, tipologia_id")
       .eq("id", id)
       .maybeSingle();
     if (!unidad) {
       return NextResponse.json({ error: "Unidad no encontrada" }, { status: 404 });
     }
-    const proyectoId = (unidad.tipologias as unknown as { proyecto_id: string })?.proyecto_id;
+    const proyectoId = unidad.proyecto_id;
 
     // Collaborators can ONLY update estado
     if (auth.role === "colaborador") {

@@ -565,26 +565,31 @@ export function FacadeHotspotEditor({
     setSelectedIds(new Set());
 
     if (dot) {
-      // Remove empty dot immediately
+      // Remove empty dot immediately (optimistic)
       setEmptyDots((prev) => prev.filter((d) => d.localId !== dotId));
-      // Save in background
+      // Save in background with rollback on failure
       onUpdateUnit(unitId, {
         fachada_id: fachada.id,
         fachada_x: Math.round(dot.x * 100) / 100,
         fachada_y: Math.round(dot.y * 100) / 100,
+      }).catch(() => {
+        // Rollback: re-add the empty dot
+        setEmptyDots((prev) => [...prev, dot]);
       });
     } else {
       // Reassign: the dotId is an existing unit, replace it
       const pos = positions.get(dotId);
       if (pos) {
         // Unassign current + assign new in background
-        onRemoveUnit(dotId).then(() =>
-          onUpdateUnit(unitId, {
-            fachada_id: fachada.id,
-            fachada_x: Math.round(pos.x * 100) / 100,
-            fachada_y: Math.round(pos.y * 100) / 100,
-          })
-        );
+        onRemoveUnit(dotId)
+          .then(() =>
+            onUpdateUnit(unitId, {
+              fachada_id: fachada.id,
+              fachada_x: Math.round(pos.x * 100) / 100,
+              fachada_y: Math.round(pos.y * 100) / 100,
+            })
+          )
+          .catch(() => {});
       }
     }
   };
@@ -594,7 +599,7 @@ export function FacadeHotspotEditor({
     if (isEmptyDotId(activeMenuDotId)) {
       setEmptyDots((prev) => prev.filter((d) => d.localId !== activeMenuDotId));
     } else {
-      onRemoveUnit(activeMenuDotId);
+      onRemoveUnit(activeMenuDotId).catch(() => {});
     }
     setActiveMenuDotId(null);
     setSelectedIds(new Set());
@@ -602,7 +607,7 @@ export function FacadeHotspotEditor({
 
   const handleUnassignDot = () => {
     if (!activeMenuDotId || isEmptyDotId(activeMenuDotId)) return;
-    onRemoveUnit(activeMenuDotId);
+    onRemoveUnit(activeMenuDotId).catch(() => {});
     setActiveMenuDotId(null);
     setSelectedIds(new Set());
   };
@@ -612,7 +617,7 @@ export function FacadeHotspotEditor({
       if (isEmptyDotId(id)) {
         setEmptyDots((prev) => prev.filter((d) => d.localId !== id));
       } else {
-        onRemoveUnit(id);
+        onRemoveUnit(id).catch(() => {});
       }
     });
     setSelectedIds(new Set());
@@ -1014,7 +1019,7 @@ export function FacadeHotspotEditor({
             if (isEmpty) {
               setEmptyDots((prev) => prev.filter((d) => d.localId !== id));
             } else {
-              onRemoveUnit(id);
+              onRemoveUnit(id).catch(() => {});
             }
           }}
         />

@@ -326,7 +326,7 @@ export default function NoddoGridPage() {
         await refresh();
       } catch {
         toast.error("Error de conexión");
-        await refresh();
+        try { await refresh(); } catch { /* ignore */ }
       }
     },
     [refresh, toast, viewMode]
@@ -337,7 +337,7 @@ export default function NoddoGridPage() {
       const isPlantaMode = viewMode === "planta";
       const clearFields = isPlantaMode
         ? { planta_id: null, planta_x: null, planta_y: null }
-        : { fachada_x: null, fachada_y: null };
+        : { fachada_id: null, fachada_x: null, fachada_y: null };
 
       setUnidades((prev) =>
         prev.map((u) => (u.id === unitId ? { ...u, ...clearFields } : u))
@@ -352,7 +352,7 @@ export default function NoddoGridPage() {
         await refresh();
       } catch {
         toast.error("Error de conexión");
-        await refresh();
+        try { await refresh(); } catch { /* ignore */ }
       }
     },
     [refresh, toast, viewMode]
@@ -366,7 +366,7 @@ export default function NoddoGridPage() {
       const yField = isPlantaMode ? "planta_y" : "fachada_y";
       const clearFields = isPlantaMode
         ? { planta_id: null, planta_x: null, planta_y: null }
-        : { fachada_x: null, fachada_y: null };
+        : { fachada_id: null, fachada_x: null, fachada_y: null };
 
       const assigned = unidades.filter(
         (u) => u[idField] === fachadaId && u[xField] !== null && u[yField] !== null
@@ -392,7 +392,7 @@ export default function NoddoGridPage() {
         await refresh();
       } catch {
         toast.error("Error de conexión");
-        await refresh();
+        try { await refresh(); } catch { /* ignore */ }
       }
     },
     [unidades, refresh, toast, viewMode]
