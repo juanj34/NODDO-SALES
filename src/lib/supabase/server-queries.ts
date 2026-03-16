@@ -1,3 +1,4 @@
+import { createClient as createServerClient } from "@supabase/supabase-js";
 import { createClient } from "./server";
 import type {
   Proyecto,
@@ -7,6 +8,18 @@ import type {
   Video,
   Lead,
 } from "@/types";
+
+/**
+ * Public Supabase client — no cookies(), safe inside unstable_cache.
+ * Uses anon key so RLS still applies.
+ */
+function createPublicClient() {
+  return createServerClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    { auth: { autoRefreshToken: false, persistSession: false } }
+  );
+}
 
 // Server-side queries using the server client (for API routes + server components)
 
@@ -107,17 +120,19 @@ export async function getProyectoById(
 }
 
 export async function getProyectoBySlug(
-  slug: string
+  slugOrSubdomain: string
 ): Promise<ProyectoCompleto | null> {
-  const supabase = await createClient();
+  // Use public client (no cookies) — safe inside unstable_cache
+  const supabase = createPublicClient();
 
-  // 1. Verify project exists and is published
+  // 1. Find published project by slug OR subdomain
   const { data: proyecto, error } = await supabase
     .from("proyectos")
     .select("id")
-    .eq("slug", slug)
+    .or(`slug.eq.${slugOrSubdomain},subdomain.eq.${slugOrSubdomain}`)
     .eq("estado", "publicado")
-    .single();
+    .limit(1)
+    .maybeSingle();
 
   if (error || !proyecto) return null;
 

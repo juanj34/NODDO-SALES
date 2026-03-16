@@ -1,4 +1,5 @@
 import { getAuthContext } from "@/lib/auth-context";
+import { revalidateProyecto } from "@/lib/supabase/cached-queries";
 import { NextRequest, NextResponse } from "next/server";
 
 export async function POST(
@@ -19,7 +20,7 @@ export async function POST(
     // Verify ownership
     const { data: proyecto, error: projErr } = await auth.supabase
       .from("proyectos")
-      .select("id, estado")
+      .select("id, estado, slug, subdomain")
       .eq("id", id)
       .eq("user_id", auth.adminUserId)
       .single();
@@ -45,6 +46,12 @@ export async function POST(
       .eq("user_id", auth.adminUserId);
 
     if (updateErr) throw updateErr;
+
+    // Revalidate cached microsite data
+    await revalidateProyecto(proyecto.slug);
+    if (proyecto.subdomain && proyecto.subdomain !== proyecto.slug) {
+      await revalidateProyecto(proyecto.subdomain);
+    }
 
     return NextResponse.json({ estado: "borrador" });
   } catch (err) {

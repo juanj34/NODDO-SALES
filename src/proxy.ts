@@ -27,7 +27,7 @@ export async function proxy(request: NextRequest) {
     let slug: string | undefined;
 
     if (domainInfo.type === "subdomain") {
-      slug = domainInfo.slug;
+      slug = domainInfo.subdomain;
     } else {
       // Custom domain: resolve to slug via DB lookup
       slug = (await resolveCustomDomainToSlug(domainInfo.domain!)) ?? undefined;

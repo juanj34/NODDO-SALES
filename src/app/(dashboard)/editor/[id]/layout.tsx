@@ -654,14 +654,35 @@ export default function EditorLayout({
 
           {/* Preview link */}
           <div className="px-4 py-3 border-t border-[var(--border-subtle)]">
-            <Link
-              href={`/sites/${project.slug}`}
-              target="_blank"
-              className="flex items-center justify-center gap-2 w-full px-3 py-2.5 bg-[var(--surface-2)] border border-[var(--border-default)] rounded-lg font-ui text-[10px] font-bold uppercase tracking-[0.1em] text-[var(--text-secondary)] hover:text-white hover:border-[var(--border-strong)] hover:bg-[var(--surface-3)] transition-all"
-            >
-              <ExternalLink size={13} />
-              {t("layout.viewMicrosite")}
-            </Link>
+            {(() => {
+              const rootDomain = process.env.NEXT_PUBLIC_ROOT_DOMAIN || "noddo.io";
+              const isLocal = rootDomain.includes("localhost");
+              const previewUrl = isLocal
+                ? `/sites/${project.slug}`
+                : project.custom_domain && project.domain_verified
+                  ? `https://${project.custom_domain}`
+                  : `https://${project.subdomain || project.slug}.${rootDomain}`;
+              return isLocal ? (
+                <Link
+                  href={previewUrl}
+                  target="_blank"
+                  className="flex items-center justify-center gap-2 w-full px-3 py-2.5 bg-[var(--surface-2)] border border-[var(--border-default)] rounded-lg font-ui text-[10px] font-bold uppercase tracking-[0.1em] text-[var(--text-secondary)] hover:text-white hover:border-[var(--border-strong)] hover:bg-[var(--surface-3)] transition-all"
+                >
+                  <ExternalLink size={13} />
+                  {t("layout.viewMicrosite")}
+                </Link>
+              ) : (
+                <a
+                  href={previewUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center justify-center gap-2 w-full px-3 py-2.5 bg-[var(--surface-2)] border border-[var(--border-default)] rounded-lg font-ui text-[10px] font-bold uppercase tracking-[0.1em] text-[var(--text-secondary)] hover:text-white hover:border-[var(--border-strong)] hover:bg-[var(--surface-3)] transition-all"
+                >
+                  <ExternalLink size={13} />
+                  {t("layout.viewMicrosite")}
+                </a>
+              );
+            })()}
           </div>
         </aside>
 

@@ -1,5 +1,6 @@
 import { getAuthContext } from "@/lib/auth-context";
 import { logActivity } from "@/lib/activity-logger";
+import { revalidateProyecto } from "@/lib/supabase/cached-queries";
 import { NextRequest, NextResponse } from "next/server";
 
 export async function POST(
@@ -133,6 +134,12 @@ export async function POST(
 
     if (updateErr) throw updateErr;
 
+    // Revalidate cached microsite data for both slug and subdomain
+    await revalidateProyecto(proyecto.slug);
+    if (proyecto.subdomain && proyecto.subdomain !== proyecto.slug) {
+      await revalidateProyecto(proyecto.subdomain);
+    }
+
     logActivity({
       userId: auth.user.id, userEmail: auth.user.email!, userRole: auth.role,
       proyectoId: id, proyectoNombre: proyecto.nombre,
@@ -141,9 +148,16 @@ export async function POST(
       entityType: "proyecto", entityId: id,
     });
 
+    const rootDomain = process.env.NEXT_PUBLIC_ROOT_DOMAIN || "noddo.io";
+    const subdomain = proyecto.subdomain || proyecto.slug;
+    const publishedUrl = proyecto.custom_domain && proyecto.domain_verified
+      ? `https://${proyecto.custom_domain}`
+      : `https://${subdomain}.${rootDomain}`;
+
     return NextResponse.json({
       version_number: nextVersion,
       published_at: new Date().toISOString(),
+      published_url: publishedUrl,
     });
   } catch (err) {
     return NextResponse.json(

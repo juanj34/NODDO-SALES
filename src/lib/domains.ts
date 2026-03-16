@@ -2,7 +2,7 @@ const ROOT_DOMAIN = process.env.NEXT_PUBLIC_ROOT_DOMAIN || "localhost:3000";
 
 export interface DomainInfo {
   type: "platform" | "subdomain" | "custom_domain";
-  slug?: string;
+  subdomain?: string;
   domain?: string;
 }
 
@@ -33,7 +33,7 @@ export function parseDomain(hostname: string): DomainInfo {
     if (subdomain === "www") {
       return { type: "platform" };
     }
-    return { type: "subdomain", slug: subdomain };
+    return { type: "subdomain", subdomain };
   }
 
   // Everything else is a custom domain
