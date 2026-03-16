@@ -3,6 +3,9 @@ import { z } from "zod";
 /**
  * Schemas de validación para formularios críticos de NODDO
  * Previene datos inválidos en la base de datos
+ *
+ * NOTE: Use .nullish() (= .nullable().optional()) for fields that can be
+ * null from the DB or from `value || null` coercion in forms.
  */
 
 // ═══════════════════════════════════════════════════════════
@@ -24,7 +27,7 @@ export const proyectoGeneralSchema = z.object({
       "El slug solo puede contener letras minúsculas, números y guiones"
     ),
 
-  descripcion: z.string().max(500, "La descripción debe tener máximo 500 caracteres").optional(),
+  descripcion: z.string().max(500, "La descripción debe tener máximo 500 caracteres").nullish(),
 
   whatsapp_numero: z
     .string()
@@ -32,24 +35,24 @@ export const proyectoGeneralSchema = z.object({
       /^\+?[1-9]\d{1,14}$/,
       "Formato de WhatsApp inválido. Debe ser E.164 (ej: +573001234567)"
     )
-    .optional()
+    .nullish()
     .or(z.literal("")),
 });
 
 export const proyectoUbicacionSchema = z.object({
-  latitud: z
+  ubicacion_lat: z
     .number()
     .min(-90, "Latitud debe estar entre -90 y 90")
-    .max(90, "Latitud debe estar entre -90 y 90"),
+    .max(90, "Latitud debe estar entre -90 y 90")
+    .nullish(),
 
-  longitud: z
+  ubicacion_lng: z
     .number()
     .min(-180, "Longitud debe estar entre -180 y 180")
-    .max(180, "Longitud debe estar entre -180 y 180"),
+    .max(180, "Longitud debe estar entre -180 y 180")
+    .nullish(),
 
-  direccion: z.string().min(1, "La dirección es obligatoria").max(200),
-  ciudad: z.string().min(1, "La ciudad es obligatoria").max(100),
-  pais: z.string().min(1, "El país es obligatorio").max(100),
+  ubicacion_direccion: z.string().max(200).nullish(),
 });
 
 // ═══════════════════════════════════════════════════════════
@@ -66,32 +69,35 @@ export const tipologiaSchema = z.object({
     .number()
     .positive("El área debe ser positiva")
     .max(10000, "El área parece demasiado grande")
-    .multipleOf(0.01, "El área puede tener máximo 2 decimales"),
+    .multipleOf(0.01, "El área puede tener máximo 2 decimales")
+    .nullish(),
 
   habitaciones: z
     .number()
     .int("Las habitaciones deben ser un número entero")
     .min(0, "No puede tener habitaciones negativas")
-    .max(20, "Máximo 20 habitaciones"),
+    .max(20, "Máximo 20 habitaciones")
+    .nullish(),
 
   banos: z
     .number()
     .int("Los baños deben ser un número entero")
     .min(0, "No puede tener baños negativos")
-    .max(20, "Máximo 20 baños"),
+    .max(20, "Máximo 20 baños")
+    .nullish(),
 
-  garajes: z
+  parqueaderos: z
     .number()
     .int("Los garajes deben ser un número entero")
     .min(0, "No puede tener garajes negativos")
     .max(10, "Máximo 10 garajes")
-    .optional(),
+    .nullish(),
 
   precio_desde: z
     .number()
     .positive("El precio debe ser positivo")
     .max(999999999999, "El precio es demasiado alto")
-    .optional(),
+    .nullish(),
 });
 
 // ═══════════════════════════════════════════════════════════
@@ -101,12 +107,12 @@ export const tipologiaSchema = z.object({
 export const poiSchema = z.object({
   nombre: z.string().min(1, "El nombre es obligatorio").max(100),
 
-  latitud: z
+  lat: z
     .number()
     .min(-90, "Latitud inválida")
     .max(90, "Latitud inválida"),
 
-  longitud: z
+  lng: z
     .number()
     .min(-180, "Longitud inválida")
     .max(180, "Longitud inválida"),
@@ -124,14 +130,14 @@ export const poiSchema = z.object({
     .number()
     .positive("La distancia debe ser positiva")
     .max(1000, "Distancia máxima 1000 km")
-    .optional(),
+    .nullish(),
 
-  tiempo_min: z
+  tiempo_minutos: z
     .number()
     .int("El tiempo debe ser un número entero")
     .positive("El tiempo debe ser positivo")
     .max(600, "Tiempo máximo 600 minutos")
-    .optional(),
+    .nullish(),
 });
 
 // ═══════════════════════════════════════════════════════════
@@ -155,20 +161,20 @@ export const leadFormSchema = z.object({
       /^\+?[1-9]\d{1,14}$/,
       "Teléfono inválido. Usar formato internacional (ej: +573001234567)"
     )
-    .optional()
+    .nullish()
     .or(z.literal("")),
 
   mensaje: z
     .string()
     .max(1000, "El mensaje debe tener máximo 1000 caracteres")
-    .optional(),
+    .nullish(),
 
-  tipologia_interes: z.string().uuid("ID de tipología inválido").optional(),
+  tipologia_interes: z.string().uuid("ID de tipología inválido").nullish(),
 
   presupuesto: z
     .number()
     .positive("El presupuesto debe ser positivo")
-    .optional(),
+    .nullish(),
 });
 
 // ═══════════════════════════════════════════════════════════
