@@ -1,3 +1,4 @@
+import { cache } from "react";
 import type { Metadata } from "next";
 import { headers } from "next/headers";
 import { notFound } from "next/navigation";
@@ -13,15 +14,14 @@ interface Props {
   children: React.ReactNode;
 }
 
-async function loadProyecto(slug: string): Promise<ProyectoCompleto | null> {
-  // Load from Supabase only (no mock fallback)
+// React.cache() deduplicates across generateMetadata + SiteLayout within the same request
+const loadProyecto = cache(async (slug: string): Promise<ProyectoCompleto | null> => {
   try {
-    const proyecto = await getProyectoBySlug(slug);
-    return proyecto;
+    return await getProyectoBySlug(slug);
   } catch {
     return null;
   }
-}
+});
 
 export async function generateMetadata({
   params,

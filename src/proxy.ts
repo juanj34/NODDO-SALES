@@ -75,6 +75,20 @@ export async function proxy(request: NextRequest) {
     pathname.startsWith("/admin");
   const isLoginRoute = pathname === "/login";
 
+  // ── Accept-Language auto-detection (first visit only) ──
+  if (!request.cookies.has("noddo-lang") && !isDashboardRoute && !isLoginRoute) {
+    const acceptLang = request.headers.get("accept-language") || "";
+    const first = acceptLang.split(",")[0] || "";
+    const preferredLocale = /^en/i.test(first) ? "en" : "es";
+    const langResponse = NextResponse.next({ request: { headers: request.headers } });
+    langResponse.cookies.set("noddo-lang", preferredLocale, {
+      path: "/",
+      maxAge: 60 * 60 * 24 * 365,
+      sameSite: "lax",
+    });
+    return langResponse;
+  }
+
   if (!isDashboardRoute && !isLoginRoute) {
     // Public routes (marketing, API, sites, etc.) — pass through
     return NextResponse.next();

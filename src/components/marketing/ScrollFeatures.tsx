@@ -1,6 +1,7 @@
 "use client";
 
 import { useRef, useEffect } from "react";
+import { useTranslation } from "@/i18n";
 
 // ── Step data ──────────────────────────────────────────────────────
 interface StepData {
@@ -12,32 +13,6 @@ interface StepData {
   tag: string;
 }
 
-const STEPS: StepData[] = [
-  {
-    num: "01 / 03",
-    label: "Noddo Grid",
-    title: "La fachada\n",
-    titleEm: "habla sola.",
-    body: "El comprador hace clic directamente en el edificio. Ve qué unidad es, qué precio tiene, si está disponible y cómo se ve desde arriba. Sin llamadas, sin esperas.",
-    tag: "Fachada 100% interactiva",
-  },
-  {
-    num: "02 / 03",
-    label: "Disponibilidad",
-    title: "Inventario en\n",
-    titleEm: "tiempo real.",
-    body: "Cada unidad tiene estado propio — disponible, reservada o vendida. Cuando tu equipo cierra una venta, el Grid se actualiza al instante.",
-    tag: "Se actualiza tú mismo",
-  },
-  {
-    num: "03 / 03",
-    label: "Captura de leads",
-    title: "El lead llega\n",
-    titleEm: "cualificado.",
-    body: "Cada lead incluye nombre, correo, WhatsApp, la unidad exacta que exploró y la fuente de tráfico. Tu equipo sabe exactamente a quién llamar y sobre qué.",
-    tag: "Lead con piso y tipología",
-  },
-];
 
 // ── Utilities ──────────────────────────────────────────────────────
 function clamp(v: number, min: number, max: number): number {
@@ -52,6 +27,35 @@ function pad(n: number): string {
 
 // ── Component ──────────────────────────────────────────────────────
 export function ScrollFeatures() {
+  const { t } = useTranslation("marketing");
+
+  const STEPS: StepData[] = [
+    {
+      num: t("scrollFeatures.steps.s0num"),
+      label: t("scrollFeatures.steps.s0label"),
+      title: t("scrollFeatures.steps.s0title"),
+      titleEm: t("scrollFeatures.steps.s0titleEm"),
+      body: t("scrollFeatures.steps.s0body"),
+      tag: t("scrollFeatures.steps.s0tag"),
+    },
+    {
+      num: t("scrollFeatures.steps.s1num"),
+      label: t("scrollFeatures.steps.s1label"),
+      title: t("scrollFeatures.steps.s1title"),
+      titleEm: t("scrollFeatures.steps.s1titleEm"),
+      body: t("scrollFeatures.steps.s1body"),
+      tag: t("scrollFeatures.steps.s1tag"),
+    },
+    {
+      num: t("scrollFeatures.steps.s2num"),
+      label: t("scrollFeatures.steps.s2label"),
+      title: t("scrollFeatures.steps.s2title"),
+      titleEm: t("scrollFeatures.steps.s2titleEm"),
+      body: t("scrollFeatures.steps.s2body"),
+      tag: t("scrollFeatures.steps.s2tag"),
+    },
+  ];
+
   const sectionRef = useRef<HTMLElement>(null);
   const progressFillRef = useRef<HTMLDivElement>(null);
   const scrollbarFillRef = useRef<HTMLDivElement>(null);

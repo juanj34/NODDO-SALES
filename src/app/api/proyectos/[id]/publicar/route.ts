@@ -1,7 +1,7 @@
 import { getAuthContext } from "@/lib/auth-context";
 import { logActivity } from "@/lib/activity-logger";
 import { revalidateProyecto } from "@/lib/supabase/cached-queries";
-import { NextRequest, NextResponse } from "next/server";
+import { after, NextRequest, NextResponse } from "next/server";
 
 export async function POST(
   _request: NextRequest,
@@ -140,12 +140,15 @@ export async function POST(
       await revalidateProyecto(proyecto.subdomain);
     }
 
-    logActivity({
-      userId: auth.user.id, userEmail: auth.user.email!, userRole: auth.role,
-      proyectoId: id, proyectoNombre: proyecto.nombre,
-      actionType: "project.publish", actionCategory: "project",
-      metadata: { version: nextVersion },
-      entityType: "proyecto", entityId: id,
+    // Log after response is sent (non-blocking)
+    after(() => {
+      logActivity({
+        userId: auth.user.id, userEmail: auth.user.email!, userRole: auth.role,
+        proyectoId: id, proyectoNombre: proyecto.nombre,
+        actionType: "project.publish", actionCategory: "project",
+        metadata: { version: nextVersion },
+        entityType: "proyecto", entityId: id,
+      });
     });
 
     const rootDomain = process.env.NEXT_PUBLIC_ROOT_DOMAIN || "noddo.io";

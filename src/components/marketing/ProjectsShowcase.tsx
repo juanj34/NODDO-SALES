@@ -2,6 +2,7 @@
 
 import { useRef, useState } from "react";
 import { motion } from "framer-motion";
+import { useTranslation } from "@/i18n";
 
 interface Project {
   name: string;
@@ -68,6 +69,7 @@ function getCardW() {
 export function ProjectsShowcase() {
   const trackRef = useRef<HTMLDivElement>(null);
   const [idx, setIdx] = useState(0);
+  const { t } = useTranslation("marketing");
 
   const slideTo = (i: number) => {
     const cardW = getCardW();
@@ -90,19 +92,19 @@ export function ProjectsShowcase() {
         style={{ maxWidth: 1320, marginBottom: 60 }}
       >
         <div>
-          <div className="mk-section-label mb-6">Proyectos en vivo</div>
+          <div className="mk-section-label mb-6">{t("projectsShowcase.label")}</div>
           <h2 className="mk-section-heading mb-5">
-            Ya están vendiendo<br />
-            <em>con Noddo.</em>
+            {t("projectsShowcase.headingLine1")}<br />
+            <em>{t("projectsShowcase.headingEmphasis")}</em>
           </h2>
           <p className="text-[13px] leading-[1.7] max-w-[420px]" style={{ color: "rgba(244,240,232,0.55)" }}>
-            Cada uno de estos proyectos tiene su sala de ventas activa con Noddo. El comprador explora, cotiza y se convierte — sin llamada previa.
+            {t("projectsShowcase.description")}
           </p>
         </div>
         <div className="flex gap-3">
           <button
             onClick={() => slideTo(idx - 1)}
-            aria-label="Proyectos anteriores"
+            aria-label={t("projectsShowcase.prevProjects")}
             className="flex items-center justify-center hover:border-[rgba(255,255,255,0.25)] hover:text-[rgba(244,240,232,0.7)]"
             style={{
               width: 44, height: 44,
@@ -118,7 +120,7 @@ export function ProjectsShowcase() {
           </button>
           <button
             onClick={() => slideTo(idx + 1)}
-            aria-label="Siguientes proyectos"
+            aria-label={t("projectsShowcase.nextProjects")}
             className="flex items-center justify-center hover:border-[rgba(255,255,255,0.25)] hover:text-[rgba(244,240,232,0.7)]"
             style={{
               width: 44, height: 44,
@@ -201,9 +203,9 @@ export function ProjectsShowcase() {
                   style={{ gap: "1px", background: "rgba(255,255,255,0.05)" }}
                 >
                   {[
-                    { val: proj.units, label: "Unidades" },
-                    { val: proj.sold, label: "Vendido" },
-                    { val: proj.leads, label: "Leads" },
+                    { val: proj.units, label: t("projectsShowcase.units") },
+                    { val: proj.sold, label: t("projectsShowcase.sold") },
+                    { val: proj.leads, label: t("projectsShowcase.leads") },
                   ].map((s) => (
                     <div key={s.label} style={{ background: "#111", padding: 12 }}>
                       <div className="font-heading text-[18px] font-light" style={{ color: "var(--mk-accent-light)" }}>
@@ -220,7 +222,7 @@ export function ProjectsShowcase() {
                   className="font-ui text-[9px] font-bold tracking-[0.18em] uppercase inline-flex items-center gap-2"
                   style={{ color: "rgba(244,240,232,0.3)", textDecoration: "none", transition: "color 0.2s" }}
                 >
-                  Ver sala de ventas →
+                  {t("projectsShowcase.viewShowroom")}
                 </span>
               </div>
             </div>

@@ -5,6 +5,7 @@ import { useEffect, useRef, useState } from "react";
 import { motion } from "framer-motion";
 import { ArrowRight, TrendingUp } from "lucide-react";
 import { useBooking } from "./BookingProvider";
+import { useTranslation } from "@/i18n";
 
 /* ── stat data ───────────────────────────────────────── */
 
@@ -24,45 +25,6 @@ interface QuoteCell {
 
 type Cell = StatCell | QuoteCell;
 
-const cells: Cell[] = [
-  {
-    kind: "stat",
-    value: 3,
-    suffix: "x",
-    category: "Presentaciones",
-    description:
-      "más rápido presentan los equipos que tienen toda la información del proyecto centralizada en un solo lugar",
-  },
-  {
-    kind: "stat",
-    value: 93,
-    suffix: "%",
-    category: "Engagement",
-    description:
-      "de los compradores potenciales se involucran más cuando pueden explorar un micrositio interactivo vs. recibir un PDF estático",
-  },
-  {
-    kind: "stat",
-    value: 47,
-    suffix: "%",
-    category: "Eficiencia",
-    description:
-      "del tiempo del asesor se invertía en buscar archivos, actualizar disponibilidad y armar presentaciones — no en vender",
-  },
-  {
-    kind: "stat",
-    value: 2.4,
-    suffix: "x",
-    category: "Captura",
-    description:
-      "más oportunidades capturadas cuando el formulario de contacto está integrado en la experiencia y rastrea la fuente",
-  },
-  {
-    kind: "quote",
-    text: "El asesor que no busca archivos vende 3 veces más.",
-    role: "Director Comercial",
-  },
-];
 
 /* ── animated counter ────────────────────────────────── */
 
@@ -152,6 +114,43 @@ const ease = [0.25, 0.46, 0.45, 0.94] as const;
 
 export function SalesImpactSection() {
   const { openBooking } = useBooking();
+  const { t } = useTranslation("marketing");
+
+  const cells: Cell[] = [
+    {
+      kind: "stat",
+      value: 3,
+      suffix: "x",
+      category: t("salesImpact.stats.s0category"),
+      description: t("salesImpact.stats.s0description"),
+    },
+    {
+      kind: "stat",
+      value: 93,
+      suffix: "%",
+      category: t("salesImpact.stats.s1category"),
+      description: t("salesImpact.stats.s1description"),
+    },
+    {
+      kind: "stat",
+      value: 47,
+      suffix: "%",
+      category: t("salesImpact.stats.s2category"),
+      description: t("salesImpact.stats.s2description"),
+    },
+    {
+      kind: "stat",
+      value: 2.4,
+      suffix: "x",
+      category: t("salesImpact.stats.s3category"),
+      description: t("salesImpact.stats.s3description"),
+    },
+    {
+      kind: "quote",
+      text: t("salesImpact.quoteText"),
+      role: t("salesImpact.quoteRole"),
+    },
+  ];
 
   // Extract cells by position
   const featured = cells[0] as StatCell; // 3x — large
@@ -170,9 +169,9 @@ export function SalesImpactSection() {
           viewport={{ once: true, margin: "-80px" }}
           transition={{ duration: 0.7, ease }}
         >
-          <div className="mk-section-label mb-5">El impacto</div>
+          <div className="mk-section-label mb-5">{t("salesImpact.label")}</div>
           <h2 className="mk-section-heading mb-12 lg:mb-16">
-            Los equipos que centralizan, <em>venden más.</em>
+            {t("salesImpact.heading")} <em>{t("salesImpact.headingEmphasis")}</em>
           </h2>
         </motion.div>
 
@@ -488,7 +487,7 @@ export function SalesImpactSection() {
                 className="font-ui text-[10px] tracking-[0.2em] uppercase"
                 style={{ color: "var(--mk-accent)" }}
               >
-                Únete a los equipos que venden más
+                {t("salesImpact.ctaBadge")}
               </span>
             </div>
 
@@ -496,15 +495,14 @@ export function SalesImpactSection() {
               className="font-heading text-[clamp(24px,3.5vw,36px)] font-light leading-[1.2] mb-6"
               style={{ color: "var(--mk-text-primary)" }}
             >
-              Centraliza tu proyecto. <em className="italic" style={{ color: "var(--mk-accent-light)" }}>Vende 3x más.</em>
+              {t("salesImpact.ctaHeading")} <em className="italic" style={{ color: "var(--mk-accent-light)" }}>{t("salesImpact.ctaEmphasis")}</em>
             </h3>
 
             <p
               className="text-[14px] leading-[1.8] mb-8"
               style={{ color: "rgba(244,240,232,0.5)" }}
             >
-              Los mejores equipos comerciales usan NODDO para presentar más rápido,
-              capturar más leads y cerrar más ventas.
+              {t("salesImpact.ctaDescription")}
             </p>
 
             <div className="flex items-center justify-center gap-4">
@@ -523,7 +521,7 @@ export function SalesImpactSection() {
                   className="btn-mk-primary inline-flex items-center gap-2.5 whitespace-nowrap relative z-[1]"
                   style={{ fontSize: 13, padding: "14px 32px" }}
                 >
-                  Ver Cómo Funciona
+                  {t("salesImpact.ctaButton")}
                   <ArrowRight size={15} strokeWidth={2.5} />
                 </button>
               </div>
@@ -560,7 +558,7 @@ export function SalesImpactSection() {
                 ))}
               </div>
               <span style={{ fontSize: 12, color: "rgba(244,240,232,0.4)" }}>
-                <strong style={{ color: "var(--mk-text-primary)", fontWeight: 500 }}>100+</strong> equipos comerciales
+                <strong style={{ color: "var(--mk-text-primary)", fontWeight: 500 }}>100+</strong> {t("salesImpact.ctaTeams")}
               </span>
             </div>
           </div>

@@ -1,6 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
+import { useTranslation } from "@/i18n";
 
 /* ── Large SVG illustrations ── */
 
@@ -391,47 +392,49 @@ function IllustrationLeads() {
   );
 }
 
-const problems = [
-  {
-    num: "01",
-    illustration: <IllustrationBrochure />,
-    title: "Brochures estáticos",
-    body: "Inviertes millones en brochures que terminan en un PDF que nadie abre. Sin interactividad, sin inmersión, sin forma de medir si alguien lo leyó.",
-  },
-  {
-    num: "02",
-    illustration: <IllustrationCGI />,
-    title: "CGI desperdiciado",
-    body: "Renders, recorridos 360°, videos, interiores, amenidades — miles de dólares en producción visual que terminan perdidos en carpetas que nadie ve.",
-  },
-  {
-    num: "03",
-    illustration: <IllustrationFragmented />,
-    title: "Proceso fragmentado",
-    body: "Comprador en oficina, sales rep abre laptop: '¿Esta unidad está disponible? Déjame buscar el Excel...' → 5 minutos buscando → comprador se enfría → momento de venta se pierde. Y el comprador que googlea tu proyecto a las 11pm? Se va a la competencia que tiene microsite 24/7.",
-  },
-  {
-    num: "04",
-    illustration: <IllustrationLeads />,
-    title: "Leads sin trazabilidad",
-    body: "No sabes quién vio tu proyecto, qué unidad le interesó ni de qué campaña llegó. Cada oportunidad que no capturas es una venta que se pierde.",
-  },
-];
-
 const ease = [0.25, 0.46, 0.45, 0.94] as const;
 
 export function ProblemSection() {
+  const { t } = useTranslation("marketing");
+
+  const problems = [
+    {
+      num: "01",
+      illustration: <IllustrationBrochure />,
+      title: t("problem.items.i0title"),
+      body: t("problem.items.i0body"),
+    },
+    {
+      num: "02",
+      illustration: <IllustrationCGI />,
+      title: t("problem.items.i1title"),
+      body: t("problem.items.i1body"),
+    },
+    {
+      num: "03",
+      illustration: <IllustrationFragmented />,
+      title: t("problem.items.i2title"),
+      body: t("problem.items.i2body"),
+    },
+    {
+      num: "04",
+      illustration: <IllustrationLeads />,
+      title: t("problem.items.i3title"),
+      body: t("problem.items.i3body"),
+    },
+  ];
+
   return (
     <section className="relative z-[1] py-28 lg:py-40 px-6 lg:px-20 border-t border-[var(--mk-border-rule)]">
       <div style={{ maxWidth: 1200, margin: "0 auto" }}>
         {/* Header */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-20 mb-16 lg:mb-20">
           <div>
-            <div className="mk-section-label mb-6">El problema</div>
+            <div className="mk-section-label mb-6">{t("problem.label")}</div>
             <h2 className="mk-section-heading">
-              Millones en producción.
+              {t("problem.headingLine1")}
               <br />
-              <em>Cero interactividad.</em>
+              <em>{t("problem.headingEmphasis")}</em>
             </h2>
           </div>
 
@@ -440,10 +443,7 @@ export function ProblemSection() {
               className="text-[15px] leading-[1.9] max-w-[480px]"
               style={{ color: "rgba(244,240,232,0.5)" }}
             >
-              Las constructoras invierten fortunas en renders, videos y brochures
-              para vender sus proyectos. Pero toda esa producción termina
-              fragmentada en PDFs estáticos, carpetas dispersas y procesos
-              manuales que no convierten.
+              {t("problem.description")}
             </p>
           </div>
         </div>

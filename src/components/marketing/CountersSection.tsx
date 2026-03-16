@@ -1,19 +1,13 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { useTranslation } from "@/i18n";
 
 interface CounterData {
   target: number;
   suffix: string;
   label: string;
 }
-
-const counters: CounterData[] = [
-  { target: 2847, suffix: "+", label: "Leads capturados este mes" },
-  { target: 34, suffix: "", label: "Proyectos activos" },
-  { target: 98, suffix: "%", label: "Tasa de conversión lead → cotización" },
-  { target: 1, suffix: " día", label: "Promedio de publicación" },
-];
 
 function AnimatedCounter({ target, suffix, label, delay }: CounterData & { delay: number }) {
   const ref = useRef<HTMLDivElement>(null);
@@ -82,6 +76,15 @@ function AnimatedCounter({ target, suffix, label, delay }: CounterData & { delay
 }
 
 export function CountersSection() {
+  const { t } = useTranslation("marketing");
+
+  const counters: CounterData[] = [
+    { target: 2847, suffix: t("counters.c0suffix"), label: t("counters.c0label") },
+    { target: 34, suffix: t("counters.c1suffix"), label: t("counters.c1label") },
+    { target: 98, suffix: t("counters.c2suffix"), label: t("counters.c2label") },
+    { target: 1, suffix: t("counters.c3suffix"), label: t("counters.c3label") },
+  ];
+
   return (
     <section
       className="relative z-[1] border-t border-[var(--mk-border-rule)]"

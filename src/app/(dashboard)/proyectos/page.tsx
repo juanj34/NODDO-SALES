@@ -12,6 +12,9 @@ import {
   X,
   AlertTriangle,
   Trash2,
+  CheckCircle2,
+  XCircle,
+  Globe,
 } from "lucide-react";
 import { MagneticButton } from "@/components/ui/MagneticButton";
 import { NodDoLogo } from "@/components/ui/NodDoLogo";
@@ -323,84 +326,141 @@ export default function ProyectosPage() {
             exit={{ opacity: 0 }}
             className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4"
             onClick={() => setShowCreate(false)}
+            onKeyDown={(e) => e.key === "Escape" && setShowCreate(false)}
           >
             <motion.form
-              initial={{ scale: 0.95, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0.95, opacity: 0 }}
-              transition={{ type: "spring", damping: 25, stiffness: 300 }}
+              initial={{ scale: 0.96, opacity: 0, y: 12 }}
+              animate={{ scale: 1, opacity: 1, y: 0 }}
+              exit={{ scale: 0.96, opacity: 0, y: 8 }}
+              transition={{ type: "spring", damping: 28, stiffness: 320 }}
               onClick={(e) => e.stopPropagation()}
               onSubmit={handleCreate}
-              className="glass-modal p-8 w-full max-w-md space-y-5"
+              className="glass-modal p-0 w-full max-w-[26rem] overflow-hidden"
             >
-              <div className="flex items-center justify-between mb-1">
-                <h2 className="font-heading text-2xl font-light text-[var(--text-primary)]">
-                  {t("proyectos.newProject")}
-                </h2>
-                <button
-                  type="button"
-                  onClick={() => setShowCreate(false)}
-                  className="text-[var(--text-muted)] hover:text-[var(--text-secondary)] transition-colors p-1 rounded-lg hover:bg-white/5"
-                >
-                  <X size={18} />
-                </button>
-              </div>
-
-              <div>
-                <label className="block font-ui text-[10px] text-[var(--text-secondary)] mb-2 tracking-wider uppercase font-bold">
-                  {t("proyectos.nameLabel")}
-                </label>
-                <input
-                  type="text"
-                  value={nombre}
-                  onChange={(e) => {
-                    setNombre(e.target.value);
-                    setSlug(generateSlug(e.target.value));
-                  }}
-                  required
-                  placeholder="Ciudadela Los Pinos"
-                  className="input-glass w-full"
-                />
-              </div>
-
-              <div>
-                <label className="block font-ui text-[10px] text-[var(--text-secondary)] mb-2 tracking-wider uppercase font-bold">
-                  {t("proyectos.slugLabel")}
-                </label>
-                <input
-                  type="text"
-                  value={slug}
-                  onChange={(e) => setSlug(generateSlug(e.target.value))}
-                  required
-                  placeholder="mi-proyecto"
-                  className="input-glass w-full"
-                />
-                <div className="flex items-center gap-2 mt-2">
-                  <p className="text-xs text-[var(--text-muted)]">
-                    {slug || "tu-proyecto"}.noddo.io
-                  </p>
-                  {slug.length >= 2 && (
-                    checkingSlug ? (
-                      <Loader2 size={12} className="animate-spin text-[var(--text-muted)]" />
-                    ) : slugAvailable === true ? (
-                      <span className="text-[10px] text-emerald-400 font-medium">Disponible</span>
-                    ) : slugAvailable === false ? (
-                      <span className="text-[10px] text-red-400 font-medium">No disponible</span>
-                    ) : null
-                  )}
+              {/* Header */}
+              <div className="relative px-7 pt-7 pb-5">
+                <div className="flex items-start justify-between">
+                  <div className="flex items-center gap-3.5">
+                    <div className="w-10 h-10 rounded-xl bg-[rgba(var(--noddo-primary-rgb),0.1)] border border-[rgba(var(--noddo-primary-rgb),0.15)] flex items-center justify-center shrink-0">
+                      <Plus size={18} className="text-[var(--noddo-primary)]" />
+                    </div>
+                    <div>
+                      <h2 className="font-heading text-xl font-light text-[var(--text-primary)]">
+                        {t("proyectos.newProject")}
+                      </h2>
+                      <p className="font-mono text-[11px] text-[var(--text-muted)] mt-0.5">
+                        Configura nombre y URL
+                      </p>
+                    </div>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setShowCreate(false)}
+                    className="text-[var(--text-muted)] hover:text-[var(--text-secondary)] transition-colors p-1.5 -mr-1.5 -mt-0.5 rounded-lg hover:bg-white/5"
+                  >
+                    <X size={16} />
+                  </button>
                 </div>
               </div>
 
-              <MagneticButton>
+              {/* Divider */}
+              <div className="h-px bg-[var(--border-subtle)]" />
+
+              {/* Fields */}
+              <div className="px-7 py-6 space-y-5">
+                {/* Nombre */}
+                <div>
+                  <label className="block font-ui text-[10px] text-[var(--text-secondary)] mb-2 tracking-wider uppercase font-bold">
+                    {t("proyectos.nameLabel")}
+                  </label>
+                  <input
+                    type="text"
+                    value={nombre}
+                    onChange={(e) => {
+                      setNombre(e.target.value);
+                      setSlug(generateSlug(e.target.value));
+                    }}
+                    required
+                    autoFocus
+                    placeholder="Ciudadela Los Pinos"
+                    className="input-glass w-full"
+                  />
+                </div>
+
+                {/* Slug */}
+                <div>
+                  <label className="block font-ui text-[10px] text-[var(--text-secondary)] mb-2 tracking-wider uppercase font-bold">
+                    {t("proyectos.slugLabel")}
+                  </label>
+                  <input
+                    type="text"
+                    value={slug}
+                    onChange={(e) => setSlug(generateSlug(e.target.value))}
+                    required
+                    placeholder="mi-proyecto"
+                    className="input-glass w-full"
+                  />
+
+                  {/* URL preview bar */}
+                  <div className="mt-2.5 flex items-center gap-2 px-3 py-2 rounded-lg bg-[var(--surface-1)] border border-[var(--border-subtle)]">
+                    <Globe size={12} className="text-[var(--text-muted)] shrink-0" />
+                    <span className="font-mono text-[11px] text-[var(--text-tertiary)] truncate">
+                      <span className="text-[var(--text-secondary)]">{slug || "tu-proyecto"}</span>
+                      .noddo.io
+                    </span>
+
+                    {slug.length >= 2 && (
+                      <span className="ml-auto shrink-0 flex items-center gap-1">
+                        {checkingSlug ? (
+                          <Loader2 size={12} className="animate-spin text-[var(--text-muted)]" />
+                        ) : slugAvailable === true ? (
+                          <motion.span
+                            initial={{ scale: 0.5, opacity: 0 }}
+                            animate={{ scale: 1, opacity: 1 }}
+                            className="flex items-center gap-1"
+                          >
+                            <CheckCircle2 size={12} className="text-emerald-400" />
+                            <span className="text-[10px] text-emerald-400 font-medium font-mono">Disponible</span>
+                          </motion.span>
+                        ) : slugAvailable === false ? (
+                          <motion.span
+                            initial={{ scale: 0.5, opacity: 0 }}
+                            animate={{ scale: 1, opacity: 1 }}
+                            className="flex items-center gap-1"
+                          >
+                            <XCircle size={12} className="text-red-400" />
+                            <span className="text-[10px] text-red-400 font-medium font-mono">No disponible</span>
+                          </motion.span>
+                        ) : null}
+                      </span>
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              {/* Divider */}
+              <div className="h-px bg-[var(--border-subtle)]" />
+
+              {/* Footer */}
+              <div className="px-7 py-5 flex items-center gap-3">
                 <button
-                  type="submit"
-                  disabled={creating || slugAvailable === false || checkingSlug}
-                  className="btn-noddo w-full py-2.5 font-ui text-xs font-bold uppercase tracking-[0.1em] flex items-center justify-center gap-2"
+                  type="button"
+                  onClick={() => setShowCreate(false)}
+                  className="flex-1 py-2.5 font-ui text-xs font-bold uppercase tracking-[0.1em] border border-[var(--border-default)] rounded-[0.75rem] text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:border-[var(--border-strong)] transition-all"
                 >
-                  {creating && <Loader2 size={14} className="animate-spin" />}
-                  {t("proyectos.createProject")}
+                  Cancelar
                 </button>
-              </MagneticButton>
+                <MagneticButton className="flex-1">
+                  <button
+                    type="submit"
+                    disabled={creating || slugAvailable === false || checkingSlug || !slug}
+                    className="btn-noddo w-full py-2.5 font-ui text-xs font-bold uppercase tracking-[0.1em] flex items-center justify-center gap-2"
+                  >
+                    {creating && <Loader2 size={14} className="animate-spin" />}
+                    {t("proyectos.createProject")}
+                  </button>
+                </MagneticButton>
+              </div>
             </motion.form>
           </motion.div>
         )}

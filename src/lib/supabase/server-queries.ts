@@ -12,14 +12,16 @@ import type {
 /**
  * Public Supabase client — no cookies(), safe inside unstable_cache.
  * Uses anon key so RLS still applies.
+ * Hoisted to module level: config is static, avoids recreating per call.
  */
-function createPublicClient() {
-  return createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-    { auth: { autoRefreshToken: false, persistSession: false } }
-  );
-}
+const publicClient = createServerClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+  { auth: { autoRefreshToken: false, persistSession: false } }
+);
+
+/** Only allow valid slug/subdomain characters to prevent PostgREST filter injection */
+const VALID_SLUG_RE = /^[a-z0-9][a-z0-9_-]*$/i;
 
 // Server-side queries using the server client (for API routes + server components)
 
@@ -122,11 +124,11 @@ export async function getProyectoById(
 export async function getProyectoBySlug(
   slugOrSubdomain: string
 ): Promise<ProyectoCompleto | null> {
-  // Use public client (no cookies) — safe inside unstable_cache
-  const supabase = createPublicClient();
+  // Sanitize input: only allow valid slug characters (a-z, 0-9, hyphens, underscores)
+  if (!VALID_SLUG_RE.test(slugOrSubdomain)) return null;
 
   // 1. Find published project by slug OR subdomain
-  const { data: proyecto, error } = await supabase
+  const { data: proyecto, error } = await publicClient
     .from("proyectos")
     .select("id")
     .or(`slug.eq.${slugOrSubdomain},subdomain.eq.${slugOrSubdomain}`)
@@ -137,7 +139,7 @@ export async function getProyectoBySlug(
   if (error || !proyecto) return null;
 
   // 2. Fetch latest published snapshot
-  const { data: version } = await supabase
+  const { data: version } = await publicClient
     .from("proyecto_versiones")
     .select("snapshot")
     .eq("proyecto_id", proyecto.id)

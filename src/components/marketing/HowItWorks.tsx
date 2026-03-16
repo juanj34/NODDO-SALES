@@ -3,6 +3,7 @@
 import { motion } from "framer-motion";
 import { ArrowRight } from "lucide-react";
 import { useBooking } from "./BookingProvider";
+import { useTranslation } from "@/i18n";
 
 /* ── Step 01: Dashboard / Upload panel ── */
 function IllustrationUpload() {
@@ -190,42 +191,43 @@ function IllustrationShare() {
   );
 }
 
-const steps = [
-  {
-    num: "01",
-    illustration: <IllustrationUpload />,
-    title: "Sube tu proyecto",
-    body: "Nombre, ubicación, renders, planos y tipologías. Todo desde un panel simple. Sin código, sin agencia, sin fricción.",
-    tag: "5 minutos",
-  },
-  {
-    num: "02",
-    illustration: <IllustrationGrid />,
-    title: "Configura el Noddo Grid",
-    body: "Asigna cada unidad en la fachada. Define precio, área, estado y tipología. El Grid se actualiza en tiempo real a medida que vendes.",
-    tag: "30 minutos",
-  },
-  {
-    num: "03",
-    illustration: <IllustrationShare />,
-    title: "Comparte el link",
-    body: "Tu sala de ventas queda en [proyecto].noddo.io — lista para campañas, WhatsApp, redes y equipos comerciales. Los leads llegan solos.",
-    tag: "Publicado en 1 día",
-  },
-];
-
 const ease = [0.25, 0.46, 0.45, 0.94] as const;
 
 export function HowItWorks() {
   const { openBooking } = useBooking();
+  const { t } = useTranslation("marketing");
+
+  const steps = [
+    {
+      num: "01",
+      illustration: <IllustrationUpload />,
+      title: t("howItWorks.steps.s0title"),
+      body: t("howItWorks.steps.s0body"),
+      tag: t("howItWorks.steps.s0tag"),
+    },
+    {
+      num: "02",
+      illustration: <IllustrationGrid />,
+      title: t("howItWorks.steps.s1title"),
+      body: t("howItWorks.steps.s1body"),
+      tag: t("howItWorks.steps.s1tag"),
+    },
+    {
+      num: "03",
+      illustration: <IllustrationShare />,
+      title: t("howItWorks.steps.s2title"),
+      body: t("howItWorks.steps.s2body"),
+      tag: t("howItWorks.steps.s2tag"),
+    },
+  ];
 
   return (
     <section className="relative z-[1] py-28 lg:py-40 px-6 lg:px-20 border-t border-[var(--mk-border-rule)]">
       <div style={{ maxWidth: 1200, margin: "0 auto" }}>
-        <div className="mk-section-label mb-6">Cómo funciona</div>
+        <div className="mk-section-label mb-6">{t("howItWorks.label")}</div>
 
         <h2 className="mk-section-heading mb-16">
-          Tres pasos. <em>Un día.</em>
+          {t("howItWorks.heading")} <em>{t("howItWorks.headingEmphasis")}</em>
         </h2>
 
         <div
@@ -292,7 +294,7 @@ export function HowItWorks() {
             className="font-heading text-[24px] font-light leading-[1.4] mb-8"
             style={{ color: "rgba(244,240,232,0.7)" }}
           >
-            ¿Listo para publicar tu proyecto <span style={{ color: "var(--mk-accent-light)", fontStyle: "italic" }}>en 24 horas</span>?
+            {t("howItWorks.ctaQuestion")} <span style={{ color: "var(--mk-accent-light)", fontStyle: "italic" }}>{t("howItWorks.ctaEmphasis")}</span>?
           </p>
 
           <div className="flex items-center justify-center gap-4 mb-6">
@@ -311,7 +313,7 @@ export function HowItWorks() {
                 className="btn-mk-primary inline-flex items-center gap-2.5 whitespace-nowrap relative z-[1]"
                 style={{ fontSize: 13, padding: "14px 32px" }}
               >
-                Agendar Llamada
+                {t("howItWorks.ctaBookCall")}
                 <ArrowRight size={15} strokeWidth={2.5} />
               </button>
             </div>
@@ -320,15 +322,15 @@ export function HowItWorks() {
           <div className="flex items-center justify-center gap-6 text-[12px]" style={{ color: "rgba(244,240,232,0.35)" }}>
             <div className="flex items-center gap-1.5">
               <span style={{ color: "var(--mk-accent)" }}>✓</span>
-              Sin código
+              {t("howItWorks.trustNoCode")}
             </div>
             <div className="flex items-center gap-1.5">
               <span style={{ color: "var(--mk-accent)" }}>✓</span>
-              Sin agencia
+              {t("howItWorks.trustNoAgency")}
             </div>
             <div className="flex items-center gap-1.5">
               <span style={{ color: "var(--mk-accent)" }}>✓</span>
-              Sin esperar
+              {t("howItWorks.trustNoWait")}
             </div>
           </div>
         </motion.div>

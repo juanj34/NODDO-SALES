@@ -4,9 +4,11 @@ import { useEffect, useState } from "react";
 import Image from "next/image";
 import { useBooking } from "./BookingProvider";
 import { Star, Clock, Shield } from "lucide-react";
+import { useTranslation } from "@/i18n";
 
 export function StickyCTA() {
   const { openBooking } = useBooking();
+  const { t } = useTranslation("marketing");
   const [visible, setVisible] = useState(false);
 
   useEffect(() => {
@@ -64,7 +66,7 @@ export function StickyCTA() {
 
           {/* Social proof text */}
           <div style={{ fontSize: 10, color: "rgba(244,240,232,0.5)", letterSpacing: "0.02em" }}>
-            <strong style={{ color: "var(--mk-text-primary)", fontWeight: 500 }}>100+</strong> proyectos en vivo
+            <strong style={{ color: "var(--mk-text-primary)", fontWeight: 500 }}>100+</strong> {t("stickyCta.projectsLive")}
           </div>
         </div>
 
@@ -84,7 +86,7 @@ export function StickyCTA() {
             className="btn-mk-primary flex-shrink-0 relative"
             style={{ fontSize: 10, padding: "11px 22px", whiteSpace: "nowrap", fontWeight: 700, zIndex: 1 }}
           >
-            Agendar Llamada →
+            {t("stickyCta.bookCall")}
           </button>
         </div>
       </div>
@@ -143,7 +145,7 @@ export function StickyCTA() {
               </span>
             </div>
             <div style={{ fontSize: 10, color: "rgba(244,240,232,0.45)", letterSpacing: "0.02em" }}>
-              <strong style={{ color: "var(--mk-text-primary)", fontWeight: 500 }}>100+</strong> desarrolladores
+              <strong style={{ color: "var(--mk-text-primary)", fontWeight: 500 }}>100+</strong> {t("stickyCta.developers")}
               <span style={{
                 marginLeft: 6,
                 padding: "2px 6px",
@@ -154,7 +156,7 @@ export function StickyCTA() {
                 color: "#b8973a",
                 letterSpacing: "0.04em",
               }}>
-                42% conversión
+                {t("stickyCta.conversion")}
               </span>
             </div>
           </div>
@@ -182,7 +184,7 @@ export function StickyCTA() {
               <Clock size={13} stroke="#b8973a" strokeWidth={2} />
             </div>
             <div style={{ fontSize: 11, color: "rgba(244,240,232,0.85)", fontWeight: 500, whiteSpace: "nowrap" }}>
-              Publicado en 24h
+              {t("stickyCta.publishedIn24h")}
             </div>
           </div>
 
@@ -203,7 +205,7 @@ export function StickyCTA() {
               <Shield size={13} stroke="#b8973a" strokeWidth={2} />
             </div>
             <div style={{ fontSize: 11, color: "rgba(244,240,232,0.85)", fontWeight: 500, whiteSpace: "nowrap" }}>
-              Sin compromiso
+              {t("stickyCta.noCommitment")}
             </div>
           </div>
         </div>
@@ -236,7 +238,7 @@ export function StickyCTA() {
               zIndex: 1,
             }}
           >
-            <span className="relative z-10">AGENDAR LLAMADA →</span>
+            <span className="relative z-10">{t("stickyCta.bookCallDesktop")}</span>
 
             {/* Animated shine effect */}
             <div

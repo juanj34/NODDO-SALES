@@ -2,6 +2,7 @@
 
 import { motion } from "framer-motion";
 import { NodDoLogo } from "@/components/ui/NodDoLogo";
+import { useTranslation } from "@/i18n";
 
 /* ── Column header icons ── */
 
@@ -83,25 +84,6 @@ function IconSoftware3D() {
   );
 }
 
-const features = [
-  { label: "Tiempo hasta publicar", brochure: { icon: "~", text: "1–2 semanas" }, noddo: { icon: "✓", text: "1 día" }, agency: { icon: "✗", text: "3–6 meses" } },
-  { label: "Fachada interactiva por unidad", brochure: { icon: "✗", text: "No" }, noddo: { icon: "✓", text: "Noddo Grid" }, agency: { icon: "~", text: "A veces, extra" } },
-  { label: "Inventario en tiempo real", brochure: { icon: "✗", text: "No" }, noddo: { icon: "✓", text: "Siempre al día" }, agency: { icon: "✗", text: "No" } },
-  { label: "Captura de leads + UTM", brochure: { icon: "✗", text: "No" }, noddo: { icon: "✓", text: "Por unidad y fuente" }, agency: { icon: "✗", text: "Requiere extra" } },
-  { label: "Edición sin intermediarios", brochure: { icon: "~", text: "Manual y lento" }, noddo: { icon: "✓", text: "Tú, en tiempo real" }, agency: { icon: "✗", text: "Pagas cada cambio" } },
-  { label: "Multi-proyecto", brochure: { icon: "~", text: "Archivos separados" }, noddo: { icon: "✓", text: "Dashboard unificado" }, agency: { icon: "✗", text: "Contrato por proyecto" } },
-  { label: "Planos, renders y avance de obra", brochure: { icon: "~", text: "Adjuntos estáticos" }, noddo: { icon: "✓", text: "Integrado en la sala" }, agency: { icon: "~", text: "Solo renders" } },
-  { label: "Implementación asistida", brochure: { icon: "✗", text: "Sin soporte" }, noddo: { icon: "✓", text: "Incluida" }, agency: { icon: "~", text: "Project manager" } },
-];
-
-const badges = [
-  { label: "SSL Incluido", gold: true },
-  { label: "Dominio Personalizado", gold: true },
-  { label: "GDPR Ready", gold: false },
-  { label: "99.9% Uptime", gold: false },
-  { label: "Soporte en Español", gold: true },
-  { label: "Implementación incluida", gold: false },
-];
 
 function iconColor(icon: string) {
   if (icon === "✓") return "#2d7a4a";
@@ -112,18 +94,39 @@ function iconColor(icon: string) {
 const ease = [0.25, 0.46, 0.45, 0.94] as const;
 
 export function ComparisonStrip() {
+  const { t } = useTranslation("marketing");
+
+  const features = [
+    { label: t("comparison.features.f0label"), brochure: { icon: "~", text: t("comparison.features.f0brochure") }, noddo: { icon: "✓", text: t("comparison.features.f0noddo") }, agency: { icon: "✗", text: t("comparison.features.f0agency") } },
+    { label: t("comparison.features.f1label"), brochure: { icon: "✗", text: t("comparison.features.f1brochure") }, noddo: { icon: "✓", text: t("comparison.features.f1noddo") }, agency: { icon: "~", text: t("comparison.features.f1agency") } },
+    { label: t("comparison.features.f2label"), brochure: { icon: "✗", text: t("comparison.features.f2brochure") }, noddo: { icon: "✓", text: t("comparison.features.f2noddo") }, agency: { icon: "✗", text: t("comparison.features.f2agency") } },
+    { label: t("comparison.features.f3label"), brochure: { icon: "✗", text: t("comparison.features.f3brochure") }, noddo: { icon: "✓", text: t("comparison.features.f3noddo") }, agency: { icon: "✗", text: t("comparison.features.f3agency") } },
+    { label: t("comparison.features.f4label"), brochure: { icon: "~", text: t("comparison.features.f4brochure") }, noddo: { icon: "✓", text: t("comparison.features.f4noddo") }, agency: { icon: "✗", text: t("comparison.features.f4agency") } },
+    { label: t("comparison.features.f5label"), brochure: { icon: "~", text: t("comparison.features.f5brochure") }, noddo: { icon: "✓", text: t("comparison.features.f5noddo") }, agency: { icon: "✗", text: t("comparison.features.f5agency") } },
+    { label: t("comparison.features.f6label"), brochure: { icon: "~", text: t("comparison.features.f6brochure") }, noddo: { icon: "✓", text: t("comparison.features.f6noddo") }, agency: { icon: "~", text: t("comparison.features.f6agency") } },
+    { label: t("comparison.features.f7label"), brochure: { icon: "✗", text: t("comparison.features.f7brochure") }, noddo: { icon: "✓", text: t("comparison.features.f7noddo") }, agency: { icon: "~", text: t("comparison.features.f7agency") } },
+  ];
+  const badges = [
+    { label: t("comparison.badges.b0"), gold: true },
+    { label: t("comparison.badges.b1"), gold: true },
+    { label: t("comparison.badges.b2"), gold: false },
+    { label: t("comparison.badges.b3"), gold: false },
+    { label: t("comparison.badges.b4"), gold: true },
+    { label: t("comparison.badges.b5"), gold: false },
+  ];
+
   return (
     <section className="relative z-[1] py-28 lg:py-40 px-6 lg:px-20 border-t border-[var(--mk-border-rule)]">
       <div style={{ maxWidth: 1100, margin: "0 auto" }}>
-        <div className="mk-section-label mb-6">La comparación real</div>
+        <div className="mk-section-label mb-6">{t("comparison.label")}</div>
 
         <h2 className="mk-section-heading mb-4">
-          Una herramienta<br />
-          que <em>las reemplaza</em> a todas.
+          {t("comparison.headingLine1")}<br />
+          {t("comparison.headingEmphasis")}{t("comparison.headingEnd")}
         </h2>
 
         <p className="text-[14px] leading-[1.8] max-w-[520px] mb-14" style={{ color: "rgba(244,240,232,0.55)" }}>
-          Tres opciones que los desarrolladores usan para vender. Solo una que las hace innecesarias.
+          {t("comparison.description")}
         </p>
 
         {/* Desktop table */}
@@ -154,10 +157,10 @@ export function ComparisonStrip() {
                 >
                   <div style={{ marginBottom: 10 }}><IconBrochure /></div>
                   <div className="font-ui text-[11px] font-bold tracking-[0.15em] uppercase" style={{ color: "rgba(244,240,232,0.5)", marginBottom: 6 }}>
-                    Brochure PDF
+                    {t("comparison.colBrochure")}
                   </div>
                   <div className="font-heading text-[16px] font-light" style={{ color: "rgba(244,240,232,0.5)" }}>
-                    $0 – $2,000
+                    {t("comparison.colBrochurePrice")}
                   </div>
                 </th>
                 {/* NODDO */}
@@ -184,11 +187,11 @@ export function ComparisonStrip() {
                       whiteSpace: "nowrap",
                     }}
                   >
-                    Recomendado
+                    {t("comparison.recommended")}
                   </div>
                   <div style={{ marginBottom: 10 }}><IconNoddoDashboard /></div>
                   <div className="font-heading text-[16px] font-light" style={{ color: "var(--mk-accent)" }}>
-                    Desde $149 / mes
+                    {t("comparison.colNoddoPrice")}
                   </div>
                 </th>
                 {/* Agencia */}
@@ -203,10 +206,10 @@ export function ComparisonStrip() {
                 >
                   <div style={{ marginBottom: 10 }}><IconSoftware3D /></div>
                   <div className="font-ui text-[11px] font-bold tracking-[0.15em] uppercase" style={{ color: "rgba(244,240,232,0.5)", marginBottom: 6 }}>
-                    Software 3D · Maqueta
+                    {t("comparison.colSoftware")}
                   </div>
                   <div className="font-heading text-[16px] font-light" style={{ color: "rgba(244,240,232,0.5)" }}>
-                    $30k – $80k
+                    {t("comparison.colSoftwarePrice")}
                   </div>
                 </th>
               </tr>
@@ -277,7 +280,7 @@ export function ComparisonStrip() {
               </div>
               <div className="grid grid-cols-3 gap-2 text-[11px]">
                 <div style={{ fontSize: 12, color: "rgba(244,240,232,0.45)" }}>
-                  <div className="font-ui text-[9px] tracking-[0.12em] uppercase mb-1" style={{ color: "rgba(244,240,232,0.3)" }}>Brochure</div>
+                  <div className="font-ui text-[9px] tracking-[0.12em] uppercase mb-1" style={{ color: "rgba(244,240,232,0.3)" }}>{t("comparison.colBrochure")}</div>
                   <span style={{ color: iconColor(f.brochure.icon), marginRight: 3 }}>{f.brochure.icon}</span>
                   {f.brochure.text}
                 </div>
@@ -296,7 +299,7 @@ export function ComparisonStrip() {
                   {f.noddo.text}
                 </div>
                 <div style={{ fontSize: 12, color: "rgba(244,240,232,0.45)" }}>
-                  <div className="font-ui text-[9px] tracking-[0.12em] uppercase mb-1" style={{ color: "rgba(244,240,232,0.3)" }}>Software 3D</div>
+                  <div className="font-ui text-[9px] tracking-[0.12em] uppercase mb-1" style={{ color: "rgba(244,240,232,0.3)" }}>{t("comparison.colSoftwareShort")}</div>
                   <span style={{ color: iconColor(f.agency.icon), marginRight: 3 }}>{f.agency.icon}</span>
                   {f.agency.text}
                 </div>

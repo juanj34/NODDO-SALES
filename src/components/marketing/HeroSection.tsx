@@ -7,42 +7,41 @@ import Link from "next/link";
 import { ArrowRight, Play } from "lucide-react";
 import { IsometricBuilding } from "./illustrations/IsometricBuilding";
 import { useBooking } from "./BookingProvider";
-
-const perspectives = [
-  {
-    id: "compradores",
-    label: "Para compradores",
-    content: (
-      <>
-        El comprador ya no pide información — <em className="italic text-[var(--mk-accent-light)]">la busca</em>.
-        Dale un showroom que responda solo: <strong className="text-[var(--mk-text-primary)] font-normal">inventario
-        en vivo, planos, recorridos 360° y leads cualificados</strong>.
-        En vivo en <strong className="text-[var(--mk-text-primary)] font-normal">24 horas</strong>. Tú lo manejas — sin agencias, sin esperas.
-      </>
-    ),
-  },
-  {
-    id: "comerciales",
-    label: "Para asesores",
-    content: (
-      <>
-        Tu equipo de ventas pierde horas buscando renders y actualizando PDFs — <em className="italic text-[var(--mk-accent-light)]">eso se acaba</em>.
-        Con un showroom digital, presentan con <strong className="text-[var(--mk-text-primary)] font-normal">inventario
-        en vivo, planos interactivos y disponibilidad al instante</strong>.
-        Menos WhatsApps, más cierres. <strong className="text-[var(--mk-text-primary)] font-normal">Todo desde un link.</strong>
-      </>
-    ),
-  },
-];
-
-const stats = [
-  { value: "24h", label: "De renders a showroom" },
-  { value: "Tú actualizas", label: "Sin depender de técnicos" },
-  { value: "$0", label: "Agencias 3D y mantenimiento" },
-];
+import { useTranslation } from "@/i18n";
 
 export function HeroSection() {
   const { openBooking } = useBooking();
+  const { t } = useTranslation("marketing");
+
+  const perspectives = [
+    {
+      id: "compradores",
+      label: t("hero.perspectives.buyers.label"),
+      content: (
+        <>
+          {t("hero.perspectives.buyers.p1")}<em className="italic text-[var(--mk-accent-light)]">{t("hero.perspectives.buyers.p1em")}</em>{t("hero.perspectives.buyers.p1end")}
+          {t("hero.perspectives.buyers.p2")}<strong className="text-[var(--mk-text-primary)] font-normal">{t("hero.perspectives.buyers.p2strong")}</strong>{t("hero.perspectives.buyers.p2end")}
+          {t("hero.perspectives.buyers.p3")}<strong className="text-[var(--mk-text-primary)] font-normal">{t("hero.perspectives.buyers.p3strong")}</strong>{t("hero.perspectives.buyers.p3end")}
+        </>
+      ),
+    },
+    {
+      id: "comerciales",
+      label: t("hero.perspectives.advisors.label"),
+      content: (
+        <>
+          {t("hero.perspectives.advisors.p1")}<em className="italic text-[var(--mk-accent-light)]">{t("hero.perspectives.advisors.p1em")}</em>{t("hero.perspectives.advisors.p1end")}
+          {t("hero.perspectives.advisors.p2")}<strong className="text-[var(--mk-text-primary)] font-normal">{t("hero.perspectives.advisors.p2strong")}</strong>{t("hero.perspectives.advisors.p2end")}
+          {t("hero.perspectives.advisors.p3")}<strong className="text-[var(--mk-text-primary)] font-normal">{t("hero.perspectives.advisors.p3strong")}</strong>{t("hero.perspectives.advisors.p3end")}
+        </>
+      ),
+    },
+  ];
+  const stats = [
+    { value: t("hero.stats.s1value"), label: t("hero.stats.s1label") },
+    { value: t("hero.stats.s2value"), label: t("hero.stats.s2label") },
+    { value: t("hero.stats.s3value"), label: t("hero.stats.s3label") },
+  ];
   const [activeIndex, setActiveIndex] = useState(0);
   const [isPaused, setIsPaused] = useState(false);
 
@@ -77,7 +76,7 @@ export function HeroSection() {
             style={{ background: "var(--mk-accent)" }}
           />
           <span className="font-ui text-[10px] tracking-[0.35em] uppercase text-[var(--mk-accent)]">
-            Showroom digital para constructoras
+            {t("hero.label")}
           </span>
         </motion.div>
 
@@ -88,9 +87,9 @@ export function HeroSection() {
           transition={{ duration: 0.8, delay: 0.4, ease: "easeOut" }}
           className="font-heading text-[clamp(36px,5.5vw,96px)] font-light leading-[1.05] tracking-[-0.02em] text-[var(--mk-text-primary)] mb-8"
         >
-          Tu proyecto merece
+          {t("hero.titleLine1")}
           <br />
-          <em className="italic text-[var(--mk-accent-light)]">más que un brochure.</em>
+          <em className="italic text-[var(--mk-accent-light)]">{t("hero.titleEmphasis")}</em>
         </motion.h1>
 
         {/* Perspective tabs */}
@@ -174,7 +173,7 @@ export function HeroSection() {
                 className="btn-mk-primary inline-flex items-center gap-2.5 whitespace-nowrap relative z-[1]"
                 style={{ fontSize: 13, padding: "14px 32px" }}
               >
-                Agendar Llamada
+                {t("hero.ctaBookCall")}
                 <ArrowRight size={15} strokeWidth={2.5} />
               </button>
             </div>
@@ -187,7 +186,7 @@ export function HeroSection() {
               style={{ fontSize: 13, padding: "14px 28px" }}
             >
               <Play size={13} strokeWidth={2.5} fill="currentColor" />
-              Ver Proyecto en Vivo
+              {t("hero.ctaViewLive")}
             </Link>
           </div>
 
@@ -231,7 +230,7 @@ export function HeroSection() {
                 ))}
               </div>
               <span style={{ fontSize: 13, color: "rgba(244,240,232,0.5)" }}>
-                <strong style={{ color: "var(--mk-text-primary)", fontWeight: 500 }}>100+</strong> desarrolladores
+                <strong style={{ color: "var(--mk-text-primary)", fontWeight: 500 }}>100+</strong> {t("hero.developers")}
               </span>
             </div>
 
@@ -242,15 +241,15 @@ export function HeroSection() {
             <div className="flex items-center gap-4 text-[12px]" style={{ color: "rgba(244,240,232,0.4)" }}>
               <div className="flex items-center gap-1.5">
                 <span style={{ color: "var(--mk-accent)" }}>✓</span>
-                Sin tarjeta
+                {t("hero.trustNoCard")}
               </div>
               <div className="flex items-center gap-1.5">
                 <span style={{ color: "var(--mk-accent)" }}>✓</span>
-                Listo en 24h
+                {t("hero.trustReady24h")}
               </div>
               <div className="flex items-center gap-1.5 hidden sm:flex">
                 <span style={{ color: "var(--mk-accent)" }}>✓</span>
-                Sin compromiso
+                {t("hero.trustNoCommitment")}
               </div>
             </div>
           </div>
@@ -319,7 +318,7 @@ export function HeroSection() {
           className="text-[8px] tracking-[0.3em] uppercase"
           style={{ color: "rgba(244, 240, 232, 0.2)" }}
         >
-          Scroll
+          {t("hero.scroll")}
         </span>
       </motion.div>
 

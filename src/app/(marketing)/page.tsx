@@ -17,9 +17,11 @@ import { ProblemSection } from "@/components/marketing/ProblemSection";
 import { SalesImpactSection } from "@/components/marketing/SalesImpactSection";
 import { StickyCTA } from "@/components/marketing/StickyCTA";
 import { useBooking } from "@/components/marketing/BookingProvider";
+import { useTranslation } from "@/i18n";
 
 export default function MarketingHomePage() {
   const { openBooking } = useBooking();
+  const { t } = useTranslation("marketing");
   return (
     <div className="bg-[var(--mk-bg)] min-h-screen text-[var(--mk-text-secondary)] selection:bg-[rgba(184,151,58,0.30)] selection:text-[var(--mk-text-primary)]" style={{ overflowX: "clip" }}>
       {/* 1. HERO */}
@@ -173,15 +175,15 @@ export default function MarketingHomePage() {
               className="font-ui text-[10px] tracking-[0.18em] uppercase"
               style={{ color: "rgba(244,240,232,0.5)" }}
             >
-              <strong style={{ color: "#4ade80", fontWeight: 600 }}>34</strong> equipos comerciales usando NODDO ahora
+              <strong style={{ color: "#4ade80", fontWeight: 600 }}>34</strong> {t("finalCta.fomoTeams")}
             </span>
           </div>
 
           <h2 className="font-heading text-[clamp(40px,5.5vw,80px)] font-light leading-[1.1] tracking-[-0.02em] mb-6">
-            Tu competencia ya tiene
+            {t("finalCta.headingLine1")}
             <br />
             <em className="italic text-[var(--mk-accent-light)]">
-              su showroom digital.
+              {t("finalCta.headingEmphasis")}
             </em>
           </h2>
 
@@ -189,8 +191,8 @@ export default function MarketingHomePage() {
             className="text-[16px] leading-[1.7] mb-12 max-w-2xl mx-auto"
             style={{ color: "rgba(244, 240, 232, 0.5)" }}
           >
-            Mientras otros asesores buscan archivos, los tuyos podrían estar cerrando ventas.
-            <strong style={{ color: "var(--mk-text-primary)", fontWeight: 400 }}> Únete a los 100+ proyectos que venden más rápido.</strong>
+            {t("finalCta.description")}
+            <strong style={{ color: "var(--mk-text-primary)", fontWeight: 400 }}>{t("finalCta.descriptionBold")}</strong>
           </p>
 
           {/* Primary CTA with extra emphasis */}
@@ -210,7 +212,7 @@ export default function MarketingHomePage() {
                 className="btn-mk-primary inline-flex items-center gap-3 relative z-[1] group"
                 style={{ fontSize: 14, padding: "18px 48px", fontWeight: 700, letterSpacing: "0.04em" }}
               >
-                <span>Agendar Llamada</span>
+                <span>{t("finalCta.bookCall")}</span>
                 <ArrowRight size={16} strokeWidth={2.5} className="group-hover:translate-x-1 transition-transform" />
               </button>
             </div>
@@ -220,15 +222,15 @@ export default function MarketingHomePage() {
           <div className="flex items-center justify-center gap-8 flex-wrap text-[12px]" style={{ color: "rgba(244,240,232,0.4)" }}>
             <div className="flex items-center gap-2">
               <span style={{ fontSize: 18 }}>✓</span>
-              <span>Llamada de <strong style={{ color: "var(--mk-text-primary)", fontWeight: 500 }}>15 minutos</strong></span>
+              <span>{t("finalCta.trustCall")} <strong style={{ color: "var(--mk-text-primary)", fontWeight: 500 }}>{t("finalCta.trustCallBold")}</strong></span>
             </div>
             <div className="flex items-center gap-2">
               <span style={{ fontSize: 18 }}>✓</span>
-              <span>Tu proyecto <strong style={{ color: "var(--mk-text-primary)", fontWeight: 500 }}>configurado en vivo</strong></span>
+              <span>{t("finalCta.trustConfig")} <strong style={{ color: "var(--mk-text-primary)", fontWeight: 500 }}>{t("finalCta.trustConfigBold")}</strong></span>
             </div>
             <div className="flex items-center gap-2">
               <span style={{ fontSize: 18 }}>✓</span>
-              <span><strong style={{ color: "var(--mk-text-primary)", fontWeight: 500 }}>Sin compromiso</strong></span>
+              <span><strong style={{ color: "var(--mk-text-primary)", fontWeight: 500 }}>{t("finalCta.trustNoCommitment")}</strong></span>
             </div>
           </div>
 
@@ -272,10 +274,10 @@ export default function MarketingHomePage() {
             </div>
             <div className="text-left">
               <div style={{ fontSize: 12, color: "var(--mk-text-primary)", fontWeight: 500 }}>
-                100+ desarrolladores inmobiliarios
+                {t("finalCta.socialDevelopers")}
               </div>
               <div style={{ fontSize: 11, color: "rgba(244,240,232,0.4)" }}>
-                Se unieron en los últimos 30 días
+                {t("finalCta.socialJoined")}
               </div>
             </div>
           </div>

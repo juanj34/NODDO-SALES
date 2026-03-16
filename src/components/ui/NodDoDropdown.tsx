@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect, useMemo, useCallback } from "react";
+import { createPortal } from "react-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { ChevronDown, Check } from "lucide-react";
 
@@ -133,6 +134,7 @@ export function NodDoDropdown({
   const [isOpen, setIsOpen] = useState(false);
   const [focusedIndex, setFocusedIndex] = useState(-1);
   const [dropUp, setDropUp] = useState(false);
+  const [panelPos, setPanelPos] = useState<{ top: number; left: number; width: number } | null>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const panelRef = useRef<HTMLDivElement>(null);
   const triggerRef = useRef<HTMLButtonElement>(null);
@@ -169,7 +171,10 @@ export function NodDoDropdown({
   // Close dropdown when clicking outside
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
+      if (
+        dropdownRef.current && !dropdownRef.current.contains(e.target as Node) &&
+        panelRef.current && !panelRef.current.contains(e.target as Node)
+      ) {
         setIsOpen(false);
         setFocusedIndex(-1);
       }
@@ -233,24 +238,109 @@ export function NodDoDropdown({
     }
   }, [focusedIndex, isOpen]);
 
+  // Recompute panel position on scroll/resize while open
+  const updatePosition = useCallback(() => {
+    if (!triggerRef.current) return;
+    const rect = triggerRef.current.getBoundingClientRect();
+    const spaceBelow = window.innerHeight - rect.bottom;
+    const panelMaxH = 252;
+    const shouldDropUp = spaceBelow < panelMaxH && rect.top > panelMaxH;
+    setDropUp(shouldDropUp);
+    setPanelPos({
+      top: shouldDropUp ? rect.top - 6 : rect.bottom + 6,
+      left: rect.left,
+      width: Math.max(rect.width, 160),
+    });
+  }, []);
+
+  useEffect(() => {
+    if (!isOpen) return;
+    updatePosition();
+    // Re-position on scroll (any ancestor) and resize
+    window.addEventListener("scroll", updatePosition, true);
+    window.addEventListener("resize", updatePosition);
+    return () => {
+      window.removeEventListener("scroll", updatePosition, true);
+      window.removeEventListener("resize", updatePosition);
+    };
+  }, [isOpen, updatePosition]);
+
   const handleToggle = () => {
     if (!disabled) {
       const opening = !isOpen;
       setIsOpen(opening);
       if (opening) {
-        // Set focused index to current selection when opening
         const selectedIndex = options.findIndex((opt) => opt.value === value);
         setFocusedIndex(selectedIndex >= 0 ? selectedIndex : -1);
-        // Auto-flip: check if there's enough space below
-        if (triggerRef.current) {
-          const rect = triggerRef.current.getBoundingClientRect();
-          const spaceBelow = window.innerHeight - rect.bottom;
-          const panelMaxH = 252; // 240px max-h + 6px gap + 6px padding
-          setDropUp(spaceBelow < panelMaxH && rect.top > panelMaxH);
-        }
       }
     }
   };
+
+  // Portal-rendered panel
+  const panelContent = isOpen && panelPos && (
+    <motion.div
+      key="noddo-dropdown-portal"
+      ref={panelRef}
+      initial={{ opacity: 0, y: dropUp ? 8 : -8, scale: 0.96 }}
+      animate={{ opacity: 1, y: 0, scale: 1 }}
+      exit={{ opacity: 0, y: dropUp ? 8 : -8, scale: 0.96 }}
+      transition={{ duration: 0.15, ease: "easeOut" }}
+      id="noddo-dropdown-panel"
+      role="listbox"
+      className={`
+        fixed z-[9999] overflow-hidden rounded-[0.75rem]
+        shadow-[0_8px_40px_rgba(0,0,0,0.5)] border
+        ${vStyles.panel}
+      `}
+      style={{
+        top: dropUp ? undefined : panelPos.top,
+        bottom: dropUp ? window.innerHeight - panelPos.top : undefined,
+        left: panelPos.left,
+        width: panelPos.width,
+        minWidth: 160,
+        backdropFilter: "blur(32px)",
+        WebkitBackdropFilter: "blur(32px)",
+        willChange: "transform, opacity",
+      }}
+    >
+      <div className="py-1 max-h-[240px] overflow-y-auto noddo-dropdown-panel">
+        {options.map((option, index) => {
+          const isSelected = option.value === value;
+          const isFocused = index === focusedIndex;
+          const isDisabled = !!option.disabled;
+
+          return (
+            <button
+              key={option.value}
+              type="button"
+              role="option"
+              aria-selected={isSelected}
+              aria-disabled={isDisabled}
+              onClick={() => !isDisabled && handleSelect(option.value)}
+              onMouseEnter={() => setFocusedIndex(index)}
+              className={`
+                w-full flex items-center transition-all font-mono text-left
+                ${szStyles.option}
+                ${isDisabled ? "opacity-40 cursor-not-allowed" : ""}
+                ${isSelected ? vStyles.optionSelected : `${vStyles.optionText} ${!isDisabled ? vStyles.optionHover : ""}`}
+                ${isFocused && !isSelected && !isDisabled ? "bg-[var(--surface-2)]" : ""}
+              `}
+            >
+              {/* Check icon for selected */}
+              <span className="w-3 shrink-0">
+                {isSelected && <Check size={szStyles.check} className="text-[var(--site-primary)]" />}
+              </span>
+
+              {/* Option content */}
+              <span className="flex-1 truncate">
+                {renderOption ? renderOption(option, isSelected) : option.label}
+              </span>
+            </button>
+          );
+        })}
+      </div>
+    </motion.div>
+  );
 
   return (
     <div ref={dropdownRef} className={`relative ${className}`}>
@@ -307,68 +397,13 @@ export function NodDoDropdown({
         <p className="mt-1 text-[10px] text-red-400">{error}</p>
       )}
 
-      {/* Dropdown panel */}
-      <AnimatePresence>
-        {isOpen && (
-          <motion.div
-            ref={panelRef}
-            initial={{ opacity: 0, y: dropUp ? 8 : -8, scale: 0.96 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: dropUp ? 8 : -8, scale: 0.96 }}
-            transition={{ duration: 0.15, ease: "easeOut" }}
-            id="noddo-dropdown-panel"
-            role="listbox"
-            className={`
-              absolute z-50 ${dropUp ? "bottom-[calc(100%+6px)]" : "top-[calc(100%+6px)]"} left-0 w-full min-w-[160px]
-              overflow-hidden rounded-[0.75rem]
-              shadow-[0_8px_40px_rgba(0,0,0,0.5)]
-              ${vStyles.panel}
-            `}
-            style={{
-              backdropFilter: "blur(32px)",
-              WebkitBackdropFilter: "blur(32px)",
-              willChange: "transform, opacity",
-            }}
-          >
-            <div className="py-1 max-h-[240px] overflow-y-auto noddo-dropdown-panel">
-              {options.map((option, index) => {
-                const isSelected = option.value === value;
-                const isFocused = index === focusedIndex;
-                const isDisabled = !!option.disabled;
-
-                return (
-                  <button
-                    key={option.value}
-                    type="button"
-                    role="option"
-                    aria-selected={isSelected}
-                    aria-disabled={isDisabled}
-                    onClick={() => !isDisabled && handleSelect(option.value)}
-                    onMouseEnter={() => setFocusedIndex(index)}
-                    className={`
-                      w-full flex items-center transition-all font-mono text-left
-                      ${szStyles.option}
-                      ${isDisabled ? "opacity-40 cursor-not-allowed" : ""}
-                      ${isSelected ? vStyles.optionSelected : `${vStyles.optionText} ${!isDisabled ? vStyles.optionHover : ""}`}
-                      ${isFocused && !isSelected && !isDisabled ? "bg-[var(--surface-2)]" : ""}
-                    `}
-                  >
-                    {/* Check icon for selected */}
-                    <span className="w-3 shrink-0">
-                      {isSelected && <Check size={szStyles.check} className="text-[var(--site-primary)]" />}
-                    </span>
-
-                    {/* Option content */}
-                    <span className="flex-1 truncate">
-                      {renderOption ? renderOption(option, isSelected) : option.label}
-                    </span>
-                  </button>
-                );
-              })}
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+      {/* Dropdown panel — rendered via portal to avoid overflow clipping */}
+      {typeof document !== "undefined"
+        ? createPortal(
+            <AnimatePresence>{panelContent}</AnimatePresence>,
+            document.body
+          )
+        : <AnimatePresence>{panelContent}</AnimatePresence>}
     </div>
   );
 }

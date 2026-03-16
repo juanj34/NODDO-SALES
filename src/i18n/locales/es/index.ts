@@ -5,6 +5,7 @@ import dashboard from "./dashboard";
 import editor from "./editor";
 import help from "./help";
 import tooltips from "./tooltips";
+import marketing from "./marketing";
 
-const es = { common, nav, site, dashboard, editor, help, tooltips } as const;
+const es = { common, nav, site, dashboard, editor, help, tooltips, marketing } as const;
 export default es;

@@ -6,6 +6,7 @@ import { useBooking } from "./BookingProvider";
 import { useContact } from "./ContactProvider";
 import { trackPricingPlanClicked } from "@/lib/marketing-tracking";
 import { PLAN_VALUES } from "@/lib/ghl-config";
+import { useTranslation } from "@/i18n";
 
 interface Plan {
   name: string;
@@ -20,66 +21,67 @@ interface Plan {
   ctaAction: "booking" | "contact";
 }
 
-const plans: Plan[] = [
-  {
-    name: "Basic",
-    slug: "basic",
-    pricePrefix: "$",
-    price: "79",
-    period: "USD/mes · o $63 con pago anual",
-    features: [
-      { text: "1 proyecto activo", on: true },
-      { text: "Hasta 200 unidades", on: true },
-      { text: "Galería + contacto + disponibilidad", on: true },
-      { text: "10GB almacenamiento", on: true },
-      { text: "Videos inmersivos", on: false },
-      { text: "Mapas interactivos", on: false },
-    ],
-    ctaLabel: "Comenzar gratis",
-    ctaAction: "booking",
-  },
-  {
-    name: "Premium",
-    slug: "premium",
-    pricePrefix: "$",
-    price: "149",
-    period: "USD/mes · o $119 con pago anual",
-    featured: true,
-    badge: "Más popular",
-    features: [
-      { text: "5 proyectos activos", on: true },
-      { text: "Unidades ilimitadas", on: true },
-      { text: "TODO incluido: Videos, Mapas, Tours 360°", on: true },
-      { text: "Analytics avanzado", on: true },
-      { text: "Dominio personalizado", on: true },
-      { text: "50GB por proyecto", on: true },
-    ],
-    ctaLabel: "Comenzar ahora",
-    ctaAction: "booking",
-  },
-  {
-    name: "Enterprise",
-    slug: "enterprise",
-    price: "Desde $499",
-    period: "USD/mes · contrato flexible",
-    features: [
-      { text: "Proyectos ilimitados", on: true },
-      { text: "White-label completo", on: true },
-      { text: "API + Webhooks", on: true },
-      { text: "Importación CSV masiva", on: true },
-      { text: "Soporte 24/7 + SLA", on: true },
-      { text: "500GB total", on: true },
-    ],
-    ctaLabel: "Hablar con ventas",
-    ctaAction: "contact",
-  },
-];
-
 const ease = [0.25, 0.46, 0.45, 0.94] as const;
 
 export function PricingSection() {
   const { openBooking } = useBooking();
   const { openContact } = useContact();
+  const { t } = useTranslation("marketing");
+
+  const plans: Plan[] = [
+    {
+      name: t("pricing.plans.basicName"),
+      slug: "basic",
+      pricePrefix: "$",
+      price: t("pricing.plans.basicPrice"),
+      period: t("pricing.plans.basicPeriod"),
+      features: [
+        { text: t("pricing.plans.basicF0"), on: true },
+        { text: t("pricing.plans.basicF1"), on: true },
+        { text: t("pricing.plans.basicF2"), on: true },
+        { text: t("pricing.plans.basicF3"), on: true },
+        { text: t("pricing.plans.basicF4"), on: false },
+        { text: t("pricing.plans.basicF5"), on: false },
+      ],
+      ctaLabel: t("pricing.plans.basicCta"),
+      ctaAction: "booking",
+    },
+    {
+      name: t("pricing.plans.premiumName"),
+      slug: "premium",
+      pricePrefix: "$",
+      price: t("pricing.plans.premiumPrice"),
+      period: t("pricing.plans.premiumPeriod"),
+      featured: true,
+      badge: t("pricing.plans.premiumBadge"),
+      features: [
+        { text: t("pricing.plans.premiumF0"), on: true },
+        { text: t("pricing.plans.premiumF1"), on: true },
+        { text: t("pricing.plans.premiumF2"), on: true },
+        { text: t("pricing.plans.premiumF3"), on: true },
+        { text: t("pricing.plans.premiumF4"), on: true },
+        { text: t("pricing.plans.premiumF5"), on: true },
+      ],
+      ctaLabel: t("pricing.plans.premiumCta"),
+      ctaAction: "booking",
+    },
+    {
+      name: t("pricing.plans.enterpriseName"),
+      slug: "enterprise",
+      price: t("pricing.plans.enterprisePrice"),
+      period: t("pricing.plans.enterprisePeriod"),
+      features: [
+        { text: t("pricing.plans.enterpriseF0"), on: true },
+        { text: t("pricing.plans.enterpriseF1"), on: true },
+        { text: t("pricing.plans.enterpriseF2"), on: true },
+        { text: t("pricing.plans.enterpriseF3"), on: true },
+        { text: t("pricing.plans.enterpriseF4"), on: true },
+        { text: t("pricing.plans.enterpriseF5"), on: true },
+      ],
+      ctaLabel: t("pricing.plans.enterpriseCta"),
+      ctaAction: "contact",
+    },
+  ];
 
   const handlePlanClick = useCallback(
     (plan: Plan) => {
@@ -102,11 +104,11 @@ export function PricingSection() {
       style={{ padding: "120px 24px" }}
     >
       <div style={{ maxWidth: 1000, margin: "0 auto", position: "relative", zIndex: 1 }}>
-        <div className="mk-section-label mb-6">Planes</div>
+        <div className="mk-section-label mb-6">{t("pricing.label")}</div>
 
         <h2 className="mk-section-heading mb-16">
-          Elige el plan<br />
-          que escala <em>contigo.</em>
+          {t("pricing.heading")}<br />
+          <em>{t("pricing.headingEmphasis")}</em>
         </h2>
 
         <div
@@ -237,7 +239,7 @@ export function PricingSection() {
               className="font-ui text-[10px] tracking-[0.12em] uppercase"
               style={{ color: "var(--mk-accent)" }}
             >
-              Últimas 3 llamadas disponibles esta semana
+              {t("pricing.urgency")}
             </span>
           </div>
 
@@ -245,15 +247,15 @@ export function PricingSection() {
           <div className="flex items-center justify-center gap-6 flex-wrap text-[12px]" style={{ color: "rgba(244,240,232,0.3)" }}>
             <div className="flex items-center gap-1.5">
               <span style={{ color: "var(--mk-accent)" }}>✓</span>
-              Implementación asistida incluida
+              {t("pricing.trustItems.t0")}
             </div>
             <div className="flex items-center gap-1.5">
               <span style={{ color: "var(--mk-accent)" }}>✓</span>
-              Sin compromiso · Cancela cuando quieras
+              {t("pricing.trustItems.t1")}
             </div>
             <div className="flex items-center gap-1.5">
               <span style={{ color: "var(--mk-accent)" }}>✓</span>
-              Soporte 24/7
+              {t("pricing.trustItems.t2")}
             </div>
           </div>
         </div>

@@ -14,4 +14,6 @@ export interface Dictionary {
   dashboard: TranslationNamespace;
   editor: TranslationNamespace;
   help: TranslationNamespace;
+  tooltips: TranslationNamespace;
+  marketing: TranslationNamespace;
 }

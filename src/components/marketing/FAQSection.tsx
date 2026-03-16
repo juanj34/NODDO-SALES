@@ -2,47 +2,31 @@
 
 import { useState } from "react";
 import { motion } from "framer-motion";
-
-const faqs = [
-  {
-    q: "¿Cuánto tiempo toma lanzar mi proyecto?",
-    a: "Entre 1 y 3 días. Si tienes tu contenido listo (renders, planos, textos), puedes publicar en menos de 24 horas. Nuestro equipo te acompaña en el onboarding para acelerar el proceso — muchos clientes lanzan el mismo día.",
-  },
-  {
-    q: "¿Necesito conocimientos técnicos o un equipo IT?",
-    a: "No. Si sabes usar Excel y subir archivos a Drive, puedes usar Noddo. Está diseñado para directores comerciales y gerentes de proyectos, no para desarrolladores. Todo es punto-y-click, sin código.",
-  },
-  {
-    q: "¿Cuánto cuesta? ¿Hay período de prueba?",
-    a: "Los planes van desde $149/mes (1 proyecto) hasta Enterprise personalizado. Ofrecemos garantía de reembolso de 14 días — mejor que un trial porque ya tienes acceso completo. Si no te convence en 2 semanas, devolvemos el 100%.",
-  },
-  {
-    q: "¿Cómo recibo los leads? ¿Se integra con mi CRM?",
-    a: "Los leads llegan a tu dashboard con nombre, email, WhatsApp, unidad de interés y UTM de origen. También recibes notificaciones instantáneas por email. Integración directa con CRM (HubSpot, GoHighLevel, Salesforce) disponible en planes Studio y Enterprise.",
-  },
-  {
-    q: "¿Puedo usar mi propio dominio en vez de .noddo.io?",
-    a: "Sí. Desde el plan Studio puedes mapear tu dominio (ej: ventastorreazul.com). En Enterprise tienes white-label completo — el comprador nunca ve la marca Noddo. La configuración DNS es guiada paso a paso.",
-  },
-  {
-    q: "¿Qué pasa con mis datos si cancelo o cambio de plan?",
-    a: "Tienes acceso hasta el final del período pagado. Después, tu sitio se desactiva pero tus datos (leads, contenido, analytics) se conservan por 30 días. Puedes exportar todo en cualquier momento (JSON, CSV). Si haces downgrade, no pierdes información.",
-  },
-];
+import { useTranslation } from "@/i18n";
 
 const ease = [0.25, 0.46, 0.45, 0.94] as const;
 
 export function FAQSection() {
   const [openIdx, setOpenIdx] = useState<number | null>(null);
+  const { t } = useTranslation("marketing");
+
+  const faqs = [
+    { q: t("faq.items.q0"), a: t("faq.items.a0") },
+    { q: t("faq.items.q1"), a: t("faq.items.a1") },
+    { q: t("faq.items.q2"), a: t("faq.items.a2") },
+    { q: t("faq.items.q3"), a: t("faq.items.a3") },
+    { q: t("faq.items.q4"), a: t("faq.items.a4") },
+    { q: t("faq.items.q5"), a: t("faq.items.a5") },
+  ];
 
   return (
     <section className="relative z-[1] py-28 lg:py-40 px-6 lg:px-20 border-t border-[var(--mk-border-rule)]">
       <div style={{ maxWidth: 800, margin: "0 auto" }}>
-        <div className="mk-section-label mb-6">Preguntas frecuentes</div>
+        <div className="mk-section-label mb-6">{t("faq.label")}</div>
 
         <h2 className="mk-section-heading mb-16">
-          Resolvemos<br />
-          <em>tus dudas.</em>
+          {t("faq.heading")}<br />
+          <em>{t("faq.headingEmphasis")}</em>
         </h2>
 
         <div>

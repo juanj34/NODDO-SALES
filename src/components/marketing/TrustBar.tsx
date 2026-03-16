@@ -2,6 +2,7 @@
 
 import { motion } from "framer-motion";
 import { InfiniteSlider } from "@/components/ui/infinite-slider";
+import { useTranslation } from "@/i18n";
 
 const logos = [
   { name: "Constructora Bolívar", initials: "CB" },
@@ -15,6 +16,7 @@ const logos = [
 const ease = [0.25, 0.46, 0.45, 0.94] as const;
 
 export function TrustBar() {
+  const { t } = useTranslation("marketing");
   return (
     <section className="py-16 lg:py-20 border-t border-[var(--mk-border-rule)] relative z-[1]">
       <div className="max-w-7xl mx-auto px-6 lg:px-20">
@@ -25,7 +27,7 @@ export function TrustBar() {
           transition={{ duration: 0.7, ease }}
           className="text-center text-[10px] tracking-[0.3em] uppercase text-[var(--mk-text-muted)] mb-10"
         >
-          Constructoras que confían en Noddo
+          {t("trustBar.headline")}
         </motion.p>
       </div>
 

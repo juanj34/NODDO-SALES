@@ -2,40 +2,37 @@
 
 import Image from "next/image";
 import { motion } from "framer-motion";
-
-const testimonials = [
-  {
-    quote:
-      "Lanzamos Torre Candelaria en 3 días. Antes con la agencia nos tardamos 5 meses en tener algo parecido — y costó 12 veces más. Los leads que llegan ya saben qué piso y qué tipología quieren.",
-    name: "Jorge Mora",
-    initials: "JM",
-    role: "Director Comercial · Arco Urbano",
-    avatar:
-      "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&h=100&fit=crop&crop=face",
-  },
-  {
-    quote:
-      "Manejamos 4 proyectos simultáneos desde un solo dashboard. Antes necesitaba un equipo de marketing para cada uno. Ahora mi equipo de ventas tiene todo en tiempo real.",
-    name: "Lorena Castaño",
-    initials: "LC",
-    role: "Gerente General · Vértice Grupo",
-    avatar:
-      "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=100&h=100&fit=crop&crop=face",
-  },
-  {
-    quote:
-      "El Noddo Grid fue lo que convenció a nuestra junta. Los compradores pueden hacer clic en el edificio y ver exactamente qué unidades quedan. Eso no lo tiene ningún brochure del mercado.",
-    name: "Ricardo Fuentes",
-    initials: "RF",
-    role: "VP de Proyectos · Cimientos & Co",
-    avatar:
-      "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=100&h=100&fit=crop&crop=face",
-  },
-];
+import { useTranslation } from "@/i18n";
 
 const ease = [0.25, 0.46, 0.45, 0.94] as const;
 
 export function Testimonials() {
+  const { t } = useTranslation("marketing");
+
+  const testimonials = [
+    {
+      quote: t("testimonials.items.t0quote"),
+      name: t("testimonials.items.t0name"),
+      initials: "JM",
+      role: t("testimonials.items.t0role"),
+      avatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&h=100&fit=crop&crop=face",
+    },
+    {
+      quote: t("testimonials.items.t1quote"),
+      name: t("testimonials.items.t1name"),
+      initials: "LC",
+      role: t("testimonials.items.t1role"),
+      avatar: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=100&h=100&fit=crop&crop=face",
+    },
+    {
+      quote: t("testimonials.items.t2quote"),
+      name: t("testimonials.items.t2name"),
+      initials: "RF",
+      role: t("testimonials.items.t2role"),
+      avatar: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=100&h=100&fit=crop&crop=face",
+    },
+  ];
+
   return (
     <section className="py-24 lg:py-32 relative z-[1] border-t border-[var(--mk-border-rule)]">
       <div className="max-w-7xl mx-auto px-6 lg:px-20">
@@ -47,7 +44,7 @@ export function Testimonials() {
           transition={{ duration: 0.7, ease }}
           className="mk-section-label mb-6"
         >
-          Lo que dicen los desarrolladores
+          {t("testimonials.label")}
         </motion.div>
 
         <motion.h2
@@ -57,15 +54,15 @@ export function Testimonials() {
           transition={{ duration: 0.7, delay: 0.1, ease }}
           className="mk-section-heading mb-16"
         >
-          Historias de quienes<br />
-          ya <em>venden diferente.</em>
+          {t("testimonials.headingLine1")}<br />
+          <em>{t("testimonials.headingEmphasis")}</em>
         </motion.h2>
 
         {/* Cards */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-px bg-[rgba(255,255,255,0.04)]">
-          {testimonials.map((t, i) => (
+          {testimonials.map((item, i) => (
             <motion.div
-              key={t.name}
+              key={item.name}
               initial={{ opacity: 0, y: 24 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true, margin: "-60px" }}
@@ -104,7 +101,7 @@ export function Testimonials() {
                 className="text-[14px] leading-[1.9] mb-7 flex-1 italic"
                 style={{ color: "rgba(244, 240, 232, 0.6)" }}
               >
-                {t.quote}
+                {item.quote}
               </p>
 
               {/* Divider */}
@@ -121,8 +118,8 @@ export function Testimonials() {
               <div className="flex items-center gap-3.5">
                 {/* Avatar */}
                 <Image
-                  src={t.avatar}
-                  alt={t.name}
+                  src={item.avatar}
+                  alt={item.name}
                   width={42}
                   height={42}
                   className="flex-shrink-0 rounded-full object-cover"
@@ -134,13 +131,13 @@ export function Testimonials() {
                 />
                 <div>
                   <p className="font-ui text-[12px] font-bold tracking-[0.06em] text-[var(--mk-text-primary)] mb-0.5">
-                    {t.name}
+                    {item.name}
                   </p>
                   <p
                     className="text-[10px] tracking-[0.1em]"
                     style={{ color: "rgba(244, 240, 232, 0.3)" }}
                   >
-                    {t.role}
+                    {item.role}
                   </p>
                 </div>
               </div>
