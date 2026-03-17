@@ -4,7 +4,7 @@ import { useState, useRef, useCallback, useEffect, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   X, Search, Trash2, Unlink, AlertTriangle, XCircle,
-  Copy, Grid3X3, CopyPlus, ArrowUp, ArrowDown, GripVertical, Undo2, Redo2,
+  Copy, Grid3X3, CopyPlus, ArrowUp, ArrowDown, ArrowLeft, ArrowRight, GripVertical, Undo2, Redo2,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { AlignmentToolbar } from "@/components/dashboard/AlignmentToolbar";
@@ -112,17 +112,19 @@ function generateRowRepeat(
   sourceDots: { x: number; y: number }[],
   copies: number,
   spacing: number,
-  direction: "up" | "down"
+  direction: "up" | "down" | "left" | "right"
 ): EmptyDot[] {
   const result: EmptyDot[] = [];
   for (let i = 1; i <= copies; i++) {
-    const yOffset = direction === "up" ? -spacing * i : spacing * i;
+    const isVertical = direction === "up" || direction === "down";
+    const offset = (direction === "up" || direction === "left") ? -spacing * i : spacing * i;
     for (const dot of sourceDots) {
-      const newY = dot.y + yOffset;
-      if (newY < 0 || newY > 100) continue;
+      const newX = isVertical ? dot.x : dot.x + offset;
+      const newY = isVertical ? dot.y + offset : dot.y;
+      if (newX < 0 || newX > 100 || newY < 0 || newY > 100) continue;
       result.push({
         localId: crypto.randomUUID(),
-        x: dot.x,
+        x: Math.round(newX * 100) / 100,
         y: Math.round(newY * 100) / 100,
       });
     }
@@ -178,6 +180,7 @@ export function FacadeHotspotEditor({
   const [menuSearch, setMenuSearch] = useState("");
   const [hoveredId, setHoveredId] = useState<string | null>(null);
   const [confirmClear, setConfirmClear] = useState(false);
+  const [lastAssignedId, setLastAssignedId] = useState<string | null>(null);
   const [imageAspectRatio, setImageAspectRatio] = useState("4/3");
   const [dotsSaveStatus, setDotsSaveStatus] = useState<"idle" | "saving" | "saved">("idle");
   const [isDragging, setIsDragging] = useState(false);
@@ -189,7 +192,12 @@ export function FacadeHotspotEditor({
   const [showRepeatRow, setShowRepeatRow] = useState(false);
   const [repeatCount, setRepeatCount] = useState(fachada.num_pisos ? Math.max(1, fachada.num_pisos - 1) : 10);
   const [repeatSpacing, setRepeatSpacing] = useState(5);
-  const [repeatDirection, setRepeatDirection] = useState<"up" | "down">("up");
+  const [repeatDirection, setRepeatDirection] = useState<"up" | "down" | "left" | "right">("up");
+
+  // Duplicate-follow-mouse state
+  const [duplicateGhosts, setDuplicateGhosts] = useState<{ dots: { x: number; y: number }[]; offset: { dx: number; dy: number } } | null>(null);
+  const duplicateGhostsRef = useRef(duplicateGhosts);
+  duplicateGhostsRef.current = duplicateGhosts;
 
   // Quick Grid state
   const [showQuickGrid, setShowQuickGrid] = useState(false);
@@ -343,9 +351,13 @@ export function FacadeHotspotEditor({
     };
   }, []);
 
-  /* 5. Keyboard shortcuts: Ctrl+Z / Ctrl+Shift+Z */
+  /* 5. Keyboard shortcuts: Ctrl+Z / Ctrl+Shift+Z / Escape */
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape" && duplicateGhostsRef.current) {
+        setDuplicateGhosts(null);
+        return;
+      }
       const tag = (e.target as HTMLElement).tagName;
       if (tag === "INPUT" || tag === "TEXTAREA") return;
       if ((e.ctrlKey || e.metaKey) && e.key === "z" && !e.shiftKey) {
@@ -506,6 +518,28 @@ export function FacadeHotspotEditor({
      Canvas event handlers
      ================================================================ */
   const handleContainerMouseDown = useCallback((e: React.MouseEvent) => {
+    // If in duplicate-ghost mode, place the dots on click
+    if (duplicateGhostsRef.current) {
+      e.stopPropagation();
+      const ghost = duplicateGhostsRef.current;
+      const newDots: EmptyDot[] = ghost.dots.map((dot) => ({
+        localId: crypto.randomUUID(),
+        x: Math.max(0, Math.min(100, Math.round((dot.x + ghost.offset.dx) * 100) / 100)),
+        y: Math.max(0, Math.min(100, Math.round((dot.y + ghost.offset.dy) * 100) / 100)),
+      }));
+      pushUndo();
+      setEmptyDots((prev) => {
+        const next = [...prev, ...newDots];
+        emptyDotsRef.current = next;
+        return next;
+      });
+      const newIds = new Set(newDots.map((d) => d.localId));
+      setSelectedIds(newIds);
+      selectedIdsRef.current = newIds;
+      setDuplicateGhosts(null);
+      return;
+    }
+
     if ((e.target as HTMLElement).closest("[data-hotspot]")) return;
     if ((e.target as HTMLElement).closest("[data-context-menu]")) return;
     if ((e.target as HTMLElement).closest("[data-toolbar]")) return;
@@ -519,9 +553,21 @@ export function FacadeHotspotEditor({
       startClientY: e.clientY,
       pos,
     };
-  }, []);
+  }, [pushUndo]);
 
   const handleContainerMouseMove = useCallback((e: React.MouseEvent) => {
+    // If in duplicate-ghost mode, update offset relative to source centroid
+    if (duplicateGhostsRef.current) {
+      const pos = toPercentRef.current(e.clientX, e.clientY);
+      if (pos) {
+        const ghost = duplicateGhostsRef.current;
+        const cx = ghost.dots.reduce((s, d) => s + d.x, 0) / ghost.dots.length;
+        const cy = ghost.dots.reduce((s, d) => s + d.y, 0) / ghost.dots.length;
+        setDuplicateGhosts((prev) => prev ? { ...prev, offset: { dx: pos.x - cx, dy: pos.y - cy } } : null);
+      }
+      return;
+    }
+
     // Already tracking rect-select
     if (rectSelect) {
       const pos = toPercentRef.current(e.clientX, e.clientY);
@@ -547,6 +593,9 @@ export function FacadeHotspotEditor({
   }, [rectSelect]);
 
   const handleContainerMouseUp = useCallback((e: React.MouseEvent) => {
+    // If in duplicate-ghost mode, mouseDown already handled placement
+    if (duplicateGhostsRef.current) return;
+
     const down = canvasMouseDownRef.current;
     canvasMouseDownRef.current = null;
 
@@ -664,6 +713,10 @@ export function FacadeHotspotEditor({
     const dotId = activeMenuDotId;
     if (!dotId) return;
 
+    // Track last assigned identifier for smart sorting
+    const assignedUnit = unassignedUnits.find((u) => u.id === unitId);
+    if (assignedUnit) setLastAssignedId(assignedUnit.identificador);
+
     const currentEmptyDots = emptyDotsRef.current;
     const dot = currentEmptyDots.find((d) => d.localId === dotId);
     const { fachada: f, onUpdateUnit: update, onRemoveUnit: remove } = propsRef.current;
@@ -754,43 +807,15 @@ export function FacadeHotspotEditor({
 
   const handleBatchDuplicate = useCallback(() => {
     const ids = selectedIdsRef.current;
-    const selectedPositions: { x: number; y: number }[] = [];
+    const sourceDots: { x: number; y: number }[] = [];
     for (const id of ids) {
       const pos = getDotPos(id);
-      if (pos) selectedPositions.push(pos);
+      if (pos) sourceDots.push(pos);
     }
-    let offset = 3;
-    if (selectedPositions.length >= 2) {
-      const ys = selectedPositions.map((p) => p.y).sort((a, b) => a - b);
-      const gaps: number[] = [];
-      for (let i = 1; i < ys.length; i++) {
-        const gap = ys[i] - ys[i - 1];
-        if (gap > 0.5) gaps.push(gap);
-      }
-      if (gaps.length > 0) {
-        offset = gaps.reduce((a, b) => a + b, 0) / gaps.length;
-      }
-    }
-    const newDots: EmptyDot[] = [];
-    for (const id of ids) {
-      const pos = getDotPos(id);
-      if (!pos) continue;
-      newDots.push({
-        localId: crypto.randomUUID(),
-        x: pos.x,
-        y: Math.min(100, pos.y + offset),
-      });
-    }
-    pushUndo();
-    setEmptyDots((prev) => {
-      const next = [...prev, ...newDots];
-      emptyDotsRef.current = next;
-      return next;
-    });
-    const newIds = new Set(newDots.map((d) => d.localId));
-    setSelectedIds(newIds);
-    selectedIdsRef.current = newIds;
-  }, [getDotPos, pushUndo]);
+    if (sourceDots.length === 0) return;
+    // Enter ghost-follow mode: dots follow cursor until click
+    setDuplicateGhosts({ dots: sourceDots, offset: { dx: 0, dy: 0 } });
+  }, [getDotPos]);
 
   const handleApplyRepeatRow = useCallback(() => {
     const ids = selectedIdsRef.current;
@@ -922,19 +947,43 @@ export function FacadeHotspotEditor({
       if (pos) sourceDots.push(pos);
     }
     if (sourceDots.length === 0) return 5;
-    const avgY = sourceDots.reduce((s, d) => s + d.y, 0) / sourceDots.length;
-    const available = repeatDirection === "up" ? avgY : (100 - avgY);
-    return repeatCount > 0 ? Math.round((available / repeatCount) * 10) / 10 : 5;
+    const isVertical = repeatDirection === "up" || repeatDirection === "down";
+    if (isVertical) {
+      const avgY = sourceDots.reduce((s, d) => s + d.y, 0) / sourceDots.length;
+      const available = repeatDirection === "up" ? avgY : (100 - avgY);
+      return repeatCount > 0 ? Math.round((available / repeatCount) * 10) / 10 : 5;
+    } else {
+      const avgX = sourceDots.reduce((s, d) => s + d.x, 0) / sourceDots.length;
+      const available = repeatDirection === "left" ? avgX : (100 - avgX);
+      return repeatCount > 0 ? Math.round((available / repeatCount) * 10) / 10 : 5;
+    }
   }, [selectedIds, repeatCount, repeatDirection, getDotPos, positions, emptyDots]);
 
   const filteredUnassigned = useMemo(() => {
-    if (!menuSearch) return unassignedUnits;
-    const q = menuSearch.toLowerCase();
-    return unassignedUnits.filter((u) =>
-      u.identificador.toLowerCase().includes(q) ||
-      (u.tipologiaNombre?.toLowerCase().includes(q) ?? false)
-    );
-  }, [menuSearch, unassignedUnits]);
+    let list = unassignedUnits;
+    if (menuSearch) {
+      const q = menuSearch.toLowerCase();
+      list = list.filter((u) =>
+        u.identificador.toLowerCase().includes(q) ||
+        (u.tipologiaNombre?.toLowerCase().includes(q) ?? false)
+      );
+    }
+    // Smart sort: units numerically closest to last assigned come first
+    if (lastAssignedId) {
+      const lastNum = parseFloat(lastAssignedId.replace(/[^\d.]/g, ""));
+      if (!isNaN(lastNum)) {
+        list = [...list].sort((a, b) => {
+          const aNum = parseFloat(a.identificador.replace(/[^\d.]/g, ""));
+          const bNum = parseFloat(b.identificador.replace(/[^\d.]/g, ""));
+          const aDist = isNaN(aNum) ? Infinity : Math.abs(aNum - lastNum);
+          const bDist = isNaN(bNum) ? Infinity : Math.abs(bNum - lastNum);
+          if (aDist !== bDist) return aDist - bDist;
+          return (aNum || 0) - (bNum || 0);
+        });
+      }
+    }
+    return list;
+  }, [menuSearch, unassignedUnits, lastAssignedId]);
 
   /* ================================================================
      Render helpers
@@ -994,6 +1043,14 @@ export function FacadeHotspotEditor({
             <span className="text-[10px] text-[var(--text-tertiary)]">{STATUS_LABELS[s]}</span>
           </div>
         ))}
+        <span className="ml-auto w-20 text-right text-[10px]">
+          {dotsSaveStatus === "saving" && (
+            <span className="text-[var(--text-muted)] animate-pulse">Guardando...</span>
+          )}
+          {dotsSaveStatus === "saved" && (
+            <span className="text-green-400">Guardado</span>
+          )}
+        </span>
       </div>
 
       {/* Image canvas */}
@@ -1001,7 +1058,7 @@ export function FacadeHotspotEditor({
         ref={containerRef}
         className={cn(
           "relative w-full max-h-[65vh] select-none",
-          isDragging ? "cursor-grabbing" : "cursor-crosshair"
+          duplicateGhosts ? "cursor-copy" : isDragging ? "cursor-grabbing" : "cursor-crosshair"
         )}
         style={{ aspectRatio: imageAspectRatio }}
         onMouseDown={handleContainerMouseDown}
@@ -1147,12 +1204,6 @@ export function FacadeHotspotEditor({
                     {positions.size + emptyDots.length} punto{positions.size + emptyDots.length !== 1 ? "s" : ""}
                   </span>
                 )}
-                {dotsSaveStatus === "saving" && (
-                  <span className="text-[10px] text-[var(--text-muted)] animate-pulse px-1">Guardando...</span>
-                )}
-                {dotsSaveStatus === "saved" && (
-                  <span className="text-[10px] text-green-400 px-1">Guardado</span>
-                )}
                 {(positions.size > 0 || emptyDots.length > 0) && (
                   <button
                     onClick={() => setConfirmClear(true)}
@@ -1212,6 +1263,31 @@ export function FacadeHotspotEditor({
               }}
             />
           ));
+        })()}
+
+        {/* Duplicate ghost dots (follow cursor) */}
+        {duplicateGhosts && (() => {
+          const bounds = getImageBounds();
+          if (!bounds) return null;
+          const { imgW, imgH, offsetX, offsetY } = bounds;
+          return duplicateGhosts.dots.map((dot, i) => {
+            const gx = dot.x + duplicateGhosts.offset.dx;
+            const gy = dot.y + duplicateGhosts.offset.dy;
+            return (
+              <div
+                key={`dup-ghost-${i}`}
+                className="absolute w-3 h-3 rounded-full pointer-events-none"
+                style={{
+                  left: offsetX + (gx / 100) * imgW,
+                  top: offsetY + (gy / 100) * imgH,
+                  transform: "translate(-50%, -50%)",
+                  backgroundColor: "rgba(56, 189, 248, 0.4)",
+                  border: "2px solid rgba(56, 189, 248, 0.8)",
+                  zIndex: 10,
+                }}
+              />
+            );
+          });
         })()}
 
         {/* Quick Grid bounding box preview */}
@@ -1387,22 +1463,40 @@ export function FacadeHotspotEditor({
               </div>
               <div>
                 <label className="font-ui text-[10px] text-[var(--text-tertiary)] uppercase tracking-wider font-bold mb-1 block">Dirección</label>
-                <div className="flex gap-1">
+                <div className="grid grid-cols-3 gap-0.5 w-fit">
+                  <div />
                   <button onClick={() => setRepeatDirection("up")}
-                    className={cn("flex-1 flex items-center justify-center py-1.5 rounded-lg border text-[11px] transition-all",
+                    className={cn("flex items-center justify-center w-7 h-7 rounded-md border text-[11px] transition-all",
                       repeatDirection === "up"
                         ? "bg-[rgba(var(--site-primary-rgb),0.15)] border-[rgba(var(--site-primary-rgb),0.4)] text-[var(--site-primary)]"
                         : "bg-[var(--surface-3)] border-[var(--border-subtle)] text-[var(--text-secondary)] hover:text-white"
                     )}>
-                    <ArrowUp size={13} />
+                    <ArrowUp size={12} />
+                  </button>
+                  <div />
+                  <button onClick={() => setRepeatDirection("left")}
+                    className={cn("flex items-center justify-center w-7 h-7 rounded-md border text-[11px] transition-all",
+                      repeatDirection === "left"
+                        ? "bg-[rgba(var(--site-primary-rgb),0.15)] border-[rgba(var(--site-primary-rgb),0.4)] text-[var(--site-primary)]"
+                        : "bg-[var(--surface-3)] border-[var(--border-subtle)] text-[var(--text-secondary)] hover:text-white"
+                    )}>
+                    <ArrowLeft size={12} />
                   </button>
                   <button onClick={() => setRepeatDirection("down")}
-                    className={cn("flex-1 flex items-center justify-center py-1.5 rounded-lg border text-[11px] transition-all",
+                    className={cn("flex items-center justify-center w-7 h-7 rounded-md border text-[11px] transition-all",
                       repeatDirection === "down"
                         ? "bg-[rgba(var(--site-primary-rgb),0.15)] border-[rgba(var(--site-primary-rgb),0.4)] text-[var(--site-primary)]"
                         : "bg-[var(--surface-3)] border-[var(--border-subtle)] text-[var(--text-secondary)] hover:text-white"
                     )}>
-                    <ArrowDown size={13} />
+                    <ArrowDown size={12} />
+                  </button>
+                  <button onClick={() => setRepeatDirection("right")}
+                    className={cn("flex items-center justify-center w-7 h-7 rounded-md border text-[11px] transition-all",
+                      repeatDirection === "right"
+                        ? "bg-[rgba(var(--site-primary-rgb),0.15)] border-[rgba(var(--site-primary-rgb),0.4)] text-[var(--site-primary)]"
+                        : "bg-[var(--surface-3)] border-[var(--border-subtle)] text-[var(--text-secondary)] hover:text-white"
+                    )}>
+                    <ArrowRight size={12} />
                   </button>
                 </div>
               </div>
@@ -1565,6 +1659,13 @@ function AllDots({
             onMouseLeave={() => onHover(null)}
             onContextMenu={(e) => { e.preventDefault(); onContextMenu(id, false); }}
           >
+            {/* Always-visible identifier label */}
+            <div
+              className="absolute left-full top-1/2 -translate-y-1/2 ml-1 px-1 py-0.5 bg-black/75 rounded pointer-events-none whitespace-nowrap"
+              style={{ zIndex: 25 }}
+            >
+              <span className="text-[9px] font-mono font-bold text-white leading-none">{unit.identificador}</span>
+            </div>
             {(isHovered || isSelected) && !isMenuOpen && (
               <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-2 py-1 bg-black/90 text-white text-[10px] rounded-md whitespace-nowrap pointer-events-none z-30">
                 <span className="font-medium">{unit.identificador}</span>

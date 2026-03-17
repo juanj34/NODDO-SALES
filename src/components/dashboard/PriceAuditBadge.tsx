@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Clock, TrendingUp, TrendingDown, X, History } from "lucide-react";
+import { TrendingUp, TrendingDown, X, History } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { formatDistanceToNow } from "date-fns";
 import { es } from "date-fns/locale";
@@ -76,11 +76,10 @@ export function PriceAuditBadge({
       <button
         type="button"
         onClick={() => setIsOpen(true)}
-        className="inline-flex items-center gap-2 px-3 py-2 rounded-lg bg-[rgba(var(--site-primary-rgb),0.1)] border border-[rgba(var(--site-primary-rgb),0.3)] hover:border-[var(--site-primary)] hover:bg-[rgba(var(--site-primary-rgb),0.15)] transition-all text-[var(--site-primary)] text-xs font-medium group"
+        className="inline-flex items-center gap-1.5 px-2.5 py-1.5 shrink-0 rounded-lg bg-[rgba(var(--site-primary-rgb),0.08)] border border-[rgba(var(--site-primary-rgb),0.2)] hover:border-[var(--site-primary)] hover:bg-[rgba(var(--site-primary-rgb),0.12)] transition-all text-[var(--site-primary)] group"
       >
-        <History size={14} className="group-hover:rotate-12 transition-transform" />
-        <span>Última actualización: {timeAgo}</span>
-        <Clock size={12} className="opacity-60" />
+        <History size={12} className="group-hover:rotate-12 transition-transform shrink-0" />
+        <span className="text-[10px] font-mono whitespace-nowrap">{timeAgo}</span>
       </button>
 
       {/* Full-screen Modal */}

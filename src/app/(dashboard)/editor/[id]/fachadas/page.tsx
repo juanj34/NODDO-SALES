@@ -317,7 +317,11 @@ export default function NoddoGridPage() {
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(payload),
         });
-        if (!res.ok) toast.error("Error al guardar posición");
+        if (!res.ok) {
+          const err = await res.json().catch(() => null);
+          console.error("Error al guardar posición:", { status: res.status, unitId, payload, error: err });
+          toast.error(err?.error || "Error al guardar posición");
+        }
         await refresh();
       } catch {
         toast.error("Error de conexión");

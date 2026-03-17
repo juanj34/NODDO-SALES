@@ -941,7 +941,7 @@ export default function TipologiasPage() {
                     animate={{ opacity: 1, x: 0 }}
                     exit={{ opacity: 0, x: -6 }}
                     transition={{ duration: 0.15 }}
-                    className={activeTab === "hotspots" ? "h-full" : "space-y-5"}
+                    className={activeTab === "hotspots" ? "h-full" : "space-y-4"}
                   >
                     {/* ── TAB: General ── */}
                     {activeTab === "general" && (
@@ -1050,8 +1050,8 @@ export default function TipologiasPage() {
                           <Label>Precio</Label>
                           {project?.precio_source === "tipologia" ? (
                             <>
-                              <div className="max-w-xs space-y-2">
-                                <div className="flex items-center gap-3 p-3 bg-[var(--surface-1)] rounded-xl border border-[rgba(var(--site-primary-rgb),0.15)] transition-all">
+                              <div className="flex items-center gap-3">
+                                <div className="flex items-center gap-3 p-3 bg-[var(--surface-1)] rounded-xl border border-[rgba(var(--site-primary-rgb),0.15)] transition-all flex-1 min-w-0">
                                   <div className="w-9 h-9 rounded-lg bg-[rgba(var(--site-primary-rgb),0.12)] flex items-center justify-center shrink-0">
                                     <DollarSign size={iconSize.md} className="text-[var(--site-primary)]" />
                                   </div>
@@ -1087,7 +1087,7 @@ export default function TipologiasPage() {
                             </>
                           ) : (
                             <>
-                              <div className="max-w-xs">
+                              <div className="max-w-md">
                                 <div className="flex items-center gap-3 p-3 bg-[var(--surface-1)] rounded-xl border border-[rgba(var(--site-primary-rgb),0.15)] transition-all">
                                   <div className="w-9 h-9 rounded-lg bg-[rgba(var(--site-primary-rgb),0.12)] flex items-center justify-center shrink-0">
                                     <DollarSign size={iconSize.md} className="text-[var(--site-primary)]" />
@@ -1146,8 +1146,7 @@ export default function TipologiasPage() {
                           />
                         </div>
 
-                        {/* ── Especificaciones (ahora parte de General) ── */}
-                        {/* ── Áreas ── */}
+                        {/* ── Especificaciones (Áreas + Espacios unified) ── */}
                         <div>
                           <Label variant="section">{t("tipologias.specsAreas")}</Label>
                           <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
@@ -1190,7 +1189,6 @@ export default function TipologiasPage() {
                                 </div>
                               </div>
                             )}
-                            {/* ALWAYS show area_construida for tipologías (house specs) */}
                             <div className="flex items-center gap-3 p-3 bg-[var(--surface-1)] rounded-xl border border-[var(--border-subtle)] hover:border-[var(--border-default)] transition-all">
                               <div className="w-9 h-9 rounded-lg bg-[var(--surface-2)] flex items-center justify-center shrink-0">
                                 <Ruler size={iconSize.md} className="text-[var(--text-tertiary)]" />
@@ -1201,7 +1199,6 @@ export default function TipologiasPage() {
                               </div>
                               {form.area_construida && <span className="text-[11px] font-mono text-[var(--text-muted)] shrink-0">m²</span>}
                             </div>
-                            {/* ALWAYS show area_privada for tipologías (house specs) */}
                             <div className="flex items-center gap-3 p-3 bg-[var(--surface-1)] rounded-xl border border-[var(--border-subtle)] hover:border-[var(--border-default)] transition-all">
                               <div className="w-9 h-9 rounded-lg bg-[var(--surface-2)] flex items-center justify-center shrink-0">
                                 <Home size={iconSize.md} className="text-[var(--text-tertiary)]" />
@@ -1230,65 +1227,42 @@ export default function TipologiasPage() {
                         {/* ── Espacios ── */}
                         <div>
                           <Label variant="section">{t("tipologias.specsSpaces")}</Label>
-                          <div className="flex items-center gap-4 flex-wrap">
-                            {/* Habitaciones */}
-                            <div className="flex flex-col items-center gap-1">
-                              <div className="flex items-center gap-2 px-3 py-2 bg-[var(--surface-1)] rounded-lg border border-[var(--border-subtle)] hover:border-[var(--border-default)] transition-all">
+                          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                            <div className="flex items-center gap-3 p-3 bg-[var(--surface-1)] rounded-xl border border-[var(--border-subtle)] hover:border-[var(--border-default)] transition-all">
+                              <div className="w-9 h-9 rounded-lg bg-[var(--surface-2)] flex items-center justify-center shrink-0">
                                 <BedDouble size={iconSize.md} className="text-[var(--text-tertiary)]" />
-                                <input
-                                  type="number"
-                                  value={form.habitaciones}
-                                  onChange={(e) => updateForm("habitaciones", e.target.value)}
-                                  placeholder="0"
-                                  className="w-12 bg-transparent text-sm font-mono text-white placeholder:text-[var(--text-muted)] text-center focus:outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
-                                />
                               </div>
-                              <Label variant="card" className="mb-0">{t("tipologias.bedrooms")}</Label>
+                              <div className="flex-1 min-w-0">
+                                <Label variant="card">{t("tipologias.bedrooms")}</Label>
+                                <input type="number" value={form.habitaciones} onChange={(e) => updateForm("habitaciones", e.target.value)} placeholder="0" className="w-full bg-transparent text-sm font-mono text-white placeholder:text-[var(--text-muted)] focus:outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none" />
+                              </div>
                             </div>
-
-                            {/* Baños */}
-                            <div className="flex flex-col items-center gap-1">
-                              <div className="flex items-center gap-2 px-3 py-2 bg-[var(--surface-1)] rounded-lg border border-[var(--border-subtle)] hover:border-[var(--border-default)] transition-all">
+                            <div className="flex items-center gap-3 p-3 bg-[var(--surface-1)] rounded-xl border border-[var(--border-subtle)] hover:border-[var(--border-default)] transition-all">
+                              <div className="w-9 h-9 rounded-lg bg-[var(--surface-2)] flex items-center justify-center shrink-0">
                                 <Bath size={iconSize.md} className="text-[var(--text-tertiary)]" />
-                                <input
-                                  type="number"
-                                  value={form.banos}
-                                  onChange={(e) => updateForm("banos", e.target.value)}
-                                  placeholder="0"
-                                  className="w-12 bg-transparent text-sm font-mono text-white placeholder:text-[var(--text-muted)] text-center focus:outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
-                                />
                               </div>
-                              <Label variant="card" className="mb-0">{t("tipologias.bathrooms")}</Label>
+                              <div className="flex-1 min-w-0">
+                                <Label variant="card">{t("tipologias.bathrooms")}</Label>
+                                <input type="number" value={form.banos} onChange={(e) => updateForm("banos", e.target.value)} placeholder="0" className="w-full bg-transparent text-sm font-mono text-white placeholder:text-[var(--text-muted)] focus:outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none" />
+                              </div>
                             </div>
-
-                            {/* Parqueaderos */}
-                            <div className="flex flex-col items-center gap-1">
-                              <div className="flex items-center gap-2 px-3 py-2 bg-[var(--surface-1)] rounded-lg border border-[var(--border-subtle)] hover:border-[var(--border-default)] transition-all">
+                            <div className="flex items-center gap-3 p-3 bg-[var(--surface-1)] rounded-xl border border-[var(--border-subtle)] hover:border-[var(--border-default)] transition-all">
+                              <div className="w-9 h-9 rounded-lg bg-[var(--surface-2)] flex items-center justify-center shrink-0">
                                 <Car size={iconSize.md} className="text-[var(--text-tertiary)]" />
-                                <input
-                                  type="number"
-                                  value={form.parqueaderos}
-                                  onChange={(e) => updateForm("parqueaderos", e.target.value)}
-                                  placeholder="0"
-                                  className="w-12 bg-transparent text-sm font-mono text-white placeholder:text-[var(--text-muted)] text-center focus:outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
-                                />
                               </div>
-                              <Label variant="card" className="mb-0">{t("tipologias.parking")}</Label>
+                              <div className="flex-1 min-w-0">
+                                <Label variant="card">{t("tipologias.parking")}</Label>
+                                <input type="number" value={form.parqueaderos} onChange={(e) => updateForm("parqueaderos", e.target.value)} placeholder="0" className="w-full bg-transparent text-sm font-mono text-white placeholder:text-[var(--text-muted)] focus:outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none" />
+                              </div>
                             </div>
-
-                            {/* Depósitos */}
-                            <div className="flex flex-col items-center gap-1">
-                              <div className="flex items-center gap-2 px-3 py-2 bg-[var(--surface-1)] rounded-lg border border-[var(--border-subtle)] hover:border-[var(--border-default)] transition-all">
+                            <div className="flex items-center gap-3 p-3 bg-[var(--surface-1)] rounded-xl border border-[var(--border-subtle)] hover:border-[var(--border-default)] transition-all">
+                              <div className="w-9 h-9 rounded-lg bg-[var(--surface-2)] flex items-center justify-center shrink-0">
                                 <Archive size={iconSize.md} className="text-[var(--text-tertiary)]" />
-                                <input
-                                  type="number"
-                                  value={form.depositos}
-                                  onChange={(e) => updateForm("depositos", e.target.value)}
-                                  placeholder="0"
-                                  className="w-12 bg-transparent text-sm font-mono text-white placeholder:text-[var(--text-muted)] text-center focus:outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
-                                />
                               </div>
-                              <Label variant="card" className="mb-0">Depósitos</Label>
+                              <div className="flex-1 min-w-0">
+                                <Label variant="card">Depósitos</Label>
+                                <input type="number" value={form.depositos} onChange={(e) => updateForm("depositos", e.target.value)} placeholder="0" className="w-full bg-transparent text-sm font-mono text-white placeholder:text-[var(--text-muted)] focus:outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none" />
+                              </div>
                             </div>
                           </div>
                         </div>
