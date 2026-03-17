@@ -31,6 +31,8 @@ import {
   Music,
   Upload,
   Loader2,
+  Sun,
+  Moon,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useTranslation } from "@/i18n";
@@ -60,6 +62,7 @@ export default function EditorGeneralPage() {
   const [colorPrimario, setColorPrimario] = useState("#b8973a");
   const [colorSecundario, setColorSecundario] = useState("#ffffff");
   const [colorFondo, setColorFondo] = useState("#0a0a0a");
+  const [temaModo, setTemaModo] = useState<"oscuro" | "claro">("oscuro");
   const [disclaimer, setDisclaimer] = useState("");
   const [politicaPrivacidadUrl, setPoliticaPrivacidadUrl] = useState("");
   const [renderPrincipalUrl, setRenderPrincipalUrl] = useState("");
@@ -74,6 +77,7 @@ export default function EditorGeneralPage() {
   const audioInputRef = useRef<HTMLInputElement>(null);
   const [validationError, setValidationError] = useState<string | null>(null);
   const [idioma, setIdioma] = useState<"es" | "en">("es");
+  const [logoHeight, setLogoHeight] = useState(96);
 
   // Only populate state from project data ONCE on initial mount.
   // Re-running on every React Query cache update would overwrite unsaved local edits.
@@ -87,10 +91,12 @@ export default function EditorGeneralPage() {
     setColorPrimario(project.color_primario || "#b8973a");
     setColorSecundario(project.color_secundario || "#ffffff");
     setColorFondo(project.color_fondo || "#0a0a0a");
+    setTemaModo((project.tema_modo as "oscuro" | "claro") || "oscuro");
     setDisclaimer(project.disclaimer || "");
     setPoliticaPrivacidadUrl(project.politica_privacidad_url || "");
     setRenderPrincipalUrl(project.render_principal_url || "");
     setLogoUrl(project.logo_url || "");
+    setLogoHeight(project.logo_height ?? 96);
     setConstructoraLogoUrl(project.constructora_logo_url || "");
     setConstructoraWebsite(project.constructora_website || "");
     setHeroVideoUrl(project.hero_video_url || "");
@@ -111,11 +117,13 @@ export default function EditorGeneralPage() {
       color_primario: colorPrimario,
       color_secundario: colorSecundario,
       color_fondo: colorFondo,
+      tema_modo: temaModo,
       disclaimer,
       politica_privacidad_url: politicaPrivacidadUrl || null,
       render_principal_url: renderPrincipalUrl || null,
       hero_video_url: heroVideoUrl || null,
       logo_url: logoUrl || null,
+      logo_height: logoHeight,
       constructora_logo_url: constructoraLogoUrl || null,
       constructora_website: constructoraWebsite || null,
       favicon_url: faviconUrl || null,
@@ -322,6 +330,33 @@ export default function EditorGeneralPage() {
                     <div>
                       <label className={labelClass}>{t("general.landing.logo")}</label>
                       <FileUploader currentUrl={logoUrl || null} onUpload={(url) => { setLogoUrl(url); scheduleAutoSave(); }} folder={`proyectos/${projectId}`} label={t("general.landing.uploadLogo")} aspect="logo" />
+
+                      {/* Logo Size Control */}
+                      {logoUrl && (
+                        <div className="mt-4 space-y-2">
+                          <label className={labelClass + " flex items-center justify-between"}>
+                            <span>Tamaño del logo</span>
+                            <span className="text-[var(--text-tertiary)] font-mono text-xs">{logoHeight}px</span>
+                          </label>
+                          <input
+                            type="range"
+                            min={40}
+                            max={240}
+                            value={logoHeight}
+                            onChange={(e) => { setLogoHeight(Number(e.target.value)); scheduleAutoSave(); }}
+                            className="w-full h-1.5 bg-[var(--surface-3)] rounded-lg appearance-none cursor-pointer accent-[var(--site-primary)] hover:accent-[#d4b05a] transition-colors"
+                            style={{
+                              background: `linear-gradient(to right, var(--site-primary) 0%, var(--site-primary) ${((logoHeight - 40) / (240 - 40)) * 100}%, var(--surface-3) ${((logoHeight - 40) / (240 - 40)) * 100}%, var(--surface-3) 100%)`
+                            }}
+                          />
+                          <div className="flex justify-between text-[9px] text-[var(--text-muted)] font-mono">
+                            <span>40px</span>
+                            <span>96px (defecto)</span>
+                            <span>240px</span>
+                          </div>
+                        </div>
+                      )}
+
                       <p className={fieldHint}>{t("general.landing.logoHint")}</p>
                     </div>
 
@@ -465,6 +500,49 @@ export default function EditorGeneralPage() {
               <p className={sectionDescription}>
                 {t("general.design.description")}
               </p>
+
+              {/* Theme mode toggle */}
+              <div className="mb-6">
+                <label className={labelClass}>Modo del tema</label>
+                <div className="flex gap-2 mt-1.5">
+                  {([
+                    { value: "oscuro" as const, label: "Oscuro", Icon: Moon, bg: "#141414", text: "#f4f0e8" },
+                    { value: "claro" as const, label: "Claro", Icon: Sun, bg: "#faf9f7", text: "#141412" },
+                  ]).map((opt) => (
+                    <button
+                      key={opt.value}
+                      type="button"
+                      onClick={() => {
+                        setTemaModo(opt.value);
+                        if (opt.value === "claro" && colorFondo === "#0a0a0a") {
+                          setColorFondo("#faf9f7");
+                        } else if (opt.value === "oscuro" && colorFondo === "#faf9f7") {
+                          setColorFondo("#0a0a0a");
+                        }
+                        scheduleAutoSave();
+                      }}
+                      className={`flex items-center gap-2.5 px-4 py-3 rounded-xl border transition-all cursor-pointer ${
+                        temaModo === opt.value
+                          ? "border-[var(--site-primary)] bg-[rgba(var(--noddo-primary-rgb),0.08)]"
+                          : "border-[var(--border-default)] hover:border-[var(--border-strong)] bg-transparent"
+                      }`}
+                    >
+                      <div
+                        className="w-8 h-8 rounded-lg flex items-center justify-center shrink-0"
+                        style={{ backgroundColor: opt.bg, color: opt.text, border: "1px solid rgba(128,128,128,0.2)" }}
+                      >
+                        <opt.Icon size={16} />
+                      </div>
+                      <span className={`font-ui text-xs uppercase tracking-wider font-semibold ${
+                        temaModo === opt.value ? "text-[var(--text-primary)]" : "text-[var(--text-tertiary)]"
+                      }`}>
+                        {opt.label}
+                      </span>
+                    </button>
+                  ))}
+                </div>
+                <p className={fieldHint}>Define si el micrositio usa fondo oscuro o claro. Esto ajusta textos, bordes y efectos de vidrio automáticamente.</p>
+              </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
                 {[

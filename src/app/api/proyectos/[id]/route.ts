@@ -6,8 +6,8 @@ import { NextRequest, NextResponse } from "next/server";
 
 const PROYECTO_FIELDS = [
   "nombre", "slug", "descripcion", "estado", "disclaimer", "politica_privacidad_url",
-  "logo_url", "constructora_nombre", "constructora_logo_url", "constructora_website",
-  "color_primario", "color_secundario", "color_fondo", "whatsapp_numero",
+  "logo_url", "logo_height", "constructora_nombre", "constructora_logo_url", "constructora_website",
+  "color_primario", "color_secundario", "color_fondo", "tema_modo", "whatsapp_numero",
   "ubicacion_direccion", "ubicacion_lat", "ubicacion_lng", "tour_360_url",
   "brochure_url", "render_principal_url", "favicon_url", "og_image_url",
   "hero_video_url", "fachada_url", "mapa_ubicacion_url", "subdomain",
@@ -23,6 +23,8 @@ const PROYECTO_FIELDS = [
   "precio_source",
   "inventory_columns",
   "inventory_columns_by_type",
+  "inventory_columns_microsite",
+  "inventory_columns_microsite_by_type",
 ];
 
 export async function GET(
@@ -177,9 +179,12 @@ export async function PUT(
       entityType: "proyecto", entityId: id,
     });
 
-    // Revalidate cached project data
+    // Revalidate cached project data for both slug and subdomain
     const { revalidateProyecto } = await import("@/lib/supabase/cached-queries");
     await revalidateProyecto(data.slug);
+    if (data.subdomain && data.subdomain !== data.slug) {
+      await revalidateProyecto(data.subdomain);
+    }
 
     return NextResponse.json(data);
   } catch (err) {

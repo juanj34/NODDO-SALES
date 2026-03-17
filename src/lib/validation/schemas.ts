@@ -37,6 +37,13 @@ export const proyectoGeneralSchema = z.object({
     )
     .nullish()
     .or(z.literal("")),
+
+  logo_height: z
+    .number()
+    .int("El tamaño del logo debe ser un número entero")
+    .min(40, "El tamaño mínimo del logo es 40px")
+    .max(240, "El tamaño máximo del logo es 240px")
+    .nullish(),
 });
 
 export const proyectoUbicacionSchema = z.object({

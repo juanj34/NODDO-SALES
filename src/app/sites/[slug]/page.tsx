@@ -57,6 +57,9 @@ export default function SiteLanding() {
   const hasImage = !!proyecto.render_principal_url;
   const hasBothLogos = !!proyecto.logo_url && !!proyecto.constructora_logo_url;
 
+  // Logo size: use project setting or fallback to default (96px)
+  const logoHeight = proyecto.logo_height ?? 96;
+
   // Mouse Parallax Effect
   const mouseX = useMotionValue(0);
   const mouseY = useMotionValue(0);
@@ -103,7 +106,8 @@ export default function SiteLanding() {
 
         {/* Dark overlay for text readability — lightens during exit to reveal more image */}
         <motion.div
-          className="absolute inset-0 bg-gradient-to-t from-black via-black/60 to-black/30"
+          className="absolute inset-0"
+          style={{ background: "linear-gradient(to top, rgba(var(--overlay-rgb), 0.8), rgba(var(--overlay-rgb), 0.6), rgba(var(--overlay-rgb), 0.3))" }}
           animate={isExiting ? { opacity: 0.4 } : { opacity: 1 }}
           transition={{ duration: 0.8, ease: "easeOut" }}
         />
@@ -125,7 +129,7 @@ export default function SiteLanding() {
                 alt={proyecto.constructora_nombre || "Constructora"}
                 width={120}
                 height={32}
-                className="h-8 w-auto object-contain opacity-60 hover:opacity-90 transition-opacity"
+                className="h-7 sm:h-8 w-auto max-w-[140px] object-contain opacity-60 hover:opacity-90 transition-opacity"
               />
             </a>
           ) : (
@@ -134,21 +138,21 @@ export default function SiteLanding() {
               alt={proyecto.constructora_nombre || "Constructora"}
               width={120}
               height={32}
-              className="h-8 w-auto object-contain opacity-60"
+              className="h-7 sm:h-8 w-auto max-w-[140px] object-contain opacity-60"
             />
           )}
 
           {/* Vertical divider + NODDO lockup */}
           {!proyecto.hide_noddo_badge && (
             <>
-              <div className="w-px h-8 bg-white/15" />
+              <div className="w-px h-8 bg-[var(--border-strong)]" />
               <a
                 href="https://noddo.io"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="flex flex-col items-center gap-1 no-underline opacity-50 hover:opacity-80 transition-opacity"
               >
-                <span className="text-[7px] tracking-[0.2em] uppercase font-medium text-white/60">
+                <span className="text-[7px] tracking-[0.2em] uppercase font-medium text-[var(--text-secondary)]">
                   powered by
                 </span>
                 <NodDoLogo width={80} colorNod="#fff" colorDo="#b8983c" />
@@ -185,13 +189,14 @@ export default function SiteLanding() {
               <Image
                 src={proyecto.logo_url}
                 alt={proyecto.nombre}
-                width={hasBothLogos ? 400 : 200}
-                height={hasBothLogos ? 208 : 96}
-                className={`w-auto object-contain drop-shadow-2xl ${hasBothLogos ? "h-28 sm:h-40 lg:h-52" : "h-24"}`}
+                width={hasBothLogos ? logoHeight * 3.33 : 200}
+                height={hasBothLogos ? logoHeight : 96}
+                className="w-auto object-contain drop-shadow-2xl"
+                style={{ height: hasBothLogos ? `${logoHeight}px` : '96px', maxHeight: `${logoHeight}px` }}
               />
             ) : (
               <div className="w-24 h-24 rounded-2xl glass flex items-center justify-center shadow-2xl shadow-[var(--site-primary)]/10">
-                <span className="font-site-heading text-4xl text-white">
+                <span className="font-site-heading text-4xl text-[var(--text-primary)]">
                   {proyecto.nombre.charAt(0)}
                 </span>
               </div>
@@ -212,7 +217,7 @@ export default function SiteLanding() {
                       alt={proyecto.constructora_nombre || "Constructora"}
                       width={120}
                       height={32}
-                      className="h-8 w-auto object-contain opacity-80 hover:opacity-100 transition-opacity"
+                      className="h-7 sm:h-8 w-auto max-w-[140px] object-contain opacity-80 hover:opacity-100 transition-opacity"
                     />
                   </a>
                 ) : (
@@ -221,7 +226,7 @@ export default function SiteLanding() {
                     alt={proyecto.constructora_nombre || "Constructora"}
                     width={120}
                     height={32}
-                    className="h-8 w-auto object-contain opacity-80"
+                    className="h-7 sm:h-8 w-auto max-w-[140px] object-contain opacity-80"
                   />
                 )
               )}
@@ -245,7 +250,7 @@ export default function SiteLanding() {
           {!hasBothLogos && (
             <motion.h1
               variants={fadeUpBlur}
-              className="font-site-heading text-3xl sm:text-5xl lg:text-8xl font-light tracking-[0.15em] text-white mb-6 leading-tight"
+              className="font-site-heading text-3xl sm:text-5xl lg:text-8xl font-light tracking-[0.15em] text-[var(--text-primary)] mb-6 leading-tight"
               style={{ textShadow: "0 10px 40px rgba(0,0,0,0.8)" }}
             >
               {proyecto.nombre.toUpperCase()}
@@ -256,7 +261,7 @@ export default function SiteLanding() {
           {proyecto.descripcion && (
             <motion.p
               variants={fadeUpBlur}
-              className="text-white/60 text-base lg:text-lg font-light max-w-lg mb-12 leading-relaxed"
+              className="text-[var(--text-secondary)] text-base lg:text-lg font-light max-w-lg mb-12 leading-relaxed"
             >
               {proyecto.descripcion}
             </motion.p>
@@ -268,7 +273,7 @@ export default function SiteLanding() {
               onClick={handleEnter}
               className="btn-warm group relative overflow-hidden inline-flex items-center gap-3 px-6 py-3 sm:px-10 sm:py-4 text-sm tracking-[0.3em] uppercase cursor-pointer"
             >
-              <div className="absolute inset-0 bg-white/20 -translate-x-full group-hover:animate-[shimmer_1.5s_infinite]" />
+              <div className="absolute inset-0 bg-[var(--glass-bg-hover)] -translate-x-full group-hover:animate-[shimmer_1.5s_infinite]" />
               <span className="relative z-10">{t("landing.enterExperience")}</span>
               <ArrowRight
                 size={16}
@@ -287,7 +292,7 @@ export default function SiteLanding() {
           transition={isExiting ? { duration: 0.4 } : { duration: 1, delay: 2 }}
           className="absolute bottom-2 sm:bottom-4 left-0 right-0 z-30 px-4 sm:px-8 text-center"
         >
-          <p className="text-[10px] text-white/25 max-w-2xl mx-auto leading-relaxed">
+          <p className="text-[10px] text-[var(--text-muted)] max-w-2xl mx-auto leading-relaxed">
             {proyecto.disclaimer}
           </p>
         </motion.div>
@@ -313,7 +318,8 @@ export default function SiteLanding() {
 
       {/* Atmospheric overlays */}
       <motion.div
-        className="absolute bottom-0 left-0 right-0 h-40 bg-gradient-to-t from-black via-black/50 to-transparent z-10 pointer-events-none"
+        className="absolute bottom-0 left-0 right-0 h-40 z-10 pointer-events-none"
+        style={{ background: "linear-gradient(to top, rgba(var(--overlay-rgb), 0.8), rgba(var(--overlay-rgb), 0.5), transparent)" }}
         animate={isExiting ? { opacity: 0 } : { opacity: 1 }}
         transition={{ duration: 0.4 }}
       />

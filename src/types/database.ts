@@ -1252,6 +1252,9 @@ export type Database = {
           idioma: string | null
           inventory_columns: Json | null
           inventory_columns_by_type: Json | null
+          inventory_columns_microsite: Json | null
+          inventory_columns_microsite_by_type: Json | null
+          logo_height: number | null
           logo_url: string | null
           mapa_ubicacion_url: string | null
           moderated_at: string | null
@@ -1312,6 +1315,9 @@ export type Database = {
           idioma?: string | null
           inventory_columns?: Json | null
           inventory_columns_by_type?: Json | null
+          inventory_columns_microsite?: Json | null
+          inventory_columns_microsite_by_type?: Json | null
+          logo_height?: number | null
           logo_url?: string | null
           mapa_ubicacion_url?: string | null
           moderated_at?: string | null
@@ -1372,6 +1378,9 @@ export type Database = {
           idioma?: string | null
           inventory_columns?: Json | null
           inventory_columns_by_type?: Json | null
+          inventory_columns_microsite?: Json | null
+          inventory_columns_microsite_by_type?: Json | null
+          logo_height?: number | null
           logo_url?: string | null
           mapa_ubicacion_url?: string | null
           moderated_at?: string | null
@@ -2278,6 +2287,9 @@ export type Database = {
           idioma: string | null
           inventory_columns: Json | null
           inventory_columns_by_type: Json | null
+          inventory_columns_microsite: Json | null
+          inventory_columns_microsite_by_type: Json | null
+          logo_height: number | null
           logo_url: string | null
           mapa_ubicacion_url: string | null
           moderated_at: string | null
