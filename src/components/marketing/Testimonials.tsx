@@ -34,8 +34,8 @@ export function Testimonials() {
   ];
 
   return (
-    <section className="py-24 lg:py-32 relative z-[1] border-t border-[var(--mk-border-rule)]">
-      <div className="max-w-7xl mx-auto px-6 lg:px-20">
+    <section className="py-16 sm:py-24 lg:py-32 relative z-[1] border-t border-[var(--mk-border-rule)]">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-20">
         {/* Section label */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -67,14 +67,14 @@ export function Testimonials() {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true, margin: "-60px" }}
               transition={{ duration: 0.6, delay: i * 0.12, ease }}
-              className="bg-[var(--mk-bg)] p-8 lg:p-10 flex flex-col relative"
+              className="bg-[var(--mk-bg)] p-6 sm:p-8 lg:p-10 flex flex-col relative"
             >
               {/* Stars */}
               <div
                 className="absolute"
                 style={{
-                  top: 36,
-                  right: 36,
+                  top: 24,
+                  right: 24,
                   color: "var(--mk-accent)",
                   fontSize: 10,
                   letterSpacing: 2,
@@ -85,9 +85,8 @@ export function Testimonials() {
 
               {/* Quote mark */}
               <span
-                className="font-heading block mb-4"
+                className="font-heading block mb-4 text-[56px] sm:text-[80px]"
                 style={{
-                  fontSize: 80,
                   fontWeight: 300,
                   lineHeight: 0.6,
                   color: "rgba(184,151,58,0.15)",

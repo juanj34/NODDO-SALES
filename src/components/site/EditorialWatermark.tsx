@@ -33,7 +33,7 @@ export function EditorialWatermark({ basePath }: { basePath: string }) {
 
     return (
         <div className="fixed inset-0 pointer-events-none z-0 overflow-hidden flex items-center justify-center opacity-[0.02] mix-blend-overlay select-none">
-            <motion.div style={{ y }} className="whitespace-nowrap font-site-heading tracking-widest text-[20vw] text-white">
+            <motion.div style={{ y }} className="whitespace-nowrap font-site-heading tracking-widest text-[20vw] text-[var(--text-primary)]">
                 {watermarkText}
             </motion.div>
         </div>

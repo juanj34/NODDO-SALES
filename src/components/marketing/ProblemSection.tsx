@@ -461,7 +461,7 @@ export function ProblemSection() {
   ];
 
   return (
-    <section className="relative z-[1] py-28 lg:py-40 px-6 lg:px-20 border-t border-[var(--mk-border-rule)]">
+    <section className="relative z-[1] py-16 sm:py-24 lg:py-40 px-4 sm:px-6 lg:px-20 border-t border-[var(--mk-border-rule)]">
       <div style={{ maxWidth: 1200, margin: "0 auto" }}>
         {/* Header */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-20 mb-16 lg:mb-20">
@@ -496,14 +496,13 @@ export function ProblemSection() {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true, margin: "-60px" }}
               transition={{ duration: 0.6, delay: i * 0.12, ease }}
-              className="relative z-[1] group"
-              style={{ padding: "48px 40px", background: "var(--mk-bg)" }}
+              className="relative z-[1] group p-6 sm:p-8 md:p-10"
+              style={{ background: "var(--mk-bg)" }}
             >
               {/* Number watermark */}
               <div
-                className="font-heading leading-none absolute top-10 left-10"
+                className="font-heading leading-none absolute top-6 left-6 sm:top-10 sm:left-10 text-[48px] sm:text-[64px]"
                 style={{
-                  fontSize: 64,
                   fontWeight: 300,
                   color: "rgba(244,240,232,0.04)",
                   letterSpacing: "-0.03em",
@@ -513,7 +512,7 @@ export function ProblemSection() {
               </div>
 
               {/* Large illustration */}
-              <div className="mb-6" style={{ minHeight: 120 }}>
+              <div className="mb-4 sm:mb-6 flex justify-center" style={{ minHeight: 100 }}>
                 {problem.illustration}
               </div>
 

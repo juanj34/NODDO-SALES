@@ -83,15 +83,17 @@ interface UnitFormData {
 // Constants
 // ---------------------------------------------------------------------------
 
-const ESTADOS: { value: EstadoUnidad; label: string }[] = [
-  { value: "disponible", label: "Disponible" },
-  { value: "separado", label: "Separado" },
-  { value: "reservada", label: "Reservada" },
-  { value: "vendida", label: "Vendida" },
+const ESTADOS: { value: EstadoUnidad; label: string; dot: string }[] = [
+  { value: "disponible", label: "Disponible", dot: "bg-green-500" },
+  { value: "proximamente", label: "Próximamente", dot: "bg-blue-500" },
+  { value: "separado", label: "Separado", dot: "bg-yellow-500" },
+  { value: "reservada", label: "Reservada", dot: "bg-orange-500" },
+  { value: "vendida", label: "Vendida", dot: "bg-red-500" },
 ];
 
 const ESTADO_COLORS: Record<EstadoUnidad, string> = {
   disponible: "bg-green-500/20 text-green-400 border-green-500/30",
+  proximamente: "bg-blue-500/20 text-blue-400 border-blue-500/30",
   separado: "bg-yellow-500/20 text-yellow-400 border-yellow-500/30",
   reservada: "bg-orange-500/20 text-orange-400 border-orange-500/30",
   vendida: "bg-red-500/20 text-red-400 border-red-500/30",
@@ -139,6 +141,7 @@ function EstadoBadge({ estado }: { estado: EstadoUnidad }) {
 
 const ESTADO_DOT_BG: Record<EstadoUnidad, string> = {
   disponible: "bg-green-500",
+  proximamente: "bg-blue-500",
   separado: "bg-yellow-500",
   reservada: "bg-orange-500",
   vendida: "bg-red-500",
@@ -164,6 +167,7 @@ function MobileUnitCard({
   const tipo = tipologias.find((t) => t.id === unit.tipologia_id);
   const displayPrice = isTipologiaPricing ? (tipo?.precio_desde ?? null) : unit.precio;
   const displayArea = getPrimaryArea(unit, columns);
+  const showPrice = unit.estado === "vendida";
   return (
     <div className="p-3.5 bg-[var(--surface-2)] border border-[var(--border-subtle)] rounded-xl space-y-2.5">
       {/* Row 1: ID + current badge */}
@@ -178,8 +182,8 @@ function MobileUnitCard({
         {displayArea != null && <span>· {displayArea} m²</span>}
         {unit.habitaciones != null && <span>· {unit.habitaciones} hab</span>}
       </div>
-      {/* Row 3: Price */}
-      {displayPrice != null && (
+      {/* Row 3: Price (only for sold units) */}
+      {showPrice && displayPrice != null && (
         <p className="text-xs text-[var(--text-secondary)] font-medium">
           {displayPrice ? formatCurrency(displayPrice, "COP", { compact: true }) : "-"}
         </p>
@@ -850,6 +854,7 @@ function PriceAdjustModal({
 
   const ESTADO_FILTER_OPTIONS: { value: EstadoUnidad; label: string; dot: string }[] = [
     { value: "disponible", label: "Disponible", dot: "bg-green-500" },
+    { value: "proximamente", label: "Próximamente", dot: "bg-blue-500" },
     { value: "separado", label: "Separado", dot: "bg-yellow-500" },
     { value: "reservada", label: "Reservada", dot: "bg-orange-500" },
   ];
@@ -1340,32 +1345,50 @@ function AIChatModal({
 function ColumnsConfigModal({
   tipoProyecto,
   currentConfig,
+  currentConfigMicrosite,
   onSave,
   onClose,
 }: {
   tipoProyecto: "apartamentos" | "casas" | "hibrido" | "lotes";
   currentConfig: InventoryColumnConfig | null;
-  onSave: (config: InventoryColumnConfig | null) => void;
+  currentConfigMicrosite: InventoryColumnConfig | null;
+  onSave: (config: InventoryColumnConfig | null, configMicrosite: InventoryColumnConfig | null) => void;
   onClose: () => void;
 }) {
   const { t } = useTranslation("editor");
+  const [activeTab, setActiveTab] = useState<"editor" | "microsite">("editor");
+
   const [localConfig, setLocalConfig] = useState<InventoryColumnConfig>(
     () => getInventoryColumns(tipoProyecto, currentConfig)
   );
+  const [localConfigMicrosite, setLocalConfigMicrosite] = useState<InventoryColumnConfig>(
+    () => getInventoryColumns(tipoProyecto, currentConfigMicrosite)
+  );
+
   const isCustom = currentConfig !== null;
+  const isCustomMicrosite = currentConfigMicrosite !== null;
 
   const handleToggle = (key: keyof InventoryColumnConfig) => {
-    setLocalConfig((prev) => ({ ...prev, [key]: !prev[key] }));
+    if (activeTab === "editor") {
+      setLocalConfig((prev) => ({ ...prev, [key]: !prev[key] }));
+    } else {
+      setLocalConfigMicrosite((prev) => ({ ...prev, [key]: !prev[key] }));
+    }
   };
 
   const handleReset = () => {
-    setLocalConfig(getDefaultColumns(tipoProyecto));
-    onSave(null);
+    if (activeTab === "editor") {
+      setLocalConfig(getDefaultColumns(tipoProyecto));
+      onSave(null, localConfigMicrosite);
+    } else {
+      setLocalConfigMicrosite(getDefaultColumns(tipoProyecto));
+      onSave(localConfig, null);
+    }
     onClose();
   };
 
   const handleApply = () => {
-    onSave(localConfig);
+    onSave(localConfig, localConfigMicrosite);
     onClose();
   };
 
@@ -1400,11 +1423,36 @@ function ColumnsConfigModal({
           </button>
         </div>
 
+        {/* Tab Selector */}
+        <div className="flex items-center gap-1 mx-6 mt-4 p-1 bg-[var(--surface-3)] rounded-lg">
+          {([
+            { id: "editor" as const, label: t("config.columns.tabs.editor") },
+            { id: "microsite" as const, label: t("config.columns.tabs.microsite") },
+          ]).map((tab) => {
+            const isActive = activeTab === tab.id;
+            return (
+              <button
+                key={tab.id}
+                type="button"
+                onClick={() => setActiveTab(tab.id)}
+                className={cn(
+                  "flex-1 px-3 py-1.5 rounded-md transition-all font-ui text-[10px] font-bold uppercase tracking-[0.08em]",
+                  isActive
+                    ? "bg-[var(--site-primary)] text-[var(--surface-0)] shadow-sm"
+                    : "text-[var(--text-tertiary)] hover:text-[var(--text-primary)]"
+                )}
+              >
+                {tab.label}
+              </button>
+            );
+          })}
+        </div>
+
         {/* Body */}
         <div className="p-6">
           <div className="grid grid-cols-2 gap-2">
             {INVENTORY_COLUMN_KEYS.map(({ key, labelKey }) => {
-              const isOn = localConfig[key];
+              const isOn = activeTab === "editor" ? localConfig[key] : localConfigMicrosite[key];
               return (
                 <button
                   key={key}
@@ -1440,7 +1488,7 @@ function ColumnsConfigModal({
 
         {/* Footer */}
         <div className="flex items-center justify-between p-6 border-t border-[var(--border-subtle)]">
-          {isCustom ? (
+          {(activeTab === "editor" ? isCustom : isCustomMicrosite) ? (
             <button
               type="button"
               onClick={handleReset}
@@ -1502,6 +1550,8 @@ export default function InventarioPage() {
   const [showToolsMenu, setShowToolsMenu] = useState(false);
   const [showColumnsModal, setShowColumnsModal] = useState(false);
   const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null);
+  const [bulkDeleteConfirm, setBulkDeleteConfirm] = useState(false);
+  const [bulkDeleting, setBulkDeleting] = useState(false);
   const [vendidaWarning, setVendidaWarning] = useState<{ callback: () => void } | null>(null);
 
   // --- Bulk tipología/fachada ---
@@ -1779,6 +1829,27 @@ export default function InventarioPage() {
     [refresh, toast]
   );
 
+  const handleBulkDelete = useCallback(async () => {
+    if (selectedIds.size === 0) return;
+    setBulkDeleting(true);
+    try {
+      const res = await fetch("/api/unidades/bulk", {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ ids: Array.from(selectedIds), proyecto_id: projectId }),
+      });
+      if (!res.ok) throw new Error("Error deleting units");
+      setBulkDeleteConfirm(false);
+      setSelectedIds(new Set());
+      await refresh();
+      toast.success(`${selectedIds.size} unidad${selectedIds.size !== 1 ? "es" : ""} eliminada${selectedIds.size !== 1 ? "s" : ""}`);
+    } catch {
+      toast.error("Error al eliminar unidades");
+    } finally {
+      setBulkDeleting(false);
+    }
+  }, [selectedIds, projectId, refresh, toast]);
+
   // Check if units have complementos assigned (for warning dialog)
   const parqMode = project.parqueaderos_mode as ComplementoMode;
   const depoMode = project.depositos_mode as ComplementoMode;
@@ -2007,12 +2078,15 @@ export default function InventarioPage() {
   }, [refresh]);
 
   // Save inventory column config
-  const handleSaveColumns = useCallback(async (config: InventoryColumnConfig | null) => {
+  const handleSaveColumns = useCallback(async (config: InventoryColumnConfig | null, configMicrosite: InventoryColumnConfig | null) => {
     try {
       const res = await fetch(`/api/proyectos/${projectId}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ inventory_columns: config }),
+        body: JSON.stringify({
+          inventory_columns: config,
+          inventory_columns_microsite: configMicrosite,
+        }),
       });
       if (!res.ok) throw new Error("Error saving columns");
       await refresh();
@@ -2176,7 +2250,7 @@ export default function InventarioPage() {
   }, [unidades, isMultiTorre, activeTorreId]);
 
   const stats = useMemo(() => {
-    const s = { disponible: 0, separado: 0, reservada: 0, vendida: 0 };
+    const s = { disponible: 0, proximamente: 0, separado: 0, reservada: 0, vendida: 0 };
     for (const u of statsUnidades) {
       s[u.estado]++;
     }
@@ -2187,29 +2261,29 @@ export default function InventarioPage() {
     <motion.div
       initial={{ opacity: 0, y: 8 }}
       animate={{ opacity: 1, y: 0 }}
-      className="space-y-3"
+      className="space-y-4"
     >
       {/* Compact header: icon + title + stats pills + actions */}
-      <div className="flex items-center gap-3 flex-wrap">
-        <div className="flex items-center gap-2.5 mr-auto">
-          <div className="w-8 h-8 rounded-lg bg-[var(--surface-2)] border border-[var(--border-subtle)] flex items-center justify-center shrink-0">
-            <Package size={15} className="text-[var(--site-primary)]" />
+      <div className="flex items-center gap-4 flex-wrap">
+        <div className="flex items-center gap-3 mr-auto">
+          <div className="w-10 h-10 rounded-xl bg-[var(--surface-2)] border border-[var(--border-subtle)] flex items-center justify-center shrink-0">
+            <Package size={18} className="text-[var(--site-primary)]" />
           </div>
-          <h2 className="text-base font-light text-white whitespace-nowrap">
+          <h2 className="text-xl font-light text-white whitespace-nowrap">
             {t("inventario.title")}
           </h2>
         </div>
 
         {/* Inline stats pills */}
-        <div className="flex items-center gap-2 order-3 sm:order-none w-full sm:w-auto">
+        <div className="flex items-center gap-2.5 order-3 sm:order-none w-full sm:w-auto">
           {ESTADOS.map((e) => (
             <div
               key={e.value}
-              className="flex items-center gap-1.5 px-2 py-1 rounded-lg bg-[var(--surface-2)] border border-[var(--border-subtle)]"
+              className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-[var(--surface-2)] border border-[var(--border-subtle)]"
             >
-              <span className={cn("w-2 h-2 rounded-full shrink-0", ESTADO_DOT_BG[e.value])} />
-              <span className="text-[10px] text-[var(--text-tertiary)] hidden sm:inline">{e.label}</span>
-              <span className="text-xs font-medium text-white">{stats[e.value]}</span>
+              <span className={cn("w-2.5 h-2.5 rounded-full shrink-0", ESTADO_DOT_BG[e.value])} />
+              <span className="text-[11px] text-[var(--text-tertiary)] hidden sm:inline">{e.label}</span>
+              <span className="text-sm font-medium text-white">{stats[e.value]}</span>
             </div>
           ))}
         </div>
@@ -2237,13 +2311,13 @@ export default function InventarioPage() {
                 <AnimatePresence>
                   {showToolsMenu && (
                     <>
-                      <div className="fixed inset-0 z-20" onClick={() => setShowToolsMenu(false)} />
+                      <div className="fixed inset-0 z-10" onClick={() => setShowToolsMenu(false)} />
                       <motion.div
                         initial={{ opacity: 0, y: -4, scale: 0.97 }}
                         animate={{ opacity: 1, y: 0, scale: 1 }}
                         exit={{ opacity: 0, y: -4, scale: 0.97 }}
                         transition={{ duration: 0.15 }}
-                        className="absolute right-0 top-full mt-1 w-52 bg-[var(--surface-2)] border border-[var(--border-default)] rounded-xl shadow-[0_16px_48px_rgba(0,0,0,0.4)] z-30 overflow-hidden"
+                        className="absolute right-0 top-full mt-1 w-52 bg-[var(--surface-2)] border border-[var(--border-default)] rounded-xl shadow-[0_16px_48px_rgba(0,0,0,0.4)] z-20 overflow-hidden"
                       >
                         {!isTipologiaPricing && (
                           <button
@@ -2290,7 +2364,7 @@ export default function InventarioPage() {
                     initial={{ opacity: 0, y: -4 }}
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0, y: -4 }}
-                    className="absolute right-0 top-full mt-1 w-52 bg-[var(--surface-2)] border border-[var(--border-default)] rounded-xl shadow-2xl z-30 overflow-hidden"
+                    className="absolute right-0 top-full mt-1 w-52 bg-[var(--surface-2)] border border-[var(--border-default)] rounded-xl shadow-2xl z-20 overflow-hidden"
                   >
                     <button onClick={() => { setShowImportModal(true); setShowMobileActions(false); }} className="flex items-center gap-2.5 w-full px-4 py-2.5 text-xs text-[var(--text-secondary)] hover:bg-[var(--surface-3)] transition-colors">
                       <Upload size={13} className="text-[var(--site-primary)]" /> {t("inventario.import")}
@@ -2330,15 +2404,15 @@ export default function InventarioPage() {
                 key={tipo}
                 onClick={() => setActiveTipoTab(tipo)}
                 className={cn(
-                  "flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-medium transition-all",
+                  "flex items-center gap-2 px-4 py-2.5 rounded-lg text-sm font-medium transition-all",
                   activeTipoTab === tipo
                     ? "bg-[rgba(var(--site-primary-rgb),0.12)] text-[var(--site-primary)] shadow-sm"
                     : "text-[var(--text-tertiary)] hover:text-[var(--text-secondary)] hover:bg-[var(--surface-2)]"
                 )}
               >
-                <Icon size={14} />
+                <Icon size={15} />
                 {label}
-                <span className="text-[10px] text-[var(--text-muted)]">{count}</span>
+                <span className="text-[11px] text-[var(--text-muted)]">{count}</span>
               </button>
             );
           })}
@@ -2351,44 +2425,44 @@ export default function InventarioPage() {
           <button
             onClick={() => setActiveInventoryTab("unidades")}
             className={cn(
-              "flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-medium transition-all",
+              "flex items-center gap-2 px-4 py-2.5 rounded-lg text-sm font-medium transition-all",
               activeInventoryTab === "unidades"
                 ? "bg-[var(--surface-3)] text-white shadow-sm"
                 : "text-[var(--text-tertiary)] hover:text-[var(--text-secondary)] hover:bg-[var(--surface-2)]"
             )}
           >
-            <Package size={14} />
+            <Package size={15} />
             {t("inventario.title")}
-            <span className="text-[10px] text-[var(--text-muted)]">{unidades.length}</span>
+            <span className="text-[11px] text-[var(--text-muted)]">{unidades.length}</span>
           </button>
           {hasParqueaderos && (
             <button
               onClick={() => setActiveInventoryTab("parqueadero")}
               className={cn(
-                "flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-medium transition-all",
+                "flex items-center gap-2 px-4 py-2.5 rounded-lg text-sm font-medium transition-all",
                 activeInventoryTab === "parqueadero"
                   ? "bg-[var(--surface-3)] text-white shadow-sm"
                   : "text-[var(--text-tertiary)] hover:text-[var(--text-secondary)] hover:bg-[var(--surface-2)]"
               )}
             >
-              <Car size={14} />
+              <Car size={15} />
               Parqueaderos
-              <span className="text-[10px] text-[var(--text-muted)]">{parqCount}</span>
+              <span className="text-[11px] text-[var(--text-muted)]">{parqCount}</span>
             </button>
           )}
           {hasDepositos && (
             <button
               onClick={() => setActiveInventoryTab("deposito")}
               className={cn(
-                "flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-medium transition-all",
+                "flex items-center gap-2 px-4 py-2.5 rounded-lg text-sm font-medium transition-all",
                 activeInventoryTab === "deposito"
                   ? "bg-[var(--surface-3)] text-white shadow-sm"
                   : "text-[var(--text-tertiary)] hover:text-[var(--text-secondary)] hover:bg-[var(--surface-2)]"
               )}
             >
-              <Warehouse size={14} />
+              <Warehouse size={15} />
               Depósitos
-              <span className="text-[10px] text-[var(--text-muted)]">{depoCount}</span>
+              <span className="text-[11px] text-[var(--text-muted)]">{depoCount}</span>
             </button>
           )}
         </div>
@@ -2400,18 +2474,18 @@ export default function InventarioPage() {
       {/* Torre tabs + Filters — single row */}
       <div className="flex items-center gap-3 flex-wrap">
         {isMultiTorre && (
-          <div className="flex items-center gap-0.5 p-0.5 bg-[var(--surface-1)] rounded-lg border border-[var(--border-subtle)] overflow-x-auto scrollbar-thin shrink-0">
+          <div className="flex items-center gap-1 p-1 bg-[var(--surface-1)] rounded-xl border border-[var(--border-subtle)] overflow-x-auto scrollbar-thin shrink-0">
             <button
               onClick={() => setActiveTorreId(null)}
               className={cn(
-                "flex items-center gap-1.5 px-3 py-1.5 rounded-md text-[11px] font-medium transition-all whitespace-nowrap shrink-0",
+                "flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-medium transition-all whitespace-nowrap shrink-0",
                 activeTorreId === null
                   ? "bg-[var(--surface-3)] text-white shadow-sm"
                   : "text-[var(--text-tertiary)] hover:text-[var(--text-secondary)] hover:bg-[var(--surface-2)]"
               )}
             >
               {t("inventario.all")}
-              <span className="text-[10px] text-[var(--text-muted)]">{unidades.length}</span>
+              <span className="text-[11px] text-[var(--text-muted)]">{unidades.length}</span>
             </button>
             {torres.map((torre) => {
               const count = unidades.filter((u) => u.torre_id === torre.id).length;
@@ -2420,14 +2494,14 @@ export default function InventarioPage() {
                   key={torre.id}
                   onClick={() => setActiveTorreId(torre.id)}
                   className={cn(
-                    "flex items-center gap-1.5 px-3 py-1.5 rounded-md text-[11px] font-medium transition-all whitespace-nowrap shrink-0",
+                    "flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-medium transition-all whitespace-nowrap shrink-0",
                     activeTorreId === torre.id
                       ? "bg-[var(--surface-3)] text-white shadow-sm"
                       : "text-[var(--text-tertiary)] hover:text-[var(--text-secondary)] hover:bg-[var(--surface-2)]"
                   )}
                 >
                   {torre.nombre}
-                  <span className="text-[10px] text-[var(--text-muted)]">{count}</span>
+                  <span className="text-[11px] text-[var(--text-muted)]">{count}</span>
                 </button>
               );
             })}
@@ -2435,14 +2509,14 @@ export default function InventarioPage() {
               <button
                 onClick={() => setActiveTorreId("__none__")}
                 className={cn(
-                  "flex items-center gap-1.5 px-3 py-1.5 rounded-md text-[11px] font-medium transition-all whitespace-nowrap shrink-0",
+                  "flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-medium transition-all whitespace-nowrap shrink-0",
                   activeTorreId === "__none__"
                     ? "bg-[var(--surface-3)] text-white shadow-sm"
                     : "text-[var(--text-tertiary)] hover:text-[var(--text-secondary)] hover:bg-[var(--surface-2)]"
                 )}
               >
                 {t("inventario.noTower")}
-                <span className="text-[10px] text-[var(--text-muted)]">
+                <span className="text-[11px] text-[var(--text-muted)]">
                   {unidades.filter((u) => !u.torre_id).length}
                 </span>
               </button>
@@ -2450,18 +2524,18 @@ export default function InventarioPage() {
           </div>
         )}
 
-        <div className={cn("flex items-center gap-2", !isMultiTorre && "flex-1")}>
-          <div className="relative flex-1 min-w-0 sm:min-w-[180px] sm:max-w-[240px]">
+        <div className={cn("flex items-center gap-2.5", !isMultiTorre && "flex-1")}>
+          <div className="relative flex-1 min-w-0 sm:min-w-[200px] sm:max-w-[280px]">
             <Search
-              size={13}
-              className="absolute left-2.5 top-1/2 -translate-y-1/2 text-[var(--text-muted)]"
+              size={14}
+              className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--text-muted)]"
             />
             <input
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder={t("inventario.searchPlaceholder")}
-              className={inputClass + " pl-8 py-1.5 text-xs"}
+              className={inputClass + " pl-9 py-2 text-sm"}
             />
           </div>
           <NodDoDropdown
@@ -2485,8 +2559,24 @@ export default function InventarioPage() {
             onChange={(val) => setFilterEstado(val)}
             options={[
               { value: "", label: t("inventario.allStates") },
-              ...ESTADOS.map((e) => ({ value: e.value, label: e.label })),
+              ...ESTADOS.map((e) => ({ value: e.value, label: e.label, metadata: { dot: e.dot } })),
             ]}
+            renderOption={(option) => (
+              <span className="flex items-center gap-1.5">
+                {option.metadata?.dot ? (
+                  <span className={cn("w-2 h-2 rounded-full", option.metadata.dot as string)} />
+                ) : null}
+                <span>{option.label}</span>
+              </span>
+            )}
+            renderSelected={(option) => (
+              <span className="flex items-center gap-1.5">
+                {option.metadata?.dot ? (
+                  <span className={cn("w-2 h-2 rounded-full", option.metadata.dot as string)} />
+                ) : null}
+                <span>{option.label}</span>
+              </span>
+            )}
             className="w-32"
           />
           {columns.etapa && uniqueEtapas.length > 1 && (
@@ -2691,6 +2781,15 @@ export default function InventarioPage() {
                   </>
                 )}
 
+                <div className="w-px h-5 bg-[var(--border-subtle)] mx-1" />
+                <button
+                  onClick={() => setBulkDeleteConfirm(true)}
+                  className="flex items-center gap-1.5 px-3 py-1.5 bg-red-500/10 text-red-400 border border-red-500/20 rounded-lg text-xs font-medium hover:bg-red-500/20 hover:border-red-500/30 transition-all"
+                >
+                  <Trash2 size={13} />
+                  Eliminar ({selectedIds.size})
+                </button>
+
                 <button
                   onClick={() => setSelectedIds(new Set())}
                   className={btnSecondary}
@@ -2758,7 +2857,7 @@ export default function InventarioPage() {
             <table className="w-full text-sm">
               <thead>
                 <tr className="border-b border-[var(--border-default)]">
-                  <th className="text-left py-3 px-4 w-10">
+                  <th className="text-left py-2 px-4 w-10">
                     <button
                       onClick={toggleSelectAll}
                       className="text-[var(--text-tertiary)] hover:text-[var(--text-secondary)] transition-colors"
@@ -2772,79 +2871,79 @@ export default function InventarioPage() {
                       )}
                     </button>
                   </th>
-                  <th className="text-left py-3 px-4 text-[var(--text-tertiary)] font-ui font-bold text-[10px] uppercase tracking-wider">
+                  <th className="text-left py-2 px-4 text-[var(--text-tertiary)] font-ui font-bold text-[10px] uppercase tracking-wider">
                     {t("inventario.fields.identifier")}
                   </th>
-                  <th className="text-left py-3 px-4 text-[var(--text-tertiary)] font-ui font-bold text-[10px] uppercase tracking-wider">
+                  <th className="text-left py-2 px-4 text-[var(--text-tertiary)] font-ui font-bold text-[10px] uppercase tracking-wider">
                     {isMultiTipo ? "TIPOLOGÍAS" : t("inventario.fields.typology")}
                   </th>
                   {!isLoteBased && fachadas.length > 0 && (
-                    <th className="text-left py-3 px-4 text-[var(--text-tertiary)] font-ui font-bold text-[10px] uppercase tracking-wider">
+                    <th className="text-left py-2 px-4 text-[var(--text-tertiary)] font-ui font-bold text-[10px] uppercase tracking-wider">
                       {t("inventario.fields.fachada")}
                     </th>
                   )}
                   {columns.piso && (
-                    <th className="text-left py-3 px-4 text-[var(--text-tertiary)] font-ui font-bold text-[10px] uppercase tracking-wider">
+                    <th className="text-left py-2 px-4 text-[var(--text-tertiary)] font-ui font-bold text-[10px] uppercase tracking-wider">
                       {t("inventario.fields.floor")}
                     </th>
                   )}
                   {columns.lote && (
-                    <th className="text-left py-3 px-4 text-[var(--text-tertiary)] font-ui font-bold text-[10px] uppercase tracking-wider">
+                    <th className="text-left py-2 px-4 text-[var(--text-tertiary)] font-ui font-bold text-[10px] uppercase tracking-wider">
                       LOTE
                     </th>
                   )}
                   {columns.etapa && (
-                    <th className="text-left py-3 px-4 text-[var(--text-tertiary)] font-ui font-bold text-[10px] uppercase tracking-wider">
+                    <th className="text-left py-2 px-4 text-[var(--text-tertiary)] font-ui font-bold text-[10px] uppercase tracking-wider">
                       ETAPA
                     </th>
                   )}
                   {columns.area_m2 && (
-                    <th className="text-left py-3 px-4 text-[var(--text-tertiary)] font-ui font-bold text-[10px] uppercase tracking-wider">
+                    <th className="text-left py-2 px-4 text-[var(--text-tertiary)] font-ui font-bold text-[10px] uppercase tracking-wider">
                       {t("inventario.columns.area")}
                     </th>
                   )}
                   {columns.area_construida && (
-                    <th className="text-left py-3 px-4 text-[var(--text-tertiary)] font-ui font-bold text-[10px] uppercase tracking-wider">
+                    <th className="text-left py-2 px-4 text-[var(--text-tertiary)] font-ui font-bold text-[10px] uppercase tracking-wider">
                       {t("inventario.columns.areaConstruida")}
                     </th>
                   )}
                   {columns.area_privada && (
-                    <th className="text-left py-3 px-4 text-[var(--text-tertiary)] font-ui font-bold text-[10px] uppercase tracking-wider">
+                    <th className="text-left py-2 px-4 text-[var(--text-tertiary)] font-ui font-bold text-[10px] uppercase tracking-wider">
                       {t("inventario.columns.areaPrivada")}
                     </th>
                   )}
                   {columns.area_lote && (
-                    <th className="text-left py-3 px-4 text-[var(--text-tertiary)] font-ui font-bold text-[10px] uppercase tracking-wider">
+                    <th className="text-left py-2 px-4 text-[var(--text-tertiary)] font-ui font-bold text-[10px] uppercase tracking-wider">
                       {t("inventario.columns.areaLote")}
                     </th>
                   )}
-                  <th className="text-left py-3 px-4 text-[var(--text-tertiary)] font-ui font-bold text-[10px] uppercase tracking-wider">
+                  <th className="text-left py-2 px-4 text-[var(--text-tertiary)] font-ui font-bold text-[10px] uppercase tracking-wider">
                     {t("inventario.fields.price")}
                   </th>
-                  <th className="text-left py-3 px-4 text-[var(--text-tertiary)] font-ui font-bold text-[10px] uppercase tracking-wider">
+                  <th className="text-left py-2 px-4 text-[var(--text-tertiary)] font-ui font-bold text-[10px] uppercase tracking-wider">
                     {t("inventario.fields.state")}
                   </th>
                   {columns.habitaciones && (
-                    <th className="text-left py-3 px-4 text-[var(--text-tertiary)] font-ui font-bold text-[10px] uppercase tracking-wider">
+                    <th className="text-left py-2 px-4 text-[var(--text-tertiary)] font-ui font-bold text-[10px] uppercase tracking-wider">
                       {t("inventario.fields.bedrooms")}
                     </th>
                   )}
                   {columns.banos && (
-                    <th className="text-left py-3 px-4 text-[var(--text-tertiary)] font-ui font-bold text-[10px] uppercase tracking-wider">
+                    <th className="text-left py-2 px-4 text-[var(--text-tertiary)] font-ui font-bold text-[10px] uppercase tracking-wider">
                       {t("inventario.fields.bathrooms")}
                     </th>
                   )}
                   {columns.parqueaderos && (
-                    <th className="text-left py-3 px-4 text-[var(--text-tertiary)] font-ui font-bold text-[10px] uppercase tracking-wider">
+                    <th className="text-left py-2 px-4 text-[var(--text-tertiary)] font-ui font-bold text-[10px] uppercase tracking-wider">
                       {t("inventario.fields.parking")}
                     </th>
                   )}
                   {columns.depositos && (
-                    <th className="text-left py-3 px-4 text-[var(--text-tertiary)] font-ui font-bold text-[10px] uppercase tracking-wider">
+                    <th className="text-left py-2 px-4 text-[var(--text-tertiary)] font-ui font-bold text-[10px] uppercase tracking-wider">
                       {t("inventario.fields.storage")}
                     </th>
                   )}
-                  <th className="text-right py-3 px-4 text-[var(--text-tertiary)] font-ui font-bold text-[10px] uppercase tracking-wider">
+                  <th className="text-right py-2 px-4 text-[var(--text-tertiary)] font-ui font-bold text-[10px] uppercase tracking-wider">
 
                   </th>
                 </tr>
@@ -2896,7 +2995,7 @@ export default function InventarioPage() {
                         </td>
                       ) : (
                         <>
-                          <td className="py-3 px-4">
+                          <td className="py-2 px-4">
                             <button
                               onClick={() => toggleSelect(unit.id)}
                               className="text-[var(--text-tertiary)] hover:text-[var(--text-secondary)] transition-colors"
@@ -2911,10 +3010,10 @@ export default function InventarioPage() {
                               )}
                             </button>
                           </td>
-                          <td className="py-3 px-4 text-white font-medium">
+                          <td className="py-2 px-4 text-white font-medium">
                             {unit.identificador}
                           </td>
-                          <td className="py-3 px-4">
+                          <td className="py-2 px-4">
                             {isMultiTipo ? (
                               <InlineMultiTipo
                                 unit={unit}
@@ -2937,7 +3036,7 @@ export default function InventarioPage() {
                             )}
                           </td>
                           {!isLoteBased && fachadas.length > 0 && (
-                            <td className="py-3 px-4">
+                            <td className="py-2 px-4">
                               <NodDoDropdown
                                 variant="table"
                                 size="sm"
@@ -2951,22 +3050,22 @@ export default function InventarioPage() {
                             </td>
                           )}
                           {columns.piso && (
-                            <td className="py-3 px-4 text-[var(--text-secondary)]">
+                            <td className="py-2 px-4 text-[var(--text-secondary)]">
                               {unit.piso ?? "-"}
                             </td>
                           )}
                           {columns.lote && (
-                            <td className="py-3 px-4 text-[var(--text-secondary)]">
+                            <td className="py-2 px-4 text-[var(--text-secondary)]">
                               {unit.lote || "-"}
                             </td>
                           )}
                           {columns.etapa && (
-                            <td className="py-3 px-4 text-[var(--text-secondary)]">
+                            <td className="py-2 px-4 text-[var(--text-secondary)]">
                               {unit.etapa_nombre || "-"}
                             </td>
                           )}
                           {columns.area_m2 && (
-                            <td className="py-3 px-4 text-[var(--text-secondary)]">
+                            <td className="py-2 px-4 text-[var(--text-secondary)]">
                               {isMultiTipo && !unit.tipologia_id && specRanges
                                 ? specRanges.area_min === specRanges.area_max
                                   ? `${specRanges.area_min} m²`
@@ -2980,22 +3079,26 @@ export default function InventarioPage() {
                             </td>
                           )}
                           {columns.area_construida && (
-                            <td className="py-3 px-4 text-[var(--text-secondary)]">
+                            <td className="py-2 px-4 text-[var(--text-secondary)]">
                               {unit.area_construida != null ? `${unit.area_construida} m²` : "-"}
                             </td>
                           )}
                           {columns.area_privada && (
-                            <td className="py-3 px-4 text-[var(--text-secondary)]">
+                            <td className="py-2 px-4 text-[var(--text-secondary)]">
                               {unit.area_privada != null ? `${unit.area_privada} m²` : "-"}
                             </td>
                           )}
                           {columns.area_lote && (
-                            <td className="py-3 px-4 text-[var(--text-secondary)]">
+                            <td className="py-2 px-4 text-[var(--text-secondary)]">
                               {unit.area_lote != null ? `${unit.area_lote} m²` : "-"}
                             </td>
                           )}
-                          <td className="py-3 px-4 text-[var(--text-secondary)]">
+                          <td className="py-2 px-4 text-[var(--text-secondary)]">
                             {(() => {
+                              // Only show price for sold units
+                              if (unit.estado !== "vendida") {
+                                return "-";
+                              }
                               if (isTipologiaPricing) {
                                 const unitTipo = tipologias.find(tp => tp.id === unit.tipologia_id);
                                 return unitTipo?.precio_desde
@@ -3010,11 +3113,11 @@ export default function InventarioPage() {
                                 : "-";
                             })()}
                           </td>
-                          <td className="py-3 px-4">
+                          <td className="py-2 px-4">
                             <EstadoBadge estado={unit.estado} />
                           </td>
                           {columns.habitaciones && (
-                            <td className="py-3 px-4 text-[var(--text-secondary)]">
+                            <td className="py-2 px-4 text-[var(--text-secondary)]">
                               {isMultiTipo && !unit.tipologia_id && specRanges
                                 ? specRanges.hab_min === specRanges.hab_max
                                   ? specRanges.hab_min
@@ -3024,7 +3127,7 @@ export default function InventarioPage() {
                             </td>
                           )}
                           {columns.banos && (
-                            <td className="py-3 px-4 text-[var(--text-secondary)]">
+                            <td className="py-2 px-4 text-[var(--text-secondary)]">
                               {isMultiTipo && !unit.tipologia_id && specRanges
                                 ? specRanges.banos_min === specRanges.banos_max
                                   ? specRanges.banos_min
@@ -3034,16 +3137,16 @@ export default function InventarioPage() {
                             </td>
                           )}
                           {columns.parqueaderos && (
-                            <td className="py-3 px-4 text-[var(--text-secondary)]">
+                            <td className="py-2 px-4 text-[var(--text-secondary)]">
                               {unit.parqueaderos ?? "-"}
                             </td>
                           )}
                           {columns.depositos && (
-                            <td className="py-3 px-4 text-[var(--text-secondary)]">
+                            <td className="py-2 px-4 text-[var(--text-secondary)]">
                               {unit.depositos ?? "-"}
                             </td>
                           )}
-                          <td className="py-3 px-4">
+                          <td className="py-2 px-4">
                             <div className="flex items-center justify-end gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                               <button
                                 onClick={() => {
@@ -3118,6 +3221,62 @@ export default function InventarioPage() {
       </AnimatePresence>
 
       <AnimatePresence>
+        {bulkDeleteConfirm && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm"
+            onClick={() => !bulkDeleting && setBulkDeleteConfirm(false)}
+          >
+            <motion.div
+              initial={{ scale: 0.95, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.95, opacity: 0 }}
+              onClick={(e) => e.stopPropagation()}
+              className="bg-[var(--surface-2)] border border-[var(--border-default)] rounded-2xl p-6 max-w-md w-full mx-4 shadow-2xl"
+            >
+              <div className="flex items-center gap-3 mb-4">
+                <div className="p-2 bg-red-500/10 rounded-lg">
+                  <AlertTriangle size={18} className="text-red-400" />
+                </div>
+                <h3 className="text-sm font-medium text-white">
+                  Eliminar {selectedIds.size} unidad{selectedIds.size !== 1 ? "es" : ""}
+                </h3>
+              </div>
+              <p className="text-sm text-[var(--text-secondary)] mb-2">
+                Esta acción eliminará permanentemente {selectedIds.size === 1 ? "la unidad seleccionada" : `las ${selectedIds.size} unidades seleccionadas`} junto con todos sus datos asociados (complementos, historial de estados, etc.).
+              </p>
+              <p className="text-sm text-red-400/80 mb-6">
+                Esta acción no se puede deshacer.
+              </p>
+              <div className="flex items-center justify-end gap-3">
+                <button
+                  onClick={() => setBulkDeleteConfirm(false)}
+                  disabled={bulkDeleting}
+                  className={btnSecondary}
+                >
+                  {t("inventario.cancel")}
+                </button>
+                <button
+                  onClick={handleBulkDelete}
+                  disabled={bulkDeleting}
+                  className="flex items-center gap-1.5 px-4 py-2 bg-red-500/80 text-white rounded-lg text-xs font-medium hover:bg-red-500 transition-all disabled:opacity-50"
+                >
+                  {bulkDeleting ? (
+                    <Loader2 size={12} className="animate-spin" />
+                  ) : (
+                    <Trash2 size={12} />
+                  )}
+                  Eliminar {selectedIds.size} unidad{selectedIds.size !== 1 ? "es" : ""}
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      <AnimatePresence>
         {showImportModal && (
           <SmartImportModal
             tipologias={tipologias}
@@ -3170,6 +3329,7 @@ export default function InventarioPage() {
           <ColumnsConfigModal
             tipoProyecto={tipoProyecto}
             currentConfig={project.inventory_columns ?? null}
+            currentConfigMicrosite={(project as any).inventory_columns_microsite ?? null}
             onSave={handleSaveColumns}
             onClose={() => setShowColumnsModal(false)}
           />

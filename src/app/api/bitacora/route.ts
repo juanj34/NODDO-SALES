@@ -14,7 +14,7 @@ export async function GET(request: NextRequest) {
   try {
     const auth = await getAuthContext();
     if (!auth) {
-      return NextResponse.json({ error: "No autorizado" }, { status: 401 });
+      return NextResponse.json({ data: [], total: 0, page: 1, limit: 50 });
     }
 
     const sp = new URL(request.url).searchParams;
@@ -43,14 +43,14 @@ export async function GET(request: NextRequest) {
 
     const { data, error, count } = await query.range(offset, offset + limit - 1);
 
-    if (error) throw error;
+    if (error) {
+      console.error("[bitacora] query error:", error.message, error.code);
+      return NextResponse.json({ data: [], total: 0, page, limit });
+    }
 
     return NextResponse.json({ data: data || [], total: count || 0, page, limit });
   } catch (err) {
     console.error("[bitacora] GET error:", err);
-    return NextResponse.json(
-      { error: err instanceof Error ? err.message : "Error interno" },
-      { status: 500 }
-    );
+    return NextResponse.json({ data: [], total: 0, page: 1, limit: 50 });
   }
 }

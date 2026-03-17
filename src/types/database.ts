@@ -12,6 +12,31 @@ export type Database = {
   __InternalSupabase: {
     PostgrestVersion: "14.1"
   }
+  graphql_public: {
+    Tables: {
+      [_ in never]: never
+    }
+    Views: {
+      [_ in never]: never
+    }
+    Functions: {
+      graphql: {
+        Args: {
+          extensions?: Json
+          operationName?: string
+          query?: string
+          variables?: Json
+        }
+        Returns: Json
+      }
+    }
+    Enums: {
+      [_ in never]: never
+    }
+    CompositeTypes: {
+      [_ in never]: never
+    }
+  }
   public: {
     Tables: {
       activity_logs: {
@@ -1275,6 +1300,7 @@ export type Database = {
           storage_tours_bytes: number | null
           storage_videos_bytes: number | null
           subdomain: string | null
+          tema_modo: string | null
           tipo_proyecto: string
           tipologia_mode: string
           tour_360_url: string | null
@@ -1338,6 +1364,7 @@ export type Database = {
           storage_tours_bytes?: number | null
           storage_videos_bytes?: number | null
           subdomain?: string | null
+          tema_modo?: string | null
           tipo_proyecto?: string
           tipologia_mode?: string
           tour_360_url?: string | null
@@ -1401,6 +1428,7 @@ export type Database = {
           storage_tours_bytes?: number | null
           storage_videos_bytes?: number | null
           subdomain?: string | null
+          tema_modo?: string | null
           tipo_proyecto?: string
           tipologia_mode?: string
           tour_360_url?: string | null
@@ -1539,6 +1567,47 @@ export type Database = {
         }
         Relationships: []
       }
+      tipologia_precio_historial: {
+        Row: {
+          changed_at: string
+          changed_by: string
+          created_at: string | null
+          id: string
+          notas: string | null
+          precio_anterior: number | null
+          precio_nuevo: number
+          tipologia_id: string
+        }
+        Insert: {
+          changed_at?: string
+          changed_by: string
+          created_at?: string | null
+          id?: string
+          notas?: string | null
+          precio_anterior?: number | null
+          precio_nuevo: number
+          tipologia_id: string
+        }
+        Update: {
+          changed_at?: string
+          changed_by?: string
+          created_at?: string | null
+          id?: string
+          notas?: string | null
+          precio_anterior?: number | null
+          precio_nuevo?: number
+          tipologia_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tipologia_precio_historial_tipologia_id_fkey"
+            columns: ["tipologia_id"]
+            isOneToOne: false
+            referencedRelation: "tipologias"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       tipologias: {
         Row: {
           area_balcon: number | null
@@ -1557,7 +1626,10 @@ export type Database = {
           nombre: string
           orden: number | null
           parqueaderos: number | null
+          pisos: Json | null
           plano_url: string | null
+          precio_actualizado_en: string | null
+          precio_actualizado_por: string | null
           precio_desde: number | null
           proyecto_id: string | null
           renders: string[] | null
@@ -1582,7 +1654,10 @@ export type Database = {
           nombre: string
           orden?: number | null
           parqueaderos?: number | null
+          pisos?: Json | null
           plano_url?: string | null
+          precio_actualizado_en?: string | null
+          precio_actualizado_por?: string | null
           precio_desde?: number | null
           proyecto_id?: string | null
           renders?: string[] | null
@@ -1607,7 +1682,10 @@ export type Database = {
           nombre?: string
           orden?: number | null
           parqueaderos?: number | null
+          pisos?: Json | null
           plano_url?: string | null
+          precio_actualizado_en?: string | null
+          precio_actualizado_por?: string | null
           precio_desde?: number | null
           proyecto_id?: string | null
           renders?: string[] | null
@@ -2310,6 +2388,7 @@ export type Database = {
           storage_tours_bytes: number | null
           storage_videos_bytes: number | null
           subdomain: string | null
+          tema_modo: string | null
           tipo_proyecto: string
           tipologia_mode: string
           tour_360_url: string | null
@@ -2519,6 +2598,9 @@ export type CompositeTypes<
     : never
 
 export const Constants = {
+  graphql_public: {
+    Enums: {},
+  },
   public: {
     Enums: {},
   },

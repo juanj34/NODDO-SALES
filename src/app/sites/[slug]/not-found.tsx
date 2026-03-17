@@ -16,7 +16,7 @@ export default function SiteNotFound() {
         {/* 404 */}
         <h1
           style={{
-            fontFamily: "Georgia, 'Times New Roman', serif",
+            fontFamily: "var(--font-cormorant, 'Cormorant Garamond', Georgia, serif)",
             fontSize: "72px",
             fontWeight: 300,
             color: "var(--site-primary, #b8973a)",
@@ -30,7 +30,7 @@ export default function SiteNotFound() {
 
         <p
           style={{
-            fontFamily: "Georgia, 'Times New Roman', serif",
+            fontFamily: "var(--font-cormorant, 'Cormorant Garamond', Georgia, serif)",
             fontSize: "22px",
             fontWeight: 300,
             color: "rgba(244, 240, 232, 0.92)",
@@ -42,7 +42,7 @@ export default function SiteNotFound() {
         </p>
         <p
           style={{
-            fontFamily: "'DM Mono', monospace",
+            fontFamily: "var(--font-dm-mono, 'DM Mono', monospace)",
             fontSize: "13px",
             fontWeight: 300,
             color: "rgba(244, 240, 232, 0.35)",
@@ -60,7 +60,7 @@ export default function SiteNotFound() {
             padding: "12px 32px",
             backgroundColor: "var(--site-primary, #b8973a)",
             color: "#141414",
-            fontFamily: "'Syne', sans-serif",
+            fontFamily: "var(--font-syne, 'Syne', sans-serif)",
             fontSize: "11px",
             fontWeight: 700,
             textTransform: "uppercase" as const,

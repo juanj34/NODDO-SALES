@@ -276,6 +276,12 @@ const editor = {
       byTypeDescription: "Configure visible columns for each typology type in your hybrid project",
       reset: "Reset to defaults",
       activeCount: "{{count}} of {{total}}",
+      tabs: {
+        editor: "Editor",
+        editorDesc: "Columns visible in dashboard (admin)",
+        microsite: "Microsite",
+        micrositeDesc: "Columns visible on public site (clients)",
+      },
       categories: {
         financial: "Financial",
         dimensions: "Dimensions",
@@ -296,7 +302,7 @@ const editor = {
       save: "Save",
       copyUrl: "Copy URL",
       openSite: "Open site",
-      stateWarning: "Your project is in \"{{state}}\" status. Change it to \"published\" in the General tab...",
+      stateWarning: "Your project is in \"{{state}}\" status. Use the Publish button to activate your subdomain.",
     },
     custom: {
       title: "Custom Domain",
@@ -392,6 +398,13 @@ const editor = {
     precioTipologiaHint: "This price will apply to all units of this typology.",
     priceComputedHint: "Automatically calculated from the lowest price of available units.",
     noUnitsHint: "Add units in the inventory to calculate the price.",
+    floors: "Floor plans",
+    floorName: "Floor name",
+    addFloor: "Add floor",
+    addFirstFloor: "Add first floor",
+    removeFloor: "Remove floor",
+    removeFloorConfirm: "This will remove the floor plan and hotspots for this floor. Continue?",
+    noFloorsYet: "No floors configured",
   },
   galeria: {
     title: "Image Gallery",

@@ -2,6 +2,7 @@
 
 interface Props {
   disponible: number;
+  proximamente: number;
   separado: number;
   reservada: number;
   vendida: number;
@@ -9,24 +10,27 @@ interface Props {
 
 const STATUS_CONFIG = [
   { key: "disponible", label: "Disponible", color: "#22c55e" },
+  { key: "proximamente", label: "Próximamente", color: "#3b82f6" },
   { key: "separado", label: "Separado", color: "#f59e0b" },
-  { key: "reservada", label: "Reservada", color: "#3b82f6" },
+  { key: "reservada", label: "Reservada", color: "#f97316" },
   { key: "vendida", label: "Vendida", color: "#ef4444" },
 ] as const;
 
 export function InventoryBreakdown({
   disponible,
+  proximamente,
   separado,
   reservada,
   vendida,
 }: Props) {
   const counts: Record<string, number> = {
     disponible,
+    proximamente,
     separado,
     reservada,
     vendida,
   };
-  const total = disponible + separado + reservada + vendida;
+  const total = disponible + proximamente + separado + reservada + vendida;
 
   if (total === 0) {
     return (

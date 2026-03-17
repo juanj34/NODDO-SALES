@@ -89,7 +89,7 @@ export function ShowcaseCarousel() {
                                 <p className="text-[10px] tracking-[0.2em] uppercase text-[#D4A574]/60">
                                     {project.tags.join(" · ")}
                                 </p>
-                                <h3 className="font-heading text-lg font-semibold text-[var(--mk-text-primary)] mt-1">
+                                <h3 className="font-heading text-lg font-light text-[var(--mk-text-primary)] mt-1">
                                     {project.name}
                                 </h3>
                                 <p className="text-sm text-[var(--mk-text-tertiary)]">

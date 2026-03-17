@@ -4,7 +4,7 @@ import { useState, useRef, useCallback, useEffect, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   X, Search, Trash2, Unlink, AlertTriangle, XCircle,
-  Copy, Grid3X3, CopyPlus, ArrowUp, ArrowDown, GripVertical,
+  Copy, Grid3X3, CopyPlus, ArrowUp, ArrowDown, GripVertical, Undo2, Redo2,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { AlignmentToolbar } from "@/components/dashboard/AlignmentToolbar";
@@ -19,6 +19,7 @@ const STATUS_COLORS: Record<Unidad["estado"], string> = {
   separado: "#eab308",
   reservada: "#f97316",
   vendida: "#ef4444",
+  proximamente: "#3b82f6",
 };
 
 const STATUS_LABELS: Record<Unidad["estado"], string> = {
@@ -26,11 +27,13 @@ const STATUS_LABELS: Record<Unidad["estado"], string> = {
   separado: "Separado",
   reservada: "Reservada",
   vendida: "Vendida",
+  proximamente: "Próximamente",
 };
 
 const EMPTY_DOT_COLOR = "#ffffff";
 const SELECTION_COLOR = "#38bdf8";
 const DRAG_THRESHOLD = 5; // px
+const MAX_UNDO = 50;
 
 /* ------------------------------------------------------------------
    Types
@@ -212,6 +215,12 @@ export function FacadeHotspotEditor({
   const dotInteractionRef = useRef<DotInteraction | null>(null);
   const canvasMouseDownRef = useRef<CanvasMouseDown | null>(null);
 
+  // Undo/redo history for empty dots
+  const undoStackRef = useRef<EmptyDot[][]>([]);
+  const redoStackRef = useRef<EmptyDot[][]>([]);
+  const [undoLen, setUndoLen] = useState(0);
+  const [redoLen, setRedoLen] = useState(0);
+
   // Stable ref to latest props
   const propsRef = useRef({ fachada, onUpdateUnit, onRemoveUnit, onClearAll });
   propsRef.current = { fachada, onUpdateUnit, onRemoveUnit, onClearAll };
@@ -220,6 +229,41 @@ export function FacadeHotspotEditor({
   const { getImageBounds, toPercent, toPx } = useHotspotCanvas(containerRef, imgRef);
   const toPercentRef = useRef(toPercent);
   toPercentRef.current = toPercent;
+
+  /* ---- Undo/redo helpers ---- */
+  const pushUndo = useCallback(() => {
+    undoStackRef.current.push(emptyDotsRef.current.map((d) => ({ ...d })));
+    if (undoStackRef.current.length > MAX_UNDO) undoStackRef.current.shift();
+    redoStackRef.current = [];
+    setUndoLen(undoStackRef.current.length);
+    setRedoLen(0);
+  }, []);
+
+  const handleUndo = useCallback(() => {
+    if (undoStackRef.current.length === 0) return;
+    const prev = undoStackRef.current.pop()!;
+    redoStackRef.current.push(emptyDotsRef.current.map((d) => ({ ...d })));
+    setEmptyDots(prev);
+    emptyDotsRef.current = prev;
+    setUndoLen(undoStackRef.current.length);
+    setRedoLen(redoStackRef.current.length);
+    setSelectedIds(new Set());
+    selectedIdsRef.current = new Set();
+    setActiveMenuDotId(null);
+  }, []);
+
+  const handleRedo = useCallback(() => {
+    if (redoStackRef.current.length === 0) return;
+    const next = redoStackRef.current.pop()!;
+    undoStackRef.current.push(emptyDotsRef.current.map((d) => ({ ...d })));
+    setEmptyDots(next);
+    emptyDotsRef.current = next;
+    setUndoLen(undoStackRef.current.length);
+    setRedoLen(redoStackRef.current.length);
+    setSelectedIds(new Set());
+    selectedIdsRef.current = new Set();
+    setActiveMenuDotId(null);
+  }, []);
 
   /* ================================================================
      Effects
@@ -248,6 +292,10 @@ export function FacadeHotspotEditor({
     setSelectedIds(new Set());
     selectedIdsRef.current = new Set();
     setActiveMenuDotId(null);
+    undoStackRef.current = [];
+    redoStackRef.current = [];
+    setUndoLen(0);
+    setRedoLen(0);
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [fachada.id]);
 
@@ -295,7 +343,25 @@ export function FacadeHotspotEditor({
     };
   }, []);
 
-  /* 5. Focus menu search when opened */
+  /* 5. Keyboard shortcuts: Ctrl+Z / Ctrl+Shift+Z */
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      const tag = (e.target as HTMLElement).tagName;
+      if (tag === "INPUT" || tag === "TEXTAREA") return;
+      if ((e.ctrlKey || e.metaKey) && e.key === "z" && !e.shiftKey) {
+        e.preventDefault();
+        handleUndo();
+      }
+      if ((e.ctrlKey || e.metaKey) && ((e.key === "z" && e.shiftKey) || e.key === "y")) {
+        e.preventDefault();
+        handleRedo();
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [handleUndo, handleRedo]);
+
+  /* 6. Focus menu search when opened */
   useEffect(() => {
     if (activeMenuDotId) {
       setMenuSearch("");
@@ -376,11 +442,20 @@ export function FacadeHotspotEditor({
         return;
       }
 
-      // Persist moved assigned unit positions
+      // Push undo snapshot if any empty dots moved
       const selected = selectedIdsRef.current;
       const idsToSave = selected.has(drag.dotId)
         ? [...selected]
         : [drag.dotId];
+      if (idsToSave.some((id) => drag.origEmptyDots.some((d) => d.localId === id))) {
+        undoStackRef.current.push(drag.origEmptyDots.map((d) => ({ ...d })));
+        if (undoStackRef.current.length > MAX_UNDO) undoStackRef.current.shift();
+        redoStackRef.current = [];
+        setUndoLen(undoStackRef.current.length);
+        setRedoLen(0);
+      }
+
+      // Persist moved assigned unit positions
 
       const currentPositions = positionsRef.current;
       const currentEmptyDots = emptyDotsRef.current;
@@ -510,6 +585,7 @@ export function FacadeHotspotEditor({
     if (movedDist > DRAG_THRESHOLD) return;
 
     // Click on empty canvas → create empty dot
+    pushUndo();
     const newDot: EmptyDot = {
       localId: crypto.randomUUID(),
       x: down.pos.x,
@@ -522,7 +598,7 @@ export function FacadeHotspotEditor({
     });
     setSelectedIds(new Set());
     selectedIdsRef.current = new Set();
-  }, [rectSelect]);
+  }, [rectSelect, pushUndo]);
 
   /* ================================================================
      Dot event handlers
@@ -635,6 +711,7 @@ export function FacadeHotspotEditor({
   const handleDeleteDot = useCallback(() => {
     if (!activeMenuDotId) return;
     if (isEmptyDotId(activeMenuDotId)) {
+      pushUndo();
       setEmptyDots((prev) => {
         const next = prev.filter((d) => d.localId !== activeMenuDotId);
         emptyDotsRef.current = next;
@@ -646,7 +723,7 @@ export function FacadeHotspotEditor({
     setActiveMenuDotId(null);
     setSelectedIds(new Set());
     selectedIdsRef.current = new Set();
-  }, [activeMenuDotId, isEmptyDotId]);
+  }, [activeMenuDotId, isEmptyDotId, pushUndo]);
 
   const handleUnassignDot = useCallback(() => {
     if (!activeMenuDotId || isEmptyDotId(activeMenuDotId)) return;
@@ -658,6 +735,7 @@ export function FacadeHotspotEditor({
 
   const handleBatchDelete = useCallback(() => {
     const ids = selectedIdsRef.current;
+    if ([...ids].some((id) => isEmptyDotId(id))) pushUndo();
     ids.forEach((id) => {
       if (isEmptyDotId(id)) {
         setEmptyDots((prev) => {
@@ -672,7 +750,7 @@ export function FacadeHotspotEditor({
     setSelectedIds(new Set());
     selectedIdsRef.current = new Set();
     setActiveMenuDotId(null);
-  }, [isEmptyDotId]);
+  }, [isEmptyDotId, pushUndo]);
 
   const handleBatchDuplicate = useCallback(() => {
     const ids = selectedIdsRef.current;
@@ -703,6 +781,7 @@ export function FacadeHotspotEditor({
         y: Math.min(100, pos.y + offset),
       });
     }
+    pushUndo();
     setEmptyDots((prev) => {
       const next = [...prev, ...newDots];
       emptyDotsRef.current = next;
@@ -711,7 +790,7 @@ export function FacadeHotspotEditor({
     const newIds = new Set(newDots.map((d) => d.localId));
     setSelectedIds(newIds);
     selectedIdsRef.current = newIds;
-  }, [getDotPos]);
+  }, [getDotPos, pushUndo]);
 
   const handleApplyRepeatRow = useCallback(() => {
     const ids = selectedIdsRef.current;
@@ -722,6 +801,7 @@ export function FacadeHotspotEditor({
     }
     if (sourceDots.length === 0) return;
     const newDots = generateRowRepeat(sourceDots, repeatCount, repeatSpacing, repeatDirection);
+    pushUndo();
     setEmptyDots((prev) => {
       const next = [...prev, ...newDots];
       emptyDotsRef.current = next;
@@ -731,10 +811,11 @@ export function FacadeHotspotEditor({
     setSelectedIds(newIds);
     selectedIdsRef.current = newIds;
     setShowRepeatRow(false);
-  }, [getDotPos, repeatCount, repeatSpacing, repeatDirection]);
+  }, [getDotPos, repeatCount, repeatSpacing, repeatDirection, pushUndo]);
 
   const handleApplyQuickGrid = useCallback(() => {
     const newDots = generateGrid(gridCols, gridRows, gridBounds.x1, gridBounds.y1, gridBounds.x2, gridBounds.y2);
+    pushUndo();
     setEmptyDots((prev) => {
       const next = [...prev, ...newDots];
       emptyDotsRef.current = next;
@@ -744,9 +825,10 @@ export function FacadeHotspotEditor({
     setSelectedIds(newIds);
     selectedIdsRef.current = newIds;
     setShowQuickGrid(false);
-  }, [gridCols, gridRows, gridBounds]);
+  }, [gridCols, gridRows, gridBounds, pushUndo]);
 
   const handleClearAll = useCallback(() => {
+    if (emptyDotsRef.current.length > 0) pushUndo();
     propsRef.current.onClearAll(propsRef.current.fachada.id);
     setEmptyDots([]);
     emptyDotsRef.current = [];
@@ -754,7 +836,7 @@ export function FacadeHotspotEditor({
     selectedIdsRef.current = new Set();
     setActiveMenuDotId(null);
     setConfirmClear(false);
-  }, []);
+  }, [pushUndo]);
 
   /* ================================================================
      Alignment
@@ -762,6 +844,7 @@ export function FacadeHotspotEditor({
   const handleAlign = useCallback(async (
     updates: { id: string; fachada_x: number; fachada_y: number }[]
   ) => {
+    pushUndo();
     // Update assigned positions optimistically
     setPositions((prev) => {
       const next = new Map(prev);
@@ -795,7 +878,7 @@ export function FacadeHotspotEditor({
         fachada_y: Math.round(u.fachada_y * 100) / 100,
       });
     }
-  }, []);
+  }, [pushUndo]);
 
   /* ================================================================
      Derived data (for rendering)
@@ -975,7 +1058,7 @@ export function FacadeHotspotEditor({
                   Confirmar
                 </button>
               </motion.div>
-            ) : (selectedIds.size >= 1 || positions.size > 0 || emptyDots.length > 0 || showQuickGrid) ? (
+            ) : (selectedIds.size >= 1 || positions.size > 0 || emptyDots.length > 0 || showQuickGrid || undoLen > 0 || redoLen > 0) ? (
               <motion.div
                 key="toolbar"
                 initial={{ opacity: 0, y: -8 }}
@@ -983,6 +1066,24 @@ export function FacadeHotspotEditor({
                 exit={{ opacity: 0, y: -8 }}
                 className="flex items-center gap-2 px-2 py-1.5 whitespace-nowrap bg-black/70 backdrop-blur-xl border border-[var(--border-default)] rounded-xl shadow-lg"
               >
+                {/* Undo / Redo */}
+                <button
+                  onClick={handleUndo}
+                  disabled={undoLen === 0}
+                  className="flex items-center justify-center w-7 h-7 text-[var(--text-secondary)] hover:text-white bg-[var(--surface-2)]/60 hover:bg-[var(--surface-3)] border border-[var(--border-subtle)] rounded-lg transition-all disabled:opacity-30 disabled:pointer-events-none"
+                  title="Deshacer (Ctrl+Z)"
+                >
+                  <Undo2 size={13} />
+                </button>
+                <button
+                  onClick={handleRedo}
+                  disabled={redoLen === 0}
+                  className="flex items-center justify-center w-7 h-7 text-[var(--text-secondary)] hover:text-white bg-[var(--surface-2)]/60 hover:bg-[var(--surface-3)] border border-[var(--border-subtle)] rounded-lg transition-all disabled:opacity-30 disabled:pointer-events-none"
+                  title="Rehacer (Ctrl+Shift+Z)"
+                >
+                  <Redo2 size={13} />
+                </button>
+                <div className="w-px h-5 bg-[var(--border-subtle)]" />
                 {selectedUnitsData.length >= 2 && (
                   <AlignmentToolbar
                     selectedUnits={selectedUnitsData}
@@ -1079,6 +1180,7 @@ export function FacadeHotspotEditor({
           onHover={setHoveredId}
           onContextMenu={(id, isEmpty) => {
             if (isEmpty) {
+              pushUndo();
               setEmptyDots((prev) => {
                 const next = prev.filter((d) => d.localId !== id);
                 emptyDotsRef.current = next;

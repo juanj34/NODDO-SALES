@@ -18,6 +18,8 @@ import {
   MessageCircle,
   Map as MapIcon,
   HardHat,
+  Settings,
+  Info,
 } from "lucide-react";
 import { useTranslation } from "@/i18n";
 import { LanguageToggle } from "@/components/ui/LanguageToggle";
@@ -47,6 +49,8 @@ export function SiteNav({ basePath, projectName, logoUrl, faviconUrl, constructo
   const pathname = usePathname();
   const [isOpen, setIsOpen] = useState(false);
   const [hoveredItem, setHoveredItem] = useState<string | null>(null);
+  const [showDisclaimer, setShowDisclaimer] = useState(false);
+  const [showSettings, setShowSettings] = useState(false);
   const { t: tNav } = useTranslation("nav");
   const { t: tCommon } = useTranslation("common");
 
@@ -76,7 +80,7 @@ export function SiteNav({ basePath, projectName, logoUrl, faviconUrl, constructo
         aria-label={isOpen ? tCommon("accessibility.closeMenu") : tCommon("accessibility.openMenu")}
         className="fixed top-6 left-6 z-[60] lg:hidden w-10 h-10 flex items-center justify-center glass rounded-xl cursor-pointer"
       >
-        <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" className="w-5 h-5 text-white">
+        <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" className="w-5 h-5 text-[var(--text-primary)]">
           {isOpen ? (
             <>
               <line x1="4" y1="4" x2="16" y2="16" />
@@ -100,7 +104,8 @@ export function SiteNav({ basePath, projectName, logoUrl, faviconUrl, constructo
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             onClick={() => setIsOpen(false)}
-            className="fixed inset-0 z-[49] bg-black/60 lg:hidden"
+            className="fixed inset-0 z-[49] lg:hidden"
+            style={{ backgroundColor: "rgba(var(--overlay-rgb), 0.6)" }}
           />
         )}
       </AnimatePresence>
@@ -177,8 +182,8 @@ export function SiteNav({ basePath, projectName, logoUrl, faviconUrl, constructo
                     "relative flex items-center gap-3 rounded-xl transition-all duration-200 cursor-pointer",
                     expanded ? "px-3 py-2.5" : "justify-center w-10 h-10 mx-auto",
                     isActive
-                      ? "text-white"
-                      : "text-[var(--text-tertiary)] hover:text-[var(--text-secondary)] hover:bg-white/[0.04]"
+                      ? "text-[var(--text-primary)]"
+                      : "text-[var(--text-tertiary)] hover:text-[var(--text-secondary)] hover:bg-[var(--glass-bg)]"
                   )}
                 >
                   {/* Active indicator — left accent bar with subtle glow */}
@@ -218,7 +223,7 @@ export function SiteNav({ basePath, projectName, logoUrl, faviconUrl, constructo
                         transition={{ duration: 0.15 }}
                         className="absolute left-full ml-3 top-1/2 -translate-y-1/2 z-[60] glass-dark px-3 py-1.5 rounded-lg whitespace-nowrap pointer-events-none"
                       >
-                        <span className="font-ui text-[10px] tracking-[0.1em] uppercase text-white/80 font-semibold">
+                        <span className="font-ui text-[10px] tracking-[0.1em] uppercase font-semibold" style={{ color: "rgba(var(--contrast-rgb), 0.8)" }}>
                           {item.label}
                         </span>
                       </motion.div>
@@ -230,74 +235,227 @@ export function SiteNav({ basePath, projectName, logoUrl, faviconUrl, constructo
           })}
         </div>
 
-        {/* Constructora logo — only in expanded mode */}
-        {expanded && constructoraLogoUrl && (
-          <div className="px-4 mb-3 flex-shrink-0 flex justify-center">
-            {constructoraWebsite ? (
-              <a href={constructoraWebsite} target="_blank" rel="noopener noreferrer" className="hover:opacity-60 transition-opacity">
-                <Image src={constructoraLogoUrl} alt="Constructora" width={400} height={300} className="h-6 w-auto object-contain opacity-40 hover:opacity-60 transition-opacity" />
-              </a>
-            ) : (
-              <Image src={constructoraLogoUrl} alt="Constructora" width={400} height={300} className="h-6 w-auto object-contain opacity-40" />
+        {/* Footer: Settings + Legal + Logos */}
+        <div className={cn("flex-shrink-0 mt-3", expanded ? "px-4 w-full space-y-3" : "flex flex-col items-center gap-2.5")}>
+
+          {/* Top row: Settings gear + Info icon */}
+          <div className={cn("flex items-center gap-2", expanded ? "w-full" : "")}>
+            {/* Settings popover trigger */}
+            <div className="relative">
+              <button
+                onClick={() => setShowSettings(!showSettings)}
+                onBlur={() => setTimeout(() => setShowSettings(false), 150)}
+                className={cn(
+                  "flex items-center justify-center rounded-lg transition-all cursor-pointer",
+                  expanded ? "w-7 h-7 gap-1.5" : "w-8 h-8",
+                  showSettings
+                    ? "bg-[var(--glass-bg)] text-[var(--site-primary)]"
+                    : "text-[var(--text-tertiary)] hover:text-[var(--text-secondary)] hover:bg-[var(--glass-bg)]"
+                )}
+                aria-label="Settings"
+              >
+                <Settings size={expanded ? 14 : 16} strokeWidth={1.5} />
+              </button>
+
+              {/* Settings panel */}
+              <AnimatePresence>
+                {showSettings && (
+                  <motion.div
+                    initial={{ opacity: 0, y: 4, scale: 0.95 }}
+                    animate={{ opacity: 1, y: 0, scale: 1 }}
+                    exit={{ opacity: 0, y: 4, scale: 0.95 }}
+                    transition={{ duration: 0.15 }}
+                    className={cn(
+                      "absolute z-[60] glass-card rounded-xl p-3 space-y-2.5",
+                      expanded ? "bottom-full mb-2 left-0" : "left-full ml-3 bottom-0"
+                    )}
+                    style={{ minWidth: "160px" }}
+                  >
+                    <div className="flex flex-col gap-2">
+                      {/* Language */}
+                      <div>
+                        <label className="block text-[8px] font-ui uppercase tracking-[0.12em] text-[var(--text-muted)] mb-1.5">
+                          {tCommon("language")}
+                        </label>
+                        <LanguageToggle compact={false} />
+                      </div>
+
+                      {/* Currency */}
+                      <div>
+                        <label className="block text-[8px] font-ui uppercase tracking-[0.12em] text-[var(--text-muted)] mb-1.5">
+                          {tCommon("currency")}
+                        </label>
+                        <CurrencySelector />
+                      </div>
+
+                      {/* Units */}
+                      <div>
+                        <label className="block text-[8px] font-ui uppercase tracking-[0.12em] text-[var(--text-muted)] mb-1.5">
+                          {tCommon("units")}
+                        </label>
+                        <UnitToggle />
+                      </div>
+
+                      {/* Separator */}
+                      <div className="h-px bg-[var(--border-subtle)]" />
+
+                      {/* Audio */}
+                      <div className="flex items-center justify-between">
+                        <label className="text-[8px] font-ui uppercase tracking-[0.12em] text-[var(--text-muted)]">
+                          {tCommon("audio")}
+                        </label>
+                        <AudioMuteButton size={14} />
+                      </div>
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
+
+            {/* Info icon for disclaimer/privacy */}
+            {(disclaimer || politicaPrivacidadUrl) && (
+              <button
+                onClick={() => setShowDisclaimer(true)}
+                className={cn(
+                  "flex items-center justify-center rounded-lg transition-all cursor-pointer",
+                  expanded ? "w-7 h-7" : "w-8 h-8",
+                  "text-[var(--text-tertiary)] hover:text-[var(--site-primary)] hover:bg-[var(--glass-bg)]"
+                )}
+                aria-label="Legal information"
+              >
+                <Info size={expanded ? 14 : 16} strokeWidth={1.5} />
+              </button>
             )}
+
+            {expanded && <div className="flex-1" />}
           </div>
-        )}
 
-        {/* Disclaimer — only in expanded mode */}
-        {expanded && disclaimer && (
-          <p className="px-4 mb-2 text-[9px] text-[var(--text-muted)] leading-relaxed flex-shrink-0">
-            {disclaimer}
-          </p>
-        )}
+          {/* Bottom row: Logos (always horizontal) */}
+          <div className={cn(
+            "flex items-center gap-3",
+            expanded ? "w-full justify-between" : "justify-center"
+          )}>
+            {/* Constructora logo */}
+            {constructoraLogoUrl ? (
+              constructoraWebsite ? (
+                <a
+                  href={constructoraWebsite}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="opacity-30 hover:opacity-50 transition-opacity flex-shrink-0"
+                >
+                  <Image
+                    src={constructoraLogoUrl}
+                    alt="Constructora"
+                    width={400}
+                    height={300}
+                    className={cn(
+                      "object-contain",
+                      expanded ? "h-5 w-auto max-w-[80px]" : "h-4 w-auto max-w-[50px]"
+                    )}
+                  />
+                </a>
+              ) : (
+                <div className="opacity-30 flex-shrink-0">
+                  <Image
+                    src={constructoraLogoUrl}
+                    alt="Constructora"
+                    width={400}
+                    height={300}
+                    className={cn(
+                      "object-contain",
+                      expanded ? "h-5 w-auto max-w-[80px]" : "h-4 w-auto max-w-[50px]"
+                    )}
+                  />
+                </div>
+              )
+            ) : (
+              <div className="flex-shrink-0" />
+            )}
 
-        {/* Privacy policy link */}
-        {expanded && politicaPrivacidadUrl && (
-          <a
-            href={politicaPrivacidadUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="block px-4 mb-2 text-[9px] text-[var(--text-muted)] hover:text-[var(--site-primary)] underline underline-offset-2 transition-colors flex-shrink-0"
-          >
-            {tNav("privacyPolicy")}
-          </a>
-        )}
-
-        {/* Preferencias: Language, Currency, Unit, Audio */}
-        <div className={cn("flex-shrink-0 mt-3 space-y-2", expanded ? "px-4 w-full" : "flex flex-col items-center")}>
-          {expanded && (
-            <p className="text-[9px] font-ui uppercase tracking-[0.15em] text-[var(--text-muted)] mb-1">
-              Preferencias
-            </p>
-          )}
-          <div className={cn("flex items-center gap-2", expanded ? "w-full justify-start flex-wrap" : "flex-col")}>
-            <LanguageToggle compact={!expanded} />
-            <CurrencySelector />
-            <UnitToggle />
-            <AudioMuteButton size={14} />
+            {/* Powered by NodDo */}
+            {!hideNoddoBadge && (
+              <a
+                href="https://noddo.io"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center gap-1.5 no-underline opacity-25 hover:opacity-50 transition-opacity flex-shrink-0"
+              >
+                {expanded && (
+                  <span className="text-[7px] tracking-[0.1em] uppercase text-[var(--text-tertiary)]">
+                    by
+                  </span>
+                )}
+                <NodDoLogo width={expanded ? 44 : 28} colorNod="var(--text-secondary)" colorDo="#b8983c" />
+              </a>
+            )}
           </div>
         </div>
 
-        {/* Powered by Noddo */}
-        {!hideNoddoBadge && (
-          <a
-            href="https://noddo.io"
-            target="_blank"
-            rel="noopener noreferrer"
-            className={cn(
-              "flex-shrink-0 mt-3 flex flex-col items-center gap-0.5 no-underline opacity-25 hover:opacity-50 transition-opacity",
-              expanded ? "px-4" : "px-1"
-            )}
-          >
-            {expanded && (
-              <span className="text-[7px] tracking-[0.15em] uppercase text-white/50">
-                powered by
-              </span>
-            )}
-            <NodDoLogo width={expanded ? 56 : 32} colorNod="#fff" colorDo="#b8983c" />
-          </a>
-        )}
-
       </motion.nav>
+
+      {/* Legal info modal (Disclaimer + Privacy) */}
+      <AnimatePresence>
+        {showDisclaimer && (disclaimer || politicaPrivacidadUrl) && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[70] flex items-center justify-center p-6"
+            onClick={() => setShowDisclaimer(false)}
+          >
+            <div className="absolute inset-0 backdrop-blur-sm" style={{ backgroundColor: "rgba(var(--overlay-rgb), 0.7)" }} />
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95, y: 8 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 8 }}
+              transition={{ duration: 0.2, ease: [0.4, 0, 0.2, 1] }}
+              onClick={(e) => e.stopPropagation()}
+              className="relative glass-card max-w-lg w-full p-6"
+            >
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="font-ui text-[11px] uppercase tracking-[0.15em] font-semibold text-[var(--text-secondary)]">
+                  {tNav("legalInfo")}
+                </h3>
+                <button
+                  onClick={() => setShowDisclaimer(false)}
+                  className="w-7 h-7 flex items-center justify-center rounded-lg hover:bg-[var(--glass-bg-hover)] transition-colors text-[var(--text-tertiary)] hover:text-[var(--text-secondary)] cursor-pointer"
+                >
+                  <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" className="w-3.5 h-3.5">
+                    <line x1="4" y1="4" x2="12" y2="12" />
+                    <line x1="12" y1="4" x2="4" y2="12" />
+                  </svg>
+                </button>
+              </div>
+
+              {disclaimer && (
+                <div className="mb-4">
+                  <h4 className="font-ui text-[9px] uppercase tracking-[0.12em] text-[var(--text-muted)] mb-2">
+                    Disclaimer
+                  </h4>
+                  <p className="font-mono text-[11px] text-[var(--text-tertiary)] leading-[1.8]">
+                    {disclaimer}
+                  </p>
+                </div>
+              )}
+
+              {politicaPrivacidadUrl && (
+                <a
+                  href={politicaPrivacidadUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-2 text-[10px] font-ui uppercase tracking-[0.1em] text-[var(--site-primary)] hover:opacity-70 transition-opacity"
+                >
+                  {tNav("privacyPolicy")}
+                  <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" className="w-3 h-3">
+                    <path d="M12 4L4 12M12 4v6M12 4H6" />
+                  </svg>
+                </a>
+              )}
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </>
   );
 }

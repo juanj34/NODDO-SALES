@@ -17,7 +17,6 @@ import { HotspotEditor } from "@/components/dashboard/HotspotEditor";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Plus,
-  Save,
   Loader2,
   Trash2,
   X,
@@ -43,13 +42,17 @@ import {
 import { useToast } from "@/components/dashboard/Toast";
 import { useConfirm } from "@/components/dashboard/ConfirmModal";
 import { useTranslation } from "@/i18n";
-import type { Tipologia, TipologiaHotspot, TipoTipologia, Currency } from "@/types";
+import type { Tipologia, TipologiaHotspot, TipologiaPiso, TipoTipologia, Currency } from "@/types";
+import { resolvePisos } from "@/lib/piso-utils";
 import { CurrencyInput } from "@/components/dashboard/CurrencyInput";
+import { PriceAuditBadge } from "@/components/dashboard/PriceAuditBadge";
 import { deriveTipoTipologia, getInventoryColumns, getHybridInventoryColumns } from "@/lib/inventory-columns";
 import { AITextImprover } from "@/components/dashboard/AITextImprover";
 import { tipologiaSchema } from "@/lib/validation/schemas";
 import { InlineError } from "@/components/ui/ErrorBoundary";
 import { ZodError } from "zod";
+import { useAutoSave } from "@/hooks/useAutoSave";
+import { AutoSaveIndicator } from "@/components/dashboard/AutoSaveIndicator";
 
 /* ─── Form types ─── */
 
@@ -70,6 +73,7 @@ interface TipoForm {
   depositos: string;
   area_balcon: string;
   hotspots: TipologiaHotspot[];
+  pisos: TipologiaPiso[];
   ubicacion_plano_url: string;
   torre_ids: string[];
   tipo_tipologia: TipoTipologia | "";
@@ -92,12 +96,18 @@ const emptyTipologia: TipoForm = {
   depositos: "",
   area_balcon: "",
   hotspots: [],
+  pisos: [],
   ubicacion_plano_url: "",
   torre_ids: [],
   tipo_tipologia: "",
 };
 
 function tipologiaToForm(t: Tipologia): TipoForm {
+  const resolved = resolvePisos(t);
+  const pisos = resolved.map((p) => ({
+    ...p,
+    id: p.id === "legacy-piso-0" ? crypto.randomUUID() : p.id,
+  }));
   return {
     nombre: t.nombre,
     descripcion: t.descripcion || "",
@@ -115,6 +125,7 @@ function tipologiaToForm(t: Tipologia): TipoForm {
     depositos: t.depositos != null ? String(t.depositos) : "",
     area_balcon: t.area_balcon != null ? String(t.area_balcon) : "",
     hotspots: t.hotspots || [],
+    pisos,
     ubicacion_plano_url: t.ubicacion_plano_url || "",
     torre_ids: t.torre_ids || [],
     tipo_tipologia: t.tipo_tipologia || "",
@@ -260,17 +271,111 @@ export default function TipologiasPage() {
   const torres = useMemo(() => project.torres || [], [project.torres]);
   const isMultiTorre = torres.length > 1;
   const torresLabel = project.tipo_proyecto === "apartamentos" ? "Torres" : "Etapas";
+  const isHibrido = project.tipo_proyecto === "hibrido";
 
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [isCreating, setIsCreating] = useState(false);
   const [form, setForm] = useState<TipoForm>({ ...emptyTipologia });
-  const [saving, setSaving] = useState(false);
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [caracInput, setCaracInput] = useState("");
   const [activeTab, setActiveTab] = useState<TipoTab>("general");
   const [activeTorreId, setActiveTorreId] = useState<string | null>(null);
   const [duplicatingId, setDuplicatingId] = useState<string | null>(null);
   const [validationError, setValidationError] = useState<string | null>(null);
+  const [activePisoIndex, setActivePisoIndex] = useState(0);
+
+  /* ─── Build payload helper ─── */
+  const buildPayload = useCallback(() => ({
+    nombre: form.nombre,
+    descripcion: form.descripcion || null,
+    area_m2: parseOptionalNumber(form.area_m2),
+    area_construida: parseOptionalNumber(form.area_construida),
+    area_privada: parseOptionalNumber(form.area_privada),
+    area_lote: parseOptionalNumber(form.area_lote),
+    habitaciones: parseOptionalNumber(form.habitaciones),
+    banos: parseOptionalNumber(form.banos),
+    precio_desde: parseOptionalNumber(form.precio_desde),
+    plano_url: form.pisos.length > 0 ? (form.pisos[0].plano_url || null) : (form.plano_url || null),
+    renders: form.renders.filter((r) => r),
+    caracteristicas: form.caracteristicas,
+    parqueaderos: parseOptionalNumber(form.parqueaderos),
+    depositos: parseOptionalNumber(form.depositos),
+    area_balcon: parseOptionalNumber(form.area_balcon),
+    hotspots: form.pisos.length > 0 ? form.pisos[0].hotspots : form.hotspots,
+    pisos: form.pisos.length > 0 ? form.pisos : null,
+    ubicacion_plano_url: form.ubicacion_plano_url || null,
+    torre_ids: isMultiTorre ? form.torre_ids : [],
+    tipo_tipologia: isHibrido
+      ? (form.tipo_tipologia || null)
+      : deriveTipoTipologia(project.tipo_proyecto),
+  }), [form, isMultiTorre, isHibrido, project.tipo_proyecto]);
+
+  /* ─── Auto-save function ─── */
+  const performSave = useCallback(async () => {
+    const payload = buildPayload();
+
+    // Validate
+    tipologiaSchema.parse(payload);
+
+    if (selectedId && !isCreating) {
+      // Update existing
+      const res = await fetch(`/api/tipologias/${selectedId}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+
+      if (!res.ok) {
+        const errorText = await res.text();
+        throw new Error(errorText || res.statusText);
+      }
+
+      await refresh();
+    } else if (isCreating) {
+      // Create new
+      const res = await fetch("/api/tipologias", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ proyecto_id: projectId, ...payload }),
+      });
+
+      if (!res.ok) {
+        const errorText = await res.text();
+        throw new Error(errorText || res.statusText);
+      }
+
+      const created = await res.json();
+      await refresh();
+
+      // Select the newly created tipologia
+      if (created?.id) {
+        setSelectedId(created.id);
+        setIsCreating(false);
+      }
+    }
+  }, [buildPayload, selectedId, isCreating, projectId, refresh]);
+
+  /* ─── Auto-save hook ─── */
+  const { status: autoSaveStatus } = useAutoSave({
+    data: form,
+    onSave: performSave,
+    delay: 1500,
+    shouldSave: (data) => {
+      // Only auto-save if we have a valid name
+      if (!data.nombre.trim()) return false;
+      // Only auto-save if we're editing an existing tipologia or creating a new one
+      if (!selectedId && !isCreating) return false;
+      return true;
+    },
+    onSaveError: (error) => {
+      if (error instanceof ZodError) {
+        setValidationError(error.issues[0]?.message || "Error de validación");
+        toast.error(error.issues[0]?.message || "Error de validación");
+      } else {
+        toast.error("Error al guardar: " + error.message);
+      }
+    },
+  });
 
   const filteredTipologias = useMemo(() => {
     if (!isMultiTorre || activeTorreId === null) return tipologias;
@@ -304,6 +409,7 @@ export default function TipologiasPage() {
     setForm(tipologiaToForm(t));
     setCaracInput("");
     setActiveTab("general");
+    setActivePisoIndex(0);
   }, []);
 
   const startCreating = () => {
@@ -333,6 +439,42 @@ export default function TipologiasPage() {
     updateForm("caracteristicas", form.caracteristicas.filter((_, i) => i !== idx));
   };
 
+  /* ─── Floor (piso) helpers ─── */
+
+  const addFloor = () => {
+    const newPiso: TipologiaPiso = {
+      id: crypto.randomUUID(),
+      nombre: `Piso ${form.pisos.length + 1}`,
+      plano_url: "",
+      hotspots: [],
+      orden: form.pisos.length,
+    };
+    setForm((prev) => ({ ...prev, pisos: [...prev.pisos, newPiso] }));
+    setActivePisoIndex(form.pisos.length);
+  };
+
+  const removeFloor = async (index: number) => {
+    if (
+      !(await confirm({
+        title: t("tipologias.removeFloor"),
+        message: t("tipologias.removeFloorConfirm"),
+      }))
+    )
+      return;
+    setForm((prev) => ({
+      ...prev,
+      pisos: prev.pisos.filter((_, i) => i !== index).map((p, i) => ({ ...p, orden: i })),
+    }));
+    setActivePisoIndex((prev) => Math.max(0, prev >= index ? prev - 1 : prev));
+  };
+
+  const updatePiso = (index: number, updates: Partial<TipologiaPiso>) => {
+    setForm((prev) => ({
+      ...prev,
+      pisos: prev.pisos.map((p, i) => (i === index ? { ...p, ...updates } : p)),
+    }));
+  };
+
   /* Compute cheapest available unit price for selected tipologia */
   const computedPrecioDesde = useMemo(() => {
     if (!selectedId) return "";
@@ -348,8 +490,6 @@ export default function TipologiasPage() {
     }).format(min);
   }, [selectedId, unidades]);
 
-  const isHibrido = project.tipo_proyecto === "hibrido";
-
   const effectiveColumns = useMemo(() => {
     if (isHibrido && form.tipo_tipologia) {
       return getHybridInventoryColumns(form.tipo_tipologia as "apartamento" | "casa" | "lote", project.inventory_columns_by_type);
@@ -357,84 +497,6 @@ export default function TipologiasPage() {
     return getInventoryColumns(project.tipo_proyecto ?? "hibrido", project.inventory_columns);
   }, [isHibrido, form.tipo_tipologia, project.tipo_proyecto, project.inventory_columns, project.inventory_columns_by_type]);
 
-  const buildPayload = () => ({
-    nombre: form.nombre,
-    descripcion: form.descripcion || null,
-    area_m2: parseOptionalNumber(form.area_m2),
-    area_construida: parseOptionalNumber(form.area_construida),
-    area_privada: parseOptionalNumber(form.area_privada),
-    area_lote: parseOptionalNumber(form.area_lote),
-    habitaciones: parseOptionalNumber(form.habitaciones),
-    banos: parseOptionalNumber(form.banos),
-    precio_desde: parseOptionalNumber(form.precio_desde),
-    plano_url: form.plano_url || null,
-    renders: form.renders.filter((r) => r),
-    caracteristicas: form.caracteristicas,
-    parqueaderos: parseOptionalNumber(form.parqueaderos),
-    depositos: parseOptionalNumber(form.depositos),
-    area_balcon: parseOptionalNumber(form.area_balcon),
-    hotspots: form.hotspots,
-    ubicacion_plano_url: form.ubicacion_plano_url || null,
-    torre_ids: isMultiTorre ? form.torre_ids : [],
-    tipo_tipologia: isHibrido
-      ? (form.tipo_tipologia || null)
-      : deriveTipoTipologia(project.tipo_proyecto),
-  });
-
-  const handleSave = async () => {
-    if (!form.nombre.trim()) return;
-    setSaving(true);
-    setValidationError(null);
-
-    try {
-      const payload = buildPayload();
-
-      // Validate tipologia data
-      tipologiaSchema.parse(payload);
-
-      if (selectedId && !isCreating) {
-        const res = await fetch(`/api/tipologias/${selectedId}`, {
-          method: "PUT",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(payload),
-        });
-        if (!res.ok) {
-          toast.error("Error al guardar tipología");
-          return;
-        }
-        await refresh();
-      } else {
-        const res = await fetch("/api/tipologias", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ proyecto_id: projectId, ...payload }),
-        });
-        if (!res.ok) {
-          toast.error("Error al crear tipología");
-          return;
-        }
-        const created = await res.json();
-        await refresh();
-        // Select the newly created tipologia
-        if (created?.id) {
-          setSelectedId(created.id);
-          setIsCreating(false);
-        }
-      }
-    } catch (err) {
-      if (err instanceof ZodError) {
-        const zodError = err as ZodError;
-        if (zodError.issues?.length > 0) {
-          setValidationError(zodError.issues[0].message);
-          toast.error(zodError.issues[0].message);
-        }
-      } else {
-        toast.error("Error de conexión");
-      }
-    } finally {
-      setSaving(false);
-    }
-  };
 
   const handleDelete = async (id: string) => {
     const tip = tipologias.find((t) => t.id === id);
@@ -494,6 +556,7 @@ export default function TipologiasPage() {
         depositos: tip.depositos,
         area_balcon: tip.area_balcon,
         hotspots: tip.hotspots || [],
+        pisos: tip.pisos || null,
         ubicacion_plano_url: tip.ubicacion_plano_url || null,
         torre_ids: tip.torre_ids || [],
       };
@@ -720,25 +783,31 @@ export default function TipologiasPage() {
                   <h3 className="text-sm font-medium text-[var(--text-secondary)] truncate">
                     {isCreating ? t("tipologias.newType") : form.nombre || "—"}
                   </h3>
-                  {isCreating && (
-                    <button
-                      onClick={() => {
-                        setIsCreating(false);
-                        if (filteredTipologias.length > 0) selectTipologia(filteredTipologias[0]);
-                      }}
-                      className="text-[var(--text-muted)] hover:text-[var(--text-secondary)]"
-                    >
-                      <X size={16} />
-                    </button>
-                  )}
+                  <div className="flex items-center gap-2">
+                    {/* Auto-save indicator */}
+                    {(selectedId || isCreating) && form.nombre.trim() && (
+                      <AutoSaveIndicator status={autoSaveStatus} />
+                    )}
+                    {isCreating && (
+                      <button
+                        onClick={() => {
+                          setIsCreating(false);
+                          if (filteredTipologias.length > 0) selectTipologia(filteredTipologias[0]);
+                        }}
+                        className="text-[var(--text-muted)] hover:text-[var(--text-secondary)]"
+                      >
+                        <X size={16} />
+                      </button>
+                    )}
+                  </div>
                 </div>
 
                 {/* Tab bar */}
                 <div className="px-6 flex gap-0.5">
                   {TIPO_TABS.map((tab) => {
                     const isActive = activeTab === tab.id;
-                    const hasPlano = !!form.plano_url;
-                    const hotspotCount = form.hotspots.length;
+                    const hasPlano = form.pisos.some((p) => !!p.plano_url);
+                    const hotspotCount = form.pisos.reduce((sum, p) => sum + p.hotspots.length, 0);
 
                     return (
                       <button
@@ -884,6 +953,67 @@ export default function TipologiasPage() {
                             maxLength={5000}
                           />
                         </div>
+
+                        {/* ── Precio ── */}
+                        <div>
+                          <label className={labelClass}>Precio</label>
+                          {project?.precio_source === "tipologia" ? (
+                            <>
+                              <div className="max-w-xs space-y-2">
+                                <div className="flex items-center gap-3 p-3 bg-[var(--surface-1)] rounded-xl border border-[rgba(var(--site-primary-rgb),0.15)] transition-all">
+                                  <div className="w-9 h-9 rounded-lg bg-[rgba(var(--site-primary-rgb),0.12)] flex items-center justify-center shrink-0">
+                                    <DollarSign size={16} className="text-[var(--site-primary)]" />
+                                  </div>
+                                  <div className="flex-1 min-w-0">
+                                    <CurrencyInput
+                                      value={form.precio_desde ? Number(form.precio_desde) : ""}
+                                      onChange={(v) => updateForm("precio_desde", v != null ? String(v) : "")}
+                                      currency={(project?.moneda_base as Currency) || "COP"}
+                                      placeholder="350,000,000"
+                                      inputClassName="w-full bg-transparent text-sm font-medium text-[var(--site-primary)] placeholder:text-[var(--text-muted)] focus:outline-none border-none p-0"
+                                    />
+                                  </div>
+                                </div>
+                                {selectedId && (() => {
+                                  const currentTipo = tipologias.find(t => t.id === selectedId);
+                                  return currentTipo && (
+                                    <PriceAuditBadge
+                                      tipologiaId={currentTipo.id}
+                                      updatedAt={currentTipo.precio_actualizado_en}
+                                      updatedBy={currentTipo.precio_actualizado_por}
+                                      currency={(project?.moneda_base as Currency) || "COP"}
+                                    />
+                                  );
+                                })()}
+                              </div>
+                              <p className="text-[10px] text-[var(--text-muted)] mt-2 leading-relaxed">
+                                {t("tipologias.precioTipologiaHint")}
+                              </p>
+                            </>
+                          ) : (
+                            <>
+                              <div className="max-w-xs">
+                                <div className="flex items-center gap-3 p-3 bg-[var(--surface-1)] rounded-xl border border-[rgba(var(--site-primary-rgb),0.15)] transition-all">
+                                  <div className="w-9 h-9 rounded-lg bg-[rgba(var(--site-primary-rgb),0.12)] flex items-center justify-center shrink-0">
+                                    <DollarSign size={16} className="text-[var(--site-primary)]" />
+                                  </div>
+                                  <div className="flex-1 min-w-0">
+                                    <p className="font-ui text-[10px] text-[var(--text-muted)] uppercase tracking-wider font-bold mb-0.5">Precio mínimo</p>
+                                    <p className="text-sm font-medium text-[var(--site-primary)]">
+                                      {computedPrecioDesde || "—"}
+                                    </p>
+                                  </div>
+                                </div>
+                              </div>
+                              <p className="text-[10px] text-[var(--text-muted)] mt-2 leading-relaxed">
+                                {computedPrecioDesde
+                                  ? "Precio calculado desde las unidades disponibles de esta tipología"
+                                  : t("tipologias.noUnitsHint")}
+                              </p>
+                            </>
+                          )}
+                        </div>
+
                         <div>
                           <label className={labelClass}>{t("tipologias.features")}</label>
                           <div className="flex flex-wrap gap-2 mb-2">
@@ -962,30 +1092,28 @@ export default function TipologiasPage() {
                                 </div>
                               </div>
                             )}
-                            {effectiveColumns.area_construida && (
-                              <div className="flex items-center gap-3 p-3 bg-[var(--surface-1)] rounded-xl border border-[var(--border-subtle)] hover:border-[var(--border-default)] transition-all">
-                                <div className="w-9 h-9 rounded-lg bg-[var(--surface-2)] flex items-center justify-center shrink-0">
-                                  <Ruler size={16} className="text-[var(--text-tertiary)]" />
-                                </div>
-                                <div className="flex-1 min-w-0">
-                                  <p className="font-ui text-[10px] text-[var(--text-muted)] uppercase tracking-wider font-bold mb-0.5">{t("inventario.columns.areaConstruida")}</p>
-                                  <input type="number" value={form.area_construida} onChange={(e) => updateForm("area_construida", e.target.value)} placeholder="0" className="w-full bg-transparent text-sm text-white placeholder:text-[var(--text-muted)] focus:outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none" />
-                                </div>
-                                {form.area_construida && <span className="text-[11px] text-[var(--text-muted)] shrink-0">m²</span>}
+                            {/* ALWAYS show area_construida for tipologías (house specs) */}
+                            <div className="flex items-center gap-3 p-3 bg-[var(--surface-1)] rounded-xl border border-[var(--border-subtle)] hover:border-[var(--border-default)] transition-all">
+                              <div className="w-9 h-9 rounded-lg bg-[var(--surface-2)] flex items-center justify-center shrink-0">
+                                <Ruler size={16} className="text-[var(--text-tertiary)]" />
                               </div>
-                            )}
-                            {effectiveColumns.area_privada && (
-                              <div className="flex items-center gap-3 p-3 bg-[var(--surface-1)] rounded-xl border border-[var(--border-subtle)] hover:border-[var(--border-default)] transition-all">
-                                <div className="w-9 h-9 rounded-lg bg-[var(--surface-2)] flex items-center justify-center shrink-0">
-                                  <Home size={16} className="text-[var(--text-tertiary)]" />
-                                </div>
-                                <div className="flex-1 min-w-0">
-                                  <p className="font-ui text-[10px] text-[var(--text-muted)] uppercase tracking-wider font-bold mb-0.5">{t("inventario.columns.areaPrivada")}</p>
-                                  <input type="number" value={form.area_privada} onChange={(e) => updateForm("area_privada", e.target.value)} placeholder="0" className="w-full bg-transparent text-sm text-white placeholder:text-[var(--text-muted)] focus:outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none" />
-                                </div>
-                                {form.area_privada && <span className="text-[11px] text-[var(--text-muted)] shrink-0">m²</span>}
+                              <div className="flex-1 min-w-0">
+                                <p className="font-ui text-[10px] text-[var(--text-muted)] uppercase tracking-wider font-bold mb-0.5">{t("inventario.columns.areaConstruida")}</p>
+                                <input type="number" value={form.area_construida} onChange={(e) => updateForm("area_construida", e.target.value)} placeholder="0" className="w-full bg-transparent text-sm text-white placeholder:text-[var(--text-muted)] focus:outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none" />
                               </div>
-                            )}
+                              {form.area_construida && <span className="text-[11px] text-[var(--text-muted)] shrink-0">m²</span>}
+                            </div>
+                            {/* ALWAYS show area_privada for tipologías (house specs) */}
+                            <div className="flex items-center gap-3 p-3 bg-[var(--surface-1)] rounded-xl border border-[var(--border-subtle)] hover:border-[var(--border-default)] transition-all">
+                              <div className="w-9 h-9 rounded-lg bg-[var(--surface-2)] flex items-center justify-center shrink-0">
+                                <Home size={16} className="text-[var(--text-tertiary)]" />
+                              </div>
+                              <div className="flex-1 min-w-0">
+                                <p className="font-ui text-[10px] text-[var(--text-muted)] uppercase tracking-wider font-bold mb-0.5">{t("inventario.columns.areaPrivada")}</p>
+                                <input type="number" value={form.area_privada} onChange={(e) => updateForm("area_privada", e.target.value)} placeholder="0" className="w-full bg-transparent text-sm text-white placeholder:text-[var(--text-muted)] focus:outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none" />
+                              </div>
+                              {form.area_privada && <span className="text-[11px] text-[var(--text-muted)] shrink-0">m²</span>}
+                            </div>
                             {effectiveColumns.area_lote && (
                               <div className="flex items-center gap-3 p-3 bg-[var(--surface-1)] rounded-xl border border-[var(--border-subtle)] hover:border-[var(--border-default)] transition-all">
                                 <div className="w-9 h-9 rounded-lg bg-[var(--surface-2)] flex items-center justify-center shrink-0">
@@ -1006,89 +1134,67 @@ export default function TipologiasPage() {
                           <p className="font-ui text-[10px] text-[var(--text-muted)] uppercase tracking-wider mb-2 font-bold">
                             {t("tipologias.specsSpaces")}
                           </p>
-                          <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-                            <div className="flex items-center gap-3 p-3 bg-[var(--surface-1)] rounded-xl border border-[var(--border-subtle)] hover:border-[var(--border-default)] transition-all">
-                              <div className="w-9 h-9 rounded-lg bg-[var(--surface-2)] flex items-center justify-center shrink-0">
+                          <div className="flex items-center gap-4 flex-wrap">
+                            {/* Habitaciones */}
+                            <div className="flex flex-col items-center gap-1">
+                              <div className="flex items-center gap-2 px-3 py-2 bg-[var(--surface-1)] rounded-lg border border-[var(--border-subtle)] hover:border-[var(--border-default)] transition-all">
                                 <BedDouble size={16} className="text-[var(--text-tertiary)]" />
-                              </div>
-                              <div className="flex-1 min-w-0">
-                                <p className="font-ui text-[10px] text-[var(--text-muted)] uppercase tracking-wider font-bold mb-0.5">{t("tipologias.bedrooms")}</p>
-                                <input type="number" value={form.habitaciones} onChange={(e) => updateForm("habitaciones", e.target.value)} placeholder="0" className="w-full bg-transparent text-sm text-white placeholder:text-[var(--text-muted)] focus:outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none" />
-                              </div>
-                            </div>
-                            <div className="flex items-center gap-3 p-3 bg-[var(--surface-1)] rounded-xl border border-[var(--border-subtle)] hover:border-[var(--border-default)] transition-all">
-                              <div className="w-9 h-9 rounded-lg bg-[var(--surface-2)] flex items-center justify-center shrink-0">
-                                <Bath size={16} className="text-[var(--text-tertiary)]" />
-                              </div>
-                              <div className="flex-1 min-w-0">
-                                <p className="font-ui text-[10px] text-[var(--text-muted)] uppercase tracking-wider font-bold mb-0.5">{t("tipologias.bathrooms")}</p>
-                                <input type="number" value={form.banos} onChange={(e) => updateForm("banos", e.target.value)} placeholder="0" className="w-full bg-transparent text-sm text-white placeholder:text-[var(--text-muted)] focus:outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none" />
-                              </div>
-                            </div>
-                            <div className="flex items-center gap-3 p-3 bg-[var(--surface-1)] rounded-xl border border-[var(--border-subtle)] hover:border-[var(--border-default)] transition-all">
-                              <div className="w-9 h-9 rounded-lg bg-[var(--surface-2)] flex items-center justify-center shrink-0">
-                                <Car size={16} className="text-[var(--text-tertiary)]" />
-                              </div>
-                              <div className="flex-1 min-w-0">
-                                <p className="font-ui text-[10px] text-[var(--text-muted)] uppercase tracking-wider font-bold mb-0.5">{t("tipologias.parking")}</p>
-                                <input type="number" value={form.parqueaderos} onChange={(e) => updateForm("parqueaderos", e.target.value)} placeholder="0" className="w-full bg-transparent text-sm text-white placeholder:text-[var(--text-muted)] focus:outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none" />
-                              </div>
-                            </div>
-                            <div className="flex items-center gap-3 p-3 bg-[var(--surface-1)] rounded-xl border border-[var(--border-subtle)] hover:border-[var(--border-default)] transition-all">
-                              <div className="w-9 h-9 rounded-lg bg-[var(--surface-2)] flex items-center justify-center shrink-0">
-                                <Archive size={16} className="text-[var(--text-tertiary)]" />
-                              </div>
-                              <div className="flex-1 min-w-0">
-                                <p className="font-ui text-[10px] text-[var(--text-muted)] uppercase tracking-wider font-bold mb-0.5">Depósitos</p>
-                                <input type="number" value={form.depositos} onChange={(e) => updateForm("depositos", e.target.value)} placeholder="0" className="w-full bg-transparent text-sm text-white placeholder:text-[var(--text-muted)] focus:outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none" />
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-
-                        {/* ── Precio ── */}
-                        <div>
-                          <p className="font-ui text-[10px] text-[var(--text-muted)] uppercase tracking-wider mb-2 font-bold">
-                            {t("tipologias.specsPricing")}
-                          </p>
-                          {project?.precio_source === "tipologia" ? (
-                            <>
-                              <div className="max-w-xs">
-                                <label className={labelClass}>{t("tipologias.precioTipologia")}</label>
-                                <CurrencyInput
-                                  value={form.precio_desde ? Number(form.precio_desde) : ""}
-                                  onChange={(v) => updateForm("precio_desde", v != null ? String(v) : "")}
-                                  currency={(project?.moneda_base as Currency) || "COP"}
-                                  placeholder="350,000,000"
-                                  inputClassName={inputClass}
+                                <input
+                                  type="number"
+                                  value={form.habitaciones}
+                                  onChange={(e) => updateForm("habitaciones", e.target.value)}
+                                  placeholder="0"
+                                  className="w-12 bg-transparent text-sm text-white placeholder:text-[var(--text-muted)] text-center focus:outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                                 />
                               </div>
-                              <p className="text-[10px] text-[var(--text-muted)] mt-2 leading-relaxed">
-                                {t("tipologias.precioTipologiaHint")}
-                              </p>
-                            </>
-                          ) : (
-                            <>
-                              <div className="max-w-xs">
-                                <div className="flex items-center gap-3 p-3 bg-[var(--surface-1)] rounded-xl border border-[rgba(var(--site-primary-rgb),0.15)] transition-all">
-                                  <div className="w-9 h-9 rounded-lg bg-[rgba(var(--site-primary-rgb),0.12)] flex items-center justify-center shrink-0">
-                                    <DollarSign size={16} className="text-[var(--site-primary)]" />
-                                  </div>
-                                  <div className="flex-1 min-w-0">
-                                    <p className="font-ui text-[10px] text-[var(--text-muted)] uppercase tracking-wider font-bold mb-0.5">{t("tipologias.priceFromComputed")}</p>
-                                    <p className="text-sm font-medium text-[var(--site-primary)]">
-                                      {computedPrecioDesde || "—"}
-                                    </p>
-                                  </div>
-                                </div>
+                              <span className="text-[10px] text-[var(--text-muted)]">{t("tipologias.bedrooms")}</span>
+                            </div>
+
+                            {/* Baños */}
+                            <div className="flex flex-col items-center gap-1">
+                              <div className="flex items-center gap-2 px-3 py-2 bg-[var(--surface-1)] rounded-lg border border-[var(--border-subtle)] hover:border-[var(--border-default)] transition-all">
+                                <Bath size={16} className="text-[var(--text-tertiary)]" />
+                                <input
+                                  type="number"
+                                  value={form.banos}
+                                  onChange={(e) => updateForm("banos", e.target.value)}
+                                  placeholder="0"
+                                  className="w-12 bg-transparent text-sm text-white placeholder:text-[var(--text-muted)] text-center focus:outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                                />
                               </div>
-                              <p className="text-[10px] text-[var(--text-muted)] mt-2 leading-relaxed">
-                                {computedPrecioDesde
-                                  ? t("tipologias.priceComputedHint")
-                                  : t("tipologias.noUnitsHint")}
-                              </p>
-                            </>
-                          )}
+                              <span className="text-[10px] text-[var(--text-muted)]">{t("tipologias.bathrooms")}</span>
+                            </div>
+
+                            {/* Parqueaderos */}
+                            <div className="flex flex-col items-center gap-1">
+                              <div className="flex items-center gap-2 px-3 py-2 bg-[var(--surface-1)] rounded-lg border border-[var(--border-subtle)] hover:border-[var(--border-default)] transition-all">
+                                <Car size={16} className="text-[var(--text-tertiary)]" />
+                                <input
+                                  type="number"
+                                  value={form.parqueaderos}
+                                  onChange={(e) => updateForm("parqueaderos", e.target.value)}
+                                  placeholder="0"
+                                  className="w-12 bg-transparent text-sm text-white placeholder:text-[var(--text-muted)] text-center focus:outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                                />
+                              </div>
+                              <span className="text-[10px] text-[var(--text-muted)]">{t("tipologias.parking")}</span>
+                            </div>
+
+                            {/* Depósitos */}
+                            <div className="flex flex-col items-center gap-1">
+                              <div className="flex items-center gap-2 px-3 py-2 bg-[var(--surface-1)] rounded-lg border border-[var(--border-subtle)] hover:border-[var(--border-default)] transition-all">
+                                <Archive size={16} className="text-[var(--text-tertiary)]" />
+                                <input
+                                  type="number"
+                                  value={form.depositos}
+                                  onChange={(e) => updateForm("depositos", e.target.value)}
+                                  placeholder="0"
+                                  className="w-12 bg-transparent text-sm text-white placeholder:text-[var(--text-muted)] text-center focus:outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                                />
+                              </div>
+                              <span className="text-[10px] text-[var(--text-muted)]">Depósitos</span>
+                            </div>
+                          </div>
                         </div>
                       </div>
                     )}
@@ -1096,23 +1202,95 @@ export default function TipologiasPage() {
                     {/* ── TAB: Plano ── */}
                     {activeTab === "plano" && (
                       <div className="space-y-6">
+                        {/* Floor tabs */}
                         <div>
-                          <label className={labelClass}>{t("tipologias.floorPlanImage")}</label>
-                          <div className="max-w-[280px]">
-                            <FileUploader
-                              currentUrl={form.plano_url || null}
-                              onUpload={(url) => updateForm("plano_url", url)}
-                              folder={`proyectos/${projectId}/tipologias`}
-                              label={t("tipologias.uploadFloorPlan")}
-                              aspect="square"
-                            />
+                          <label className={labelClass}>{t("tipologias.floors")}</label>
+                          <div className="flex items-center gap-1 flex-wrap mt-1">
+                            {form.pisos.map((piso, i) => (
+                              <button
+                                key={piso.id}
+                                onClick={() => setActivePisoIndex(i)}
+                                className={cn(
+                                  "px-3 py-1.5 rounded-lg text-xs font-medium transition-all",
+                                  activePisoIndex === i
+                                    ? "bg-[var(--site-primary)] text-black"
+                                    : "bg-[var(--surface-2)] text-[var(--text-muted)] hover:text-[var(--text-secondary)]"
+                                )}
+                              >
+                                {piso.nombre}
+                              </button>
+                            ))}
+                            <button
+                              onClick={addFloor}
+                              className="flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs text-[var(--text-muted)] hover:text-[var(--text-secondary)] bg-[var(--surface-2)] hover:bg-[var(--surface-3)] transition-all border border-dashed border-[var(--border-subtle)]"
+                            >
+                              <Plus size={12} />
+                              {t("tipologias.addFloor")}
+                            </button>
                           </div>
-                          {form.plano_url && (
-                            <p className="text-[10px] text-[var(--text-muted)] mt-3">
-                              {t("tipologias.floorPlanHotspotsHint")}
-                            </p>
-                          )}
                         </div>
+
+                        {/* Active floor form */}
+                        {form.pisos.length > 0 && form.pisos[activePisoIndex] && (
+                          <>
+                            {/* Floor name */}
+                            <div>
+                              <label className={labelClass}>{t("tipologias.floorName")}</label>
+                              <input
+                                type="text"
+                                value={form.pisos[activePisoIndex].nombre}
+                                onChange={(e) => updatePiso(activePisoIndex, { nombre: e.target.value })}
+                                placeholder="Piso 1"
+                                className={inputClass + " max-w-[280px]"}
+                              />
+                            </div>
+
+                            {/* Floor plan image */}
+                            <div>
+                              <label className={labelClass}>{t("tipologias.floorPlanImage")}</label>
+                              <div className="max-w-[280px]">
+                                <FileUploader
+                                  currentUrl={form.pisos[activePisoIndex].plano_url || null}
+                                  onUpload={(url) => updatePiso(activePisoIndex, { plano_url: url })}
+                                  folder={`proyectos/${projectId}/tipologias`}
+                                  label={t("tipologias.uploadFloorPlan")}
+                                  aspect="square"
+                                />
+                              </div>
+                              {form.pisos[activePisoIndex].plano_url && (
+                                <p className="text-[10px] text-[var(--text-muted)] mt-3">
+                                  {t("tipologias.floorPlanHotspotsHint")}
+                                </p>
+                              )}
+                            </div>
+
+                            {/* Remove floor */}
+                            {form.pisos.length > 1 && (
+                              <button
+                                onClick={() => removeFloor(activePisoIndex)}
+                                className="flex items-center gap-1.5 text-xs text-red-400 hover:text-red-300 transition-colors"
+                              >
+                                <Trash2 size={12} />
+                                {t("tipologias.removeFloor")}
+                              </button>
+                            )}
+                          </>
+                        )}
+
+                        {/* Empty state */}
+                        {form.pisos.length === 0 && (
+                          <div className="text-center py-10">
+                            <p className="text-xs text-[var(--text-tertiary)] mb-3">
+                              {t("tipologias.noFloorsYet")}
+                            </p>
+                            <button onClick={addFloor} className={btnPrimary}>
+                              <Plus size={14} />
+                              {t("tipologias.addFirstFloor")}
+                            </button>
+                          </div>
+                        )}
+
+                        {/* Location image (global, not per-floor) */}
                         <div>
                           <label className={labelClass}>{t("tipologias.locationInProject")}</label>
                           <p className="text-[10px] text-[var(--text-muted)] mb-2">{t("tipologias.locationDescription")}</p>
@@ -1132,22 +1310,49 @@ export default function TipologiasPage() {
                     {/* ── TAB: Hotspots ── */}
                     {activeTab === "hotspots" && (
                       <div className="h-full flex flex-col">
-                        {form.plano_url && (
+                        {/* Floor selector (only if multiple floors) */}
+                        {form.pisos.length > 1 && (
+                          <div className="flex items-center gap-1 mb-2 shrink-0">
+                            {form.pisos.map((piso, i) => (
+                              <button
+                                key={piso.id}
+                                onClick={() => setActivePisoIndex(i)}
+                                className={cn(
+                                  "px-3 py-1.5 rounded-lg text-xs transition-all",
+                                  activePisoIndex === i
+                                    ? "bg-[var(--site-primary)] text-black font-medium"
+                                    : "bg-[var(--surface-2)] text-[var(--text-muted)] hover:text-[var(--text-secondary)]"
+                                )}
+                              >
+                                {piso.nombre}
+                                {piso.hotspots.length > 0 && (
+                                  <span className="ml-1.5 text-[9px] opacity-60">
+                                    ({piso.hotspots.length})
+                                  </span>
+                                )}
+                              </button>
+                            ))}
+                          </div>
+                        )}
+
+                        {/* Copy hotspots */}
+                        {form.pisos[activePisoIndex]?.plano_url && (
                           <div className="flex items-center justify-end mb-2 shrink-0">
                             <CopyHotspotsDropdown
                               tipologias={tipologias}
                               currentId={selectedId}
-                              currentHotspotCount={form.hotspots.length}
-                              onCopy={(hotspots) => updateForm("hotspots", hotspots)}
+                              currentHotspotCount={form.pisos[activePisoIndex]?.hotspots.length ?? 0}
+                              onCopy={(hotspots) => updatePiso(activePisoIndex, { hotspots })}
                             />
                           </div>
                         )}
-                        {form.plano_url ? (
+
+                        {form.pisos[activePisoIndex]?.plano_url ? (
                           <div className="flex-1 min-h-0">
                             <HotspotEditor
-                              imageUrl={form.plano_url}
-                              hotspots={form.hotspots}
-                              onChange={(hotspots) => updateForm("hotspots", hotspots)}
+                              imageUrl={form.pisos[activePisoIndex].plano_url}
+                              hotspots={form.pisos[activePisoIndex].hotspots}
+                              onChange={(hotspots) => updatePiso(activePisoIndex, { hotspots })}
                               uploadFolder={`proyectos/${projectId}/tipologias`}
                             />
                           </div>
@@ -1155,7 +1360,7 @@ export default function TipologiasPage() {
                           <div className="flex flex-col items-center justify-center py-16 text-center">
                             <MousePointerClick size={24} className="text-[var(--text-muted)] mb-3" />
                             <p className="text-sm text-[var(--text-tertiary)] mb-1">
-                              {t("tipologias.noFloorPlan")}
+                              {form.pisos.length === 0 ? t("tipologias.noFloorsYet") : t("tipologias.noFloorPlan")}
                             </p>
                             <p className="text-xs text-[var(--text-muted)]">
                               {t("tipologias.uploadFloorPlanFirst")}
@@ -1175,41 +1380,16 @@ export default function TipologiasPage() {
                 </AnimatePresence>
               </div>
 
-              {/* Save bar */}
-              <div className="px-6 py-3 border-t border-[var(--border-subtle)] shrink-0 space-y-3">
-                {validationError && (
+              {/* Validation error bar (if any) */}
+              {validationError && (
+                <div className="px-6 py-3 border-t border-[var(--border-subtle)] shrink-0">
                   <InlineError
                     message={validationError}
                     onRetry={() => setValidationError(null)}
                     variant="compact"
                   />
-                )}
-                <div className="flex items-center gap-3">
-                  <button
-                  onClick={handleSave}
-                  disabled={saving || !form.nombre.trim()}
-                  className={btnPrimary}
-                >
-                  {saving ? (
-                    <Loader2 size={14} className="animate-spin" />
-                  ) : (
-                    <Save size={14} />
-                  )}
-                  {saving ? t("general.saving") : isCreating ? t("galeria.create") : t("tipologias.save")}
-                </button>
-                {isCreating && (
-                  <button
-                    onClick={() => {
-                      setIsCreating(false);
-                      if (filteredTipologias.length > 0) selectTipologia(filteredTipologias[0]);
-                    }}
-                    className={btnSecondary}
-                  >
-                    {t("inventario.cancel")}
-                  </button>
-                )}
                 </div>
-              </div>
+              )}
             </>
           ) : (
             /* No selection placeholder */

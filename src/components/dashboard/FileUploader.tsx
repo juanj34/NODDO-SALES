@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import { useState, useRef, useEffect, useCallback } from "react";
-import { Upload, X, Loader2, AlertTriangle, Crop, Image as ImageIcon } from "lucide-react";
+import { Upload, X, Loader2, AlertTriangle, Crop, Image as ImageIcon, FileText, Film, Music } from "lucide-react";
 import { AnimatePresence, motion } from "framer-motion";
 import { ImageCropper } from "@/components/dashboard/ImageCropper";
 import { compressImage } from "@/lib/compress-image";
@@ -70,6 +70,15 @@ function formatAspectLabel(aspect: number): string {
   if (Math.abs(aspect - 4 / 3) < 0.01) return "4:3";
   if (Math.abs(aspect - 1) < 0.01) return "1:1";
   return `${aspect.toFixed(1)}`;
+}
+
+/** Detect non-image file type from URL extension */
+function getNonImageFileType(url: string): "pdf" | "video" | "audio" | null {
+  const ext = url.split("?")[0].split(".").pop()?.toLowerCase();
+  if (ext === "pdf") return "pdf";
+  if (["mp4", "webm", "mov"].includes(ext || "")) return "video";
+  if (["mp3", "wav", "ogg", "m4a"].includes(ext || "")) return "audio";
+  return null;
 }
 
 /* ------------------------------------------------------------------
@@ -391,7 +400,11 @@ export function FileUploader({
      ------------------------------------------------------------------ */
   const processMultipleFiles = useCallback(
     async (files: File[]) => {
-      const imageFiles = files.filter((f) => f.type.startsWith("image/"));
+      // Accept images always; also accept non-images when accept prop allows them
+      const acceptsOnlyImages = accept === "image/*";
+      const imageFiles = acceptsOnlyImages
+        ? files.filter((f) => f.type.startsWith("image/"))
+        : files;
       if (imageFiles.length === 0) return;
 
       setUploading(true);
@@ -605,7 +618,24 @@ export function FileUploader({
       >
         {preview && !cropSrc && !aspectWarning ? (
           <>
-            <Image src={preview} alt="undefined" fill className={`w-full h-full ${aspect === "logo" ? "object-contain bg-[var(--surface-3)]" : "object-cover"}`} />
+            {(() => {
+              const fileType = getNonImageFileType(preview);
+              if (fileType) {
+                const Icon = fileType === "pdf" ? FileText : fileType === "video" ? Film : Music;
+                const fileName = decodeURIComponent(preview.split("/").pop()?.split("?")[0] || "");
+                return (
+                  <div className="w-full h-full flex flex-col items-center justify-center gap-2 bg-[var(--surface-2)]">
+                    <Icon size={32} className="text-[var(--site-primary)]" />
+                    <span className="text-xs text-[var(--text-secondary)] max-w-[80%] truncate text-center">
+                      {fileName}
+                    </span>
+                  </div>
+                );
+              }
+              return (
+                <Image src={preview} alt="" fill sizes="300px" className={`w-full h-full ${aspect === "logo" ? "object-contain bg-[var(--surface-3)]" : "object-cover"}`} />
+              );
+            })()}
             {/* Remove button */}
             <button
               onClick={() => {
@@ -772,7 +802,7 @@ export function FileUploader({
 
               {/* Preview */}
               <div className="relative aspect-video rounded-lg overflow-hidden bg-[var(--surface-2)] border border-[var(--border-subtle)]">
-                <Image src={aspectWarning.objectUrl} alt="Preview" fill className="object-contain" />
+                <Image src={aspectWarning.objectUrl} alt="Preview" fill sizes="(max-width: 640px) 90vw, 500px" className="object-contain" />
               </div>
 
               <div className="flex gap-2">

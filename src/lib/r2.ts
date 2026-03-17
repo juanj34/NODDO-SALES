@@ -82,6 +82,28 @@ export async function getPresignedUploadUrls(
 }
 
 /**
+ * Upload a single file to R2 server-side (avoids browser CORS issues).
+ */
+export async function uploadFileToR2(
+  projectId: string,
+  path: string,
+  body: Buffer | Uint8Array,
+  contentType: string
+): Promise<void> {
+  const client = getR2Client();
+  const key = `tours/${projectId}/${path}`;
+
+  await client.send(
+    new PutObjectCommand({
+      Bucket: R2_BUCKET_NAME,
+      Key: key,
+      Body: body,
+      ContentType: contentType,
+    })
+  );
+}
+
+/**
  * Delete all files for a project's tour from R2.
  */
 export async function deleteTourFiles(projectId: string): Promise<number> {

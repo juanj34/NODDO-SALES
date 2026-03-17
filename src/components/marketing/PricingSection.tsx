@@ -100,8 +100,7 @@ export function PricingSection() {
   return (
     <section
       id="precios"
-      className="relative z-[1] border-t border-[var(--mk-border-rule)] overflow-hidden"
-      style={{ padding: "120px 24px" }}
+      className="relative z-[1] border-t border-[var(--mk-border-rule)] overflow-hidden py-20 px-4 sm:py-24 sm:px-6 lg:py-[120px] lg:px-6"
     >
       <div style={{ maxWidth: 1000, margin: "0 auto", position: "relative", zIndex: 1 }}>
         <div className="mk-section-label mb-6">{t("pricing.label")}</div>
@@ -122,10 +121,9 @@ export function PricingSection() {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true, margin: "-60px" }}
               transition={{ duration: 0.6, delay: i * 0.1, ease }}
-              className="relative"
+              className="relative p-6 sm:p-8 lg:p-[40px_36px]"
               style={{
                 background: plan.featured ? "#181818" : "var(--mk-bg)",
-                padding: "40px 36px",
                 outline: plan.featured ? "1px solid rgba(184,151,58,0.28)" : "none",
               }}
             >
@@ -156,7 +154,7 @@ export function PricingSection() {
               </div>
 
               {/* Price */}
-              <div className="font-heading leading-none mb-1" style={{ fontSize: plan.pricePrefix ? 52 : 36, fontWeight: 300, color: "var(--mk-text-primary)", paddingTop: plan.pricePrefix ? 0 : 8 }}>
+              <div className="font-heading leading-none mb-1" style={{ fontSize: plan.pricePrefix ? "clamp(36px,10vw,52px)" : "clamp(28px,8vw,36px)", fontWeight: 300, color: "var(--mk-text-primary)", paddingTop: plan.pricePrefix ? 0 : 8 }}>
                 {plan.pricePrefix && (
                   <span style={{ fontSize: 18, color: "rgba(244,240,232,0.4)" }}>{plan.pricePrefix}</span>
                 )}
@@ -244,7 +242,7 @@ export function PricingSection() {
           </div>
 
           {/* Trust micro-copy */}
-          <div className="flex items-center justify-center gap-6 flex-wrap text-[12px]" style={{ color: "rgba(244,240,232,0.3)" }}>
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-3 sm:gap-6 text-[12px]" style={{ color: "rgba(244,240,232,0.3)" }}>
             <div className="flex items-center gap-1.5">
               <span style={{ color: "var(--mk-accent)" }}>✓</span>
               {t("pricing.trustItems.t0")}

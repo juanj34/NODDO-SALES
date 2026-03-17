@@ -90,7 +90,7 @@ export function SitePreloader({ logoUrl, projectName, onComplete }: SitePreloade
             animate={{ opacity: [0.7, 1, 0.7] }}
             transition={{ duration: 2.5, repeat: Infinity, ease: "easeInOut" }}
           >
-            <span className="font-site-heading text-3xl lg:text-4xl text-white">
+            <span className="font-site-heading text-3xl lg:text-4xl text-[var(--text-primary)]">
               {projectName.charAt(0)}
             </span>
           </motion.div>

@@ -239,52 +239,40 @@ export function useTourUpload(): TourUploadHook {
     setFilesTotal(0);
   }, []);
 
-  /** Shared: presign in batches + concurrent upload */
+  /** Shared: validate + upload files through server proxy */
   const presignAndUpload = useCallback(
     async (filesToUpload: FileToUpload[], projectId: string) => {
       setFilesTotal(filesToUpload.length);
       setStatus("uploading");
 
-      // Batch presign requests to stay within Vercel body size limits
-      const uploadMap = new Map<string, string>();
-      let tourBaseUrl = "";
       const totalTourBytes = filesToUpload.reduce((sum, f) => sum + f.size, 0);
 
-      for (let i = 0; i < filesToUpload.length; i += PRESIGN_BATCH_SIZE) {
-        if (cancelledRef.current) return;
-        const batch = filesToUpload.slice(i, i + PRESIGN_BATCH_SIZE);
-        const isFirstBatch = i === 0;
+      // Validate permissions and get tourBaseUrl with a single presign call
+      const firstBatch = filesToUpload.slice(0, Math.min(PRESIGN_BATCH_SIZE, filesToUpload.length));
+      const presignRes = await fetch("/api/tours/presign", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          proyecto_id: projectId,
+          files: firstBatch.map((f) => ({
+            path: f.path,
+            contentType: f.contentType,
+            size: f.size,
+          })),
+          total_tour_bytes: totalTourBytes,
+        }),
+      });
 
-        const presignRes = await fetch("/api/tours/presign", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            proyecto_id: projectId,
-            files: batch.map((f) => ({
-              path: f.path,
-              contentType: f.contentType,
-              size: f.size,
-            })),
-            // Send total size only on first batch for storage tracking
-            ...(isFirstBatch ? { total_tour_bytes: totalTourBytes } : {}),
-          }),
-        });
-
-        if (!presignRes.ok) {
-          const data = await presignRes.json();
-          throw new Error(data.error || "Error al obtener URLs de subida");
-        }
-
-        const result = await presignRes.json();
-        if (i === 0) tourBaseUrl = result.tourBaseUrl;
-
-        for (const sf of result.files as { path: string; uploadUrl: string }[]) {
-          uploadMap.set(sf.path, sf.uploadUrl);
-        }
+      if (!presignRes.ok) {
+        const data = await presignRes.json();
+        throw new Error(data.error || "Error al validar permisos");
       }
+
+      const { tourBaseUrl } = await presignRes.json();
 
       if (cancelledRef.current) return;
 
+      // Upload files through our API proxy (avoids R2 CORS issues)
       let uploaded = 0;
       const queue = [...filesToUpload];
 
@@ -294,17 +282,20 @@ export function useTourUpload(): TourUploadHook {
           const item = queue.shift();
           if (!item) break;
 
-          const uploadUrl = uploadMap.get(item.path);
-          if (!uploadUrl) continue;
+          const formData = new FormData();
+          formData.append("file", item.file);
+          formData.append("proyecto_id", projectId);
+          formData.append("path", item.path);
+          formData.append("contentType", item.contentType);
 
-          const res = await fetch(uploadUrl, {
-            method: "PUT",
-            headers: { "Content-Type": item.contentType },
-            body: item.file,
+          const res = await fetch("/api/tours/upload-file", {
+            method: "POST",
+            body: formData,
           });
 
           if (!res.ok) {
-            throw new Error(`Error subiendo ${item.path}: ${res.status}`);
+            const data = await res.json().catch(() => ({ error: "Upload failed" }));
+            throw new Error(data.error || `Error subiendo ${item.path}: ${res.status}`);
           }
 
           uploaded++;
@@ -386,8 +377,13 @@ export function useTourUpload(): TourUploadHook {
         for (const entry of finalEntries) {
           if (cancelledRef.current) return;
           const data = await entry.zipEntry.async("uint8array");
+          // Slice the exact bytes (data.buffer may be larger than the actual data)
+          const slice = (data.buffer as ArrayBuffer).slice(
+            data.byteOffset,
+            data.byteOffset + data.byteLength
+          );
           const f = new File(
-            [data.buffer as ArrayBuffer],
+            [slice],
             entry.finalPath.split("/").pop() || entry.finalPath,
             { type: getMimeType(entry.finalPath) }
           );
@@ -395,7 +391,7 @@ export function useTourUpload(): TourUploadHook {
             path: entry.finalPath,
             contentType: getMimeType(entry.finalPath),
             file: f,
-            size: data.byteLength,
+            size: f.size,
           });
         }
 

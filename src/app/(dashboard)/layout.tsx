@@ -23,6 +23,7 @@ import { NodDoLogo } from "@/components/ui/NodDoLogo";
 import { useMobileDrawer } from "@/hooks/useMobileDrawer";
 import { RouteProgressBar } from "@/components/ui/RouteProgressBar";
 import { CrispSupport } from "@/components/dashboard/CrispSupport";
+import { UploadProvider } from "@/contexts/UploadContext";
 
 // SidebarProject interface removed - no longer using dropdown
 
@@ -361,8 +362,10 @@ export default function DashboardLayout({
     <ToastProvider>
       <ConfirmProvider>
         <AuthContextProvider>
-          <DashboardShell>{children}</DashboardShell>
-          <CrispSupport />
+          <UploadProvider>
+            <DashboardShell>{children}</DashboardShell>
+            <CrispSupport />
+          </UploadProvider>
         </AuthContextProvider>
       </ConfirmProvider>
     </ToastProvider>

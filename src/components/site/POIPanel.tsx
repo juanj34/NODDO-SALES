@@ -84,7 +84,7 @@ export function POIPanel({ pois, selectedPOI, onSelectPOI, onClose }: POIPanelPr
           </span>
 
           {/* POI name */}
-          <h3 className="text-xl font-semibold text-white mb-1">
+          <h3 className="text-xl font-heading font-light text-white mb-1">
             {selectedPOI.nombre}
           </h3>
 

@@ -1,6 +1,6 @@
 /* ── Types used by SmartImportModal ──────────────────────────────────────── */
 
-export type EstadoUnidad = "disponible" | "separado" | "reservada" | "vendida";
+export type EstadoUnidad = "disponible" | "separado" | "reservada" | "vendida" | "proximamente";
 
 export interface MappedUnit {
   identificador: string;

@@ -61,7 +61,7 @@ export default function MarketingHomePage() {
       <FAQSection />
 
       {/* 12. FINAL CTA SECTION */}
-      <section className="relative z-[1] py-36 lg:py-48 px-6 text-center border-t border-[var(--mk-border-rule)] overflow-hidden">
+      <section className="relative z-[1] py-20 sm:py-28 lg:py-48 px-4 sm:px-6 text-center border-t border-[var(--mk-border-rule)] overflow-hidden">
         {/* Decorative skyline — wireframe blueprint style */}
         <div className="absolute inset-0 flex items-end justify-center pointer-events-none" style={{ opacity: 0.06 }}>
           <svg viewBox="0 0 1200 500" fill="none" className="w-full max-w-5xl" style={{ marginBottom: -1 }}>
@@ -179,7 +179,7 @@ export default function MarketingHomePage() {
             </span>
           </div>
 
-          <h2 className="font-heading text-[clamp(40px,5.5vw,80px)] font-light leading-[1.1] tracking-[-0.02em] mb-6">
+          <h2 className="font-heading text-[clamp(32px,7vw,80px)] font-light leading-[1.1] tracking-[-0.02em] mb-6">
             {t("finalCta.headingLine1")}
             <br />
             <em className="italic text-[var(--mk-accent-light)]">
@@ -210,7 +210,7 @@ export default function MarketingHomePage() {
               <button
                 onClick={openBooking}
                 className="btn-mk-primary inline-flex items-center gap-3 relative z-[1] group"
-                style={{ fontSize: 14, padding: "18px 48px", fontWeight: 700, letterSpacing: "0.04em" }}
+                style={{ fontSize: 13, padding: "14px 36px", fontWeight: 700, letterSpacing: "0.04em" }}
               >
                 <span>{t("finalCta.bookCall")}</span>
                 <ArrowRight size={16} strokeWidth={2.5} className="group-hover:translate-x-1 transition-transform" />
@@ -219,17 +219,17 @@ export default function MarketingHomePage() {
           </div>
 
           {/* Trust guarantees */}
-          <div className="flex items-center justify-center gap-8 flex-wrap text-[12px]" style={{ color: "rgba(244,240,232,0.4)" }}>
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-3 sm:gap-8 text-[12px]" style={{ color: "rgba(244,240,232,0.4)" }}>
             <div className="flex items-center gap-2">
-              <span style={{ fontSize: 18 }}>✓</span>
+              <span style={{ fontSize: 16 }}>✓</span>
               <span>{t("finalCta.trustCall")} <strong style={{ color: "var(--mk-text-primary)", fontWeight: 500 }}>{t("finalCta.trustCallBold")}</strong></span>
             </div>
             <div className="flex items-center gap-2">
-              <span style={{ fontSize: 18 }}>✓</span>
+              <span style={{ fontSize: 16 }}>✓</span>
               <span>{t("finalCta.trustConfig")} <strong style={{ color: "var(--mk-text-primary)", fontWeight: 500 }}>{t("finalCta.trustConfigBold")}</strong></span>
             </div>
             <div className="flex items-center gap-2">
-              <span style={{ fontSize: 18 }}>✓</span>
+              <span style={{ fontSize: 16 }}>✓</span>
               <span><strong style={{ color: "var(--mk-text-primary)", fontWeight: 500 }}>{t("finalCta.trustNoCommitment")}</strong></span>
             </div>
           </div>

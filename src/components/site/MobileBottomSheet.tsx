@@ -68,17 +68,17 @@ export function MobileBottomSheet({
             className="fixed bottom-6 right-20 z-30 flex items-center gap-2 px-4 py-3 rounded-full glass cursor-pointer"
             style={{
               boxShadow:
-                "0 4px 24px rgba(0,0,0,0.4), 0 0 0 1px rgba(255,255,255,0.06)",
+                "0 4px 24px rgba(var(--overlay-rgb),0.4), 0 0 0 1px rgba(var(--contrast-rgb),0.06)",
             }}
           >
             <span className="text-[var(--site-primary)]">{fabIcon}</span>
             {fabLabel && (
-              <span className="text-xs text-white/80 tracking-wider font-medium">
+              <span className="text-xs tracking-wider font-medium" style={{ color: "rgba(var(--contrast-rgb), 0.80)" }}>
                 {fabLabel}
               </span>
             )}
             {badgeCount != null && badgeCount > 0 && (
-              <span className="min-w-[18px] h-[18px] rounded-full bg-[var(--site-primary)] text-black text-[10px] font-bold flex items-center justify-center px-1">
+              <span className="min-w-[18px] h-[18px] rounded-full bg-[var(--site-primary)] text-[var(--surface-0)] text-[10px] font-bold flex items-center justify-center px-1">
                 {badgeCount}
               </span>
             )}
@@ -95,7 +95,8 @@ export function MobileBottomSheet({
             exit={{ opacity: 0 }}
             transition={{ duration: 0.2 }}
             onClick={onClose}
-            className="fixed inset-0 z-[38] bg-black/40"
+            className="fixed inset-0 z-[38]"
+            style={{ backgroundColor: "rgba(var(--overlay-rgb), 0.40)" }}
           />
         )}
       </AnimatePresence>
@@ -123,7 +124,7 @@ export function MobileBottomSheet({
               onDragEnd={handleDragEnd}
               className="flex-shrink-0 flex items-center justify-center pt-3 pb-2 cursor-grab active:cursor-grabbing touch-none"
             >
-              <div className="w-10 h-1 rounded-full bg-white/20" />
+              <div className="w-10 h-1 rounded-full" style={{ backgroundColor: "rgba(var(--contrast-rgb), 0.20)" }} />
             </motion.div>
 
             {/* Panel content — scrollable */}

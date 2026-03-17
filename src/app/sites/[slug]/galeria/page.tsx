@@ -121,7 +121,7 @@ export default function GaleriaPage() {
   }
 
   return (
-    <div className="h-screen w-full relative overflow-hidden bg-black">
+    <div className="h-screen w-full relative overflow-hidden" style={{ backgroundColor: "rgba(var(--overlay-rgb), 1)" }}>
       {/* Fullscreen background image — crossfade + subtle scale + swipe */}
       <AnimatePresence mode="wait">
         {current && (
@@ -142,7 +142,7 @@ export default function GaleriaPage() {
           >
             <Image src={current.url} alt="" fill className="w-full h-full object-cover pointer-events-none" />
             {/* Dark gradient overlay for readability */}
-            <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/10 to-black/30 pointer-events-none" />
+            <div className="absolute inset-0 pointer-events-none" style={{ background: "linear-gradient(to top, rgba(var(--overlay-rgb), 0.8), rgba(var(--overlay-rgb), 0.1), rgba(var(--overlay-rgb), 0.3))" }} />
           </motion.div>
         )}
       </AnimatePresence>
@@ -162,8 +162,8 @@ export default function GaleriaPage() {
               className={cn(
                 "relative pb-2 text-[11px] tracking-[0.15em] uppercase font-bold transition-all duration-300 cursor-pointer",
                 idx === activeScope
-                  ? "text-white"
-                  : "text-[var(--text-muted)] hover:text-white/60"
+                  ? "text-[var(--text-primary)]"
+                  : "text-[var(--text-muted)] hover:text-[var(--text-secondary)]"
               )}
             >
               {scope.label}
@@ -196,8 +196,8 @@ export default function GaleriaPage() {
             className={cn(
               "relative pb-2 text-xs tracking-[0.2em] uppercase transition-all duration-300 cursor-pointer",
               idx === activeCategory
-                ? "text-white font-medium"
-                : "text-[var(--text-tertiary)] hover:text-white/70"
+                ? "text-[var(--text-primary)] font-medium"
+                : "text-[var(--text-tertiary)] hover:text-[var(--text-secondary)]"
             )}
           >
             {cat.nombre}
@@ -229,7 +229,7 @@ export default function GaleriaPage() {
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -10 }}
                 transition={{ duration: 0.3 }}
-                className="font-site-heading text-xl sm:text-3xl lg:text-5xl tracking-wider text-white mb-4"
+                className="font-site-heading text-xl sm:text-3xl lg:text-5xl tracking-wider text-[var(--text-primary)] mb-4"
                 style={{ textShadow: "0 2px 20px rgba(0,0,0,0.5)" }}
               >
                 {current.alt_text}
@@ -244,7 +244,7 @@ export default function GaleriaPage() {
                 onClick={goPrev}
                 disabled={activeSlide === 0}
                 aria-label={t("galeria.prevImage")}
-                className="w-10 h-10 flex items-center justify-center rounded-full bg-white/10 hover:bg-white/20 backdrop-blur-sm text-white/70 hover:text-white disabled:opacity-20 disabled:hover:bg-white/10 transition-all cursor-pointer"
+                className="w-10 h-10 flex items-center justify-center rounded-full bg-[var(--glass-bg-hover)] hover:bg-[var(--glass-bg-hover)] backdrop-blur-sm text-[var(--text-secondary)] hover:text-[var(--text-primary)] disabled:opacity-20 disabled:hover:bg-[var(--glass-bg-hover)] transition-all cursor-pointer"
               >
                 <ChevronLeft size={18} />
               </button>
@@ -252,7 +252,7 @@ export default function GaleriaPage() {
                 onClick={goNext}
                 disabled={activeSlide === currentImages.length - 1}
                 aria-label={t("galeria.nextImage")}
-                className="w-10 h-10 flex items-center justify-center rounded-full bg-white/10 hover:bg-white/20 backdrop-blur-sm text-white/70 hover:text-white disabled:opacity-20 disabled:hover:bg-white/10 transition-all cursor-pointer"
+                className="w-10 h-10 flex items-center justify-center rounded-full bg-[var(--glass-bg-hover)] hover:bg-[var(--glass-bg-hover)] backdrop-blur-sm text-[var(--text-secondary)] hover:text-[var(--text-primary)] disabled:opacity-20 disabled:hover:bg-[var(--glass-bg-hover)] transition-all cursor-pointer"
               >
                 <ChevronRight size={18} />
               </button>
@@ -297,7 +297,7 @@ export default function GaleriaPage() {
         <button
           onClick={() => setLightboxIndex(activeSlide)}
           aria-label={t("galeria.fullscreen")}
-          className="w-11 h-11 flex items-center justify-center rounded-full bg-white/10 hover:bg-white/20 backdrop-blur-sm text-[var(--text-secondary)] hover:text-white transition-all cursor-pointer"
+          className="w-11 h-11 flex items-center justify-center rounded-full bg-[var(--glass-bg-hover)] hover:bg-[var(--glass-bg-hover)] backdrop-blur-sm text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-all cursor-pointer"
         >
           <Maximize2 size={18} />
         </button>

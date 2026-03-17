@@ -3,7 +3,7 @@
 import Image from "next/image";
 import { useState } from "react";
 import Link from "next/link";
-import { Edit2, ExternalLink, MoreVertical, Trash2, Copy } from "lucide-react";
+import { Edit2, ExternalLink, MoreVertical, Trash2, Copy, Monitor } from "lucide-react";
 import { ProjectStatusBadge } from "./ProjectStatusBadge";
 import type { ProyectoWithStats } from "@/types";
 import { cn } from "@/lib/utils";
@@ -146,22 +146,48 @@ export function ProjectTableRow({
 
           {/* Ver sitio (if published) */}
           {isPublished && (
-            <Link
-              href={`https://${proyecto.slug}.noddo.io`}
-              target="_blank"
-              rel="noopener noreferrer"
-              onClick={(e) => e.stopPropagation()}
-              className="
-                p-2 rounded-lg
-                text-[var(--text-muted)]
-                hover:text-[var(--site-primary)]
-                hover:bg-[var(--surface-3)]
-                transition-colors
-              "
-              title="Ver sitio"
-            >
-              <ExternalLink size={16} />
-            </Link>
+            <>
+              <Link
+                href={`https://${proyecto.slug}.noddo.io`}
+                target="_blank"
+                rel="noopener noreferrer"
+                onClick={(e) => e.stopPropagation()}
+                className="
+                  p-2 rounded-lg
+                  text-[var(--text-muted)]
+                  hover:text-[var(--site-primary)]
+                  hover:bg-[var(--surface-3)]
+                  transition-colors
+                "
+                title="Ver sitio"
+              >
+                <ExternalLink size={16} />
+              </Link>
+
+              {/* Localhost preview (dev only) */}
+              {process.env.NODE_ENV === "development" && (
+                <Link
+                  href={`/sites/${proyecto.slug}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  onClick={(e) => e.stopPropagation()}
+                  className="
+                    flex items-center gap-1.5
+                    px-2.5 py-1.5
+                    rounded-lg
+                    bg-blue-500/10
+                    text-blue-400
+                    font-mono text-xs font-medium
+                    hover:bg-blue-500/20
+                    transition-colors
+                  "
+                  title="Preview en localhost"
+                >
+                  <Monitor size={14} />
+                  Local
+                </Link>
+              )}
+            </>
           )}
 
           {/* Actions menu (admin only) */}

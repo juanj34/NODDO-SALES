@@ -10,8 +10,8 @@ export function MiniSparkline({ data }: Props) {
   if (data.length === 0) return null;
 
   return (
-    <div className="w-[80px] h-[28px]">
-      <ResponsiveContainer width="100%" height="100%">
+    <div className="w-[80px] h-[28px] min-w-[80px] min-h-[28px]">
+      <ResponsiveContainer width={80} height={28}>
         <AreaChart data={data} margin={{ top: 2, right: 0, left: 0, bottom: 2 }}>
           <defs>
             <linearGradient id="miniSparkGradient" x1="0" y1="0" x2="0" y2="1">

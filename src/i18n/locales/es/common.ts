@@ -189,6 +189,10 @@ const common = {
     enquireUnit: "Cotizar unidad {{unit}}",
     backToImplantaciones: "Volver a implantaciones",
   },
+  language: "Idioma",
+  currency: "Moneda",
+  units: "Unidades",
+  audio: "Audio",
   empty: {
     noUnits: "No hay unidades",
     noResults: "Sin resultados",

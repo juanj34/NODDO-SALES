@@ -49,21 +49,20 @@ function AnimatedCounter({ target, suffix, label, delay }: CounterData & { delay
   return (
     <div
       ref={ref}
-      className="text-center transition-all duration-600 ease-out"
+      className="text-center transition-all duration-600 ease-out p-6 sm:p-8 lg:p-12"
       style={{
         background: "#111",
-        padding: "48px 36px",
         opacity: visible ? 1 : 0,
         transform: visible ? "translateY(0)" : "translateY(20px)",
         transitionDelay: `${delay}ms`,
       }}
     >
       <div
-        className="font-heading leading-none mb-2"
-        style={{ fontSize: 68, fontWeight: 300, color: "var(--mk-accent-light)" }}
+        className="font-heading leading-none mb-2 text-[clamp(36px,10vw,68px)]"
+        style={{ fontWeight: 300, color: "var(--mk-accent-light)" }}
       >
         {value.toLocaleString("es-CO")}
-        <span style={{ fontSize: 28, color: "rgba(184,151,58,0.5)" }}>{suffix}</span>
+        <span className="text-[clamp(14px,4vw,28px)]" style={{ color: "rgba(184,151,58,0.5)" }}>{suffix}</span>
       </div>
       <div
         className="font-ui text-[9px] tracking-[0.22em] uppercase"
@@ -87,8 +86,8 @@ export function CountersSection() {
 
   return (
     <section
-      className="relative z-[1] border-t border-[var(--mk-border-rule)]"
-      style={{ padding: "100px 24px", background: "#111" }}
+      className="relative z-[1] border-t border-[var(--mk-border-rule)] py-16 px-4 sm:py-20 sm:px-6 lg:py-24 lg:px-6"
+      style={{ background: "#111" }}
     >
       <div
         className="grid grid-cols-2 lg:grid-cols-4 max-w-[1200px] mx-auto"

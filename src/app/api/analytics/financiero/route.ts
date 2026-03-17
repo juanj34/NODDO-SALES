@@ -38,6 +38,7 @@ export async function GET(request: NextRequest) {
         avg_sales_velocity: 0,
         total_units: 0,
         total_disponible: 0,
+        total_proximamente: 0,
         total_separado: 0,
         total_reservada: 0,
         total_vendida: 0,
@@ -67,22 +68,30 @@ export async function GET(request: NextRequest) {
       )
     );
 
-    // Also fetch separado counts (the RPC doesn't include it)
-    const { data: separadoCounts } = await auth.supabase
+    // Also fetch separado and proximamente counts (the RPC doesn't include them)
+    const { data: additionalCounts } = await auth.supabase
       .from("unidades")
       .select("proyecto_id, estado")
-      .eq("estado", "separado")
+      .in("estado", ["separado", "proximamente"])
       .in(
         "proyecto_id",
         targetProjects.map((p) => p.id)
       );
 
     const separadoByProject = new Map<string, number>();
-    for (const u of separadoCounts || []) {
-      separadoByProject.set(
-        u.proyecto_id,
-        (separadoByProject.get(u.proyecto_id) || 0) + 1
-      );
+    const proximamenteByProject = new Map<string, number>();
+    for (const u of additionalCounts || []) {
+      if (u.estado === "separado") {
+        separadoByProject.set(
+          u.proyecto_id,
+          (separadoByProject.get(u.proyecto_id) || 0) + 1
+        );
+      } else if (u.estado === "proximamente") {
+        proximamenteByProject.set(
+          u.proyecto_id,
+          (proximamenteByProject.get(u.proyecto_id) || 0) + 1
+        );
+      }
     }
 
     // Build per-project breakdown
@@ -92,6 +101,7 @@ export async function GET(request: NextRequest) {
     let totalReservadaValue = 0;
     let totalUnits = 0;
     let totalDisponible = 0;
+    let totalProximamente = 0;
     let totalSeparado = 0;
     let totalReservada = 0;
     let totalVendida = 0;
@@ -107,6 +117,7 @@ export async function GET(request: NextRequest) {
       if (!data) continue;
 
       const separado = separadoByProject.get(project.id) || 0;
+      const proximamente = proximamenteByProject.get(project.id) || 0;
 
       const financial: FinancialMetrics = {
         total_revenue: data.total_revenue || 0,
@@ -116,7 +127,7 @@ export async function GET(request: NextRequest) {
         monthly_revenue: data.monthly_revenue || [],
         units_sold_detail: data.units_sold_detail || [],
         currency: (data.currency as Currency) || (project.moneda_base as Currency) || "COP",
-        total_units: (data.total_units || 0) + separado,
+        total_units: (data.total_units || 0) + separado + proximamente,
         disponible_count: data.disponible_count || 0,
         vendida_count: data.vendida_count || 0,
         reservada_count: data.reservada_count || 0,
@@ -134,6 +145,7 @@ export async function GET(request: NextRequest) {
       totalReservadaValue += financial.reservada_inventory_value;
       totalUnits += financial.total_units;
       totalDisponible += financial.disponible_count;
+      totalProximamente += proximamente;
       totalSeparado += separado;
       totalReservada += financial.reservada_count;
       totalVendida += financial.vendida_count;
@@ -175,6 +187,7 @@ export async function GET(request: NextRequest) {
         Math.round((velocitySum / (targetProjects.length || 1)) * 10) / 10,
       total_units: totalUnits,
       total_disponible: totalDisponible,
+      total_proximamente: totalProximamente,
       total_separado: totalSeparado,
       total_reservada: totalReservada,
       total_vendida: totalVendida,

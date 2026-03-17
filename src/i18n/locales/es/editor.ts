@@ -276,6 +276,12 @@ const editor = {
       byTypeDescription: "Configura las columnas visibles para cada tipo de tipología en tu proyecto híbrido",
       reset: "Restaurar predeterminados",
       activeCount: "{{count}} de {{total}}",
+      tabs: {
+        editor: "Editor",
+        editorDesc: "Columnas visibles en el dashboard (admin)",
+        microsite: "Micrositio",
+        micrositeDesc: "Columnas visibles en el sitio público (clientes)",
+      },
       categories: {
         financial: "Financiero",
         dimensions: "Dimensiones",
@@ -296,7 +302,7 @@ const editor = {
       save: "Guardar",
       copyUrl: "Copiar URL",
       openSite: "Abrir sitio",
-      stateWarning: "Tu proyecto está en estado \"{{state}}\". Cámbialo a \"publicado\" en la tab General...",
+      stateWarning: "Tu proyecto está en estado \"{{state}}\". Publícalo con el botón Publicar para activar tu subdominio.",
     },
     custom: {
       title: "Dominio Personalizado",
@@ -392,6 +398,13 @@ const editor = {
     noUnitsHint: "Agrega unidades en el inventario para calcular el precio.",
     precioTipologia: "Precio",
     precioTipologiaHint: "Este precio se aplicará a todas las unidades de esta tipología.",
+    floors: "Pisos del plano",
+    floorName: "Nombre del piso",
+    addFloor: "Agregar piso",
+    addFirstFloor: "Agregar primer piso",
+    removeFloor: "Eliminar piso",
+    removeFloorConfirm: "Se eliminará el plano y los hotspots de este piso. ¿Continuar?",
+    noFloorsYet: "Sin pisos configurados",
   },
   galeria: {
     title: "Galería de Imágenes",

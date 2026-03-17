@@ -6,6 +6,7 @@ import { motion } from "framer-motion";
 import Link from "next/link";
 import { ArrowRight, Play } from "lucide-react";
 import { IsometricBuilding } from "./illustrations/IsometricBuilding";
+import { HeroMockup } from "./illustrations/HeroMockup";
 import { useBooking } from "./BookingProvider";
 import { useTranslation } from "@/i18n";
 
@@ -61,9 +62,9 @@ export function HeroSection() {
   }, []);
 
   return (
-    <section className="relative min-h-screen grid grid-cols-1 lg:grid-cols-2 items-center px-6 lg:px-24 gap-8 lg:gap-12 overflow-hidden z-[1]">
+    <section className="relative min-h-[100dvh] lg:min-h-screen grid grid-cols-1 lg:grid-cols-2 items-center px-5 sm:px-6 lg:px-24 gap-6 lg:gap-12 overflow-hidden z-[1]">
       {/* ── LEFT: Copy ── */}
-      <div className="relative z-[2] pt-32 lg:pt-0">
+      <div className="relative z-[2] pt-24 sm:pt-28 pb-8 lg:pt-0 lg:pb-0">
         {/* Label with gold line */}
         <motion.div
           initial={{ opacity: 0, y: 24 }}
@@ -85,7 +86,7 @@ export function HeroSection() {
           initial={{ opacity: 0, y: 24 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8, delay: 0.4, ease: "easeOut" }}
-          className="font-heading text-[clamp(36px,5.5vw,96px)] font-light leading-[1.05] tracking-[-0.02em] text-[var(--mk-text-primary)] mb-8"
+          className="font-heading text-[clamp(32px,8vw,96px)] font-light leading-[1.05] tracking-[-0.02em] text-[var(--mk-text-primary)] mb-6 lg:mb-8"
         >
           {t("hero.titleLine1")}
           <br />
@@ -134,14 +135,14 @@ export function HeroSection() {
           initial={{ opacity: 0, y: 24 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8, delay: 0.65, ease: "easeOut" }}
-          className="mb-14 grid"
+          className="mb-8 lg:mb-14 grid"
         >
           {perspectives.map((p, i) => (
             <motion.p
               key={p.id}
               animate={{ opacity: i === activeIndex ? 1 : 0, y: i === activeIndex ? 0 : 6 }}
               transition={{ duration: 0.4, ease: "easeInOut" }}
-              className="text-[15px] leading-[1.85] max-w-[580px]"
+              className="text-[13px] sm:text-[15px] leading-[1.75] sm:leading-[1.85] max-w-[580px]"
               style={{
                 color: "rgba(244, 240, 232, 0.5)",
                 gridArea: "1 / 1",
@@ -159,7 +160,7 @@ export function HeroSection() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8, delay: 0.8, ease: "easeOut" }}
         >
-          <div className="flex items-center gap-4 flex-wrap sm:flex-nowrap mb-5">
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 sm:gap-4 mb-5">
             {/* Primary CTA — book a call */}
             <div className="relative">
               <div
@@ -172,7 +173,7 @@ export function HeroSection() {
               />
               <button
                 onClick={openBooking}
-                className="btn-mk-primary inline-flex items-center gap-2.5 whitespace-nowrap relative z-[1]"
+                className="btn-mk-primary inline-flex items-center justify-center gap-2.5 whitespace-nowrap relative z-[1] w-full sm:w-auto"
                 style={{ fontSize: 13, padding: "14px 32px" }}
               >
                 {t("hero.ctaBookCall")}
@@ -184,7 +185,7 @@ export function HeroSection() {
             <Link
               href="/sites/demo"
               target="_blank"
-              className="btn-mk-outline inline-flex items-center gap-2.5 whitespace-nowrap"
+              className="btn-mk-outline inline-flex items-center justify-center gap-2.5 whitespace-nowrap w-full sm:w-auto"
               style={{ fontSize: 13, padding: "14px 28px" }}
             >
               <Play size={13} strokeWidth={2.5} fill="currentColor" />
@@ -193,7 +194,7 @@ export function HeroSection() {
           </div>
 
           {/* Trust elements below CTAs */}
-          <div className="flex items-center gap-6 flex-wrap">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 sm:gap-6">
             {/* Avatar stack */}
             <div className="flex items-center gap-2.5">
               <div className="flex items-center" style={{ marginLeft: -4 }}>
@@ -236,11 +237,11 @@ export function HeroSection() {
               </span>
             </div>
 
-            {/* Divider */}
-            <div style={{ width: 1, height: 20, background: "rgba(255,255,255,0.1)" }} />
+            {/* Divider — hidden on mobile */}
+            <div className="hidden sm:block" style={{ width: 1, height: 20, background: "rgba(255,255,255,0.1)" }} />
 
             {/* Micro-copy trust elements */}
-            <div className="flex items-center gap-4 text-[12px]" style={{ color: "rgba(244,240,232,0.4)" }}>
+            <div className="flex items-center gap-3 sm:gap-4 text-[11px] sm:text-[12px]" style={{ color: "rgba(244,240,232,0.4)" }}>
               <div className="flex items-center gap-1.5">
                 <span style={{ color: "var(--mk-accent)" }}>✓</span>
                 {t("hero.trustNoCard")}
@@ -277,16 +278,16 @@ export function HeroSection() {
           initial={{ opacity: 0, y: 24 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8, delay: 1.0, ease: "easeOut" }}
-          className="flex gap-6 sm:gap-12 mt-16 pt-10 flex-wrap sm:flex-nowrap"
+          className="grid grid-cols-3 gap-4 sm:gap-8 lg:gap-12 mt-10 lg:mt-16 pt-8 lg:pt-10"
           style={{ borderTop: "1px solid rgba(244, 240, 232, 0.06)" }}
         >
           {stats.map((stat) => (
             <div key={stat.label}>
-              <div className="font-heading text-5xl font-light leading-none mb-1.5 text-[var(--mk-accent-light)]">
+              <div className="font-heading text-3xl sm:text-4xl lg:text-5xl font-light leading-none mb-1.5 text-[var(--mk-accent-light)]">
                 {stat.value}
               </div>
               <div
-                className="font-ui text-[10px] tracking-[0.2em] uppercase"
+                className="font-ui text-[8px] sm:text-[9px] lg:text-[10px] tracking-[0.15em] sm:tracking-[0.2em] uppercase"
                 style={{ color: "rgba(244, 240, 232, 0.5)" }}
               >
                 {stat.label}
@@ -294,9 +295,19 @@ export function HeroSection() {
             </div>
           ))}
         </motion.div>
+
+        {/* ── Mobile hero visual ── */}
+        <motion.div
+          initial={{ opacity: 0, y: 30 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.9, delay: 1.2, ease: "easeOut" }}
+          className="lg:hidden mt-10 flex justify-center"
+        >
+          <HeroMockup className="w-full max-w-[320px]" />
+        </motion.div>
       </div>
 
-      {/* ── RIGHT: Isometric Building ── */}
+      {/* ── RIGHT: Isometric Building (desktop only) ── */}
       <div className="hidden lg:flex items-center justify-center h-screen">
         <IsometricBuilding />
       </div>
@@ -306,7 +317,7 @@ export function HeroSection() {
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ duration: 1, delay: 2, ease: "easeOut" }}
-        className="absolute bottom-10 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2 z-[2]"
+        className="absolute bottom-10 left-1/2 -translate-x-1/2 hidden lg:flex flex-col items-center gap-2 z-[2]"
       >
         <div
           className="w-px h-10"

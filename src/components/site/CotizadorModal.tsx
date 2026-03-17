@@ -133,10 +133,10 @@ function UnitSummary({
   const estado = estadoConfigMap[unidad.estado];
 
   return (
-    <div className="bg-white/5 rounded-2xl p-4 mb-5 border border-white/8">
+    <div className="bg-[var(--glass-bg)] rounded-2xl p-4 mb-5 border border-[var(--border-default)]">
       <div className="flex items-start justify-between mb-3">
         <div>
-          <h3 className="text-base font-semibold text-white">
+          <h3 className="text-base font-semibold text-[var(--text-primary)]">
             {unidad.identificador}
           </h3>
           {tipologia && (
@@ -311,13 +311,13 @@ function LeadCaptureFlow({
     <form onSubmit={handleSubmit} className="space-y-3">
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
         <div>
-          <label className="block text-[10px] tracking-[0.2em] uppercase text-[var(--text-tertiary)] mb-1 font-mono">
+          <label className="block text-[10px] tracking-[0.2em] uppercase text-[var(--text-tertiary)] mb-1 font-ui font-bold">
             {tCommon("form.fullName")}
           </label>
           <input type="text" name="nombre" placeholder="Juan Pérez" required value={formData.nombre} onChange={handleChange} className="input-glass w-full" />
         </div>
         <div>
-          <label className="block text-[10px] tracking-[0.2em] uppercase text-[var(--text-tertiary)] mb-1 font-mono">
+          <label className="block text-[10px] tracking-[0.2em] uppercase text-[var(--text-tertiary)] mb-1 font-ui font-bold">
             {tCommon("form.email")}
           </label>
           <input type="email" name="email" placeholder="juan@email.com" required value={formData.email} onChange={handleChange} className="input-glass w-full" />
@@ -325,7 +325,7 @@ function LeadCaptureFlow({
       </div>
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
         <div>
-          <label className="block text-[10px] tracking-[0.2em] uppercase text-[var(--text-tertiary)] mb-1 font-mono">
+          <label className="block text-[10px] tracking-[0.2em] uppercase text-[var(--text-tertiary)] mb-1 font-ui font-bold">
             {tCommon("form.phone")}
           </label>
           <PhoneInput
@@ -336,14 +336,14 @@ function LeadCaptureFlow({
           />
         </div>
         <div>
-          <label className="block text-[10px] tracking-[0.2em] uppercase text-[var(--text-tertiary)] mb-1 font-mono">
+          <label className="block text-[10px] tracking-[0.2em] uppercase text-[var(--text-tertiary)] mb-1 font-ui font-bold">
             {tCommon("form.country")}
           </label>
           <input type="text" name="pais" placeholder="Colombia" value={formData.pais} onChange={handleChange} className="input-glass w-full" />
         </div>
       </div>
       <div>
-        <label className="block text-[10px] tracking-[0.2em] uppercase text-[var(--text-tertiary)] mb-1 font-mono">
+        <label className="block text-[10px] tracking-[0.2em] uppercase text-[var(--text-tertiary)] mb-1 font-ui font-bold">
           {tCommon("form.messageOptional")}
         </label>
         <textarea name="mensaje" placeholder="..." rows={2} value={formData.mensaje} onChange={handleChange} className="input-glass w-full resize-none" />
@@ -407,11 +407,11 @@ export function CotizadorModal({
 
   const columns = useMemo(() => {
     if (isHibrido && unitTipoTipologia) {
-      return getHybridInventoryColumns(unitTipoTipologia, proyecto.inventory_columns_by_type);
+      return getHybridInventoryColumns(unitTipoTipologia, (proyecto as any).inventory_columns_microsite_by_type ?? proyecto.inventory_columns_by_type);
     }
     return getInventoryColumns(
       (proyecto.tipo_proyecto ?? "hibrido") as "apartamentos" | "casas" | "lotes" | "hibrido",
-      proyecto.inventory_columns
+      (proyecto as any).inventory_columns_microsite ?? proyecto.inventory_columns
     );
   }, [isHibrido, unitTipoTipologia, proyecto.tipo_proyecto, proyecto.inventory_columns, proyecto.inventory_columns_by_type]);
 
@@ -477,7 +477,8 @@ export function CotizadorModal({
         >
           {/* Backdrop */}
           <motion.div
-            className="absolute inset-0 bg-black/90 backdrop-blur-sm"
+            className="absolute inset-0 backdrop-blur-sm"
+            style={{ backgroundColor: "rgba(var(--overlay-rgb), 0.90)" }}
             onClick={handleClose}
           />
 

@@ -292,7 +292,7 @@ export function UploadModal({
                       key={staged.id}
                       className="relative aspect-video rounded-lg overflow-hidden bg-[var(--surface-2)] group"
                     >
-                      <Image src={staged.previewUrl} alt="undefined" fill className="w-full h-full object-cover" />
+                      <Image src={staged.previewUrl} alt="" fill sizes="(max-width: 640px) 50vw, 200px" className="w-full h-full object-cover" />
                       {!uploading && !compressing && (
                         <button
                           onClick={() => removeStaged(staged.id)}

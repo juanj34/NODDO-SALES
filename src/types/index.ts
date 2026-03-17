@@ -62,12 +62,14 @@ export interface Proyecto {
   nombre: string;
   descripcion: string | null;
   logo_url: string | null;
+  logo_height: number | null;
   constructora_nombre: string | null;
   constructora_logo_url: string | null;
   constructora_website: string | null;
   color_primario: string;
   color_secundario: string;
   color_fondo: string;
+  tema_modo: "oscuro" | "claro";
   estado: "borrador" | "publicado" | "archivado";
   tipo_proyecto: "apartamentos" | "casas" | "hibrido" | "lotes";
   disclaimer: string;
@@ -131,6 +133,14 @@ export interface TipologiaHotspot {
   renders?: string[];
 }
 
+export interface TipologiaPiso {
+  id: string;
+  nombre: string;
+  plano_url: string;
+  hotspots: TipologiaHotspot[];
+  orden: number;
+}
+
 export interface Tipologia {
   id: string;
   proyecto_id: string;
@@ -150,11 +160,14 @@ export interface Tipologia {
   area_privada: number | null;
   area_lote: number | null;
   hotspots: TipologiaHotspot[];
+  pisos: TipologiaPiso[] | null;
   ubicacion_plano_url: string | null;
   torre_ids: string[];
   tipo_tipologia: TipoTipologia | null;
   orden: number;
   created_at: string;
+  precio_actualizado_en: string | null;
+  precio_actualizado_por: string | null;
 }
 
 export interface GaleriaCategoria {
@@ -271,7 +284,7 @@ export interface Unidad {
   area_privada: number | null;
   area_lote: number | null;
   precio: number | null;
-  estado: "disponible" | "separado" | "reservada" | "vendida";
+  estado: "disponible" | "separado" | "reservada" | "vendida" | "proximamente";
   habitaciones: number | null;
   banos: number | null;
   orientacion: string | null;
@@ -441,6 +454,7 @@ export interface AIProjectData {
   color_primario: string | null;
   color_secundario: string | null;
   color_fondo: string | null;
+  tema_modo: string | null;
   whatsapp_numero: string | null;
   disclaimer: string | null;
   tipologias: AITipologiaData[];
@@ -572,6 +586,7 @@ export interface FinancieroResponse {
   avg_sales_velocity: number;
   total_units: number;
   total_disponible: number;
+  total_proximamente: number;
   total_separado: number;
   total_reservada: number;
   total_vendida: number;
@@ -822,7 +837,7 @@ export interface Complemento {
   nivel: string | null;
   area_m2: number | null;
   precio: number | null;
-  estado: "disponible" | "separado" | "reservada" | "vendida";
+  estado: "disponible" | "separado" | "reservada" | "vendida" | "proximamente";
   notas: string | null;
   orden: number;
   created_at: string;

@@ -22,13 +22,35 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Sin acceso a este proyecto" }, { status: 403 });
     }
 
+    // Build insert payload
+    const insertData = pick(body, ["proyecto_id", "nombre", "descripcion", "area_m2", "area_construida", "area_privada", "area_lote", "habitaciones", "banos", "precio_desde", "plano_url", "renders", "caracteristicas", "parqueaderos", "depositos", "area_balcon", "hotspots", "ubicacion_plano_url", "torre_ids", "orden", "tipo_tipologia", "pisos"]);
+
+    // If precio_desde is set on creation, add audit fields
+    if (body.precio_desde !== undefined && body.precio_desde !== null) {
+      insertData.precio_actualizado_en = new Date().toISOString();
+      insertData.precio_actualizado_por = auth.user.email || auth.user.id;
+    }
+
     const { data, error } = await auth.supabase
       .from("tipologias")
-      .insert(pick(body, ["proyecto_id", "nombre", "descripcion", "area_m2", "area_construida", "area_privada", "area_lote", "habitaciones", "banos", "precio_desde", "plano_url", "renders", "caracteristicas", "parqueaderos", "depositos", "area_balcon", "hotspots", "ubicacion_plano_url", "torre_ids", "orden", "tipo_tipologia"]))
+      .insert(insertData)
       .select()
       .single();
 
     if (error) throw error;
+
+    // If created with a price, save initial entry to history
+    if (data && body.precio_desde !== undefined && body.precio_desde !== null) {
+      await auth.supabase
+        .from("tipologia_precio_historial")
+        .insert({
+          tipologia_id: data.id,
+          precio_anterior: null,
+          precio_nuevo: body.precio_desde,
+          changed_by: auth.user.email || auth.user.id,
+        });
+    }
+
     return NextResponse.json(data, { status: 201 });
   } catch (err) {
     return NextResponse.json(

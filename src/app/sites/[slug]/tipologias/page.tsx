@@ -31,6 +31,7 @@ import { SiteEmptyState } from "@/components/site/SiteEmptyState";
 import VistaModal from "@/components/site/VistaModal";
 import { getInventoryColumns, getHybridInventoryColumns, getPrimaryArea } from "@/lib/inventory-columns";
 import { resolveHotspotImages } from "@/lib/hotspot-utils";
+import { resolvePisos } from "@/lib/piso-utils";
 import type { Unidad, UnidadTipologia, LightboxImage, VistaPiso } from "@/types";
 
 function formatPrecio(precio: number): string {
@@ -80,6 +81,22 @@ export default function TipologiasPage() {
     { value: "vendida", label: tCommon("estados.vendida") },
   ], [tCommon]);
 
+  // Extract unique etapas from unidades
+  const etapas = useMemo(() => {
+    const uniqueEtapas = Array.from(
+      new Set(unidades.map(u => u.etapa_nombre).filter((e): e is string => e != null && e !== ""))
+    ).sort();
+    return uniqueEtapas;
+  }, [unidades]);
+  const isMultiEtapa = etapas.length > 1;
+
+  // Etapa selector state
+  const [activeEtapa, setActiveEtapa] = usePersistedState<string | null>(
+    "tipologias-etapa",
+    isMultiEtapa ? etapas[0] ?? null : null,
+    proyecto.slug,
+  );
+
   // Torre selector state
   const [activeTorreId, setActiveTorreId] = usePersistedState<string | null>(
     "tipologias-torre",
@@ -87,11 +104,27 @@ export default function TipologiasPage() {
     proyecto.slug,
   );
 
-  // Filter tipologías by active torre
+  // Filter tipologías by active etapa and torre
   const visibleTipologias = useMemo(() => {
-    if (!isMultiTorre || !activeTorreId) return tipologias;
-    return tipologias.filter((t) => t.torre_ids?.includes(activeTorreId));
-  }, [tipologias, isMultiTorre, activeTorreId]);
+    let filtered = tipologias;
+
+    // Filter by etapa: show tipologías that have at least one unit in this etapa
+    if (isMultiEtapa && activeEtapa) {
+      const tipoIdsInEtapa = new Set(
+        unidades
+          .filter(u => u.etapa_nombre === activeEtapa && u.tipologia_id)
+          .map(u => u.tipologia_id!)
+      );
+      filtered = filtered.filter(t => tipoIdsInEtapa.has(t.id));
+    }
+
+    // Filter by torre
+    if (isMultiTorre && activeTorreId) {
+      filtered = filtered.filter((t) => t.torre_ids?.includes(activeTorreId));
+    }
+
+    return filtered;
+  }, [tipologias, isMultiEtapa, activeEtapa, isMultiTorre, activeTorreId, unidades]);
 
   // Read query params for deep linking
   const tipoParam = searchParams.get("tipo");
@@ -125,6 +158,7 @@ export default function TipologiasPage() {
   const [showUbicacion, setShowUbicacion] = useState(false);
   const [showRenderGallery, setShowRenderGallery] = useState(false);
   const [showVistaModal, setShowVistaModal] = useState<VistaPiso | null>(null);
+  const [activePisoIdx, setActivePisoIdx] = useState(0);
 
   // Image ref for hotspot container
   const planoImgRef = useRef<HTMLImageElement>(null);
@@ -157,7 +191,7 @@ export default function TipologiasPage() {
     });
   }, [tipoParam, unidadParam, visibleTipologias, unidades, setActiveIndex]);
 
-  // Reset activeIndex when torre changes — try to restore persisted tipo
+  // Reset activeIndex when etapa or torre changes — try to restore persisted tipo
   useEffect(() => {
     requestAnimationFrame(() => {
       if (persistedTipoId) {
@@ -171,7 +205,7 @@ export default function TipologiasPage() {
       setActiveIndexRaw(0);
       setSelectedUnit(null);
     });
-  }, [activeTorreId, visibleTipologias, persistedTipoId]);
+  }, [activeEtapa, activeTorreId, visibleTipologias, persistedTipoId]);
 
   // Keyboard navigation
   const closeHotspot = useCallback(() => setActiveHotspot(null), []);
@@ -216,6 +250,12 @@ export default function TipologiasPage() {
 
   const active = visibleTipologias[activeIndex] ?? visibleTipologias[0];
 
+  // Multi-floor support
+  const pisos = useMemo(() => (active ? resolvePisos(active) : []), [active]);
+  // Reset floor index when tipología changes
+  useEffect(() => { setActivePisoIdx(0); }, [active?.id]);
+  const activePiso = pisos[activePisoIdx] ?? pisos[0] ?? null;
+
   // Compute columns & isLoteBased dynamically based on active tipología's tipo_tipologia for hybrid
   const isLoteBased = isHibrido
     ? (active?.tipo_tipologia === "casa" || active?.tipo_tipologia === "lote")
@@ -223,9 +263,9 @@ export default function TipologiasPage() {
 
   const columns = useMemo(() => {
     if (isHibrido && active?.tipo_tipologia) {
-      return getHybridInventoryColumns(active.tipo_tipologia, proyecto.inventory_columns_by_type);
+      return getHybridInventoryColumns(active.tipo_tipologia, (proyecto as any).inventory_columns_microsite_by_type ?? proyecto.inventory_columns_by_type);
     }
-    return getInventoryColumns(proyecto.tipo_proyecto ?? "hibrido", proyecto.inventory_columns);
+    return getInventoryColumns(proyecto.tipo_proyecto ?? "hibrido", (proyecto as any).inventory_columns_microsite ?? proyecto.inventory_columns);
   }, [isHibrido, active?.tipo_tipologia, proyecto.tipo_proyecto, proyecto.inventory_columns, proyecto.inventory_columns_by_type]);
 
   // Tipologías available for the selected unit (for multi-tipo banner comparison)
@@ -265,18 +305,26 @@ export default function TipologiasPage() {
     } else {
       filtered = unidades.filter((u) => u.tipologia_id === active.id);
     }
+    // Filter by etapa
+    if (isMultiEtapa && activeEtapa) {
+      filtered = filtered.filter((u) => u.etapa_nombre === activeEtapa);
+    }
     if (estadoFilter !== "todas") {
       filtered = filtered.filter((u) => u.estado === estadoFilter);
     }
     return filtered;
-  }, [unidades, active, estadoFilter, isMultiTipo, unidadTipologias]);
+  }, [unidades, active, estadoFilter, isMultiTipo, unidadTipologias, isMultiEtapa, activeEtapa]);
 
   // Count units by estado for current tipología
   const estadoCounts = useMemo(() => {
     if (!active) return { todas: 0, disponible: 0, separado: 0, reservada: 0, vendida: 0 };
-    const tipoUnidades = isMultiTipo
+    let tipoUnidades = isMultiTipo
       ? unidades.filter(u => unidadTipologias.some(ut => ut.unidad_id === u.id && ut.tipologia_id === active.id))
       : unidades.filter((u) => u.tipologia_id === active.id);
+    // Filter by etapa
+    if (isMultiEtapa && activeEtapa) {
+      tipoUnidades = tipoUnidades.filter((u) => u.etapa_nombre === activeEtapa);
+    }
     return {
       todas: tipoUnidades.length,
       disponible: tipoUnidades.filter((u) => u.estado === "disponible").length,
@@ -284,7 +332,7 @@ export default function TipologiasPage() {
       reservada: tipoUnidades.filter((u) => u.estado === "reservada").length,
       vendida: tipoUnidades.filter((u) => u.estado === "vendida").length,
     };
-  }, [unidades, active, isMultiTipo, unidadTipologias]);
+  }, [unidades, active, isMultiTipo, unidadTipologias, isMultiEtapa, activeEtapa]);
 
   // Dynamic "desde" price from cheapest available unit
   // For lotes: includes construction price (terreno + tipología.precio_desde)
@@ -292,7 +340,7 @@ export default function TipologiasPage() {
   const precioDesde = useMemo(() => {
     if (!active) return null;
     if (isTipologiaPricing) return active.precio_desde;
-    const tipoUnits = isMultiTipo
+    let tipoUnits = isMultiTipo
       ? unidades.filter(u =>
           u.estado === "disponible" && u.precio != null &&
           unidadTipologias.some(ut => ut.unidad_id === u.id && ut.tipologia_id === active.id)
@@ -300,31 +348,39 @@ export default function TipologiasPage() {
       : unidades.filter(u =>
           u.tipologia_id === active.id && u.estado === "disponible" && u.precio != null
         );
+    // Filter by etapa
+    if (isMultiEtapa && activeEtapa) {
+      tipoUnits = tipoUnits.filter((u) => u.etapa_nombre === activeEtapa);
+    }
     const construccion = isLoteBased && active.precio_desde ? active.precio_desde : 0;
     if (tipoUnits.length === 0) {
       return active.precio_desde;
     }
     return Math.min(...tipoUnits.map((u) => u.precio! + construccion));
-  }, [active, unidades, isMultiTipo, unidadTipologias, isLoteBased, isTipologiaPricing]);
+  }, [active, unidades, isMultiTipo, unidadTipologias, isLoteBased, isTipologiaPricing, isMultiEtapa, activeEtapa]);
 
-  // Render images from hotspots for gallery lightbox
+  // Render images from hotspots across ALL floors for gallery lightbox
   const renderImages: LightboxImage[] = useMemo(() => {
     if (!active) return [];
     const result: LightboxImage[] = [];
-    for (const h of active.hotspots) {
-      const imgs = resolveHotspotImages(h);
-      imgs.forEach((url, i) => {
-        result.push({
-          id: `${h.id}-${i}`,
-          url,
-          thumbnail_url: url,
-          alt_text: imgs.length > 1 ? `${h.label} (${i + 1})` : h.label,
-          label: i === 0 ? h.label : undefined,
+    const multiFloor = pisos.length > 1;
+    for (const piso of pisos) {
+      for (const h of piso.hotspots) {
+        const imgs = resolveHotspotImages(h);
+        imgs.forEach((url, i) => {
+          const baseLabel = imgs.length > 1 ? `${h.label} (${i + 1})` : h.label;
+          result.push({
+            id: `${piso.id}-${h.id}-${i}`,
+            url,
+            thumbnail_url: url,
+            alt_text: multiFloor ? `${piso.nombre} — ${baseLabel}` : baseLabel,
+            label: i === 0 ? (multiFloor ? `${piso.nombre} — ${h.label}` : h.label) : undefined,
+          });
         });
-      });
+      }
     }
     return result;
-  }, [active]);
+  }, [active, pisos]);
 
   // Group units by floor
   const unitsByFloor = useMemo(() => {
@@ -341,12 +397,30 @@ export default function TipologiasPage() {
 
   const showFloorHeaders = unitsByFloor.length > 1;
 
-  // No tipologías available for this torre — show empty state
+  // No tipologías available for this etapa/torre — show empty state
   if (!active) {
     return (
       <SectionTransition className="h-screen flex flex-col overflow-hidden bg-[var(--site-bg)]">
+        {isMultiEtapa && (
+          <div className={cn("flex-shrink-0 flex items-center gap-3 px-6 lg:px-12 border-b border-[var(--border-subtle)]", isMultiTorre ? "pt-5 pb-3" : "pt-6 pb-4")}>
+            {etapas.map((etapa) => (
+              <button
+                key={etapa}
+                onClick={() => setActiveEtapa(etapa)}
+                className={cn(
+                  "font-site-label px-6 py-2.5 rounded-full text-[11px] font-bold tracking-[0.2em] uppercase transition-all cursor-pointer",
+                  activeEtapa === etapa
+                    ? "bg-gradient-to-br from-[var(--site-primary)] to-[rgba(var(--site-primary-rgb),0.8)] text-[#0A0A0B] shadow-[0_0_20px_rgba(var(--site-primary-rgb),0.4)]"
+                    : "text-[var(--text-tertiary)] hover:text-[var(--text-primary)] hover:bg-white/[0.07] hover:ring-1 hover:ring-white/10"
+                )}
+              >
+                {proyecto.etapa_label} {etapa}
+              </button>
+            ))}
+          </div>
+        )}
         {isMultiTorre && (
-          <div className="flex-shrink-0 flex items-center gap-2 px-6 lg:px-12 pt-4 pb-1">
+          <div className={cn("flex-shrink-0 flex items-center gap-2 px-6 lg:px-12", isMultiEtapa ? "pt-4 pb-1" : "pt-4 pb-1")}>
             {torres.map((torre) => (
               <button
                 key={torre.id}
@@ -355,7 +429,7 @@ export default function TipologiasPage() {
                   "flex items-center gap-2 px-4 py-2 rounded-full text-xs font-medium tracking-wider uppercase transition-all cursor-pointer",
                   activeTorreId === torre.id
                     ? "bg-[rgba(var(--site-primary-rgb),0.15)] text-[var(--site-primary)] ring-1 ring-[rgba(var(--site-primary-rgb),0.3)]"
-                    : "text-[var(--text-tertiary)] hover:text-[var(--text-secondary)] hover:bg-white/5"
+                    : "text-[var(--text-tertiary)] hover:text-[var(--text-secondary)] hover:bg-[var(--glass-bg)]"
                 )}
               >
                 {torre.tipo === "urbanismo" ? <Home size={13} /> : <Building2 size={13} />}
@@ -378,21 +452,41 @@ export default function TipologiasPage() {
 
   return (
     <SectionTransition className="h-screen flex flex-col overflow-hidden bg-[var(--site-bg)]">
+      {/* ====== TOP: Etapa Selector (multi-etapa only) ====== */}
+      {isMultiEtapa && (
+        <div className={cn("flex-shrink-0 flex items-center gap-3 px-6 lg:px-12 border-b border-[var(--border-subtle)]", isMultiTorre ? "pt-5 pb-3" : "pt-6 pb-4")}>
+          {etapas.map((etapa) => (
+            <button
+              key={etapa}
+              onClick={() => setActiveEtapa(etapa)}
+              className={cn(
+                "font-site-label px-6 py-2.5 rounded-full text-[11px] font-bold tracking-[0.2em] uppercase transition-all cursor-pointer",
+                activeEtapa === etapa
+                  ? "bg-gradient-to-br from-[var(--site-primary)] to-[rgba(var(--site-primary-rgb),0.8)] text-[#0A0A0B] shadow-[0_0_20px_rgba(var(--site-primary-rgb),0.4)]"
+                  : "text-[var(--text-tertiary)] hover:text-[var(--text-primary)] hover:bg-white/[0.07] hover:ring-1 hover:ring-white/10"
+              )}
+            >
+              {proyecto.etapa_label} {etapa}
+            </button>
+          ))}
+        </div>
+      )}
+
       {/* ====== TOP: Torre Selector (multi-torre only) ====== */}
       {isMultiTorre && (
-        <div className="flex-shrink-0 flex items-center gap-2 px-6 lg:px-12 pt-4 pb-1">
+        <div className={cn("flex-shrink-0 flex items-center gap-2.5 px-6 lg:px-12", isMultiEtapa ? "pt-4 pb-3" : "pt-6 pb-5")}>
           {torres.map((torre) => (
             <button
               key={torre.id}
               onClick={() => setActiveTorreId(torre.id)}
               className={cn(
-                "flex items-center gap-2 px-4 py-2 rounded-full text-xs font-medium tracking-wider uppercase transition-all cursor-pointer",
+                "font-site-label flex items-center gap-2.5 px-5 py-2.5 rounded-full text-[11px] font-semibold tracking-[0.15em] uppercase transition-all cursor-pointer",
                 activeTorreId === torre.id
-                  ? "bg-[rgba(var(--site-primary-rgb),0.15)] text-[var(--site-primary)] ring-1 ring-[rgba(var(--site-primary-rgb),0.3)]"
-                  : "text-[var(--text-tertiary)] hover:text-[var(--text-secondary)] hover:bg-white/5"
+                  ? "bg-[rgba(var(--site-primary-rgb),0.15)] text-[var(--site-primary)] ring-1 ring-[rgba(var(--site-primary-rgb),0.4)] shadow-[0_0_12px_rgba(var(--site-primary-rgb),0.15)]"
+                  : "text-[var(--text-tertiary)] hover:text-[var(--text-secondary)] hover:bg-white/[0.07] hover:ring-1 hover:ring-white/10"
               )}
             >
-              <Building2 size={13} />
+              <Building2 size={14} strokeWidth={2.5} />
               {torre.nombre}
             </button>
           ))}
@@ -400,36 +494,42 @@ export default function TipologiasPage() {
       )}
 
       {/* ====== TOP: Tipología Tab Bar ====== */}
-      <div className={cn("flex-shrink-0 px-6 lg:px-12 pb-3", isMultiTorre ? "pt-2" : "pt-5")}>
-        <div className="flex items-end gap-6">
+      <div className={cn("flex-shrink-0 px-6 lg:px-12 pb-5", (isMultiTorre || isMultiEtapa) ? "pt-3" : "pt-6")}>
+        <div className="flex items-end gap-8 mb-4">
           {visibleTipologias.map((tipo, idx) => {
             const isActive = idx === activeIndex;
-            const tipoUnits = isMultiTipo
+            let tipoUnits = isMultiTipo
               ? unidades.filter(u => unidadTipologias.some(ut => ut.unidad_id === u.id && ut.tipologia_id === tipo.id))
               : unidades.filter((u) => u.tipologia_id === tipo.id);
+            // Filter by etapa
+            if (isMultiEtapa && activeEtapa) {
+              tipoUnits = tipoUnits.filter((u) => u.etapa_nombre === activeEtapa);
+            }
             const disponibles = tipoUnits.filter((u) => u.estado === "disponible").length;
             return (
               <button
                 key={tipo.id}
                 onClick={() => { setActiveIndex(idx); setEstadoFilter("todas"); setSelectedUnit(null); setActiveHotspot(null); }}
                 className={cn(
-                  "relative pb-3 cursor-pointer transition-colors duration-200 group",
-                  isActive ? "text-white" : "text-[var(--text-tertiary)] hover:text-[var(--text-secondary)]"
+                  "relative pb-4 cursor-pointer transition-all duration-200 group",
+                  isActive ? "text-[var(--text-primary)]" : "text-[var(--text-tertiary)] hover:text-[var(--text-secondary)]"
                 )}
               >
-                <span className="text-sm font-medium tracking-wide">{tipo.nombre}</span>
-                {disponibles > 0 && (
-                  <span className={cn(
-                    "ml-2 text-[10px] tabular-nums transition-colors duration-200",
-                    isActive ? "text-[var(--site-primary)]" : "text-[var(--text-muted)] group-hover:text-[var(--text-tertiary)]"
-                  )}>
-                    {disponibles}
-                  </span>
-                )}
+                <div className="flex items-baseline gap-2.5">
+                  <span className="text-base font-medium tracking-wide">{tipo.nombre}</span>
+                  {disponibles > 0 && (
+                    <span className={cn(
+                      "text-[11px] font-mono tabular-nums transition-all duration-200",
+                      isActive ? "text-[var(--site-primary)] font-medium" : "text-[var(--text-muted)] group-hover:text-[var(--text-tertiary)]"
+                    )}>
+                      {disponibles}
+                    </span>
+                  )}
+                </div>
                 {isActive && (
                   <motion.div
                     layoutId="tipo-tab-indicator"
-                    className="absolute bottom-0 left-0 right-0 h-[2px] bg-[var(--site-primary)] rounded-full"
+                    className="absolute bottom-0 left-0 right-0 h-[2.5px] bg-gradient-to-r from-[var(--site-primary)] to-[rgba(var(--site-primary-rgb),0.6)] rounded-full shadow-[0_0_8px_rgba(var(--site-primary-rgb),0.4)]"
                     transition={{ type: "spring", bounce: 0.2, duration: 0.4 }}
                   />
                 )}
@@ -437,7 +537,7 @@ export default function TipologiasPage() {
             );
           })}
         </div>
-        <div className="h-px bg-white/[0.06]" />
+        <div className="h-px bg-[var(--border-default)]" />
       </div>
 
       {/* ====== MAIN CONTENT ====== */}
@@ -455,19 +555,39 @@ export default function TipologiasPage() {
             >
               {/* Floor Plan with Hotspots — inline-block wrapper shrink-wraps to image */}
               <div className="flex-1 relative glass-card p-4 min-h-0 flex items-center justify-center overflow-hidden">
-                {active.plano_url && (
+                {/* Floor toggle — only if multiple floors */}
+                {pisos.length > 1 && (
+                  <div className="absolute top-4 left-1/2 -translate-x-1/2 z-20 glass-dark rounded-xl p-1 shadow-lg border border-[var(--border-subtle)]">
+                    {pisos.map((piso, i) => (
+                      <button
+                        key={piso.id}
+                        onClick={() => setActivePisoIdx(i)}
+                        className={cn(
+                          "font-site-label px-4 py-2 rounded-lg text-[11px] font-bold tracking-[0.12em] uppercase transition-all cursor-pointer",
+                          activePisoIdx === i
+                            ? "bg-gradient-to-br from-[var(--site-primary)] to-[rgba(var(--site-primary-rgb),0.8)] text-[#0A0A0B] shadow-[0_0_16px_rgba(var(--site-primary-rgb),0.4)]"
+                            : "text-[var(--text-tertiary)] hover:text-[var(--text-primary)] hover:bg-white/[0.05]"
+                        )}
+                      >
+                        {piso.nombre}
+                      </button>
+                    ))}
+                  </div>
+                )}
+
+                {activePiso?.plano_url && (
                   <div className="relative inline-block max-w-full max-h-full leading-[0]">
                     {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img
                       ref={planoImgRef}
-                      src={active.plano_url}
-                      alt={`Plano ${active.nombre}`}
+                      src={activePiso.plano_url}
+                      alt={`Plano ${activePiso.nombre} - ${active.nombre}`}
                       className="block max-w-full max-h-[calc(100vh-320px)] w-auto h-auto rounded-xl"
                       draggable={false}
                     />
 
                     {/* Hotspot dots — CSS % positioned relative to the inline-block wrapper */}
-                    {active.hotspots.map((hotspot) => (
+                    {activePiso.hotspots.map((hotspot) => (
                       <button
                         key={hotspot.id}
                         aria-label={`Ver ${hotspot.label}`}
@@ -492,7 +612,7 @@ export default function TipologiasPage() {
                           <span className="absolute inset-0 rounded-full border-2 border-[rgba(var(--site-primary-rgb),0.40)] animate-ping origin-center" />
                           {/* Dot */}
                           <span className={cn(
-                            "block w-5 h-5 rounded-full bg-[var(--site-primary)] border-2 border-white shadow-lg shadow-[rgba(var(--site-primary-rgb),0.30)] transition-transform duration-150",
+                            "block w-5 h-5 rounded-full bg-[var(--site-primary)] border-2 border-[var(--text-primary)] shadow-lg shadow-[rgba(var(--site-primary-rgb),0.30)] transition-transform duration-150",
                             hoveredHotspot === hotspot.id && "scale-130"
                           )} />
                         </span>
@@ -506,7 +626,7 @@ export default function TipologiasPage() {
                               exit={{ opacity: 0, y: 8 }}
                               className="absolute top-full mt-2 left-1/2 -translate-x-1/2 glass-dark px-3 py-1.5 rounded-lg whitespace-nowrap z-30 pointer-events-none"
                             >
-                              <span className="text-[11px] font-medium text-white tracking-wider">
+                              <span className="text-[11px] font-medium text-[var(--text-primary)] tracking-wider">
                                 {hotspot.label}
                               </span>
                             </motion.div>
@@ -556,8 +676,8 @@ export default function TipologiasPage() {
                       alt={tSite("tipologias.location")}
                       className="w-full h-full object-contain p-2"
                     />
-                    <div className="absolute inset-0 bg-black/0 group-hover:bg-black/30 transition-colors flex items-center justify-center">
-                      <Maximize size={16} className="text-white opacity-0 group-hover:opacity-100 transition-opacity" />
+                    <div className="absolute inset-0 group-hover:bg-[var(--glass-bg-hover)] transition-colors flex items-center justify-center">
+                      <Maximize size={16} className="text-[var(--text-primary)] opacity-0 group-hover:opacity-100 transition-opacity" />
                     </div>
                   </button>
                 )}
@@ -575,7 +695,7 @@ export default function TipologiasPage() {
                       <button
                         onClick={() => setSelectedUnit(null)}
                         aria-label={tSite("tipologias.closeDetail")}
-                        className="absolute top-3 right-3 p-1.5 rounded-full bg-white/10 hover:bg-white/20 transition-colors cursor-pointer"
+                        className="absolute top-3 right-3 p-1.5 rounded-full bg-[var(--glass-bg-hover)] hover:bg-[var(--glass-bg-hover)] transition-colors cursor-pointer"
                       >
                         <X size={12} className="text-[var(--text-secondary)]" />
                       </button>
@@ -583,7 +703,7 @@ export default function TipologiasPage() {
                       <div className="flex items-start gap-4">
                         <div className="flex-1">
                           <div className="flex items-center gap-2 mb-1">
-                            <h3 className="text-base font-semibold text-white">
+                            <h3 className="text-base font-semibold text-[var(--text-primary)]">
                               {selectedUnit.identificador}
                             </h3>
                             {(() => {
@@ -687,7 +807,7 @@ export default function TipologiasPage() {
                                             "px-2.5 py-1 rounded-full text-[10px] tracking-wider transition-all cursor-pointer",
                                             bannerTipo.id === t.id
                                               ? "bg-[rgba(var(--site-primary-rgb),0.15)] text-[var(--site-primary)]"
-                                              : "text-[var(--text-tertiary)] hover:text-[var(--text-secondary)] hover:bg-white/5"
+                                              : "text-[var(--text-tertiary)] hover:text-[var(--text-secondary)] hover:bg-[var(--glass-bg)]"
                                           )}
                                         >
                                           {t.nombre}
@@ -767,108 +887,127 @@ export default function TipologiasPage() {
                 </AnimatePresence>
               </div>
 
-              {/* Stats Row */}
-              <div className="flex-shrink-0 grid grid-cols-3 sm:grid-cols-5 gap-3 mt-4">
-                {/* Combined Area Card */}
-                <div className="glass-card rounded-2xl p-3">
-                  <div className="flex items-center gap-1.5 mb-2">
-                    <Maximize size={14} className="text-[var(--site-primary)]" />
-                    <span className="text-[10px] tracking-wider text-[var(--text-tertiary)] uppercase">
-                      {tSite("tipologias.areas")}
-                    </span>
-                  </div>
-                  <div className="space-y-1">
-                    {columns.area_m2 && (
-                      <>
-                        <div className="flex items-center justify-between">
-                          <span className="text-[10px] text-[var(--text-muted)]">{tSite("tipologias.internalArea")}</span>
-                          <span className="text-xs font-medium text-white">
-                            {active.area_m2 != null ? `${active.area_m2} m²` : "—"}
-                          </span>
+              {/* Stats Row — TIPOLOGÍA SPECS (always show if value exists, columns only for inventory) */}
+              <div className="flex-shrink-0 grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2.5 mt-4">
+                {/* Combined Area Card — show if ANY area field has a value */}
+                {(active.area_m2 != null || active.area_construida != null || active.area_privada != null || active.area_lote != null || active.area_balcon != null) && (
+                  <div className="relative overflow-hidden rounded-xl border border-[var(--border-subtle)] bg-gradient-to-br from-[var(--surface-1)] to-[var(--surface-2)] p-3.5 shadow-lg hover:border-[rgba(var(--site-primary-rgb),0.3)] transition-all duration-300 group">
+                    {/* Subtle gold gradient overlay on hover */}
+                    <div className="absolute inset-0 bg-gradient-to-br from-[rgba(var(--site-primary-rgb),0.03)] to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+
+                    <div className="relative">
+                      <div className="flex items-center gap-1.5 mb-2.5">
+                        <div className="w-6 h-6 rounded-lg bg-gradient-to-br from-[rgba(var(--site-primary-rgb),0.15)] to-[rgba(var(--site-primary-rgb),0.05)] flex items-center justify-center">
+                          <Maximize size={13} className="text-[var(--site-primary)]" strokeWidth={2.5} />
                         </div>
-                        {active.area_balcon != null && active.area_balcon > 0 && (
-                          <div className="flex items-center justify-between">
-                            <span className="text-[10px] text-[var(--text-muted)]">{tSite("tipologias.balcony")}</span>
-                            <span className="text-xs font-medium text-white">
-                              {active.area_balcon} m²
+                        <span className="font-site-label text-[9px] font-bold tracking-[0.15em] text-[var(--text-tertiary)] uppercase">
+                          {tSite("tipologias.areas")}
+                        </span>
+                      </div>
+                      <div className="space-y-1.5">
+                        {active.area_m2 != null && (
+                          <>
+                            <div className="flex items-center justify-between gap-2">
+                              <span className="font-site-body text-[10px] text-[var(--text-muted)]">{tSite("tipologias.internalArea")}</span>
+                              <span className="font-site-body text-xs font-medium text-[var(--text-primary)] tabular-nums">
+                                {active.area_m2} m²
+                              </span>
+                            </div>
+                            {active.area_balcon != null && active.area_balcon > 0 && (
+                              <div className="flex items-center justify-between gap-2">
+                                <span className="font-site-body text-[10px] text-[var(--text-muted)]">{tSite("tipologias.balcony")}</span>
+                                <span className="font-site-body text-xs font-medium text-[var(--text-primary)] tabular-nums">
+                                  {active.area_balcon} m²
+                                </span>
+                              </div>
+                            )}
+                            {active.area_construida == null && active.area_privada == null && active.area_lote == null && (
+                              <>
+                                <div className="h-px bg-gradient-to-r from-transparent via-[var(--border-default)] to-transparent my-1" />
+                                <div className="flex items-center justify-between gap-2">
+                                  <span className="font-site-label text-[9px] text-[var(--text-secondary)] font-bold tracking-wider uppercase">{tSite("tipologias.total")}</span>
+                                  <span className="font-site-body text-sm font-semibold text-[var(--site-primary)] tabular-nums">
+                                    {((active.area_m2 || 0) + (active.area_balcon || 0))} m²
+                                  </span>
+                                </div>
+                              </>
+                            )}
+                          </>
+                        )}
+                        {/* ALWAYS show area_construida for tipologías if it has a value */}
+                        {active.area_construida != null && (
+                          <div className="flex items-center justify-between gap-2">
+                            <span className="font-site-body text-[10px] text-[var(--text-muted)]">{tSite("tipologias.areaConstruida")}</span>
+                            <span className="font-site-body text-xs font-medium text-[var(--text-primary)] tabular-nums">
+                              {active.area_construida} m²
                             </span>
                           </div>
                         )}
-                        {!columns.area_construida && !columns.area_privada && !columns.area_lote && (
-                          <>
-                            <div className="h-px bg-white/[0.06] my-1" />
-                            <div className="flex items-center justify-between">
-                              <span className="text-[10px] text-[var(--text-tertiary)] font-medium">{tSite("tipologias.total")}</span>
-                              <span className="text-sm font-semibold text-[var(--site-primary)]">
-                                {active.area_m2 != null || active.area_balcon != null
-                                  ? `${((active.area_m2 || 0) + (active.area_balcon || 0))} m²`
-                                  : "—"}
-                              </span>
-                            </div>
-                          </>
+                        {/* ALWAYS show area_privada for tipologías if it has a value */}
+                        {active.area_privada != null && (
+                          <div className="flex items-center justify-between gap-2">
+                            <span className="font-site-body text-[10px] text-[var(--text-muted)]">{tSite("tipologias.areaPrivada")}</span>
+                            <span className="font-site-body text-xs font-medium text-[var(--text-primary)] tabular-nums">
+                              {active.area_privada} m²
+                            </span>
+                          </div>
                         )}
-                      </>
-                    )}
-                    {columns.area_construida && (
-                      <div className="flex items-center justify-between">
-                        <span className="text-[10px] text-[var(--text-muted)]">{tSite("tipologias.areaConstruida")}</span>
-                        <span className="text-xs font-medium text-white">
-                          {active.area_construida != null ? `${active.area_construida} m²` : "—"}
-                        </span>
+                        {active.area_lote != null && (
+                          <div className="flex items-center justify-between gap-2">
+                            <span className="font-site-body text-[10px] text-[var(--text-muted)]">{tSite("tipologias.areaLote")}</span>
+                            <span className="font-site-body text-xs font-medium text-[var(--text-primary)] tabular-nums">
+                              {active.area_lote} m²
+                            </span>
+                          </div>
+                        )}
                       </div>
-                    )}
-                    {columns.area_privada && (
-                      <div className="flex items-center justify-between">
-                        <span className="text-[10px] text-[var(--text-muted)]">{tSite("tipologias.areaPrivada")}</span>
-                        <span className="text-xs font-medium text-white">
-                          {active.area_privada != null ? `${active.area_privada} m²` : "—"}
-                        </span>
-                      </div>
-                    )}
-                    {columns.area_lote && (
-                      <div className="flex items-center justify-between">
-                        <span className="text-[10px] text-[var(--text-muted)]">{tSite("tipologias.areaLote")}</span>
-                        <span className="text-xs font-medium text-white">
-                          {active.area_lote != null ? `${active.area_lote} m²` : "—"}
-                        </span>
-                      </div>
-                    )}
+                    </div>
                   </div>
-                </div>
-                {columns.habitaciones && (
+                )}
+                {/* ALWAYS show habitaciones if value exists */}
+                {active.habitaciones != null && (
                   <StatCard
-                    icon={<BedDouble size={16} />}
+                    icon={<BedDouble size={16} strokeWidth={2.5} />}
                     label={tSite("explorar.bedrooms")}
                     value={active.habitaciones === 0 ? tSite("tipologias.studio") : String(active.habitaciones)}
                   />
                 )}
-                {columns.banos && (
+                {/* ALWAYS show banos if value exists */}
+                {active.banos != null && (
                   <StatCard
-                    icon={<Bath size={16} />}
+                    icon={<Bath size={16} strokeWidth={2.5} />}
                     label={tSite("explorar.bathrooms")}
                     value={String(active.banos)}
                   />
                 )}
-                {columns.parqueaderos && (
+                {/* ALWAYS show parqueaderos if value exists */}
+                {active.parqueaderos != null && (
                   <StatCard
-                    icon={<Car size={16} />}
+                    icon={<Car size={16} strokeWidth={2.5} />}
                     label={tSite("explorar.parking")}
-                    value={String(active.parqueaderos ?? 0)}
+                    value={String(active.parqueaderos)}
                   />
                 )}
-                {columns.depositos && (active.depositos ?? 0) > 0 && (
+                {/* Show depositos if value > 0 */}
+                {(active.depositos ?? 0) > 0 && (
                   <StatCard
-                    icon={<Archive size={16} />}
+                    icon={<Archive size={16} strokeWidth={2.5} />}
                     label={tSite("explorar.storage")}
                     value={String(active.depositos)}
                   />
                 )}
+                {/* Price card — only if columns.precio is enabled for inventory */}
                 {columns.precio && (
-                  <div className="glass-card rounded-2xl p-3 flex flex-col items-center justify-center text-center">
-                    <span className="text-[10px] tracking-wider text-[var(--text-tertiary)] uppercase mb-1">{tSite("tipologias.from")}</span>
-                    <span className="text-sm font-semibold text-[var(--site-primary)]">
-                      {precioDesde ? formatPrecio(precioDesde) : "—"}
-                    </span>
+                  <div className="relative overflow-hidden rounded-xl border border-[rgba(var(--site-primary-rgb),0.2)] bg-gradient-to-br from-[rgba(var(--site-primary-rgb),0.08)] via-[var(--surface-2)] to-[var(--surface-1)] p-3.5 shadow-[0_0_24px_rgba(var(--site-primary-rgb),0.12)] hover:shadow-[0_0_32px_rgba(var(--site-primary-rgb),0.2)] transition-all duration-300 group">
+                    {/* Animated glow */}
+                    <div className="absolute inset-0 bg-gradient-to-br from-[rgba(var(--site-primary-rgb),0.1)] to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+
+                    <div className="relative flex flex-col items-center justify-center text-center h-full">
+                      <span className="font-site-label text-[9px] font-bold tracking-[0.2em] text-[var(--site-primary)] uppercase mb-1.5">{tSite("tipologias.from")}</span>
+                      <span className="font-site-heading text-lg font-semibold text-[var(--site-primary)] tabular-nums leading-none">
+                        {precioDesde ? formatPrecio(precioDesde) : "—"}
+                      </span>
+                    </div>
                   </div>
                 )}
               </div>
@@ -894,14 +1033,14 @@ export default function TipologiasPage() {
                     <p className="text-[10px] tracking-[0.35em] text-[var(--site-primary)] uppercase mb-1">
                       {proyecto.nombre}
                     </p>
-                    <h2 className="font-site-heading text-2xl text-white">
+                    <h2 className="font-site-heading text-2xl text-[var(--text-primary)]">
                       {active.nombre}
                     </h2>
                   </div>
                   {(active.descripcion || active.caracteristicas.length > 0) && (
                     <button
                       onClick={() => setInfoExpanded((prev) => !prev)}
-                      className="mt-1 flex items-center gap-1 px-2.5 py-1 rounded-lg bg-white/[0.04] hover:bg-white/[0.08] transition-colors cursor-pointer text-[var(--text-tertiary)] hover:text-[var(--text-secondary)] flex-shrink-0"
+                      className="mt-1 flex items-center gap-1 px-2.5 py-1 rounded-lg bg-[var(--glass-bg)] hover:bg-[var(--glass-bg-hover)] transition-colors cursor-pointer text-[var(--text-tertiary)] hover:text-[var(--text-secondary)] flex-shrink-0"
                     >
                       <span className="text-[10px] tracking-wider uppercase">
                         {infoExpanded ? tSite("tipologias.lessInfo") : tSite("tipologias.moreInfo")}
@@ -953,7 +1092,7 @@ export default function TipologiasPage() {
               </div>
 
               {/* Divider */}
-              <div className="border-t border-white/5 mx-6" />
+              <div className="border-t border-[var(--border-subtle)] mx-6" />
 
               {/* Units Section */}
               <div className="flex-1 flex flex-col min-h-0 p-6 pt-4">
@@ -979,7 +1118,7 @@ export default function TipologiasPage() {
                           "px-3 py-1.5 rounded-full text-[10px] tracking-wider uppercase whitespace-nowrap transition-all cursor-pointer",
                           estadoFilter === filter.value
                             ? "bg-[rgba(var(--site-primary-rgb),0.15)] text-[var(--site-primary)]"
-                            : "text-[var(--text-tertiary)] hover:text-[var(--text-secondary)] hover:bg-white/5"
+                            : "text-[var(--text-tertiary)] hover:text-[var(--text-secondary)] hover:bg-[var(--glass-bg)]"
                         )}
                       >
                         {filter.label} ({count})
@@ -1015,7 +1154,7 @@ export default function TipologiasPage() {
                                 "w-full flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all duration-200 cursor-pointer text-left",
                                 isSelected
                                   ? "bg-[rgba(var(--site-primary-rgb),0.10)] ring-1 ring-[rgba(var(--site-primary-rgb),0.25)]"
-                                  : "hover:bg-white/5"
+                                  : "hover:bg-[var(--glass-bg)]"
                               )}
                             >
                               {/* Estado dot */}
@@ -1023,7 +1162,7 @@ export default function TipologiasPage() {
 
                               {/* Unit info */}
                               <div className="flex-1 min-w-0">
-                                <p className="text-sm text-white/80 font-medium truncate">
+                                <p className="text-sm text-[var(--text-primary)] font-medium truncate">
                                   {unit.identificador}
                                   {isMultiTipo && (() => {
                                     const count = unidadTipologias.filter(ut => ut.unidad_id === unit.id).length;
@@ -1050,7 +1189,7 @@ export default function TipologiasPage() {
                                   const c = isLoteBased && active?.precio_desde ? active.precio_desde : 0;
                                   const displayPrice = t ? t + c : c || null;
                                   return (
-                                    <p className="text-sm text-white/70 font-medium">
+                                    <p className="text-sm text-[var(--text-secondary)] font-medium">
                                       {displayPrice ? formatPrecio(displayPrice) : "—"}
                                     </p>
                                   );
@@ -1084,7 +1223,7 @@ export default function TipologiasPage() {
             onClick={() => setActiveHotspot(null)}
           >
             {/* Blur backdrop */}
-            <div className="absolute inset-0 bg-black/60 backdrop-blur-md" />
+            <div className="absolute inset-0 backdrop-blur-md" style={{ backgroundColor: "rgba(var(--overlay-rgb), 0.6)" }} />
 
             {/* Modal content — single image */}
             <motion.div
@@ -1102,8 +1241,8 @@ export default function TipologiasPage() {
                 className="max-w-[85vw] max-h-[80vh] object-contain"
               />
               {/* Label overlay bottom-left */}
-              <div className="absolute bottom-0 left-0 right-0 p-5 bg-gradient-to-t from-black/70 to-transparent">
-                <span className="text-sm font-medium text-white tracking-wide">
+              <div className="absolute bottom-0 left-0 right-0 p-5" style={{ background: "linear-gradient(to top, rgba(var(--overlay-rgb), 0.7), transparent)" }}>
+                <span className="text-sm font-medium text-[var(--text-primary)] tracking-wide">
                   {activeHotspot.label}
                 </span>
               </div>
@@ -1147,7 +1286,7 @@ export default function TipologiasPage() {
             className="fixed inset-0 z-[70] flex items-center justify-center p-8"
             onClick={() => setShowUbicacion(false)}
           >
-            <div className="absolute inset-0 bg-black/60 backdrop-blur-md" />
+            <div className="absolute inset-0 backdrop-blur-md" style={{ backgroundColor: "rgba(var(--overlay-rgb), 0.6)" }} />
             <motion.div
               initial={{ opacity: 0, scale: 0.92 }}
               animate={{ opacity: 1, scale: 1 }}
@@ -1161,8 +1300,8 @@ export default function TipologiasPage() {
                 alt={tSite("tipologias.locationInProject")}
                 className="max-w-[85vw] max-h-[80vh] object-contain"
               />
-              <div className="absolute bottom-0 left-0 right-0 p-5 bg-gradient-to-t from-black/70 to-transparent">
-                <span className="text-sm font-medium text-white tracking-wide">
+              <div className="absolute bottom-0 left-0 right-0 p-5" style={{ background: "linear-gradient(to top, rgba(var(--overlay-rgb), 0.7), transparent)" }}>
+                <span className="text-sm font-medium text-[var(--text-primary)] tracking-wide">
                   {tSite("tipologias.locationInProject")}
                 </span>
               </div>
@@ -1217,10 +1356,19 @@ export default function TipologiasPage() {
 
 function StatCard({ icon, label, value }: { icon: React.ReactNode; label: string; value: string }) {
   return (
-    <div className="glass-card rounded-2xl p-3 flex flex-col items-center justify-center text-center">
-      <div className="text-[var(--site-primary)] mb-1">{icon}</div>
-      <span className="text-[10px] tracking-wider text-[var(--text-tertiary)] uppercase mb-0.5">{label}</span>
-      <span className="text-sm font-semibold text-white">{value}</span>
+    <div className="relative overflow-hidden rounded-xl border border-[var(--border-subtle)] bg-gradient-to-br from-[var(--surface-1)] to-[var(--surface-2)] p-3.5 shadow-lg hover:border-[rgba(var(--site-primary-rgb),0.3)] transition-all duration-300 group">
+      {/* Subtle gold gradient overlay on hover */}
+      <div className="absolute inset-0 bg-gradient-to-br from-[rgba(var(--site-primary-rgb),0.03)] to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+
+      <div className="relative flex flex-col items-center justify-center text-center h-full">
+        {/* Icon with gold background */}
+        <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-[rgba(var(--site-primary-rgb),0.15)] to-[rgba(var(--site-primary-rgb),0.05)] flex items-center justify-center mb-2 group-hover:scale-110 transition-transform duration-300">
+          <div className="text-[var(--site-primary)]">{icon}</div>
+        </div>
+
+        <span className="font-site-label text-[9px] font-bold tracking-[0.15em] text-[var(--text-tertiary)] uppercase mb-1">{label}</span>
+        <span className="font-site-heading text-xl font-semibold text-[var(--text-primary)] tabular-nums leading-none">{value}</span>
+      </div>
     </div>
   );
 }

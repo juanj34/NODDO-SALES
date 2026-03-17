@@ -49,7 +49,7 @@ export default function VistaModal({ vista, onClose }: VistaModalProps) {
       onClick={onClose}
     >
       {/* Backdrop */}
-      <div className="absolute inset-0 bg-black/70 backdrop-blur-md" />
+      <div className="absolute inset-0 backdrop-blur-md" style={{ background: "rgba(var(--overlay-rgb), 0.7)" }} />
 
       {/* Content */}
       <motion.div
@@ -66,35 +66,38 @@ export default function VistaModal({ vista, onClose }: VistaModalProps) {
         {/* Close button */}
         <button
           onClick={onClose}
-          className="absolute top-3 right-3 w-9 h-9 flex items-center justify-center rounded-full bg-black/50 backdrop-blur-sm text-white/80 hover:text-white hover:bg-black/70 transition-colors"
+          className="absolute top-3 right-3 w-9 h-9 flex items-center justify-center rounded-full backdrop-blur-sm text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors"
+          style={{ background: "rgba(var(--overlay-rgb), 0.5)" }}
         >
           <X size={18} />
         </button>
 
         {/* Bottom overlay with info */}
-        <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent px-5 pb-4 pt-12">
+        <div
+          className="absolute bottom-0 left-0 right-0 px-5 pb-4 pt-12"
+          style={{ background: "linear-gradient(to top, rgba(var(--overlay-rgb), 0.8), rgba(var(--overlay-rgb), 0.4) 50%, transparent)" }}
+        >
           <h3
-            className="text-lg text-white/95 font-light"
-            style={{ fontFamily: "var(--font-heading, 'Cormorant Garamond', serif)" }}
+            className="text-lg text-[var(--text-primary)] font-heading font-light"
           >
             {vista.nombre}
           </h3>
           <div className="flex items-center gap-3 mt-1.5">
             {vista.orientacion && (
-              <span className="inline-flex items-center gap-1 text-xs text-white/70">
+              <span className="inline-flex items-center gap-1 text-xs text-[var(--text-secondary)]">
                 <Compass size={11} />
                 {vista.orientacion}
               </span>
             )}
             {floorLabel && (
-              <span className="inline-flex items-center gap-1 text-xs text-white/70">
+              <span className="inline-flex items-center gap-1 text-xs text-[var(--text-secondary)]">
                 <Building2 size={11} />
                 {floorLabel}
               </span>
             )}
           </div>
           {vista.descripcion && (
-            <p className="text-xs text-white/50 mt-1.5 max-w-lg">{vista.descripcion}</p>
+            <p className="text-xs text-[var(--text-tertiary)] mt-1.5 max-w-lg">{vista.descripcion}</p>
           )}
         </div>
       </motion.div>

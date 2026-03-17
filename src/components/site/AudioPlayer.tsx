@@ -139,7 +139,7 @@ export function AudioMuteButton({ className, size = 16 }: AudioMuteButtonProps) 
         transition={{ delay: 0.5 }}
         onClick={toggleMute}
         className={cn(
-          "w-9 h-9 glass rounded-full flex items-center justify-center text-[var(--text-secondary)] hover:text-white transition-colors cursor-pointer",
+          "w-9 h-9 glass rounded-full flex items-center justify-center text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors cursor-pointer",
           !isMuted && "ring-1 ring-[rgba(var(--site-primary-rgb),0.3)]",
           className
         )}

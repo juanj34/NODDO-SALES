@@ -119,7 +119,7 @@ export function CookieConsent() {
             {!showDetails ? (
               <>
                 <div className="mb-4 pr-8">
-                  <h3 className="font-site-ui text-sm font-semibold text-white mb-2 tracking-wide">
+                  <h3 className="font-ui text-sm font-bold uppercase text-white mb-2 tracking-wide">
                     🍪 PRIVACIDAD Y COOKIES
                   </h3>
                   <p className="font-site-body text-[13px] text-[var(--text-secondary)] leading-relaxed">
@@ -159,7 +159,7 @@ export function CookieConsent() {
             ) : (
               <>
                 <div className="mb-4 pr-8">
-                  <h3 className="font-site-ui text-sm font-semibold text-white mb-3 tracking-wide">
+                  <h3 className="font-ui text-sm font-bold uppercase text-white mb-3 tracking-wide">
                     PERSONALIZAR COOKIES
                   </h3>
                   <p className="font-site-body text-[13px] text-[var(--text-secondary)] leading-relaxed mb-4">

@@ -156,7 +156,7 @@ export function LeadForm({
             />
           </div>
         </div>
-        <h3 className="text-xl text-white font-light">
+        <h3 className="text-xl text-[var(--text-primary)] font-light">
           {tSite("contacto.successHeading")}
         </h3>
         <p className="text-[var(--text-tertiary)] text-sm text-center max-w-xs">
@@ -185,7 +185,7 @@ export function LeadForm({
     >
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div>
-          <label htmlFor="lead-nombre" className="block text-[10px] tracking-[0.2em] uppercase text-[var(--text-tertiary)] mb-1.5 font-mono">
+          <label htmlFor="lead-nombre" className="block text-[10px] tracking-[0.2em] uppercase text-[var(--text-tertiary)] mb-1.5 font-ui font-bold">
             {tCommon("form.fullName")}
           </label>
           <input
@@ -202,7 +202,7 @@ export function LeadForm({
           />
         </div>
         <div>
-          <label htmlFor="lead-email" className="block text-[10px] tracking-[0.2em] uppercase text-[var(--text-tertiary)] mb-1.5 font-mono">
+          <label htmlFor="lead-email" className="block text-[10px] tracking-[0.2em] uppercase text-[var(--text-tertiary)] mb-1.5 font-ui font-bold">
             {tCommon("form.email")}
           </label>
           <input
@@ -222,7 +222,7 @@ export function LeadForm({
       </div>
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div>
-          <label htmlFor="lead-telefono" className="block text-[10px] tracking-[0.2em] uppercase text-[var(--text-tertiary)] mb-1.5 font-mono">
+          <label htmlFor="lead-telefono" className="block text-[10px] tracking-[0.2em] uppercase text-[var(--text-tertiary)] mb-1.5 font-ui font-bold">
             {tCommon("form.phone")}
           </label>
           <input
@@ -238,7 +238,7 @@ export function LeadForm({
           />
         </div>
         <div>
-          <label htmlFor="lead-pais" className="block text-[10px] tracking-[0.2em] uppercase text-[var(--text-tertiary)] mb-1.5 font-mono">
+          <label htmlFor="lead-pais" className="block text-[10px] tracking-[0.2em] uppercase text-[var(--text-tertiary)] mb-1.5 font-ui font-bold">
             {tCommon("form.country")}
           </label>
           <input
@@ -254,7 +254,7 @@ export function LeadForm({
         </div>
       </div>
       <div>
-        <label htmlFor="lead-tipologia" className="block text-[10px] tracking-[0.2em] uppercase text-[var(--text-tertiary)] mb-1.5 font-mono">
+        <label htmlFor="lead-tipologia" className="block text-[10px] tracking-[0.2em] uppercase text-[var(--text-tertiary)] mb-1.5 font-ui font-bold">
           {tCommon("form.typeOfInterest")}
         </label>
         <NodDoDropdown
@@ -278,7 +278,7 @@ export function LeadForm({
         />
       </div>
       <div>
-        <label htmlFor="lead-mensaje" className="block text-[10px] tracking-[0.2em] uppercase text-[var(--text-tertiary)] mb-1.5 font-mono">
+        <label htmlFor="lead-mensaje" className="block text-[10px] tracking-[0.2em] uppercase text-[var(--text-tertiary)] mb-1.5 font-ui font-bold">
           {tCommon("form.messageOptional")}
         </label>
         <textarea

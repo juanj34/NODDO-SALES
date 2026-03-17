@@ -94,7 +94,7 @@ export default function DisponibilidadPage() {
 
   // Counts
   const counts = useMemo(() => {
-    const c: Record<EstadoUnidad, number> = { disponible: 0, separado: 0, reservada: 0, vendida: 0 };
+    const c: Record<EstadoUnidad, number> = { disponible: 0, separado: 0, reservada: 0, vendida: 0, proximamente: 0 };
     for (const u of filtered) c[u.estado]++;
     return c;
   }, [filtered]);

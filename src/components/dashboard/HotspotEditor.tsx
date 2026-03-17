@@ -3,12 +3,12 @@
 import { useState, useRef } from "react";
 import type { TipologiaHotspot } from "@/types";
 import { resolveHotspotImages, syncRenderUrl } from "@/lib/hotspot-utils";
-import { FileUploader, type UploadResult } from "./FileUploader";
 import { useHotspotCanvas } from "@/hooks/useHotspotCanvas";
 import { inputClass, labelClass, btnPrimary, btnSecondary, btnDanger } from "./editor-styles";
-import { Plus, X, Trash2, Check, MousePointerClick, ChevronUp, ChevronDown, Images } from "lucide-react";
+import { Plus, X, Trash2, Check, MousePointerClick, ChevronUp, ChevronDown, Images, Upload } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useTranslation } from "@/i18n";
+import { useUploads } from "@/contexts/UploadContext";
 
 /* ── Multi-image list (reusable within this file) ── */
 function ImageListPanel({
@@ -23,6 +23,9 @@ function ImageListPanel({
   uploadLabel: string;
 }) {
   const { t } = useTranslation("editor");
+  const { queueUploads } = useUploads();
+  const inputRef = useRef<HTMLInputElement>(null);
+
   const moveUp = (i: number) => {
     if (i === 0) return;
     const next = [...images];
@@ -38,11 +41,23 @@ function ImageListPanel({
   const remove = (i: number) => {
     onChange(images.filter((_, idx) => idx !== i));
   };
-  const append = (url: string) => {
-    onChange([...images, url]);
-  };
-  const appendMultiple = (results: UploadResult[]) => {
-    onChange([...images, ...results.map((r) => r.url)]);
+
+  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(e.target.files || []);
+    if (files.length === 0) return;
+
+    // Filter to only images
+    const imageFiles = files.filter((f) => f.type.startsWith("image/"));
+    if (imageFiles.length === 0) return;
+
+    // Queue uploads in background
+    queueUploads(imageFiles, (results) => {
+      // When uploads complete, add URLs to images array
+      onChange([...images, ...results]);
+    }, uploadFolder);
+
+    // Reset input
+    if (inputRef.current) inputRef.current.value = "";
   };
 
   return (
@@ -100,13 +115,26 @@ function ImageListPanel({
         </div>
       )}
 
-      <FileUploader
-        currentUrl={null}
-        onUpload={append}
-        onUploadMultiple={appendMultiple}
+      {/* Background upload button */}
+      <button
+        type="button"
+        onClick={() => inputRef.current?.click()}
+        className="w-full flex items-center justify-center gap-2 px-4 py-3 border-2 border-dashed border-[var(--border-default)] hover:border-[var(--border-strong)] rounded-xl text-[var(--text-muted)] hover:text-[var(--text-tertiary)] transition-all group"
+      >
+        <Upload size={16} className="group-hover:scale-110 transition-transform" />
+        <span className="text-xs">{uploadLabel}</span>
+        <span className="text-[10px] text-[var(--text-muted)]">
+          (se suben en segundo plano)
+        </span>
+      </button>
+
+      <input
+        ref={inputRef}
+        type="file"
+        accept="image/*"
         multiple
-        folder={uploadFolder}
-        label={uploadLabel}
+        onChange={handleFileSelect}
+        className="hidden"
       />
     </div>
   );
@@ -327,7 +355,7 @@ export function HotspotEditor({
               className="flex-1 flex flex-col"
             >
               <div className="px-4 py-3 border-b border-[var(--border-subtle)] bg-green-500/5">
-                <h4 className="text-xs font-medium text-green-400 flex items-center gap-2">
+                <h4 className="text-xs font-ui font-bold uppercase tracking-wide text-green-400 flex items-center gap-2">
                   <Plus size={12} />
                   {t("hotspotEditor.newHotspot")}
                 </h4>
@@ -386,7 +414,7 @@ export function HotspotEditor({
             >
               <div className="px-4 py-3 border-b border-[var(--border-subtle)] bg-[rgba(var(--site-primary-rgb),0.05)]">
                 <div className="flex items-center justify-between">
-                  <h4 className="text-xs font-medium text-[var(--site-primary)]">
+                  <h4 className="text-xs font-ui font-bold uppercase tracking-wide text-[var(--site-primary)]">
                     {t("hotspotEditor.editingHotspot")}
                   </h4>
                   <button
@@ -452,7 +480,7 @@ export function HotspotEditor({
               className="flex-1 flex flex-col"
             >
               <div className="px-4 py-3 border-b border-[var(--border-subtle)]">
-                <h4 className="text-xs font-medium text-[var(--text-secondary)]">
+                <h4 className="text-xs font-ui font-bold uppercase tracking-wide text-[var(--text-secondary)]">
                   Hotspots ({hotspots.length})
                 </h4>
               </div>

@@ -160,7 +160,7 @@ export function SalesImpactSection() {
   const quote = cells[4] as QuoteCell;
 
   return (
-    <section className="relative z-[1] py-20 lg:py-28 px-6 lg:px-20 border-t border-[var(--mk-border-rule)]">
+    <section className="relative z-[1] py-16 sm:py-20 lg:py-28 px-4 sm:px-6 lg:px-20 border-t border-[var(--mk-border-rule)]">
       <div style={{ maxWidth: 1200, margin: "0 auto" }}>
         {/* Header */}
         <motion.div
@@ -388,7 +388,7 @@ export function SalesImpactSection() {
               viewport={{ once: true, margin: "-40px" }}
               transition={{ duration: 0.5, delay: i * 0.08, ease }}
               style={{
-                padding: "40px 28px",
+                padding: "32px 20px",
                 background: "var(--mk-bg)",
               }}
             >
@@ -428,7 +428,7 @@ export function SalesImpactSection() {
             viewport={{ once: true, margin: "-40px" }}
             transition={{ duration: 0.5, delay: 0.32, ease }}
             style={{
-              padding: "40px 28px",
+              padding: "32px 20px",
               background: "var(--mk-bg)",
               borderLeft: "2px solid rgba(184,151,58,0.2)",
             }}
@@ -457,12 +457,12 @@ export function SalesImpactSection() {
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true, margin: "-60px" }}
           transition={{ duration: 0.7, delay: 0.4, ease }}
-          className="mt-16"
+          className="mt-12 sm:mt-16"
           style={{
             background: "linear-gradient(135deg, rgba(184,151,58,0.08) 0%, rgba(184,151,58,0.04) 100%)",
             border: "1px solid rgba(184,151,58,0.2)",
             borderRadius: "16px",
-            padding: "48px 40px",
+            padding: "clamp(32px, 5vw, 48px) clamp(20px, 4vw, 40px)",
             position: "relative",
             overflow: "hidden",
           }}

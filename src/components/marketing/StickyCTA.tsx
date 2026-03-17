@@ -23,14 +23,14 @@ export function StickyCTA() {
     <div
       className="fixed z-[200]"
       style={{
-        bottom: "max(24px, calc(env(safe-area-inset-bottom, 0px) + 16px))",
+        bottom: "max(16px, calc(env(safe-area-inset-bottom, 0px) + 12px))",
         left: "50%",
         transform: `translateX(-50%) translateY(${visible ? 0 : 100}px)`,
         opacity: visible ? 1 : 0,
         background: "linear-gradient(135deg, rgba(22,22,24,0.98) 0%, rgba(18,18,18,0.97) 100%)",
         border: "1px solid rgba(184,151,58,0.35)",
-        borderRadius: "16px",
-        padding: "16px 20px",
+        borderRadius: "14px",
+        padding: "12px 16px",
         backdropFilter: "blur(32px)",
         WebkitBackdropFilter: "blur(32px)",
         boxShadow: "0 0 0 1px rgba(184,151,58,0.08) inset, 0 24px 64px rgba(0,0,0,0.7), 0 0 40px rgba(184,151,58,0.15)",
@@ -84,7 +84,7 @@ export function StickyCTA() {
           <button
             onClick={openBooking}
             className="btn-mk-primary flex-shrink-0 relative"
-            style={{ fontSize: 10, padding: "11px 22px", whiteSpace: "nowrap", fontWeight: 700, zIndex: 1 }}
+            style={{ fontSize: 10, padding: "10px 18px", whiteSpace: "nowrap", fontWeight: 700, zIndex: 1 }}
           >
             {t("stickyCta.bookCall")}
           </button>

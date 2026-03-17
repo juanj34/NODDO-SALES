@@ -75,7 +75,7 @@ export function EnhancedProjectCard({ proyecto, stats, index, isAdmin, onDelete,
         {/* Image */}
         <div className="h-[200px] relative overflow-hidden">
           {proyecto.render_principal_url ? (
-            <Image src={proyecto.render_principal_url} alt="" fill className="w-full h-full object-cover group-hover:scale-[1.05] transition-transform duration-[3000ms] ease-out" />
+            <Image src={proyecto.render_principal_url} alt="" fill sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw" priority={index === 0} className="w-full h-full object-cover group-hover:scale-[1.05] transition-transform duration-[3000ms] ease-out" />
           ) : (
             <div className="w-full h-full bg-[var(--surface-2)] flex items-center justify-center text-[var(--text-muted)] text-sm">
               {t("proyectos.noImage")}

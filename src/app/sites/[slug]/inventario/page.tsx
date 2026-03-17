@@ -122,9 +122,9 @@ export default function InventarioPage() {
 
   const columns = useMemo(() => {
     if (isHibrido && activeTipoTab) {
-      return getHybridInventoryColumns(activeTipoTab, proyecto.inventory_columns_by_type);
+      return getHybridInventoryColumns(activeTipoTab, (proyecto as any).inventory_columns_microsite_by_type ?? proyecto.inventory_columns_by_type);
     }
-    return getInventoryColumns(proyecto.tipo_proyecto ?? "hibrido", proyecto.inventory_columns);
+    return getInventoryColumns(proyecto.tipo_proyecto ?? "hibrido", (proyecto as any).inventory_columns_microsite ?? proyecto.inventory_columns);
   }, [isHibrido, activeTipoTab, proyecto.tipo_proyecto, proyecto.inventory_columns, proyecto.inventory_columns_by_type]);
 
   const unidadTipologias = useMemo<UnidadTipologia[]>(() => proyecto.unidad_tipologias ?? [], [proyecto.unidad_tipologias]);

@@ -32,7 +32,7 @@ const DEFAULTS: Record<TipoProyecto, InventoryColumnConfig> = {
     vista: true,
     precio: true,
     piso: false,
-    lote: true,
+    lote: false,
     etapa: true,
   },
   lotes: {
@@ -48,7 +48,7 @@ const DEFAULTS: Record<TipoProyecto, InventoryColumnConfig> = {
     vista: false,
     precio: true,
     piso: false,
-    lote: true,
+    lote: false,
     etapa: true,
   },
   hibrido: {
@@ -64,7 +64,7 @@ const DEFAULTS: Record<TipoProyecto, InventoryColumnConfig> = {
     vista: true,
     precio: true,
     piso: true,
-    lote: true,
+    lote: false,
     etapa: true,
   },
 };

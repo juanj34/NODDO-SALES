@@ -240,7 +240,7 @@ export function ScrollFeatures() {
   return (
     <section
       ref={sectionRef}
-      className="relative z-[1] h-[300vh] lg:h-[420vh]"
+      className="relative z-[1] h-[250vh] lg:h-[420vh]"
       style={{
         borderTop: "1px solid rgba(255,255,255,.04)",
       }}
@@ -633,7 +633,7 @@ export function ScrollFeatures() {
                 <h2
                   className="font-heading"
                   style={{
-                    fontSize: "clamp(16px, 1.8vw, 22px)",
+                    fontSize: "clamp(18px, 2.5vw, 22px)",
                     fontWeight: 300,
                     lineHeight: 1.15,
                     letterSpacing: "-.02em",
@@ -649,15 +649,9 @@ export function ScrollFeatures() {
 
               {/* Counter */}
               <div
+                className="font-heading font-light text-[11px] tracking-[0.1em] text-right flex-shrink-0 ml-6"
                 style={{
-                  fontFamily: "'Cormorant Garamond',serif",
-                  fontSize: 11,
-                  fontWeight: 300,
-                  letterSpacing: ".1em",
                   color: "rgba(244,240,232,.2)",
-                  textAlign: "right" as const,
-                  flexShrink: 0,
-                  marginLeft: 24,
                 }}
               >
                 <strong
@@ -700,7 +694,7 @@ export function ScrollFeatures() {
                     letterSpacing: ".35em",
                     textTransform: "uppercase" as const,
                     color: "var(--mk-accent)",
-                    marginBottom: 24,
+                    marginBottom: 16,
                     display: "flex",
                     alignItems: "center",
                     gap: 12,
@@ -710,11 +704,59 @@ export function ScrollFeatures() {
                   {step.num} — {step.label}
                 </div>
 
+                {/* Mobile mini-visual — inline SVG per step */}
+                <div className="lg:hidden mb-4">
+                  {i === 0 && (
+                    <svg viewBox="0 0 160 48" fill="none" style={{ width: "100%", maxWidth: 200 }}>
+                      <rect x="0" y="0" width="160" height="48" rx="4" fill="rgba(255,255,255,.02)" stroke="rgba(184,151,58,.15)" strokeWidth=".5" />
+                      {[0,1,2,3].map(col => [0,1,2].map(row => {
+                        const colors = ["#4a9e6b","#c4853a","#888","#4a9e6b","#4a9e6b","#c4853a","#4a9e6b","#888","#4a9e6b","#4a9e6b","#4a9e6b","#888"];
+                        return <rect key={`${col}-${row}`} x={12 + col * 20} y={8 + row * 12} width={16} height={9} rx={1.5} fill={colors[col * 3 + row]} opacity={0.6} />;
+                      }))}
+                      <rect x="100" y="8" width="52" height="14" rx="2" fill="rgba(255,255,255,.03)" stroke="rgba(184,151,58,.12)" strokeWidth=".4" />
+                      <text x="108" y="18" fontFamily="DM Mono,monospace" fontSize="6" fill="rgba(244,240,232,.4)">6B — 72m²</text>
+                      <rect x="100" y="26" width="52" height="14" rx="2" fill="rgba(255,255,255,.03)" stroke="rgba(74,158,107,.15)" strokeWidth=".4" />
+                      <text x="108" y="36" fontFamily="DM Mono,monospace" fontSize="6" fill="rgba(74,158,107,.7)">Disponible</text>
+                    </svg>
+                  )}
+                  {i === 1 && (
+                    <svg viewBox="0 0 160 48" fill="none" style={{ width: "100%", maxWidth: 200 }}>
+                      <rect x="0" y="0" width="160" height="48" rx="4" fill="rgba(255,255,255,.02)" stroke="rgba(74,158,107,.15)" strokeWidth=".5" />
+                      <text x="10" y="16" fontFamily="Syne,sans-serif" fontSize="5" fill="rgba(244,240,232,.3)" letterSpacing="1" fontWeight="700">DISPONIBLES</text>
+                      <text x="10" y="36" fontFamily="Cormorant Garamond,serif" fontSize="18" fontWeight="300" fill="#4a9e6b">24</text>
+                      <rect x="60" y="6" width="40" height="18" rx="3" fill="rgba(255,255,255,.02)" stroke="rgba(196,133,58,.15)" strokeWidth=".4" />
+                      <text x="68" y="16" fontFamily="Syne,sans-serif" fontSize="4.5" fill="rgba(244,240,232,.3)" letterSpacing="1" fontWeight="700">RESERVADOS</text>
+                      <text x="68" y="22" fontFamily="Cormorant Garamond,serif" fontSize="6" fontWeight="300" fill="#c4853a">8</text>
+                      <rect x="108" y="6" width="44" height="18" rx="3" fill="rgba(255,255,255,.02)" stroke="rgba(100,100,100,.15)" strokeWidth=".4" />
+                      <text x="116" y="16" fontFamily="Syne,sans-serif" fontSize="4.5" fill="rgba(244,240,232,.3)" letterSpacing="1" fontWeight="700">VENDIDOS</text>
+                      <text x="116" y="22" fontFamily="Cormorant Garamond,serif" fontSize="6" fontWeight="300" fill="#888">8</text>
+                      <rect x="60" y="28" width="92" height="6" rx="3" fill="rgba(255,255,255,.04)" />
+                      <rect x="60" y="28" width="55" height="6" rx="3" fill="rgba(74,158,107,.4)" />
+                      <rect x="60" y="28" width="34" height="6" rx="3" fill="rgba(184,151,58,.4)" />
+                      <text x="60" y="42" fontFamily="DM Mono,monospace" fontSize="5" fill="rgba(244,240,232,.35)">60% ocupación</text>
+                    </svg>
+                  )}
+                  {i === 2 && (
+                    <svg viewBox="0 0 160 48" fill="none" style={{ width: "100%", maxWidth: 200 }}>
+                      <rect x="0" y="0" width="160" height="48" rx="4" fill="rgba(255,255,255,.02)" stroke="rgba(184,151,58,.15)" strokeWidth=".5" />
+                      <circle cx="16" cy="18" r="8" fill="rgba(184,151,58,.08)" stroke="rgba(184,151,58,.2)" strokeWidth=".5" />
+                      <text x="16" y="21" textAnchor="middle" fontFamily="Cormorant Garamond,serif" fontSize="8" fill="#d4b05a">MG</text>
+                      <text x="30" y="15" fontFamily="Syne,sans-serif" fontSize="6" fontWeight="700" fill="rgba(244,240,232,.8)">Maria Garcia</text>
+                      <text x="30" y="22" fontFamily="DM Mono,monospace" fontSize="5" fill="rgba(244,240,232,.3)">+57 310 456 7890</text>
+                      <rect x="110" y="10" width="38" height="12" rx="3" fill="rgba(74,158,107,.08)" stroke="rgba(74,158,107,.2)" strokeWidth=".4" />
+                      <text x="129" y="19" textAnchor="middle" fontFamily="DM Mono,monospace" fontSize="5" fill="rgba(74,200,120,.7)">Instagram</text>
+                      <line x1="8" y1="32" x2="152" y2="32" stroke="rgba(255,255,255,.04)" strokeWidth=".5" />
+                      <text x="10" y="42" fontFamily="DM Mono,monospace" fontSize="5" fill="rgba(244,240,232,.3)">12 leads esta semana</text>
+                      <text x="90" y="42" fontFamily="DM Mono,monospace" fontSize="5" fill="rgba(74,158,107,.6)">+4 vs anterior</text>
+                    </svg>
+                  )}
+                </div>
+
                 {/* Title — Cormorant Garamond */}
                 <h2
                   className="font-heading"
                   style={{
-                    fontSize: "clamp(42px,4.5vw,68px)",
+                    fontSize: "clamp(28px,5.5vw,68px)",
                     fontWeight: 300,
                     lineHeight: 1.08,
                     letterSpacing: "-.02em",
@@ -729,12 +771,12 @@ export function ScrollFeatures() {
 
                 {/* Body */}
                 <p
+                  className="text-[13px] lg:text-[15px]"
                   style={{
-                    fontSize: 15,
-                    lineHeight: 1.85,
+                    lineHeight: 1.75,
                     color: "rgba(244,240,232,.55)",
                     maxWidth: 420,
-                    marginBottom: 32,
+                    marginBottom: 24,
                   }}
                 >
                   {step.body}

@@ -1,4 +1,4 @@
-import { createClient } from "@/lib/supabase/server";
+import { createClient, createServiceRoleClient } from "@/lib/supabase/server";
 import { NextResponse } from "next/server";
 import { fetchAndCacheExchangeRates } from "@/lib/currency";
 
@@ -51,18 +51,22 @@ export async function GET() {
 
     // No fresh cache — fetch from API
     if (!EXCHANGERATE_API_KEY) {
-      console.error("[exchange-rates] EXCHANGERATE_API_KEY not configured");
-      return NextResponse.json(
-        { error: "Exchange rate API not configured" },
-        { status: 500 }
-      );
+      console.warn("[exchange-rates] EXCHANGERATE_API_KEY not configured, returning empty rates");
+      // Return empty rates array instead of failing — microsite will work but without currency conversion
+      return NextResponse.json({
+        rates: [],
+        timestamp: new Date().toISOString(),
+        cached: false,
+        warning: "Exchange rate API not configured - currency conversion unavailable",
+      });
     }
 
     console.log("[exchange-rates] Cache miss, fetching fresh rates from API...");
     const freshRates = await fetchAndCacheExchangeRates(EXCHANGERATE_API_KEY);
 
-    // Insert into Supabase for caching
-    const { error: insertError } = await supabase
+    // Insert into Supabase for caching (requires service role)
+    const adminClient = createServiceRoleClient();
+    const { error: insertError } = await adminClient
       .from("exchange_rates")
       .insert(freshRates);
 
@@ -80,9 +84,16 @@ export async function GET() {
     });
   } catch (error) {
     console.error("[exchange-rates] Unexpected error:", error);
+    // Log full error details for debugging
+    if (error instanceof Error) {
+      console.error("[exchange-rates] Error stack:", error.stack);
+    } else {
+      console.error("[exchange-rates] Non-Error object:", JSON.stringify(error, null, 2));
+    }
     return NextResponse.json(
       {
         error: error instanceof Error ? error.message : "Failed to fetch exchange rates",
+        details: error instanceof Error ? error.stack : JSON.stringify(error, null, 2),
       },
       { status: 500 }
     );

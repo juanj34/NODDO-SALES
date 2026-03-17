@@ -43,15 +43,10 @@ export function FAQSection() {
               <button
                 onClick={() => setOpenIdx(openIdx === i ? null : i)}
                 aria-expanded={openIdx === i}
-                className="flex items-center justify-between w-full text-left gap-5"
+                className="flex items-center justify-between w-full text-left gap-5 font-ui font-semibold py-6 tracking-wide transition-colors"
                 style={{
-                  padding: "24px 0",
-                  fontFamily: "'Syne', sans-serif",
                   fontSize: "clamp(14px, 1.5vw, 15px)",
-                  fontWeight: 600,
-                  letterSpacing: "0.04em",
                   color: openIdx === i ? "var(--mk-text-primary)" : "rgba(244,240,232,0.65)",
-                  transition: "color 0.2s",
                   background: "none",
                   border: "none",
                   cursor: "pointer",

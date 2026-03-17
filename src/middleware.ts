@@ -2,7 +2,7 @@ import { createServerClient, type CookieOptions } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 import { parseDomain, resolveCustomDomainToSlug } from "@/lib/domains";
 
-export async function proxy(request: NextRequest) {
+export async function middleware(request: NextRequest) {
   const hostname = request.headers.get("host") || "localhost:3000";
   const { pathname } = request.nextUrl;
   const domainInfo = parseDomain(hostname);

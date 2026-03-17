@@ -13,7 +13,7 @@ import { formatCurrency } from "@/lib/currency";
 
 /* ── Types ─────────────────────────────────────────────── */
 
-type EstadoUnidad = "disponible" | "separado" | "reservada" | "vendida";
+type EstadoUnidad = "disponible" | "separado" | "reservada" | "vendida" | "proximamente";
 
 interface UnitRow {
   id: string;
@@ -35,16 +35,17 @@ type SortField = "identificador" | "area" | "precio" | "estado" | "piso";
 type SortDir = "asc" | "desc";
 
 const ESTADO_ORDER: Record<EstadoUnidad, number> = {
-  disponible: 0, separado: 1, reservada: 2, vendida: 3,
+  disponible: 0, separado: 1, reservada: 2, vendida: 3, proximamente: 4,
 };
 
 /* ── Constants ─────────────────────────────────────────── */
 
-const ESTADOS: { key: EstadoUnidad; color: string; bg: string }[] = [
-  { key: "disponible", color: "#4ade80", bg: "rgba(74,222,128,0.12)" },
-  { key: "separado", color: "#facc15", bg: "rgba(250,204,21,0.12)" },
-  { key: "reservada", color: "#fb923c", bg: "rgba(251,146,60,0.12)" },
-  { key: "vendida", color: "#f87171", bg: "rgba(248,113,113,0.12)" },
+const ESTADOS: { key: EstadoUnidad; color: string; bg: string; dot: string }[] = [
+  { key: "disponible", color: "#4ade80", bg: "rgba(74,222,128,0.12)", dot: "bg-green-500" },
+  { key: "separado", color: "#facc15", bg: "rgba(250,204,21,0.12)", dot: "bg-yellow-500" },
+  { key: "reservada", color: "#fb923c", bg: "rgba(251,146,60,0.12)", dot: "bg-orange-500" },
+  { key: "vendida", color: "#f87171", bg: "rgba(248,113,113,0.12)", dot: "bg-red-500" },
+  { key: "proximamente", color: "#60a5fa", bg: "rgba(96,165,250,0.12)", dot: "bg-blue-500" },
 ];
 
 /* ── Helpers ───────────────────────────────────────────── */
@@ -222,7 +223,7 @@ export default function DisponibilidadPage() {
   // Summary counts
   const summary = useMemo(() => {
     const counts: Record<EstadoUnidad, number> = {
-      disponible: 0, separado: 0, reservada: 0, vendida: 0,
+      disponible: 0, separado: 0, reservada: 0, vendida: 0, proximamente: 0,
     };
     filtered.forEach((u) => { counts[u.estado]++; });
     return counts;
@@ -471,8 +472,25 @@ export default function DisponibilidadPage() {
                   ...ESTADOS.map((e) => ({
                     value: e.key,
                     label: e.key.charAt(0).toUpperCase() + e.key.slice(1),
+                    metadata: { dot: e.dot },
                   })),
                 ]}
+                renderOption={(option) => (
+                  <span className="flex items-center gap-1.5">
+                    {option.metadata?.dot ? (
+                      <span className={cn("w-2 h-2 rounded-full", option.metadata.dot as string)} />
+                    ) : null}
+                    <span>{option.label}</span>
+                  </span>
+                )}
+                renderSelected={(option) => (
+                  <span className="flex items-center gap-1.5">
+                    {option.metadata?.dot ? (
+                      <span className={cn("w-2 h-2 rounded-full", option.metadata.dot as string)} />
+                    ) : null}
+                    <span>{option.label}</span>
+                  </span>
+                )}
               />
 
               {/* Clear all */}

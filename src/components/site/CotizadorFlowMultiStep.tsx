@@ -181,7 +181,7 @@ export function CotizadorFlowMultiStep({
           <div className="space-y-4">
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div>
-                <label className="block text-[10px] tracking-[0.2em] uppercase text-[var(--text-tertiary)] mb-1 font-mono">
+                <label className="block text-[10px] tracking-[0.2em] uppercase text-[var(--text-tertiary)] mb-1 font-ui font-bold">
                   {tCommon("form.fullName")}
                 </label>
                 <input
@@ -194,7 +194,7 @@ export function CotizadorFlowMultiStep({
                 />
               </div>
               <div>
-                <label className="block text-[10px] tracking-[0.2em] uppercase text-[var(--text-tertiary)] mb-1 font-mono">
+                <label className="block text-[10px] tracking-[0.2em] uppercase text-[var(--text-tertiary)] mb-1 font-ui font-bold">
                   {tCommon("form.email")}
                 </label>
                 <input
@@ -209,7 +209,7 @@ export function CotizadorFlowMultiStep({
             </div>
 
             <div>
-              <label className="block text-[10px] tracking-[0.2em] uppercase text-[var(--text-tertiary)] mb-1 font-mono">
+              <label className="block text-[10px] tracking-[0.2em] uppercase text-[var(--text-tertiary)] mb-1 font-ui font-bold">
                 WhatsApp
               </label>
               <PhoneInput
@@ -242,7 +242,7 @@ export function CotizadorFlowMultiStep({
         {currentStep === 1 && (
           <div className="space-y-4">
             {/* Unit Summary */}
-            <div className="bg-white/5 rounded-xl p-4 border border-white/8">
+            <div className="bg-[var(--glass-bg)] rounded-xl p-4 border border-[var(--border-default)]">
               <p className="text-[10px] tracking-[0.2em] uppercase text-[var(--site-primary)] mb-2 font-ui font-bold">
                 Unidad {unidad.identificador}
               </p>
@@ -250,61 +250,61 @@ export function CotizadorFlowMultiStep({
                 {tipologia && (
                   <div className="flex items-center gap-1.5">
                     <span className="text-[var(--text-muted)]">Tipo:</span>
-                    <span className="text-white">{tipologia.nombre}</span>
+                    <span className="text-[var(--text-primary)]">{tipologia.nombre}</span>
                   </div>
                 )}
                 {columns.area_construida && unidad.area_construida != null && (
                   <div className="flex items-center gap-1.5">
                     <Maximize size={12} className="text-[var(--text-muted)]" />
-                    <span className="text-white">{unidad.area_construida} m²</span>
+                    <span className="text-[var(--text-primary)]">{unidad.area_construida} m²</span>
                   </div>
                 )}
                 {columns.area_privada && unidad.area_privada != null && (
                   <div className="flex items-center gap-1.5">
                     <Maximize size={12} className="text-[var(--text-muted)]" />
-                    <span className="text-white">{unidad.area_privada} m²</span>
+                    <span className="text-[var(--text-primary)]">{unidad.area_privada} m²</span>
                   </div>
                 )}
                 {columns.area_lote && unidad.area_lote != null && (
                   <div className="flex items-center gap-1.5">
                     <Maximize size={12} className="text-[var(--text-muted)]" />
-                    <span className="text-white">{unidad.area_lote} m²</span>
+                    <span className="text-[var(--text-primary)]">{unidad.area_lote} m²</span>
                   </div>
                 )}
                 {columns.area_m2 && unidad.area_m2 != null && !columns.area_construida && !columns.area_privada && !columns.area_lote && (
                   <div className="flex items-center gap-1.5">
                     <Maximize size={12} className="text-[var(--text-muted)]" />
-                    <span className="text-white">{unidad.area_m2} m²</span>
+                    <span className="text-[var(--text-primary)]">{unidad.area_m2} m²</span>
                   </div>
                 )}
                 {columns.habitaciones && unidad.habitaciones && (
                   <div className="flex items-center gap-1.5">
                     <BedDouble size={12} className="text-[var(--text-muted)]" />
-                    <span className="text-white">{unidad.habitaciones} hab</span>
+                    <span className="text-[var(--text-primary)]">{unidad.habitaciones} hab</span>
                   </div>
                 )}
                 {columns.banos && unidad.banos && (
                   <div className="flex items-center gap-1.5">
                     <Bath size={12} className="text-[var(--text-muted)]" />
-                    <span className="text-white">{unidad.banos} baños</span>
+                    <span className="text-[var(--text-primary)]">{unidad.banos} baños</span>
                   </div>
                 )}
                 {columns.lote && unidad.lote && (
                   <div className="flex items-center gap-1.5">
                     <MapPin size={12} className="text-[var(--text-muted)]" />
-                    <span className="text-white">{unidad.lote}</span>
+                    <span className="text-[var(--text-primary)]">{unidad.lote}</span>
                   </div>
                 )}
                 {columns.piso && unidad.piso !== null && !unidad.lote && (
                   <div className="flex items-center gap-1.5">
                     <MapPin size={12} className="text-[var(--text-muted)]" />
-                    <span className="text-white">Piso {unidad.piso}</span>
+                    <span className="text-[var(--text-primary)]">Piso {unidad.piso}</span>
                   </div>
                 )}
                 {columns.vista && unidad.vista && (
                   <div className="flex items-center gap-1.5">
                     <Eye size={12} className="text-[var(--text-muted)]" />
-                    <span className="text-white">{unidad.vista}</span>
+                    <span className="text-[var(--text-primary)]">{unidad.vista}</span>
                   </div>
                 )}
               </div>
@@ -312,21 +312,21 @@ export function CotizadorFlowMultiStep({
 
             {/* Lotes: Terrain + Construction price breakdown */}
             {terrenoPrice != null && construccionPrice != null && (
-              <div className="bg-white/5 rounded-xl p-4 border border-white/8">
+              <div className="bg-[var(--glass-bg)] rounded-xl p-4 border border-[var(--border-default)]">
                 <p className="text-[10px] tracking-[0.2em] uppercase text-[var(--site-primary)] mb-2 font-ui font-bold">
                   {tSite("cotizador.priceBreakdown") || "Desglose de precio"}
                 </p>
                 <div className="flex justify-between text-xs mb-1.5">
                   <span className="text-[var(--text-secondary)]">{tSite("cotizador.terrain") || "Terreno"}</span>
-                  <span className="text-white">{formatCurrency(terrenoPrice, moneda)}</span>
+                  <span className="text-[var(--text-primary)]">{formatCurrency(terrenoPrice, moneda)}</span>
                 </div>
                 <div className="flex justify-between text-xs mb-1.5">
                   <span className="text-[var(--text-secondary)]">{tSite("cotizador.construction") || "Construcción"}</span>
-                  <span className="text-white">{formatCurrency(construccionPrice, moneda)}</span>
+                  <span className="text-[var(--text-primary)]">{formatCurrency(construccionPrice, moneda)}</span>
                 </div>
-                <div className="h-px bg-white/10 my-2" />
+                <div className="h-px bg-[var(--border-default)] my-2" />
                 <div className="flex justify-between text-xs font-semibold">
-                  <span className="text-white">Total</span>
+                  <span className="text-[var(--text-primary)]">Total</span>
                   <span className="text-[var(--site-primary)]">{formatCurrency(terrenoPrice + construccionPrice, moneda)}</span>
                 </div>
               </div>
@@ -334,7 +334,7 @@ export function CotizadorFlowMultiStep({
 
             {/* Payment Breakdown */}
             {resultado && (
-              <div className="bg-white/5 rounded-2xl p-4 border border-white/8">
+              <div className="bg-[var(--glass-bg)] rounded-2xl p-4 border border-[var(--border-default)]">
                 <h4 className="text-[10px] tracking-[0.2em] uppercase text-[var(--site-primary)] mb-3 font-ui font-bold">
                   {tSite("cotizador.paymentPlan")}
                 </h4>
@@ -342,10 +342,10 @@ export function CotizadorFlowMultiStep({
                   {resultado.fases.map((fase, i) => (
                     <div
                       key={i}
-                      className="flex items-start justify-between py-2.5 border-b border-white/5 last:border-0"
+                      className="flex items-start justify-between py-2.5 border-b border-[var(--border-subtle)] last:border-0"
                     >
                       <div>
-                        <p className="text-xs text-white">{fase.nombre}</p>
+                        <p className="text-xs text-[var(--text-primary)]">{fase.nombre}</p>
                         {fase.cuotas > 1 && (
                           <p className="text-[10px] text-[var(--text-muted)] mt-0.5">
                             {fase.cuotas} {tSite("cotizador.installmentsOf")}{" "}
@@ -360,8 +360,8 @@ export function CotizadorFlowMultiStep({
                     </div>
                   ))}
                 </div>
-                <div className="flex items-center justify-between pt-3 mt-1 border-t border-white/10">
-                  <p className="text-xs font-medium text-white">Total</p>
+                <div className="flex items-center justify-between pt-3 mt-1 border-t border-[var(--border-default)]">
+                  <p className="text-xs font-medium text-[var(--text-primary)]">Total</p>
                   <p className="text-sm font-semibold text-[var(--site-primary)]">
                     {formatCurrency(resultado.precio_neto, moneda)}
                   </p>

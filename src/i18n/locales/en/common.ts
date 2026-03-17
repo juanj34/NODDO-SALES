@@ -189,6 +189,10 @@ const common = {
     enquireUnit: "Enquire about unit {{unit}}",
     backToImplantaciones: "Back to master plan",
   },
+  language: "Language",
+  currency: "Currency",
+  units: "Units",
+  audio: "Audio",
   empty: {
     noUnits: "No units available",
     noResults: "No results",

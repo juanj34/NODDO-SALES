@@ -18,7 +18,7 @@ export function RotateDevice() {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          className="fixed inset-0 z-[100] bg-[var(--site-bg)] flex flex-col items-center justify-center gap-6 text-white px-6"
+          className="fixed inset-0 z-[100] bg-[var(--site-bg)] flex flex-col items-center justify-center gap-6 text-[var(--text-primary)] px-6"
         >
           <motion.div
             animate={{ rotate: 90 }}
@@ -34,7 +34,7 @@ export function RotateDevice() {
           <p className="text-lg tracking-wider font-light text-center">
             {t("rotateDevice.message")}
           </p>
-          <p className="text-sm text-white/40 text-center">
+          <p className="text-sm text-[var(--text-tertiary)] text-center">
             {t("rotateDevice.subtitle")}
           </p>
           <button

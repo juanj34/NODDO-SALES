@@ -8,7 +8,7 @@ import { useTranslation } from "@/i18n";
 /* ── Step 01: Dashboard / Upload panel ── */
 function IllustrationUpload() {
   return (
-    <svg viewBox="0 0 220 150" fill="none" width="220" height="150">
+    <svg viewBox="0 0 220 150" fill="none" className="w-full" style={{ maxWidth: 220 }}>
       <style>{`
         .hiw-u-arrow { animation: hiw-u-bob 2.5s ease-in-out infinite; }
         .hiw-u-cursor { animation: hiw-u-blink 1s step-end infinite; }
@@ -105,7 +105,7 @@ function IllustrationGrid() {
   ];
 
   return (
-    <svg viewBox="0 0 220 150" fill="none" width="220" height="150">
+    <svg viewBox="0 0 220 150" fill="none" className="w-full" style={{ maxWidth: 220 }}>
       <style>{`
         .hiw-g-ring { transform-box: fill-box; transform-origin: center; animation: hiw-g-pulse 2.5s ease-in-out infinite; }
         .hiw-g-glow { animation: hiw-g-glow-pulse 2.5s ease-in-out infinite; }
@@ -173,7 +173,7 @@ function IllustrationGrid() {
 /* ── Step 03: Browser with live microsite + share ── */
 function IllustrationShare() {
   return (
-    <svg viewBox="0 0 220 150" fill="none" width="220" height="150">
+    <svg viewBox="0 0 220 150" fill="none" className="w-full" style={{ maxWidth: 220 }}>
       <style>{`
         .hiw-s-node { animation: hiw-s-pulse 2.5s ease-in-out infinite; }
         .hiw-s-glow { animation: hiw-s-glow-pulse 2.5s ease-in-out infinite; }
@@ -288,7 +288,7 @@ export function HowItWorks() {
   ];
 
   return (
-    <section className="relative z-[1] py-28 lg:py-40 px-6 lg:px-20 border-t border-[var(--mk-border-rule)]">
+    <section className="relative z-[1] py-16 sm:py-24 lg:py-40 px-4 sm:px-6 lg:px-20 border-t border-[var(--mk-border-rule)]">
       <div style={{ maxWidth: 1200, margin: "0 auto" }}>
         <div className="mk-section-label mb-6">{t("howItWorks.label")}</div>
 
@@ -307,13 +307,13 @@ export function HowItWorks() {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true, margin: "-60px" }}
               transition={{ duration: 0.6, delay: i * 0.15, ease }}
-              className="relative z-[1]"
-              style={{ padding: "44px 36px", background: "var(--mk-bg)" }}
+              className="relative z-[1] p-6 sm:p-8 md:p-9"
+              style={{ background: "var(--mk-bg)" }}
             >
               {/* Number — watermark */}
               <div
-                className="absolute font-heading leading-none select-none"
-                style={{ top: 28, right: 28, fontSize: 72, fontWeight: 300, color: "rgba(184,151,58,0.08)", letterSpacing: "-0.03em" }}
+                className="absolute font-heading leading-none select-none text-[48px] sm:text-[72px]"
+                style={{ top: 20, right: 20, fontWeight: 300, color: "rgba(184,151,58,0.08)", letterSpacing: "-0.03em" }}
               >
                 {step.num}
               </div>
@@ -385,7 +385,7 @@ export function HowItWorks() {
             </div>
           </div>
 
-          <div className="flex items-center justify-center gap-6 text-[12px]" style={{ color: "rgba(244,240,232,0.35)" }}>
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-3 sm:gap-6 text-[12px]" style={{ color: "rgba(244,240,232,0.35)" }}>
             <div className="flex items-center gap-1.5">
               <span style={{ color: "var(--mk-accent)" }}>✓</span>
               {t("howItWorks.trustNoCode")}

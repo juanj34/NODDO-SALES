@@ -88,6 +88,7 @@ export default function FinancieroPage() {
       ["Sell-through", `${data.sell_through_rate}%`],
       ["Total unidades", String(data.total_units)],
       ["Disponible", String(data.total_disponible)],
+      ["Próximamente", String(data.total_proximamente)],
       ["Separado", String(data.total_separado)],
       ["Reservada", String(data.total_reservada)],
       ["Vendida", String(data.total_vendida)],
@@ -304,6 +305,7 @@ export default function FinancieroPage() {
               </div>
               <InventoryBreakdown
                 disponible={data.total_disponible}
+                proximamente={data.total_proximamente}
                 separado={data.total_separado}
                 reservada={data.total_reservada}
                 vendida={data.total_vendida}

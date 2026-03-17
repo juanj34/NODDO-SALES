@@ -83,6 +83,9 @@ export default function ConfigPage() {
   const [precioSource, setPrecioSource] = useState<"unidad" | "tipologia">("unidad");
   const [inventoryColumns, setInventoryColumns] = useState<InventoryColumnConfig | null>(null);
   const [inventoryColumnsByType, setInventoryColumnsByType] = useState<InventoryColumnsByType | null>(null);
+  const [inventoryColumnsMicrosite, setInventoryColumnsMicrosite] = useState<InventoryColumnConfig | null>(null);
+  const [inventoryColumnsMicrositeByType, setInventoryColumnsMicrositeByType] = useState<InventoryColumnsByType | null>(null);
+  const [columnsViewTab, setColumnsViewTab] = useState<"editor" | "microsite">("editor");
 
   /* ── Sync state from project ── */
   useEffect(() => {
@@ -93,6 +96,8 @@ export default function ConfigPage() {
     setPrecioSource((project.precio_source ?? "unidad") as "unidad" | "tipologia");
     setInventoryColumns(project.inventory_columns ?? null);
     setInventoryColumnsByType(project.inventory_columns_by_type ?? null);
+    setInventoryColumnsMicrosite((project as any).inventory_columns_microsite ?? null);
+    setInventoryColumnsMicrositeByType((project as any).inventory_columns_microsite_by_type ?? null);
     setWhatsappNumero(project.whatsapp_numero || "");
     setEtapaLabel(project.etapa_label || "Etapas");
     setHideNoddoBadge(project.hide_noddo_badge ?? false);
@@ -108,10 +113,19 @@ export default function ConfigPage() {
     () => getInventoryColumns(tipoProyecto, inventoryColumns),
     [tipoProyecto, inventoryColumns]
   );
+  const effectiveColumnsMicrosite = useMemo(
+    () => getInventoryColumns(tipoProyecto, inventoryColumnsMicrosite),
+    [tipoProyecto, inventoryColumnsMicrosite]
+  );
   const isCustomColumns = inventoryColumns !== null;
+  const isCustomColumnsMicrosite = inventoryColumnsMicrosite !== null;
   const activeColumnCount = useMemo(
     () => Object.values(effectiveColumns).filter(Boolean).length,
     [effectiveColumns]
+  );
+  const activeColumnCountMicrosite = useMemo(
+    () => Object.values(effectiveColumnsMicrosite).filter(Boolean).length,
+    [effectiveColumnsMicrosite]
   );
 
   /* ── Hybrid per-type column helpers ── */
@@ -126,7 +140,13 @@ export default function ConfigPage() {
     [inventoryColumnsByType]
   );
 
+  const getEffectiveColumnsForTipoMicrosite = useCallback((tipo: TipoTipologia) =>
+    getHybridInventoryColumns(tipo, inventoryColumnsMicrositeByType),
+    [inventoryColumnsMicrositeByType]
+  );
+
   const isCustomColumnsByType = inventoryColumnsByType !== null;
+  const isCustomColumnsByTypeMicrosite = inventoryColumnsMicrositeByType !== null;
 
   /* ── Save handler ── */
   const handleSave = useCallback(async () => {
@@ -137,6 +157,8 @@ export default function ConfigPage() {
       precio_source: precioSource,
       inventory_columns: inventoryColumns,
       inventory_columns_by_type: inventoryColumnsByType,
+      inventory_columns_microsite: inventoryColumnsMicrosite,
+      inventory_columns_microsite_by_type: inventoryColumnsMicrositeByType,
       whatsapp_numero: whatsappNumero || null,
       etapa_label: etapaLabel || "Etapas",
       hide_noddo_badge: hideNoddoBadge,
@@ -144,9 +166,9 @@ export default function ConfigPage() {
       depositos_mode: depositosMode,
       parqueaderos_precio_base: parqueaderosMode === "precio_base" ? parqueaderosPrecioBase : null,
       depositos_precio_base: depositosMode === "precio_base" ? depositosPrecioBase : null,
-    });
+    } as any);
     if (!ok) toast.error(t("general.saveError"));
-  }, [save, slug, tipoProyecto, tipologiaMode, precioSource, inventoryColumns, inventoryColumnsByType, whatsappNumero, etapaLabel, hideNoddoBadge, parqueaderosMode, depositosMode, parqueaderosPrecioBase, depositosPrecioBase, toast, t]);
+  }, [save, slug, tipoProyecto, tipologiaMode, precioSource, inventoryColumns, inventoryColumnsByType, inventoryColumnsMicrosite, inventoryColumnsMicrositeByType, whatsappNumero, etapaLabel, hideNoddoBadge, parqueaderosMode, depositosMode, parqueaderosPrecioBase, depositosPrecioBase, toast, t]);
 
   /* ── Auto-save ── */
   const handleSaveRef = useRef(handleSave);
@@ -190,6 +212,8 @@ export default function ConfigPage() {
     setTipoProyecto(newTipo);
     setInventoryColumns(null); // reset to new type defaults
     setInventoryColumnsByType(null); // reset hybrid configs too
+    setInventoryColumnsMicrosite(null); // reset microsite columns too
+    setInventoryColumnsMicrositeByType(null); // reset microsite hybrid configs too
     scheduleAutoSave();
   }, [tipoProyecto, project?.unidades?.length, project?.torres?.length, confirm, t, scheduleAutoSave]);
 
@@ -228,6 +252,43 @@ export default function ConfigPage() {
 
   const handleResetAllHybridColumns = useCallback(() => {
     setInventoryColumnsByType(null);
+    scheduleAutoSave();
+  }, [scheduleAutoSave]);
+
+  /* ── Microsite column handlers ── */
+  const handleColumnToggleMicrosite = useCallback((key: keyof InventoryColumnConfig) => {
+    const current = getInventoryColumns(tipoProyecto, inventoryColumnsMicrosite);
+    const updated = { ...current, [key]: !current[key] };
+    setInventoryColumnsMicrosite(updated);
+    scheduleAutoSave();
+  }, [tipoProyecto, inventoryColumnsMicrosite, scheduleAutoSave]);
+
+  const handleResetColumnsMicrosite = useCallback(() => {
+    setInventoryColumnsMicrosite(null);
+    scheduleAutoSave();
+  }, [scheduleAutoSave]);
+
+  const handleHybridColumnToggleMicrosite = useCallback((tipo: TipoTipologia, key: keyof InventoryColumnConfig) => {
+    setInventoryColumnsMicrositeByType(prev => {
+      const current = prev ?? {};
+      const currentConfig = getHybridInventoryColumns(tipo, prev);
+      return { ...current, [tipo]: { ...currentConfig, [key]: !currentConfig[key] } };
+    });
+    scheduleAutoSave();
+  }, [scheduleAutoSave]);
+
+  const handleResetHybridColumnsMicrosite = useCallback((tipo: TipoTipologia) => {
+    setInventoryColumnsMicrositeByType(prev => {
+      if (!prev) return null;
+      const updated = { ...prev };
+      delete updated[tipo];
+      return Object.keys(updated).length === 0 ? null : updated;
+    });
+    scheduleAutoSave();
+  }, [scheduleAutoSave]);
+
+  const handleResetAllHybridColumnsMicrosite = useCallback(() => {
+    setInventoryColumnsMicrositeByType(null);
     scheduleAutoSave();
   }, [scheduleAutoSave]);
 
@@ -411,37 +472,90 @@ export default function ConfigPage() {
       </div>
 
       {/* ═══════════════════════════════════════════════════════════
-          Columnas del Inventario — Premium Design
+          Columnas del Inventario — Premium Design with Editor/Microsite Tabs
           ═══════════════════════════════════════════════════════════ */}
       <div className={sectionCard}>
-        {/* Header row: title + badge + reset */}
-        <div className="flex items-start justify-between gap-4">
-          <div>
-            <div className={sectionTitle}>
-              <TableProperties size={15} className="text-[var(--site-primary)]" />
-              {isHibrido ? t("config.columns.byTypeTitle") : t("config.columns.title")}
-            </div>
-            <p className={sectionDescription}>
-              {isHibrido ? t("config.columns.byTypeDescription") : t("config.columns.description")}
-            </p>
+        {/* Header row: title only */}
+        <div>
+          <div className={sectionTitle}>
+            <TableProperties size={15} className="text-[var(--site-primary)]" />
+            {isHibrido ? t("config.columns.byTypeTitle") : t("config.columns.title")}
           </div>
-          <div className="flex items-center gap-2.5 shrink-0 pt-0.5">
-            {!isHibrido && (
-              <span className={badgeGold}>
-                {activeColumnCount}/{INVENTORY_COLUMN_KEYS.length}
-              </span>
-            )}
-            {!isHibrido && isCustomColumns && (
+          <p className={sectionDescription}>
+            {isHibrido ? t("config.columns.byTypeDescription") : t("config.columns.description")}
+          </p>
+        </div>
+
+        {/* Tab Selector */}
+        <div className="flex items-center gap-1 mt-5 mb-6 p-1 bg-[var(--surface-2)] rounded-xl w-fit">
+          {([
+            { id: "editor" as const, label: t("config.columns.tabs.editor"), desc: t("config.columns.tabs.editorDesc") },
+            { id: "microsite" as const, label: t("config.columns.tabs.microsite"), desc: t("config.columns.tabs.micrositeDesc") },
+          ]).map((tab) => {
+            const isActive = columnsViewTab === tab.id;
+            return (
               <button
+                key={tab.id}
                 type="button"
-                onClick={handleResetColumns}
-                className="flex items-center gap-1.5 text-[10px] font-ui font-bold uppercase tracking-[0.08em] text-[var(--text-tertiary)] hover:text-[var(--site-primary)] transition-colors"
+                onClick={() => setColumnsViewTab(tab.id)}
+                className={cn(
+                  "relative px-4 py-2.5 rounded-lg transition-all font-ui text-xs font-bold uppercase tracking-[0.08em]",
+                  isActive
+                    ? "bg-[var(--site-primary)] text-[var(--surface-0)] shadow-[0_2px_8px_rgba(var(--site-primary-rgb),0.3)]"
+                    : "text-[var(--text-tertiary)] hover:text-[var(--text-primary)] hover:bg-white/5"
+                )}
+                title={tab.desc}
               >
-                <RotateCcw size={11} />
-                {t("config.columns.reset")}
+                {tab.label}
               </button>
+            );
+          })}
+        </div>
+
+        {/* Badge + Reset button row */}
+        <div className="flex items-center justify-between gap-4 mb-5">
+          <p className="text-xs text-[var(--text-tertiary)]">
+            {columnsViewTab === "editor"
+              ? t("config.columns.tabs.editorDesc")
+              : t("config.columns.tabs.micrositeDesc")
+            }
+          </p>
+          <div className="flex items-center gap-2.5 shrink-0">
+            {!isHibrido && columnsViewTab === "editor" && (
+              <>
+                <span className={badgeGold}>
+                  {activeColumnCount}/{INVENTORY_COLUMN_KEYS.length}
+                </span>
+                {isCustomColumns && (
+                  <button
+                    type="button"
+                    onClick={handleResetColumns}
+                    className="flex items-center gap-1.5 text-[10px] font-ui font-bold uppercase tracking-[0.08em] text-[var(--text-tertiary)] hover:text-[var(--site-primary)] transition-colors"
+                  >
+                    <RotateCcw size={11} />
+                    {t("config.columns.reset")}
+                  </button>
+                )}
+              </>
             )}
-            {isHibrido && isCustomColumnsByType && (
+            {!isHibrido && columnsViewTab === "microsite" && (
+              <>
+                <span className={badgeGold}>
+                  {activeColumnCountMicrosite}/{INVENTORY_COLUMN_KEYS.length}
+                </span>
+                {isCustomColumnsMicrosite && (
+                  <button
+                    type="button"
+                    onClick={handleResetColumnsMicrosite}
+                    className="flex items-center gap-1.5 text-[10px] font-ui font-bold uppercase tracking-[0.08em] text-[var(--text-tertiary)] hover:text-[var(--site-primary)] transition-colors"
+                  >
+                    <RotateCcw size={11} />
+                    {t("config.columns.reset")}
+                  </button>
+                )}
+              </>
+            )}
+            {isHibrido && columnsViewTab === "editor" && isCustomColumnsByType && (
               <button
                 type="button"
                 onClick={handleResetAllHybridColumns}
@@ -451,12 +565,22 @@ export default function ConfigPage() {
                 {t("config.columns.reset")}
               </button>
             )}
+            {isHibrido && columnsViewTab === "microsite" && isCustomColumnsByTypeMicrosite && (
+              <button
+                type="button"
+                onClick={handleResetAllHybridColumnsMicrosite}
+                className="flex items-center gap-1.5 text-[10px] font-ui font-bold uppercase tracking-[0.08em] text-[var(--text-tertiary)] hover:text-[var(--site-primary)] transition-colors"
+              >
+                <RotateCcw size={11} />
+                {t("config.columns.reset")}
+              </button>
+            )}
           </div>
         </div>
 
-        {/* ── Non-hybrid: single column grid (unchanged) ── */}
-        {!isHibrido && (
-          <div className="space-y-5 mt-5">
+        {/* ── Tab Content: Editor Columns ── */}
+        {columnsViewTab === "editor" && !isHibrido && (
+          <div className="space-y-5">
             {COLUMN_CATEGORIES.map((category) => {
               const CategoryIcon = category.icon;
               return (
@@ -508,9 +632,63 @@ export default function ConfigPage() {
           </div>
         )}
 
-        {/* ── Hybrid: per-type column sections ── */}
-        {isHibrido && (
-          <div className="space-y-6 mt-5">
+        {/* ── Tab Content: Microsite Columns ── */}
+        {columnsViewTab === "microsite" && !isHibrido && (
+          <div className="space-y-5">
+            {COLUMN_CATEGORIES.map((category) => {
+              const CategoryIcon = category.icon;
+              return (
+                <div key={category.id}>
+                  <div className="flex items-center gap-2.5 mb-3">
+                    <CategoryIcon size={13} className="text-[var(--text-tertiary)] shrink-0" />
+                    <span className="font-ui text-[10px] font-bold uppercase tracking-[0.12em] text-[var(--text-tertiary)] whitespace-nowrap">
+                      {t(category.labelKey)}
+                    </span>
+                    <div className="flex-1 h-px bg-[var(--border-subtle)]" />
+                  </div>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                    {category.columns.map((colKey) => {
+                      const colDef = INVENTORY_COLUMN_KEYS.find(c => c.key === colKey);
+                      if (!colDef) return null;
+                      const ColIcon = COLUMN_ICON_MAP[colDef.icon];
+                      const isOn = effectiveColumnsMicrosite[colKey];
+                      return (
+                        <button
+                          key={colKey}
+                          type="button"
+                          onClick={() => handleColumnToggleMicrosite(colKey)}
+                          className={cn(
+                            "flex items-center gap-3 px-3.5 py-2.5 rounded-[0.75rem] transition-all cursor-pointer group",
+                            isOn
+                              ? "bg-[var(--surface-2)] border-l-[3px] border-l-[var(--site-primary)] border-t border-r border-b border-t-[var(--border-subtle)] border-r-[var(--border-subtle)] border-b-[var(--border-subtle)]"
+                              : "bg-[var(--surface-1)] border-l-[3px] border-l-transparent border-t border-r border-b border-t-[var(--border-subtle)] border-r-[var(--border-subtle)] border-b-[var(--border-subtle)] hover:border-t-[var(--border-default)] hover:border-r-[var(--border-default)] hover:border-b-[var(--border-default)]"
+                          )}
+                        >
+                          <div className={cn(
+                            "w-7 h-7 rounded-lg flex items-center justify-center shrink-0 transition-colors",
+                            isOn ? "bg-[rgba(var(--site-primary-rgb),0.12)]" : "bg-[var(--surface-3)]"
+                          )}>
+                            {ColIcon && <ColIcon size={14} className={cn("transition-colors", isOn ? "text-[var(--site-primary)]" : "text-[var(--text-muted)]")} />}
+                          </div>
+                          <span className={cn("flex-1 text-xs font-medium text-left transition-colors", isOn ? "text-[var(--text-primary)]" : "text-[var(--text-tertiary)]")}>
+                            {t(colDef.labelKey)}
+                          </span>
+                          <div className={cn("relative inline-flex h-5 w-9 items-center rounded-full transition-colors shrink-0", isOn ? "bg-[var(--site-primary)]" : "bg-[var(--surface-3)]")}>
+                            <span className={cn("inline-block h-3.5 w-3.5 rounded-full bg-white shadow-sm transition-transform", isOn ? "translate-x-[18px]" : "translate-x-[3px]")} />
+                          </div>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        )}
+
+        {/* ── Tab Content: Editor Columns (Hybrid) ── */}
+        {columnsViewTab === "editor" && isHibrido && (
+          <div className="space-y-6">
             {TIPO_TAB_LABELS.map(({ id: tipo, labelKey, icon: TipoIcon }) => {
               const tipoColumns = getEffectiveColumnsForTipo(tipo);
               const tipoActive = Object.values(tipoColumns).filter(Boolean).length;
@@ -563,6 +741,89 @@ export default function ConfigPage() {
                                   key={colKey}
                                   type="button"
                                   onClick={() => handleHybridColumnToggle(tipo, colKey)}
+                                  className={cn(
+                                    "flex items-center gap-2.5 px-3 py-2 rounded-lg transition-all cursor-pointer",
+                                    isOn
+                                      ? "bg-[rgba(var(--site-primary-rgb),0.06)] border border-[rgba(var(--site-primary-rgb),0.2)]"
+                                      : "bg-[var(--surface-0)] border border-[var(--border-subtle)] hover:border-[var(--border-default)]"
+                                  )}
+                                >
+                                  {ColIcon && <ColIcon size={12} className={cn("shrink-0 transition-colors", isOn ? "text-[var(--site-primary)]" : "text-[var(--text-muted)]")} />}
+                                  <span className={cn("flex-1 text-[11px] text-left transition-colors", isOn ? "text-[var(--text-primary)]" : "text-[var(--text-tertiary)]")}>
+                                    {t(colDef.labelKey)}
+                                  </span>
+                                  <div className={cn("relative inline-flex h-4 w-7 items-center rounded-full transition-colors shrink-0", isOn ? "bg-[var(--site-primary)]" : "bg-[var(--surface-3)]")}>
+                                    <span className={cn("inline-block h-3 w-3 rounded-full bg-white shadow-sm transition-transform", isOn ? "translate-x-[14px]" : "translate-x-[2px]")} />
+                                  </div>
+                                </button>
+                              );
+                            })}
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        )}
+
+        {/* ── Tab Content: Microsite Columns (Hybrid) ── */}
+        {columnsViewTab === "microsite" && isHibrido && (
+          <div className="space-y-6">
+            {TIPO_TAB_LABELS.map(({ id: tipo, labelKey, icon: TipoIcon }) => {
+              const tipoColumns = getEffectiveColumnsForTipoMicrosite(tipo);
+              const tipoActive = Object.values(tipoColumns).filter(Boolean).length;
+              const hasCustom = inventoryColumnsMicrositeByType?.[tipo] !== undefined;
+
+              return (
+                <div key={tipo} className="rounded-xl border border-[var(--border-subtle)] bg-[var(--surface-1)] overflow-hidden">
+                  {/* Type header */}
+                  <div className="flex items-center justify-between px-4 py-3 bg-[var(--surface-2)] border-b border-[var(--border-subtle)]">
+                    <div className="flex items-center gap-2.5">
+                      <TipoIcon size={14} className="text-[var(--site-primary)]" />
+                      <span className="font-ui text-xs font-bold uppercase tracking-[0.08em] text-[var(--text-primary)]">
+                        {t(labelKey)}
+                      </span>
+                      <span className={badgeGold}>{tipoActive}/{INVENTORY_COLUMN_KEYS.length}</span>
+                    </div>
+                    {hasCustom && (
+                      <button
+                        type="button"
+                        onClick={() => handleResetHybridColumnsMicrosite(tipo)}
+                        className="flex items-center gap-1.5 text-[10px] font-ui font-bold uppercase tracking-[0.08em] text-[var(--text-tertiary)] hover:text-[var(--site-primary)] transition-colors"
+                      >
+                        <RotateCcw size={10} />
+                        {t("config.columns.reset")}
+                      </button>
+                    )}
+                  </div>
+
+                  {/* Column toggles */}
+                  <div className="p-4 space-y-4">
+                    {COLUMN_CATEGORIES.map((category) => {
+                      const CategoryIcon = category.icon;
+                      return (
+                        <div key={category.id}>
+                          <div className="flex items-center gap-2.5 mb-2">
+                            <CategoryIcon size={11} className="text-[var(--text-muted)] shrink-0" />
+                            <span className="font-ui text-[9px] font-bold uppercase tracking-[0.12em] text-[var(--text-muted)] whitespace-nowrap">
+                              {t(category.labelKey)}
+                            </span>
+                            <div className="flex-1 h-px bg-[var(--border-subtle)]" />
+                          </div>
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5">
+                            {category.columns.map((colKey) => {
+                              const colDef = INVENTORY_COLUMN_KEYS.find(c => c.key === colKey);
+                              if (!colDef) return null;
+                              const ColIcon = COLUMN_ICON_MAP[colDef.icon];
+                              const isOn = tipoColumns[colKey];
+                              return (
+                                <button
+                                  key={colKey}
+                                  type="button"
+                                  onClick={() => handleHybridColumnToggleMicrosite(tipo, colKey)}
                                   className={cn(
                                     "flex items-center gap-2.5 px-3 py-2 rounded-lg transition-all cursor-pointer",
                                     isOn

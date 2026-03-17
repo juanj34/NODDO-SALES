@@ -64,3 +64,46 @@ export async function POST(request: NextRequest) {
     );
   }
 }
+
+export async function DELETE(request: NextRequest) {
+  try {
+    const auth = await getAuthContext();
+    if (!auth) return NextResponse.json({ error: "No autorizado" }, { status: 401 });
+    if (auth.role !== "admin") return NextResponse.json({ error: "Solo administradores" }, { status: 403 });
+
+    const { ids, proyecto_id } = await request.json();
+    if (!proyecto_id || !Array.isArray(ids) || ids.length === 0) {
+      return NextResponse.json(
+        { error: "proyecto_id e ids[] son requeridos" },
+        { status: 400 }
+      );
+    }
+
+    // Verify project ownership
+    const { data: project } = await auth.supabase
+      .from("proyectos")
+      .select("id")
+      .eq("id", proyecto_id)
+      .eq("user_id", auth.adminUserId)
+      .maybeSingle();
+    if (!project) {
+      return NextResponse.json({ error: "Proyecto no encontrado" }, { status: 404 });
+    }
+
+    // Delete all units belonging to this project with matching ids
+    const { error } = await auth.supabase
+      .from("unidades")
+      .delete()
+      .in("id", ids)
+      .eq("proyecto_id", proyecto_id);
+
+    if (error) throw error;
+
+    return NextResponse.json({ success: true, deleted: ids.length });
+  } catch (err) {
+    return NextResponse.json(
+      { error: err instanceof Error ? err.message : "Error" },
+      { status: 500 }
+    );
+  }
+}

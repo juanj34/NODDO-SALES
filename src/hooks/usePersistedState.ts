@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback, useRef } from "react";
+import { useState, useEffect, useCallback } from "react";
 
 /**
  * Like `useState`, but persists the value in localStorage namespaced by slug.
@@ -16,28 +16,29 @@ export function usePersistedState<T>(
   slug?: string,
 ): [T, (value: T | ((prev: T) => T)) => void] {
   const storageKey = slug ? `noddo:${slug}:${key}` : `noddo:${key}`;
-  const isFirstRender = useRef(true);
 
-  // Initialize state from localStorage or default
-  const [value, setValueRaw] = useState<T>(() => {
-    if (typeof window === "undefined") return defaultValue;
+  // ALWAYS initialize with defaultValue (both server and client) to avoid hydration mismatch
+  const [value, setValueRaw] = useState<T>(defaultValue);
+
+  // Hydrate from localStorage AFTER mount (client-only, post-hydration)
+  useEffect(() => {
     try {
       const stored = localStorage.getItem(storageKey);
       if (stored !== null) {
-        return JSON.parse(stored) as T;
+        const parsed = JSON.parse(stored) as T;
+        // Only update if different from default to avoid unnecessary re-render
+        if (JSON.stringify(parsed) !== JSON.stringify(defaultValue)) {
+          setValueRaw(parsed);
+        }
       }
     } catch {
       // ignore parse errors
     }
-    return defaultValue;
-  });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [storageKey]); // Only run once on mount
 
-  // Persist to localStorage on changes (skip first render to avoid re-saving initial value)
+  // Persist to localStorage on changes
   useEffect(() => {
-    if (isFirstRender.current) {
-      isFirstRender.current = false;
-      return;
-    }
     try {
       localStorage.setItem(storageKey, JSON.stringify(value));
     } catch {

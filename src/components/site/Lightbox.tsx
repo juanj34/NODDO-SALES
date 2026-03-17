@@ -60,7 +60,8 @@ export function Lightbox({ images, initialIndex = 0, onClose }: LightboxProps) {
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
-      className="fixed inset-0 z-[80] bg-black/98 flex flex-col"
+      className="fixed inset-0 z-[80] flex flex-col"
+      style={{ backgroundColor: "rgba(var(--overlay-rgb), 0.98)" }}
     >
       {/* Top bar */}
       <div className="flex items-center justify-between px-6 py-4">
@@ -76,7 +77,7 @@ export function Lightbox({ images, initialIndex = 0, onClose }: LightboxProps) {
         <button
           onClick={goPrev}
           disabled={currentIndex === 0}
-          className="absolute left-4 z-10 w-12 h-12 flex items-center justify-center glass rounded-full text-[var(--text-secondary)] hover:text-white disabled:opacity-20 transition-all cursor-pointer"
+          className="absolute left-4 z-10 w-12 h-12 flex items-center justify-center glass rounded-full text-[var(--text-secondary)] hover:text-[var(--text-primary)] disabled:opacity-20 transition-all cursor-pointer"
         >
           <ChevronLeft size={24} />
         </button>
@@ -106,8 +107,8 @@ export function Lightbox({ images, initialIndex = 0, onClose }: LightboxProps) {
 
           {/* Label overlay */}
           {current.label && (
-            <div className="absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-black/60 to-transparent rounded-b-lg pointer-events-none">
-              <span className="text-sm font-medium text-white tracking-wide">
+            <div className="absolute bottom-0 left-0 right-0 p-4 rounded-b-lg pointer-events-none" style={{ background: "linear-gradient(to top, rgba(var(--overlay-rgb), 0.6), transparent)" }}>
+              <span className="text-sm font-medium text-[var(--text-primary)] tracking-wide">
                 {current.label}
               </span>
             </div>
@@ -118,7 +119,7 @@ export function Lightbox({ images, initialIndex = 0, onClose }: LightboxProps) {
         <button
           onClick={goNext}
           disabled={currentIndex === images.length - 1}
-          className="absolute right-4 z-10 w-12 h-12 flex items-center justify-center glass rounded-full text-[var(--text-secondary)] hover:text-white disabled:opacity-20 transition-all cursor-pointer"
+          className="absolute right-4 z-10 w-12 h-12 flex items-center justify-center glass rounded-full text-[var(--text-secondary)] hover:text-[var(--text-primary)] disabled:opacity-20 transition-all cursor-pointer"
         >
           <ChevronRight size={24} />
         </button>

@@ -1,6 +1,7 @@
 import { getAuthContext } from "@/lib/auth-context";
 import { NextRequest, NextResponse } from "next/server";
 import { addDomainToVercel, removeDomainFromVercel } from "@/lib/vercel";
+import { revalidateProyecto } from "@/lib/supabase/cached-queries";
 
 export async function PUT(request: NextRequest) {
   try {
@@ -18,10 +19,10 @@ export async function PUT(request: NextRequest) {
       );
     }
 
-    // Verify ownership and get current domain
+    // Verify ownership and get current domain/slug/subdomain
     const { data: proyecto } = await auth.supabase
       .from("proyectos")
-      .select("id, custom_domain")
+      .select("id, slug, subdomain, custom_domain")
       .eq("id", proyecto_id)
       .eq("user_id", auth.adminUserId)
       .single();
@@ -50,15 +51,24 @@ export async function PUT(request: NextRequest) {
         );
       }
 
-      // Check uniqueness
-      const { data: existing } = await auth.supabase
-        .from("proyectos")
-        .select("id")
-        .eq("subdomain", cleanSubdomain)
-        .neq("id", proyecto_id)
-        .single();
+      // Check uniqueness against both subdomain and slug columns
+      // (getProyectoBySlug uses .or(slug, subdomain) so a collision on either would be ambiguous)
+      const [{ data: subdomainConflict }, { data: slugConflict }] = await Promise.all([
+        auth.supabase
+          .from("proyectos")
+          .select("id")
+          .eq("subdomain", cleanSubdomain)
+          .neq("id", proyecto_id)
+          .maybeSingle(),
+        auth.supabase
+          .from("proyectos")
+          .select("id")
+          .eq("slug", cleanSubdomain)
+          .neq("id", proyecto_id)
+          .maybeSingle(),
+      ]);
 
-      if (existing) {
+      if (subdomainConflict || slugConflict) {
         return NextResponse.json(
           { error: "Este subdominio ya esta en uso" },
           { status: 409 }
@@ -66,6 +76,8 @@ export async function PUT(request: NextRequest) {
       }
 
       updates.subdomain = cleanSubdomain;
+      // Sync slug to match subdomain (keeps them coherent)
+      updates.slug = cleanSubdomain;
     }
 
     if (custom_domain !== undefined) {
@@ -111,6 +123,17 @@ export async function PUT(request: NextRequest) {
       .single();
 
     if (error) throw error;
+
+    // Revalidate cached microsite data so changes take effect immediately
+    const oldSlug = proyecto.slug as string;
+    const oldSubdomain = proyecto.subdomain as string | null;
+    await revalidateProyecto(oldSlug);
+    if (updates.subdomain && updates.subdomain !== oldSlug) {
+      await revalidateProyecto(updates.subdomain as string);
+    }
+    if (oldSubdomain && oldSubdomain !== oldSlug && oldSubdomain !== updates.subdomain) {
+      await revalidateProyecto(oldSubdomain);
+    }
 
     // Register/remove custom domain with Vercel (best-effort, don't block on failure)
     if (process.env.AUTH_BEARER_TOKEN && process.env.VERCEL_PROJECT_ID) {

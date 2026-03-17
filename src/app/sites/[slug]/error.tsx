@@ -44,7 +44,7 @@ export default function SiteError({
 
         <h1
           style={{
-            fontFamily: "Georgia, 'Times New Roman', serif",
+            fontFamily: "var(--font-cormorant, 'Cormorant Garamond', Georgia, serif)",
             fontSize: 24,
             fontWeight: 300,
             color: "rgba(255, 255, 255, 0.92)",
@@ -55,7 +55,7 @@ export default function SiteError({
         </h1>
         <p
           style={{
-            fontFamily: "'DM Mono', monospace",
+            fontFamily: "var(--font-dm-mono, 'DM Mono', monospace)",
             fontSize: 13,
             fontWeight: 300,
             color: "rgba(255, 255, 255, 0.35)",
@@ -72,7 +72,7 @@ export default function SiteError({
             padding: "12px 32px",
             backgroundColor: "rgba(255, 255, 255, 0.1)",
             color: "rgba(255, 255, 255, 0.85)",
-            fontFamily: "'Syne', sans-serif",
+            fontFamily: "var(--font-syne, 'Syne', sans-serif)",
             fontSize: 11,
             fontWeight: 700,
             textTransform: "uppercase" as const,

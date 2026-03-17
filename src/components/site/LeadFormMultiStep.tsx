@@ -183,7 +183,7 @@ export function LeadFormMultiStep({
         >
           <CheckCircle size={48} className="text-[var(--site-primary)]" />
         </motion.div>
-        <h3 className="text-xl font-medium text-white text-center">
+        <h3 className="text-xl font-medium text-[var(--text-primary)] text-center">
           {tSite("contacto.successTitle")}
         </h3>
         <p className="text-sm text-[var(--text-secondary)] text-center max-w-md">
@@ -266,7 +266,7 @@ export function LeadFormMultiStep({
                         <p
                           className={`text-sm font-medium ${
                             formData.tipologia_interes === tip.nombre
-                              ? "text-white"
+                              ? "text-[var(--text-primary)]"
                               : "text-[var(--text-secondary)]"
                           }`}
                         >
@@ -284,7 +284,7 @@ export function LeadFormMultiStep({
 
               {tipologias.length > 4 && (
                 <div>
-                  <label className="block text-[10px] tracking-[0.2em] uppercase text-[var(--text-tertiary)] mb-1.5 font-mono">
+                  <label className="block text-[10px] tracking-[0.2em] uppercase text-[var(--text-tertiary)] mb-1.5 font-ui font-bold">
                     {tCommon("form.typeOfInterest")}
                   </label>
                   <NodDoDropdown
@@ -327,7 +327,7 @@ export function LeadFormMultiStep({
             <div className="space-y-4">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-[10px] tracking-[0.2em] uppercase text-[var(--text-tertiary)] mb-1.5 font-mono">
+                  <label className="block text-[10px] tracking-[0.2em] uppercase text-[var(--text-tertiary)] mb-1.5 font-ui font-bold">
                     {tCommon("form.fullName")}
                   </label>
                   <input
@@ -341,7 +341,7 @@ export function LeadFormMultiStep({
                   />
                 </div>
                 <div>
-                  <label className="block text-[10px] tracking-[0.2em] uppercase text-[var(--text-tertiary)] mb-1.5 font-mono">
+                  <label className="block text-[10px] tracking-[0.2em] uppercase text-[var(--text-tertiary)] mb-1.5 font-ui font-bold">
                     {tCommon("form.email")}
                   </label>
                   <input
@@ -357,7 +357,7 @@ export function LeadFormMultiStep({
               </div>
 
               <div>
-                <label className="block text-[10px] tracking-[0.2em] uppercase text-[var(--text-tertiary)] mb-1.5 font-mono">
+                <label className="block text-[10px] tracking-[0.2em] uppercase text-[var(--text-tertiary)] mb-1.5 font-ui font-bold">
                   {tCommon("form.phone")}
                 </label>
                 <input
@@ -404,7 +404,7 @@ export function LeadFormMultiStep({
             <div className="space-y-4">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-[10px] tracking-[0.2em] uppercase text-[var(--text-tertiary)] mb-1.5 font-mono">
+                  <label className="block text-[10px] tracking-[0.2em] uppercase text-[var(--text-tertiary)] mb-1.5 font-ui font-bold">
                     {tCommon("form.country")}
                   </label>
                   <input
@@ -417,7 +417,7 @@ export function LeadFormMultiStep({
                   />
                 </div>
                 <div>
-                  <label className="block text-[10px] tracking-[0.2em] uppercase text-[var(--text-tertiary)] mb-1.5 font-mono">
+                  <label className="block text-[10px] tracking-[0.2em] uppercase text-[var(--text-tertiary)] mb-1.5 font-ui font-bold">
                     Presupuesto (opcional)
                   </label>
                   <input
@@ -430,7 +430,7 @@ export function LeadFormMultiStep({
               </div>
 
               <div>
-                <label className="block text-[10px] tracking-[0.2em] uppercase text-[var(--text-tertiary)] mb-1.5 font-mono">
+                <label className="block text-[10px] tracking-[0.2em] uppercase text-[var(--text-tertiary)] mb-1.5 font-ui font-bold">
                   {tCommon("form.messageOptional")}
                 </label>
                 <textarea

@@ -57,6 +57,7 @@ export default function AICreatorPage() {
     color_primario: null,
     color_secundario: null,
     color_fondo: null,
+    tema_modo: null,
     whatsapp_numero: null,
     disclaimer: null,
     tipologias: [],

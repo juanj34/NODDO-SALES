@@ -74,11 +74,11 @@ interface ToastState {
 // Constants
 // ---------------------------------------------------------------------------
 
-const ESTADOS: { value: EstadoComplemento; label: string }[] = [
-  { value: "disponible", label: "Disponible" },
-  { value: "separado", label: "Separado" },
-  { value: "reservada", label: "Reservada" },
-  { value: "vendida", label: "Vendida" },
+const ESTADOS: { value: EstadoComplemento; label: string; dot: string }[] = [
+  { value: "disponible", label: "Disponible", dot: "bg-emerald-500" },
+  { value: "separado", label: "Separado", dot: "bg-amber-500" },
+  { value: "reservada", label: "Reservada", dot: "bg-orange-500" },
+  { value: "vendida", label: "Vendida", dot: "bg-red-500" },
 ];
 
 const ESTADO_COLORS: Record<EstadoComplemento, string> = {
@@ -86,6 +86,7 @@ const ESTADO_COLORS: Record<EstadoComplemento, string> = {
   separado: "bg-amber-500/20 text-amber-400 border-amber-500/30",
   reservada: "bg-orange-500/20 text-orange-400 border-orange-500/30",
   vendida: "bg-rose-500/20 text-rose-400 border-rose-500/30",
+  proximamente: "bg-blue-500/20 text-blue-400 border-blue-500/30",
 };
 
 const EMPTY_FORM: ComplementoFormData = {
@@ -350,7 +351,23 @@ function ComplementoForm({
               size="lg"
               value={form.estado}
               onChange={(val) => set("estado", val)}
-              options={ESTADOS.map((e) => ({ value: e.value, label: e.label }))}
+              options={ESTADOS.map((e) => ({ value: e.value, label: e.label, metadata: { dot: e.dot } }))}
+              renderOption={(option) => (
+                <span className="flex items-center gap-1.5">
+                  {option.metadata?.dot ? (
+                    <span className={cn("w-2 h-2 rounded-full", option.metadata.dot as string)} />
+                  ) : null}
+                  <span>{option.label}</span>
+                </span>
+              )}
+              renderSelected={(option) => (
+                <span className="flex items-center gap-1.5">
+                  {option.metadata?.dot ? (
+                    <span className={cn("w-2 h-2 rounded-full", option.metadata.dot as string)} />
+                  ) : null}
+                  <span>{option.label}</span>
+                </span>
+              )}
             />
           </div>
 
@@ -1013,7 +1030,23 @@ export function ComplementosSection({ project, onRefresh, parqueaderosMode, depo
                   size="sm"
                   value={bulkEstado}
                   onChange={(val) => setBulkEstado(val as EstadoComplemento)}
-                  options={ESTADOS.map((e) => ({ value: e.value, label: e.label }))}
+                  options={ESTADOS.map((e) => ({ value: e.value, label: e.label, metadata: { dot: e.dot } }))}
+                  renderOption={(option) => (
+                    <span className="flex items-center gap-1.5">
+                      {option.metadata?.dot ? (
+                        <span className={cn("w-2 h-2 rounded-full", option.metadata.dot as string)} />
+                      ) : null}
+                      <span>{option.label}</span>
+                    </span>
+                  )}
+                  renderSelected={(option) => (
+                    <span className="flex items-center gap-1.5">
+                      {option.metadata?.dot ? (
+                        <span className={cn("w-2 h-2 rounded-full", option.metadata.dot as string)} />
+                      ) : null}
+                      <span>{option.label}</span>
+                    </span>
+                  )}
                   className="w-36"
                 />
                 <button

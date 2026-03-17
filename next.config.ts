@@ -36,13 +36,15 @@ const nextConfig: NextConfig = {
               "img-src 'self' data: blob: https:",
               "media-src 'self' blob: https:",
               "connect-src 'self' https://*.supabase.co https://*.google.com https://api.mapbox.com wss://*.supabase.co https://client.crisp.chat wss://client.relay.crisp.chat wss://stream.relay.crisp.chat",
-              "frame-src 'self' https://www.youtube.com https://matterport.com https://www.google.com https://game.crisp.chat",
+              "frame-src 'self' https://www.youtube.com https://matterport.com https://www.google.com https://game.crisp.chat https://iframe.videodelivery.net https:",
               "worker-src 'self' blob:",
               "object-src 'none'",
               "base-uri 'self'",
               "form-action 'self'",
               "frame-ancestors 'none'",
-              "upgrade-insecure-requests",
+              ...(process.env.NODE_ENV === "production"
+                ? ["upgrade-insecure-requests"]
+                : []),
             ]
               .join("; ")
               .replace(/\s+/g, " "),

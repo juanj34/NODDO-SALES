@@ -26,6 +26,7 @@ import { useSiteProject, useSiteBasePath } from "@/hooks/useSiteProject";
 import { getInventoryColumns, getPrimaryArea } from "@/lib/inventory-columns";
 import { DynamicIcon } from "@/data/amenidades-catalog";
 import { usePersistedState } from "@/hooks/usePersistedState";
+import { resolvePisos } from "@/lib/piso-utils";
 import { useTranslation, getEstadoConfig } from "@/i18n";
 import { CotizadorModal } from "@/components/site/CotizadorModal";
 import { SectionTransition } from "@/components/site/SectionTransition";
@@ -65,7 +66,7 @@ export default function ExplorarPage() {
   const isLotes = proyecto.tipo_proyecto === "lotes";
   const isLoteBased = isCasas || isLotes;
   const columns = useMemo(
-    () => getInventoryColumns(proyecto.tipo_proyecto ?? "hibrido", proyecto.inventory_columns),
+    () => getInventoryColumns(proyecto.tipo_proyecto ?? "hibrido", (proyecto as any).inventory_columns_microsite ?? proyecto.inventory_columns),
     [proyecto.tipo_proyecto, proyecto.inventory_columns]
   );
   const unidadTipologias = useMemo<UnidadTipologia[]>(
@@ -179,6 +180,11 @@ export default function ExplorarPage() {
     return tipologias.find((t) => t.id === selectedUnit.tipologia_id);
   }, [selectedUnit, tipologias]);
 
+  const selectedTipPlanoUrl = useMemo(() => {
+    if (!selectedTipologia) return null;
+    return resolvePisos(selectedTipologia)[0]?.plano_url ?? null;
+  }, [selectedTipologia]);
+
   // Fachada image URL: from active fachada or fallback
   const fachadaUrl = activeFachada?.imagen_url
     || proyecto.fachada_url
@@ -275,24 +281,24 @@ export default function ExplorarPage() {
                     "w-full text-left p-2 rounded-xl border transition-all duration-200 cursor-pointer group",
                     isActive
                       ? "border-[var(--site-primary)] bg-[rgba(var(--site-primary-rgb),0.08)]"
-                      : "border-[var(--border-subtle)] hover:border-[var(--border-default)] bg-white/[0.02]"
+                      : "border-[var(--border-subtle)] hover:border-[var(--border-default)] bg-[var(--glass-bg)]"
                   )}
                 >
                   <div className="flex items-center gap-2.5">
                     {torre.imagen_portada ? (
-                      <div className="w-8 h-8 rounded-lg overflow-hidden shrink-0 border border-white/10">
+                      <div className="w-8 h-8 rounded-lg overflow-hidden shrink-0 border border-[var(--border-default)]">
                         {/* eslint-disable-next-line @next/next/no-img-element */}
                         <img src={torre.imagen_portada} alt="" className="w-full h-full object-cover" />
                       </div>
                     ) : (
-                      <div className="w-8 h-8 rounded-lg bg-white/5 flex items-center justify-center shrink-0">
+                      <div className="w-8 h-8 rounded-lg bg-[var(--glass-bg)] flex items-center justify-center shrink-0">
                         <Building2 size={14} className={isActive ? "text-[var(--site-primary)]" : "text-[var(--text-muted)]"} />
                       </div>
                     )}
                     <div className="min-w-0">
                       <p className={cn(
                         "text-xs font-medium truncate",
-                        isActive ? "text-white" : "text-[var(--text-secondary)] group-hover:text-white"
+                        isActive ? "text-[var(--text-primary)]" : "text-[var(--text-secondary)] group-hover:text-[var(--text-primary)]"
                       )}>
                         {torre.nombre}
                       </p>
@@ -331,7 +337,7 @@ export default function ExplorarPage() {
               {activeTorre.amenidades_data.slice(0, 6).map((amenidad) => (
                 <div
                   key={amenidad.id}
-                  className="flex items-center gap-1.5 px-2 py-1 rounded-lg bg-white/[0.03] border border-white/5"
+                  className="flex items-center gap-1.5 px-2 py-1 rounded-lg bg-[var(--glass-bg)] border border-[var(--border-subtle)]"
                 >
                   {amenidad.icon_url ? (
                     // eslint-disable-next-line @next/next/no-img-element
@@ -343,7 +349,7 @@ export default function ExplorarPage() {
                 </div>
               ))}
               {activeTorre.amenidades_data.length > 6 && (
-                <div className="flex items-center justify-center px-2 py-1 rounded-lg bg-white/[0.03] border border-white/5">
+                <div className="flex items-center justify-center px-2 py-1 rounded-lg bg-[var(--glass-bg)] border border-[var(--border-subtle)]">
                   <span className="text-[8px] text-[var(--text-muted)]">
                     +{activeTorre.amenidades_data.length - 6} más
                   </span>
@@ -377,10 +383,10 @@ export default function ExplorarPage() {
                 >
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img src={fachada.imagen_url} alt={fachada.nombre} className="w-full h-14 object-cover" />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent flex items-end p-1.5">
+                  <div className="absolute inset-0 flex items-end p-1.5" style={{ background: "linear-gradient(to top, rgba(var(--overlay-rgb), 0.7), transparent)" }}>
                     <span className={cn(
                       "text-[8px] font-medium tracking-wider truncate",
-                      idx === activeFachadaIndex ? "text-[var(--site-primary)]" : "text-white/70 group-hover:text-white"
+                      idx === activeFachadaIndex ? "text-[var(--site-primary)]" : "text-[var(--text-secondary)] group-hover:text-[var(--text-primary)]"
                     )}>
                       {fachada.nombre}
                     </span>
@@ -399,7 +405,7 @@ export default function ExplorarPage() {
                     "flex-shrink-0 px-3 py-2 rounded-xl border-2 transition-all duration-200 cursor-pointer",
                     idx === activeFachadaIndex
                       ? "border-[var(--site-primary)] bg-[rgba(var(--site-primary-rgb),0.12)]"
-                      : "border-transparent hover:bg-white/8"
+                      : "border-transparent hover:bg-[var(--glass-bg-hover)]"
                   )}
                 >
                   <span className={cn(
@@ -425,7 +431,7 @@ export default function ExplorarPage() {
       )}
 
       {/* ── Divider ── */}
-      <div className="border-t border-white/5 mx-4 mt-3" />
+      <div className="border-t border-[var(--border-subtle)] mx-4 mt-3" />
 
       {/* ── Content: Unit list or detail (master-detail) ── */}
       <AnimatePresence mode="wait">
@@ -443,7 +449,7 @@ export default function ExplorarPage() {
             <div className="flex-shrink-0 flex items-center gap-2 px-4 pt-3 pb-2">
               <button
                 onClick={() => setSelectedUnit(null)}
-                className="p-1.5 rounded-lg bg-white/10 hover:bg-white/20 transition-colors cursor-pointer"
+                className="p-1.5 rounded-lg bg-[var(--glass-bg-hover)] hover:bg-[var(--border-default)] transition-colors cursor-pointer"
               >
                 <ArrowLeft size={14} className="text-[var(--text-secondary)]" />
               </button>
@@ -455,7 +461,7 @@ export default function ExplorarPage() {
             {/* Unit header */}
             <div className="px-4 pb-3">
               <div className="flex items-center gap-2 mb-1">
-                <h2 className="text-xl font-semibold text-white">{selectedUnit.identificador}</h2>
+                <h2 className="text-xl font-semibold text-[var(--text-primary)]">{selectedUnit.identificador}</h2>
                 {(() => {
                   const cfg = estadoConfig[selectedUnit.estado];
                   return (
@@ -497,9 +503,9 @@ export default function ExplorarPage() {
                       <button
                         key={tipo.id}
                         onClick={() => setCotizarUnidad(selectedUnit)}
-                        className="flex-shrink-0 bg-white/5 border border-[var(--border-subtle)] rounded-xl p-3 text-left hover:border-[rgba(var(--site-primary-rgb),0.3)] transition-colors min-w-[140px] cursor-pointer"
+                        className="flex-shrink-0 bg-[var(--glass-bg)] border border-[var(--border-subtle)] rounded-xl p-3 text-left hover:border-[rgba(var(--site-primary-rgb),0.3)] transition-colors min-w-[140px] cursor-pointer"
                       >
-                        <p className="text-xs font-medium text-white mb-1.5">{tipo.nombre}</p>
+                        <p className="text-xs font-medium text-[var(--text-primary)] mb-1.5">{tipo.nombre}</p>
                         <div className="space-y-1 text-[10px] text-[var(--text-secondary)]">
                           {(tipo.area_construida ?? tipo.area_m2) && <p>{tipo.area_construida ?? tipo.area_m2} m²</p>}
                           {tipo.habitaciones != null && <p>{tipo.habitaciones} hab</p>}
@@ -518,11 +524,11 @@ export default function ExplorarPage() {
             })()}
 
             {/* Floor plan */}
-            {selectedTipologia?.plano_url && (
-              <div className="mx-4 mb-3 relative aspect-[4/3] rounded-2xl overflow-hidden bg-white/5">
+            {selectedTipPlanoUrl && (
+              <div className="mx-4 mb-3 relative aspect-[4/3] rounded-2xl overflow-hidden bg-[var(--glass-bg)]">
                 <Image
-                  src={selectedTipologia.plano_url}
-                  alt={selectedTipologia.nombre}
+                  src={selectedTipPlanoUrl}
+                  alt={selectedTipologia?.nombre ?? ""}
                   fill
                   unoptimized
                   className="object-contain p-3"
@@ -534,102 +540,102 @@ export default function ExplorarPage() {
             <div className="px-4 space-y-3 mb-3">
               <div className="grid grid-cols-2 gap-2">
                 {columns.area_construida && selectedUnit.area_construida != null && (
-                  <div className="bg-white/5 rounded-xl px-3 py-2 flex items-center gap-2">
+                  <div className="bg-[var(--glass-bg)] rounded-xl px-3 py-2 flex items-center gap-2">
                     <Maximize size={14} className="text-[var(--site-primary)]" />
                     <div>
                       <p className="text-[8px] text-[var(--text-tertiary)] tracking-wider uppercase">{tSite("tipologias.areaConstruida")}</p>
-                      <p className="text-sm text-white font-medium">{selectedUnit.area_construida} m²</p>
+                      <p className="text-sm text-[var(--text-primary)] font-medium">{selectedUnit.area_construida} m²</p>
                     </div>
                   </div>
                 )}
                 {columns.area_privada && selectedUnit.area_privada != null && (
-                  <div className="bg-white/5 rounded-xl px-3 py-2 flex items-center gap-2">
+                  <div className="bg-[var(--glass-bg)] rounded-xl px-3 py-2 flex items-center gap-2">
                     <Maximize size={14} className="text-[var(--site-primary)]" />
                     <div>
                       <p className="text-[8px] text-[var(--text-tertiary)] tracking-wider uppercase">{tSite("tipologias.areaPrivada")}</p>
-                      <p className="text-sm text-white font-medium">{selectedUnit.area_privada} m²</p>
+                      <p className="text-sm text-[var(--text-primary)] font-medium">{selectedUnit.area_privada} m²</p>
                     </div>
                   </div>
                 )}
                 {columns.area_lote && selectedUnit.area_lote != null && (
-                  <div className="bg-white/5 rounded-xl px-3 py-2 flex items-center gap-2">
+                  <div className="bg-[var(--glass-bg)] rounded-xl px-3 py-2 flex items-center gap-2">
                     <Maximize size={14} className="text-[var(--site-primary)]" />
                     <div>
                       <p className="text-[8px] text-[var(--text-tertiary)] tracking-wider uppercase">{tSite("tipologias.areaLote")}</p>
-                      <p className="text-sm text-white font-medium">{selectedUnit.area_lote} m²</p>
+                      <p className="text-sm text-[var(--text-primary)] font-medium">{selectedUnit.area_lote} m²</p>
                     </div>
                   </div>
                 )}
                 {columns.area_m2 && selectedUnit.area_m2 != null && !columns.area_construida && !columns.area_privada && !columns.area_lote && (
-                  <div className="bg-white/5 rounded-xl px-3 py-2 flex items-center gap-2">
+                  <div className="bg-[var(--glass-bg)] rounded-xl px-3 py-2 flex items-center gap-2">
                     <Maximize size={14} className="text-[var(--site-primary)]" />
                     <div>
                       <p className="text-[8px] text-[var(--text-tertiary)] tracking-wider uppercase">{tSite("explorar.area")}</p>
-                      <p className="text-sm text-white font-medium">{selectedUnit.area_m2} m²</p>
+                      <p className="text-sm text-[var(--text-primary)] font-medium">{selectedUnit.area_m2} m²</p>
                     </div>
                   </div>
                 )}
                 {columns.lote && selectedUnit.lote ? (
-                  <div className="bg-white/5 rounded-xl px-3 py-2 flex items-center gap-2">
+                  <div className="bg-[var(--glass-bg)] rounded-xl px-3 py-2 flex items-center gap-2">
                     <Building2 size={14} className="text-[var(--site-primary)]" />
                     <div>
                       <p className="text-[8px] text-[var(--text-tertiary)] tracking-wider uppercase">Lote</p>
-                      <p className="text-sm text-white font-medium">{selectedUnit.lote}</p>
+                      <p className="text-sm text-[var(--text-primary)] font-medium">{selectedUnit.lote}</p>
                     </div>
                   </div>
                 ) : columns.piso && selectedUnit.piso ? (
-                  <div className="bg-white/5 rounded-xl px-3 py-2 flex items-center gap-2">
+                  <div className="bg-[var(--glass-bg)] rounded-xl px-3 py-2 flex items-center gap-2">
                     <Building2 size={14} className="text-[var(--site-primary)]" />
                     <div>
                       <p className="text-[8px] text-[var(--text-tertiary)] tracking-wider uppercase">{tSite("explorar.floor")}</p>
-                      <p className="text-sm text-white font-medium">{selectedUnit.piso}</p>
+                      <p className="text-sm text-[var(--text-primary)] font-medium">{selectedUnit.piso}</p>
                     </div>
                   </div>
                 ) : null}
                 {columns.habitaciones && selectedUnit.habitaciones !== null && (
-                  <div className="bg-white/5 rounded-xl px-3 py-2 flex items-center gap-2">
+                  <div className="bg-[var(--glass-bg)] rounded-xl px-3 py-2 flex items-center gap-2">
                     <BedDouble size={14} className="text-[var(--site-primary)]" />
                     <div>
                       <p className="text-[8px] text-[var(--text-tertiary)] tracking-wider uppercase">{tSite("explorar.bedrooms")}</p>
-                      <p className="text-sm text-white font-medium">
+                      <p className="text-sm text-[var(--text-primary)] font-medium">
                         {selectedUnit.habitaciones === 0 ? tSite("explorar.studio") : selectedUnit.habitaciones}
                       </p>
                     </div>
                   </div>
                 )}
                 {columns.banos && selectedUnit.banos !== null && (
-                  <div className="bg-white/5 rounded-xl px-3 py-2 flex items-center gap-2">
+                  <div className="bg-[var(--glass-bg)] rounded-xl px-3 py-2 flex items-center gap-2">
                     <Bath size={14} className="text-[var(--site-primary)]" />
                     <div>
                       <p className="text-[8px] text-[var(--text-tertiary)] tracking-wider uppercase">{tSite("explorar.bathrooms")}</p>
-                      <p className="text-sm text-white font-medium">{selectedUnit.banos}</p>
+                      <p className="text-sm text-[var(--text-primary)] font-medium">{selectedUnit.banos}</p>
                     </div>
                   </div>
                 )}
                 {columns.parqueaderos && selectedUnit.parqueaderos !== null && selectedUnit.parqueaderos > 0 && (
-                  <div className="bg-white/5 rounded-xl px-3 py-2 flex items-center gap-2">
+                  <div className="bg-[var(--glass-bg)] rounded-xl px-3 py-2 flex items-center gap-2">
                     <Car size={14} className="text-[var(--site-primary)]" />
                     <div>
                       <p className="text-[8px] text-[var(--text-tertiary)] tracking-wider uppercase">{tSite("explorar.parking")}</p>
-                      <p className="text-sm text-white font-medium">{selectedUnit.parqueaderos}</p>
+                      <p className="text-sm text-[var(--text-primary)] font-medium">{selectedUnit.parqueaderos}</p>
                     </div>
                   </div>
                 )}
                 {columns.depositos && selectedUnit.depositos !== null && selectedUnit.depositos > 0 && (
-                  <div className="bg-white/5 rounded-xl px-3 py-2 flex items-center gap-2">
+                  <div className="bg-[var(--glass-bg)] rounded-xl px-3 py-2 flex items-center gap-2">
                     <Archive size={14} className="text-[var(--site-primary)]" />
                     <div>
                       <p className="text-[8px] text-[var(--text-tertiary)] tracking-wider uppercase">{tSite("explorar.storage")}</p>
-                      <p className="text-sm text-white font-medium">{selectedUnit.depositos}</p>
+                      <p className="text-sm text-[var(--text-primary)] font-medium">{selectedUnit.depositos}</p>
                     </div>
                   </div>
                 )}
                 {columns.etapa && selectedUnit.etapa_nombre && (
-                  <div className="bg-white/5 rounded-xl px-3 py-2 flex items-center gap-2">
+                  <div className="bg-[var(--glass-bg)] rounded-xl px-3 py-2 flex items-center gap-2">
                     <Layers size={14} className="text-[var(--site-primary)]" />
                     <div>
                       <p className="text-[8px] text-[var(--text-tertiary)] tracking-wider uppercase">Etapa</p>
-                      <p className="text-sm text-white font-medium">{selectedUnit.etapa_nombre}</p>
+                      <p className="text-sm text-[var(--text-primary)] font-medium">{selectedUnit.etapa_nombre}</p>
                     </div>
                   </div>
                 )}
@@ -639,7 +645,7 @@ export default function ExplorarPage() {
               {((columns.orientacion && selectedUnit.orientacion) || (columns.vista && (selectedUnit.vista || selectedUnit.vista_piso_id))) && (
                 <div className="flex flex-wrap gap-2">
                   {columns.orientacion && selectedUnit.orientacion && (
-                    <span className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-white/5 rounded-full text-xs text-[var(--text-secondary)]">
+                    <span className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-[var(--glass-bg)] rounded-full text-xs text-[var(--text-secondary)]">
                       <Compass size={12} className="text-[var(--text-tertiary)]" />
                       {selectedUnit.orientacion}
                     </span>
@@ -657,7 +663,7 @@ export default function ExplorarPage() {
                         {tSite("explorar.verVista")}
                       </button>
                     ) : selectedUnit.vista ? (
-                      <span className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-white/5 rounded-full text-xs text-[var(--text-secondary)]">
+                      <span className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-[var(--glass-bg)] rounded-full text-xs text-[var(--text-secondary)]">
                         <Eye size={12} className="text-[var(--text-tertiary)]" />
                         {tSite("explorar.view")} {selectedUnit.vista}
                       </span>
@@ -706,7 +712,7 @@ export default function ExplorarPage() {
               {selectedUnit.tipologia_id && (
                 <Link
                   href={`${basePath}/tipologias?tipo=${selectedUnit.tipologia_id}&unidad=${selectedUnit.id}`}
-                  className="w-full flex items-center justify-center gap-2 px-4 py-2 rounded-full border border-[var(--border-default)] text-xs tracking-wider text-[var(--text-secondary)] hover:text-white hover:border-white/30 transition-all duration-300"
+                  className="w-full flex items-center justify-center gap-2 px-4 py-2 rounded-full border border-[var(--border-default)] text-xs tracking-wider text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:border-[var(--border-strong)] transition-all duration-300"
                 >
                   {tSite("explorar.moreInfo")}
                   <ChevronRight size={14} />
@@ -764,7 +770,7 @@ export default function ExplorarPage() {
                         onMouseLeave={() => setHoveredUnit(null)}
                         className={cn(
                           "w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-left transition-all duration-200 cursor-pointer group",
-                          isHovered ? "bg-white/8" : "hover:bg-white/5"
+                          isHovered ? "bg-[var(--glass-bg-hover)]" : "hover:bg-[var(--glass-bg)]"
                         )}
                       >
                         {/* Status dot */}
@@ -772,7 +778,7 @@ export default function ExplorarPage() {
 
                         {/* Info */}
                         <div className="flex-1 min-w-0">
-                          <p className="text-[13px] text-white font-medium truncate">
+                          <p className="text-[13px] text-[var(--text-primary)] font-medium truncate">
                             {unit.identificador}
                           </p>
                           <div className="flex items-center gap-1 text-[10px] text-[var(--text-tertiary)]">
@@ -834,7 +840,7 @@ export default function ExplorarPage() {
             {hasImplantaciones && (
               <Link
                 href={`${basePath}/implantaciones`}
-                className="w-9 h-9 rounded-xl bg-white/10 hover:bg-white/15 flex items-center justify-center transition-colors"
+                className="w-9 h-9 rounded-xl bg-[var(--glass-bg-hover)] hover:bg-[var(--border-default)] flex items-center justify-center transition-colors"
                 aria-label={tSite("explorar.backToImplantaciones")}
               >
                 <ChevronLeft size={18} className="text-[var(--text-secondary)]" />
@@ -844,7 +850,7 @@ export default function ExplorarPage() {
               <Building2 size={18} className="text-[var(--site-primary)]" />
             </div>
             <div>
-              <h1 className="text-lg font-site-heading text-white">
+              <h1 className="text-lg font-site-heading text-[var(--text-primary)]">
                 {activeTorre
                   ? tSite("explorar.exploreTower", { name: activeTorre.nombre })
                   : explorarView === "planta"
@@ -872,7 +878,7 @@ export default function ExplorarPage() {
               onClick={() => { setExplorarView("fachada"); selectFachada(0); }}
               className={cn(
                 "flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[10px] font-medium transition-all cursor-pointer",
-                explorarView === "fachada" ? "bg-white/15 text-white" : "text-[var(--text-tertiary)] hover:text-[var(--text-secondary)]"
+                explorarView === "fachada" ? "bg-[var(--border-default)] text-[var(--text-primary)]" : "text-[var(--text-tertiary)] hover:text-[var(--text-secondary)]"
               )}
             >
               <Building2 size={12} />
@@ -882,7 +888,7 @@ export default function ExplorarPage() {
               onClick={() => { setExplorarView("planta"); selectFachada(0); }}
               className={cn(
                 "flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[10px] font-medium transition-all cursor-pointer",
-                explorarView === "planta" ? "bg-white/15 text-white" : "text-[var(--text-tertiary)] hover:text-[var(--text-secondary)]"
+                explorarView === "planta" ? "bg-[var(--border-default)] text-[var(--text-primary)]" : "text-[var(--text-tertiary)] hover:text-[var(--text-secondary)]"
               )}
             >
               <Layers size={12} />
@@ -914,7 +920,7 @@ export default function ExplorarPage() {
             />
 
             {/* Dark overlay for better dot contrast */}
-            <div className="absolute inset-0 rounded-2xl bg-gradient-to-b from-black/25 via-black/10 to-black/40 pointer-events-none" />
+            <div className="absolute inset-0 rounded-2xl pointer-events-none" style={{ background: "linear-gradient(to bottom, rgba(var(--overlay-rgb), 0.25), rgba(var(--overlay-rgb), 0.1), rgba(var(--overlay-rgb), 0.4))" }} />
 
             {/* Unit hotspot dots — CSS % positioned */}
             {imageLoaded && positionedUnits.map((unit) => {
@@ -946,7 +952,7 @@ export default function ExplorarPage() {
                   {/* Hit area */}
                   <span className={cn(
                     "absolute -inset-4 rounded-lg transition-all duration-150",
-                    isSelected ? "bg-white/15" : isHovered ? "bg-white/12" : "bg-white/6"
+                    isSelected ? "bg-[var(--border-default)]" : isHovered ? "bg-[var(--glass-bg-hover)]" : "bg-[var(--glass-bg)]"
                   )} />
 
                   {/* Pulse ring for available units */}

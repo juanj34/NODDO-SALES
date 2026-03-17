@@ -12,6 +12,7 @@ const nav = {
   torre: "Tower",
   avances: "Progress",
   privacyPolicy: "Privacy policy",
+  legalInfo: "Legal Information",
 } as const;
 
 export default nav;

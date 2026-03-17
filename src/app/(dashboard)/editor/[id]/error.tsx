@@ -43,7 +43,7 @@ export default function EditorError({
 
         <h1
           style={{
-            fontFamily: "Georgia, 'Times New Roman', serif",
+            fontFamily: "var(--font-cormorant, 'Cormorant Garamond', Georgia, serif)",
             fontSize: 24,
             fontWeight: 300,
             color: "rgba(244, 240, 232, 0.92)",
@@ -54,7 +54,7 @@ export default function EditorError({
         </h1>
         <p
           style={{
-            fontFamily: "'DM Mono', monospace",
+            fontFamily: "var(--font-dm-mono, 'DM Mono', monospace)",
             fontSize: 13,
             fontWeight: 300,
             color: "rgba(244, 240, 232, 0.35)",
@@ -72,7 +72,7 @@ export default function EditorError({
               padding: "12px 28px",
               backgroundColor: "var(--site-primary)",
               color: "#141414",
-              fontFamily: "'Syne', sans-serif",
+              fontFamily: "var(--font-syne, 'Syne', sans-serif)",
               fontSize: 11,
               fontWeight: 700,
               textTransform: "uppercase" as const,
@@ -90,7 +90,7 @@ export default function EditorError({
               padding: "12px 28px",
               backgroundColor: "transparent",
               color: "rgba(244, 240, 232, 0.55)",
-              fontFamily: "'Syne', sans-serif",
+              fontFamily: "var(--font-syne, 'Syne', sans-serif)",
               fontSize: 11,
               fontWeight: 700,
               textTransform: "uppercase" as const,

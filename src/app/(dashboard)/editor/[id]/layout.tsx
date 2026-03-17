@@ -21,7 +21,6 @@ import {
   FileText,
   Settings,
   Globe,
-  ArrowLeft,
   ExternalLink,
   Rocket,
   Clock,
@@ -42,6 +41,7 @@ import {
   Plus,
   Webhook,
   Binoculars,
+  Monitor,
 } from "lucide-react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
@@ -248,7 +248,7 @@ export default function EditorLayout({
 
   /* ---- Publish / version state ---- */
   const [publishing, setPublishing] = useState(false);
-  const [showPublishModal, setShowPublishModal] = useState(false);
+  const [showPublishDropdown, setShowPublishDropdown] = useState(false);
   const [publishTargets, setPublishTargets] = useState({ subdomain: true, customDomain: true });
   const [showVersions, setShowVersions] = useState(false);
   const [versions, setVersions] = useState<ProyectoVersion[]>([]);
@@ -270,6 +270,18 @@ export default function EditorLayout({
     return () => document.removeEventListener("mousedown", handler);
   }, [showVersions]);
 
+  // Close publish dropdown on outside click
+  useEffect(() => {
+    if (!showPublishDropdown) return;
+    const handler = (e: MouseEvent) => {
+      if (versionDropdownRef.current && !versionDropdownRef.current.contains(e.target as Node)) {
+        setShowPublishDropdown(false);
+      }
+    };
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, [showPublishDropdown]);
+
   const fetchVersions = useCallback(async () => {
     setLoadingVersions(true);
     try {
@@ -280,26 +292,42 @@ export default function EditorLayout({
     }
   }, [id]);
 
-  const handlePublish = useCallback(async () => {
+  const handlePublish = useCallback(() => {
+    setShowPublishDropdown(false);
     setPublishing(true);
-    try {
-      const res = await fetch(`/api/proyectos/${id}/publicar`, { method: "POST" });
-      if (res.ok) {
-        const data = await res.json();
-        toast.success(t("layout.publishedVersion", { version: data.version_number }));
-        await refresh();
-        fetchVersions();
-      } else {
-        const err = await res.json();
-        toast.error(err.error || t("layout.publishError"));
-      }
-    } catch {
-      toast.error(t("layout.connectionError"));
-    } finally {
-      setPublishing(false);
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- t is stable
-  }, [id, refresh, toast, fetchVersions]);
+    // Fire and forget — non-blocking so user can keep working
+    fetch(`/api/proyectos/${id}/publicar`, { method: "POST" })
+      .then(async (res) => {
+        if (res.ok) {
+          const data = await res.json();
+
+          // Show localhost URL in development mode
+          const isDev = process.env.NODE_ENV === "development";
+          const rootDomain = process.env.NEXT_PUBLIC_ROOT_DOMAIN || "noddo.io";
+          const isLocalhost = isDev || rootDomain.includes("localhost");
+
+          if (isLocalhost && project) {
+            const localhostUrl = `/sites/${project.slug}`;
+            toast.success(`✓ Publicado (v${data.version_number}). Preview: localhost:3000${localhostUrl}`);
+          } else {
+            toast.success(t("layout.publishedVersion", { version: data.version_number }));
+          }
+
+          await refresh();
+          fetchVersions();
+        } else {
+          const err = await res.json();
+          toast.error(err.error || t("layout.publishError"));
+        }
+      })
+      .catch(() => {
+        toast.error(t("layout.connectionError"));
+      })
+      .finally(() => {
+        setPublishing(false);
+      });
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- t is stable, project is stable
+  }, [id, refresh, toast, fetchVersions, project]);
 
   const handleRestore = useCallback(async (versionId: string, versionNumber: number) => {
     setRestoring(true);
@@ -388,6 +416,7 @@ export default function EditorLayout({
   }, [id, project, refresh, toast, confirm, t]);
 
   const toggleVersions = useCallback(() => {
+    setShowPublishDropdown(false);
     setShowVersions((prev) => {
       if (!prev) {
         fetchVersions();
@@ -578,22 +607,29 @@ export default function EditorLayout({
             drawerOpen ? "translate-x-0" : "-translate-x-full"
           )}
         >
-          {/* Back + project name */}
-          <div className="px-4 py-3 border-b border-[var(--border-subtle)]">
-            <SafeBackLink href="/proyectos" onClick={closeDrawer} className="inline-block hover:opacity-80 transition-opacity mb-1.5">
-              <NodDoLogo height={16} colorNod="var(--text-primary)" colorDo="var(--site-primary)" />
+          {/* Home link */}
+          <div className="px-4 py-3">
+            <SafeBackLink href="/dashboard" onClick={closeDrawer} className="inline-flex items-center gap-2 hover:opacity-80 transition-opacity group">
+              <Home size={14} className="text-[var(--text-muted)] group-hover:text-[var(--site-primary)] transition-colors" />
+              <NodDoLogo height={15} colorNod="var(--text-primary)" colorDo="var(--site-primary)" />
             </SafeBackLink>
-            <SafeBackLink href="/proyectos" onClick={closeDrawer} className="flex items-center gap-1.5 text-[10px] text-[var(--text-tertiary)] hover:text-[var(--text-secondary)] transition-colors mb-2">
-              <ArrowLeft size={10} />
-              {t("layout.backToProjects")}
-            </SafeBackLink>
+          </div>
+
+          {/* Divider */}
+          <div className="mx-4 border-t border-[var(--border-subtle)]" />
+
+          {/* Project info */}
+          <div className="px-4 py-3">
             <h2 className="text-[13px] font-semibold text-white truncate leading-tight">
               {project.nombre}
             </h2>
-            <p className="text-[var(--text-muted)] text-[10px] mt-0.5 truncate">
+            <p className="text-[var(--text-muted)] text-[10px] mt-1 truncate">
               {project.subdomain || project.slug}.noddo.io
             </p>
           </div>
+
+          {/* Divider */}
+          <div className="mx-4 border-t border-[var(--border-subtle)]" />
 
           {/* Grouped navigation */}
           <nav className="flex-1 overflow-y-auto py-1">
@@ -708,8 +744,10 @@ export default function EditorLayout({
           {/* Preview link */}
           <div className="px-3 py-2.5 border-t border-[var(--border-subtle)]">
             {(() => {
+              // In development mode, always use localhost
+              const isDev = process.env.NODE_ENV === "development";
               const rootDomain = process.env.NEXT_PUBLIC_ROOT_DOMAIN || "noddo.io";
-              const isLocal = rootDomain.includes("localhost");
+              const isLocal = isDev || rootDomain.includes("localhost");
               const previewUrl = isLocal
                 ? `/sites/${project.slug}`
                 : project.custom_domain && project.domain_verified
@@ -719,10 +757,10 @@ export default function EditorLayout({
                 <Link
                   href={previewUrl}
                   target="_blank"
-                  className="flex items-center justify-center gap-2 w-full px-3 py-2 bg-[var(--surface-2)] border border-[var(--border-default)] rounded-lg font-ui text-[10px] font-bold uppercase tracking-[0.1em] text-[var(--text-secondary)] hover:text-white hover:border-[var(--border-strong)] hover:bg-[var(--surface-3)] transition-all"
+                  className="flex items-center justify-center gap-2 w-full px-3 py-2 bg-blue-500/10 border border-blue-500/30 rounded-lg font-ui text-[10px] font-bold uppercase tracking-[0.1em] text-blue-400 hover:text-blue-300 hover:border-blue-500/50 hover:bg-blue-500/20 transition-all"
                 >
-                  <ExternalLink size={13} />
-                  {t("layout.viewMicrosite")}
+                  <Monitor size={13} />
+                  Ver en Localhost
                 </Link>
               ) : (
                 <a
@@ -820,7 +858,7 @@ export default function EditorLayout({
 
                   {/* Publish button */}
                   <button
-                    onClick={() => setShowPublishModal(true)}
+                    onClick={() => { if (!publishing) { setShowPublishDropdown((p) => !p); setShowVersions(false); } }}
                     disabled={publishing}
                     className={cn(
                       "flex items-center gap-1.5 px-3.5 py-1.5 font-ui text-[11px] font-bold uppercase tracking-[0.1em] transition-all",
@@ -860,7 +898,7 @@ export default function EditorLayout({
                       animate={{ opacity: 1, y: 0, scale: 1 }}
                       exit={{ opacity: 0, y: -4, scale: 0.97 }}
                       transition={{ duration: 0.12 }}
-                      className="absolute right-0 top-full mt-2 w-96 bg-[var(--surface-2)] border border-[var(--border-default)] rounded-xl shadow-2xl overflow-hidden z-50"
+                      className="absolute right-0 top-full mt-2 w-96 bg-[var(--surface-2)] border border-[var(--border-default)] rounded-xl shadow-2xl overflow-hidden z-[200]"
                     >
                       <div className="flex items-center gap-2.5 px-4 py-3 border-b border-[var(--border-subtle)]">
                         <Clock size={14} className="text-[var(--text-tertiary)]" />
@@ -956,142 +994,124 @@ export default function EditorLayout({
                     </motion.div>
                   )}
                 </AnimatePresence>
+
+                {/* Publish dropdown */}
+                <AnimatePresence>
+                  {showPublishDropdown && project && (
+                    <motion.div
+                      initial={{ opacity: 0, y: -4, scale: 0.97 }}
+                      animate={{ opacity: 1, y: 0, scale: 1 }}
+                      exit={{ opacity: 0, y: -4, scale: 0.97 }}
+                      transition={{ duration: 0.12 }}
+                      className="absolute right-0 top-full mt-2 w-80 bg-[var(--surface-2)] border border-[var(--border-default)] rounded-xl shadow-2xl overflow-hidden z-[200]"
+                    >
+                      {/* Header */}
+                      <div className="flex items-center gap-2.5 px-4 py-3 border-b border-[var(--border-subtle)]">
+                        <Rocket size={14} className="text-[var(--site-primary)]" />
+                        <span className="font-ui text-xs font-bold uppercase tracking-wider text-[var(--text-secondary)]">
+                          {t("layout.publishModal.title")}
+                        </span>
+                      </div>
+
+                      {/* Domain targets */}
+                      <div className="px-4 py-3 space-y-2.5">
+                        {/* Subdomain — always present */}
+                        <div className="flex items-center gap-3 p-2.5 rounded-lg bg-[var(--surface-3)] border border-[var(--border-subtle)] hover:border-[var(--border-default)] transition-colors">
+                          <input
+                            type="checkbox"
+                            checked={publishTargets.subdomain}
+                            onChange={(e) => setPublishTargets((prev) => ({ ...prev, subdomain: e.target.checked }))}
+                            className="accent-[var(--site-primary)] w-3.5 h-3.5 rounded cursor-pointer"
+                          />
+                          <div className="flex-1 min-w-0">
+                            <a
+                              href={`https://${project.subdomain || project.slug}.noddo.io`}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="flex items-center gap-2 hover:underline"
+                            >
+                              <Globe size={12} className="text-[var(--site-primary)] shrink-0" />
+                              <span className="text-[11px] text-[var(--text-primary)] truncate">
+                                {project.subdomain || project.slug}.noddo.io
+                              </span>
+                              <ExternalLink size={10} className="text-[var(--text-muted)] shrink-0" />
+                            </a>
+                          </div>
+                        </div>
+
+                        {/* Custom domain — only if configured */}
+                        {project.custom_domain && (
+                          <div className="flex items-center gap-3 p-2.5 rounded-lg bg-[var(--surface-3)] border border-[var(--border-subtle)] hover:border-[var(--border-default)] transition-colors">
+                            <input
+                              type="checkbox"
+                              checked={publishTargets.customDomain}
+                              onChange={(e) => setPublishTargets((prev) => ({ ...prev, customDomain: e.target.checked }))}
+                              className="accent-[var(--site-primary)] w-3.5 h-3.5 rounded cursor-pointer"
+                            />
+                            <div className="flex-1 min-w-0">
+                              <div className="flex items-center gap-2">
+                                <a
+                                  href={`https://${project.custom_domain}`}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="flex items-center gap-2 hover:underline"
+                                >
+                                  <Globe size={12} className="text-[var(--site-primary)] shrink-0" />
+                                  <span className="text-[11px] text-[var(--text-primary)] truncate">
+                                    {project.custom_domain}
+                                  </span>
+                                  <ExternalLink size={10} className="text-[var(--text-muted)] shrink-0" />
+                                </a>
+                                {project.domain_verified ? (
+                                  <span className="text-[9px] px-1.5 py-0.5 rounded bg-emerald-500/15 text-emerald-400 font-medium shrink-0">
+                                    {t("layout.publishModal.verified")}
+                                  </span>
+                                ) : (
+                                  <span className="text-[9px] px-1.5 py-0.5 rounded bg-amber-500/15 text-amber-400 font-medium shrink-0">
+                                    {t("layout.publishModal.pendingDns")}
+                                  </span>
+                                )}
+                              </div>
+                            </div>
+                          </div>
+                        )}
+
+                        {/* No custom domain hint */}
+                        {!project.custom_domain && (
+                          <Link
+                            href={`/editor/${id}/dominio`}
+                            onClick={() => setShowPublishDropdown(false)}
+                            className="flex items-center gap-3 p-2.5 rounded-lg border border-dashed border-[var(--border-subtle)] hover:border-[var(--border-default)] transition-colors"
+                          >
+                            <Plus size={12} className="text-[var(--text-muted)]" />
+                            <span className="text-[11px] text-[var(--text-muted)]">
+                              {t("layout.publishModal.addCustomDomain")}
+                            </span>
+                          </Link>
+                        )}
+                      </div>
+
+                      {/* Publish action */}
+                      <div className="px-4 pb-3 flex justify-end">
+                        <button
+                          onClick={handlePublish}
+                          disabled={!publishTargets.subdomain && !publishTargets.customDomain}
+                          className={cn(
+                            "flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg font-ui text-[11px] font-bold uppercase tracking-[0.1em] transition-all",
+                            "bg-[var(--site-primary)] text-[var(--surface-0)] hover:brightness-110",
+                            "disabled:opacity-50 disabled:cursor-not-allowed"
+                          )}
+                        >
+                          <Rocket size={12} />
+                          Publish Now
+                        </button>
+                      </div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
               </div>
             </div>
           )}
-
-          {/* Publish modal */}
-          <AnimatePresence>
-            {showPublishModal && project && (
-              <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-start justify-center pt-[15vh] p-4"
-                onClick={() => !publishing && setShowPublishModal(false)}
-              >
-                <motion.div
-                  initial={{ scale: 0.95, opacity: 0, y: -8 }}
-                  animate={{ scale: 1, opacity: 1, y: 0 }}
-                  exit={{ scale: 0.95, opacity: 0, y: -8 }}
-                  transition={{ type: "spring", damping: 25, stiffness: 300 }}
-                  onClick={(e) => e.stopPropagation()}
-                  className="w-full max-w-[calc(100vw-2rem)] sm:max-w-sm bg-[var(--surface-2)] border border-[var(--border-default)] rounded-xl shadow-2xl overflow-hidden"
-                >
-                  {/* Header */}
-                  <div className="flex items-center justify-between px-5 py-3.5 border-b border-[var(--border-subtle)]">
-                    <span className="font-ui text-[11px] font-bold uppercase tracking-[0.1em] text-[var(--text-primary)]">
-                      {t("layout.publishModal.title")}
-                    </span>
-                    <button
-                      onClick={() => setShowPublishModal(false)}
-                      disabled={publishing}
-                      className="text-[var(--text-muted)] hover:text-[var(--text-secondary)] transition-colors"
-                    >
-                      <X size={16} />
-                    </button>
-                  </div>
-
-                  {/* Domain targets */}
-                  <div className="px-5 py-4 space-y-3">
-                    {/* Subdomain — always present */}
-                    <label className="flex items-center gap-3 p-3 rounded-lg bg-[var(--surface-3)] border border-[var(--border-subtle)] cursor-pointer hover:border-[var(--border-default)] transition-colors">
-                      <input
-                        type="checkbox"
-                        checked={publishTargets.subdomain}
-                        onChange={(e) => setPublishTargets((prev) => ({ ...prev, subdomain: e.target.checked }))}
-                        className="accent-[var(--site-primary)] w-3.5 h-3.5 rounded"
-                      />
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-2">
-                          <Globe size={13} className="text-[var(--site-primary)] shrink-0" />
-                          <span className="text-xs text-[var(--text-primary)] truncate">
-                            {project.subdomain || project.slug}.noddo.io
-                          </span>
-                        </div>
-                        {lastPublished && (
-                          <p className="text-[10px] text-[var(--text-muted)] mt-1 ml-[21px]">
-                            {t("layout.publishModal.lastPublished")} {timeAgo(lastPublished)}
-                          </p>
-                        )}
-                      </div>
-                    </label>
-
-                    {/* Custom domain — only if configured */}
-                    {project.custom_domain && (
-                      <label className="flex items-center gap-3 p-3 rounded-lg bg-[var(--surface-3)] border border-[var(--border-subtle)] cursor-pointer hover:border-[var(--border-default)] transition-colors">
-                        <input
-                          type="checkbox"
-                          checked={publishTargets.customDomain}
-                          onChange={(e) => setPublishTargets((prev) => ({ ...prev, customDomain: e.target.checked }))}
-                          className="accent-[var(--site-primary)] w-3.5 h-3.5 rounded"
-                        />
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-center gap-2">
-                            <Globe size={13} className="text-[var(--site-primary)] shrink-0" />
-                            <span className="text-xs text-[var(--text-primary)] truncate">
-                              {project.custom_domain}
-                            </span>
-                            {project.domain_verified ? (
-                              <span className="text-[9px] px-1.5 py-0.5 rounded bg-emerald-500/15 text-emerald-400 font-medium shrink-0">
-                                {t("layout.publishModal.verified")}
-                              </span>
-                            ) : (
-                              <span className="text-[9px] px-1.5 py-0.5 rounded bg-amber-500/15 text-amber-400 font-medium shrink-0">
-                                {t("layout.publishModal.pendingDns")}
-                              </span>
-                            )}
-                          </div>
-                          {lastPublished && (
-                            <p className="text-[10px] text-[var(--text-muted)] mt-1 ml-[21px]">
-                              {t("layout.publishModal.lastPublished")} {timeAgo(lastPublished)}
-                            </p>
-                          )}
-                        </div>
-                      </label>
-                    )}
-
-                    {/* No custom domain hint */}
-                    {!project.custom_domain && (
-                      <Link
-                        href={`/editor/${id}/dominio`}
-                        onClick={() => setShowPublishModal(false)}
-                        className="flex items-center gap-3 p-3 rounded-lg border border-dashed border-[var(--border-subtle)] hover:border-[var(--border-default)] transition-colors"
-                      >
-                        <Plus size={13} className="text-[var(--text-muted)]" />
-                        <span className="text-[11px] text-[var(--text-muted)]">
-                          {t("layout.publishModal.addCustomDomain")}
-                        </span>
-                      </Link>
-                    )}
-                  </div>
-
-                  {/* Publish button */}
-                  <div className="px-5 pb-4">
-                    <button
-                      onClick={async () => {
-                        await handlePublish();
-                        setShowPublishModal(false);
-                      }}
-                      disabled={publishing || (!publishTargets.subdomain && !publishTargets.customDomain)}
-                      className={cn(
-                        "w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg font-ui text-[11px] font-bold uppercase tracking-[0.1em] transition-all",
-                        "bg-[var(--site-primary)] text-[var(--surface-0)] hover:brightness-110",
-                        "disabled:opacity-50 disabled:cursor-not-allowed"
-                      )}
-                    >
-                      {publishing ? (
-                        <Loader2 size={13} className="animate-spin" />
-                      ) : (
-                        <Rocket size={13} />
-                      )}
-                      {publishing ? t("layout.publishing") : t("layout.publishModal.publishButton")}
-                    </button>
-                  </div>
-                </motion.div>
-              </motion.div>
-            )}
-          </AnimatePresence>
 
           {/* Scrollable content */}
           <div className="flex-1 overflow-y-auto p-4 md:p-6 pt-14 md:pt-6">

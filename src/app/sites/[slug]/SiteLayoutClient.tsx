@@ -35,6 +35,7 @@ export function SiteLayoutClient({ proyecto, basePath, children }: Props) {
   const [navExpanded, setNavExpanded] = useState(true);
   const [showPreloader, setShowPreloader] = useState(isLanding);
   const isMobile = useMediaQuery("(max-width: 1023px)");
+  const isLight = proyecto.tema_modo === "claro";
 
   // Per-page canonical URL
   const canonicalUrl = (() => {
@@ -66,7 +67,8 @@ export function SiteLayoutClient({ proyecto, basePath, children }: Props) {
             ["--site-primary-rgb" as string]: hexToRgb(proyecto.color_primario || "#b8973a"),
             backgroundColor: proyecto.color_fondo,
             color: proyecto.color_secundario,
-          }}
+            ...(isLight ? getLightThemeVars() : {}),
+          } as React.CSSProperties}
         >
           <AnimatePresence>
             {showPreloader && (
@@ -102,18 +104,18 @@ export function SiteLayoutClient({ proyecto, basePath, children }: Props) {
                 className="fixed top-1/2 -translate-y-1/2 z-[56] hidden lg:flex items-center justify-center w-4 h-9 rounded-r-md cursor-pointer"
                 animate={{
                   left: navExpanded ? 200 : 60,
-                  backgroundColor: "rgba(26,26,26,0.7)",
+                  backgroundColor: isLight ? "rgba(240,238,234,0.9)" : "rgba(26,26,26,0.7)",
                 }}
                 whileHover={{
-                  backgroundColor: "rgba(42,42,42,0.9)",
+                  backgroundColor: isLight ? "rgba(228,224,218,0.95)" : "rgba(42,42,42,0.9)",
                   width: 20,
                 }}
                 transition={{ duration: 0.25, ease: [0.4, 0, 0.2, 1] }}
                 style={{
                   backdropFilter: "blur(8px)",
-                  borderTop: "1px solid rgba(255,255,255,0.06)",
-                  borderRight: "1px solid rgba(255,255,255,0.06)",
-                  borderBottom: "1px solid rgba(255,255,255,0.06)",
+                  borderTop: "1px solid var(--border-subtle)",
+                  borderRight: "1px solid var(--border-subtle)",
+                  borderBottom: "1px solid var(--border-subtle)",
                 }}
               >
                 <motion.div
@@ -160,4 +162,31 @@ function hexToRgb(hex: string): string {
   const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
   if (!result) return "129, 140, 248";
   return `${parseInt(result[1], 16)}, ${parseInt(result[2], 16)}, ${parseInt(result[3], 16)}`;
+}
+
+function getLightThemeVars(): Record<string, string> {
+  return {
+    "--surface-0": "#faf9f7",
+    "--surface-1": "#f4f2ee",
+    "--surface-2": "#ebe8e3",
+    "--surface-3": "#e2ded8",
+    "--surface-4": "#d8d4cd",
+    "--text-primary": "rgba(20, 20, 18, 0.92)",
+    "--text-secondary": "rgba(20, 20, 18, 0.60)",
+    "--text-tertiary": "rgba(20, 20, 18, 0.40)",
+    "--text-muted": "rgba(20, 20, 18, 0.18)",
+    "--border-subtle": "rgba(0, 0, 0, 0.06)",
+    "--border-default": "rgba(0, 0, 0, 0.10)",
+    "--border-strong": "rgba(0, 0, 0, 0.16)",
+    "--border-accent": "rgba(184, 151, 58, 0.20)",
+    "--overlay-rgb": "0, 0, 0",
+    "--contrast-rgb": "20, 20, 18",
+    "--glass-bg": "rgba(255, 255, 255, 0.60)",
+    "--glass-bg-hover": "rgba(255, 255, 255, 0.75)",
+    "--glass-border": "rgba(0, 0, 0, 0.08)",
+    "--shadow-sm": "0 1px 2px rgba(0,0,0,0.06), 0 1px 3px rgba(0,0,0,0.04)",
+    "--shadow-md": "0 4px 12px rgba(0,0,0,0.08), 0 1px 3px rgba(0,0,0,0.04)",
+    "--shadow-lg": "0 8px 32px rgba(0,0,0,0.10), 0 2px 8px rgba(0,0,0,0.06)",
+    "--shadow-xl": "0 16px 48px rgba(0,0,0,0.12), 0 4px 12px rgba(0,0,0,0.08)",
+  };
 }

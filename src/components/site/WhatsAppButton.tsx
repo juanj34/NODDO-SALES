@@ -32,7 +32,7 @@ export function WhatsAppButton({ numero, mensaje, proyectoId }: WhatsAppButtonPr
       animate={{ scale: 1, opacity: 1 }}
       transition={{ delay: 1, type: "spring" }}
     >
-      <MessageCircle size={28} className="text-white" fill="white" />
+      <MessageCircle size={28} className="text-[rgb(var(--contrast-rgb))]" fill="rgb(var(--contrast-rgb))" />
     </motion.a>
   );
 }
