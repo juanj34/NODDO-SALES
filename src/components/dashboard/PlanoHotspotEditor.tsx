@@ -1,6 +1,5 @@
 "use client";
 
-import Image from "next/image";
 import { useState, useRef, useCallback, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Trash2, MapPin, Loader2, ChevronUp, ChevronDown, X, Images } from "lucide-react";
@@ -590,7 +589,8 @@ export function PlanoHotspotEditor({
                             className="flex items-center gap-1.5 p-1 rounded-lg bg-[var(--surface-3)] border border-[var(--border-subtle)]"
                           >
                             <div className="relative w-9 h-7 rounded overflow-hidden bg-[var(--surface-2)] shrink-0">
-                              <Image src={url} alt={`Render ${i + 1}`} fill className="object-cover" />
+                              {/* eslint-disable-next-line @next/next/no-img-element */}
+                              <img src={url} alt={`Render ${i + 1}`} className="absolute inset-0 w-full h-full object-cover" />
                             </div>
                             <span className="text-[9px] text-[var(--text-tertiary)] shrink-0">{i + 1}</span>
                             <div className="flex-1" />
@@ -764,7 +764,8 @@ export function PlanoHotspotEditor({
                             <div className="flex -space-x-1 shrink-0">
                               {imgs.slice(0, 3).map((url, idx) => (
                                 <div key={idx} className="relative w-8 h-8 rounded overflow-hidden bg-[var(--surface-2)] border border-[var(--surface-1)]">
-                                  <Image src={url} alt={punto.titulo} fill className="object-cover" />
+                                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                                  <img src={url} alt={punto.titulo} className="absolute inset-0 w-full h-full object-cover" />
                                 </div>
                               ))}
                               {imgs.length > 3 && (

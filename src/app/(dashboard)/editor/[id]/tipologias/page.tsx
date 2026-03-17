@@ -2,7 +2,7 @@
 
 export const dynamic = "force-dynamic";
 
-import { useState, useEffect, useCallback, useMemo } from "react";
+import { useState, useEffect, useCallback, useMemo, useRef } from "react";
 import { cn } from "@/lib/utils";
 import { useEditorProject } from "@/hooks/useEditorProject";
 import {
@@ -37,6 +37,8 @@ import {
   MapPin,
   Ruler,
   LandPlot,
+  ClipboardCopy,
+  ChevronDown,
 } from "lucide-react";
 import { useToast } from "@/components/dashboard/Toast";
 import { useConfirm } from "@/components/dashboard/ConfirmModal";
@@ -123,6 +125,115 @@ function parseOptionalNumber(val: string): number | null {
   if (!val.trim()) return null;
   const n = Number(val);
   return isNaN(n) ? null : n;
+}
+
+/* ─── Copy hotspots dropdown ─── */
+
+function CopyHotspotsDropdown({
+  tipologias,
+  currentId,
+  currentHotspotCount,
+  onCopy,
+}: {
+  tipologias: Tipologia[];
+  currentId: string | null;
+  currentHotspotCount: number;
+  onCopy: (hotspots: TipologiaHotspot[]) => void;
+}) {
+  const [open, setOpen] = useState(false);
+  const { confirm } = useConfirm();
+  const ref = useRef<HTMLDivElement>(null);
+
+  // Close on outside click
+  useEffect(() => {
+    if (!open) return;
+    const handler = (e: MouseEvent) => {
+      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
+    };
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, [open]);
+
+  const sources = tipologias.filter(
+    (t) => t.id !== currentId && t.hotspots && t.hotspots.length > 0
+  );
+
+  if (sources.length === 0) return null;
+
+  const handleSelect = async (source: Tipologia) => {
+    setOpen(false);
+    if (
+      currentHotspotCount > 0 &&
+      !(await confirm({
+        title: "Copiar hotspots",
+        message: `Esto reemplazará los ${currentHotspotCount} hotspots actuales con los ${source.hotspots.length} de "${source.nombre}". ¿Continuar?`,
+      }))
+    ) {
+      return;
+    }
+    if (
+      currentHotspotCount === 0 &&
+      !(await confirm({
+        title: "Copiar hotspots",
+        message: `Se copiarán ${source.hotspots.length} hotspots de "${source.nombre}". ¿Continuar?`,
+      }))
+    ) {
+      return;
+    }
+    const copied = source.hotspots.map((h) => ({
+      ...h,
+      id: crypto.randomUUID(),
+    }));
+    onCopy(copied);
+  };
+
+  return (
+    <div ref={ref} className="relative">
+      <button
+        type="button"
+        onClick={() => setOpen(!open)}
+        className="flex items-center gap-1.5 px-2.5 py-1.5 text-[11px] font-medium text-[var(--text-tertiary)] hover:text-[var(--text-secondary)] bg-[var(--surface-2)] hover:bg-[var(--surface-3)] rounded-lg transition-all border border-[var(--border-subtle)]"
+      >
+        <ClipboardCopy size={12} />
+        Copiar de otra tipología
+        <ChevronDown size={10} className={cn("transition-transform", open && "rotate-180")} />
+      </button>
+
+      <AnimatePresence>
+        {open && (
+          <motion.div
+            initial={{ opacity: 0, y: -4 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -4 }}
+            transition={{ duration: 0.12 }}
+            className="absolute left-0 top-full mt-1 z-30 w-64 bg-[var(--surface-2)] border border-[var(--border-default)] rounded-xl shadow-xl overflow-hidden"
+          >
+            <div className="px-3 py-2 border-b border-[var(--border-subtle)]">
+              <p className="text-[10px] text-[var(--text-muted)] uppercase tracking-wider font-bold">
+                Tipologías con hotspots
+              </p>
+            </div>
+            <div className="max-h-48 overflow-y-auto py-1">
+              {sources.map((t) => (
+                <button
+                  key={t.id}
+                  onClick={() => handleSelect(t)}
+                  className="w-full flex items-center gap-2.5 px-3 py-2 hover:bg-[var(--surface-3)] transition-colors text-left"
+                >
+                  <span className="w-5 h-5 rounded-full bg-[rgba(var(--site-primary-rgb),0.15)] flex items-center justify-center text-[9px] text-[var(--site-primary)] font-bold shrink-0">
+                    {t.hotspots.length}
+                  </span>
+                  <span className="text-xs text-[var(--text-secondary)] truncate">
+                    {t.nombre}
+                  </span>
+                </button>
+              ))}
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
+  );
 }
 
 /* ─── Tabs ─── */
@@ -1020,14 +1131,26 @@ export default function TipologiasPage() {
 
                     {/* ── TAB: Hotspots ── */}
                     {activeTab === "hotspots" && (
-                      <div className="h-full">
+                      <div className="h-full flex flex-col">
+                        {form.plano_url && (
+                          <div className="flex items-center justify-end mb-2 shrink-0">
+                            <CopyHotspotsDropdown
+                              tipologias={tipologias}
+                              currentId={selectedId}
+                              currentHotspotCount={form.hotspots.length}
+                              onCopy={(hotspots) => updateForm("hotspots", hotspots)}
+                            />
+                          </div>
+                        )}
                         {form.plano_url ? (
-                          <HotspotEditor
-                            imageUrl={form.plano_url}
-                            hotspots={form.hotspots}
-                            onChange={(hotspots) => updateForm("hotspots", hotspots)}
-                            uploadFolder={`proyectos/${projectId}/tipologias`}
-                          />
+                          <div className="flex-1 min-h-0">
+                            <HotspotEditor
+                              imageUrl={form.plano_url}
+                              hotspots={form.hotspots}
+                              onChange={(hotspots) => updateForm("hotspots", hotspots)}
+                              uploadFolder={`proyectos/${projectId}/tipologias`}
+                            />
+                          </div>
                         ) : (
                           <div className="flex flex-col items-center justify-center py-16 text-center">
                             <MousePointerClick size={24} className="text-[var(--text-muted)] mb-3" />

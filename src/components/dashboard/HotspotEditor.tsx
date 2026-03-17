@@ -1,10 +1,9 @@
 "use client";
 
-import Image from "next/image";
 import { useState, useRef } from "react";
 import type { TipologiaHotspot } from "@/types";
 import { resolveHotspotImages, syncRenderUrl } from "@/lib/hotspot-utils";
-import { FileUploader } from "./FileUploader";
+import { FileUploader, type UploadResult } from "./FileUploader";
 import { useHotspotCanvas } from "@/hooks/useHotspotCanvas";
 import { inputClass, labelClass, btnPrimary, btnSecondary, btnDanger } from "./editor-styles";
 import { Plus, X, Trash2, Check, MousePointerClick, ChevronUp, ChevronDown, Images } from "lucide-react";
@@ -42,6 +41,9 @@ function ImageListPanel({
   const append = (url: string) => {
     onChange([...images, url]);
   };
+  const appendMultiple = (results: UploadResult[]) => {
+    onChange([...images, ...results.map((r) => r.url)]);
+  };
 
   return (
     <div>
@@ -60,7 +62,8 @@ function ImageListPanel({
               className="flex items-center gap-2 p-1.5 rounded-lg bg-[var(--surface-3)] border border-[var(--border-subtle)]"
             >
               <div className="relative w-10 h-8 rounded overflow-hidden bg-[var(--surface-2)] shrink-0">
-                <Image src={url} alt={`Render ${i + 1}`} fill className="object-cover" />
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src={url} alt={`Render ${i + 1}`} className="absolute inset-0 w-full h-full object-cover" />
               </div>
               <span className="text-[10px] text-[var(--text-tertiary)] min-w-[16px] text-center shrink-0">
                 {i + 1}
@@ -100,6 +103,8 @@ function ImageListPanel({
       <FileUploader
         currentUrl={null}
         onUpload={append}
+        onUploadMultiple={appendMultiple}
+        multiple
         folder={uploadFolder}
         label={uploadLabel}
       />
@@ -482,7 +487,8 @@ export function HotspotEditor({
                             <div className="flex -space-x-1 shrink-0">
                               {imgs.slice(0, 3).map((url, idx) => (
                                 <div key={idx} className="relative w-7 h-5 rounded overflow-hidden bg-[var(--surface-3)] border border-[var(--surface-1)]">
-                                  <Image src={url} alt={hs.label} fill className="object-cover" />
+                                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                                  <img src={url} alt={hs.label} className="absolute inset-0 w-full h-full object-cover" />
                                 </div>
                               ))}
                             </div>
