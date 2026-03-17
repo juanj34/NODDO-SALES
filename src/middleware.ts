@@ -5,10 +5,17 @@ import { parseDomain, resolveCustomDomainToSlug } from "@/lib/domains";
 export async function middleware(request: NextRequest) {
   const hostname = request.headers.get("host") || "localhost:3000";
   const { pathname } = request.nextUrl;
-  const domainInfo = parseDomain(hostname);
 
-  // ─── Subdomain or Custom Domain → rewrite to /sites/[slug] ───
-  if (domainInfo.type === "subdomain" || domainInfo.type === "custom_domain") {
+  // ─── Vercel Preview Deployments → treat as platform (skip subdomain logic) ───
+  const isVercelPreview = hostname.includes(".vercel.app");
+  if (isVercelPreview) {
+    // Skip subdomain/custom domain detection for Vercel previews
+    // Fall through to platform logic below
+  } else {
+    const domainInfo = parseDomain(hostname);
+
+    // ─── Subdomain or Custom Domain → rewrite to /sites/[slug] ───
+    if (domainInfo.type === "subdomain" || domainInfo.type === "custom_domain") {
     // Let API and auth routes pass through without rewriting
     if (pathname.startsWith("/api/") || pathname.startsWith("/auth/")) {
       return NextResponse.next();
@@ -54,6 +61,7 @@ export async function middleware(request: NextRequest) {
     response.headers.set("x-site-base-path", "");
 
     return response;
+    }
   }
 
   // ─── Platform (main domain) ───
