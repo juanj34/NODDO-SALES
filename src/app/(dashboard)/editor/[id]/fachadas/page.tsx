@@ -626,7 +626,7 @@ export default function NoddoGridPage() {
         }
         if (u.fachada_x !== null && u.fachada_y !== null) return false;
         const torreId = activeTorre?.id ?? (torres.length === 1 ? torres[0]?.id : null);
-        if (torreId && u.torre_id !== torreId) return false;
+        if (torreId && u.torre_id !== torreId && u.torre_id !== null) return false;
         if (!u.fachada_id) return true;
         return selectedFachada ? u.fachada_id === selectedFachada.id : false;
       })
