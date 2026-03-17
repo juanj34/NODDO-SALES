@@ -980,17 +980,18 @@ export function FacadeHotspotEditor({
      JSX
      ================================================================ */
   return (
-    <div className="space-y-3">
+    <div className="space-y-2">
       {/* Status legend */}
-      <div className="flex items-center gap-4 text-[11px] text-[var(--text-tertiary)]">
+      <div className="flex items-center gap-3 px-3 py-1.5 bg-[var(--surface-1)] border border-[var(--border-subtle)] rounded-lg">
+        <span className="font-ui text-[9px] font-bold text-[var(--text-muted)] uppercase tracking-widest mr-1">Estado</span>
         <div className="flex items-center gap-1.5">
-          <span className="w-2.5 h-2.5 rounded-full border border-dashed border-gray-400" style={{ background: EMPTY_DOT_COLOR }} />
-          Sin asignar
+          <span className="w-2 h-2 rounded-full border border-dashed border-gray-500 bg-white" />
+          <span className="text-[10px] text-[var(--text-muted)]">Vacío</span>
         </div>
         {(Object.keys(STATUS_COLORS) as Unidad["estado"][]).map((s) => (
           <div key={s} className="flex items-center gap-1.5">
-            <span className="w-2.5 h-2.5 rounded-full" style={{ background: STATUS_COLORS[s] }} />
-            {STATUS_LABELS[s]}
+            <span className="w-2 h-2 rounded-full" style={{ background: STATUS_COLORS[s] }} />
+            <span className="text-[10px] text-[var(--text-tertiary)]">{STATUS_LABELS[s]}</span>
           </div>
         ))}
       </div>

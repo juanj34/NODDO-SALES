@@ -7,10 +7,11 @@ import { cn } from "@/lib/utils";
 import { useEditorProject } from "@/hooks/useEditorProject";
 import {
   inputClass,
-  labelClass,
   btnPrimary,
   btnSecondary,
 } from "@/components/dashboard/editor-styles";
+import { fontSize, gap, letterSpacing, radius, iconSize, lineHeight } from "@/lib/design-tokens";
+import { Label } from "@/components/ui";
 import { DashboardEmptyState } from "@/components/dashboard/DashboardEmptyState";
 import { FileUploader } from "@/components/dashboard/FileUploader";
 import { HotspotEditor } from "@/components/dashboard/HotspotEditor";
@@ -38,6 +39,9 @@ import {
   LandPlot,
   ClipboardCopy,
   ChevronDown,
+  FileText,
+  Map,
+  type LucideIcon,
 } from "lucide-react";
 import { useToast } from "@/components/dashboard/Toast";
 import { useConfirm } from "@/components/dashboard/ConfirmModal";
@@ -203,9 +207,14 @@ function CopyHotspotsDropdown({
       <button
         type="button"
         onClick={() => setOpen(!open)}
-        className="flex items-center gap-1.5 px-2.5 py-1.5 text-[11px] font-medium text-[var(--text-tertiary)] hover:text-[var(--text-secondary)] bg-[var(--surface-2)] hover:bg-[var(--surface-3)] rounded-lg transition-all border border-[var(--border-subtle)]"
+        className={cn(
+          "flex items-center px-2.5 py-1.5 font-medium text-[var(--text-tertiary)] hover:text-[var(--text-secondary)] bg-[var(--surface-2)] hover:bg-[var(--surface-3)] transition-all border border-[var(--border-subtle)]",
+          gap.normal,
+          fontSize.body,
+          radius.md
+        )}
       >
-        <ClipboardCopy size={12} />
+        <ClipboardCopy size={iconSize.xs} />
         Copiar de otra tipología
         <ChevronDown size={10} className={cn("transition-transform", open && "rotate-180")} />
       </button>
@@ -217,10 +226,17 @@ function CopyHotspotsDropdown({
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -4 }}
             transition={{ duration: 0.12 }}
-            className="absolute left-0 top-full mt-1 z-30 w-64 bg-[var(--surface-2)] border border-[var(--border-default)] rounded-xl shadow-xl overflow-hidden"
+            className={cn(
+              "absolute left-0 top-full mt-1 z-30 w-64 bg-[var(--surface-2)] border border-[var(--border-default)] shadow-xl overflow-hidden",
+              radius.xl
+            )}
           >
             <div className="px-3 py-2 border-b border-[var(--border-subtle)]">
-              <p className="text-[10px] text-[var(--text-muted)] uppercase tracking-wider font-bold">
+              <p className={cn(
+                "text-[var(--text-muted)] uppercase font-bold",
+                fontSize.label,
+                letterSpacing.wider
+              )}>
                 Tipologías con hotspots
               </p>
             </div>
@@ -229,12 +245,22 @@ function CopyHotspotsDropdown({
                 <button
                   key={t.id}
                   onClick={() => handleSelect(t)}
-                  className="w-full flex items-center gap-2.5 px-3 py-2 hover:bg-[var(--surface-3)] transition-colors text-left"
+                  className={cn(
+                    "w-full flex items-center px-3 py-2 hover:bg-[var(--surface-3)] transition-colors text-left",
+                    gap.relaxed
+                  )}
                 >
-                  <span className="w-5 h-5 rounded-full bg-[rgba(var(--site-primary-rgb),0.15)] flex items-center justify-center text-[9px] text-[var(--site-primary)] font-bold shrink-0">
+                  <span className={cn(
+                    "w-5 h-5 bg-[rgba(var(--site-primary-rgb),0.15)] flex items-center justify-center text-[var(--site-primary)] font-bold shrink-0",
+                    fontSize.caption,
+                    radius.full
+                  )}>
                     {t.hotspots.length}
                   </span>
-                  <span className="text-xs text-[var(--text-secondary)] truncate">
+                  <span className={cn(
+                    "text-[var(--text-secondary)] truncate",
+                    fontSize.subtitle
+                  )}>
                     {t.nombre}
                   </span>
                 </button>
@@ -249,7 +275,7 @@ function CopyHotspotsDropdown({
 
 /* ─── Tabs ─── */
 
-type TipoTab = "general" | "especificaciones" | "plano" | "hotspots";
+type TipoTab = "general" | "plano" | "hotspots";
 
 /* ─── Page ─── */
 
@@ -259,11 +285,10 @@ export default function TipologiasPage() {
   const { confirm } = useConfirm();
   const { t } = useTranslation("editor");
 
-  const TIPO_TABS: { id: TipoTab; label: string }[] = [
-    { id: "general", label: t("tipologias.tabs.general") },
-    { id: "especificaciones", label: t("tipologias.tabs.specs") },
-    { id: "plano", label: t("tipologias.tabs.floorPlan") },
-    { id: "hotspots", label: t("tipologias.tabs.hotspots") },
+  const TIPO_TABS: { id: TipoTab; label: string; icon: LucideIcon }[] = [
+    { id: "general", label: t("tipologias.tabs.general"), icon: FileText },
+    { id: "plano", label: t("tipologias.tabs.floorPlan"), icon: Map },
+    { id: "hotspots", label: t("tipologias.tabs.hotspots"), icon: MousePointerClick },
   ];
 
   const tipologias = useMemo(() => project.tipologias || [], [project.tipologias]);
@@ -599,7 +624,7 @@ export default function TipologiasPage() {
           description={t("tipologias.createFirst")}
         >
           <button onClick={startCreating} className={btnPrimary}>
-            <Plus size={14} />
+            <Plus size={iconSize.sm} />
             {t("tipologias.createFirstButton")}
           </button>
         </DashboardEmptyState>
@@ -616,18 +641,29 @@ export default function TipologiasPage() {
     >
       {/* ═══ TORRE TABS ═══ */}
       {isMultiTorre && (
-        <div className="flex items-center gap-1 p-1 bg-[var(--surface-1)] rounded-xl border border-[var(--border-subtle)] mb-4">
+        <div className={cn(
+          "flex items-center p-1 bg-[var(--surface-1)] border border-[var(--border-subtle)] mb-4",
+          gap.compact,
+          radius.xl
+        )}>
           <button
             onClick={() => setActiveTorreId(null)}
             className={cn(
-              "flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-all",
+              "flex items-center px-3 py-1.5 font-medium transition-all",
+              gap.normal,
+              fontSize.subtitle,
+              radius.md,
               activeTorreId === null
                 ? "bg-[var(--surface-3)] text-white shadow-sm"
                 : "text-[var(--text-muted)] hover:text-[var(--text-secondary)] hover:bg-[var(--surface-2)]"
             )}
           >
             {t("tipologias.all")}
-            <span className="ml-1 px-1.5 py-0.5 text-[10px] rounded-full bg-[var(--surface-3)] text-[var(--text-muted)]">
+            <span className={cn(
+              "ml-1 px-1.5 py-0.5 bg-[var(--surface-3)] text-[var(--text-muted)]",
+              fontSize.label,
+              radius.full
+            )}>
               {tipologias.length}
             </span>
           </button>
@@ -636,16 +672,23 @@ export default function TipologiasPage() {
             return (
               <button key={t.id} onClick={() => setActiveTorreId(t.id)}
                 className={cn(
-                  "flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-all",
+                  "flex items-center px-3 py-1.5 font-medium transition-all",
+                  gap.normal,
+                  fontSize.subtitle,
+                  radius.md,
                   activeTorreId === t.id
                     ? "bg-[var(--surface-3)] text-white shadow-sm"
                     : "text-[var(--text-muted)] hover:text-[var(--text-secondary)] hover:bg-[var(--surface-2)]"
                 )}
               >
-                <Building2 size={13} />
+                <Building2 size={iconSize.sm} />
                 {t.nombre}
                 {count > 0 && (
-                  <span className="ml-1 px-1.5 py-0.5 text-[10px] rounded-full bg-[var(--surface-3)] text-[var(--text-muted)]">
+                  <span className={cn(
+                    "ml-1 px-1.5 py-0.5 bg-[var(--surface-3)] text-[var(--text-muted)]",
+                    fontSize.label,
+                    radius.full
+                  )}>
                     {count}
                   </span>
                 )}
@@ -655,14 +698,21 @@ export default function TipologiasPage() {
           {tipologias.some(t => !t.torre_ids || t.torre_ids.length === 0) && (
             <button onClick={() => setActiveTorreId("__none__")}
               className={cn(
-                "flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-all",
+                "flex items-center px-3 py-1.5 font-medium transition-all",
+                gap.normal,
+                fontSize.subtitle,
+                radius.md,
                 activeTorreId === "__none__"
                   ? "bg-[var(--surface-3)] text-white shadow-sm"
                   : "text-[var(--text-muted)] hover:text-[var(--text-secondary)] hover:bg-[var(--surface-2)]"
               )}
             >
               {t("tipologias.noTower")}
-              <span className="ml-1 px-1.5 py-0.5 text-[10px] rounded-full bg-[var(--surface-3)] text-[var(--text-muted)]">
+              <span className={cn(
+                "ml-1 px-1.5 py-0.5 bg-[var(--surface-3)] text-[var(--text-muted)]",
+                fontSize.label,
+                radius.full
+              )}>
                 {tipologias.filter(t => !t.torre_ids || t.torre_ids.length === 0).length}
               </span>
             </button>
@@ -676,13 +726,19 @@ export default function TipologiasPage() {
           {/* List header */}
           <div className="px-4 py-3 border-b border-[var(--border-subtle)]">
             <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <Layers size={14} className="text-[var(--site-primary)]" />
-                <span className="text-xs font-medium text-[var(--text-secondary)]">
+              <div className={cn("flex items-center", gap.normal)}>
+                <Layers size={iconSize.sm} className="text-[var(--site-primary)]" />
+                <span className={cn(
+                  "font-medium text-[var(--text-secondary)]",
+                  fontSize.subtitle
+                )}>
                   {t("tipologias.listTitle")}
                 </span>
               </div>
-              <span className="text-[10px] text-[var(--text-muted)]">
+              <span className={cn(
+                "text-[var(--text-muted)]",
+                fontSize.label
+              )}>
                 {filteredTipologias.length}
               </span>
             </div>
@@ -703,7 +759,8 @@ export default function TipologiasPage() {
               >
                 <p
                   className={cn(
-                    "text-[13px] font-medium truncate",
+                    "font-medium truncate",
+                    fontSize.base,
                     selectedId === t.id && !isCreating
                       ? "text-white"
                       : "text-[var(--text-secondary)]"
@@ -711,14 +768,21 @@ export default function TipologiasPage() {
                 >
                   {t.nombre}
                 </p>
-                <div className="flex items-center gap-2 mt-0.5 text-[10px] text-[var(--text-muted)]">
+                <div className={cn(
+                  "flex items-center mt-0.5 text-[var(--text-muted)]",
+                  gap.normal,
+                  fontSize.label
+                )}>
                   {t.area_m2 != null && <span>{t.area_m2}m²</span>}
                   {t.habitaciones != null && <span>{t.habitaciones} hab</span>}
                   {t.banos != null && <span>{t.banos} baños</span>}
                 </div>
 
                 {/* Action buttons — visible on hover */}
-                <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                <div className={cn(
+                  "absolute right-2 top-1/2 -translate-y-1/2 flex items-center opacity-0 group-hover:opacity-100 transition-opacity",
+                  gap.compact
+                )}>
                   <button
                     onClick={(e) => {
                       e.stopPropagation();
@@ -728,9 +792,9 @@ export default function TipologiasPage() {
                     title="Duplicar"
                   >
                     {duplicatingId === t.id ? (
-                      <Loader2 size={12} className="animate-spin text-[var(--text-muted)]" />
+                      <Loader2 size={iconSize.xs} className="animate-spin text-[var(--text-muted)]" />
                     ) : (
-                      <Copy size={12} className="text-[var(--text-muted)] hover:text-[var(--site-primary)]" />
+                      <Copy size={iconSize.xs} className="text-[var(--text-muted)] hover:text-[var(--site-primary)]" />
                     )}
                   </button>
                   <button
@@ -741,9 +805,9 @@ export default function TipologiasPage() {
                     disabled={deletingId === t.id}
                   >
                     {deletingId === t.id ? (
-                      <Loader2 size={12} className="animate-spin text-[var(--text-muted)]" />
+                      <Loader2 size={iconSize.xs} className="animate-spin text-[var(--text-muted)]" />
                     ) : (
-                      <Trash2 size={12} className="text-[var(--text-muted)] hover:text-red-400" />
+                      <Trash2 size={iconSize.xs} className="text-[var(--text-muted)] hover:text-red-400" />
                     )}
                   </button>
                 </div>
@@ -753,7 +817,10 @@ export default function TipologiasPage() {
             {/* "Creating new" item */}
             {isCreating && (
               <div className="px-3 py-2.5 bg-[var(--surface-3)] border-l-2 border-l-[var(--site-primary)]">
-                <p className="text-[13px] font-medium text-[var(--site-primary)]">
+                <p className={cn(
+                  "font-medium text-[var(--site-primary)]",
+                  fontSize.base
+                )}>
                   + {t("tipologias.newType")}
                 </p>
               </div>
@@ -764,9 +831,14 @@ export default function TipologiasPage() {
           <div className="p-3 border-t border-[var(--border-subtle)]">
             <button
               onClick={startCreating}
-              className="w-full flex items-center justify-center gap-1.5 px-3 py-2 text-xs font-medium text-[var(--text-tertiary)] hover:text-[var(--text-secondary)] bg-[var(--surface-2)] hover:bg-[var(--surface-3)] rounded-lg transition-all border border-[var(--border-subtle)]"
+              className={cn(
+                "w-full flex items-center justify-center px-3 py-2 font-medium text-[var(--text-tertiary)] hover:text-[var(--text-secondary)] bg-[var(--surface-2)] hover:bg-[var(--surface-3)] transition-all border border-[var(--border-subtle)]",
+                gap.normal,
+                fontSize.subtitle,
+                radius.md
+              )}
             >
-              <Plus size={12} />
+              <Plus size={iconSize.xs} />
               {t("tipologias.newType")}
             </button>
           </div>
@@ -780,10 +852,13 @@ export default function TipologiasPage() {
               <div className="shrink-0 border-b border-[var(--border-subtle)]">
                 {/* Title row */}
                 <div className="px-6 pt-3 pb-2 flex items-center justify-between">
-                  <h3 className="text-sm font-medium text-[var(--text-secondary)] truncate">
+                  <h3 className={cn(
+                    "font-medium text-[var(--text-secondary)] truncate",
+                    fontSize.md
+                  )}>
                     {isCreating ? t("tipologias.newType") : form.nombre || "—"}
                   </h3>
-                  <div className="flex items-center gap-2">
+                  <div className={cn("flex items-center", gap.normal)}>
                     {/* Auto-save indicator */}
                     {(selectedId || isCreating) && form.nombre.trim() && (
                       <AutoSaveIndicator status={autoSaveStatus} />
@@ -796,35 +871,41 @@ export default function TipologiasPage() {
                         }}
                         className="text-[var(--text-muted)] hover:text-[var(--text-secondary)]"
                       >
-                        <X size={16} />
+                        <X size={iconSize.md} />
                       </button>
                     )}
                   </div>
                 </div>
 
                 {/* Tab bar */}
-                <div className="px-6 flex gap-0.5">
+                <div className={cn("px-6 flex", gap.compact)}>
                   {TIPO_TABS.map((tab) => {
                     const isActive = activeTab === tab.id;
                     const hasPlano = form.pisos.some((p) => !!p.plano_url);
                     const hotspotCount = form.pisos.reduce((sum, p) => sum + p.hotspots.length, 0);
+                    const TabIcon = tab.icon;
 
                     return (
                       <button
                         key={tab.id}
                         onClick={() => setActiveTab(tab.id)}
                         className={cn(
-                          "px-4 py-2 text-xs font-medium rounded-t-lg transition-all flex items-center gap-2",
+                          "px-4 py-2 font-medium rounded-t-lg transition-all flex items-center",
+                          fontSize.subtitle,
+                          gap.normal,
                           isActive
                             ? "bg-[var(--site-primary)] text-black"
                             : "text-[var(--text-tertiary)] hover:text-[var(--text-secondary)] hover:bg-[var(--surface-2)]"
                         )}
                       >
+                        <TabIcon size={iconSize.sm} />
                         {tab.label}
                         {tab.id === "hotspots" && hotspotCount > 0 && (
                           <span
                             className={cn(
-                              "text-[9px] px-1.5 py-px rounded-full leading-tight",
+                              "px-1.5 py-px leading-tight",
+                              fontSize.caption,
+                              radius.full,
                               isActive
                                 ? "bg-black/20 text-black"
                                 : "bg-[rgba(var(--site-primary-rgb),0.2)] text-[var(--site-primary)]"
@@ -836,7 +917,8 @@ export default function TipologiasPage() {
                         {tab.id === "plano" && hasPlano && (
                           <span
                             className={cn(
-                              "w-1.5 h-1.5 rounded-full",
+                              "w-1.5 h-1.5",
+                              radius.full,
                               isActive ? "bg-black/40" : "bg-[var(--site-primary)]"
                             )}
                           />
@@ -865,7 +947,7 @@ export default function TipologiasPage() {
                     {activeTab === "general" && (
                       <>
                         <div>
-                          <label className={labelClass}>{t("tipologias.nameRequired")}</label>
+                          <Label>{t("tipologias.nameRequired")}</Label>
                           <input
                             type="text"
                             value={form.nombre}
@@ -876,8 +958,8 @@ export default function TipologiasPage() {
                         </div>
                         {isHibrido && (
                           <div>
-                            <label className={labelClass}>{t("tipologias.tipoTipologia")}</label>
-                            <div className="grid grid-cols-3 gap-2 mt-1">
+                            <Label>{t("tipologias.tipoTipologia")}</Label>
+                            <div className={cn("grid grid-cols-3 mt-1", gap.normal)}>
                               {([
                                 { id: "apartamento" as const, icon: Building2, labelKey: "tipologias.tipoApartamento" },
                                 { id: "casa" as const, icon: Home, labelKey: "tipologias.tipoCasa" },
@@ -891,34 +973,43 @@ export default function TipologiasPage() {
                                     type="button"
                                     onClick={() => updateForm("tipo_tipologia", tipo.id)}
                                     className={cn(
-                                      "flex items-center gap-2 px-3 py-2 rounded-lg border transition-all text-left text-xs",
+                                      "flex items-center px-3 py-2 border transition-all text-left",
+                                      gap.normal,
+                                      fontSize.subtitle,
+                                      radius.md,
                                       isActive
                                         ? "bg-[rgba(var(--site-primary-rgb),0.08)] border-[rgba(var(--site-primary-rgb),0.3)] text-white"
                                         : "bg-[var(--surface-1)] border-[var(--border-subtle)] text-[var(--text-muted)] hover:border-[var(--border-default)]"
                                     )}
                                   >
-                                    <Icon size={14} className={isActive ? "text-[var(--site-primary)]" : ""} />
+                                    <Icon size={iconSize.sm} className={isActive ? "text-[var(--site-primary)]" : ""} />
                                     {t(tipo.labelKey)}
                                   </button>
                                 );
                               })}
                             </div>
-                            <p className="text-[10px] text-[var(--text-muted)] mt-1.5">
+                            <p className={cn(
+                              "text-[var(--text-muted)] mt-1.5",
+                              fontSize.label
+                            )}>
                               {t("tipologias.tipoTipologiaHint")}
                             </p>
                           </div>
                         )}
                         {isMultiTorre && (
                           <div>
-                            <label className={labelClass}>{torresLabel}</label>
-                            <div className="flex flex-wrap gap-2">
+                            <Label>{torresLabel}</Label>
+                            <div className={cn("flex flex-wrap", gap.normal)}>
                               {torres.map((torre) => {
                                 const checked = form.torre_ids.includes(torre.id);
                                 return (
                                   <label
                                     key={torre.id}
                                     className={cn(
-                                      "flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs cursor-pointer transition-all border",
+                                      "flex items-center px-3 py-1.5 cursor-pointer transition-all border",
+                                      gap.normal,
+                                      radius.md,
+                                      fontSize.subtitle,
                                       checked
                                         ? "bg-[rgba(var(--site-primary-rgb),0.15)] border-[rgba(var(--site-primary-rgb),0.3)] text-[var(--site-primary)]"
                                         : "bg-[var(--surface-2)] border-[var(--border-subtle)] text-[var(--text-muted)] hover:text-[var(--text-secondary)]"
@@ -935,7 +1026,7 @@ export default function TipologiasPage() {
                                       }}
                                       className="sr-only"
                                     />
-                                    <Building2 size={12} />
+                                    <Building2 size={iconSize.xs} />
                                     {torre.nombre}
                                   </label>
                                 );
@@ -956,13 +1047,13 @@ export default function TipologiasPage() {
 
                         {/* ── Precio ── */}
                         <div>
-                          <label className={labelClass}>Precio</label>
+                          <Label>Precio</Label>
                           {project?.precio_source === "tipologia" ? (
                             <>
                               <div className="max-w-xs space-y-2">
                                 <div className="flex items-center gap-3 p-3 bg-[var(--surface-1)] rounded-xl border border-[rgba(var(--site-primary-rgb),0.15)] transition-all">
                                   <div className="w-9 h-9 rounded-lg bg-[rgba(var(--site-primary-rgb),0.12)] flex items-center justify-center shrink-0">
-                                    <DollarSign size={16} className="text-[var(--site-primary)]" />
+                                    <DollarSign size={iconSize.md} className="text-[var(--site-primary)]" />
                                   </div>
                                   <div className="flex-1 min-w-0">
                                     <CurrencyInput
@@ -970,7 +1061,7 @@ export default function TipologiasPage() {
                                       onChange={(v) => updateForm("precio_desde", v != null ? String(v) : "")}
                                       currency={(project?.moneda_base as Currency) || "COP"}
                                       placeholder="350,000,000"
-                                      inputClassName="w-full bg-transparent text-sm font-medium text-[var(--site-primary)] placeholder:text-[var(--text-muted)] focus:outline-none border-none p-0"
+                                      inputClassName="w-full bg-transparent text-sm font-mono font-medium text-[var(--site-primary)] placeholder:text-[var(--text-muted)] focus:outline-none border-none p-0"
                                     />
                                   </div>
                                 </div>
@@ -986,7 +1077,11 @@ export default function TipologiasPage() {
                                   );
                                 })()}
                               </div>
-                              <p className="text-[10px] text-[var(--text-muted)] mt-2 leading-relaxed">
+                              <p className={cn(
+                                "text-[var(--text-muted)] mt-2",
+                                fontSize.label,
+                                lineHeight.relaxed
+                              )}>
                                 {t("tipologias.precioTipologiaHint")}
                               </p>
                             </>
@@ -995,17 +1090,21 @@ export default function TipologiasPage() {
                               <div className="max-w-xs">
                                 <div className="flex items-center gap-3 p-3 bg-[var(--surface-1)] rounded-xl border border-[rgba(var(--site-primary-rgb),0.15)] transition-all">
                                   <div className="w-9 h-9 rounded-lg bg-[rgba(var(--site-primary-rgb),0.12)] flex items-center justify-center shrink-0">
-                                    <DollarSign size={16} className="text-[var(--site-primary)]" />
+                                    <DollarSign size={iconSize.md} className="text-[var(--site-primary)]" />
                                   </div>
                                   <div className="flex-1 min-w-0">
-                                    <p className="font-ui text-[10px] text-[var(--text-muted)] uppercase tracking-wider font-bold mb-0.5">Precio mínimo</p>
-                                    <p className="text-sm font-medium text-[var(--site-primary)]">
+                                    <Label variant="card">Precio mínimo</Label>
+                                    <p className="text-sm font-mono font-medium text-[var(--site-primary)]">
                                       {computedPrecioDesde || "—"}
                                     </p>
                                   </div>
                                 </div>
                               </div>
-                              <p className="text-[10px] text-[var(--text-muted)] mt-2 leading-relaxed">
+                              <p className={cn(
+                                "text-[var(--text-muted)] mt-2",
+                                fontSize.label,
+                                lineHeight.relaxed
+                              )}>
                                 {computedPrecioDesde
                                   ? "Precio calculado desde las unidades disponibles de esta tipología"
                                   : t("tipologias.noUnitsHint")}
@@ -1015,19 +1114,24 @@ export default function TipologiasPage() {
                         </div>
 
                         <div>
-                          <label className={labelClass}>{t("tipologias.features")}</label>
-                          <div className="flex flex-wrap gap-2 mb-2">
+                          <Label>{t("tipologias.features")}</Label>
+                          <div className={cn("flex flex-wrap mb-2", gap.normal)}>
                             {form.caracteristicas.map((c, i) => (
                               <span
                                 key={i}
-                                className="flex items-center gap-1 px-3 py-1 bg-[rgba(var(--site-primary-rgb),0.15)] text-[var(--site-primary)] text-xs rounded-full border border-[rgba(var(--site-primary-rgb),0.2)]"
+                                className={cn(
+                                  "flex items-center px-3 py-1 bg-[rgba(var(--site-primary-rgb),0.15)] text-[var(--site-primary)] border border-[rgba(var(--site-primary-rgb),0.2)]",
+                                  gap.compact,
+                                  fontSize.subtitle,
+                                  radius.full
+                                )}
                               >
                                 {c}
                                 <button
                                   onClick={() => removeCaracteristica(i)}
                                   className="hover:text-white transition-colors"
                                 >
-                                  <X size={12} />
+                                  <X size={iconSize.xs} />
                                 </button>
                               </span>
                             ))}
@@ -1041,50 +1145,44 @@ export default function TipologiasPage() {
                             className={inputClass}
                           />
                         </div>
-                      </>
-                    )}
 
-                    {/* ── TAB: Especificaciones ── */}
-                    {activeTab === "especificaciones" && (
-                      <div className="space-y-5">
+                        {/* ── Especificaciones (ahora parte de General) ── */}
                         {/* ── Áreas ── */}
                         <div>
-                          <p className="font-ui text-[10px] text-[var(--text-muted)] uppercase tracking-wider mb-2 font-bold">
-                            {t("tipologias.specsAreas")}
-                          </p>
+                          <Label variant="section">{t("tipologias.specsAreas")}</Label>
                           <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
                             {effectiveColumns.area_m2 && (
                               <div className="flex items-center gap-3 p-3 bg-[var(--surface-1)] rounded-xl border border-[var(--border-subtle)] hover:border-[var(--border-default)] transition-all">
                                 <div className="w-9 h-9 rounded-lg bg-[var(--surface-2)] flex items-center justify-center shrink-0">
-                                  <Maximize size={16} className="text-[var(--text-tertiary)]" />
+                                  <Maximize size={iconSize.md} className="text-[var(--text-tertiary)]" />
                                 </div>
                                 <div className="flex-1 min-w-0">
-                                  <p className="font-ui text-[10px] text-[var(--text-muted)] uppercase tracking-wider font-bold mb-0.5">{t("tipologias.internalArea")}</p>
-                                  <input type="number" value={form.area_m2} onChange={(e) => updateForm("area_m2", e.target.value)} placeholder="0" className="w-full bg-transparent text-sm text-white placeholder:text-[var(--text-muted)] focus:outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none" />
+                                  <Label variant="card">{t("tipologias.internalArea")}</Label>
+                                  <input type="number" value={form.area_m2} onChange={(e) => updateForm("area_m2", e.target.value)} placeholder="0" className="w-full bg-transparent text-sm font-mono text-white placeholder:text-[var(--text-muted)] focus:outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none" />
                                 </div>
-                                {form.area_m2 && <span className="text-[11px] text-[var(--text-muted)] shrink-0">m²</span>}
+                                {form.area_m2 && <span className="text-[11px] font-mono text-[var(--text-muted)] shrink-0">m²</span>}
                               </div>
                             )}
                             {effectiveColumns.area_m2 && (
                               <div className="flex items-center gap-3 p-3 bg-[var(--surface-1)] rounded-xl border border-[var(--border-subtle)] hover:border-[var(--border-default)] transition-all">
                                 <div className="w-9 h-9 rounded-lg bg-[var(--surface-2)] flex items-center justify-center shrink-0">
-                                  <Palmtree size={16} className="text-[var(--text-tertiary)]" />
+                                  <Palmtree size={iconSize.md} className="text-[var(--text-tertiary)]" />
                                 </div>
                                 <div className="flex-1 min-w-0">
-                                  <p className="font-ui text-[10px] text-[var(--text-muted)] uppercase tracking-wider font-bold mb-0.5">{t("tipologias.balconyArea")}</p>
-                                  <input type="number" value={form.area_balcon} onChange={(e) => updateForm("area_balcon", e.target.value)} placeholder="0" className="w-full bg-transparent text-sm text-white placeholder:text-[var(--text-muted)] focus:outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none" />
+                                  <Label variant="card">{t("tipologias.balconyArea")}</Label>
+                                  <input type="number" value={form.area_balcon} onChange={(e) => updateForm("area_balcon", e.target.value)} placeholder="0" className="w-full bg-transparent text-sm font-mono text-white placeholder:text-[var(--text-muted)] focus:outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none" />
                                 </div>
-                                {form.area_balcon && <span className="text-[11px] text-[var(--text-muted)] shrink-0">m²</span>}
+                                {form.area_balcon && <span className="text-[11px] font-mono text-[var(--text-muted)] shrink-0">m²</span>}
                               </div>
                             )}
                             {effectiveColumns.area_m2 && (
                               <div className="flex items-center gap-3 p-3 bg-[var(--surface-1)] rounded-xl border border-[rgba(var(--site-primary-rgb),0.15)] transition-all">
                                 <div className="w-9 h-9 rounded-lg bg-[rgba(var(--site-primary-rgb),0.12)] flex items-center justify-center shrink-0">
-                                  <LayoutGrid size={16} className="text-[var(--site-primary)]" />
+                                  <LayoutGrid size={iconSize.md} className="text-[var(--site-primary)]" />
                                 </div>
                                 <div className="flex-1 min-w-0">
-                                  <p className="font-ui text-[10px] text-[var(--text-muted)] uppercase tracking-wider font-bold mb-0.5">{t("tipologias.totalArea")}</p>
-                                  <p className="text-sm font-medium text-[var(--site-primary)]">
+                                  <Label variant="card">{t("tipologias.totalArea")}</Label>
+                                  <p className="text-sm font-mono font-medium text-[var(--site-primary)]">
                                     {form.area_m2 || form.area_balcon
                                       ? `${((parseFloat(form.area_m2) || 0) + (parseFloat(form.area_balcon) || 0)).toFixed(1)} m²`
                                       : "—"}
@@ -1095,35 +1193,35 @@ export default function TipologiasPage() {
                             {/* ALWAYS show area_construida for tipologías (house specs) */}
                             <div className="flex items-center gap-3 p-3 bg-[var(--surface-1)] rounded-xl border border-[var(--border-subtle)] hover:border-[var(--border-default)] transition-all">
                               <div className="w-9 h-9 rounded-lg bg-[var(--surface-2)] flex items-center justify-center shrink-0">
-                                <Ruler size={16} className="text-[var(--text-tertiary)]" />
+                                <Ruler size={iconSize.md} className="text-[var(--text-tertiary)]" />
                               </div>
                               <div className="flex-1 min-w-0">
-                                <p className="font-ui text-[10px] text-[var(--text-muted)] uppercase tracking-wider font-bold mb-0.5">{t("inventario.columns.areaConstruida")}</p>
-                                <input type="number" value={form.area_construida} onChange={(e) => updateForm("area_construida", e.target.value)} placeholder="0" className="w-full bg-transparent text-sm text-white placeholder:text-[var(--text-muted)] focus:outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none" />
+                                <Label variant="card">{t("inventario.columns.areaConstruida")}</Label>
+                                <input type="number" value={form.area_construida} onChange={(e) => updateForm("area_construida", e.target.value)} placeholder="0" className="w-full bg-transparent text-sm font-mono text-white placeholder:text-[var(--text-muted)] focus:outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none" />
                               </div>
-                              {form.area_construida && <span className="text-[11px] text-[var(--text-muted)] shrink-0">m²</span>}
+                              {form.area_construida && <span className="text-[11px] font-mono text-[var(--text-muted)] shrink-0">m²</span>}
                             </div>
                             {/* ALWAYS show area_privada for tipologías (house specs) */}
                             <div className="flex items-center gap-3 p-3 bg-[var(--surface-1)] rounded-xl border border-[var(--border-subtle)] hover:border-[var(--border-default)] transition-all">
                               <div className="w-9 h-9 rounded-lg bg-[var(--surface-2)] flex items-center justify-center shrink-0">
-                                <Home size={16} className="text-[var(--text-tertiary)]" />
+                                <Home size={iconSize.md} className="text-[var(--text-tertiary)]" />
                               </div>
                               <div className="flex-1 min-w-0">
-                                <p className="font-ui text-[10px] text-[var(--text-muted)] uppercase tracking-wider font-bold mb-0.5">{t("inventario.columns.areaPrivada")}</p>
-                                <input type="number" value={form.area_privada} onChange={(e) => updateForm("area_privada", e.target.value)} placeholder="0" className="w-full bg-transparent text-sm text-white placeholder:text-[var(--text-muted)] focus:outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none" />
+                                <Label variant="card">{t("inventario.columns.areaPrivada")}</Label>
+                                <input type="number" value={form.area_privada} onChange={(e) => updateForm("area_privada", e.target.value)} placeholder="0" className="w-full bg-transparent text-sm font-mono text-white placeholder:text-[var(--text-muted)] focus:outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none" />
                               </div>
-                              {form.area_privada && <span className="text-[11px] text-[var(--text-muted)] shrink-0">m²</span>}
+                              {form.area_privada && <span className="text-[11px] font-mono text-[var(--text-muted)] shrink-0">m²</span>}
                             </div>
                             {effectiveColumns.area_lote && (
                               <div className="flex items-center gap-3 p-3 bg-[var(--surface-1)] rounded-xl border border-[var(--border-subtle)] hover:border-[var(--border-default)] transition-all">
                                 <div className="w-9 h-9 rounded-lg bg-[var(--surface-2)] flex items-center justify-center shrink-0">
-                                  <LandPlot size={16} className="text-[var(--text-tertiary)]" />
+                                  <LandPlot size={iconSize.md} className="text-[var(--text-tertiary)]" />
                                 </div>
                                 <div className="flex-1 min-w-0">
-                                  <p className="font-ui text-[10px] text-[var(--text-muted)] uppercase tracking-wider font-bold mb-0.5">{t("inventario.columns.areaLote")}</p>
-                                  <input type="number" value={form.area_lote} onChange={(e) => updateForm("area_lote", e.target.value)} placeholder="0" className="w-full bg-transparent text-sm text-white placeholder:text-[var(--text-muted)] focus:outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none" />
+                                  <Label variant="card">{t("inventario.columns.areaLote")}</Label>
+                                  <input type="number" value={form.area_lote} onChange={(e) => updateForm("area_lote", e.target.value)} placeholder="0" className="w-full bg-transparent text-sm font-mono text-white placeholder:text-[var(--text-muted)] focus:outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none" />
                                 </div>
-                                {form.area_lote && <span className="text-[11px] text-[var(--text-muted)] shrink-0">m²</span>}
+                                {form.area_lote && <span className="text-[11px] font-mono text-[var(--text-muted)] shrink-0">m²</span>}
                               </div>
                             )}
                           </div>
@@ -1131,72 +1229,70 @@ export default function TipologiasPage() {
 
                         {/* ── Espacios ── */}
                         <div>
-                          <p className="font-ui text-[10px] text-[var(--text-muted)] uppercase tracking-wider mb-2 font-bold">
-                            {t("tipologias.specsSpaces")}
-                          </p>
+                          <Label variant="section">{t("tipologias.specsSpaces")}</Label>
                           <div className="flex items-center gap-4 flex-wrap">
                             {/* Habitaciones */}
                             <div className="flex flex-col items-center gap-1">
                               <div className="flex items-center gap-2 px-3 py-2 bg-[var(--surface-1)] rounded-lg border border-[var(--border-subtle)] hover:border-[var(--border-default)] transition-all">
-                                <BedDouble size={16} className="text-[var(--text-tertiary)]" />
+                                <BedDouble size={iconSize.md} className="text-[var(--text-tertiary)]" />
                                 <input
                                   type="number"
                                   value={form.habitaciones}
                                   onChange={(e) => updateForm("habitaciones", e.target.value)}
                                   placeholder="0"
-                                  className="w-12 bg-transparent text-sm text-white placeholder:text-[var(--text-muted)] text-center focus:outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                                  className="w-12 bg-transparent text-sm font-mono text-white placeholder:text-[var(--text-muted)] text-center focus:outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                                 />
                               </div>
-                              <span className="text-[10px] text-[var(--text-muted)]">{t("tipologias.bedrooms")}</span>
+                              <Label variant="card" className="mb-0">{t("tipologias.bedrooms")}</Label>
                             </div>
 
                             {/* Baños */}
                             <div className="flex flex-col items-center gap-1">
                               <div className="flex items-center gap-2 px-3 py-2 bg-[var(--surface-1)] rounded-lg border border-[var(--border-subtle)] hover:border-[var(--border-default)] transition-all">
-                                <Bath size={16} className="text-[var(--text-tertiary)]" />
+                                <Bath size={iconSize.md} className="text-[var(--text-tertiary)]" />
                                 <input
                                   type="number"
                                   value={form.banos}
                                   onChange={(e) => updateForm("banos", e.target.value)}
                                   placeholder="0"
-                                  className="w-12 bg-transparent text-sm text-white placeholder:text-[var(--text-muted)] text-center focus:outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                                  className="w-12 bg-transparent text-sm font-mono text-white placeholder:text-[var(--text-muted)] text-center focus:outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                                 />
                               </div>
-                              <span className="text-[10px] text-[var(--text-muted)]">{t("tipologias.bathrooms")}</span>
+                              <Label variant="card" className="mb-0">{t("tipologias.bathrooms")}</Label>
                             </div>
 
                             {/* Parqueaderos */}
                             <div className="flex flex-col items-center gap-1">
                               <div className="flex items-center gap-2 px-3 py-2 bg-[var(--surface-1)] rounded-lg border border-[var(--border-subtle)] hover:border-[var(--border-default)] transition-all">
-                                <Car size={16} className="text-[var(--text-tertiary)]" />
+                                <Car size={iconSize.md} className="text-[var(--text-tertiary)]" />
                                 <input
                                   type="number"
                                   value={form.parqueaderos}
                                   onChange={(e) => updateForm("parqueaderos", e.target.value)}
                                   placeholder="0"
-                                  className="w-12 bg-transparent text-sm text-white placeholder:text-[var(--text-muted)] text-center focus:outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                                  className="w-12 bg-transparent text-sm font-mono text-white placeholder:text-[var(--text-muted)] text-center focus:outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                                 />
                               </div>
-                              <span className="text-[10px] text-[var(--text-muted)]">{t("tipologias.parking")}</span>
+                              <Label variant="card" className="mb-0">{t("tipologias.parking")}</Label>
                             </div>
 
                             {/* Depósitos */}
                             <div className="flex flex-col items-center gap-1">
                               <div className="flex items-center gap-2 px-3 py-2 bg-[var(--surface-1)] rounded-lg border border-[var(--border-subtle)] hover:border-[var(--border-default)] transition-all">
-                                <Archive size={16} className="text-[var(--text-tertiary)]" />
+                                <Archive size={iconSize.md} className="text-[var(--text-tertiary)]" />
                                 <input
                                   type="number"
                                   value={form.depositos}
                                   onChange={(e) => updateForm("depositos", e.target.value)}
                                   placeholder="0"
-                                  className="w-12 bg-transparent text-sm text-white placeholder:text-[var(--text-muted)] text-center focus:outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                                  className="w-12 bg-transparent text-sm font-mono text-white placeholder:text-[var(--text-muted)] text-center focus:outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                                 />
                               </div>
-                              <span className="text-[10px] text-[var(--text-muted)]">Depósitos</span>
+                              <Label variant="card" className="mb-0">Depósitos</Label>
                             </div>
                           </div>
                         </div>
-                      </div>
+                      </>
                     )}
 
                     {/* ── TAB: Plano ── */}
@@ -1204,14 +1300,16 @@ export default function TipologiasPage() {
                       <div className="space-y-6">
                         {/* Floor tabs */}
                         <div>
-                          <label className={labelClass}>{t("tipologias.floors")}</label>
-                          <div className="flex items-center gap-1 flex-wrap mt-1">
+                          <Label>{t("tipologias.floors")}</Label>
+                          <div className={cn("flex items-center flex-wrap mt-1", gap.compact)}>
                             {form.pisos.map((piso, i) => (
                               <button
                                 key={piso.id}
                                 onClick={() => setActivePisoIndex(i)}
                                 className={cn(
-                                  "px-3 py-1.5 rounded-lg text-xs font-medium transition-all",
+                                  "px-3 py-1.5 font-medium transition-all",
+                                  radius.md,
+                                  fontSize.subtitle,
                                   activePisoIndex === i
                                     ? "bg-[var(--site-primary)] text-black"
                                     : "bg-[var(--surface-2)] text-[var(--text-muted)] hover:text-[var(--text-secondary)]"
@@ -1222,9 +1320,14 @@ export default function TipologiasPage() {
                             ))}
                             <button
                               onClick={addFloor}
-                              className="flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs text-[var(--text-muted)] hover:text-[var(--text-secondary)] bg-[var(--surface-2)] hover:bg-[var(--surface-3)] transition-all border border-dashed border-[var(--border-subtle)]"
+                              className={cn(
+                                "flex items-center px-3 py-1.5 text-[var(--text-muted)] hover:text-[var(--text-secondary)] bg-[var(--surface-2)] hover:bg-[var(--surface-3)] transition-all border border-dashed border-[var(--border-subtle)]",
+                                gap.compact,
+                                radius.md,
+                                fontSize.subtitle
+                              )}
                             >
-                              <Plus size={12} />
+                              <Plus size={iconSize.xs} />
                               {t("tipologias.addFloor")}
                             </button>
                           </div>
@@ -1235,7 +1338,7 @@ export default function TipologiasPage() {
                           <>
                             {/* Floor name */}
                             <div>
-                              <label className={labelClass}>{t("tipologias.floorName")}</label>
+                              <Label>{t("tipologias.floorName")}</Label>
                               <input
                                 type="text"
                                 value={form.pisos[activePisoIndex].nombre}
@@ -1247,7 +1350,7 @@ export default function TipologiasPage() {
 
                             {/* Floor plan image */}
                             <div>
-                              <label className={labelClass}>{t("tipologias.floorPlanImage")}</label>
+                              <Label>{t("tipologias.floorPlanImage")}</Label>
                               <div className="max-w-[280px]">
                                 <FileUploader
                                   currentUrl={form.pisos[activePisoIndex].plano_url || null}
@@ -1268,9 +1371,13 @@ export default function TipologiasPage() {
                             {form.pisos.length > 1 && (
                               <button
                                 onClick={() => removeFloor(activePisoIndex)}
-                                className="flex items-center gap-1.5 text-xs text-red-400 hover:text-red-300 transition-colors"
+                                className={cn(
+                                  "flex items-center text-red-400 hover:text-red-300 transition-colors",
+                                  gap.normal,
+                                  fontSize.subtitle
+                                )}
                               >
-                                <Trash2 size={12} />
+                                <Trash2 size={iconSize.xs} />
                                 {t("tipologias.removeFloor")}
                               </button>
                             )}
@@ -1280,11 +1387,14 @@ export default function TipologiasPage() {
                         {/* Empty state */}
                         {form.pisos.length === 0 && (
                           <div className="text-center py-10">
-                            <p className="text-xs text-[var(--text-tertiary)] mb-3">
+                            <p className={cn(
+                              "text-[var(--text-tertiary)] mb-3",
+                              fontSize.subtitle
+                            )}>
                               {t("tipologias.noFloorsYet")}
                             </p>
                             <button onClick={addFloor} className={btnPrimary}>
-                              <Plus size={14} />
+                              <Plus size={iconSize.sm} />
                               {t("tipologias.addFirstFloor")}
                             </button>
                           </div>
@@ -1292,7 +1402,7 @@ export default function TipologiasPage() {
 
                         {/* Location image (global, not per-floor) */}
                         <div>
-                          <label className={labelClass}>{t("tipologias.locationInProject")}</label>
+                          <Label>{t("tipologias.locationInProject")}</Label>
                           <p className="text-[10px] text-[var(--text-muted)] mb-2">{t("tipologias.locationDescription")}</p>
                           <div className="max-w-[280px]">
                             <FileUploader
@@ -1312,13 +1422,15 @@ export default function TipologiasPage() {
                       <div className="h-full flex flex-col">
                         {/* Floor selector (only if multiple floors) */}
                         {form.pisos.length > 1 && (
-                          <div className="flex items-center gap-1 mb-2 shrink-0">
+                          <div className={cn("flex items-center mb-2 shrink-0", gap.compact)}>
                             {form.pisos.map((piso, i) => (
                               <button
                                 key={piso.id}
                                 onClick={() => setActivePisoIndex(i)}
                                 className={cn(
-                                  "px-3 py-1.5 rounded-lg text-xs transition-all",
+                                  "px-3 py-1.5 transition-all",
+                                  radius.md,
+                                  fontSize.subtitle,
                                   activePisoIndex === i
                                     ? "bg-[var(--site-primary)] text-black font-medium"
                                     : "bg-[var(--surface-2)] text-[var(--text-muted)] hover:text-[var(--text-secondary)]"
@@ -1326,7 +1438,7 @@ export default function TipologiasPage() {
                               >
                                 {piso.nombre}
                                 {piso.hotspots.length > 0 && (
-                                  <span className="ml-1.5 text-[9px] opacity-60">
+                                  <span className={cn("ml-1.5 opacity-60", fontSize.caption)}>
                                     ({piso.hotspots.length})
                                   </span>
                                 )}
@@ -1358,11 +1470,17 @@ export default function TipologiasPage() {
                           </div>
                         ) : (
                           <div className="flex flex-col items-center justify-center py-16 text-center">
-                            <MousePointerClick size={24} className="text-[var(--text-muted)] mb-3" />
-                            <p className="text-sm text-[var(--text-tertiary)] mb-1">
+                            <MousePointerClick size={iconSize.xl} className="text-[var(--text-muted)] mb-3" />
+                            <p className={cn(
+                              "text-[var(--text-tertiary)] mb-1",
+                              fontSize.md
+                            )}>
                               {form.pisos.length === 0 ? t("tipologias.noFloorsYet") : t("tipologias.noFloorPlan")}
                             </p>
-                            <p className="text-xs text-[var(--text-muted)]">
+                            <p className={cn(
+                              "text-[var(--text-muted)]",
+                              fontSize.subtitle
+                            )}>
                               {t("tipologias.uploadFloorPlanFirst")}
                             </p>
                             <button
@@ -1393,7 +1511,10 @@ export default function TipologiasPage() {
             </>
           ) : (
             /* No selection placeholder */
-            <div className="flex-1 flex items-center justify-center text-xs text-[var(--text-muted)]">
+            <div className={cn(
+              "flex-1 flex items-center justify-center text-[var(--text-muted)]",
+              fontSize.subtitle
+            )}>
               {t("tipologias.selectOrCreate")}
             </div>
           )}

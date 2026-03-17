@@ -1,8 +1,33 @@
+/**
+ * NODDO Editor Styles - Utility Classes
+ *
+ * This file provides utility className strings for common editor patterns.
+ * As of the design system migration, some utilities are deprecated in favor
+ * of atomic components from @/components/ui.
+ *
+ * MIGRATION STRATEGY:
+ * ✅ KEEP: Layout utilities (pageHeader, sectionCard, emptyState, etc.)
+ * ✅ KEEP: Input styles (inputClass, fieldHint)
+ * ✅ KEEP: Button styles (btnPrimary, btnSecondary, btnDanger)
+ * ⚠️  DEPRECATED: labelClass → use <Label> component
+ * ⚠️  DEPRECATED: badgeMuted, badgeGold → use <Badge> component
+ *
+ * For new features, prefer:
+ * - Design tokens from @/lib/design-tokens (fontSize, gap, padding, radius, etc.)
+ * - Atomic components from @/components/ui (Label, Icon, Badge, TabNavigation, etc.)
+ * - These utilities only when composing complex unique patterns
+ */
+
 // ── Inputs & Labels ──────────────────────────────────────────────
 
 export const inputClass =
   "w-full bg-[var(--surface-3)] border border-[var(--border-default)] rounded-[0.625rem] px-4 py-2.5 text-sm text-white placeholder:text-[var(--text-muted)] focus:outline-none focus:border-[rgba(var(--site-primary-rgb),0.5)] focus:shadow-[0_0_0_3px_rgba(var(--site-primary-rgb),0.10)] transition-all";
 
+/**
+ * @deprecated Use <Label> component from @/components/ui instead.
+ * Provides consistent variants (form, section, card) and uses design tokens.
+ * Example: <Label variant="form">Field name</Label>
+ */
 export const labelClass =
   "block text-[13px] text-[var(--text-secondary)] mb-1.5 font-medium";
 
@@ -58,9 +83,19 @@ export const listItem =
 export const badge =
   "inline-flex items-center px-2 py-0.5 font-ui text-[10px] font-bold uppercase tracking-wider rounded-full";
 
+/**
+ * @deprecated Use <Badge variant="muted"> component from @/components/ui instead.
+ * Provides consistent sizing, optional dot indicator, and pulse animation.
+ * Example: <Badge variant="muted">Label</Badge>
+ */
 export const badgeMuted =
   "inline-flex items-center px-2 py-0.5 font-ui text-[10px] font-bold uppercase tracking-wider rounded-full bg-[var(--surface-3)] text-[var(--text-tertiary)]";
 
+/**
+ * @deprecated Use <Badge variant="primary"> component from @/components/ui instead.
+ * Provides consistent sizing, optional dot indicator, and pulse animation.
+ * Example: <Badge variant="primary">Featured</Badge>
+ */
 export const badgeGold =
   "inline-flex items-center px-2 py-0.5 font-ui text-[10px] font-bold uppercase tracking-wider rounded-full bg-[rgba(var(--site-primary-rgb),0.15)] text-[var(--site-primary)]";
 

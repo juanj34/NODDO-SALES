@@ -9,12 +9,12 @@ import { useTranslation } from "@/i18n";
 import { useEditorProject } from "@/hooks/useEditorProject";
 import {
   inputClass,
-  labelClass,
   btnPrimary,
   btnSecondary,
   btnDanger,
   sectionCard,
 } from "@/components/dashboard/editor-styles";
+import { Label } from "@/components/ui";
 import { PageHeader } from "@/components/dashboard/base/PageHeader";
 import { FileUploader } from "@/components/dashboard/FileUploader";
 import { motion, AnimatePresence } from "framer-motion";
@@ -39,6 +39,7 @@ import type { Torre, Fachada, Unidad } from "@/types";
 import { getInventoryColumns } from "@/lib/inventory-columns";
 import { AITextImprover } from "@/components/dashboard/AITextImprover";
 import { AmenidadesEditor } from "@/components/dashboard/AmenidadesEditor";
+import { fontSize, gap, radius, iconSize } from "@/lib/design-tokens";
 
 /* ── Default values for first torre ──────────────────────────────── */
 
@@ -369,13 +370,17 @@ export default function TorresPage() {
 
       {/* ── Etapa hint for urbanismo projects ─────────────────── */}
       {columns.etapa && hasUrbanismo && torres.length > 1 && (
-        <div className="flex items-start gap-3 p-4 mb-4 bg-[rgba(184,151,58,0.05)] border border-[rgba(184,151,58,0.15)] rounded-xl">
-          <Layers size={16} className="text-[#b8973a] mt-0.5 shrink-0" />
+        <div className={cn(
+          "flex items-start p-4 mb-4 bg-[rgba(var(--site-primary-rgb),0.05)] border border-[rgba(var(--site-primary-rgb),0.15)]",
+          gap.relaxed,
+          radius.lg
+        )}>
+          <Layers size={iconSize.md} className="text-[var(--site-primary)] mt-0.5 shrink-0" />
           <div>
-            <p className="text-xs font-medium text-white mb-1">
+            <p className={cn(fontSize.md, "font-medium text-white mb-1")}>
               {t("torres.etapaHintTitle")}
             </p>
-            <p className="text-[11px] text-[var(--text-tertiary)] leading-relaxed">
+            <p className={cn(fontSize.body, "text-[var(--text-tertiary)] leading-relaxed")}>
               {t("torres.etapaHintDescription")}
             </p>
           </div>
@@ -383,10 +388,11 @@ export default function TorresPage() {
       )}
 
       {/* ── Master-Detail Layout ──────────────────────────────── */}
-      <div className={cn("flex gap-4", isMobile && "flex-col")} style={isMobile ? undefined : { minHeight: "480px" }}>
+      <div className={cn("flex", gap.loose, isMobile && "flex-col")} style={isMobile ? undefined : { minHeight: "480px" }}>
         {/* ── Sidebar (left / top on mobile) ──────────────────────── */}
         <div className={cn(
-          "shrink-0 flex flex-col gap-2",
+          "shrink-0 flex flex-col",
+          gap.normal,
           isMobile ? (selectedTorreId && !showAddForm ? "hidden" : "w-full") : "w-56"
         )}>
           {/* Torre list */}
@@ -402,7 +408,8 @@ export default function TorresPage() {
               <div
                 key={torre.id}
                 className={cn(
-                  "group relative w-full text-left p-3 rounded-xl border transition-all cursor-pointer",
+                  "group relative w-full text-left p-3 border transition-all cursor-pointer",
+                  radius.lg,
                   isSelected
                     ? "bg-[rgba(var(--site-primary-rgb),0.08)] border-[rgba(var(--site-primary-rgb),0.3)]"
                     : "bg-[var(--surface-1)] border-[var(--border-subtle)] hover:border-[var(--border-default)]"
@@ -412,24 +419,25 @@ export default function TorresPage() {
                   setShowAddForm(false);
                 }}
               >
-                <div className="flex items-center gap-2.5">
+                <div className={cn("flex items-center", gap.relaxed)}>
                   <div className={cn(
-                    "w-8 h-8 rounded-lg flex items-center justify-center shrink-0",
+                    "w-8 h-8 flex items-center justify-center shrink-0",
+                    radius.md,
                     isSelected
                       ? "bg-[rgba(var(--site-primary-rgb),0.15)]"
                       : "bg-[rgba(var(--site-primary-rgb),0.1)]"
                   )}>
                     {isBusy
-                      ? <Loader2 size={14} className="text-[var(--site-primary)] animate-spin" />
+                      ? <Loader2 size={iconSize.sm} className="text-[var(--site-primary)] animate-spin" />
                       : torre.tipo === "urbanismo"
-                        ? <Home size={14} className="text-[var(--site-primary)]" />
-                        : <Building2 size={14} className="text-[var(--site-primary)]" />
+                        ? <Home size={iconSize.sm} className="text-[var(--site-primary)]" />
+                        : <Building2 size={iconSize.sm} className="text-[var(--site-primary)]" />
                     }
                   </div>
                   <div className="min-w-0 flex-1">
-                    <p className="text-xs font-medium text-white truncate">{torre.nombre}</p>
+                    <p className={cn(fontSize.md, "font-medium text-white truncate")}>{torre.nombre}</p>
                     {hasData ? (
-                      <div className="flex items-center gap-1.5 text-[10px] text-[var(--text-muted)]">
+                      <div className={cn("flex items-center gap-1.5", fontSize.label, "text-[var(--text-muted)]")}>
                         {hasFloors && <span>{torre.pisos_residenciales || torre.num_pisos}p</span>}
                         {hasFloors && (nUnidades > 0 || nTotalFachadas > 0) && <span>·</span>}
                         {nUnidades > 0 && <span>{nUnidades} ud</span>}
@@ -439,7 +447,7 @@ export default function TorresPage() {
                         {counts.plantas > 0 && <span>{counts.plantas} pl</span>}
                       </div>
                     ) : (
-                      <p className="text-[10px] text-[var(--text-muted)] italic">{t("torres.notConfigured")}</p>
+                      <p className={cn(fontSize.label, "text-[var(--text-muted)] italic")}>{t("torres.notConfigured")}</p>
                     )}
                   </div>
 
@@ -454,10 +462,13 @@ export default function TorresPage() {
                         handleDuplicate(torre);
                       }}
                       disabled={isBusy}
-                      className="p-1.5 rounded-lg text-[var(--text-muted)] hover:text-[var(--site-primary)] hover:bg-[rgba(var(--site-primary-rgb),0.1)] transition-colors disabled:opacity-40"
+                      className={cn(
+                        "p-1.5 text-[var(--text-muted)] hover:text-[var(--site-primary)] hover:bg-[rgba(var(--site-primary-rgb),0.1)] transition-colors disabled:opacity-40",
+                        radius.md
+                      )}
                       title="Duplicar"
                     >
-                      <Copy size={13} />
+                      <Copy size={iconSize.sm - 1} />
                     </button>
                     <button
                       onClick={(e) => {
@@ -465,10 +476,13 @@ export default function TorresPage() {
                         handleDelete(torre.id);
                       }}
                       disabled={isBusy}
-                      className="p-1.5 rounded-lg text-[var(--text-muted)] hover:text-red-400 hover:bg-red-500/10 transition-colors disabled:opacity-40"
+                      className={cn(
+                        "p-1.5 text-[var(--text-muted)] hover:text-red-400 hover:bg-red-500/10 transition-colors disabled:opacity-40",
+                        radius.md
+                      )}
                       title="Eliminar"
                     >
-                      <Trash2 size={13} />
+                      <Trash2 size={iconSize.sm - 1} />
                     </button>
                   </div>
                 </div>
@@ -478,9 +492,9 @@ export default function TorresPage() {
 
           {/* Empty state hint when no torres */}
           {torres.length === 0 && (
-            <div className="p-5 rounded-xl border border-dashed border-[rgba(var(--site-primary-rgb),0.15)] text-center">
-              <Building2 size={20} className="mx-auto text-[var(--site-primary)] opacity-40 mb-2" />
-              <p className="font-heading text-sm font-light text-[var(--text-secondary)] mb-1">
+            <div className={cn("p-5 border border-dashed border-[rgba(var(--site-primary-rgb),0.15)] text-center", radius.lg)}>
+              <Building2 size={iconSize.lg} className="mx-auto text-[var(--site-primary)] opacity-40 mb-2" />
+              <p className={cn("font-heading font-light text-[var(--text-secondary)] mb-1", fontSize.md)}>
                 {t("torres.noTowers")}
               </p>
             </div>
@@ -498,7 +512,7 @@ export default function TorresPage() {
               showAddForm && "ring-1 ring-[rgba(var(--site-primary-rgb),0.3)]"
             )}
           >
-            <Plus size={14} />
+            <Plus size={iconSize.sm} />
             {t("torres.addTower")}
           </button>
         </div>
@@ -509,9 +523,9 @@ export default function TorresPage() {
           {isMobile && (selectedTorreId || showAddForm) && (
             <button
               onClick={() => { setSelectedTorreId(null); setShowAddForm(false); }}
-              className="flex items-center gap-2 mb-3 text-xs text-[var(--text-secondary)] hover:text-white transition-colors"
+              className={cn("flex items-center mb-3 text-[var(--text-secondary)] hover:text-white transition-colors", gap.normal, fontSize.md)}
             >
-              <ChevronRight size={14} className="rotate-180" />
+              <ChevronRight size={iconSize.sm} className="rotate-180" />
               {t("torres.backToList") ?? "Volver a torres"}
             </button>
           )}
@@ -526,13 +540,13 @@ export default function TorresPage() {
                 transition={{ duration: 0.15 }}
               >
                 <div className={sectionCard + " border-[rgba(var(--site-primary-rgb),0.3)]"}>
-                  <h3 className="text-sm font-medium text-white mb-3">{t("torres.newTower")}</h3>
+                  <h3 className={cn(fontSize.md, "font-medium text-white mb-3")}>{t("torres.newTower")}</h3>
 
                   {/* Type selector - only show for hibrido projects */}
                   {project?.tipo_proyecto === "hibrido" && (
                     <div className="mb-4">
-                      <label className={labelClass}>{t("torres.typeLabel")}</label>
-                      <div className="grid grid-cols-2 gap-2 mt-1">
+                      <Label>{t("torres.typeLabel")}</Label>
+                      <div className={cn("grid grid-cols-2 mt-1", gap.normal)}>
                         {(["torre", "urbanismo"] as const).map((tipo) => (
                           <button
                             key={tipo}
@@ -544,18 +558,20 @@ export default function TorresPage() {
                               }
                             }}
                             className={cn(
-                              "flex items-center gap-2.5 p-3 rounded-xl border transition-all text-left",
+                              "flex items-center p-3 border transition-all text-left",
+                              gap.relaxed,
+                              radius.lg,
                               addTipo === tipo
                                 ? "bg-[rgba(var(--site-primary-rgb),0.08)] border-[rgba(var(--site-primary-rgb),0.3)]"
                                 : "bg-[var(--surface-1)] border-[var(--border-subtle)] hover:border-[var(--border-default)]"
                             )}
                           >
-                            {tipo === "torre" ? <Building2 size={16} className="text-[var(--site-primary)] shrink-0" /> : <Home size={16} className="text-[var(--site-primary)] shrink-0" />}
+                            {tipo === "torre" ? <Building2 size={iconSize.md} className="text-[var(--site-primary)] shrink-0" /> : <Home size={iconSize.md} className="text-[var(--site-primary)] shrink-0" />}
                             <div>
-                              <p className="text-xs font-medium text-white">
+                              <p className={cn(fontSize.md, "font-medium text-white")}>
                                 {t(tipo === "torre" ? "torres.typeTorre" : "torres.typeUrbanismo")}
                               </p>
-                              <p className="text-[10px] text-[var(--text-muted)]">
+                              <p className={cn(fontSize.label, "text-[var(--text-muted)]")}>
                                 {t(tipo === "torre" ? "torres.typeTorreHint" : "torres.typeUrbanismoHint")}
                               </p>
                             </div>
@@ -567,8 +583,8 @@ export default function TorresPage() {
 
                   {/* Helper text for non-hibrido projects */}
                   {project?.tipo_proyecto !== "hibrido" && (
-                    <div className="mb-3 p-2.5 rounded-lg bg-[rgba(var(--site-primary-rgb),0.06)] border border-[rgba(var(--site-primary-rgb),0.15)]">
-                      <p className="text-[10px] text-[var(--text-secondary)]">
+                    <div className={cn("mb-3 p-2.5 bg-[rgba(var(--site-primary-rgb),0.06)] border border-[rgba(var(--site-primary-rgb),0.15)]", radius.md)}>
+                      <p className={cn(fontSize.label, "text-[var(--text-secondary)]")}>
                         {project?.tipo_proyecto === "apartamentos"
                           ? t("torres.fixedTypeTorre")
                           : t("torres.fixedTypeUrbanismo")}
@@ -577,7 +593,7 @@ export default function TorresPage() {
                   )}
 
                   <div
-                    className="grid grid-cols-[1fr_100px] gap-3 items-end"
+                    className={cn("grid grid-cols-[1fr_100px] items-end", gap.relaxed)}
                     onKeyDown={(e) => {
                       if (e.key === "Enter") {
                         e.preventDefault();
@@ -586,7 +602,7 @@ export default function TorresPage() {
                     }}
                   >
                     <div>
-                      <label className={labelClass}>{t("torres.nameRequired")}</label>
+                      <Label>{t("torres.nameRequired")}</Label>
                       <input
                         type="text"
                         value={addNombre}
@@ -599,11 +615,11 @@ export default function TorresPage() {
                         autoFocus
                       />
                       {addNameError && (
-                        <p className="text-[10px] text-red-400 mt-1">{t("torres.nameError")}</p>
+                        <p className={cn(fontSize.label, "text-red-400 mt-1")}>{t("torres.nameError")}</p>
                       )}
                     </div>
                     <div>
-                      <label className={labelClass}>{t("torres.prefix")}</label>
+                      <Label>{t("torres.prefix")}</Label>
                       <input
                         type="text"
                         value={addPrefijo}
@@ -613,15 +629,15 @@ export default function TorresPage() {
                       />
                     </div>
                   </div>
-                  <p className="text-[10px] text-[var(--text-muted)] mt-2">
+                  <p className={cn(fontSize.label, "text-[var(--text-muted)] mt-2")}>
                     {t("torres.addHint")}
                   </p>
-                  <div className="flex gap-2 mt-3">
+                  <div className={cn("flex mt-3", gap.normal)}>
                     <button onClick={handleAdd} disabled={saving} className={btnPrimary}>
                       {saving ? (
-                        <Loader2 size={14} className="animate-spin" />
+                        <Loader2 size={iconSize.sm} className="animate-spin" />
                       ) : (
-                        <Plus size={14} />
+                        <Plus size={iconSize.sm} />
                       )}
                       {saving ? t("torres.creating") : t("torres.createTower")}
                     </button>
@@ -651,7 +667,7 @@ export default function TorresPage() {
                 transition={{ duration: 0.15 }}
               >
                 {/* Tab bar */}
-                <div className="flex items-center gap-1 p-1 bg-[var(--surface-1)] rounded-xl border border-[var(--border-subtle)] mb-4">
+                <div className={cn("flex items-center gap-1 p-1 bg-[var(--surface-1)] border border-[var(--border-subtle)] mb-4", radius.lg)}>
                   {([
                     { id: "info" as const, label: t("torres.tabs.info"), icon: Building2 },
                     { id: "amenidades" as const, label: "Amenidades", icon: Sparkles },
@@ -669,18 +685,22 @@ export default function TorresPage() {
                         key={tab.id}
                         onClick={() => setTorreDetailTab(tab.id)}
                         className={cn(
-                          "flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-all",
+                          "flex items-center gap-1.5 px-3 py-1.5 font-medium transition-all",
+                          fontSize.md,
+                          radius.md,
                           isActive
                             ? "bg-[var(--surface-3)] text-white shadow-sm"
                             : "text-[var(--text-muted)] hover:text-[var(--text-secondary)] hover:bg-[var(--surface-2)]"
                         )}
                       >
-                        <tab.icon size={13} />
+                        <tab.icon size={iconSize.sm - 1} />
                         {tab.label}
                         {count !== null && count > 0 && (
                           <span
                             className={cn(
-                              "ml-1 px-1.5 py-0.5 text-[10px] rounded-full",
+                              "ml-1 px-1.5 py-0.5",
+                              fontSize.label,
+                              radius.full,
                               isActive
                                 ? "bg-[rgba(var(--site-primary-rgb),0.15)] text-[var(--site-primary)]"
                                 : "bg-[var(--surface-3)] text-[var(--text-muted)]"
@@ -775,7 +795,7 @@ export default function TorresPage() {
                 key="empty"
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
-                className="flex items-center justify-center h-64 text-sm text-[var(--text-muted)]"
+                className={cn("flex items-center justify-center h-64 text-[var(--text-muted)]", fontSize.md)}
               >
                 Selecciona una torre de la lista
               </motion.div>
@@ -802,31 +822,31 @@ function FachadasTabContent({ torre, fachadas: fachadasList, projectId }: Fachad
   const nFachadas = fachadasList.length;
   return (
     <div className={sectionCard}>
-      <h3 className="text-sm font-medium text-white mb-2">
+      <h3 className={cn(fontSize.md, "font-medium text-white mb-2")}>
         {t("torres.fachadasOf", { name: torre.nombre })}
       </h3>
-      <p className="text-xs text-[var(--text-tertiary)] mb-4">
+      <p className={cn(fontSize.md, "text-[var(--text-tertiary)] mb-4")}>
         {t("torres.fachadasCount", { count: String(nFachadas) })}
       </p>
       {fachadasList.length > 0 ? (
         <div className="space-y-2">
           {fachadasList.map((f) => (
-            <div key={f.id} className="flex items-center gap-3 p-2.5 rounded-lg bg-[var(--surface-2)]">
+            <div key={f.id} className={cn("flex items-center p-2.5 bg-[var(--surface-2)]", gap.relaxed, radius.md)}>
               {f.imagen_url && (
                 <Image src={f.imagen_url} alt="undefined" width={400} height={300} className="w-12 h-8 rounded object-cover" />
               )}
-              <span className="text-xs text-[var(--text-secondary)]">{f.nombre}</span>
+              <span className={cn(fontSize.md, "text-[var(--text-secondary)]")}>{f.nombre}</span>
             </div>
           ))}
         </div>
       ) : (
-        <p className="font-heading text-sm font-light text-[var(--text-tertiary)]">No hay fachadas asignadas.</p>
+        <p className={cn("font-heading font-light text-[var(--text-tertiary)]", fontSize.md)}>No hay fachadas asignadas.</p>
       )}
       <Link
         href={`/editor/${projectId}/fachadas`}
-        className="inline-flex items-center gap-1.5 mt-4 text-xs text-[var(--site-primary)] hover:underline"
+        className={cn("inline-flex items-center gap-1.5 mt-4 text-[var(--site-primary)] hover:underline", fontSize.md)}
       >
-        {t("torres.goToNoddoGrid")} <ChevronRight size={12} />
+        {t("torres.goToNoddoGrid")} <ChevronRight size={iconSize.xs} />
       </Link>
     </div>
   );
@@ -855,10 +875,10 @@ function UnidadesTabContent({ torre, unidades: unidadesList, tipologias, project
 
   return (
     <div className={sectionCard}>
-      <h3 className="text-sm font-medium text-white mb-2">
+      <h3 className={cn(fontSize.md, "font-medium text-white mb-2")}>
         {t("torres.unitsOf", { name: torre.nombre })}
       </h3>
-      <p className="text-xs text-[var(--text-tertiary)] mb-4">
+      <p className={cn(fontSize.md, "text-[var(--text-tertiary)] mb-4")}>
         {t("torres.unitsCount", { count: String(nUnidades) })}
       </p>
       {unidadesList.length > 0 ? (
@@ -866,23 +886,23 @@ function UnidadesTabContent({ torre, unidades: unidadesList, tipologias, project
           {unidadesList.map((u) => {
             const tipNombre = getTipologiaNombre(u.tipologia_id);
             return (
-              <div key={u.id} className="flex items-center gap-3 p-2.5 rounded-lg bg-[var(--surface-2)]">
-                <span className="text-xs font-medium text-white">{u.identificador}</span>
+              <div key={u.id} className={cn("flex items-center p-2.5 bg-[var(--surface-2)]", gap.relaxed, radius.md)}>
+                <span className={cn(fontSize.md, "font-medium text-white")}>{u.identificador}</span>
                 {tipNombre && (
-                  <span className="text-[10px] text-[var(--text-muted)]">{tipNombre}</span>
+                  <span className={cn(fontSize.label, "text-[var(--text-muted)]")}>{tipNombre}</span>
                 )}
               </div>
             );
           })}
         </div>
       ) : (
-        <p className="font-heading text-sm font-light text-[var(--text-tertiary)]">No hay unidades asignadas.</p>
+        <p className={cn("font-heading font-light text-[var(--text-tertiary)]", fontSize.md)}>No hay unidades asignadas.</p>
       )}
       <Link
         href={`/editor/${projectId}/inventario`}
-        className="inline-flex items-center gap-1.5 mt-4 text-xs text-[var(--site-primary)] hover:underline"
+        className={cn("inline-flex items-center gap-1.5 mt-4 text-[var(--site-primary)] hover:underline", fontSize.md)}
       >
-        {t("torres.goToInventory")} <ChevronRight size={12} />
+        {t("torres.goToInventory")} <ChevronRight size={iconSize.xs} />
       </Link>
     </div>
   );
@@ -949,7 +969,7 @@ function TorreEditFormInline({
   return (
     <div className="space-y-4">
       {/* Type badge — only show toggle for hibrido projects */}
-      <div className="flex items-center gap-2">
+      <div className={cn("flex items-center", gap.normal)}>
         {(["torre", "urbanismo"] as const).filter((tipo) => {
           if (tipoProyecto === "apartamentos") return tipo === "torre";
           if (tipoProyecto === "casas" || tipoProyecto === "lotes") return tipo === "urbanismo";
@@ -971,7 +991,9 @@ function TorreEditFormInline({
                 }
               }}
               className={cn(
-                "inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-all border",
+                "inline-flex items-center gap-1.5 px-3 py-1.5 font-medium transition-all border",
+                fontSize.md,
+                radius.md,
                 isActive
                   ? "bg-[rgba(var(--site-primary-rgb),0.1)] border-[rgba(var(--site-primary-rgb),0.3)] text-[var(--site-primary)]"
                   : "bg-[var(--surface-2)] border-[var(--border-subtle)] text-[var(--text-muted)] hover:text-[var(--text-secondary)] hover:border-[var(--border-default)]",
@@ -979,9 +1001,9 @@ function TorreEditFormInline({
               )}
             >
               {typeSwitching && !isActive ? (
-                <Loader2 size={12} className="animate-spin" />
+                <Loader2 size={iconSize.xs} className="animate-spin" />
               ) : (
-                tipo === "torre" ? <Building2 size={12} /> : <Home size={12} />
+                tipo === "torre" ? <Building2 size={iconSize.xs} /> : <Home size={iconSize.xs} />
               )}
               {t(tipo === "torre" ? "torres.typeTorre" : "torres.typeUrbanismo")}
             </button>
@@ -991,7 +1013,7 @@ function TorreEditFormInline({
 
       {/* Row 1: Nombre */}
       <div>
-        <label className={labelClass}>{t("torres.infoForm.name")}</label>
+        <Label>{t("torres.infoForm.name")}</Label>
         <input
           type="text"
           value={nombre}
@@ -1007,11 +1029,11 @@ function TorreEditFormInline({
 
       {/* Composición del edificio — only for torre type */}
       {(torre.tipo ?? "torre") !== "urbanismo" && <div>
-        <label className={labelClass}>Composición del edificio</label>
-        <div className="grid grid-cols-5 gap-3 mt-1">
+        <Label>Composición del edificio</Label>
+        <div className={cn("grid grid-cols-5 mt-1", gap.relaxed)}>
           {compositionFields.map((field) => (
             <div key={field.key} className="text-center">
-              <p className="text-[10px] text-[var(--text-tertiary)] mb-1">{field.label}</p>
+              <p className={cn(fontSize.label, "text-[var(--text-tertiary)] mb-1")}>{field.label}</p>
               <input
                 type="number"
                 min={0}
@@ -1049,9 +1071,9 @@ function TorreEditFormInline({
           ].filter((sec) => sec.count > 0);
 
           return (
-            <div className="mt-3 flex items-stretch gap-3">
+            <div className={cn("mt-3 flex items-stretch", gap.relaxed)}>
               {/* Stacked bar */}
-              <div className="w-10 flex flex-col-reverse rounded-lg overflow-hidden border border-[var(--border-subtle)]" style={{ height: Math.min(total * 8 + 16, 140) }}>
+              <div className={cn("w-10 flex flex-col-reverse overflow-hidden border border-[var(--border-subtle)]", radius.md)} style={{ height: Math.min(total * 8 + 16, 140) }}>
                 {sections.slice().reverse().map((sec) => (
                   <div
                     key={sec.label}
@@ -1063,14 +1085,14 @@ function TorreEditFormInline({
               {/* Legend */}
               <div className="flex flex-col justify-center gap-1">
                 {sections.map((sec) => (
-                  <div key={sec.label} className="flex items-center gap-2">
+                  <div key={sec.label} className={cn("flex items-center", gap.normal)}>
                     <div className={cn("w-2.5 h-2.5 rounded-sm", sec.color)} />
-                    <span className="text-[10px] text-[var(--text-tertiary)]">{sec.label}</span>
-                    <span className={cn("text-[10px] font-medium", sec.text)}>{sec.count}</span>
+                    <span className={cn(fontSize.label, "text-[var(--text-tertiary)]")}>{sec.label}</span>
+                    <span className={cn(fontSize.label, "font-medium", sec.text)}>{sec.count}</span>
                   </div>
                 ))}
                 <div className="border-t border-[var(--border-subtle)] mt-1 pt-1">
-                  <span className="text-[10px] text-[var(--text-secondary)] font-medium">Total: {total} niveles</span>
+                  <span className={cn(fontSize.label, "text-[var(--text-secondary)] font-medium")}>Total: {total} niveles</span>
                 </div>
               </div>
             </div>
@@ -1080,7 +1102,7 @@ function TorreEditFormInline({
 
       {/* Row: Prefijo */}
       <div>
-        <label className={labelClass}>{t("torres.infoForm.prefix")}</label>
+        <Label>{t("torres.infoForm.prefix")}</Label>
         <input
           type="text"
           value={prefijo}
@@ -1094,12 +1116,12 @@ function TorreEditFormInline({
           className={inputClass}
           placeholder={t("torres.infoForm.prefixPlaceholder")}
         />
-        <p className="text-[10px] text-[var(--text-muted)] mt-1">{t("torres.infoForm.prefixHint")}</p>
+        <p className={cn(fontSize.label, "text-[var(--text-muted)] mt-1")}>{t("torres.infoForm.prefixHint")}</p>
       </div>
 
       {/* Características */}
       <div>
-        <label className={labelClass}>{t("torres.infoForm.features")}</label>
+        <Label>{t("torres.infoForm.features")}</Label>
         <input
           type="text"
           value={caracteristicas}
@@ -1134,9 +1156,9 @@ function TorreEditFormInline({
       </div>
 
       {/* Row 5: Imagen de portada + Logo */}
-      <div className="grid grid-cols-2 gap-4">
+      <div className={cn("grid grid-cols-2", gap.loose)}>
         <div>
-          <label className={labelClass}>{t("torres.infoForm.coverImage")}</label>
+          <Label>{t("torres.infoForm.coverImage")}</Label>
           <FileUploader
             currentUrl={torre.imagen_portada || null}
             onUpload={(url) =>
@@ -1147,7 +1169,7 @@ function TorreEditFormInline({
           />
         </div>
         <div>
-          <label className={labelClass}>{t("torres.infoForm.logo")}</label>
+          <Label>{t("torres.infoForm.logo")}</Label>
           <FileUploader
             currentUrl={torre.logo_url || null}
             onUpload={(url) => onUpdate(torre.id, { logo_url: url })}
@@ -1166,9 +1188,9 @@ function TorreEditFormInline({
           className={btnDanger}
         >
           {deletingId === torre.id ? (
-            <Loader2 size={12} className="animate-spin" />
+            <Loader2 size={iconSize.xs} className="animate-spin" />
           ) : (
-            <Trash2 size={12} />
+            <Trash2 size={iconSize.xs} />
           )}
           {t("torres.infoForm.deleteTower")}
         </button>

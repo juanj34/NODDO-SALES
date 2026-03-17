@@ -50,6 +50,8 @@ import { ComplementosSection } from "@/components/dashboard/ComplementosSection"
 import { CurrencyInput } from "@/components/dashboard/CurrencyInput";
 import { SmartImportModal } from "@/components/dashboard/SmartImportModal";
 import { NodDoDropdown } from "@/components/ui/NodDoDropdown";
+import { UNIT_STATUS_COLORS } from "@/lib/status-colors";
+import { Badge } from "@/components/ui";
 
 // ---------------------------------------------------------------------------
 // Types
@@ -83,21 +85,13 @@ interface UnitFormData {
 // Constants
 // ---------------------------------------------------------------------------
 
-const ESTADOS: { value: EstadoUnidad; label: string; dot: string }[] = [
-  { value: "disponible", label: "Disponible", dot: "bg-green-500" },
-  { value: "proximamente", label: "Próximamente", dot: "bg-blue-500" },
-  { value: "separado", label: "Separado", dot: "bg-yellow-500" },
-  { value: "reservada", label: "Reservada", dot: "bg-orange-500" },
-  { value: "vendida", label: "Vendida", dot: "bg-red-500" },
+const ESTADOS: { value: EstadoUnidad; label: string }[] = [
+  { value: "disponible", label: "Disponible" },
+  { value: "proximamente", label: "Próximamente" },
+  { value: "separado", label: "Separado" },
+  { value: "reservada", label: "Reservada" },
+  { value: "vendida", label: "Vendida" },
 ];
-
-const ESTADO_COLORS: Record<EstadoUnidad, string> = {
-  disponible: "bg-green-500/20 text-green-400 border-green-500/30",
-  proximamente: "bg-blue-500/20 text-blue-400 border-blue-500/30",
-  separado: "bg-yellow-500/20 text-yellow-400 border-yellow-500/30",
-  reservada: "bg-orange-500/20 text-orange-400 border-orange-500/30",
-  vendida: "bg-red-500/20 text-red-400 border-red-500/30",
-};
 
 const EMPTY_FORM: UnitFormData = {
   identificador: "",
@@ -130,22 +124,20 @@ const EMPTY_FORM: UnitFormData = {
 // ---------------------------------------------------------------------------
 
 function EstadoBadge({ estado }: { estado: EstadoUnidad }) {
+  const colors = UNIT_STATUS_COLORS[estado];
   return (
     <span
-      className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-medium border ${ESTADO_COLORS[estado]}`}
+      className={cn(
+        "inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-medium border",
+        colors.bg,
+        colors.text,
+        colors.border
+      )}
     >
       {estado.charAt(0).toUpperCase() + estado.slice(1)}
     </span>
   );
 }
-
-const ESTADO_DOT_BG: Record<EstadoUnidad, string> = {
-  disponible: "bg-green-500",
-  proximamente: "bg-blue-500",
-  separado: "bg-yellow-500",
-  reservada: "bg-orange-500",
-  vendida: "bg-red-500",
-};
 
 function MobileUnitCard({
   unit,
@@ -199,14 +191,14 @@ function MobileUnitCard({
               className={cn(
                 "w-8 h-8 rounded-full flex items-center justify-center transition-all",
                 unit.estado === e.value
-                  ? `${ESTADO_DOT_BG[e.value]} ring-2 ring-offset-2 ring-offset-[var(--surface-2)] ring-current scale-110`
-                  : `${ESTADO_DOT_BG[e.value]}/25 hover:${ESTADO_DOT_BG[e.value]}/50`
+                  ? `${UNIT_STATUS_COLORS[e.value].dot} ring-2 ring-offset-2 ring-offset-[var(--surface-2)] ring-current scale-110`
+                  : `${UNIT_STATUS_COLORS[e.value].dot}/25 hover:${UNIT_STATUS_COLORS[e.value].dot}/50`
               )}
             >
               <span
                 className={cn(
                   "w-3 h-3 rounded-full",
-                  unit.estado === e.value ? "bg-white" : ESTADO_DOT_BG[e.value]
+                  unit.estado === e.value ? "bg-white" : UNIT_STATUS_COLORS[e.value].dot
                 )}
               />
             </button>
@@ -852,11 +844,11 @@ function PriceAdjustModal({
     }
   };
 
-  const ESTADO_FILTER_OPTIONS: { value: EstadoUnidad; label: string; dot: string }[] = [
-    { value: "disponible", label: "Disponible", dot: "bg-green-500" },
-    { value: "proximamente", label: "Próximamente", dot: "bg-blue-500" },
-    { value: "separado", label: "Separado", dot: "bg-yellow-500" },
-    { value: "reservada", label: "Reservada", dot: "bg-orange-500" },
+  const ESTADO_FILTER_OPTIONS: { value: EstadoUnidad; label: string }[] = [
+    { value: "disponible", label: "Disponible" },
+    { value: "proximamente", label: "Próximamente" },
+    { value: "separado", label: "Separado" },
+    { value: "reservada", label: "Reservada" },
   ];
 
   return (
@@ -968,7 +960,7 @@ function PriceAdjustModal({
                       onChange={() => toggleEstado(e.value)}
                       className="accent-[var(--site-primary)] w-3.5 h-3.5"
                     />
-                    <span className={cn("w-2 h-2 rounded-full", e.dot)} />
+                    <span className={cn("w-2 h-2 rounded-full", UNIT_STATUS_COLORS[e.value].dot)} />
                     <span className="text-xs text-[var(--text-secondary)]">{e.label}</span>
                   </label>
                 ))}
@@ -2281,7 +2273,7 @@ export default function InventarioPage() {
               key={e.value}
               className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-[var(--surface-2)] border border-[var(--border-subtle)]"
             >
-              <span className={cn("w-2.5 h-2.5 rounded-full shrink-0", ESTADO_DOT_BG[e.value])} />
+              <span className={cn("w-2.5 h-2.5 rounded-full shrink-0", UNIT_STATUS_COLORS[e.value].dot)} />
               <span className="text-[11px] text-[var(--text-tertiary)] hidden sm:inline">{e.label}</span>
               <span className="text-sm font-medium text-white">{stats[e.value]}</span>
             </div>
@@ -2559,7 +2551,7 @@ export default function InventarioPage() {
             onChange={(val) => setFilterEstado(val)}
             options={[
               { value: "", label: t("inventario.allStates") },
-              ...ESTADOS.map((e) => ({ value: e.value, label: e.label, metadata: { dot: e.dot } })),
+              ...ESTADOS.map((e) => ({ value: e.value, label: e.label, metadata: { dot: UNIT_STATUS_COLORS[e.value].dot } })),
             ]}
             renderOption={(option) => (
               <span className="flex items-center gap-1.5">

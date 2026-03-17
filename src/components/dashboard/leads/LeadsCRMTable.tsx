@@ -3,6 +3,8 @@
 import { motion } from "framer-motion";
 import { ArrowUpDown, FileText } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { Label, Badge } from "@/components/ui";
+import { fontSize } from "@/lib/design-tokens";
 import { LeadStatusBadge } from "./LeadStatusBadge";
 import type { LeadWithMeta } from "@/types";
 
@@ -59,7 +61,7 @@ export function LeadsCRMTable({
         <p className="font-heading text-xl font-light text-[var(--text-secondary)]">
           {locale === "es" ? "No hay registros" : "No leads found"}
         </p>
-        <p className="text-[var(--text-muted)] text-[12px] leading-[1.7] mt-2">
+        <p className={cn("text-[var(--text-muted)] leading-[1.7] mt-2", fontSize.subtitle)}>
           {locale === "es"
             ? "Intenta ajustar los filtros o espera nuevos registros"
             : "Try adjusting filters or wait for new leads"}
@@ -77,35 +79,39 @@ export function LeadsCRMTable({
       <table className="w-full" role="table" aria-label={locale === "es" ? "Tabla de leads" : "Leads table"}>
         <thead>
           <tr className="border-b border-[var(--border-subtle)]">
-            <th scope="col" className="text-left px-5 py-3 font-ui text-[10px] text-[var(--text-tertiary)] tracking-wider uppercase font-bold">
-              {locale === "es" ? "Nombre" : "Name"}
+            <th scope="col" className="text-left px-5 py-3">
+              <Label variant="section" className="mb-0">{locale === "es" ? "Nombre" : "Name"}</Label>
             </th>
-            <th scope="col" className="text-left px-5 py-3 font-ui text-[10px] text-[var(--text-tertiary)] tracking-wider uppercase font-bold hidden md:table-cell">
-              {locale === "es" ? "Email" : "Email"}
+            <th scope="col" className="text-left px-5 py-3 hidden md:table-cell">
+              <Label variant="section" className="mb-0">{locale === "es" ? "Email" : "Email"}</Label>
             </th>
-            <th scope="col" className="text-left px-5 py-3 font-ui text-[10px] text-[var(--text-tertiary)] tracking-wider uppercase font-bold hidden lg:table-cell">
-              {locale === "es" ? "Teléfono" : "Phone"}
+            <th scope="col" className="text-left px-5 py-3 hidden lg:table-cell">
+              <Label variant="section" className="mb-0">{locale === "es" ? "Teléfono" : "Phone"}</Label>
             </th>
             {multiProject && (
-              <th scope="col" className="text-left px-5 py-3 font-ui text-[10px] text-[var(--text-tertiary)] tracking-wider uppercase font-bold hidden xl:table-cell">
-                {locale === "es" ? "Proyecto" : "Project"}
+              <th scope="col" className="text-left px-5 py-3 hidden xl:table-cell">
+                <Label variant="section" className="mb-0">{locale === "es" ? "Proyecto" : "Project"}</Label>
               </th>
             )}
-            <th scope="col" className="text-left px-5 py-3 font-ui text-[10px] text-[var(--text-tertiary)] tracking-wider uppercase font-bold">
-              Status
+            <th scope="col" className="text-left px-5 py-3">
+              <Label variant="section" className="mb-0">Status</Label>
             </th>
-            <th scope="col" className="text-center px-5 py-3 font-ui text-[10px] text-[var(--text-tertiary)] tracking-wider uppercase font-bold">
-              <span className="hidden sm:inline">{locale === "es" ? "Cotiz." : "Quotes"}</span>
-              <FileText size={12} className="sm:hidden inline" aria-label={locale === "es" ? "Cotizaciones" : "Quotes"} />
+            <th scope="col" className="text-center px-5 py-3">
+              <Label variant="section" className="mb-0">
+                <span className="hidden sm:inline">{locale === "es" ? "Cotiz." : "Quotes"}</span>
+                <FileText size={12} className="sm:hidden inline" aria-label={locale === "es" ? "Cotizaciones" : "Quotes"} />
+              </Label>
             </th>
-            <th scope="col" className="text-left px-5 py-3 font-ui text-[10px] text-[var(--text-tertiary)] tracking-wider uppercase font-bold">
+            <th scope="col" className="text-left px-5 py-3">
               <button
                 onClick={() => onSortChange(sortDir === "newest" ? "oldest" : "newest")}
                 className="inline-flex items-center gap-1 hover:text-[var(--text-secondary)] transition-colors"
                 aria-label={locale === "es" ? `Ordenar por fecha: ${sortDir === "newest" ? "más reciente primero" : "más antiguo primero"}` : `Sort by date: ${sortDir === "newest" ? "newest first" : "oldest first"}`}
               >
-                {locale === "es" ? "Fecha" : "Date"}
-                <ArrowUpDown size={10} aria-hidden="true" />
+                <Label variant="section" className="mb-0">
+                  {locale === "es" ? "Fecha" : "Date"}
+                  <ArrowUpDown size={10} aria-hidden="true" className="inline ml-1" />
+                </Label>
               </button>
             </th>
           </tr>
@@ -141,7 +147,7 @@ export function LeadsCRMTable({
                 <td className="px-5 py-3.5">
                   <div className="flex items-center gap-3">
                     <div
-                      className="w-8 h-8 rounded-full flex items-center justify-center text-[11px] font-bold shrink-0"
+                      className={cn("w-8 h-8 rounded-full flex items-center justify-center font-bold shrink-0", fontSize.body)}
                       style={{
                         background: `linear-gradient(135deg, rgba(var(--site-primary-rgb), 0.25), rgba(var(--site-primary-rgb), 0.08))`,
                         boxShadow: `0 0 0 1px rgba(var(--site-primary-rgb), 0.2)`,
@@ -151,25 +157,25 @@ export function LeadsCRMTable({
                       {lead.nombre.charAt(0).toUpperCase()}
                     </div>
                     <div className="min-w-0">
-                      <p className="text-sm text-white truncate">{lead.nombre}</p>
-                      <p className="text-[11px] text-[var(--text-muted)] truncate md:hidden">
+                      <p className={cn("text-white truncate", fontSize.md)}>{lead.nombre}</p>
+                      <p className={cn("text-[var(--text-muted)] truncate md:hidden", fontSize.body)}>
                         {lead.email}
                       </p>
                     </div>
                   </div>
                 </td>
-                <td className="px-5 py-3.5 text-sm text-[var(--text-secondary)] truncate max-w-[200px] hidden md:table-cell">
+                <td className={cn("px-5 py-3.5 text-[var(--text-secondary)] truncate max-w-[200px] hidden md:table-cell", fontSize.md)}>
                   {lead.email}
                 </td>
-                <td className="px-5 py-3.5 text-sm text-[var(--text-secondary)] hidden lg:table-cell">
+                <td className={cn("px-5 py-3.5 text-[var(--text-secondary)] hidden lg:table-cell", fontSize.md)}>
                   {lead.telefono || "—"}
                 </td>
                 {multiProject && (
                   <td className="px-5 py-3.5 hidden xl:table-cell">
                     {lead.proyecto_nombre ? (
-                      <span className="px-2 py-0.5 bg-[rgba(var(--site-primary-rgb),0.08)] text-[var(--site-primary)] rounded text-[10px] font-bold uppercase tracking-wider truncate max-w-[120px] inline-block">
+                      <Badge variant="primary" size="sm" className="truncate max-w-[120px]">
                         {lead.proyecto_nombre}
-                      </span>
+                      </Badge>
                     ) : (
                       "—"
                     )}
@@ -180,20 +186,14 @@ export function LeadsCRMTable({
                 </td>
                 <td className="px-5 py-3.5 text-center">
                   {lead.cotizaciones_count > 0 ? (
-                    <span
-                      className="inline-flex items-center justify-center min-w-[22px] h-[22px] rounded-full text-[10px] font-bold"
-                      style={{
-                        background: "rgba(var(--site-primary-rgb), 0.15)",
-                        color: "var(--site-primary)",
-                      }}
-                    >
+                    <Badge variant="primary" size="sm" className="min-w-[22px] h-[22px] px-1.5">
                       {lead.cotizaciones_count}
-                    </span>
+                    </Badge>
                   ) : (
-                    <span className="text-[var(--text-muted)] text-xs">—</span>
+                    <span className={cn("text-[var(--text-muted)]", fontSize.subtitle)}>—</span>
                   )}
                 </td>
-                <td className="px-5 py-3.5 text-[12px] text-[var(--text-tertiary)] tabular-nums whitespace-nowrap">
+                <td className={cn("px-5 py-3.5 text-[var(--text-tertiary)] tabular-nums whitespace-nowrap", fontSize.subtitle)}>
                   {formatShortDate(lead.created_at)}
                 </td>
               </motion.tr>

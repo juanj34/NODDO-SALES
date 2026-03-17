@@ -104,6 +104,8 @@ export default function NoddoGridPage() {
   /* ---- Derived data ---- */
   const torres = useMemo<Torre[]>(() => project?.torres ?? [], [project]);
   const isMultiTorre = torres.length > 1;
+  const tipoProyecto = project?.tipo_proyecto ?? "hibrido";
+  const isHorizontalProject = tipoProyecto === "casas" || tipoProyecto === "lotes";
 
   // Tipología lookup for enriching unit display
   const tipologiaMap = useMemo(() => {
@@ -210,12 +212,12 @@ export default function NoddoGridPage() {
     }
   }, [torres, activeTab, isMultiTorre]);
 
-  /* ---- Reset viewMode for urbanismo (etapas don't have fachadas/plantas) ---- */
+  /* ---- Reset viewMode for urbanismo/horizontal projects (no fachadas/plantas concept) ---- */
   useEffect(() => {
-    if (activeTorre?.tipo === "urbanismo" && viewMode !== "fachada") {
+    if ((activeTorre?.tipo === "urbanismo" || isHorizontalProject) && viewMode !== "fachada") {
       setViewMode("fachada");
     }
-  }, [activeTorre, viewMode]);
+  }, [activeTorre, viewMode, isHorizontalProject]);
 
   /* ------------------------------------------------------------------
      CRUD: Fachada
@@ -846,9 +848,9 @@ export default function NoddoGridPage() {
 
       {/* Right: Unassigned units panel */}
       <div className="w-52 shrink-0 flex flex-col rounded-xl border border-[var(--border-subtle)] bg-[var(--surface-1)] overflow-hidden max-h-[70vh]">
-        <div className="px-3 py-2.5 border-b border-[var(--border-subtle)] bg-[var(--surface-2)]">
+        <div className="px-3 py-2.5 border-b border-[var(--border-subtle)] bg-[var(--surface-2)] flex items-center justify-between">
           <h3 className="font-ui text-[10px] font-bold text-[var(--text-secondary)] uppercase tracking-wider">{t("fachadas.unassigned")}</h3>
-          <p className="text-[10px] text-[var(--text-muted)]">{t("fachadas.unitCount", { count: unassignedUnits.length })}</p>
+          <span className="font-mono text-[10px] text-[var(--text-muted)] tabular-nums">{unassignedUnits.length}</span>
         </div>
         <div className="flex-1 overflow-y-auto scrollbar-thin">
           {unassignedUnits.length > 0 ? (
@@ -881,9 +883,9 @@ export default function NoddoGridPage() {
         </div>
         {assignedUnits.length > 0 && (
           <>
-            <div className="px-3 py-2 border-t border-[var(--border-subtle)] bg-[var(--surface-2)]">
-              <h3 className="font-ui text-[10px] font-bold text-[var(--text-secondary)] uppercase tracking-wider">{t("fachadas.assigned")}</h3>
-              <p className="text-[10px] text-[var(--text-muted)]">{t("fachadas.unitCount", { count: assignedUnits.length })}</p>
+            <div className="px-3 py-2 border-t border-[var(--border-subtle)] bg-[var(--surface-2)] flex items-center justify-between">
+              <h3 className="font-ui text-[10px] font-bold text-[var(--site-primary)] uppercase tracking-wider">{t("fachadas.assigned")}</h3>
+              <span className="font-mono text-[10px] text-[var(--site-primary)] tabular-nums">{assignedUnits.length}</span>
             </div>
             <div className="overflow-y-auto scrollbar-thin max-h-40">
               <div className="py-1">
@@ -919,10 +921,22 @@ export default function NoddoGridPage() {
     </div>
   );
 
+  /* ---- Etapa-aware label helper ---- */
+  const tg = (key: string, params?: Record<string, string | number>) => {
+    if (isHorizontalProject) {
+      const etapaKey = `fachadas.etapas.${key}`;
+      const result = t(etapaKey, params);
+      if (result !== etapaKey) return result;
+    }
+    return t(`fachadas.${key}`, params);
+  };
+
   /* ------------------------------------------------------------------
      Reusable: ViewMode toggle + Duplicate button
      ------------------------------------------------------------------ */
-  const renderViewModeToggle = () => (
+  const renderViewModeToggle = () => {
+    if (isHorizontalProject) return null;
+    return (
     <div className="flex items-center justify-between">
       <div className="flex items-center gap-1 p-0.5 bg-[var(--surface-2)] rounded-lg border border-[var(--border-subtle)]">
         <button
@@ -963,6 +977,7 @@ export default function NoddoGridPage() {
       )}
     </div>
   );
+  };
 
   /* ------------------------------------------------------------------
      Render
@@ -985,11 +1000,6 @@ export default function NoddoGridPage() {
               variant="dashboard"
               placement="auto"
             />
-            {selectedFachada && !isMultiTorre && (
-              <span className="ml-2 text-[var(--text-tertiary)]">
-                {t("fachadas.descriptionDetail", { name: selectedFachada.nombre, assigned: assignedUnits.length, unassigned: unassignedUnits.length })}
-              </span>
-            )}
           </span>
         }
         actions={
@@ -1006,12 +1016,51 @@ export default function NoddoGridPage() {
                 className={btnPrimary}
               >
                 <Plus size={14} />
-                {t("fachadas.addGrid")}
+                {tg("addGrid")}
               </button>
             )}
           </div>
         }
       />
+
+      {/* Context bar: stats + interaction hints (only when a grid is selected) */}
+      {selectedFachada && (
+        <div className="flex items-center justify-between gap-4 px-4 py-2 bg-[var(--surface-1)] border border-[var(--border-subtle)] rounded-xl">
+          {/* Left: current grid info + stats */}
+          <div className="flex items-center gap-4">
+            {!isMultiTorre && (
+              <span className="font-ui text-[10px] font-bold text-[var(--text-secondary)] uppercase tracking-wider">
+                {selectedFachada.nombre}
+              </span>
+            )}
+            <div className="flex items-center gap-1.5">
+              <span className="font-mono text-[11px] text-[var(--site-primary)] font-medium tabular-nums">{assignedUnits.length}</span>
+              <span className="text-[10px] text-[var(--text-muted)]">{t("fachadas.placed")}</span>
+            </div>
+            <span className="w-px h-3.5 bg-[var(--border-subtle)]" />
+            <div className="flex items-center gap-1.5">
+              <span className="font-mono text-[11px] text-[var(--text-tertiary)] font-medium tabular-nums">{unassignedUnits.length}</span>
+              <span className="text-[10px] text-[var(--text-muted)]">sin asignar</span>
+            </div>
+          </div>
+
+          {/* Right: interaction hints as kbd keys */}
+          <div className="flex items-center gap-3 text-[10px] text-[var(--text-muted)]">
+            <span className="flex items-center gap-1">
+              <kbd className="px-1.5 py-0.5 bg-[var(--surface-3)] border border-[var(--border-subtle)] rounded text-[9px] font-mono text-[var(--text-tertiary)]">Click</kbd>
+              {t("fachadas.interactionHints.createPoint")}
+            </span>
+            <span className="flex items-center gap-1">
+              <kbd className="px-1.5 py-0.5 bg-[var(--surface-3)] border border-[var(--border-subtle)] rounded text-[9px] font-mono text-[var(--text-tertiary)]">Click punto</kbd>
+              {t("fachadas.interactionHints.assignUnit")}
+            </span>
+            <span className="flex items-center gap-1">
+              <kbd className="px-1.5 py-0.5 bg-[var(--surface-3)] border border-[var(--border-subtle)] rounded text-[9px] font-mono text-[var(--text-tertiary)]">Drag</kbd>
+              {t("fachadas.interactionHints.move")}
+            </span>
+          </div>
+        </div>
+      )}
 
       {/* ============================================================
           MULTI-TORRE MODE
@@ -1066,7 +1115,7 @@ export default function NoddoGridPage() {
               className="flex items-center gap-1 px-3 py-2 rounded-lg text-xs text-[var(--text-muted)] hover:text-[var(--site-primary)] hover:bg-[var(--surface-2)] transition-all whitespace-nowrap shrink-0"
             >
               <Plus size={12} />
-              {t("fachadas.manageTowers")}
+              {tg("manageTowers")}
             </Link>
           </div>
 
@@ -1172,13 +1221,6 @@ export default function NoddoGridPage() {
                   </div>
                 )}
 
-                {/* Instructions */}
-                {selectedFachada && (
-                  <p className="text-[11px] text-[var(--text-muted)]">
-                    <strong>{t("fachadas.interactionHints.click")}</strong> = {t("fachadas.interactionHints.createPoint")} · <strong>{t("fachadas.interactionHints.clickOnPoint")}</strong> = {t("fachadas.interactionHints.assignUnit")} · <strong>{t("fachadas.interactionHints.drag")}</strong> = {t("fachadas.interactionHints.move")} · <strong>Arrastrar</strong> = {t("fachadas.interactionHints.rectSelection")}
-                  </p>
-                )}
-
                 {/* No units warning */}
                 {selectedFachada && unassignedUnits.length === 0 && assignedUnits.length === 0 && (
                   <div className="flex items-center gap-3 px-4 py-3 rounded-xl bg-amber-500/8 border border-amber-500/15 text-xs text-amber-400/70">
@@ -1203,7 +1245,7 @@ export default function NoddoGridPage() {
                     <p className={emptyStateDescription}>{t("fachadas.plantas.noPlantasDescription")}</p>
                     <button onClick={() => setShowPlantaTipoForm(true)} className={btnPrimary}>
                       <Plus size={14} />
-                      {t("fachadas.addGrid")}
+                      {tg("addGrid")}
                     </button>
                   </div>
                 ) : (
@@ -1211,11 +1253,11 @@ export default function NoddoGridPage() {
                     <div className={emptyStateIcon}>
                       <ImageIcon size={24} className="text-[var(--text-muted)]" />
                     </div>
-                    <p className={emptyStateTitle}>{t("fachadas.noGridsInTower")}</p>
-                    <p className={emptyStateDescription}>{t("fachadas.noGridsInTowerDescription")}</p>
+                    <p className={emptyStateTitle}>{tg("noGridsInTower")}</p>
+                    <p className={emptyStateDescription}>{tg("noGridsInTowerDescription")}</p>
                     <button onClick={() => setShowAddForm(true)} className={btnPrimary}>
                       <Plus size={14} />
-                      {t("fachadas.addGrid")}
+                      {tg("addGrid")}
                     </button>
                   </div>
                 )}
@@ -1225,7 +1267,7 @@ export default function NoddoGridPage() {
                   <div className="flex justify-center">
                     <button onClick={() => setShowAddForm(true)} className={btnSecondary}>
                       <Plus size={14} />
-                      {t("fachadas.addGridToTower", { name: activeTorre.nombre })}
+                      {tg("addGridToTower", { name: activeTorre.nombre })}
                     </button>
                   </div>
                 )}
@@ -1254,13 +1296,6 @@ export default function NoddoGridPage() {
             </div>
           )}
 
-          {/* Compact instructions */}
-          {selectedFachada && (
-            <p className="text-[11px] text-[var(--text-muted)]">
-              <strong>{t("fachadas.interactionHints.click")}</strong> = {t("fachadas.interactionHints.createPoint")} · <strong>{t("fachadas.interactionHints.clickOnPoint")}</strong> = {t("fachadas.interactionHints.assignUnit")} · <strong>{t("fachadas.interactionHints.drag")}</strong> = {t("fachadas.interactionHints.move")} · <strong>Arrastrar</strong> = {t("fachadas.interactionHints.rectSelection")}
-            </p>
-          )}
-
           {/* Empty state */}
           {!showGridEditor && viewMode === "planta" && (
             <div className={emptyState}>
@@ -1271,7 +1306,7 @@ export default function NoddoGridPage() {
               <p className={emptyStateDescription}>{t("fachadas.plantas.noPlantasDescription")}</p>
               <button onClick={() => setShowPlantaTipoForm(true)} className={btnPrimary}>
                 <Plus size={14} />
-                {t("fachadas.addGrid")}
+                {tg("addGrid")}
               </button>
             </div>
           )}
@@ -1280,10 +1315,10 @@ export default function NoddoGridPage() {
               <div className={emptyStateIcon}>
                 <Eye size={24} className="text-[var(--text-muted)]" />
               </div>
-              <p className={emptyStateTitle}>{t("fachadas.noGridsConfigured")}</p>
-              <p className={emptyStateDescription}>{t("fachadas.noGridsConfiguredDescription")}</p>
+              <p className={emptyStateTitle}>{tg("noGridsConfigured")}</p>
+              <p className={emptyStateDescription}>{tg("noGridsConfiguredDescription")}</p>
               <div className="flex gap-6 text-center mb-5">
-                {[t("fachadas.instructions.upload"), t("fachadas.instructions.click"), t("fachadas.instructions.assign")].map((text, i) => (
+                {[isHorizontalProject ? t("fachadas.etapas.instructionsUpload") : t("fachadas.instructions.upload"), t("fachadas.instructions.click"), t("fachadas.instructions.assign")].map((text, i) => (
                   <div key={i} className="flex flex-col items-center gap-2 max-w-[140px]">
                     <div className="w-8 h-8 rounded-full bg-[rgba(var(--site-primary-rgb),0.15)] text-[var(--site-primary)] flex items-center justify-center text-xs font-bold">{i + 1}</div>
                     <p className="text-xs text-[var(--text-tertiary)]">{text}</p>
@@ -1292,7 +1327,7 @@ export default function NoddoGridPage() {
               </div>
               <button onClick={() => setShowAddForm(true)} className={btnPrimary}>
                 <Plus size={14} />
-                {t("fachadas.addFirstGrid")}
+                {tg("addFirstGrid")}
               </button>
             </div>
           )}
@@ -1338,7 +1373,7 @@ export default function NoddoGridPage() {
             >
               <div className="flex items-center justify-between">
                 <h3 className="text-sm text-[var(--text-primary)] font-medium">
-                  {isMultiTorre && activeTorre ? t("fachadas.newGridFor", { name: activeTorre.nombre }) : t("fachadas.newGrid")}
+                  {isMultiTorre && activeTorre ? tg("newGridFor", { name: activeTorre.nombre }) : tg("newGrid")}
                 </h3>
                 <button onClick={resetAddForm} className="text-[var(--text-tertiary)] hover:text-[var(--text-secondary)] transition-colors">
                   <X size={16} />
@@ -1346,16 +1381,16 @@ export default function NoddoGridPage() {
               </div>
               <div>
                 <label className={labelClass}>{t("fachadas.name")}</label>
-                <input type="text" value={newNombre} onChange={(e) => setNewNombre(e.target.value)} placeholder={t("fachadas.namePlaceholder")} className={inputClass} autoFocus />
+                <input type="text" value={newNombre} onChange={(e) => setNewNombre(e.target.value)} placeholder={tg("namePlaceholder")} className={inputClass} autoFocus />
               </div>
               <div>
-                <label className={labelClass}>{t("fachadas.gridImageLabel")}</label>
-                <FileUploader currentUrl={newImagenUrl || null} onUpload={(url) => setNewImagenUrl(url)} folder={`proyectos/${projectId}/fachadas`} label={t("fachadas.uploadGridImage")} />
+                <label className={labelClass}>{tg("gridImageLabel")}</label>
+                <FileUploader currentUrl={newImagenUrl || null} onUpload={(url) => setNewImagenUrl(url)} folder={`proyectos/${projectId}/fachadas`} label={tg("uploadGridImage")} />
               </div>
               <div className="flex items-center gap-2 pt-1">
                 <button onClick={handleAddFachada} disabled={!newNombre.trim() || !newImagenUrl} className={btnPrimary}>
                   <Save size={14} />
-                  {t("fachadas.saveGrid")}
+                  {tg("saveGrid")}
                 </button>
                 <button onClick={resetAddForm} className={btnSecondary}>{t("fachadas.cancel")}</button>
               </div>

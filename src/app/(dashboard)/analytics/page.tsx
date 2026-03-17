@@ -24,6 +24,8 @@ import { TimeRangeSelector, type TimeRange } from "@/components/dashboard/analyt
 import { NodDoDropdown } from "@/components/ui/NodDoDropdown";
 import { trackDashboardEvent } from "@/lib/dashboard-tracking";
 import { useAuthRole } from "@/hooks/useAuthContext";
+import { fontSize, gap } from "@/lib/design-tokens";
+import { cn } from "@/lib/utils";
 
 // Dashboard Analytics Components
 import { AnalyticsOverview } from "@/components/dashboard/analytics/AnalyticsOverview";
@@ -129,7 +131,7 @@ export default function AnalyticsPage() {
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.4 }}
       >
-        <div className="flex items-center gap-3 mb-2">
+        <div className={cn("flex items-center mb-2", gap.relaxed)}>
           <BarChart3 size={20} className="text-[var(--site-primary)]" />
           <h1 className="font-heading text-3xl font-light text-[var(--text-primary)]">
             Analytics
@@ -147,38 +149,34 @@ export default function AnalyticsPage() {
         initial={{ opacity: 0, y: 8 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.4, delay: 0.05 }}
-        className="flex gap-2 border-b border-[var(--border-subtle)]"
+        className={cn("flex border-b border-[var(--border-subtle)]", gap.normal)}
       >
         <button
           onClick={() => setActiveTab("dashboard")}
-          className={`
-            px-4 py-2.5 font-ui text-xs font-bold uppercase tracking-wider
-            border-b-2 transition-all
-            ${
-              activeTab === "dashboard"
-                ? "border-[var(--site-primary)] text-[var(--site-primary)]"
-                : "border-transparent text-[var(--text-tertiary)] hover:text-[var(--text-secondary)]"
-            }
-          `}
+          className={cn(
+            "px-4 py-2.5 font-ui text-xs font-bold uppercase tracking-wider",
+            "border-b-2 transition-all",
+            activeTab === "dashboard"
+              ? "border-[var(--site-primary)] text-[var(--site-primary)]"
+              : "border-transparent text-[var(--text-tertiary)] hover:text-[var(--text-secondary)]"
+          )}
         >
-          <div className="flex items-center gap-2">
+          <div className={cn("flex items-center", gap.normal)}>
             <Gauge size={14} />
             Dashboard
           </div>
         </button>
         <button
           onClick={() => setActiveTab("projects")}
-          className={`
-            px-4 py-2.5 font-ui text-xs font-bold uppercase tracking-wider
-            border-b-2 transition-all
-            ${
-              activeTab === "projects"
-                ? "border-[var(--site-primary)] text-[var(--site-primary)]"
-                : "border-transparent text-[var(--text-tertiary)] hover:text-[var(--text-secondary)]"
-            }
-          `}
+          className={cn(
+            "px-4 py-2.5 font-ui text-xs font-bold uppercase tracking-wider",
+            "border-b-2 transition-all",
+            activeTab === "projects"
+              ? "border-[var(--site-primary)] text-[var(--site-primary)]"
+              : "border-transparent text-[var(--text-tertiary)] hover:text-[var(--text-secondary)]"
+          )}
         >
-          <div className="flex items-center gap-2">
+          <div className={cn("flex items-center", gap.normal)}>
             <ChartBar size={14} />
             Proyectos
           </div>
@@ -228,7 +226,7 @@ export default function AnalyticsPage() {
                 avgEventsPerSession={dashboardData.overview.avg_events_per_session}
               />
 
-              <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+              <div className={cn("grid grid-cols-1 lg:grid-cols-3", gap.spacious)}>
                 <div className="lg:col-span-2">
                   <EventsChart data={dashboardData.events_by_day} />
                 </div>
@@ -237,7 +235,7 @@ export default function AnalyticsPage() {
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              <div className={cn("grid grid-cols-1 lg:grid-cols-2", gap.spacious)}>
                 <RecentActivity events={dashboardData.recent_activity} />
                 <SearchPatterns searches={dashboardData.top_searches} />
               </div>
@@ -327,7 +325,7 @@ export default function AnalyticsPage() {
               <div className="font-mono text-2xl font-light text-[var(--text-primary)] mb-1">
                 {loading ? "..." : data?.summary?.total_views?.toLocaleString() || "0"}
               </div>
-              <div className="font-ui text-[10px] font-bold uppercase tracking-wider text-[var(--text-muted)]">
+              <div className={cn("font-ui font-bold uppercase tracking-wider text-[var(--text-muted)]", fontSize.label)}>
                 Total Visitas
               </div>
             </div>
@@ -342,7 +340,7 @@ export default function AnalyticsPage() {
               <div className="font-mono text-2xl font-light text-[var(--text-primary)] mb-1">
                 {loading ? "..." : data?.summary?.unique_visitors?.toLocaleString() || "0"}
               </div>
-              <div className="font-ui text-[10px] font-bold uppercase tracking-wider text-[var(--text-muted)]">
+              <div className={cn("font-ui font-bold uppercase tracking-wider text-[var(--text-muted)]", fontSize.label)}>
                 Visitantes Únicos
               </div>
             </div>
@@ -357,7 +355,7 @@ export default function AnalyticsPage() {
               <div className="font-mono text-2xl font-light text-[var(--text-primary)] mb-1">
                 {loading ? "..." : data?.summary?.total_sessions?.toLocaleString() || "0"}
               </div>
-              <div className="font-ui text-[10px] font-bold uppercase tracking-wider text-[var(--text-muted)]">
+              <div className={cn("font-ui font-bold uppercase tracking-wider text-[var(--text-muted)]", fontSize.label)}>
                 Total Sesiones
               </div>
             </div>
@@ -372,14 +370,14 @@ export default function AnalyticsPage() {
               <div className="font-mono text-2xl font-light text-[var(--text-primary)] mb-1">
                 {loading ? "..." : `${Math.round(data?.summary?.bounce_rate || 0)}%`}
               </div>
-              <div className="font-ui text-[10px] font-bold uppercase tracking-wider text-[var(--text-muted)]">
+              <div className={cn("font-ui font-bold uppercase tracking-wider text-[var(--text-muted)]", fontSize.label)}>
                 Tasa de Rebote
               </div>
             </div>
           </motion.div>
 
           {/* Charts Section */}
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+          <div className={cn("grid grid-cols-1 lg:grid-cols-3", gap.loose)}>
             {/* Views over time (2 columns) */}
             <motion.div
               initial={{ opacity: 0, y: 12 }}
@@ -387,9 +385,9 @@ export default function AnalyticsPage() {
               transition={{ duration: 0.4, delay: 0.3 }}
               className="lg:col-span-2 glass-card p-6"
             >
-              <div className="flex items-center gap-2 mb-6">
+              <div className={cn("flex items-center mb-6", gap.normal)}>
                 <Activity size={14} className="text-[var(--site-primary)]" />
-                <span className="font-ui text-[10px] font-bold uppercase tracking-[0.12em] text-[var(--text-muted)]">
+                <span className={cn("font-ui font-bold uppercase tracking-[0.12em] text-[var(--text-muted)]", fontSize.label)}>
                   Visitas en el Tiempo
                 </span>
               </div>
@@ -403,9 +401,9 @@ export default function AnalyticsPage() {
               transition={{ duration: 0.4, delay: 0.35 }}
               className="glass-card p-6"
             >
-              <div className="flex items-center gap-2 mb-6">
+              <div className={cn("flex items-center mb-6", gap.normal)}>
                 <Monitor size={14} className="text-[var(--site-primary)]" />
-                <span className="font-ui text-[10px] font-bold uppercase tracking-[0.12em] text-[var(--text-muted)]">
+                <span className={cn("font-ui font-bold uppercase tracking-[0.12em] text-[var(--text-muted)]", fontSize.label)}>
                   Dispositivos
                 </span>
               </div>
@@ -414,7 +412,7 @@ export default function AnalyticsPage() {
           </div>
 
           {/* Ranked lists */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          <div className={cn("grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3", gap.loose)}>
             {/* Top pages */}
             <motion.div
               initial={{ opacity: 0, y: 12 }}

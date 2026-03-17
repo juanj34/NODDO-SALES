@@ -27,6 +27,7 @@ import { formatCurrency } from "@/lib/currency";
 import type { Currency } from "@/lib/currency";
 import { CurrencyInput } from "@/components/dashboard/CurrencyInput";
 import tooltips from "@/i18n/locales/es/tooltips";
+import { fontSize, gap, letterSpacing, radius } from "@/lib/design-tokens";
 
 /* ─── Helpers ─── */
 
@@ -79,9 +80,9 @@ function FaseCard({
       value={fase}
       dragListener={false}
       dragControls={controls}
-      className="bg-[var(--surface-2)] border border-[var(--border-subtle)] rounded-xl p-4 space-y-3"
+      className={cn("bg-[var(--surface-2)] border border-[var(--border-subtle)] p-4", radius.xl, gap.relaxed, "flex flex-col")}
     >
-      <div className="flex items-center gap-2">
+      <div className={cn("flex items-center", gap.normal)}>
         <button
           onPointerDown={(e) => controls.start(e)}
           className="cursor-grab active:cursor-grabbing text-[var(--text-muted)] hover:text-[var(--text-tertiary)] touch-none"
@@ -92,7 +93,7 @@ function FaseCard({
           type="text"
           value={fase.nombre}
           onChange={(e) => onChange({ ...fase, nombre: e.target.value })}
-          className="flex-1 bg-transparent border-none text-sm font-medium text-white focus:outline-none placeholder:text-[var(--text-muted)]"
+          className={cn("flex-1 bg-transparent border-none font-medium text-white focus:outline-none placeholder:text-[var(--text-muted)]", fontSize.md)}
           placeholder="Nombre de la fase"
         />
         <button
@@ -103,10 +104,10 @@ function FaseCard({
         </button>
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+      <div className={cn("grid grid-cols-1 sm:grid-cols-2", gap.relaxed)}>
         {/* Type */}
         <div>
-          <label className="flex items-center gap-2 text-[10px] text-[var(--text-muted)] mb-1 uppercase tracking-wider">
+          <label className={cn("flex items-center mb-1 text-[var(--text-muted)] uppercase", fontSize.label, gap.normal, letterSpacing.wider)}>
             Tipo
             <InfoTooltip
               content={tooltips.cotizador.tipoFase.long}
@@ -129,11 +130,11 @@ function FaseCard({
 
         {/* Value */}
         <div>
-          <label className="block text-[10px] text-[var(--text-muted)] mb-1 uppercase tracking-wider">
+          <label className={cn("block text-[var(--text-muted)] mb-1 uppercase", fontSize.label, letterSpacing.wider)}>
             {fase.tipo === "porcentaje" ? "Porcentaje" : fase.tipo === "fijo" ? `Valor (${moneda})` : "Auto"}
           </label>
           {fase.tipo === "resto" ? (
-            <div className="bg-[var(--surface-3)] border border-[var(--border-default)] rounded-lg px-3 py-2 text-xs text-[var(--text-muted)]">
+            <div className={cn("bg-[var(--surface-3)] border border-[var(--border-default)] px-3 py-2 text-[var(--text-muted)]", radius.lg, fontSize.md)}>
               Calculado automáticamente
             </div>
           ) : fase.tipo === "fijo" ? (
@@ -142,14 +143,14 @@ function FaseCard({
               onChange={(v) => onChange({ ...fase, valor: Number(v) })}
               currency={moneda as Currency}
               placeholder="5,000,000"
-              inputClassName="w-full bg-[var(--surface-3)] border border-[var(--border-default)] rounded-lg px-3 py-2 text-xs text-white focus:outline-none focus:border-[rgba(var(--site-primary-rgb),0.5)]"
+              inputClassName={cn("w-full bg-[var(--surface-3)] border border-[var(--border-default)] px-3 py-2 text-white focus:outline-none focus:border-[rgba(var(--site-primary-rgb),0.5)]", radius.lg, fontSize.md)}
             />
           ) : (
             <input
               type="number"
               value={fase.valor || ""}
               onChange={(e) => onChange({ ...fase, valor: Number(e.target.value) })}
-              className="w-full bg-[var(--surface-3)] border border-[var(--border-default)] rounded-lg px-3 py-2 text-xs text-white focus:outline-none focus:border-[rgba(var(--site-primary-rgb),0.5)]"
+              className={cn("w-full bg-[var(--surface-3)] border border-[var(--border-default)] px-3 py-2 text-white focus:outline-none focus:border-[rgba(var(--site-primary-rgb),0.5)]", radius.lg, fontSize.md)}
               placeholder="30"
             />
           )}
@@ -157,19 +158,19 @@ function FaseCard({
 
         {/* Installments */}
         <div>
-          <label className="block text-[10px] text-[var(--text-muted)] mb-1 uppercase tracking-wider">Cuotas</label>
+          <label className={cn("block text-[var(--text-muted)] mb-1 uppercase", fontSize.label, letterSpacing.wider)}>Cuotas</label>
           <input
             type="number"
             min={1}
             value={fase.cuotas || ""}
             onChange={(e) => onChange({ ...fase, cuotas: Math.max(1, Number(e.target.value)) })}
-            className="w-full bg-[var(--surface-3)] border border-[var(--border-default)] rounded-lg px-3 py-2 text-xs text-white focus:outline-none focus:border-[rgba(var(--site-primary-rgb),0.5)]"
+            className={cn("w-full bg-[var(--surface-3)] border border-[var(--border-default)] px-3 py-2 text-white focus:outline-none focus:border-[rgba(var(--site-primary-rgb),0.5)]", radius.lg, fontSize.md)}
           />
         </div>
 
         {/* Frequency */}
         <div>
-          <label className="block text-[10px] text-[var(--text-muted)] mb-1 uppercase tracking-wider">Frecuencia</label>
+          <label className={cn("block text-[var(--text-muted)] mb-1 uppercase", fontSize.label, letterSpacing.wider)}>Frecuencia</label>
           <NodDoDropdown
             variant="dashboard"
             size="sm"
@@ -287,11 +288,11 @@ export default function CotizadorConfigPage() {
           description="Configura la estructura de pagos para tus unidades"
         />
         <div className="flex flex-col items-center justify-center py-20 text-center">
-          <div className="w-16 h-16 rounded-2xl bg-[var(--surface-2)] border border-[var(--border-subtle)] flex items-center justify-center mb-6">
+          <div className={cn("w-16 h-16 bg-[var(--surface-2)] border border-[var(--border-subtle)] flex items-center justify-center mb-6", radius["2xl"])}>
             <Lock size={24} className="text-[var(--text-muted)]" />
           </div>
-          <h3 className="text-lg text-white font-light mb-2">Módulo Premium</h3>
-          <p className="text-sm text-[var(--text-tertiary)] max-w-sm leading-relaxed mb-6">
+          <h3 className={cn("text-white font-light mb-2", fontSize.heading)}>Módulo Premium</h3>
+          <p className={cn("text-[var(--text-tertiary)] max-w-sm leading-relaxed mb-6", fontSize.md)}>
             El cotizador automático genera PDFs de cotización branded para tus compradores.
             Contacta a NODDO para activar este módulo.
           </p>
@@ -299,7 +300,7 @@ export default function CotizadorConfigPage() {
             href="https://wa.me/971585407848?text=Quiero%20activar%20el%20cotizador"
             target="_blank"
             rel="noopener noreferrer"
-            className="flex items-center gap-2 px-6 py-3 bg-[var(--site-primary)] text-[#141414] rounded-xl font-ui text-xs font-bold uppercase tracking-[0.1em] hover:brightness-110 transition-all"
+            className={cn("flex items-center px-6 py-3 bg-[var(--site-primary)] text-[#141414] font-ui font-bold uppercase hover:brightness-110 transition-all", gap.normal, radius.xl, fontSize.md, letterSpacing.wider)}
           >
             <Calculator size={14} />
             Contactar NODDO
@@ -317,12 +318,12 @@ export default function CotizadorConfigPage() {
         description="Configura la estructura de pagos para las cotizaciones de tus unidades"
       />
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+      <div className={cn("grid grid-cols-1 lg:grid-cols-2", gap.spacious)}>
         {/* Left: Config */}
-        <div className="space-y-6">
+        <div className={cn("flex flex-col", gap.spacious)}>
           {/* Currency */}
           <div>
-            <label className={`${labelClass} flex items-center gap-2`}>
+            <label className={cn(labelClass, "flex items-center", gap.normal)}>
               Moneda
               <InfoTooltip
                 content={tooltips.cotizador.moneda.long}
@@ -347,12 +348,12 @@ export default function CotizadorConfigPage() {
               <label className={labelClass}>Fases de pago</label>
               <button
                 onClick={addFase}
-                className="flex items-center gap-1 text-xs text-[var(--site-primary)] hover:text-[var(--site-primary)]/80 transition-colors"
+                className={cn("flex items-center text-[var(--site-primary)] hover:text-[var(--site-primary)]/80 transition-colors", gap.compact, fontSize.md)}
               >
                 <Plus size={13} /> Agregar fase
               </button>
             </div>
-            <Reorder.Group axis="y" values={config.fases} onReorder={reorderFases} className="space-y-3">
+            <Reorder.Group axis="y" values={config.fases} onReorder={reorderFases} className={cn("flex flex-col", gap.relaxed)}>
               {config.fases.map((fase) => (
                 <FaseCard
                   key={fase.id}
@@ -371,26 +372,26 @@ export default function CotizadorConfigPage() {
               <label className={labelClass}>Descuentos</label>
               <button
                 onClick={addDescuento}
-                className="flex items-center gap-1 text-xs text-[var(--site-primary)] hover:text-[var(--site-primary)]/80 transition-colors"
+                className={cn("flex items-center text-[var(--site-primary)] hover:text-[var(--site-primary)]/80 transition-colors", gap.compact, fontSize.md)}
               >
                 <Plus size={13} /> Agregar descuento
               </button>
             </div>
-            <div className="space-y-3">
+            <div className={cn("flex flex-col", gap.relaxed)}>
               {config.descuentos.length === 0 && (
-                <p className="text-xs text-[var(--text-muted)] py-3">Sin descuentos configurados</p>
+                <p className={cn("text-[var(--text-muted)] py-3", fontSize.md)}>Sin descuentos configurados</p>
               )}
               {config.descuentos.map((desc) => (
                 <div
                   key={desc.id}
-                  className="bg-[var(--surface-2)] border border-[var(--border-subtle)] rounded-xl p-4"
+                  className={cn("bg-[var(--surface-2)] border border-[var(--border-subtle)] p-4", radius.xl)}
                 >
-                  <div className="flex items-center gap-2 mb-3">
+                  <div className={cn("flex items-center mb-3", gap.normal)}>
                     <input
                       type="text"
                       value={desc.nombre}
                       onChange={(e) => updateDescuento(desc.id, { ...desc, nombre: e.target.value })}
-                      className="flex-1 bg-transparent border-none text-sm font-medium text-white focus:outline-none placeholder:text-[var(--text-muted)]"
+                      className={cn("flex-1 bg-transparent border-none font-medium text-white focus:outline-none placeholder:text-[var(--text-muted)]", fontSize.md)}
                       placeholder="Nombre del descuento"
                     />
                     <button
@@ -400,9 +401,9 @@ export default function CotizadorConfigPage() {
                       <Trash2 size={13} />
                     </button>
                   </div>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div className={cn("grid grid-cols-1 sm:grid-cols-2", gap.relaxed)}>
                     <div>
-                      <label className="block text-[10px] text-[var(--text-muted)] mb-1 uppercase tracking-wider">Tipo</label>
+                      <label className={cn("block text-[var(--text-muted)] mb-1 uppercase", fontSize.label, letterSpacing.wider)}>Tipo</label>
                       <NodDoDropdown
                         variant="dashboard"
                         size="sm"
@@ -415,7 +416,7 @@ export default function CotizadorConfigPage() {
                       />
                     </div>
                     <div>
-                      <label className="block text-[10px] text-[var(--text-muted)] mb-1 uppercase tracking-wider">
+                      <label className={cn("block text-[var(--text-muted)] mb-1 uppercase", fontSize.label, letterSpacing.wider)}>
                         {desc.tipo === "porcentaje" ? "%" : config.moneda}
                       </label>
                       {desc.tipo === "fijo" ? (
@@ -424,14 +425,14 @@ export default function CotizadorConfigPage() {
                           onChange={(v) => updateDescuento(desc.id, { ...desc, valor: Number(v) })}
                           currency={moneda as Currency}
                           placeholder="10,000,000"
-                          inputClassName="w-full bg-[var(--surface-3)] border border-[var(--border-default)] rounded-lg px-3 py-2 text-xs text-white focus:outline-none focus:border-[rgba(var(--site-primary-rgb),0.5)]"
+                          inputClassName={cn("w-full bg-[var(--surface-3)] border border-[var(--border-default)] px-3 py-2 text-white focus:outline-none focus:border-[rgba(var(--site-primary-rgb),0.5)]", radius.lg, fontSize.md)}
                         />
                       ) : (
                         <input
                           type="number"
                           value={desc.valor || ""}
                           onChange={(e) => updateDescuento(desc.id, { ...desc, valor: Number(e.target.value) })}
-                          className="w-full bg-[var(--surface-3)] border border-[var(--border-default)] rounded-lg px-3 py-2 text-xs text-white focus:outline-none focus:border-[rgba(var(--site-primary-rgb),0.5)]"
+                          className={cn("w-full bg-[var(--surface-3)] border border-[var(--border-default)] px-3 py-2 text-white focus:outline-none focus:border-[rgba(var(--site-primary-rgb),0.5)]", radius.lg, fontSize.md)}
                           placeholder="5"
                         />
                       )}
@@ -443,17 +444,17 @@ export default function CotizadorConfigPage() {
           </div>
 
           {/* Options */}
-          <div className="bg-[var(--surface-1)] border border-[var(--border-subtle)] rounded-xl p-5 space-y-4">
-            <h3 className="text-sm font-medium text-white">Opciones</h3>
+          <div className={cn("bg-[var(--surface-1)] border border-[var(--border-subtle)] p-5 flex flex-col", radius.xl, gap.loose)}>
+            <h3 className={cn("font-medium text-white", fontSize.md)}>Opciones</h3>
 
-            <label className="flex items-center gap-3 cursor-pointer">
+            <label className={cn("flex items-center cursor-pointer", gap.relaxed)}>
               <input
                 type="checkbox"
                 checked={config.separacion_incluida_en_inicial}
                 onChange={(e) => saveConfig({ ...config, separacion_incluida_en_inicial: e.target.checked })}
                 className="w-4 h-4 rounded bg-[var(--surface-3)] border border-[var(--border-default)] accent-[var(--site-primary)]"
               />
-              <span className="text-xs text-[var(--text-secondary)] flex items-center gap-2">
+              <span className={cn("text-[var(--text-secondary)] flex items-center", fontSize.md, gap.normal)}>
                 La separación se descuenta de la cuota inicial
                 <InfoTooltip
                   content={tooltips.cotizador.separacionIncluida.long}
@@ -464,7 +465,7 @@ export default function CotizadorConfigPage() {
             </label>
 
             <div>
-              <label className="flex items-center gap-2 text-[10px] text-[var(--text-muted)] mb-1 uppercase tracking-wider">
+              <label className={cn("flex items-center text-[var(--text-muted)] mb-1 uppercase", fontSize.label, gap.normal, letterSpacing.wider)}>
                 Notas legales (aparecen en el PDF)
                 <InfoTooltip
                   content={tooltips.cotizador.notasLegales.long}
@@ -476,52 +477,52 @@ export default function CotizadorConfigPage() {
                 value={config.notas_legales ?? ""}
                 onChange={(e) => saveConfig({ ...config, notas_legales: e.target.value || null })}
                 rows={3}
-                className={cn(inputClass, "text-xs resize-none")}
+                className={cn(inputClass, "resize-none", fontSize.md)}
                 placeholder="Los precios están sujetos a cambios sin previo aviso..."
               />
             </div>
           </div>
 
           {/* PDF Customization */}
-          <div className="bg-[var(--surface-1)] border border-[var(--border-subtle)] rounded-xl p-5 space-y-4">
-            <h3 className="text-sm font-medium text-white">Personalización del PDF</h3>
+          <div className={cn("bg-[var(--surface-1)] border border-[var(--border-subtle)] p-5 flex flex-col", radius.xl, gap.loose)}>
+            <h3 className={cn("font-medium text-white", fontSize.md)}>Personalización del PDF</h3>
 
             <div>
-              <label className="block text-[10px] text-[var(--text-muted)] mb-1 uppercase tracking-wider">
+              <label className={cn("block text-[var(--text-muted)] mb-1 uppercase", fontSize.label, letterSpacing.wider)}>
                 Saludo personalizado
               </label>
               <textarea
                 value={config.pdf_saludo ?? ""}
                 onChange={(e) => saveConfig({ ...config, pdf_saludo: e.target.value || undefined })}
                 rows={2}
-                className={cn(inputClass, "text-xs resize-none")}
+                className={cn(inputClass, "resize-none", fontSize.md)}
                 placeholder="Gracias por considerar nuestro proyecto como su nuevo hogar..."
               />
               <p className={fieldHint}>Aparece en la página de oferta. Dejar vacío para usar el saludo por defecto.</p>
             </div>
 
             <div>
-              <label className="block text-[10px] text-[var(--text-muted)] mb-1 uppercase tracking-wider">
+              <label className={cn("block text-[var(--text-muted)] mb-1 uppercase", fontSize.label, letterSpacing.wider)}>
                 Despedida
               </label>
               <input
                 type="text"
                 value={config.pdf_despedida ?? ""}
                 onChange={(e) => saveConfig({ ...config, pdf_despedida: e.target.value || undefined })}
-                className={cn(inputClass, "text-xs")}
+                className={cn(inputClass, fontSize.md)}
                 placeholder="Cordialmente,"
               />
             </div>
 
             <div>
-              <label className="block text-[10px] text-[var(--text-muted)] mb-1 uppercase tracking-wider">
+              <label className={cn("block text-[var(--text-muted)] mb-1 uppercase", fontSize.label, letterSpacing.wider)}>
                 Fecha estimada de entrega
               </label>
               <input
                 type="text"
                 value={config.fecha_estimada_entrega ?? ""}
                 onChange={(e) => saveConfig({ ...config, fecha_estimada_entrega: e.target.value || undefined })}
-                className={cn(inputClass, "text-xs")}
+                className={cn(inputClass, fontSize.md)}
                 placeholder="Diciembre 2027"
               />
               <p className={fieldHint}>Se muestra en la sección de detalle de unidad del PDF.</p>
@@ -531,38 +532,38 @@ export default function CotizadorConfigPage() {
 
         {/* Right: Preview */}
         <div className="lg:sticky lg:top-6 lg:self-start">
-          <div className="bg-[var(--surface-1)] border border-[var(--border-subtle)] rounded-xl p-6">
-            <h3 className="text-sm font-medium text-white mb-4">Vista previa</h3>
+          <div className={cn("bg-[var(--surface-1)] border border-[var(--border-subtle)] p-6", radius.xl)}>
+            <h3 className={cn("font-medium text-white mb-4", fontSize.md)}>Vista previa</h3>
 
             {/* Sample price input */}
             <div className="mb-5">
-              <label className="block text-[10px] text-[var(--text-muted)] mb-1 uppercase tracking-wider">
+              <label className={cn("block text-[var(--text-muted)] mb-1 uppercase", fontSize.label, letterSpacing.wider)}>
                 Precio de ejemplo ({config.moneda})
               </label>
               <CurrencyInput
                 value={samplePrice || ""}
                 onChange={(v) => setSamplePrice(Number(v))}
                 currency={moneda as Currency}
-                inputClassName="w-full bg-[var(--surface-3)] border border-[var(--border-default)] rounded-lg px-3 py-2.5 text-sm text-white focus:outline-none focus:border-[rgba(var(--site-primary-rgb),0.5)]"
+                inputClassName={cn("w-full bg-[var(--surface-3)] border border-[var(--border-default)] px-3 py-2.5 text-white focus:outline-none focus:border-[rgba(var(--site-primary-rgb),0.5)]", radius.lg, fontSize.md)}
               />
             </div>
 
             {preview && (
-              <div className="space-y-4">
+              <div className={cn("flex flex-col", gap.loose)}>
                 {/* Breakdown */}
-                <div className="space-y-2">
+                <div className={cn("flex flex-col", gap.normal)}>
                   {preview.fases.map((fase, i) => (
                     <div key={i} className="flex items-start justify-between py-2 border-b border-[var(--border-subtle)] last:border-0">
                       <div>
-                        <p className="text-xs text-white font-medium">{fase.nombre}</p>
+                        <p className={cn("text-white font-medium", fontSize.md)}>{fase.nombre}</p>
                         {fase.cuotas > 1 && (
-                          <p className="text-[10px] text-[var(--text-muted)] mt-0.5">
+                          <p className={cn("text-[var(--text-muted)] mt-0.5", fontSize.label)}>
                             {fase.cuotas} cuotas de {formatCurrency(fase.monto_por_cuota, moneda)}
                             {fase.frecuencia !== "unica" && ` (${fase.frecuencia})`}
                           </p>
                         )}
                       </div>
-                      <p className="text-xs text-[var(--text-secondary)] font-medium">
+                      <p className={cn("text-[var(--text-secondary)] font-medium", fontSize.md)}>
                         {formatCurrency(fase.monto_total, moneda)}
                       </p>
                     </div>
@@ -571,8 +572,8 @@ export default function CotizadorConfigPage() {
 
                 {/* Total */}
                 <div className="flex items-center justify-between pt-3 border-t border-[var(--border-default)]">
-                  <p className="text-sm font-medium text-white">Total</p>
-                  <p className="text-sm font-semibold text-[var(--site-primary)]">
+                  <p className={cn("font-medium text-white", fontSize.md)}>Total</p>
+                  <p className={cn("font-semibold text-[var(--site-primary)]", fontSize.md)}>
                     {formatCurrency(preview.precio_neto, moneda)}
                   </p>
                 </div>
@@ -583,7 +584,7 @@ export default function CotizadorConfigPage() {
                   const diff = Math.abs(totalFases - preview.precio_neto);
                   if (diff > 1) {
                     return (
-                      <p className="text-[10px] text-yellow-400 mt-2">
+                      <p className={cn("text-yellow-400 mt-2", fontSize.label)}>
                         ⚠ Las fases suman {formatCurrency(totalFases, moneda)} — diferencia de {formatCurrency(diff, moneda)} con el total
                       </p>
                     );
@@ -594,7 +595,7 @@ export default function CotizadorConfigPage() {
             )}
 
             {!preview && config.fases.length > 0 && (
-              <p className="text-xs text-[var(--text-muted)]">Ingresa un precio para ver la vista previa</p>
+              <p className={cn("text-[var(--text-muted)]", fontSize.md)}>Ingresa un precio para ver la vista previa</p>
             )}
           </div>
         </div>

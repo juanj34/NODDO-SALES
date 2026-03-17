@@ -6,6 +6,9 @@ import { AnimatedCounter } from "./AnimatedCounter";
 import { MiniSparkline } from "./MiniSparkline";
 import { useTranslation } from "@/i18n";
 import { NodDoDropdown } from "@/components/ui/NodDoDropdown";
+import { Icon } from "@/components/ui";
+import { fontSize, gap, letterSpacing } from "@/lib/design-tokens";
+import { cn } from "@/lib/utils";
 import type { DashboardSummary } from "@/types";
 
 interface Props {
@@ -30,23 +33,23 @@ export function DashboardKPIStrip({ data, projects, selectedProjectId, onSelectP
     {
       label: t("home.kpiViews"),
       value: views,
-      icon: <Eye size={16} />,
+      icon: <Icon icon={Eye} size="md" />,
       sparkline,
     },
     {
       label: t("home.kpiVisitors"),
       value: visitors,
-      icon: <Users size={16} />,
+      icon: <Icon icon={Users} size="md" />,
     },
     {
       label: t("home.kpiLeads"),
       value: leads,
-      icon: <UserCheck size={16} />,
+      icon: <Icon icon={UserCheck} size="md" />,
     },
     {
       label: t("home.kpiInteractions"),
       value: interactions,
-      icon: <Zap size={16} />,
+      icon: <Icon icon={Zap} size="md" />,
     },
   ];
 
@@ -54,8 +57,8 @@ export function DashboardKPIStrip({ data, projects, selectedProjectId, onSelectP
     <div className="space-y-3">
       {/* Project filter row */}
       {projects && projects.length > 1 && onSelectProject && (
-        <div className="flex items-center gap-2">
-          <span className="font-ui text-[9px] font-bold uppercase tracking-[0.14em] text-[var(--text-muted)]">
+        <div className={cn("flex items-center", gap.normal)}>
+          <span className={cn("font-ui font-bold uppercase text-[var(--text-muted)]", fontSize.caption, letterSpacing.widest)}>
             {t("home.last7Days")}
           </span>
           <NodDoDropdown
@@ -70,32 +73,32 @@ export function DashboardKPIStrip({ data, projects, selectedProjectId, onSelectP
       )}
 
       {/* KPI cards */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+      <div className={cn("grid grid-cols-2 lg:grid-cols-4", gap.relaxed)}>
         {kpis.map((kpi, idx) => (
           <motion.div
             key={kpi.label}
             initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: idx * 0.08, duration: 0.4 }}
-            className="p-4 bg-[var(--surface-1)] rounded-xl border border-[var(--border-subtle)] shadow-[var(--shadow-sm)] flex flex-col gap-2.5"
+            className={cn("p-4 bg-[var(--surface-1)] rounded-xl border border-[var(--border-subtle)] shadow-[var(--shadow-sm)] flex flex-col", gap.relaxed)}
           >
             <div className="flex items-center justify-between">
-              <span className="font-ui text-[9px] font-bold uppercase tracking-[0.14em] text-[var(--text-muted)]">
+              <span className={cn("font-ui font-bold uppercase text-[var(--text-muted)]", fontSize.caption, letterSpacing.widest)}>
                 {kpi.label}
               </span>
-              <div className="w-7 h-7 rounded-lg bg-[rgba(184,151,58,0.08)] border border-[rgba(184,151,58,0.12)] flex items-center justify-center text-[var(--site-primary)]">
+              <div className="w-7 h-7 rounded-lg bg-[rgba(var(--site-primary-rgb),0.08)] border border-[rgba(var(--site-primary-rgb),0.12)] flex items-center justify-center text-[var(--site-primary)]">
                 {kpi.icon}
               </div>
             </div>
 
-            <div className="flex items-end justify-between">
+            <div className={cn("flex items-end justify-between", gap.normal)}>
               <span className="font-heading text-2xl font-light text-white leading-none">
                 <AnimatedCounter target={kpi.value} />
               </span>
               {kpi.sparkline && <MiniSparkline data={kpi.sparkline} />}
             </div>
 
-            <span className="font-mono text-[10px] text-[var(--text-muted)]">
+            <span className={cn("font-mono text-[var(--text-muted)]", fontSize.label)}>
               {t("home.last7Days")}
             </span>
           </motion.div>
