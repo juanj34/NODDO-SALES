@@ -139,7 +139,7 @@ export function RecentProjectsPreview({
             {isAdmin ? "Aún no tienes proyectos" : "No hay proyectos disponibles"}
           </h3>
 
-          <p className="font-mono text-sm text-[var(--text-tertiary)] text-center max-w-md mb-6">
+          <p className="text-sm text-[var(--text-tertiary)] text-center max-w-md mb-6">
             {isAdmin
               ? "Crea tu primer proyecto para empezar a gestionar tus desarrollos inmobiliarios"
               : "El administrador aún no ha creado proyectos"}

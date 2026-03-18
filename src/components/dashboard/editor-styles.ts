@@ -54,7 +54,7 @@ export const pageTitle =
   "font-heading text-2xl font-light text-white";
 
 export const pageDescription =
-  "text-sm text-[var(--text-tertiary)] mt-1 max-w-lg leading-relaxed";
+  "text-sm text-[var(--text-tertiary)] mt-1.5 max-w-lg leading-relaxed";
 
 export const sectionHeader =
   "flex items-center justify-between mb-6";

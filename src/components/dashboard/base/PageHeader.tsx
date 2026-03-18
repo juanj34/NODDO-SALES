@@ -6,6 +6,7 @@ import {
   pageTitle,
   pageDescription,
 } from "@/components/dashboard/editor-styles";
+import { cn } from "@/lib/utils";
 
 /**
  * PageHeader Component - Standardized page header for editor pages
@@ -31,6 +32,8 @@ interface PageHeaderProps {
   description?: React.ReactNode;
   /** Optional action buttons/elements to display on the right */
   actions?: React.ReactNode;
+  /** Optional className override (merged with base pageHeader class) */
+  className?: string;
 }
 
 export function PageHeader({
@@ -38,9 +41,10 @@ export function PageHeader({
   title,
   description,
   actions,
+  className,
 }: PageHeaderProps) {
   return (
-    <div className={pageHeader}>
+    <div className={cn(pageHeader, className)}>
       <div className="flex items-center gap-3">
         {/* Icon circle */}
         <div className="w-10 h-10 rounded-xl bg-[var(--surface-2)] border border-[var(--border-subtle)] flex items-center justify-center">

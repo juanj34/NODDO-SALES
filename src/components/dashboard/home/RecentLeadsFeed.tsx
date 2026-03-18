@@ -51,7 +51,7 @@ export function RecentLeadsFeed({ leads, loading }: Props) {
         </div>
       ) : leads.length === 0 ? (
         <div className="flex-1 flex items-center justify-center">
-          <p className="font-mono text-xs text-[var(--text-muted)] text-center leading-relaxed">
+          <p className="text-xs text-[var(--text-muted)] text-center leading-relaxed">
             {t("home.noRecentActivity")}
             <br />
             <span className="text-[var(--text-muted)] opacity-60">
@@ -80,14 +80,14 @@ export function RecentLeadsFeed({ leads, loading }: Props) {
                 {/* Info */}
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2">
-                    <span className="font-mono text-xs text-[var(--text-primary)] truncate">
+                    <span className="text-xs text-[var(--text-primary)] truncate">
                       {lead.nombre}
                     </span>
-                    <span className="font-mono text-[10px] px-1.5 py-0.5 rounded bg-[rgba(184,151,58,0.08)] text-[var(--site-primary)] shrink-0 truncate max-w-[120px]">
+                    <span className="text-[10px] px-1.5 py-0.5 rounded bg-[rgba(184,151,58,0.08)] text-[var(--site-primary)] shrink-0 truncate max-w-[120px]">
                       {lead.proyecto_nombre}
                     </span>
                   </div>
-                  <p className="font-mono text-[10px] text-[var(--text-muted)] truncate">
+                  <p className="text-[10px] text-[var(--text-muted)] truncate">
                     {lead.email}
                   </p>
                 </div>

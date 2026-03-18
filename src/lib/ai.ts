@@ -53,6 +53,69 @@ export async function callAI(
   return text;
 }
 
+// ---------------------------------------------------------------------------
+// Multi-turn conversation support
+// ---------------------------------------------------------------------------
+
+export interface ConversationMessage {
+  role: "user" | "model";
+  text: string;
+}
+
+/**
+ * Call Gemini Flash with conversation history for multi-turn context.
+ * Uses `responseMimeType: "application/json"` for structured output.
+ */
+export async function callAIWithHistory(
+  systemPrompt: string,
+  messages: ConversationMessage[],
+  options?: { maxOutputTokens?: number }
+): Promise<string> {
+  const apiKey = process.env.GOOGLE_GEMINI_API_KEY;
+  if (!apiKey) {
+    throw new Error("GOOGLE_GEMINI_API_KEY no configurada");
+  }
+
+  // Cap history to last 10 turns to manage token usage
+  const recentMessages = messages.slice(-10);
+
+  const contents = recentMessages.map((m) => ({
+    role: m.role,
+    parts: [{ text: m.text }],
+  }));
+
+  const res = await fetch(`${GEMINI_ENDPOINT}?key=${apiKey}`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      systemInstruction: { parts: [{ text: systemPrompt }] },
+      contents,
+      generationConfig: {
+        maxOutputTokens: options?.maxOutputTokens ?? 4096,
+        temperature: 0.2,
+        responseMimeType: "application/json",
+      },
+    }),
+  });
+
+  if (!res.ok) {
+    const errorText = await res.text();
+    console.error(`Gemini API error: ${res.status}`, errorText);
+    throw new Error("Error al procesar con IA. Intenta de nuevo.");
+  }
+
+  const data = await res.json();
+
+  const parts = data.candidates?.[0]?.content?.parts || [];
+  const text =
+    parts.filter((p: { thought?: boolean; text?: string }) => p.text && !p.thought).pop()?.text;
+  if (!text) {
+    throw new Error("La IA no generó una respuesta. Intenta de nuevo.");
+  }
+
+  return text;
+}
+
 /**
  * Call Gemini Flash for plain text output (not JSON)
  * Used for text improvement, translations, content generation, etc.

@@ -52,8 +52,8 @@ export function PopularShortcuts({ shortcuts }: Props) {
         <h3 className="font-ui text-xs font-bold uppercase tracking-wider text-white mb-1">
           Shortcuts más usados
         </h3>
-        <p className="font-mono text-xs text-[var(--text-tertiary)]">
-          {totalClicks} clicks totales
+        <p className="text-xs text-[var(--text-tertiary)]">
+          <span className="font-mono">{totalClicks}</span> clicks totales
         </p>
       </div>
 

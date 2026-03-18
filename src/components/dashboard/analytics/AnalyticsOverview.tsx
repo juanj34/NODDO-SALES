@@ -51,7 +51,7 @@ const StatCard = ({
 
       {/* Content */}
       <div className="flex-1">
-        <p className="font-mono text-xs text-[var(--text-tertiary)] mb-1">
+        <p className="text-xs text-[var(--text-tertiary)] mb-1">
           {label}
         </p>
         <p className="font-heading text-3xl font-light text-white">

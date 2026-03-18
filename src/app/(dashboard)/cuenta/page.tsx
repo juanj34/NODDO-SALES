@@ -192,7 +192,7 @@ export default function CuentaPage() {
           <h1 className="font-heading text-2xl font-light text-[var(--text-primary)] tracking-wide">
             {t("cuenta.title")}
           </h1>
-          <p className="font-mono text-xs text-[var(--text-tertiary)] mt-1 font-light">
+          <p className="text-xs text-[var(--text-tertiary)] mt-1 font-light">
             {t("cuenta.description")}
           </p>
         </div>
@@ -209,12 +209,12 @@ export default function CuentaPage() {
           <div className="space-y-4">
             {/* Email */}
             <div>
-              <label className="block font-mono text-[10px] text-[var(--text-muted)] uppercase tracking-wider mb-1.5">
+              <label className="block font-ui text-[10px] text-[var(--text-muted)] uppercase tracking-wider mb-1.5">
                 {t("cuenta.email")}
               </label>
               <div className="flex items-center gap-2.5 px-3 py-2.5 rounded-[0.625rem] bg-[var(--surface-2)] border border-[var(--border-subtle)]">
                 <Mail size={14} className="text-[var(--text-muted)]" />
-                <span className="font-mono text-sm text-[var(--text-primary)] font-light">
+                <span className="text-sm text-[var(--text-primary)] font-light">
                   {user?.email || "—"}
                 </span>
               </div>
@@ -222,7 +222,7 @@ export default function CuentaPage() {
 
             {/* Role */}
             <div>
-              <label className="block font-mono text-[10px] text-[var(--text-muted)] uppercase tracking-wider mb-1.5">
+              <label className="block font-ui text-[10px] text-[var(--text-muted)] uppercase tracking-wider mb-1.5">
                 {t("cuenta.role")}
               </label>
               <div className="flex items-center gap-2.5 px-3 py-2.5 rounded-[0.625rem] bg-[var(--surface-2)] border border-[var(--border-subtle)]">
@@ -246,7 +246,7 @@ export default function CuentaPage() {
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <label className="block font-mono text-[10px] text-[var(--text-muted)] uppercase tracking-wider mb-1.5">
+              <label className="block font-ui text-[10px] text-[var(--text-muted)] uppercase tracking-wider mb-1.5">
                 {t("cuenta.lastLogin")}
               </label>
               <div className="flex items-center gap-2.5 px-3 py-2.5 rounded-[0.625rem] bg-[var(--surface-2)] border border-[var(--border-subtle)]">
@@ -257,7 +257,7 @@ export default function CuentaPage() {
               </div>
             </div>
             <div>
-              <label className="block font-mono text-[10px] text-[var(--text-muted)] uppercase tracking-wider mb-1.5">
+              <label className="block font-ui text-[10px] text-[var(--text-muted)] uppercase tracking-wider mb-1.5">
                 {t("cuenta.accountCreated")}
               </label>
               <div className="flex items-center gap-2.5 px-3 py-2.5 rounded-[0.625rem] bg-[var(--surface-2)] border border-[var(--border-subtle)]">
@@ -291,7 +291,7 @@ export default function CuentaPage() {
                 }}
               >
                 <CheckCircle size={14} className="text-emerald-400" />
-                <span className="font-mono text-xs text-emerald-300 font-light">
+                <span className="text-xs text-emerald-300 font-light">
                   {t("cuenta.notificationsSaved")}
                 </span>
               </motion.div>
@@ -308,7 +308,7 @@ export default function CuentaPage() {
                 }}
               >
                 <AlertTriangle size={14} className="text-red-400" />
-                <span className="font-mono text-xs text-red-300 font-light">
+                <span className="text-xs text-red-300 font-light">
                   {notifError}
                 </span>
               </motion.div>
@@ -317,7 +317,7 @@ export default function CuentaPage() {
             {notifLoading ? (
               <div className="flex items-center gap-2 py-4">
                 <Loader2 size={14} className="animate-spin text-[var(--text-muted)]" />
-                <span className="font-mono text-xs text-[var(--text-muted)]">Cargando...</span>
+                <span className="text-xs text-[var(--text-muted)]">Cargando...</span>
               </div>
             ) : (
               <div className="space-y-4">
@@ -338,10 +338,10 @@ export default function CuentaPage() {
                     <div className="absolute left-0.5 top-0.5 w-4 h-4 rounded-full bg-[var(--text-muted)] peer-checked:bg-[var(--site-primary)] peer-checked:translate-x-4 transition-all" />
                   </div>
                   <div className="flex-1">
-                    <span className="font-mono text-sm text-[var(--text-primary)] font-light block">
+                    <span className="text-sm text-[var(--text-primary)] font-light block">
                       {t("cuenta.dailyDigest")}
                     </span>
-                    <span className="font-mono text-[11px] text-[var(--text-muted)] font-light">
+                    <span className="text-[11px] text-[var(--text-muted)] font-light">
                       {t("cuenta.dailyDigestDescription")}
                     </span>
                   </div>
@@ -364,10 +364,10 @@ export default function CuentaPage() {
                     <div className="absolute left-0.5 top-0.5 w-4 h-4 rounded-full bg-[var(--text-muted)] peer-checked:bg-[var(--site-primary)] peer-checked:translate-x-4 transition-all" />
                   </div>
                   <div className="flex-1">
-                    <span className="font-mono text-sm text-[var(--text-primary)] font-light block">
+                    <span className="text-sm text-[var(--text-primary)] font-light block">
                       {t("cuenta.weeklyReport")}
                     </span>
-                    <span className="font-mono text-[11px] text-[var(--text-muted)] font-light">
+                    <span className="text-[11px] text-[var(--text-muted)] font-light">
                       {t("cuenta.weeklyReportDescription")}
                     </span>
                   </div>
@@ -390,10 +390,10 @@ export default function CuentaPage() {
                     <div className="absolute left-0.5 top-0.5 w-4 h-4 rounded-full bg-[var(--text-muted)] peer-checked:bg-[var(--site-primary)] peer-checked:translate-x-4 transition-all" />
                   </div>
                   <div className="flex-1">
-                    <span className="font-mono text-sm text-[var(--text-primary)] font-light block">
+                    <span className="text-sm text-[var(--text-primary)] font-light block">
                       {t("cuenta.monthlyReport")}
                     </span>
-                    <span className="font-mono text-[11px] text-[var(--text-muted)] font-light">
+                    <span className="text-[11px] text-[var(--text-muted)] font-light">
                       {t("cuenta.monthlyReportDescription")}
                     </span>
                   </div>
@@ -423,7 +423,7 @@ export default function CuentaPage() {
               }}
             >
               <CheckCircle size={14} className="text-emerald-400" />
-              <span className="font-mono text-xs text-emerald-300 font-light">
+              <span className="text-xs text-emerald-300 font-light">
                 {t("cuenta.emailChangeSuccess")}
               </span>
             </motion.div>
@@ -440,7 +440,7 @@ export default function CuentaPage() {
               }}
             >
               <AlertTriangle size={14} className="text-red-400" />
-              <span className="font-mono text-xs text-red-300 font-light">
+              <span className="text-xs text-red-300 font-light">
                 {emailError}
               </span>
             </motion.div>
@@ -448,7 +448,7 @@ export default function CuentaPage() {
 
           <form onSubmit={handleEmailChange} className="space-y-4">
             <div>
-              <label className="block font-mono text-[10px] text-[var(--text-muted)] uppercase tracking-wider mb-1.5">
+              <label className="block font-ui text-[10px] text-[var(--text-muted)] uppercase tracking-wider mb-1.5">
                 {t("cuenta.newEmail")}
               </label>
               <input
@@ -496,7 +496,7 @@ export default function CuentaPage() {
               }}
             >
               <CheckCircle size={14} className="text-emerald-400" />
-              <span className="font-mono text-xs text-emerald-300 font-light">
+              <span className="text-xs text-emerald-300 font-light">
                 {t("cuenta.passwordUpdated")}
               </span>
             </motion.div>
@@ -513,7 +513,7 @@ export default function CuentaPage() {
               }}
             >
               <AlertTriangle size={14} className="text-red-400" />
-              <span className="font-mono text-xs text-red-300 font-light">
+              <span className="text-xs text-red-300 font-light">
                 {passwordError}
               </span>
             </motion.div>
@@ -521,7 +521,7 @@ export default function CuentaPage() {
 
           <form onSubmit={handlePasswordChange} className="space-y-4">
             <div>
-              <label className="block font-mono text-[10px] text-[var(--text-muted)] uppercase tracking-wider mb-1.5">
+              <label className="block font-ui text-[10px] text-[var(--text-muted)] uppercase tracking-wider mb-1.5">
                 {t("cuenta.newPassword")}
               </label>
               <input
@@ -536,7 +536,7 @@ export default function CuentaPage() {
             </div>
 
             <div>
-              <label className="block font-mono text-[10px] text-[var(--text-muted)] uppercase tracking-wider mb-1.5">
+              <label className="block font-ui text-[10px] text-[var(--text-muted)] uppercase tracking-wider mb-1.5">
                 {t("cuenta.confirmPassword")}
               </label>
               <input
@@ -574,7 +574,7 @@ export default function CuentaPage() {
             </h2>
           </div>
 
-          <p className="font-mono text-xs text-[var(--text-tertiary)] font-light mb-4 leading-relaxed">
+          <p className="text-xs text-[var(--text-tertiary)] font-light mb-4 leading-relaxed">
             {t("cuenta.deleteDescription")}
           </p>
 
@@ -592,7 +592,7 @@ export default function CuentaPage() {
               animate={{ opacity: 1, height: "auto" }}
               className="space-y-3"
             >
-              <p className="font-mono text-xs text-red-300 font-light">
+              <p className="text-xs text-red-300 font-light">
                 {t("cuenta.deleteConfirmDescription")}
               </p>
 
@@ -605,7 +605,7 @@ export default function CuentaPage() {
                   }}
                 >
                   <AlertTriangle size={14} className="text-red-400" />
-                  <span className="font-mono text-xs text-red-300 font-light">
+                  <span className="text-xs text-red-300 font-light">
                     {deleteError}
                   </span>
                 </div>
@@ -638,7 +638,7 @@ export default function CuentaPage() {
                     setDeleteConfirmEmail("");
                     setDeleteError(null);
                   }}
-                  className="px-5 py-2.5 text-xs font-mono text-[var(--text-tertiary)] hover:text-[var(--text-secondary)] transition-colors"
+                  className="px-5 py-2.5 text-xs text-[var(--text-tertiary)] hover:text-[var(--text-secondary)] transition-colors"
                 >
                   Cancelar
                 </button>

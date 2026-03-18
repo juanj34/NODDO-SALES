@@ -73,36 +73,64 @@ Dark luxury with depth. Layered surfaces, warm champagne accents, sophisticated 
 
 ### Typography — NODDO Brand Fonts
 
-Three fonts. Each has a specific role. Never mix them up.
+Four fonts. Each has a specific role. Usage depends on context (dashboard vs microsite).
 
-#### Cormorant Garamond
+#### Cormorant Garamond (`font-heading`)
 **Use for:** Hero titles, section headings, large display numbers, italic accents, pull quotes.
 **Weight:** 300 (light) for most display use. 400 for body-sized headings. 600 sparingly for emphasis.
 **Style:** Italic (`font-style: italic`) is encouraged for contrast moments — taglines, em phrases inside headlines.
 **Never use for:** UI labels, buttons, captions, data, navigation, anything under 18px.
 
-#### Syne
+#### Syne (`font-ui`)
 **Use for:** Navigation, buttons, CTAs, section labels, badges, tags, uppercase utility text.
 **Weight:** 700 or 800 for buttons and labels. 600 for nav links. 400 only in combination with heavier weights for contrast.
 **Style:** Always uppercase with `letter-spacing: .08em` to `.2em` depending on size. Smaller = more spacing.
 **Never use for:** Body copy, long paragraphs, anything that needs to be read continuously.
 
-#### DM Mono
-**Use for:** Body copy, descriptions, specs, data values, prices, card content, form labels, captions, footer text.
+#### Inter (default body font — no class needed)
+**Use for (dashboard only):** Body copy, descriptions, paragraphs, conversational text, form labels, status messages, empty states, helper text.
+**Weight:** 400 for body. 500 for subtle emphasis. 600 for strong emphasis.
+**Style:** Sentence case. Natural reading font for the admin interface.
+**Never use for:** Headings, display text, buttons, numerical data.
+**Note:** Inter is the `body` font-family default. No special class needed — just don't add `font-mono`, `font-ui`, or `font-heading`.
+
+#### DM Mono (`font-mono`)
+**Context matters:**
+- **Dashboard:** Numbers, prices, data values, IDs, codes, coordinates, timestamps, tabular data only. Never for body text or descriptions.
+- **Microsites:** Body copy, descriptions, specs, captions, footer text — the monospace rhythm gives the premium tone.
 **Weight:** 300 (light) for body. 400 for data that needs slightly more presence (prices, availability labels). 500 only for single values you need to pop (like a percentage or a unit count).
 **Style:** Never uppercase unless it's a very short label (2–3 chars max). Monospace rhythm works best in lowercase or sentence case.
 **Never use for:** Headings, hero text, anything decorative.
 
-#### Quick reference
+#### Decision rule
+> **Dashboard:** If the text reads as natural language (sentences, descriptions, messages) → **Inter** (no class). If it's discrete data (number, price, ID, code, coordinate, timestamp) → **`font-mono`** (DM Mono).
+>
+> **Microsites:** DM Mono for all body text — it's part of the premium tone.
+
+#### Quick reference — Dashboard
+
+| Element | Font | Weight | Case |
+|---|---|---|---|
+| Page title | Cormorant Garamond | 300 | Title or sentence |
+| Section heading | Cormorant Garamond | 300–400 | Sentence |
+| Button / CTA | Syne | 700 | UPPERCASE |
+| Nav link | Syne | 600 | UPPERCASE |
+| Section label / badge | Syne | 700–800 | UPPERCASE |
+| Body paragraph | Inter | 400 | Sentence |
+| Description / helper text | Inter | 400 | Sentence |
+| Form label | Inter | 400–500 | Sentence |
+| Status message | Inter | 400 | Sentence |
+| Price / data value | DM Mono | 400–500 | As-is |
+| Unit ID / code | DM Mono | 400 | As-is |
+| Timestamp / date | DM Mono | 300 | As-is |
+
+#### Quick reference — Microsites
 
 | Element | Font | Weight | Case |
 |---|---|---|---|
 | Hero headline | Cormorant Garamond | 300 | Title or sentence |
-| Section heading | Cormorant Garamond | 300–400 | Sentence |
 | Italic accent / tagline | Cormorant Garamond italic | 300 | Sentence |
 | Button / CTA | Syne | 700 | UPPERCASE |
-| Nav link | Syne | 600 | UPPERCASE |
-| Section label / badge | Syne | 700–800 | UPPERCASE |
 | Body paragraph | DM Mono | 300 | Sentence |
 | Price / data value | DM Mono | 400–500 | As-is |
 | Card label / caption | DM Mono | 300 | UPPERCASE only if ≤3 chars |
@@ -111,6 +139,7 @@ Three fonts. Each has a specific role. Never mix them up.
 #### Size floor rules
 - Cormorant Garamond: minimum 24px. Below that it loses its character.
 - Syne: minimum 9px at uppercase. Works well from 9px to 20px for labels.
+- Inter: minimum 11px. Preferred body size 13–14px. Line height 1.5–1.7.
 - DM Mono: minimum 10px. Preferred body size 12–14px. Line height always 1.7–1.9 for readability.
 
 ## Architecture

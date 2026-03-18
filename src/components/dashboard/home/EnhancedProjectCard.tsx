@@ -116,7 +116,7 @@ export function EnhancedProjectCard({ proyecto, stats, index, isAdmin, onDelete,
           <h3 className="font-heading text-lg font-light tracking-wide text-[var(--text-primary)] mb-1">
             {proyecto.nombre}
           </h3>
-          <p className="font-mono text-[11px] text-[var(--text-muted)] mb-3">
+          <p className="text-[11px] text-[var(--text-muted)] mb-3">
             {proyecto.constructora_nombre || t("proyectos.noDeveloper")} &bull;{" "}
             <span className="text-[var(--site-primary)] opacity-60">
               {proyecto.subdomain || proyecto.slug}.noddo.io
@@ -190,7 +190,7 @@ function StatPill({ icon, value, label }: { icon: React.ReactNode; value: number
       <span className="font-mono text-[12px] text-white font-medium">
         {value.toLocaleString("es-CO")}
       </span>
-      <span className="font-mono text-[10px] text-[var(--text-muted)]">{label}</span>
+      <span className="text-[10px] text-[var(--text-muted)]">{label}</span>
     </div>
   );
 }

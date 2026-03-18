@@ -22,6 +22,8 @@ import {
   Upload,
   Sparkles,
   ChevronDown,
+  ChevronUp,
+  ArrowUpDown,
   Loader2,
   AlertTriangle,
   CheckSquare,
@@ -31,7 +33,6 @@ import {
   Building2,
   TrendingUp,
   MessageSquare,
-  Send,
   Car,
   Warehouse,
   Settings,
@@ -49,9 +50,11 @@ import { getInventoryColumns, getDefaultColumns, getHybridInventoryColumns, INVE
 import { ComplementosSection } from "@/components/dashboard/ComplementosSection";
 import { CurrencyInput } from "@/components/dashboard/CurrencyInput";
 import { SmartImportModal } from "@/components/dashboard/SmartImportModal";
+import { InventoryAssistant } from "@/components/dashboard/InventoryAssistant";
 import { NodDoDropdown } from "@/components/ui/NodDoDropdown";
 import { UNIT_STATUS_COLORS } from "@/lib/status-colors";
 import { Badge } from "@/components/ui";
+import { PageHeader } from "@/components/dashboard/base/PageHeader";
 
 // ---------------------------------------------------------------------------
 // Types
@@ -1087,248 +1090,7 @@ function PriceAdjustModal({
   );
 }
 
-// ---------------------------------------------------------------------------
-// AI Chat Modal
-// ---------------------------------------------------------------------------
-
-interface AIChatMessage {
-  role: "user" | "assistant";
-  content: string;
-  changes?: Array<{ id: string; updates: Record<string, unknown>; identificador: string }>;
-}
-
-function AIChatModal({
-  unidades,
-  tipologias,
-  fachadas,
-  onClose,
-  onDone,
-}: {
-  unidades: Unidad[];
-  tipologias: Tipologia[];
-  fachadas: Fachada[];
-  onClose: () => void;
-  onDone: () => void;
-}) {
-  const { t } = useTranslation("editor");
-  const [messages, setMessages] = useState<AIChatMessage[]>([
-    { role: "assistant", content: t("inventario.aiChatWelcome") },
-  ]);
-  const [input, setInput] = useState("");
-  const [loading, setLoading] = useState(false);
-  const [applyingChanges, setApplyingChanges] = useState(false);
-  const messagesEndRef = useRef<HTMLDivElement>(null);
-
-  const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  };
-
-  const handleSend = async () => {
-    if (!input.trim() || loading) return;
-    const userMsg = input.trim();
-    setInput("");
-    setMessages((prev) => [...prev, { role: "user", content: userMsg }]);
-    setLoading(true);
-
-    try {
-      const res = await fetch("/api/ai/modify-units", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          message: userMsg,
-          unidades: unidades.map((u) => ({
-            id: u.id,
-            identificador: u.identificador,
-            tipologia_id: u.tipologia_id,
-            fachada_id: u.fachada_id,
-            piso: u.piso,
-            area_m2: u.area_m2,
-            area_construida: u.area_construida,
-            area_privada: u.area_privada,
-            area_lote: u.area_lote,
-            precio: u.precio,
-            estado: u.estado,
-            habitaciones: u.habitaciones,
-            banos: u.banos,
-            parqueaderos: u.parqueaderos,
-            depositos: u.depositos,
-          })),
-          tipologias: tipologias.map((tp) => ({ id: tp.id, nombre: tp.nombre })),
-          fachadas: fachadas.map((f) => ({ id: f.id, nombre: f.nombre })),
-        }),
-      });
-      if (!res.ok) throw new Error("Error");
-      const data = await res.json();
-      setMessages((prev) => [
-        ...prev,
-        {
-          role: "assistant",
-          content: data.summary || "Cambios listos.",
-          changes: data.changes,
-        },
-      ]);
-    } catch {
-      setMessages((prev) => [
-        ...prev,
-        { role: "assistant", content: "Error al procesar la solicitud. Intenta de nuevo." },
-      ]);
-    } finally {
-      setLoading(false);
-      setTimeout(scrollToBottom, 100);
-    }
-  };
-
-  const handleApplyChanges = async (changes: AIChatMessage["changes"]) => {
-    if (!changes || changes.length === 0) return;
-    setApplyingChanges(true);
-    try {
-      const promises = changes.map((c) =>
-        fetch(`/api/unidades/${c.id}`, {
-          method: "PUT",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(c.updates),
-        })
-      );
-      await Promise.all(promises);
-      setMessages((prev) => [
-        ...prev,
-        { role: "assistant", content: t("inventario.aiApplied", { n: String(changes.length) }) },
-      ]);
-      onDone();
-    } catch {
-      setMessages((prev) => [
-        ...prev,
-        { role: "assistant", content: "Error al aplicar los cambios." },
-      ]);
-    } finally {
-      setApplyingChanges(false);
-    }
-  };
-
-  return (
-    <motion.div
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      exit={{ opacity: 0 }}
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4"
-      onClick={onClose}
-    >
-      <motion.div
-        initial={{ scale: 0.95, opacity: 0 }}
-        animate={{ scale: 1, opacity: 1 }}
-        exit={{ scale: 0.95, opacity: 0 }}
-        onClick={(e) => e.stopPropagation()}
-        className="bg-[var(--surface-2)] border border-[var(--border-default)] rounded-2xl w-full max-w-2xl h-[70vh] flex flex-col shadow-2xl"
-      >
-        {/* Header */}
-        <div className="flex items-center justify-between p-6 border-b border-[var(--border-subtle)]">
-          <div className="flex items-center gap-3">
-            <div className="p-2 bg-purple-500/10 rounded-lg">
-              <MessageSquare size={18} className="text-purple-400" />
-            </div>
-            <div>
-              <h3 className="text-sm font-medium text-white">{t("inventario.aiChatTitle")}</h3>
-              <p className="text-xs text-[var(--text-tertiary)]">
-                {unidades.length} unidades
-              </p>
-            </div>
-          </div>
-          <button onClick={onClose} className="p-2 hover:bg-[var(--surface-3)] rounded-lg transition-colors">
-            <X size={16} className="text-[var(--text-tertiary)]" />
-          </button>
-        </div>
-
-        {/* Messages */}
-        <div className="flex-1 overflow-y-auto p-6 space-y-4">
-          {messages.map((msg, i) => (
-            <div key={i} className={cn("flex", msg.role === "user" ? "justify-end" : "justify-start")}>
-              <div
-                className={cn(
-                  "max-w-[80%] rounded-xl px-4 py-2.5 text-xs",
-                  msg.role === "user"
-                    ? "bg-[rgba(var(--site-primary-rgb),0.15)] text-white"
-                    : "bg-[var(--surface-3)] text-[var(--text-secondary)]"
-                )}
-              >
-                <p className="whitespace-pre-wrap">{msg.content}</p>
-                {msg.changes && msg.changes.length > 0 && (
-                  <div className="mt-3 space-y-2">
-                    <div className="max-h-32 overflow-y-auto rounded border border-[var(--border-subtle)]">
-                      <table className="w-full text-[10px]">
-                        <thead>
-                          <tr className="border-b border-[var(--border-default)]">
-                            <th className="text-left py-1 px-2 text-[var(--text-tertiary)] font-normal">ID</th>
-                            <th className="text-left py-1 px-2 text-[var(--text-tertiary)] font-normal">Cambios</th>
-                          </tr>
-                        </thead>
-                        <tbody>
-                          {msg.changes.slice(0, 10).map((c, ci) => (
-                            <tr key={ci} className="border-b border-[var(--border-subtle)]">
-                              <td className="py-1 px-2 text-white">{c.identificador}</td>
-                              <td className="py-1 px-2 text-[var(--text-secondary)]">
-                                {Object.entries(c.updates).map(([k, v]) => `${k}: ${v}`).join(", ")}
-                              </td>
-                            </tr>
-                          ))}
-                        </tbody>
-                      </table>
-                      {msg.changes.length > 10 && (
-                        <p className="text-[10px] text-[var(--text-muted)] text-center py-1">
-                          +{msg.changes.length - 10} más
-                        </p>
-                      )}
-                    </div>
-                    <button
-                      onClick={() => handleApplyChanges(msg.changes)}
-                      disabled={applyingChanges}
-                      className={btnPrimary}
-                    >
-                      {applyingChanges ? (
-                        <Loader2 size={12} className="animate-spin" />
-                      ) : (
-                        <Check size={12} />
-                      )}
-                      {t("inventario.aiConfirmApply", { n: String(msg.changes.length) })}
-                    </button>
-                  </div>
-                )}
-              </div>
-            </div>
-          ))}
-          {loading && (
-            <div className="flex justify-start">
-              <div className="bg-[var(--surface-3)] rounded-xl px-4 py-2.5">
-                <Loader2 size={14} className="animate-spin text-purple-400" />
-              </div>
-            </div>
-          )}
-          <div ref={messagesEndRef} />
-        </div>
-
-        {/* Input */}
-        <div className="p-4 border-t border-[var(--border-subtle)]">
-          <div className="flex items-center gap-2">
-            <input
-              type="text"
-              value={input}
-              onChange={(e) => setInput(e.target.value)}
-              onKeyDown={(e) => e.key === "Enter" && !e.shiftKey && handleSend()}
-              placeholder={t("inventario.aiChatPlaceholder")}
-              className={inputClass + " flex-1"}
-            />
-            <button
-              onClick={handleSend}
-              disabled={!input.trim() || loading}
-              className={btnPrimary}
-            >
-              <Send size={14} />
-            </button>
-          </div>
-        </div>
-      </motion.div>
-    </motion.div>
-  );
-}
+// AIChatModal removed — now using InventoryAssistant component from @/components/dashboard/InventoryAssistant
 
 // ---------------------------------------------------------------------------
 // Columns Config Modal
@@ -1522,6 +1284,8 @@ export default function InventarioPage() {
   const [filterTipologia, setFilterTipologia] = useState("");
   const [filterEstado, setFilterEstado] = useState("");
   const [filterEtapa, setFilterEtapa] = useState("");
+  const [sortField, setSortField] = useState<string | null>(null);
+  const [sortDir, setSortDir] = useState<"asc" | "desc">("asc");
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [bulkEstado, setBulkEstado] = useState<EstadoUnidad>("disponible");
   const [bulkTorreId, setBulkTorreId] = useState("");
@@ -1674,6 +1438,58 @@ export default function InventarioPage() {
       return true;
     });
   }, [unidades, filterTipologia, filterEstado, filterEtapa, searchQuery, isMultiTorre, activeTorreId, tipoTabTipologiaIds]);
+
+  // --- Sorting ---
+  const toggleSort = useCallback((field: string) => {
+    if (sortField === field) {
+      // Same field, toggle direction
+      setSortDir((d) => (d === "asc" ? "desc" : "asc"));
+    } else {
+      // New field, set it and reset to asc
+      setSortField(field);
+      setSortDir("asc");
+    }
+  }, [sortField]);
+
+  const sortedUnidades = useMemo(() => {
+    if (!sortField) return filteredUnidades;
+    const ESTADO_ORDER: Record<string, number> = { disponible: 0, proximamente: 1, separado: 2, reservada: 3, vendida: 4 };
+    const dir = sortDir === "asc" ? 1 : -1;
+    return [...filteredUnidades].sort((a, b) => {
+      let va: string | number | null = null;
+      let vb: string | number | null = null;
+      switch (sortField) {
+        case "identificador": va = a.identificador; vb = b.identificador; break;
+        case "tipologia": {
+          const ta = tipologias.find(t => t.id === a.tipologia_id);
+          const tb = tipologias.find(t => t.id === b.tipologia_id);
+          va = ta?.nombre ?? ""; vb = tb?.nombre ?? ""; break;
+        }
+        case "piso": va = a.piso ?? ""; vb = b.piso ?? ""; break;
+        case "lote": va = a.lote ?? ""; vb = b.lote ?? ""; break;
+        case "etapa": va = a.etapa_nombre ?? ""; vb = b.etapa_nombre ?? ""; break;
+        case "area_m2": va = a.area_m2 ?? 0; vb = b.area_m2 ?? 0; break;
+        case "area_construida": va = a.area_construida ?? 0; vb = b.area_construida ?? 0; break;
+        case "area_privada": va = a.area_privada ?? 0; vb = b.area_privada ?? 0; break;
+        case "area_lote": va = a.area_lote ?? 0; vb = b.area_lote ?? 0; break;
+        case "precio": va = a.precio ?? 0; vb = b.precio ?? 0; break;
+        case "estado": va = ESTADO_ORDER[a.estado] ?? 99; vb = ESTADO_ORDER[b.estado] ?? 99; break;
+        case "habitaciones": va = a.habitaciones ?? 0; vb = b.habitaciones ?? 0; break;
+        case "banos": va = a.banos ?? 0; vb = b.banos ?? 0; break;
+        case "parqueaderos": va = a.parqueaderos ?? 0; vb = b.parqueaderos ?? 0; break;
+        case "depositos": va = a.depositos ?? 0; vb = b.depositos ?? 0; break;
+        default: return 0;
+      }
+      if (va == null && vb == null) return 0;
+      if (va == null) return 1;
+      if (vb == null) return -1;
+      if (typeof va === "number" && typeof vb === "number") return (va - vb) * dir;
+      // Natural sort for identifiers (e.g. "1", "3", "10")
+      const na = Number(va), nb = Number(vb);
+      if (!isNaN(na) && !isNaN(nb)) return (na - nb) * dir;
+      return String(va).localeCompare(String(vb), "es", { numeric: true }) * dir;
+    });
+  }, [filteredUnidades, sortField, sortDir, tipologias]);
 
   // --- Selection helpers ---
   const allFilteredSelected =
@@ -2255,33 +2071,14 @@ export default function InventarioPage() {
       animate={{ opacity: 1, y: 0 }}
       className="space-y-4"
     >
-      {/* Compact header: icon + title + stats pills + actions */}
-      <div className="flex items-center gap-4 flex-wrap">
-        <div className="flex items-center gap-3 mr-auto">
-          <div className="w-10 h-10 rounded-xl bg-[var(--surface-2)] border border-[var(--border-subtle)] flex items-center justify-center shrink-0">
-            <Package size={18} className="text-[var(--site-primary)]" />
-          </div>
-          <h2 className="text-xl font-light text-white whitespace-nowrap">
-            {t("inventario.title")}
-          </h2>
-        </div>
-
-        {/* Inline stats pills */}
-        <div className="flex items-center gap-2.5 order-3 sm:order-none w-full sm:w-auto">
-          {ESTADOS.map((e) => (
-            <div
-              key={e.value}
-              className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-[var(--surface-2)] border border-[var(--border-subtle)]"
-            >
-              <span className={cn("w-2.5 h-2.5 rounded-full shrink-0", UNIT_STATUS_COLORS[e.value].dot)} />
-              <span className="text-[11px] text-[var(--text-tertiary)] hidden sm:inline">{e.label}</span>
-              <span className="text-sm font-medium text-white">{stats[e.value]}</span>
-            </div>
-          ))}
-        </div>
-
-        {/* Action buttons */}
-        <div className="flex items-center gap-2">
+      {/* Standardized header */}
+      <PageHeader
+        icon={Package}
+        title={t("inventario.title")}
+        description={t("inventario.description")}
+        className="mb-0"
+        actions={
+          <div className="flex items-center gap-2">
           {!isMobile && (
             <>
               <button
@@ -2291,12 +2088,19 @@ export default function InventarioPage() {
                 <Upload size={14} />
                 {t("inventario.import")}
               </button>
+              <button
+                onClick={() => setShowAIChat(true)}
+                className={btnPrimary}
+              >
+                <Sparkles size={14} />
+                {t("inventario.aiChat")}
+              </button>
               <div className="relative">
                 <button
                   onClick={() => setShowToolsMenu((p) => !p)}
                   className={btnSecondary}
                 >
-                  <Sparkles size={14} />
+                  <Settings size={14} />
                   {t("inventario.tools")}
                   <ChevronDown size={12} className={cn("transition-transform", showToolsMenu && "rotate-180")} />
                 </button>
@@ -2321,14 +2125,6 @@ export default function InventarioPage() {
                           </button>
                         )}
                         <button
-                          onClick={() => { setShowAIChat(true); setShowToolsMenu(false); }}
-                          className="flex items-center gap-2.5 w-full px-4 py-2.5 text-xs text-[var(--text-secondary)] hover:bg-[var(--surface-3)] hover:text-white transition-colors"
-                        >
-                          <MessageSquare size={13} className="text-[var(--site-primary)]" />
-                          {t("inventario.aiChat")}
-                        </button>
-                        <div className="border-t border-[var(--border-subtle)]" />
-                        <button
                           onClick={() => { setShowColumnsModal(true); setShowToolsMenu(false); }}
                           className="flex items-center gap-2.5 w-full px-4 py-2.5 text-xs text-[var(--text-secondary)] hover:bg-[var(--surface-3)] hover:text-white transition-colors"
                         >
@@ -2343,43 +2139,49 @@ export default function InventarioPage() {
             </>
           )}
           {isMobile && (
-            <div className="relative">
+            <>
               <button
-                onClick={() => setShowMobileActions((p) => !p)}
-                className={btnSecondary}
+                onClick={() => setShowAIChat(true)}
+                className={btnPrimary}
               >
-                <ChevronDown size={14} />
+                <Sparkles size={14} />
               </button>
-              <AnimatePresence>
-                {showMobileActions && (
-                  <motion.div
-                    initial={{ opacity: 0, y: -4 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: -4 }}
-                    className="absolute right-0 top-full mt-1 w-52 bg-[var(--surface-2)] border border-[var(--border-default)] rounded-xl shadow-2xl z-20 overflow-hidden"
-                  >
-                    <button onClick={() => { setShowImportModal(true); setShowMobileActions(false); }} className="flex items-center gap-2.5 w-full px-4 py-2.5 text-xs text-[var(--text-secondary)] hover:bg-[var(--surface-3)] transition-colors">
-                      <Upload size={13} className="text-[var(--site-primary)]" /> {t("inventario.import")}
-                    </button>
-                    {!isTipologiaPricing && (
-                      <button onClick={() => { setShowPriceAdjust(true); setShowMobileActions(false); }} className="flex items-center gap-2.5 w-full px-4 py-2.5 text-xs text-[var(--text-secondary)] hover:bg-[var(--surface-3)] transition-colors">
-                        <TrendingUp size={13} className="text-[var(--site-primary)]" /> {t("inventario.priceAdjust")}
+              <div className="relative">
+                <button
+                  onClick={() => setShowMobileActions((p) => !p)}
+                  className={btnSecondary}
+                >
+                  <ChevronDown size={14} />
+                </button>
+                <AnimatePresence>
+                  {showMobileActions && (
+                    <motion.div
+                      initial={{ opacity: 0, y: -4 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: -4 }}
+                      className="absolute right-0 top-full mt-1 w-52 bg-[var(--surface-2)] border border-[var(--border-default)] rounded-xl shadow-2xl z-20 overflow-hidden"
+                    >
+                      <button onClick={() => { setShowImportModal(true); setShowMobileActions(false); }} className="flex items-center gap-2.5 w-full px-4 py-2.5 text-xs text-[var(--text-secondary)] hover:bg-[var(--surface-3)] transition-colors">
+                        <Upload size={13} className="text-[var(--site-primary)]" /> {t("inventario.import")}
                       </button>
-                    )}
-                    <button onClick={() => { setShowAIChat(true); setShowMobileActions(false); }} className="flex items-center gap-2.5 w-full px-4 py-2.5 text-xs text-[var(--text-secondary)] hover:bg-[var(--surface-3)] transition-colors">
-                      <MessageSquare size={13} className="text-[var(--site-primary)]" /> {t("inventario.aiChat")}
-                    </button>
-                    <div className="border-t border-[var(--border-subtle)]" />
-                    <button onClick={() => { setShowColumnsModal(true); setShowMobileActions(false); }} className="flex items-center gap-2.5 w-full px-4 py-2.5 text-xs text-[var(--text-secondary)] hover:bg-[var(--surface-3)] transition-colors">
-                      <Settings size={13} className="text-[var(--site-primary)]" /> {t("general.project.columnsTitle")}
-                    </button>
-                  </motion.div>
-                )}
-              </AnimatePresence>
-            </div>
+                      {!isTipologiaPricing && (
+                        <button onClick={() => { setShowPriceAdjust(true); setShowMobileActions(false); }} className="flex items-center gap-2.5 w-full px-4 py-2.5 text-xs text-[var(--text-secondary)] hover:bg-[var(--surface-3)] transition-colors">
+                          <TrendingUp size={13} className="text-[var(--site-primary)]" /> {t("inventario.priceAdjust")}
+                        </button>
+                      )}
+                      <div className="border-t border-[var(--border-subtle)]" />
+                      <button onClick={() => { setShowColumnsModal(true); setShowMobileActions(false); }} className="flex items-center gap-2.5 w-full px-4 py-2.5 text-xs text-[var(--text-secondary)] hover:bg-[var(--surface-3)] transition-colors">
+                        <Settings size={13} className="text-[var(--site-primary)]" /> {t("general.project.columnsTitle")}
+                      </button>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </div>
+            </>
           )}
         </div>
-      </div>
+        }
+      />
 
       {/* Hybrid tipo tabs — shown for hybrid projects */}
       {isHibrido && availableTipoTabs.length > 0 && (
@@ -2542,7 +2344,7 @@ export default function InventarioPage() {
                 : tipologias
               ).map((tp) => ({ value: tp.id, label: tp.nombre })),
             ]}
-            className="w-36"
+            className="w-44"
           />
           <NodDoDropdown
             variant="dashboard"
@@ -2569,7 +2371,7 @@ export default function InventarioPage() {
                 <span>{option.label}</span>
               </span>
             )}
-            className="w-32"
+            className="w-40"
           />
           {columns.etapa && uniqueEtapas.length > 1 && (
             <NodDoDropdown
@@ -2581,7 +2383,7 @@ export default function InventarioPage() {
                 { value: "", label: t("inventario.allEtapas") },
                 ...uniqueEtapas.map((e) => ({ value: e, label: e })),
               ]}
-              className="w-36"
+              className="w-40"
             />
           )}
           <button
@@ -2594,6 +2396,20 @@ export default function InventarioPage() {
             <Plus size={14} />
             {isMobile ? t("inventario.newUnit").split(" ").pop() : t("inventario.newUnit")}
           </button>
+        </div>
+
+        {/* Stats pills - moved to right side */}
+        <div className="hidden lg:flex items-center gap-2 ml-auto">
+          {ESTADOS.map((e) => (
+            <div
+              key={e.value}
+              className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-[var(--surface-2)] border border-[var(--border-subtle)]"
+            >
+              <span className={cn("w-2 h-2 rounded-full shrink-0", UNIT_STATUS_COLORS[e.value].dot)} />
+              <span className="text-[11px] text-[var(--text-tertiary)]">{e.label}</span>
+              <span className="text-xs font-medium text-white tabular-nums">{stats[e.value]}</span>
+            </div>
+          ))}
         </div>
       </div>
 
@@ -2799,14 +2615,14 @@ export default function InventarioPage() {
       {isMobile ? (
         /* ── MOBILE CARD VIEW ── */
         <div className="space-y-2.5">
-          {filteredUnidades.length === 0 ? (
+          {sortedUnidades.length === 0 ? (
             <div className="py-12 text-center text-[var(--text-muted)] text-sm">
               {unidades.length === 0
                 ? t("inventario.noUnits")
                 : t("inventario.noUnitsFiltered")}
             </div>
           ) : (
-            filteredUnidades.map((unit) =>
+            sortedUnidades.map((unit) =>
               editingId === unit.id ? (
                 <UnitForm
                   key={unit.id}
@@ -2863,76 +2679,88 @@ export default function InventarioPage() {
                       )}
                     </button>
                   </th>
-                  <th className="text-left py-2 px-4 text-[var(--text-tertiary)] font-ui font-bold text-[10px] uppercase tracking-wider">
-                    {t("inventario.fields.identifier")}
-                  </th>
-                  <th className="text-left py-2 px-4 text-[var(--text-tertiary)] font-ui font-bold text-[10px] uppercase tracking-wider">
-                    {isMultiTipo ? "TIPOLOGÍAS" : t("inventario.fields.typology")}
-                  </th>
+                  {(() => {
+                    const thBase = "text-left py-2 px-4 font-ui font-bold text-[10px] uppercase tracking-wider";
+                    const sortIcon = (field: string) => {
+                      if (sortField !== field) return <ArrowUpDown size={10} className="opacity-0 group-hover/th:opacity-100 transition-opacity" />;
+                      return sortDir === "asc" ? <ChevronUp size={10} /> : <ChevronDown size={10} />;
+                    };
+                    const thClass = (field: string) => cn(thBase, "cursor-pointer select-none group/th hover:text-[var(--text-secondary)] transition-colors", sortField === field ? "text-[var(--site-primary)]" : "text-[var(--text-tertiary)]");
+                    return (
+                      <>
+                        <th className={thClass("identificador")} onClick={() => toggleSort("identificador")}>
+                          <span className="inline-flex items-center gap-1">{t("inventario.fields.identifier")} {sortIcon("identificador")}</span>
+                        </th>
+                        <th className={thClass("tipologia")} onClick={() => toggleSort("tipologia")}>
+                          <span className="inline-flex items-center gap-1">{isMultiTipo ? "TIPOLOGÍAS" : t("inventario.fields.typology")} {sortIcon("tipologia")}</span>
+                        </th>
+                      </>
+                    );
+                  })()}
                   {!isLoteBased && fachadas.length > 0 && (
                     <th className="text-left py-2 px-4 text-[var(--text-tertiary)] font-ui font-bold text-[10px] uppercase tracking-wider">
                       {t("inventario.fields.fachada")}
                     </th>
                   )}
                   {columns.piso && (
-                    <th className="text-left py-2 px-4 text-[var(--text-tertiary)] font-ui font-bold text-[10px] uppercase tracking-wider">
-                      {t("inventario.fields.floor")}
+                    <th className={cn("text-left py-2 px-4 font-ui font-bold text-[10px] uppercase tracking-wider cursor-pointer select-none group/th hover:text-[var(--text-secondary)] transition-colors", sortField === "piso" ? "text-[var(--site-primary)]" : "text-[var(--text-tertiary)]")} onClick={() => toggleSort("piso")}>
+                      <span className="inline-flex items-center gap-1">{t("inventario.fields.floor")} {sortField === "piso" ? (sortDir === "asc" ? <ChevronUp size={10} /> : <ChevronDown size={10} />) : <ArrowUpDown size={10} className="opacity-0 group-hover/th:opacity-100 transition-opacity" />}</span>
                     </th>
                   )}
                   {columns.lote && (
-                    <th className="text-left py-2 px-4 text-[var(--text-tertiary)] font-ui font-bold text-[10px] uppercase tracking-wider">
-                      LOTE
+                    <th className={cn("text-left py-2 px-4 font-ui font-bold text-[10px] uppercase tracking-wider cursor-pointer select-none group/th hover:text-[var(--text-secondary)] transition-colors", sortField === "lote" ? "text-[var(--site-primary)]" : "text-[var(--text-tertiary)]")} onClick={() => toggleSort("lote")}>
+                      <span className="inline-flex items-center gap-1">LOTE {sortField === "lote" ? (sortDir === "asc" ? <ChevronUp size={10} /> : <ChevronDown size={10} />) : <ArrowUpDown size={10} className="opacity-0 group-hover/th:opacity-100 transition-opacity" />}</span>
                     </th>
                   )}
                   {columns.etapa && (
-                    <th className="text-left py-2 px-4 text-[var(--text-tertiary)] font-ui font-bold text-[10px] uppercase tracking-wider">
-                      ETAPA
+                    <th className={cn("text-left py-2 px-4 font-ui font-bold text-[10px] uppercase tracking-wider cursor-pointer select-none group/th hover:text-[var(--text-secondary)] transition-colors", sortField === "etapa" ? "text-[var(--site-primary)]" : "text-[var(--text-tertiary)]")} onClick={() => toggleSort("etapa")}>
+                      <span className="inline-flex items-center gap-1">ETAPA {sortField === "etapa" ? (sortDir === "asc" ? <ChevronUp size={10} /> : <ChevronDown size={10} />) : <ArrowUpDown size={10} className="opacity-0 group-hover/th:opacity-100 transition-opacity" />}</span>
                     </th>
                   )}
                   {columns.area_m2 && (
-                    <th className="text-left py-2 px-4 text-[var(--text-tertiary)] font-ui font-bold text-[10px] uppercase tracking-wider">
-                      {t("inventario.columns.area")}
+                    <th className={cn("text-left py-2 px-4 font-ui font-bold text-[10px] uppercase tracking-wider cursor-pointer select-none group/th hover:text-[var(--text-secondary)] transition-colors", sortField === "area_m2" ? "text-[var(--site-primary)]" : "text-[var(--text-tertiary)]")} onClick={() => toggleSort("area_m2")}>
+                      <span className="inline-flex items-center gap-1">{t("inventario.columns.area")} {sortField === "area_m2" ? (sortDir === "asc" ? <ChevronUp size={10} /> : <ChevronDown size={10} />) : <ArrowUpDown size={10} className="opacity-0 group-hover/th:opacity-100 transition-opacity" />}</span>
                     </th>
                   )}
                   {columns.area_construida && (
-                    <th className="text-left py-2 px-4 text-[var(--text-tertiary)] font-ui font-bold text-[10px] uppercase tracking-wider">
-                      {t("inventario.columns.areaConstruida")}
+                    <th className={cn("text-left py-2 px-4 font-ui font-bold text-[10px] uppercase tracking-wider cursor-pointer select-none group/th hover:text-[var(--text-secondary)] transition-colors", sortField === "area_construida" ? "text-[var(--site-primary)]" : "text-[var(--text-tertiary)]")} onClick={() => toggleSort("area_construida")}>
+                      <span className="inline-flex items-center gap-1">{t("inventario.columns.areaConstruida")} {sortField === "area_construida" ? (sortDir === "asc" ? <ChevronUp size={10} /> : <ChevronDown size={10} />) : <ArrowUpDown size={10} className="opacity-0 group-hover/th:opacity-100 transition-opacity" />}</span>
                     </th>
                   )}
                   {columns.area_privada && (
-                    <th className="text-left py-2 px-4 text-[var(--text-tertiary)] font-ui font-bold text-[10px] uppercase tracking-wider">
-                      {t("inventario.columns.areaPrivada")}
+                    <th className={cn("text-left py-2 px-4 font-ui font-bold text-[10px] uppercase tracking-wider cursor-pointer select-none group/th hover:text-[var(--text-secondary)] transition-colors", sortField === "area_privada" ? "text-[var(--site-primary)]" : "text-[var(--text-tertiary)]")} onClick={() => toggleSort("area_privada")}>
+                      <span className="inline-flex items-center gap-1">{t("inventario.columns.areaPrivada")} {sortField === "area_privada" ? (sortDir === "asc" ? <ChevronUp size={10} /> : <ChevronDown size={10} />) : <ArrowUpDown size={10} className="opacity-0 group-hover/th:opacity-100 transition-opacity" />}</span>
                     </th>
                   )}
                   {columns.area_lote && (
-                    <th className="text-left py-2 px-4 text-[var(--text-tertiary)] font-ui font-bold text-[10px] uppercase tracking-wider">
-                      {t("inventario.columns.areaLote")}
+                    <th className={cn("text-left py-2 px-4 font-ui font-bold text-[10px] uppercase tracking-wider cursor-pointer select-none group/th hover:text-[var(--text-secondary)] transition-colors", sortField === "area_lote" ? "text-[var(--site-primary)]" : "text-[var(--text-tertiary)]")} onClick={() => toggleSort("area_lote")}>
+                      <span className="inline-flex items-center gap-1">{t("inventario.columns.areaLote")} {sortField === "area_lote" ? (sortDir === "asc" ? <ChevronUp size={10} /> : <ChevronDown size={10} />) : <ArrowUpDown size={10} className="opacity-0 group-hover/th:opacity-100 transition-opacity" />}</span>
                     </th>
                   )}
-                  <th className="text-left py-2 px-4 text-[var(--text-tertiary)] font-ui font-bold text-[10px] uppercase tracking-wider">
-                    {t("inventario.fields.price")}
+                  <th className={cn("text-left py-2 px-4 font-ui font-bold text-[10px] uppercase tracking-wider cursor-pointer select-none group/th hover:text-[var(--text-secondary)] transition-colors", sortField === "precio" ? "text-[var(--site-primary)]" : "text-[var(--text-tertiary)]")} onClick={() => toggleSort("precio")}>
+                    <span className="inline-flex items-center gap-1">{t("inventario.fields.price")} {sortField === "precio" ? (sortDir === "asc" ? <ChevronUp size={10} /> : <ChevronDown size={10} />) : <ArrowUpDown size={10} className="opacity-0 group-hover/th:opacity-100 transition-opacity" />}</span>
                   </th>
-                  <th className="text-left py-2 px-4 text-[var(--text-tertiary)] font-ui font-bold text-[10px] uppercase tracking-wider">
-                    {t("inventario.fields.state")}
+                  <th className={cn("text-left py-2 px-4 font-ui font-bold text-[10px] uppercase tracking-wider cursor-pointer select-none group/th hover:text-[var(--text-secondary)] transition-colors", sortField === "estado" ? "text-[var(--site-primary)]" : "text-[var(--text-tertiary)]")} onClick={() => toggleSort("estado")}>
+                    <span className="inline-flex items-center gap-1">{t("inventario.fields.state")} {sortField === "estado" ? (sortDir === "asc" ? <ChevronUp size={10} /> : <ChevronDown size={10} />) : <ArrowUpDown size={10} className="opacity-0 group-hover/th:opacity-100 transition-opacity" />}</span>
                   </th>
                   {columns.habitaciones && (
-                    <th className="text-left py-2 px-4 text-[var(--text-tertiary)] font-ui font-bold text-[10px] uppercase tracking-wider">
-                      {t("inventario.fields.bedrooms")}
+                    <th className={cn("text-left py-2 px-4 font-ui font-bold text-[10px] uppercase tracking-wider cursor-pointer select-none group/th hover:text-[var(--text-secondary)] transition-colors", sortField === "habitaciones" ? "text-[var(--site-primary)]" : "text-[var(--text-tertiary)]")} onClick={() => toggleSort("habitaciones")}>
+                      <span className="inline-flex items-center gap-1">{t("inventario.fields.bedrooms")} {sortField === "habitaciones" ? (sortDir === "asc" ? <ChevronUp size={10} /> : <ChevronDown size={10} />) : <ArrowUpDown size={10} className="opacity-0 group-hover/th:opacity-100 transition-opacity" />}</span>
                     </th>
                   )}
                   {columns.banos && (
-                    <th className="text-left py-2 px-4 text-[var(--text-tertiary)] font-ui font-bold text-[10px] uppercase tracking-wider">
-                      {t("inventario.fields.bathrooms")}
+                    <th className={cn("text-left py-2 px-4 font-ui font-bold text-[10px] uppercase tracking-wider cursor-pointer select-none group/th hover:text-[var(--text-secondary)] transition-colors", sortField === "banos" ? "text-[var(--site-primary)]" : "text-[var(--text-tertiary)]")} onClick={() => toggleSort("banos")}>
+                      <span className="inline-flex items-center gap-1">{t("inventario.fields.bathrooms")} {sortField === "banos" ? (sortDir === "asc" ? <ChevronUp size={10} /> : <ChevronDown size={10} />) : <ArrowUpDown size={10} className="opacity-0 group-hover/th:opacity-100 transition-opacity" />}</span>
                     </th>
                   )}
                   {columns.parqueaderos && (
-                    <th className="text-left py-2 px-4 text-[var(--text-tertiary)] font-ui font-bold text-[10px] uppercase tracking-wider">
-                      {t("inventario.fields.parking")}
+                    <th className={cn("text-left py-2 px-4 font-ui font-bold text-[10px] uppercase tracking-wider cursor-pointer select-none group/th hover:text-[var(--text-secondary)] transition-colors", sortField === "parqueaderos" ? "text-[var(--site-primary)]" : "text-[var(--text-tertiary)]")} onClick={() => toggleSort("parqueaderos")}>
+                      <span className="inline-flex items-center gap-1">{t("inventario.fields.parking")} {sortField === "parqueaderos" ? (sortDir === "asc" ? <ChevronUp size={10} /> : <ChevronDown size={10} />) : <ArrowUpDown size={10} className="opacity-0 group-hover/th:opacity-100 transition-opacity" />}</span>
                     </th>
                   )}
                   {columns.depositos && (
-                    <th className="text-left py-2 px-4 text-[var(--text-tertiary)] font-ui font-bold text-[10px] uppercase tracking-wider">
-                      {t("inventario.fields.storage")}
+                    <th className={cn("text-left py-2 px-4 font-ui font-bold text-[10px] uppercase tracking-wider cursor-pointer select-none group/th hover:text-[var(--text-secondary)] transition-colors", sortField === "depositos" ? "text-[var(--site-primary)]" : "text-[var(--text-tertiary)]")} onClick={() => toggleSort("depositos")}>
+                      <span className="inline-flex items-center gap-1">{t("inventario.fields.storage")} {sortField === "depositos" ? (sortDir === "asc" ? <ChevronUp size={10} /> : <ChevronDown size={10} />) : <ArrowUpDown size={10} className="opacity-0 group-hover/th:opacity-100 transition-opacity" />}</span>
                     </th>
                   )}
                   <th className="text-right py-2 px-4 text-[var(--text-tertiary)] font-ui font-bold text-[10px] uppercase tracking-wider">
@@ -2941,7 +2769,7 @@ export default function InventarioPage() {
                 </tr>
               </thead>
               <tbody>
-                {filteredUnidades.length === 0 ? (
+                {sortedUnidades.length === 0 ? (
                   <tr>
                     <td
                       colSpan={99}
@@ -2953,7 +2781,7 @@ export default function InventarioPage() {
                     </td>
                   </tr>
                 ) : (
-                  filteredUnidades.map((unit) => {
+                  sortedUnidades.map((unit) => {
                     const unitTipos = isMultiTipo ? getUnitTipologias(unit.id) : [];
                     const specRanges = isMultiTipo && !unit.tipologia_id ? getUnitSpecRanges(unit.id) : null;
                     const confirmedTipo = unit.tipologia_id ? tipologias.find(t => t.id === unit.tipologia_id) : null;
@@ -3303,10 +3131,15 @@ export default function InventarioPage() {
 
       <AnimatePresence>
         {showAIChat && (
-          <AIChatModal
+          <InventoryAssistant
             unidades={unidades}
             tipologias={tipologias}
             fachadas={fachadas}
+            torres={torres}
+            projectId={projectId}
+            tipoProyecto={tipoProyecto}
+            tipologiaMode={tipologiaMode}
+            unidadTipologias={unidadTipologias}
             onClose={() => setShowAIChat(false)}
             onDone={async () => {
               await refresh();
