@@ -49,7 +49,7 @@ const ESTADOS: { key: EstadoUnidad; color: string; bg: string; dot: string }[] =
 ];
 
 /* ── Helpers ───────────────────────────────────────────── */
-// formatPrice moved to src/lib/currency.ts → formatCurrency(, "COP", { compact: true }) with compact option
+// formatPrice moved to src/lib/currency.ts → formatCurrency(, "COP", {}) with compact option
 
 /* ── Page ──────────────────────────────────────────────── */
 
@@ -663,7 +663,7 @@ export default function DisponibilidadPage() {
 
                         {/* Price */}
                         <span className="text-[11px] text-[var(--text-tertiary)] shrink-0 w-16 text-right hidden sm:block">
-                          {unit.precio ? formatCurrency(unit.precio, "COP", { compact: true }) : "—"}
+                          {unit.precio ? formatCurrency(unit.precio, "COP", {}) : "—"}
                         </span>
 
                         {/* Status selector */}

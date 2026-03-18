@@ -124,7 +124,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Sanitize user instruction (allow more text for CSV pastes)
-    const cleanMessage = sanitizeInput(message, 20000);
+    const cleanMessage = sanitizeInput(message, 30000);
 
     // Build lookup maps
     const unitMap = new Map<string, UnitSummary>();
@@ -223,10 +223,20 @@ UNIDADES ACTUALES:
 ${unidadesJSON}
 
 REGLAS DE INTERPRETACIÓN:
+
+REGLA CRÍTICA — PRECISIÓN:
+Modifica ÚNICAMENTE los campos que el usuario pide explícitamente. Si dice "actualiza etapas", SOLO cambia etapa_nombre. Si dice "asigna precios", SOLO cambia precio. NO cambies estado, tipología, áreas ni ningún otro campo que no fue solicitado, incluso si detectas diferencias entre el CSV y los datos actuales. Es mejor hacer menos cambios correctos que muchos cambios no solicitados.
+
 1. Interpreta la intención del usuario de forma inteligente. Si dice "casas 1 a la 15 etapa 1", busca las unidades con identificadores que contengan los números 1 al 15 y asigna etapa_nombre="Etapa 1".
 2. Para rangos numéricos (ej: "1-15", "del 1 al 15", "1 a la 15"), genera cambios para TODAS las unidades cuyos identificadores coincidan con esos números.
 3. Cuando el usuario menciona tipologías por nombre (ej: "asigna tipología Apartamento A"), busca el ID correcto en la lista de tipologías disponibles.
-4. Si el usuario pega datos tabulares (CSV, columnas separadas por tabs/comas/puntos y coma), interpreta cada fila y genera los cambios correspondientes. Busca las unidades por identificador (coincidencia exacta o parcial).
+4. Al procesar datos CSV/tabulares:
+   a. Primero identifica qué columnas del CSV corresponden a campos del inventario.
+   b. Empareja cada fila CSV con una unidad por identificador (Name, Numero, o campo similar — busca coincidencia exacta o parcial con el campo "identificador" de las unidades).
+   c. SOLO modifica los campos que el usuario pidió explícitamente. Si dice "saca las etapas del CSV", SOLO cambia etapa_nombre.
+   d. Asegúrate de procesar TODAS las filas del CSV, no solo las primeras.
+   e. Para valores numéricos de etapa (ej: columna "Etapa" = "2"), usa formato "Etapa 2" (agrega el prefijo).
+   f. Para estados (ej: columna "Est" = "pronto"), mapea a estados válidos: "pronto"→"proximamente", "vendido"/"vendida"→"vendida", etc.
 5. Para porcentajes de precio: nuevo_precio = precio_actual × (1 + porcentaje/100). Redondea a entero.
 6. "Subir precios X%" aplica SOLO a unidades con estado "disponible" y precio != null, a menos que el usuario diga otra cosa.
 7. tipologia_id y fachada_id DEBEN ser IDs de las listas de arriba o null.
@@ -394,9 +404,10 @@ Este proyecto usa modo multi-tipología. Cada unidad puede tener VARIAS tipolog�
 
     return NextResponse.json({ summary, changes: validChanges });
   } catch (err) {
-    console.error("modify-units error:", err);
+    const msg = err instanceof Error ? err.message : "Error desconocido";
+    console.error("modify-units error:", msg, err);
     return NextResponse.json(
-      { error: "Error al procesar modificaciones. Intenta de nuevo." },
+      { error: msg },
       { status: 500 }
     );
   }

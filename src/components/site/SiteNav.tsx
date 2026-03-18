@@ -116,7 +116,9 @@ export function SiteNav({ basePath, projectName, logoUrl, faviconUrl, constructo
         transition={{ duration: 0.25, ease: [0.4, 0, 0.2, 1] }}
         className={cn(
           "fixed left-0 top-0 bottom-0 z-[55] flex flex-col items-center py-6 overflow-hidden",
-          "bg-[var(--surface-1)]/90 backdrop-blur-2xl border-r border-[var(--border-subtle)]",
+          "bg-[var(--surface-1)]/95 backdrop-blur-3xl",
+          "border-r border-[var(--border-default)]",
+          "shadow-[var(--shadow-lg),inset_1px_0_0_rgba(255,255,255,0.04)]",
           "lg:translate-x-0 transition-transform duration-300",
           isOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"
         )}
@@ -126,7 +128,8 @@ export function SiteNav({ basePath, projectName, logoUrl, faviconUrl, constructo
           href={basePath || "/"}
           onClick={() => setIsOpen(false)}
           className={cn(
-            "mb-5 flex-shrink-0 flex items-center cursor-pointer hover:opacity-80 transition-opacity",
+            "mb-5 flex-shrink-0 flex items-center cursor-pointer transition-all duration-200",
+            "hover:opacity-90 hover:brightness-110",
             expanded ? "px-4 w-full justify-center flex-col gap-1" : "justify-center gap-2.5"
           )}
         >
@@ -166,13 +169,19 @@ export function SiteNav({ basePath, projectName, logoUrl, faviconUrl, constructo
 
         {/* Nav items */}
         <div className="flex-1 flex flex-col items-stretch gap-0.5 w-full overflow-y-auto scrollbar-hide">
-          {navItems.map((item) => {
+          {navItems.map((item, idx) => {
             const fullPath = `${basePath}${item.href}`;
             const isActive = pathname.startsWith(fullPath);
             const isHovered = hoveredItem === item.href;
 
             return (
-              <div key={item.href} className="relative px-2">
+              <motion.div
+                key={item.href}
+                className="relative px-2"
+                initial={{ opacity: 0, x: -8 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: idx * 0.04, duration: 0.3, ease: "easeOut" }}
+              >
                 <Link
                   href={fullPath}
                   onClick={() => setIsOpen(false)}
@@ -182,8 +191,8 @@ export function SiteNav({ basePath, projectName, logoUrl, faviconUrl, constructo
                     "relative flex items-center gap-3 rounded-xl transition-all duration-200 cursor-pointer",
                     expanded ? "px-3 py-2.5" : "justify-center w-10 h-10 mx-auto",
                     isActive
-                      ? "text-[var(--text-primary)]"
-                      : "text-[var(--text-tertiary)] hover:text-[var(--text-secondary)] hover:bg-[var(--glass-bg)]"
+                      ? "text-white bg-[rgba(var(--site-primary-rgb),0.12)] border border-[rgba(var(--site-primary-rgb),0.25)]"
+                      : "text-[var(--text-tertiary)] hover:text-white hover:bg-[var(--surface-2)] hover:border-[var(--border-default)] border border-transparent"
                   )}
                 >
                   {/* Active indicator — left accent bar with subtle glow */}
@@ -193,9 +202,9 @@ export function SiteNav({ basePath, projectName, logoUrl, faviconUrl, constructo
                       className="absolute left-0 w-[3px] h-5 bg-[var(--site-primary)] rounded-r-full"
                       style={{
                         left: expanded ? "-8px" : "-10px",
-                        boxShadow: "0 0 8px rgba(var(--site-primary-rgb), 0.4), 0 0 20px rgba(var(--site-primary-rgb), 0.15)",
+                        boxShadow: "0 0 12px rgba(var(--site-primary-rgb), 0.6), 0 0 28px rgba(var(--site-primary-rgb), 0.25), 0 0 48px rgba(var(--site-primary-rgb), 0.1)",
                       }}
-                      transition={{ type: "spring", bounce: 0.2, duration: 0.5 }}
+                      transition={{ type: "spring", damping: 25, stiffness: 300 }}
                     />
                   )}
 
@@ -217,20 +226,20 @@ export function SiteNav({ basePath, projectName, logoUrl, faviconUrl, constructo
                   <AnimatePresence>
                     {isHovered && (
                       <motion.div
-                        initial={{ opacity: 0, x: -4 }}
+                        initial={{ opacity: 0, x: -8 }}
                         animate={{ opacity: 1, x: 0 }}
-                        exit={{ opacity: 0, x: -4 }}
-                        transition={{ duration: 0.15 }}
-                        className="absolute left-full ml-3 top-1/2 -translate-y-1/2 z-[60] glass-dark px-3 py-1.5 rounded-lg whitespace-nowrap pointer-events-none"
+                        exit={{ opacity: 0, x: -8 }}
+                        transition={{ type: "spring", damping: 25, stiffness: 300 }}
+                        className="absolute left-full ml-3 top-1/2 -translate-y-1/2 z-[60] glass-dark px-3 py-2 rounded-lg whitespace-nowrap pointer-events-none border border-[var(--border-default)] shadow-[var(--shadow-md)]"
                       >
-                        <span className="font-ui text-[10px] tracking-[0.1em] uppercase font-semibold" style={{ color: "rgba(var(--contrast-rgb), 0.8)" }}>
+                        <span className="font-ui text-[10px] tracking-[0.1em] uppercase font-semibold text-white">
                           {item.label}
                         </span>
                       </motion.div>
                     )}
                   </AnimatePresence>
                 )}
-              </div>
+              </motion.div>
             );
           })}
         </div>
@@ -246,11 +255,11 @@ export function SiteNav({ basePath, projectName, logoUrl, faviconUrl, constructo
                 onClick={() => setShowSettings(!showSettings)}
                 onBlur={() => setTimeout(() => setShowSettings(false), 150)}
                 className={cn(
-                  "flex items-center justify-center rounded-lg transition-all cursor-pointer",
-                  expanded ? "w-7 h-7 gap-1.5" : "w-8 h-8",
+                  "flex items-center justify-center rounded-xl transition-all cursor-pointer border",
+                  expanded ? "w-9 h-9" : "w-10 h-10",
                   showSettings
-                    ? "bg-[var(--glass-bg)] text-[var(--site-primary)]"
-                    : "text-[var(--text-tertiary)] hover:text-[var(--text-secondary)] hover:bg-[var(--glass-bg)]"
+                    ? "bg-[rgba(var(--site-primary-rgb),0.12)] border-[rgba(var(--site-primary-rgb),0.25)] text-[var(--site-primary)] shadow-[var(--glow-xs)]"
+                    : "bg-[var(--surface-2)] border-[var(--border-subtle)] text-[var(--text-tertiary)] hover:text-white hover:border-[var(--border-default)] hover:bg-[var(--surface-3)]"
                 )}
                 aria-label="Settings"
               >
@@ -261,10 +270,10 @@ export function SiteNav({ basePath, projectName, logoUrl, faviconUrl, constructo
               <AnimatePresence>
                 {showSettings && (
                   <motion.div
-                    initial={{ opacity: 0, y: 4, scale: 0.95 }}
+                    initial={{ opacity: 0, y: 8, scale: 0.94 }}
                     animate={{ opacity: 1, y: 0, scale: 1 }}
-                    exit={{ opacity: 0, y: 4, scale: 0.95 }}
-                    transition={{ duration: 0.15 }}
+                    exit={{ opacity: 0, y: 8, scale: 0.94 }}
+                    transition={{ type: "spring", damping: 25, stiffness: 300 }}
                     className={cn(
                       "absolute z-[60] glass-card rounded-xl p-3 space-y-2.5",
                       expanded ? "bottom-full mb-2 left-0" : "left-full ml-3 bottom-0"
@@ -317,9 +326,9 @@ export function SiteNav({ basePath, projectName, logoUrl, faviconUrl, constructo
               <button
                 onClick={() => setShowDisclaimer(true)}
                 className={cn(
-                  "flex items-center justify-center rounded-lg transition-all cursor-pointer",
-                  expanded ? "w-7 h-7" : "w-8 h-8",
-                  "text-[var(--text-tertiary)] hover:text-[var(--site-primary)] hover:bg-[var(--glass-bg)]"
+                  "flex items-center justify-center rounded-xl transition-all cursor-pointer border",
+                  expanded ? "w-9 h-9" : "w-10 h-10",
+                  "bg-[var(--surface-2)] border-[var(--border-subtle)] text-[var(--text-tertiary)] hover:text-[var(--site-primary)] hover:border-[var(--border-default)] hover:bg-[var(--surface-3)]"
                 )}
                 aria-label="Legal information"
               >

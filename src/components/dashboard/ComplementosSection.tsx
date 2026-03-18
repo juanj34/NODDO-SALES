@@ -1229,9 +1229,7 @@ export function ComplementosSection({ project, onRefresh, parqueaderosMode, depo
                         {((activeTab === "parqueadero" && showPrecioParq) || (activeTab === "deposito" && showPrecioDepo)) && (
                           <td className="py-3 px-4 text-[var(--text-secondary)]">
                             {comp.precio
-                              ? formatCurrency(comp.precio, project.moneda_base, {
-                                  compact: true,
-                                })
+                              ? formatCurrency(comp.precio, project.moneda_base)
                               : "-"}
                           </td>
                         )}

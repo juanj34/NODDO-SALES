@@ -212,6 +212,103 @@ function formatFileSize(bytes: number): string {
   return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
 }
 
+/** Column names that map to inventory-relevant fields (case-insensitive) */
+const CSV_RELEVANT_COLUMNS = new Set([
+  // Identifiers
+  "name", "nombre", "numero", "identificador", "casa", "apto", "unidad", "id",
+  // Stages & lots
+  "etapa", "fase", "stage", "lote",
+  // Pricing
+  "precio", "price", "valor", "precio numero",
+  // Status
+  "estado", "est", "status",
+  // Typology
+  "tipo", "tipologia", "tipología", "tipologia2", "tipología2",
+  // Areas
+  "area", "area_m2", "area construida", "area_construida", "area privada",
+  "area_privada", "area lote", "area_lote",
+  // Unit details
+  "piso", "floor", "habitaciones", "banos", "baños", "parqueaderos", "depositos",
+  // Facade & view
+  "fachada", "fachadas", "vista", "orientacion", "orientación",
+  // Navigation
+  "nave",
+]);
+
+/**
+ * Parse CSV respecting quoted fields (handles commas inside quotes).
+ * Returns array of string values for one row.
+ */
+function parseCSVRow(row: string, sep: string): string[] {
+  const fields: string[] = [];
+  let current = "";
+  let inQuotes = false;
+  for (let i = 0; i < row.length; i++) {
+    const ch = row[i];
+    if (inQuotes) {
+      if (ch === '"' && row[i + 1] === '"') {
+        current += '"';
+        i++;
+      } else if (ch === '"') {
+        inQuotes = false;
+      } else {
+        current += ch;
+      }
+    } else if (ch === '"') {
+      inQuotes = true;
+    } else if (ch === sep) {
+      fields.push(current);
+      current = "";
+    } else {
+      current += ch;
+    }
+  }
+  fields.push(current);
+  return fields;
+}
+
+/**
+ * Strip irrelevant columns from a CSV (SVG code, UUIDs, timestamps, coordinates)
+ * to reduce token count before sending to the AI.
+ */
+function cleanCSVForAI(raw: string): string {
+  const lines = raw.split(/\r?\n/).filter((l) => l.trim());
+  if (lines.length < 2) return raw;
+
+  // Detect separator from header
+  const header = lines[0];
+  const sep =
+    header.split("\t").length > header.split(",").length
+      ? "\t"
+      : header.includes(";") && !header.includes(",")
+        ? ";"
+        : ",";
+
+  const headers = parseCSVRow(header, sep);
+
+  // Find which column indices are relevant
+  const keepIndices: number[] = [];
+  for (let i = 0; i < headers.length; i++) {
+    const normalized = headers[i].trim().toLowerCase().replace(/[_\s]+/g, " ");
+    if (CSV_RELEVANT_COLUMNS.has(normalized)) {
+      keepIndices.push(i);
+    }
+  }
+
+  // If we couldn't identify any relevant columns, return raw (let AI figure it out)
+  if (keepIndices.length === 0) return raw;
+
+  // Rebuild CSV with only relevant columns
+  const cleanLines: string[] = [];
+  for (const line of lines) {
+    const fields = parseCSVRow(line, sep);
+    const kept = keepIndices.map((i) => fields[i] ?? "");
+    cleanLines.push(kept.join(","));
+  }
+
+  return cleanLines.join("\n");
+}
+
 // ---------------------------------------------------------------------------
 // Main Component
 // ---------------------------------------------------------------------------
@@ -393,10 +490,12 @@ export function InventoryAssistant({
       // Reset textarea height
       if (inputRef.current) inputRef.current.style.height = "auto";
 
-      // Build the full message for the AI (includes file content)
+      // Build the full message for the AI (includes cleaned file content)
       let aiMessage = typedText;
       if (file) {
-        const fileData = `Tengo estos datos del archivo "${file.name}":\n\n${file.content}`;
+        // Strip irrelevant columns (SVG, UUIDs, timestamps) to reduce tokens
+        const cleanedContent = cleanCSVForAI(file.content);
+        const fileData = `Datos del archivo "${file.name}" (columnas relevantes):\n\n${cleanedContent}`;
         aiMessage = typedText
           ? `${fileData}\n\n${typedText}`
           : `${fileData}\n\nAplica estos datos al inventario`;
@@ -458,7 +557,10 @@ export function InventoryAssistant({
           }),
         });
 
-        if (!res.ok) throw new Error("Error");
+        if (!res.ok) {
+          const errBody = await res.json().catch(() => null);
+          throw new Error(errBody?.error || `HTTP ${res.status}`);
+        }
         const data = await res.json();
 
         // Enrich changes with before values for diff display
@@ -493,14 +595,16 @@ export function InventoryAssistant({
             timestamp: new Date(),
           },
         ]);
-      } catch {
+      } catch (err) {
+        const errorMsg = err instanceof Error ? err.message : "Error desconocido";
+        console.error("InventoryAssistant send error:", errorMsg);
         setMessages((prev) => [
           ...prev,
           {
             id: crypto.randomUUID(),
             role: "assistant",
-            content:
-              "Error al procesar la solicitud. Intenta de nuevo.",
+            content: `Error: ${errorMsg}`,
+            isError: true,
             timestamp: new Date(),
           },
         ]);

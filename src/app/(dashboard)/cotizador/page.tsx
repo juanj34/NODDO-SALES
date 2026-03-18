@@ -567,7 +567,7 @@ export default function CotizadorPage() {
                       </span>
                     </div>
                     <span className="text-xs text-[var(--text-tertiary)] shrink-0">
-                      {unit.precio ? formatCurrency(unit.precio, "COP", { compact: true }) : "—"}
+                      {unit.precio ? formatCurrency(unit.precio, "COP", {}) : "—"}
                     </span>
                   </button>
                 ))
@@ -898,7 +898,7 @@ export default function CotizadorPage() {
                           <div className="col-span-2 flex items-center gap-2 justify-end">
                             {cotizacion.fases[i] && (
                               <span className="text-[10px] text-[var(--site-primary)]">
-                                {formatCurrency(cotizacion.fases[i].monto_total, moneda as Currency, { compact: true })}
+                                {formatCurrency(cotizacion.fases[i].monto_total, moneda as Currency, {})}
                               </span>
                             )}
                             <button
@@ -1028,10 +1028,10 @@ function PrecioBaseCounter({
           <Plus size={12} />
         </button>
         <span className="text-[10px] text-[var(--text-muted)] ml-1">
-          × {formatCurrency(precioUnitario, moneda, { compact: true })}
+          × {formatCurrency(precioUnitario, moneda, {})}
         </span>
         <span className="ml-auto text-xs text-[var(--site-primary)] font-medium">
-          = {formatCurrency(count * precioUnitario, moneda, { compact: true })}
+          = {formatCurrency(count * precioUnitario, moneda, {})}
         </span>
       </div>
     </div>
@@ -1111,7 +1111,7 @@ function ComplementoSelector({
                   />
                 ) : (
                   <span className="text-[var(--site-primary)]">
-                    {formatCurrency(s.precio_negociado ?? s.precio ?? 0, moneda, { compact: true })}
+                    {formatCurrency(s.precio_negociado ?? s.precio ?? 0, moneda, {})}
                   </span>
                 )
               ) : isExtra ? (
@@ -1159,7 +1159,7 @@ function ComplementoSelector({
                 )}
                 {showPrecio && comp.precio != null && (
                   <span className="ml-auto text-[var(--site-primary)]">
-                    {formatCurrency(comp.precio, moneda, { compact: true })}
+                    {formatCurrency(comp.precio, moneda, {})}
                   </span>
                 )}
               </button>

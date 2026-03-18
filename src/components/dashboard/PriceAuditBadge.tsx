@@ -226,9 +226,7 @@ export function PriceAuditBadge({
                                 </div>
                                 <div className="text-right">
                                   <p className="text-xl font-bold text-white font-mono">
-                                    {formatCurrency(entry.precio_nuevo, currency, {
-                                      compact: true,
-                                    })}
+                                    {formatCurrency(entry.precio_nuevo, currency)}
                                   </p>
                                   {priceDiff !== null && percentChange !== null && (
                                     <div
@@ -237,7 +235,7 @@ export function PriceAuditBadge({
                                       }`}
                                     >
                                       {isIncrease ? "+" : ""}
-                                      {formatCurrency(priceDiff, currency, { compact: true })}
+                                      {formatCurrency(priceDiff, currency)}
                                       <span className="text-[10px] ml-1 opacity-70">
                                         ({isIncrease ? "+" : ""}
                                         {percentChange.toFixed(1)}%)
@@ -260,9 +258,7 @@ export function PriceAuditBadge({
                                 {entry.precio_anterior !== null && (
                                   <div className="text-xs text-[var(--text-muted)] font-mono">
                                     Antes:{" "}
-                                    {formatCurrency(entry.precio_anterior, currency, {
-                                      compact: true,
-                                    })}
+                                    {formatCurrency(entry.precio_anterior, currency)}
                                   </div>
                                 )}
                               </div>

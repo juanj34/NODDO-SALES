@@ -138,6 +138,20 @@ body {
   font-size: 13px;
 }
 
+button,
+[role="button"],
+a[href],
+summary,
+select,
+label[for] {
+  cursor: pointer;
+}
+
+button:disabled,
+[aria-disabled="true"] {
+  cursor: not-allowed;
+}
+
 /* ====== TYPOGRAPHY ====== */
 
 .font-heading {

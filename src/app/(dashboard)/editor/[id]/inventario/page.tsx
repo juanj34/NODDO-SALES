@@ -147,6 +147,8 @@ function MobileUnitCard({
   tipologias,
   columns,
   isTipologiaPricing,
+  isMultiTipo,
+  unitTipos,
   onStatusChange,
   onEdit,
   onDelete,
@@ -155,6 +157,8 @@ function MobileUnitCard({
   tipologias: Tipologia[];
   columns: InventoryColumnConfig;
   isTipologiaPricing?: boolean;
+  isMultiTipo?: boolean;
+  unitTipos?: Tipologia[];
   onStatusChange: (unitId: string, estado: EstadoUnidad) => void;
   onEdit: (unitId: string) => void;
   onDelete: (unitId: string) => void;
@@ -163,6 +167,8 @@ function MobileUnitCard({
   const displayPrice = isTipologiaPricing ? (tipo?.precio_desde ?? null) : unit.precio;
   const displayArea = getPrimaryArea(unit, columns);
   const showPrice = unit.estado === "vendida";
+  const isLocked = ["vendida", "reservada", "separado"].includes(unit.estado);
+  const hideSpecs = isMultiTipo && !unit.tipologia_id;
   return (
     <div className="p-3.5 bg-[var(--surface-2)] border border-[var(--border-subtle)] rounded-xl space-y-2.5">
       {/* Row 1: ID + current badge */}
@@ -172,40 +178,64 @@ function MobileUnitCard({
       </div>
       {/* Row 2: Details */}
       <div className="flex items-center gap-2 text-[11px] text-[var(--text-tertiary)] flex-wrap">
-        {tipo && <span>{tipo.nombre}</span>}
+        {isMultiTipo ? (
+          unitTipos && unitTipos.length > 0 ? (
+            isLocked && unit.tipologia_id ? (
+              (() => {
+                const confirmedTipo = unitTipos.find((t) => t.id === unit.tipologia_id) ?? tipologias.find((t) => t.id === unit.tipologia_id);
+                return confirmedTipo ? (
+                  <span className="inline-flex items-center px-1.5 py-0.5 rounded-md text-[10px] font-medium border bg-[rgba(var(--site-primary-rgb),0.15)] border-[var(--site-primary)] text-[var(--site-primary)]">
+                    {confirmedTipo.nombre}
+                  </span>
+                ) : null;
+              })()
+            ) : (
+              unitTipos.map((tp) => (
+                <span
+                  key={tp.id}
+                  className="inline-flex items-center px-1.5 py-0.5 rounded-md text-[10px] font-medium border bg-[var(--surface-3)] border-[var(--border-subtle)] text-[var(--text-tertiary)]"
+                >
+                  {tp.nombre}
+                </span>
+              ))
+            )
+          ) : (
+            <span className="text-[var(--text-muted)] text-[10px]">Sin tipologías</span>
+          )
+        ) : (
+          tipo && <span>{tipo.nombre}</span>
+        )}
         {unit.piso != null && <span>· Piso {unit.piso}</span>}
-        {displayArea != null && <span>· {displayArea} m²</span>}
-        {unit.habitaciones != null && <span>· {unit.habitaciones} hab</span>}
+        {!hideSpecs && displayArea != null && <span>· {displayArea} m²</span>}
+        {!hideSpecs && unit.habitaciones != null && <span>· {unit.habitaciones} hab</span>}
       </div>
       {/* Row 3: Price (only for sold units) */}
       {showPrice && displayPrice != null && (
         <p className="text-xs text-[var(--text-secondary)] font-medium">
-          {displayPrice ? formatCurrency(displayPrice, "COP", { compact: true }) : "-"}
+          {displayPrice ? formatCurrency(displayPrice, "COP", {}) : "-"}
         </p>
       )}
-      {/* Row 4: Status dots + actions */}
+      {/* Row 4: Status pills + actions */}
       <div className="flex items-center justify-between pt-1">
-        <div className="flex items-center gap-1.5">
-          {ESTADOS.map((e) => (
-            <button
-              key={e.value}
-              onClick={() => onStatusChange(unit.id, e.value)}
-              title={e.label}
-              className={cn(
-                "w-8 h-8 rounded-full flex items-center justify-center transition-all",
-                unit.estado === e.value
-                  ? `${UNIT_STATUS_COLORS[e.value].dot} ring-2 ring-offset-2 ring-offset-[var(--surface-2)] ring-current scale-110`
-                  : `${UNIT_STATUS_COLORS[e.value].dot}/25 hover:${UNIT_STATUS_COLORS[e.value].dot}/50`
-              )}
-            >
-              <span
+        <div className="flex items-center gap-1 flex-wrap">
+          {ESTADOS.map((e) => {
+            const sc = UNIT_STATUS_COLORS[e.value];
+            const isActive = unit.estado === e.value;
+            return (
+              <button
+                key={e.value}
+                onClick={() => onStatusChange(unit.id, e.value)}
                 className={cn(
-                  "w-3 h-3 rounded-full",
-                  unit.estado === e.value ? "bg-white" : UNIT_STATUS_COLORS[e.value].dot
+                  "px-2 py-1 rounded-lg text-[10px] font-bold uppercase tracking-wider transition-all border",
+                  isActive
+                    ? `${sc.bg} ${sc.text} ${sc.border}`
+                    : "bg-transparent text-[var(--text-muted)] border-transparent hover:bg-[var(--surface-3)] hover:text-[var(--text-tertiary)]"
                 )}
-              />
-            </button>
-          ))}
+              >
+                {sc.short}
+              </button>
+            );
+          })}
         </div>
         <div className="flex items-center gap-1">
           <button
@@ -1045,10 +1075,10 @@ function PriceAdjustModal({
                       return (
                         <tr key={item.id} className="border-b border-[var(--border-subtle)]">
                           <td className="py-1.5 px-3 text-white">{item.identificador}</td>
-                          <td className="py-1.5 px-3 text-right text-[var(--text-secondary)]">{formatCurrency(item.precio, moneda, { compact: true })}</td>
-                          <td className="py-1.5 px-3 text-right text-white">{formatCurrency(newP, moneda, { compact: true })}</td>
+                          <td className="py-1.5 px-3 text-right text-[var(--text-secondary)]">{formatCurrency(item.precio, moneda, {})}</td>
+                          <td className="py-1.5 px-3 text-right text-white">{formatCurrency(newP, moneda, {})}</td>
                           <td className={cn("py-1.5 px-3 text-right", diff > 0 ? "text-green-400" : "text-red-400")}>
-                            {diff > 0 ? "+" : ""}{formatCurrency(diff, moneda, { compact: true })}
+                            {diff > 0 ? "+" : ""}{formatCurrency(diff, moneda, {})}
                           </td>
                         </tr>
                       );
@@ -1379,21 +1409,6 @@ export default function InventarioPage() {
     const tipoIds = unidadTipologias.filter(ut => ut.unidad_id === unitId).map(ut => ut.tipologia_id);
     return tipologias.filter(t => tipoIds.includes(t.id));
   }, [unidadTipologias, tipologias]);
-
-  const getUnitSpecRanges = useCallback((unitId: string) => {
-    const tipos = getUnitTipologias(unitId);
-    if (tipos.length === 0) return null;
-    return {
-      area_min: Math.min(...tipos.map(t => t.area_m2 ?? 0).filter(Boolean)),
-      area_max: Math.max(...tipos.map(t => t.area_m2 ?? 0).filter(Boolean)),
-      precio_min: Math.min(...tipos.map(t => t.precio_desde ?? 0).filter(Boolean)),
-      precio_max: Math.max(...tipos.map(t => t.precio_desde ?? 0).filter(Boolean)),
-      hab_min: Math.min(...tipos.map(t => t.habitaciones ?? 0).filter(Boolean)),
-      hab_max: Math.max(...tipos.map(t => t.habitaciones ?? 0).filter(Boolean)),
-      banos_min: Math.min(...tipos.map(t => t.banos ?? 0).filter(Boolean)),
-      banos_max: Math.max(...tipos.map(t => t.banos ?? 0).filter(Boolean)),
-    };
-  }, [getUnitTipologias]);
 
   // --- Tipología required modal (for multi-tipo estado changes) ---
   const [tipologiaRequiredModal, setTipologiaRequiredModal] = useState<{
@@ -2647,6 +2662,8 @@ export default function InventarioPage() {
                   tipologias={tipologiasForDropdown}
                   columns={columns}
                   isTipologiaPricing={isTipologiaPricing}
+                  isMultiTipo={isMultiTipo}
+                  unitTipos={isMultiTipo ? getUnitTipologias(unit.id) : []}
                   onStatusChange={(unitId, estado) => handleInlineUpdate(unitId, "estado", estado)}
                   onEdit={(unitId) => {
                     setEditingId(unitId);
@@ -2783,7 +2800,7 @@ export default function InventarioPage() {
                 ) : (
                   sortedUnidades.map((unit) => {
                     const unitTipos = isMultiTipo ? getUnitTipologias(unit.id) : [];
-                    const specRanges = isMultiTipo && !unit.tipologia_id ? getUnitSpecRanges(unit.id) : null;
+
                     const confirmedTipo = unit.tipologia_id ? tipologias.find(t => t.id === unit.tipologia_id) : null;
                     const moneda = (project?.moneda_base as Currency) || "COP";
 
@@ -2886,10 +2903,8 @@ export default function InventarioPage() {
                           )}
                           {columns.area_m2 && (
                             <td className="py-2 px-4 text-[var(--text-secondary)]">
-                              {isMultiTipo && !unit.tipologia_id && specRanges
-                                ? specRanges.area_min === specRanges.area_max
-                                  ? `${specRanges.area_min} m²`
-                                  : `${specRanges.area_min}–${specRanges.area_max} m²`
+                              {isMultiTipo && !unit.tipologia_id
+                                ? "-"
                                 : unit.area_m2 != null
                                   ? `${unit.area_m2} m²`
                                   : confirmedTipo?.area_m2 != null
@@ -2922,14 +2937,14 @@ export default function InventarioPage() {
                               if (isTipologiaPricing) {
                                 const unitTipo = tipologias.find(tp => tp.id === unit.tipologia_id);
                                 return unitTipo?.precio_desde
-                                  ? formatCurrency(unitTipo.precio_desde, moneda, { compact: true })
+                                  ? formatCurrency(unitTipo.precio_desde, moneda, {})
                                   : "-";
                               }
-                              if (isMultiTipo && !unit.tipologia_id && specRanges) {
-                                return `Desde ${formatCurrency(specRanges.precio_min, moneda, { compact: true })}`;
+                              if (isMultiTipo && !unit.tipologia_id) {
+                                return "-";
                               }
                               return unit.precio
-                                ? formatCurrency(unit.precio, moneda, { compact: true })
+                                ? formatCurrency(unit.precio, moneda, {})
                                 : "-";
                             })()}
                           </td>
@@ -2938,20 +2953,16 @@ export default function InventarioPage() {
                           </td>
                           {columns.habitaciones && (
                             <td className="py-2 px-4 text-[var(--text-secondary)]">
-                              {isMultiTipo && !unit.tipologia_id && specRanges
-                                ? specRanges.hab_min === specRanges.hab_max
-                                  ? specRanges.hab_min
-                                  : `${specRanges.hab_min}–${specRanges.hab_max}`
+                              {isMultiTipo && !unit.tipologia_id
+                                ? "-"
                                 : unit.habitaciones ?? confirmedTipo?.habitaciones ?? "-"
                               }
                             </td>
                           )}
                           {columns.banos && (
                             <td className="py-2 px-4 text-[var(--text-secondary)]">
-                              {isMultiTipo && !unit.tipologia_id && specRanges
-                                ? specRanges.banos_min === specRanges.banos_max
-                                  ? specRanges.banos_min
-                                  : `${specRanges.banos_min}–${specRanges.banos_max}`
+                              {isMultiTipo && !unit.tipologia_id
+                                ? "-"
                                 : unit.banos ?? confirmedTipo?.banos ?? "-"
                               }
                             </td>
@@ -3211,7 +3222,7 @@ export default function InventarioPage() {
                       <p className="text-[10px] text-[var(--text-tertiary)]">
                         {(() => { const a = getPrimaryArea(tp, columns); return a != null ? `${a} m²` : ""; })()}
                         {tp.habitaciones != null ? ` · ${tp.habitaciones} hab` : ""}
-                        {tp.precio_desde != null ? ` · ${formatCurrency(tp.precio_desde, (project?.moneda_base as Currency) || "COP", { compact: true })}` : ""}
+                        {tp.precio_desde != null ? ` · ${formatCurrency(tp.precio_desde, (project?.moneda_base as Currency) || "COP", {})}` : ""}
                       </p>
                     </div>
                     <Check size={14} className="text-[var(--site-primary)] opacity-0 group-hover:opacity-100 transition-opacity" />

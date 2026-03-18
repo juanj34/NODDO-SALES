@@ -31,15 +31,11 @@ import { CotizadorModal } from "@/components/site/CotizadorModal";
 import { SectionTransition } from "@/components/site/SectionTransition";
 import { SiteEmptyState } from "@/components/site/SiteEmptyState";
 import { cn } from "@/lib/utils";
+import { formatCurrency } from "@/lib/currency";
 import { getInventoryColumns, getHybridInventoryColumns, getPrimaryArea } from "@/lib/inventory-columns";
 import type { Unidad, UnidadTipologia, TipoTipologia } from "@/types";
 
 type SortKey = "precio_asc" | "precio_desc" | "area_asc" | "area_desc" | "piso_asc" | "piso_desc";
-
-function formatPrecioShort(precio: number): string {
-  if (precio >= 1000000000) return `$${(precio / 1000000000).toFixed(1)}B`;
-  return `$${(precio / 1000000).toFixed(0)}M`;
-}
 
 export default function InventarioPage() {
   const proyecto = useSiteProject();
@@ -658,30 +654,30 @@ export default function InventarioPage() {
                         </>
                       ) : (
                         <>
-                          {getPrimaryArea(unit, columns) != null && (
+                          {(getPrimaryArea(unit, columns) ?? tipo?.area_m2) != null && (
                             <span className="flex items-center gap-0.5">
                               <Maximize size={10} className="text-[var(--text-muted)]" />
-                              {getPrimaryArea(unit, columns)}m²
+                              {getPrimaryArea(unit, columns) ?? tipo?.area_m2}m²
                             </span>
                           )}
-                          {columns.habitaciones && unit.habitaciones !== null && (
+                          {columns.habitaciones && (unit.habitaciones ?? tipo?.habitaciones) !== null && (
                             <span className="flex items-center gap-0.5">
                               <BedDouble size={10} className="text-[var(--text-muted)]" />
-                              {unit.habitaciones === 0 ? tSite("inventario.studioShort") : unit.habitaciones}
+                              {(() => { const h = unit.habitaciones ?? tipo?.habitaciones; return h === 0 ? tSite("inventario.studioShort") : h; })()}
                             </span>
                           )}
-                          {columns.banos && unit.banos !== null && (
+                          {columns.banos && (unit.banos ?? tipo?.banos) !== null && (
                             <span className="flex items-center gap-0.5">
                               <Bath size={10} className="text-[var(--text-muted)]" />
-                              {unit.banos}
+                              {unit.banos ?? tipo?.banos}
                             </span>
                           )}
                         </>
                       )}
-                      {columns.parqueaderos && unit.parqueaderos !== null && unit.parqueaderos > 0 && (
+                      {columns.parqueaderos && (unit.parqueaderos ?? tipo?.parqueaderos) != null && (unit.parqueaderos ?? tipo?.parqueaderos)! > 0 && (
                         <span className="flex items-center gap-0.5">
                           <Car size={10} className="text-[var(--text-muted)]" />
-                          {unit.parqueaderos}
+                          {unit.parqueaderos ?? tipo?.parqueaderos}
                         </span>
                       )}
                       {columns.depositos && unit.depositos !== null && unit.depositos > 0 && (
@@ -710,12 +706,12 @@ export default function InventarioPage() {
                         const price = getUnitPrice(unit);
                         if (price) return (
                           <p className="text-sm font-semibold text-white">
-                            {formatPrecioShort(price)}
+                            {formatCurrency(price, proyecto.moneda_base ?? "COP")}
                           </p>
                         );
                         if (!isTipologiaPricing && useRanges && specRanges?.precio) return (
                           <p className="text-sm font-semibold text-white">
-                            {tSite("tipologias.from")} {formatPrecioShort(specRanges.precio.min)}
+                            {tSite("tipologias.from")} {formatCurrency(specRanges.precio.min, proyecto.moneda_base ?? "COP")}
                           </p>
                         );
                         return <span />;
@@ -822,7 +818,7 @@ export default function InventarioPage() {
                       <span className="w-16 shrink-0 text-[11px] text-[var(--text-secondary)] text-right tabular-nums">
                         {listUseRanges && listSpecRanges?.area
                           ? formatRange(listSpecRanges.area, " m²")
-                          : unit.area_m2 ? `${unit.area_m2} m²` : "—"}
+                          : (unit.area_m2 ?? tipo?.area_m2) ? `${unit.area_m2 ?? tipo?.area_m2} m²` : "—"}
                       </span>
                     )}
                     {columns.area_construida && (
@@ -844,17 +840,17 @@ export default function InventarioPage() {
                       <span className="w-10 shrink-0 text-[11px] text-[var(--text-tertiary)] text-center hidden lg:block">
                         {listUseRanges && listSpecRanges?.hab
                           ? formatRange(listSpecRanges.hab)
-                          : unit.habitaciones !== null ? (unit.habitaciones === 0 ? tSite("inventario.studioShort") : unit.habitaciones) : "—"}
+                          : (() => { const h = unit.habitaciones ?? tipo?.habitaciones; return h != null ? (h === 0 ? tSite("inventario.studioShort") : h) : "—"; })()}
                       </span>
                     )}
                     {columns.banos && (
                       <span className="w-10 shrink-0 text-[11px] text-[var(--text-tertiary)] text-center hidden lg:block">
                         {listUseRanges && listSpecRanges?.banos
                           ? formatRange(listSpecRanges.banos)
-                          : unit.banos ?? "—"}
+                          : (unit.banos ?? tipo?.banos) ?? "—"}
                       </span>
                     )}
-                    {columns.parqueaderos && <span className="w-10 shrink-0 text-[11px] text-[var(--text-tertiary)] text-center hidden lg:block">{unit.parqueaderos ?? "—"}</span>}
+                    {columns.parqueaderos && <span className="w-10 shrink-0 text-[11px] text-[var(--text-tertiary)] text-center hidden lg:block">{(unit.parqueaderos ?? tipo?.parqueaderos) ?? "—"}</span>}
                     {columns.depositos && <span className="w-10 shrink-0 text-[11px] text-[var(--text-tertiary)] text-center hidden lg:block">{unit.depositos ?? "—"}</span>}
                     {columns.orientacion && <span className="w-20 shrink-0 text-[11px] text-[var(--text-tertiary)] truncate hidden xl:block">{unit.orientacion ?? "—"}</span>}
                     {columns.vista && <span className="w-20 shrink-0 text-[11px] text-[var(--text-tertiary)] truncate hidden xl:block">{unit.vista ?? "—"}</span>}
@@ -876,9 +872,9 @@ export default function InventarioPage() {
                     <span className="flex-1 text-xs font-semibold text-white text-right tabular-nums">
                       {(() => {
                         const price = getUnitPrice(unit);
-                        if (price) return formatPrecioShort(price);
+                        if (price) return formatCurrency(price, proyecto.moneda_base ?? "COP");
                         if (!isTipologiaPricing && listUseRanges && listSpecRanges?.precio)
-                          return `${tSite("tipologias.from")} ${formatPrecioShort(listSpecRanges.precio.min)}`;
+                          return `${tSite("tipologias.from")} ${formatCurrency(listSpecRanges.precio.min, proyecto.moneda_base ?? "COP")}`;
                         return "—";
                       })()}
                     </span>
@@ -1041,7 +1037,7 @@ export default function InventarioPage() {
                       <div className="flex items-center gap-2">
                         {tipo.precio_desde != null && (
                           <p className="text-xs font-medium text-[var(--site-primary)]">
-                            {formatPrecioShort(tipo.precio_desde)}
+                            {formatCurrency(tipo.precio_desde, proyecto.moneda_base ?? "COP")}
                           </p>
                         )}
                         <ChevronRight size={14} className="text-[var(--text-muted)] group-hover:text-[var(--site-primary)] transition-colors" />
