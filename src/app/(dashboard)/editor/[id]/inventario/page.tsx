@@ -3141,8 +3141,20 @@ export default function InventarioPage() {
             tipologiaMode={tipologiaMode}
             unidadTipologias={unidadTipologias}
             onClose={() => setShowAIChat(false)}
-            onDone={async () => {
-              await refresh();
+            onDone={(appliedChanges) => {
+              // Update local state immediately so the table reflects changes
+              if (appliedChanges && appliedChanges.length > 0) {
+                updateLocal((prev) => ({
+                  ...prev,
+                  unidades: (prev.unidades || []).map((u) => {
+                    const change = appliedChanges.find((c) => c.id === u.id);
+                    if (!change) return u;
+                    return { ...u, ...change.updates };
+                  }),
+                }));
+              }
+              // Also refresh in background for full data consistency
+              refresh();
             }}
           />
         )}

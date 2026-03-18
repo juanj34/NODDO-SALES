@@ -22,7 +22,6 @@ import {
 import { cn } from "@/lib/utils";
 import {
   btnPrimary,
-  btnSecondary,
   inputClass,
 } from "@/components/dashboard/editor-styles";
 import type { Unidad, Tipologia, Torre, Fachada } from "@/types";
@@ -64,7 +63,7 @@ export interface InventoryAssistantProps {
   tipologiaMode?: string;
   unidadTipologias?: { unidad_id: string; tipologia_id: string }[];
   onClose: () => void;
-  onDone: () => void;
+  onDone: (appliedChanges?: { id: string; updates: Record<string, unknown> }[]) => void;
 }
 
 // ---------------------------------------------------------------------------
@@ -204,6 +203,16 @@ const CAPABILITIES = [
 ];
 
 // ---------------------------------------------------------------------------
+// Helpers
+// ---------------------------------------------------------------------------
+
+function formatFileSize(bytes: number): string {
+  if (bytes < 1024) return `${bytes} B`;
+  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+}
+
+// ---------------------------------------------------------------------------
 // Main Component
 // ---------------------------------------------------------------------------
 
@@ -219,19 +228,43 @@ export function InventoryAssistant({
   onClose,
   onDone,
 }: InventoryAssistantProps) {
+  // ── Session storage key for this project ──────────────────────────
+  const storageKey = `noddo_assistant_${projectId}`;
+
   // ── State ──────────────────────────────────────────────────────────
-  const [messages, setMessages] = useState<AssistantMessage[]>([]);
+  const [messages, setMessages] = useState<AssistantMessage[]>(() => {
+    try {
+      const stored = sessionStorage.getItem(storageKey);
+      if (!stored) return [];
+      const parsed = JSON.parse(stored) as AssistantMessage[];
+      // Restore Date objects
+      return parsed.map((m) => ({ ...m, timestamp: new Date(m.timestamp) }));
+    } catch {
+      return [];
+    }
+  });
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
   const [applyingId, setApplyingId] = useState<string | null>(null);
-  const [csvMode, setCsvMode] = useState(false);
-  const [csvText, setCsvText] = useState("");
-  const [showEscHint, setShowEscHint] = useState(false);
+  const [attachedFile, setAttachedFile] = useState<{
+    name: string;
+    content: string;
+    size: number;
+  } | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
-  const inputRef = useRef<HTMLInputElement>(null);
-  const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const inputRef = useRef<HTMLTextAreaElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const lastEscRef = useRef<number>(0);
+
+  // ── Persist messages to sessionStorage ────────────────────────────
+  useEffect(() => {
+    if (messages.length === 0) {
+      sessionStorage.removeItem(storageKey);
+    } else {
+      // Strip changes data to keep storage small — only keep text
+      const light = messages.map(({ changes, ...rest }) => rest);
+      sessionStorage.setItem(storageKey, JSON.stringify(light));
+    }
+  }, [messages, storageKey]);
 
   // ── Auto-scroll on new messages ────────────────────────────────────
   useEffect(() => {
@@ -348,14 +381,36 @@ export function InventoryAssistant({
   // ── Send message ───────────────────────────────────────────────────
   const handleSend = useCallback(
     async (messageOverride?: string) => {
-      const userMsg = messageOverride || input.trim();
-      if (!userMsg || loading) return;
+      const typedText = messageOverride || input.trim();
+      const file = attachedFile;
+
+      // Need either text or file
+      if (!typedText && !file) return;
+      if (loading) return;
+
       setInput("");
+      if (file) setAttachedFile(null);
+      // Reset textarea height
+      if (inputRef.current) inputRef.current.style.height = "auto";
+
+      // Build the full message for the AI (includes file content)
+      let aiMessage = typedText;
+      if (file) {
+        const fileData = `Tengo estos datos del archivo "${file.name}":\n\n${file.content}`;
+        aiMessage = typedText
+          ? `${fileData}\n\n${typedText}`
+          : `${fileData}\n\nAplica estos datos al inventario`;
+      }
+
+      // Display message: show typed text + file indicator, not raw CSV
+      const displayContent = file
+        ? `\u{1F4CE} ${file.name}\n${typedText || "Aplica estos datos al inventario"}`
+        : typedText;
 
       const userMessage: AssistantMessage = {
         id: crypto.randomUUID(),
         role: "user",
-        content: userMsg,
+        content: displayContent,
         timestamp: new Date(),
       };
       setMessages((prev) => [...prev, userMessage]);
@@ -368,7 +423,7 @@ export function InventoryAssistant({
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
-            message: userMsg,
+            message: aiMessage,
             unidades: unidades.map((u) => ({
               id: u.id,
               identificador: u.identificador,
@@ -453,7 +508,7 @@ export function InventoryAssistant({
         setLoading(false);
       }
     },
-    [input, loading, buildHistory, unidades, tipologias, fachadas, torres, tipologiaMode, unidadTipologias]
+    [input, loading, attachedFile, buildHistory, unidades, tipologias, fachadas, torres, tipologiaMode, unidadTipologias]
   );
 
   // ── Apply changes (bulk) ───────────────────────────────────────────
@@ -547,7 +602,13 @@ export function InventoryAssistant({
             })
         );
 
-        if (hasUpdates) onDone();
+        if (hasUpdates) {
+          // Pass applied changes so parent can update local state immediately
+          const appliedChanges = regularChanges.filter((c) =>
+            changes.some((ch) => ch.id === c.id)
+          );
+          onDone(appliedChanges);
+        }
       } catch {
         setMessages((prev) => [
           ...prev,
@@ -570,8 +631,7 @@ export function InventoryAssistant({
   const handleSuggestion = useCallback(
     (chip: SuggestionChip) => {
       if (chip.prompt === "__CSV_MODE__") {
-        setCsvMode(true);
-        setTimeout(() => textareaRef.current?.focus(), 100);
+        fileInputRef.current?.click();
         return;
       }
       handleSend(chip.prompt);
@@ -579,17 +639,7 @@ export function InventoryAssistant({
     [handleSend]
   );
 
-  // ── CSV submit ─────────────────────────────────────────────────────
-  const handleCSVSubmit = useCallback(() => {
-    if (!csvText.trim()) return;
-    setCsvMode(false);
-    handleSend(
-      `Tengo estos datos para actualizar el inventario:\n\n${csvText}`
-    );
-    setCsvText("");
-  }, [csvText, handleSend]);
-
-  // ── CSV file upload ────────────────────────────────────────────────
+  // ── File upload (attach as chip) ──────────────────────────────────
   const handleFileUpload = useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) => {
       const file = e.target.files?.[0];
@@ -598,8 +648,7 @@ export function InventoryAssistant({
       reader.onload = (ev) => {
         const text = ev.target?.result;
         if (typeof text === "string") {
-          setCsvText(text);
-          setCsvMode(true);
+          setAttachedFile({ name: file.name, content: text, size: file.size });
         }
       };
       reader.readAsText(file);
@@ -608,48 +657,92 @@ export function InventoryAssistant({
     []
   );
 
+  // ── Drag & drop file support ───────────────────────────────────────
+  const [dragging, setDragging] = useState(false);
+  const dragCounter = useRef(0);
+
+  const handleDragEnter = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    dragCounter.current++;
+    if (e.dataTransfer.types.includes("Files")) setDragging(true);
+  }, []);
+
+  const handleDragLeave = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    dragCounter.current--;
+    if (dragCounter.current === 0) setDragging(false);
+  }, []);
+
+  const handleDragOver = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+  }, []);
+
+  const handleDrop = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setDragging(false);
+    dragCounter.current = 0;
+    const file = e.dataTransfer.files?.[0];
+    if (!file) return;
+    // Only accept text-like files
+    if (!file.name.match(/\.(csv|tsv|txt|xls|xlsx)$/i) && !file.type.startsWith("text/")) return;
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+      const text = ev.target?.result;
+      if (typeof text === "string") {
+        setAttachedFile({ name: file.name, content: text, size: file.size });
+      }
+    };
+    reader.readAsText(file);
+  }, []);
+
   // ── Keyboard shortcut (Escape to close) ────────────────────────────
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key !== "Escape") return;
-      // No conversation → close immediately
-      if (messages.length === 0 && !loading) {
-        onClose();
-        return;
-      }
-      // Active conversation → require double-tap ESC within 1.5s
-      const now = Date.now();
-      if (now - lastEscRef.current < 1500) {
-        onClose();
-      } else {
-        lastEscRef.current = now;
-        setShowEscHint(true);
-        setTimeout(() => setShowEscHint(false), 1500);
-      }
+      if (e.key === "Escape") onClose();
     };
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [onClose, messages.length, loading]);
+  }, [onClose]);
 
   // ── Show welcome when no user messages ─────────────────────────────
   const showWelcome = messages.length === 0 && !loading;
 
   return (
     <motion.div
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      exit={{ opacity: 0 }}
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-md p-4"
-      onClick={messages.length === 0 && !loading ? onClose : undefined}
+      initial={{ x: "100%" }}
+      animate={{ x: 0 }}
+      exit={{ x: "100%" }}
+      transition={{ type: "spring", damping: 30, stiffness: 300 }}
+      style={{ zIndex: 2147483648 }}
+      className="fixed top-0 right-0 bottom-0 w-full max-w-lg bg-[var(--surface-0)] border-l border-[var(--border-default)] flex flex-col shadow-[-8px_0_30px_rgba(0,0,0,0.5)]"
+      onDragEnter={handleDragEnter}
+      onDragLeave={handleDragLeave}
+      onDragOver={handleDragOver}
+      onDrop={handleDrop}
     >
-      <motion.div
-        initial={{ scale: 0.96, opacity: 0, y: 8 }}
-        animate={{ scale: 1, opacity: 1, y: 0 }}
-        exit={{ scale: 0.96, opacity: 0, y: 8 }}
-        transition={{ type: "spring", damping: 28, stiffness: 350 }}
-        onClick={(e) => e.stopPropagation()}
-        className="bg-[var(--surface-0)] border border-[var(--border-default)] rounded-2xl w-full max-w-2xl h-[75vh] flex flex-col shadow-[var(--shadow-xl)]"
-      >
+      {/* Drag overlay */}
+      <AnimatePresence>
+        {dragging && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="absolute inset-0 z-50 flex items-center justify-center bg-[var(--surface-0)]/90 border-2 border-dashed border-[#b8973a] rounded-lg pointer-events-none"
+          >
+            <div className="text-center">
+              <Upload size={32} className="text-[#b8973a] mx-auto mb-2" />
+              <p className="text-sm text-[#b8973a] font-ui font-bold uppercase tracking-wider">
+                Soltar archivo
+              </p>
+              <p className="text-xs text-[var(--text-muted)] mt-1">CSV, TSV o TXT</p>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
         {/* ── Header ────────────────────────────────────────────────── */}
         <div className="flex items-center justify-between px-5 py-3.5 border-b border-[var(--border-subtle)]">
           <div className="flex items-center gap-3">
@@ -667,29 +760,15 @@ export function InventoryAssistant({
               </p>
             </div>
           </div>
-          <div className="flex items-center gap-2">
-            <AnimatePresence>
-              {showEscHint && (
-                <motion.span
-                  initial={{ opacity: 0, x: 4 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  exit={{ opacity: 0 }}
-                  className="text-[10px] text-[#b8973a]"
-                >
-                  Pulsa de nuevo
-                </motion.span>
-              )}
-            </AnimatePresence>
-            <button
-              onClick={onClose}
-              className="flex items-center gap-1.5 px-2 py-1.5 hover:bg-[var(--surface-2)] rounded-lg transition-colors"
-            >
-              <kbd className="text-[9px] font-ui uppercase tracking-wider text-[var(--text-muted)] bg-[var(--surface-2)] px-1.5 py-0.5 rounded border border-[var(--border-subtle)] leading-none">
-                ESC
-              </kbd>
-              <X size={14} className="text-[var(--text-tertiary)]" />
-            </button>
-          </div>
+          <button
+            onClick={onClose}
+            className="flex items-center gap-1.5 px-2 py-1.5 hover:bg-[var(--surface-2)] rounded-lg transition-colors"
+          >
+            <kbd className="text-[9px] font-ui uppercase tracking-wider text-[var(--text-muted)] bg-[var(--surface-2)] px-1.5 py-0.5 rounded border border-[var(--border-subtle)] leading-none">
+              ESC
+            </kbd>
+            <X size={14} className="text-[var(--text-tertiary)]" />
+          </button>
         </div>
 
         {/* ── Messages Area ─────────────────────────────────────────── */}
@@ -807,127 +886,81 @@ export function InventoryAssistant({
 
         {/* ── Input Area ────────────────────────────────────────────── */}
         <div className="px-4 py-3 border-t border-[var(--border-subtle)]">
-          <AnimatePresence mode="wait">
-            {csvMode ? (
+          {/* File attachment chip */}
+          <AnimatePresence>
+            {attachedFile && (
               <motion.div
-                key="csv"
                 initial={{ opacity: 0, y: 4 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -4 }}
-                className="space-y-2"
+                className="flex items-center gap-2 px-3 py-2 mb-2 bg-[var(--surface-1)] border border-[rgba(184,151,58,0.2)] rounded-lg"
               >
-                <div className="relative">
-                  <textarea
-                    ref={textareaRef}
-                    value={csvText}
-                    onChange={(e) => setCsvText(e.target.value)}
-                    placeholder="Pega aquí datos CSV, Excel o tabulares..."
-                    rows={5}
-                    className={cn(
-                      "w-full bg-[var(--surface-2)] rounded-xl px-4 py-3 text-xs font-mono text-white",
-                      "placeholder:text-[var(--text-muted)]",
-                      "focus:outline-none transition-all resize-none",
-                      "border-2 border-dashed",
-                      csvText
-                        ? "border-[rgba(184,151,58,0.3)]"
-                        : "border-[var(--border-default)]"
-                    )}
-                  />
-                  {!csvText && (
-                    <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                      <div className="text-center space-y-1.5 mt-4">
-                        <FileSpreadsheet size={20} className="mx-auto text-[var(--text-muted)]" />
-                        <p className="text-[10px] text-[var(--text-muted)]">
-                          Pega datos o sube un archivo .csv
-                        </p>
-                      </div>
-                    </div>
-                  )}
-                </div>
-                <div className="flex items-center gap-2">
-                  <button
-                    onClick={() => fileInputRef.current?.click()}
-                    className={cn(btnSecondary, "text-[10px] !px-3 !py-1.5")}
-                  >
-                    <Upload size={12} />
-                    Subir archivo
-                  </button>
-                  <input
-                    ref={fileInputRef}
-                    type="file"
-                    accept=".csv,.tsv,.txt"
-                    onChange={handleFileUpload}
-                    className="hidden"
-                  />
-                  <div className="flex-1" />
-                  <button
-                    onClick={() => {
-                      setCsvMode(false);
-                      setCsvText("");
-                    }}
-                    className="text-[10px] text-[var(--text-muted)] hover:text-[var(--text-secondary)] transition-colors px-2 py-1"
-                  >
-                    Cancelar
-                  </button>
-                  <button
-                    onClick={handleCSVSubmit}
-                    disabled={!csvText.trim() || loading}
-                    className={cn(btnPrimary, "text-[10px] !px-3 !py-1.5")}
-                  >
-                    <Send size={12} />
-                    Enviar datos
-                  </button>
-                </div>
-              </motion.div>
-            ) : (
-              <motion.div
-                key="text"
-                initial={{ opacity: 0, y: 4 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -4 }}
-                className="flex items-center gap-2"
-              >
+                <FileSpreadsheet size={14} className="text-[#b8973a] shrink-0" />
+                <span className="text-xs text-white truncate flex-1">{attachedFile.name}</span>
+                <span className="text-[10px] font-mono text-[var(--text-muted)]">
+                  {formatFileSize(attachedFile.size)}
+                </span>
                 <button
-                  onClick={() => {
-                    setCsvMode(true);
-                    setTimeout(() => textareaRef.current?.focus(), 100);
-                  }}
-                  className="p-2 bg-[var(--surface-2)] border border-[var(--border-subtle)] hover:border-[var(--border-default)] rounded-lg transition-colors shrink-0 group"
-                  title="Importar datos CSV"
+                  onClick={() => setAttachedFile(null)}
+                  className="p-0.5 hover:bg-[var(--surface-2)] rounded transition-colors"
                 >
-                  <FileSpreadsheet
-                    size={15}
-                    className="text-[var(--text-muted)] group-hover:text-[#b8973a] transition-colors"
-                  />
-                </button>
-                <div className="w-px h-5 bg-[var(--border-subtle)]" />
-                <input
-                  ref={inputRef}
-                  type="text"
-                  value={input}
-                  onChange={(e) => setInput(e.target.value)}
-                  onKeyDown={(e) =>
-                    e.key === "Enter" && !e.shiftKey && handleSend()
-                  }
-                  placeholder="Describe los cambios que necesitas..."
-                  className={cn(inputClass, "flex-1 text-xs")}
-                  disabled={loading}
-                />
-                <button
-                  onClick={() => handleSend()}
-                  disabled={!input.trim() || loading}
-                  className={cn(
-                    btnPrimary,
-                    "!px-3 !py-2.5 shrink-0"
-                  )}
-                >
-                  <Send size={14} />
+                  <X size={12} className="text-[var(--text-muted)] hover:text-[var(--text-secondary)]" />
                 </button>
               </motion.div>
             )}
           </AnimatePresence>
+
+          <div className="flex items-end gap-2">
+            <button
+              onClick={() => fileInputRef.current?.click()}
+              className="p-2 mb-0.5 bg-[var(--surface-2)] border border-[var(--border-subtle)] hover:border-[var(--border-default)] rounded-lg transition-colors shrink-0 group"
+              title="Adjuntar archivo CSV"
+            >
+              <FileSpreadsheet
+                size={15}
+                className="text-[var(--text-muted)] group-hover:text-[#b8973a] transition-colors"
+              />
+            </button>
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept=".csv,.tsv,.txt"
+              onChange={handleFileUpload}
+              className="hidden"
+            />
+            <div className="w-px h-5 bg-[var(--border-subtle)]" />
+            <textarea
+              ref={inputRef}
+              value={input}
+              onChange={(e) => {
+                setInput(e.target.value);
+                // Auto-resize
+                e.target.style.height = "auto";
+                e.target.style.height = `${Math.min(e.target.scrollHeight, 160)}px`;
+              }}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" && !e.shiftKey) {
+                  e.preventDefault();
+                  handleSend();
+                }
+              }}
+              placeholder={attachedFile ? "Describe qué hacer con el archivo..." : "Describe los cambios que necesitas..."}
+              rows={1}
+              className={cn(inputClass, "flex-1 text-xs resize-none min-h-[40px] max-h-[160px] py-2.5")}
+              disabled={loading}
+            />
+            <button
+              onClick={() => handleSend()}
+              disabled={(!input.trim() && !attachedFile) || loading}
+              className={cn(
+                btnPrimary,
+                "!px-3 !py-2.5 shrink-0"
+              )}
+            >
+              <Send size={14} />
+            </button>
+          </div>
         </div>
-      </motion.div>
     </motion.div>
   );
 }

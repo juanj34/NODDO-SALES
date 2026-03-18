@@ -177,7 +177,35 @@ export function parseAIJson<T>(text: string, fallback: T): T {
     const cleaned = cleanJsonResponse(text);
     return JSON.parse(cleaned) as T;
   } catch {
-    console.error("AI returned invalid JSON:", text.slice(0, 200));
+    // Try to extract JSON object from text (in case of extra text before/after)
+    const match = text.match(/\{[\s\S]*\}/);
+    if (match) {
+      try {
+        return JSON.parse(match[0]) as T;
+      } catch {
+        // If JSON is truncated, try to salvage by closing brackets
+        const truncated = match[0];
+        // Count open/close braces and brackets
+        let braces = 0, brackets = 0;
+        for (const ch of truncated) {
+          if (ch === "{") braces++;
+          if (ch === "}") braces--;
+          if (ch === "[") brackets++;
+          if (ch === "]") brackets--;
+        }
+        // Try to close unclosed brackets/braces
+        let fixed = truncated;
+        // Remove any trailing partial value (after last comma or colon)
+        fixed = fixed.replace(/,\s*"[^"]*"?\s*:?\s*[^,}\]]*$/, "");
+        fixed = fixed.replace(/,\s*\{[^}]*$/, "");
+        for (let i = 0; i < brackets; i++) fixed += "]";
+        for (let i = 0; i < braces; i++) fixed += "}";
+        try {
+          return JSON.parse(fixed) as T;
+        } catch { /* final fallback below */ }
+      }
+    }
+    console.error("AI returned invalid JSON:", text.slice(0, 300));
     return fallback;
   }
 }

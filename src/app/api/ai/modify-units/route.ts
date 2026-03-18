@@ -254,17 +254,18 @@ Este proyecto usa modo multi-tipología. Cada unidad puede tener VARIAS tipolog�
     ];
 
     const result = await callAIWithHistory(systemPrompt, conversationMessages, {
-      maxOutputTokens: 16384,
+      maxOutputTokens: 32768,
     });
 
     // ----- Parse + validate output -----
     const fallback = {
-      summary: "No se pudieron procesar los cambios.",
+      summary: "No se pudieron procesar los cambios. La IA no devolvió un formato válido.",
       changes: [],
     };
     const raw = parseAIJson<Record<string, unknown>>(result, fallback);
 
-    if (typeof raw !== "object" || raw === null) {
+    if (typeof raw !== "object" || raw === null || raw === fallback) {
+      console.error("modify-units: AI returned unparseable response:", result.slice(0, 500));
       return NextResponse.json(fallback);
     }
 
