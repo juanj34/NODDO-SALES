@@ -187,6 +187,8 @@ const site = {
     closeRender: "Cerrar render",
     noRender: "Sin render disponible",
     noImage: "Imagen del plano no disponible",
+    loadTimeout: "La imagen tardó demasiado en cargar",
+    retry: "Reintentar",
   },
   recursos: {
     heading: "Recursos",

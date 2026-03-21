@@ -822,6 +822,7 @@ const editor = {
     edit: "Editar",
     floorCount: "{{n}} pisos",
     placed: "colocada(s)",
+    rename: "Renombrar",
     interactionHints: {
       click: "Click",
       clickOnPoint: "Click en punto",

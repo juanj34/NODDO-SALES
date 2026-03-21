@@ -41,6 +41,7 @@ import {
   ChevronDown,
   ChevronRight,
   Check,
+  Pencil,
 } from "lucide-react";
 import Link from "next/link";
 import type { Fachada, Unidad, Torre, PlanoInteractivo, PlanoPunto } from "@/types";
@@ -90,6 +91,10 @@ export default function NoddoGridPage() {
   const [duplicateTargetFloors, setDuplicateTargetFloors] = useState<Set<string>>(new Set());
   const [duplicatingHotspots, setDuplicatingHotspots] = useState(false);
   const [duplicateResult, setDuplicateResult] = useState<string | null>(null);
+
+  // Rename inline
+  const [renamingId, setRenamingId] = useState<string | null>(null);
+  const [renameValue, setRenameValue] = useState("");
 
   // Busy / saving indicators
   const [deletingId, setDeletingId] = useState<string | null>(null);
@@ -288,6 +293,28 @@ export default function NoddoGridPage() {
       }
     } finally {
       setDeletingId(null);
+    }
+  };
+
+  const handleRenameFachada = async (id: string) => {
+    const trimmed = renameValue.trim();
+    if (!trimmed) { setRenamingId(null); return; }
+    const prev = fachadas.find((f) => f.id === id);
+    if (!prev || prev.nombre === trimmed) { setRenamingId(null); return; }
+    // Optimistic update
+    setFachadas((fs) => fs.map((f) => (f.id === id ? { ...f, nombre: trimmed } : f)));
+    setRenamingId(null);
+    try {
+      const res = await fetch(`/api/fachadas/${id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ nombre: trimmed }),
+      });
+      if (!res.ok) throw new Error();
+      await refresh();
+    } catch {
+      setFachadas((fs) => fs.map((f) => (f.id === id ? { ...f, nombre: prev.nombre } : f)));
+      toast.error("Error al renombrar");
     }
   };
 
@@ -707,8 +734,35 @@ export default function NoddoGridPage() {
               )}
             </div>
             <div className="px-1 py-1 bg-[var(--surface-2)] text-center">
-              <span className="text-[9px] text-[var(--text-secondary)] truncate block">{f.nombre}</span>
+              {renamingId === f.id ? (
+                <input
+                  type="text"
+                  value={renameValue}
+                  onChange={(e) => setRenameValue(e.target.value)}
+                  onBlur={() => handleRenameFachada(f.id)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") handleRenameFachada(f.id);
+                    if (e.key === "Escape") setRenamingId(null);
+                  }}
+                  onClick={(e) => e.stopPropagation()}
+                  autoFocus
+                  className="w-full text-[9px] text-[var(--text-primary)] bg-[var(--surface-3)] border border-[var(--site-primary)] rounded px-0.5 py-0 text-center outline-none"
+                />
+              ) : (
+                <span
+                  className="text-[9px] text-[var(--text-secondary)] truncate block cursor-text"
+                  onDoubleClick={(e) => { e.stopPropagation(); setRenamingId(f.id); setRenameValue(f.nombre); }}
+                >
+                  {f.nombre}
+                </span>
+              )}
             </div>
+            <button
+              onClick={(e) => { e.stopPropagation(); setRenamingId(f.id); setRenameValue(f.nombre); }}
+              className="absolute top-0.5 left-5 opacity-0 group-hover:opacity-100 w-4 h-4 flex items-center justify-center rounded-full bg-black/60 text-[var(--text-tertiary)] hover:text-[var(--site-primary)] transition-all"
+            >
+              <Pencil size={7} />
+            </button>
             <button
               onClick={(e) => { e.stopPropagation(); handleDeleteFachada(f.id); }}
               disabled={deletingId === f.id}
@@ -1033,9 +1087,14 @@ export default function NoddoGridPage() {
           {/* Left: current grid info + stats */}
           <div className="flex items-center gap-4">
             {!isMultiTorre && (
-              <span className="font-ui text-[10px] font-bold text-[var(--text-secondary)] uppercase tracking-wider">
+              <button
+                onClick={() => { setRenamingId(selectedFachada.id); setRenameValue(selectedFachada.nombre); }}
+                className="flex items-center gap-1.5 font-ui text-[10px] font-bold text-[var(--text-secondary)] uppercase tracking-wider hover:text-[var(--site-primary)] transition-colors group/rename"
+                title={t("fachadas.rename")}
+              >
                 {selectedFachada.nombre}
-              </span>
+                <Pencil size={9} className="opacity-0 group-hover/rename:opacity-100 transition-opacity" />
+              </button>
             )}
             <div className="flex items-center gap-1.5">
               <span className="font-mono text-[11px] text-[var(--site-primary)] font-medium tabular-nums">{assignedUnits.length}</span>

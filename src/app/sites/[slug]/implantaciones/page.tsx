@@ -2,7 +2,7 @@
 
 import { useState, useMemo, useEffect, useCallback, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { X, Layers, MapPin } from "lucide-react";
+import { X, Layers, MapPin, Loader2, RefreshCw } from "lucide-react";
 import { useSiteProject } from "@/hooks/useSiteProject";
 import { SectionTransition } from "@/components/site/SectionTransition";
 import { useMediaQuery } from "@/hooks/useMediaQuery";
@@ -53,15 +53,38 @@ export default function ImplantacionesPage() {
   /* ── Image ref (no JS measurement needed — CSS % positioning) */
   const planoImgRef = useRef<HTMLImageElement>(null);
   const [imageError, setImageError] = useState(false);
+  const [imageTimedOut, setImageTimedOut] = useState(false);
+  const [retryCount, setRetryCount] = useState(0);
 
-  /* ── Reset on plano change ──────────────────────────── */
+  /* ── Reset on plano change (ref-guarded, no rAF race) ── */
+  const prevPlanoIdRef = useRef<string | null>(null);
   useEffect(() => {
-    requestAnimationFrame(() => {
+    const currentId = activePlano?.id ?? null;
+    if (currentId !== prevPlanoIdRef.current) {
+      prevPlanoIdRef.current = currentId;
       setSelectedPuntoId(null);
       setImageLoaded(false);
       setImageError(false);
-    });
-  }, [activePlanoIndex]);
+      setImageTimedOut(false);
+      setRetryCount(0);
+    }
+  }, [activePlano?.id]);
+
+  /* ── Image loading timeout (10s) ──────────────────────── */
+  useEffect(() => {
+    if (activePlano?.imagen_url && !imageLoaded && !imageError) {
+      const timer = setTimeout(() => setImageTimedOut(true), 10_000);
+      return () => clearTimeout(timer);
+    }
+  }, [activePlano?.id, activePlano?.imagen_url, imageLoaded, imageError, retryCount]);
+
+  /* ── Retry handler ────────────────────────────────────── */
+  const handleRetry = useCallback(() => {
+    setImageLoaded(false);
+    setImageError(false);
+    setImageTimedOut(false);
+    setRetryCount((c) => c + 1);
+  }, []);
 
   /* ── Scroll to punto in list ────────────────────────── */
   const puntoListRef = useRef<HTMLDivElement>(null);
@@ -310,6 +333,13 @@ export default function ImplantacionesPage() {
           </div>
         </motion.div>
 
+        {/* ====== Loading spinner (centered in left panel) ====== */}
+        {activePlano && activePlano.imagen_url && !imageLoaded && !imageError && !imageTimedOut && (
+          <div className="absolute inset-0 z-[15] flex items-center justify-center pointer-events-none">
+            <Loader2 size={32} className="animate-spin text-[var(--site-primary)]" />
+          </div>
+        )}
+
         {/* ====== Plan Image + Hotspots ====== */}
         <motion.div
           className="relative z-10 flex items-center justify-center p-4 lg:p-8"
@@ -317,12 +347,12 @@ export default function ImplantacionesPage() {
           animate={{ opacity: 1 }}
           transition={{ delay: 0.3, duration: 0.5 }}
         >
-          {activePlano && activePlano.imagen_url && !imageError ? (
+          {activePlano && activePlano.imagen_url && !imageError && !imageTimedOut ? (
             <div className="relative inline-block leading-[0]">
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
                 ref={planoImgRef}
-                src={activePlano.imagen_url}
+                src={retryCount > 0 ? `${activePlano.imagen_url}${activePlano.imagen_url.includes("?") ? "&" : "?"}_r=${retryCount}` : activePlano.imagen_url}
                 alt={activePlano.nombre}
                 className={cn(
                   "block max-h-[calc(100vh-120px)] max-w-full w-auto rounded-2xl shadow-2xl shadow-black/50 transition-opacity duration-500",
@@ -405,8 +435,17 @@ export default function ImplantacionesPage() {
             <div className="flex flex-col items-center justify-center gap-3 text-center">
               <Layers size={40} className="text-[var(--text-muted)]" />
               <p className="text-sm text-[var(--text-tertiary)]">
-                {t("implantaciones.noImage")}
+                {imageTimedOut ? t("implantaciones.loadTimeout") : t("implantaciones.noImage")}
               </p>
+              {(imageError || imageTimedOut) && (
+                <button
+                  onClick={handleRetry}
+                  className="flex items-center gap-2 text-xs text-[var(--site-primary)] hover:underline cursor-pointer mt-1"
+                >
+                  <RefreshCw size={14} />
+                  {t("implantaciones.retry")}
+                </button>
+              )}
             </div>
           ) : null}
         </motion.div>

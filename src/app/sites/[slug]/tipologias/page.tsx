@@ -557,7 +557,7 @@ export default function TipologiasPage() {
                               initial={{ opacity: 0, y: 8 }}
                               animate={{ opacity: 1, y: 0 }}
                               exit={{ opacity: 0, y: 8 }}
-                              className="absolute top-full mt-2 left-1/2 -translate-x-1/2 glass-dark px-3 py-1.5 rounded-lg whitespace-nowrap z-30 pointer-events-none"
+                              className="absolute top-full mt-2 left-1/2 -translate-x-1/2 bg-[var(--surface-2)] border border-[var(--border-default)] px-3 py-1.5 rounded-lg whitespace-nowrap z-30 pointer-events-none"
                             >
                               <span className="text-[11px] font-medium text-[var(--text-primary)] tracking-wider">
                                 {hotspot.label}
@@ -574,7 +574,7 @@ export default function TipologiasPage() {
                 {renderImages.length > 0 && !selectedUnit && (
                   <button
                     onClick={() => setShowRenderGallery(true)}
-                    className="absolute bottom-4 left-4 glass-card rounded-xl overflow-hidden border border-[var(--border-default)] shadow-lg z-10 cursor-pointer group transition-all hover:border-[rgba(var(--site-primary-rgb),0.4)] hover:shadow-[var(--glow-sm)] flex items-center gap-2.5 px-3 py-2.5"
+                    className="absolute bottom-4 left-4 bg-[var(--surface-2)] rounded-xl overflow-hidden border border-[var(--border-default)] shadow-lg z-10 cursor-pointer group transition-all hover:border-[rgba(var(--site-primary-rgb),0.4)] hover:shadow-[var(--glow-sm)] flex items-center gap-2.5 px-3 py-2.5"
                   >
                     {/* Thumbnail of first render */}
                     <div className="w-10 h-10 rounded-lg overflow-hidden flex-shrink-0">
@@ -601,7 +601,7 @@ export default function TipologiasPage() {
                 {active.ubicacion_plano_url && !selectedUnit && (
                   <button
                     onClick={() => setShowUbicacion(true)}
-                    className="absolute bottom-4 right-4 w-[120px] h-[120px] glass-card rounded-xl overflow-hidden border border-[var(--border-default)] shadow-lg z-10 cursor-pointer group transition-all hover:border-[rgba(var(--site-primary-rgb),0.4)] hover:shadow-[var(--glow-sm)]"
+                    className="absolute bottom-4 right-4 w-[120px] h-[120px] bg-[var(--surface-2)] rounded-xl overflow-hidden border border-[var(--border-default)] shadow-lg z-10 cursor-pointer group transition-all hover:border-[rgba(var(--site-primary-rgb),0.4)] hover:shadow-[var(--glow-sm)]"
                   >
                     {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img
@@ -1068,12 +1068,17 @@ export default function TipologiasPage() {
                                 <p className="text-sm text-[var(--text-primary)] font-medium truncate">
                                   {getUnitDisplayName(unit, unitPrefix)}
                                   {isMultiTipo && (() => {
-                                    const count = unidadTipologias.filter(ut => ut.unidad_id === unit.id).length;
-                                    return count > 1 ? (
+                                    const unitTipoIds = unidadTipologias.filter(ut => ut.unidad_id === unit.id).map(ut => ut.tipologia_id);
+                                    if (unitTipoIds.length <= 1) return null;
+                                    const names = tipologias
+                                      .filter(tp => unitTipoIds.includes(tp.id))
+                                      .map(tp => tp.nombre)
+                                      .join(", ");
+                                    return (
                                       <span className="text-[10px] text-[var(--text-muted)] ml-1">
-                                        · {count} tipos
+                                        · {names}
                                       </span>
-                                    ) : null;
+                                    );
                                   })()}
                                 </p>
                                 <p className="font-mono text-[10px] text-[var(--text-tertiary)] tracking-wider">
@@ -1089,6 +1094,30 @@ export default function TipologiasPage() {
                               <div className="text-right flex-shrink-0">
                                 {columns.precio && (() => {
                                   const t = unit.precio;
+                                  // Multi-tipo: compute price range from assigned tipologías
+                                  if (isMultiTipo) {
+                                    const unitTipoIds = unidadTipologias
+                                      .filter(ut => ut.unidad_id === unit.id)
+                                      .map(ut => ut.tipologia_id);
+                                    const unitTipos = tipologias.filter(tp => unitTipoIds.includes(tp.id));
+                                    const prices = unitTipos
+                                      .map(tp => {
+                                        const c = tp.precio_desde ?? 0;
+                                        return isLoteBased ? (t ?? 0) + c : c;
+                                      })
+                                      .filter(p => p > 0)
+                                      .sort((a, b) => a - b);
+                                    if (prices.length === 0) return <p className="font-mono text-sm text-[var(--text-secondary)] font-medium tabular-nums">—</p>;
+                                    const min = prices[0];
+                                    const allSame = prices.every(p => p === min);
+                                    return (
+                                      <p className="font-mono text-sm text-[var(--text-secondary)] font-medium tabular-nums">
+                                        {!allSame && <span className="text-[10px] text-[var(--text-tertiary)]">{tSite("tipologias.from")} </span>}
+                                        {formatCurrency(min, proyecto.moneda_base ?? "COP")}
+                                      </p>
+                                    );
+                                  }
+                                  // Single-tipo: original behavior
                                   const c = isLoteBased && active?.precio_desde ? active.precio_desde : 0;
                                   const displayPrice = t ? t + c : c || null;
                                   return (
@@ -1258,6 +1287,9 @@ export default function TipologiasPage() {
             : cotizarUnidad
           }
           tipologia={tipologias.find((t) => t.id === cotizarUnidad.tipologia_id) || undefined}
+          availableTipologias={isMultiTipo ? tipologias.filter(t =>
+            unidadTipologias.some(ut => ut.unidad_id === cotizarUnidad.id && ut.tipologia_id === t.id)
+          ) : undefined}
           proyectoId={proyecto.id}
           cotizadorEnabled={proyecto.cotizador_enabled}
           cotizadorConfig={proyecto.cotizador_config}

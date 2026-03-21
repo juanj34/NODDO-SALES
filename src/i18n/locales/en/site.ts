@@ -187,6 +187,8 @@ const site = {
     closeRender: "Close render",
     noRender: "No render available",
     noImage: "Plan image not available",
+    loadTimeout: "Image took too long to load",
+    retry: "Retry",
   },
   recursos: {
     heading: "Downloads",
