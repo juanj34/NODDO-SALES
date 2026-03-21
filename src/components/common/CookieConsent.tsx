@@ -122,7 +122,7 @@ export function CookieConsent() {
                   <h3 className="font-ui text-sm font-bold uppercase text-white mb-2 tracking-wide">
                     🍪 PRIVACIDAD Y COOKIES
                   </h3>
-                  <p className="font-site-body text-[13px] text-[var(--text-secondary)] leading-relaxed">
+                  <p className="text-[13px] text-[var(--text-secondary)] leading-relaxed">
                     Usamos cookies para mejorar tu experiencia, analizar el tráfico y personalizar
                     contenido. Al hacer clic en &quot;Aceptar todo&quot;, aceptas nuestro uso de
                     cookies.{" "}
@@ -162,7 +162,7 @@ export function CookieConsent() {
                   <h3 className="font-ui text-sm font-bold uppercase text-white mb-3 tracking-wide">
                     PERSONALIZAR COOKIES
                   </h3>
-                  <p className="font-site-body text-[13px] text-[var(--text-secondary)] leading-relaxed mb-4">
+                  <p className="text-[13px] text-[var(--text-secondary)] leading-relaxed mb-4">
                     Elige qué tipos de cookies permitir. Las cookies necesarias siempre están
                     habilitadas para el funcionamiento básico del sitio.
                   </p>
@@ -179,10 +179,10 @@ export function CookieConsent() {
                       className="mt-0.5 w-4 h-4 rounded border-white/20"
                     />
                     <div className="flex-1">
-                      <div className="font-site-ui text-xs font-semibold text-white mb-1 tracking-wide">
+                      <div className="font-ui text-xs font-semibold text-white mb-1 tracking-wide">
                         NECESARIAS (Siempre activas)
                       </div>
-                      <p className="font-site-body text-[12px] text-[var(--text-tertiary)] leading-relaxed">
+                      <p className="text-[12px] text-[var(--text-tertiary)] leading-relaxed">
                         Esenciales para el funcionamiento del sitio (autenticación, seguridad,
                         preferencias).
                       </p>
@@ -200,10 +200,10 @@ export function CookieConsent() {
                       className="mt-0.5 w-4 h-4 rounded border-white/20 accent-[var(--site-primary)]"
                     />
                     <div className="flex-1">
-                      <div className="font-site-ui text-xs font-semibold text-white mb-1 tracking-wide">
+                      <div className="font-ui text-xs font-semibold text-white mb-1 tracking-wide">
                         ANALÍTICAS
                       </div>
-                      <p className="font-site-body text-[12px] text-[var(--text-tertiary)] leading-relaxed">
+                      <p className="text-[12px] text-[var(--text-tertiary)] leading-relaxed">
                         Nos ayudan a entender cómo usas el sitio para mejorarlo (Vercel Analytics,
                         Sentry).
                       </p>
@@ -221,10 +221,10 @@ export function CookieConsent() {
                       className="mt-0.5 w-4 h-4 rounded border-white/20 accent-[var(--site-primary)]"
                     />
                     <div className="flex-1">
-                      <div className="font-site-ui text-xs font-semibold text-white mb-1 tracking-wide">
+                      <div className="font-ui text-xs font-semibold text-white mb-1 tracking-wide">
                         MARKETING
                       </div>
-                      <p className="font-site-body text-[12px] text-[var(--text-tertiary)] leading-relaxed">
+                      <p className="text-[12px] text-[var(--text-tertiary)] leading-relaxed">
                         Permiten publicidad personalizada y medir la efectividad de campañas (Meta
                         Pixel, GTM).
                       </p>

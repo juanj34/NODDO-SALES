@@ -39,8 +39,9 @@ import {
   type MappedUnit,
   type EstadoUnidad,
   type ColumnMapping,
+  type CSVCustomColumn,
 } from "@/lib/csv-parser";
-import type { Tipologia, Torre, Fachada } from "@/types";
+import type { Tipologia, Torre, Fachada, CustomColumnDef } from "@/types";
 
 type ImportMode = "unidades" | "parqueaderos" | "depositos";
 
@@ -197,6 +198,7 @@ export function SmartImportModal({
   importMode: initialMode = "unidades",
   tipoProyecto = "apartamentos",
   tipologiaMode = "fija",
+  customColumns = [],
 }: {
   tipologias: Tipologia[];
   torres: Torre[];
@@ -208,6 +210,7 @@ export function SmartImportModal({
   importMode?: ImportMode;
   tipoProyecto?: "apartamentos" | "casas" | "hibrido" | "lotes";
   tipologiaMode?: "fija" | "multiple";
+  customColumns?: CustomColumnDef[];
 }) {
   const isCasas = tipoProyecto === "casas" || tipoProyecto === "hibrido";
   const isLotes = tipoProyecto === "lotes";
@@ -215,8 +218,22 @@ export function SmartImportModal({
   // ---- State ----
   const [step, setStep] = useState<Step>("upload");
   const [importMode, setImportMode] = useState<ImportMode>(initialMode);
-  const DB_FIELD_LABELS = getFieldLabels(importMode);
+  const DB_FIELD_LABELS = useMemo(() => {
+    const base = getFieldLabels(importMode);
+    if (importMode !== "unidades" || customColumns.length === 0) return base;
+    const extended = { ...base };
+    for (const cc of customColumns) {
+      extended[`cf:${cc.key}`] = cc.label;
+    }
+    return extended;
+  }, [importMode, customColumns]);
   const ALL_DB_FIELDS = Object.keys(DB_FIELD_LABELS);
+
+  // Custom column defs for the parser
+  const csvCustomCols: CSVCustomColumn[] = useMemo(
+    () => customColumns.map(cc => ({ key: cc.key, label: cc.label, type: cc.type })),
+    [customColumns]
+  );
   const [rawCSV, setRawCSV] = useState("");
   const [dragging, setDragging] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -383,6 +400,7 @@ export function SmartImportModal({
           torres: torres.map((t) => ({ id: t.id, nombre: t.nombre })),
           fachadas: fachadas.map((f) => ({ id: f.id, nombre: f.nombre })),
           importMode,
+          customColumns: customColumns.map((c) => ({ key: c.key, label: c.label, type: c.type })),
         }),
       });
 
@@ -468,7 +486,12 @@ export function SmartImportModal({
           return {
             identificador: c.identificador,
             piso: null,
+            lote: null,
+            etapa_nombre: null,
             area_m2: c.area_m2 ?? (defaults.area_m2 ? parseFloat(defaults.area_m2) : null),
+            area_construida: null,
+            area_privada: null,
+            area_lote: null,
             precio: c.precio ?? (defaults.precio ? parseFloat(defaults.precio) : null),
             estado: c.estado,
             habitaciones: null,
@@ -478,8 +501,10 @@ export function SmartImportModal({
             orientacion: null,
             vista: null,
             notas: c.notas,
+            custom_fields: {},
             _etapa: c._etapa,
             _tipologia: c.subtipo,
+            _fachada: null,
             _selected: true,
             _torre_id: torreId,
             _tipologia_id: "",
@@ -493,7 +518,7 @@ export function SmartImportModal({
         return;
       }
 
-      const parsed = parseCSVWithMapping(csvAllRows, csvHeaders, mapping);
+      const parsed = parseCSVWithMapping(csvAllRows, csvHeaders, mapping, csvCustomCols);
 
       if (parsed.length === 0) {
         setError("No se encontraron unidades válidas con el mapeo actual.");
@@ -551,6 +576,7 @@ export function SmartImportModal({
     defaults,
     activeTorreId,
     importMode,
+    csvCustomCols,
   ]);
 
   // ---- Import ----
@@ -613,6 +639,7 @@ export function SmartImportModal({
           orientacion: u.orientacion || null,
           vista: u.vista || null,
           notas: u.notas || null,
+          ...(Object.keys(u.custom_fields ?? {}).length > 0 ? { custom_fields: u.custom_fields } : {}),
         }));
 
         const res = await fetch("/api/unidades/bulk", {

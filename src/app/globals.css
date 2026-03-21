@@ -318,8 +318,8 @@ button:disabled,
   background: linear-gradient(135deg, var(--site-primary), color-mix(in srgb, var(--site-primary) 75%, #8B5E3C));
   color: #141414;
   border-radius: 0.75rem;
+  font-family: var(--font-syne), sans-serif;
   font-weight: 600;
-  letter-spacing: 0.04em;
   transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
   box-shadow: 0 2px 8px rgba(var(--site-primary-rgb), 0.20), inset 0 1px 0 rgba(255, 255, 255, 0.15);
   cursor: pointer;
@@ -349,8 +349,8 @@ button:disabled,
   border: 1.5px solid rgba(var(--site-primary-rgb), 0.4);
   color: var(--site-primary);
   border-radius: 0.75rem;
-  font-weight: 500;
-  letter-spacing: 0.04em;
+  font-family: var(--font-syne), sans-serif;
+  font-weight: 600;
   transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
   cursor: pointer;
   background: transparent;

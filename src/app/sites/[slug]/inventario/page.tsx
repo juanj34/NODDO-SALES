@@ -23,6 +23,10 @@ import {
   MapPin,
   X,
   ChevronRight,
+  Hash,
+  Calendar,
+  List,
+  Type,
 } from "lucide-react";
 import { useSiteProject, useSiteBasePath } from "@/hooks/useSiteProject";
 import { usePersistedState } from "@/hooks/usePersistedState";
@@ -32,38 +36,61 @@ import { SectionTransition } from "@/components/site/SectionTransition";
 import { SiteEmptyState } from "@/components/site/SiteEmptyState";
 import { cn } from "@/lib/utils";
 import { formatCurrency } from "@/lib/currency";
-import { getInventoryColumns, getHybridInventoryColumns, getPrimaryArea } from "@/lib/inventory-columns";
-import type { Unidad, UnidadTipologia, TipoTipologia } from "@/types";
+import { getUnitDisplayName } from "@/lib/unit-display";
+import { getInventoryColumns, getHybridInventoryColumns, getPrimaryArea, getVisibleCustomColumns } from "@/lib/inventory-columns";
+import type { Unidad, UnidadTipologia, TipoTipologia, CustomColumnDef } from "@/types";
 
-type SortKey = "precio_asc" | "precio_desc" | "area_asc" | "area_desc" | "piso_asc" | "piso_desc";
+type SortKey = "identificador_asc" | "identificador_desc" | "precio_asc" | "precio_desc" | "area_asc" | "area_desc" | "piso_asc" | "piso_desc" | `custom_${string}_asc` | `custom_${string}_desc`;
+
+const CUSTOM_COL_ICON = { text: Type, number: Hash, date: Calendar, select: List } as const;
 
 export default function InventarioPage() {
   const proyecto = useSiteProject();
   const basePath = useSiteBasePath();
   const { t: tSite } = useTranslation("site");
+  const unitPrefix = proyecto.unidad_display_prefix;
   const { t: tCommon } = useTranslation("common");
 
   // ALL HOOKS MUST BE CALLED BEFORE ANY EARLY RETURNS
   const estadoConfig = useMemo(() => getEstadoConfig(tCommon), [tCommon]);
 
-  const sortOptions: Array<{ value: SortKey; label: string }> = useMemo(() => [
-    { value: "piso_asc", label: tSite("inventario.sortFloorAsc") },
-    { value: "piso_desc", label: tSite("inventario.sortFloorDesc") },
-    { value: "precio_asc", label: tSite("inventario.sortPriceAsc") },
-    { value: "precio_desc", label: tSite("inventario.sortPriceDesc") },
-    { value: "area_asc", label: tSite("inventario.sortAreaAsc") },
-    { value: "area_desc", label: tSite("inventario.sortAreaDesc") },
-  ], [tSite]);
+  // Custom columns visible in microsite (before sortOptions which depends on it)
+  const micrositeCustomCols = useMemo(
+    () => getVisibleCustomColumns(proyecto.custom_columns as CustomColumnDef[] | undefined, "microsite"),
+    [proyecto.custom_columns]
+  );
+
+  const sortOptions: Array<{ value: SortKey; label: string }> = useMemo(() => {
+    const base: Array<{ value: SortKey; label: string }> = [
+      { value: "identificador_asc", label: "Unidad ↑" },
+      { value: "identificador_desc", label: "Unidad ↓" },
+      { value: "piso_asc", label: tSite("inventario.sortFloorAsc") },
+      { value: "piso_desc", label: tSite("inventario.sortFloorDesc") },
+      { value: "precio_asc", label: tSite("inventario.sortPriceAsc") },
+      { value: "precio_desc", label: tSite("inventario.sortPriceDesc") },
+      { value: "area_asc", label: tSite("inventario.sortAreaAsc") },
+      { value: "area_desc", label: tSite("inventario.sortAreaDesc") },
+    ];
+    for (const cc of micrositeCustomCols) {
+      if (cc.type === "number" || cc.type === "date") {
+        base.push(
+          { value: `custom_${cc.key}_asc`, label: `${cc.label} ↑` },
+          { value: `custom_${cc.key}_desc`, label: `${cc.label} ↓` },
+        );
+      }
+    }
+    return base;
+  }, [tSite, micrositeCustomCols]);
 
   // Filter state
   const [torreFilter, setTorreFilter] = useState<string>("todas");
   const [tipologiaFilter, setTipologiaFilter] = useState<string>("todas");
-  const [estadoFilter, setEstadoFilter] = useState<string>("todas");
+  const [estadoFilter, setEstadoFilter] = useState<string>("disponible");
   const [habFilter, setHabFilter] = useState<string>("todas");
   const [banosFilter, setBanosFilter] = useState<string>("todas");
   const [etapaFilter, setEtapaFilter] = useState<string>("todas");
   const [searchQuery, setSearchQuery] = useState("");
-  const [sortBy, setSortBy] = useState<SortKey>("piso_asc");
+  const [sortBy, setSortBy] = useState<SortKey>("identificador_asc");
 
   // View mode (persisted) + Cotizador modal state
   const [viewMode, setViewMode] = usePersistedState<"grid" | "list">(
@@ -123,6 +150,20 @@ export default function InventarioPage() {
     return getInventoryColumns(proyecto.tipo_proyecto ?? "hibrido", (proyecto as any).inventory_columns_microsite ?? proyecto.inventory_columns);
   }, [isHibrido, activeTipoTab, proyecto.tipo_proyecto, proyecto.inventory_columns, proyecto.inventory_columns_by_type]);
 
+  // Filter state for select-type custom columns: key → selected value ("todas" = all)
+  const [customFilters, setCustomFilters] = useState<Record<string, string>>({});
+
+  // Options for select-type custom columns
+  const customSelectOptions = useMemo(() => {
+    const result: Record<string, string[]> = {};
+    for (const cc of micrositeCustomCols) {
+      if (cc.type === "select" && cc.options?.length) {
+        result[cc.key] = cc.options;
+      }
+    }
+    return result;
+  }, [micrositeCustomCols]);
+
   const unidadTipologias = useMemo<UnidadTipologia[]>(() => proyecto.unidad_tipologias ?? [], [proyecto.unidad_tipologias]);
 
   // Estado counts (scoped to active torre when filtered)
@@ -133,6 +174,7 @@ export default function InventarioPage() {
     return {
       todas: base.length,
       disponible: base.filter((u) => u.estado === "disponible").length,
+      proximamente: base.filter((u) => u.estado === "proximamente").length,
       separado: base.filter((u) => u.estado === "separado").length,
       reservada: base.filter((u) => u.estado === "reservada").length,
       vendida: base.filter((u) => u.estado === "vendida").length,
@@ -179,7 +221,16 @@ export default function InventarioPage() {
 
     // Hybrid tipo tab filter
     if (tipoTabTipologiaIds) {
-      result = result.filter(u => u.tipologia_id && tipoTabTipologiaIds.has(u.tipologia_id));
+      if (isMultiTipo) {
+        result = result.filter(u => {
+          if (u.tipologia_id && tipoTabTipologiaIds.has(u.tipologia_id)) return true;
+          return unidadTipologias.some(
+            ut => ut.unidad_id === u.id && tipoTabTipologiaIds.has(ut.tipologia_id)
+          );
+        });
+      } else {
+        result = result.filter(u => u.tipologia_id && tipoTabTipologiaIds.has(u.tipologia_id));
+      }
     }
 
     // Torre filter
@@ -221,6 +272,16 @@ export default function InventarioPage() {
       result = result.filter((u) => u.etapa_nombre === etapaFilter);
     }
 
+    // Custom column select filters
+    for (const [key, val] of Object.entries(customFilters)) {
+      if (val && val !== "todas") {
+        result = result.filter((u) => {
+          const cf = u.custom_fields as Record<string, unknown> | undefined;
+          return cf?.[key] === val;
+        });
+      }
+    }
+
     // Search
     if (searchQuery.trim()) {
       const q = searchQuery.toLowerCase();
@@ -234,7 +295,24 @@ export default function InventarioPage() {
 
     // Sort
     result.sort((a, b) => {
+      if (sortBy.startsWith("custom_")) {
+        // custom_<key>_asc or custom_<key>_desc
+        const withoutPrefix = sortBy.slice(7); // remove "custom_"
+        const isDesc = withoutPrefix.endsWith("_desc");
+        const cfKey = isDesc ? withoutPrefix.slice(0, -5) : withoutPrefix.slice(0, -4);
+        const cfa = (a.custom_fields as Record<string, unknown> | undefined)?.[cfKey];
+        const cfb = (b.custom_fields as Record<string, unknown> | undefined)?.[cfKey];
+        const va = (typeof cfa === "number" ? cfa : typeof cfa === "string" ? cfa : null) ?? null;
+        const vb = (typeof cfb === "number" ? cfb : typeof cfb === "string" ? cfb : null) ?? null;
+        if (va === null && vb === null) return 0;
+        if (va === null) return 1;
+        if (vb === null) return -1;
+        const cmp = typeof va === "number" && typeof vb === "number" ? va - vb : String(va).localeCompare(String(vb));
+        return isDesc ? -cmp : cmp;
+      }
       switch (sortBy) {
+        case "identificador_asc": return a.identificador.localeCompare(b.identificador, "es", { numeric: true });
+        case "identificador_desc": return b.identificador.localeCompare(a.identificador, "es", { numeric: true });
         case "precio_asc": return (getUnitPrice(a) ?? 0) - (getUnitPrice(b) ?? 0);
         case "precio_desc": return (getUnitPrice(b) ?? 0) - (getUnitPrice(a) ?? 0);
         case "area_asc": return (getPrimaryArea(a, columns) ?? 0) - (getPrimaryArea(b, columns) ?? 0);
@@ -246,7 +324,7 @@ export default function InventarioPage() {
     });
 
     return result;
-  }, [unidades, torreFilter, tipologiaFilter, estadoFilter, habFilter, banosFilter, etapaFilter, searchQuery, sortBy, isMultiTipo, unidadTipologias, tipoTabTipologiaIds, getUnitPrice]);
+  }, [unidades, torreFilter, tipologiaFilter, estadoFilter, habFilter, banosFilter, etapaFilter, customFilters, searchQuery, sortBy, isMultiTipo, unidadTipologias, tipoTabTipologiaIds, getUnitPrice]);
 
   // Multi-tipo helpers (must be before early return — hooks rule)
   const getUnitTipoCount = useCallback((unitId: string) => {
@@ -321,7 +399,7 @@ export default function InventarioPage() {
             {estadoCounts.disponible}/{estadoCounts.todas} {tSite("inventario.available")}
           </span>
           <div className="flex items-center gap-1.5 ml-auto">
-            {(["disponible", "separado", "reservada", "vendida"] as const).map((estado) => {
+            {(["disponible", "proximamente", "separado", "reservada", "vendida"] as const).map((estado) => {
               const config = estadoConfig[estado];
               const count = estadoCounts[estado];
               if (count === 0) return null;
@@ -491,11 +569,40 @@ export default function InventarioPage() {
             </>
           )}
 
+          {/* Custom select-type column pills */}
+          {Object.entries(customSelectOptions).map(([key, options]) => {
+            const cc = micrositeCustomCols.find(c => c.key === key);
+            if (!cc) return null;
+            const currentVal = customFilters[key] ?? "todas";
+            return (
+              <div key={key} className="contents">
+                <div className="w-px h-5 bg-white/[0.06] shrink-0" />
+                <div className="flex items-center gap-0.5 shrink-0">
+                  <span className="text-[9px] text-[var(--text-muted)] mr-1 truncate max-w-16">{cc.label}</span>
+                  {[{ value: "todas", label: tSite("inventario.allBedrooms") }, ...options.map(o => ({ value: o, label: o }))].map((opt) => (
+                    <button
+                      key={opt.value}
+                      onClick={() => setCustomFilters(prev => ({ ...prev, [key]: opt.value }))}
+                      className={cn(
+                        "px-2 py-0.5 rounded-md text-[10px] transition-all cursor-pointer",
+                        currentVal === opt.value
+                          ? "bg-[rgba(var(--site-primary-rgb),0.15)] text-[var(--site-primary)] font-medium"
+                          : "text-[var(--text-tertiary)] hover:text-[var(--text-secondary)] hover:bg-white/5"
+                      )}
+                    >
+                      {opt.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            );
+          })}
+
           <div className="w-px h-5 bg-white/[0.06] shrink-0" />
 
           {/* Estado pills */}
           <div className="flex items-center gap-0.5 shrink-0">
-            {(["todas", "disponible", "separado", "reservada", "vendida"] as const).map((estado) => {
+            {(["todas", "disponible", "proximamente", "separado", "reservada", "vendida"] as const).map((estado) => {
               const isAll = estado === "todas";
               const config = isAll ? null : estadoConfig[estado];
               return (
@@ -580,9 +687,10 @@ export default function InventarioPage() {
               {filteredUnidades.map((unit, index) => {
                 const config = estadoConfig[unit.estado];
                 const tipo = getTipologiaName(unit.tipologia_id);
-                const useRanges = isMultiTipo && !unit.tipologia_id;
+                const tipoCount = isMultiTipo ? getUnitTipoCount(unit.id) : 0;
+                const hasMultiTipos = tipoCount > 1;
+                const useRanges = hasMultiTipos && !unit.tipologia_id;
                 const specRanges = useRanges ? getUnitSpecRanges(unit.id) : null;
-                const tipoCount = useRanges ? getUnitTipoCount(unit.id) : 0;
 
                 return (
                   <motion.div
@@ -597,17 +705,16 @@ export default function InventarioPage() {
                     {/* Top: status dot + identifier + tipo + floor/lote */}
                     <div className="flex items-center gap-2 mb-1.5">
                       <span className={cn("w-1.5 h-1.5 rounded-full shrink-0", config.dot)} title={config.label} />
-                      <h3 className="text-sm font-semibold text-white">{unit.identificador}</h3>
-                      {tipo && (
-                        <span className="text-[10px] text-[var(--site-primary)] opacity-60 truncate">
-                          {tipo.nombre}
-                        </span>
-                      )}
-                      {useRanges && tipoCount > 0 && (
+                      <h3 className="text-sm font-semibold text-white">{getUnitDisplayName(unit, unitPrefix)}</h3>
+                      {hasMultiTipos ? (
                         <span className="text-[9px] px-1.5 py-0.5 rounded-full bg-[rgba(var(--site-primary-rgb),0.12)] text-[var(--site-primary)] font-medium">
                           {tipoCount} tipos
                         </span>
-                      )}
+                      ) : tipo ? (
+                        <span className="text-[10px] text-[var(--site-primary)] opacity-60 truncate">
+                          {tipo.nombre}
+                        </span>
+                      ) : null}
                       {columns.lote && unit.lote && (
                         <span className="text-[10px] text-[var(--text-muted)] ml-auto shrink-0">
                           Lote: {unit.lote}
@@ -698,6 +805,21 @@ export default function InventarioPage() {
                           {unit.vista}
                         </span>
                       )}
+                      {micrositeCustomCols.map((cc) => {
+                        const cf = unit.custom_fields as Record<string, unknown> | undefined;
+                        const val = cf?.[cc.key];
+                        if (val == null || val === "") return null;
+                        const Icon = CUSTOM_COL_ICON[cc.type] ?? Hash;
+                        const display = cc.type === "date" && typeof val === "string"
+                          ? new Date(val + "T00:00:00").toLocaleDateString("es-CO", { day: "numeric", month: "short" })
+                          : String(val);
+                        return (
+                          <span key={cc.key} className="flex items-center gap-0.5">
+                            <Icon size={10} className="text-[var(--text-muted)]" />
+                            {display}
+                          </span>
+                        );
+                      })}
                     </div>
 
                     {/* Price + actions — single row */}
@@ -717,7 +839,7 @@ export default function InventarioPage() {
                         return <span />;
                       })()}
                       <div className="flex items-center gap-1">
-                        {useRanges && tipoCount > 1 ? (
+                        {hasMultiTipos ? (
                           <button
                             onClick={() => setTipoSelectorUnit(unit)}
                             className="p-1.5 rounded-lg text-[var(--text-secondary)] hover:text-white bg-white/5 hover:bg-white/10 transition-all cursor-pointer"
@@ -730,7 +852,7 @@ export default function InventarioPage() {
                             href={`${basePath}/tipologias${
                               unit.tipologia_id
                                 ? `?tipo=${unit.tipologia_id}&unidad=${unit.id}`
-                                : useRanges && tipoCount === 1
+                                : isMultiTipo && tipoCount === 1
                                   ? `?tipo=${unidadTipologias.find(ut => ut.unidad_id === unit.id)?.tipologia_id}&unidad=${unit.id}`
                                   : `?unidad=${unit.id}`
                             }`}
@@ -779,6 +901,9 @@ export default function InventarioPage() {
               {columns.vista && <span className="w-20 shrink-0 hidden xl:block">{tSite("inventario.view")}</span>}
               {columns.lote && <span className="w-12 shrink-0 text-center">Lote</span>}
               {columns.etapa && <span className="w-16 shrink-0 text-center hidden lg:block">{tSite("inventario.etapa")}</span>}
+              {micrositeCustomCols.map((cc) => (
+                <span key={cc.key} className="w-20 shrink-0 text-center hidden xl:block truncate">{cc.label}</span>
+              ))}
               {columns.piso && <span className="w-12 shrink-0 text-center">{tSite("inventario.floor")}</span>}
               <span className="flex-1 text-right">{tSite("inventario.price")}</span>
               <span className="w-16 shrink-0" />
@@ -789,9 +914,10 @@ export default function InventarioPage() {
               {filteredUnidades.map((unit, index) => {
                 const config = estadoConfig[unit.estado];
                 const tipo = getTipologiaName(unit.tipologia_id);
-                const listUseRanges = isMultiTipo && !unit.tipologia_id;
+                const listTipoCount = isMultiTipo ? getUnitTipoCount(unit.id) : 0;
+                const listHasMultiTipos = listTipoCount > 1;
+                const listUseRanges = listHasMultiTipos && !unit.tipologia_id;
                 const listSpecRanges = listUseRanges ? getUnitSpecRanges(unit.id) : null;
-                const listTipoCount = listUseRanges ? getUnitTipoCount(unit.id) : 0;
 
                 return (
                   <motion.div
@@ -804,9 +930,9 @@ export default function InventarioPage() {
                     className="flex items-center gap-2 px-3 py-2 border-b border-white/[0.03] hover:bg-white/[0.03] transition-colors group"
                   >
                     <span className={cn("w-1.5 h-1.5 rounded-full shrink-0", config.dot)} title={config.label} />
-                    <span className="w-24 shrink-0 text-xs font-medium text-white truncate">{unit.identificador}</span>
+                    <span className="w-24 shrink-0 text-xs font-medium text-white truncate">{getUnitDisplayName(unit, unitPrefix)}</span>
                     <span className="w-28 shrink-0 text-[11px] text-[var(--text-tertiary)] truncate hidden md:block">
-                      {listUseRanges && listTipoCount > 0 ? (
+                      {listHasMultiTipos ? (
                         <span className="text-[9px] px-1.5 py-0.5 rounded-full bg-[rgba(var(--site-primary-rgb),0.12)] text-[var(--site-primary)] font-medium">
                           {listTipoCount} tipos
                         </span>
@@ -864,6 +990,23 @@ export default function InventarioPage() {
                         {unit.etapa_nombre ?? "—"}
                       </span>
                     )}
+                    {micrositeCustomCols.map((cc) => {
+                      const cf = unit.custom_fields as Record<string, unknown> | undefined;
+                      const val = cf?.[cc.key];
+                      let display = "—";
+                      if (val != null && val !== "") {
+                        if (cc.type === "date" && typeof val === "string") {
+                          display = new Date(val + "T00:00:00").toLocaleDateString("es-CO", { day: "numeric", month: "short" });
+                        } else {
+                          display = String(val);
+                        }
+                      }
+                      return (
+                        <span key={cc.key} className="w-20 shrink-0 text-[11px] text-[var(--text-tertiary)] text-center truncate hidden xl:block">
+                          {display}
+                        </span>
+                      );
+                    })}
                     {columns.piso && (
                       <span className="w-12 shrink-0 text-[11px] text-[var(--text-tertiary)] text-center tabular-nums">
                         {unit.piso ?? "—"}
@@ -879,7 +1022,7 @@ export default function InventarioPage() {
                       })()}
                     </span>
                     <div className="w-16 shrink-0 flex items-center justify-end gap-0.5">
-                      {listUseRanges && listTipoCount > 1 ? (
+                      {listHasMultiTipos ? (
                         <button
                           onClick={() => setTipoSelectorUnit(unit)}
                           className="p-1 rounded-md text-[var(--text-secondary)] hover:text-white bg-white/5 hover:bg-white/10 transition-all cursor-pointer"
@@ -892,7 +1035,7 @@ export default function InventarioPage() {
                           href={`${basePath}/tipologias${
                             unit.tipologia_id
                               ? `?tipo=${unit.tipologia_id}&unidad=${unit.id}`
-                              : listUseRanges && listTipoCount === 1
+                              : isMultiTipo && listTipoCount === 1
                                 ? `?tipo=${unidadTipologias.find(ut => ut.unidad_id === unit.id)?.tipologia_id}&unidad=${unit.id}`
                                 : `?unidad=${unit.id}`
                           }`}
@@ -933,9 +1076,10 @@ export default function InventarioPage() {
               onClick={() => {
                 setTorreFilter("todas");
                 setTipologiaFilter("todas");
-                setEstadoFilter("todas");
+                setEstadoFilter("disponible");
                 setHabFilter("todas");
                 setBanosFilter("todas");
+                setCustomFilters({});
                 setSearchQuery("");
               }}
               className="mt-4 btn-outline-warm px-5 py-2 text-xs tracking-wider cursor-pointer"
@@ -970,7 +1114,7 @@ export default function InventarioPage() {
                 <div className="flex items-center justify-between mb-4">
                   <div>
                     <h3 className="text-sm font-semibold text-white">
-                      {tipoSelectorUnit.identificador}
+                      {getUnitDisplayName(tipoSelectorUnit, unitPrefix)}
                     </h3>
                     <p className="text-[10px] text-[var(--text-muted)] uppercase tracking-wider mt-0.5">
                       {tSite("inventario.chooseTipologia")}

@@ -33,6 +33,7 @@ interface UnitSummary {
   depositos: number | null;
   etapa_nombre: string | null;
   lote: string | null;
+  custom_fields: Record<string, unknown>;
 }
 
 interface TipologiaSummary {
@@ -86,6 +87,7 @@ const ALLOWED_UPDATE_FIELDS = new Set([
   "etapa_nombre",
   "lote",
   "identificador",
+  "custom_fields",
 ]);
 
 /** Fields the AI must NEVER touch */
@@ -113,7 +115,7 @@ export async function POST(request: NextRequest) {
         { status: 403 }
       );
 
-    const { message, unidades, tipologias, fachadas, torres, history, tipologiaMode } =
+    const { message, unidades, tipologias, fachadas, torres, history, tipologiaMode, customColumns } =
       await request.json();
     const isMultiTipo = tipologiaMode === "multiple";
     if (!message || typeof message !== "string") {
@@ -148,6 +150,7 @@ export async function POST(request: NextRequest) {
         depositos: u.depositos ?? null,
         etapa_nombre: u.etapa_nombre ?? null,
         lote: u.lote ?? null,
+        custom_fields: u.custom_fields ?? {},
       };
       unitMap.set(safe.id, safe);
       return safe;
@@ -214,6 +217,16 @@ CAMPOS MODIFICABLES:
 - etapa_nombre: string | null (nombre de la etapa/fase, ej: "Etapa 1", "Fase 2")
 - lote: string | null (número o nombre del lote)
 - identificador: string (nombre/número de la unidad, ej: "Casa 1", "Apto 101")
+- custom_fields: object (campos personalizados del proyecto, ver definiciones abajo)
+${(() => {
+  if (!Array.isArray(customColumns) || customColumns.length === 0) return "";
+  const lines = customColumns.map((c: { key: string; label: string; type: string; options?: string[] }) => {
+    let desc = `  - "${c.key}": ${c.type}`;
+    if (c.type === "select" && c.options?.length) desc += ` (opciones: ${c.options.join(", ")})`;
+    return `${desc} — ${c.label}`;
+  });
+  return `\nCOLUMNAS PERSONALIZADAS (usar dentro de "custom_fields"):\n${lines.join("\n")}\nEjemplo: "updates": { "custom_fields": { "neveras": 2, "acabados": "premium" } }`;
+})()}
 
 ${tipologiasList ? `TIPOLOGÍAS DISPONIBLES (usa SOLO estos IDs):\n${tipologiasList}` : ""}
 ${fachadasList ? `FACHADAS DISPONIBLES (usa SOLO estos IDs):\n${fachadasList}` : ""}
@@ -387,6 +400,13 @@ Este proyecto usa modo multi-tipología. Cada unidad puede tener VARIAS tipolog�
           case "identificador":
             if (typeof value === "string" && value.trim().length > 0) {
               cleanUpdates[field] = value.trim().slice(0, 100);
+            }
+            break;
+          case "custom_fields":
+            if (typeof value === "object" && value !== null && !Array.isArray(value)) {
+              // Merge with existing custom_fields
+              const existing = originalUnit.custom_fields ?? {};
+              cleanUpdates[field] = { ...existing, ...value as Record<string, unknown> };
             }
             break;
         }

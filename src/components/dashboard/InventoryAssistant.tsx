@@ -62,6 +62,7 @@ export interface InventoryAssistantProps {
   tipoProyecto: string;
   tipologiaMode?: string;
   unidadTipologias?: { unidad_id: string; tipologia_id: string }[];
+  customColumns?: { key: string; label: string; type: string; options?: string[] }[];
   onClose: () => void;
   onDone: (appliedChanges?: { id: string; updates: Record<string, unknown> }[]) => void;
 }
@@ -322,6 +323,7 @@ export function InventoryAssistant({
   tipoProyecto,
   tipologiaMode,
   unidadTipologias,
+  customColumns,
   onClose,
   onDone,
 }: InventoryAssistantProps) {
@@ -542,6 +544,7 @@ export function InventoryAssistant({
               banos: u.banos,
               parqueaderos: u.parqueaderos,
               depositos: u.depositos,
+              custom_fields: u.custom_fields ?? {},
             })),
             tipologias: tipologias.map((t) => ({
               id: t.id,
@@ -554,6 +557,7 @@ export function InventoryAssistant({
             torres: torres.map((t) => ({ id: t.id, nombre: t.nombre })),
             history,
             tipologiaMode,
+            customColumns,
           }),
         });
 
@@ -612,7 +616,7 @@ export function InventoryAssistant({
         setLoading(false);
       }
     },
-    [input, loading, attachedFile, buildHistory, unidades, tipologias, fachadas, torres, tipologiaMode, unidadTipologias]
+    [input, loading, attachedFile, buildHistory, unidades, tipologias, fachadas, torres, tipologiaMode, unidadTipologias, customColumns]
   );
 
   // ── Apply changes (bulk) ───────────────────────────────────────────

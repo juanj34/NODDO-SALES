@@ -8,6 +8,7 @@ import { usePersistedState } from "@/hooks/usePersistedState";
 import { useTranslation, getEstadoConfig } from "@/i18n";
 import { CotizadorModal } from "@/components/site/CotizadorModal";
 import { Lightbox } from "@/components/site/Lightbox";
+import { PlanoZoomLightbox } from "@/components/site/PlanoZoomLightbox";
 import { SectionTransition } from "@/components/site/SectionTransition";
 import { CloseButton } from "@/components/ui/CloseButton";
 import { cn } from "@/lib/utils";
@@ -32,27 +33,15 @@ import VistaModal from "@/components/site/VistaModal";
 import { getInventoryColumns, getHybridInventoryColumns, getPrimaryArea } from "@/lib/inventory-columns";
 import { resolveHotspotImages } from "@/lib/hotspot-utils";
 import { resolvePisos } from "@/lib/piso-utils";
+import { formatCurrency } from "@/lib/currency";
+import { getUnitDisplayName } from "@/lib/unit-display";
 import type { Unidad, UnidadTipologia, LightboxImage, VistaPiso } from "@/types";
-
-function formatPrecio(precio: number): string {
-  if (precio >= 1000000000) {
-    return `$${(precio / 1000000000).toFixed(1)}B`;
-  }
-  return `$${(precio / 1000000).toFixed(0)}M`;
-}
-
-function formatPrecioFull(precio: number, locale: string): string {
-  return new Intl.NumberFormat(locale === "es" ? "es-CO" : "en-US", {
-    style: "currency",
-    currency: "COP",
-    maximumFractionDigits: 0,
-  }).format(precio);
-}
 
 export default function TipologiasPage() {
   const proyecto = useSiteProject();
   const searchParams = useSearchParams();
-  const { t: tSite, locale } = useTranslation("site");
+  const { t: tSite } = useTranslation("site");
+  const unitPrefix = proyecto.unidad_display_prefix;
   const { t: tCommon } = useTranslation("common");
 
   // ALL HOOKS MUST BE BEFORE ANY EARLY RETURNS
@@ -76,26 +65,11 @@ export default function TipologiasPage() {
   const estadoFiltersDynamic = useMemo(() => [
     { value: "todas", label: tCommon("labels.all") },
     { value: "disponible", label: tCommon("estados.disponible") },
+    { value: "proximamente", label: tCommon("estados.proximamente") },
     { value: "separado", label: tCommon("estados.separado") },
     { value: "reservada", label: tCommon("estados.reservada") },
     { value: "vendida", label: tCommon("estados.vendida") },
   ], [tCommon]);
-
-  // Extract unique etapas from unidades
-  const etapas = useMemo(() => {
-    const uniqueEtapas = Array.from(
-      new Set(unidades.map(u => u.etapa_nombre).filter((e): e is string => e != null && e !== ""))
-    ).sort();
-    return uniqueEtapas;
-  }, [unidades]);
-  const isMultiEtapa = etapas.length > 1;
-
-  // Etapa selector state
-  const [activeEtapa, setActiveEtapa] = usePersistedState<string | null>(
-    "tipologias-etapa",
-    isMultiEtapa ? etapas[0] ?? null : null,
-    proyecto.slug,
-  );
 
   // Torre selector state
   const [activeTorreId, setActiveTorreId] = usePersistedState<string | null>(
@@ -104,19 +78,9 @@ export default function TipologiasPage() {
     proyecto.slug,
   );
 
-  // Filter tipologías by active etapa and torre
+  // Filter tipologías by active torre
   const visibleTipologias = useMemo(() => {
     let filtered = tipologias;
-
-    // Filter by etapa: show tipologías that have at least one unit in this etapa
-    if (isMultiEtapa && activeEtapa) {
-      const tipoIdsInEtapa = new Set(
-        unidades
-          .filter(u => u.etapa_nombre === activeEtapa && u.tipologia_id)
-          .map(u => u.tipologia_id!)
-      );
-      filtered = filtered.filter(t => tipoIdsInEtapa.has(t.id));
-    }
 
     // Filter by torre
     if (isMultiTorre && activeTorreId) {
@@ -124,7 +88,7 @@ export default function TipologiasPage() {
     }
 
     return filtered;
-  }, [tipologias, isMultiEtapa, activeEtapa, isMultiTorre, activeTorreId, unidades]);
+  }, [tipologias, isMultiTorre, activeTorreId]);
 
   // Read query params for deep linking
   const tipoParam = searchParams.get("tipo");
@@ -152,11 +116,12 @@ export default function TipologiasPage() {
       return next;
     });
   }, [visibleTipologias, setPersistedTipoId]);
-  const [estadoFilter, setEstadoFilter] = useState("todas");
+  const [estadoFilter, setEstadoFilter] = useState("disponible");
   const [hoveredHotspot, setHoveredHotspot] = useState<string | null>(null);
   const [activeHotspot, setActiveHotspot] = useState<{ label: string; images: string[] } | null>(null);
   const [showUbicacion, setShowUbicacion] = useState(false);
   const [showRenderGallery, setShowRenderGallery] = useState(false);
+  const [showPlanoZoom, setShowPlanoZoom] = useState(false);
   const [showVistaModal, setShowVistaModal] = useState<VistaPiso | null>(null);
   const [activePisoIdx, setActivePisoIdx] = useState(0);
 
@@ -181,17 +146,19 @@ export default function TipologiasPage() {
         const unit = unidades.find((u) => u.id === unidadParam);
         if (unit) {
           setSelectedUnit(unit);
-          // Also switch to the correct tipología tab
-          if (unit.tipologia_id) {
+          // Also switch to the correct tipología tab (only if no explicit tipo param)
+          if (!tipoParam && unit.tipologia_id) {
             const idx = visibleTipologias.findIndex((t) => t.id === unit.tipologia_id);
             if (idx >= 0) setActiveIndex(idx);
           }
+          // Pre-select the tipología for comparison banner
+          if (tipoParam) setBannerTipoId(tipoParam);
         }
       }
     });
   }, [tipoParam, unidadParam, visibleTipologias, unidades, setActiveIndex]);
 
-  // Reset activeIndex when etapa or torre changes — try to restore persisted tipo
+  // Reset activeIndex when torre changes — try to restore persisted tipo
   useEffect(() => {
     requestAnimationFrame(() => {
       if (persistedTipoId) {
@@ -205,7 +172,7 @@ export default function TipologiasPage() {
       setActiveIndexRaw(0);
       setSelectedUnit(null);
     });
-  }, [activeEtapa, activeTorreId, visibleTipologias, persistedTipoId]);
+  }, [activeTorreId, visibleTipologias, persistedTipoId]);
 
   // Keyboard navigation
   const closeHotspot = useCallback(() => setActiveHotspot(null), []);
@@ -216,7 +183,7 @@ export default function TipologiasPage() {
       switch (e.key) {
         case "Escape":
           // Lightbox and VistaModal handle their own ESC
-          if (showRenderGallery || showVistaModal) return;
+          if (showRenderGallery || showPlanoZoom || showVistaModal) return;
           if (showUbicacion) {
             setShowUbicacion(false);
           } else if (activeHotspot) {
@@ -229,7 +196,7 @@ export default function TipologiasPage() {
           if (!activeHotspot && !showRenderGallery) {
             e.preventDefault();
             setActiveIndex((prev) => Math.max(prev - 1, 0));
-            setEstadoFilter("todas");
+            setEstadoFilter("disponible");
             setSelectedUnit(null);
           }
           break;
@@ -237,7 +204,7 @@ export default function TipologiasPage() {
           if (!activeHotspot && !showRenderGallery) {
             e.preventDefault();
             setActiveIndex((prev) => Math.min(prev + 1, visibleTipologias.length - 1));
-            setEstadoFilter("todas");
+            setEstadoFilter("disponible");
             setSelectedUnit(null);
           }
           break;
@@ -246,7 +213,7 @@ export default function TipologiasPage() {
     window.addEventListener("keydown", handleKey);
     return () => window.removeEventListener("keydown", handleKey);
     // eslint-disable-next-line react-hooks/exhaustive-deps -- setActiveIndex is a state setter, stable
-  }, [activeHotspot, closeHotspot, selectedUnit, showRenderGallery, showVistaModal, showUbicacion, visibleTipologias.length]);
+  }, [activeHotspot, closeHotspot, selectedUnit, showRenderGallery, showPlanoZoom, showVistaModal, showUbicacion, visibleTipologias.length]);
 
   const active = visibleTipologias[activeIndex] ?? visibleTipologias[0];
 
@@ -305,34 +272,27 @@ export default function TipologiasPage() {
     } else {
       filtered = unidades.filter((u) => u.tipologia_id === active.id);
     }
-    // Filter by etapa
-    if (isMultiEtapa && activeEtapa) {
-      filtered = filtered.filter((u) => u.etapa_nombre === activeEtapa);
-    }
     if (estadoFilter !== "todas") {
       filtered = filtered.filter((u) => u.estado === estadoFilter);
     }
     return filtered;
-  }, [unidades, active, estadoFilter, isMultiTipo, unidadTipologias, isMultiEtapa, activeEtapa]);
+  }, [unidades, active, estadoFilter, isMultiTipo, unidadTipologias]);
 
   // Count units by estado for current tipología
   const estadoCounts = useMemo(() => {
-    if (!active) return { todas: 0, disponible: 0, separado: 0, reservada: 0, vendida: 0 };
+    if (!active) return { todas: 0, disponible: 0, proximamente: 0, separado: 0, reservada: 0, vendida: 0 };
     let tipoUnidades = isMultiTipo
       ? unidades.filter(u => unidadTipologias.some(ut => ut.unidad_id === u.id && ut.tipologia_id === active.id))
       : unidades.filter((u) => u.tipologia_id === active.id);
-    // Filter by etapa
-    if (isMultiEtapa && activeEtapa) {
-      tipoUnidades = tipoUnidades.filter((u) => u.etapa_nombre === activeEtapa);
-    }
     return {
       todas: tipoUnidades.length,
       disponible: tipoUnidades.filter((u) => u.estado === "disponible").length,
+      proximamente: tipoUnidades.filter((u) => u.estado === "proximamente").length,
       separado: tipoUnidades.filter((u) => u.estado === "separado").length,
       reservada: tipoUnidades.filter((u) => u.estado === "reservada").length,
       vendida: tipoUnidades.filter((u) => u.estado === "vendida").length,
     };
-  }, [unidades, active, isMultiTipo, unidadTipologias, isMultiEtapa, activeEtapa]);
+  }, [unidades, active, isMultiTipo, unidadTipologias]);
 
   // Dynamic "desde" price from cheapest available unit
   // For lotes: includes construction price (terreno + tipología.precio_desde)
@@ -348,16 +308,12 @@ export default function TipologiasPage() {
       : unidades.filter(u =>
           u.tipologia_id === active.id && u.estado === "disponible" && u.precio != null
         );
-    // Filter by etapa
-    if (isMultiEtapa && activeEtapa) {
-      tipoUnits = tipoUnits.filter((u) => u.etapa_nombre === activeEtapa);
-    }
     const construccion = isLoteBased && active.precio_desde ? active.precio_desde : 0;
     if (tipoUnits.length === 0) {
       return active.precio_desde;
     }
     return Math.min(...tipoUnits.map((u) => u.precio! + construccion));
-  }, [active, unidades, isMultiTipo, unidadTipologias, isLoteBased, isTipologiaPricing, isMultiEtapa, activeEtapa]);
+  }, [active, unidades, isMultiTipo, unidadTipologias, isLoteBased, isTipologiaPricing]);
 
   // Render images from hotspots across ALL floors for gallery lightbox
   const renderImages: LightboxImage[] = useMemo(() => {
@@ -382,6 +338,24 @@ export default function TipologiasPage() {
     return result;
   }, [active, pisos]);
 
+  // Floor plan images for Lightbox zoom (all floors, starting from activePisoIdx)
+  const planoImages: LightboxImage[] = useMemo(() => {
+    const withPlano = pisos.filter((p) => p.plano_url);
+    if (!withPlano.length) return [];
+    // Reorder so activePisoIdx is first
+    const activeIdx = withPlano.findIndex((p) => p === activePiso);
+    const ordered = activeIdx > 0
+      ? [...withPlano.slice(activeIdx), ...withPlano.slice(0, activeIdx)]
+      : withPlano;
+    return ordered.map((p) => ({
+      id: `plano-${p.id}`,
+      url: p.plano_url!,
+      thumbnail_url: p.plano_url!,
+      alt_text: pisos.length > 1 ? `Plano — ${p.nombre}` : `Plano — ${active?.nombre ?? ""}`,
+      label: pisos.length > 1 ? p.nombre : undefined,
+    }));
+  }, [pisos, activePiso, active?.nombre]);
+
   // Group units by floor
   const unitsByFloor = useMemo(() => {
     const grouped: Record<number, typeof filteredUnidades> = {};
@@ -390,6 +364,10 @@ export default function TipologiasPage() {
       if (!grouped[floor]) grouped[floor] = [];
       grouped[floor].push(u);
     });
+    // Sort units within each floor numerically by identificador
+    Object.values(grouped).forEach(units => {
+      units.sort((a, b) => a.identificador.localeCompare(b.identificador, "es", { numeric: true }));
+    });
     return Object.entries(grouped).sort(
       ([a], [b]) => Number(a) - Number(b)
     );
@@ -397,30 +375,12 @@ export default function TipologiasPage() {
 
   const showFloorHeaders = unitsByFloor.length > 1;
 
-  // No tipologías available for this etapa/torre — show empty state
+  // No tipologías available for this torre — show empty state
   if (!active) {
     return (
       <SectionTransition className="h-screen flex flex-col overflow-hidden bg-[var(--site-bg)]">
-        {isMultiEtapa && (
-          <div className={cn("flex-shrink-0 flex items-center gap-3 px-6 lg:px-12 border-b border-[var(--border-subtle)]", isMultiTorre ? "pt-5 pb-3" : "pt-6 pb-4")}>
-            {etapas.map((etapa) => (
-              <button
-                key={etapa}
-                onClick={() => setActiveEtapa(etapa)}
-                className={cn(
-                  "font-site-label px-6 py-2.5 rounded-full text-[11px] font-bold tracking-[0.2em] uppercase transition-all cursor-pointer",
-                  activeEtapa === etapa
-                    ? "bg-gradient-to-br from-[var(--site-primary)] to-[rgba(var(--site-primary-rgb),0.8)] text-[#0A0A0B] shadow-[0_0_20px_rgba(var(--site-primary-rgb),0.4)]"
-                    : "text-[var(--text-tertiary)] hover:text-[var(--text-primary)] hover:bg-white/[0.07] hover:ring-1 hover:ring-white/10"
-                )}
-              >
-                {proyecto.etapa_label} {etapa}
-              </button>
-            ))}
-          </div>
-        )}
         {isMultiTorre && (
-          <div className={cn("flex-shrink-0 flex items-center gap-2 px-6 lg:px-12", isMultiEtapa ? "pt-4 pb-1" : "pt-4 pb-1")}>
+          <div className="flex-shrink-0 flex items-center gap-2 px-6 lg:px-12 pt-4 pb-1">
             {torres.map((torre) => (
               <button
                 key={torre.id}
@@ -452,35 +412,15 @@ export default function TipologiasPage() {
 
   return (
     <SectionTransition className="h-screen flex flex-col overflow-hidden bg-[var(--site-bg)]">
-      {/* ====== TOP: Etapa Selector (multi-etapa only) ====== */}
-      {isMultiEtapa && (
-        <div className={cn("flex-shrink-0 flex items-center gap-3 px-6 lg:px-12 border-b border-[var(--border-subtle)]", isMultiTorre ? "pt-5 pb-3" : "pt-6 pb-4")}>
-          {etapas.map((etapa) => (
-            <button
-              key={etapa}
-              onClick={() => setActiveEtapa(etapa)}
-              className={cn(
-                "font-site-label px-6 py-2.5 rounded-full text-[11px] font-bold tracking-[0.2em] uppercase transition-all cursor-pointer",
-                activeEtapa === etapa
-                  ? "bg-gradient-to-br from-[var(--site-primary)] to-[rgba(var(--site-primary-rgb),0.8)] text-[#0A0A0B] shadow-[0_0_20px_rgba(var(--site-primary-rgb),0.4)]"
-                  : "text-[var(--text-tertiary)] hover:text-[var(--text-primary)] hover:bg-white/[0.07] hover:ring-1 hover:ring-white/10"
-              )}
-            >
-              {proyecto.etapa_label} {etapa}
-            </button>
-          ))}
-        </div>
-      )}
-
       {/* ====== TOP: Torre Selector (multi-torre only) ====== */}
       {isMultiTorre && (
-        <div className={cn("flex-shrink-0 flex items-center gap-2.5 px-6 lg:px-12", isMultiEtapa ? "pt-4 pb-3" : "pt-6 pb-5")}>
+        <div className="flex-shrink-0 flex items-center gap-2.5 px-6 lg:px-12 pt-6 pb-5">
           {torres.map((torre) => (
             <button
               key={torre.id}
               onClick={() => setActiveTorreId(torre.id)}
               className={cn(
-                "font-site-label flex items-center gap-2.5 px-5 py-2.5 rounded-full text-[11px] font-semibold tracking-[0.15em] uppercase transition-all cursor-pointer",
+                "font-ui flex items-center gap-2.5 px-5 py-2.5 rounded-full text-[11px] font-semibold tracking-[0.15em] uppercase transition-all cursor-pointer",
                 activeTorreId === torre.id
                   ? "bg-[rgba(var(--site-primary-rgb),0.15)] text-[var(--site-primary)] ring-1 ring-[rgba(var(--site-primary-rgb),0.4)] shadow-[0_0_12px_rgba(var(--site-primary-rgb),0.15)]"
                   : "text-[var(--text-tertiary)] hover:text-[var(--text-secondary)] hover:bg-white/[0.07] hover:ring-1 hover:ring-white/10"
@@ -494,38 +434,20 @@ export default function TipologiasPage() {
       )}
 
       {/* ====== TOP: Tipología Tab Bar ====== */}
-      <div className={cn("flex-shrink-0 px-6 lg:px-12 pb-5", (isMultiTorre || isMultiEtapa) ? "pt-3" : "pt-6")}>
+      <div className={cn("flex-shrink-0 px-6 lg:px-12 pb-5", isMultiTorre ? "pt-3" : "pt-6")}>
         <div className="flex items-end gap-8 mb-4">
           {visibleTipologias.map((tipo, idx) => {
             const isActive = idx === activeIndex;
-            let tipoUnits = isMultiTipo
-              ? unidades.filter(u => unidadTipologias.some(ut => ut.unidad_id === u.id && ut.tipologia_id === tipo.id))
-              : unidades.filter((u) => u.tipologia_id === tipo.id);
-            // Filter by etapa
-            if (isMultiEtapa && activeEtapa) {
-              tipoUnits = tipoUnits.filter((u) => u.etapa_nombre === activeEtapa);
-            }
-            const disponibles = tipoUnits.filter((u) => u.estado === "disponible").length;
             return (
               <button
                 key={tipo.id}
-                onClick={() => { setActiveIndex(idx); setEstadoFilter("todas"); setSelectedUnit(null); setActiveHotspot(null); }}
+                onClick={() => { setActiveIndex(idx); setEstadoFilter("disponible"); setSelectedUnit(null); setActiveHotspot(null); }}
                 className={cn(
                   "relative pb-4 cursor-pointer transition-all duration-200 group",
                   isActive ? "text-[var(--text-primary)]" : "text-[var(--text-tertiary)] hover:text-[var(--text-secondary)]"
                 )}
               >
-                <div className="flex items-baseline gap-2.5">
-                  <span className="text-base font-medium tracking-wide">{tipo.nombre}</span>
-                  {disponibles > 0 && (
-                    <span className={cn(
-                      "text-[11px] font-mono tabular-nums transition-all duration-200",
-                      isActive ? "text-[var(--site-primary)] font-medium" : "text-[var(--text-muted)] group-hover:text-[var(--text-tertiary)]"
-                    )}>
-                      {disponibles}
-                    </span>
-                  )}
-                </div>
+                <span className="text-base font-medium tracking-wide">{tipo.nombre}</span>
                 {isActive && (
                   <motion.div
                     layoutId="tipo-tab-indicator"
@@ -563,7 +485,7 @@ export default function TipologiasPage() {
                         key={piso.id}
                         onClick={() => setActivePisoIdx(i)}
                         className={cn(
-                          "font-site-label px-4 py-2 rounded-lg text-[11px] font-bold tracking-[0.12em] uppercase transition-all cursor-pointer",
+                          "font-ui px-4 py-2 rounded-lg text-[11px] font-bold tracking-[0.12em] uppercase transition-all cursor-pointer",
                           activePisoIdx === i
                             ? "bg-gradient-to-br from-[var(--site-primary)] to-[rgba(var(--site-primary-rgb),0.8)] text-[#0A0A0B] shadow-[0_0_16px_rgba(var(--site-primary-rgb),0.4)]"
                             : "text-[var(--text-tertiary)] hover:text-[var(--text-primary)] hover:bg-white/[0.05]"
@@ -582,9 +504,20 @@ export default function TipologiasPage() {
                       ref={planoImgRef}
                       src={activePiso.plano_url}
                       alt={`Plano ${activePiso.nombre} - ${active.nombre}`}
-                      className="block max-w-full max-h-[calc(100vh-320px)] w-auto h-auto rounded-xl"
+                      className="block max-w-full max-h-[calc(100vh-200px)] w-auto h-auto rounded-xl"
                       draggable={false}
                     />
+
+                    {/* Zoom / expand button — top-right */}
+                    {!selectedUnit && (
+                      <button
+                        onClick={() => setShowPlanoZoom(true)}
+                        className="absolute top-3 right-3 z-10 w-8 h-8 rounded-lg glass-dark border border-[var(--border-subtle)] flex items-center justify-center cursor-pointer transition-all hover:border-[rgba(var(--site-primary-rgb),0.4)] hover:shadow-[var(--glow-sm)]"
+                        aria-label={tSite("tipologias.zoomPlano")}
+                      >
+                        <Maximize size={14} className="text-[var(--text-secondary)]" />
+                      </button>
+                    )}
 
                     {/* Hotspot dots — CSS % positioned relative to the inline-block wrapper */}
                     {activePiso.hotspots.map((hotspot) => (
@@ -704,7 +637,7 @@ export default function TipologiasPage() {
                         <div className="flex-1">
                           <div className="flex items-center gap-2 mb-1">
                             <h3 className="text-base font-semibold text-[var(--text-primary)]">
-                              {selectedUnit.identificador}
+                              {getUnitDisplayName(selectedUnit, unitPrefix)}
                             </h3>
                             {(() => {
                               const cfg = estadoConfigDynamic[selectedUnit.estado];
@@ -717,7 +650,7 @@ export default function TipologiasPage() {
                             })()}
                           </div>
 
-                          <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-[var(--text-secondary)] mb-2">
+                          <div className="flex flex-wrap gap-x-4 gap-y-1 font-mono text-xs text-[var(--text-secondary)] mb-2">
                             {columns.area_m2 && selectedUnit.area_m2 && (
                               <span className="flex items-center gap-1">
                                 <Maximize size={11} /> {selectedUnit.area_m2} m²
@@ -779,8 +712,8 @@ export default function TipologiasPage() {
                           {columns.precio && (isTipologiaPricing ? active?.precio_desde : (selectedUnit.precio || (isLoteBased && bannerTipo?.precio_desde))) && (() => {
                             if (isTipologiaPricing && active?.precio_desde) {
                               return (
-                                <p className="text-lg font-semibold text-[var(--site-primary)]">
-                                  {formatPrecioFull(active.precio_desde, locale)}
+                                <p className="font-mono text-lg font-semibold text-[var(--site-primary)] tabular-nums">
+                                  {formatCurrency(active.precio_desde, proyecto.moneda_base ?? "COP")}
                                 </p>
                               );
                             }
@@ -817,14 +750,14 @@ export default function TipologiasPage() {
                                   )}
                                   {/* Price breakdown */}
                                   <div className="flex items-baseline gap-3">
-                                    <p className="text-lg font-semibold text-[var(--site-primary)]">
+                                    <p className="font-mono text-lg font-semibold text-[var(--site-primary)] tabular-nums">
                                       {terreno
-                                        ? formatPrecioFull(total, locale)
-                                        : formatPrecioFull(construccion, locale)}
+                                        ? formatCurrency(total, proyecto.moneda_base ?? "COP")
+                                        : formatCurrency(construccion, proyecto.moneda_base ?? "COP")}
                                     </p>
-                                    <span className="text-[9px] text-[var(--text-tertiary)]">
+                                    <span className="font-mono text-[9px] text-[var(--text-tertiary)]">
                                       {terreno
-                                        ? `${tSite("tipologias.terrain")} ${formatPrecio(terreno)} + ${tSite("tipologias.construction")} ${formatPrecio(construccion)}`
+                                        ? `${tSite("tipologias.terrain")} ${formatCurrency(terreno, proyecto.moneda_base ?? "COP")} + ${tSite("tipologias.construction")} ${formatCurrency(construccion, proyecto.moneda_base ?? "COP")}`
                                         : tSite("tipologias.construction")}
                                     </span>
                                   </div>
@@ -838,14 +771,14 @@ export default function TipologiasPage() {
                               const total = (terreno ?? 0) + construccion + complementosTotal;
                               return (
                                 <div>
-                                  <p className="text-lg font-semibold text-[var(--site-primary)]">
+                                  <p className="font-mono text-lg font-semibold text-[var(--site-primary)] tabular-nums">
                                     {terreno
-                                      ? formatPrecioFull(total, locale)
-                                      : formatPrecioFull(construccion, locale)}
+                                      ? formatCurrency(total, proyecto.moneda_base ?? "COP")
+                                      : formatCurrency(construccion, proyecto.moneda_base ?? "COP")}
                                   </p>
-                                  <p className="text-[9px] text-[var(--text-tertiary)]">
+                                  <p className="font-mono text-[9px] text-[var(--text-tertiary)]">
                                     {terreno
-                                      ? `${tSite("tipologias.terrain")} ${formatPrecio(terreno)} + ${tSite("tipologias.construction")} ${formatPrecio(construccion)}`
+                                      ? `${tSite("tipologias.terrain")} ${formatCurrency(terreno, proyecto.moneda_base ?? "COP")} + ${tSite("tipologias.construction")} ${formatCurrency(construccion, proyecto.moneda_base ?? "COP")}`
                                       : tSite("tipologias.construction")}
                                     {complementosTotal > 0 && ` + ${unitComplementos.length} complemento(s)`}
                                   </p>
@@ -858,16 +791,16 @@ export default function TipologiasPage() {
                             const totalPrecio = terreno + complementosTotal;
                             return unitComplementos.length > 0 ? (
                               <div>
-                                <p className="text-lg font-semibold text-[var(--site-primary)]">
-                                  {formatPrecioFull(totalPrecio, locale)}
+                                <p className="font-mono text-lg font-semibold text-[var(--site-primary)] tabular-nums">
+                                  {formatCurrency(totalPrecio, proyecto.moneda_base ?? "COP")}
                                 </p>
-                                <p className="text-[9px] text-[var(--text-tertiary)]">
-                                  Inmueble {formatPrecioFull(terreno, locale)} + {unitComplementos.length} complemento(s)
+                                <p className="font-mono text-[9px] text-[var(--text-tertiary)]">
+                                  Inmueble {formatCurrency(terreno, proyecto.moneda_base ?? "COP")} + {unitComplementos.length} complemento(s)
                                 </p>
                               </div>
                             ) : (
-                              <p className="text-lg font-semibold text-[var(--site-primary)]">
-                                {formatPrecioFull(terreno, locale)}
+                              <p className="font-mono text-lg font-semibold text-[var(--site-primary)] tabular-nums">
+                                {formatCurrency(terreno, proyecto.moneda_base ?? "COP")}
                               </p>
                             );
                           })()}
@@ -887,130 +820,6 @@ export default function TipologiasPage() {
                 </AnimatePresence>
               </div>
 
-              {/* Stats Row — TIPOLOGÍA SPECS (always show if value exists, columns only for inventory) */}
-              <div className="flex-shrink-0 grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2.5 mt-4">
-                {/* Combined Area Card — show if ANY area field has a value */}
-                {(active.area_m2 != null || active.area_construida != null || active.area_privada != null || active.area_lote != null || active.area_balcon != null) && (
-                  <div className="relative overflow-hidden rounded-xl border border-[var(--border-subtle)] bg-gradient-to-br from-[var(--surface-1)] to-[var(--surface-2)] p-3.5 shadow-lg hover:border-[rgba(var(--site-primary-rgb),0.3)] transition-all duration-300 group">
-                    {/* Subtle gold gradient overlay on hover */}
-                    <div className="absolute inset-0 bg-gradient-to-br from-[rgba(var(--site-primary-rgb),0.03)] to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-
-                    <div className="relative">
-                      <div className="flex items-center gap-1.5 mb-2.5">
-                        <div className="w-6 h-6 rounded-lg bg-gradient-to-br from-[rgba(var(--site-primary-rgb),0.15)] to-[rgba(var(--site-primary-rgb),0.05)] flex items-center justify-center">
-                          <Maximize size={13} className="text-[var(--site-primary)]" strokeWidth={2.5} />
-                        </div>
-                        <span className="font-site-label text-[9px] font-bold tracking-[0.15em] text-[var(--text-tertiary)] uppercase">
-                          {tSite("tipologias.areas")}
-                        </span>
-                      </div>
-                      <div className="space-y-1.5">
-                        {active.area_m2 != null && (
-                          <>
-                            <div className="flex items-center justify-between gap-2">
-                              <span className="font-site-body text-[10px] text-[var(--text-muted)]">{tSite("tipologias.internalArea")}</span>
-                              <span className="font-site-body text-xs font-medium text-[var(--text-primary)] tabular-nums">
-                                {active.area_m2} m²
-                              </span>
-                            </div>
-                            {active.area_balcon != null && active.area_balcon > 0 && (
-                              <div className="flex items-center justify-between gap-2">
-                                <span className="font-site-body text-[10px] text-[var(--text-muted)]">{tSite("tipologias.balcony")}</span>
-                                <span className="font-site-body text-xs font-medium text-[var(--text-primary)] tabular-nums">
-                                  {active.area_balcon} m²
-                                </span>
-                              </div>
-                            )}
-                            {active.area_construida == null && active.area_privada == null && active.area_lote == null && (
-                              <>
-                                <div className="h-px bg-gradient-to-r from-transparent via-[var(--border-default)] to-transparent my-1" />
-                                <div className="flex items-center justify-between gap-2">
-                                  <span className="font-site-label text-[9px] text-[var(--text-secondary)] font-bold tracking-wider uppercase">{tSite("tipologias.total")}</span>
-                                  <span className="font-site-body text-sm font-semibold text-[var(--site-primary)] tabular-nums">
-                                    {((active.area_m2 || 0) + (active.area_balcon || 0))} m²
-                                  </span>
-                                </div>
-                              </>
-                            )}
-                          </>
-                        )}
-                        {/* ALWAYS show area_construida for tipologías if it has a value */}
-                        {active.area_construida != null && (
-                          <div className="flex items-center justify-between gap-2">
-                            <span className="font-site-body text-[10px] text-[var(--text-muted)]">{tSite("tipologias.areaConstruida")}</span>
-                            <span className="font-site-body text-xs font-medium text-[var(--text-primary)] tabular-nums">
-                              {active.area_construida} m²
-                            </span>
-                          </div>
-                        )}
-                        {/* ALWAYS show area_privada for tipologías if it has a value */}
-                        {active.area_privada != null && (
-                          <div className="flex items-center justify-between gap-2">
-                            <span className="font-site-body text-[10px] text-[var(--text-muted)]">{tSite("tipologias.areaPrivada")}</span>
-                            <span className="font-site-body text-xs font-medium text-[var(--text-primary)] tabular-nums">
-                              {active.area_privada} m²
-                            </span>
-                          </div>
-                        )}
-                        {active.area_lote != null && (
-                          <div className="flex items-center justify-between gap-2">
-                            <span className="font-site-body text-[10px] text-[var(--text-muted)]">{tSite("tipologias.areaLote")}</span>
-                            <span className="font-site-body text-xs font-medium text-[var(--text-primary)] tabular-nums">
-                              {active.area_lote} m²
-                            </span>
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-                )}
-                {/* ALWAYS show habitaciones if value exists */}
-                {active.habitaciones != null && (
-                  <StatCard
-                    icon={<BedDouble size={16} strokeWidth={2.5} />}
-                    label={tSite("explorar.bedrooms")}
-                    value={active.habitaciones === 0 ? tSite("tipologias.studio") : String(active.habitaciones)}
-                  />
-                )}
-                {/* ALWAYS show banos if value exists */}
-                {active.banos != null && (
-                  <StatCard
-                    icon={<Bath size={16} strokeWidth={2.5} />}
-                    label={tSite("explorar.bathrooms")}
-                    value={String(active.banos)}
-                  />
-                )}
-                {/* ALWAYS show parqueaderos if value exists */}
-                {active.parqueaderos != null && (
-                  <StatCard
-                    icon={<Car size={16} strokeWidth={2.5} />}
-                    label={tSite("explorar.parking")}
-                    value={String(active.parqueaderos)}
-                  />
-                )}
-                {/* Show depositos if value > 0 */}
-                {(active.depositos ?? 0) > 0 && (
-                  <StatCard
-                    icon={<Archive size={16} strokeWidth={2.5} />}
-                    label={tSite("explorar.storage")}
-                    value={String(active.depositos)}
-                  />
-                )}
-                {/* Price card — only if columns.precio is enabled for inventory */}
-                {columns.precio && (
-                  <div className="relative overflow-hidden rounded-xl border border-[rgba(var(--site-primary-rgb),0.2)] bg-gradient-to-br from-[rgba(var(--site-primary-rgb),0.08)] via-[var(--surface-2)] to-[var(--surface-1)] p-3.5 shadow-[0_0_24px_rgba(var(--site-primary-rgb),0.12)] hover:shadow-[0_0_32px_rgba(var(--site-primary-rgb),0.2)] transition-all duration-300 group">
-                    {/* Animated glow */}
-                    <div className="absolute inset-0 bg-gradient-to-br from-[rgba(var(--site-primary-rgb),0.1)] to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-
-                    <div className="relative flex flex-col items-center justify-center text-center h-full">
-                      <span className="font-site-label text-[9px] font-bold tracking-[0.2em] text-[var(--site-primary)] uppercase mb-1.5">{tSite("tipologias.from")}</span>
-                      <span className="font-site-heading text-lg font-semibold text-[var(--site-primary)] tabular-nums leading-none">
-                        {precioDesde ? formatPrecio(precioDesde) : "—"}
-                      </span>
-                    </div>
-                  </div>
-                )}
-              </div>
             </motion.div>
           </AnimatePresence>
         </div>
@@ -1066,7 +875,7 @@ export default function TipologiasPage() {
                     >
                       <div className="pt-3">
                         {active.descripcion && (
-                          <p className="text-sm text-[var(--text-secondary)] leading-relaxed mb-4">
+                          <p className="font-mono text-sm text-[var(--text-secondary)] leading-relaxed mb-4">
                             {active.descripcion}
                           </p>
                         )}
@@ -1091,6 +900,99 @@ export default function TipologiasPage() {
                 </AnimatePresence>
               </div>
 
+              {/* Specs — areas, quick stats, price */}
+              <div className="px-6 pt-4 pb-3 flex-shrink-0 space-y-3">
+                {/* Area rows */}
+                {(() => {
+                  const areaFields: Array<{ label: string; value: number }> = [];
+                  if (columns.area_m2 && active.area_m2 != null) areaFields.push({ label: tSite("tipologias.internalArea"), value: active.area_m2 });
+                  if (columns.area_m2 && active.area_balcon != null && active.area_balcon > 0) areaFields.push({ label: tSite("tipologias.balcony"), value: active.area_balcon });
+                  if (columns.area_construida && active.area_construida != null) areaFields.push({ label: tSite("tipologias.areaConstruida"), value: active.area_construida });
+                  if (columns.area_privada && active.area_privada != null) areaFields.push({ label: tSite("tipologias.areaPrivada"), value: active.area_privada });
+                  if (columns.area_lote && active.area_lote != null) areaFields.push({ label: tSite("tipologias.areaLote"), value: active.area_lote });
+                  const showTotal = columns.area_m2 && active.area_m2 != null && active.area_balcon != null && active.area_balcon > 0
+                    && !columns.area_construida && !columns.area_privada && !columns.area_lote;
+                  const totalArea = showTotal ? (active.area_m2 || 0) + (active.area_balcon || 0) : null;
+
+                  if (areaFields.length === 0) return null;
+                  return (
+                    <div className="space-y-1.5">
+                      {areaFields.map(({ label, value }) => (
+                        <div key={label} className="flex items-center justify-between gap-4">
+                          <span className="font-mono text-[10px] text-[var(--text-muted)]">{label}</span>
+                          <span className="font-mono text-xs font-medium text-[var(--text-primary)] tabular-nums">
+                            {value} m²
+                          </span>
+                        </div>
+                      ))}
+                      {totalArea != null && (
+                        <>
+                          <div className="h-px bg-gradient-to-r from-transparent via-[var(--border-default)] to-transparent" />
+                          <div className="flex items-center justify-between gap-4">
+                            <span className="font-ui text-[9px] text-[var(--text-secondary)] font-bold tracking-wider uppercase">
+                              {tSite("tipologias.total")}
+                            </span>
+                            <span className="font-mono text-xs font-semibold text-[var(--site-primary)] tabular-nums">
+                              {totalArea} m²
+                            </span>
+                          </div>
+                        </>
+                      )}
+                    </div>
+                  );
+                })()}
+
+                {/* Quick stats row */}
+                {(active.habitaciones != null || active.banos != null || active.parqueaderos != null || (active.depositos ?? 0) > 0) && (
+                  <div className="flex items-center gap-3 flex-wrap">
+                    {active.habitaciones != null && (
+                      <div className="flex items-center gap-1.5">
+                        <BedDouble size={13} className="text-[var(--site-primary)]" strokeWidth={2.5} />
+                        <span className="font-mono text-xs font-medium text-[var(--text-primary)] tabular-nums">
+                          {active.habitaciones === 0 ? tSite("tipologias.studio") : active.habitaciones}
+                        </span>
+                      </div>
+                    )}
+                    {active.banos != null && (
+                      <div className="flex items-center gap-1.5">
+                        <Bath size={13} className="text-[var(--site-primary)]" strokeWidth={2.5} />
+                        <span className="font-mono text-xs font-medium text-[var(--text-primary)] tabular-nums">
+                          {active.banos}
+                        </span>
+                      </div>
+                    )}
+                    {active.parqueaderos != null && (
+                      <div className="flex items-center gap-1.5">
+                        <Car size={13} className="text-[var(--site-primary)]" strokeWidth={2.5} />
+                        <span className="font-mono text-xs font-medium text-[var(--text-primary)] tabular-nums">
+                          {active.parqueaderos}
+                        </span>
+                      </div>
+                    )}
+                    {(active.depositos ?? 0) > 0 && (
+                      <div className="flex items-center gap-1.5">
+                        <Archive size={13} className="text-[var(--site-primary)]" strokeWidth={2.5} />
+                        <span className="font-mono text-xs font-medium text-[var(--text-primary)] tabular-nums">
+                          {active.depositos}
+                        </span>
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {/* Price */}
+                {columns.precio && precioDesde && (
+                  <div className="flex items-center justify-between gap-4">
+                    <span className="font-ui text-[9px] font-bold tracking-[0.15em] text-[var(--site-primary)] uppercase">
+                      {tSite("tipologias.from")}
+                    </span>
+                    <span className="font-mono text-base font-semibold text-[var(--site-primary)] tabular-nums leading-none">
+                      {formatCurrency(precioDesde, proyecto.moneda_base ?? "COP")}
+                    </span>
+                  </div>
+                )}
+              </div>
+
               {/* Divider */}
               <div className="border-t border-[var(--border-subtle)] mx-6" />
 
@@ -1101,21 +1003,22 @@ export default function TipologiasPage() {
                   <p className="text-[10px] tracking-[0.25em] text-[var(--text-tertiary)] uppercase">
                     {tSite("tipologias.units")}
                   </p>
-                  <span className="text-xs text-[var(--site-primary)]">
+                  <span className="font-mono text-xs text-[var(--site-primary)]">
                     {estadoCounts.disponible} {tSite("tipologias.available")}
                   </span>
                 </div>
 
                 {/* Estado Filter Tabs */}
-                <div className="flex gap-1 mb-3 flex-shrink-0 overflow-x-auto scrollbar-hide">
+                <div className="flex flex-wrap gap-1 mb-3 flex-shrink-0">
                   {estadoFiltersDynamic.map((filter) => {
                     const count = estadoCounts[filter.value as keyof typeof estadoCounts] ?? 0;
+                    if (filter.value !== "todas" && count === 0) return null;
                     return (
                       <button
                         key={filter.value}
                         onClick={() => setEstadoFilter(filter.value)}
                         className={cn(
-                          "px-3 py-1.5 rounded-full text-[10px] tracking-wider uppercase whitespace-nowrap transition-all cursor-pointer",
+                          "px-2 py-1 rounded-md text-[9px] tracking-wider uppercase whitespace-nowrap transition-all cursor-pointer",
                           estadoFilter === filter.value
                             ? "bg-[rgba(var(--site-primary-rgb),0.15)] text-[var(--site-primary)]"
                             : "text-[var(--text-tertiary)] hover:text-[var(--text-secondary)] hover:bg-[var(--glass-bg)]"
@@ -1163,7 +1066,7 @@ export default function TipologiasPage() {
                               {/* Unit info */}
                               <div className="flex-1 min-w-0">
                                 <p className="text-sm text-[var(--text-primary)] font-medium truncate">
-                                  {unit.identificador}
+                                  {getUnitDisplayName(unit, unitPrefix)}
                                   {isMultiTipo && (() => {
                                     const count = unidadTipologias.filter(ut => ut.unidad_id === unit.id).length;
                                     return count > 1 ? (
@@ -1173,7 +1076,7 @@ export default function TipologiasPage() {
                                     ) : null;
                                   })()}
                                 </p>
-                                <p className="text-[10px] text-[var(--text-tertiary)] tracking-wider">
+                                <p className="font-mono text-[10px] text-[var(--text-tertiary)] tracking-wider">
                                   {[
                                     columns.piso && unit.piso ? `${tSite("tipologias.floor")} ${unit.piso}` : null,
                                     (() => { const a = getPrimaryArea(unit, columns); return a != null ? `${a} m²` : null; })(),
@@ -1189,8 +1092,8 @@ export default function TipologiasPage() {
                                   const c = isLoteBased && active?.precio_desde ? active.precio_desde : 0;
                                   const displayPrice = t ? t + c : c || null;
                                   return (
-                                    <p className="text-sm text-[var(--text-secondary)] font-medium">
-                                      {displayPrice ? formatPrecio(displayPrice) : "—"}
+                                    <p className="font-mono text-sm text-[var(--text-secondary)] font-medium tabular-nums">
+                                      {displayPrice ? formatCurrency(displayPrice, proyecto.moneda_base ?? "COP") : "—"}
                                     </p>
                                   );
                                 })()}
@@ -1327,6 +1230,17 @@ export default function TipologiasPage() {
         )}
       </AnimatePresence>
 
+      {/* ====== PLANO ZOOM LIGHTBOX ====== */}
+      <AnimatePresence>
+        {showPlanoZoom && planoImages.length > 0 && (
+          <PlanoZoomLightbox
+            images={planoImages}
+            initialIndex={0}
+            onClose={() => setShowPlanoZoom(false)}
+          />
+        )}
+      </AnimatePresence>
+
       {/* ====== VISTA MODAL ====== */}
       <AnimatePresence>
         {showVistaModal && (
@@ -1354,21 +1268,3 @@ export default function TipologiasPage() {
   );
 }
 
-function StatCard({ icon, label, value }: { icon: React.ReactNode; label: string; value: string }) {
-  return (
-    <div className="relative overflow-hidden rounded-xl border border-[var(--border-subtle)] bg-gradient-to-br from-[var(--surface-1)] to-[var(--surface-2)] p-3.5 shadow-lg hover:border-[rgba(var(--site-primary-rgb),0.3)] transition-all duration-300 group">
-      {/* Subtle gold gradient overlay on hover */}
-      <div className="absolute inset-0 bg-gradient-to-br from-[rgba(var(--site-primary-rgb),0.03)] to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-
-      <div className="relative flex flex-col items-center justify-center text-center h-full">
-        {/* Icon with gold background */}
-        <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-[rgba(var(--site-primary-rgb),0.15)] to-[rgba(var(--site-primary-rgb),0.05)] flex items-center justify-center mb-2 group-hover:scale-110 transition-transform duration-300">
-          <div className="text-[var(--site-primary)]">{icon}</div>
-        </div>
-
-        <span className="font-site-label text-[9px] font-bold tracking-[0.15em] text-[var(--text-tertiary)] uppercase mb-1">{label}</span>
-        <span className="font-site-heading text-xl font-semibold text-[var(--text-primary)] tabular-nums leading-none">{value}</span>
-      </div>
-    </div>
-  );
-}

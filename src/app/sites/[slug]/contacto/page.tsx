@@ -108,7 +108,7 @@ export default function ContactoPage() {
                         selectedTipologia === tip.nombre ? "" : tip.nombre
                       )
                     }
-                    className={`text-xs px-3.5 py-1.5 rounded-lg border transition-all duration-200 cursor-pointer ${
+                    className={`text-xs font-ui tracking-wider px-3.5 py-1.5 rounded-lg border transition-all duration-200 cursor-pointer ${
                       selectedTipologia === tip.nombre
                         ? "bg-[rgba(var(--site-primary-rgb),0.15)] border-[rgba(var(--site-primary-rgb),0.4)] text-[var(--site-primary)]"
                         : "bg-white/3 border-[var(--border-subtle)] text-[var(--text-secondary)] hover:border-[rgba(var(--site-primary-rgb),0.25)] hover:text-[var(--site-primary)]"

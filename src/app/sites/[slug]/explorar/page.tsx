@@ -35,7 +35,16 @@ import { useMediaQuery } from "@/hooks/useMediaQuery";
 import { MobileBottomSheet } from "@/components/site/MobileBottomSheet";
 import VistaModal from "@/components/site/VistaModal";
 import { cn } from "@/lib/utils";
+import { getUnitDisplayName } from "@/lib/unit-display";
 import type { Unidad, Fachada, Torre, PlanoInteractivo, PlanoPunto, VistaPiso, UnidadTipologia } from "@/types";
+
+const ESTADO_PRIORITY: Record<string, number> = {
+  disponible: 0,
+  separado: 1,
+  reservada: 2,
+  proximamente: 3,
+  vendida: 4,
+};
 
 function formatPrecio(precio: number, locale: string): string {
   return new Intl.NumberFormat(locale === "es" ? "es-CO" : "en-US", {
@@ -55,6 +64,7 @@ export default function ExplorarPage() {
   const basePath = useSiteBasePath();
   const searchParams = useSearchParams();
   const { t: tSite, locale } = useTranslation("site");
+  const unitPrefix = proyecto.unidad_display_prefix;
   const { t: tCommon } = useTranslation("common");
   const estadoConfig = useMemo(() => getEstadoConfig(tCommon), [tCommon]);
   const { unidades, tipologias, fachadas } = proyecto;
@@ -143,6 +153,7 @@ export default function ExplorarPage() {
   const [cotizarUnidad, setCotizarUnidad] = useState<Unidad | null>(null);
   const [showVistaModal, setShowVistaModal] = useState<VistaPiso | null>(null);
   const [imageLoaded, setImageLoaded] = useState(false);
+  const [imageError, setImageError] = useState(false);
   const prevFachadaIdRef = useRef<string | null>(null);
 
   // Sync with URL param on mount / change - use ref to avoid setState in effect
@@ -161,6 +172,28 @@ export default function ExplorarPage() {
   }, [fachadaIdParam, sortedFachadas]);
   const isMobile = useMediaQuery("(max-width: 1023px)");
   const [sheetOpen, setSheetOpen] = useState(false);
+  const [estadoFilter, setEstadoFilter] = useState<string>("disponible");
+
+  // Price source resolution
+  const isTipologiaPricing = proyecto.precio_source === "tipologia";
+  const getUnitPrice = useCallback((unit: Unidad): number | null => {
+    if (!isTipologiaPricing) return unit.precio;
+    if (unit.tipologia_id) {
+      const tipo = (tipologias || []).find(t => t.id === unit.tipologia_id);
+      return tipo?.precio_desde ?? null;
+    }
+    // Multi-tipo: return lowest price from linked tipologías
+    if (isMultiTipo) {
+      const tipoIds = unidadTipologias
+        .filter(ut => ut.unidad_id === unit.id)
+        .map(ut => ut.tipologia_id);
+      const prices = tipologias
+        .filter(t => tipoIds.includes(t.id) && t.precio_desde != null)
+        .map(t => t.precio_desde!);
+      return prices.length > 0 ? Math.min(...prices) : null;
+    }
+    return null;
+  }, [isTipologiaPricing, tipologias, isMultiTipo, unidadTipologias]);
 
   // Units with coordinates, filtered by active fachada/planta
   const isPlantaView = explorarView === "planta";
@@ -174,6 +207,30 @@ export default function ExplorarPage() {
     if (activeFachada) filtered = filtered.filter((u) => u.fachada_id === activeFachada.id);
     return filtered;
   }, [unidades, activeFachada, isPlantaView]);
+
+  // Estado counts (from all positioned units, not filtered)
+  const estadoCounts = useMemo(() => {
+    const counts: Record<string, number> = { todas: positionedUnits.length };
+    for (const unit of positionedUnits) {
+      counts[unit.estado] = (counts[unit.estado] ?? 0) + 1;
+    }
+    return counts;
+  }, [positionedUnits]);
+
+  // Filtered + sorted units for sidebar list (available first)
+  const displayedUnits = useMemo(() => {
+    let units = [...positionedUnits];
+    if (estadoFilter !== "todas") {
+      units = units.filter(u => u.estado === estadoFilter);
+    }
+    units.sort((a, b) => {
+      const pA = ESTADO_PRIORITY[a.estado] ?? 99;
+      const pB = ESTADO_PRIORITY[b.estado] ?? 99;
+      if (pA !== pB) return pA - pB;
+      return a.identificador.localeCompare(b.identificador, "es", { numeric: true });
+    });
+    return units;
+  }, [positionedUnits, estadoFilter]);
 
   const selectedTipologia = useMemo(() => {
     if (!selectedUnit?.tipologia_id) return undefined;
@@ -198,6 +255,7 @@ export default function ExplorarPage() {
       // Schedule state update for after render to avoid cascading renders
       queueMicrotask(() => {
         setImageLoaded(false);
+        setImageError(false);
       });
     }
   }, [fachadaUrl]);
@@ -231,6 +289,7 @@ export default function ExplorarPage() {
   const selectFachada = useCallback((idx: number) => {
     setActiveFachadaIndex(idx);
     setSelectedUnit(null);
+    setEstadoFilter("disponible");
   }, []);
 
   // Keyboard navigation
@@ -443,7 +502,7 @@ export default function ExplorarPage() {
             animate={{ opacity: 1, x: 0 }}
             exit={{ opacity: 0, x: 10 }}
             transition={{ duration: 0.15 }}
-            className="flex-1 flex flex-col overflow-y-auto scrollbar-hide"
+            className="flex-1 flex flex-col overflow-y-auto scrollbar-hide min-h-0"
           >
             {/* Back + title */}
             <div className="flex-shrink-0 flex items-center gap-2 px-4 pt-3 pb-2">
@@ -461,7 +520,7 @@ export default function ExplorarPage() {
             {/* Unit header */}
             <div className="px-4 pb-3">
               <div className="flex items-center gap-2 mb-1">
-                <h2 className="text-xl font-semibold text-[var(--text-primary)]">{selectedUnit.identificador}</h2>
+                <h2 className="text-xl font-semibold text-[var(--text-primary)]">{getUnitDisplayName(selectedUnit, unitPrefix)}</h2>
                 {(() => {
                   const cfg = estadoConfig[selectedUnit.estado];
                   return (
@@ -472,7 +531,7 @@ export default function ExplorarPage() {
                   );
                 })()}
               </div>
-              {isMultiTipo && !selectedUnit.tipologia_id ? (
+              {isMultiTipo && getUnitAvailableTipologias(selectedUnit.id).length > 1 ? (
                 <p className="text-sm text-[var(--text-muted)] italic">
                   {getUnitAvailableTipologias(selectedUnit.id).length} tipologías disponibles
                 </p>
@@ -490,7 +549,7 @@ export default function ExplorarPage() {
             </div>
 
             {/* Multi-tipo: available tipología cards (when no confirmed tipología) */}
-            {isMultiTipo && selectedUnit && !selectedUnit.tipologia_id && (() => {
+            {isMultiTipo && selectedUnit && getUnitAvailableTipologias(selectedUnit.id).length > 1 && (() => {
               const availTipos = getUnitAvailableTipologias(selectedUnit.id);
               if (availTipos.length === 0) return null;
               return (
@@ -523,6 +582,24 @@ export default function ExplorarPage() {
               );
             })()}
 
+            {/* Tipología render */}
+            {selectedTipologia && selectedTipologia.renders.length > 0 && (
+              <div className="mx-4 mb-3 relative aspect-[16/10] rounded-2xl overflow-hidden bg-[var(--glass-bg)]">
+                <Image
+                  src={selectedTipologia.renders[0]}
+                  alt={selectedTipologia.nombre}
+                  fill
+                  unoptimized
+                  className="object-cover"
+                />
+                {selectedTipologia.renders.length > 1 && (
+                  <div className="absolute bottom-2 right-2 px-2 py-0.5 rounded-full glass text-[8px] text-white/70">
+                    1/{selectedTipologia.renders.length}
+                  </div>
+                )}
+              </div>
+            )}
+
             {/* Floor plan */}
             {selectedTipPlanoUrl && (
               <div className="mx-4 mb-3 relative aspect-[4/3] rounded-2xl overflow-hidden bg-[var(--glass-bg)]">
@@ -544,7 +621,7 @@ export default function ExplorarPage() {
                     <Maximize size={14} className="text-[var(--site-primary)]" />
                     <div>
                       <p className="text-[8px] text-[var(--text-tertiary)] tracking-wider uppercase">{tSite("tipologias.areaConstruida")}</p>
-                      <p className="text-sm text-[var(--text-primary)] font-medium">{selectedUnit.area_construida} m²</p>
+                      <p className="text-sm text-[var(--text-primary)] font-medium font-mono">{selectedUnit.area_construida} m²</p>
                     </div>
                   </div>
                 )}
@@ -553,7 +630,7 @@ export default function ExplorarPage() {
                     <Maximize size={14} className="text-[var(--site-primary)]" />
                     <div>
                       <p className="text-[8px] text-[var(--text-tertiary)] tracking-wider uppercase">{tSite("tipologias.areaPrivada")}</p>
-                      <p className="text-sm text-[var(--text-primary)] font-medium">{selectedUnit.area_privada} m²</p>
+                      <p className="text-sm text-[var(--text-primary)] font-medium font-mono">{selectedUnit.area_privada} m²</p>
                     </div>
                   </div>
                 )}
@@ -562,7 +639,7 @@ export default function ExplorarPage() {
                     <Maximize size={14} className="text-[var(--site-primary)]" />
                     <div>
                       <p className="text-[8px] text-[var(--text-tertiary)] tracking-wider uppercase">{tSite("tipologias.areaLote")}</p>
-                      <p className="text-sm text-[var(--text-primary)] font-medium">{selectedUnit.area_lote} m²</p>
+                      <p className="text-sm text-[var(--text-primary)] font-medium font-mono">{selectedUnit.area_lote} m²</p>
                     </div>
                   </div>
                 )}
@@ -571,7 +648,7 @@ export default function ExplorarPage() {
                     <Maximize size={14} className="text-[var(--site-primary)]" />
                     <div>
                       <p className="text-[8px] text-[var(--text-tertiary)] tracking-wider uppercase">{tSite("explorar.area")}</p>
-                      <p className="text-sm text-[var(--text-primary)] font-medium">{selectedUnit.area_m2} m²</p>
+                      <p className="text-sm text-[var(--text-primary)] font-medium font-mono">{selectedUnit.area_m2} m²</p>
                     </div>
                   </div>
                 )}
@@ -679,21 +756,25 @@ export default function ExplorarPage() {
             </div>
 
             {/* Price */}
-            {columns.precio && selectedUnit.precio && (() => {
+            {(() => {
+              const resolvedPrice = getUnitPrice(selectedUnit);
+              if (!columns.precio || !resolvedPrice) return null;
               const unitComplementos = (proyecto.parqueaderos_mode !== "sin_inventario" || proyecto.depositos_mode !== "sin_inventario")
                 ? (proyecto.complementos ?? []).filter(c => c.unidad_id === selectedUnit.id)
                 : [];
               const complementosTotal = unitComplementos.reduce((s, c) => s + (c.precio ?? 0), 0);
-              const totalPrecio = selectedUnit.precio + complementosTotal;
+              const totalPrecio = resolvedPrice + complementosTotal;
               return (
                 <div className="mx-4 mb-3 p-3 bg-[rgba(var(--site-primary-rgb),0.08)] rounded-2xl border border-[rgba(var(--site-primary-rgb),0.15)]">
-                  <p className="text-[8px] text-[var(--site-primary)] opacity-60 tracking-wider uppercase mb-1">{tSite("explorar.price")}</p>
-                  <p className="text-lg font-semibold text-[var(--site-primary)]">
-                    {formatPrecio(unitComplementos.length > 0 ? totalPrecio : selectedUnit.precio, locale)}
+                  <p className="text-[8px] text-[var(--site-primary)] opacity-60 tracking-wider uppercase mb-1">
+                    {isTipologiaPricing ? `${tSite("explorar.price")} (${tCommon("labels.from").toLowerCase()})` : tSite("explorar.price")}
+                  </p>
+                  <p className="text-lg font-semibold font-mono text-[var(--site-primary)]">
+                    {formatPrecio(unitComplementos.length > 0 ? totalPrecio : resolvedPrice, locale)}
                   </p>
                   {unitComplementos.length > 0 && (
                     <p className="text-[9px] text-[var(--text-tertiary)] mt-1">
-                      Inmueble {formatPrecio(selectedUnit.precio, locale)} + {unitComplementos.length} complemento(s)
+                      Inmueble {formatPrecio(resolvedPrice, locale)} + {unitComplementos.length} complemento(s)
                     </p>
                   )}
                 </div>
@@ -709,9 +790,12 @@ export default function ExplorarPage() {
                 <Sparkles size={14} />
                 {tSite("explorar.enquireUnit")}
               </button>
-              {selectedUnit.tipologia_id && (
+              {(selectedUnit.tipologia_id || (isMultiTipo && !selectedUnit.tipologia_id)) && (
                 <Link
-                  href={`${basePath}/tipologias?tipo=${selectedUnit.tipologia_id}&unidad=${selectedUnit.id}`}
+                  href={selectedUnit.tipologia_id
+                    ? `${basePath}/tipologias?tipo=${selectedUnit.tipologia_id}&unidad=${selectedUnit.id}`
+                    : `${basePath}/tipologias?unidad=${selectedUnit.id}`
+                  }
                   className="w-full flex items-center justify-center gap-2 px-4 py-2 rounded-full border border-[var(--border-default)] text-xs tracking-wider text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:border-[var(--border-strong)] transition-all duration-300"
                 >
                   {tSite("explorar.moreInfo")}
@@ -730,36 +814,65 @@ export default function ExplorarPage() {
             transition={{ duration: 0.15 }}
             className="flex-1 flex flex-col min-h-0"
           >
-            {/* Header + status legend */}
+            {/* Header + status filter chips */}
             <div className="flex-shrink-0 px-4 pt-3 pb-2">
               <div className="flex items-center justify-between mb-2">
                 <p className="text-[9px] tracking-[0.25em] text-[var(--text-tertiary)] uppercase">
                   {tCommon("labels.units")}
                 </p>
-                <span className="text-[9px] text-[var(--text-muted)]">
-                  {positionedUnits.length}
+                <span className="text-[9px] text-[var(--text-muted)] font-mono">
+                  {estadoFilter !== "todas" ? `${displayedUnits.length}/` : ""}{positionedUnits.length}
                 </span>
               </div>
-              <div className="flex flex-wrap gap-x-3 gap-y-1">
-                {(["disponible", "separado", "reservada", "vendida"] as const).map((estado) => (
-                  <div key={estado} className="flex items-center gap-1">
-                    <span className={cn("w-2 h-2 rounded-full", estadoConfig[estado].dot)} />
-                    <span className="text-[8px] text-[var(--text-tertiary)] tracking-wider">
-                      {estadoConfig[estado].label}
-                    </span>
-                  </div>
-                ))}
+              <div className="flex flex-wrap gap-1">
+                <button
+                  onClick={() => setEstadoFilter("todas")}
+                  className={cn(
+                    "flex items-center gap-1 px-2 py-0.5 rounded-md text-[9px] tracking-wider transition-all cursor-pointer",
+                    estadoFilter === "todas"
+                      ? "bg-[rgba(var(--site-primary-rgb),0.15)] text-[var(--site-primary)] font-medium"
+                      : "text-[var(--text-tertiary)] hover:text-[var(--text-secondary)] hover:bg-white/5"
+                  )}
+                >
+                  {tCommon("labels.all")}
+                </button>
+                {(["disponible", "separado", "reservada", "vendida", "proximamente"] as const).map((estado) => {
+                  const cfg = estadoConfig[estado];
+                  const count = estadoCounts[estado] ?? 0;
+                  if (count === 0) return null;
+                  return (
+                    <button
+                      key={estado}
+                      onClick={() => setEstadoFilter(estadoFilter === estado ? "todas" : estado)}
+                      className={cn(
+                        "flex items-center gap-1 px-2 py-0.5 rounded-md text-[9px] tracking-wider transition-all cursor-pointer",
+                        estadoFilter === estado
+                          ? cn(cfg.bg, cfg.color, "font-medium")
+                          : "text-[var(--text-tertiary)] hover:text-[var(--text-secondary)] hover:bg-white/5"
+                      )}
+                    >
+                      <span className={cn("w-1.5 h-1.5 rounded-full", cfg.dot)} />
+                      {cfg.label}
+                      <span className="font-mono text-[8px] opacity-70">{count}</span>
+                    </button>
+                  );
+                })}
               </div>
             </div>
 
             {/* Scrollable unit list */}
-            <div ref={unitListRef} className="flex-1 overflow-y-auto scrollbar-hide px-3 pb-4">
-              {positionedUnits.length > 0 ? (
-                <div className="space-y-1">
-                  {positionedUnits.map((unit) => {
+            <div ref={unitListRef} className="flex-1 overflow-y-auto scrollbar-hide px-3 pb-4 min-h-0">
+              {displayedUnits.length > 0 ? (
+                <div className="space-y-0.5">
+                  {displayedUnits.map((unit) => {
                     const config = estadoConfig[unit.estado];
                     const tipologia = tipologias.find((t) => t.id === unit.tipologia_id);
+                    const unitTipoCount = isMultiTipo ? unidadTipologias.filter((ut: UnidadTipologia) => ut.unidad_id === unit.id).length : 0;
+                    const unitHasMultiTipos = unitTipoCount > 1;
                     const isHovered = hoveredUnit === unit.id;
+                    const isAvailable = unit.estado === "disponible";
+                    const unitPrice = getUnitPrice(unit);
+                    const primaryArea = getPrimaryArea(unit, columns);
 
                     return (
                       <button
@@ -769,40 +882,83 @@ export default function ExplorarPage() {
                         onMouseEnter={() => setHoveredUnit(unit.id)}
                         onMouseLeave={() => setHoveredUnit(null)}
                         className={cn(
-                          "w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-left transition-all duration-200 cursor-pointer group",
-                          isHovered ? "bg-[var(--glass-bg-hover)]" : "hover:bg-[var(--glass-bg)]"
+                          "w-full text-left px-3 py-2.5 rounded-xl transition-all duration-200 cursor-pointer group",
+                          isHovered ? "bg-[var(--glass-bg-hover)]" : "hover:bg-[var(--glass-bg)]",
+                          isAvailable && "border border-transparent hover:border-[rgba(var(--site-primary-rgb),0.15)]"
                         )}
                       >
-                        {/* Status dot */}
-                        <span className={cn("w-2.5 h-2.5 rounded-full flex-shrink-0", config.dot)} />
+                        <div className="flex items-start gap-2.5">
+                          {/* Status dot */}
+                          <span className={cn("w-2.5 h-2.5 rounded-full flex-shrink-0 mt-1", config.dot)} />
 
-                        {/* Info */}
-                        <div className="flex-1 min-w-0">
-                          <p className="text-[13px] text-[var(--text-primary)] font-medium truncate">
-                            {unit.identificador}
-                          </p>
-                          <div className="flex items-center gap-1 text-[10px] text-[var(--text-tertiary)]">
-                            {isMultiTipo && !unit.tipologia_id ? (
-                              <span className="text-[var(--text-muted)]">
-                                {unidadTipologias.filter((ut: UnidadTipologia) => ut.unidad_id === unit.id).length} tipos
-                              </span>
-                            ) : (
-                              tipologia && <span className="truncate">{tipologia.nombre}</span>
+                          {/* Main content */}
+                          <div className="flex-1 min-w-0">
+                            {/* Row 1: identifier + tipologia */}
+                            <div className="flex items-center gap-2">
+                              <p className="text-[13px] text-[var(--text-primary)] font-medium truncate">
+                                {getUnitDisplayName(unit, unitPrefix)}
+                              </p>
+                              {unitHasMultiTipos ? (
+                                <span className="text-[9px] text-[var(--text-muted)] flex-shrink-0">
+                                  {unitTipoCount} tipos
+                                </span>
+                              ) : tipologia ? (
+                                <span className="text-[10px] text-[var(--text-tertiary)] truncate flex-shrink">
+                                  {tipologia.nombre}
+                                </span>
+                              ) : null}
+                            </div>
+
+                            {/* Row 2: specs line */}
+                            <div className="flex items-center gap-1.5 mt-0.5 text-[10px] text-[var(--text-tertiary)]">
+                              {primaryArea != null && (
+                                <span className="font-mono">{primaryArea} m²</span>
+                              )}
+                              {columns.habitaciones && unit.habitaciones != null && (
+                                <>
+                                  <span className="opacity-30">·</span>
+                                  <span>{unit.habitaciones === 0 ? "Est" : `${unit.habitaciones} hab`}</span>
+                                </>
+                              )}
+                              {columns.banos && unit.banos != null && (
+                                <>
+                                  <span className="opacity-30">·</span>
+                                  <span>{unit.banos} ba</span>
+                                </>
+                              )}
+                              {columns.lote && unit.lote ? (
+                                <>
+                                  <span className="opacity-30">·</span>
+                                  <span>Lote {unit.lote}</span>
+                                </>
+                              ) : columns.piso && unit.piso ? (
+                                <>
+                                  <span className="opacity-30">·</span>
+                                  <span>P{unit.piso}</span>
+                                </>
+                              ) : null}
+                            </div>
+
+                            {/* Row 3: price */}
+                            {columns.precio && unitPrice != null && (
+                              <p className={cn(
+                                "mt-1 font-mono",
+                                isAvailable
+                                  ? "text-[12px] text-[var(--site-primary)] font-medium"
+                                  : "text-[10px] text-[var(--text-muted)]"
+                              )}>
+                                {unitHasMultiTipos && <span className="text-[9px] text-[var(--text-tertiary)] mr-1">{tSite("tipologias.from")}</span>}
+                                {formatPrecio(unitPrice, locale)}
+                              </p>
                             )}
-                            {getPrimaryArea(unit, columns) != null && <span className="flex-shrink-0">· {getPrimaryArea(unit, columns)} m²</span>}
-                            {columns.lote && unit.lote
-                              ? <span className="flex-shrink-0">· Lote {unit.lote}</span>
-                              : columns.piso && unit.piso ? <span className="flex-shrink-0">· P{unit.piso}</span> : null
-                            }
                           </div>
-                        </div>
 
-                        {/* Price */}
-                        {columns.precio && unit.precio && (
-                          <span className="text-[10px] text-[var(--site-primary)] font-medium flex-shrink-0">
-                            {formatPrecio(unit.precio, locale)}
-                          </span>
-                        )}
+                          {/* Chevron */}
+                          <ChevronRight
+                            size={14}
+                            className="text-[var(--text-muted)] opacity-0 group-hover:opacity-100 transition-opacity mt-1 flex-shrink-0"
+                          />
+                        </div>
                       </button>
                     );
                   })}
@@ -917,6 +1073,7 @@ export default function ExplorarPage() {
               )}
               draggable={false}
               onLoad={() => setImageLoaded(true)}
+              onError={() => { setImageLoaded(true); setImageError(true); }}
             />
 
             {/* Dark overlay for better dot contrast */}
@@ -982,7 +1139,7 @@ export default function ExplorarPage() {
                         exit={{ opacity: 0, y: 6 }}
                         className="absolute bottom-full mb-3 left-1/2 -translate-x-1/2 glass-dark px-3 py-2 rounded-xl whitespace-nowrap z-40 pointer-events-none"
                       >
-                        <p className="text-xs font-semibold text-white">{unit.identificador}</p>
+                        <p className="text-xs font-semibold text-white">{getUnitDisplayName(unit, unitPrefix)}</p>
                       </motion.div>
                     )}
                   </AnimatePresence>

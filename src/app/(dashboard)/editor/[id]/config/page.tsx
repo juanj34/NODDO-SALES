@@ -62,6 +62,7 @@ export default function ConfigPage() {
   /* ── Existing state ── */
   const initialWhatsapp = useMemo(() => project?.whatsapp_numero || "", [project?.whatsapp_numero]);
   const initialEtapa = useMemo(() => project?.etapa_label || "Etapas", [project?.etapa_label]);
+  const initialUnitPrefix = useMemo(() => project?.unidad_display_prefix || "", [project?.unidad_display_prefix]);
   const initialBadge = useMemo(() => project?.hide_noddo_badge ?? false, [project?.hide_noddo_badge]);
   const initialParqMode = useMemo(() => (project?.parqueaderos_mode ?? "sin_inventario") as ComplementoMode, [project?.parqueaderos_mode]);
   const initialDepoMode = useMemo(() => (project?.depositos_mode ?? "sin_inventario") as ComplementoMode, [project?.depositos_mode]);
@@ -70,6 +71,7 @@ export default function ConfigPage() {
 
   const [whatsappNumero, setWhatsappNumero] = useState(initialWhatsapp);
   const [etapaLabel, setEtapaLabel] = useState(initialEtapa);
+  const [unitPrefix, setUnitPrefix] = useState(initialUnitPrefix);
   const [hideNoddoBadge, setHideNoddoBadge] = useState(initialBadge);
   const [parqueaderosMode, setParqueaderosMode] = useState<ComplementoMode>(initialParqMode);
   const [depositosMode, setDepositosMode] = useState<ComplementoMode>(initialDepoMode);
@@ -100,6 +102,7 @@ export default function ConfigPage() {
     setInventoryColumnsMicrositeByType((project as any).inventory_columns_microsite_by_type ?? null);
     setWhatsappNumero(project.whatsapp_numero || "");
     setEtapaLabel(project.etapa_label || "Etapas");
+    setUnitPrefix(project.unidad_display_prefix || "");
     setHideNoddoBadge(project.hide_noddo_badge ?? false);
     setParqueaderosMode((project.parqueaderos_mode ?? "sin_inventario") as ComplementoMode);
     setDepositosMode((project.depositos_mode ?? "sin_inventario") as ComplementoMode);
@@ -161,6 +164,7 @@ export default function ConfigPage() {
       inventory_columns_microsite_by_type: inventoryColumnsMicrositeByType,
       whatsapp_numero: whatsappNumero || null,
       etapa_label: etapaLabel || "Etapas",
+      unidad_display_prefix: unitPrefix || null,
       hide_noddo_badge: hideNoddoBadge,
       parqueaderos_mode: parqueaderosMode,
       depositos_mode: depositosMode,
@@ -168,7 +172,7 @@ export default function ConfigPage() {
       depositos_precio_base: depositosMode === "precio_base" ? depositosPrecioBase : null,
     } as any);
     if (!ok) toast.error(t("general.saveError"));
-  }, [save, slug, tipoProyecto, tipologiaMode, precioSource, inventoryColumns, inventoryColumnsByType, inventoryColumnsMicrosite, inventoryColumnsMicrositeByType, whatsappNumero, etapaLabel, hideNoddoBadge, parqueaderosMode, depositosMode, parqueaderosPrecioBase, depositosPrecioBase, toast, t]);
+  }, [save, slug, tipoProyecto, tipologiaMode, precioSource, inventoryColumns, inventoryColumnsByType, inventoryColumnsMicrosite, inventoryColumnsMicrositeByType, whatsappNumero, etapaLabel, unitPrefix, hideNoddoBadge, parqueaderosMode, depositosMode, parqueaderosPrecioBase, depositosPrecioBase, toast, t]);
 
   /* ── Auto-save ── */
   const handleSaveRef = useRef(handleSave);
@@ -880,6 +884,26 @@ export default function ConfigPage() {
           </datalist>
           <p className={fieldHint}>
             {t("config.grouping.hint")}
+          </p>
+        </div>
+
+        <div>
+          <label className={labelClass}>Prefijo de unidades</label>
+          <input
+            type="text"
+            list="unit-prefix-options"
+            value={unitPrefix}
+            onChange={(e) => { setUnitPrefix(e.target.value); scheduleAutoSave(); }}
+            placeholder="Ej: Casa, Apto, Lote"
+            className={inputClass}
+          />
+          <datalist id="unit-prefix-options">
+            {["Casa", "Villa", "Apartamento", "Lote", "Unidad", "Local", "Oficina", "Bodega"].map((opt) => (
+              <option key={opt} value={opt} />
+            ))}
+          </datalist>
+          <p className={fieldHint}>
+            Se muestra antes del identificador en el micrositio. Ej: &quot;Casa 19&quot;
           </p>
         </div>
       </div>

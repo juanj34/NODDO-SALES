@@ -165,10 +165,14 @@ export function SiteNav({ basePath, projectName, logoUrl, faviconUrl, constructo
         </Link>
 
         {/* Separator */}
-        <div className={cn("h-px bg-[var(--border-subtle)] mb-3 flex-shrink-0", expanded ? "w-[calc(100%-2rem)] mx-4" : "w-5")} />
+        <motion.div
+          animate={{ width: expanded ? "calc(100% - 2rem)" : "1.25rem" }}
+          transition={{ duration: 0.25, ease: [0.4, 0, 0.2, 1] }}
+          className={cn("h-px bg-[var(--border-subtle)] mb-3 flex-shrink-0", expanded ? "mx-4" : "")}
+        />
 
         {/* Nav items */}
-        <div className="flex-1 flex flex-col items-stretch gap-0.5 w-full overflow-y-auto scrollbar-hide">
+        <div className="flex-1 flex flex-col items-stretch gap-0.5 w-full overflow-y-auto scroll-smooth scrollbar-hide">
           {navItems.map((item, idx) => {
             const fullPath = `${basePath}${item.href}`;
             const isActive = pathname.startsWith(fullPath);
@@ -351,7 +355,7 @@ export function SiteNav({ basePath, projectName, logoUrl, faviconUrl, constructo
                   href={constructoraWebsite}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="opacity-30 hover:opacity-50 transition-opacity flex-shrink-0"
+                  className="opacity-30 hover:opacity-60 transition-all duration-200 hover:brightness-110 flex-shrink-0"
                 >
                   <Image
                     src={constructoraLogoUrl}
@@ -388,7 +392,7 @@ export function SiteNav({ basePath, projectName, logoUrl, faviconUrl, constructo
                 href="https://noddo.io"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex items-center gap-1.5 no-underline opacity-25 hover:opacity-50 transition-opacity flex-shrink-0"
+                className="flex items-center gap-1.5 no-underline opacity-25 hover:opacity-50 transition-all duration-200 hover:brightness-110 flex-shrink-0"
               >
                 {expanded && (
                   <span className="text-[7px] tracking-[0.1em] uppercase text-[var(--text-tertiary)]">

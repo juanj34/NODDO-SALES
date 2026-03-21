@@ -4,6 +4,7 @@ const common = {
     separado: "On Hold",
     reservada: "Reserved",
     vendida: "Sold",
+    proximamente: "Coming Soon",
     borrador: "Draft",
     publicado: "Published",
     archivado: "Archived",
@@ -13,6 +14,7 @@ const common = {
     separado: "On Hold",
     reservada: "Reserved",
     vendida: "Sold",
+    proximamente: "Coming Soon",
   },
   buttons: {
     save: "Save Changes",

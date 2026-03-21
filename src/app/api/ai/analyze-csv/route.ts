@@ -91,9 +91,13 @@ export async function POST(request: NextRequest) {
         { status: 403 }
       );
 
-    const { headers, sampleRows, uniqueValues, tipologias, torres, fachadas, importMode: rawMode } = await request.json();
+    const { headers, sampleRows, uniqueValues, tipologias, torres, fachadas, importMode: rawMode, customColumns } = await request.json();
     const importMode: ImportMode = (rawMode === "parqueaderos" || rawMode === "depositos") ? rawMode : "unidades";
     const { dbFields, allTargets } = getValidFields(importMode);
+
+    // Add custom column targets (cf:<key>)
+    const customCols: { key: string; label: string; type: string }[] = Array.isArray(customColumns) ? customColumns : [];
+    const allTargetsWithCustom = [...allTargets, ...customCols.map(c => `cf:${c.key}`)];
 
     if (
       !Array.isArray(headers) ||
@@ -163,7 +167,11 @@ CAMPOS ESPECIALES:
 CAMPOS ESPECIALES:
 - _etapa: columna que indica torre/etapa/sector/manzana/bloque (se mapeará manualmente a torre)
 - _tipologia: columna que indica el tipo de unidad (se mapeará manualmente a tipología)
-- _fachada: columna que indica la fachada/elevación/bloque visual del edificio (se mapeará manualmente a fachada)`;
+- _fachada: columna que indica la fachada/elevación/bloque visual del edificio (se mapeará manualmente a fachada)${(() => {
+        if (customCols.length === 0) return "";
+        const lines = customCols.map(c => `- cf:${c.key}: ${c.label} (${c.type})`);
+        return `\n\nCAMPOS PERSONALIZADOS DEL PROYECTO (usa estos IDs exactos en columnMapping):\n${lines.join("\n")}`;
+      })()}`;
 
     const systemPrompt = `Eres un analizador de archivos CSV/Excel de inventario inmobiliario. Tu tarea es analizar los encabezados y datos de muestra de un archivo para determinar qué columnas son útiles y cómo mapearlas.
 
@@ -230,7 +238,7 @@ ${csvSample}
     const parsed = parseAIJson<Partial<AnalysisResult>>(result, {});
 
     // Validate and sanitize response
-    const validTargets = new Set<string>(allTargets);
+    const validTargets = new Set<string>(allTargetsWithCustom);
     const validEstados = new Set<string>(VALID_ESTADOS);
 
     // Validate columnMapping

@@ -19,6 +19,7 @@ import {
 } from "lucide-react";
 import { CloseButton } from "@/components/ui/CloseButton";
 import { cn } from "@/lib/utils";
+import { getUnitDisplayName } from "@/lib/unit-display";
 import { getInventoryColumns, getHybridInventoryColumns, getPrimaryArea } from "@/lib/inventory-columns";
 import type { Unidad, Tipologia, CotizadorConfig, InventoryColumnConfig } from "@/types";
 import { useTranslation, getEstadoConfig } from "@/i18n";
@@ -121,6 +122,7 @@ function UnitSummary({
   tCommon,
   tSite,
   columns,
+  unitPrefix,
 }: {
   unidad: Unidad;
   tipologia: Tipologia | undefined;
@@ -128,6 +130,7 @@ function UnitSummary({
   tCommon: (key: string) => string;
   tSite: (key: string) => string;
   columns: InventoryColumnConfig;
+  unitPrefix?: string | null;
 }) {
   const estadoConfigMap = useMemo(() => getEstadoConfig(tCommon), [tCommon]);
   const estado = estadoConfigMap[unidad.estado];
@@ -137,7 +140,7 @@ function UnitSummary({
       <div className="flex items-start justify-between mb-3">
         <div>
           <h3 className="text-base font-semibold text-[var(--text-primary)]">
-            {unidad.identificador}
+            {getUnitDisplayName(unidad, unitPrefix)}
           </h3>
           {tipologia && (
             <p className="text-xs text-[var(--text-secondary)] mt-0.5">
@@ -516,7 +519,7 @@ export function CotizadorModal({
                 <p className="text-[var(--text-tertiary)] text-sm text-center max-w-xs">
                   {useCotizador
                     ? tSite("cotizador.checkEmailPdf")
-                    : tCommon("success.advisorContactUnit", { unit: unidad.identificador })
+                    : tCommon("success.advisorContactUnit", { unit: getUnitDisplayName(unidad, proyecto.unidad_display_prefix) })
                   }
                 </p>
                 {useCotizador && pdfUrl && (
@@ -551,8 +554,8 @@ export function CotizadorModal({
                 </h2>
                 <p className="text-xs text-[var(--text-tertiary)] mb-5">
                   {locale === "es"
-                    ? `El lote ${unidad.identificador} tiene ${availableTipologias!.length} tipologías disponibles`
-                    : `Lot ${unidad.identificador} has ${availableTipologias!.length} available typologies`
+                    ? `${getUnitDisplayName(unidad, proyecto.unidad_display_prefix)} tiene ${availableTipologias!.length} tipologías disponibles`
+                    : `${getUnitDisplayName(unidad, proyecto.unidad_display_prefix)} has ${availableTipologias!.length} available typologies`
                   }
                 </p>
 
@@ -651,6 +654,7 @@ export function CotizadorModal({
                   tCommon={tCommon}
                   tSite={tSite}
                   columns={columns}
+                  unitPrefix={proyecto.unidad_display_prefix}
                 />
 
                 {/* Flow: either enhanced cotizador or legacy lead capture */}

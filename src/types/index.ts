@@ -29,6 +29,19 @@ export interface AreaConversionResult {
   conversionFactor: number;
 }
 
+/* ── Custom Inventory Columns ────────────────────────────────────────── */
+
+export interface CustomColumnDef {
+  id: string;
+  key: string;
+  label: string;
+  type: "text" | "number" | "date" | "select";
+  options?: string[];
+  show_in_editor: boolean;
+  show_in_microsite: boolean;
+  orden: number;
+}
+
 /* ── Inventory Column Visibility ──────────────────────────────────────── */
 
 export type TipoTipologia = "apartamento" | "casa" | "lote";
@@ -90,6 +103,7 @@ export interface Proyecto {
   custom_domain: string | null;
   domain_verified: boolean;
   etapa_label: string;
+  unidad_display_prefix: string | null;
   background_audio_url: string | null;
   hide_noddo_badge: boolean;
   idioma: "es" | "en";
@@ -106,6 +120,7 @@ export interface Proyecto {
   webhook_config: WebhookConfig | null;
   inventory_columns: InventoryColumnConfig | null;
   inventory_columns_by_type: InventoryColumnsByType | null;
+  custom_columns: CustomColumnDef[];
   created_at: string;
   updated_at: string;
 }
@@ -302,6 +317,7 @@ export interface Unidad {
   etapa_nombre: string | null;
   parqueaderos: number | null;
   depositos: number | null;
+  custom_fields: Record<string, unknown>;
   orden: number;
   created_at: string;
 }

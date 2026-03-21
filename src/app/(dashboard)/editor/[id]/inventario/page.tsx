@@ -45,8 +45,8 @@ import { formatCurrency } from "@/lib/currency";
 import { useTranslation } from "@/i18n";
 import { useToast } from "@/components/dashboard/Toast";
 import { useMediaQuery } from "@/hooks/useMediaQuery";
-import type { Unidad, Tipologia, Torre, Fachada, Complemento, ComplementoMode, Currency, UnidadTipologia, InventoryColumnConfig, TipoTipologia } from "@/types";
-import { getInventoryColumns, getDefaultColumns, getHybridInventoryColumns, INVENTORY_COLUMN_KEYS, getPrimaryArea } from "@/lib/inventory-columns";
+import type { Unidad, Tipologia, Torre, Fachada, Complemento, ComplementoMode, Currency, UnidadTipologia, InventoryColumnConfig, TipoTipologia, CustomColumnDef } from "@/types";
+import { getInventoryColumns, getDefaultColumns, getHybridInventoryColumns, INVENTORY_COLUMN_KEYS, getPrimaryArea, generateColumnKey, getVisibleCustomColumns } from "@/lib/inventory-columns";
 import { ComplementosSection } from "@/components/dashboard/ComplementosSection";
 import { CurrencyInput } from "@/components/dashboard/CurrencyInput";
 import { SmartImportModal } from "@/components/dashboard/SmartImportModal";
@@ -447,11 +447,13 @@ function UnitForm({
   unitTipoIds = [],
   onMultiTipoChange,
   existingEtapas = [],
+  customColumns = [],
+  customFieldValues = {},
 }: {
   initial: UnitFormData;
   tipologias: Tipologia[];
   fachadas: Fachada[];
-  onSubmit: (data: UnitFormData & { available_tipologia_ids?: string[] }) => void;
+  onSubmit: (data: UnitFormData & { available_tipologia_ids?: string[]; custom_fields?: Record<string, unknown> }) => void;
   onCancel: () => void;
   submitting: boolean;
   currency: Currency;
@@ -462,13 +464,19 @@ function UnitForm({
   unitTipoIds?: string[];
   onMultiTipoChange?: (ids: string[]) => void;
   existingEtapas?: string[];
+  customColumns?: CustomColumnDef[];
+  customFieldValues?: Record<string, unknown>;
 }) {
   const { t } = useTranslation("editor");
   const [form, setForm] = useState<UnitFormData>(initial);
   const [selectedTipoIds, setSelectedTipoIds] = useState<string[]>(unitTipoIds);
+  const [customFields, setCustomFields] = useState<Record<string, unknown>>(customFieldValues);
 
   const set = (field: keyof UnitFormData, value: string) =>
     setForm((prev) => ({ ...prev, [field]: value }));
+
+  const setCustomField = (key: string, value: unknown) =>
+    setCustomFields((prev) => ({ ...prev, [key]: value }));
 
   const toggleTipoId = (id: string) => {
     setSelectedTipoIds((prev) => {
@@ -479,10 +487,11 @@ function UnitForm({
   };
 
   const handleSubmit = () => {
+    const customFieldsPayload = customColumns.length > 0 ? { custom_fields: customFields } : {};
     if (isMultiTipo) {
-      onSubmit({ ...form, available_tipologia_ids: selectedTipoIds });
+      onSubmit({ ...form, available_tipologia_ids: selectedTipoIds, ...customFieldsPayload });
     } else {
-      onSubmit(form);
+      onSubmit({ ...form, ...customFieldsPayload });
     }
   };
 
@@ -754,6 +763,49 @@ function UnitForm({
               className={inputClass}
             />
           </div>
+          {/* Custom columns */}
+          {customColumns.map((col) => (
+            <div key={col.id}>
+              <label className={labelClass}>{col.label}</label>
+              {col.type === "text" && (
+                <input
+                  type="text"
+                  value={(customFields[col.key] as string) ?? ""}
+                  onChange={(e) => setCustomField(col.key, e.target.value)}
+                  className={inputClass}
+                />
+              )}
+              {col.type === "number" && (
+                <input
+                  type="number"
+                  value={(customFields[col.key] as string) ?? ""}
+                  onChange={(e) => setCustomField(col.key, e.target.value ? parseFloat(e.target.value) : "")}
+                  className={inputClass}
+                />
+              )}
+              {col.type === "date" && (
+                <input
+                  type="date"
+                  value={(customFields[col.key] as string) ?? ""}
+                  onChange={(e) => setCustomField(col.key, e.target.value)}
+                  className={inputClass}
+                />
+              )}
+              {col.type === "select" && (
+                <NodDoDropdown
+                  variant="form"
+                  size="lg"
+                  value={(customFields[col.key] as string) ?? ""}
+                  onChange={(val) => setCustomField(col.key, val)}
+                  placeholder={`Seleccionar ${col.label}`}
+                  options={[
+                    { value: "", label: "—" },
+                    ...(col.options ?? []).map((opt) => ({ value: opt, label: opt })),
+                  ]}
+                />
+              )}
+            </div>
+          ))}
         </div>
         <div className="flex items-center gap-3 pt-2">
           <button
@@ -1126,21 +1178,32 @@ function PriceAdjustModal({
 // Columns Config Modal
 // ---------------------------------------------------------------------------
 
+const CUSTOM_COL_TYPES = [
+  { value: "text" as const, label: "Texto" },
+  { value: "number" as const, label: "Número" },
+  { value: "date" as const, label: "Fecha" },
+  { value: "select" as const, label: "Selección" },
+];
+
 function ColumnsConfigModal({
   tipoProyecto,
   currentConfig,
   currentConfigMicrosite,
+  customColumns,
   onSave,
+  onSaveCustomColumns,
   onClose,
 }: {
   tipoProyecto: "apartamentos" | "casas" | "hibrido" | "lotes";
   currentConfig: InventoryColumnConfig | null;
   currentConfigMicrosite: InventoryColumnConfig | null;
+  customColumns: CustomColumnDef[];
   onSave: (config: InventoryColumnConfig | null, configMicrosite: InventoryColumnConfig | null) => void;
+  onSaveCustomColumns: (cols: CustomColumnDef[]) => void;
   onClose: () => void;
 }) {
   const { t } = useTranslation("editor");
-  const [activeTab, setActiveTab] = useState<"editor" | "microsite">("editor");
+  const [activeTab, setActiveTab] = useState<"editor" | "microsite" | "custom">("editor");
 
   const [localConfig, setLocalConfig] = useState<InventoryColumnConfig>(
     () => getInventoryColumns(tipoProyecto, currentConfig)
@@ -1148,6 +1211,13 @@ function ColumnsConfigModal({
   const [localConfigMicrosite, setLocalConfigMicrosite] = useState<InventoryColumnConfig>(
     () => getInventoryColumns(tipoProyecto, currentConfigMicrosite)
   );
+  const [localCustomCols, setLocalCustomCols] = useState<CustomColumnDef[]>(customColumns);
+
+  // New column form
+  const [newLabel, setNewLabel] = useState("");
+  const [newType, setNewType] = useState<CustomColumnDef["type"]>("text");
+  const [newOptions, setNewOptions] = useState("");
+  const [showAddForm, setShowAddForm] = useState(false);
 
   const isCustom = currentConfig !== null;
   const isCustomMicrosite = currentConfigMicrosite !== null;
@@ -1173,7 +1243,39 @@ function ColumnsConfigModal({
 
   const handleApply = () => {
     onSave(localConfig, localConfigMicrosite);
+    onSaveCustomColumns(localCustomCols);
     onClose();
+  };
+
+  const handleAddCustomCol = () => {
+    if (!newLabel.trim()) return;
+    const key = generateColumnKey(newLabel.trim());
+    if (!key || localCustomCols.some((c) => c.key === key)) return;
+    const col: CustomColumnDef = {
+      id: crypto.randomUUID(),
+      key,
+      label: newLabel.trim(),
+      type: newType,
+      options: newType === "select" ? newOptions.split(",").map((o) => o.trim()).filter(Boolean) : undefined,
+      show_in_editor: true,
+      show_in_microsite: false,
+      orden: localCustomCols.length,
+    };
+    setLocalCustomCols((prev) => [...prev, col]);
+    setNewLabel("");
+    setNewType("text");
+    setNewOptions("");
+    setShowAddForm(false);
+  };
+
+  const handleDeleteCustomCol = (id: string) => {
+    setLocalCustomCols((prev) => prev.filter((c) => c.id !== id));
+  };
+
+  const handleToggleCustomColVisibility = (id: string, field: "show_in_editor" | "show_in_microsite") => {
+    setLocalCustomCols((prev) =>
+      prev.map((c) => (c.id === id ? { ...c, [field]: !c[field] } : c))
+    );
   };
 
   return (
@@ -1189,7 +1291,7 @@ function ColumnsConfigModal({
         animate={{ scale: 1, opacity: 1 }}
         exit={{ scale: 0.95, opacity: 0 }}
         onClick={(e) => e.stopPropagation()}
-        className="bg-[var(--surface-2)] border border-[var(--border-default)] rounded-2xl w-full max-w-md shadow-2xl"
+        className="bg-[var(--surface-2)] border border-[var(--border-default)] rounded-2xl w-full max-w-lg shadow-2xl max-h-[85vh] flex flex-col"
       >
         {/* Header */}
         <div className="flex items-center justify-between p-6 border-b border-[var(--border-subtle)]">
@@ -1212,6 +1314,7 @@ function ColumnsConfigModal({
           {([
             { id: "editor" as const, label: t("config.columns.tabs.editor") },
             { id: "microsite" as const, label: t("config.columns.tabs.microsite") },
+            { id: "custom" as const, label: "Personalizadas" },
           ]).map((tab) => {
             const isActive = activeTab === tab.id;
             return (
@@ -1233,46 +1336,172 @@ function ColumnsConfigModal({
         </div>
 
         {/* Body */}
-        <div className="p-6">
-          <div className="grid grid-cols-2 gap-2">
-            {INVENTORY_COLUMN_KEYS.map(({ key, labelKey }) => {
-              const isOn = activeTab === "editor" ? localConfig[key] : localConfigMicrosite[key];
-              return (
-                <button
-                  key={key}
-                  type="button"
-                  onClick={() => handleToggle(key)}
-                  className={cn(
-                    "flex items-center gap-2.5 px-3 py-2 rounded-lg border transition-all text-left text-xs",
-                    isOn
-                      ? "bg-[rgba(var(--site-primary-rgb),0.08)] border-[rgba(var(--site-primary-rgb),0.3)] text-white"
-                      : "bg-[var(--surface-1)] border-[var(--border-subtle)] text-[var(--text-muted)] hover:border-[var(--border-default)]"
-                  )}
-                >
-                  <div
+        <div className="flex-1 overflow-y-auto p-6">
+          {activeTab !== "custom" ? (
+            <div className="grid grid-cols-2 gap-2">
+              {INVENTORY_COLUMN_KEYS.map(({ key, labelKey }) => {
+                const isOn = activeTab === "editor" ? localConfig[key] : localConfigMicrosite[key];
+                return (
+                  <button
+                    key={key}
+                    type="button"
+                    onClick={() => handleToggle(key)}
                     className={cn(
-                      "w-4 h-4 rounded-[4px] border-2 flex items-center justify-center shrink-0 transition-all",
+                      "flex items-center gap-2.5 px-3 py-2 rounded-lg border transition-all text-left text-xs",
                       isOn
-                        ? "bg-[var(--site-primary)] border-[var(--site-primary)]"
-                        : "border-[var(--border-default)]"
+                        ? "bg-[rgba(var(--site-primary-rgb),0.08)] border-[rgba(var(--site-primary-rgb),0.3)] text-white"
+                        : "bg-[var(--surface-1)] border-[var(--border-subtle)] text-[var(--text-muted)] hover:border-[var(--border-default)]"
                     )}
                   >
-                    {isOn && (
-                      <svg viewBox="0 0 12 12" className="w-2.5 h-2.5 text-black">
-                        <path d="M2 6l3 3 5-5" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                      </svg>
-                    )}
+                    <div
+                      className={cn(
+                        "w-4 h-4 rounded-[4px] border-2 flex items-center justify-center shrink-0 transition-all",
+                        isOn
+                          ? "bg-[var(--site-primary)] border-[var(--site-primary)]"
+                          : "border-[var(--border-default)]"
+                      )}
+                    >
+                      {isOn && (
+                        <svg viewBox="0 0 12 12" className="w-2.5 h-2.5 text-black">
+                          <path d="M2 6l3 3 5-5" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                        </svg>
+                      )}
+                    </div>
+                    {t(labelKey)}
+                  </button>
+                );
+              })}
+            </div>
+          ) : (
+            /* Custom columns tab */
+            <div className="space-y-3">
+              {localCustomCols.length === 0 && !showAddForm && (
+                <p className="text-xs text-[var(--text-muted)] text-center py-4">
+                  No hay columnas personalizadas. Agrega una para empezar.
+                </p>
+              )}
+              {localCustomCols.map((col) => (
+                <div
+                  key={col.id}
+                  className="flex items-center gap-2 p-2.5 rounded-lg bg-[var(--surface-1)] border border-[var(--border-subtle)]"
+                >
+                  <div className="flex-1 min-w-0">
+                    <p className="text-xs text-white font-medium truncate">{col.label}</p>
+                    <p className="text-[10px] text-[var(--text-muted)]">
+                      {CUSTOM_COL_TYPES.find((ct) => ct.value === col.type)?.label ?? col.type}
+                      {col.type === "select" && col.options?.length ? ` · ${col.options.join(", ")}` : ""}
+                    </p>
                   </div>
-                  {t(labelKey)}
+                  <button
+                    type="button"
+                    onClick={() => handleToggleCustomColVisibility(col.id, "show_in_editor")}
+                    className={cn(
+                      "px-1.5 py-0.5 rounded text-[9px] font-bold uppercase tracking-wider transition-all border",
+                      col.show_in_editor
+                        ? "bg-[rgba(var(--site-primary-rgb),0.1)] border-[rgba(var(--site-primary-rgb),0.3)] text-[var(--site-primary)]"
+                        : "bg-transparent border-[var(--border-subtle)] text-[var(--text-muted)]"
+                    )}
+                    title="Mostrar en editor"
+                  >
+                    Editor
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => handleToggleCustomColVisibility(col.id, "show_in_microsite")}
+                    className={cn(
+                      "px-1.5 py-0.5 rounded text-[9px] font-bold uppercase tracking-wider transition-all border",
+                      col.show_in_microsite
+                        ? "bg-[rgba(var(--site-primary-rgb),0.1)] border-[rgba(var(--site-primary-rgb),0.3)] text-[var(--site-primary)]"
+                        : "bg-transparent border-[var(--border-subtle)] text-[var(--text-muted)]"
+                    )}
+                    title="Mostrar en micrositio"
+                  >
+                    Micro
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => handleDeleteCustomCol(col.id)}
+                    className="p-1 hover:bg-red-500/10 rounded transition-colors text-[var(--text-muted)] hover:text-red-400"
+                    title="Eliminar columna"
+                  >
+                    <Trash2 size={12} />
+                  </button>
+                </div>
+              ))}
+
+              {/* Add form */}
+              {showAddForm ? (
+                <div className="p-3 rounded-lg bg-[var(--surface-3)] border border-[var(--border-default)] space-y-2.5">
+                  <input
+                    type="text"
+                    value={newLabel}
+                    onChange={(e) => setNewLabel(e.target.value)}
+                    placeholder="Nombre de la columna"
+                    className={inputClass}
+                    autoFocus
+                  />
+                  <div className="flex items-center gap-2">
+                    {CUSTOM_COL_TYPES.map((ct) => (
+                      <button
+                        key={ct.value}
+                        type="button"
+                        onClick={() => setNewType(ct.value)}
+                        className={cn(
+                          "px-2.5 py-1 rounded-md text-[11px] font-medium transition-all border",
+                          newType === ct.value
+                            ? "bg-[rgba(var(--site-primary-rgb),0.15)] border-[var(--site-primary)] text-[var(--site-primary)]"
+                            : "bg-[var(--surface-2)] border-[var(--border-subtle)] text-[var(--text-tertiary)] hover:border-[var(--border-default)]"
+                        )}
+                      >
+                        {ct.label}
+                      </button>
+                    ))}
+                  </div>
+                  {newType === "select" && (
+                    <input
+                      type="text"
+                      value={newOptions}
+                      onChange={(e) => setNewOptions(e.target.value)}
+                      placeholder="Opciones separadas por coma: básico, premium, lujo"
+                      className={inputClass}
+                    />
+                  )}
+                  <div className="flex items-center gap-2">
+                    <button
+                      type="button"
+                      onClick={handleAddCustomCol}
+                      disabled={!newLabel.trim()}
+                      className={btnPrimary}
+                    >
+                      <Plus size={12} />
+                      Agregar
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => { setShowAddForm(false); setNewLabel(""); setNewType("text"); setNewOptions(""); }}
+                      className={btnSecondary}
+                    >
+                      Cancelar
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <button
+                  type="button"
+                  onClick={() => setShowAddForm(true)}
+                  className="flex items-center gap-1.5 w-full px-3 py-2 rounded-lg border border-dashed border-[var(--border-default)] text-xs text-[var(--text-tertiary)] hover:text-[var(--site-primary)] hover:border-[var(--site-primary)] transition-all"
+                >
+                  <Plus size={12} />
+                  Agregar columna personalizada
                 </button>
-              );
-            })}
-          </div>
+              )}
+            </div>
+          )}
         </div>
 
         {/* Footer */}
         <div className="flex items-center justify-between p-6 border-t border-[var(--border-subtle)]">
-          {(activeTab === "editor" ? isCustom : isCustomMicrosite) ? (
+          {activeTab !== "custom" && (activeTab === "editor" ? isCustom : isCustomMicrosite) ? (
             <button
               type="button"
               onClick={handleReset}
@@ -1333,7 +1562,6 @@ export default function InventarioPage() {
   const [showImportModal, setShowImportModal] = useState(false);
   const [showPriceAdjust, setShowPriceAdjust] = useState(false);
   const [showAIChat, setShowAIChat] = useState(false);
-  const [showToolsMenu, setShowToolsMenu] = useState(false);
   const [showColumnsModal, setShowColumnsModal] = useState(false);
   const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null);
   const [bulkDeleteConfirm, setBulkDeleteConfirm] = useState(false);
@@ -1493,7 +1721,17 @@ export default function InventarioPage() {
         case "banos": va = a.banos ?? 0; vb = b.banos ?? 0; break;
         case "parqueaderos": va = a.parqueaderos ?? 0; vb = b.parqueaderos ?? 0; break;
         case "depositos": va = a.depositos ?? 0; vb = b.depositos ?? 0; break;
-        default: return 0;
+        default:
+          // Handle custom columns: sortField = "custom_<key>"
+          if (sortField.startsWith("custom_")) {
+            const cfKey = sortField.slice(7);
+            const cfa = (a.custom_fields as Record<string, unknown> | undefined)?.[cfKey];
+            const cfb = (b.custom_fields as Record<string, unknown> | undefined)?.[cfKey];
+            va = (cfa as string | number) ?? null;
+            vb = (cfb as string | number) ?? null;
+            break;
+          }
+          return 0;
       }
       if (va == null && vb == null) return 0;
       if (va == null) return 1;
@@ -1536,7 +1774,7 @@ export default function InventarioPage() {
 
   // --- CRUD handlers ---
   const handleCreate = useCallback(
-    async (data: UnitFormData & { available_tipologia_ids?: string[] }) => {
+    async (data: UnitFormData & { available_tipologia_ids?: string[]; custom_fields?: Record<string, unknown> }) => {
       setFormLoading(true);
       try {
         const payload: Record<string, unknown> = {
@@ -1567,6 +1805,9 @@ export default function InventarioPage() {
         if (data.available_tipologia_ids !== undefined) {
           payload.available_tipologia_ids = data.available_tipologia_ids;
         }
+        if (data.custom_fields && Object.keys(data.custom_fields).length > 0) {
+          payload.custom_fields = data.custom_fields;
+        }
         const res = await fetch("/api/unidades", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -1586,7 +1827,7 @@ export default function InventarioPage() {
   );
 
   const handleUpdate = useCallback(
-    async (id: string, data: UnitFormData & { available_tipologia_ids?: string[] }) => {
+    async (id: string, data: UnitFormData & { available_tipologia_ids?: string[]; custom_fields?: Record<string, unknown> }) => {
       setFormLoading(true);
       try {
         const payload: Record<string, unknown> = {
@@ -1614,6 +1855,9 @@ export default function InventarioPage() {
         };
         if (data.available_tipologia_ids !== undefined) {
           payload.available_tipologia_ids = data.available_tipologia_ids;
+        }
+        if (data.custom_fields) {
+          payload.custom_fields = data.custom_fields;
         }
         const res = await fetch(`/api/unidades/${id}`, {
           method: "PUT",
@@ -1918,6 +2162,56 @@ export default function InventarioPage() {
     }
   }, [projectId, refresh, toast]);
 
+  // Save custom columns config
+  const handleSaveCustomColumns = useCallback(async (cols: CustomColumnDef[]) => {
+    try {
+      const res = await fetch(`/api/proyectos/${projectId}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ custom_columns: cols }),
+      });
+      if (!res.ok) throw new Error("Error saving custom columns");
+      await refresh();
+    } catch {
+      toast.error("Error al guardar columnas personalizadas");
+    }
+  }, [projectId, refresh, toast]);
+
+  // Visible custom columns for the editor
+  const editorCustomCols = useMemo(
+    () => getVisibleCustomColumns(project.custom_columns, "editor"),
+    [project.custom_columns]
+  );
+
+  // Inline update for custom fields
+  const handleInlineCustomFieldUpdate = useCallback(
+    async (unitId: string, key: string, value: unknown) => {
+      const unit = unidades.find((u) => u.id === unitId);
+      const existing = (unit?.custom_fields as Record<string, unknown>) ?? {};
+      const merged = { ...existing, [key]: value };
+      // Optimistic update
+      updateLocal((prev) => ({
+        ...prev,
+        unidades: prev.unidades.map((u) =>
+          u.id === unitId ? { ...u, custom_fields: merged } : u
+        ),
+      }));
+      try {
+        const res = await fetch(`/api/unidades/${unitId}`, {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ custom_fields: merged }),
+        });
+        if (!res.ok) throw new Error("Error");
+        await refresh();
+      } catch {
+        toast.error("Error al actualizar");
+        await refresh();
+      }
+    },
+    [unidades, updateLocal, refresh, toast]
+  );
+
   // Toggle a single tipología on/off for a unit (multi-tipo mode)
   const handleToggleUnitTipo = useCallback(async (unitId: string, tipoId: string, add: boolean) => {
     // Block changes on committed units (vendida, reservada, separado)
@@ -2097,6 +2391,16 @@ export default function InventarioPage() {
           {!isMobile && (
             <>
               <button
+                onClick={() => {
+                  setShowCreateForm(true);
+                  setEditingId(null);
+                }}
+                className={btnPrimary}
+              >
+                <Plus size={14} />
+                {t("inventario.newUnit")}
+              </button>
+              <button
                 onClick={() => setShowImportModal(true)}
                 className={btnSecondary}
               >
@@ -2110,47 +2414,13 @@ export default function InventarioPage() {
                 <Sparkles size={14} />
                 {t("inventario.aiChat")}
               </button>
-              <div className="relative">
-                <button
-                  onClick={() => setShowToolsMenu((p) => !p)}
-                  className={btnSecondary}
-                >
-                  <Settings size={14} />
-                  {t("inventario.tools")}
-                  <ChevronDown size={12} className={cn("transition-transform", showToolsMenu && "rotate-180")} />
-                </button>
-                <AnimatePresence>
-                  {showToolsMenu && (
-                    <>
-                      <div className="fixed inset-0 z-10" onClick={() => setShowToolsMenu(false)} />
-                      <motion.div
-                        initial={{ opacity: 0, y: -4, scale: 0.97 }}
-                        animate={{ opacity: 1, y: 0, scale: 1 }}
-                        exit={{ opacity: 0, y: -4, scale: 0.97 }}
-                        transition={{ duration: 0.15 }}
-                        className="absolute right-0 top-full mt-1 w-52 bg-[var(--surface-2)] border border-[var(--border-default)] rounded-xl shadow-[0_16px_48px_rgba(0,0,0,0.4)] z-20 overflow-hidden"
-                      >
-                        {!isTipologiaPricing && (
-                          <button
-                            onClick={() => { setShowPriceAdjust(true); setShowToolsMenu(false); }}
-                            className="flex items-center gap-2.5 w-full px-4 py-2.5 text-xs text-[var(--text-secondary)] hover:bg-[var(--surface-3)] hover:text-white transition-colors"
-                          >
-                            <TrendingUp size={13} className="text-[var(--site-primary)]" />
-                            {t("inventario.priceAdjust")}
-                          </button>
-                        )}
-                        <button
-                          onClick={() => { setShowColumnsModal(true); setShowToolsMenu(false); }}
-                          className="flex items-center gap-2.5 w-full px-4 py-2.5 text-xs text-[var(--text-secondary)] hover:bg-[var(--surface-3)] hover:text-white transition-colors"
-                        >
-                          <Settings size={13} className="text-[var(--site-primary)]" />
-                          {t("general.project.columnsTitle")}
-                        </button>
-                      </motion.div>
-                    </>
-                  )}
-                </AnimatePresence>
-              </div>
+              <button
+                onClick={() => setShowColumnsModal(true)}
+                className={btnSecondary}
+                title={t("general.project.columnsTitle")}
+              >
+                <Settings size={14} />
+              </button>
             </>
           )}
           {isMobile && (
@@ -2401,16 +2671,6 @@ export default function InventarioPage() {
               className="w-40"
             />
           )}
-          <button
-            onClick={() => {
-              setShowCreateForm(true);
-              setEditingId(null);
-            }}
-            className={btnPrimary}
-          >
-            <Plus size={14} />
-            {isMobile ? t("inventario.newUnit").split(" ").pop() : t("inventario.newUnit")}
-          </button>
         </div>
 
         {/* Stats pills - moved to right side */}
@@ -2445,6 +2705,7 @@ export default function InventarioPage() {
             isMultiTipo={isMultiTipo}
             isTipologiaPricing={isTipologiaPricing}
             existingEtapas={uniqueEtapas}
+            customColumns={editorCustomCols}
           />
         )}
       </AnimatePresence>
@@ -2654,6 +2915,8 @@ export default function InventarioPage() {
                   isTipologiaPricing={isTipologiaPricing}
                   unitTipoIds={isMultiTipo ? getUnitTipologias(unit.id).map(t => t.id) : []}
                   existingEtapas={uniqueEtapas}
+                  customColumns={editorCustomCols}
+                  customFieldValues={(unit.custom_fields as Record<string, unknown>) ?? {}}
                 />
               ) : (
                 <MobileUnitCard
@@ -2780,6 +3043,18 @@ export default function InventarioPage() {
                       <span className="inline-flex items-center gap-1">{t("inventario.fields.storage")} {sortField === "depositos" ? (sortDir === "asc" ? <ChevronUp size={10} /> : <ChevronDown size={10} />) : <ArrowUpDown size={10} className="opacity-0 group-hover/th:opacity-100 transition-opacity" />}</span>
                     </th>
                   )}
+                  {editorCustomCols.map((cc) => (
+                    <th
+                      key={cc.key}
+                      className={cn("text-left py-2 px-4 font-ui font-bold text-[10px] uppercase tracking-wider cursor-pointer select-none group/th hover:text-[var(--text-secondary)] transition-colors", sortField === `custom_${cc.key}` ? "text-[var(--site-primary)]" : "text-[var(--text-tertiary)]")}
+                      onClick={() => toggleSort(`custom_${cc.key}`)}
+                    >
+                      <span className="inline-flex items-center gap-1">
+                        {cc.label}
+                        {sortField === `custom_${cc.key}` ? (sortDir === "asc" ? <ChevronUp size={10} /> : <ChevronDown size={10} />) : <ArrowUpDown size={10} className="opacity-0 group-hover/th:opacity-100 transition-opacity" />}
+                      </span>
+                    </th>
+                  ))}
                   <th className="text-right py-2 px-4 text-[var(--text-tertiary)] font-ui font-bold text-[10px] uppercase tracking-wider">
 
                   </th>
@@ -2828,6 +3103,8 @@ export default function InventarioPage() {
                             isTipologiaPricing={isTipologiaPricing}
                             unitTipoIds={unitTipos.map(t => t.id)}
                             existingEtapas={uniqueEtapas}
+                            customColumns={editorCustomCols}
+                            customFieldValues={(unit.custom_fields as Record<string, unknown>) ?? {}}
                           />
                         </td>
                       ) : (
@@ -2977,6 +3254,52 @@ export default function InventarioPage() {
                               {unit.depositos ?? "-"}
                             </td>
                           )}
+                          {editorCustomCols.map((cc) => {
+                            const cf = (unit.custom_fields as Record<string, unknown>) ?? {};
+                            const val = cf[cc.key];
+                            return (
+                              <td key={cc.key} className="py-2 px-4">
+                                {cc.type === "select" ? (
+                                  <NodDoDropdown
+                                    variant="table"
+                                    size="sm"
+                                    value={(val as string) ?? ""}
+                                    onChange={(v) => handleInlineCustomFieldUpdate(unit.id, cc.key, v || null)}
+                                    options={[
+                                      { value: "", label: "—" },
+                                      ...(cc.options ?? []).map((o) => ({ value: o, label: o })),
+                                    ]}
+                                  />
+                                ) : cc.type === "number" ? (
+                                  <input
+                                    type="number"
+                                    defaultValue={val != null ? String(val) : ""}
+                                    onBlur={(e) => {
+                                      const nv = e.target.value ? parseFloat(e.target.value) : null;
+                                      if (nv !== val) handleInlineCustomFieldUpdate(unit.id, cc.key, nv);
+                                    }}
+                                    className="w-16 bg-transparent text-[var(--text-secondary)] text-sm border-b border-transparent hover:border-[var(--border-default)] focus:border-[var(--site-primary)] outline-none transition-colors px-0 py-0.5"
+                                  />
+                                ) : cc.type === "date" ? (
+                                  <input
+                                    type="date"
+                                    defaultValue={(val as string) ?? ""}
+                                    onChange={(e) => handleInlineCustomFieldUpdate(unit.id, cc.key, e.target.value || null)}
+                                    className="bg-transparent text-[var(--text-secondary)] text-sm border-b border-transparent hover:border-[var(--border-default)] focus:border-[var(--site-primary)] outline-none transition-colors px-0 py-0.5"
+                                  />
+                                ) : (
+                                  <input
+                                    type="text"
+                                    defaultValue={(val as string) ?? ""}
+                                    onBlur={(e) => {
+                                      if (e.target.value !== (val ?? "")) handleInlineCustomFieldUpdate(unit.id, cc.key, e.target.value || null);
+                                    }}
+                                    className="w-20 bg-transparent text-[var(--text-secondary)] text-sm border-b border-transparent hover:border-[var(--border-default)] focus:border-[var(--site-primary)] outline-none transition-colors px-0 py-0.5"
+                                  />
+                                )}
+                              </td>
+                            );
+                          })}
                           <td className="py-2 px-4">
                             <div className="flex items-center justify-end gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                               <button
@@ -3117,6 +3440,7 @@ export default function InventarioPage() {
             activeTorreId={activeTorreId}
             onClose={() => setShowImportModal(false)}
             onDone={handleImportDone}
+            customColumns={project.custom_columns ?? []}
           />
         )}
       </AnimatePresence>
@@ -3151,6 +3475,7 @@ export default function InventarioPage() {
             tipoProyecto={tipoProyecto}
             tipologiaMode={tipologiaMode}
             unidadTipologias={unidadTipologias}
+            customColumns={(project.custom_columns ?? []).map((c: CustomColumnDef) => ({ key: c.key, label: c.label, type: c.type, options: c.options }))}
             onClose={() => setShowAIChat(false)}
             onDone={(appliedChanges) => {
               // Update local state immediately so the table reflects changes
@@ -3178,7 +3503,9 @@ export default function InventarioPage() {
             tipoProyecto={tipoProyecto}
             currentConfig={project.inventory_columns ?? null}
             currentConfigMicrosite={(project as any).inventory_columns_microsite ?? null}
+            customColumns={project.custom_columns ?? []}
             onSave={handleSaveColumns}
+            onSaveCustomColumns={handleSaveCustomColumns}
             onClose={() => setShowColumnsModal(false)}
           />
         )}

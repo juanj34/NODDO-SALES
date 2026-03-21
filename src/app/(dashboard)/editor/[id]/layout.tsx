@@ -459,16 +459,22 @@ export default function EditorLayout({
     return { project, loading, saving, save, refresh: wrappedRefresh, updateLocal, projectId: id };
   }, [project, loading, saving, save, wrappedRefresh, updateLocal, id]);
 
-  // Dynamic torres label based on project type
+  // Dynamic torres label based on project type and actual torre content
   const torresLabel = useMemo(() => {
     const tipoProyecto = project?.tipo_proyecto ?? "hibrido";
-
     if (tipoProyecto === "apartamentos") return "Torres";
-    if (tipoProyecto === "casas" || tipoProyecto === "lotes") return "Etapas";
 
-    // Híbrido: always show "Etapas"
-    return "Etapas";
-  }, [project?.tipo_proyecto]);
+    const torres = project?.torres ?? [];
+    const hasTorre = torres.some((t) => (t.tipo ?? "torre") === "torre");
+    const hasUrbanismo = torres.some((t) => t.tipo === "urbanismo");
+
+    if (hasTorre && hasUrbanismo) return "Agrupaciones";
+    if (hasUrbanismo) return "Urbanismos";
+    if (hasTorre && (tipoProyecto === "casas" || tipoProyecto === "lotes")) return "Etapas";
+    if (torres.length === 0) return tipoProyecto === "casas" || tipoProyecto === "lotes" ? "Etapas" : "Torres";
+
+    return "Torres";
+  }, [project?.tipo_proyecto, project?.torres]);
 
   const torresIcon = useMemo(() => {
     const tipoProyecto = project?.tipo_proyecto ?? "hibrido";

@@ -1,4 +1,4 @@
-import type { InventoryColumnConfig, InventoryColumnsByType, TipoTipologia } from "@/types";
+import type { InventoryColumnConfig, InventoryColumnsByType, TipoTipologia, CustomColumnDef } from "@/types";
 
 type TipoProyecto = "apartamentos" | "casas" | "lotes" | "hibrido";
 
@@ -145,7 +145,6 @@ export const INVENTORY_COLUMN_KEYS: {
   { key: "orientacion", labelKey: "inventario.columns.orientacion", icon: "Compass" },
   { key: "vista", labelKey: "inventario.columns.vista", icon: "Eye" },
   { key: "piso", labelKey: "inventario.columns.piso", icon: "Building2" },
-  { key: "lote", labelKey: "inventario.columns.lote", icon: "MapPin" },
   { key: "etapa", labelKey: "inventario.columns.etapa", icon: "Layers" },
 ];
 
@@ -162,4 +161,25 @@ export function getPrimaryArea(
   if (columns.area_privada && unit.area_privada != null) return unit.area_privada;
   if (columns.area_lote && unit.area_lote != null) return unit.area_lote;
   return unit.area_m2 ?? null;
+}
+
+/** Generate a URL-safe key from a label (e.g. "Fecha Entrega" → "fecha_entrega") */
+export function generateColumnKey(label: string): string {
+  return label
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^a-z0-9]+/g, "_")
+    .replace(/^_|_$/g, "");
+}
+
+/** Filter custom columns by visibility target */
+export function getVisibleCustomColumns(
+  columns: CustomColumnDef[] | null | undefined,
+  target: "editor" | "microsite"
+): CustomColumnDef[] {
+  if (!columns?.length) return [];
+  return columns
+    .filter((c) => (target === "editor" ? c.show_in_editor : c.show_in_microsite))
+    .sort((a, b) => a.orden - b.orden);
 }

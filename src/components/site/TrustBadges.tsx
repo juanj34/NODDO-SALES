@@ -42,7 +42,8 @@ export function TrustBadges({ badges, className = "" }: TrustBadgesProps) {
       {badges.map((badge, index) => {
         const variant = badge.variant || "security";
         const styles = variantStyles[variant];
-        const Icon = typeof badge.icon === "function" ? badge.icon : null;
+        const isComponent = typeof badge.icon === "function" || (typeof badge.icon === "object" && badge.icon !== null && "render" in (badge.icon as unknown as Record<string, unknown>));
+        const Icon = isComponent ? (badge.icon as LucideIcon) : null;
 
         return (
           <motion.div

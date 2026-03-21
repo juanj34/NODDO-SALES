@@ -25,6 +25,8 @@ const PROYECTO_FIELDS = [
   "inventory_columns_by_type",
   "inventory_columns_microsite",
   "inventory_columns_microsite_by_type",
+  "custom_columns",
+  "unidad_display_prefix",
 ];
 
 export async function GET(

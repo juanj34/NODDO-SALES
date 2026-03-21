@@ -8,7 +8,7 @@ export const metadata: Metadata = {
 
 export default function PrivacyPolicyPage() {
   return (
-    <article className="prose prose-invert prose-headings:font-site-heading prose-p:font-site-body max-w-none">
+    <article className="prose prose-invert prose-headings:font-site-heading max-w-none">
       <h1 className="text-4xl font-site-heading font-light text-white mb-2">
         Política de Privacidad
       </h1>

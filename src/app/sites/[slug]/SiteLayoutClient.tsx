@@ -59,7 +59,7 @@ export function SiteLayoutClient({ proyecto, basePath, children }: Props) {
           <SiteTracker proyectoId={proyecto.id} />
           <AudioProvider audioUrl={proyecto.background_audio_url}>
         <div
-          className="h-screen overflow-hidden"
+          className="h-screen overflow-hidden font-mono"
           style={{
             ["--site-primary" as string]: proyecto.color_primario || "#b8973a",
             ["--site-secondary" as string]: proyecto.color_secundario,

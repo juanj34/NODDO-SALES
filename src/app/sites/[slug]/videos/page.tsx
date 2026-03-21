@@ -16,6 +16,13 @@ function getVideoSrc(video: { stream_uid?: string | null; url: string }): string
   if (video.stream_uid) {
     return `https://iframe.videodelivery.net/${video.stream_uid}`;
   }
+  // Convert YouTube watch/shorts URLs to embed format
+  const ytMatch = video.url.match(
+    /(?:youtube\.com\/(?:watch\?v=|embed\/|shorts\/)|youtu\.be\/)([a-zA-Z0-9_-]{11})/
+  );
+  if (ytMatch) {
+    return `https://www.youtube.com/embed/${ytMatch[1]}`;
+  }
   return video.url;
 }
 
@@ -30,7 +37,7 @@ function getVideoThumb(video: {
   }
   // YouTube thumbnail fallback
   const match = video.url.match(
-    /(?:youtube\.com\/(?:watch\?v=|embed\/)|youtu\.be\/)([a-zA-Z0-9_-]{11})/
+    /(?:youtube\.com\/(?:watch\?v=|embed\/|shorts\/)|youtu\.be\/)([a-zA-Z0-9_-]{11})/
   );
   return match ? `https://img.youtube.com/vi/${match[1]}/mqdefault.jpg` : null;
 }
@@ -117,98 +124,100 @@ export default function VideosPage() {
         {/* Now playing label */}
         <div className="flex items-center gap-2 mb-4">
           <Play size={12} className="text-[var(--site-primary)]" />
-          <span className="text-xs text-[var(--text-secondary)] tracking-wider">
+          <span className="text-xs font-ui uppercase text-[var(--text-secondary)] tracking-[0.12em]">
             {current.titulo || `Video ${activeVideo + 1}`}
           </span>
-          <span className="text-xs text-[var(--text-muted)] ml-auto tabular-nums">
+          <span className="text-xs text-[var(--text-muted)] ml-auto tabular-nums font-mono">
             {activeVideo + 1} / {videos.length}
           </span>
         </div>
 
-        {/* Thumbnail strip with scroll arrows */}
-        <div className="relative group/strip">
-          {/* Left arrow */}
-          {videos.length > 4 && (
-            <button
-              onClick={() => scroll("left")}
-              aria-label={t("videos.prevVideos")}
-              className="absolute left-0 top-0 bottom-6 z-10 w-10 flex items-center justify-center bg-gradient-to-r from-[var(--site-bg)] to-transparent opacity-0 group-hover/strip:opacity-100 transition-opacity cursor-pointer"
-            >
-              <ChevronLeft size={18} className="text-white/70" />
-            </button>
-          )}
+        {/* Thumbnail strip with scroll arrows — only when multiple videos */}
+        {videos.length > 1 && (
+          <div className="relative group/strip">
+            {/* Left arrow */}
+            {videos.length > 4 && (
+              <button
+                onClick={() => scroll("left")}
+                aria-label={t("videos.prevVideos")}
+                className="absolute left-0 top-0 bottom-6 z-10 w-10 flex items-center justify-center bg-gradient-to-r from-[var(--site-bg)] to-transparent opacity-0 group-hover/strip:opacity-100 transition-opacity cursor-pointer"
+              >
+                <ChevronLeft size={18} className="text-white/70" />
+              </button>
+            )}
 
-          <div
-            ref={stripRef}
-            className="flex gap-3 overflow-x-auto scrollbar-hide pb-2"
-          >
-            {videos.map((video, idx) => {
-              const thumb = getVideoThumb(video);
-              return (
-                <motion.button
-                  key={video.id}
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.1 + idx * 0.04 }}
-                  onClick={() => {
-                    setActiveVideo(idx);
-                    trackEvent(proyecto.id, "video_play", undefined, { video_title: video.titulo });
-                  }}
-                  className={cn(
-                    "flex-shrink-0 w-40 cursor-pointer group transition-all duration-200",
-                    idx === activeVideo ? "opacity-100" : "opacity-50 hover:opacity-80"
-                  )}
-                >
-                  <div className={cn(
-                    "relative w-full aspect-video rounded-xl overflow-hidden mb-1.5 transition-all duration-200",
-                    idx === activeVideo
-                      ? "ring-2 ring-[var(--site-primary)] shadow-lg shadow-[rgba(var(--site-primary-rgb),0.10)]"
-                      : "ring-1 ring-[var(--border-default)] group-hover:ring-white/20"
-                  )}>
-                    {thumb ? (
-                      <Image src={thumb} alt="" fill className="w-full h-full object-cover" />
-                    ) : (
-                      <div className="w-full h-full bg-white/5 flex items-center justify-center">
-                        <Film size={20} className="text-[var(--text-muted)]" />
-                      </div>
+            <div
+              ref={stripRef}
+              className="flex gap-3 overflow-x-auto scrollbar-hide py-2"
+            >
+              {videos.map((video, idx) => {
+                const thumb = getVideoThumb(video);
+                return (
+                  <motion.button
+                    key={video.id}
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.1 + idx * 0.04 }}
+                    onClick={() => {
+                      setActiveVideo(idx);
+                      trackEvent(proyecto.id, "video_play", undefined, { video_title: video.titulo });
+                    }}
+                    className={cn(
+                      "flex-shrink-0 w-40 cursor-pointer group transition-all duration-200",
+                      idx === activeVideo ? "opacity-100" : "opacity-60 hover:opacity-100"
                     )}
-                    {/* Play overlay */}
+                  >
                     <div className={cn(
-                      "absolute inset-0 flex items-center justify-center transition-all duration-200",
-                      idx === activeVideo ? "bg-black/20" : "bg-black/40 group-hover:bg-black/25"
+                      "relative w-full aspect-video rounded-xl overflow-hidden mb-1.5 transition-all duration-200",
+                      idx === activeVideo
+                        ? "ring-2 ring-[var(--site-primary)] shadow-lg shadow-[rgba(var(--site-primary-rgb),0.10)]"
+                        : "ring-1 ring-[var(--border-default)] group-hover:ring-white/20"
                     )}>
+                      {thumb ? (
+                        <Image src={thumb} alt="" fill className="w-full h-full object-cover" />
+                      ) : (
+                        <div className="w-full h-full bg-white/5 flex items-center justify-center">
+                          <Film size={20} className="text-[var(--text-muted)]" />
+                        </div>
+                      )}
+                      {/* Play overlay */}
                       <div className={cn(
-                        "w-7 h-7 rounded-full flex items-center justify-center transition-all duration-200",
-                        idx === activeVideo
-                          ? "bg-[var(--site-primary)] scale-110"
-                          : "bg-white/20 group-hover:bg-white/30"
+                        "absolute inset-0 flex items-center justify-center transition-all duration-200",
+                        idx === activeVideo ? "bg-black/20" : "bg-black/40 group-hover:bg-black/25"
                       )}>
-                        <Play size={12} className={idx === activeVideo ? "text-black" : "text-white"} fill="currentColor" />
+                        <div className={cn(
+                          "w-7 h-7 rounded-full flex items-center justify-center transition-all duration-200",
+                          idx === activeVideo
+                            ? "bg-[var(--site-primary)] scale-110"
+                            : "bg-white/20 group-hover:bg-white/30"
+                        )}>
+                          <Play size={12} className={idx === activeVideo ? "text-black" : "text-white"} fill="currentColor" />
+                        </div>
                       </div>
                     </div>
-                  </div>
-                  <p className={cn(
-                    "text-[11px] truncate transition-colors duration-200",
-                    idx === activeVideo ? "text-white" : "text-[var(--text-tertiary)] group-hover:text-[var(--text-secondary)]"
-                  )}>
-                    {video.titulo || `Video ${idx + 1}`}
-                  </p>
-                </motion.button>
-              );
-            })}
-          </div>
+                    <p className={cn(
+                      "text-[11px] font-ui uppercase tracking-[0.08em] truncate transition-colors duration-200",
+                      idx === activeVideo ? "text-white" : "text-[var(--text-tertiary)] group-hover:text-[var(--text-secondary)]"
+                    )}>
+                      {video.titulo || `Video ${idx + 1}`}
+                    </p>
+                  </motion.button>
+                );
+              })}
+            </div>
 
-          {/* Right arrow */}
-          {videos.length > 4 && (
-            <button
-              onClick={() => scroll("right")}
-              aria-label={t("videos.nextVideos")}
-              className="absolute right-0 top-0 bottom-6 z-10 w-10 flex items-center justify-center bg-gradient-to-l from-[var(--site-bg)] to-transparent opacity-0 group-hover/strip:opacity-100 transition-opacity cursor-pointer"
-            >
-              <ChevronRight size={18} className="text-white/70" />
-            </button>
-          )}
-        </div>
+            {/* Right arrow */}
+            {videos.length > 4 && (
+              <button
+                onClick={() => scroll("right")}
+                aria-label={t("videos.nextVideos")}
+                className="absolute right-0 top-0 bottom-6 z-10 w-10 flex items-center justify-center bg-gradient-to-l from-[var(--site-bg)] to-transparent opacity-0 group-hover/strip:opacity-100 transition-opacity cursor-pointer"
+              >
+                <ChevronRight size={18} className="text-white/70" />
+              </button>
+            )}
+          </div>
+        )}
       </div>
     </SectionTransition>
   );

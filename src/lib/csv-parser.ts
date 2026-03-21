@@ -23,6 +23,7 @@ export interface MappedUnit {
   _etapa: string | null;
   _tipologia: string | null;
   _fachada: string | null;
+  custom_fields: Record<string, unknown>;
 }
 
 export interface MappedComplemento {
@@ -260,16 +261,32 @@ export function extractCSVHeadersAndSample(text: string): {
   return { headers, sampleRows, allRows, totalRows: allRows.length };
 }
 
+/** Custom column definition for CSV parsing */
+export interface CSVCustomColumn {
+  key: string;
+  label: string;
+  type: "text" | "number" | "date" | "select";
+}
+
 /**
  * Parse all CSV rows using a user-supplied column mapping + status mapping.
  * Returns MappedUnit[] with all fields normalised.
+ *
+ * Custom columns are mapped using "cf:<key>" as the dbField value in columnMap.
  */
 export function parseCSVWithMapping(
   allRows: string[][],
   headers: string[],
-  mapping: ColumnMapping
+  mapping: ColumnMapping,
+  customColumns?: CSVCustomColumn[]
 ): MappedUnit[] {
   const { columnMap, statusMap } = mapping;
+
+  // Build custom column type lookup
+  const customColTypes = new Map<string, CSVCustomColumn["type"]>();
+  for (const cc of customColumns ?? []) {
+    customColTypes.set(cc.key, cc.type);
+  }
 
   // Invert columnMap: csvHeader → dbField
   const headerToField: Record<string, string> = {};
@@ -287,12 +304,30 @@ export function parseCSVWithMapping(
 
   for (const row of allRows) {
     const unit: Record<string, string | number | null> = {};
+    const customFields: Record<string, unknown> = {};
 
     for (const [csvCol, dbField] of Object.entries(headerToField)) {
       const idx = headerIndex[csvCol];
       if (idx === undefined || idx >= row.length) continue;
       const rawValue = row[idx];
       if (!rawValue) continue;
+
+      // Handle custom field mappings (cf:<key>)
+      if (dbField.startsWith("cf:")) {
+        const cfKey = dbField.slice(3);
+        const cfType = customColTypes.get(cfKey) ?? "text";
+        switch (cfType) {
+          case "number":
+            customFields[cfKey] = parseFloat(rawValue.replace(/[,$\s]/g, "")) || null;
+            break;
+          case "date":
+            customFields[cfKey] = rawValue; // keep as string (YYYY-MM-DD or similar)
+            break;
+          default:
+            customFields[cfKey] = rawValue;
+        }
+        continue;
+      }
 
       const intFields = ["piso", "habitaciones", "banos", "parqueaderos", "depositos"];
       const floatFields = ["area_m2", "area_construida", "area_privada", "area_lote", "precio"];
@@ -333,6 +368,7 @@ export function parseCSVWithMapping(
       _etapa: (unit._etapa as string | null) ?? null,
       _tipologia: (unit._tipologia as string | null) ?? null,
       _fachada: (unit._fachada as string | null) ?? null,
+      custom_fields: customFields,
     });
   }
 
