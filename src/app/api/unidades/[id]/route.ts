@@ -49,9 +49,67 @@ export async function PUT(
       }
     }
 
+    // Block tipología change on vendida units
+    if (unidad.estado === "vendida" && body.tipologia_id !== undefined && body.tipologia_id !== unidad.tipologia_id) {
+      return NextResponse.json(
+        { error: "No se puede cambiar la tipología de una unidad vendida", code: "VENDIDA_TIPOLOGIA_LOCKED" },
+        { status: 422 }
+      );
+    }
+
+    // --- Compute precio_venta override BEFORE the main update ---
+    // This ensures the trigger captures precio_venta in the same transaction
+    let precioVentaOverride: Record<string, unknown> = {};
+    let proyecto: { tipologia_mode?: string; parqueaderos_mode?: string; depositos_mode?: string; precio_source?: string } | null = null;
+
+    if (body.estado !== undefined) {
+      const { data: proj } = await auth.supabase
+        .from("proyectos")
+        .select("tipologia_mode, parqueaderos_mode, depositos_mode, precio_source")
+        .eq("id", proyectoId)
+        .single();
+      proyecto = proj;
+
+      if (body.estado === "vendida" && unidad.estado !== "vendida") {
+        let precioVenta: number | null = null;
+        if (proyecto?.precio_source === "tipologia") {
+          const tipId = body.tipologia_id ?? unidad.tipologia_id;
+          if (tipId) {
+            const { data: tip } = await auth.supabase
+              .from("tipologias")
+              .select("precio_desde")
+              .eq("id", tipId)
+              .single();
+            precioVenta = tip?.precio_desde ?? null;
+          }
+        } else {
+          precioVenta = body.precio != null ? parseFloat(body.precio) : unidad.precio ?? null;
+        }
+        if (precioVenta !== null) {
+          precioVentaOverride = { precio_venta: precioVenta };
+        }
+      } else if (unidad.estado === "vendida" && body.estado !== "vendida") {
+        precioVentaOverride = { precio_venta: null };
+      }
+    }
+
+    // Strip manual precio_venta from body for non-vendida units (guard)
+    const pickedBody = pick(body, ["tipologia_id", "identificador", "piso", "area_m2", "area_construida", "area_privada", "area_lote", "precio", "precio_venta", "estado", "habitaciones", "banos", "orientacion", "vista", "vista_piso_id", "notas", "fachada_id", "fachada_x", "fachada_y", "planta_id", "planta_x", "planta_y", "torre_id", "lote", "etapa_nombre", "parqueaderos", "depositos", "orden", "custom_fields"]);
+
+    // Only allow manual precio_venta for units that are currently vendida (and staying vendida)
+    if (pickedBody.precio_venta !== undefined) {
+      const isVendida = unidad.estado === "vendida" && (body.estado === undefined || body.estado === "vendida");
+      if (!isVendida) {
+        delete pickedBody.precio_venta;
+      }
+    }
+
+    // Merge: auto-computed precioVentaOverride takes precedence over manual body
+    const updatePayload = { ...pickedBody, ...precioVentaOverride };
+
     const { data, error } = await auth.supabase
       .from("unidades")
-      .update(pick(body, ["tipologia_id", "identificador", "piso", "area_m2", "area_construida", "area_privada", "area_lote", "precio", "estado", "habitaciones", "banos", "orientacion", "vista", "vista_piso_id", "notas", "fachada_id", "fachada_x", "fachada_y", "planta_id", "planta_x", "planta_y", "torre_id", "lote", "etapa_nombre", "parqueaderos", "depositos", "orden", "custom_fields"]))
+      .update(updatePayload)
       .eq("id", id)
       .select("*, tipologias(parqueaderos, depositos)")
       .single();
@@ -74,11 +132,14 @@ export async function PUT(
 
     // Validate tipología selection when changing estado in multi-tipología mode
     if (body.estado !== undefined && ["separado", "reservada", "vendida"].includes(body.estado)) {
-      const { data: proyecto } = await auth.supabase
-        .from("proyectos")
-        .select("tipologia_mode")
-        .eq("id", proyectoId)
-        .single();
+      if (!proyecto) {
+        const { data: proj } = await auth.supabase
+          .from("proyectos")
+          .select("tipologia_mode")
+          .eq("id", proyectoId)
+          .single();
+        proyecto = proj;
+      }
       if (proyecto?.tipologia_mode === "multiple" && !data.tipologia_id && body.tipologia_id === undefined) {
         // Check if this unit has available tipologías
         const { count } = await auth.supabase
@@ -99,12 +160,6 @@ export async function PUT(
     const _warnings: string[] = [];
 
     if (body.estado !== undefined) {
-      const { data: proyecto } = await auth.supabase
-        .from("proyectos")
-        .select("parqueaderos_mode, depositos_mode, precio_source")
-        .eq("id", proyectoId)
-        .single();
-
       const parqMode = proyecto?.parqueaderos_mode ?? "sin_inventario";
       const depoMode = proyecto?.depositos_mode ?? "sin_inventario";
       const parqInventory = parqMode === "inventario_incluido" || parqMode === "inventario_separado";
@@ -134,36 +189,6 @@ export async function PUT(
             _warnings.push(`Faltan ${expectedDepo - assignedDepo} depósito(s) por asignar`);
           }
         }
-      }
-
-      // Lock precio_venta when marking as vendida, clear when reverting
-      const oldEstado = unidad.estado;
-      if (body.estado === "vendida" && oldEstado !== "vendida") {
-        let precioVenta: number | null = null;
-        if (proyecto?.precio_source === "tipologia") {
-          const tipId = data.tipologia_id ?? unidad.tipologia_id;
-          if (tipId) {
-            const { data: tip } = await auth.supabase
-              .from("tipologias")
-              .select("precio_desde")
-              .eq("id", tipId)
-              .single();
-            precioVenta = tip?.precio_desde ?? null;
-          }
-        } else {
-          precioVenta = data.precio ?? unidad.precio ?? null;
-        }
-        if (precioVenta !== null) {
-          await auth.supabase
-            .from("unidades")
-            .update({ precio_venta: precioVenta })
-            .eq("id", id);
-        }
-      } else if (oldEstado === "vendida" && body.estado !== "vendida") {
-        await auth.supabase
-          .from("unidades")
-          .update({ precio_venta: null })
-          .eq("id", id);
       }
     }
 

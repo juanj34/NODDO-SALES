@@ -233,6 +233,8 @@ const editor = {
       description: "Controla la visibilidad de las unidades vendidas en el micrositio público",
       hide: "Ocultar unidades vendidas en el micrositio",
       hideHint: "Las unidades vendidas no se mostrarán en inventario, explorar ni tipologías del micrositio. Los datos se conservan en el panel de administración.",
+      hidePrice: "Ocultar precio de unidades vendidas",
+      hidePriceHint: "Las unidades vendidas se mostrarán pero sin precio visible en el micrositio.",
     },
     slug: {
       title: "URL del micrositio",

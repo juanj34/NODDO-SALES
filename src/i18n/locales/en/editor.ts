@@ -233,6 +233,8 @@ const editor = {
       description: "Controls visibility of sold units on the public microsite",
       hide: "Hide sold units on the microsite",
       hideHint: "Sold units will not appear in inventory, explore, or typologies on the microsite. Data is preserved in the admin panel.",
+      hidePrice: "Hide price of sold units",
+      hidePriceHint: "Sold units will still appear but without a visible price on the microsite.",
     },
     slug: {
       title: "Microsite URL",

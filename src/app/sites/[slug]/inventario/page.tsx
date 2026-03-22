@@ -113,14 +113,31 @@ export default function InventarioPage() {
   const isHibrido = proyecto.tipo_proyecto === "hibrido";
   const isTipologiaPricing = proyecto.precio_source === "tipologia";
   const ocultarVendidas = (proyecto as any).ocultar_vendidas ?? false;
+  const ocultarPrecioVendidas = (proyecto as any).ocultar_precio_vendidas ?? false;
+
+  const unidadTipologias = useMemo<UnidadTipologia[]>(() => proyecto.unidad_tipologias ?? [], [proyecto.unidad_tipologias]);
 
   // Helper: resolve unit price based on pricing source (use precio_venta for sold units)
   const getUnitPrice = useCallback((unit: Unidad): number | null => {
+    if (unit.estado === "vendida" && ocultarPrecioVendidas) return null;
     if (unit.estado === "vendida" && unit.precio_venta != null) return unit.precio_venta;
     if (!isTipologiaPricing) return unit.precio;
-    const tipo = (tipologias || []).find(t => t.id === unit.tipologia_id);
-    return tipo?.precio_desde ?? null;
-  }, [isTipologiaPricing, tipologias]);
+    if (unit.tipologia_id) {
+      const tipo = (tipologias || []).find(t => t.id === unit.tipologia_id);
+      return tipo?.precio_desde ?? null;
+    }
+    // Multi-tipo: return lowest price from linked tipologías
+    if (isMultiTipo) {
+      const tipoIds = unidadTipologias
+        .filter(ut => ut.unidad_id === unit.id)
+        .map(ut => ut.tipologia_id);
+      const prices = (tipologias || [])
+        .filter(t => tipoIds.includes(t.id) && t.precio_desde != null)
+        .map(t => t.precio_desde!);
+      return prices.length > 0 ? Math.min(...prices) : null;
+    }
+    return null;
+  }, [isTipologiaPricing, tipologias, ocultarPrecioVendidas, isMultiTipo, unidadTipologias]);
 
   // Hybrid tipo tabs
   const [activeTipoTab, setActiveTipoTab] = useState<TipoTipologia | null>(null);
@@ -165,8 +182,6 @@ export default function InventarioPage() {
     }
     return result;
   }, [micrositeCustomCols]);
-
-  const unidadTipologias = useMemo<UnidadTipologia[]>(() => proyecto.unidad_tipologias ?? [], [proyecto.unidad_tipologias]);
 
   // Estado counts (scoped to active torre when filtered, exclude vendida if hidden)
   const estadoCounts = useMemo(() => {
@@ -345,15 +360,17 @@ export default function InventarioPage() {
     const tipoIds = unidadTipologias.filter(ut => ut.unidad_id === unitId).map(ut => ut.tipologia_id);
     const tipos = (tipologias || []).filter(t => tipoIds.includes(t.id));
     if (tipos.length === 0) return null;
-    const areas = tipos.map(t => t.area_m2).filter((v): v is number => v != null && v > 0);
-    const precios = tipos.map(t => t.precio_desde).filter((v): v is number => v != null && v > 0);
-    const habs = tipos.map(t => t.habitaciones).filter((v): v is number => v != null && v > 0);
-    const banos = tipos.map(t => t.banos).filter((v): v is number => v != null && v > 0);
+    const collect = (fn: (t: typeof tipos[0]) => number | null | undefined) =>
+      tipos.map(fn).filter((v): v is number => v != null && v > 0);
+    const range = (vals: number[]) => vals.length ? { min: Math.min(...vals), max: Math.max(...vals) } : null;
     return {
-      area: areas.length ? { min: Math.min(...areas), max: Math.max(...areas) } : null,
-      precio: precios.length ? { min: Math.min(...precios), max: Math.max(...precios) } : null,
-      hab: habs.length ? { min: Math.min(...habs), max: Math.max(...habs) } : null,
-      banos: banos.length ? { min: Math.min(...banos), max: Math.max(...banos) } : null,
+      area: range(collect(t => t.area_m2)),
+      areaConstruida: range(collect(t => t.area_construida)),
+      areaPrivada: range(collect(t => t.area_privada)),
+      areaLote: range(collect(t => t.area_lote)),
+      precio: range(collect(t => t.precio_desde)),
+      hab: range(collect(t => t.habitaciones)),
+      banos: range(collect(t => t.banos)),
     };
   }, [unidadTipologias, tipologias]);
 
@@ -752,22 +769,40 @@ export default function InventarioPage() {
                     <div className="flex items-center gap-2.5 mb-2 text-[11px] text-[var(--text-tertiary)]">
                       {useRanges && specRanges ? (
                         <>
-                          {specRanges.area && (
+                          {columns.area_construida && specRanges.areaConstruida && (
                             <span className="flex items-center gap-0.5">
                               <Maximize size={10} className="text-[var(--text-muted)]" />
-                              {formatRange(specRanges.area, "m²")}
+                              {specRanges.areaConstruida.min}m²
+                            </span>
+                          )}
+                          {columns.area_privada && specRanges.areaPrivada && (
+                            <span className="flex items-center gap-0.5">
+                              <Maximize size={10} className="text-[var(--text-muted)]" />
+                              {specRanges.areaPrivada.min}m²
+                            </span>
+                          )}
+                          {columns.area_lote && specRanges.areaLote && (
+                            <span className="flex items-center gap-0.5">
+                              <Maximize size={10} className="text-[var(--text-muted)]" />
+                              {specRanges.areaLote.min}m²
+                            </span>
+                          )}
+                          {!columns.area_construida && !columns.area_privada && !columns.area_lote && specRanges.area && (
+                            <span className="flex items-center gap-0.5">
+                              <Maximize size={10} className="text-[var(--text-muted)]" />
+                              {specRanges.area.min}m²
                             </span>
                           )}
                           {columns.habitaciones && specRanges.hab && (
                             <span className="flex items-center gap-0.5">
                               <BedDouble size={10} className="text-[var(--text-muted)]" />
-                              {formatRange(specRanges.hab)}
+                              {specRanges.hab.min}
                             </span>
                           )}
                           {columns.banos && specRanges.banos && (
                             <span className="flex items-center gap-0.5">
                               <Bath size={10} className="text-[var(--text-muted)]" />
-                              {formatRange(specRanges.banos)}
+                              {specRanges.banos.min}
                             </span>
                           )}
                         </>
@@ -838,14 +873,19 @@ export default function InventarioPage() {
                     <div className="flex items-center justify-between pt-2 border-t border-white/5">
                       {(() => {
                         const price = getUnitPrice(unit);
-                        if (price) return (
-                          <p className="text-sm font-semibold text-white">
-                            {formatCurrency(price, proyecto.moneda_base ?? "COP")}
-                          </p>
-                        );
+                        if (price) {
+                          const showDesde = useRanges || (isTipologiaPricing && !unit.tipologia_id && isMultiTipo);
+                          return (
+                            <p className="text-sm font-semibold text-white">
+                              {showDesde && <span className="text-[10px] text-[var(--text-tertiary)] mr-1">{tSite("tipologias.from")}</span>}
+                              {formatCurrency(price, proyecto.moneda_base ?? "COP")}
+                            </p>
+                          );
+                        }
                         if (!isTipologiaPricing && useRanges && specRanges?.precio) return (
                           <p className="text-sm font-semibold text-white">
-                            {tSite("tipologias.from")} {formatCurrency(specRanges.precio.min, proyecto.moneda_base ?? "COP")}
+                            <span className="text-[10px] text-[var(--text-tertiary)] mr-1">{tSite("tipologias.from")}</span>
+                            {formatCurrency(specRanges.precio.min, proyecto.moneda_base ?? "COP")}
                           </p>
                         );
                         return <span />;
@@ -961,17 +1001,23 @@ export default function InventarioPage() {
                     )}
                     {columns.area_construida && (
                       <span className="w-16 shrink-0 text-[11px] text-[var(--text-secondary)] text-right tabular-nums">
-                        {unit.area_construida ? `${unit.area_construida} m²` : "—"}
+                        {unit.area_construida ? `${unit.area_construida} m²`
+                          : listUseRanges && listSpecRanges?.areaConstruida ? `${listSpecRanges.areaConstruida.min} m²`
+                          : (tipo?.area_construida ? `${tipo.area_construida} m²` : "—")}
                       </span>
                     )}
                     {columns.area_privada && (
                       <span className="w-16 shrink-0 text-[11px] text-[var(--text-secondary)] text-right tabular-nums">
-                        {unit.area_privada ? `${unit.area_privada} m²` : "—"}
+                        {unit.area_privada ? `${unit.area_privada} m²`
+                          : listUseRanges && listSpecRanges?.areaPrivada ? `${listSpecRanges.areaPrivada.min} m²`
+                          : (tipo?.area_privada ? `${tipo.area_privada} m²` : "—")}
                       </span>
                     )}
                     {columns.area_lote && (
                       <span className="w-16 shrink-0 text-[11px] text-[var(--text-secondary)] text-right tabular-nums">
-                        {unit.area_lote ? `${unit.area_lote} m²` : "—"}
+                        {unit.area_lote ? `${unit.area_lote} m²`
+                          : listUseRanges && listSpecRanges?.areaLote ? `${listSpecRanges.areaLote.min} m²`
+                          : (tipo?.area_lote ? `${tipo.area_lote} m²` : "—")}
                       </span>
                     )}
                     {columns.habitaciones && (
@@ -1027,7 +1073,12 @@ export default function InventarioPage() {
                     <span className="flex-1 text-xs font-semibold text-white text-right tabular-nums">
                       {(() => {
                         const price = getUnitPrice(unit);
-                        if (price) return formatCurrency(price, proyecto.moneda_base ?? "COP");
+                        if (price) {
+                          const showDesde = listUseRanges || (isTipologiaPricing && !unit.tipologia_id && isMultiTipo);
+                          return showDesde
+                            ? `${tSite("tipologias.from")} ${formatCurrency(price, proyecto.moneda_base ?? "COP")}`
+                            : formatCurrency(price, proyecto.moneda_base ?? "COP");
+                        }
                         if (!isTipologiaPricing && listUseRanges && listSpecRanges?.precio)
                           return `${tSite("tipologias.from")} ${formatCurrency(listSpecRanges.precio.min, proyecto.moneda_base ?? "COP")}`;
                         return "—";

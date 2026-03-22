@@ -81,6 +81,20 @@ export async function DELETE(
     if (auth.role !== "admin")
       return NextResponse.json({ error: "Solo administradores" }, { status: 403 });
 
+    // Block deletion if tipología has vendida units
+    const { count: vendidaCount } = await auth.supabase
+      .from("unidades")
+      .select("id", { count: "exact", head: true })
+      .eq("tipologia_id", id)
+      .eq("estado", "vendida");
+
+    if (vendidaCount && vendidaCount > 0) {
+      return NextResponse.json(
+        { error: `No se puede eliminar: ${vendidaCount} unidad(es) vendida(s) asignadas a esta tipología`, code: "TIPOLOGIA_HAS_VENDIDAS" },
+        { status: 409 }
+      );
+    }
+
     const { error } = await auth.supabase
       .from("tipologias")
       .delete()

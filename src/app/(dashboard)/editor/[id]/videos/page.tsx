@@ -307,13 +307,14 @@ export default function VideosPage() {
       ? t("videos.deleteStreamConfirm")
       : "¿Seguro que deseas eliminar este video?";
     if (!(await confirm({ title: "Eliminar video", message: msg }))) return;
-    try {
-      const res = await fetch(`/api/videos/${videoId}`, { method: "DELETE" });
-      if (!res.ok) toast.error("Error al eliminar video");
-      await refresh();
-    } catch {
-      toast.error("Error de conexión");
-    }
+    // Optimistic: remove from local state immediately
+    setOrderedVideos((prev) => prev.filter((v) => v.id !== videoId));
+    fetch(`/api/videos/${videoId}`, { method: "DELETE" })
+      .then((res) => {
+        if (!res.ok) toast.error("Error al eliminar video");
+        refresh().catch(() => {});
+      })
+      .catch(() => toast.error("Error de conexión"));
   });
 
   return (

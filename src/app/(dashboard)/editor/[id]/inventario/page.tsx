@@ -53,6 +53,7 @@ import { SmartImportModal } from "@/components/dashboard/SmartImportModal";
 import { InventoryAssistant } from "@/components/dashboard/InventoryAssistant";
 import { NodDoDropdown } from "@/components/ui/NodDoDropdown";
 import { UNIT_STATUS_COLORS } from "@/lib/status-colors";
+import { useBackgroundSave } from "@/hooks/useBackgroundSave";
 import { Badge } from "@/components/ui";
 import { PageHeader } from "@/components/dashboard/base/PageHeader";
 
@@ -82,6 +83,7 @@ interface UnitFormData {
   orientacion: string;
   vista: string;
   notas: string;
+  precio_venta: string;
 }
 
 // ---------------------------------------------------------------------------
@@ -116,6 +118,7 @@ const EMPTY_FORM: UnitFormData = {
   orientacion: "",
   vista: "",
   notas: "",
+  precio_venta: "",
 };
 
 // ---------------------------------------------------------------------------
@@ -683,6 +686,21 @@ function UnitForm({
               options={ESTADOS.map((e) => ({ value: e.value, label: e.label }))}
             />
           </div>
+          {form.estado === "vendida" && (
+            <div>
+              <label className={labelClass}>Precio de venta</label>
+              <CurrencyInput
+                value={form.precio_venta}
+                onChange={(v) => set("precio_venta", v)}
+                currency={currency}
+                placeholder="Precio negociado"
+                inputClassName={inputClass}
+              />
+              <p className="text-xs text-[var(--text-muted)] mt-1">
+                Precio final negociado
+              </p>
+            </div>
+          )}
           {columns.habitaciones && (
             <div>
               <label className={labelClass}>{t("inventario.fields.bedrooms")}</label>
@@ -1536,6 +1554,7 @@ function ColumnsConfigModal({
 
 export default function InventarioPage() {
   const { project, refresh, projectId, updateLocal } = useEditorProject();
+  const { saveUnidad, saveEntity } = useBackgroundSave(projectId);
   const { t } = useTranslation("editor");
   const toast = useToast();
   const isMobile = useMediaQuery("(max-width: 767px)");
@@ -1555,7 +1574,7 @@ export default function InventarioPage() {
   // --- Form state ---
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
-  const [formLoading, setFormLoading] = useState(false);
+  const formLoading = false; // Forms close instantly with optimistic saves
 
   // --- Mobile ---
   const [showMobileActions, setShowMobileActions] = useState(false);
@@ -1649,7 +1668,7 @@ export default function InventarioPage() {
 
   // --- Bulk multi-tipología assignment ---
   const [bulkMultiTipoIds, setBulkMultiTipoIds] = useState<string[]>([]);
-  const [bulkMultiTipoLoading, setBulkMultiTipoLoading] = useState(false);
+  const bulkMultiTipoLoading = false; // Optimistic — clears selection instantly
 
   // --- Complemento modes & counts ---
   const hasParqueaderos = (project.parqueaderos_mode as ComplementoMode) === "inventario_incluido" || (project.parqueaderos_mode as ComplementoMode) === "inventario_separado";
@@ -1776,148 +1795,157 @@ export default function InventarioPage() {
 
   // --- CRUD handlers ---
   const handleCreate = useCallback(
-    async (data: UnitFormData & { available_tipologia_ids?: string[]; custom_fields?: Record<string, unknown> }) => {
-      setFormLoading(true);
-      try {
-        const payload: Record<string, unknown> = {
-          proyecto_id: projectId,
-          identificador: data.identificador,
-          tipologia_id: data.tipologia_id || null,
-          piso: data.piso ? parseInt(data.piso) : null,
-          lote: data.lote || null,
-          etapa_nombre: data.etapa_nombre || null,
-          area_m2: data.area_m2 ? parseFloat(data.area_m2) : null,
-          area_construida: data.area_construida ? parseFloat(data.area_construida) : null,
-          area_privada: data.area_privada ? parseFloat(data.area_privada) : null,
-          area_lote: data.area_lote ? parseFloat(data.area_lote) : null,
-          precio: data.precio ? parseFloat(data.precio) : null,
-          estado: data.estado,
-          habitaciones: data.habitaciones
-            ? parseInt(data.habitaciones)
-            : null,
-          banos: data.banos ? parseInt(data.banos) : null,
-          parqueaderos: data.parqueaderos ? parseInt(data.parqueaderos) : null,
-          depositos: data.depositos ? parseInt(data.depositos) : null,
-          orientacion: data.orientacion || null,
-          vista: data.vista || null,
-          notas: data.notas || null,
-          fachada_id: data.fachada_id || null,
-          torre_id: isMultiTorre && activeTorreId && activeTorreId !== "__none__" ? activeTorreId : null,
-        };
-        if (data.available_tipologia_ids !== undefined) {
-          payload.available_tipologia_ids = data.available_tipologia_ids;
-        }
-        if (data.custom_fields && Object.keys(data.custom_fields).length > 0) {
-          payload.custom_fields = data.custom_fields;
-        }
-        const res = await fetch("/api/unidades", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(payload),
-        });
-        if (!res.ok) throw new Error("Error creating unit");
-        setShowCreateForm(false);
-        await refresh();
-      } catch {
-        toast.error("Error al crear unidad");
-      } finally {
-        setFormLoading(false);
+    (data: UnitFormData & { available_tipologia_ids?: string[]; custom_fields?: Record<string, unknown> }) => {
+      const payload: Record<string, unknown> = {
+        proyecto_id: projectId,
+        identificador: data.identificador,
+        tipologia_id: data.tipologia_id || null,
+        piso: data.piso ? parseInt(data.piso) : null,
+        lote: data.lote || null,
+        etapa_nombre: data.etapa_nombre || null,
+        area_m2: data.area_m2 ? parseFloat(data.area_m2) : null,
+        area_construida: data.area_construida ? parseFloat(data.area_construida) : null,
+        area_privada: data.area_privada ? parseFloat(data.area_privada) : null,
+        area_lote: data.area_lote ? parseFloat(data.area_lote) : null,
+        precio: data.precio ? parseFloat(data.precio) : null,
+        estado: data.estado,
+        habitaciones: data.habitaciones ? parseInt(data.habitaciones) : null,
+        banos: data.banos ? parseInt(data.banos) : null,
+        parqueaderos: data.parqueaderos ? parseInt(data.parqueaderos) : null,
+        depositos: data.depositos ? parseInt(data.depositos) : null,
+        orientacion: data.orientacion || null,
+        vista: data.vista || null,
+        notas: data.notas || null,
+        fachada_id: data.fachada_id || null,
+        torre_id: isMultiTorre && activeTorreId && activeTorreId !== "__none__" ? activeTorreId : null,
+      };
+      if (data.available_tipologia_ids !== undefined) {
+        payload.available_tipologia_ids = data.available_tipologia_ids;
       }
+      if (data.custom_fields && Object.keys(data.custom_fields).length > 0) {
+        payload.custom_fields = data.custom_fields;
+      }
+
+      // Close form immediately — fire-and-forget
+      setShowCreateForm(false);
+
+      fetch("/api/unidades", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      })
+        .then(async (res) => {
+          if (!res.ok) throw new Error("Error creating unit");
+          refresh().catch(() => {});
+        })
+        .catch(() => {
+          toast.error("Error al crear unidad");
+        });
     },
     // eslint-disable-next-line react-hooks/exhaustive-deps -- toast is stable
     [projectId, refresh, isMultiTorre, activeTorreId]
   );
 
   const handleUpdate = useCallback(
-    async (id: string, data: UnitFormData & { available_tipologia_ids?: string[]; custom_fields?: Record<string, unknown> }) => {
-      setFormLoading(true);
-      try {
-        const payload: Record<string, unknown> = {
-          identificador: data.identificador,
-          tipologia_id: data.tipologia_id || null,
-          piso: data.piso ? parseInt(data.piso) : null,
-          lote: data.lote || null,
-          etapa_nombre: data.etapa_nombre || null,
-          area_m2: data.area_m2 ? parseFloat(data.area_m2) : null,
-          area_construida: data.area_construida ? parseFloat(data.area_construida) : null,
-          area_privada: data.area_privada ? parseFloat(data.area_privada) : null,
-          area_lote: data.area_lote ? parseFloat(data.area_lote) : null,
-          precio: data.precio ? parseFloat(data.precio) : null,
-          estado: data.estado,
-          habitaciones: data.habitaciones
-            ? parseInt(data.habitaciones)
-            : null,
-          banos: data.banos ? parseInt(data.banos) : null,
-          parqueaderos: data.parqueaderos ? parseInt(data.parqueaderos) : null,
-          depositos: data.depositos ? parseInt(data.depositos) : null,
-          orientacion: data.orientacion || null,
-          vista: data.vista || null,
-          notas: data.notas || null,
-          fachada_id: data.fachada_id || null,
-        };
-        if (data.available_tipologia_ids !== undefined) {
-          payload.available_tipologia_ids = data.available_tipologia_ids;
-        }
-        if (data.custom_fields) {
-          payload.custom_fields = data.custom_fields;
-        }
-        const res = await fetch(`/api/unidades/${id}`, {
-          method: "PUT",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(payload),
-        });
-        if (!res.ok) throw new Error("Error updating unit");
-        setEditingId(null);
-        await refresh();
-      } catch {
-        toast.error("Error al actualizar unidad");
-      } finally {
-        setFormLoading(false);
+    (id: string, data: UnitFormData & { available_tipologia_ids?: string[]; custom_fields?: Record<string, unknown> }) => {
+      const currentUnit = unidades.find((u) => u.id === id);
+      const payload: Record<string, unknown> = {
+        identificador: data.identificador,
+        tipologia_id: data.tipologia_id || null,
+        piso: data.piso ? parseInt(data.piso) : null,
+        lote: data.lote || null,
+        etapa_nombre: data.etapa_nombre || null,
+        area_m2: data.area_m2 ? parseFloat(data.area_m2) : null,
+        area_construida: data.area_construida ? parseFloat(data.area_construida) : null,
+        area_privada: data.area_privada ? parseFloat(data.area_privada) : null,
+        area_lote: data.area_lote ? parseFloat(data.area_lote) : null,
+        precio: data.precio ? parseFloat(data.precio) : null,
+        habitaciones: data.habitaciones ? parseInt(data.habitaciones) : null,
+        banos: data.banos ? parseInt(data.banos) : null,
+        parqueaderos: data.parqueaderos ? parseInt(data.parqueaderos) : null,
+        depositos: data.depositos ? parseInt(data.depositos) : null,
+        orientacion: data.orientacion || null,
+        vista: data.vista || null,
+        notas: data.notas || null,
+        fachada_id: data.fachada_id || null,
+      };
+      // Only send estado if it actually changed
+      if (data.estado !== currentUnit?.estado) {
+        payload.estado = data.estado;
       }
+      // Include precio_venta only for vendida units (negotiated price)
+      if (data.estado === "vendida" && data.precio_venta) {
+        payload.precio_venta = parseFloat(data.precio_venta);
+      }
+      if (data.available_tipologia_ids !== undefined) {
+        payload.available_tipologia_ids = data.available_tipologia_ids;
+      }
+      if (data.custom_fields) {
+        payload.custom_fields = data.custom_fields;
+      }
+
+      // Optimistic update — close form and update cache immediately
+      setEditingId(null);
+      saveUnidad({
+        unidadId: id,
+        payload,
+        optimisticUpdate: (prev) => ({
+          ...prev,
+          unidades: prev.unidades.map((u) =>
+            u.id === id
+              ? {
+                  ...u,
+                  ...payload,
+                  // Ensure numeric fields are properly typed
+                  area_m2: payload.area_m2 as number | null,
+                  precio: payload.precio as number | null,
+                  precio_venta: payload.precio_venta as number | null ?? u.precio_venta,
+                }
+              : u
+          ),
+        }),
+      });
     },
     // eslint-disable-next-line react-hooks/exhaustive-deps -- toast is stable
-    [refresh]
+    [unidades, saveUnidad]
   );
 
   const handleDelete = useCallback(
-    async (id: string) => {
-      try {
-        const res = await fetch(`/api/unidades/${id}`, { method: "DELETE" });
-        if (!res.ok) throw new Error("Error deleting unit");
-        setDeleteConfirm(null);
-        setSelectedIds((prev) => {
-          const next = new Set(prev);
-          next.delete(id);
-          return next;
-        });
-        await refresh();
-      } catch {
-        toast.error("Error al eliminar unidad");
-      }
+    (id: string) => {
+      setDeleteConfirm(null);
+      setSelectedIds((prev) => {
+        const next = new Set(prev);
+        next.delete(id);
+        return next;
+      });
+      saveEntity({
+        url: `/api/unidades/${id}`,
+        method: "DELETE",
+        optimisticUpdate: (prev) => ({
+          ...prev,
+          unidades: prev.unidades.filter((u) => u.id !== id),
+        }),
+      });
     },
-    [refresh, toast]
+    [saveEntity]
   );
 
-  const handleBulkDelete = useCallback(async () => {
+  const handleBulkDelete = useCallback(() => {
     if (selectedIds.size === 0) return;
-    setBulkDeleting(true);
-    try {
-      const res = await fetch("/api/unidades/bulk", {
-        method: "DELETE",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ ids: Array.from(selectedIds), proyecto_id: projectId }),
-      });
-      if (!res.ok) throw new Error("Error deleting units");
-      setBulkDeleteConfirm(false);
-      setSelectedIds(new Set());
-      await refresh();
-      toast.success(`${selectedIds.size} unidad${selectedIds.size !== 1 ? "es" : ""} eliminada${selectedIds.size !== 1 ? "s" : ""}`);
-    } catch {
-      toast.error("Error al eliminar unidades");
-    } finally {
-      setBulkDeleting(false);
-    }
-  }, [selectedIds, projectId, refresh, toast]);
+    const idsToDelete = new Set(selectedIds);
+    setBulkDeleteConfirm(false);
+    setSelectedIds(new Set());
+    toast.success(`${idsToDelete.size} unidad${idsToDelete.size !== 1 ? "es" : ""} eliminada${idsToDelete.size !== 1 ? "s" : ""}`);
+    saveEntity({
+      url: "/api/unidades/bulk",
+      method: "DELETE",
+      payload: { ids: Array.from(idsToDelete), proyecto_id: projectId },
+      optimisticUpdate: (prev) => ({
+        ...prev,
+        unidades: prev.unidades.filter((u) => !idsToDelete.has(u.id)),
+      }),
+    });
+  }, [selectedIds, projectId, toast, saveEntity]);
 
   // Check if units have complementos assigned (for warning dialog)
   const parqMode = project.parqueaderos_mode as ComplementoMode;
@@ -1967,7 +1995,7 @@ export default function InventarioPage() {
     [hasInventoryModes, parqInventory, depoInventory, project.complementos, unidades, tipologias]
   );
 
-  const handleBulkStatusChange = useCallback(async () => {
+  const handleBulkStatusChange = useCallback(() => {
     if (selectedIds.size === 0) return;
     // Multi-tipo: check if any selected unit lacks a confirmed tipología when changing to a committed state
     if (isMultiTipo && ["separado", "reservada", "vendida"].includes(bulkEstado)) {
@@ -1979,92 +2007,77 @@ export default function InventarioPage() {
         return;
       }
     }
-    const doBulk = async () => {
-      setBulkLoading(true);
-      try {
-        const promises = Array.from(selectedIds).map((uid) =>
-          fetch(`/api/unidades/${uid}`, {
-            method: "PUT",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ estado: bulkEstado }),
-          })
-        );
-        await Promise.all(promises);
-        setSelectedIds(new Set());
-        await refresh();
-      } catch {
-        toast.error("Error al cambiar estado");
-      } finally {
-        setBulkLoading(false);
-      }
+    const doBulk = () => {
+      const ids = Array.from(selectedIds);
+      // Optimistic: update all units immediately
+      updateLocal((prev) => ({
+        ...prev,
+        unidades: prev.unidades.map((u) =>
+          ids.includes(u.id) ? { ...u, estado: bulkEstado } : u
+        ),
+      }));
+      setSelectedIds(new Set());
+      // Fire API calls in background
+      saveEntity({
+        url: `/api/unidades/bulk-update`,
+        method: "PUT",
+        payload: {
+          proyecto_id: projectId,
+          changes: ids.map((uid) => ({ id: uid, updates: { estado: bulkEstado } })),
+        },
+        optimisticUpdate: (prev) => prev, // Already applied above
+      });
     };
     checkComplementosBeforeEstado(Array.from(selectedIds), bulkEstado, doBulk);
-  }, [selectedIds, bulkEstado, refresh, toast, checkComplementosBeforeEstado, isMultiTipo, unidades]);
+  }, [selectedIds, bulkEstado, toast, checkComplementosBeforeEstado, isMultiTipo, unidades, updateLocal, saveEntity, projectId]);
 
-  const handleBulkTorreChange = useCallback(async () => {
+  const handleBulkTorreChange = useCallback(() => {
     if (selectedIds.size === 0 || !bulkTorreId) return;
-    setBulkLoading(true);
-    try {
-      const newTorreId = bulkTorreId === "__none__" ? null : bulkTorreId;
-      const promises = Array.from(selectedIds).map((id) =>
-        fetch(`/api/unidades/${id}`, {
-          method: "PUT",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ torre_id: newTorreId }),
-        })
-      );
-      await Promise.all(promises);
-      setSelectedIds(new Set());
-      await refresh();
-    } catch {
-      toast.error("Error al asignar torre");
-    } finally {
-      setBulkLoading(false);
-    }
-  }, [selectedIds, bulkTorreId, refresh, toast]);
+    const newTorreId = bulkTorreId === "__none__" ? null : bulkTorreId;
+    const ids = Array.from(selectedIds);
+    // Optimistic update
+    updateLocal((prev) => ({
+      ...prev,
+      unidades: prev.unidades.map((u) =>
+        ids.includes(u.id) ? { ...u, torre_id: newTorreId } : u
+      ),
+    }));
+    setSelectedIds(new Set());
+    // Fire in background
+    saveEntity({
+      url: `/api/unidades/bulk-update`,
+      method: "PUT",
+      payload: {
+        proyecto_id: projectId,
+        changes: ids.map((id) => ({ id, updates: { torre_id: newTorreId } })),
+      },
+      optimisticUpdate: (prev) => prev,
+    });
+  }, [selectedIds, bulkTorreId, updateLocal, saveEntity, projectId]);
 
   const handleInlineUpdate = useCallback(
-    async (unitId: string, field: string, value: string | null) => {
+    (unitId: string, field: string, value: string | null) => {
       // Optimistic local update for immediate UI feedback
+      const parsedValue = field === "precio_venta" ? (value ? parseFloat(value) : null) : value;
       if (field !== "estado") {
         updateLocal((prev) => ({
           ...prev,
           unidades: prev.unidades.map((u) =>
-            u.id === unitId ? { ...u, [field]: value } : u
+            u.id === unitId ? { ...u, [field]: parsedValue } : u
           ),
         }));
       }
-      const doUpdate = async () => {
-        try {
-          const res = await fetch(`/api/unidades/${unitId}`, {
-            method: "PUT",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ [field]: value }),
-          });
-          if (!res.ok) {
-            const body = await res.json().catch(() => null);
-            if (body?.code === "TIPOLOGIA_REQUIRED") {
-              const unit = unidades.find(u => u.id === unitId);
-              if (unit && isMultiTipo) {
-                const tipos = getUnitTipologias(unitId);
-                setTipologiaRequiredModal({
-                  unitId,
-                  newEstado: value as EstadoUnidad,
-                  availableTipos: tipos.length > 0 ? tipos : tipologias,
-                });
-              }
-              // Revert optimistic update on error
-              await refresh();
-              return;
-            }
-            // Revert optimistic update on error
-            await refresh();
-            throw new Error("Error");
-          }
-          await refresh();
-        } catch {
-          toast.error("Error al actualizar");
-        }
+      const doUpdate = () => {
+        saveUnidad({
+          unidadId: unitId,
+          payload: { [field]: field === "precio_venta" ? parsedValue : value },
+          optimisticUpdate: (prev) => ({
+            ...prev,
+            unidades: prev.unidades.map((u) =>
+              u.id === unitId ? { ...u, [field]: parsedValue } : u
+            ),
+          }),
+        });
       };
       if (field === "estado" && value && isMultiTipo) {
         const needsConfirmation = ["separado", "reservada", "vendida"].includes(value);
@@ -2080,12 +2093,21 @@ export default function InventarioPage() {
         }
       }
       if (field === "estado" && value) {
-        checkComplementosBeforeEstado([unitId], value, doUpdate);
+        // For estado changes, optimistic update happens inside the complementos check callback
+        checkComplementosBeforeEstado([unitId], value, () => {
+          updateLocal((prev) => ({
+            ...prev,
+            unidades: prev.unidades.map((u) =>
+              u.id === unitId ? { ...u, estado: value as EstadoUnidad } : u
+            ),
+          }));
+          doUpdate();
+        });
       } else {
         doUpdate();
       }
     },
-    [refresh, toast, checkComplementosBeforeEstado, isMultiTipo, unidades, getUnitTipologias, tipologias, updateLocal]
+    [toast, checkComplementosBeforeEstado, isMultiTipo, unidades, getUnitTipologias, tipologias, updateLocal, saveUnidad]
   );
 
   const handleBulkTipologiaChange = useCallback(async () => {
@@ -2099,85 +2121,81 @@ export default function InventarioPage() {
       toast.error("No se pueden modificar tipologías de unidades vendidas/reservadas/separadas.");
       return;
     }
-    setBulkLoading(true);
-    try {
-      const newTipId = bulkTipologiaId === "__none__" ? null : bulkTipologiaId;
-      const promises = eligibleIds.map((id) =>
-        fetch(`/api/unidades/${id}`, {
-          method: "PUT",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ tipologia_id: newTipId }),
-        })
-      );
-      await Promise.all(promises);
-      setSelectedIds(new Set());
-      await refresh();
-    } catch {
-      toast.error("Error al asignar tipología");
-    } finally {
-      setBulkLoading(false);
-    }
-  }, [selectedIds, bulkTipologiaId, refresh, toast, unidades]);
+    const newTipId = bulkTipologiaId === "__none__" ? null : bulkTipologiaId;
+    // Optimistic update
+    updateLocal((prev) => ({
+      ...prev,
+      unidades: prev.unidades.map((u) =>
+        eligibleIds.includes(u.id) ? { ...u, tipologia_id: newTipId } : u
+      ),
+    }));
+    setSelectedIds(new Set());
+    saveEntity({
+      url: `/api/unidades/bulk-update`,
+      method: "PUT",
+      payload: {
+        proyecto_id: projectId,
+        changes: eligibleIds.map((id) => ({ id, updates: { tipologia_id: newTipId } })),
+      },
+      optimisticUpdate: (prev) => prev,
+    });
+  }, [selectedIds, bulkTipologiaId, toast, unidades, updateLocal, saveEntity, projectId]);
 
-  const handleBulkFachadaChange = useCallback(async () => {
+  const handleBulkFachadaChange = useCallback(() => {
     if (selectedIds.size === 0 || !bulkFachadaId) return;
-    setBulkLoading(true);
-    try {
-      const newFacId = bulkFachadaId === "__none__" ? null : bulkFachadaId;
-      const promises = Array.from(selectedIds).map((id) =>
-        fetch(`/api/unidades/${id}`, {
-          method: "PUT",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ fachada_id: newFacId }),
-        })
-      );
-      await Promise.all(promises);
-      setSelectedIds(new Set());
-      await refresh();
-    } catch {
-      toast.error("Error al asignar fachada");
-    } finally {
-      setBulkLoading(false);
-    }
-  }, [selectedIds, bulkFachadaId, refresh, toast]);
+    const newFacId = bulkFachadaId === "__none__" ? null : bulkFachadaId;
+    const ids = Array.from(selectedIds);
+    // Optimistic update
+    updateLocal((prev) => ({
+      ...prev,
+      unidades: prev.unidades.map((u) =>
+        ids.includes(u.id) ? { ...u, fachada_id: newFacId } : u
+      ),
+    }));
+    setSelectedIds(new Set());
+    saveEntity({
+      url: `/api/unidades/bulk-update`,
+      method: "PUT",
+      payload: {
+        proyecto_id: projectId,
+        changes: ids.map((id) => ({ id, updates: { fachada_id: newFacId } })),
+      },
+      optimisticUpdate: (prev) => prev,
+    });
+  }, [selectedIds, bulkFachadaId, updateLocal, saveEntity, projectId]);
 
-  const handleImportDone = useCallback(async () => {
+  const handleImportDone = useCallback(() => {
     setShowImportModal(false);
-    await refresh();
+    refresh().catch(() => {});
   }, [refresh]);
 
   // Save inventory column config
-  const handleSaveColumns = useCallback(async (config: InventoryColumnConfig | null, configMicrosite: InventoryColumnConfig | null) => {
-    try {
-      const res = await fetch(`/api/proyectos/${projectId}`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          inventory_columns: config,
-          inventory_columns_microsite: configMicrosite,
-        }),
-      });
-      if (!res.ok) throw new Error("Error saving columns");
-      await refresh();
-    } catch {
-      toast.error("Error al guardar configuración de columnas");
-    }
-  }, [projectId, refresh, toast]);
+  const handleSaveColumns = useCallback((config: InventoryColumnConfig | null, configMicrosite: InventoryColumnConfig | null) => {
+    saveEntity({
+      url: `/api/proyectos/${projectId}`,
+      payload: {
+        inventory_columns: config,
+        inventory_columns_microsite: configMicrosite,
+      },
+      optimisticUpdate: (prev) => ({
+        ...prev,
+        inventory_columns: config,
+        inventory_columns_microsite: configMicrosite,
+      }),
+    });
+  }, [projectId, saveEntity]);
 
   // Save custom columns config
-  const handleSaveCustomColumns = useCallback(async (cols: CustomColumnDef[]) => {
-    try {
-      const res = await fetch(`/api/proyectos/${projectId}`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ custom_columns: cols }),
-      });
-      if (!res.ok) throw new Error("Error saving custom columns");
-      await refresh();
-    } catch {
-      toast.error("Error al guardar columnas personalizadas");
-    }
-  }, [projectId, refresh, toast]);
+  const handleSaveCustomColumns = useCallback((cols: CustomColumnDef[]) => {
+    saveEntity({
+      url: `/api/proyectos/${projectId}`,
+      payload: { custom_columns: cols },
+      optimisticUpdate: (prev) => ({
+        ...prev,
+        custom_columns: cols,
+      }),
+    });
+  }, [projectId, saveEntity]);
 
   // Visible custom columns for the editor
   const editorCustomCols = useMemo(
@@ -2187,35 +2205,26 @@ export default function InventarioPage() {
 
   // Inline update for custom fields
   const handleInlineCustomFieldUpdate = useCallback(
-    async (unitId: string, key: string, value: unknown) => {
+    (unitId: string, key: string, value: unknown) => {
       const unit = unidades.find((u) => u.id === unitId);
       const existing = (unit?.custom_fields as Record<string, unknown>) ?? {};
       const merged = { ...existing, [key]: value };
-      // Optimistic update
-      updateLocal((prev) => ({
-        ...prev,
-        unidades: prev.unidades.map((u) =>
-          u.id === unitId ? { ...u, custom_fields: merged } : u
-        ),
-      }));
-      try {
-        const res = await fetch(`/api/unidades/${unitId}`, {
-          method: "PUT",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ custom_fields: merged }),
-        });
-        if (!res.ok) throw new Error("Error");
-        await refresh();
-      } catch {
-        toast.error("Error al actualizar");
-        await refresh();
-      }
+      saveUnidad({
+        unidadId: unitId,
+        payload: { custom_fields: merged },
+        optimisticUpdate: (prev) => ({
+          ...prev,
+          unidades: prev.unidades.map((u) =>
+            u.id === unitId ? { ...u, custom_fields: merged } : u
+          ),
+        }),
+      });
     },
-    [unidades, updateLocal, refresh, toast]
+    [unidades, saveUnidad]
   );
 
   // Toggle a single tipología on/off for a unit (multi-tipo mode)
-  const handleToggleUnitTipo = useCallback(async (unitId: string, tipoId: string, add: boolean) => {
+  const handleToggleUnitTipo = useCallback((unitId: string, tipoId: string, add: boolean) => {
     // Block changes on committed units (vendida, reservada, separado)
     const targetUnit = unidades.find(u => u.id === unitId);
     if (targetUnit && ["vendida", "reservada", "separado"].includes(targetUnit.estado)) return;
@@ -2231,7 +2240,8 @@ export default function InventarioPage() {
         : prev.unidades;
       return { ...prev, unidad_tipologias: newUT, unidades: newUnidades };
     });
-    try {
+    // Fire-and-forget API calls
+    const exec = async () => {
       if (add) {
         await fetch("/api/unidad-tipologias", {
           method: "POST",
@@ -2254,39 +2264,41 @@ export default function InventarioPage() {
           });
         }
       }
-      await refresh();
-    } catch {
-      toast.error("Error al actualizar tipologías");
-      await refresh();
-    }
+      refresh().catch(() => {});
+    };
+    exec().catch(() => toast.error("Error al actualizar tipologías"));
   }, [projectId, unidades, updateLocal, refresh, toast]);
 
   // Handle confirming tipología in the required modal (multi-tipo mode)
-  const handleTipologiaRequiredConfirm = useCallback(async (tipoId: string) => {
+  const handleTipologiaRequiredConfirm = useCallback((tipoId: string) => {
     if (!tipologiaRequiredModal) return;
     const { unitId, newEstado } = tipologiaRequiredModal;
-    try {
-      // First set the confirmed tipología
+    // Optimistic update + close modal immediately
+    updateLocal((prev) => ({
+      ...prev,
+      unidades: prev.unidades.map((u) =>
+        u.id === unitId ? { ...u, tipologia_id: tipoId, estado: newEstado } : u
+      ),
+    }));
+    setTipologiaRequiredModal(null);
+    // Fire-and-forget: set tipología then estado
+    (async () => {
       await fetch(`/api/unidades/${unitId}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ tipologia_id: tipoId }),
       });
-      // Then set the estado
       await fetch(`/api/unidades/${unitId}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ estado: newEstado }),
       });
-      setTipologiaRequiredModal(null);
-      await refresh();
-    } catch {
-      toast.error("Error al confirmar tipología");
-    }
-  }, [tipologiaRequiredModal, refresh, toast]);
+      refresh().catch(() => {});
+    })().catch(() => toast.error("Error al confirmar tipología"));
+  }, [tipologiaRequiredModal, updateLocal, refresh, toast]);
 
   // Bulk assign tipologías in multi-tipo mode
-  const handleBulkMultiTipoAssign = useCallback(async () => {
+  const handleBulkMultiTipoAssign = useCallback(() => {
     if (selectedIds.size === 0 || bulkMultiTipoIds.length === 0) return;
     // Filter out committed units (vendida, reservada, separado)
     const eligibleIds = Array.from(selectedIds).filter(id => {
@@ -2297,27 +2309,41 @@ export default function InventarioPage() {
       toast.error("No se pueden modificar tipologías de unidades vendidas/reservadas/separadas.");
       return;
     }
-    setBulkMultiTipoLoading(true);
-    try {
-      const res = await fetch("/api/unidad-tipologias", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          proyecto_id: projectId,
-          unidad_ids: eligibleIds,
-          tipologia_ids: bulkMultiTipoIds,
-        }),
-      });
-      if (!res.ok) throw new Error("Error assigning tipologías");
-      setBulkMultiTipoIds([]);
-      setSelectedIds(new Set());
-      await refresh();
-    } catch {
-      toast.error("Error al asignar tipologías");
-    } finally {
-      setBulkMultiTipoLoading(false);
-    }
-  }, [selectedIds, bulkMultiTipoIds, projectId, refresh, toast, unidades]);
+    // Optimistic: add new unidad_tipologias entries and clear selection
+    const newEntries = eligibleIds.flatMap((uid) =>
+      bulkMultiTipoIds.map((tid) => ({
+        id: crypto.randomUUID(),
+        proyecto_id: projectId,
+        unidad_id: uid,
+        tipologia_id: tid,
+        created_at: new Date().toISOString(),
+      }))
+    );
+    updateLocal((prev) => {
+      const existing = prev.unidad_tipologias ?? [];
+      // Avoid duplicates
+      const existingKeys = new Set(existing.map((ut) => `${ut.unidad_id}:${ut.tipologia_id}`));
+      const toAdd = newEntries.filter((e) => !existingKeys.has(`${e.unidad_id}:${e.tipologia_id}`));
+      return { ...prev, unidad_tipologias: [...existing, ...toAdd] };
+    });
+    setBulkMultiTipoIds([]);
+    setSelectedIds(new Set());
+    // Fire-and-forget
+    fetch("/api/unidad-tipologias", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        proyecto_id: projectId,
+        unidad_ids: eligibleIds,
+        tipologia_ids: bulkMultiTipoIds,
+      }),
+    })
+      .then((res) => {
+        if (!res.ok) throw new Error("Error assigning tipologías");
+        refresh().catch(() => {});
+      })
+      .catch(() => toast.error("Error al asignar tipologías"));
+  }, [selectedIds, bulkMultiTipoIds, projectId, updateLocal, refresh, toast, unidades]);
 
   // --- Build edit form initial data ---
   const getEditFormData = (u: Unidad): UnitFormData => ({
@@ -2340,6 +2366,7 @@ export default function InventarioPage() {
     orientacion: u.orientacion || "",
     vista: u.vista || "",
     notas: u.notas || "",
+    precio_venta: u.precio_venta != null ? String(u.precio_venta) : "",
   });
 
   // --- Tipologias filtered by active torre for the form dropdown ---
@@ -3462,9 +3489,9 @@ export default function InventarioPage() {
             hasDepositos={hasDepositos}
             moneda={project.moneda_base || "COP"}
             onClose={() => setShowPriceAdjust(false)}
-            onDone={async () => {
+            onDone={() => {
               setShowPriceAdjust(false);
-              await refresh();
+              refresh().catch(() => {});
             }}
           />
         )}

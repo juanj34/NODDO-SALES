@@ -3,7 +3,7 @@
 export const dynamic = "force-dynamic";
 
 import Image from "next/image";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { useAsyncAction } from "@/hooks/useAsyncAction";
 import { useEditorProject } from "@/hooks/useEditorProject";
 import { useConfirm } from "@/components/dashboard/ConfirmModal";
@@ -28,10 +28,11 @@ import {
   Trash2,
   GripVertical,
   Upload,
+  Type,
 } from "lucide-react";
 import { motion, AnimatePresence, Reorder, useDragControls } from "framer-motion";
 import { useTranslation } from "@/i18n";
-import type { GaleriaCategoria, Torre } from "@/types";
+import type { GaleriaCategoria, GaleriaImagen, Torre } from "@/types";
 
 /* ── Draggable pill for category tab bar ── */
 function DraggablePill({
@@ -183,14 +184,15 @@ export default function GaleriaPage() {
       });
       if (res.ok) {
         const created = await res.json();
-        await refresh();
+        // Optimistic: add category to local state immediately
+        setOrderedCategories((prev) => [...prev, { ...created, imagenes: [] }]);
         setSelectedCatId(created.id);
-      } else {
-        await refresh();
       }
       setNewCatNombre("");
       setNewCatTorreId(null);
       setShowCatForm(false);
+      // Background sync
+      refresh().catch(() => {});
     } finally {
       setSaving(false);
     }
@@ -208,27 +210,116 @@ export default function GaleriaPage() {
       details: nImages > 0 ? `${nImages} imágenes serán eliminadas permanentemente` : undefined,
       typeToConfirm: cat.nombre,
     }))) return;
-    try {
-      const res = await fetch(`/api/galeria/categorias/${selectedCatId}`, {
-        method: "DELETE",
-      });
-      if (!res.ok) toast.error("Error al eliminar categoría");
-      setSelectedCatId(null);
-      await refresh();
-    } catch {
-      toast.error("Error de conexión");
-    }
+    const deletedId = selectedCatId;
+    // Optimistic: remove from local state immediately
+    setOrderedCategories((prev) => prev.filter((c) => c.id !== deletedId));
+    setSelectedCatId(null);
+    fetch(`/api/galeria/categorias/${deletedId}`, { method: "DELETE" })
+      .then((res) => {
+        if (!res.ok) toast.error("Error al eliminar categoría");
+        refresh().catch(() => {});
+      })
+      .catch(() => toast.error("Error de conexión"));
   });
 
-  const deleteImage = async (imgId: string) => {
+  const deleteImage = (imgId: string) => {
+    // Optimistic: remove from local state immediately
+    setLocalImages((prev) => prev.filter((i) => i.id !== imgId));
+    fetch(`/api/galeria/imagenes/${imgId}`, { method: "DELETE" })
+      .then((res) => {
+        if (!res.ok) toast.error("Error al eliminar imagen");
+        refresh().catch(() => {});
+      })
+      .catch(() => toast.error("Error de conexión"));
+  };
+
+  /* ── Image reorder (HTML5 drag-and-drop for grid) ── */
+  const [draggedIdx, setDraggedIdx] = useState<number | null>(null);
+  const [dropTargetIdx, setDropTargetIdx] = useState<number | null>(null);
+  const [localImages, setLocalImages] = useState<GaleriaImagen[]>([]);
+
+  // Sync localImages from selectedCat
+  useEffect(() => {
+    setLocalImages(selectedCat?.imagenes ?? []);
+  }, [selectedCat?.imagenes]);
+
+  const handleImageDragStart = useCallback((idx: number) => {
+    setDraggedIdx(idx);
+  }, []);
+
+  const handleImageDragOver = useCallback((e: React.DragEvent, idx: number) => {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = "move";
+    setDropTargetIdx(idx);
+  }, []);
+
+  const handleImageDrop = useCallback(async (targetIdx: number) => {
+    if (draggedIdx === null || draggedIdx === targetIdx) {
+      setDraggedIdx(null);
+      setDropTargetIdx(null);
+      return;
+    }
+    const reordered = [...localImages];
+    const [moved] = reordered.splice(draggedIdx, 1);
+    reordered.splice(targetIdx, 0, moved);
+    setLocalImages(reordered);
+    setDraggedIdx(null);
+    setDropTargetIdx(null);
+
+    // Persist (fire-and-forget)
+    fetch("/api/galeria/imagenes/reorder", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ ids: reordered.map((img) => img.id) }),
+    })
+      .then((res) => {
+        if (!res.ok) toast.error("Error al reordenar");
+        refresh().catch(() => {});
+      })
+      .catch(() => toast.error("Error de conexión"));
+  }, [draggedIdx, localImages, refresh, toast]);
+
+  const handleImageDragEnd = useCallback(() => {
+    setDraggedIdx(null);
+    setDropTargetIdx(null);
+  }, []);
+
+  /* ── Image title editing ── */
+  const [editingTitleId, setEditingTitleId] = useState<string | null>(null);
+  const [titleValue, setTitleValue] = useState("");
+  const titleInputRef = useRef<HTMLInputElement>(null);
+
+  const startEditTitle = useCallback((img: GaleriaImagen) => {
+    setEditingTitleId(img.id);
+    setTitleValue(img.alt_text || "");
+    setTimeout(() => titleInputRef.current?.focus(), 50);
+  }, []);
+
+  const saveTitle = useCallback(async () => {
+    if (!editingTitleId) return;
+    const newTitle = titleValue.trim() || null;
+    const img = localImages.find((i) => i.id === editingTitleId);
+    if (img && (img.alt_text || null) === newTitle) {
+      setEditingTitleId(null);
+      return;
+    }
+    // Optimistic update
+    setLocalImages((prev) =>
+      prev.map((i) => (i.id === editingTitleId ? { ...i, alt_text: newTitle } : i))
+    );
+    setEditingTitleId(null);
     try {
-      const res = await fetch(`/api/galeria/imagenes/${imgId}`, { method: "DELETE" });
-      if (!res.ok) toast.error("Error al eliminar imagen");
-      await refresh();
+      const res = await fetch(`/api/galeria/imagenes/${editingTitleId}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ alt_text: newTitle }),
+      });
+      if (!res.ok) toast.error("Error al guardar título");
+      refresh().catch(() => {});
     } catch {
       toast.error("Error de conexión");
     }
-  };
+  }, [editingTitleId, titleValue, localImages, refresh, toast]);
 
   return (
     <motion.div
@@ -412,20 +503,72 @@ export default function GaleriaPage() {
               </div>
 
               {/* Image grid */}
-              {imageCount > 0 ? (
+              {localImages.length > 0 ? (
                 <div className="grid grid-cols-5 gap-2">
-                  {selectedCat.imagenes?.map((img) => (
+                  {localImages.map((img, idx) => (
                     <div
                       key={img.id}
-                      className="relative aspect-video rounded-lg overflow-hidden bg-[var(--surface-2)] group"
+                      draggable
+                      onDragStart={() => handleImageDragStart(idx)}
+                      onDragOver={(e) => handleImageDragOver(e, idx)}
+                      onDrop={() => handleImageDrop(idx)}
+                      onDragEnd={handleImageDragEnd}
+                      className={`relative aspect-video rounded-lg overflow-hidden bg-[var(--surface-2)] group cursor-grab active:cursor-grabbing transition-all ${
+                        draggedIdx === idx ? "opacity-40 scale-95" : ""
+                      } ${
+                        dropTargetIdx === idx && draggedIdx !== idx
+                          ? "ring-2 ring-[var(--site-primary)] ring-offset-1 ring-offset-[var(--surface-0)]"
+                          : ""
+                      }`}
                     >
-                      <Image src={img.thumbnail_url || img.url} alt="" fill className="w-full h-full object-cover" />
+                      <Image src={img.thumbnail_url || img.url} alt={img.alt_text || ""} fill className="w-full h-full object-cover pointer-events-none" />
+
+                      {/* Drag handle */}
+                      <div className="absolute top-1 left-1 w-5 h-5 bg-black/60 rounded-full flex items-center justify-center text-[var(--text-muted)] opacity-0 group-hover:opacity-100 transition-all">
+                        <GripVertical size={10} />
+                      </div>
+
+                      {/* Delete button */}
                       <button
-                        onClick={() => deleteImage(img.id)}
+                        onClick={(e) => { e.stopPropagation(); deleteImage(img.id); }}
                         className="absolute top-1 right-1 w-5 h-5 bg-black/70 rounded-full flex items-center justify-center text-[var(--text-secondary)] hover:text-red-400 opacity-0 group-hover:opacity-100 transition-all"
                       >
                         <X size={10} />
                       </button>
+
+                      {/* Title overlay — bottom of thumbnail */}
+                      <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent pt-6 pb-1.5 px-2">
+                        {editingTitleId === img.id ? (
+                          <input
+                            ref={titleInputRef}
+                            type="text"
+                            value={titleValue}
+                            onChange={(e) => setTitleValue(e.target.value)}
+                            onBlur={saveTitle}
+                            onKeyDown={(e) => {
+                              if (e.key === "Enter") saveTitle();
+                              if (e.key === "Escape") setEditingTitleId(null);
+                            }}
+                            onClick={(e) => e.stopPropagation()}
+                            placeholder="Título de imagen..."
+                            className="w-full bg-transparent text-[10px] text-white placeholder:text-white/30 border-b border-white/30 focus:border-[var(--site-primary)] outline-none pb-0.5"
+                          />
+                        ) : (
+                          <button
+                            onClick={(e) => { e.stopPropagation(); startEditTitle(img); }}
+                            className="w-full text-left flex items-center gap-1 group/title"
+                          >
+                            {img.alt_text ? (
+                              <span className="text-[10px] text-white/80 truncate">{img.alt_text}</span>
+                            ) : (
+                              <span className="text-[10px] text-white/25 opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-1">
+                                <Type size={8} />
+                                Añadir título
+                              </span>
+                            )}
+                          </button>
+                        )}
+                      </div>
                     </div>
                   ))}
                 </div>

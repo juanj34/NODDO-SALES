@@ -746,20 +746,8 @@ export default function DisponibilidadPage() {
                     {availTipos.map((tipo) => (
                       <button
                         key={tipo.id}
-                        onClick={async () => {
-                          await fetch(
-                            `/api/unidades/${tipoSelectUnit.unitId}`,
-                            {
-                              method: "PUT",
-                              headers: {
-                                "Content-Type": "application/json",
-                              },
-                              body: JSON.stringify({
-                                tipologia_id: tipo.id,
-                                estado: tipoSelectUnit.estado,
-                              }),
-                            }
-                          );
+                        onClick={() => {
+                          // Optimistic update first, then fire-and-forget
                           updateLocal((prev) => ({
                             ...prev,
                             unidades: prev.unidades.map((u) =>
@@ -776,6 +764,19 @@ export default function DisponibilidadPage() {
                             `${unit?.identificador} → ${tipo.nombre} · ${tipoSelectUnit.estado}`
                           );
                           setTipoSelectUnit(null);
+                          fetch(
+                            `/api/unidades/${tipoSelectUnit.unitId}`,
+                            {
+                              method: "PUT",
+                              headers: {
+                                "Content-Type": "application/json",
+                              },
+                              body: JSON.stringify({
+                                tipologia_id: tipo.id,
+                                estado: tipoSelectUnit.estado,
+                              }),
+                            }
+                          ).catch(() => toast.error("Error al guardar"));
                         }}
                         className="w-full flex items-center justify-between p-3 bg-[var(--surface-1)] border border-[var(--border-subtle)] rounded-xl hover:border-[rgba(var(--site-primary-rgb),0.3)] transition-colors text-left"
                       >

@@ -107,6 +107,7 @@ export interface Proyecto {
   background_audio_url: string | null;
   hide_noddo_badge: boolean;
   ocultar_vendidas: boolean;
+  ocultar_precio_vendidas: boolean;
   idioma: "es" | "en";
   moneda_base: Currency;
   unidad_medida_base: UnitOfMeasurement;

@@ -64,7 +64,7 @@ export function HeroSection() {
   return (
     <section className="relative min-h-[100dvh] lg:min-h-screen grid grid-cols-1 lg:grid-cols-2 items-center px-5 sm:px-6 lg:px-24 gap-6 lg:gap-12 overflow-hidden z-[1]">
       {/* ── LEFT: Copy ── */}
-      <div className="relative z-[2] pt-24 sm:pt-28 pb-8 lg:pt-0 lg:pb-0">
+      <div className="relative z-[2] pt-24 sm:pt-28 pb-8 lg:pt-28 lg:pb-0">
         {/* Label with gold line */}
         <motion.div
           initial={{ opacity: 0, y: 24 }}
@@ -308,7 +308,7 @@ export function HeroSection() {
       </div>
 
       {/* ── RIGHT: Isometric Building (desktop only) ── */}
-      <div className="hidden lg:flex items-center justify-center h-screen">
+      <div className="hidden lg:flex items-center justify-center h-screen pt-20">
         <IsometricBuilding />
       </div>
 

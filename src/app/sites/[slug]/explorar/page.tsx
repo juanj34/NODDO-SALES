@@ -152,21 +152,17 @@ export default function ExplorarPage() {
   const [hoveredUnit, setHoveredUnit] = useState<string | null>(null);
   const [cotizarUnidad, setCotizarUnidad] = useState<Unidad | null>(null);
   const [showVistaModal, setShowVistaModal] = useState<VistaPiso | null>(null);
-  const [imageLoaded, setImageLoaded] = useState(false);
-  const [imageError, setImageError] = useState(false);
+  const [loadedUrl, setLoadedUrl] = useState<string | null>(null);
+  const [errorUrl, setErrorUrl] = useState<string | null>(null);
   const prevFachadaIdRef = useRef<string | null>(null);
 
-  // Sync with URL param on mount / change - use ref to avoid setState in effect
+  // Sync with URL param on mount / change
   useEffect(() => {
     if (fachadaIdParam && fachadaIdParam !== prevFachadaIdRef.current) {
       prevFachadaIdRef.current = fachadaIdParam;
       const idx = sortedFachadas.findIndex((f) => f.id === fachadaIdParam);
       if (idx >= 0) {
-        // Schedule state updates for after render to avoid cascading renders
-        queueMicrotask(() => {
-          setActiveFachadaIndex(idx);
-          setImageLoaded(false);
-        });
+        setActiveFachadaIndex(idx);
       }
     }
   }, [fachadaIdParam, sortedFachadas]);
@@ -177,7 +173,9 @@ export default function ExplorarPage() {
   // Price source resolution
   const isTipologiaPricing = proyecto.precio_source === "tipologia";
   const ocultarVendidas = (proyecto as any).ocultar_vendidas ?? false;
+  const ocultarPrecioVendidas = (proyecto as any).ocultar_precio_vendidas ?? false;
   const getUnitPrice = useCallback((unit: Unidad): number | null => {
+    if (unit.estado === "vendida" && ocultarPrecioVendidas) return null;
     if (unit.estado === "vendida" && unit.precio_venta != null) return unit.precio_venta;
     if (!isTipologiaPricing) return unit.precio;
     if (unit.tipologia_id) {
@@ -195,7 +193,7 @@ export default function ExplorarPage() {
       return prices.length > 0 ? Math.min(...prices) : null;
     }
     return null;
-  }, [isTipologiaPricing, tipologias, isMultiTipo, unidadTipologias]);
+  }, [isTipologiaPricing, tipologias, isMultiTipo, unidadTipologias, ocultarPrecioVendidas]);
 
   // Units with coordinates, filtered by active fachada/planta
   const isPlantaView = explorarView === "planta";
@@ -252,18 +250,9 @@ export default function ExplorarPage() {
     || proyecto.fachada_url
     || "https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?w=1200&q=80";
 
-  // Reset imageLoaded only when the actual image URL changes - use ref to track
-  const prevFachadaUrlRef = useRef<string | null>(null);
-  useEffect(() => {
-    if (fachadaUrl !== prevFachadaUrlRef.current) {
-      prevFachadaUrlRef.current = fachadaUrl;
-      // Schedule state update for after render to avoid cascading renders
-      queueMicrotask(() => {
-        setImageLoaded(false);
-        setImageError(false);
-      });
-    }
-  }, [fachadaUrl]);
+  // Derived image loading state — no race condition possible
+  const imageLoaded = loadedUrl === fachadaUrl;
+  const imageError = errorUrl === fachadaUrl;
 
   // Whether we have implantaciones to go back to
   const hasImplantaciones = (proyecto.planos_interactivos ?? []).some(
@@ -1077,8 +1066,8 @@ export default function ExplorarPage() {
                 imageLoaded ? "opacity-100" : "opacity-0"
               )}
               draggable={false}
-              onLoad={() => setImageLoaded(true)}
-              onError={() => { setImageLoaded(true); setImageError(true); }}
+              onLoad={() => setLoadedUrl(fachadaUrl)}
+              onError={() => { setLoadedUrl(fachadaUrl); setErrorUrl(fachadaUrl); }}
             />
 
             {/* Dark overlay for better dot contrast */}
@@ -1226,7 +1215,8 @@ export default function ExplorarPage() {
           initial={{ opacity: 0, x: 20 }}
           animate={{ opacity: 1, x: 0 }}
           transition={{ delay: 0.4, duration: 0.5 }}
-          className="w-[340px] h-full flex-shrink-0 bg-[var(--surface-0)]/95 backdrop-blur-xl border-l border-[var(--border-default)] flex flex-col z-20"
+          className="w-[340px] h-full flex-shrink-0 bg-[var(--surface-0)]/95 backdrop-blur-xl border-l border-[var(--border-default)] flex flex-col overflow-hidden z-20"
+          data-lenis-prevent
         >
           {sidebarContent}
         </motion.div>

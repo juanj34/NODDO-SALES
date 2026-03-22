@@ -4,7 +4,7 @@ import { useCallback } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { projectKeys } from "@/hooks/useProjectsQuery";
 import { useToast } from "@/components/dashboard/Toast";
-import type { ProyectoCompleto, Tipologia } from "@/types";
+import type { ProyectoCompleto, Tipologia, Unidad } from "@/types";
 
 /**
  * Background save for sub-entities (tipologías, videos, etc.).
@@ -123,5 +123,53 @@ export function useBackgroundSave(projectId: string) {
     [queryClient, queryKey, toast]
   );
 
-  return { saveTipologia, saveEntity };
+  /** Save a unidad field immediately (no debounce). */
+  const saveUnidad = useCallback(
+    (options: {
+      unidadId: string;
+      payload: Record<string, unknown>;
+      optimisticUpdate: (prev: ProyectoCompleto) => ProyectoCompleto;
+    }) => {
+      const { unidadId, payload, optimisticUpdate } = options;
+
+      const snapshot = queryClient.getQueryData<ProyectoCompleto>(queryKey);
+
+      queryClient.setQueryData<ProyectoCompleto>(queryKey, (old) =>
+        old ? optimisticUpdate(old) : old
+      );
+
+      fetch(`/api/unidades/${unidadId}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      })
+        .then(async (res) => {
+          if (!res.ok) {
+            const text = await res.text().catch(() => "Error");
+            throw new Error(text || res.statusText);
+          }
+          const updated = (await res.json()) as Unidad;
+
+          queryClient.setQueryData<ProyectoCompleto>(queryKey, (old) =>
+            old
+              ? {
+                  ...old,
+                  unidades: old.unidades.map((u) =>
+                    u.id === unidadId ? { ...u, ...updated } : u
+                  ),
+                }
+              : old
+          );
+        })
+        .catch((err: Error) => {
+          if (snapshot) {
+            queryClient.setQueryData<ProyectoCompleto>(queryKey, snapshot);
+          }
+          toast.error(`Error al guardar: ${err.message}`);
+        });
+    },
+    [queryClient, queryKey, toast]
+  );
+
+  return { saveTipologia, saveEntity, saveUnidad };
 }

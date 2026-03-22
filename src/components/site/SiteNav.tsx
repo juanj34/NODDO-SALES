@@ -26,7 +26,7 @@ import { LanguageToggle } from "@/components/ui/LanguageToggle";
 import { AudioMuteButton } from "@/components/site/AudioPlayer";
 import { CurrencySelector } from "@/components/site/CurrencySelector";
 import { UnitToggle } from "@/components/site/UnitToggle";
-import { NodDoLogo } from "@/components/ui/NodDoLogo";
+
 
 interface SiteNavProps {
   basePath: string;
@@ -42,10 +42,9 @@ interface SiteNavProps {
   hasImplantaciones?: boolean;
   hasTour360?: boolean;
   hasAvances?: boolean;
-  hideNoddoBadge?: boolean;
 }
 
-export function SiteNav({ basePath, projectName, logoUrl, faviconUrl, constructoraLogoUrl, constructoraWebsite, expanded, disclaimer, politicaPrivacidadUrl, etapaLabel, hasImplantaciones, hasTour360, hasAvances, hideNoddoBadge }: SiteNavProps) {
+export function SiteNav({ basePath, projectName, logoUrl, faviconUrl, constructoraLogoUrl, constructoraWebsite, expanded, disclaimer, politicaPrivacidadUrl, etapaLabel, hasImplantaciones, hasTour360, hasAvances }: SiteNavProps) {
   const pathname = usePathname();
   const [isOpen, setIsOpen] = useState(false);
   const [hoveredItem, setHoveredItem] = useState<string | null>(null);
@@ -343,19 +342,15 @@ export function SiteNav({ basePath, projectName, logoUrl, faviconUrl, constructo
             {expanded && <div className="flex-1" />}
           </div>
 
-          {/* Bottom row: Logos (always horizontal) */}
-          <div className={cn(
-            "flex items-center gap-3",
-            expanded ? "w-full justify-between" : "justify-center"
-          )}>
-            {/* Constructora logo */}
-            {constructoraLogoUrl ? (
-              constructoraWebsite ? (
+          {/* Bottom row: Constructora logo */}
+          {constructoraLogoUrl && (
+            <div className="flex items-center justify-center">
+              {constructoraWebsite ? (
                 <a
                   href={constructoraWebsite}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="opacity-30 hover:opacity-60 transition-all duration-200 hover:brightness-110 flex-shrink-0"
+                  className="opacity-30 hover:opacity-60 transition-all duration-200 hover:brightness-110"
                 >
                   <Image
                     src={constructoraLogoUrl}
@@ -369,7 +364,7 @@ export function SiteNav({ basePath, projectName, logoUrl, faviconUrl, constructo
                   />
                 </a>
               ) : (
-                <div className="opacity-30 flex-shrink-0">
+                <div className="opacity-30">
                   <Image
                     src={constructoraLogoUrl}
                     alt="Constructora"
@@ -381,28 +376,9 @@ export function SiteNav({ basePath, projectName, logoUrl, faviconUrl, constructo
                     )}
                   />
                 </div>
-              )
-            ) : (
-              <div className="flex-shrink-0" />
-            )}
-
-            {/* Powered by NodDo */}
-            {!hideNoddoBadge && (
-              <a
-                href="https://noddo.io"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex items-center gap-1.5 no-underline opacity-25 hover:opacity-50 transition-all duration-200 hover:brightness-110 flex-shrink-0"
-              >
-                {expanded && (
-                  <span className="text-[7px] tracking-[0.1em] uppercase text-[var(--text-tertiary)]">
-                    by
-                  </span>
-                )}
-                <NodDoLogo width={expanded ? 44 : 28} colorNod="var(--text-secondary)" colorDo="#b8983c" />
-              </a>
-            )}
-          </div>
+              )}
+            </div>
+          )}
         </div>
 
       </motion.nav>

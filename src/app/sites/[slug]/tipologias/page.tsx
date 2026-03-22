@@ -61,6 +61,7 @@ export default function TipologiasPage() {
   const isHibrido = proyecto.tipo_proyecto === "hibrido";
   const isTipologiaPricing = proyecto.precio_source === "tipologia";
   const ocultarVendidas = (proyecto as any).ocultar_vendidas ?? false;
+  const ocultarPrecioVendidas = (proyecto as any).ocultar_precio_vendidas ?? false;
   const unidadTipologias = useMemo(() => proyecto.unidad_tipologias ?? [], [proyecto.unidad_tipologias]);
 
   // i18n-driven estado config and filters
@@ -768,7 +769,7 @@ export default function TipologiasPage() {
                             })()}
                           </div>
 
-                          {columns.precio && (isTipologiaPricing ? active?.precio_desde : (selectedUnit.precio || (isLoteBased && bannerTipo?.precio_desde))) && (() => {
+                          {columns.precio && !(selectedUnit.estado === "vendida" && ocultarPrecioVendidas) && (isTipologiaPricing ? active?.precio_desde : (selectedUnit.precio || (isLoteBased && bannerTipo?.precio_desde))) && (() => {
                             if (isTipologiaPricing && active?.precio_desde) {
                               return (
                                 <p className="font-mono text-lg text-[var(--site-primary)] tabular-nums">
@@ -1126,6 +1127,7 @@ export default function TipologiasPage() {
                               {/* Price & Status */}
                               <div className="text-right flex-shrink-0">
                                 {columns.precio && (() => {
+                                  if (unit.estado === "vendida" && ocultarPrecioVendidas) return <p className="font-mono text-sm text-[var(--text-secondary)] tabular-nums">—</p>;
                                   const t = unit.precio;
                                   // Multi-tipo: compute price range from assigned tipologías
                                   if (isMultiTipo) {
