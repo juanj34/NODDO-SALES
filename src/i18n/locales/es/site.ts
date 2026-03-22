@@ -35,6 +35,7 @@ const site = {
     terrain: "Terreno",
     construction: "Construcción",
     priceBreakdown: "Desglose",
+    watchVideo: "Ver Video",
   },
   galeria: {
     prevImage: "Imagen anterior",
@@ -80,6 +81,9 @@ const site = {
     heading: "Descarga nuestro brochure",
     description: "Conoce todos los detalles del proyecto {{name}}, tipologías, acabados y mucho más.",
     downloadPdf: "DESCARGAR PDF",
+    pageOf: "de",
+    loadingPdf: "Cargando brochure...",
+    errorLoading: "No se pudo cargar el brochure",
     notAvailable: "Brochure no disponible",
     notConfigured: "El brochure aún no ha sido cargado para este proyecto.",
   },

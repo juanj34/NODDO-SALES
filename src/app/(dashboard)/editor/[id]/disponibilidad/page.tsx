@@ -625,9 +625,11 @@ export default function DisponibilidadPage() {
               const tipo = tipologias.find((t) => t.id === unit.tipologia_id);
               const isUpdating = updatingIds.has(unit.id);
               const area = getPrimaryArea(unit, columns) ?? tipo?.area_m2;
-              const displayPrice = isTipologiaPricing
-                ? (tipo?.precio_desde ?? unit.precio)
-                : unit.precio;
+              const displayPrice = unit.estado === "vendida" && unit.precio_venta != null
+                ? unit.precio_venta
+                : isTipologiaPricing
+                  ? (tipo?.precio_desde ?? unit.precio)
+                  : unit.precio;
               const sc = UNIT_STATUS_COLORS[unit.estado];
               const isUncommitted = isMultiTipo && ["disponible", "proximamente"].includes(unit.estado);
 
@@ -821,9 +823,11 @@ export default function DisponibilidadPage() {
             const tip = tipologias.find((t) => t.id === unit.tipologia_id);
             const torre = torres.find((t) => t.id === unit.torre_id);
             const area = getPrimaryArea(unit, columns) ?? tip?.area_m2;
-            const price = isTipologiaPricing
-              ? (tip?.precio_desde ?? unit.precio)
-              : unit.precio;
+            const price = unit.estado === "vendida" && unit.precio_venta != null
+              ? unit.precio_venta
+              : isTipologiaPricing
+                ? (tip?.precio_desde ?? unit.precio)
+                : unit.precio;
             const newSc = UNIT_STATUS_COLORS[confirmModal.newEstado];
             const oldSc = UNIT_STATUS_COLORS[unit.estado];
 

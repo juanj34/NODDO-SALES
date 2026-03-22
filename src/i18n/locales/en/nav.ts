@@ -9,7 +9,7 @@ const nav = {
   tour360: "360 Tour",
   contacto: "Contact",
   brochure: "Brochure",
-  torre: "Tower",
+  torre: "Grid",
   avances: "Progress",
   privacyPolicy: "Privacy policy",
   legalInfo: "Legal Information",

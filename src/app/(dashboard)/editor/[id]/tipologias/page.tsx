@@ -41,6 +41,7 @@ import {
   ChevronDown,
   FileText,
   Map,
+  Video,
   type LucideIcon,
 } from "lucide-react";
 import { useToast } from "@/components/dashboard/Toast";
@@ -57,6 +58,10 @@ import { InlineError } from "@/components/ui/ErrorBoundary";
 import { ZodError } from "zod";
 import { useAutoSave } from "@/hooks/useAutoSave";
 import { AutoSaveIndicator } from "@/components/dashboard/AutoSaveIndicator";
+import { useQueryClient } from "@tanstack/react-query";
+import { projectKeys } from "@/hooks/useProjectsQuery";
+import { useBackgroundSave } from "@/hooks/useBackgroundSave";
+import type { ProyectoCompleto } from "@/types";
 
 /* ─── Form types ─── */
 
@@ -81,6 +86,7 @@ interface TipoForm {
   ubicacion_plano_url: string;
   torre_ids: string[];
   tipo_tipologia: TipoTipologia | "";
+  video_id: string | null;
 }
 
 const emptyTipologia: TipoForm = {
@@ -104,6 +110,7 @@ const emptyTipologia: TipoForm = {
   ubicacion_plano_url: "",
   torre_ids: [],
   tipo_tipologia: "",
+  video_id: null,
 };
 
 function tipologiaToForm(t: Tipologia): TipoForm {
@@ -133,6 +140,7 @@ function tipologiaToForm(t: Tipologia): TipoForm {
     ubicacion_plano_url: t.ubicacion_plano_url || "",
     torre_ids: t.torre_ids || [],
     tipo_tipologia: t.tipo_tipologia || "",
+    video_id: t.video_id ?? null,
   };
 }
 
@@ -281,9 +289,11 @@ type TipoTab = "general" | "plano" | "hotspots";
 
 export default function TipologiasPage() {
   const { project, refresh, projectId } = useEditorProject();
+  const queryClient = useQueryClient();
   const toast = useToast();
   const { confirm } = useConfirm();
   const { t } = useTranslation("editor");
+  const { saveTipologia } = useBackgroundSave(projectId);
 
   const TIPO_TABS: { id: TipoTab; label: string; icon: LucideIcon }[] = [
     { id: "general", label: t("tipologias.tabs.general"), icon: FileText },
@@ -295,7 +305,7 @@ export default function TipologiasPage() {
   const unidades = useMemo(() => project.unidades || [], [project.unidades]);
   const torres = useMemo(() => project.torres || [], [project.torres]);
   const isMultiTorre = torres.length > 1;
-  const torresLabel = project.tipo_proyecto === "apartamentos" ? "Torres" : "Etapas";
+  const torresLabel = project.tipo_proyecto === "apartamentos" ? "Torres" : "Grid";
   const isHibrido = project.tipo_proyecto === "hibrido";
 
   const [selectedId, setSelectedId] = useState<string | null>(null);
@@ -333,6 +343,7 @@ export default function TipologiasPage() {
     tipo_tipologia: isHibrido
       ? (form.tipo_tipologia || null)
       : deriveTipoTipologia(project.tipo_proyecto),
+    video_id: form.video_id || null,
   }), [form, isMultiTorre, isHibrido, project.tipo_proyecto]);
 
   /* ─── Auto-save function ─── */
@@ -355,7 +366,17 @@ export default function TipologiasPage() {
         throw new Error(errorText || res.statusText);
       }
 
-      await refresh();
+      // Merge server response into cache directly (no full project refetch)
+      const updated = await res.json() as Tipologia;
+      queryClient.setQueryData<ProyectoCompleto>(
+        projectKeys.detail(projectId),
+        (old) => old ? {
+          ...old,
+          tipologias: old.tipologias.map((t) =>
+            t.id === selectedId ? { ...t, ...updated } : t
+          ),
+        } : old
+      );
     } else if (isCreating) {
       // Create new
       const res = await fetch("/api/tipologias", {
@@ -369,8 +390,16 @@ export default function TipologiasPage() {
         throw new Error(errorText || res.statusText);
       }
 
-      const created = await res.json();
-      await refresh();
+      const created = await res.json() as Tipologia;
+
+      // Add to cache directly (no full project refetch)
+      queryClient.setQueryData<ProyectoCompleto>(
+        projectKeys.detail(projectId),
+        (old) => old ? {
+          ...old,
+          tipologias: [...old.tipologias, created],
+        } : old
+      );
 
       // Select the newly created tipologia
       if (created?.id) {
@@ -378,7 +407,7 @@ export default function TipologiasPage() {
         setIsCreating(false);
       }
     }
-  }, [buildPayload, selectedId, isCreating, projectId, refresh]);
+  }, [buildPayload, selectedId, isCreating, projectId, queryClient]);
 
   /* ─── Auto-save hook ─── */
   const { status: autoSaveStatus } = useAutoSave({
@@ -445,7 +474,7 @@ export default function TipologiasPage() {
     setActiveTab("general");
   };
 
-  const updateForm = (field: keyof TipoForm, value: string | string[] | TipologiaHotspot[]) => {
+  const updateForm = (field: keyof TipoForm, value: string | string[] | TipologiaHotspot[] | TipologiaPiso[] | null) => {
     setForm((prev) => ({ ...prev, [field]: value }));
   };
 
@@ -584,6 +613,7 @@ export default function TipologiasPage() {
         pisos: tip.pisos || null,
         ubicacion_plano_url: tip.ubicacion_plano_url || null,
         torre_ids: tip.torre_ids || [],
+        video_id: tip.video_id || null,
       };
       const res = await fetch("/api/tipologias", {
         method: "POST",
@@ -971,7 +1001,24 @@ export default function TipologiasPage() {
                                   <button
                                     key={tipo.id}
                                     type="button"
-                                    onClick={() => updateForm("tipo_tipologia", tipo.id)}
+                                    onClick={() => {
+                                      updateForm("tipo_tipologia", tipo.id);
+                                      // Immediate background save for discrete changes
+                                      if (selectedId && !isCreating) {
+                                        saveTipologia({
+                                          tipologiaId: selectedId,
+                                          payload: { tipo_tipologia: tipo.id },
+                                          optimisticUpdate: (prev) => ({
+                                            ...prev,
+                                            tipologias: prev.tipologias.map((t) =>
+                                              t.id === selectedId
+                                                ? { ...t, tipo_tipologia: tipo.id }
+                                                : t
+                                            ),
+                                          }),
+                                        });
+                                      }
+                                    }}
                                     className={cn(
                                       "flex items-center px-3 py-2 border transition-all text-left",
                                       gap.normal,
@@ -1023,6 +1070,21 @@ export default function TipologiasPage() {
                                           ? form.torre_ids.filter((id) => id !== torre.id)
                                           : [...form.torre_ids, torre.id];
                                         updateForm("torre_ids", next);
+                                        // Immediate background save for discrete changes
+                                        if (selectedId && !isCreating) {
+                                          saveTipologia({
+                                            tipologiaId: selectedId,
+                                            payload: { torre_ids: next },
+                                            optimisticUpdate: (prev) => ({
+                                              ...prev,
+                                              tipologias: prev.tipologias.map((t) =>
+                                                t.id === selectedId
+                                                  ? { ...t, torre_ids: next }
+                                                  : t
+                                              ),
+                                            }),
+                                          });
+                                        }
                                       }}
                                       className="sr-only"
                                     />
@@ -1044,6 +1106,51 @@ export default function TipologiasPage() {
                             maxLength={5000}
                           />
                         </div>
+
+                        {/* ── Video vinculado ── */}
+                        {(project.videos || []).length > 0 && (
+                          <div>
+                            <Label className="flex items-center gap-1.5">
+                              <Video size={iconSize.xs} className="text-[var(--site-primary)]" />
+                              {t("tipologias.linkedVideo")}
+                            </Label>
+                            <select
+                              value={form.video_id || ""}
+                              onChange={(e) => {
+                                const newVideoId = e.target.value || null;
+                                updateForm("video_id", newVideoId);
+                                // Immediate background save for discrete changes (no debounce)
+                                if (selectedId && !isCreating) {
+                                  saveTipologia({
+                                    tipologiaId: selectedId,
+                                    payload: { video_id: newVideoId },
+                                    optimisticUpdate: (prev) => ({
+                                      ...prev,
+                                      tipologias: prev.tipologias.map((t) =>
+                                        t.id === selectedId
+                                          ? { ...t, video_id: newVideoId }
+                                          : t
+                                      ),
+                                    }),
+                                  });
+                                }
+                              }}
+                              className={inputClass}
+                            >
+                              <option value="">{t("tipologias.noVideoLinked")}</option>
+                              {(project.videos || [])
+                                .filter((v) => !v.stream_uid || v.stream_status === "ready")
+                                .map((v) => (
+                                  <option key={v.id} value={v.id}>
+                                    {v.titulo || `Video ${(v.orden ?? 0) + 1}`}
+                                  </option>
+                                ))}
+                            </select>
+                            <p className={cn("text-[var(--text-muted)] mt-1.5", fontSize.label)}>
+                              {t("tipologias.linkedVideoHint")}
+                            </p>
+                          </div>
+                        )}
 
                         {/* ── Precio ── */}
                         <div>

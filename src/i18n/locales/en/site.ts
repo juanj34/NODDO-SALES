@@ -35,6 +35,7 @@ const site = {
     terrain: "Terrain",
     construction: "Construction",
     priceBreakdown: "Breakdown",
+    watchVideo: "Watch Video",
   },
   galeria: {
     prevImage: "Previous image",
@@ -80,6 +81,9 @@ const site = {
     heading: "Download our brochure",
     description: "Discover all the details about {{name}} — unit types, finishes, and much more.",
     downloadPdf: "DOWNLOAD PDF",
+    pageOf: "of",
+    loadingPdf: "Loading brochure...",
+    errorLoading: "Could not load brochure",
     notAvailable: "Brochure not available",
     notConfigured: "The brochure has not been uploaded for this project yet.",
   },

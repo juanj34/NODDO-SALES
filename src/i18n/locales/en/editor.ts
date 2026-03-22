@@ -228,6 +228,12 @@ const editor = {
       hide: "Hide badge on the microsite",
       hideHint: "In the future, this option will be available based on account type",
     },
+    ocultarVendidas: {
+      title: "Sold units",
+      description: "Controls visibility of sold units on the public microsite",
+      hide: "Hide sold units on the microsite",
+      hideHint: "Sold units will not appear in inventory, explore, or typologies on the microsite. Data is preserved in the admin panel.",
+    },
     slug: {
       title: "Microsite URL",
       description: "Define the web address where your project is accessed",
@@ -405,6 +411,9 @@ const editor = {
     removeFloor: "Remove floor",
     removeFloorConfirm: "This will remove the floor plan and hotspots for this floor. Continue?",
     noFloorsYet: "No floors configured",
+    linkedVideo: "Linked video",
+    noVideoLinked: "No linked video",
+    linkedVideoHint: "Select a project video to show a \"Watch Video\" button on this unit type.",
   },
   galeria: {
     title: "Image Gallery",

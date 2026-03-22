@@ -27,7 +27,9 @@ import {
   Home,
   Images,
   Archive,
+  Play,
 } from "lucide-react";
+import { getVideoSrc, getVideoThumb } from "@/lib/video-utils";
 import { SiteEmptyState } from "@/components/site/SiteEmptyState";
 import VistaModal from "@/components/site/VistaModal";
 import { getInventoryColumns, getHybridInventoryColumns, getPrimaryArea } from "@/lib/inventory-columns";
@@ -58,18 +60,22 @@ export default function TipologiasPage() {
   const isLotes = proyecto.tipo_proyecto === "lotes";
   const isHibrido = proyecto.tipo_proyecto === "hibrido";
   const isTipologiaPricing = proyecto.precio_source === "tipologia";
+  const ocultarVendidas = (proyecto as any).ocultar_vendidas ?? false;
   const unidadTipologias = useMemo(() => proyecto.unidad_tipologias ?? [], [proyecto.unidad_tipologias]);
 
   // i18n-driven estado config and filters
   const estadoConfigDynamic = useMemo(() => getEstadoConfig(tCommon), [tCommon]);
-  const estadoFiltersDynamic = useMemo(() => [
-    { value: "todas", label: tCommon("labels.all") },
-    { value: "disponible", label: tCommon("estados.disponible") },
-    { value: "proximamente", label: tCommon("estados.proximamente") },
-    { value: "separado", label: tCommon("estados.separado") },
-    { value: "reservada", label: tCommon("estados.reservada") },
-    { value: "vendida", label: tCommon("estados.vendida") },
-  ], [tCommon]);
+  const estadoFiltersDynamic = useMemo(() => {
+    const all = [
+      { value: "todas", label: tCommon("labels.all") },
+      { value: "disponible", label: tCommon("estados.disponible") },
+      { value: "proximamente", label: tCommon("estados.proximamente") },
+      { value: "separado", label: tCommon("estados.separado") },
+      { value: "reservada", label: tCommon("estados.reservada") },
+      { value: "vendida", label: tCommon("estados.vendida") },
+    ];
+    return ocultarVendidas ? all.filter(f => f.value !== "vendida") : all;
+  }, [tCommon, ocultarVendidas]);
 
   // Torre selector state
   const [activeTorreId, setActiveTorreId] = usePersistedState<string | null>(
@@ -123,6 +129,7 @@ export default function TipologiasPage() {
   const [showRenderGallery, setShowRenderGallery] = useState(false);
   const [showPlanoZoom, setShowPlanoZoom] = useState(false);
   const [showVistaModal, setShowVistaModal] = useState<VistaPiso | null>(null);
+  const [showVideoModal, setShowVideoModal] = useState(false);
   const [activePisoIdx, setActivePisoIdx] = useState(0);
 
   // Image ref for hotspot container
@@ -184,6 +191,10 @@ export default function TipologiasPage() {
         case "Escape":
           // Lightbox and VistaModal handle their own ESC
           if (showRenderGallery || showPlanoZoom || showVistaModal) return;
+          if (showVideoModal) {
+            setShowVideoModal(false);
+            return;
+          }
           if (showUbicacion) {
             setShowUbicacion(false);
           } else if (activeHotspot) {
@@ -213,14 +224,14 @@ export default function TipologiasPage() {
     window.addEventListener("keydown", handleKey);
     return () => window.removeEventListener("keydown", handleKey);
     // eslint-disable-next-line react-hooks/exhaustive-deps -- setActiveIndex is a state setter, stable
-  }, [activeHotspot, closeHotspot, selectedUnit, showRenderGallery, showPlanoZoom, showVistaModal, showUbicacion, visibleTipologias.length]);
+  }, [activeHotspot, closeHotspot, selectedUnit, showRenderGallery, showPlanoZoom, showVistaModal, showVideoModal, showUbicacion, visibleTipologias.length]);
 
   const active = visibleTipologias[activeIndex] ?? visibleTipologias[0];
 
   // Multi-floor support
   const pisos = useMemo(() => (active ? resolvePisos(active) : []), [active]);
-  // Reset floor index when tipología changes
-  useEffect(() => { setActivePisoIdx(0); }, [active?.id]);
+  // Reset floor index and video modal when tipología changes
+  useEffect(() => { setActivePisoIdx(0); setShowVideoModal(false); }, [active?.id]);
   const activePiso = pisos[activePisoIdx] ?? pisos[0] ?? null;
 
   // Compute columns & isLoteBased dynamically based on active tipología's tipo_tipologia for hybrid
@@ -272,11 +283,14 @@ export default function TipologiasPage() {
     } else {
       filtered = unidades.filter((u) => u.tipologia_id === active.id);
     }
+    if (ocultarVendidas) {
+      filtered = filtered.filter((u) => u.estado !== "vendida");
+    }
     if (estadoFilter !== "todas") {
       filtered = filtered.filter((u) => u.estado === estadoFilter);
     }
     return filtered;
-  }, [unidades, active, estadoFilter, isMultiTipo, unidadTipologias]);
+  }, [unidades, active, estadoFilter, isMultiTipo, unidadTipologias, ocultarVendidas]);
 
   // Count units by estado for current tipología
   const estadoCounts = useMemo(() => {
@@ -284,15 +298,18 @@ export default function TipologiasPage() {
     let tipoUnidades = isMultiTipo
       ? unidades.filter(u => unidadTipologias.some(ut => ut.unidad_id === u.id && ut.tipologia_id === active.id))
       : unidades.filter((u) => u.tipologia_id === active.id);
+    if (ocultarVendidas) {
+      tipoUnidades = tipoUnidades.filter((u) => u.estado !== "vendida");
+    }
     return {
       todas: tipoUnidades.length,
       disponible: tipoUnidades.filter((u) => u.estado === "disponible").length,
       proximamente: tipoUnidades.filter((u) => u.estado === "proximamente").length,
       separado: tipoUnidades.filter((u) => u.estado === "separado").length,
       reservada: tipoUnidades.filter((u) => u.estado === "reservada").length,
-      vendida: tipoUnidades.filter((u) => u.estado === "vendida").length,
+      vendida: ocultarVendidas ? 0 : tipoUnidades.filter((u) => u.estado === "vendida").length,
     };
-  }, [unidades, active, isMultiTipo, unidadTipologias]);
+  }, [unidades, active, isMultiTipo, unidadTipologias, ocultarVendidas]);
 
   // Dynamic "desde" price from cheapest available unit
   // For lotes: includes construction price (terreno + tipología.precio_desde)
@@ -337,6 +354,14 @@ export default function TipologiasPage() {
     }
     return result;
   }, [active, pisos]);
+
+  // Resolve linked video for active tipología
+  const linkedVideo = useMemo(() => {
+    if (!active?.video_id) return null;
+    return (proyecto.videos ?? []).find(
+      (v) => v.id === active.video_id && (!v.stream_uid || v.stream_status === "ready")
+    ) ?? null;
+  }, [active?.video_id, proyecto.videos]);
 
   // Floor plan images for Lightbox zoom (all floors, starting from activePisoIdx)
   const planoImages: LightboxImage[] = useMemo(() => {
@@ -570,31 +595,64 @@ export default function TipologiasPage() {
                   </div>
                 )}
 
-                {/* Render gallery button — bottom left */}
-                {renderImages.length > 0 && !selectedUnit && (
-                  <button
-                    onClick={() => setShowRenderGallery(true)}
-                    className="absolute bottom-4 left-4 bg-[var(--surface-2)] rounded-xl overflow-hidden border border-[var(--border-default)] shadow-lg z-10 cursor-pointer group transition-all hover:border-[rgba(var(--site-primary-rgb),0.4)] hover:shadow-[var(--glow-sm)] flex items-center gap-2.5 px-3 py-2.5"
-                  >
-                    {/* Thumbnail of first render */}
-                    <div className="w-10 h-10 rounded-lg overflow-hidden flex-shrink-0">
-                      {/* eslint-disable-next-line @next/next/no-img-element */}
-                      <img
-                        src={renderImages[0].url}
-                        alt=""
-                        className="w-full h-full object-cover"
-                      />
-                    </div>
-                    <div className="text-left">
-                      <span className="text-[11px] text-[var(--text-secondary)] font-medium tracking-wide flex items-center gap-1.5">
-                        <Images size={12} className="text-[var(--site-primary)]" />
-                        {tSite("tipologias.renders")}
-                      </span>
-                      <span className="text-[10px] text-[var(--text-muted)]">
-                        {renderImages.length} {renderImages.length === 1 ? tSite("tipologias.image") : tSite("tipologias.images")}
-                      </span>
-                    </div>
-                  </button>
+                {/* Render gallery + Video buttons — bottom left */}
+                {(renderImages.length > 0 || linkedVideo) && !selectedUnit && (
+                  <div className="absolute bottom-4 left-4 z-10 flex flex-col gap-2">
+                    {/* Renders button */}
+                    {renderImages.length > 0 && (
+                      <button
+                        onClick={() => setShowRenderGallery(true)}
+                        className="bg-[var(--surface-2)] rounded-xl overflow-hidden border border-[var(--border-default)] shadow-lg cursor-pointer group transition-all hover:border-[rgba(var(--site-primary-rgb),0.4)] hover:shadow-[var(--glow-sm)] flex items-center gap-2.5 px-3 py-2.5"
+                      >
+                        <div className="w-10 h-10 rounded-lg overflow-hidden flex-shrink-0">
+                          {/* eslint-disable-next-line @next/next/no-img-element */}
+                          <img
+                            src={renderImages[0].url}
+                            alt=""
+                            className="w-full h-full object-cover"
+                          />
+                        </div>
+                        <div className="text-left">
+                          <span className="text-[11px] text-[var(--text-secondary)] font-medium tracking-wide flex items-center gap-1.5">
+                            <Images size={12} className="text-[var(--site-primary)]" />
+                            {tSite("tipologias.renders")}
+                          </span>
+                          <span className="text-[10px] text-[var(--text-muted)]">
+                            {renderImages.length} {renderImages.length === 1 ? tSite("tipologias.image") : tSite("tipologias.images")}
+                          </span>
+                        </div>
+                      </button>
+                    )}
+
+                    {/* Video button */}
+                    {linkedVideo && (
+                      <button
+                        onClick={() => setShowVideoModal(true)}
+                        className="bg-[var(--surface-2)] rounded-xl overflow-hidden border border-[var(--border-default)] shadow-lg cursor-pointer group transition-all hover:border-[rgba(var(--site-primary-rgb),0.4)] hover:shadow-[var(--glow-sm)] flex items-center gap-2.5 px-3 py-2.5"
+                      >
+                        <div className="w-10 h-10 rounded-lg overflow-hidden flex-shrink-0 bg-black/50 flex items-center justify-center">
+                          {(() => {
+                            const thumb = getVideoThumb(linkedVideo);
+                            return thumb ? (
+                              // eslint-disable-next-line @next/next/no-img-element
+                              <img src={thumb} alt="" className="w-full h-full object-cover" />
+                            ) : (
+                              <Play size={16} className="text-[var(--site-primary)]" fill="currentColor" />
+                            );
+                          })()}
+                        </div>
+                        <div className="text-left">
+                          <span className="text-[11px] text-[var(--text-secondary)] font-medium tracking-wide flex items-center gap-1.5">
+                            <Play size={12} className="text-[var(--site-primary)]" fill="currentColor" />
+                            {tSite("tipologias.watchVideo")}
+                          </span>
+                          <span className="text-[10px] text-[var(--text-muted)] truncate max-w-[120px] block">
+                            {linkedVideo.titulo || "Video"}
+                          </span>
+                        </div>
+                      </button>
+                    )}
+                  </div>
                 )}
 
                 {/* Location thumbnail overlay */}
@@ -623,7 +681,8 @@ export default function TipologiasPage() {
                       animate={{ opacity: 1, y: 0 }}
                       exit={{ opacity: 0, y: 20 }}
                       transition={{ type: "spring", damping: 25 }}
-                      className="absolute bottom-4 left-4 right-4 z-20 glass-dark rounded-2xl p-4"
+                      className="absolute bottom-4 left-4 right-4 z-20 rounded-2xl p-4 border border-[var(--glass-border)]"
+                      style={{ background: "rgba(0,0,0,0.92)", backdropFilter: "blur(32px)", WebkitBackdropFilter: "blur(32px)" }}
                     >
                       <button
                         onClick={() => setSelectedUnit(null)}
@@ -636,7 +695,7 @@ export default function TipologiasPage() {
                       <div className="flex items-start gap-4">
                         <div className="flex-1">
                           <div className="flex items-center gap-2 mb-1">
-                            <h3 className="text-base font-semibold text-[var(--text-primary)]">
+                            <h3 className="text-base font-medium text-[var(--text-primary)]">
                               {getUnitDisplayName(selectedUnit, unitPrefix)}
                             </h3>
                             {(() => {
@@ -712,7 +771,7 @@ export default function TipologiasPage() {
                           {columns.precio && (isTipologiaPricing ? active?.precio_desde : (selectedUnit.precio || (isLoteBased && bannerTipo?.precio_desde))) && (() => {
                             if (isTipologiaPricing && active?.precio_desde) {
                               return (
-                                <p className="font-mono text-lg font-semibold text-[var(--site-primary)] tabular-nums">
+                                <p className="font-mono text-lg text-[var(--site-primary)] tabular-nums">
                                   {formatCurrency(active.precio_desde, proyecto.moneda_base ?? "COP")}
                                 </p>
                               );
@@ -723,44 +782,31 @@ export default function TipologiasPage() {
                               : [];
                             const complementosTotal = unitComplementos.reduce((s, c) => s + (c.precio ?? 0), 0);
 
-                            // Lote-based multi-tipo: show tipología comparison tabs
-                            if (isLoteBased && isMultiTipo && unitAvailableTipos.length > 0 && bannerTipo?.precio_desde) {
-                              const construccion = bannerTipo.precio_desde;
-                              const total = (terreno ?? 0) + construccion;
+                            // Lote-based multi-tipo: show all tipologías side by side
+                            if (isLoteBased && isMultiTipo && unitAvailableTipos.length > 0) {
                               return (
-                                <div>
-                                  {/* Tipología toggle tabs */}
-                                  {unitAvailableTipos.length > 1 && (
-                                    <div className="flex gap-1 mb-2">
-                                      {unitAvailableTipos.map((t) => (
-                                        <button
-                                          key={t.id}
-                                          onClick={() => setBannerTipoId(t.id)}
-                                          className={cn(
-                                            "px-2.5 py-1 rounded-full text-[10px] tracking-wider transition-all cursor-pointer",
-                                            bannerTipo.id === t.id
-                                              ? "bg-[rgba(var(--site-primary-rgb),0.15)] text-[var(--site-primary)]"
-                                              : "text-[var(--text-tertiary)] hover:text-[var(--text-secondary)] hover:bg-[var(--glass-bg)]"
-                                          )}
-                                        >
-                                          {t.nombre}
-                                        </button>
-                                      ))}
-                                    </div>
-                                  )}
-                                  {/* Price breakdown */}
-                                  <div className="flex items-baseline gap-3">
-                                    <p className="font-mono text-lg font-semibold text-[var(--site-primary)] tabular-nums">
-                                      {terreno
-                                        ? formatCurrency(total, proyecto.moneda_base ?? "COP")
-                                        : formatCurrency(construccion, proyecto.moneda_base ?? "COP")}
-                                    </p>
-                                    <span className="font-mono text-[9px] text-[var(--text-tertiary)]">
-                                      {terreno
-                                        ? `${tSite("tipologias.terrain")} ${formatCurrency(terreno, proyecto.moneda_base ?? "COP")} + ${tSite("tipologias.construction")} ${formatCurrency(construccion, proyecto.moneda_base ?? "COP")}`
-                                        : tSite("tipologias.construction")}
-                                    </span>
-                                  </div>
+                                <div className="flex gap-4">
+                                  {unitAvailableTipos.map((t) => {
+                                    const construccion = t.precio_desde ?? 0;
+                                    const total = (terreno ?? 0) + construccion;
+                                    return (
+                                      <div key={t.id} className="flex-1 min-w-0">
+                                        <p className="text-[10px] text-[var(--text-secondary)] mb-0.5 truncate">{t.nombre}</p>
+                                        <p className="font-mono text-base text-[var(--site-primary)] tabular-nums">
+                                          {terreno && construccion
+                                            ? formatCurrency(total, proyecto.moneda_base ?? "COP")
+                                            : construccion
+                                              ? formatCurrency(construccion, proyecto.moneda_base ?? "COP")
+                                              : "—"}
+                                        </p>
+                                        {terreno && construccion ? (
+                                          <p className="font-mono text-[9px] text-[var(--text-tertiary)]">
+                                            {formatCurrency(terreno, proyecto.moneda_base ?? "COP")} + {formatCurrency(construccion, proyecto.moneda_base ?? "COP")}
+                                          </p>
+                                        ) : null}
+                                      </div>
+                                    );
+                                  })}
                                 </div>
                               );
                             }
@@ -771,7 +817,7 @@ export default function TipologiasPage() {
                               const total = (terreno ?? 0) + construccion + complementosTotal;
                               return (
                                 <div>
-                                  <p className="font-mono text-lg font-semibold text-[var(--site-primary)] tabular-nums">
+                                  <p className="font-mono text-lg text-[var(--site-primary)] tabular-nums">
                                     {terreno
                                       ? formatCurrency(total, proyecto.moneda_base ?? "COP")
                                       : formatCurrency(construccion, proyecto.moneda_base ?? "COP")}
@@ -791,7 +837,7 @@ export default function TipologiasPage() {
                             const totalPrecio = terreno + complementosTotal;
                             return unitComplementos.length > 0 ? (
                               <div>
-                                <p className="font-mono text-lg font-semibold text-[var(--site-primary)] tabular-nums">
+                                <p className="font-mono text-lg text-[var(--site-primary)] tabular-nums">
                                   {formatCurrency(totalPrecio, proyecto.moneda_base ?? "COP")}
                                 </p>
                                 <p className="font-mono text-[9px] text-[var(--text-tertiary)]">
@@ -799,7 +845,7 @@ export default function TipologiasPage() {
                                 </p>
                               </div>
                             ) : (
-                              <p className="font-mono text-lg font-semibold text-[var(--site-primary)] tabular-nums">
+                              <p className="font-mono text-lg text-[var(--site-primary)] tabular-nums">
                                 {formatCurrency(terreno, proyecto.moneda_base ?? "COP")}
                               </p>
                             );
@@ -920,7 +966,7 @@ export default function TipologiasPage() {
                       {areaFields.map(({ label, value }) => (
                         <div key={label} className="flex items-center justify-between gap-4">
                           <span className="font-mono text-[10px] text-[var(--text-muted)]">{label}</span>
-                          <span className="font-mono text-xs font-medium text-[var(--text-primary)] tabular-nums">
+                          <span className="font-mono text-xs text-[var(--text-primary)] tabular-nums">
                             {value} m²
                           </span>
                         </div>
@@ -932,7 +978,7 @@ export default function TipologiasPage() {
                             <span className="font-ui text-[9px] text-[var(--text-secondary)] font-bold tracking-wider uppercase">
                               {tSite("tipologias.total")}
                             </span>
-                            <span className="font-mono text-xs font-semibold text-[var(--site-primary)] tabular-nums">
+                            <span className="font-mono text-xs text-[var(--site-primary)] tabular-nums">
                               {totalArea} m²
                             </span>
                           </div>
@@ -948,7 +994,7 @@ export default function TipologiasPage() {
                     {active.habitaciones != null && (
                       <div className="flex items-center gap-1.5">
                         <BedDouble size={13} className="text-[var(--site-primary)]" strokeWidth={2.5} />
-                        <span className="font-mono text-xs font-medium text-[var(--text-primary)] tabular-nums">
+                        <span className="font-mono text-xs text-[var(--text-primary)] tabular-nums">
                           {active.habitaciones === 0 ? tSite("tipologias.studio") : active.habitaciones}
                         </span>
                       </div>
@@ -956,7 +1002,7 @@ export default function TipologiasPage() {
                     {active.banos != null && (
                       <div className="flex items-center gap-1.5">
                         <Bath size={13} className="text-[var(--site-primary)]" strokeWidth={2.5} />
-                        <span className="font-mono text-xs font-medium text-[var(--text-primary)] tabular-nums">
+                        <span className="font-mono text-xs text-[var(--text-primary)] tabular-nums">
                           {active.banos}
                         </span>
                       </div>
@@ -964,7 +1010,7 @@ export default function TipologiasPage() {
                     {active.parqueaderos != null && (
                       <div className="flex items-center gap-1.5">
                         <Car size={13} className="text-[var(--site-primary)]" strokeWidth={2.5} />
-                        <span className="font-mono text-xs font-medium text-[var(--text-primary)] tabular-nums">
+                        <span className="font-mono text-xs text-[var(--text-primary)] tabular-nums">
                           {active.parqueaderos}
                         </span>
                       </div>
@@ -972,7 +1018,7 @@ export default function TipologiasPage() {
                     {(active.depositos ?? 0) > 0 && (
                       <div className="flex items-center gap-1.5">
                         <Archive size={13} className="text-[var(--site-primary)]" strokeWidth={2.5} />
-                        <span className="font-mono text-xs font-medium text-[var(--text-primary)] tabular-nums">
+                        <span className="font-mono text-xs text-[var(--text-primary)] tabular-nums">
                           {active.depositos}
                         </span>
                       </div>
@@ -986,7 +1032,7 @@ export default function TipologiasPage() {
                     <span className="font-ui text-[9px] font-bold tracking-[0.15em] text-[var(--site-primary)] uppercase">
                       {tSite("tipologias.from")}
                     </span>
-                    <span className="font-mono text-base font-semibold text-[var(--site-primary)] tabular-nums leading-none">
+                    <span className="font-mono text-base text-[var(--site-primary)] tabular-nums leading-none">
                       {formatCurrency(precioDesde, proyecto.moneda_base ?? "COP")}
                     </span>
                   </div>
@@ -1067,19 +1113,6 @@ export default function TipologiasPage() {
                               <div className="flex-1 min-w-0">
                                 <p className="text-sm text-[var(--text-primary)] font-medium truncate">
                                   {getUnitDisplayName(unit, unitPrefix)}
-                                  {isMultiTipo && (() => {
-                                    const unitTipoIds = unidadTipologias.filter(ut => ut.unidad_id === unit.id).map(ut => ut.tipologia_id);
-                                    if (unitTipoIds.length <= 1) return null;
-                                    const names = tipologias
-                                      .filter(tp => unitTipoIds.includes(tp.id))
-                                      .map(tp => tp.nombre)
-                                      .join(", ");
-                                    return (
-                                      <span className="text-[10px] text-[var(--text-muted)] ml-1">
-                                        · {names}
-                                      </span>
-                                    );
-                                  })()}
                                 </p>
                                 <p className="font-mono text-[10px] text-[var(--text-tertiary)] tracking-wider">
                                   {[
@@ -1107,11 +1140,11 @@ export default function TipologiasPage() {
                                       })
                                       .filter(p => p > 0)
                                       .sort((a, b) => a - b);
-                                    if (prices.length === 0) return <p className="font-mono text-sm text-[var(--text-secondary)] font-medium tabular-nums">—</p>;
+                                    if (prices.length === 0) return <p className="font-mono text-sm text-[var(--text-secondary)] tabular-nums">—</p>;
                                     const min = prices[0];
                                     const allSame = prices.every(p => p === min);
                                     return (
-                                      <p className="font-mono text-sm text-[var(--text-secondary)] font-medium tabular-nums">
+                                      <p className="font-mono text-sm text-[var(--text-secondary)] tabular-nums">
                                         {!allSame && <span className="text-[10px] text-[var(--text-tertiary)]">{tSite("tipologias.from")} </span>}
                                         {formatCurrency(min, proyecto.moneda_base ?? "COP")}
                                       </p>
@@ -1121,7 +1154,7 @@ export default function TipologiasPage() {
                                   const c = isLoteBased && active?.precio_desde ? active.precio_desde : 0;
                                   const displayPrice = t ? t + c : c || null;
                                   return (
-                                    <p className="font-mono text-sm text-[var(--text-secondary)] font-medium tabular-nums">
+                                    <p className="font-mono text-sm text-[var(--text-secondary)] tabular-nums">
                                       {displayPrice ? formatCurrency(displayPrice, proyecto.moneda_base ?? "COP") : "—"}
                                     </p>
                                   );
@@ -1274,6 +1307,44 @@ export default function TipologiasPage() {
       <AnimatePresence>
         {showVistaModal && (
           <VistaModal vista={showVistaModal} onClose={() => setShowVistaModal(null)} />
+        )}
+      </AnimatePresence>
+
+      {/* ====== VIDEO MODAL ====== */}
+      <AnimatePresence>
+        {showVideoModal && linkedVideo && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.2 }}
+            className="fixed inset-0 z-[70] flex items-center justify-center p-8"
+            onClick={() => setShowVideoModal(false)}
+          >
+            <div className="absolute inset-0 bg-black/70 backdrop-blur-md" />
+            <motion.div
+              initial={{ opacity: 0, scale: 0.92 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.92 }}
+              transition={{ duration: 0.25, ease: [0.4, 0, 0.2, 1] }}
+              className="relative w-full max-w-4xl aspect-video rounded-2xl overflow-hidden shadow-2xl bg-black"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <iframe
+                src={getVideoSrc(linkedVideo)}
+                className="w-full h-full border-0"
+                allowFullScreen
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                title={linkedVideo.titulo || "Video"}
+              />
+              <CloseButton
+                onClick={() => setShowVideoModal(false)}
+                variant="dark"
+                size={16}
+                className="absolute top-3 right-3"
+              />
+            </motion.div>
+          </motion.div>
         )}
       </AnimatePresence>
 

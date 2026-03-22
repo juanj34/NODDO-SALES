@@ -162,7 +162,7 @@ const editor = {
       description: "Define cómo se llaman las agrupaciones de tu proyecto",
       label: "Etiqueta de agrupación",
       hint: "Define cómo se llaman las agrupaciones...",
-      options: ["Torres", "Etapas", "Sectores", "Manzanas", "Fases", "Bloques"],
+      options: ["Grid", "Torres", "Etapas", "Sectores", "Manzanas", "Fases", "Bloques"],
     },
     contact: {
       title: "Contacto",
@@ -227,6 +227,12 @@ const editor = {
       description: "Muestra un badge con el logo de Noddo en el micrositio",
       hide: "Ocultar badge en el micrositio",
       hideHint: "En un futuro, esta opción estará disponible según el tipo de cuenta",
+    },
+    ocultarVendidas: {
+      title: "Unidades vendidas",
+      description: "Controla la visibilidad de las unidades vendidas en el micrositio público",
+      hide: "Ocultar unidades vendidas en el micrositio",
+      hideHint: "Las unidades vendidas no se mostrarán en inventario, explorar ni tipologías del micrositio. Los datos se conservan en el panel de administración.",
     },
     slug: {
       title: "URL del micrositio",
@@ -405,6 +411,9 @@ const editor = {
     removeFloor: "Eliminar piso",
     removeFloorConfirm: "Se eliminará el plano y los hotspots de este piso. ¿Continuar?",
     noFloorsYet: "Sin pisos configurados",
+    linkedVideo: "Video vinculado",
+    noVideoLinked: "Sin video vinculado",
+    linkedVideoHint: "Selecciona un video del proyecto para mostrar \"Ver Video\" en la tipología.",
   },
   galeria: {
     title: "Galería de Imágenes",

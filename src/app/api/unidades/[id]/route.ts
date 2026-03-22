@@ -19,7 +19,7 @@ export async function PUT(
     // Lookup the unidad to get its proyecto_id for ownership check
     const { data: unidad } = await auth.supabase
       .from("unidades")
-      .select("proyecto_id, tipologia_id")
+      .select("proyecto_id, tipologia_id, estado, precio")
       .eq("id", id)
       .maybeSingle();
     if (!unidad) {
@@ -101,7 +101,7 @@ export async function PUT(
     if (body.estado !== undefined) {
       const { data: proyecto } = await auth.supabase
         .from("proyectos")
-        .select("parqueaderos_mode, depositos_mode")
+        .select("parqueaderos_mode, depositos_mode, precio_source")
         .eq("id", proyectoId)
         .single();
 
@@ -134,6 +134,36 @@ export async function PUT(
             _warnings.push(`Faltan ${expectedDepo - assignedDepo} depósito(s) por asignar`);
           }
         }
+      }
+
+      // Lock precio_venta when marking as vendida, clear when reverting
+      const oldEstado = unidad.estado;
+      if (body.estado === "vendida" && oldEstado !== "vendida") {
+        let precioVenta: number | null = null;
+        if (proyecto?.precio_source === "tipologia") {
+          const tipId = data.tipologia_id ?? unidad.tipologia_id;
+          if (tipId) {
+            const { data: tip } = await auth.supabase
+              .from("tipologias")
+              .select("precio_desde")
+              .eq("id", tipId)
+              .single();
+            precioVenta = tip?.precio_desde ?? null;
+          }
+        } else {
+          precioVenta = data.precio ?? unidad.precio ?? null;
+        }
+        if (precioVenta !== null) {
+          await auth.supabase
+            .from("unidades")
+            .update({ precio_venta: precioVenta })
+            .eq("id", id);
+        }
+      } else if (oldEstado === "vendida" && body.estado !== "vendida") {
+        await auth.supabase
+          .from("unidades")
+          .update({ precio_venta: null })
+          .eq("id", id);
       }
     }
 

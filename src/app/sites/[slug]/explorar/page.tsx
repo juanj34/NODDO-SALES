@@ -176,7 +176,9 @@ export default function ExplorarPage() {
 
   // Price source resolution
   const isTipologiaPricing = proyecto.precio_source === "tipologia";
+  const ocultarVendidas = (proyecto as any).ocultar_vendidas ?? false;
   const getUnitPrice = useCallback((unit: Unidad): number | null => {
+    if (unit.estado === "vendida" && unit.precio_venta != null) return unit.precio_venta;
     if (!isTipologiaPricing) return unit.precio;
     if (unit.tipologia_id) {
       const tipo = (tipologias || []).find(t => t.id === unit.tipologia_id);
@@ -198,15 +200,18 @@ export default function ExplorarPage() {
   // Units with coordinates, filtered by active fachada/planta
   const isPlantaView = explorarView === "planta";
   const positionedUnits = useMemo(() => {
+    const baseUnits = ocultarVendidas
+      ? unidades.filter((u) => u.estado !== "vendida")
+      : unidades;
     if (isPlantaView) {
-      let filtered = unidades.filter((u) => u.planta_x !== null && u.planta_y !== null);
+      let filtered = baseUnits.filter((u) => u.planta_x !== null && u.planta_y !== null);
       if (activeFachada) filtered = filtered.filter((u) => u.planta_id === activeFachada.id);
       return filtered;
     }
-    let filtered = unidades.filter((u) => u.fachada_x !== null && u.fachada_y !== null);
+    let filtered = baseUnits.filter((u) => u.fachada_x !== null && u.fachada_y !== null);
     if (activeFachada) filtered = filtered.filter((u) => u.fachada_id === activeFachada.id);
     return filtered;
-  }, [unidades, activeFachada, isPlantaView]);
+  }, [unidades, activeFachada, isPlantaView, ocultarVendidas]);
 
   // Estado counts (from all positioned units, not filtered)
   const estadoCounts = useMemo(() => {
@@ -468,7 +473,7 @@ export default function ExplorarPage() {
                   )}
                 >
                   <span className={cn(
-                    "text-xs font-mono font-semibold",
+                    "text-xs font-ui tracking-wider uppercase",
                     idx === activeFachadaIndex ? "text-[var(--site-primary)]" : "text-[var(--text-secondary)]"
                   )}>
                     P{fachada.piso_numero}
@@ -532,8 +537,8 @@ export default function ExplorarPage() {
                 })()}
               </div>
               {isMultiTipo && getUnitAvailableTipologias(selectedUnit.id).length > 1 ? (
-                <p className="text-sm text-[var(--text-muted)] italic">
-                  {getUnitAvailableTipologias(selectedUnit.id).length} tipologías disponibles
+                <p className="text-sm text-[var(--text-secondary)]">
+                  {getUnitAvailableTipologias(selectedUnit.id).map(t => t.nombre).join(" · ")}
                 </p>
               ) : selectedTipologia ? (
                 <p className="text-sm text-[var(--text-secondary)]">{selectedTipologia.nombre}</p>
@@ -621,7 +626,7 @@ export default function ExplorarPage() {
                     <Maximize size={14} className="text-[var(--site-primary)]" />
                     <div>
                       <p className="text-[8px] text-[var(--text-tertiary)] tracking-wider uppercase">{tSite("tipologias.areaConstruida")}</p>
-                      <p className="text-sm text-[var(--text-primary)] font-medium font-mono">{selectedUnit.area_construida} m²</p>
+                      <p className="text-sm text-[var(--text-primary)] font-mono">{selectedUnit.area_construida} m²</p>
                     </div>
                   </div>
                 )}
@@ -630,7 +635,7 @@ export default function ExplorarPage() {
                     <Maximize size={14} className="text-[var(--site-primary)]" />
                     <div>
                       <p className="text-[8px] text-[var(--text-tertiary)] tracking-wider uppercase">{tSite("tipologias.areaPrivada")}</p>
-                      <p className="text-sm text-[var(--text-primary)] font-medium font-mono">{selectedUnit.area_privada} m²</p>
+                      <p className="text-sm text-[var(--text-primary)] font-mono">{selectedUnit.area_privada} m²</p>
                     </div>
                   </div>
                 )}
@@ -639,7 +644,7 @@ export default function ExplorarPage() {
                     <Maximize size={14} className="text-[var(--site-primary)]" />
                     <div>
                       <p className="text-[8px] text-[var(--text-tertiary)] tracking-wider uppercase">{tSite("tipologias.areaLote")}</p>
-                      <p className="text-sm text-[var(--text-primary)] font-medium font-mono">{selectedUnit.area_lote} m²</p>
+                      <p className="text-sm text-[var(--text-primary)] font-mono">{selectedUnit.area_lote} m²</p>
                     </div>
                   </div>
                 )}
@@ -648,7 +653,7 @@ export default function ExplorarPage() {
                     <Maximize size={14} className="text-[var(--site-primary)]" />
                     <div>
                       <p className="text-[8px] text-[var(--text-tertiary)] tracking-wider uppercase">{tSite("explorar.area")}</p>
-                      <p className="text-sm text-[var(--text-primary)] font-medium font-mono">{selectedUnit.area_m2} m²</p>
+                      <p className="text-sm text-[var(--text-primary)] font-mono">{selectedUnit.area_m2} m²</p>
                     </div>
                   </div>
                 )}
@@ -769,7 +774,7 @@ export default function ExplorarPage() {
                   <p className="text-[8px] text-[var(--site-primary)] opacity-60 tracking-wider uppercase mb-1">
                     {isTipologiaPricing ? `${tSite("explorar.price")} (${tCommon("labels.from").toLowerCase()})` : tSite("explorar.price")}
                   </p>
-                  <p className="text-lg font-semibold font-mono text-[var(--site-primary)]">
+                  <p className="text-lg font-mono text-[var(--site-primary)]">
                     {formatPrecio(unitComplementos.length > 0 ? totalPrecio : resolvedPrice, locale)}
                   </p>
                   {unitComplementos.length > 0 && (
@@ -1139,7 +1144,7 @@ export default function ExplorarPage() {
                         exit={{ opacity: 0, y: 6 }}
                         className="absolute bottom-full mb-3 left-1/2 -translate-x-1/2 glass-dark px-3 py-2 rounded-xl whitespace-nowrap z-40 pointer-events-none"
                       >
-                        <p className="text-xs font-semibold text-white">{getUnitDisplayName(unit, unitPrefix)}</p>
+                        <p className="text-xs font-medium text-white">{getUnitDisplayName(unit, unitPrefix)}</p>
                       </motion.div>
                     )}
                   </AnimatePresence>
@@ -1248,6 +1253,7 @@ export default function ExplorarPage() {
           onClose={() => setCotizarUnidad(null)}
           unidad={cotizarUnidad}
           tipologia={tipologias.find((t) => t.id === cotizarUnidad.tipologia_id) || undefined}
+          availableTipologias={isMultiTipo ? getUnitAvailableTipologias(cotizarUnidad.id) : undefined}
           proyectoId={proyecto.id}
           cotizadorEnabled={proyecto.cotizador_enabled}
           cotizadorConfig={proyecto.cotizador_config}

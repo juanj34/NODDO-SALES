@@ -164,7 +164,9 @@ function MobileUnitCard({
   onDelete: (unitId: string) => void;
 }) {
   const tipo = tipologias.find((t) => t.id === unit.tipologia_id);
-  const displayPrice = isTipologiaPricing ? (tipo?.precio_desde ?? null) : unit.precio;
+  const displayPrice = unit.estado === "vendida" && unit.precio_venta != null
+    ? unit.precio_venta
+    : isTipologiaPricing ? (tipo?.precio_desde ?? null) : unit.precio;
   const displayArea = getPrimaryArea(unit, columns);
   const showPrice = unit.estado === "vendida";
   const isLocked = ["vendida", "reservada", "separado"].includes(unit.estado);
@@ -3210,6 +3212,10 @@ export default function InventarioPage() {
                               // Only show price for sold units
                               if (unit.estado !== "vendida") {
                                 return "-";
+                              }
+                              // Use locked precio_venta if available
+                              if (unit.precio_venta != null) {
+                                return formatCurrency(unit.precio_venta, moneda, {});
                               }
                               if (isTipologiaPricing) {
                                 const unitTipo = tipologias.find(tp => tp.id === unit.tipologia_id);

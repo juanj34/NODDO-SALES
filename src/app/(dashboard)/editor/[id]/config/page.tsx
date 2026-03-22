@@ -13,7 +13,7 @@ import {
 } from "@/components/dashboard/editor-styles";
 import { PageHeader } from "@/components/dashboard/base/PageHeader";
 import {
-  Settings, MessageCircle, Tags, Eye, Car, Package,
+  Settings, MessageCircle, Tags, Eye, EyeOff, Car, Package,
   Link2, Building2, Home, MapPin, Layers,
   Maximize, DollarSign, BedDouble, Bath, Compass,
   RotateCcw, TableProperties, Ruler, LandPlot,
@@ -61,7 +61,7 @@ export default function ConfigPage() {
 
   /* ── Existing state ── */
   const initialWhatsapp = useMemo(() => project?.whatsapp_numero || "", [project?.whatsapp_numero]);
-  const initialEtapa = useMemo(() => project?.etapa_label || "Etapas", [project?.etapa_label]);
+  const initialEtapa = useMemo(() => project?.etapa_label || "Grid", [project?.etapa_label]);
   const initialUnitPrefix = useMemo(() => project?.unidad_display_prefix || "", [project?.unidad_display_prefix]);
   const initialBadge = useMemo(() => project?.hide_noddo_badge ?? false, [project?.hide_noddo_badge]);
   const initialParqMode = useMemo(() => (project?.parqueaderos_mode ?? "sin_inventario") as ComplementoMode, [project?.parqueaderos_mode]);
@@ -73,6 +73,7 @@ export default function ConfigPage() {
   const [etapaLabel, setEtapaLabel] = useState(initialEtapa);
   const [unitPrefix, setUnitPrefix] = useState(initialUnitPrefix);
   const [hideNoddoBadge, setHideNoddoBadge] = useState(initialBadge);
+  const [ocultarVendidas, setOcultarVendidas] = useState(false);
   const [parqueaderosMode, setParqueaderosMode] = useState<ComplementoMode>(initialParqMode);
   const [depositosMode, setDepositosMode] = useState<ComplementoMode>(initialDepoMode);
   const [parqueaderosPrecioBase, setParqueaderosPrecioBase] = useState<number | null>(initialParqPrecioBase);
@@ -101,9 +102,10 @@ export default function ConfigPage() {
     setInventoryColumnsMicrosite((project as any).inventory_columns_microsite ?? null);
     setInventoryColumnsMicrositeByType((project as any).inventory_columns_microsite_by_type ?? null);
     setWhatsappNumero(project.whatsapp_numero || "");
-    setEtapaLabel(project.etapa_label || "Etapas");
+    setEtapaLabel(project.etapa_label || "Grid");
     setUnitPrefix(project.unidad_display_prefix || "");
     setHideNoddoBadge(project.hide_noddo_badge ?? false);
+    setOcultarVendidas((project as any).ocultar_vendidas ?? false);
     setParqueaderosMode((project.parqueaderos_mode ?? "sin_inventario") as ComplementoMode);
     setDepositosMode((project.depositos_mode ?? "sin_inventario") as ComplementoMode);
     setParqueaderosPrecioBase(project.parqueaderos_precio_base ?? null);
@@ -163,16 +165,17 @@ export default function ConfigPage() {
       inventory_columns_microsite: inventoryColumnsMicrosite,
       inventory_columns_microsite_by_type: inventoryColumnsMicrositeByType,
       whatsapp_numero: whatsappNumero || null,
-      etapa_label: etapaLabel || "Etapas",
+      etapa_label: etapaLabel || "Grid",
       unidad_display_prefix: unitPrefix || null,
       hide_noddo_badge: hideNoddoBadge,
+      ocultar_vendidas: ocultarVendidas,
       parqueaderos_mode: parqueaderosMode,
       depositos_mode: depositosMode,
       parqueaderos_precio_base: parqueaderosMode === "precio_base" ? parqueaderosPrecioBase : null,
       depositos_precio_base: depositosMode === "precio_base" ? depositosPrecioBase : null,
     } as any);
     if (!ok) toast.error(t("general.saveError"));
-  }, [save, slug, tipoProyecto, tipologiaMode, precioSource, inventoryColumns, inventoryColumnsByType, inventoryColumnsMicrosite, inventoryColumnsMicrositeByType, whatsappNumero, etapaLabel, unitPrefix, hideNoddoBadge, parqueaderosMode, depositosMode, parqueaderosPrecioBase, depositosPrecioBase, toast, t]);
+  }, [save, slug, tipoProyecto, tipologiaMode, precioSource, inventoryColumns, inventoryColumnsByType, inventoryColumnsMicrosite, inventoryColumnsMicrositeByType, whatsappNumero, etapaLabel, unitPrefix, hideNoddoBadge, ocultarVendidas, parqueaderosMode, depositosMode, parqueaderosPrecioBase, depositosPrecioBase, toast, t]);
 
   /* ── Auto-save ── */
   const handleSaveRef = useRef(handleSave);
@@ -960,6 +963,35 @@ export default function ConfigPage() {
           <span className="text-sm text-[var(--text-secondary)]">{t("config.badge.hide")}</span>
         </div>
         <p className={fieldHint}>{t("config.badge.hideHint")}</p>
+      </div>
+
+      {/* ═══════════════════════════════════════════════════════════
+          Ocultar vendidas
+          ═══════════════════════════════════════════════════════════ */}
+      <div className={sectionCard}>
+        <div className={sectionTitle}>
+          <EyeOff size={15} className="text-[var(--site-primary)]" />
+          {t("config.ocultarVendidas.title")}
+        </div>
+        <p className={sectionDescription}>{t("config.ocultarVendidas.description")}</p>
+
+        <div className="flex items-center gap-3">
+          <button
+            type="button"
+            role="switch"
+            aria-checked={ocultarVendidas}
+            onClick={() => { setOcultarVendidas(!ocultarVendidas); scheduleAutoSave(); }}
+            className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors cursor-pointer ${
+              ocultarVendidas ? "bg-[var(--site-primary)]" : "bg-[var(--surface-3)]"
+            }`}
+          >
+            <span className={`inline-block h-3.5 w-3.5 rounded-full bg-white shadow-sm transition-transform ${
+              ocultarVendidas ? "translate-x-[18px]" : "translate-x-[3px]"
+            }`} />
+          </button>
+          <span className="text-sm text-[var(--text-secondary)]">{t("config.ocultarVendidas.hide")}</span>
+        </div>
+        <p className={fieldHint}>{t("config.ocultarVendidas.hideHint")}</p>
       </div>
 
       {/* ═══════════════════════════════════════════════════════════

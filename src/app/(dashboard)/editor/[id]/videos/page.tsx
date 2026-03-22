@@ -263,6 +263,8 @@ export default function VideosPage() {
           toast.error(err?.error || "Error al guardar video");
           return;
         }
+        const updated: Video = await res.json();
+        setOrderedVideos((prev) => prev.map((v) => (v.id === updated.id ? updated : v)));
       } else {
         const res = await fetch("/api/videos", {
           method: "POST",
@@ -274,9 +276,12 @@ export default function VideosPage() {
           toast.error(err?.error || "Error al crear video");
           return;
         }
+        const created: Video = await res.json();
+        setOrderedVideos((prev) => [...prev, created]);
       }
-      await refresh();
       cancelForm();
+      // Background refresh to sync full project state (non-blocking)
+      refresh().catch(() => {});
     } catch {
       toast.error("Error de conexión");
     } finally {
@@ -492,8 +497,8 @@ export default function VideosPage() {
                     </p>
                   </div>
                   {videoForm.url && getYouTubeThumbnail(videoForm.url) && (
-                    <div className="w-48 aspect-video rounded-lg overflow-hidden bg-[var(--surface-2)]">
-                      <Image src={getYouTubeThumbnail(videoForm.url)!} alt="Preview" fill className="w-full h-full object-cover" />
+                    <div className="relative w-48 aspect-video rounded-lg overflow-hidden bg-[var(--surface-2)]">
+                      <Image src={getYouTubeThumbnail(videoForm.url)!} alt="Preview" fill className="object-cover" />
                     </div>
                   )}
                   <div className="flex items-center gap-3 pt-2">

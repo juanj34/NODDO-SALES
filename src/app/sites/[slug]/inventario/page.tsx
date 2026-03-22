@@ -112,9 +112,11 @@ export default function InventarioPage() {
   const isLotes = proyecto.tipo_proyecto === "lotes";
   const isHibrido = proyecto.tipo_proyecto === "hibrido";
   const isTipologiaPricing = proyecto.precio_source === "tipologia";
+  const ocultarVendidas = (proyecto as any).ocultar_vendidas ?? false;
 
-  // Helper: resolve unit price based on pricing source
+  // Helper: resolve unit price based on pricing source (use precio_venta for sold units)
   const getUnitPrice = useCallback((unit: Unidad): number | null => {
+    if (unit.estado === "vendida" && unit.precio_venta != null) return unit.precio_venta;
     if (!isTipologiaPricing) return unit.precio;
     const tipo = (tipologias || []).find(t => t.id === unit.tipologia_id);
     return tipo?.precio_desde ?? null;
@@ -166,20 +168,23 @@ export default function InventarioPage() {
 
   const unidadTipologias = useMemo<UnidadTipologia[]>(() => proyecto.unidad_tipologias ?? [], [proyecto.unidad_tipologias]);
 
-  // Estado counts (scoped to active torre when filtered)
+  // Estado counts (scoped to active torre when filtered, exclude vendida if hidden)
   const estadoCounts = useMemo(() => {
-    const base = torreFilter !== "todas"
+    let base = torreFilter !== "todas"
       ? (unidades || []).filter((u) => u.torre_id === torreFilter)
       : (unidades || []);
+    if (ocultarVendidas) {
+      base = base.filter((u) => u.estado !== "vendida");
+    }
     return {
       todas: base.length,
       disponible: base.filter((u) => u.estado === "disponible").length,
       proximamente: base.filter((u) => u.estado === "proximamente").length,
       separado: base.filter((u) => u.estado === "separado").length,
       reservada: base.filter((u) => u.estado === "reservada").length,
-      vendida: base.filter((u) => u.estado === "vendida").length,
+      vendida: ocultarVendidas ? 0 : base.filter((u) => u.estado === "vendida").length,
     };
-  }, [unidades, torreFilter]);
+  }, [unidades, torreFilter, ocultarVendidas]);
 
   // Tipologías filtered by torre and tipo tab for the dropdown
   const tipologiasForFilter = useMemo(() => {
@@ -218,6 +223,11 @@ export default function InventarioPage() {
   const filteredUnidades = useMemo(() => {
     const units = unidades || [];
     let result = [...units];
+
+    // Hide vendida units if project setting is enabled
+    if (ocultarVendidas) {
+      result = result.filter((u) => u.estado !== "vendida");
+    }
 
     // Hybrid tipo tab filter
     if (tipoTabTipologiaIds) {
@@ -324,7 +334,7 @@ export default function InventarioPage() {
     });
 
     return result;
-  }, [unidades, torreFilter, tipologiaFilter, estadoFilter, habFilter, banosFilter, etapaFilter, customFilters, searchQuery, sortBy, isMultiTipo, unidadTipologias, tipoTabTipologiaIds, getUnitPrice]);
+  }, [unidades, torreFilter, tipologiaFilter, estadoFilter, habFilter, banosFilter, etapaFilter, customFilters, searchQuery, sortBy, isMultiTipo, unidadTipologias, tipoTabTipologiaIds, getUnitPrice, ocultarVendidas]);
 
   // Multi-tipo helpers (must be before early return — hooks rule)
   const getUnitTipoCount = useCallback((unitId: string) => {
@@ -602,7 +612,9 @@ export default function InventarioPage() {
 
           {/* Estado pills */}
           <div className="flex items-center gap-0.5 shrink-0">
-            {(["todas", "disponible", "proximamente", "separado", "reservada", "vendida"] as const).map((estado) => {
+            {(["todas", "disponible", "proximamente", "separado", "reservada", "vendida"] as const)
+              .filter((estado) => !(ocultarVendidas && estado === "vendida"))
+              .map((estado) => {
               const isAll = estado === "todas";
               const config = isAll ? null : estadoConfig[estado];
               return (

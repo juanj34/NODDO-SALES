@@ -106,6 +106,7 @@ export interface Proyecto {
   unidad_display_prefix: string | null;
   background_audio_url: string | null;
   hide_noddo_badge: boolean;
+  ocultar_vendidas: boolean;
   idioma: "es" | "en";
   moneda_base: Currency;
   unidad_medida_base: UnitOfMeasurement;
@@ -183,6 +184,7 @@ export interface Tipologia {
   created_at: string;
   precio_actualizado_en: string | null;
   precio_actualizado_por: string | null;
+  video_id: string | null;
 }
 
 export interface GaleriaCategoria {
@@ -299,6 +301,7 @@ export interface Unidad {
   area_privada: number | null;
   area_lote: number | null;
   precio: number | null;
+  precio_venta: number | null;
   estado: "disponible" | "separado" | "reservada" | "vendida" | "proximamente";
   habitaciones: number | null;
   banos: number | null;

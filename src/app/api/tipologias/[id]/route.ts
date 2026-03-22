@@ -31,7 +31,7 @@ export async function PUT(
     }
 
     // Build update payload
-    const updateData = pick(body, ["nombre", "descripcion", "area_m2", "area_construida", "area_privada", "area_lote", "habitaciones", "banos", "precio_desde", "plano_url", "renders", "caracteristicas", "parqueaderos", "depositos", "area_balcon", "hotspots", "ubicacion_plano_url", "torre_ids", "orden", "tipo_tipologia", "pisos"]);
+    const updateData = pick(body, ["nombre", "descripcion", "area_m2", "area_construida", "area_privada", "area_lote", "habitaciones", "banos", "precio_desde", "plano_url", "renders", "caracteristicas", "parqueaderos", "depositos", "area_balcon", "hotspots", "ubicacion_plano_url", "torre_ids", "orden", "tipo_tipologia", "pisos", "video_id"]);
 
     // If precio_desde is being updated, add audit fields
     if ("precio_desde" in body && body.precio_desde !== undefined) {

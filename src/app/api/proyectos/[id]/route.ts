@@ -13,6 +13,7 @@ const PROYECTO_FIELDS = [
   "hero_video_url", "fachada_url", "mapa_ubicacion_url", "subdomain",
   "custom_domain", "domain_verified", "etapa_label", "background_audio_url",
   "hide_noddo_badge",
+  "ocultar_vendidas",
   "idioma", "moneda_base", "unidad_medida_base",
   "cotizador_enabled", "cotizador_config",
   "webhook_config",

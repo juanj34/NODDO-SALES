@@ -470,8 +470,8 @@ export default function EditorLayout({
 
     if (hasTorre && hasUrbanismo) return "Agrupaciones";
     if (hasUrbanismo) return "Urbanismos";
-    if (hasTorre && (tipoProyecto === "casas" || tipoProyecto === "lotes")) return "Etapas";
-    if (torres.length === 0) return tipoProyecto === "casas" || tipoProyecto === "lotes" ? "Etapas" : "Torres";
+    if (hasTorre && (tipoProyecto === "casas" || tipoProyecto === "lotes")) return "Grid";
+    if (torres.length === 0) return tipoProyecto === "casas" || tipoProyecto === "lotes" ? "Grid" : "Torres";
 
     return "Torres";
   }, [project?.tipo_proyecto, project?.torres]);
