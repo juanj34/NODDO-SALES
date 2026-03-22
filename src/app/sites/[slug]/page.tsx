@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { ArrowRight } from "lucide-react";
 import { MouseEvent, useCallback, useState } from "react";
 import { useSiteProject, useSiteBasePath } from "@/hooks/useSiteProject";
+import { useMediaQuery } from "@/hooks/useMediaQuery";
 import { useTranslation } from "@/i18n";
 import { NodDoLogo } from "@/components/ui/NodDoLogo";
 
@@ -44,6 +45,7 @@ export default function SiteLanding() {
 
   const router = useRouter();
   const [isExiting, setIsExiting] = useState(false);
+  const isTouch = useMediaQuery("(pointer: coarse)");
 
   const handleEnter = useCallback(() => {
     if (isExiting) return;
@@ -73,7 +75,7 @@ export default function SiteLanding() {
   }
 
   return (
-    <div className={`relative h-full ${isExiting ? "pointer-events-none" : ""}`} onMouseMove={handleMouseMove}>
+    <div className={`relative h-full ${isExiting ? "pointer-events-none" : ""}`} onMouseMove={isTouch ? undefined : handleMouseMove}>
       {/* Background Layer */}
       <motion.div
         className="absolute inset-0 z-0 overflow-hidden bg-[var(--site-bg)]"
@@ -165,7 +167,7 @@ export default function SiteLanding() {
       {/* Content Layer */}
       <motion.div
         className="absolute inset-0 z-20 flex flex-col items-center justify-center px-8"
-        style={{ x: mouseX, y: mouseY }}
+        style={isTouch ? undefined : { x: mouseX, y: mouseY }}
         animate={isExiting ? { opacity: 0, y: -30, filter: "blur(12px)" } : {}}
         transition={isExiting
           ? { duration: 0.6, ease: [0.4, 0, 1, 1] as [number, number, number, number] }
@@ -290,7 +292,8 @@ export default function SiteLanding() {
           initial={{ opacity: 0 }}
           animate={isExiting ? { opacity: 0 } : { opacity: 1 }}
           transition={isExiting ? { duration: 0.4 } : { duration: 1, delay: 2 }}
-          className="absolute bottom-2 sm:bottom-4 left-0 right-0 z-30 px-4 sm:px-8 text-center"
+          className="absolute left-0 right-0 z-30 px-4 sm:px-8 text-center"
+          style={{ bottom: "max(8px, var(--safe-area-bottom, 0px))" }}
         >
           <p className="text-[10px] text-[var(--text-muted)] max-w-2xl mx-auto leading-relaxed">
             {proyecto.disclaimer}

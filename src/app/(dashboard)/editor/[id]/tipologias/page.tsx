@@ -15,7 +15,7 @@ import { Label } from "@/components/ui";
 import { DashboardEmptyState } from "@/components/dashboard/DashboardEmptyState";
 import { FileUploader } from "@/components/dashboard/FileUploader";
 import { HotspotEditor } from "@/components/dashboard/HotspotEditor";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion, AnimatePresence, Reorder, useDragControls } from "framer-motion";
 import {
   Plus,
   Loader2,
@@ -42,6 +42,7 @@ import {
   FileText,
   Map,
   Video,
+  GripVertical,
   type LucideIcon,
 } from "lucide-react";
 import { useToast } from "@/components/dashboard/Toast";
@@ -281,6 +282,102 @@ function CopyHotspotsDropdown({
   );
 }
 
+/* ─── Draggable list item ─── */
+
+function TipologiaListItem({
+  tipologia: t,
+  isSelected,
+  onSelect,
+  onDuplicate,
+  onDelete,
+  isDuplicating,
+  isDeleting,
+}: {
+  tipologia: Tipologia;
+  isSelected: boolean;
+  onSelect: () => void;
+  onDuplicate: () => void;
+  onDelete: () => void;
+  isDuplicating: boolean;
+  isDeleting: boolean;
+}) {
+  const controls = useDragControls();
+  const isDraggingRef = useRef(false);
+
+  return (
+    <Reorder.Item
+      value={t}
+      dragListener={false}
+      dragControls={controls}
+      onDragEnd={() => { setTimeout(() => { isDraggingRef.current = false; }, 0); }}
+      className={cn(
+        "w-full text-left px-3 py-2.5 transition-all group relative cursor-pointer flex items-center select-none",
+        isSelected
+          ? "bg-[var(--surface-3)] border-l-2 border-l-[var(--site-primary)]"
+          : "border-l-2 border-l-transparent hover:bg-[var(--surface-2)]"
+      )}
+      onClick={() => { if (!isDraggingRef.current) onSelect(); }}
+    >
+      {/* Drag handle */}
+      <div
+        onPointerDown={(e) => { e.preventDefault(); isDraggingRef.current = true; controls.start(e); }}
+        className="cursor-grab active:cursor-grabbing text-[var(--text-muted)] hover:text-[var(--text-secondary)] transition-colors shrink-0 touch-none mr-1.5 opacity-30 group-hover:opacity-70"
+      >
+        <GripVertical size={14} />
+      </div>
+
+      <div className="flex-1 min-w-0">
+        <p
+          className={cn(
+            "font-medium truncate",
+            fontSize.base,
+            isSelected ? "text-white" : "text-[var(--text-secondary)]"
+          )}
+        >
+          {t.nombre}
+        </p>
+        <div className={cn(
+          "flex items-center mt-0.5 text-[var(--text-muted)]",
+          gap.normal,
+          fontSize.label
+        )}>
+          {t.area_m2 != null && <span>{t.area_m2}m²</span>}
+          {t.habitaciones != null && <span>{t.habitaciones} hab</span>}
+          {t.banos != null && <span>{t.banos} baños</span>}
+        </div>
+      </div>
+
+      {/* Action buttons — visible on hover */}
+      <div className={cn(
+        "absolute right-2 top-1/2 -translate-y-1/2 flex items-center opacity-0 group-hover:opacity-100 transition-opacity",
+        gap.compact
+      )}>
+        <button
+          onClick={(e) => { e.stopPropagation(); onDuplicate(); }}
+          disabled={isDuplicating}
+          title="Duplicar"
+        >
+          {isDuplicating ? (
+            <Loader2 size={iconSize.xs} className="animate-spin text-[var(--text-muted)]" />
+          ) : (
+            <Copy size={iconSize.xs} className="text-[var(--text-muted)] hover:text-[var(--site-primary)]" />
+          )}
+        </button>
+        <button
+          onClick={(e) => { e.stopPropagation(); onDelete(); }}
+          disabled={isDeleting}
+        >
+          {isDeleting ? (
+            <Loader2 size={iconSize.xs} className="animate-spin text-[var(--text-muted)]" />
+          ) : (
+            <Trash2 size={iconSize.xs} className="text-[var(--text-muted)] hover:text-red-400" />
+          )}
+        </button>
+      </div>
+    </Reorder.Item>
+  );
+}
+
 /* ─── Tabs ─── */
 
 type TipoTab = "general" | "plano" | "hotspots";
@@ -436,6 +533,46 @@ export default function TipologiasPage() {
     if (activeTorreId === "__none__") return tipologias.filter(t => !t.torre_ids || t.torre_ids.length === 0);
     return tipologias.filter(t => t.torre_ids?.includes(activeTorreId));
   }, [tipologias, isMultiTorre, activeTorreId]);
+
+  /* ─── Ordered tipologias for drag-to-reorder ─── */
+  const [orderedTipologias, setOrderedTipologias] = useState<Tipologia[]>(filteredTipologias);
+  useEffect(() => {
+    setOrderedTipologias(filteredTipologias);
+  }, [filteredTipologias]);
+
+  const reorderTimerRef = useRef<ReturnType<typeof setTimeout>>();
+  const handleReorder = (newOrder: Tipologia[]) => {
+    setOrderedTipologias(newOrder);
+    // Optimistically update cache
+    queryClient.setQueryData<ProyectoCompleto>(
+      projectKeys.detail(projectId),
+      (old) => {
+        if (!old) return old;
+        const orderMap = Object.fromEntries(newOrder.map((t, i) => [t.id, i])) as Record<string, number>;
+        return {
+          ...old,
+          tipologias: old.tipologias
+            .map((t) => ({ ...t, orden: orderMap[t.id] ?? t.orden }))
+            .sort((a, b) => (a.orden ?? 0) - (b.orden ?? 0)),
+        };
+      }
+    );
+    // Debounce the API call — only persist after drag settles
+    clearTimeout(reorderTimerRef.current);
+    reorderTimerRef.current = setTimeout(async () => {
+      try {
+        const ids = newOrder.map((t) => t.id);
+        const res = await fetch("/api/tipologias/reorder", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ ids }),
+        });
+        if (!res.ok) toast.error("Error al reordenar");
+      } catch {
+        toast.error("Error de conexión");
+      }
+    }, 300);
+  };
 
   /* Auto-select first tipologia on mount or when list changes */
   useEffect(() => {
@@ -776,73 +913,25 @@ export default function TipologiasPage() {
 
           {/* List items */}
           <div className="flex-1 overflow-y-auto py-1">
-            {filteredTipologias.map((t) => (
-              <div
-                key={t.id}
-                onClick={() => selectTipologia(t)}
-                className={cn(
-                  "w-full text-left px-3 py-2.5 transition-all group relative cursor-pointer",
-                  selectedId === t.id && !isCreating
-                    ? "bg-[var(--surface-3)] border-l-2 border-l-[var(--site-primary)]"
-                    : "border-l-2 border-l-transparent hover:bg-[var(--surface-2)]"
-                )}
-              >
-                <p
-                  className={cn(
-                    "font-medium truncate",
-                    fontSize.base,
-                    selectedId === t.id && !isCreating
-                      ? "text-white"
-                      : "text-[var(--text-secondary)]"
-                  )}
-                >
-                  {t.nombre}
-                </p>
-                <div className={cn(
-                  "flex items-center mt-0.5 text-[var(--text-muted)]",
-                  gap.normal,
-                  fontSize.label
-                )}>
-                  {t.area_m2 != null && <span>{t.area_m2}m²</span>}
-                  {t.habitaciones != null && <span>{t.habitaciones} hab</span>}
-                  {t.banos != null && <span>{t.banos} baños</span>}
-                </div>
-
-                {/* Action buttons — visible on hover */}
-                <div className={cn(
-                  "absolute right-2 top-1/2 -translate-y-1/2 flex items-center opacity-0 group-hover:opacity-100 transition-opacity",
-                  gap.compact
-                )}>
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleDuplicate(t);
-                    }}
-                    disabled={duplicatingId === t.id}
-                    title="Duplicar"
-                  >
-                    {duplicatingId === t.id ? (
-                      <Loader2 size={iconSize.xs} className="animate-spin text-[var(--text-muted)]" />
-                    ) : (
-                      <Copy size={iconSize.xs} className="text-[var(--text-muted)] hover:text-[var(--site-primary)]" />
-                    )}
-                  </button>
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleDelete(t.id);
-                    }}
-                    disabled={deletingId === t.id}
-                  >
-                    {deletingId === t.id ? (
-                      <Loader2 size={iconSize.xs} className="animate-spin text-[var(--text-muted)]" />
-                    ) : (
-                      <Trash2 size={iconSize.xs} className="text-[var(--text-muted)] hover:text-red-400" />
-                    )}
-                  </button>
-                </div>
-              </div>
-            ))}
+            <Reorder.Group
+              axis="y"
+              values={orderedTipologias}
+              onReorder={handleReorder}
+              className="space-y-0"
+            >
+              {orderedTipologias.map((t) => (
+                <TipologiaListItem
+                  key={t.id}
+                  tipologia={t}
+                  isSelected={selectedId === t.id && !isCreating}
+                  onSelect={() => selectTipologia(t)}
+                  onDuplicate={() => handleDuplicate(t)}
+                  onDelete={() => handleDelete(t.id)}
+                  isDuplicating={duplicatingId === t.id}
+                  isDeleting={deletingId === t.id}
+                />
+              ))}
+            </Reorder.Group>
 
             {/* "Creating new" item */}
             {isCreating && (

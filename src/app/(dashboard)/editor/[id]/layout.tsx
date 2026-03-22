@@ -293,8 +293,9 @@ export default function EditorLayout({
   }, [id]);
 
   const handlePublish = useCallback(() => {
-    setShowPublishDropdown(false);
     setPublishing(true);
+    // Close dropdown after a brief delay so spinner is visible
+    setTimeout(() => setShowPublishDropdown(false), 300);
     // Fire and forget — non-blocking so user can keep working
     fetch(`/api/proyectos/${id}/publicar`, { method: "POST" })
       .then(async (res) => {
@@ -1101,15 +1102,15 @@ export default function EditorLayout({
                       <div className="px-4 pb-3 flex justify-end">
                         <button
                           onClick={handlePublish}
-                          disabled={!publishTargets.subdomain && !publishTargets.customDomain}
+                          disabled={publishing || (!publishTargets.subdomain && !publishTargets.customDomain)}
                           className={cn(
                             "flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg font-ui text-[11px] font-bold uppercase tracking-[0.1em] transition-all",
                             "bg-[var(--site-primary)] text-[var(--surface-0)] hover:brightness-110",
                             "disabled:opacity-50 disabled:cursor-not-allowed"
                           )}
                         >
-                          <Rocket size={12} />
-                          Publish Now
+                          {publishing ? <Loader2 size={12} className="animate-spin" /> : <Rocket size={12} />}
+                          {publishing ? t("layout.publishing") : "Publish Now"}
                         </button>
                       </div>
                     </motion.div>

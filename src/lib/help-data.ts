@@ -25,6 +25,8 @@ import {
   LayoutDashboard,
   Settings,
   Workflow,
+  View,
+  Binoculars,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 
@@ -44,7 +46,9 @@ export const iconMap: Record<string, LucideIcon> = {
   planos: MapIcon,
   galeria: ImageIcon,
   videos: Film,
+  tour: View,
   ubicacion: MapPin,
+  vistas: Binoculars,
   recursos: FileText,
   avances: HardHat,
   config: Settings2,
@@ -91,7 +95,9 @@ export const categoryStructure = [
       "planos",
       "galeria",
       "videos",
+      "tour",
       "ubicacion",
+      "vistas",
       "recursos",
       "avances",
     ],

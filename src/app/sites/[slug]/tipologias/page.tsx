@@ -437,7 +437,7 @@ export default function TipologiasPage() {
   }
 
   return (
-    <SectionTransition className="h-screen flex flex-col overflow-hidden bg-[var(--site-bg)]">
+    <SectionTransition className="min-h-screen lg:h-screen flex flex-col overflow-y-auto lg:overflow-hidden bg-[var(--site-bg)]">
       {/* ====== TOP: Torre Selector (multi-torre only) ====== */}
       {isMultiTorre && (
         <div className="flex-shrink-0 flex items-center gap-2.5 px-6 lg:px-12 pt-6 pb-5">
@@ -491,7 +491,7 @@ export default function TipologiasPage() {
       {/* ====== MAIN CONTENT ====== */}
       <div className="flex-1 flex flex-col lg:flex-row gap-6 px-6 lg:px-12 pb-6 min-h-0">
         {/* ====== LEFT: Floor Plan + Stats ====== */}
-        <div className="flex-1 flex flex-col min-h-0">
+        <div className="flex-1 flex flex-col min-h-[50vh] lg:min-h-0">
           <AnimatePresence mode="wait">
             <motion.div
               key={active.id}
@@ -583,7 +583,7 @@ export default function TipologiasPage() {
                               initial={{ opacity: 0, y: 8 }}
                               animate={{ opacity: 1, y: 0 }}
                               exit={{ opacity: 0, y: 8 }}
-                              className="absolute top-full mt-2 left-1/2 -translate-x-1/2 bg-[var(--surface-2)] border border-[var(--border-default)] px-3 py-1.5 rounded-lg whitespace-nowrap z-30 pointer-events-none"
+                              className="absolute top-full mt-2 left-1/2 -translate-x-1/2 bg-[var(--surface-2)] border border-[var(--border-default)] px-3 py-1.5 rounded-lg whitespace-nowrap z-30 pointer-events-none max-w-[calc(100vw-2rem)]"
                             >
                               <span className="text-[11px] font-medium text-[var(--text-primary)] tracking-wider">
                                 {hotspot.label}
@@ -872,7 +872,7 @@ export default function TipologiasPage() {
         </div>
 
         {/* ====== RIGHT SIDEBAR ====== */}
-        <div className="w-full lg:w-[340px] flex-shrink-0 flex flex-col min-h-0 glass-card rounded-3xl overflow-hidden">
+        <div className="w-full lg:w-[340px] flex-shrink-0 flex flex-col min-h-[60vh] lg:min-h-0 glass-card rounded-3xl overflow-hidden">
           <AnimatePresence mode="wait">
             <motion.div
               key={active.id}
@@ -1208,8 +1208,8 @@ export default function TipologiasPage() {
                 className="max-w-[85vw] max-h-[80vh] object-contain"
               />
               {/* Label overlay bottom-left */}
-              <div className="absolute bottom-0 left-0 right-0 p-5" style={{ background: "linear-gradient(to top, rgba(var(--overlay-rgb), 0.7), transparent)" }}>
-                <span className="text-sm font-medium text-[var(--text-primary)] tracking-wide">
+              <div className="absolute bottom-0 left-0 right-0 p-6" style={{ background: "linear-gradient(to top, rgba(var(--overlay-rgb), 0.7), transparent)" }}>
+                <span className="font-ui text-2xl sm:text-3xl font-bold text-[var(--text-primary)] tracking-[0.15em] uppercase">
                   {activeHotspot.label}
                 </span>
               </div>
@@ -1267,8 +1267,8 @@ export default function TipologiasPage() {
                 alt={tSite("tipologias.locationInProject")}
                 className="max-w-[85vw] max-h-[80vh] object-contain"
               />
-              <div className="absolute bottom-0 left-0 right-0 p-5" style={{ background: "linear-gradient(to top, rgba(var(--overlay-rgb), 0.7), transparent)" }}>
-                <span className="text-sm font-medium text-[var(--text-primary)] tracking-wide">
+              <div className="absolute bottom-0 left-0 right-0 p-6" style={{ background: "linear-gradient(to top, rgba(var(--overlay-rgb), 0.7), transparent)" }}>
+                <span className="font-ui text-2xl sm:text-3xl font-bold text-[var(--text-primary)] tracking-[0.15em] uppercase">
                   {tSite("tipologias.locationInProject")}
                 </span>
               </div>

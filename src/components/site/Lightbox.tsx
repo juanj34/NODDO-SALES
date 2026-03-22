@@ -72,7 +72,7 @@ export function Lightbox({ images, initialIndex = 0, onClose }: LightboxProps) {
       </div>
 
       {/* Main image area */}
-      <div className="flex-1 relative flex items-center justify-center px-16 overflow-hidden">
+      <div className="flex-1 relative flex items-center justify-center px-4 sm:px-16 overflow-hidden">
         {/* Prev button */}
         <button
           onClick={goPrev}
@@ -94,6 +94,13 @@ export function Lightbox({ images, initialIndex = 0, onClose }: LightboxProps) {
               exit="exit"
               transition={{ duration: 0.3, ease: "easeInOut" }}
               className="relative max-w-full max-h-[calc(100vh-200px)]"
+              drag="x"
+              dragConstraints={{ left: 0, right: 0 }}
+              dragElastic={0.15}
+              onDragEnd={(_e, info) => {
+                if (info.offset.x < -80) goNext();
+                else if (info.offset.x > 80) goPrev();
+              }}
             >
               <Image
                 src={current.url}
@@ -107,8 +114,8 @@ export function Lightbox({ images, initialIndex = 0, onClose }: LightboxProps) {
 
           {/* Label overlay */}
           {current.label && (
-            <div className="absolute bottom-0 left-0 right-0 p-4 rounded-b-lg pointer-events-none" style={{ background: "linear-gradient(to top, rgba(var(--overlay-rgb), 0.6), transparent)" }}>
-              <span className="text-sm font-medium text-[var(--text-primary)] tracking-wide">
+            <div className="absolute bottom-0 left-0 right-0 p-6 rounded-b-lg pointer-events-none" style={{ background: "linear-gradient(to top, rgba(var(--overlay-rgb), 0.7), transparent)" }}>
+              <span className="font-ui text-2xl sm:text-3xl font-bold text-[var(--text-primary)] tracking-[0.15em] uppercase">
                 {current.label}
               </span>
             </div>
