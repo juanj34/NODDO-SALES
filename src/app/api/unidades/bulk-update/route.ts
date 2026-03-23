@@ -7,7 +7,7 @@ const ALLOWED_FIELDS = [
   "area_m2", "area_construida", "area_privada", "area_lote",
   "precio", "precio_venta", "estado",
   "habitaciones", "banos", "parqueaderos", "depositos",
-  "orientacion", "vista", "notas",
+  "orientacion", "vista", "notas", "plano_url",
   "fachada_id", "torre_id", "lote", "etapa_nombre",
 ];
 

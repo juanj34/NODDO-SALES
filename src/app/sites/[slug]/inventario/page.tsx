@@ -28,7 +28,9 @@ import {
   List,
   Type,
   Store,
+  FileText,
 } from "lucide-react";
+import { Lightbox } from "@/components/site/Lightbox";
 import { useSiteProject, useSiteBasePath } from "@/hooks/useSiteProject";
 import { usePersistedState } from "@/hooks/usePersistedState";
 import { useTranslation, getEstadoConfig } from "@/i18n";
@@ -101,6 +103,7 @@ export default function InventarioPage() {
   );
   const [cotizarUnidad, setCotizarUnidad] = useState<Unidad | null>(null);
   const [tipoSelectorUnit, setTipoSelectorUnit] = useState<Unidad | null>(null);
+  const [planoLightboxUrl, setPlanoLightboxUrl] = useState<string | null>(null);
 
   const { unidades, tipologias } = proyecto;
   const torres = proyecto.torres ?? [];
@@ -903,6 +906,16 @@ export default function InventarioPage() {
                         return <span />;
                       })()}
                       <div className="flex items-center gap-1">
+                        {unit.plano_url && (
+                          <button
+                            onClick={() => setPlanoLightboxUrl(unit.plano_url)}
+                            className="p-1.5 rounded-lg text-[var(--text-secondary)] hover:text-white bg-white/5 hover:bg-white/10 transition-all cursor-pointer"
+                            aria-label={tSite("inventario.viewFloorPlan")}
+                            title={tSite("inventario.viewFloorPlan")}
+                          >
+                            <FileText size={13} />
+                          </button>
+                        )}
                         {hasMultiTipos ? (
                           <button
                             onClick={() => setTipoSelectorUnit(unit)}
@@ -1096,7 +1109,17 @@ export default function InventarioPage() {
                         return "—";
                       })()}
                     </span>
-                    <div className="w-16 shrink-0 flex items-center justify-end gap-0.5">
+                    <div className="w-20 shrink-0 flex items-center justify-end gap-0.5">
+                      {unit.plano_url && (
+                        <button
+                          onClick={() => setPlanoLightboxUrl(unit.plano_url)}
+                          className="p-1 rounded-md text-[var(--text-secondary)] hover:text-white bg-white/5 hover:bg-white/10 transition-all cursor-pointer"
+                          aria-label={tSite("inventario.viewFloorPlan")}
+                          title={tSite("inventario.viewFloorPlan")}
+                        >
+                          <FileText size={12} />
+                        </button>
+                      )}
                       {listHasMultiTipos ? (
                         <button
                           onClick={() => setTipoSelectorUnit(unit)}
@@ -1284,6 +1307,14 @@ export default function InventarioPage() {
           cotizadorEnabled={proyecto.cotizador_enabled}
           cotizadorConfig={proyecto.cotizador_config}
           tipoProyecto={proyecto.tipo_proyecto}
+        />
+      )}
+
+      {/* Floor plan lightbox */}
+      {planoLightboxUrl && (
+        <Lightbox
+          images={[{ id: "unit-plano", url: planoLightboxUrl, thumbnail_url: planoLightboxUrl, alt_text: tSite("inventario.viewFloorPlan") }]}
+          onClose={() => setPlanoLightboxUrl(null)}
         />
       )}
     </SectionTransition>

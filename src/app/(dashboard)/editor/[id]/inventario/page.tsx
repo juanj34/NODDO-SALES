@@ -49,6 +49,7 @@ import { useMediaQuery } from "@/hooks/useMediaQuery";
 import type { Unidad, Tipologia, Torre, Fachada, Complemento, ComplementoMode, Currency, UnidadTipologia, InventoryColumnConfig, TipoTipologia, CustomColumnDef } from "@/types";
 import { getInventoryColumns, getDefaultColumns, getHybridInventoryColumns, resolveColumnsForTipologia, INVENTORY_COLUMN_KEYS, getPrimaryArea, generateColumnKey, getVisibleCustomColumns } from "@/lib/inventory-columns";
 import { ComplementosSection } from "@/components/dashboard/ComplementosSection";
+import { FileUploader } from "@/components/dashboard/FileUploader";
 import { CurrencyInput } from "@/components/dashboard/CurrencyInput";
 import { SmartImportModal } from "@/components/dashboard/SmartImportModal";
 import { InventoryAssistant } from "@/components/dashboard/InventoryAssistant";
@@ -84,6 +85,7 @@ interface UnitFormData {
   orientacion: string;
   vista: string;
   notas: string;
+  plano_url: string;
   precio_venta: string;
 }
 
@@ -119,6 +121,7 @@ const EMPTY_FORM: UnitFormData = {
   orientacion: "",
   vista: "",
   notas: "",
+  plano_url: "",
   precio_venta: "",
 };
 
@@ -447,6 +450,7 @@ function UnitForm({
   submitting,
   currency,
   columns,
+  projectId,
   isLoteBased = false,
   isMultiTipo = false,
   isTipologiaPricing = false,
@@ -464,6 +468,7 @@ function UnitForm({
   submitting: boolean;
   currency: Currency;
   columns: InventoryColumnConfig;
+  projectId: string;
   isLoteBased?: boolean;
   isMultiTipo?: boolean;
   isTipologiaPricing?: boolean;
@@ -483,6 +488,10 @@ function UnitForm({
 
   const setCustomField = (key: string, value: unknown) =>
     setCustomFields((prev) => ({ ...prev, [key]: value }));
+
+  // Show floor plan uploader for commercial tipologías or units without a tipología
+  const selectedTipo = tipologias.find((t) => t.id === form.tipologia_id);
+  const showPlanoUploader = selectedTipo?.tipo_tipologia === "local_comercial" || !form.tipologia_id;
 
   const toggleTipoId = (id: string) => {
     setSelectedTipoIds((prev) => {
@@ -784,6 +793,19 @@ function UnitForm({
               className={inputClass}
             />
           </div>
+          {/* Per-unit floor plan (commercial / untyped units) */}
+          {showPlanoUploader && (
+            <div className="md:col-span-2">
+              <label className={labelClass}>{t("inventario.unitFloorPlan")}</label>
+              <FileUploader
+                onUpload={(url) => set("plano_url", url)}
+                currentUrl={form.plano_url || null}
+                folder={`proyectos/${projectId}/planos-unidades`}
+                label={t("inventario.unitFloorPlan")}
+                accept="image/*"
+              />
+            </div>
+          )}
           {/* Custom columns */}
           {customColumns.map((col) => (
             <div key={col.id}>
@@ -1823,6 +1845,7 @@ export default function InventarioPage() {
         orientacion: data.orientacion || null,
         vista: data.vista || null,
         notas: data.notas || null,
+        plano_url: data.plano_url || null,
         fachada_id: data.fachada_id || null,
         torre_id: isMultiTorre && activeTorreId && activeTorreId !== "__none__" ? activeTorreId : null,
       };
@@ -1874,6 +1897,7 @@ export default function InventarioPage() {
         orientacion: data.orientacion || null,
         vista: data.vista || null,
         notas: data.notas || null,
+        plano_url: data.plano_url || null,
         fachada_id: data.fachada_id || null,
       };
       // Only send estado if it actually changed
@@ -2373,6 +2397,7 @@ export default function InventarioPage() {
     orientacion: u.orientacion || "",
     vista: u.vista || "",
     notas: u.notas || "",
+    plano_url: u.plano_url || "",
     precio_venta: u.precio_venta != null ? String(u.precio_venta) : "",
   });
 
@@ -2737,6 +2762,7 @@ export default function InventarioPage() {
             submitting={formLoading}
             currency={(project?.moneda_base as Currency) || "COP"}
             columns={columns}
+            projectId={projectId}
             isLoteBased={isLoteBased}
             isMultiTipo={isMultiTipo}
             isTipologiaPricing={isTipologiaPricing}
@@ -2946,6 +2972,7 @@ export default function InventarioPage() {
                   submitting={formLoading}
                   currency={(project?.moneda_base as Currency) || "COP"}
                   columns={columns}
+                  projectId={projectId}
                   isLoteBased={isLoteBased}
                   isMultiTipo={isMultiTipo}
                   isTipologiaPricing={isTipologiaPricing}
@@ -3134,6 +3161,7 @@ export default function InventarioPage() {
                             submitting={formLoading}
                             currency={moneda}
                             columns={columns}
+                            projectId={projectId}
                             isLoteBased={isLoteBased}
                             isMultiTipo={isMultiTipo}
                             isTipologiaPricing={isTipologiaPricing}

@@ -378,8 +378,21 @@ export default function TipologiasPage() {
   // Resolve linked tour 360 for active tipología
   const linkedTour = active?.tour_360_url || null;
 
+  // Per-unit floor plan override: when a unit is selected and has its own plano_url
+  const unitPlanoUrl = selectedUnit?.plano_url ?? null;
+  const effectivePlanoUrl = unitPlanoUrl || activePiso?.plano_url || null;
+
   // Floor plan images for Lightbox zoom (all floors, starting from activePisoIdx)
   const planoImages: LightboxImage[] = useMemo(() => {
+    // If unit has its own floor plan, show just that
+    if (unitPlanoUrl) {
+      return [{
+        id: `unit-plano-${selectedUnit?.id}`,
+        url: unitPlanoUrl,
+        thumbnail_url: unitPlanoUrl,
+        alt_text: `Plano — ${selectedUnit?.identificador ?? ""}`,
+      }];
+    }
     const withPlano = pisos.filter((p) => p.plano_url);
     if (!withPlano.length) return [];
     // Reorder so activePisoIdx is first
@@ -394,7 +407,7 @@ export default function TipologiasPage() {
       alt_text: pisos.length > 1 ? `Plano — ${p.nombre}` : `Plano — ${active?.nombre ?? ""}`,
       label: pisos.length > 1 ? p.nombre : undefined,
     }));
-  }, [pisos, activePiso, active?.nombre]);
+  }, [pisos, activePiso, active?.nombre, unitPlanoUrl, selectedUnit?.id, selectedUnit?.identificador]);
 
   // Group units by floor
   const unitsByFloor = useMemo(() => {
@@ -522,8 +535,8 @@ export default function TipologiasPage() {
             >
               {/* Floor Plan with Hotspots — inline-block wrapper shrink-wraps to image */}
               <div className="flex-1 relative glass-card p-4 min-h-0 flex items-center justify-center overflow-hidden">
-                {/* Floor toggle — only if multiple floors */}
-                {pisos.length > 1 && (
+                {/* Floor toggle — only if multiple floors and no per-unit plan override */}
+                {pisos.length > 1 && !unitPlanoUrl && (
                   <div className="absolute top-4 left-1/2 -translate-x-1/2 z-20 glass-dark rounded-xl p-1 shadow-lg border border-[var(--border-subtle)]">
                     {pisos.map((piso, i) => (
                       <button
@@ -542,19 +555,19 @@ export default function TipologiasPage() {
                   </div>
                 )}
 
-                {activePiso?.plano_url && (
+                {effectivePlanoUrl && (
                   <div className="relative inline-block max-w-full max-h-full leading-[0]">
                     {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img
                       ref={planoImgRef}
-                      src={activePiso.plano_url}
-                      alt={`Plano ${activePiso.nombre} - ${active.nombre}`}
+                      src={effectivePlanoUrl}
+                      alt={unitPlanoUrl ? `Plano — ${selectedUnit?.identificador}` : `Plano ${activePiso?.nombre} - ${active.nombre}`}
                       className="block max-w-full max-h-[calc(100vh-200px)] w-auto h-auto rounded-xl"
                       draggable={false}
                     />
 
                     {/* Zoom / expand button — top-right */}
-                    {!selectedUnit && (
+                    {(!selectedUnit || unitPlanoUrl) && (
                       <button
                         onClick={() => setShowPlanoZoom(true)}
                         className="absolute top-3 right-3 z-10 w-8 h-8 rounded-lg glass-dark border border-[var(--border-subtle)] flex items-center justify-center cursor-pointer transition-all hover:border-[rgba(var(--site-primary-rgb),0.4)] hover:shadow-[var(--glow-sm)]"
@@ -564,8 +577,8 @@ export default function TipologiasPage() {
                       </button>
                     )}
 
-                    {/* Hotspot dots — CSS % positioned relative to the inline-block wrapper */}
-                    {activePiso.hotspots.map((hotspot) => (
+                    {/* Hotspot dots — CSS % positioned relative to the inline-block wrapper (hidden when showing per-unit plan) */}
+                    {!unitPlanoUrl && activePiso?.hotspots.map((hotspot) => (
                       <button
                         key={hotspot.id}
                         aria-label={`Ver ${hotspot.label}`}

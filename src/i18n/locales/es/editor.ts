@@ -540,6 +540,7 @@ const editor = {
       view: "Vista",
       notes: "Notas",
     },
+    unitFloorPlan: "Plano del local",
     noTypology: "Sin tipología",
     allFachadas: "Todas las fachadas",
     save: "Guardar",

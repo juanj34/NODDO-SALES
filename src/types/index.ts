@@ -333,6 +333,7 @@ export interface Unidad {
   vista: string | null;
   vista_piso_id: string | null;
   notas: string | null;
+  plano_url: string | null;
   fachada_id: string | null;
   fachada_x: number | null;
   fachada_y: number | null;

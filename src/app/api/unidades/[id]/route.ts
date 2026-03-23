@@ -94,7 +94,7 @@ export async function PUT(
     }
 
     // Strip manual precio_venta from body for non-vendida units (guard)
-    const pickedBody = pick(body, ["tipologia_id", "identificador", "piso", "area_m2", "area_construida", "area_privada", "area_lote", "precio", "precio_venta", "estado", "habitaciones", "banos", "orientacion", "vista", "vista_piso_id", "notas", "fachada_id", "fachada_x", "fachada_y", "planta_id", "planta_x", "planta_y", "torre_id", "lote", "etapa_nombre", "parqueaderos", "depositos", "orden", "custom_fields"]);
+    const pickedBody = pick(body, ["tipologia_id", "identificador", "piso", "area_m2", "area_construida", "area_privada", "area_lote", "precio", "precio_venta", "estado", "habitaciones", "banos", "orientacion", "vista", "vista_piso_id", "notas", "plano_url", "fachada_id", "fachada_x", "fachada_y", "planta_id", "planta_x", "planta_y", "torre_id", "lote", "etapa_nombre", "parqueaderos", "depositos", "orden", "custom_fields"]);
 
     // Only allow manual precio_venta for units that are currently vendida (and staying vendida)
     if (pickedBody.precio_venta !== undefined) {

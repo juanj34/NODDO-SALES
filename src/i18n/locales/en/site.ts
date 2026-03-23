@@ -188,6 +188,7 @@ const site = {
     available: "avail.",
     chooseTipologia: "Choose a unit type",
     notAvailable: "Inventory not available",
+    viewFloorPlan: "View floor plan",
     notConfigured: "No units have been added to this project's inventory yet.",
   },
   implantaciones: {

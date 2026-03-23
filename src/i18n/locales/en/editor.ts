@@ -540,6 +540,7 @@ const editor = {
       view: "View",
       notes: "Notes",
     },
+    unitFloorPlan: "Unit floor plan",
     noTypology: "No unit type",
     allFachadas: "All elevations",
     save: "Save",

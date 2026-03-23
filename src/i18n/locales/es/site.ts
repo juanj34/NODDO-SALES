@@ -188,6 +188,7 @@ const site = {
     available: "disp.",
     chooseTipologia: "Elige una tipología",
     notAvailable: "Inventario no disponible",
+    viewFloorPlan: "Ver plano",
     notConfigured: "Aún no se han agregado unidades al inventario de este proyecto.",
   },
   implantaciones: {
