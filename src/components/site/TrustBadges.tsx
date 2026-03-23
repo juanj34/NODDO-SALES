@@ -15,6 +15,8 @@ interface TrustBadge {
 interface TrustBadgesProps {
   badges: TrustBadge[];
   className?: string;
+  /** Override grid columns class (default: auto based on badge count) */
+  columns?: string;
 }
 
 const variantStyles: Record<TrustBadgeVariant, { accent: string; bg: string }> = {
@@ -36,9 +38,11 @@ const variantStyles: Record<TrustBadgeVariant, { accent: string; bg: string }> =
   },
 };
 
-export function TrustBadges({ badges, className = "" }: TrustBadgesProps) {
+export function TrustBadges({ badges, className = "", columns }: TrustBadgesProps) {
+  const gridCols = columns ?? (badges.length === 3 ? "grid-cols-3" : "grid-cols-2 sm:grid-cols-4");
+
   return (
-    <div className={`grid grid-cols-2 lg:grid-cols-4 gap-3 ${className}`}>
+    <div className={`grid ${gridCols} gap-2.5 ${className}`}>
       {badges.map((badge, index) => {
         const variant = badge.variant || "security";
         const styles = variantStyles[variant];
@@ -51,17 +55,17 @@ export function TrustBadges({ badges, className = "" }: TrustBadgesProps) {
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: index * 0.1, duration: 0.3 }}
-            className={`flex items-center gap-2.5 p-3 rounded-xl border border-[var(--border-subtle)] ${styles.bg} backdrop-blur-sm`}
+            className={`flex flex-col items-center gap-1.5 p-3 rounded-xl border border-[var(--border-subtle)] ${styles.bg} backdrop-blur-sm text-center`}
           >
             <div className={`shrink-0 ${styles.accent}`}>
-              {Icon ? <Icon size={18} /> : (badge.icon as React.ReactNode)}
+              {Icon ? <Icon size={20} /> : (badge.icon as React.ReactNode)}
             </div>
-            <div className="flex-1 min-w-0">
-              <p className="text-xs font-medium text-[var(--text-primary)] truncate">
+            <div className="min-w-0">
+              <p className="text-[11px] font-medium text-[var(--text-primary)] leading-tight">
                 {badge.text}
               </p>
               {badge.subtext && (
-                <p className="text-[10px] text-[var(--text-muted)] truncate mt-0.5">
+                <p className="text-[10px] text-[var(--text-muted)] leading-tight mt-0.5">
                   {badge.subtext}
                 </p>
               )}

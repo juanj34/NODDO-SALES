@@ -40,7 +40,7 @@ import type { ProyectoCompleto, Complemento, ComplementoMode, Unidad, Torre, Cur
 
 type EstadoComplemento = Complemento["estado"];
 type TipoComplemento = Complemento["tipo"];
-type ActiveTab = "parqueadero" | "deposito";
+type ActiveTab = "parqueadero" | "deposito" | "addon";
 
 interface ComplementosSectionProps {
   project: ProyectoCompleto;
@@ -48,7 +48,7 @@ interface ComplementosSectionProps {
   parqueaderosMode?: ComplementoMode;
   depositosMode?: ComplementoMode;
   /** When set, locks the view to this type and hides the internal type tabs + stats strip */
-  fixedTab?: "parqueadero" | "deposito";
+  fixedTab?: "parqueadero" | "deposito" | "addon";
 }
 
 interface ComplementoFormData {
@@ -230,6 +230,7 @@ function ComplementoForm({
   submitting,
   showPrecio = true,
   currency = "COP",
+  fixedTipo,
 }: {
   initial: ComplementoFormData;
   unidades: Unidad[];
@@ -239,6 +240,7 @@ function ComplementoForm({
   submitting: boolean;
   showPrecio?: boolean;
   currency?: Currency;
+  fixedTipo?: boolean;
 }) {
   const [form, setForm] = useState<ComplementoFormData>(initial);
   const [unitSearch, setUnitSearch] = useState("");
@@ -273,25 +275,28 @@ function ComplementoForm({
               type="text"
               value={form.identificador}
               onChange={(e) => set("identificador", e.target.value)}
-              placeholder="P-01"
+              placeholder={form.tipo === "addon" ? "ADDON-01" : "P-01"}
               className={inputClass}
             />
           </div>
 
           {/* Tipo */}
-          <div>
-            <label className={labelClass}>Tipo</label>
-            <NodDoDropdown
-              variant="form"
-              size="lg"
-              value={form.tipo}
-              onChange={(val) => set("tipo", val)}
-              options={[
-                { value: "parqueadero", label: "Parqueadero" },
-                { value: "deposito", label: "Deposito" },
-              ]}
-            />
-          </div>
+          {!fixedTipo && (
+            <div>
+              <label className={labelClass}>Tipo</label>
+              <NodDoDropdown
+                variant="form"
+                size="lg"
+                value={form.tipo}
+                onChange={(val) => set("tipo", val)}
+                options={[
+                  { value: "parqueadero", label: "Parqueadero" },
+                  { value: "deposito", label: "Deposito" },
+                  { value: "addon", label: "Addon" },
+                ]}
+              />
+            </div>
+          )}
 
           {/* Subtipo */}
           <div>
@@ -300,7 +305,7 @@ function ComplementoForm({
               type="text"
               value={form.subtipo}
               onChange={(e) => set("subtipo", e.target.value)}
-              placeholder="Cubierto, Doble..."
+              placeholder={form.tipo === "addon" ? "Jacuzzi, Amoblado..." : "Cubierto, Doble..."}
               className={inputClass}
             />
           </div>
@@ -515,6 +520,8 @@ export function ComplementosSection({ project, onRefresh, parqueaderosMode, depo
   const showDepositos = dMode !== "sin_inventario";
   const showPrecioParq = pMode === "inventario_separado";
   const showPrecioDepo = dMode === "inventario_separado";
+  const showPrecioForTab = (tab: ActiveTab) =>
+    tab === "addon" ? true : tab === "parqueadero" ? showPrecioParq : showPrecioDepo;
 
   // --- Data ---
   const complementos: Complemento[] = useMemo(() => (project.complementos || []) as Complemento[], [project.complementos]);
@@ -987,7 +994,7 @@ export function ComplementosSection({ project, onRefresh, parqueaderosMode, depo
           className={btnPrimary}
         >
           <Plus size={14} />
-          {activeTab === "parqueadero" ? "Nuevo parqueadero" : "Nuevo deposito"}
+          {activeTab === "parqueadero" ? "Nuevo parqueadero" : activeTab === "addon" ? "Nuevo addon" : "Nuevo deposito"}
         </button>
       </div>
 
@@ -1002,8 +1009,9 @@ export function ComplementosSection({ project, onRefresh, parqueaderosMode, depo
             onSubmit={handleCreate}
             onCancel={() => setShowCreateForm(false)}
             submitting={formLoading}
-            showPrecio={activeTab === "parqueadero" ? showPrecioParq : showPrecioDepo}
+            showPrecio={showPrecioForTab(activeTab)}
             currency={project.moneda_base || "COP"}
+            fixedTipo={!!fixedTab}
           />
         )}
       </AnimatePresence>
@@ -1145,7 +1153,7 @@ export function ComplementosSection({ project, onRefresh, parqueaderosMode, depo
                 <th className="text-left py-3 px-4 text-[var(--text-tertiary)] font-ui font-bold text-[10px] uppercase tracking-wider">
                   Area m2
                 </th>
-                {((activeTab === "parqueadero" && showPrecioParq) || (activeTab === "deposito" && showPrecioDepo)) && (
+                {showPrecioForTab(activeTab) && (
                   <th className="text-left py-3 px-4 text-[var(--text-tertiary)] font-ui font-bold text-[10px] uppercase tracking-wider">
                     Precio
                   </th>
@@ -1171,7 +1179,9 @@ export function ComplementosSection({ project, onRefresh, parqueaderosMode, depo
                     {complementos.filter((c) => c.tipo === activeTab).length === 0
                       ? activeTab === "parqueadero"
                         ? "No hay parqueaderos. Agrega el primero."
-                        : "No hay depositos. Agrega el primero."
+                        : activeTab === "addon"
+                          ? "No hay addons. Agrega el primero."
+                          : "No hay depositos. Agrega el primero."
                       : "No se encontraron resultados."}
                   </td>
                 </tr>
@@ -1193,8 +1203,9 @@ export function ComplementosSection({ project, onRefresh, parqueaderosMode, depo
                           onSubmit={(data) => handleUpdate(comp.id, data)}
                           onCancel={() => setEditingId(null)}
                           submitting={formLoading}
-                          showPrecio={activeTab === "parqueadero" ? showPrecioParq : showPrecioDepo}
+                          showPrecio={showPrecioForTab(activeTab)}
                           currency={project.moneda_base || "COP"}
+                          fixedTipo={!!fixedTab}
                         />
                       </td>
                     ) : (
@@ -1226,7 +1237,7 @@ export function ComplementosSection({ project, onRefresh, parqueaderosMode, depo
                         <td className="py-3 px-4 text-[var(--text-secondary)]">
                           {comp.area_m2 != null ? `${comp.area_m2} m2` : "-"}
                         </td>
-                        {((activeTab === "parqueadero" && showPrecioParq) || (activeTab === "deposito" && showPrecioDepo)) && (
+                        {showPrecioForTab(activeTab) && (
                           <td className="py-3 px-4 text-[var(--text-secondary)]">
                             {comp.precio
                               ? formatCurrency(comp.precio, project.moneda_base)
@@ -1285,7 +1296,7 @@ export function ComplementosSection({ project, onRefresh, parqueaderosMode, depo
           <p className="text-[11px] text-[var(--text-muted)]">
             {filteredComplementos.length} de{" "}
             {complementos.filter((c) => c.tipo === activeTab).length}{" "}
-            {activeTab === "parqueadero" ? "parqueaderos" : "depositos"}
+            {activeTab === "parqueadero" ? "parqueaderos" : activeTab === "addon" ? "addons" : "depositos"}
           </p>
         </div>
       )}

@@ -127,7 +127,7 @@ export const tipologiaSchema = z.object({
     .max(999999999999, "El precio es demasiado alto")
     .nullish(),
 
-  tipo_tipologia: z.enum(["apartamento", "casa", "lote"]).nullish(),
+  tipo_tipologia: z.enum(["apartamento", "casa", "lote", "local_comercial"]).nullish(),
 });
 
 // ═══════════════════════════════════════════════════════════

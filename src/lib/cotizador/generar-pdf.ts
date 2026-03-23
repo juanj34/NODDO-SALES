@@ -2,6 +2,7 @@ import jsPDF from "jspdf";
 import type { ResultadoCotizacion, CotizadorConfig, Currency, ComplementoSeleccion } from "@/types";
 import { formatCurrency } from "@/lib/currency";
 import type { EmailLocale } from "@/lib/email-i18n";
+import { registerFonts, FONT } from "./pdf-fonts";
 
 type RGB = [number, number, number];
 
@@ -13,7 +14,11 @@ export interface PDFData {
   // Unit info
   unidadId: string;
   tipologiaName: string | null;
-  area: number | null;
+  area_construida: number | null;
+  area_privada: number | null;
+  area_lote: number | null;
+  area_m2: number | null;
+  unidad_medida: string;
   piso: number | null;
   vista: string | null;
   habitaciones: number | null;
@@ -21,6 +26,16 @@ export interface PDFData {
   orientacion: string | null;
   parqueaderos: number | null;
   depositos: number | null;
+  tiene_jacuzzi?: boolean;
+  tiene_piscina?: boolean;
+  tiene_bbq?: boolean;
+  tiene_terraza?: boolean;
+  tiene_jardin?: boolean;
+  tiene_cuarto_servicio?: boolean;
+  tiene_estudio?: boolean;
+  tiene_chimenea?: boolean;
+  tiene_doble_altura?: boolean;
+  tiene_rooftop?: boolean;
   // Quotation
   resultado: ResultadoCotizacion;
   config: CotizadorConfig;
@@ -30,6 +45,8 @@ export interface PDFData {
   buyerPhone: string | null;
   // Agent
   agenteName: string | null;
+  agentePhone?: string | null;
+  agenteEmail?: string | null;
   // Meta
   fecha: string;
   referenceNumber: string;
@@ -39,6 +56,19 @@ export interface PDFData {
   // Constructora logo (pre-fetched base64)
   constructoraLogoBase64: string | null;
   constructoraLogoFormat: "JPEG" | "PNG" | null;
+  // Project logo (pre-fetched base64)
+  projectLogoBase64?: string | null;
+  projectLogoFormat?: "JPEG" | "PNG" | null;
+  // Floor plan image (pre-fetched base64)
+  planoBase64?: string | null;
+  planoFormat?: "JPEG" | "PNG" | null;
+  planoWidth?: number | null;
+  planoHeight?: number | null;
+  // Key plan / building position image (pre-fetched base64)
+  keyPlanBase64?: string | null;
+  keyPlanFormat?: "JPEG" | "PNG" | null;
+  keyPlanWidth?: number | null;
+  keyPlanHeight?: number | null;
   // Additional project data
   tour360Url: string | null;
   whatsappNumero: string | null;
@@ -49,6 +79,10 @@ export interface PDFData {
   pdfSaludo: string | null;
   pdfDespedida: string | null;
   fechaEstimadaEntrega: string | null;
+  // Style
+  coverStyle?: "hero" | "minimalista";
+  pdfTheme?: "dark" | "neutral";
+  pisoLabel?: string | null;
   // Locale
   idioma?: EmailLocale;
 }
@@ -69,6 +103,63 @@ const frecLabels: Record<EmailLocale, Record<string, string>> = {
   en: { unica: "One-time", mensual: "Monthly", bimestral: "Bimonthly", trimestral: "Quarterly" },
 };
 
+/* ── Theme system ── */
+
+interface ThemePalette {
+  bg: RGB;
+  text: RGB;
+  textSecondary: RGB;
+  textMuted: RGB;
+  gridBg: RGB;
+  gridBorder: RGB;
+  rowAlt: RGB;
+  tableHeader: RGB;
+  tableHeaderText: RGB;
+  divider: RGB;
+  footerText: RGB;
+  // Cover-specific (dark theme only)
+  coverBg: RGB;
+  coverText: RGB;
+  coverTextSecondary: RGB;
+  coverTextMuted: RGB;
+}
+
+const THEME_DARK: ThemePalette = {
+  bg: [255, 255, 255],
+  text: [25, 25, 25],
+  textSecondary: [80, 80, 80],
+  textMuted: [130, 130, 130],
+  gridBg: [250, 248, 244],
+  gridBorder: [235, 232, 225],
+  rowAlt: [252, 251, 249],
+  tableHeader: [35, 35, 38],
+  tableHeaderText: [255, 255, 255],
+  divider: [230, 225, 215],
+  footerText: [170, 170, 170],
+  coverBg: [10, 10, 11],
+  coverText: [240, 237, 230],
+  coverTextSecondary: [160, 155, 145],
+  coverTextMuted: [110, 107, 100],
+};
+
+const THEME_NEUTRAL: ThemePalette = {
+  bg: [255, 255, 255],
+  text: [30, 30, 30],
+  textSecondary: [80, 80, 80],
+  textMuted: [140, 140, 140],
+  gridBg: [248, 247, 245],
+  gridBorder: [230, 228, 224],
+  rowAlt: [250, 249, 247],
+  tableHeader: [245, 243, 240],
+  tableHeaderText: [40, 40, 40],
+  divider: [225, 222, 218],
+  footerText: [160, 160, 160],
+  coverBg: [255, 255, 255],
+  coverText: [30, 30, 30],
+  coverTextSecondary: [100, 100, 100],
+  coverTextMuted: [150, 150, 150],
+};
+
 /* ── PDF i18n ── */
 
 interface PDFStrings {
@@ -79,6 +170,9 @@ interface PDFStrings {
   unit: string;
   typology: string;
   area: string;
+  area_construida: string;
+  area_privada: string;
+  area_lote: string;
   floor: string;
   bedrooms: string;
   bathrooms: string;
@@ -86,10 +180,22 @@ interface PDFStrings {
   orientation: string;
   parking: string;
   storage: string;
+  jacuzzi: string;
+  pool: string;
+  bbq: string;
+  terrace: string;
+  garden: string;
+  maidsRoom: string;
+  study: string;
+  fireplace: string;
+  doubleHeight: string;
+  rooftop: string;
+  yes: string;
   estimatedDelivery: string;
   complements: string;
   parking_label: string;
   storage_label: string;
+  addon_label: string;
   additional: string;
   included: string;
   complementsSubtotal: string;
@@ -100,6 +206,8 @@ interface PDFStrings {
   installments: string;
   installmentValue: string;
   total: string;
+  date: string;
+  courtesy: string;
   defaultGreeting: string;
   defaultClosing: string;
   virtualTour: string;
@@ -110,6 +218,11 @@ interface PDFStrings {
   legalNotice: string;
   preparedFor: string;
   generatedBy: string;
+  floorPlan: string;
+  floorPlanDisclaimer: string;
+  keyPlan: string;
+  keyPlanDisclaimer: string;
+  nthFloor: string;
 }
 
 const PDF_STRINGS: Record<EmailLocale, PDFStrings> = {
@@ -121,6 +234,9 @@ const PDF_STRINGS: Record<EmailLocale, PDFStrings> = {
     unit: "Unidad",
     typology: "Tipología",
     area: "Área",
+    area_construida: "Área construida",
+    area_privada: "Área privada",
+    area_lote: "Área lote",
     floor: "Piso",
     bedrooms: "Habitaciones",
     bathrooms: "Baños",
@@ -128,10 +244,22 @@ const PDF_STRINGS: Record<EmailLocale, PDFStrings> = {
     orientation: "Orientación",
     parking: "Parqueaderos",
     storage: "Depósitos",
+    jacuzzi: "Jacuzzi",
+    pool: "Piscina",
+    bbq: "BBQ privado",
+    terrace: "Terraza privada",
+    garden: "Jardín privado",
+    maidsRoom: "Cuarto de servicio",
+    study: "Estudio",
+    fireplace: "Chimenea",
+    doubleHeight: "Doble altura",
+    rooftop: "Rooftop privado",
+    yes: "Sí",
     estimatedDelivery: "Entrega estimada",
     complements: "COMPLEMENTOS",
     parking_label: "Parqueadero",
     storage_label: "Depósito",
+    addon_label: "Adicional",
     additional: "adicional",
     included: "Incluido",
     complementsSubtotal: "Subtotal complementos:",
@@ -142,6 +270,8 @@ const PDF_STRINGS: Record<EmailLocale, PDFStrings> = {
     installments: "CUOTAS",
     installmentValue: "VALOR CUOTA",
     total: "TOTAL",
+    date: "FECHA",
+    courtesy: "Cortesía",
     defaultGreeting: "Estimado(a) {name}, gracias por considerar {project} como su nuevo hogar. A continuación le presentamos la oferta detallada para la unidad seleccionada.",
     defaultClosing: "Cordialmente,",
     virtualTour: "RECORRIDO VIRTUAL",
@@ -152,6 +282,11 @@ const PDF_STRINGS: Record<EmailLocale, PDFStrings> = {
     legalNotice: "AVISO LEGAL",
     preparedFor: "PREPARADA PARA",
     generatedBy: "Generado por NODDO — noddo.io",
+    floorPlan: "PLANO DE PLANTA",
+    floorPlanDisclaimer: "Las dimensiones y distribución son aproximadas e ilustrativas. Sujetas a cambios sin previo aviso. Consulte planos técnicos oficiales.",
+    keyPlan: "UBICACIÓN EN EDIFICIO",
+    keyPlanDisclaimer: "La ubicación mostrada es aproximada e ilustrativa. Las dimensiones pueden variar según piso y orientación.",
+    nthFloor: "Piso {n}",
   },
   en: {
     quotation: "QUOTATION",
@@ -161,6 +296,9 @@ const PDF_STRINGS: Record<EmailLocale, PDFStrings> = {
     unit: "Unit",
     typology: "Typology",
     area: "Area",
+    area_construida: "Built area",
+    area_privada: "Private area",
+    area_lote: "Lot area",
     floor: "Floor",
     bedrooms: "Bedrooms",
     bathrooms: "Bathrooms",
@@ -168,10 +306,22 @@ const PDF_STRINGS: Record<EmailLocale, PDFStrings> = {
     orientation: "Orientation",
     parking: "Parking spaces",
     storage: "Storage units",
+    jacuzzi: "Jacuzzi",
+    pool: "Pool",
+    bbq: "Private BBQ",
+    terrace: "Private terrace",
+    garden: "Private garden",
+    maidsRoom: "Maid's room",
+    study: "Study",
+    fireplace: "Fireplace",
+    doubleHeight: "Double height",
+    rooftop: "Private rooftop",
+    yes: "Yes",
     estimatedDelivery: "Estimated delivery",
     complements: "ADD-ONS",
     parking_label: "Parking",
     storage_label: "Storage",
+    addon_label: "Add-on",
     additional: "additional",
     included: "Included",
     complementsSubtotal: "Add-ons subtotal:",
@@ -182,6 +332,8 @@ const PDF_STRINGS: Record<EmailLocale, PDFStrings> = {
     installments: "INSTALLMENTS",
     installmentValue: "PER INSTALLMENT",
     total: "TOTAL",
+    date: "DATE",
+    courtesy: "Courtesy",
     defaultGreeting: "Dear {name}, thank you for considering {project} as your new home. Below you will find the detailed offer for the selected unit.",
     defaultClosing: "Best regards,",
     virtualTour: "VIRTUAL TOUR",
@@ -192,16 +344,15 @@ const PDF_STRINGS: Record<EmailLocale, PDFStrings> = {
     legalNotice: "LEGAL NOTICE",
     preparedFor: "PREPARED FOR",
     generatedBy: "Generated by NODDO — noddo.io",
+    floorPlan: "FLOOR PLAN",
+    floorPlanDisclaimer: "Dimensions and layout are approximate and illustrative. Subject to change without notice. Refer to official technical plans.",
+    keyPlan: "KEY PLAN",
+    keyPlanDisclaimer: "The location shown is approximate and illustrative. Dimensions may vary by floor and orientation.",
+    nthFloor: "Floor {n}",
   },
 };
 
-// Dark surface colors matching NODDO brand
-const DARK_BG: RGB = [10, 10, 11]; // #0A0A0B
-const TEXT_WHITE: RGB = [240, 237, 230]; // warm white
-const TEXT_SECONDARY: RGB = [160, 155, 145];
-const TEXT_MUTED: RGB = [110, 107, 100];
-
-/* ── Page frame: gold bars top & bottom ── */
+/* ── Page frame: accent bars top & bottom ── */
 
 function drawPageFrame(
   doc: jsPDF,
@@ -210,18 +361,18 @@ function drawPageFrame(
   accent: RGB,
   accentLight: RGB,
 ) {
-  // Top gold bar
+  // Top accent bar
   doc.setFillColor(accent[0], accent[1], accent[2]);
   doc.rect(0, 0, pageW, 4, "F");
   doc.setFillColor(accentLight[0], accentLight[1], accentLight[2]);
   doc.rect(0, 4, pageW, 0.4, "F");
 
-  // Bottom gold bar
+  // Bottom accent bar
   doc.setFillColor(accent[0], accent[1], accent[2]);
   doc.rect(0, pageH - 3.5, pageW, 3.5, "F");
 }
 
-/* ── Section label: GOLD UPPERCASE with subtle underline ── */
+/* ── Section label: ACCENT UPPERCASE with subtle underline ── */
 
 function drawSectionLabel(
   doc: jsPDF,
@@ -230,193 +381,361 @@ function drawSectionLabel(
   y: number,
   accent: RGB,
   contentW: number,
+  theme: ThemePalette,
 ): number {
   doc.setFontSize(8.5);
-  doc.setFont("helvetica", "bold");
+  doc.setFont(FONT.LABEL, "bold");
   doc.setTextColor(accent[0], accent[1], accent[2]);
   doc.text(label, x, y);
 
-  // Gold accent line + subtle continuation
+  // Accent line + subtle continuation
   const labelW = doc.getTextWidth(label) + 4;
   doc.setDrawColor(accent[0], accent[1], accent[2]);
   doc.setLineWidth(0.5);
   doc.line(x, y + 2, x + labelW, y + 2);
-  doc.setDrawColor(230, 225, 215);
+  doc.setDrawColor(theme.divider[0], theme.divider[1], theme.divider[2]);
   doc.setLineWidth(0.15);
   doc.line(x + labelW, y + 2, x + contentW, y + 2);
 
   return y + 8;
 }
 
-/* ── COVER PAGE (Page 1) ── */
+/* ── Dual-logo header: constructora (left) + project (right) ── */
 
-function drawCoverPage(doc: jsPDF, data: PDFData, accent: RGB, strings: PDFStrings) {
+function drawDualLogoHeader(
+  doc: jsPDF,
+  data: PDFData,
+  accent: RGB,
+  theme: ThemePalette,
+  pageW: number,
+  margin: number,
+): number {
+  const y = 12;
+
+  // Constructora logo (left)
+  if (data.constructoraLogoBase64 && data.constructoraLogoFormat) {
+    try {
+      doc.addImage(data.constructoraLogoBase64, data.constructoraLogoFormat, margin, y, 25, 10);
+    } catch { /* silent */ }
+  } else if (data.constructoraName) {
+    doc.setFontSize(7.5);
+    doc.setFont(FONT.LABEL, "bold");
+    doc.setTextColor(theme.textMuted[0], theme.textMuted[1], theme.textMuted[2]);
+    doc.text(data.constructoraName.toUpperCase(), margin, y + 6);
+  }
+
+  // Project logo (right)
+  if (data.projectLogoBase64 && data.projectLogoFormat) {
+    try {
+      doc.addImage(data.projectLogoBase64, data.projectLogoFormat, pageW - margin - 25, y, 25, 10);
+    } catch { /* silent */ }
+  } else {
+    doc.setFontSize(7.5);
+    doc.setFont(FONT.LABEL, "bold");
+    doc.setTextColor(accent[0], accent[1], accent[2]);
+    doc.text(data.projectName, pageW - margin, y + 6, { align: "right" });
+  }
+
+  return y + 14;
+}
+
+/* ── Aspect-ratio-correct image placement ── */
+
+function fitImage(
+  maxW: number,
+  maxH: number,
+  imgW: number | null | undefined,
+  imgH: number | null | undefined,
+): { w: number; h: number } {
+  if (!imgW || !imgH || imgW <= 0 || imgH <= 0) {
+    // Unknown dimensions — use max area with 4:3 fallback ratio
+    const aspect = 4 / 3;
+    let w = maxW;
+    let h = w / aspect;
+    if (h > maxH) {
+      h = maxH;
+      w = h * aspect;
+    }
+    return { w, h };
+  }
+  const scale = Math.min(maxW / imgW, maxH / imgH);
+  return { w: imgW * scale, h: imgH * scale };
+}
+
+/* ── COVER: HERO (dark, with photo) ── */
+
+function drawCoverHero(doc: jsPDF, data: PDFData, accent: RGB, strings: PDFStrings) {
   const pageW = doc.internal.pageSize.getWidth();
   const pageH = doc.internal.pageSize.getHeight();
+  const coverBg: RGB = [10, 10, 11];
+  const coverText: RGB = [240, 237, 230];
+  const coverSecondary: RGB = [160, 155, 145];
+  const coverMuted: RGB = [110, 107, 100];
 
-  // Full dark background
-  doc.setFillColor(DARK_BG[0], DARK_BG[1], DARK_BG[2]);
+  // Full dark background (fallback if no image)
+  doc.setFillColor(coverBg[0], coverBg[1], coverBg[2]);
   doc.rect(0, 0, pageW, pageH, "F");
 
-  // Cover image
+  // Cover image — FULL PAGE bleed
   if (data.coverImageBase64 && data.coverImageFormat) {
     try {
-      const imgW = pageW;
-      const maxImgH = pageH * 0.62;
+      doc.addImage(data.coverImageBase64, data.coverImageFormat, 0, 0, pageW, pageH);
 
-      doc.addImage(
-        data.coverImageBase64,
-        data.coverImageFormat,
-        0,
-        0,
-        imgW,
-        maxImgH,
-      );
+      // Gradient overlay: transparent at top → dark at bottom
+      // Two-phase gradient for natural look:
+      // Phase 1 (subtle): light darken from 40% to 55% of page
+      // Phase 2 (strong): heavy darken from 55% to 100% of page
+      const steps = 32;
 
-      // Dark gradient overlay on bottom portion of image (simulate fade to dark)
-      const gradientSteps = 24;
-      const gradientStartY = maxImgH * 0.45;
-      const stepH = (maxImgH - gradientStartY) / gradientSteps;
-      for (let i = 0; i < gradientSteps; i++) {
-        const progress = i / (gradientSteps - 1);
-        const alpha = progress * progress; // ease-in curve
-        const r = Math.round(DARK_BG[0] * alpha + (1 - alpha) * 40);
-        const g = Math.round(DARK_BG[1] * alpha + (1 - alpha) * 40);
-        const b = Math.round(DARK_BG[2] * alpha + (1 - alpha) * 42);
+      // Phase 1: subtle vignette (40% → 55%)
+      const p1Start = pageH * 0.40;
+      const p1End = pageH * 0.55;
+      const p1StepH = (p1End - p1Start) / 8;
+      for (let i = 0; i < 8; i++) {
+        const progress = i / 7;
+        const alpha = progress * 0.35; // max 35% opacity
+        const r = Math.round(coverBg[0] * alpha + (1 - alpha) * 30);
+        const g = Math.round(coverBg[1] * alpha + (1 - alpha) * 30);
+        const b = Math.round(coverBg[2] * alpha + (1 - alpha) * 32);
         doc.setFillColor(r, g, b);
-        doc.rect(0, gradientStartY + i * stepH, imgW, stepH + 0.5, "F");
+        doc.setGState(new (doc as unknown as { GState: new (opts: { opacity: number }) => unknown }).GState({ opacity: alpha }));
+        doc.rect(0, p1Start + i * p1StepH, pageW, p1StepH + 0.5, "F");
       }
+
+      // Phase 2: strong darken (55% → 100%)
+      const p2Start = pageH * 0.55;
+      const p2StepH = (pageH - p2Start) / steps;
+      for (let i = 0; i < steps; i++) {
+        const progress = i / (steps - 1);
+        const alpha = 0.35 + progress * 0.65; // 35% → 100% opacity
+        doc.setGState(new (doc as unknown as { GState: new (opts: { opacity: number }) => unknown }).GState({ opacity: alpha }));
+        doc.setFillColor(coverBg[0], coverBg[1], coverBg[2]);
+        doc.rect(0, p2Start + i * p2StepH, pageW, p2StepH + 0.5, "F");
+      }
+
+      // Reset opacity
+      doc.setGState(new (doc as unknown as { GState: new (opts: { opacity: number }) => unknown }).GState({ opacity: 1 }));
     } catch {
-      // Image embedding failed — continue with text-only cover
+      // Image embedding failed
     }
   }
 
-  // Gold accent bar at top
+  // Top accent bar
   doc.setFillColor(accent[0], accent[1], accent[2]);
   doc.rect(0, 0, pageW, 3.5, "F");
 
-  // Constructora logo (if available)
+  // Constructora logo — subtle light pill for visibility on photo bg
   if (data.constructoraLogoBase64 && data.constructoraLogoFormat) {
     try {
-      doc.addImage(
-        data.constructoraLogoBase64,
-        data.constructoraLogoFormat,
-        22,
-        12,
-        30,
-        12,
-      );
-    } catch {
-      // Logo embedding failed — show text fallback
-    }
+      doc.setFillColor(255, 255, 255);
+      doc.setGState(new (doc as unknown as { GState: new (opts: { opacity: number }) => unknown }).GState({ opacity: 0.15 }));
+      doc.roundedRect(18, 8, 38, 20, 3, 3, "F");
+      doc.setGState(new (doc as unknown as { GState: new (opts: { opacity: number }) => unknown }).GState({ opacity: 1 }));
+      doc.addImage(data.constructoraLogoBase64, data.constructoraLogoFormat, 22, 12, 30, 12);
+    } catch { /* silent */ }
   }
 
-  // Content positioned in the lower dark area
-  const textStartY = pageH * 0.66;
+  // Content in lower gradient area (text over darkened image)
+  const textStartY = pageH * 0.68;
 
-  // Constructora name
   if (data.constructoraName) {
     doc.setFontSize(9);
-    doc.setFont("helvetica", "normal");
-    doc.setTextColor(TEXT_SECONDARY[0], TEXT_SECONDARY[1], TEXT_SECONDARY[2]);
+    doc.setFont(FONT.LABEL, "bold");
+    doc.setTextColor(coverSecondary[0], coverSecondary[1], coverSecondary[2]);
     doc.text(data.constructoraName.toUpperCase(), 22, textStartY);
   }
 
-  // Project name (large)
   const projectNameY = textStartY + (data.constructoraName ? 12 : 0);
-  doc.setFontSize(34);
-  doc.setFont("helvetica", "bold");
-  doc.setTextColor(TEXT_WHITE[0], TEXT_WHITE[1], TEXT_WHITE[2]);
-
-  // Wrap project name if too long
+  doc.setFontSize(38);
+  doc.setFont(FONT.HEADING, "normal");
+  doc.setTextColor(coverText[0], coverText[1], coverText[2]);
   const nameLines = doc.splitTextToSize(data.projectName, pageW - 44);
   doc.text(nameLines, 22, projectNameY);
 
-  const afterNameY = projectNameY + nameLines.length * 13;
+  const afterNameY = projectNameY + nameLines.length * 14;
 
-  // Gold decorative line
   doc.setDrawColor(accent[0], accent[1], accent[2]);
   doc.setLineWidth(0.8);
   doc.line(22, afterNameY + 3, 72, afterNameY + 3);
 
-  // "COTIZACIÓN" label
   doc.setFontSize(10);
-  doc.setFont("helvetica", "bold");
+  doc.setFont(FONT.LABEL, "bold");
   doc.setTextColor(accent[0], accent[1], accent[2]);
   doc.text(strings.quotation, 22, afterNameY + 12);
 
-  // Reference number
   doc.setFontSize(8);
-  doc.setFont("helvetica", "normal");
-  doc.setTextColor(TEXT_MUTED[0], TEXT_MUTED[1], TEXT_MUTED[2]);
+  doc.setFont(FONT.MONO, "normal");
+  doc.setTextColor(coverMuted[0], coverMuted[1], coverMuted[2]);
   doc.text(data.referenceNumber, 22, afterNameY + 19);
 
-  // Date at bottom right
   doc.setFontSize(8);
-  doc.setTextColor(TEXT_SECONDARY[0], TEXT_SECONDARY[1], TEXT_SECONDARY[2]);
+  doc.setFont(FONT.MONO, "normal");
+  doc.setTextColor(coverSecondary[0], coverSecondary[1], coverSecondary[2]);
   doc.text(data.fecha, pageW - 22, pageH - 16, { align: "right" });
 
-  // Unit identifier at bottom left
   doc.setFontSize(9);
-  doc.setFont("helvetica", "bold");
-  doc.setTextColor(TEXT_WHITE[0], TEXT_WHITE[1], TEXT_WHITE[2]);
+  doc.setFont(FONT.LABEL, "bold");
+  doc.setTextColor(coverText[0], coverText[1], coverText[2]);
   doc.text(`${strings.unit} ${data.unidadId}`, 22, pageH - 16);
 
-  // Bottom gold bar
+  doc.setFillColor(accent[0], accent[1], accent[2]);
+  doc.rect(0, pageH - 3.5, pageW, 3.5, "F");
+}
+
+/* ── COVER: MINIMALIST (clean, white/cream) ── */
+
+function drawCoverMinimalista(doc: jsPDF, data: PDFData, accent: RGB, theme: ThemePalette, strings: PDFStrings) {
+  const pageW = doc.internal.pageSize.getWidth();
+  const pageH = doc.internal.pageSize.getHeight();
+
+  // Background
+  doc.setFillColor(theme.coverBg[0], theme.coverBg[1], theme.coverBg[2]);
+  doc.rect(0, 0, pageW, pageH, "F");
+
+  // Top accent bar
+  doc.setFillColor(accent[0], accent[1], accent[2]);
+  doc.rect(0, 0, pageW, 3.5, "F");
+
+  const centerX = pageW / 2;
+
+  // Project logo (centered, large)
+  let logoEndY = pageH * 0.32;
+  if (data.projectLogoBase64 && data.projectLogoFormat) {
+    try {
+      const logoMaxW = 60;
+      const logoMaxH = 25;
+      const logoX = centerX - logoMaxW / 2;
+      const logoY = pageH * 0.25;
+      doc.addImage(data.projectLogoBase64, data.projectLogoFormat, logoX, logoY, logoMaxW, logoMaxH);
+      logoEndY = logoY + logoMaxH + 8;
+    } catch { /* silent */ }
+  }
+
+  // Project name (large, centered)
+  doc.setFontSize(30);
+  doc.setFont(FONT.HEADING, "normal");
+  doc.setTextColor(theme.coverText[0], theme.coverText[1], theme.coverText[2]);
+  const nameLines = doc.splitTextToSize(data.projectName, pageW - 60);
+  const nameY = logoEndY + 10;
+  doc.text(nameLines, centerX, nameY, { align: "center" });
+
+  const afterNameY = nameY + nameLines.length * 12;
+
+  // Accent line
+  doc.setDrawColor(accent[0], accent[1], accent[2]);
+  doc.setLineWidth(0.8);
+  doc.line(centerX - 25, afterNameY + 4, centerX + 25, afterNameY + 4);
+
+  // "COTIZACIÓN" label
+  doc.setFontSize(10);
+  doc.setFont(FONT.LABEL, "bold");
+  doc.setTextColor(accent[0], accent[1], accent[2]);
+  doc.text(strings.quotation, centerX, afterNameY + 14, { align: "center" });
+
+  // Reference number
+  doc.setFontSize(8);
+  doc.setFont(FONT.MONO, "normal");
+  doc.setTextColor(theme.coverTextMuted[0], theme.coverTextMuted[1], theme.coverTextMuted[2]);
+  doc.text(data.referenceNumber, centerX, afterNameY + 21, { align: "center" });
+
+  // Unit
+  doc.setFontSize(9);
+  doc.setFont(FONT.LABEL, "bold");
+  doc.setTextColor(theme.coverTextSecondary[0], theme.coverTextSecondary[1], theme.coverTextSecondary[2]);
+  doc.text(`${strings.unit} ${data.unidadId}`, centerX, afterNameY + 30, { align: "center" });
+
+  // Constructora logo (bottom center)
+  const bottomY = pageH - 30;
+  if (data.constructoraLogoBase64 && data.constructoraLogoFormat) {
+    try {
+      doc.addImage(data.constructoraLogoBase64, data.constructoraLogoFormat, centerX - 15, bottomY, 30, 12);
+    } catch { /* silent */ }
+  } else if (data.constructoraName) {
+    doc.setFontSize(9);
+    doc.setFont(FONT.LABEL, "bold");
+    doc.setTextColor(theme.coverTextSecondary[0], theme.coverTextSecondary[1], theme.coverTextSecondary[2]);
+    doc.text(data.constructoraName.toUpperCase(), centerX, bottomY + 6, { align: "center" });
+  }
+
+  // Date
+  doc.setFontSize(7);
+  doc.setFont(FONT.MONO, "normal");
+  doc.setTextColor(theme.coverTextMuted[0], theme.coverTextMuted[1], theme.coverTextMuted[2]);
+  doc.text(data.fecha, centerX, pageH - 12, { align: "center" });
+
+  // Bottom accent bar
   doc.setFillColor(accent[0], accent[1], accent[2]);
   doc.rect(0, pageH - 3.5, pageW, 3.5, "F");
 }
 
 /* ── OFFER PAGE (Page 2) ── */
 
-function drawOfferPage(doc: jsPDF, data: PDFData, accent: RGB, accentLight: RGB, strings: PDFStrings, locale: EmailLocale) {
+function drawOfferPage(doc: jsPDF, data: PDFData, accent: RGB, accentLight: RGB, theme: ThemePalette, strings: PDFStrings, locale: EmailLocale) {
   const pageW = doc.internal.pageSize.getWidth();
   const pageH = doc.internal.pageSize.getHeight();
   const margin = 22;
   const contentW = pageW - margin * 2;
   const moneda = (data.config.moneda || "COP") as Currency;
 
+  // Background
+  doc.setFillColor(theme.bg[0], theme.bg[1], theme.bg[2]);
+  doc.rect(0, 0, pageW, pageH, "F");
   drawPageFrame(doc, pageW, pageH, accent, accentLight);
 
-  let y = 18;
+  // Dual-logo header
+  let y = drawDualLogoHeader(doc, data, accent, theme, pageW, margin);
+  y += 4;
 
-  // ── Header: Constructora (left) + Date & Agent (right) ──
-  doc.setFontSize(8.5);
-  doc.setFont("helvetica", "normal");
-  doc.setTextColor(140, 140, 140);
-  if (data.constructoraName) {
-    doc.text(data.constructoraName.toUpperCase(), margin, y);
-  }
+  // Date & agent (right-aligned below header)
+  doc.setFontSize(8);
+  doc.setFont(FONT.MONO, "normal");
+  doc.setTextColor(theme.textMuted[0], theme.textMuted[1], theme.textMuted[2]);
   doc.text(data.fecha, pageW - margin, y, { align: "right" });
-
   if (data.agenteName) {
     y += 4.5;
     doc.setFontSize(7.5);
+    doc.setFont(FONT.LABEL, "bold");
     doc.setTextColor(accent[0], accent[1], accent[2]);
     doc.text(`${strings.advisor}: ${data.agenteName}`, pageW - margin, y, { align: "right" });
+    // Agent phone
+    if (data.agentePhone) {
+      y += 3.8;
+      doc.setFontSize(7);
+      doc.setFont(FONT.MONO, "normal");
+      doc.setTextColor(theme.textSecondary[0], theme.textSecondary[1], theme.textSecondary[2]);
+      doc.text(data.agentePhone, pageW - margin, y, { align: "right" });
+    }
+    // Agent email
+    if (data.agenteEmail) {
+      y += 3.8;
+      doc.setFontSize(7);
+      doc.setFont(FONT.MONO, "normal");
+      doc.setTextColor(theme.textSecondary[0], theme.textSecondary[1], theme.textSecondary[2]);
+      doc.text(data.agenteEmail, pageW - margin, y, { align: "right" });
+    }
   }
 
-  y = 32;
+  y += 8;
 
   // ── Title ──
-  doc.setFontSize(22);
-  doc.setFont("helvetica", "bold");
-  doc.setTextColor(25, 25, 25);
+  doc.setFontSize(24);
+  doc.setFont(FONT.HEADING, "normal");
+  doc.setTextColor(theme.text[0], theme.text[1], theme.text[2]);
   doc.text(strings.purchaseOffer, margin, y);
 
   // Reference number
   doc.setFontSize(8);
-  doc.setFont("helvetica", "normal");
+  doc.setFont(FONT.MONO, "normal");
   doc.setTextColor(accent[0], accent[1], accent[2]);
   doc.text(data.referenceNumber, pageW - margin, y, { align: "right" });
 
   y += 5;
 
-  // Gold divider
+  // Divider
   doc.setDrawColor(accent[0], accent[1], accent[2]);
   doc.setLineWidth(0.5);
   doc.line(margin, y, margin + 45, y);
-  doc.setDrawColor(230, 225, 215);
+  doc.setDrawColor(theme.divider[0], theme.divider[1], theme.divider[2]);
   doc.setLineWidth(0.15);
   doc.line(margin + 45, y, pageW - margin, y);
 
@@ -427,26 +746,31 @@ function drawOfferPage(doc: jsPDF, data: PDFData, accent: RGB, accentLight: RGB,
     data.pdfSaludo ||
     strings.defaultGreeting.replace("{name}", data.buyerName).replace("{project}", data.projectName);
   doc.setFontSize(9);
-  doc.setFont("helvetica", "normal");
-  doc.setTextColor(80, 80, 80);
+  doc.setFont(FONT.BODY, "normal");
+  doc.setTextColor(theme.textSecondary[0], theme.textSecondary[1], theme.textSecondary[2]);
   const saludoLines = doc.splitTextToSize(saludo, contentW);
   doc.text(saludoLines, margin, y);
   y += saludoLines.length * 4.2 + 6;
 
   // ── DETALLE DE LA UNIDAD ──
-  y = drawSectionLabel(doc, strings.unitDetail, margin, y, accent, contentW);
+  y = drawSectionLabel(doc, strings.unitDetail, margin, y, accent, contentW, theme);
 
-  // Unit details grid (2-column layout with light background)
+  // Unit details grid
   const gridX = margin;
   const gridW = contentW;
   const colW = gridW / 2;
-  const cellH = 8.5;
+  const cellH = 11;
 
-  // Build detail pairs: [label, value][]
   const detailPairs: [string, string][] = [];
   detailPairs.push([strings.unit, data.unidadId]);
   if (data.tipologiaName) detailPairs.push([strings.typology, data.tipologiaName]);
-  if (data.area) detailPairs.push([strings.area, `${data.area} m²`]);
+  const u = data.unidad_medida || "m²";
+  if (data.area_construida) detailPairs.push([strings.area_construida, `${data.area_construida} ${u}`]);
+  if (data.area_privada) detailPairs.push([strings.area_privada, `${data.area_privada} ${u}`]);
+  if (data.area_lote) detailPairs.push([strings.area_lote, `${data.area_lote} ${u}`]);
+  if (!data.area_construida && !data.area_privada && !data.area_lote && data.area_m2) {
+    detailPairs.push([strings.area, `${data.area_m2} ${u}`]);
+  }
   if (data.piso !== null && data.piso !== undefined) detailPairs.push([strings.floor, `${data.piso}`]);
   if (data.habitaciones) detailPairs.push([strings.bedrooms, `${data.habitaciones}`]);
   if (data.banos) detailPairs.push([strings.bathrooms, `${data.banos}`]);
@@ -454,44 +778,50 @@ function drawOfferPage(doc: jsPDF, data: PDFData, accent: RGB, accentLight: RGB,
   if (data.orientacion) detailPairs.push([strings.orientation, data.orientacion]);
   if (data.parqueaderos) detailPairs.push([strings.parking, `${data.parqueaderos}`]);
   if (data.depositos) detailPairs.push([strings.storage, `${data.depositos}`]);
+  if (data.tiene_jacuzzi) detailPairs.push([strings.jacuzzi, strings.yes]);
+  if (data.tiene_piscina) detailPairs.push([strings.pool, strings.yes]);
+  if (data.tiene_bbq) detailPairs.push([strings.bbq, strings.yes]);
+  if (data.tiene_terraza) detailPairs.push([strings.terrace, strings.yes]);
+  if (data.tiene_jardin) detailPairs.push([strings.garden, strings.yes]);
+  if (data.tiene_cuarto_servicio) detailPairs.push([strings.maidsRoom, strings.yes]);
+  if (data.tiene_estudio) detailPairs.push([strings.study, strings.yes]);
+  if (data.tiene_chimenea) detailPairs.push([strings.fireplace, strings.yes]);
+  if (data.tiene_doble_altura) detailPairs.push([strings.doubleHeight, strings.yes]);
+  if (data.tiene_rooftop) detailPairs.push([strings.rooftop, strings.yes]);
   if (data.fechaEstimadaEntrega) detailPairs.push([strings.estimatedDelivery, data.fechaEstimadaEntrega]);
 
-  // Background for the grid
   const rows = Math.ceil(detailPairs.length / 2);
-  const gridH = rows * cellH + 4;
-  doc.setFillColor(250, 248, 244);
-  doc.roundedRect(gridX, y - 2, gridW, gridH, 2, 2, "F");
-  doc.setDrawColor(235, 232, 225);
+  const gridH = rows * cellH + 6;
+  doc.setFillColor(theme.gridBg[0], theme.gridBg[1], theme.gridBg[2]);
+  doc.roundedRect(gridX, y - 2, gridW, gridH, 2.5, 2.5, "F");
+  doc.setDrawColor(theme.gridBorder[0], theme.gridBorder[1], theme.gridBorder[2]);
   doc.setLineWidth(0.2);
-  doc.roundedRect(gridX, y - 2, gridW, gridH, 2, 2, "S");
+  doc.roundedRect(gridX, y - 2, gridW, gridH, 2.5, 2.5, "S");
 
   for (let i = 0; i < detailPairs.length; i++) {
     const row = Math.floor(i / 2);
     const col = i % 2;
-    const cellX = gridX + col * colW + 6;
-    const cellY = y + row * cellH + 5;
+    const cellX = gridX + col * colW + 8;
+    const cellY = y + row * cellH + 6;
 
-    // Label
     doc.setFontSize(7);
-    doc.setFont("helvetica", "normal");
+    doc.setFont(FONT.LABEL, "bold");
     doc.setTextColor(accent[0], accent[1], accent[2]);
     doc.text(detailPairs[i][0].toUpperCase(), cellX, cellY);
 
-    // Value
-    doc.setFontSize(9.5);
-    doc.setFont("helvetica", "bold");
-    doc.setTextColor(30, 30, 30);
-    doc.text(detailPairs[i][1], cellX, cellY + 4.5);
+    doc.setFontSize(10);
+    doc.setFont(FONT.MONO, "normal");
+    doc.setTextColor(theme.text[0], theme.text[1], theme.text[2]);
+    doc.text(detailPairs[i][1], cellX, cellY + 5.5);
   }
 
   y += gridH + 4;
 
-  // ── Complementos section (if any) ──
+  // ── Complementos section ──
   const complementos = data.complementos || data.resultado.complementos;
   if (complementos && complementos.length > 0) {
-    y = drawSectionLabel(doc, strings.complements, margin, y, accent, contentW);
+    y = drawSectionLabel(doc, strings.complements, margin, y, accent, contentW, theme);
 
-    // Separate included vs extras/precio_base for cleaner display
     const includedComps = complementos.filter((c) => !c.es_extra && !c.es_precio_base);
     const extraComps = complementos.filter((c) => c.es_extra || c.es_precio_base);
 
@@ -502,36 +832,47 @@ function drawOfferPage(doc: jsPDF, data: PDFData, accent: RGB, accentLight: RGB,
         : comp.subtipo
           ? `${comp.identificador} — ${comp.subtipo}`
           : comp.identificador;
-      const tipoLabel = comp.tipo === "parqueadero" ? strings.parking_label : strings.storage_label;
-      const prefix = isExtra ? `${tipoLabel} (${strings.additional})` : tipoLabel;
+      const tipoLabel = comp.tipo === "parqueadero"
+        ? strings.parking_label
+        : comp.tipo === "deposito"
+          ? strings.storage_label
+          : strings.addon_label;
+      const prefix = comp.tipo === "addon"
+        ? label
+        : isExtra ? `${tipoLabel} (${strings.additional})` : tipoLabel;
 
       doc.setFontSize(8.5);
-      doc.setFont("helvetica", "normal");
-      doc.setTextColor(35, 35, 35);
-      doc.text(`${prefix}: ${label}`, margin + 4, y);
+      doc.setFont(FONT.BODY, "normal");
+      doc.setTextColor(theme.text[0], theme.text[1], theme.text[2]);
+      const displayText = comp.tipo === "addon" ? label : `${prefix}: ${label}`;
+      doc.text(displayText, margin + 4, y);
 
-      if (comp.suma_al_total && (comp.precio != null || comp.precio_negociado != null)) {
+      const effectivePrice = comp.precio_negociado ?? comp.precio ?? 0;
+      if (comp.suma_al_total && (comp.precio != null || comp.precio_negociado != null) && effectivePrice > 0) {
         doc.setTextColor(accent[0], accent[1], accent[2]);
-        doc.text(formatCurrency(comp.precio_negociado ?? comp.precio ?? 0, moneda), pageW - margin - 4, y, { align: "right" });
+        doc.text(formatCurrency(effectivePrice, moneda), pageW - margin - 4, y, { align: "right" });
+      } else if (isExtra && effectivePrice === 0) {
+        doc.setFontSize(7.5);
+        doc.setTextColor(46, 139, 87);
+        doc.text(strings.courtesy, pageW - margin - 4, y, { align: "right" });
       } else {
         doc.setFontSize(7.5);
-        doc.setTextColor(130, 130, 130);
+        doc.setTextColor(theme.textMuted[0], theme.textMuted[1], theme.textMuted[2]);
         doc.text(strings.included, pageW - margin - 4, y, { align: "right" });
       }
 
       y += 7;
     }
 
-    // Complementos subtotal (if any have pricing)
     const compTotal = data.resultado.complementos_total;
     if (compTotal && compTotal > 0) {
-      doc.setDrawColor(230, 225, 215);
+      doc.setDrawColor(theme.divider[0], theme.divider[1], theme.divider[2]);
       doc.setLineWidth(0.15);
       doc.line(margin + contentW * 0.6, y - 2, pageW - margin, y - 2);
 
       doc.setFontSize(8);
-      doc.setFont("helvetica", "bold");
-      doc.setTextColor(50, 50, 50);
+      doc.setFont(FONT.LABEL, "bold");
+      doc.setTextColor(theme.textSecondary[0], theme.textSecondary[1], theme.textSecondary[2]);
       doc.text(strings.complementsSubtotal, margin + contentW * 0.6, y + 3);
       doc.setTextColor(accent[0], accent[1], accent[2]);
       doc.text(formatCurrency(compTotal, moneda), pageW - margin - 4, y + 3, { align: "right" });
@@ -541,15 +882,16 @@ function drawOfferPage(doc: jsPDF, data: PDFData, accent: RGB, accentLight: RGB,
     y += 4;
   }
 
-  // ── Total Price (prominent) ──
+  // ── Total Price ──
   const displayTotal = data.resultado.precio_total ?? data.resultado.precio_neto;
   doc.setFillColor(accent[0], accent[1], accent[2]);
   doc.roundedRect(gridX, y, gridW, 13, 2, 2, "F");
   doc.setFontSize(8);
-  doc.setFont("helvetica", "bold");
+  doc.setFont(FONT.LABEL, "bold");
   doc.setTextColor(255, 255, 255);
   doc.text(strings.totalPrice, gridX + 6, y + 5.5);
   doc.setFontSize(14);
+  doc.setFont(FONT.MONO, "normal");
   doc.text(
     formatCurrency(displayTotal, moneda),
     pageW - margin - 6,
@@ -560,22 +902,25 @@ function drawOfferPage(doc: jsPDF, data: PDFData, accent: RGB, accentLight: RGB,
   y += 20;
 
   // ── PLAN DE PAGOS ──
-  y = drawSectionLabel(doc, strings.paymentPlan, margin, y, accent, contentW);
+  y = drawSectionLabel(doc, strings.paymentPlan, margin, y, accent, contentW, theme);
 
-  // Table columns
+  const hasDates = data.resultado.fases.some((f) => f.fecha);
+
   const colConcepto = margin + 4;
-  const colPct = margin + contentW * 0.42;
-  const colMonto = margin + contentW * 0.52;
-  const colCuotas = margin + contentW * 0.73;
-  const colValorCuota = margin + contentW * 0.86;
+  const colFecha = hasDates ? margin + contentW * 0.30 : 0;
+  const colPct = margin + contentW * (hasDates ? 0.45 : 0.42);
+  const colMonto = margin + contentW * (hasDates ? 0.53 : 0.52);
+  const colCuotas = margin + contentW * (hasDates ? 0.74 : 0.73);
+  const colValorCuota = margin + contentW * (hasDates ? 0.87 : 0.86);
 
   // Table header
-  doc.setFillColor(35, 35, 38);
+  doc.setFillColor(theme.tableHeader[0], theme.tableHeader[1], theme.tableHeader[2]);
   doc.roundedRect(margin, y - 4.5, contentW, 9, 1.5, 1.5, "F");
   doc.setFontSize(7);
-  doc.setFont("helvetica", "bold");
-  doc.setTextColor(255, 255, 255);
+  doc.setFont(FONT.LABEL, "bold");
+  doc.setTextColor(theme.tableHeaderText[0], theme.tableHeaderText[1], theme.tableHeaderText[2]);
   doc.text(strings.concept, colConcepto, y);
+  if (hasDates) doc.text(strings.date, colFecha, y);
   doc.text("%", colPct, y);
   doc.text(strings.amount, colMonto, y);
   doc.text(strings.installments, colCuotas, y);
@@ -587,34 +932,35 @@ function drawOfferPage(doc: jsPDF, data: PDFData, accent: RGB, accentLight: RGB,
   data.resultado.fases.forEach((fase, i) => {
     const rowH = 8;
 
-    // Alternating row fill
     if (i % 2 === 0) {
-      doc.setFillColor(252, 251, 249);
+      doc.setFillColor(theme.rowAlt[0], theme.rowAlt[1], theme.rowAlt[2]);
       doc.rect(margin, y - 5, contentW, rowH, "F");
     }
 
-    // Concepto
     doc.setFontSize(8.5);
-    doc.setFont("helvetica", "normal");
-    doc.setTextColor(35, 35, 35);
+    doc.setFont(FONT.BODY, "normal");
+    doc.setTextColor(theme.text[0], theme.text[1], theme.text[2]);
     doc.text(fase.nombre, colConcepto, y);
 
-    // Percentage
+    if (hasDates) {
+      doc.setFontSize(7.5);
+      doc.setFont(FONT.MONO, "normal");
+      doc.setTextColor(theme.textMuted[0], theme.textMuted[1], theme.textMuted[2]);
+      doc.text(fase.fecha || "—", colFecha, y);
+    }
+
     const totalBase = data.resultado.precio_total ?? data.resultado.precio_neto;
-    const pct = totalBase > 0
-      ? Math.round((fase.monto_total / totalBase) * 100)
-      : 0;
+    const pct = totalBase > 0 ? Math.round((fase.monto_total / totalBase) * 100) : 0;
     doc.setFontSize(8);
+    doc.setFont(FONT.MONO, "normal");
     doc.setTextColor(accent[0], accent[1], accent[2]);
     doc.text(`${pct}%`, colPct, y);
 
-    // Monto
-    doc.setTextColor(50, 50, 50);
+    doc.setTextColor(theme.textSecondary[0], theme.textSecondary[1], theme.textSecondary[2]);
     doc.text(formatCurrency(fase.monto_total, moneda), colMonto, y);
 
-    // Cuotas
     doc.setFontSize(7.5);
-    doc.setTextColor(110, 110, 110);
+    doc.setTextColor(theme.textMuted[0], theme.textMuted[1], theme.textMuted[2]);
     const fl = frecLabels[locale];
     const cuotaText =
       fase.cuotas > 1
@@ -622,15 +968,13 @@ function drawOfferPage(doc: jsPDF, data: PDFData, accent: RGB, accentLight: RGB,
         : fl[fase.frecuencia] || fase.frecuencia;
     doc.text(cuotaText, colCuotas, y);
 
-    // Valor cuota
     if (fase.cuotas > 1) {
       doc.text(formatCurrency(fase.monto_por_cuota, moneda), colValorCuota, y);
     }
 
     y += rowH;
 
-    // Row divider
-    doc.setDrawColor(240, 238, 235);
+    doc.setDrawColor(theme.divider[0], theme.divider[1], theme.divider[2]);
     doc.setLineWidth(0.12);
     doc.line(margin, y - 3, pageW - margin, y - 3);
   });
@@ -640,9 +984,10 @@ function drawOfferPage(doc: jsPDF, data: PDFData, accent: RGB, accentLight: RGB,
     y += 1;
     for (const desc of data.resultado.descuentos_aplicados) {
       doc.setFontSize(8.5);
-      doc.setFont("helvetica", "normal");
+      doc.setFont(FONT.BODY, "normal");
       doc.setTextColor(46, 139, 87);
       doc.text(`↓ ${desc.nombre}`, colConcepto, y);
+      doc.setFont(FONT.MONO, "normal");
       doc.text(`-${formatCurrency(desc.monto, moneda)}`, colMonto, y);
       y += 7;
     }
@@ -650,14 +995,15 @@ function drawOfferPage(doc: jsPDF, data: PDFData, accent: RGB, accentLight: RGB,
 
   y += 2;
 
-  // ── Total row ──
+  // Total row
   doc.setFillColor(accent[0], accent[1], accent[2]);
   doc.roundedRect(margin, y - 5, contentW, 10, 1.5, 1.5, "F");
   doc.setFontSize(9);
-  doc.setFont("helvetica", "bold");
+  doc.setFont(FONT.LABEL, "bold");
   doc.setTextColor(255, 255, 255);
   const finalTotal = data.resultado.precio_total ?? data.resultado.precio_neto;
   doc.text(strings.total, colConcepto, y);
+  doc.setFont(FONT.MONO, "normal");
   doc.text("100%", colPct, y);
   doc.text(formatCurrency(finalTotal, moneda), colMonto, y);
 
@@ -667,87 +1013,187 @@ function drawOfferPage(doc: jsPDF, data: PDFData, accent: RGB, accentLight: RGB,
   const despedida = data.pdfDespedida || strings.defaultClosing;
 
   doc.setFontSize(9);
-  doc.setFont("helvetica", "italic");
-  doc.setTextColor(80, 80, 80);
+  doc.setFont(FONT.BODY, "normal");
+  doc.setTextColor(theme.textSecondary[0], theme.textSecondary[1], theme.textSecondary[2]);
   doc.text(despedida, margin, y);
   y += 6;
 
   if (data.constructoraName) {
-    doc.setFontSize(10);
-    doc.setFont("helvetica", "bold");
-    doc.setTextColor(30, 30, 30);
+    doc.setFontSize(11);
+    doc.setFont(FONT.HEADING, "normal");
+    doc.setTextColor(theme.text[0], theme.text[1], theme.text[2]);
     doc.text(data.constructoraName, margin, y);
     y += 5;
   }
 
   if (data.agenteName) {
     doc.setFontSize(9);
-    doc.setFont("helvetica", "normal");
+    doc.setFont(FONT.BODY, "normal");
     doc.setTextColor(accent[0], accent[1], accent[2]);
     doc.text(data.agenteName, margin, y);
   }
 
-  // ── Footer ──
+  // Footer
   doc.setFontSize(6.5);
-  doc.setFont("helvetica", "normal");
-  doc.setTextColor(170, 170, 170);
-  doc.text(strings.generatedBy, pageW / 2, pageH - 8, {
-    align: "center",
-  });
+  doc.setFont(FONT.BODY, "normal");
+  doc.setTextColor(theme.footerText[0], theme.footerText[1], theme.footerText[2]);
+  doc.text(strings.generatedBy, pageW / 2, pageH - 8, { align: "center" });
 }
 
-/* ── ADDITIONAL INFO PAGE (Page 3, conditional) ── */
+/* ── FLOOR PLAN PAGE (conditional) ── */
 
-function drawInfoPage(doc: jsPDF, data: PDFData, accent: RGB, accentLight: RGB, strings: PDFStrings) {
+function drawFloorPlanPage(doc: jsPDF, data: PDFData, accent: RGB, accentLight: RGB, theme: ThemePalette, strings: PDFStrings) {
   const pageW = doc.internal.pageSize.getWidth();
   const pageH = doc.internal.pageSize.getHeight();
   const margin = 22;
   const contentW = pageW - margin * 2;
 
+  // Background
+  doc.setFillColor(theme.bg[0], theme.bg[1], theme.bg[2]);
+  doc.rect(0, 0, pageW, pageH, "F");
   drawPageFrame(doc, pageW, pageH, accent, accentLight);
 
-  let y = 22;
+  // Dual-logo header
+  let y = drawDualLogoHeader(doc, data, accent, theme, pageW, margin);
+  y += 4;
+
+  // Section label
+  y = drawSectionLabel(doc, strings.floorPlan, margin, y, accent, contentW, theme);
+
+  // Typology + unit header
+  doc.setFontSize(16);
+  doc.setFont(FONT.HEADING, "normal");
+  doc.setTextColor(theme.text[0], theme.text[1], theme.text[2]);
+  const header = data.tipologiaName
+    ? `${data.tipologiaName} — ${strings.unit}: ${data.unidadId}`
+    : `${strings.unit}: ${data.unidadId}`;
+  doc.text(header, margin, y);
+  y += 10;
+
+  // Floor plan image (centered, aspect-ratio-correct)
+  if (data.planoBase64 && data.planoFormat) {
+    const maxW = contentW;
+    const maxH = pageH - y - 25; // Leave room for footer disclaimer
+    const { w, h } = fitImage(maxW, maxH, data.planoWidth, data.planoHeight);
+    const imgX = margin + (contentW - w) / 2; // Center horizontally
+    try {
+      doc.addImage(data.planoBase64, data.planoFormat, imgX, y, w, h);
+    } catch { /* silent */ }
+  }
+
+  // Disclaimer at bottom
+  doc.setFontSize(6);
+  doc.setFont(FONT.BODY, "normal");
+  doc.setTextColor(theme.footerText[0], theme.footerText[1], theme.footerText[2]);
+  const disclaimerLines = doc.splitTextToSize(strings.floorPlanDisclaimer, contentW);
+  doc.text(disclaimerLines, pageW / 2, pageH - 12, { align: "center" });
+}
+
+/* ── KEY PLAN PAGE (conditional) ── */
+
+function drawKeyPlanPage(doc: jsPDF, data: PDFData, accent: RGB, accentLight: RGB, theme: ThemePalette, strings: PDFStrings) {
+  const pageW = doc.internal.pageSize.getWidth();
+  const pageH = doc.internal.pageSize.getHeight();
+  const margin = 22;
+  const contentW = pageW - margin * 2;
+
+  // Background
+  doc.setFillColor(theme.bg[0], theme.bg[1], theme.bg[2]);
+  doc.rect(0, 0, pageW, pageH, "F");
+  drawPageFrame(doc, pageW, pageH, accent, accentLight);
+
+  // Dual-logo header
+  let y = drawDualLogoHeader(doc, data, accent, theme, pageW, margin);
+  y += 4;
+
+  // Section label
+  y = drawSectionLabel(doc, strings.keyPlan, margin, y, accent, contentW, theme);
+
+  // Floor indicator
+  if (data.pisoLabel) {
+    doc.setFontSize(12);
+    doc.setFont(FONT.LABEL, "bold");
+    doc.setTextColor(accent[0], accent[1], accent[2]);
+    doc.text(data.pisoLabel, margin, y);
+    y += 8;
+  }
+
+  // Unit identifier
+  doc.setFontSize(10);
+  doc.setFont(FONT.MONO, "normal");
+  doc.setTextColor(theme.textSecondary[0], theme.textSecondary[1], theme.textSecondary[2]);
+  doc.text(`${strings.unit}: ${data.unidadId}`, margin, y);
+  y += 10;
+
+  // Key plan image (centered, aspect-ratio-correct)
+  if (data.keyPlanBase64 && data.keyPlanFormat) {
+    const maxW = contentW;
+    const maxH = pageH - y - 25;
+    const { w, h } = fitImage(maxW, maxH, data.keyPlanWidth, data.keyPlanHeight);
+    const imgX = margin + (contentW - w) / 2;
+    try {
+      doc.addImage(data.keyPlanBase64, data.keyPlanFormat, imgX, y, w, h);
+    } catch { /* silent */ }
+  }
+
+  // Disclaimer at bottom
+  doc.setFontSize(6);
+  doc.setFont(FONT.BODY, "normal");
+  doc.setTextColor(theme.footerText[0], theme.footerText[1], theme.footerText[2]);
+  const disclaimerLines = doc.splitTextToSize(strings.keyPlanDisclaimer, contentW);
+  doc.text(disclaimerLines, pageW / 2, pageH - 12, { align: "center" });
+}
+
+/* ── ADDITIONAL INFO PAGE (conditional) ── */
+
+function drawInfoPage(doc: jsPDF, data: PDFData, accent: RGB, accentLight: RGB, theme: ThemePalette, strings: PDFStrings) {
+  const pageW = doc.internal.pageSize.getWidth();
+  const pageH = doc.internal.pageSize.getHeight();
+  const margin = 22;
+  const contentW = pageW - margin * 2;
+
+  // Background
+  doc.setFillColor(theme.bg[0], theme.bg[1], theme.bg[2]);
+  doc.rect(0, 0, pageW, pageH, "F");
+  drawPageFrame(doc, pageW, pageH, accent, accentLight);
+
+  // Dual-logo header
+  let y = drawDualLogoHeader(doc, data, accent, theme, pageW, margin);
+  y += 4;
 
   // ── Virtual Tour ──
   if (data.tour360Url) {
-    y = drawSectionLabel(doc, strings.virtualTour, margin, y, accent, contentW);
+    y = drawSectionLabel(doc, strings.virtualTour, margin, y, accent, contentW, theme);
 
     doc.setFontSize(9);
-    doc.setFont("helvetica", "normal");
-    doc.setTextColor(60, 60, 60);
+    doc.setFont(FONT.BODY, "normal");
+    doc.setTextColor(theme.textSecondary[0], theme.textSecondary[1], theme.textSecondary[2]);
     const tourDesc = strings.virtualTourDesc.replace("{unit}", data.unidadId);
     const tourLines = doc.splitTextToSize(tourDesc, contentW);
     doc.text(tourLines, margin, y);
     y += tourLines.length * 4 + 4;
 
-    // Tour link
     doc.setFontSize(9);
-    doc.setFont("helvetica", "bold");
+    doc.setFont(FONT.LABEL, "bold");
     doc.setTextColor(accent[0], accent[1], accent[2]);
-    doc.textWithLink(strings.viewTour, margin, y, {
-      url: data.tour360Url,
-    });
+    doc.textWithLink(strings.viewTour, margin, y, { url: data.tour360Url });
 
     y += 16;
   }
 
   // ── Contact ──
   if (data.whatsappNumero) {
-    y = drawSectionLabel(doc, strings.contact, margin, y, accent, contentW);
+    y = drawSectionLabel(doc, strings.contact, margin, y, accent, contentW, theme);
 
     doc.setFontSize(9);
-    doc.setFont("helvetica", "normal");
-    doc.setTextColor(60, 60, 60);
-    doc.text(
-      strings.contactDesc,
-      margin,
-      y,
-    );
+    doc.setFont(FONT.BODY, "normal");
+    doc.setTextColor(theme.textSecondary[0], theme.textSecondary[1], theme.textSecondary[2]);
+    doc.text(strings.contactDesc, margin, y);
     y += 6;
 
     doc.setFontSize(10);
-    doc.setFont("helvetica", "bold");
-    doc.setTextColor(30, 30, 30);
+    doc.setFont(FONT.MONO, "normal");
+    doc.setTextColor(theme.text[0], theme.text[1], theme.text[2]);
     doc.text(data.whatsappNumero, margin, y);
 
     y += 16;
@@ -760,11 +1206,11 @@ function drawInfoPage(doc: jsPDF, data: PDFData, accent: RGB, accentLight: RGB, 
   const legalText = legalParts.join("\n\n");
 
   if (legalText) {
-    y = drawSectionLabel(doc, strings.legalNotice, margin, y, accent, contentW);
+    y = drawSectionLabel(doc, strings.legalNotice, margin, y, accent, contentW, theme);
 
     doc.setFontSize(7.5);
-    doc.setFont("helvetica", "normal");
-    doc.setTextColor(130, 130, 130);
+    doc.setFont(FONT.BODY, "normal");
+    doc.setTextColor(theme.textMuted[0], theme.textMuted[1], theme.textMuted[2]);
     const legalLines = doc.splitTextToSize(legalText, contentW);
     doc.text(legalLines, margin, y);
     y += legalLines.length * 3.5;
@@ -772,45 +1218,44 @@ function drawInfoPage(doc: jsPDF, data: PDFData, accent: RGB, accentLight: RGB, 
 
   // ── Buyer info recap ──
   y = Math.max(y + 10, pageH * 0.6);
-  doc.setDrawColor(230, 225, 215);
+  doc.setDrawColor(theme.divider[0], theme.divider[1], theme.divider[2]);
   doc.setLineWidth(0.15);
   doc.line(margin, y, pageW - margin, y);
   y += 8;
 
   doc.setFontSize(7);
-  doc.setFont("helvetica", "normal");
+  doc.setFont(FONT.LABEL, "bold");
   doc.setTextColor(accent[0], accent[1], accent[2]);
   doc.text(strings.preparedFor, margin, y);
   y += 5;
 
-  doc.setFontSize(10);
-  doc.setFont("helvetica", "bold");
-  doc.setTextColor(30, 30, 30);
+  doc.setFontSize(11);
+  doc.setFont(FONT.HEADING, "normal");
+  doc.setTextColor(theme.text[0], theme.text[1], theme.text[2]);
   doc.text(data.buyerName, margin, y);
   y += 5;
 
   doc.setFontSize(8);
-  doc.setFont("helvetica", "normal");
-  doc.setTextColor(100, 100, 100);
+  doc.setFont(FONT.MONO, "normal");
+  doc.setTextColor(theme.textMuted[0], theme.textMuted[1], theme.textMuted[2]);
   doc.text(data.buyerEmail, margin, y);
   if (data.buyerPhone) {
     y += 4;
     doc.text(data.buyerPhone, margin, y);
   }
 
-  // ── Footer ──
+  // Footer
   doc.setFontSize(6.5);
-  doc.setFont("helvetica", "normal");
-  doc.setTextColor(170, 170, 170);
-  doc.text(strings.generatedBy, pageW / 2, pageH - 8, {
-    align: "center",
-  });
+  doc.setFont(FONT.BODY, "normal");
+  doc.setTextColor(theme.footerText[0], theme.footerText[1], theme.footerText[2]);
+  doc.text(strings.generatedBy, pageW / 2, pageH - 8, { align: "center" });
 }
 
 /* ── Main export ── */
 
 export function generarPDF(data: PDFData): Buffer {
   const doc = new jsPDF({ orientation: "portrait", unit: "mm", format: "letter" });
+  registerFonts(doc);
   const accent = hexToRgb(data.colorPrimario || "#b8973a");
   const accentLight: RGB = [
     Math.min(255, accent[0] + 40),
@@ -819,15 +1264,33 @@ export function generarPDF(data: PDFData): Buffer {
   ];
   const locale: EmailLocale = data.idioma || "es";
   const strings = PDF_STRINGS[locale];
+  const theme = data.pdfTheme === "dark" ? THEME_DARK : THEME_NEUTRAL;
+  const coverStyle = data.coverStyle || "hero";
 
   // ── Page 1: Cover ──
-  drawCoverPage(doc, data, accent, strings);
+  if (coverStyle === "minimalista") {
+    drawCoverMinimalista(doc, data, accent, theme, strings);
+  } else {
+    drawCoverHero(doc, data, accent, strings);
+  }
 
   // ── Page 2: Offer Details ──
   doc.addPage();
-  drawOfferPage(doc, data, accent, accentLight, strings, locale);
+  drawOfferPage(doc, data, accent, accentLight, theme, strings, locale);
 
-  // ── Page 3: Additional Info (conditional) ──
+  // ── Page 3 (conditional): Floor Plan ──
+  if (data.planoBase64 && data.planoFormat) {
+    doc.addPage();
+    drawFloorPlanPage(doc, data, accent, accentLight, theme, strings);
+  }
+
+  // ── Page 4 (conditional): Key Plan ──
+  if (data.keyPlanBase64 && data.keyPlanFormat) {
+    doc.addPage();
+    drawKeyPlanPage(doc, data, accent, accentLight, theme, strings);
+  }
+
+  // ── Page 5 (conditional): Additional Info ──
   const hasInfoContent =
     data.tour360Url ||
     data.whatsappNumero ||
@@ -836,7 +1299,7 @@ export function generarPDF(data: PDFData): Buffer {
 
   if (hasInfoContent) {
     doc.addPage();
-    drawInfoPage(doc, data, accent, accentLight, strings);
+    drawInfoPage(doc, data, accent, accentLight, theme, strings);
   }
 
   // Return as Buffer

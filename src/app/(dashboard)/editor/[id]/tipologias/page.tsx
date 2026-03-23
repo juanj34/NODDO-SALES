@@ -42,9 +42,14 @@ import {
   FileText,
   Map,
   Video,
+  View,
   GripVertical,
+  Waves,
+  UtensilsCrossed, Sun, TreePine, DoorClosed, BookOpen,
+  Flame, MoveVertical, CloudSun, Store,
   type LucideIcon,
 } from "lucide-react";
+import { extractTourUrl } from "@/lib/tour-utils";
 import { useToast } from "@/components/dashboard/Toast";
 import { useConfirm } from "@/components/dashboard/ConfirmModal";
 import { useTranslation } from "@/i18n";
@@ -88,7 +93,33 @@ interface TipoForm {
   torre_ids: string[];
   tipo_tipologia: TipoTipologia | "";
   video_id: string | null;
+  tour_360_url: string;
+  tiene_jacuzzi: boolean;
+  tiene_piscina: boolean;
+  tiene_bbq: boolean;
+  tiene_terraza: boolean;
+  tiene_jardin: boolean;
+  tiene_cuarto_servicio: boolean;
+  tiene_estudio: boolean;
+  tiene_chimenea: boolean;
+  tiene_doble_altura: boolean;
+  tiene_rooftop: boolean;
 }
+
+/* ─── Extras toggle config (shared between config page and tipologias editor) ─── */
+
+const TIPO_EXTRAS = [
+  { field: "tiene_jacuzzi" as const, projectFlag: "habilitar_extra_jacuzzi", icon: Bath, labelKey: "tipologias.jacuzzi" },
+  { field: "tiene_piscina" as const, projectFlag: "habilitar_extra_piscina", icon: Waves, labelKey: "tipologias.piscina" },
+  { field: "tiene_bbq" as const, projectFlag: "habilitar_extra_bbq", icon: UtensilsCrossed, labelKey: "tipologias.bbq" },
+  { field: "tiene_terraza" as const, projectFlag: "habilitar_extra_terraza", icon: Sun, labelKey: "tipologias.terraza" },
+  { field: "tiene_jardin" as const, projectFlag: "habilitar_extra_jardin", icon: TreePine, labelKey: "tipologias.jardin" },
+  { field: "tiene_cuarto_servicio" as const, projectFlag: "habilitar_extra_cuarto_servicio", icon: DoorClosed, labelKey: "tipologias.cuartoServicio" },
+  { field: "tiene_estudio" as const, projectFlag: "habilitar_extra_estudio", icon: BookOpen, labelKey: "tipologias.estudio" },
+  { field: "tiene_chimenea" as const, projectFlag: "habilitar_extra_chimenea", icon: Flame, labelKey: "tipologias.chimenea" },
+  { field: "tiene_doble_altura" as const, projectFlag: "habilitar_extra_doble_altura", icon: MoveVertical, labelKey: "tipologias.dobleAltura" },
+  { field: "tiene_rooftop" as const, projectFlag: "habilitar_extra_rooftop", icon: CloudSun, labelKey: "tipologias.rooftop" },
+];
 
 const emptyTipologia: TipoForm = {
   nombre: "",
@@ -112,6 +143,17 @@ const emptyTipologia: TipoForm = {
   torre_ids: [],
   tipo_tipologia: "",
   video_id: null,
+  tour_360_url: "",
+  tiene_jacuzzi: false,
+  tiene_piscina: false,
+  tiene_bbq: false,
+  tiene_terraza: false,
+  tiene_jardin: false,
+  tiene_cuarto_servicio: false,
+  tiene_estudio: false,
+  tiene_chimenea: false,
+  tiene_doble_altura: false,
+  tiene_rooftop: false,
 };
 
 function tipologiaToForm(t: Tipologia): TipoForm {
@@ -142,6 +184,17 @@ function tipologiaToForm(t: Tipologia): TipoForm {
     torre_ids: t.torre_ids || [],
     tipo_tipologia: t.tipo_tipologia || "",
     video_id: t.video_id ?? null,
+    tour_360_url: t.tour_360_url || "",
+    tiene_jacuzzi: t.tiene_jacuzzi ?? false,
+    tiene_piscina: t.tiene_piscina ?? false,
+    tiene_bbq: t.tiene_bbq ?? false,
+    tiene_terraza: t.tiene_terraza ?? false,
+    tiene_jardin: t.tiene_jardin ?? false,
+    tiene_cuarto_servicio: t.tiene_cuarto_servicio ?? false,
+    tiene_estudio: t.tiene_estudio ?? false,
+    tiene_chimenea: t.tiene_chimenea ?? false,
+    tiene_doble_altura: t.tiene_doble_altura ?? false,
+    tiene_rooftop: t.tiene_rooftop ?? false,
   };
 }
 
@@ -341,6 +394,11 @@ function TipologiaListItem({
           gap.normal,
           fontSize.label
         )}>
+          {t.tipo_tipologia === "local_comercial" && (
+            <span className="px-1.5 py-px rounded-full text-[9px] font-ui font-bold uppercase tracking-wider bg-[rgba(var(--site-primary-rgb),0.12)] text-[var(--site-primary)]">
+              Comercial
+            </span>
+          )}
           {t.area_m2 != null && <span>{t.area_m2}m²</span>}
           {t.habitaciones != null && <span>{t.habitaciones} hab</span>}
           {t.banos != null && <span>{t.banos} baños</span>}
@@ -439,8 +497,21 @@ export default function TipologiasPage() {
     torre_ids: isMultiTorre ? form.torre_ids : [],
     tipo_tipologia: isHibrido
       ? (form.tipo_tipologia || null)
-      : deriveTipoTipologia(project.tipo_proyecto),
+      : (form.tipo_tipologia === "local_comercial"
+          ? "local_comercial"
+          : deriveTipoTipologia(project.tipo_proyecto)),
     video_id: form.video_id || null,
+    tour_360_url: form.tour_360_url || null,
+    tiene_jacuzzi: form.tiene_jacuzzi,
+    tiene_piscina: form.tiene_piscina,
+    tiene_bbq: form.tiene_bbq,
+    tiene_terraza: form.tiene_terraza,
+    tiene_jardin: form.tiene_jardin,
+    tiene_cuarto_servicio: form.tiene_cuarto_servicio,
+    tiene_estudio: form.tiene_estudio,
+    tiene_chimenea: form.tiene_chimenea,
+    tiene_doble_altura: form.tiene_doble_altura,
+    tiene_rooftop: form.tiene_rooftop,
   }), [form, isMultiTorre, isHibrido, project.tipo_proyecto]);
 
   /* ─── Auto-save function ─── */
@@ -540,7 +611,7 @@ export default function TipologiasPage() {
     setOrderedTipologias(filteredTipologias);
   }, [filteredTipologias]);
 
-  const reorderTimerRef = useRef<ReturnType<typeof setTimeout>>();
+  const reorderTimerRef = useRef<ReturnType<typeof setTimeout>>(undefined);
   const handleReorder = (newOrder: Tipologia[]) => {
     setOrderedTipologias(newOrder);
     // Optimistically update cache
@@ -611,7 +682,7 @@ export default function TipologiasPage() {
     setActiveTab("general");
   };
 
-  const updateForm = (field: keyof TipoForm, value: string | string[] | TipologiaHotspot[] | TipologiaPiso[] | null) => {
+  const updateForm = (field: keyof TipoForm, value: string | string[] | TipologiaHotspot[] | TipologiaPiso[] | boolean | null) => {
     setForm((prev) => ({ ...prev, [field]: value }));
   };
 
@@ -682,11 +753,11 @@ export default function TipologiasPage() {
   }, [selectedId, unidades]);
 
   const effectiveColumns = useMemo(() => {
-    if (isHibrido && form.tipo_tipologia) {
-      return getHybridInventoryColumns(form.tipo_tipologia as "apartamento" | "casa" | "lote", project.inventory_columns_by_type);
+    if (form.tipo_tipologia) {
+      return getHybridInventoryColumns(form.tipo_tipologia as TipoTipologia, project.inventory_columns_by_type);
     }
     return getInventoryColumns(project.tipo_proyecto ?? "hibrido", project.inventory_columns);
-  }, [isHibrido, form.tipo_tipologia, project.tipo_proyecto, project.inventory_columns, project.inventory_columns_by_type]);
+  }, [form.tipo_tipologia, project.tipo_proyecto, project.inventory_columns, project.inventory_columns_by_type]);
 
 
   const handleDelete = async (id: string) => {
@@ -751,6 +822,16 @@ export default function TipologiasPage() {
         ubicacion_plano_url: tip.ubicacion_plano_url || null,
         torre_ids: tip.torre_ids || [],
         video_id: tip.video_id || null,
+        tiene_jacuzzi: tip.tiene_jacuzzi ?? false,
+        tiene_piscina: tip.tiene_piscina ?? false,
+        tiene_bbq: tip.tiene_bbq ?? false,
+        tiene_terraza: tip.tiene_terraza ?? false,
+        tiene_jardin: tip.tiene_jardin ?? false,
+        tiene_cuarto_servicio: tip.tiene_cuarto_servicio ?? false,
+        tiene_estudio: tip.tiene_estudio ?? false,
+        tiene_chimenea: tip.tiene_chimenea ?? false,
+        tiene_doble_altura: tip.tiene_doble_altura ?? false,
+        tiene_rooftop: tip.tiene_rooftop ?? false,
       };
       const res = await fetch("/api/tipologias", {
         method: "POST",
@@ -1078,11 +1159,12 @@ export default function TipologiasPage() {
                         {isHibrido && (
                           <div>
                             <Label>{t("tipologias.tipoTipologia")}</Label>
-                            <div className={cn("grid grid-cols-3 mt-1", gap.normal)}>
+                            <div className={cn("grid grid-cols-4 mt-1", gap.normal)}>
                               {([
                                 { id: "apartamento" as const, icon: Building2, labelKey: "tipologias.tipoApartamento" },
                                 { id: "casa" as const, icon: Home, labelKey: "tipologias.tipoCasa" },
                                 { id: "lote" as const, icon: MapPin, labelKey: "tipologias.tipoLote" },
+                                { id: "local_comercial" as const, icon: Store, labelKey: "tipologias.tipoLocalComercial" },
                               ] as const).map((tipo) => {
                                 const isActive = form.tipo_tipologia === tipo.id;
                                 const Icon = tipo.icon;
@@ -1129,6 +1211,62 @@ export default function TipologiasPage() {
                               fontSize.label
                             )}>
                               {t("tipologias.tipoTipologiaHint")}
+                            </p>
+                          </div>
+                        )}
+                        {!isHibrido && (
+                          <div>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                const newTipo = form.tipo_tipologia === "local_comercial"
+                                  ? (deriveTipoTipologia(project.tipo_proyecto) || "apartamento")
+                                  : "local_comercial";
+                                updateForm("tipo_tipologia", newTipo);
+                                if (selectedId && !isCreating) {
+                                  saveTipologia({
+                                    tipologiaId: selectedId,
+                                    payload: { tipo_tipologia: newTipo },
+                                    optimisticUpdate: (prev) => ({
+                                      ...prev,
+                                      tipologias: prev.tipologias.map((t) =>
+                                        t.id === selectedId
+                                          ? { ...t, tipo_tipologia: newTipo }
+                                          : t
+                                      ),
+                                    }),
+                                  });
+                                }
+                              }}
+                              className={cn(
+                                "flex items-center w-full px-3 py-2 border transition-all text-left",
+                                gap.normal,
+                                fontSize.subtitle,
+                                radius.md,
+                                form.tipo_tipologia === "local_comercial"
+                                  ? "bg-[rgba(var(--site-primary-rgb),0.08)] border-[rgba(var(--site-primary-rgb),0.3)] text-white"
+                                  : "bg-[var(--surface-1)] border-[var(--border-subtle)] text-[var(--text-muted)] hover:border-[var(--border-default)]"
+                              )}
+                            >
+                              <Store size={iconSize.sm} className={form.tipo_tipologia === "local_comercial" ? "text-[var(--site-primary)]" : ""} />
+                              <span className="flex-1">{t("tipologias.tipoLocalComercial")}</span>
+                              <div className={cn(
+                                "w-8 h-5 rounded-full transition-all relative",
+                                form.tipo_tipologia === "local_comercial"
+                                  ? "bg-[var(--site-primary)]"
+                                  : "bg-[var(--surface-3)]"
+                              )}>
+                                <div className={cn(
+                                  "absolute top-0.5 w-4 h-4 rounded-full bg-white transition-all",
+                                  form.tipo_tipologia === "local_comercial" ? "left-3.5" : "left-0.5"
+                                )} />
+                              </div>
+                            </button>
+                            <p className={cn(
+                              "text-[var(--text-muted)] mt-1.5",
+                              fontSize.label
+                            )}>
+                              {t("tipologias.tipoLocalComercialHint")}
                             </p>
                           </div>
                         )}
@@ -1240,6 +1378,43 @@ export default function TipologiasPage() {
                             </p>
                           </div>
                         )}
+
+                        {/* ── Tour 360 vinculado ── */}
+                        <div>
+                          <Label className="flex items-center gap-1.5">
+                            <View size={iconSize.xs} className="text-[var(--site-primary)]" />
+                            {t("tipologias.linkedTour")}
+                          </Label>
+                          <input
+                            type="text"
+                            value={form.tour_360_url}
+                            onChange={(e) => {
+                              const raw = e.target.value;
+                              const extracted = extractTourUrl(raw);
+                              updateForm("tour_360_url", extracted);
+                              // Immediate background save for discrete changes
+                              if (selectedId && !isCreating) {
+                                saveTipologia({
+                                  tipologiaId: selectedId,
+                                  payload: { tour_360_url: extracted || null },
+                                  optimisticUpdate: (prev) => ({
+                                    ...prev,
+                                    tipologias: prev.tipologias.map((t) =>
+                                      t.id === selectedId
+                                        ? { ...t, tour_360_url: extracted || null }
+                                        : t
+                                    ),
+                                  }),
+                                });
+                              }
+                            }}
+                            placeholder={t("tipologias.linkedTourPlaceholder")}
+                            className={inputClass}
+                          />
+                          <p className={cn("text-[var(--text-muted)] mt-1.5", fontSize.label)}>
+                            {t("tipologias.linkedTourHint")}
+                          </p>
+                        </div>
 
                         {/* ── Precio ── */}
                         <div>
@@ -1424,6 +1599,7 @@ export default function TipologiasPage() {
                         <div>
                           <Label variant="section">{t("tipologias.specsSpaces")}</Label>
                           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                            {form.tipo_tipologia !== "local_comercial" && (
                             <div className="flex items-center gap-3 p-3 bg-[var(--surface-1)] rounded-xl border border-[var(--border-subtle)] hover:border-[var(--border-default)] transition-all">
                               <div className="w-9 h-9 rounded-lg bg-[var(--surface-2)] flex items-center justify-center shrink-0">
                                 <BedDouble size={iconSize.md} className="text-[var(--text-tertiary)]" />
@@ -1433,6 +1609,8 @@ export default function TipologiasPage() {
                                 <input type="number" value={form.habitaciones} onChange={(e) => updateForm("habitaciones", e.target.value)} placeholder="0" className="w-full bg-transparent text-sm font-mono text-white placeholder:text-[var(--text-muted)] focus:outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none" />
                               </div>
                             </div>
+                            )}
+                            {form.tipo_tipologia !== "local_comercial" && (
                             <div className="flex items-center gap-3 p-3 bg-[var(--surface-1)] rounded-xl border border-[var(--border-subtle)] hover:border-[var(--border-default)] transition-all">
                               <div className="w-9 h-9 rounded-lg bg-[var(--surface-2)] flex items-center justify-center shrink-0">
                                 <Bath size={iconSize.md} className="text-[var(--text-tertiary)]" />
@@ -1442,6 +1620,7 @@ export default function TipologiasPage() {
                                 <input type="number" value={form.banos} onChange={(e) => updateForm("banos", e.target.value)} placeholder="0" className="w-full bg-transparent text-sm font-mono text-white placeholder:text-[var(--text-muted)] focus:outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none" />
                               </div>
                             </div>
+                            )}
                             <div className="flex items-center gap-3 p-3 bg-[var(--surface-1)] rounded-xl border border-[var(--border-subtle)] hover:border-[var(--border-default)] transition-all">
                               <div className="w-9 h-9 rounded-lg bg-[var(--surface-2)] flex items-center justify-center shrink-0">
                                 <Car size={iconSize.md} className="text-[var(--text-tertiary)]" />
@@ -1462,6 +1641,46 @@ export default function TipologiasPage() {
                             </div>
                           </div>
                         </div>
+
+                        {/* ── Extras (conditional on project config) ── */}
+                        {TIPO_EXTRAS.some(e => (project as any)[e.projectFlag]) && (
+                          <div>
+                            <Label>{t("tipologias.extras") || "Extras"}</Label>
+                            <div className={cn("grid grid-cols-2 mt-1", gap.compact)}>
+                              {TIPO_EXTRAS.filter(e => (project as any)[e.projectFlag]).map((extra) => {
+                                const isOn = form[extra.field] as boolean;
+                                const ExtraIcon = extra.icon;
+                                return (
+                                  <button
+                                    key={extra.field}
+                                    type="button"
+                                    onClick={() => updateForm(extra.field, !isOn)}
+                                    className={cn(
+                                      "flex items-center gap-3 p-3 rounded-xl border transition-all",
+                                      isOn
+                                        ? "bg-[rgba(var(--site-primary-rgb),0.08)] border-[rgba(var(--site-primary-rgb),0.3)]"
+                                        : "bg-[var(--surface-1)] border-[var(--border-subtle)] hover:border-[var(--border-default)]"
+                                    )}
+                                  >
+                                    <div className={cn(
+                                      "w-9 h-9 rounded-lg flex items-center justify-center shrink-0",
+                                      isOn ? "bg-[rgba(var(--site-primary-rgb),0.12)]" : "bg-[var(--surface-2)]"
+                                    )}>
+                                      <ExtraIcon size={iconSize.md} className={isOn ? "text-[var(--site-primary)]" : "text-[var(--text-tertiary)]"} />
+                                    </div>
+                                    <span className={cn("flex-1 text-xs font-medium text-left", isOn ? "text-white" : "text-[var(--text-tertiary)]")}>
+                                      {t(extra.labelKey)}
+                                    </span>
+                                    <div className={cn("relative inline-flex h-5 w-9 items-center rounded-full transition-colors shrink-0", isOn ? "bg-[var(--site-primary)]" : "bg-[var(--surface-3)]")}>
+                                      <span className={cn("inline-block h-3.5 w-3.5 rounded-full bg-white shadow-sm transition-transform", isOn ? "translate-x-[18px]" : "translate-x-[3px]")} />
+                                    </div>
+                                  </button>
+                                );
+                              })}
+                            </div>
+                          </div>
+                        )}
+
                       </>
                     )}
 

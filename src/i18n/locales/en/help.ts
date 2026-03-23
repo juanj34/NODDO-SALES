@@ -76,40 +76,43 @@ const help = {
       title: "Unit Availability",
       description: "Update unit status in real time",
       content:
-        "The Availability section lets you quickly update unit status (available, separated, reserved, sold). Changes reflect immediately on the public microsite. Both administrators and collaborators have access to this functionality.",
+        "The Availability section lets you quickly update unit status (available, separated, reserved, sold). Changes apply with optimistic updates — they reflect instantly without waiting for server response. Both administrators and collaborators have access to this functionality.",
       steps: [
         "Go to 'Availability' from the dashboard sidebar.",
         "Select the project you want to manage.",
         "Filter units by tower or typology using the selectors at the top.",
         "Click on any unit's status badge to change availability: available (green), separated (yellow), reserved (blue) or sold (red).",
-        "The change saves automatically and reflects instantly on the public microsite.",
+        "Prices display in full format with thousands separators (COP format). Changes save automatically with optimistic updates — you see the result instantly.",
         "You can see a summary with the total units in each status at the top of the page.",
       ],
       tips: [
         "This is the only function collaborators can execute. It's ideal for your sales team to keep inventory updated without needing access to the full editor.",
-        "Sold units disappear from the microsite's public view but remain visible in the editor and this section.",
+        "Sold units disappear from the microsite's public view (if 'Hide Sold' is enabled in Settings) but remain visible in the editor and this section.",
         "Status changes sync in real time — if two people are editing simultaneously, they'll see each other's changes immediately.",
+        "Changes use optimistic updates: the change appears visually instantly and syncs with the server in the background. If it fails, it reverts automatically.",
       ],
     },
     estadisticas: {
       title: "Statistics & Analytics",
       description: "Complete performance metrics for your microsite",
       content:
-        "The Statistics tab within each project's editor offers a complete analytics dashboard: views, unique visitors, lead conversion, device distribution, countries, most visited pages and traffic sources. You can select the time range (7, 30 or 90 days) and export data to CSV.",
+        "The Statistics tab within each project's editor offers a complete analytics dashboard: views, unique visitors, lead conversion, device distribution, countries, most visited pages and traffic sources. You can select the time range (7, 30 or 90 days) and export data to CSV. You can also view project storage metrics.",
       steps: [
         "From your project editor, click the 'Statistics' tab.",
         "At the top you'll see 6 main KPIs: total views, unique visitors, total leads, conversion rate, bounce rate and pages per session.",
         "Select the desired time range (7d, 30d, 90d) to update all metrics.",
         "Review the time evolution charts for views, visitors and leads.",
         "In the Distribution section you'll see: devices (desktop/mobile/tablet), most visited pages, main traffic sources (referrers) and visitor countries of origin.",
-        "If you have units with configured prices, you'll also see financial metrics: total inventory, average value per unit, units sold and total value sold.",
+        "If you have units with configured prices, you'll see financial metrics: total inventory, average value per unit, units sold, total value sold and revenue based on recorded sale prices (precio_venta).",
         "Click 'Export CSV' to download all metrics in Excel format.",
+        "In the editor sidebar, below the navigation menu, you'll see a project storage usage indicator with a progress bar and used vs. available space.",
       ],
       tips: [
         "Conversion rate is calculated as: (total leads / unique visitors) × 100.",
         "Data updates in real time. If you don't see data, verify your microsite is published and has received visits.",
-        "Financial metrics only appear if you've configured prices in your unit inventory.",
+        "Financial metrics include actual revenue based on sale prices (precio_venta) recorded when marking units as sold, not just list prices.",
         "Use traffic source data to identify which marketing channels are generating more visits and optimize your advertising investment.",
+        "The storage indicator in the sidebar shows how much space your project has used (images, videos, documents, tours). As it approaches the limit, the color changes from gold to yellow to red.",
       ],
     },
     leads: {
@@ -144,6 +147,7 @@ const help = {
         "The hero image is the first thing visitors see. Use a high-quality render in landscape format (16:9).",
         "The primary color is used for buttons, accents and interactive elements throughout the microsite. Choose a tone that represents your brand.",
         "The OG image appears when sharing your microsite link on WhatsApp, Facebook, Twitter and LinkedIn.",
+        "The project type (towers, development, hybrid, lots) is configured from the 'Settings' tab, where you can also customize inventory columns.",
       ],
     },
     torres: {
@@ -167,13 +171,15 @@ const help = {
     },
     tipologias: {
       title: "Typologies",
-      description: "Property types with specs, floor plans and hotspots",
+      description: "Property types with specs, floor plans, hotspots and linked video",
       content:
-        "Typologies represent the property types in your project (1-bed apt, 2-bed apt, corner house, etc.). Each typology has its specs, plans and can be assigned to one or more towers.",
+        "Typologies represent the property types in your project (1-bed apt, 2-bed apt, corner house, etc.). Each typology has its specs, plans and can be assigned to one or more towers. You can assign a property type (apartment, house, lot) and link a project video.",
       steps: [
         "Click '+' to create a new typology. Give it a descriptive name.",
         "In 'General' write the description, features (as comma-separated tags: balcony, exterior view, high floor) and assign towers where available.",
-        "In 'Specs' enter: internal area (m²), balcony area, bedrooms, bathrooms and parking. Total area is calculated automatically.",
+        "In 'Specs' enter: internal area (m²), balcony area, built area, private area and lot area (depending on project configuration), plus bedrooms, bathrooms and parking. Total area is calculated automatically.",
+        "Select the typology's property type: apartment, house or lot. This type determines which inventory columns display for units of this typology.",
+        "If your project has videos configured, you can link a video to the typology. Microsite visitors will see a 'Watch Video' button that opens the associated video.",
         "In 'Floor Plan' upload the architectural plan image and optionally the location within the project plan.",
         "In 'Hotspots' add interactive points on the plan. Visitors can click them to see details or renders.",
         "Use 'Clone to Tower' to copy a typology to another building in one click.",
@@ -182,25 +188,32 @@ const help = {
         "Price is automatically calculated from the cheapest available unit in inventory. No need to enter it manually.",
         "Hotspots require a floor plan image first. They appear as golden dots visitors can explore.",
         "With multiple towers, you can filter typologies by tower using the top tabs.",
+        "Available area fields (built, private, lot) depend on the project configuration. You can enable or disable them from the Settings tab.",
+        "When linking a video, only processed and ready videos appear. Videos still being uploaded won't show in the list.",
       ],
     },
     inventario: {
       title: "Unit Inventory",
-      description: "Unit management, CSV import, AI and bulk operations",
+      description: "Unit management, custom columns, sale price, AI and bulk operations",
       content:
-        "The inventory contains all individual units in your project (apartments, houses, commercial spaces). Each unit has a unique identifier, assigned typology, and an availability status your collaborators can update.",
+        "The inventory contains all individual units in your project (apartments, houses, commercial spaces). Each unit has a unique identifier, assigned typology, and an availability status. Visible columns are configurable by project type, and you can add custom columns.",
       steps: [
         "Click '+' to add a unit. Assign an identifier (e.g.: 101, 1001A), select typology, floor, area, price and status.",
         "To import many units, use 'Import CSV'. Download the template, fill in data in Excel and upload it.",
-        "You can also paste text from any source (brochure, table, list) and use the 'AI' button to automatically extract unit data.",
-        "Change a unit's status by clicking its status badge: available (green), separated (yellow), reserved (blue) or sold (red).",
+        "Use the AI assistant to extract unit data: paste text from any source or attach files (brochures, PDFs, tables). The assistant opens in a side panel where you can interact via chat, review extracted data and confirm the import.",
+        "Change a unit's status by clicking its status badge: available (green), separated (yellow), reserved (blue) or sold (red). Changes apply instantly with optimistic updates.",
+        "When a unit is marked as 'sold', you can record the actual sale price (precio_venta). This price is automatically locked and used for financial metrics.",
         "For bulk operations, select multiple units with checkboxes and change their status or delete them at once.",
+        "Visible inventory columns are configured from the 'Settings' tab. You can choose which columns to show in the editor and which on the public microsite.",
+        "Create custom columns from the inventory settings button. Custom columns can be text, number or select type, and display in the editor and optionally on the microsite.",
         "Export the complete inventory to CSV with the 'Export' button.",
       ],
       tips: [
         "Collaborators can only change unit status, not create or delete. Ideal for your sales team to update availability in real time.",
-        "AI can extract data from unstructured text — try pasting a table from a PDF or a listing from an email.",
-        "Statuses reflect immediately on the public microsite. When a unit is marked 'sold', visitors stop seeing it as available.",
+        "The AI assistant accepts file attachments (brochure images, PDFs, tables). Use the chat to refine extracted data before importing.",
+        "Statuses reflect immediately on the public microsite. Updates are optimistic — you see the change instantly without waiting for server response.",
+        "The sale price (precio_venta) only appears for sold units. It's automatically recorded when changing status to sold and cannot be modified afterward.",
+        "You can configure a display prefix for units (e.g.: 'Apt', 'House', 'Lot') from the Settings tab. This prefix appears before the identifier on the microsite.",
       ],
     },
     cotizador: {
@@ -228,19 +241,22 @@ const help = {
     },
     fachadas: {
       title: "Noddo Grid (Facades)",
-      description: "Building facade renders with interactive hotspots",
+      description: "Building facade renders with interactive hotspots and unit labels",
       content:
-        "The Noddo Grid lets you upload building facade images and place interactive hotspots that visitors can explore. Each hotspot can link to a typology or show additional information.",
+        "The Noddo Grid lets you upload building facade images and place interactive hotspots that visitors can explore. Each hotspot can link to a typology or show additional information. Units are displayed with labels on the grid.",
       steps: [
         "Click '+' to create a new facade. Name it and optionally assign to a tower.",
         "Upload the building facade render image.",
         "Click anywhere on the image to add a hotspot. Assign a name and optionally link to a typology.",
         "Drag hotspots to reposition them on the image.",
+        "To rename a facade, click directly on its name in the list. The name edits inline without opening a form.",
         "Use 'Duplicate Hotspots' to copy points from one facade to another (useful for similar layouts).",
       ],
       tips: [
         "Use high-quality renders with good resolution. The image displays fullscreen in the microsite.",
         "Hotspots appear as glowing golden dots visitors can explore in the microsite's 'Explore' section.",
+        "Each hotspot displays the corresponding unit label on the grid, making visual identification easier.",
+        "The save indicator shows current status (saving, saved) so you always know if your changes have been persisted.",
       ],
     },
     planos: {
@@ -280,11 +296,13 @@ const help = {
     },
     videos: {
       title: "Videos",
-      description: "YouTube videos with drag-and-drop reordering",
+      description: "YouTube videos and hosted videos with drag-and-drop",
       content:
-        "Add YouTube videos of your project — virtual tours, promotional videos, construction progress, etc. Videos display in a fullscreen player in the microsite.",
+        "Add videos to your project in two ways: paste a YouTube URL or upload a video file directly to be hosted on NODDO. Videos display in a fullscreen player in the microsite.",
       steps: [
-        "Click '+' to add a video. Paste the YouTube URL and the system will automatically extract the title and thumbnail.",
+        "Click '+' to add a video. Choose between 'URL' to paste a YouTube link, or 'Upload' to upload a video file directly.",
+        "If you choose URL: paste the YouTube URL and the system will automatically extract the title and thumbnail.",
+        "If you choose Upload: select a video file (MP4, WebM). The video will be uploaded and processed automatically. You'll see a progress indicator and processing status.",
         "Edit the video title if you want to customize it.",
         "Reorder videos by dragging them in the list. The first one plays by default.",
         "Delete a video with the delete button.",
@@ -292,6 +310,31 @@ const help = {
       tips: [
         "Use unlisted YouTube videos if you don't want them in public search results but do want them on your microsite.",
         "The first video in the list is shown when entering the microsite's Videos section.",
+        "Uploaded videos are processed in the cloud. While processing, you'll see a status indicator. Once ready, they play directly without depending on YouTube.",
+        "The video upload feature (video hosting) may require activation on your plan. If you don't see the option, contact support.",
+      ],
+    },
+    tour: {
+      title: "360 Tour",
+      description:
+        "Immersive virtual tour with Matterport or self-hosted files",
+      content:
+        "The 360 Tour tab lets you set up an immersive virtual tour for your project. You can paste a Matterport URL or upload your own tour (ZIP or folder) to be hosted directly on NODDO. The tour displays as a fullscreen section in the microsite.",
+      steps: [
+        "Go to the '360 Tour' tab in your project editor.",
+        "Choose between two options: 'URL' to paste a Matterport or other provider link, or 'Upload' to host the tour directly on NODDO.",
+        "If you choose URL: paste the tour address (e.g.: https://my.matterport.com/show/?m=...). The system automatically extracts the embeddable URL even if you paste a full link or iframe code.",
+        "If you choose Upload: drag a ZIP file or select a folder with tour files. You can also use the 'Select Folder' button to choose the folder directly.",
+        "Upload progress is shown in a progress bar with the count of uploaded files. You can cancel the upload at any time.",
+        "When the upload completes, the tour is hosted on NODDO's infrastructure and configured automatically.",
+        "A tour preview appears at the bottom of the section, with a link to open it in a new tab.",
+        "To replace a hosted tour, use the 'Replace' button. To remove it, use 'Delete Tour'.",
+      ],
+      tips: [
+        "Tour file upload works in the background — you can navigate to other editor tabs while it completes. A floating indicator will show you the progress.",
+        "If you close or navigate away from the editor during an active upload, the system will warn you to prevent losing progress.",
+        "Tours hosted on NODDO load faster for visitors than third-party embeds, as they're served from our CDN.",
+        "Supported upload formats: ZIP file or folder containing tour files (HTML, JS, CSS, assets).",
       ],
     },
     ubicacion: {
@@ -312,20 +355,46 @@ const help = {
         "Categories have specific icons to help visitors quickly identify each type of place.",
       ],
     },
+    vistas: {
+      title: "Floor Views",
+      description:
+        "Define views by orientation and floor range with automatic assignment",
+      content:
+        "Floor Views let you configure available sight lines in your project by orientation, floor range and typology. Inventory units are automatically assigned to their corresponding views based on their floor and typology.",
+      steps: [
+        "Go to the 'Views' tab in your project editor.",
+        "Click 'New View' to create a view. Give it a descriptive name (e.g.: Park View, North City View).",
+        "Select the view orientation (North, South, East, West, etc.) using the field suggestions or typing a custom one.",
+        "Define the floor range where this view applies: minimum floor and maximum floor.",
+        "If you have multiple towers, assign the view to a specific tower or leave it as general for all.",
+        "Select the typologies that have this view available using the multi-select checkboxes.",
+        "Upload a representative image of the view (render or actual photo). The image displays as a card in the views grid.",
+        "Optionally add a view description.",
+        "When saved, inventory units matching the tower, floor range and typology will be automatically assigned to this view. The system will show you how many units were assigned.",
+      ],
+      tips: [
+        "Views are automatically assigned to inventory units. No need to manually assign each unit — the system does it based on floor and typology.",
+        "The 'Assignment Summary' section shows a table with all units and their assigned view, useful for verifying the configuration is correct.",
+        "If your project has multiple towers, you can filter views by tower using the top tabs.",
+        "View images appear on cards with orientation info, floor range and assigned unit count.",
+      ],
+    },
     recursos: {
       title: "Resources & Documents",
-      description: "Brochures, spec sheets and downloadable documents",
+      description: "Brochures with integrated PDF viewer, spec sheets and downloadable documents",
       content:
-        "Upload documents that microsite visitors can download: sales brochures, spec sheets, price lists, finish specifications, etc.",
+        "Upload documents that microsite visitors can download or view: sales brochures, spec sheets, price lists, finish specifications, etc. PDF brochures can be viewed directly in the browser with an integrated viewer.",
       steps: [
         "Click '+' to add a new resource.",
         "Select the resource type: Brochure, Finishes, Spec Sheet, Prices or Other.",
         "Upload the file (PDF recommended) and give it a descriptive name.",
         "Resources appear as downloadable cards in the microsite's 'Resources' section.",
+        "PDF brochures open in an integrated viewer with page navigation, zoom and direct download. Visitors can browse the brochure without leaving the microsite.",
       ],
       tips: [
-        "PDFs can be previewed directly in the browser. Other formats will download on click.",
-        "Keep files lightweight (under 10MB) for fast downloads.",
+        "PDF brochures display inline on the microsite with an interactive viewer supporting page navigation and zoom. Visitors don't need to download the file to view it.",
+        "Keep files lightweight (under 10MB) for fast downloads and smooth PDF viewer performance.",
+        "Non-PDF formats will download on click.",
       ],
     },
     avances: {
@@ -347,19 +416,25 @@ const help = {
     },
     config: {
       title: "General Settings",
-      description: "WhatsApp, 360 Tour, ambient audio and display options",
+      description: "Project type, inventory columns, WhatsApp, display and microsite options",
       content:
-        "The Settings tab contains options controlling special microsite features.",
+        "The Settings tab contains options controlling your project structure, inventory columns, special microsite features and display options.",
       steps: [
+        "'Project Type': Select your project type: Towers (vertical buildings), Development (houses/horizontal complexes), Hybrid (mixed types) or Lots. The type determines available inventory columns and system behavior.",
+        "'Inventory Columns': Customize which fields display in the inventory table in the editor and microsite. You can enable/disable columns like built area, private area, lot area, orientation, view, floor, etc.",
         "'WhatsApp': Enter the WhatsApp number with country code (e.g.: 573001234567). A floating button will appear on the microsite.",
-        "'360 Tour': Paste your Matterport virtual tour URL. It will display as a fullscreen embedded section.",
-        "'Ambient Audio': Upload an audio file (MP3, WAV) that plays in the background. Visitors can mute it.",
-        "'Stage Label': Customize how the towers/stages section is named (default: 'Explore').",
+        "'Unit Prefix': Configure a prefix displayed before each unit's identifier on the microsite (e.g.: 'Apt', 'House', 'Lot').",
+        "'Hide Sold': Enable this toggle so sold units don't appear on the public microsite. They'll still be visible in the editor.",
+        "'Hide Sold Price': Enable this toggle to hide the price of units marked as sold on the microsite.",
+        "'Stage Label': Customize how the towers/stages section is named (default: 'Grid').",
         "'Hide NODDO Badge': Disable the 'Powered by NODDO' seal in the microsite corner.",
+        "'Ambient Audio': Upload an audio file (MP3, WAV) that plays in the background. Visitors can mute it.",
       ],
       tips: [
+        "Project type automatically affects available columns. For hybrid projects, you can configure different columns for each typology type (apartment, house, lot).",
         "The WhatsApp button is the most effective way to receive contacts. Make sure the number is correct and active.",
         "Ambient audio starts muted by default. Visitors must activate it manually.",
+        "The 'Hide Sold' option is useful when you don't want to show visitors units that have already been sold.",
       ],
     },
     dominio: {
@@ -405,20 +480,25 @@ const help = {
     },
     publicacion: {
       title: "Publishing & Versions",
-      description: "Publish your microsite, version history and restoration",
+      description: "Publish, unpublish, archive and restore microsite versions",
       content:
-        "The publishing system lets you control when changes become visible to the public. Each time you publish, a version is created that you can restore at any time.",
+        "The publishing system lets you control when and where changes become visible to the public. You can choose publish destinations (NODDO subdomain and/or custom domain), archive or unarchive the project, and unpublish if you need to temporarily take the site down.",
       steps: [
         "When you make changes in the editor, the status indicator will show 'Unpublished changes' (orange).",
-        "Click 'Publish' in the editor's top bar to make all changes visible.",
+        "Click 'Publish' in the editor's top bar. A menu will open where you can select publish destinations: NODDO subdomain and/or custom domain (if configured).",
+        "Check or uncheck destinations and click 'Publish Now' to make changes visible.",
         "A new version (v1, v2, v3...) is created with a complete copy of all content.",
-        "To view version history, click the dropdown menu next to the publish button.",
+        "To view version history, click the dropdown button (arrow) next to the publish button.",
         "To restore a previous version, click 'Restore' next to the desired version. A new version is created with the restored content.",
+        "To unpublish the microsite (take it offline without deleting it), use the 'Unpublish' option in the versions menu. The project will return to draft status.",
+        "To archive or unarchive the project, use the 'Archive Project' / 'Unarchive Project' option at the bottom of the versions menu.",
       ],
       tips: [
         "Project status shows in 3 colors: amber (draft, never published), green (published and up to date), orange (published but with pending changes).",
         "Restoring a version doesn't delete later versions — a new version is created with old content, so you never lose data.",
         "Changes auto-save in the editor but are NOT public until you press 'Publish'.",
+        "Unpublishing takes the microsite offline but preserves all content and versions. You can republish at any time.",
+        "The destination selector lets you publish to NODDO subdomain only, your custom domain only, or both.",
       ],
     },
     autoguardado: {

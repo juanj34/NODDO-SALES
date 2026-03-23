@@ -339,27 +339,46 @@ export default function EquipoPage() {
               >
                 <div className="flex items-center gap-3 sm:gap-4">
                   {/* Avatar */}
-                  <div
-                    className="w-10 h-10 rounded-xl flex items-center justify-center text-sm font-bold shrink-0"
-                    style={{
-                      background: `linear-gradient(135deg, rgba(var(--site-primary-rgb), 0.3), rgba(var(--site-primary-rgb), 0.1))`,
-                      boxShadow: `0 0 0 1.5px rgba(var(--site-primary-rgb), 0.3)`,
-                      color: "var(--site-primary)",
-                    }}
-                  >
-                    {(colab.nombre || colab.email).charAt(0).toUpperCase()}
-                  </div>
+                  {colab.profile?.avatar_url ? (
+                    <img
+                      src={colab.profile.avatar_url}
+                      alt=""
+                      className="w-10 h-10 rounded-xl object-cover shrink-0"
+                      style={{ boxShadow: `0 0 0 1.5px rgba(var(--site-primary-rgb), 0.3)` }}
+                    />
+                  ) : (
+                    <div
+                      className="w-10 h-10 rounded-xl flex items-center justify-center text-sm font-bold shrink-0"
+                      style={{
+                        background: `linear-gradient(135deg, rgba(var(--site-primary-rgb), 0.3), rgba(var(--site-primary-rgb), 0.1))`,
+                        boxShadow: `0 0 0 1.5px rgba(var(--site-primary-rgb), 0.3)`,
+                        color: "var(--site-primary)",
+                      }}
+                    >
+                      {(colab.profile?.nombre || colab.nombre || colab.email).charAt(0).toUpperCase()}
+                    </div>
+                  )}
 
                   {/* Info */}
                   <div className="flex-1 min-w-0">
                     <p className="text-sm font-medium text-[var(--text-primary)] truncate">
-                      {colab.nombre || colab.email}
+                      {colab.profile?.nombre
+                        ? `${colab.profile.nombre} ${colab.profile.apellido || ""}`.trim()
+                        : colab.nombre || colab.email}
                     </p>
                     <div className="flex items-center gap-2 mt-0.5">
                       <Mail size={11} className="text-[var(--text-muted)]" />
                       <span className="text-xs text-[var(--text-tertiary)] truncate">
                         {colab.email}
                       </span>
+                      {colab.profile?.telefono && (
+                        <>
+                          <span className="text-[var(--border-default)]">/</span>
+                          <span className="text-xs text-[var(--text-tertiary)] truncate font-mono">
+                            {colab.profile.telefono}
+                          </span>
+                        </>
+                      )}
                     </div>
                   </div>
 

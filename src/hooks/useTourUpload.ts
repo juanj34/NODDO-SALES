@@ -206,8 +206,8 @@ export interface TourUploadHook {
   filesTotal: number;
   error: string | null;
   tourUrl: string | null;
-  upload: (file: File, projectId: string) => Promise<void>;
-  uploadFolder: (files: FileList | { file: File; path: string }[], projectId: string) => Promise<void>;
+  upload: (file: File, projectId: string, tipologiaId?: string) => Promise<void>;
+  uploadFolder: (files: FileList | { file: File; path: string }[], projectId: string, tipologiaId?: string) => Promise<void>;
   reset: () => void;
   cancel: () => void;
 }
@@ -241,7 +241,7 @@ export function useTourUpload(): TourUploadHook {
 
   /** Shared: validate + upload files through server proxy */
   const presignAndUpload = useCallback(
-    async (filesToUpload: FileToUpload[], projectId: string) => {
+    async (filesToUpload: FileToUpload[], projectId: string, tipologiaId?: string) => {
       setFilesTotal(filesToUpload.length);
       setStatus("uploading");
 
@@ -249,18 +249,21 @@ export function useTourUpload(): TourUploadHook {
 
       // Validate permissions and get tourBaseUrl with a single presign call
       const firstBatch = filesToUpload.slice(0, Math.min(PRESIGN_BATCH_SIZE, filesToUpload.length));
+      const presignBody: Record<string, unknown> = {
+        proyecto_id: projectId,
+        files: firstBatch.map((f) => ({
+          path: f.path,
+          contentType: f.contentType,
+          size: f.size,
+        })),
+        total_tour_bytes: totalTourBytes,
+      };
+      if (tipologiaId) presignBody.tipologia_id = tipologiaId;
+
       const presignRes = await fetch("/api/tours/presign", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          proyecto_id: projectId,
-          files: firstBatch.map((f) => ({
-            path: f.path,
-            contentType: f.contentType,
-            size: f.size,
-          })),
-          total_tour_bytes: totalTourBytes,
-        }),
+        body: JSON.stringify(presignBody),
       });
 
       if (!presignRes.ok) {
@@ -287,6 +290,7 @@ export function useTourUpload(): TourUploadHook {
           formData.append("proyecto_id", projectId);
           formData.append("path", item.path);
           formData.append("contentType", item.contentType);
+          if (tipologiaId) formData.append("tipologia_id", tipologiaId);
 
           const res = await fetch("/api/tours/upload-file", {
             method: "POST",
@@ -321,7 +325,7 @@ export function useTourUpload(): TourUploadHook {
 
   /** Upload from ZIP file */
   const upload = useCallback(
-    async (file: File, projectId: string) => {
+    async (file: File, projectId: string, tipologiaId?: string) => {
       cancelledRef.current = false;
       setError(null);
       setTourUrl(null);
@@ -397,7 +401,7 @@ export function useTourUpload(): TourUploadHook {
 
         if (cancelledRef.current) return;
 
-        await presignAndUpload(filesToUpload, projectId);
+        await presignAndUpload(filesToUpload, projectId, tipologiaId);
       } catch (err) {
         if (cancelledRef.current) return;
         const message =
@@ -413,7 +417,8 @@ export function useTourUpload(): TourUploadHook {
   const uploadFolder = useCallback(
     async (
       input: FileList | { file: File; path: string }[],
-      projectId: string
+      projectId: string,
+      tipologiaId?: string
     ) => {
       cancelledRef.current = false;
       setError(null);
@@ -475,7 +480,7 @@ export function useTourUpload(): TourUploadHook {
           size: f.file.size,
         }));
 
-        await presignAndUpload(filesToUpload, projectId);
+        await presignAndUpload(filesToUpload, projectId, tipologiaId);
       } catch (err) {
         if (cancelledRef.current) return;
         const message =

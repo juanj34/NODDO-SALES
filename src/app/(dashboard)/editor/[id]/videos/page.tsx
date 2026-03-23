@@ -85,11 +85,11 @@ function DraggableVideo({
       value={video}
       dragListener={false}
       dragControls={controls}
-      className={listItem}
+      className={cn(listItem, "select-none")}
       whileDrag={{ scale: 1.02, boxShadow: "0 8px 32px rgba(0,0,0,0.3)" }}
     >
       <div
-        onPointerDown={(e) => controls.start(e)}
+        onPointerDown={(e) => { e.preventDefault(); controls.start(e); }}
         className="cursor-grab active:cursor-grabbing text-[var(--text-muted)] hover:text-[var(--text-secondary)] transition-colors shrink-0 touch-none"
       >
         <GripVertical size={16} />
@@ -209,19 +209,23 @@ export default function VideosPage() {
     return () => clearInterval(interval);
   }, [orderedVideos, refresh]);
 
-  const handleReorder = async (newOrder: Video[]) => {
+  const reorderTimerRef = useRef<ReturnType<typeof setTimeout>>(undefined);
+  const handleReorder = (newOrder: Video[]) => {
     setOrderedVideos(newOrder);
-    try {
-      const ids = newOrder.map((v) => v.id);
-      const res = await fetch("/api/videos/reorder", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ ids }),
-      });
-      if (!res.ok) toast.error("Error al reordenar");
-    } catch {
-      toast.error("Error de conexión");
-    }
+    clearTimeout(reorderTimerRef.current);
+    reorderTimerRef.current = setTimeout(async () => {
+      try {
+        const ids = newOrder.map((v) => v.id);
+        const res = await fetch("/api/videos/reorder", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ ids }),
+        });
+        if (!res.ok) toast.error("Error al reordenar");
+      } catch {
+        toast.error("Error de conexión");
+      }
+    }, 300);
   };
 
   const openNew = () => {

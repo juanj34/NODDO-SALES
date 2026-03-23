@@ -17,6 +17,9 @@ import {
   Link2, Building2, Home, MapPin, Layers,
   Maximize, DollarSign, BedDouble, Bath, Compass,
   RotateCcw, TableProperties, Ruler, LandPlot,
+  Calculator, Waves, Sparkles,
+  UtensilsCrossed, Sun, TreePine, DoorClosed, BookOpen,
+  Flame, MoveVertical, CloudSun, Store,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
@@ -25,6 +28,7 @@ import { CurrencyInput } from "@/components/dashboard/CurrencyInput";
 import { cn } from "@/lib/utils";
 import { getInventoryColumns, getDefaultColumns, getHybridInventoryColumns, getDefaultColumnsForTipo, INVENTORY_COLUMN_KEYS } from "@/lib/inventory-columns";
 import type { InventoryColumnConfig, InventoryColumnsByType, ComplementoMode, TipoTipologia } from "@/types";
+import { CotizadorSandbox } from "@/components/dashboard/cotizador/CotizadorSandbox";
 
 /* ── Column icon map ────────────────────────────────────────────── */
 
@@ -47,6 +51,29 @@ const COLUMN_CATEGORIES: ColumnCategory[] = [
   { id: "dimensions", labelKey: "config.columns.categories.dimensions", icon: Maximize, columns: ["area_m2", "area_construida", "area_privada", "area_lote"] },
   { id: "spaces", labelKey: "config.columns.categories.spaces", icon: BedDouble, columns: ["habitaciones", "banos", "parqueaderos", "depositos"] },
   { id: "location", labelKey: "config.columns.categories.location", icon: MapPin, columns: ["orientacion", "vista", "piso", "lote", "etapa"] },
+];
+
+/* ── Extras config array ────────────────────────────────────────── */
+
+interface ExtraConfig {
+  key: string;
+  icon: LucideIcon;
+  projectField: string;
+  labelKey: string;
+  hintKey: string;
+}
+
+const EXTRAS_CONFIG: ExtraConfig[] = [
+  { key: "jacuzzi", icon: Bath, projectField: "habilitar_extra_jacuzzi", labelKey: "config.extras.jacuzzi", hintKey: "config.extras.jacuzziHint" },
+  { key: "piscina", icon: Waves, projectField: "habilitar_extra_piscina", labelKey: "config.extras.piscina", hintKey: "config.extras.piscinaHint" },
+  { key: "bbq", icon: UtensilsCrossed, projectField: "habilitar_extra_bbq", labelKey: "config.extras.bbq", hintKey: "config.extras.bbqHint" },
+  { key: "terraza", icon: Sun, projectField: "habilitar_extra_terraza", labelKey: "config.extras.terraza", hintKey: "config.extras.terrazaHint" },
+  { key: "jardin", icon: TreePine, projectField: "habilitar_extra_jardin", labelKey: "config.extras.jardin", hintKey: "config.extras.jardinHint" },
+  { key: "cuarto_servicio", icon: DoorClosed, projectField: "habilitar_extra_cuarto_servicio", labelKey: "config.extras.cuartoServicio", hintKey: "config.extras.cuartoServicioHint" },
+  { key: "estudio", icon: BookOpen, projectField: "habilitar_extra_estudio", labelKey: "config.extras.estudio", hintKey: "config.extras.estudioHint" },
+  { key: "chimenea", icon: Flame, projectField: "habilitar_extra_chimenea", labelKey: "config.extras.chimenea", hintKey: "config.extras.chimeneaHint" },
+  { key: "doble_altura", icon: MoveVertical, projectField: "habilitar_extra_doble_altura", labelKey: "config.extras.dobleAltura", hintKey: "config.extras.dobleAlturaHint" },
+  { key: "rooftop", icon: CloudSun, projectField: "habilitar_extra_rooftop", labelKey: "config.extras.rooftop", hintKey: "config.extras.rooftopHint" },
 ];
 
 /* ── Component ──────────────────────────────────────────────────── */
@@ -75,6 +102,7 @@ export default function ConfigPage() {
   const [hideNoddoBadge, setHideNoddoBadge] = useState(initialBadge);
   const [ocultarVendidas, setOcultarVendidas] = useState(false);
   const [ocultarPrecioVendidas, setOcultarPrecioVendidas] = useState(false);
+  const [extrasEnabled, setExtrasEnabled] = useState<Record<string, boolean>>({});
   const [parqueaderosMode, setParqueaderosMode] = useState<ComplementoMode>(initialParqMode);
   const [depositosMode, setDepositosMode] = useState<ComplementoMode>(initialDepoMode);
   const [parqueaderosPrecioBase, setParqueaderosPrecioBase] = useState<number | null>(initialParqPrecioBase);
@@ -90,6 +118,7 @@ export default function ConfigPage() {
   const [inventoryColumnsMicrosite, setInventoryColumnsMicrosite] = useState<InventoryColumnConfig | null>(null);
   const [inventoryColumnsMicrositeByType, setInventoryColumnsMicrositeByType] = useState<InventoryColumnsByType | null>(null);
   const [columnsViewTab, setColumnsViewTab] = useState<"editor" | "microsite">("editor");
+  const [configTab, setConfigTab] = useState<"general" | "cotizador">("general");
 
   /* ── Sync state from project ── */
   useEffect(() => {
@@ -108,6 +137,11 @@ export default function ConfigPage() {
     setHideNoddoBadge(project.hide_noddo_badge ?? false);
     setOcultarVendidas((project as any).ocultar_vendidas ?? false);
     setOcultarPrecioVendidas((project as any).ocultar_precio_vendidas ?? false);
+    const extrasState: Record<string, boolean> = {};
+    for (const extra of EXTRAS_CONFIG) {
+      extrasState[extra.key] = (project as any)[extra.projectField] ?? false;
+    }
+    setExtrasEnabled(extrasState);
     setParqueaderosMode((project.parqueaderos_mode ?? "sin_inventario") as ComplementoMode);
     setDepositosMode((project.depositos_mode ?? "sin_inventario") as ComplementoMode);
     setParqueaderosPrecioBase(project.parqueaderos_precio_base ?? null);
@@ -135,12 +169,25 @@ export default function ConfigPage() {
     [effectiveColumnsMicrosite]
   );
 
-  /* ── Hybrid per-type column helpers ── */
+  /* ── Per-type column helpers (hybrid + commercial) ── */
+  const hasCommercialTipos = useMemo(() =>
+    (project.tipologias || []).some(t => t.tipo_tipologia === "local_comercial"),
+    [project.tipologias]
+  );
+  const showPerTypeColumns = isHibrido || hasCommercialTipos;
+
   const TIPO_TAB_LABELS: { id: TipoTipologia; labelKey: string; icon: LucideIcon }[] = [
     { id: "apartamento", labelKey: "inventario.tabApartamentos", icon: Building2 },
     { id: "casa", labelKey: "inventario.tabCasas", icon: Home },
     { id: "lote", labelKey: "inventario.tabLotes", icon: MapPin },
+    { id: "local_comercial", labelKey: "inventario.tabLocales", icon: Store },
   ];
+
+  // Filter to only tipos that have tipologías in this project
+  const activeTipoTabs = useMemo(() => {
+    const types = new Set((project.tipologias || []).map(t => t.tipo_tipologia).filter(Boolean));
+    return TIPO_TAB_LABELS.filter(tab => types.has(tab.id));
+  }, [project.tipologias]);
 
   const getEffectiveColumnsForTipo = useCallback((tipo: TipoTipologia) =>
     getHybridInventoryColumns(tipo, inventoryColumnsByType),
@@ -172,13 +219,14 @@ export default function ConfigPage() {
       hide_noddo_badge: hideNoddoBadge,
       ocultar_vendidas: ocultarVendidas,
       ocultar_precio_vendidas: ocultarPrecioVendidas,
+      ...Object.fromEntries(EXTRAS_CONFIG.map(e => [e.projectField, extrasEnabled[e.key] ?? false])),
       parqueaderos_mode: parqueaderosMode,
       depositos_mode: depositosMode,
       parqueaderos_precio_base: parqueaderosMode === "precio_base" ? parqueaderosPrecioBase : null,
       depositos_precio_base: depositosMode === "precio_base" ? depositosPrecioBase : null,
     } as any);
     if (!ok) toast.error(t("general.saveError"));
-  }, [save, slug, tipoProyecto, tipologiaMode, precioSource, inventoryColumns, inventoryColumnsByType, inventoryColumnsMicrosite, inventoryColumnsMicrositeByType, whatsappNumero, etapaLabel, unitPrefix, hideNoddoBadge, ocultarVendidas, ocultarPrecioVendidas, parqueaderosMode, depositosMode, parqueaderosPrecioBase, depositosPrecioBase, toast, t]);
+  }, [save, slug, tipoProyecto, tipologiaMode, precioSource, inventoryColumns, inventoryColumnsByType, inventoryColumnsMicrosite, inventoryColumnsMicrositeByType, whatsappNumero, etapaLabel, unitPrefix, hideNoddoBadge, ocultarVendidas, ocultarPrecioVendidas, extrasEnabled, parqueaderosMode, depositosMode, parqueaderosPrecioBase, depositosPrecioBase, toast, t]);
 
   /* ── Auto-save ── */
   const handleSaveRef = useRef(handleSave);
@@ -314,6 +362,41 @@ export default function ConfigPage() {
         title={t("config.title")}
         description={t("config.description")}
       />
+
+      {/* Tab Selector: General | Cotizador */}
+      <div className="flex items-center gap-1 p-1 bg-[var(--surface-2)] rounded-xl w-fit">
+        {([
+          { id: "general" as const, label: t("config.tabs.general"), icon: Settings },
+          { id: "cotizador" as const, label: t("config.tabs.cotizador"), icon: Calculator },
+        ]).map((tab) => {
+          const isActive = configTab === tab.id;
+          const TabIcon = tab.icon;
+          return (
+            <button
+              key={tab.id}
+              type="button"
+              onClick={() => setConfigTab(tab.id)}
+              className={cn(
+                "relative flex items-center gap-2 px-4 py-2.5 rounded-lg transition-all font-ui text-xs font-bold uppercase tracking-[0.08em]",
+                isActive
+                  ? "bg-[var(--site-primary)] text-[var(--surface-0)] shadow-[0_2px_8px_rgba(var(--site-primary-rgb),0.3)]"
+                  : "text-[var(--text-tertiary)] hover:text-[var(--text-primary)] hover:bg-white/5"
+              )}
+            >
+              <TabIcon size={13} />
+              {tab.label}
+            </button>
+          );
+        })}
+      </div>
+
+      {/* ── Tab Content: Cotizador ── */}
+      {configTab === "cotizador" && (
+        <CotizadorSandbox />
+      )}
+
+      {/* ── Tab Content: General ── */}
+      {configTab === "general" && (<>
 
       {/* ═══════════════════════════════════════════════════════════
           URL del Micrositio (Slug)
@@ -696,10 +779,10 @@ export default function ConfigPage() {
           </div>
         )}
 
-        {/* ── Tab Content: Editor Columns (Hybrid) ── */}
-        {columnsViewTab === "editor" && isHibrido && (
+        {/* ── Tab Content: Editor Columns (Per-type) ── */}
+        {columnsViewTab === "editor" && showPerTypeColumns && (
           <div className="space-y-6">
-            {TIPO_TAB_LABELS.map(({ id: tipo, labelKey, icon: TipoIcon }) => {
+            {activeTipoTabs.map(({ id: tipo, labelKey, icon: TipoIcon }) => {
               const tipoColumns = getEffectiveColumnsForTipo(tipo);
               const tipoActive = Object.values(tipoColumns).filter(Boolean).length;
               const hasCustom = inventoryColumnsByType?.[tipo] !== undefined;
@@ -779,10 +862,10 @@ export default function ConfigPage() {
           </div>
         )}
 
-        {/* ── Tab Content: Microsite Columns (Hybrid) ── */}
-        {columnsViewTab === "microsite" && isHibrido && (
+        {/* ── Tab Content: Microsite Columns (Per-type) ── */}
+        {columnsViewTab === "microsite" && showPerTypeColumns && (
           <div className="space-y-6">
-            {TIPO_TAB_LABELS.map(({ id: tipo, labelKey, icon: TipoIcon }) => {
+            {activeTipoTabs.map(({ id: tipo, labelKey, icon: TipoIcon }) => {
               const tipoColumns = getEffectiveColumnsForTipoMicrosite(tipo);
               const tipoActive = Object.values(tipoColumns).filter(Boolean).length;
               const hasCustom = inventoryColumnsMicrositeByType?.[tipo] !== undefined;
@@ -1016,6 +1099,46 @@ export default function ConfigPage() {
       </div>
 
       {/* ═══════════════════════════════════════════════════════════
+          Extras de Tipología
+          ═══════════════════════════════════════════════════════════ */}
+      <div className={sectionCard}>
+        <div className={sectionTitle}>
+          <Sparkles size={15} className="text-[var(--site-primary)]" />
+          {t("config.extras.title")}
+        </div>
+        <p className={sectionDescription}>{t("config.extras.description")}</p>
+
+        <div className="space-y-4">
+          {EXTRAS_CONFIG.map((extra) => {
+            const isOn = extrasEnabled[extra.key] ?? false;
+            const ExtraIcon = extra.icon;
+            return (
+              <div key={extra.key}>
+                <div className="flex items-center gap-3">
+                  <button
+                    type="button"
+                    role="switch"
+                    aria-checked={isOn}
+                    onClick={() => { setExtrasEnabled(prev => ({ ...prev, [extra.key]: !prev[extra.key] })); scheduleAutoSave(); }}
+                    className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors cursor-pointer ${
+                      isOn ? "bg-[var(--site-primary)]" : "bg-[var(--surface-3)]"
+                    }`}
+                  >
+                    <span className={`inline-block h-3.5 w-3.5 rounded-full bg-white shadow-sm transition-transform ${
+                      isOn ? "translate-x-[18px]" : "translate-x-[3px]"
+                    }`} />
+                  </button>
+                  <ExtraIcon size={15} className={isOn ? "text-[var(--site-primary)]" : "text-[var(--text-muted)]"} />
+                  <span className="text-sm text-[var(--text-secondary)]">{t(extra.labelKey)}</span>
+                </div>
+                <p className={cn(fieldHint, "ml-12")}>{t(extra.hintKey)}</p>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* ═══════════════════════════════════════════════════════════
           Parqueaderos
           ═══════════════════════════════════════════════════════════ */}
       <div className={sectionCard}>
@@ -1136,6 +1259,8 @@ export default function ConfigPage() {
           </div>
         )}
       </div>
+
+      </>)}
     </motion.div>
   );
 }

@@ -23,7 +23,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Build insert payload
-    const insertData = pick(body, ["proyecto_id", "nombre", "descripcion", "area_m2", "area_construida", "area_privada", "area_lote", "habitaciones", "banos", "precio_desde", "plano_url", "renders", "caracteristicas", "parqueaderos", "depositos", "area_balcon", "hotspots", "ubicacion_plano_url", "torre_ids", "orden", "tipo_tipologia", "pisos", "video_id"]);
+    const insertData = pick(body, ["proyecto_id", "nombre", "descripcion", "area_m2", "area_construida", "area_privada", "area_lote", "habitaciones", "banos", "precio_desde", "plano_url", "renders", "caracteristicas", "parqueaderos", "depositos", "area_balcon", "hotspots", "ubicacion_plano_url", "torre_ids", "orden", "tipo_tipologia", "pisos", "video_id", "tour_360_url", "amenidades_data", "tiene_jacuzzi", "tiene_piscina", "tiene_bbq", "tiene_terraza", "tiene_jardin", "tiene_cuarto_servicio", "tiene_estudio", "tiene_chimenea", "tiene_doble_altura", "tiene_rooftop"]);
 
     // If precio_desde is set on creation, add audit fields
     if (body.precio_desde !== undefined && body.precio_desde !== null) {

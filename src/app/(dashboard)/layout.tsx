@@ -80,7 +80,7 @@ function DashboardShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const router = useRouter();
   const { t } = useTranslation("dashboard");
-  const { user, role, isPlatformAdmin, loading } = useAuthRole();
+  const { user, role, isPlatformAdmin, profile, loading } = useAuthRole();
   const { open: drawerOpen, toggle: toggleDrawer, close: closeDrawer } = useMobileDrawer();
 
   // Sidebar projects state removed - using simple link now
@@ -314,20 +314,40 @@ function DashboardShell({ children }: { children: React.ReactNode }) {
         {/* User Section */}
         <div className="p-4 border-t border-[var(--border-subtle)]">
           <div className="flex items-center gap-3 px-3 py-2">
-            <div
-              className="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold shrink-0"
-              style={{
-                background: `linear-gradient(135deg, rgba(var(--site-primary-rgb), 0.3), rgba(var(--site-primary-rgb), 0.1))`,
-                boxShadow: `0 0 0 1.5px rgba(var(--site-primary-rgb), 0.3)`,
-                color: "var(--site-primary)",
-              }}
-            >
-              {user?.email?.charAt(0).toUpperCase() || "U"}
-            </div>
+            {profile?.avatar_url ? (
+              <img
+                src={profile.avatar_url}
+                alt=""
+                className="w-8 h-8 rounded-full object-cover shrink-0"
+                style={{ boxShadow: `0 0 0 1.5px rgba(var(--site-primary-rgb), 0.3)` }}
+              />
+            ) : (
+              <div
+                className="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold shrink-0"
+                style={{
+                  background: `linear-gradient(135deg, rgba(var(--site-primary-rgb), 0.3), rgba(var(--site-primary-rgb), 0.1))`,
+                  boxShadow: `0 0 0 1.5px rgba(var(--site-primary-rgb), 0.3)`,
+                  color: "var(--site-primary)",
+                }}
+              >
+                {profile?.nombre ? profile.nombre.charAt(0).toUpperCase() : user?.email?.charAt(0).toUpperCase() || "U"}
+              </div>
+            )}
             <div className="flex-1 min-w-0">
-              <span className="text-xs text-[var(--text-tertiary)] truncate block">
-                {user?.email || "\u2014"}
-              </span>
+              {profile?.nombre ? (
+                <>
+                  <span className="text-xs text-[var(--text-primary)] font-medium truncate block">
+                    {profile.nombre} {profile.apellido}
+                  </span>
+                  <span className="text-[10px] text-[var(--text-muted)] truncate block">
+                    {user?.email || "\u2014"}
+                  </span>
+                </>
+              ) : (
+                <span className="text-xs text-[var(--text-tertiary)] truncate block">
+                  {user?.email || "\u2014"}
+                </span>
+              )}
               {role === "colaborador" && (
                 <span className="font-ui text-[10px] text-[var(--site-primary)] font-bold uppercase tracking-wider">
                   {t("sidebar.collaborator")}

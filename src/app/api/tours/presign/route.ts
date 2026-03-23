@@ -18,10 +18,11 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json();
-    const { proyecto_id, files, total_tour_bytes } = body as {
+    const { proyecto_id, files, total_tour_bytes, tipologia_id } = body as {
       proyecto_id: string;
       files: FileToSign[];
       total_tour_bytes?: number;
+      tipologia_id?: string;
     };
 
     if (!proyecto_id || !Array.isArray(files) || files.length === 0) {
@@ -101,7 +102,8 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const result = await getPresignedUploadUrls(proyecto_id, files);
+    const subpath = tipologia_id ? `tipologias/${tipologia_id}` : undefined;
+    const result = await getPresignedUploadUrls(proyecto_id, files, subpath);
 
     // Track tour storage size (only when client sends the total across all batches)
     if (typeof total_tour_bytes === "number" && total_tour_bytes > 0) {

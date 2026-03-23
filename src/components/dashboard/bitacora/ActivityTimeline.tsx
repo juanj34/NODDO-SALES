@@ -146,7 +146,7 @@ export function ActivityTimeline({ activities, loading, locale }: ActivityTimeli
                           {locale === "es" ? activity.description : (activity.description_en || activity.description)}
                         </p>
                         <div className="flex items-center gap-2 mt-1.5 text-[11px] text-[var(--text-muted)]">
-                          <span className="truncate max-w-[180px]">{activity.user_email}</span>
+                          <span className="truncate max-w-[180px]">{activity.user_name || activity.user_email}</span>
                           <span className="text-[var(--border-default)]">/</span>
                           <span>{relativeTime(activity.created_at, locale)}</span>
                           {activity.proyecto_nombre && (

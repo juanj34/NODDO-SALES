@@ -73,7 +73,7 @@ export function RecentActivityWidget({ locale }: RecentActivityWidgetProps) {
                 {locale === "es" ? a.description : (a.description_en || a.description)}
               </p>
               <div className="flex items-center gap-2 mt-1 text-[11px] text-[var(--text-muted)]">
-                <span className="truncate max-w-[150px]">{a.user_email}</span>
+                <span className="truncate max-w-[150px]">{a.user_name || a.user_email}</span>
                 <span className="text-[var(--border-default)]">/</span>
                 <span>{relativeTime(a.created_at, locale)}</span>
               </div>

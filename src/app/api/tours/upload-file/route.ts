@@ -17,6 +17,7 @@ export async function POST(request: NextRequest) {
     const projectId = formData.get("proyecto_id") as string | null;
     const path = formData.get("path") as string | null;
     const contentType = formData.get("contentType") as string | null;
+    const tipologiaId = formData.get("tipologia_id") as string | null;
 
     if (!file || !projectId || !path) {
       return NextResponse.json(
@@ -46,7 +47,8 @@ export async function POST(request: NextRequest) {
     }
 
     const buffer = Buffer.from(await file.arrayBuffer());
-    await uploadFileToR2(projectId, path, buffer, contentType || file.type);
+    const fullPath = tipologiaId ? `tipologias/${tipologiaId}/${path}` : path;
+    await uploadFileToR2(projectId, fullPath, buffer, contentType || file.type);
 
     return NextResponse.json({ ok: true });
   } catch (err) {

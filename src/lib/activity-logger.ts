@@ -11,6 +11,7 @@ import type { ActivityCategory } from "@/types";
 export interface ActivityLogParams {
   userId: string;
   userEmail: string;
+  userName?: string | null;
   userRole: "admin" | "colaborador";
   proyectoId?: string | null;
   proyectoNombre?: string | null;
@@ -120,6 +121,7 @@ export async function logActivity(params: ActivityLogParams): Promise<void> {
     const { error } = await supabase.from("activity_logs").insert({
       user_id: params.userId,
       user_email: params.userEmail,
+      user_name: params.userName || null,
       user_role: params.userRole,
       proyecto_id: params.proyectoId || null,
       proyecto_nombre: params.proyectoNombre || null,
@@ -150,6 +152,7 @@ export async function logActivityBatch(events: ActivityLogParams[]): Promise<voi
       return {
         user_id: e.userId,
         user_email: e.userEmail,
+        user_name: e.userName || null,
         user_role: e.userRole,
         proyecto_id: e.proyectoId || null,
         proyecto_nombre: e.proyectoNombre || null,

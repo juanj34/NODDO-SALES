@@ -633,7 +633,17 @@ export function FileUploader({
                 );
               }
               return (
-                <Image src={preview} alt="" fill sizes="300px" className={`w-full h-full ${aspect === "logo" ? "object-contain bg-[var(--surface-3)]" : "object-cover"}`} />
+                <Image
+                  src={preview}
+                  alt=""
+                  fill
+                  sizes="300px"
+                  unoptimized
+                  className={`w-full h-full ${aspect === "logo" ? "object-contain bg-[var(--surface-3)]" : "object-cover"}`}
+                  onError={() => {
+                    console.warn("[FileUploader] Image failed to load:", preview);
+                  }}
+                />
               );
             })()}
             {/* Remove button */}

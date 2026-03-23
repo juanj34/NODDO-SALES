@@ -20,7 +20,7 @@ export default function DashboardPage() {
   const { data: summary, isLoading: summaryLoading } = useDashboardSummary();
   const [kpiProjectFilter, setKpiProjectFilter] = useState<string | null>(null);
   const router = useRouter();
-  const { user, role } = useAuthRole();
+  const { user, role, profile } = useAuthRole();
   const isAdmin = role === "admin";
 
   // Track page view
@@ -68,6 +68,7 @@ export default function DashboardPage() {
       {/* 1. Greeting */}
       <DashboardGreeting
         userEmail={user?.email || ""}
+        userName={profile?.nombre || null}
         isAdmin={isAdmin}
         onCreateClick={handleCreateProject}
       />

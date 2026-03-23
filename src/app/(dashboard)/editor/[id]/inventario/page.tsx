@@ -39,6 +39,7 @@ import {
   RotateCcw,
   Home,
   MapPin,
+  Store,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { formatCurrency } from "@/lib/currency";
@@ -46,7 +47,7 @@ import { useTranslation } from "@/i18n";
 import { useToast } from "@/components/dashboard/Toast";
 import { useMediaQuery } from "@/hooks/useMediaQuery";
 import type { Unidad, Tipologia, Torre, Fachada, Complemento, ComplementoMode, Currency, UnidadTipologia, InventoryColumnConfig, TipoTipologia, CustomColumnDef } from "@/types";
-import { getInventoryColumns, getDefaultColumns, getHybridInventoryColumns, INVENTORY_COLUMN_KEYS, getPrimaryArea, generateColumnKey, getVisibleCustomColumns } from "@/lib/inventory-columns";
+import { getInventoryColumns, getDefaultColumns, getHybridInventoryColumns, resolveColumnsForTipologia, INVENTORY_COLUMN_KEYS, getPrimaryArea, generateColumnKey, getVisibleCustomColumns } from "@/lib/inventory-columns";
 import { ComplementosSection } from "@/components/dashboard/ComplementosSection";
 import { CurrencyInput } from "@/components/dashboard/CurrencyInput";
 import { SmartImportModal } from "@/components/dashboard/SmartImportModal";
@@ -1615,36 +1616,42 @@ export default function InventarioPage() {
   const isLotes = tipoProyecto === "lotes";
   const isHibrido = tipoProyecto === "hibrido";
 
-  // --- Hybrid tipo tabs ---
+  // --- Tipo tabs (hybrid + commercial) ---
   const [activeTipoTab, setActiveTipoTab] = useState<TipoTipologia | null>(null);
+  const hasCommercialTipos = useMemo(() =>
+    tipologias.some(t => t.tipo_tipologia === "local_comercial"),
+    [tipologias]
+  );
+  const showTipoTabs = isHibrido || hasCommercialTipos;
+
   const availableTipoTabs = useMemo(() => {
-    if (!isHibrido) return [] as TipoTipologia[];
+    if (!showTipoTabs) return [] as TipoTipologia[];
     const types = new Set(tipologias.map(t => t.tipo_tipologia).filter((v): v is TipoTipologia => !!v));
-    return (["apartamento", "casa", "lote"] as TipoTipologia[]).filter(tipo => types.has(tipo));
-  }, [isHibrido, tipologias]);
+    return (["apartamento", "casa", "lote", "local_comercial"] as TipoTipologia[]).filter(tipo => types.has(tipo));
+  }, [showTipoTabs, tipologias]);
 
   useEffect(() => {
-    if (isHibrido && availableTipoTabs.length > 0 && !activeTipoTab) {
+    if (showTipoTabs && availableTipoTabs.length > 0 && !activeTipoTab) {
       setActiveTipoTab(availableTipoTabs[0]);
     }
-  }, [isHibrido, availableTipoTabs, activeTipoTab]);
+  }, [showTipoTabs, availableTipoTabs, activeTipoTab]);
 
   // Tipología IDs matching the active tipo tab (for filtering)
   const tipoTabTipologiaIds = useMemo(() => {
-    if (!isHibrido || !activeTipoTab) return null;
+    if (!showTipoTabs || !activeTipoTab) return null;
     return new Set(tipologias.filter(t => t.tipo_tipologia === activeTipoTab).map(t => t.id));
-  }, [isHibrido, activeTipoTab, tipologias]);
+  }, [showTipoTabs, activeTipoTab, tipologias]);
 
   const isLoteBased = isHibrido
     ? (activeTipoTab === "casa" || activeTipoTab === "lote")
     : (isCasas || isLotes);
 
   const columns = useMemo(() => {
-    if (isHibrido && activeTipoTab) {
-      return getHybridInventoryColumns(activeTipoTab, project.inventory_columns_by_type);
+    if (showTipoTabs && activeTipoTab) {
+      return resolveColumnsForTipologia(activeTipoTab, project.tipo_proyecto ?? "hibrido", project.inventory_columns, project.inventory_columns_by_type);
     }
     return getInventoryColumns(project.tipo_proyecto ?? "hibrido", project.inventory_columns);
-  }, [isHibrido, activeTipoTab, project.tipo_proyecto, project.inventory_columns, project.inventory_columns_by_type]);
+  }, [showTipoTabs, activeTipoTab, project.tipo_proyecto, project.inventory_columns, project.inventory_columns_by_type]);
   const uniqueEtapas = useMemo(() => {
     if (!columns.etapa) return [];
     const set = new Set(
@@ -2497,12 +2504,12 @@ export default function InventarioPage() {
         }
       />
 
-      {/* Hybrid tipo tabs — shown for hybrid projects */}
-      {isHibrido && availableTipoTabs.length > 0 && (
+      {/* Tipo tabs — shown for hybrid projects or when commercial tipologías exist */}
+      {showTipoTabs && availableTipoTabs.length > 1 && (
         <div className="flex items-center gap-1 p-1 bg-[var(--surface-1)] rounded-xl border border-[var(--border-subtle)]">
           {availableTipoTabs.map((tipo) => {
-            const Icon = tipo === "apartamento" ? Building2 : tipo === "casa" ? Home : MapPin;
-            const label = tipo === "apartamento" ? t("inventario.tabApartamentos") : tipo === "casa" ? t("inventario.tabCasas") : t("inventario.tabLotes");
+            const Icon = tipo === "apartamento" ? Building2 : tipo === "casa" ? Home : tipo === "local_comercial" ? Store : MapPin;
+            const label = tipo === "apartamento" ? t("inventario.tabApartamentos") : tipo === "casa" ? t("inventario.tabCasas") : tipo === "local_comercial" ? t("inventario.tabLocales") : t("inventario.tabLotes");
             const count = unidades.filter(u => {
               if (!u.tipologia_id) return false;
               return tipologias.some(t => t.id === u.tipologia_id && t.tipo_tipologia === tipo);

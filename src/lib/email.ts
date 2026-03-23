@@ -1,5 +1,7 @@
 import { Resend } from "resend";
 import { type EmailLocale, getEmailStrings, t, dateLocale } from "./email-i18n";
+import type { EmailConfig } from "@/types";
+import { buildBrandedCotizacionEmail } from "./email-branded";
 
 // Lazy initialization - only create when needed (avoids build-time errors)
 function getResend() {
@@ -81,6 +83,23 @@ interface CotizacionBuyerData {
   totalFormatted: string;
   pdfBuffer: Buffer;
   locale?: EmailLocale;
+  // Branded email fields (optional — when present, use branded template)
+  emailConfig?: EmailConfig | null;
+  projectSlug?: string;
+  projectLogoUrl?: string | null;
+  constructoraLogoUrl?: string | null;
+  constructoraNombre?: string | null;
+  colorPrimario?: string;
+  whatsappNumero?: string | null;
+  tour360Url?: string | null;
+  brochureUrl?: string | null;
+  micrositeUrl?: string | null;
+  recursos?: { id: string; nombre: string; url: string }[];
+  // Agent info for signature
+  agentName?: string | null;
+  agentPhone?: string | null;
+  agentEmail?: string | null;
+  agentAvatarUrl?: string | null;
 }
 
 export async function sendCotizacionBuyer(data: CotizacionBuyerData) {
@@ -93,35 +112,105 @@ export async function sendCotizacionBuyer(data: CotizacionBuyerData) {
   const locale = data.locale || "es";
   const s = getEmailStrings(locale);
   const fromAddress = process.env.RESEND_FROM_EMAIL || "NODDO <notificaciones@noddo.io>";
+  const cfg = data.emailConfig;
 
-  const html = emailWrapper(
-    s.cotizacionBuyer.heading,
-    escapeHtml(data.projectName),
-    `${detailTable([
-      { label: s.cotizacionBuyer.labels.unit, value: data.unidadId },
-      { label: s.cotizacionBuyer.labels.total, value: data.totalFormatted, highlight: true },
-    ])}
-    <tr><td align="center" style="padding:0 40px 16px;">
-      <p style="margin:0;font-size:13px;color:#8a8580;line-height:1.6;">
-        ${s.cotizacionBuyer.body}
-      </p>
-    </td></tr>`,
-    locale,
-  );
+  // Build HTML — branded template if config exists, otherwise default
+  const html = cfg
+    ? buildBrandedCotizacionEmail({
+        locale,
+        emailConfig: cfg,
+        projectName: data.projectName,
+        projectSlug: data.projectSlug || "",
+        projectLogoUrl: data.projectLogoUrl ?? null,
+        constructoraLogoUrl: data.constructoraLogoUrl ?? null,
+        constructoraNombre: data.constructoraNombre ?? null,
+        colorPrimario: data.colorPrimario || "#b8973a",
+        buyerName: data.buyerName,
+        unidadId: data.unidadId,
+        totalFormatted: data.totalFormatted,
+        whatsappNumero: data.whatsappNumero ?? null,
+        tour360Url: data.tour360Url ?? null,
+        brochureUrl: data.brochureUrl ?? null,
+        micrositeUrl: data.micrositeUrl ?? null,
+        agentName: data.agentName ?? null,
+        agentPhone: data.agentPhone ?? null,
+        agentEmail: data.agentEmail ?? null,
+        agentAvatarUrl: data.agentAvatarUrl ?? null,
+      })
+    : emailWrapper(
+        s.cotizacionBuyer.heading,
+        escapeHtml(data.projectName),
+        `${detailTable([
+          { label: s.cotizacionBuyer.labels.unit, value: data.unidadId },
+          { label: s.cotizacionBuyer.labels.total, value: data.totalFormatted, highlight: true },
+        ])}
+        <tr><td align="center" style="padding:0 40px 16px;">
+          <p style="margin:0;font-size:13px;color:#8a8580;line-height:1.6;">
+            ${s.cotizacionBuyer.body}
+          </p>
+        </td></tr>`,
+        locale,
+      );
 
-  const filename = `${s.cotizacionBuyer.filename}_${data.unidadId.replace(/\s+/g, "_")}.pdf`;
+  // Build attachments list
+  const attachments: { filename: string; content: Buffer }[] = [];
+  const pdfFilename = `${s.cotizacionBuyer.filename}_${data.unidadId.replace(/\s+/g, "_")}.pdf`;
+
+  if (!cfg || cfg.adjuntar_cotizacion_pdf !== false) {
+    attachments.push({ filename: pdfFilename, content: data.pdfBuffer });
+  }
+
+  let totalSize = data.pdfBuffer.length;
+  const MAX_TOTAL = 25 * 1024 * 1024;
+
+  // Attach brochure if enabled
+  if (cfg?.adjuntar_brochure && data.brochureUrl) {
+    const buf = await downloadAttachment(data.brochureUrl);
+    if (buf && totalSize + buf.length < MAX_TOTAL) {
+      attachments.push({ filename: "Brochure.pdf", content: buf });
+      totalSize += buf.length;
+    }
+  }
+
+  // Attach selected recursos
+  if (cfg?.adjuntos_recurso_ids?.length && data.recursos) {
+    for (const recurso of data.recursos) {
+      if (!cfg.adjuntos_recurso_ids.includes(recurso.id)) continue;
+      const buf = await downloadAttachment(recurso.url);
+      if (buf && totalSize + buf.length < MAX_TOTAL) {
+        const ext = recurso.url.split(".").pop()?.split("?")[0] || "pdf";
+        attachments.push({ filename: `${recurso.nombre}.${ext}`, content: buf });
+        totalSize += buf.length;
+      }
+    }
+  }
 
   try {
     await resend.emails.send({
       from: fromAddress,
       to: data.buyerEmail,
+      replyTo: cfg?.reply_to || undefined,
       subject: t(s.cotizacionBuyer.subject, { project: data.projectName }),
       html,
       headers: { "List-Unsubscribe": "<mailto:hola@noddo.io?subject=Cancelar%20suscripcion>" },
-      attachments: [{ filename, content: data.pdfBuffer }],
+      attachments,
     });
   } catch (err) {
     console.error("[email] Failed to send cotización to buyer:", err);
+  }
+}
+
+/* ── Attachment download helper ── */
+
+async function downloadAttachment(url: string, maxBytes = 10 * 1024 * 1024): Promise<Buffer | null> {
+  try {
+    const res = await fetch(url, { signal: AbortSignal.timeout(10000) });
+    if (!res.ok) return null;
+    const arrayBuf = await res.arrayBuffer();
+    if (arrayBuf.byteLength > maxBytes) return null;
+    return Buffer.from(arrayBuf);
+  } catch {
+    return null;
   }
 }
 
@@ -747,7 +836,7 @@ export async function getUserLocale(supabaseClient: any, userId: string): Promis
     const { data } = await supabaseClient
       .from("user_profiles")
       .select("locale")
-      .eq("id", userId)
+      .eq("user_id", userId)
       .single();
     return (data?.locale as EmailLocale) || "es";
   } catch {
@@ -757,7 +846,7 @@ export async function getUserLocale(supabaseClient: any, userId: string): Promis
 
 /* ── Shared email template helpers ── */
 
-function emailWrapper(heading: string, subLabel: string | undefined, bodyRows: string, locale: EmailLocale = "es"): string {
+export function emailWrapper(heading: string, subLabel: string | undefined, bodyRows: string, locale: EmailLocale = "es"): string {
   const s = getEmailStrings(locale);
   return `<!DOCTYPE html>
 <html lang="${locale}">
@@ -806,7 +895,7 @@ function emailWrapper(heading: string, subLabel: string | undefined, bodyRows: s
 </html>`;
 }
 
-function detailTable(rows: { label: string; value: string; highlight?: boolean }[]): string {
+export function detailTable(rows: { label: string; value: string; highlight?: boolean }[]): string {
   const rowsHtml = rows
     .map(
       (row) =>
@@ -824,7 +913,7 @@ function detailTable(rows: { label: string; value: string; highlight?: boolean }
   </td></tr>`;
 }
 
-function ctaButton(href: string, label: string): string {
+export function ctaButton(href: string, label: string): string {
   return `<tr><td align="center" style="padding:0 40px 32px;">
     <table cellpadding="0" cellspacing="0" border="0">
       <tr>
@@ -859,7 +948,7 @@ function formatDateTime(isoString: string, timezone: string, locale: EmailLocale
   };
 }
 
-function escapeHtml(str: string): string {
+export function escapeHtml(str: string): string {
   return str
     .replace(/&/g, "&amp;")
     .replace(/</g, "&lt;")

@@ -3,6 +3,13 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 
 export type UserRole = "admin" | "colaborador";
 
+export interface UserProfile {
+  nombre: string;
+  apellido: string;
+  telefono: string | null;
+  avatar_url: string | null;
+}
+
 export interface AuthContext {
   user: {
     id: string;
@@ -12,6 +19,7 @@ export interface AuthContext {
   role: UserRole;
   adminUserId: string;
   isPlatformAdmin: boolean;
+  profile: UserProfile | null;
   supabase: SupabaseClient;
 }
 
@@ -46,12 +54,24 @@ export async function getAuthContext(): Promise<AuthContext | null> {
     .limit(1)
     .maybeSingle();
 
+  // Fetch user profile (if exists)
+  const { data: profileRow } = await supabase
+    .from("user_profiles")
+    .select("nombre, apellido, telefono, avatar_url")
+    .eq("user_id", user.id)
+    .maybeSingle();
+
+  const profile: UserProfile | null = profileRow
+    ? { nombre: profileRow.nombre, apellido: profileRow.apellido, telefono: profileRow.telefono, avatar_url: profileRow.avatar_url }
+    : null;
+
   if (collab) {
     return {
       user: { id: user.id, email: user.email, user_metadata: user.user_metadata },
       role: "colaborador",
       adminUserId: collab.admin_user_id,
       isPlatformAdmin: !!platformAdmin,
+      profile,
       supabase,
     };
   }
@@ -61,6 +81,7 @@ export async function getAuthContext(): Promise<AuthContext | null> {
     role: "admin",
     adminUserId: user.id,
     isPlatformAdmin: !!platformAdmin,
+    profile,
     supabase,
   };
 }

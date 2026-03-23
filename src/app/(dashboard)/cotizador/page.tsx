@@ -567,7 +567,7 @@ export default function CotizadorPage() {
                       </span>
                     </div>
                     <span className="text-xs text-[var(--text-tertiary)] shrink-0">
-                      {unit.precio ? formatCurrency(unit.precio, "COP", {}) : "—"}
+                      {unit.precio ? formatCurrency(unit.precio, moneda as Currency, {}) : "—"}
                     </span>
                   </button>
                 ))

@@ -2,7 +2,7 @@
 
 export const dynamic = "force-dynamic";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { motion } from "framer-motion";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
@@ -20,6 +20,8 @@ import {
   Clock,
   Calendar,
   Bell,
+  Camera,
+  Phone,
 } from "lucide-react";
 
 function formatDate(iso: string | undefined | null, fallback: string): string {
@@ -35,9 +37,92 @@ function formatDate(iso: string | undefined | null, fallback: string): string {
 
 export default function CuentaPage() {
   const { t } = useTranslation("dashboard");
-  const { role, user } = useAuthRole();
+  const { role, user, profile, refresh } = useAuthRole();
   const router = useRouter();
   const supabase = createClient();
+
+  // Profile state
+  const [profileNombre, setProfileNombre] = useState("");
+  const [profileApellido, setProfileApellido] = useState("");
+  const [profileTelefono, setProfileTelefono] = useState("");
+  const [profileAvatarUrl, setProfileAvatarUrl] = useState<string | null>(null);
+  const [profileLoading, setProfileLoading] = useState(false);
+  const [profileSuccess, setProfileSuccess] = useState(false);
+  const [profileError, setProfileError] = useState<string | null>(null);
+  const [avatarUploading, setAvatarUploading] = useState(false);
+  const avatarInputRef = useRef<HTMLInputElement>(null);
+
+  // Sync profile data from auth context
+  useEffect(() => {
+    if (profile) {
+      setProfileNombre(profile.nombre || "");
+      setProfileApellido(profile.apellido || "");
+      setProfileTelefono(profile.telefono || "");
+      setProfileAvatarUrl(profile.avatar_url);
+    }
+  }, [profile]);
+
+  const handleProfileSave = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setProfileLoading(true);
+    setProfileError(null);
+    setProfileSuccess(false);
+
+    try {
+      const res = await fetch("/api/user/profile", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          nombre: profileNombre,
+          apellido: profileApellido,
+          telefono: profileTelefono || null,
+        }),
+      });
+      if (!res.ok) throw new Error("Error");
+      setProfileSuccess(true);
+      refresh();
+      setTimeout(() => setProfileSuccess(false), 3000);
+    } catch {
+      setProfileError(t("cuenta.profileError"));
+      setTimeout(() => setProfileError(null), 3000);
+    } finally {
+      setProfileLoading(false);
+    }
+  };
+
+  const handleAvatarUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (file.size > 2 * 1024 * 1024) {
+      setProfileError(t("cuenta.profileError"));
+      return;
+    }
+
+    setAvatarUploading(true);
+    setProfileError(null);
+
+    try {
+      const formData = new FormData();
+      formData.append("avatar", file);
+
+      const res = await fetch("/api/user/profile", {
+        method: "POST",
+        body: formData,
+      });
+
+      if (!res.ok) throw new Error("Upload failed");
+      const data = await res.json();
+      setProfileAvatarUrl(data.avatar_url);
+      refresh();
+    } catch {
+      setProfileError(t("cuenta.profileError"));
+      setTimeout(() => setProfileError(null), 3000);
+    } finally {
+      setAvatarUploading(false);
+      if (avatarInputRef.current) avatarInputRef.current.value = "";
+    }
+  };
 
   // Password change state
   const [newPassword, setNewPassword] = useState("");
@@ -197,42 +282,175 @@ export default function CuentaPage() {
           </p>
         </div>
 
-        {/* Profile Section */}
+        {/* My Profile Section */}
         <section className="glass-card p-6 mb-6">
-          <div className="flex items-center gap-2 mb-4">
+          <div className="flex items-center gap-2 mb-1">
             <User size={16} className="text-[var(--site-primary)]" />
             <h2 className="font-ui text-xs font-bold uppercase tracking-[0.1em] text-[var(--text-secondary)]">
-              {t("cuenta.profileSection")}
+              {t("cuenta.myProfile")}
             </h2>
           </div>
+          <p className="text-[11px] text-[var(--text-muted)] font-light mb-5 ml-6">
+            {t("cuenta.myProfileDescription")}
+          </p>
 
-          <div className="space-y-4">
-            {/* Email */}
+          {profileSuccess && (
+            <motion.div
+              initial={{ opacity: 0, y: -8 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="mb-4 p-3 rounded-xl flex items-center gap-2"
+              style={{ background: "rgba(52, 211, 153, 0.08)", border: "1px solid rgba(52, 211, 153, 0.2)" }}
+            >
+              <CheckCircle size={14} className="text-emerald-400" />
+              <span className="text-xs text-emerald-300 font-light">{t("cuenta.profileSaved")}</span>
+            </motion.div>
+          )}
+
+          {profileError && (
+            <motion.div
+              initial={{ opacity: 0, y: -8 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="mb-4 p-3 rounded-xl flex items-center gap-2"
+              style={{ background: "rgba(239, 68, 68, 0.08)", border: "1px solid rgba(239, 68, 68, 0.2)" }}
+            >
+              <AlertTriangle size={14} className="text-red-400" />
+              <span className="text-xs text-red-300 font-light">{profileError}</span>
+            </motion.div>
+          )}
+
+          {/* Avatar */}
+          <div className="flex items-center gap-4 mb-5">
+            <div className="relative group">
+              {profileAvatarUrl ? (
+                <img
+                  src={profileAvatarUrl}
+                  alt="Avatar"
+                  className="w-16 h-16 rounded-full object-cover border-2"
+                  style={{ borderColor: "rgba(var(--site-primary-rgb), 0.3)" }}
+                />
+              ) : (
+                <div
+                  className="w-16 h-16 rounded-full flex items-center justify-center text-lg font-bold"
+                  style={{
+                    background: `linear-gradient(135deg, rgba(var(--site-primary-rgb), 0.3), rgba(var(--site-primary-rgb), 0.1))`,
+                    boxShadow: `0 0 0 2px rgba(var(--site-primary-rgb), 0.3)`,
+                    color: "var(--site-primary)",
+                  }}
+                >
+                  {profileNombre ? profileNombre.charAt(0).toUpperCase() : user?.email?.charAt(0).toUpperCase() || "U"}
+                </div>
+              )}
+              <button
+                type="button"
+                onClick={() => avatarInputRef.current?.click()}
+                disabled={avatarUploading}
+                className="absolute inset-0 rounded-full bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center cursor-pointer"
+              >
+                {avatarUploading ? (
+                  <Loader2 size={18} className="text-white animate-spin" />
+                ) : (
+                  <Camera size={18} className="text-white" />
+                )}
+              </button>
+              <input
+                ref={avatarInputRef}
+                type="file"
+                accept="image/jpeg,image/png,image/webp"
+                className="hidden"
+                onChange={handleAvatarUpload}
+              />
+            </div>
+            <div>
+              <button
+                type="button"
+                onClick={() => avatarInputRef.current?.click()}
+                disabled={avatarUploading}
+                className="text-xs text-[var(--site-primary)] hover:underline font-light"
+              >
+                {avatarUploading ? t("cuenta.savingProfile") : t("cuenta.avatarChange")}
+              </button>
+              <div className="flex items-center gap-2 mt-1">
+                <Shield size={12} className="text-[var(--site-primary)]" />
+                <span className="font-ui text-[10px] font-bold uppercase tracking-wider text-[var(--site-primary)]">
+                  {role === "admin" ? t("cuenta.roleAdmin") : t("cuenta.roleCollaborator")}
+                </span>
+              </div>
+            </div>
+          </div>
+
+          <form onSubmit={handleProfileSave} className="space-y-4">
+            {/* Email (read-only) */}
             <div>
               <label className="block font-ui text-[10px] text-[var(--text-muted)] uppercase tracking-wider mb-1.5">
                 {t("cuenta.email")}
               </label>
               <div className="flex items-center gap-2.5 px-3 py-2.5 rounded-[0.625rem] bg-[var(--surface-2)] border border-[var(--border-subtle)]">
                 <Mail size={14} className="text-[var(--text-muted)]" />
-                <span className="text-sm text-[var(--text-primary)] font-light">
-                  {user?.email || "—"}
-                </span>
+                <span className="text-sm text-[var(--text-primary)] font-light">{user?.email || "\u2014"}</span>
               </div>
             </div>
 
-            {/* Role */}
-            <div>
-              <label className="block font-ui text-[10px] text-[var(--text-muted)] uppercase tracking-wider mb-1.5">
-                {t("cuenta.role")}
-              </label>
-              <div className="flex items-center gap-2.5 px-3 py-2.5 rounded-[0.625rem] bg-[var(--surface-2)] border border-[var(--border-subtle)]">
-                <Shield size={14} className="text-[var(--site-primary)]" />
-                <span className="font-ui text-xs font-bold uppercase tracking-wider text-[var(--site-primary)]">
-                  {role === "admin" ? t("cuenta.roleAdmin") : t("cuenta.roleCollaborator")}
-                </span>
+            {/* Name row */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <label className="block font-ui text-[10px] text-[var(--text-muted)] uppercase tracking-wider mb-1.5">
+                  {t("cuenta.firstName")}
+                </label>
+                <input
+                  type="text"
+                  value={profileNombre}
+                  onChange={(e) => setProfileNombre(e.target.value)}
+                  className="input-glass w-full"
+                  placeholder={t("cuenta.firstNamePlaceholder")}
+                  maxLength={100}
+                />
+              </div>
+              <div>
+                <label className="block font-ui text-[10px] text-[var(--text-muted)] uppercase tracking-wider mb-1.5">
+                  {t("cuenta.lastName")}
+                </label>
+                <input
+                  type="text"
+                  value={profileApellido}
+                  onChange={(e) => setProfileApellido(e.target.value)}
+                  className="input-glass w-full"
+                  placeholder={t("cuenta.lastNamePlaceholder")}
+                  maxLength={100}
+                />
               </div>
             </div>
-          </div>
+
+            {/* Phone */}
+            <div>
+              <label className="block font-ui text-[10px] text-[var(--text-muted)] uppercase tracking-wider mb-1.5">
+                {t("cuenta.phone")}
+              </label>
+              <div className="relative">
+                <Phone size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--text-muted)]" />
+                <input
+                  type="tel"
+                  value={profileTelefono}
+                  onChange={(e) => setProfileTelefono(e.target.value)}
+                  className="input-glass w-full pl-9"
+                  placeholder={t("cuenta.phonePlaceholder")}
+                  maxLength={30}
+                />
+              </div>
+            </div>
+
+            <button
+              type="submit"
+              disabled={profileLoading}
+              className="btn-warm px-5 py-2.5 text-xs flex items-center gap-2 disabled:opacity-50"
+            >
+              {profileLoading ? (
+                <Loader2 size={14} className="animate-spin" />
+              ) : (
+                <CheckCircle size={14} />
+              )}
+              {profileLoading ? t("cuenta.savingProfile") : t("cuenta.saveProfile")}
+            </button>
+          </form>
         </section>
 
         {/* Session Info */}

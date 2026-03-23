@@ -13,12 +13,337 @@ import {
   sectionCard,
 } from "@/components/dashboard/editor-styles";
 import { PageHeader } from "@/components/dashboard/base/PageHeader";
-import { View, Loader2, ExternalLink, CheckCircle2, AlertCircle, CloudUpload, Link2, Upload, FolderOpen } from "lucide-react";
+import { View, Loader2, ExternalLink, CheckCircle2, AlertCircle, CloudUpload, Link2, Upload, FolderOpen, Trash2 } from "lucide-react";
 import { extractTourUrl } from "@/lib/tour-utils";
 import { motion } from "framer-motion";
 import { useTranslation } from "@/i18n";
 import { cn } from "@/lib/utils";
+import { useQueryClient } from "@tanstack/react-query";
+import { projectKeys } from "@/hooks/useProjectsQuery";
+import type { ProyectoCompleto, Tipologia } from "@/types";
 
+/* ─────────────────────────────────────────────── */
+/* Tipología Tour Row                              */
+/* ─────────────────────────────────────────────── */
+function TipologiaTourRow({
+  tipologia,
+  projectId,
+  tourUploadActive,
+  activeTipologiaId,
+}: {
+  tipologia: Tipologia;
+  projectId: string;
+  tourUploadActive: boolean;
+  activeTipologiaId: string | null;
+}) {
+  const { t } = useTranslation("editor");
+  const toast = useToast();
+  const { confirm } = useConfirm();
+  const tourUpload = useTourUploadContext();
+  const queryClient = useQueryClient();
+
+  const [rawInput, setRawInput] = useState(tipologia.tour_360_url || "");
+  const [url, setUrl] = useState(tipologia.tour_360_url || "");
+  const [deleting, setDeleting] = useState(false);
+  const [showPreview, setShowPreview] = useState(false);
+  const saveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const zipInputRef = useRef<HTMLInputElement>(null);
+  const folderInputRef = useRef<HTMLInputElement>(null);
+
+  // Sync when tipologia data changes externally
+  useEffect(() => {
+    setRawInput(tipologia.tour_360_url || "");
+    setUrl(tipologia.tour_360_url || "");
+  }, [tipologia.tour_360_url]);
+
+  // Sync when upload completes for this tipología
+  useEffect(() => {
+    if (
+      tourUpload.status === "complete" &&
+      tourUpload.tourUrl &&
+      activeTipologiaId === tipologia.id
+    ) {
+      setUrl(tourUpload.tourUrl);
+      setRawInput(tourUpload.tourUrl);
+    }
+  }, [tourUpload.status, tourUpload.tourUrl, activeTipologiaId, tipologia.id]);
+
+  const r2ToursUrl = process.env.NEXT_PUBLIC_R2_TOURS_URL || "";
+  const isR2Hosted = !!(url && r2ToursUrl && url.startsWith(r2ToursUrl));
+  const isUploading = tourUploadActive && activeTipologiaId === tipologia.id;
+
+  const saveTourUrl = useCallback(
+    (newUrl: string) => {
+      fetch(`/api/tipologias/${tipologia.id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ tour_360_url: newUrl || null }),
+      })
+        .then(async (res) => {
+          if (res.ok) {
+            queryClient.setQueryData<ProyectoCompleto>(
+              projectKeys.detail(projectId),
+              (old) =>
+                old
+                  ? {
+                      ...old,
+                      tipologias: old.tipologias.map((t) =>
+                        t.id === tipologia.id
+                          ? { ...t, tour_360_url: newUrl || null }
+                          : t
+                      ),
+                    }
+                  : old
+            );
+          } else {
+            toast.error(t("general.saveError"));
+          }
+        })
+        .catch(() => toast.error(t("general.saveError")));
+    },
+    [tipologia.id, projectId, queryClient, toast, t]
+  );
+
+  const scheduleAutoSave = useCallback(
+    (newUrl: string) => {
+      if (saveTimerRef.current) clearTimeout(saveTimerRef.current);
+      saveTimerRef.current = setTimeout(() => saveTourUrl(newUrl), 1500);
+    },
+    [saveTourUrl]
+  );
+
+  useEffect(() => {
+    return () => {
+      if (saveTimerRef.current) clearTimeout(saveTimerRef.current);
+    };
+  }, []);
+
+  const handleDeleteHosted = async () => {
+    const ok = await confirm({
+      title: t("config.tour.deleteHosted"),
+      message: t("config.tour.confirmDelete"),
+      confirmLabel: t("config.tour.deleteHosted"),
+      variant: "danger",
+    });
+    if (!ok) return;
+
+    setDeleting(true);
+    try {
+      const res = await fetch(
+        `/api/tours/${projectId}?tipologia_id=${tipologia.id}`,
+        { method: "DELETE" }
+      );
+      if (!res.ok) {
+        const data = await res.json();
+        throw new Error(data.error || "Error");
+      }
+      setUrl("");
+      setRawInput("");
+      queryClient.setQueryData<ProyectoCompleto>(
+        projectKeys.detail(projectId),
+        (old) =>
+          old
+            ? {
+                ...old,
+                tipologias: old.tipologias.map((t) =>
+                  t.id === tipologia.id ? { ...t, tour_360_url: null } : t
+                ),
+              }
+            : old
+      );
+      toast.success(t("config.tour.uploadComplete"));
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Error");
+    } finally {
+      setDeleting(false);
+    }
+  };
+
+  const handleZipSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (zipInputRef.current) zipInputRef.current.value = "";
+    tourUpload.upload(file, tipologia.id);
+  };
+
+  const handleFolderSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (!files || files.length === 0) return;
+    const snapshot: { file: File; path: string }[] = [];
+    for (let i = 0; i < files.length; i++) {
+      const f = files[i];
+      snapshot.push({ file: f, path: f.webkitRelativePath || f.name });
+    }
+    if (folderInputRef.current) folderInputRef.current.value = "";
+    tourUpload.uploadFolder(snapshot, tipologia.id);
+  };
+
+  const handleFolderClick = useCallback(async () => {
+    if (hasNativeFolderPicker()) {
+      const files = await pickFolderNative();
+      if (files && files.length > 0) {
+        tourUpload.uploadFolder(files, tipologia.id);
+      }
+      return;
+    }
+    folderInputRef.current?.click();
+  }, [tourUpload, tipologia.id]);
+
+  return (
+    <div className="p-4 rounded-xl bg-[var(--surface-1)] border border-[var(--border-subtle)] space-y-3">
+      {/* Header */}
+      <div className="flex items-center justify-between">
+        <h4 className="text-sm font-medium text-[var(--text-primary)]">
+          {tipologia.nombre}
+        </h4>
+        {url ? (
+          <span className="flex items-center gap-1.5 text-[10px] text-emerald-400 font-ui uppercase tracking-wider">
+            <CheckCircle2 size={11} />
+            {isR2Hosted
+              ? t("config.tour.tipologiaTourHosted")
+              : t("config.tour.tipologiaTourConfigured")}
+          </span>
+        ) : (
+          <span className="text-[10px] text-[var(--text-muted)] font-ui uppercase tracking-wider">
+            {t("config.tour.tipologiaTourNone")}
+          </span>
+        )}
+      </div>
+
+      {/* URL input */}
+      <div className="flex gap-2">
+        <input
+          type="text"
+          value={rawInput}
+          onChange={(e) => {
+            const raw = e.target.value;
+            setRawInput(raw);
+            const extracted = extractTourUrl(raw);
+            setUrl(extracted);
+            scheduleAutoSave(extracted);
+          }}
+          placeholder={t("config.tour.tipologiaTourUrlPlaceholder")}
+          className={cn(inputClass, "flex-1")}
+          disabled={isUploading}
+        />
+        {/* Upload buttons */}
+        {!isUploading && (
+          <div className="flex gap-1 shrink-0">
+            <button
+              type="button"
+              onClick={() => zipInputRef.current?.click()}
+              disabled={tourUploadActive}
+              className="p-2 rounded-lg border border-[var(--border-default)] bg-[var(--surface-2)] text-[var(--text-tertiary)] hover:text-[var(--text-secondary)] hover:bg-[var(--surface-3)] transition-colors cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
+              title={t("config.tour.selectZip")}
+            >
+              <Upload size={14} />
+            </button>
+            <button
+              type="button"
+              onClick={handleFolderClick}
+              disabled={tourUploadActive}
+              className="p-2 rounded-lg border border-[var(--border-default)] bg-[var(--surface-2)] text-[var(--text-tertiary)] hover:text-[var(--text-secondary)] hover:bg-[var(--surface-3)] transition-colors cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
+              title={t("config.tour.selectFolder")}
+            >
+              <FolderOpen size={14} />
+            </button>
+          </div>
+        )}
+      </div>
+
+      {/* Uploading indicator for this tipología */}
+      {isUploading && (
+        <div className="flex items-center gap-2">
+          <Loader2 size={14} className="animate-spin text-[var(--site-primary)]" />
+          <span className="text-xs text-[var(--text-secondary)]">
+            {tourUpload.status === "extracting"
+              ? t("config.tour.extracting")
+              : `${t("config.tour.uploadingFiles")} (${tourUpload.filesUploaded}/${tourUpload.filesTotal})`}
+          </span>
+          {tourUpload.status === "uploading" && (
+            <span className="text-xs text-[var(--text-muted)] ml-auto">{tourUpload.progress}%</span>
+          )}
+        </div>
+      )}
+
+      {/* Actions row when URL exists */}
+      {url && !isUploading && (
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => setShowPreview(!showPreview)}
+            className="text-xs text-[var(--site-primary)] hover:underline cursor-pointer"
+          >
+            {showPreview ? "Ocultar" : t("config.tour.preview")}
+          </button>
+          <a
+            href={url}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-xs text-[var(--site-primary)] hover:underline flex items-center gap-1"
+          >
+            <ExternalLink size={11} />
+          </a>
+          {isR2Hosted && (
+            <button
+              onClick={handleDeleteHosted}
+              disabled={deleting}
+              className="text-xs text-red-400/70 hover:text-red-400 ml-auto flex items-center gap-1 cursor-pointer disabled:opacity-50"
+            >
+              {deleting ? <Loader2 size={11} className="animate-spin" /> : <Trash2 size={11} />}
+              {t("config.tour.deleteHosted")}
+            </button>
+          )}
+          {!isR2Hosted && url && (
+            <button
+              onClick={() => {
+                setUrl("");
+                setRawInput("");
+                saveTourUrl("");
+              }}
+              className="text-xs text-red-400/70 hover:text-red-400 ml-auto flex items-center gap-1 cursor-pointer"
+            >
+              <Trash2 size={11} />
+            </button>
+          )}
+        </div>
+      )}
+
+      {/* Preview iframe */}
+      {showPreview && url && (
+        <div className="w-full h-[180px] rounded-lg overflow-hidden border border-[var(--border-subtle)]">
+          <iframe
+            src={url}
+            className="w-full h-full border-0"
+            allowFullScreen
+            title={`Tour 360 — ${tipologia.nombre}`}
+          />
+        </div>
+      )}
+
+      {/* Hidden file inputs */}
+      <input
+        ref={zipInputRef}
+        type="file"
+        accept=".zip,application/zip,application/x-zip-compressed"
+        onChange={handleZipSelect}
+        className="hidden"
+      />
+      <input
+        ref={(el) => {
+          (folderInputRef as React.MutableRefObject<HTMLInputElement | null>).current = el;
+          if (el) el.setAttribute("webkitdirectory", "");
+        }}
+        type="file"
+        onChange={handleFolderSelect}
+        className="hidden"
+      />
+    </div>
+  );
+}
+
+/* ─────────────────────────────────────────────── */
+/* Tour Page                                       */
+/* ─────────────────────────────────────────────── */
 export default function TourPage() {
   const { project, save } = useEditorProject();
   const { t } = useTranslation("editor");
@@ -73,13 +398,13 @@ export default function TourPage() {
   const r2ToursUrl = process.env.NEXT_PUBLIC_R2_TOURS_URL || "";
   const isR2Hosted = !!(tour360Url && r2ToursUrl && tour360Url.startsWith(r2ToursUrl));
 
-  // Sync local state when upload completes (provider handles the actual save)
+  // Sync local state when upload completes for project tour (not tipología)
   useEffect(() => {
-    if (tourUpload.status === "complete" && tourUpload.tourUrl) {
+    if (tourUpload.status === "complete" && tourUpload.tourUrl && !tourUpload.activeTipologiaId) {
       setTour360Url(tourUpload.tourUrl);
       setTour360RawInput(tourUpload.tourUrl);
     }
-  }, [tourUpload.status, tourUpload.tourUrl]);
+  }, [tourUpload.status, tourUpload.tourUrl, tourUpload.activeTipologiaId]);
 
   const handleTourZipSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -164,6 +489,8 @@ export default function TourPage() {
     }
   };
 
+  const tipologias = project.tipologias || [];
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 8 }}
@@ -177,7 +504,7 @@ export default function TourPage() {
         description={t("config.tour.description")}
       />
 
-      {/* Tour Virtual Section */}
+      {/* Tour Virtual Section (Project-level) */}
       <div className={cn(sectionCard, "space-y-6")}>
         {/* Tab toggle */}
         <div className="flex gap-1 p-1 rounded-xl bg-[var(--surface-2)] border border-[var(--border-subtle)] w-fit">
@@ -259,7 +586,7 @@ export default function TourPage() {
             )}
 
             {/* Extracting / scanning state */}
-            {tourUpload.status === "extracting" && (
+            {tourUpload.status === "extracting" && !tourUpload.activeTipologiaId && (
               <div className="flex flex-col items-center justify-center gap-3 p-10 rounded-[1.25rem] bg-[var(--surface-2)] border border-[var(--border-subtle)]">
                 <Loader2 size={24} className="animate-spin text-[var(--site-primary)]" />
                 <p className="text-sm text-[var(--text-secondary)]">{t("config.tour.extracting")}</p>
@@ -267,7 +594,7 @@ export default function TourPage() {
             )}
 
             {/* Uploading state */}
-            {tourUpload.status === "uploading" && (
+            {tourUpload.status === "uploading" && !tourUpload.activeTipologiaId && (
               <div className="p-6 rounded-[1.25rem] bg-[var(--surface-2)] border border-[var(--border-subtle)] space-y-4">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
@@ -297,7 +624,7 @@ export default function TourPage() {
             )}
 
             {/* Upload complete */}
-            {tourUpload.status === "complete" && (
+            {tourUpload.status === "complete" && !tourUpload.activeTipologiaId && (
               <div className="flex items-center gap-3 p-3 rounded-[1.25rem] bg-emerald-500/8 border border-emerald-500/15">
                 <CheckCircle2 size={18} className="text-emerald-400 shrink-0" />
                 <p className="text-sm text-emerald-300">{t("config.tour.uploadComplete")}</p>
@@ -305,7 +632,7 @@ export default function TourPage() {
             )}
 
             {/* Error state */}
-            {tourUpload.status === "error" && (
+            {tourUpload.status === "error" && !tourUpload.activeTipologiaId && (
               <div className="flex items-center gap-3 p-3 rounded-[1.25rem] bg-red-500/8 border border-red-500/15">
                 <AlertCircle size={18} className="text-red-400 shrink-0" />
                 <div className="flex-1">
@@ -423,6 +750,31 @@ export default function TourPage() {
           </div>
         )}
       </div>
+
+      {/* ──────────────────────────────────────── */}
+      {/* Tours de Tipologías Section             */}
+      {/* ──────────────────────────────────────── */}
+      {tipologias.length > 0 && (
+        <div className={cn(sectionCard, "space-y-5")}>
+          <div>
+            <h3 className="font-heading text-lg text-[var(--text-primary)]">
+              {t("config.tour.tipologiaTours")}
+            </h3>
+            <p className={fieldHint}>{t("config.tour.tipologiaToursDesc")}</p>
+          </div>
+          <div className="space-y-3">
+            {tipologias.map((tipo) => (
+              <TipologiaTourRow
+                key={tipo.id}
+                tipologia={tipo}
+                projectId={project.id}
+                tourUploadActive={tourUpload.isActive}
+                activeTipologiaId={tourUpload.activeTipologiaId}
+              />
+            ))}
+          </div>
+        </div>
+      )}
     </motion.div>
   );
 }

@@ -45,13 +45,17 @@ export interface SignedFile {
  */
 export async function getPresignedUploadUrls(
   projectId: string,
-  files: FileToSign[]
+  files: FileToSign[],
+  subpath?: string
 ): Promise<{ files: SignedFile[]; tourBaseUrl: string }> {
   const client = getR2Client();
   const signed: SignedFile[] = [];
+  const basePath = subpath
+    ? `tours/${projectId}/${subpath}`
+    : `tours/${projectId}`;
 
   for (const file of files) {
-    const key = `tours/${projectId}/${file.path}`;
+    const key = `${basePath}/${file.path}`;
     const command = new PutObjectCommand({
       Bucket: R2_BUCKET_NAME,
       Key: key,
@@ -63,7 +67,7 @@ export async function getPresignedUploadUrls(
     signed.push({
       path: file.path,
       uploadUrl,
-      publicUrl: `${R2_PUBLIC_URL}/tours/${projectId}/${file.path}`,
+      publicUrl: `${R2_PUBLIC_URL}/${basePath}/${file.path}`,
     });
   }
 
@@ -75,8 +79,8 @@ export async function getPresignedUploadUrls(
     ? "index.htm"
     : "index.html";
   const tourBaseUrl = hasIndexHtm
-    ? `${R2_PUBLIC_URL}/tours/${projectId}/${entryFile}`
-    : `${R2_PUBLIC_URL}/tours/${projectId}/`;
+    ? `${R2_PUBLIC_URL}/${basePath}/${entryFile}`
+    : `${R2_PUBLIC_URL}/${basePath}/`;
 
   return { files: signed, tourBaseUrl };
 }
@@ -106,9 +110,11 @@ export async function uploadFileToR2(
 /**
  * Delete all files for a project's tour from R2.
  */
-export async function deleteTourFiles(projectId: string): Promise<number> {
+export async function deleteTourFiles(projectId: string, subpath?: string): Promise<number> {
   const client = getR2Client();
-  const prefix = `tours/${projectId}/`;
+  const prefix = subpath
+    ? `tours/${projectId}/${subpath}/`
+    : `tours/${projectId}/`;
   let deleted = 0;
 
   let continuationToken: string | undefined;

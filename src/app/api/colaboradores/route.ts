@@ -21,7 +21,32 @@ export async function GET() {
       .order("created_at", { ascending: false });
 
     if (error) throw error;
-    return NextResponse.json(data);
+
+    // Enrich with user_profiles for active collaborators
+    const activeUserIds = (data || [])
+      .filter((c: { colaborador_user_id: string | null }) => c.colaborador_user_id)
+      .map((c: { colaborador_user_id: string }) => c.colaborador_user_id);
+
+    let profileMap: Record<string, { nombre: string; apellido: string; telefono: string | null; avatar_url: string | null }> = {};
+    if (activeUserIds.length > 0) {
+      const { data: profiles } = await auth.supabase
+        .from("user_profiles")
+        .select("user_id, nombre, apellido, telefono, avatar_url")
+        .in("user_id", activeUserIds);
+
+      if (profiles) {
+        profileMap = Object.fromEntries(
+          profiles.map((p: { user_id: string; nombre: string; apellido: string; telefono: string | null; avatar_url: string | null }) => [p.user_id, p])
+        );
+      }
+    }
+
+    const enriched = (data || []).map((c: Record<string, unknown>) => ({
+      ...c,
+      profile: c.colaborador_user_id ? profileMap[c.colaborador_user_id as string] || null : null,
+    }));
+
+    return NextResponse.json(enriched);
   } catch (err) {
     return NextResponse.json(
       { error: err instanceof Error ? err.message : "Error" },

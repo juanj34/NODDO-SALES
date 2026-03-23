@@ -99,19 +99,20 @@ const help = {
       description:
         "Actualiza el estado de las unidades en tiempo real",
       content:
-        "La sección de Disponibilidad te permite actualizar el estado de las unidades de tu proyecto (disponible, separado, reservada, vendida) de forma rápida. Los cambios se reflejan inmediatamente en el micrositio público. Tanto administradores como colaboradores tienen acceso a esta funcionalidad.",
+        "La sección de Disponibilidad te permite actualizar el estado de las unidades de tu proyecto (disponible, separado, reservada, vendida) de forma rápida. Los cambios se aplican con actualización optimista — se reflejan al instante sin esperar la respuesta del servidor. Tanto administradores como colaboradores tienen acceso a esta funcionalidad.",
       steps: [
         "Accede a «Disponibilidad» desde la barra lateral del dashboard.",
         "Selecciona el proyecto que deseas gestionar.",
         "Filtra las unidades por torre o tipología usando los selectores en la parte superior.",
         "Haz clic en el badge de estado de cualquier unidad para cambiar su disponibilidad: disponible (verde), separado (amarillo), reservada (azul) o vendida (rojo).",
-        "El cambio se guarda automáticamente y se refleja al instante en el micrositio público.",
+        "Los precios se muestran en formato completo con separadores de miles (formato COP). El cambio se guarda automáticamente con actualización optimista — ves el resultado al instante.",
         "Puedes ver un resumen con el total de unidades en cada estado en la parte superior de la página.",
       ],
       tips: [
         "Esta es la única función que los colaboradores pueden ejecutar. Es ideal para que tu equipo de ventas mantenga actualizado el inventario sin necesidad de entrar al editor completo.",
-        "Las unidades vendidas desaparecen de la visualización pública del micrositio, pero siguen visibles en el editor y en esta sección.",
+        "Las unidades vendidas desaparecen de la visualización pública del micrositio (si está activado «Ocultar vendidas» en Configuración), pero siguen visibles en el editor y en esta sección.",
         "Los cambios de estado se sincronizan en tiempo real — si dos personas están editando al mismo tiempo, verán los cambios de la otra persona inmediatamente.",
+        "Los cambios usan actualización optimista: el cambio aparece visualmente al instante y se sincroniza con el servidor en segundo plano. Si falla, se revierte automáticamente.",
       ],
     },
     estadisticas: {
@@ -119,21 +120,23 @@ const help = {
       description:
         "Métricas completas de desempeño de tu micrositio",
       content:
-        "La pestaña de Estadísticas dentro del editor de cada proyecto te ofrece un panel completo de analytics: vistas, visitantes únicos, conversión de leads, distribución por dispositivos, países, páginas más visitadas y fuentes de tráfico. Puedes seleccionar el rango temporal (7, 30 o 90 días) y exportar los datos a CSV.",
+        "La pestaña de Estadísticas dentro del editor de cada proyecto te ofrece un panel completo de analytics: vistas, visitantes únicos, conversión de leads, distribución por dispositivos, países, páginas más visitadas y fuentes de tráfico. Puedes seleccionar el rango temporal (7, 30 o 90 días) y exportar los datos a CSV. También puedes ver métricas de almacenamiento del proyecto.",
       steps: [
         "Desde el editor de tu proyecto, haz clic en la pestaña «Estadísticas».",
         "En la parte superior verás 6 KPIs principales: vistas totales, visitantes únicos, total de leads, tasa de conversión, tasa de rebote y páginas por sesión.",
         "Selecciona el rango de tiempo deseado (7d, 30d, 90d) para actualizar todas las métricas.",
         "Revisa los gráficos de evolución temporal de vistas, visitantes y leads.",
         "En la sección de Distribución verás: dispositivos (desktop/mobile/tablet), páginas más visitadas, principales fuentes de tráfico (referrers) y países de origen de los visitantes.",
-        "Si tienes unidades con precio configurado, verás también métricas financieras: inventario total, valor promedio por unidad, unidades vendidas y valor total vendido.",
+        "Si tienes unidades con precio configurado, verás métricas financieras: inventario total, valor promedio por unidad, unidades vendidas, valor total vendido y revenue basado en los precios de venta registrados (precio_venta).",
         "Haz clic en «Exportar CSV» para descargar todas las métricas en formato Excel.",
+        "En la barra lateral del editor, debajo del menú de navegación, verás un indicador de uso de almacenamiento del proyecto con barra de progreso y espacio usado vs. disponible.",
       ],
       tips: [
         "La tasa de conversión se calcula como: (total de leads / visitantes únicos) × 100.",
         "Los datos se actualizan en tiempo real. Si no ves datos, verifica que tu micrositio esté publicado y haya recibido visitas.",
-        "Las métricas financieras solo aparecen si has configurado precios en tu inventario de unidades.",
+        "Las métricas financieras incluyen el revenue real basado en los precios de venta (precio_venta) registrados al marcar unidades como vendidas, no solo el precio de lista.",
         "Usa los datos de fuentes de tráfico para identificar qué canales de marketing están generando más visitas y optimizar tu inversión publicitaria.",
+        "El indicador de almacenamiento en la barra lateral muestra cuánto espacio ha usado tu proyecto (imágenes, videos, documentos, tours). Si se acerca al límite, el color cambiará de dorado a amarillo a rojo.",
       ],
     },
 
@@ -157,6 +160,7 @@ const help = {
         "La imagen hero es lo primero que ven los visitantes. Usa un render de alta calidad en formato horizontal (16:9).",
         "El color primario se usa para botones, acentos y elementos interactivos en todo el micrositio. Elige un tono que represente tu marca.",
         "La imagen OG aparece cuando compartes el link de tu micrositio en WhatsApp, Facebook, Twitter y LinkedIn.",
+        "El tipo de proyecto (torres, urbanismo, híbrido, lotes) se configura desde la pestaña «Configuración», donde también puedes personalizar las columnas del inventario.",
       ],
     },
     torres: {
@@ -186,13 +190,15 @@ const help = {
     tipologias: {
       title: "Tipologías",
       description:
-        "Tipos de propiedad con especificaciones, planos y hotspots",
+        "Tipos de propiedad con especificaciones, planos, hotspots y video vinculado",
       content:
-        "Las tipologías representan los tipos de propiedad de tu proyecto (Apto 1 hab, Apto 2 hab, Casa esquinera, etc.). Cada tipología tiene sus especificaciones, planos y puede asignarse a una o más torres.",
+        "Las tipologías representan los tipos de propiedad de tu proyecto (Apto 1 hab, Apto 2 hab, Casa esquinera, etc.). Cada tipología tiene sus especificaciones, planos y puede asignarse a una o más torres. Puedes asignar un tipo de propiedad (apartamento, casa, lote) y vincular un video del proyecto.",
       steps: [
         "Haz clic en «+» para crear una nueva tipología. Dale un nombre descriptivo.",
         "En «General» escribe la descripción, características (como tags separados por coma: balcón, vista exterior, piso alto) y asigna las torres donde está disponible.",
-        "En «Especificaciones» ingresa: área interna (m²), área de balcón, habitaciones, baños y parqueaderos. El área total se calcula automáticamente.",
+        "En «Especificaciones» ingresa: área interna (m²), área de balcón, área construida, área privada y área de lote (según la configuración del proyecto), además de habitaciones, baños y parqueaderos. El área total se calcula automáticamente.",
+        "Selecciona el tipo de propiedad de la tipología: apartamento, casa o lote. Este tipo determina qué columnas de inventario se muestran para las unidades de esta tipología.",
+        "Si tu proyecto tiene videos configurados, puedes vincular un video a la tipología. Los visitantes del micrositio verán un botón «Ver Video» que abre el video asociado.",
         "En «Plano» sube la imagen del plano arquitectónico y opcionalmente la ubicación en el plano del proyecto.",
         "En «Hotspots» puedes agregar puntos interactivos sobre el plano. Los visitantes podrán hacer clic en ellos para ver detalles o renders.",
         "Usa «Clonar a torre» para copiar una tipología a otro edificio con un solo clic.",
@@ -201,26 +207,33 @@ const help = {
         "El precio se calcula automáticamente desde la unidad más económica disponible en el inventario. No necesitas ingresarlo manualmente.",
         "Los hotspots requieren que primero subas una imagen de plano. Aparecen como puntos dorados que los visitantes pueden explorar.",
         "Si tienes múltiples torres, puedes filtrar las tipologías por torre usando las pestañas superiores.",
+        "Los campos de área disponibles (construida, privada, lote) dependen de la configuración del proyecto. Puedes activarlos o desactivarlos desde la pestaña de Configuración.",
+        "Al vincular un video, solo se muestran videos procesados y listos. Los videos en proceso de carga no aparecen en la lista.",
       ],
     },
     inventario: {
       title: "Inventario de Unidades",
       description:
-        "Gestión de unidades, importación CSV, IA y operaciones masivas",
+        "Gestión de unidades, columnas personalizadas, precio de venta, IA y operaciones masivas",
       content:
-        "El inventario contiene todas las unidades individuales de tu proyecto (apartamentos, casas, locales). Cada unidad tiene un identificador único, tipología asignada, y un estado de disponibilidad que tus colaboradores pueden actualizar.",
+        "El inventario contiene todas las unidades individuales de tu proyecto (apartamentos, casas, locales). Cada unidad tiene un identificador único, tipología asignada, y un estado de disponibilidad. Las columnas visibles son configurables según el tipo de proyecto, y puedes agregar columnas personalizadas.",
       steps: [
         "Haz clic en «+» para agregar una unidad individual. Asigna un identificador (ej: 101, 1001A), selecciona la tipología, piso, área, precio y estado.",
         "Para importar muchas unidades, usa «Importar CSV». Descarga la plantilla, llena los datos en Excel y súbela.",
-        "También puedes pegar texto de cualquier fuente (brochure, tabla, lista) y usar el botón «IA» para que el sistema extraiga automáticamente los datos de las unidades.",
-        "Cambia el estado de una unidad haciendo clic en su badge de estado: disponible (verde), separado (amarillo), reservada (azul) o vendida (rojo).",
+        "Usa el asistente de IA para extraer datos de unidades: pega texto de cualquier fuente o adjunta archivos (brochures, PDFs, tablas). El asistente se abre en un panel lateral donde puedes interactuar en un chat, revisar los datos extraídos y confirmar la importación.",
+        "Cambia el estado de una unidad haciendo clic en su badge de estado: disponible (verde), separado (amarillo), reservada (azul) o vendida (rojo). Los cambios se aplican instantáneamente con actualización optimista.",
+        "Cuando una unidad se marca como «vendida», puedes registrar el precio de venta real (precio_venta). Este precio se bloquea automáticamente y se usa para las métricas financieras.",
         "Para operaciones masivas, selecciona varias unidades con los checkboxes y cambia su estado o elimínalas de una vez.",
+        "Las columnas visibles del inventario se configuran desde la pestaña «Configuración». Puedes elegir qué columnas mostrar en el editor y cuáles en el micrositio público.",
+        "Crea columnas personalizadas desde el botón de ajustes del inventario. Las columnas personalizadas pueden ser de texto, número o selección, y se muestran tanto en el editor como opcionalmente en el micrositio.",
         "Exporta el inventario completo a CSV con el botón «Exportar».",
       ],
       tips: [
         "Los colaboradores solo pueden cambiar el estado de las unidades, no crear ni eliminar. Esto es ideal para que tu equipo de ventas actualice la disponibilidad en tiempo real.",
-        "La IA puede extraer datos de texto no estructurado — prueba pegando una tabla de un PDF o un listado de un email.",
-        "Los estados se reflejan inmediatamente en el micrositio público. Cuando una unidad se marca como «vendida», los visitantes dejan de verla como disponible.",
+        "El asistente de IA acepta archivos adjuntos (imágenes de brochures, PDFs, tablas). Usa el chat para refinar los datos extraídos antes de importarlos.",
+        "Los estados se reflejan inmediatamente en el micrositio público. Las actualizaciones son optimistas — ves el cambio al instante sin esperar la respuesta del servidor.",
+        "El precio de venta (precio_venta) solo aparece para unidades vendidas. Se registra automáticamente al cambiar el estado a vendida y no puede modificarse después.",
+        "Puedes configurar un prefijo de visualización para las unidades (ej: «Apto», «Casa», «Lote») desde la pestaña de Configuración. Este prefijo se muestra antes del identificador en el micrositio.",
       ],
     },
     cotizador: {
@@ -250,19 +263,22 @@ const help = {
     fachadas: {
       title: "Noddo Grid (Fachadas)",
       description:
-        "Renderizados de fachadas con hotspots interactivos",
+        "Renderizados de fachadas con hotspots interactivos y etiquetas de unidades",
       content:
-        "El Noddo Grid te permite subir imágenes de las fachadas de tus edificios y colocar puntos interactivos (hotspots) que los visitantes pueden explorar. Cada hotspot puede enlazar a una tipología o mostrar información adicional.",
+        "El Noddo Grid te permite subir imágenes de las fachadas de tus edificios y colocar puntos interactivos (hotspots) que los visitantes pueden explorar. Cada hotspot puede enlazar a una tipología o mostrar información adicional. Las unidades se visualizan con etiquetas en la cuadrícula.",
       steps: [
         "Haz clic en «+» para crear una nueva fachada. Dale un nombre y opcionalmente asígnala a una torre.",
         "Sube la imagen del render de la fachada del edificio.",
         "Haz clic en cualquier punto de la imagen para agregar un hotspot. Asígnale un nombre y opcionalmente enlázalo a una tipología.",
         "Arrastra los hotspots para reposicionarlos sobre la imagen.",
+        "Para renombrar una fachada, haz clic directamente sobre su nombre en la lista. El nombre se edita en línea sin necesidad de abrir un formulario.",
         "Usa «Duplicar hotspots» para copiar los puntos de una fachada a otra (útil para fachadas con distribución similar).",
       ],
       tips: [
         "Usa renders de alta calidad con buena resolución. La imagen se mostrará a pantalla completa en el micrositio.",
         "Los hotspots se muestran como puntos dorados brillantes que los visitantes pueden explorar en la sección «Explorar» del micrositio.",
+        "Cada hotspot muestra la etiqueta de la unidad correspondiente en la cuadrícula, facilitando la identificación visual.",
+        "El indicador de guardado muestra el estado actual (guardando, guardado) para que siempre sepas si tus cambios se han persistido.",
       ],
     },
     planos: {
@@ -304,11 +320,13 @@ const help = {
     },
     videos: {
       title: "Videos",
-      description: "Videos de YouTube con reordenamiento drag-and-drop",
+      description: "Videos de YouTube y videos hospedados con drag-and-drop",
       content:
-        "Agrega videos de YouTube de tu proyecto — recorridos virtuales, videos promocionales, avances de obra, etc. Los videos se muestran en un reproductor a pantalla completa en el micrositio.",
+        "Agrega videos a tu proyecto de dos formas: pega una URL de YouTube o sube un archivo de video directamente para que se hospede en NODDO. Los videos se muestran en un reproductor a pantalla completa en el micrositio.",
       steps: [
-        "Haz clic en «+» para agregar un video. Pega la URL de YouTube y el sistema extraerá automáticamente el título y la miniatura.",
+        "Haz clic en «+» para agregar un video. Elige entre «URL» para pegar un enlace de YouTube, o «Subir» para cargar un archivo de video directamente.",
+        "Si eliges URL: pega la URL de YouTube y el sistema extraerá automáticamente el título y la miniatura.",
+        "Si eliges Subir: selecciona un archivo de video (MP4, WebM). El video se subirá y procesará automáticamente. Verás un indicador de progreso y estado de procesamiento.",
         "Edita el título del video si deseas personalizarlo.",
         "Reordena los videos arrastrándolos en la lista. El primero será el que se reproduzca por defecto.",
         "Elimina un video con el botón de eliminar.",
@@ -316,6 +334,31 @@ const help = {
       tips: [
         "Usa videos de YouTube no listados si no quieres que aparezcan en búsquedas públicas pero sí en tu micrositio.",
         "El primer video de la lista es el que se muestra al entrar a la sección de Videos del micrositio.",
+        "Los videos subidos se procesan en la nube. Mientras se procesan, verás un indicador de estado. Una vez listos, se reproducen directamente sin depender de YouTube.",
+        "La funcionalidad de subida de videos (video hosting) puede requerir activación en tu plan. Si no ves la opción, contacta al soporte.",
+      ],
+    },
+    tour: {
+      title: "Tour 360",
+      description:
+        "Tour virtual inmersivo con Matterport o archivos propios",
+      content:
+        "La pestaña Tour 360 te permite configurar un recorrido virtual inmersivo de tu proyecto. Puedes pegar una URL de Matterport o subir tu propio tour (ZIP o carpeta) para que se aloje directamente en NODDO. El tour se muestra como una sección a pantalla completa en el micrositio.",
+      steps: [
+        "Accede a la pestaña «Tour 360» en el editor de tu proyecto.",
+        "Elige entre dos opciones: «URL» para pegar un enlace de Matterport u otro proveedor, o «Subir» para hospedar el tour directamente en NODDO.",
+        "Si eliges URL: pega la dirección del tour (ej: https://my.matterport.com/show/?m=...). El sistema extrae automáticamente la URL embebible aunque pegues un enlace completo o código iframe.",
+        "Si eliges Subir: arrastra un archivo ZIP o selecciona una carpeta con los archivos del tour. También puedes usar el botón «Seleccionar carpeta» para elegir la carpeta directamente.",
+        "El progreso de subida se muestra en una barra de progreso con el conteo de archivos subidos. Puedes cancelar la subida en cualquier momento.",
+        "Cuando la subida se completa, el tour se aloja en la infraestructura de NODDO y se configura automáticamente.",
+        "Una vista previa del tour aparece en la parte inferior de la sección, con un enlace para abrirlo en una pestaña nueva.",
+        "Para reemplazar un tour alojado, usa el botón «Reemplazar». Para eliminarlo, usa «Eliminar tour».",
+      ],
+      tips: [
+        "La subida de archivos del tour funciona en segundo plano — puedes navegar a otras pestañas del editor mientras se completa. Un indicador flotante te mostrará el progreso.",
+        "Si cierras o navegas fuera del editor durante una subida activa, el sistema te advertirá para evitar que pierdas el progreso.",
+        "Los tours alojados en NODDO cargan más rápido para los visitantes que los embebidos de terceros, ya que se sirven desde nuestra CDN.",
+        "Formatos soportados para subida: archivo ZIP o carpeta con los archivos del tour (HTML, JS, CSS, assets).",
       ],
     },
     ubicacion: {
@@ -337,21 +380,47 @@ const help = {
         "Las categorías tienen íconos específicos que ayudan a los visitantes a identificar rápidamente cada tipo de lugar.",
       ],
     },
+    vistas: {
+      title: "Vistas de Piso",
+      description:
+        "Define vistas por orientación y rango de pisos con asignación automática",
+      content:
+        "Las Vistas de Piso te permiten configurar las líneas de visión disponibles en tu proyecto según la orientación, rango de pisos y tipología. Las unidades del inventario se asignan automáticamente a sus vistas correspondientes según su piso y tipología.",
+      steps: [
+        "Accede a la pestaña «Vistas» en el editor de tu proyecto.",
+        "Haz clic en «Nueva Vista» para crear una vista. Asígnale un nombre descriptivo (ej: Vista al parque, Vista ciudad norte).",
+        "Selecciona la orientación de la vista (Norte, Sur, Este, Oeste, etc.) usando las sugerencias del campo o escribiendo una personalizada.",
+        "Define el rango de pisos donde aplica esta vista: piso mínimo y piso máximo.",
+        "Si tienes múltiples torres, asigna la vista a una torre específica o déjala como general para todas.",
+        "Selecciona las tipologías que tienen esta vista disponible usando las casillas de selección múltiple.",
+        "Sube una imagen representativa de la vista (render o foto real). La imagen se muestra como tarjeta en la cuadrícula de vistas.",
+        "Opcionalmente agrega una descripción de la vista.",
+        "Al guardar, las unidades del inventario que coincidan con la torre, rango de pisos y tipología se asignarán automáticamente a esta vista. El sistema te mostrará cuántas unidades fueron asignadas.",
+      ],
+      tips: [
+        "Las vistas se asignan automáticamente a las unidades del inventario. No necesitas asignar manualmente cada unidad — el sistema lo hace por ti basándose en el piso y la tipología.",
+        "La sección «Resumen de asignaciones» te muestra una tabla con todas las unidades y su vista asignada, útil para verificar que la configuración es correcta.",
+        "Si tu proyecto tiene múltiples torres, puedes filtrar las vistas por torre usando las pestañas superiores.",
+        "Las imágenes de las vistas aparecen en las tarjetas con información de orientación, rango de pisos y conteo de unidades asignadas.",
+      ],
+    },
     recursos: {
       title: "Recursos y Documentos",
       description:
-        "Brochures, fichas técnicas y documentos descargables",
+        "Brochures con visor PDF integrado, fichas técnicas y documentos descargables",
       content:
-        "Sube documentos que los visitantes de tu micrositio pueden descargar: brochures comerciales, fichas técnicas, listas de precios, especificaciones de acabados, etc.",
+        "Sube documentos que los visitantes de tu micrositio pueden descargar o visualizar: brochures comerciales, fichas técnicas, listas de precios, especificaciones de acabados, etc. Los brochures en PDF se pueden visualizar directamente en el navegador con un visor integrado.",
       steps: [
         "Haz clic en «+» para agregar un nuevo recurso.",
         "Selecciona el tipo de recurso: Brochure, Acabados, Ficha Técnica, Precios u Otro.",
         "Sube el archivo (PDF recomendado) y dale un nombre descriptivo.",
         "Los recursos aparecerán como tarjetas descargables en la sección «Recursos» del micrositio.",
+        "Los brochures en formato PDF se abren en un visor integrado con navegación por páginas, zoom y descarga directa. Los visitantes pueden explorar el brochure sin salir del micrositio.",
       ],
       tips: [
-        "Los PDFs se pueden previsualizar directamente en el navegador. Otros formatos se descargarán al hacer clic.",
-        "Mantén los archivos ligeros (menos de 10MB) para una descarga rápida.",
+        "Los brochures PDF se visualizan inline en el micrositio con un visor interactivo que soporta navegación entre páginas y zoom. No es necesario que el visitante descargue el archivo para verlo.",
+        "Mantén los archivos ligeros (menos de 10MB) para una descarga rápida y una visualización fluida del visor PDF.",
+        "Otros formatos distintos a PDF se descargarán al hacer clic.",
       ],
     },
     avances: {
@@ -379,19 +448,25 @@ const help = {
     config: {
       title: "Configuración General",
       description:
-        "WhatsApp, Tour 360, audio ambiental y opciones de visualización",
+        "Tipo de proyecto, columnas de inventario, WhatsApp, visualización y opciones de micrositio",
       content:
-        "La pestaña de Configuración contiene ajustes que controlan funcionalidades especiales de tu micrositio.",
+        "La pestaña de Configuración contiene ajustes que controlan la estructura de tu proyecto, las columnas del inventario, funcionalidades especiales del micrositio y opciones de visualización.",
       steps: [
-        "«WhatsApp»: Ingresa el número de WhatsApp con código de país (ej: 573001234567). Aparecerá un botón flotante en el micrositio para que los visitantes te contacten directamente.",
-        "«Tour 360»: Pega la URL de tu tour virtual de Matterport. Se mostrará como una sección embebida a pantalla completa.",
-        "«Audio ambiental»: Sube un archivo de audio (MP3, WAV) que se reproducirá de fondo en el micrositio. Los visitantes pueden silenciarlo.",
-        "«Etiqueta de etapa»: Personaliza cómo se llama la sección de torres/etapas (por defecto: «Explorar»).",
+        "«Tipo de proyecto»: Selecciona el tipo de tu proyecto: Torres (edificios verticales), Urbanismo (casas/conjuntos horizontales), Híbrido (mezcla de tipos) o Lotes. El tipo determina las columnas de inventario disponibles y el comportamiento del sistema.",
+        "«Columnas del inventario»: Personaliza qué campos se muestran en la tabla de inventario del editor y del micrositio. Puedes activar/desactivar columnas como área construida, área privada, área de lote, orientación, vista, piso, etc.",
+        "«WhatsApp»: Ingresa el número de WhatsApp con código de país (ej: 573001234567). Aparecerá un botón flotante en el micrositio.",
+        "«Prefijo de unidades»: Configura un prefijo que se muestra antes del identificador de cada unidad en el micrositio (ej: «Apto», «Casa», «Lote»).",
+        "«Ocultar vendidas»: Activa este toggle para que las unidades vendidas no se muestren en el micrositio público. Seguirán visibles en el editor.",
+        "«Ocultar precio de vendidas»: Activa este toggle para ocultar el precio de las unidades marcadas como vendidas en el micrositio.",
+        "«Etiqueta de etapa»: Personaliza cómo se llama la sección de torres/etapas (por defecto: «Grid»).",
         "«Ocultar badge NODDO»: Desactiva el sello «Powered by NODDO» que aparece en la esquina del micrositio.",
+        "«Audio ambiental»: Sube un archivo de audio (MP3, WAV) que se reproducirá de fondo en el micrositio. Los visitantes pueden silenciarlo.",
       ],
       tips: [
+        "El tipo de proyecto afecta las columnas disponibles automáticamente. Para proyectos híbridos, puedes configurar columnas diferentes para cada tipo de tipología (apartamento, casa, lote).",
         "El botón de WhatsApp es la forma más efectiva de recibir contactos. Asegúrate de que el número sea correcto y esté activo.",
         "El audio ambiental comienza silenciado por defecto. El visitante debe activarlo manualmente.",
+        "La opción «Ocultar vendidas» es útil cuando no quieres mostrar a los visitantes las unidades que ya se vendieron.",
       ],
     },
     dominio: {
@@ -444,20 +519,25 @@ const help = {
     publicacion: {
       title: "Publicación y Versiones",
       description:
-        "Publicar tu micrositio, historial de versiones y restauración",
+        "Publicar, despublicar, archivar y restaurar versiones de tu micrositio",
       content:
-        "El sistema de publicación te permite controlar cuándo tus cambios se hacen visibles al público. Cada vez que publicas, se crea una versión que puedes restaurar en cualquier momento.",
+        "El sistema de publicación te permite controlar cuándo y dónde tus cambios se hacen visibles al público. Puedes elegir los destinos de publicación (subdominio NODDO y/o dominio personalizado), archivar o desarchivar el proyecto, y despublicar si necesitas retirar el sitio temporalmente.",
       steps: [
         "Cuando hagas cambios en el editor, el indicador de estado mostrará «Cambios sin publicar» (naranja).",
-        "Haz clic en «Publicar» en la barra superior del editor para hacer visibles todos los cambios.",
+        "Haz clic en «Publicar» en la barra superior del editor. Se abrirá un menú donde puedes seleccionar los destinos de publicación: subdominio NODDO y/o dominio personalizado (si está configurado).",
+        "Marca o desmarca los destinos y haz clic en «Publish Now» para hacer visibles los cambios.",
         "Se creará una nueva versión (v1, v2, v3...) con una copia completa de todo tu contenido.",
-        "Para ver el historial de versiones, haz clic en el menú desplegable junto al botón de publicar.",
+        "Para ver el historial de versiones, haz clic en el botón desplegable (flecha) junto al botón de publicar.",
         "Para restaurar una versión anterior, haz clic en «Restaurar» junto a la versión deseada. Se creará una nueva versión con el contenido restaurado.",
+        "Para despublicar el micrositio (retirarlo del público sin eliminarlo), usa la opción «Despublicar» en el menú de versiones. El proyecto volverá a estado borrador.",
+        "Para archivar o desarchivar el proyecto, usa la opción «Archivar proyecto» / «Desarchivar proyecto» al final del menú de versiones.",
       ],
       tips: [
         "El estado del proyecto se muestra en 3 colores: ámbar (borrador, nunca publicado), verde (publicado y actualizado), naranja (publicado pero con cambios pendientes).",
         "Restaurar una versión no elimina las versiones posteriores — se crea una nueva versión con el contenido antiguo, así que nunca pierdes datos.",
         "Los cambios se guardan automáticamente en el editor, pero NO se hacen públicos hasta que presiones «Publicar».",
+        "Despublicar retira el micrositio del público pero conserva todo el contenido y las versiones. Puedes volver a publicar en cualquier momento.",
+        "El selector de destinos te permite publicar solo en el subdominio NODDO, solo en tu dominio personalizado, o en ambos.",
       ],
     },
     autoguardado: {

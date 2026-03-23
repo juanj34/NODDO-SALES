@@ -74,6 +74,22 @@ export const TIPO_DEFAULTS: Record<TipoTipologia, InventoryColumnConfig> = {
   apartamento: DEFAULTS.apartamentos,
   casa: DEFAULTS.casas,
   lote: DEFAULTS.lotes,
+  local_comercial: {
+    area_m2: true,
+    area_construida: true,
+    area_privada: false,
+    area_lote: false,
+    habitaciones: false,
+    banos: false,
+    parqueaderos: true,
+    depositos: false,
+    orientacion: true,
+    vista: false,
+    precio: true,
+    piso: true,
+    lote: false,
+    etapa: false,
+  },
 };
 
 /**
@@ -110,6 +126,25 @@ export function getHybridInventoryColumns(
 /** Returns default columns for a tipo_tipologia */
 export function getDefaultColumnsForTipo(tipo: TipoTipologia): InventoryColumnConfig {
   return TIPO_DEFAULTS[tipo];
+}
+
+/**
+ * Resolves column config for a tipologia, handling local_comercial in any project type.
+ * Commercial tipologias always use their own config, even in non-hybrid projects.
+ */
+export function resolveColumnsForTipologia(
+  tipoTipologia: TipoTipologia | null,
+  tipoProyecto: TipoProyecto,
+  projectColumns: InventoryColumnConfig | null | undefined,
+  columnsByType: InventoryColumnsByType | null | undefined,
+): InventoryColumnConfig {
+  if (tipoTipologia === "local_comercial") {
+    return getHybridInventoryColumns("local_comercial", columnsByType);
+  }
+  if (tipoProyecto === "hibrido" && tipoTipologia) {
+    return getHybridInventoryColumns(tipoTipologia, columnsByType);
+  }
+  return getInventoryColumns(tipoProyecto, projectColumns);
 }
 
 /**

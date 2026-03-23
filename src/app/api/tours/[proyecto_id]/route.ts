@@ -3,7 +3,7 @@ import { getAuthContext } from "@/lib/auth-context";
 import { deleteTourFiles } from "@/lib/r2";
 
 export async function DELETE(
-  _request: NextRequest,
+  request: NextRequest,
   { params }: { params: Promise<{ proyecto_id: string }> }
 ) {
   try {
@@ -32,14 +32,26 @@ export async function DELETE(
       );
     }
 
-    // Delete all tour files from R2
-    const deleted = await deleteTourFiles(proyecto_id);
+    // Check if this is a tipología-specific tour delete
+    const tipologiaId = new URL(request.url).searchParams.get("tipologia_id");
+    const subpath = tipologiaId ? `tipologias/${tipologiaId}` : undefined;
 
-    // Clear tour URL and reset storage tracking in DB
-    await auth.supabase
-      .from("proyectos")
-      .update({ tour_360_url: null, storage_tours_bytes: 0 })
-      .eq("id", proyecto_id);
+    // Delete tour files from R2
+    const deleted = await deleteTourFiles(proyecto_id, subpath);
+
+    // Clear tour URL in DB
+    if (tipologiaId) {
+      await auth.supabase
+        .from("tipologias")
+        .update({ tour_360_url: null })
+        .eq("id", tipologiaId)
+        .eq("proyecto_id", proyecto_id);
+    } else {
+      await auth.supabase
+        .from("proyectos")
+        .update({ tour_360_url: null, storage_tours_bytes: 0 })
+        .eq("id", proyecto_id);
+    }
 
     return NextResponse.json({ deleted });
   } catch (err) {

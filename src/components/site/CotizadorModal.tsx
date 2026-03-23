@@ -3,85 +3,39 @@
 import { useState, useEffect, useCallback, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
-  Send,
   CheckCircle,
-  Loader2,
   Maximize,
   BedDouble,
   Bath,
   MapPin,
   Eye,
-  ShieldCheck,
   Mail,
   FileDown,
   Home,
   ChevronRight,
+  MessageCircle,
 } from "lucide-react";
+import Image from "next/image";
 import { CloseButton } from "@/components/ui/CloseButton";
 import { cn } from "@/lib/utils";
 import { getUnitDisplayName } from "@/lib/unit-display";
-import { getInventoryColumns, getHybridInventoryColumns, getPrimaryArea } from "@/lib/inventory-columns";
-import type { Unidad, Tipologia, CotizadorConfig, InventoryColumnConfig } from "@/types";
+import {
+  getInventoryColumns,
+  getHybridInventoryColumns,
+} from "@/lib/inventory-columns";
+import { formatCurrency } from "@/lib/currency";
+import { UNIT_CONFIG } from "@/lib/units";
+import type {
+  Unidad,
+  Tipologia,
+  CotizadorConfig,
+  InventoryColumnConfig,
+  Currency,
+  UnitOfMeasurement,
+} from "@/types";
 import { useTranslation, getEstadoConfig } from "@/i18n";
 import { useSiteProject } from "@/hooks/useSiteProject";
-import { trackEvent } from "@/lib/tracking";
-import { NodDoDropdown } from "@/components/ui/NodDoDropdown";
-import { TrustBadges, trustBadgePresets } from "@/components/site/TrustBadges";
 import { CotizadorFlowMultiStep } from "@/components/site/CotizadorFlowMultiStep";
-
-const COUNTRY_CODES = [
-  { code: "+57", flag: "\u{1F1E8}\u{1F1F4}", label: "CO" },
-  { code: "+52", flag: "\u{1F1F2}\u{1F1FD}", label: "MX" },
-  { code: "+1", flag: "\u{1F1FA}\u{1F1F8}", label: "US" },
-  { code: "+507", flag: "\u{1F1F5}\u{1F1E6}", label: "PA" },
-  { code: "+593", flag: "\u{1F1EA}\u{1F1E8}", label: "EC" },
-  { code: "+51", flag: "\u{1F1F5}\u{1F1EA}", label: "PE" },
-  { code: "+56", flag: "\u{1F1E8}\u{1F1F1}", label: "CL" },
-  { code: "+34", flag: "\u{1F1EA}\u{1F1F8}", label: "ES" },
-] as const;
-
-function PhoneInput({
-  value,
-  onChange,
-  countryCode,
-  onCountryChange,
-}: {
-  value: string;
-  onChange: (v: string) => void;
-  countryCode: string;
-  onCountryChange: (v: string) => void;
-}) {
-  return (
-    <div className="flex gap-1.5">
-      <div className="w-[90px] shrink-0">
-        <NodDoDropdown
-          variant="site"
-          size="sm"
-          value={countryCode}
-          onChange={onCountryChange}
-          options={COUNTRY_CODES.map((c) => ({
-            value: c.code,
-            label: c.code,
-            metadata: { flag: c.flag },
-          }))}
-          renderOption={(opt) => (
-            <span>{String(opt.metadata?.flag ?? "")} {opt.label}</span>
-          )}
-          renderSelected={(opt) => (
-            <span>{String(opt.metadata?.flag ?? "")} {opt.label}</span>
-          )}
-        />
-      </div>
-      <input
-        type="tel"
-        placeholder="300 000 0000"
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
-        className="input-glass w-full"
-      />
-    </div>
-  );
-}
 
 interface CotizadorModalProps {
   isOpen: boolean;
@@ -97,288 +51,255 @@ interface CotizadorModalProps {
   tipoProyecto?: string;
 }
 
-function formatPrecio(precio: number, locale: string): string {
-  return new Intl.NumberFormat(locale === "es" ? "es-CO" : "en-US", {
-    style: "currency",
-    currency: "COP",
-    maximumFractionDigits: 0,
-  }).format(precio);
-}
-
-interface FormData {
-  nombre: string;
-  email: string;
-  telefono: string;
-  pais: string;
-  mensaje: string;
-}
-
-/* ─── Unit Summary Card (shared by both flows) ─── */
+/* ─── Unit Summary Card ─── */
 
 function UnitSummary({
   unidad,
   tipologia,
-  locale,
   tCommon,
   tSite,
   columns,
   unitPrefix,
+  renderUrl,
+  areaSymbol,
 }: {
   unidad: Unidad;
   tipologia: Tipologia | undefined;
-  locale: string;
   tCommon: (key: string) => string;
   tSite: (key: string) => string;
   columns: InventoryColumnConfig;
   unitPrefix?: string | null;
+  renderUrl?: string | null;
+  areaSymbol: string;
 }) {
   const estadoConfigMap = useMemo(() => getEstadoConfig(tCommon), [tCommon]);
   const estado = estadoConfigMap[unidad.estado];
 
   return (
-    <div className="bg-[var(--glass-bg)] rounded-2xl p-4 mb-5 border border-[var(--border-default)]">
-      <div className="flex items-start justify-between mb-3">
-        <div>
-          <h3 className="text-base font-semibold text-[var(--text-primary)]">
-            {getUnitDisplayName(unidad, unitPrefix)}
-          </h3>
-          {tipologia && (
-            <p className="text-xs text-[var(--text-secondary)] mt-0.5">
-              {tipologia.nombre}
-            </p>
+    <div className="bg-[var(--glass-bg)] rounded-2xl mb-5 border border-[var(--border-default)] overflow-hidden">
+      {/* Render image hero */}
+      {renderUrl && (
+        <div className="relative h-36 w-full">
+          <Image
+            src={renderUrl}
+            alt=""
+            fill
+            className="object-cover"
+            sizes="(max-width: 672px) 100vw, 672px"
+          />
+          <div className="absolute inset-0 bg-gradient-to-t from-[var(--surface-1)] via-transparent to-transparent" />
+        </div>
+      )}
+
+      <div className="p-4">
+        <div className="flex items-start justify-between mb-3">
+          <div>
+            <h3 className="text-base font-semibold text-[var(--text-primary)]">
+              {getUnitDisplayName(unidad, unitPrefix)}
+            </h3>
+            {tipologia && (
+              <p className="text-xs text-[var(--text-secondary)] mt-0.5">
+                {tipologia.nombre}
+              </p>
+            )}
+          </div>
+          <div className="flex items-center gap-1.5">
+            <span className={cn("w-2 h-2 rounded-full", estado.dot)} />
+            <span className={cn("text-xs font-medium", estado.color)}>
+              {estado.label}
+            </span>
+          </div>
+        </div>
+
+        <div className="flex flex-wrap gap-x-4 gap-y-1.5 text-xs text-[var(--text-secondary)]">
+          {columns.area_construida && unidad.area_construida != null && (
+            <span className="flex items-center gap-1">
+              <Maximize size={12} className="text-[var(--text-tertiary)]" />
+              {unidad.area_construida} {areaSymbol}
+            </span>
+          )}
+          {columns.area_privada && unidad.area_privada != null && (
+            <span className="flex items-center gap-1">
+              <Maximize size={12} className="text-[var(--text-tertiary)]" />
+              {unidad.area_privada} {areaSymbol}
+            </span>
+          )}
+          {columns.area_lote && unidad.area_lote != null && (
+            <span className="flex items-center gap-1">
+              <Maximize size={12} className="text-[var(--text-tertiary)]" />
+              {unidad.area_lote} {areaSymbol}
+            </span>
+          )}
+          {columns.area_m2 &&
+            unidad.area_m2 != null &&
+            !columns.area_construida &&
+            !columns.area_privada &&
+            !columns.area_lote && (
+              <span className="flex items-center gap-1">
+                <Maximize size={12} className="text-[var(--text-tertiary)]" />
+                {unidad.area_m2} {areaSymbol}
+              </span>
+            )}
+          {columns.habitaciones && unidad.habitaciones !== null && (
+            <span className="flex items-center gap-1">
+              <BedDouble size={12} className="text-[var(--text-tertiary)]" />
+              {unidad.habitaciones} {tSite("cotizador.hab")}
+            </span>
+          )}
+          {columns.banos && unidad.banos !== null && (
+            <span className="flex items-center gap-1">
+              <Bath size={12} className="text-[var(--text-tertiary)]" />
+              {unidad.banos} {tSite("cotizador.banos")}
+            </span>
+          )}
+          {columns.lote && unidad.lote && (
+            <span className="flex items-center gap-1">
+              <Home size={12} className="text-[var(--text-tertiary)]" />
+              {unidad.lote}
+            </span>
+          )}
+          {columns.piso && unidad.piso && !unidad.lote && (
+            <span className="flex items-center gap-1">
+              <MapPin size={12} className="text-[var(--text-tertiary)]" />
+              {tSite("cotizador.floor")} {unidad.piso}
+            </span>
+          )}
+          {columns.vista && unidad.vista && (
+            <span className="flex items-center gap-1">
+              <Eye size={12} className="text-[var(--text-tertiary)]" />
+              {unidad.vista}
+            </span>
           )}
         </div>
-        <div className="flex items-center gap-1.5">
-          <span className={cn("w-2 h-2 rounded-full", estado.dot)} />
-          <span className={cn("text-xs font-medium", estado.color)}>
-            {estado.label}
-          </span>
-        </div>
       </div>
-
-      <div className="flex flex-wrap gap-x-4 gap-y-1.5 text-xs text-[var(--text-secondary)]">
-        {columns.area_construida && unidad.area_construida != null && (
-          <span className="flex items-center gap-1">
-            <Maximize size={12} className="text-[var(--text-tertiary)]" />
-            {unidad.area_construida} m²
-          </span>
-        )}
-        {columns.area_privada && unidad.area_privada != null && (
-          <span className="flex items-center gap-1">
-            <Maximize size={12} className="text-[var(--text-tertiary)]" />
-            {unidad.area_privada} m²
-          </span>
-        )}
-        {columns.area_lote && unidad.area_lote != null && (
-          <span className="flex items-center gap-1">
-            <Maximize size={12} className="text-[var(--text-tertiary)]" />
-            {unidad.area_lote} m²
-          </span>
-        )}
-        {columns.area_m2 && unidad.area_m2 != null && !columns.area_construida && !columns.area_privada && !columns.area_lote && (
-          <span className="flex items-center gap-1">
-            <Maximize size={12} className="text-[var(--text-tertiary)]" />
-            {unidad.area_m2} m²
-          </span>
-        )}
-        {columns.habitaciones && unidad.habitaciones !== null && (
-          <span className="flex items-center gap-1">
-            <BedDouble size={12} className="text-[var(--text-tertiary)]" />
-            {unidad.habitaciones} {tSite("cotizador.hab")}
-          </span>
-        )}
-        {columns.banos && unidad.banos !== null && (
-          <span className="flex items-center gap-1">
-            <Bath size={12} className="text-[var(--text-tertiary)]" />
-            {unidad.banos} {tSite("cotizador.banos")}
-          </span>
-        )}
-        {columns.lote && unidad.lote && (
-          <span className="flex items-center gap-1">
-            <Home size={12} className="text-[var(--text-tertiary)]" />
-            {unidad.lote}
-          </span>
-        )}
-        {columns.piso && unidad.piso && !unidad.lote && (
-          <span className="flex items-center gap-1">
-            <MapPin size={12} className="text-[var(--text-tertiary)]" />
-            {tSite("cotizador.floor")} {unidad.piso}
-          </span>
-        )}
-        {columns.vista && unidad.vista && (
-          <span className="flex items-center gap-1">
-            <Eye size={12} className="text-[var(--text-tertiary)]" />
-            {unidad.vista}
-          </span>
-        )}
-      </div>
-
-      {columns.precio && unidad.precio && (
-        <p className="mt-3 text-lg font-semibold text-[var(--site-primary)]">
-          {formatPrecio(unidad.precio, locale)}
-        </p>
-      )}
     </div>
   );
 }
 
-/* ─── Legacy Lead Form (when cotizador is NOT enabled) ─── */
+/* ─── Success State ─── */
 
-function LeadCaptureFlow({
+function SuccessState({
+  isCotizador,
+  pdfUrl,
   unidad,
-  tipologia,
-  proyectoId,
-  locale,
-  tCommon,
+  unitPrefix,
+  whatsappNumero,
   tSite,
-  onSuccess,
+  tCommon,
+  onClose,
 }: {
+  isCotizador: boolean;
+  pdfUrl: string | null;
   unidad: Unidad;
-  tipologia: Tipologia | undefined;
-  proyectoId: string;
-  locale: string;
-  tCommon: (key: string) => string;
+  unitPrefix?: string | null;
+  whatsappNumero?: string | null;
   tSite: (key: string) => string;
-  onSuccess: () => void;
+  tCommon: (key: string) => string;
+  onClose: () => void;
 }) {
-  const [formData, setFormData] = useState<FormData>({
-    nombre: "",
-    email: "",
-    telefono: "",
-    pais: "",
-    mensaje: "",
-  });
-  const [countryCode, setCountryCode] = useState("+57");
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const unitName = getUnitDisplayName(unidad, unitPrefix);
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsSubmitting(true);
-    setError(null);
-
-    const unitDetails = [
-      `Unidad: ${unidad.identificador}`,
-      tipologia ? `Tipología: ${tipologia.nombre}` : null,
-      unidad.area_m2 ? `Área: ${unidad.area_m2} m²` : null,
-      unidad.piso ? `Piso: ${unidad.piso}` : null,
-      unidad.vista ? `Vista: ${unidad.vista}` : null,
-      unidad.precio ? `Precio: ${formatPrecio(unidad.precio, locale)}` : null,
-    ].filter(Boolean).join(" · ");
-
-    try {
-      const res = await fetch("/api/leads", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          nombre: formData.nombre,
-          email: formData.email,
-          telefono: formData.telefono ? `${countryCode} ${formData.telefono}` : null,
-          pais: formData.pais || null,
-          tipologia_interes: tipologia
-            ? `${tipologia.nombre} - ${unidad.identificador}`
-            : unidad.identificador,
-          mensaje: formData.mensaje
-            ? `${formData.mensaje}\n\n--- Detalle unidad ---\n${unitDetails}`
-            : `Solicitud de cotización\n\n--- Detalle unidad ---\n${unitDetails}`,
-          proyecto_id: proyectoId,
-          utm_source: new URLSearchParams(window.location.search).get("utm_source"),
-          utm_medium: new URLSearchParams(window.location.search).get("utm_medium"),
-          utm_campaign: new URLSearchParams(window.location.search).get("utm_campaign"),
-        }),
-      });
-
-      if (res.ok) {
-        trackEvent(proyectoId, "lead_submit", undefined, {
-          tipologia: tipologia?.nombre || unidad.identificador,
-          unidad: unidad.identificador,
-        });
-        onSuccess();
-      } else {
-        setError(tCommon("errors.submitFailed"));
-      }
-    } catch {
-      setError(tCommon("errors.connectionError"));
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
-
-  const handleChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
-  ) => {
-    setFormData((prev) => ({ ...prev, [e.target.name]: e.target.value }));
-  };
+  const whatsappUrl = whatsappNumero
+    ? `https://wa.me/${whatsappNumero.replace(/\D/g, "")}?text=${encodeURIComponent(
+        `Hola, acabo de solicitar una cotización para ${unitName}`
+      )}`
+    : null;
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-3">
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-        <div>
-          <label className="block text-[10px] tracking-[0.2em] uppercase text-[var(--text-tertiary)] mb-1 font-ui font-bold">
-            {tCommon("form.fullName")}
-          </label>
-          <input type="text" name="nombre" placeholder="Juan Pérez" required value={formData.nombre} onChange={handleChange} className="input-glass w-full" />
+    <motion.div
+      initial={{ opacity: 0, scale: 0.9 }}
+      animate={{ opacity: 1, scale: 1 }}
+      className="p-8 sm:p-10 flex flex-col items-center justify-center gap-5"
+    >
+      {/* Animated checkmark */}
+      <div className="animate-success-pop">
+        <div className="w-18 h-18 rounded-full bg-[rgba(var(--site-primary-rgb),0.12)] border border-[rgba(var(--site-primary-rgb),0.25)] flex items-center justify-center shadow-[0_0_30px_rgba(var(--site-primary-rgb),0.15)]">
+          <CheckCircle size={36} className="text-[var(--site-primary)]" />
         </div>
-        <div>
-          <label className="block text-[10px] tracking-[0.2em] uppercase text-[var(--text-tertiary)] mb-1 font-ui font-bold">
-            {tCommon("form.email")}
-          </label>
-          <input type="email" name="email" placeholder="juan@email.com" required value={formData.email} onChange={handleChange} className="input-glass w-full" />
-        </div>
-      </div>
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-        <div>
-          <label className="block text-[10px] tracking-[0.2em] uppercase text-[var(--text-tertiary)] mb-1 font-ui font-bold">
-            {tCommon("form.phone")}
-          </label>
-          <PhoneInput
-            value={formData.telefono}
-            onChange={(v) => setFormData((prev) => ({ ...prev, telefono: v }))}
-            countryCode={countryCode}
-            onCountryChange={setCountryCode}
-          />
-        </div>
-        <div>
-          <label className="block text-[10px] tracking-[0.2em] uppercase text-[var(--text-tertiary)] mb-1 font-ui font-bold">
-            {tCommon("form.country")}
-          </label>
-          <input type="text" name="pais" placeholder="Colombia" value={formData.pais} onChange={handleChange} className="input-glass w-full" />
-        </div>
-      </div>
-      <div>
-        <label className="block text-[10px] tracking-[0.2em] uppercase text-[var(--text-tertiary)] mb-1 font-ui font-bold">
-          {tCommon("form.messageOptional")}
-        </label>
-        <textarea name="mensaje" placeholder="..." rows={2} value={formData.mensaje} onChange={handleChange} className="input-glass w-full resize-none" />
       </div>
 
-      {/* Trust Badges */}
-      <TrustBadges badges={trustBadgePresets.cotizador(tSite)} className="mt-4" />
+      {/* Main message */}
+      <h3 className="text-xl text-white font-light text-center">
+        {isCotizador
+          ? tSite("cotizador.quoteSent")
+          : tSite("cotizador.requestSent")}
+      </h3>
+      <p className="text-[var(--text-secondary)] text-sm text-center max-w-sm">
+        {isCotizador
+          ? tSite("cotizador.checkEmailPdf")
+          : tSite("cotizador.checkEmailLead")}
+      </p>
 
-      <motion.button
-        type="submit"
-        disabled={isSubmitting}
-        whileHover={{ scale: 1.02 }}
-        whileTap={{ scale: 0.98 }}
-        className="btn-warm w-full py-3 flex items-center justify-center gap-2 text-sm tracking-[0.2em] uppercase"
-      >
-        {isSubmitting ? <Loader2 size={16} className="animate-spin" /> : <Send size={16} />}
-        {isSubmitting ? tCommon("buttons.sending") : tCommon("buttons.requestQuote")}
-      </motion.button>
-      {error && (
-        <p className="text-red-400 text-sm text-center mt-3" role="alert">{error}</p>
+      {/* PDF download button (cotizador only) */}
+      {isCotizador && pdfUrl && (
+        <a
+          href={pdfUrl}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="btn-warm px-6 py-3 flex items-center gap-2.5 text-sm tracking-[0.15em] uppercase"
+        >
+          <FileDown size={16} />
+          {tSite("cotizador.downloadPdf")}
+        </a>
       )}
-      <div className="flex items-center justify-center gap-2 pt-1">
-        <ShieldCheck size={14} className="text-[rgba(var(--site-primary-rgb),0.4)]" />
-        <p className="text-[10px] text-[var(--text-muted)]">{tSite("contacto.trustLine")}</p>
+
+      {/* What happens next timeline */}
+      <div className="w-full max-w-sm mt-2">
+        <p className="text-[10px] tracking-[0.2em] uppercase text-[var(--text-tertiary)] font-ui font-bold mb-3">
+          {tSite("cotizador.whatHappensNext")}
+        </p>
+        <div className="space-y-3">
+          {[
+            isCotizador
+              ? tSite("cotizador.nextStep1Quote")
+              : tSite("cotizador.nextStep1Lead"),
+            tSite("cotizador.nextStep2"),
+            tSite("cotizador.nextStep3"),
+          ].map((text, i) => (
+            <div key={i} className="flex items-start gap-3">
+              <div className="w-6 h-6 rounded-full bg-[rgba(var(--site-primary-rgb),0.12)] border border-[rgba(var(--site-primary-rgb),0.2)] flex items-center justify-center shrink-0 mt-0.5">
+                <span className="text-[10px] text-[var(--site-primary)] font-bold font-mono">
+                  {i + 1}
+                </span>
+              </div>
+              <p className="text-xs text-[var(--text-secondary)] pt-0.5">
+                {text}
+              </p>
+            </div>
+          ))}
+        </div>
       </div>
-    </form>
+
+      {/* Action buttons */}
+      <div className="flex flex-col sm:flex-row items-center gap-3 w-full max-w-sm mt-2">
+        {whatsappUrl && (
+          <a
+            href={whatsappUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="btn-outline-warm w-full sm:flex-1 px-5 py-2.5 flex items-center justify-center gap-2 text-sm tracking-wider"
+          >
+            <MessageCircle size={16} />
+            {tSite("cotizador.whatsappFollowUp")}
+          </a>
+        )}
+        <button
+          onClick={onClose}
+          className="btn-ghost w-full sm:flex-1 px-5 py-2.5 text-sm tracking-wider cursor-pointer"
+        >
+          {tCommon("buttons.close")}
+        </button>
+      </div>
+
+      <div className="flex items-center gap-2 mt-1">
+        <Mail size={14} className="text-[var(--text-muted)]" />
+        <p className="text-[10px] text-[var(--text-muted)]">
+          {tSite("contacto.successNext")}
+        </p>
+      </div>
+    </motion.div>
   );
 }
-
-/* ─── Enhanced Cotizador Flow (when cotizador IS enabled) ─── */
-// Using multi-step flow from CotizadorFlowMultiStep component
-const CotizadorFlow = CotizadorFlowMultiStep;
 
 /* ─── Main Modal ─── */
 
@@ -400,30 +321,51 @@ export function CotizadorModal({
   const [pdfUrl, setPdfUrl] = useState<string | null>(null);
 
   // Multi-tipología: user must pick a tipología before proceeding
-  const needsTipologiaSelection = !tipologia && Array.isArray(availableTipologias) && availableTipologias.length > 0;
+  const needsTipologiaSelection =
+    !tipologia &&
+    Array.isArray(availableTipologias) &&
+    availableTipologias.length > 0;
   const [selectedTipo, setSelectedTipo] = useState<Tipologia | null>(null);
   const activeTipologia = tipologia ?? selectedTipo ?? undefined;
 
   const isHibrido = tipoProyecto === "hibrido";
-  const unitTipoTipologia = activeTipologia?.tipo_tipologia ?? tipologia?.tipo_tipologia ?? null;
-  const isLotes = isHibrido ? unitTipoTipologia === "lote" : tipoProyecto === "lotes";
+  const unitTipoTipologia =
+    activeTipologia?.tipo_tipologia ?? tipologia?.tipo_tipologia ?? null;
+  const isLotes = isHibrido
+    ? unitTipoTipologia === "lote"
+    : tipoProyecto === "lotes";
 
   const columns = useMemo(() => {
     if (isHibrido && unitTipoTipologia) {
-      return getHybridInventoryColumns(unitTipoTipologia, (proyecto as any).inventory_columns_microsite_by_type ?? proyecto.inventory_columns_by_type);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      return getHybridInventoryColumns(
+        unitTipoTipologia,
+        (proyecto as any).inventory_columns_microsite_by_type ??
+          proyecto.inventory_columns_by_type
+      );
     }
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     return getInventoryColumns(
-      (proyecto.tipo_proyecto ?? "hibrido") as "apartamentos" | "casas" | "lotes" | "hibrido",
-      (proyecto as any).inventory_columns_microsite ?? proyecto.inventory_columns
+      (proyecto.tipo_proyecto ?? "hibrido") as
+        | "apartamentos"
+        | "casas"
+        | "lotes"
+        | "hibrido",
+      (proyecto as any).inventory_columns_microsite ??
+        proyecto.inventory_columns
     );
-  }, [isHibrido, unitTipoTipologia, proyecto.tipo_proyecto, proyecto.inventory_columns, proyecto.inventory_columns_by_type]);
+  }, [
+    isHibrido,
+    unitTipoTipologia,
+    proyecto.tipo_proyecto,
+    proyecto.inventory_columns,
+    proyecto.inventory_columns_by_type,
+  ]);
 
   // Build a virtual unidad with tipología specs when one is selected
   const activeUnidad = useMemo(() => {
     if (!activeTipologia) return unidad;
-    // Override unidad specs with tipología specs when no confirmed tipología
     if (!tipologia && selectedTipo) {
-      // For lotes: sum terrain + construction prices when both exist
       let precio: number | null;
       if (isLotes && unidad.precio && selectedTipo.precio_desde) {
         precio = unidad.precio + selectedTipo.precio_desde;
@@ -433,7 +375,8 @@ export function CotizadorModal({
       return {
         ...unidad,
         area_m2: selectedTipo.area_m2 ?? unidad.area_m2,
-        area_construida: selectedTipo.area_construida ?? unidad.area_construida,
+        area_construida:
+          selectedTipo.area_construida ?? unidad.area_construida,
         area_privada: selectedTipo.area_privada ?? unidad.area_privada,
         area_lote: selectedTipo.area_lote ?? unidad.area_lote,
         precio,
@@ -444,11 +387,39 @@ export function CotizadorModal({
     return unidad;
   }, [unidad, tipologia, selectedTipo, activeTipologia, isLotes]);
 
-  // For lotes: track breakdown prices for the cotizador display
-  const terrenoPrice = (isLotes && !tipologia && selectedTipo && unidad.precio && selectedTipo.precio_desde) ? unidad.precio : undefined;
-  const construccionPrice = (isLotes && !tipologia && selectedTipo && unidad.precio && selectedTipo.precio_desde) ? selectedTipo.precio_desde : undefined;
+  // For lotes: track breakdown prices
+  const terrenoPrice =
+    isLotes &&
+    !tipologia &&
+    selectedTipo &&
+    unidad.precio &&
+    selectedTipo.precio_desde
+      ? unidad.precio
+      : undefined;
+  const construccionPrice =
+    isLotes &&
+    !tipologia &&
+    selectedTipo &&
+    unidad.precio &&
+    selectedTipo.precio_desde
+      ? selectedTipo.precio_desde
+      : undefined;
 
-  const useCotizador = cotizadorEnabled && cotizadorConfig && activeUnidad.precio;
+  const isCotizador = !!(
+    cotizadorEnabled &&
+    cotizadorConfig &&
+    activeUnidad.precio
+  );
+
+  const moneda = (cotizadorConfig?.moneda || proyecto.moneda_base || "COP") as Currency;
+  const areaSymbol = UNIT_CONFIG[(proyecto.unidad_medida_base || "m2") as UnitOfMeasurement]?.symbol ?? "m²";
+
+  // Get render image for the unit summary
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const renderUrl =
+    activeTipologia?.renders?.[0] ??
+    ((proyecto as any).render_principal_url as string | null) ??
+    null;
 
   const handleClose = useCallback(() => {
     onClose();
@@ -485,9 +456,9 @@ export function CotizadorModal({
             onClick={handleClose}
           />
 
-          {/* Modal */}
+          {/* Modal — widened to max-w-2xl */}
           <motion.div
-            className="relative w-full max-w-lg max-h-[90vh] overflow-y-auto bg-[var(--surface-1)] rounded-3xl border border-[rgba(var(--site-primary-rgb),0.15)] shadow-[0_0_40px_rgba(var(--site-primary-rgb),0.08)]"
+            className="relative w-full max-w-2xl max-h-[90vh] overflow-y-auto bg-[var(--surface-1)] rounded-3xl border border-[rgba(var(--site-primary-rgb),0.15)] shadow-[0_0_60px_rgba(var(--site-primary-rgb),0.1)]"
             initial={{ opacity: 0, scale: 0.95, y: 20 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.95, y: 20 }}
@@ -503,60 +474,28 @@ export function CotizadorModal({
 
             {isSubmitted ? (
               /* ── Success State ── */
-              <motion.div
-                initial={{ opacity: 0, scale: 0.9 }}
-                animate={{ opacity: 1, scale: 1 }}
-                className="p-12 flex flex-col items-center justify-center gap-4"
-              >
-                <div className="animate-success-pop">
-                  <div className="w-16 h-16 rounded-full bg-[rgba(var(--site-primary-rgb),0.1)] border border-[rgba(var(--site-primary-rgb),0.2)] flex items-center justify-center">
-                    <CheckCircle size={32} className="text-[var(--site-primary)]" />
-                  </div>
-                </div>
-                <h3 className="text-xl text-white font-light">
-                  {useCotizador ? tSite("cotizador.quoteSent") : tSite("contacto.successHeading")}
-                </h3>
-                <p className="text-[var(--text-tertiary)] text-sm text-center max-w-xs">
-                  {useCotizador
-                    ? tSite("cotizador.checkEmailPdf")
-                    : tCommon("success.advisorContactUnit", { unit: getUnitDisplayName(unidad, proyecto.unidad_display_prefix) })
-                  }
-                </p>
-                {useCotizador && pdfUrl && (
-                  <a
-                    href={pdfUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="flex items-center gap-2 px-5 py-2.5 bg-white/5 border border-white/10 rounded-xl text-xs text-[var(--text-secondary)] hover:bg-white/10 hover:text-white transition-all"
-                  >
-                    <FileDown size={14} />
-                    {tSite("cotizador.downloadPdf")}
-                  </a>
-                )}
-                <div className="flex items-center gap-2">
-                  <Mail size={14} className="text-[var(--text-muted)]" />
-                  <p className="text-xs text-[var(--text-muted)]">
-                    {tSite("contacto.successNext")}
-                  </p>
-                </div>
-                <button
-                  onClick={handleClose}
-                  className="mt-2 btn-outline-warm px-6 py-2.5 text-sm tracking-wider cursor-pointer"
-                >
-                  {tCommon("buttons.close")}
-                </button>
-              </motion.div>
+              <SuccessState
+                isCotizador={isCotizador}
+                pdfUrl={pdfUrl}
+                unidad={unidad}
+                unitPrefix={proyecto.unidad_display_prefix}
+                whatsappNumero={proyecto.whatsapp_numero}
+                tSite={tSite}
+                tCommon={tCommon}
+                onClose={handleClose}
+              />
             ) : needsTipologiaSelection && !selectedTipo ? (
               /* ── Tipología Selection Step (multi-tipo lots) ── */
               <div className="p-6 sm:p-8">
                 <h2 className="text-lg font-semibold text-white mb-1">
-                  {locale === "es" ? "Seleccionar tipología" : "Select typology"}
+                  {locale === "es"
+                    ? "Seleccionar tipología"
+                    : "Select typology"}
                 </h2>
                 <p className="text-xs text-[var(--text-tertiary)] mb-5">
                   {locale === "es"
                     ? `${getUnitDisplayName(unidad, proyecto.unidad_display_prefix)} tiene ${availableTipologias!.length} tipologías disponibles`
-                    : `${getUnitDisplayName(unidad, proyecto.unidad_display_prefix)} has ${availableTipologias!.length} available typologies`
-                  }
+                    : `${getUnitDisplayName(unidad, proyecto.unidad_display_prefix)} has ${availableTipologias!.length} available typologies`}
                 </p>
 
                 <div className="space-y-3">
@@ -570,50 +509,82 @@ export function CotizadorModal({
                       className="w-full text-left bg-white/5 hover:bg-white/8 border border-white/8 hover:border-[rgba(var(--site-primary-rgb),0.3)] rounded-2xl p-4 transition-colors cursor-pointer"
                     >
                       <div className="flex items-center justify-between mb-2">
-                        <h3 className="text-sm font-semibold text-white">{tipo.nombre}</h3>
-                        <ChevronRight size={16} className="text-[var(--text-muted)]" />
+                        <h3 className="text-sm font-semibold text-white">
+                          {tipo.nombre}
+                        </h3>
+                        <ChevronRight
+                          size={16}
+                          className="text-[var(--text-muted)]"
+                        />
                       </div>
                       <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-[var(--text-secondary)]">
-                        {columns.area_construida && tipo.area_construida != null && (
-                          <span className="flex items-center gap-1">
-                            <Maximize size={11} className="text-[var(--text-tertiary)]" />
-                            {tipo.area_construida} m²
-                          </span>
-                        )}
-                        {columns.area_m2 && tipo.area_m2 != null && !columns.area_construida && (
-                          <span className="flex items-center gap-1">
-                            <Maximize size={11} className="text-[var(--text-tertiary)]" />
-                            {tipo.area_m2} m²
-                          </span>
-                        )}
+                        {columns.area_construida &&
+                          tipo.area_construida != null && (
+                            <span className="flex items-center gap-1">
+                              <Maximize
+                                size={11}
+                                className="text-[var(--text-tertiary)]"
+                              />
+                              {tipo.area_construida} {areaSymbol}
+                            </span>
+                          )}
+                        {columns.area_m2 &&
+                          tipo.area_m2 != null &&
+                          !columns.area_construida && (
+                            <span className="flex items-center gap-1">
+                              <Maximize
+                                size={11}
+                                className="text-[var(--text-tertiary)]"
+                              />
+                              {tipo.area_m2} {areaSymbol}
+                            </span>
+                          )}
                         {columns.area_privada && tipo.area_privada != null && (
                           <span className="flex items-center gap-1">
-                            <Maximize size={11} className="text-[var(--text-tertiary)]" />
-                            {tipo.area_privada} m²
+                            <Maximize
+                              size={11}
+                              className="text-[var(--text-tertiary)]"
+                            />
+                            {tipo.area_privada} {areaSymbol}
                           </span>
                         )}
                         {columns.area_lote && tipo.area_lote != null && (
                           <span className="flex items-center gap-1">
-                            <Maximize size={11} className="text-[var(--text-tertiary)]" />
-                            {tipo.area_lote} m²
+                            <Maximize
+                              size={11}
+                              className="text-[var(--text-tertiary)]"
+                            />
+                            {tipo.area_lote} {areaSymbol}
                           </span>
                         )}
-                        {columns.habitaciones && tipo.habitaciones !== null && tipo.habitaciones !== undefined && (
-                          <span className="flex items-center gap-1">
-                            <BedDouble size={11} className="text-[var(--text-tertiary)]" />
-                            {tipo.habitaciones} {locale === "es" ? "hab" : "beds"}
-                          </span>
-                        )}
-                        {columns.banos && tipo.banos !== null && tipo.banos !== undefined && (
-                          <span className="flex items-center gap-1">
-                            <Bath size={11} className="text-[var(--text-tertiary)]" />
-                            {tipo.banos} {locale === "es" ? "baños" : "baths"}
-                          </span>
-                        )}
+                        {columns.habitaciones &&
+                          tipo.habitaciones !== null &&
+                          tipo.habitaciones !== undefined && (
+                            <span className="flex items-center gap-1">
+                              <BedDouble
+                                size={11}
+                                className="text-[var(--text-tertiary)]"
+                              />
+                              {tipo.habitaciones}{" "}
+                              {locale === "es" ? "hab" : "beds"}
+                            </span>
+                          )}
+                        {columns.banos &&
+                          tipo.banos !== null &&
+                          tipo.banos !== undefined && (
+                            <span className="flex items-center gap-1">
+                              <Bath
+                                size={11}
+                                className="text-[var(--text-tertiary)]"
+                              />
+                              {tipo.banos}{" "}
+                              {locale === "es" ? "baños" : "baths"}
+                            </span>
+                          )}
                       </div>
                       {columns.precio && tipo.precio_desde && (
                         <p className="mt-2 text-sm font-semibold text-[var(--site-primary)]">
-                          {formatPrecio(tipo.precio_desde, locale)}
+                          {formatCurrency(tipo.precio_desde, moneda)}
                         </p>
                       )}
                     </motion.button>
@@ -628,10 +599,9 @@ export function CotizadorModal({
                   {tSite("cotizador.heading")}
                 </h2>
                 <p className="text-xs text-[var(--text-tertiary)] mb-5">
-                  {useCotizador
+                  {isCotizador
                     ? tSite("cotizador.subtitleCotizador")
-                    : tSite("cotizador.subtitle")
-                  }
+                    : tSite("cotizador.subtitleLead")}
                 </p>
 
                 {/* Back to tipología selection for multi-tipo */}
@@ -646,47 +616,39 @@ export function CotizadorModal({
                   </button>
                 )}
 
-                {/* Unit Summary */}
+                {/* Unit Summary with render image */}
                 <UnitSummary
                   unidad={activeUnidad}
                   tipologia={activeTipologia}
-                  locale={locale}
                   tCommon={tCommon}
                   tSite={tSite}
                   columns={columns}
                   unitPrefix={proyecto.unidad_display_prefix}
+                  renderUrl={renderUrl}
+                  areaSymbol={areaSymbol}
                 />
 
-                {/* Flow: either enhanced cotizador or legacy lead capture */}
-                {useCotizador ? (
-                  <CotizadorFlow
-                    unidad={activeUnidad}
-                    tipologia={activeTipologia}
-                    proyectoId={proyectoId}
-                    config={cotizadorConfig!}
-                    locale={locale}
-                    tCommon={tCommon}
-                    tSite={tSite}
-                    columns={columns}
-                    selectedTipologiaId={selectedTipo?.id}
-                    terrenoPrice={terrenoPrice}
-                    construccionPrice={construccionPrice}
-                    onSuccess={(url) => {
-                      setPdfUrl(url);
-                      setIsSubmitted(true);
-                    }}
-                  />
-                ) : (
-                  <LeadCaptureFlow
-                    unidad={activeUnidad}
-                    tipologia={activeTipologia}
-                    proyectoId={proyectoId}
-                    locale={locale}
-                    tCommon={tCommon}
-                    tSite={tSite}
-                    onSuccess={() => setIsSubmitted(true)}
-                  />
-                )}
+                {/* Unified multi-step flow (works for both cotizador and lead modes) */}
+                <CotizadorFlowMultiStep
+                  unidad={activeUnidad}
+                  tipologia={activeTipologia}
+                  proyectoId={proyectoId}
+                  locale={locale}
+                  tCommon={tCommon}
+                  tSite={tSite}
+                  columns={columns}
+                  cotizadorEnabled={isCotizador}
+                  config={cotizadorConfig}
+                  selectedTipologiaId={selectedTipo?.id}
+                  terrenoPrice={terrenoPrice}
+                  construccionPrice={construccionPrice}
+                  unitPrefix={proyecto.unidad_display_prefix}
+                  areaSymbol={areaSymbol}
+                  onSuccess={(url) => {
+                    setPdfUrl(url);
+                    setIsSubmitted(true);
+                  }}
+                />
               </div>
             )}
           </motion.div>

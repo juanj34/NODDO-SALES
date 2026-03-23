@@ -63,7 +63,7 @@ function DraggablePill({
       whileDrag={{ scale: 1.05, zIndex: 10 }}
     >
       <div
-        onPointerDown={(e) => controls.start(e)}
+        onPointerDown={(e) => { e.preventDefault(); controls.start(e); }}
         className="cursor-grab active:cursor-grabbing text-[var(--text-muted)] hover:text-[var(--text-secondary)] transition-colors touch-none"
       >
         <GripVertical size={12} />
@@ -134,7 +134,8 @@ export default function GaleriaPage() {
   const imageCount = selectedCat?.imagenes?.length || 0;
 
   /* ── Reorder ── */
-  const handleReorder = async (newOrder: GaleriaCategoria[]) => {
+  const reorderTimerRef = useRef<ReturnType<typeof setTimeout>>(undefined);
+  const handleReorder = (newOrder: GaleriaCategoria[]) => {
     // When filtered, splice reordered subset back into full list
     let fullOrder: GaleriaCategoria[];
     if (scopeFilter !== null) {
@@ -150,17 +151,20 @@ export default function GaleriaPage() {
       fullOrder = newOrder;
     }
     setOrderedCategories(fullOrder);
-    try {
-      const ids = fullOrder.map((cat) => cat.id);
-      const res = await fetch("/api/galeria/categorias/reorder", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ ids }),
-      });
-      if (!res.ok) toast.error("Error al reordenar categorías");
-    } catch {
-      toast.error("Error de conexión");
-    }
+    clearTimeout(reorderTimerRef.current);
+    reorderTimerRef.current = setTimeout(async () => {
+      try {
+        const ids = fullOrder.map((cat) => cat.id);
+        const res = await fetch("/api/galeria/categorias/reorder", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ ids }),
+        });
+        if (!res.ok) toast.error("Error al reordenar categorías");
+      } catch {
+        toast.error("Error de conexión");
+      }
+    }, 300);
   };
 
   /* ── CRUD ── */

@@ -1,5 +1,6 @@
 import { pick } from "@/lib/api-utils";
 import { getAuthContext } from "@/lib/auth-context";
+import { deleteTourFiles } from "@/lib/r2";
 import { NextRequest, NextResponse } from "next/server";
 
 export async function PUT(
@@ -31,7 +32,7 @@ export async function PUT(
     }
 
     // Build update payload
-    const updateData = pick(body, ["nombre", "descripcion", "area_m2", "area_construida", "area_privada", "area_lote", "habitaciones", "banos", "precio_desde", "plano_url", "renders", "caracteristicas", "parqueaderos", "depositos", "area_balcon", "hotspots", "ubicacion_plano_url", "torre_ids", "orden", "tipo_tipologia", "pisos", "video_id"]);
+    const updateData = pick(body, ["nombre", "descripcion", "area_m2", "area_construida", "area_privada", "area_lote", "habitaciones", "banos", "precio_desde", "plano_url", "renders", "caracteristicas", "parqueaderos", "depositos", "area_balcon", "hotspots", "ubicacion_plano_url", "torre_ids", "orden", "tipo_tipologia", "pisos", "video_id", "tour_360_url", "amenidades_data", "tiene_jacuzzi", "tiene_piscina", "tiene_bbq", "tiene_terraza", "tiene_jardin", "tiene_cuarto_servicio", "tiene_estudio", "tiene_chimenea", "tiene_doble_altura", "tiene_rooftop"]);
 
     // If precio_desde is being updated, add audit fields
     if ("precio_desde" in body && body.precio_desde !== undefined) {
@@ -93,6 +94,22 @@ export async function DELETE(
         { error: `No se puede eliminar: ${vendidaCount} unidad(es) vendida(s) asignadas a esta tipología`, code: "TIPOLOGIA_HAS_VENDIDAS" },
         { status: 409 }
       );
+    }
+
+    // Clean up R2-hosted tour files if this tipología has one
+    const r2PublicUrl = process.env.R2_PUBLIC_URL || "";
+    const { data: tipoData } = await auth.supabase
+      .from("tipologias")
+      .select("tour_360_url, proyecto_id")
+      .eq("id", id)
+      .single();
+
+    if (tipoData?.tour_360_url && r2PublicUrl && tipoData.tour_360_url.startsWith(r2PublicUrl)) {
+      try {
+        await deleteTourFiles(tipoData.proyecto_id, `tipologias/${id}`);
+      } catch {
+        // Non-blocking — proceed with deletion even if R2 cleanup fails
+      }
     }
 
     const { error } = await auth.supabase

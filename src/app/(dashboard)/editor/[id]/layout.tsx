@@ -42,6 +42,8 @@ import {
   Webhook,
   Binoculars,
   Monitor,
+  Sparkles,
+  Mail,
 } from "lucide-react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
@@ -187,6 +189,7 @@ const editorSections: TabSection[] = [
     label: "Ajustes",
     tabs: [
       { id: "config", label: "Configuracion", icon: Settings, href: "/config" },
+      { id: "correos", label: "Correos", icon: Mail, href: "/correos" },
       { id: "dominio", label: "Dominio", icon: Globe, href: "/dominio", featureKey: "custom_domain" },
       { id: "webhooks", label: "Webhooks", icon: Webhook, href: "/webhooks", featureKey: "webhooks" },
     ],
@@ -201,7 +204,8 @@ const editorSections: TabSection[] = [
     label: "Herramientas",
     tabs: [
       { id: "disponibilidad", label: "Disponibilidad", icon: ToggleLeft, href: "/disponibilidad" },
-      { id: "cotizador", label: "Cotizador", icon: Calculator, href: "/cotizador", featureKey: "cotizador" },
+      { id: "cotizador", label: "Cotizador", icon: Calculator, href: "/cotizador" },
+      { id: "addons", label: "Addons", icon: Sparkles, href: "/addons" },
     ],
   },
 ];

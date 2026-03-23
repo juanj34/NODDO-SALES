@@ -4,6 +4,7 @@ import { createClient } from "@supabase/supabase-js";
 import { calcularCotizacion } from "@/lib/cotizador/calcular";
 import { generarPDF } from "@/lib/cotizador/generar-pdf";
 import type { CotizadorConfig } from "@/types";
+import type { EmailLocale } from "@/lib/email-i18n";
 import sharp from "sharp";
 
 function getServiceClient() {
@@ -15,7 +16,7 @@ function getServiceClient() {
 
 async function fetchImageAsBase64(
   url: string | null,
-): Promise<{ base64: string; format: "JPEG" | "PNG" } | null> {
+): Promise<{ base64: string; format: "JPEG" | "PNG"; width?: number; height?: number } | null> {
   if (!url) return null;
   try {
     const res = await fetch(url, { signal: AbortSignal.timeout(5000) });
@@ -31,15 +32,19 @@ async function fetchImageAsBase64(
         .resize(1200, null, { withoutEnlargement: true })
         .jpeg({ quality: 80 })
         .toBuffer();
-      return { base64: jpegBuffer.toString("base64"), format: "JPEG" };
+      const meta = await sharp(jpegBuffer).metadata();
+      return { base64: jpegBuffer.toString("base64"), format: "JPEG", width: meta.width, height: meta.height };
     }
 
     const resized = await sharp(Buffer.from(buffer))
       .resize(1200, null, { withoutEnlargement: true })
       .toBuffer();
+    const meta = await sharp(resized).metadata();
     return {
       base64: resized.toString("base64"),
       format: isJPEG ? "JPEG" : "PNG",
+      width: meta.width,
+      height: meta.height,
     };
   } catch {
     return null;
@@ -66,9 +71,9 @@ export async function POST(
       .select(`
         *,
         proyectos(
-          id, nombre, constructora_nombre, constructora_logo_url, color_primario,
+          id, nombre, constructora_nombre, constructora_logo_url, logo_url, color_primario,
           cotizador_config, user_id, render_principal_url, tour_360_url,
-          whatsapp_numero, disclaimer
+          whatsapp_numero, disclaimer, unidad_medida_base, idioma
         )
       `)
       .eq("id", id)
@@ -90,8 +95,10 @@ export async function POST(
     // Recalculate with current config
     const resultado = calcularCotizacion(snapshot.precio, config, []);
 
-    // Fetch tipología renders
+    // Fetch tipología data (renders + floor plan + key plan)
     let tipologiaRenders: string[] = [];
+    let tipologiaPlanoUrl: string | null = null;
+    let tipologiaUbicacionPlanoUrl: string | null = null;
     if (cotizacion.unidad_id) {
       const { data: unidad } = await supabase
         .from("unidades")
@@ -102,10 +109,18 @@ export async function POST(
       if (unidad?.tipologia_id) {
         const { data: tipo } = await supabase
           .from("tipologias")
-          .select("renders")
+          .select("renders, plano_url, ubicacion_plano_url, pisos")
           .eq("id", unidad.tipologia_id)
           .single();
         tipologiaRenders = tipo?.renders ?? [];
+        // Floor plan: prefer multi-floor first piso, fallback to single plano_url
+        const pisos = tipo?.pisos as Array<{ plano_url?: string }> | null;
+        if (pisos && pisos.length > 0 && pisos[0]?.plano_url) {
+          tipologiaPlanoUrl = pisos[0].plano_url;
+        } else {
+          tipologiaPlanoUrl = tipo?.plano_url ?? null;
+        }
+        tipologiaUbicacionPlanoUrl = tipo?.ubicacion_plano_url ?? null;
       }
     }
 
@@ -116,15 +131,20 @@ export async function POST(
       tipologiaRenders[0] ||
       null;
 
-    // Fetch images
-    const [coverImage, logoImage] = await Promise.all([
+    // Fetch images in parallel
+    const [coverImage, logoImage, projectLogoImage, planoImage, keyPlanImage] = await Promise.all([
       fetchImageAsBase64(coverUrl),
       fetchImageAsBase64(cotizacion.proyectos.constructora_logo_url),
+      fetchImageAsBase64(cotizacion.proyectos.logo_url),
+      fetchImageAsBase64(tipologiaPlanoUrl),
+      fetchImageAsBase64(tipologiaUbicacionPlanoUrl),
     ]);
 
     // Regenerate PDF
     const now = new Date();
-    const fecha = now.toLocaleDateString("es-CO", { day: "numeric", month: "long", year: "numeric" });
+    const projectLocale: EmailLocale = (cotizacion.proyectos.idioma as EmailLocale) || "es";
+    const dateIntlLocale = projectLocale === "en" ? "en-US" : "es-CO";
+    const fecha = now.toLocaleDateString(dateIntlLocale, { day: "numeric", month: "long", year: "numeric" });
     const refNumber = `COT-${now.getFullYear()}-${id.slice(0, 4).toUpperCase()}`;
 
     const pdfBuffer = generarPDF({
@@ -133,7 +153,11 @@ export async function POST(
       colorPrimario: cotizacion.proyectos.color_primario,
       unidadId: snapshot.identificador,
       tipologiaName: snapshot.tipologia,
-      area: snapshot.area_m2,
+      area_construida: snapshot.area_construida ?? null,
+      area_privada: snapshot.area_privada ?? null,
+      area_lote: snapshot.area_lote ?? null,
+      area_m2: snapshot.area_m2 ?? null,
+      unidad_medida: cotizacion.proyectos.unidad_medida_base === "sqft" ? "sqft" : "m²",
       piso: snapshot.piso,
       vista: snapshot.vista,
       habitaciones: snapshot.habitaciones,
@@ -141,24 +165,50 @@ export async function POST(
       orientacion: snapshot.orientacion,
       parqueaderos: null,
       depositos: null,
+      tiene_jacuzzi: snapshot.tiene_jacuzzi ?? false,
+      tiene_piscina: snapshot.tiene_piscina ?? false,
+      tiene_bbq: snapshot.tiene_bbq ?? false,
+      tiene_terraza: snapshot.tiene_terraza ?? false,
+      tiene_jardin: snapshot.tiene_jardin ?? false,
+      tiene_cuarto_servicio: snapshot.tiene_cuarto_servicio ?? false,
+      tiene_estudio: snapshot.tiene_estudio ?? false,
+      tiene_chimenea: snapshot.tiene_chimenea ?? false,
+      tiene_doble_altura: snapshot.tiene_doble_altura ?? false,
+      tiene_rooftop: snapshot.tiene_rooftop ?? false,
       resultado,
       config,
       buyerName: cotizacion.nombre,
       buyerEmail: cotizacion.email,
       buyerPhone: cotizacion.telefono,
       agenteName: cotizacion.agente_nombre,
+      agentePhone: cotizacion.agente_telefono || null,
+      agenteEmail: null,
       fecha,
       referenceNumber: refNumber,
       coverImageBase64: coverImage?.base64 ?? null,
       coverImageFormat: coverImage?.format ?? null,
       constructoraLogoBase64: logoImage?.base64 ?? null,
       constructoraLogoFormat: logoImage?.format ?? null,
+      projectLogoBase64: projectLogoImage?.base64 ?? null,
+      projectLogoFormat: projectLogoImage?.format ?? null,
+      planoBase64: planoImage?.base64 ?? null,
+      planoFormat: planoImage?.format ?? null,
+      planoWidth: planoImage?.width ?? null,
+      planoHeight: planoImage?.height ?? null,
+      keyPlanBase64: keyPlanImage?.base64 ?? null,
+      keyPlanFormat: keyPlanImage?.format ?? null,
+      keyPlanWidth: keyPlanImage?.width ?? null,
+      keyPlanHeight: keyPlanImage?.height ?? null,
       tour360Url: cotizacion.proyectos.tour_360_url,
       whatsappNumero: cotizacion.proyectos.whatsapp_numero,
       disclaimer: cotizacion.proyectos.disclaimer,
       pdfSaludo: config.pdf_saludo ?? null,
       pdfDespedida: config.pdf_despedida ?? null,
       fechaEstimadaEntrega: config.fecha_estimada_entrega ?? null,
+      coverStyle: config.pdf_cover_style ?? "hero",
+      pdfTheme: config.pdf_theme ?? "neutral",
+      pisoLabel: snapshot.piso != null ? (projectLocale === "en" ? `Floor ${snapshot.piso}` : `Piso ${snapshot.piso}`) : null,
+      idioma: projectLocale,
     });
 
     // Upload new PDF

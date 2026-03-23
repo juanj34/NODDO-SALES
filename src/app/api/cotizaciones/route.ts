@@ -8,7 +8,7 @@ import type { EmailLocale } from "@/lib/email-i18n";
 import { isRateLimited, apiLimiter } from "@/lib/rate-limit";
 import { getWebhookConfig, dispatchWebhook } from "@/lib/webhooks";
 import type { WebhookPayload } from "@/lib/webhooks";
-import type { CotizadorConfig, FaseConfig, Unidad, Currency, ComplementoSeleccion } from "@/types";
+import type { CotizadorConfig, FaseConfig, Unidad, Currency, ComplementoSeleccion, EmailConfig } from "@/types";
 import { formatCurrency } from "@/lib/currency";
 import { logActivity } from "@/lib/activity-logger";
 import { getAuthContext } from "@/lib/auth-context";
@@ -116,7 +116,7 @@ export async function GET(request: NextRequest) {
 
 async function fetchImageAsBase64(
   url: string | null,
-): Promise<{ base64: string; format: "JPEG" | "PNG" } | null> {
+): Promise<{ base64: string; format: "JPEG" | "PNG"; width?: number; height?: number } | null> {
   if (!url) return null;
   try {
     const res = await fetch(url, { signal: AbortSignal.timeout(5000) });
@@ -130,20 +130,21 @@ async function fetchImageAsBase64(
 
     if (!isJPEG && !isPNG) {
       // Convert WebP/AVIF/other to JPEG via sharp
-      const jpegBuffer = await sharp(Buffer.from(buffer))
-        .resize(1200, null, { withoutEnlargement: true })
-        .jpeg({ quality: 80 })
-        .toBuffer();
-      return { base64: jpegBuffer.toString("base64"), format: "JPEG" };
+      const sharpInst = sharp(Buffer.from(buffer)).resize(1200, null, { withoutEnlargement: true }).jpeg({ quality: 80 });
+      const jpegBuffer = await sharpInst.toBuffer();
+      const meta = await sharp(jpegBuffer).metadata();
+      return { base64: jpegBuffer.toString("base64"), format: "JPEG", width: meta.width, height: meta.height };
     }
 
     // Resize raster images to keep PDF small
-    const resized = await sharp(Buffer.from(buffer))
-      .resize(1200, null, { withoutEnlargement: true })
-      .toBuffer();
+    const sharpInst = sharp(Buffer.from(buffer)).resize(1200, null, { withoutEnlargement: true });
+    const resized = await sharpInst.toBuffer();
+    const meta = await sharp(resized).metadata();
     return {
       base64: resized.toString("base64"),
       format: isJPEG ? "JPEG" : "PNG",
+      width: meta.width,
+      height: meta.height,
     };
   } catch (err) {
     console.warn("[cotizaciones] Image fetch failed:", url, err);
@@ -209,7 +210,7 @@ export async function POST(request: NextRequest) {
     // Fetch project with cotizador config
     const { data: proyecto, error: projErr } = await supabase
       .from("proyectos")
-      .select("id, nombre, constructora_nombre, constructora_logo_url, color_primario, cotizador_enabled, cotizador_config, user_id, render_principal_url, tour_360_url, whatsapp_numero, disclaimer, parqueaderos_mode, depositos_mode, parqueaderos_precio_base, depositos_precio_base, idioma, tipo_proyecto, precio_source")
+      .select("id, nombre, slug, subdomain, custom_domain, domain_verified, constructora_nombre, constructora_logo_url, logo_url, color_primario, cotizador_enabled, cotizador_config, email_config, user_id, render_principal_url, tour_360_url, brochure_url, whatsapp_numero, disclaimer, parqueaderos_mode, depositos_mode, parqueaderos_precio_base, depositos_precio_base, idioma, tipo_proyecto, precio_source, unidad_medida_base")
       .eq("id", proyecto_id)
       .single();
 
@@ -253,14 +254,44 @@ export async function POST(request: NextRequest) {
     const effectiveTipologiaId = unit.tipologia_id || selectedTipologiaId || null;
     let tipologiaName: string | null = null;
     let tipologiaRenders: string[] = [];
+    let tipologiaPlanoUrl: string | null = null;
+    let tipologiaUbicacionPlanoUrl: string | null = null;
+    let tieneJacuzzi = false;
+    let tienePiscina = false;
+    let tieneBbq = false;
+    let tieneTerraza = false;
+    let tieneJardin = false;
+    let tieneCuartoServicio = false;
+    let tieneEstudio = false;
+    let tieneChimenea = false;
+    let tieneDobleAltura = false;
+    let tieneRooftop = false;
     if (effectiveTipologiaId) {
       const { data: tipo } = await supabase
         .from("tipologias")
-        .select("nombre, renders, area_m2, area_construida, area_privada, area_lote, precio_desde, habitaciones, banos")
+        .select("nombre, renders, area_m2, area_construida, area_privada, area_lote, precio_desde, habitaciones, banos, plano_url, ubicacion_plano_url, pisos, tiene_jacuzzi, tiene_piscina, tiene_bbq, tiene_terraza, tiene_jardin, tiene_cuarto_servicio, tiene_estudio, tiene_chimenea, tiene_doble_altura, tiene_rooftop")
         .eq("id", effectiveTipologiaId)
         .single();
       tipologiaName = tipo?.nombre ?? null;
       tipologiaRenders = tipo?.renders ?? [];
+      tieneJacuzzi = tipo?.tiene_jacuzzi ?? false;
+      tienePiscina = tipo?.tiene_piscina ?? false;
+      tieneBbq = tipo?.tiene_bbq ?? false;
+      tieneTerraza = tipo?.tiene_terraza ?? false;
+      tieneJardin = tipo?.tiene_jardin ?? false;
+      tieneCuartoServicio = tipo?.tiene_cuarto_servicio ?? false;
+      tieneEstudio = tipo?.tiene_estudio ?? false;
+      tieneChimenea = tipo?.tiene_chimenea ?? false;
+      tieneDobleAltura = tipo?.tiene_doble_altura ?? false;
+      tieneRooftop = tipo?.tiene_rooftop ?? false;
+      // Floor plan: prefer multi-floor first piso, fallback to single plano_url
+      const pisos = tipo?.pisos as Array<{ plano_url?: string }> | null;
+      if (pisos && pisos.length > 0 && pisos[0]?.plano_url) {
+        tipologiaPlanoUrl = pisos[0].plano_url;
+      } else {
+        tipologiaPlanoUrl = tipo?.plano_url ?? null;
+      }
+      tipologiaUbicacionPlanoUrl = tipo?.ubicacion_plano_url ?? null;
 
       // Tipología pricing: price comes from tipología, not from unit
       if (isTipologiaPricing && tipo?.precio_desde != null) {
@@ -317,7 +348,7 @@ export async function POST(request: NextRequest) {
             // New format: respect es_extra and precio_negociado
             return {
               complemento_id: c.id,
-              tipo: c.tipo as "parqueadero" | "deposito",
+              tipo: c.tipo as "parqueadero" | "deposito" | "addon",
               identificador: c.identificador,
               subtipo: c.subtipo,
               precio: sel.es_extra ? (sel.precio_negociado ?? c.precio) : null,
@@ -332,7 +363,7 @@ export async function POST(request: NextRequest) {
             : proyecto.depositos_mode;
           return {
             complemento_id: c.id,
-            tipo: c.tipo as "parqueadero" | "deposito",
+            tipo: c.tipo as "parqueadero" | "deposito" | "addon",
             identificador: c.identificador,
             subtipo: c.subtipo,
             precio: mode === "inventario_separado" ? c.precio : null,
@@ -376,10 +407,40 @@ export async function POST(request: NextRequest) {
       null;
 
     // Fetch images in parallel (with timeout, graceful degradation)
-    const [coverImage, logoImage] = await Promise.all([
+    const [coverImage, logoImage, projectLogoImage, planoImage, keyPlanImage] = await Promise.all([
       fetchImageAsBase64(coverUrl),
       fetchImageAsBase64(proyecto.constructora_logo_url),
+      fetchImageAsBase64(proyecto.logo_url),
+      fetchImageAsBase64(tipologiaPlanoUrl),
+      fetchImageAsBase64(tipologiaUbicacionPlanoUrl),
     ]);
+
+    // Fetch agent profile if agent_id provided
+    let agenteNombreCompleto = agente_nombre ? sanitize(agente_nombre, 200) : null;
+    let agenteTelefono: string | null = null;
+    let agenteEmail: string | null = null;
+    let agenteAvatarUrl: string | null = null;
+
+    if (agente_id) {
+      const { data: agentProfile } = await supabase
+        .from("user_profiles")
+        .select("nombre, apellido, telefono, avatar_url")
+        .eq("user_id", agente_id)
+        .maybeSingle();
+
+      if (agentProfile) {
+        const fullName = [agentProfile.nombre, agentProfile.apellido].filter(Boolean).join(" ");
+        if (fullName) agenteNombreCompleto = fullName;
+        agenteTelefono = agentProfile.telefono;
+        agenteAvatarUrl = agentProfile.avatar_url;
+      }
+
+      // Get agent email from auth
+      const { data: agentUser } = await supabase.auth.admin.getUserById(agente_id);
+      if (agentUser?.user?.email) {
+        agenteEmail = agentUser.user.email;
+      }
+    }
 
     // Generate PDF
     const now = new Date();
@@ -395,7 +456,11 @@ export async function POST(request: NextRequest) {
       colorPrimario: proyecto.color_primario,
       unidadId: unit.identificador,
       tipologiaName,
-      area: unit.area_m2,
+      area_construida: unit.area_construida,
+      area_privada: unit.area_privada,
+      area_lote: unit.area_lote,
+      area_m2: unit.area_m2,
+      unidad_medida: proyecto.unidad_medida_base === "sqft" ? "sqft" : "m²",
       piso: unit.piso,
       vista: unit.vista,
       habitaciones: unit.habitaciones,
@@ -403,25 +468,50 @@ export async function POST(request: NextRequest) {
       orientacion: unit.orientacion,
       parqueaderos: unit.parqueaderos,
       depositos: unit.depositos,
+      tiene_jacuzzi: tieneJacuzzi,
+      tiene_piscina: tienePiscina,
+      tiene_bbq: tieneBbq,
+      tiene_terraza: tieneTerraza,
+      tiene_jardin: tieneJardin,
+      tiene_cuarto_servicio: tieneCuartoServicio,
+      tiene_estudio: tieneEstudio,
+      tiene_chimenea: tieneChimenea,
+      tiene_doble_altura: tieneDobleAltura,
+      tiene_rooftop: tieneRooftop,
       resultado,
       config: effectiveConfig,
       complementos: complementoSelecciones.length > 0 ? complementoSelecciones : undefined,
       buyerName: sanitize(nombre, 200),
       buyerEmail: sanitize(email, 320),
       buyerPhone: telefono ? sanitize(telefono, 30) : null,
-      agenteName: agente_nombre ? sanitize(agente_nombre, 200) : null,
+      agenteName: agenteNombreCompleto,
+      agentePhone: agenteTelefono,
+      agenteEmail,
       fecha,
       referenceNumber: refNumber,
       coverImageBase64: coverImage?.base64 ?? null,
       coverImageFormat: coverImage?.format ?? null,
       constructoraLogoBase64: logoImage?.base64 ?? null,
       constructoraLogoFormat: logoImage?.format ?? null,
+      projectLogoBase64: projectLogoImage?.base64 ?? null,
+      projectLogoFormat: projectLogoImage?.format ?? null,
+      planoBase64: planoImage?.base64 ?? null,
+      planoFormat: planoImage?.format ?? null,
+      planoWidth: planoImage?.width ?? null,
+      planoHeight: planoImage?.height ?? null,
+      keyPlanBase64: keyPlanImage?.base64 ?? null,
+      keyPlanFormat: keyPlanImage?.format ?? null,
+      keyPlanWidth: keyPlanImage?.width ?? null,
+      keyPlanHeight: keyPlanImage?.height ?? null,
       tour360Url: proyecto.tour_360_url,
       whatsappNumero: proyecto.whatsapp_numero,
       disclaimer: proyecto.disclaimer,
       pdfSaludo: config.pdf_saludo ?? null,
       pdfDespedida: config.pdf_despedida ?? null,
       fechaEstimadaEntrega: config.fecha_estimada_entrega ?? null,
+      coverStyle: config.pdf_cover_style ?? "hero",
+      pdfTheme: config.pdf_theme ?? "neutral",
+      pisoLabel: unit.piso != null ? (projectLocale === "en" ? `Floor ${unit.piso}` : `Piso ${unit.piso}`) : null,
       idioma: projectLocale,
     });
 
@@ -441,6 +531,16 @@ export async function POST(request: NextRequest) {
       orientacion: unit.orientacion,
       lote: unit.lote,
       etapa_nombre: unit.etapa_nombre,
+      tiene_jacuzzi: tieneJacuzzi || undefined,
+      tiene_piscina: tienePiscina || undefined,
+      tiene_bbq: tieneBbq || undefined,
+      tiene_terraza: tieneTerraza || undefined,
+      tiene_jardin: tieneJardin || undefined,
+      tiene_cuarto_servicio: tieneCuartoServicio || undefined,
+      tiene_estudio: tieneEstudio || undefined,
+      tiene_chimenea: tieneChimenea || undefined,
+      tiene_doble_altura: tieneDobleAltura || undefined,
+      tiene_rooftop: tieneRooftop || undefined,
     };
     // Track if tipología was buyer-selected (not pre-assigned)
     if (!unit.tipologia_id && selectedTipologiaId) {
@@ -450,7 +550,6 @@ export async function POST(request: NextRequest) {
     if (complementoSelecciones.length > 0) {
       unidadSnapshot.complementos = complementoSelecciones;
     }
-
     // Upload PDF to Supabase Storage
     const pdfPath = `cotizaciones/${proyecto_id}/${cotizacionId}.pdf`;
 
@@ -487,7 +586,9 @@ export async function POST(request: NextRequest) {
         utm_medium: utm_medium ? sanitize(utm_medium, 200) : null,
         utm_campaign: utm_campaign ? sanitize(utm_campaign, 200) : null,
         agente_id: agente_id || null,
-        agente_nombre: agente_nombre ? sanitize(agente_nombre, 200) : null,
+        agente_nombre: agenteNombreCompleto || null,
+        agente_telefono: agenteTelefono || null,
+        agente_avatar_url: agenteAvatarUrl || null,
       });
 
     if (insertErr) {
@@ -535,6 +636,24 @@ export async function POST(request: NextRequest) {
 
     // Send emails (async, non-blocking)
     const totalFormatted = formatCurrency(resultado.precio_total ?? resultado.precio_neto, moneda);
+    const emailCfg = proyecto.email_config as EmailConfig | null;
+
+    // Build microsite URL for action buttons
+    const rootDomain = process.env.NEXT_PUBLIC_ROOT_DOMAIN || "noddo.io";
+    const micrositeUrl = proyecto.custom_domain && proyecto.domain_verified
+      ? `https://${proyecto.custom_domain}`
+      : `https://${proyecto.subdomain || proyecto.slug}.${rootDomain}`;
+
+    // Fetch recursos for email attachments if needed
+    let recursosForEmail: { id: string; nombre: string; url: string }[] | undefined;
+    if (emailCfg?.adjuntos_recurso_ids?.length) {
+      const { data: recRows } = await supabase
+        .from("recursos")
+        .select("id, nombre, url")
+        .in("id", emailCfg.adjuntos_recurso_ids)
+        .eq("proyecto_id", proyecto_id);
+      if (recRows) recursosForEmail = recRows;
+    }
 
     // Email to buyer with PDF (project's language)
     sendCotizacionBuyer({
@@ -545,6 +664,21 @@ export async function POST(request: NextRequest) {
       totalFormatted,
       pdfBuffer,
       locale: projectLocale,
+      emailConfig: emailCfg,
+      projectSlug: proyecto.slug,
+      projectLogoUrl: proyecto.logo_url,
+      constructoraLogoUrl: proyecto.constructora_logo_url,
+      constructoraNombre: proyecto.constructora_nombre,
+      colorPrimario: proyecto.color_primario,
+      whatsappNumero: proyecto.whatsapp_numero,
+      tour360Url: proyecto.tour_360_url,
+      brochureUrl: proyecto.brochure_url,
+      micrositeUrl,
+      recursos: recursosForEmail,
+      agentName: agenteNombreCompleto,
+      agentPhone: agenteTelefono,
+      agentEmail: agenteEmail,
+      agentAvatarUrl: agenteAvatarUrl,
     }).catch((err) => console.error("[cotizaciones] Buyer email failed:", err));
 
     // Email to admin (admin's language)

@@ -122,6 +122,7 @@ export function calcularCotizacion(
       cuotas,
       monto_por_cuota,
       frecuencia: fase.frecuencia,
+      fecha: fase.fecha || undefined,
     });
 
     acumulado += monto_total;

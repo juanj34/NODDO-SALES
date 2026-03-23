@@ -44,7 +44,7 @@ export interface CustomColumnDef {
 
 /* ── Inventory Column Visibility ──────────────────────────────────────── */
 
-export type TipoTipologia = "apartamento" | "casa" | "lote";
+export type TipoTipologia = "apartamento" | "casa" | "lote" | "local_comercial";
 
 export interface InventoryColumnConfig {
   area_m2: boolean;
@@ -108,6 +108,16 @@ export interface Proyecto {
   hide_noddo_badge: boolean;
   ocultar_vendidas: boolean;
   ocultar_precio_vendidas: boolean;
+  habilitar_extra_jacuzzi: boolean;
+  habilitar_extra_piscina: boolean;
+  habilitar_extra_bbq: boolean;
+  habilitar_extra_terraza: boolean;
+  habilitar_extra_jardin: boolean;
+  habilitar_extra_cuarto_servicio: boolean;
+  habilitar_extra_estudio: boolean;
+  habilitar_extra_chimenea: boolean;
+  habilitar_extra_doble_altura: boolean;
+  habilitar_extra_rooftop: boolean;
   idioma: "es" | "en";
   moneda_base: Currency;
   unidad_medida_base: UnitOfMeasurement;
@@ -119,6 +129,7 @@ export interface Proyecto {
   tipologia_mode: "fija" | "multiple";
   precio_source: "unidad" | "tipologia";
   cotizador_config: CotizadorConfig | null;
+  email_config: EmailConfig | null;
   webhook_config: WebhookConfig | null;
   inventory_columns: InventoryColumnConfig | null;
   inventory_columns_by_type: InventoryColumnsByType | null;
@@ -186,6 +197,18 @@ export interface Tipologia {
   precio_actualizado_en: string | null;
   precio_actualizado_por: string | null;
   video_id: string | null;
+  tour_360_url: string | null;
+  amenidades_data: AmenidadItem[] | null;
+  tiene_jacuzzi: boolean;
+  tiene_piscina: boolean;
+  tiene_bbq: boolean;
+  tiene_terraza: boolean;
+  tiene_jardin: boolean;
+  tiene_cuarto_servicio: boolean;
+  tiene_estudio: boolean;
+  tiene_chimenea: boolean;
+  tiene_doble_altura: boolean;
+  tiene_rooftop: boolean;
 }
 
 export interface GaleriaCategoria {
@@ -490,9 +513,25 @@ export interface Colaborador {
   invited_at: string;
   activated_at: string | null;
   created_at: string;
+  profile?: {
+    nombre: string;
+    apellido: string;
+    telefono: string | null;
+    avatar_url: string | null;
+  } | null;
 }
 
 export type UserRole = "admin" | "colaborador";
+
+/* ── User Profiles ── */
+
+export interface UserProfile {
+  user_id: string;
+  nombre: string;
+  apellido: string;
+  telefono: string | null;
+  avatar_url: string | null;
+}
 
 /* ── Analytics ── */
 
@@ -669,6 +708,7 @@ export interface FaseConfig {
   valor: number;
   cuotas: number;
   frecuencia: "unica" | "mensual" | "bimestral" | "trimestral";
+  fecha?: string;
 }
 
 export interface DescuentoConfig {
@@ -689,6 +729,27 @@ export interface CotizadorConfig {
   pdf_despedida?: string;
   fecha_estimada_entrega?: string;
   portada_url?: string;
+  // PDF style options
+  pdf_cover_style?: "hero" | "minimalista";
+  pdf_theme?: "dark" | "neutral";
+}
+
+/* -- Email Configuration -- */
+
+export interface EmailConfig {
+  reply_to: string | null;
+  show_project_logo: boolean;
+  show_constructora_logo: boolean;
+  saludo: string | null;
+  cuerpo: string | null;
+  despedida: string | null;
+  adjuntar_cotizacion_pdf: boolean;
+  adjuntar_brochure: boolean;
+  adjuntos_recurso_ids: string[];
+  boton_whatsapp: boolean;
+  boton_tour_360: boolean;
+  boton_brochure_link: boolean;
+  boton_micrositio: boolean;
 }
 
 export interface FaseResultado {
@@ -697,6 +758,7 @@ export interface FaseResultado {
   cuotas: number;
   monto_por_cuota: number;
   frecuencia: string;
+  fecha?: string;
 }
 
 export interface ResultadoCotizacion {
@@ -851,7 +913,7 @@ export interface Complemento {
   proyecto_id: string;
   torre_id: string | null;
   unidad_id: string | null;
-  tipo: "parqueadero" | "deposito";
+  tipo: "parqueadero" | "deposito" | "addon";
   subtipo: string | null;
   identificador: string;
   nivel: string | null;
@@ -865,7 +927,7 @@ export interface Complemento {
 
 export interface ComplementoSeleccion {
   complemento_id: string;
-  tipo: "parqueadero" | "deposito";
+  tipo: "parqueadero" | "deposito" | "addon";
   identificador: string;
   subtipo: string | null;
   precio: number | null;
@@ -916,6 +978,7 @@ export interface ActivityLog {
   id: string;
   user_id: string | null;
   user_email: string;
+  user_name: string | null;
   user_role: "admin" | "colaborador";
   proyecto_id: string | null;
   proyecto_nombre: string | null;

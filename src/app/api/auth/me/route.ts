@@ -13,6 +13,7 @@ export async function GET() {
       role: auth.role,
       adminUserId: auth.adminUserId,
       isPlatformAdmin: auth.isPlatformAdmin,
+      profile: auth.profile,
     });
   } catch (err) {
     return NextResponse.json(

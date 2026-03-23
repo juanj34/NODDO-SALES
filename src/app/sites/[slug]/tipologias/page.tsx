@@ -28,11 +28,15 @@ import {
   Images,
   Archive,
   Play,
+  View,
+  Waves,
+  UtensilsCrossed, Sun, TreePine, DoorClosed, BookOpen,
+  Flame, MoveVertical, CloudSun,
 } from "lucide-react";
 import { getVideoSrc, getVideoThumb } from "@/lib/video-utils";
 import { SiteEmptyState } from "@/components/site/SiteEmptyState";
 import VistaModal from "@/components/site/VistaModal";
-import { getInventoryColumns, getHybridInventoryColumns, getPrimaryArea } from "@/lib/inventory-columns";
+import { getInventoryColumns, getHybridInventoryColumns, resolveColumnsForTipologia, getPrimaryArea } from "@/lib/inventory-columns";
 import { resolveHotspotImages } from "@/lib/hotspot-utils";
 import { resolvePisos } from "@/lib/piso-utils";
 import { formatCurrency } from "@/lib/currency";
@@ -131,6 +135,7 @@ export default function TipologiasPage() {
   const [showPlanoZoom, setShowPlanoZoom] = useState(false);
   const [showVistaModal, setShowVistaModal] = useState<VistaPiso | null>(null);
   const [showVideoModal, setShowVideoModal] = useState(false);
+  const [showTourModal, setShowTourModal] = useState(false);
   const [activePisoIdx, setActivePisoIdx] = useState(0);
 
   // Image ref for hotspot container
@@ -192,6 +197,10 @@ export default function TipologiasPage() {
         case "Escape":
           // Lightbox and VistaModal handle their own ESC
           if (showRenderGallery || showPlanoZoom || showVistaModal) return;
+          if (showTourModal) {
+            setShowTourModal(false);
+            return;
+          }
           if (showVideoModal) {
             setShowVideoModal(false);
             return;
@@ -225,14 +234,14 @@ export default function TipologiasPage() {
     window.addEventListener("keydown", handleKey);
     return () => window.removeEventListener("keydown", handleKey);
     // eslint-disable-next-line react-hooks/exhaustive-deps -- setActiveIndex is a state setter, stable
-  }, [activeHotspot, closeHotspot, selectedUnit, showRenderGallery, showPlanoZoom, showVistaModal, showVideoModal, showUbicacion, visibleTipologias.length]);
+  }, [activeHotspot, closeHotspot, selectedUnit, showRenderGallery, showPlanoZoom, showVistaModal, showVideoModal, showTourModal, showUbicacion, visibleTipologias.length]);
 
   const active = visibleTipologias[activeIndex] ?? visibleTipologias[0];
 
   // Multi-floor support
   const pisos = useMemo(() => (active ? resolvePisos(active) : []), [active]);
   // Reset floor index and video modal when tipología changes
-  useEffect(() => { setActivePisoIdx(0); setShowVideoModal(false); }, [active?.id]);
+  useEffect(() => { setActivePisoIdx(0); setShowVideoModal(false); setShowTourModal(false); }, [active?.id]);
   const activePiso = pisos[activePisoIdx] ?? pisos[0] ?? null;
 
   // Compute columns & isLoteBased dynamically based on active tipología's tipo_tipologia for hybrid
@@ -241,11 +250,13 @@ export default function TipologiasPage() {
     : (isCasas || isLotes);
 
   const columns = useMemo(() => {
-    if (isHibrido && active?.tipo_tipologia) {
-      return getHybridInventoryColumns(active.tipo_tipologia, (proyecto as any).inventory_columns_microsite_by_type ?? proyecto.inventory_columns_by_type);
-    }
-    return getInventoryColumns(proyecto.tipo_proyecto ?? "hibrido", (proyecto as any).inventory_columns_microsite ?? proyecto.inventory_columns);
-  }, [isHibrido, active?.tipo_tipologia, proyecto.tipo_proyecto, proyecto.inventory_columns, proyecto.inventory_columns_by_type]);
+    return resolveColumnsForTipologia(
+      active?.tipo_tipologia ?? null,
+      proyecto.tipo_proyecto ?? "hibrido",
+      (proyecto as any).inventory_columns_microsite ?? proyecto.inventory_columns,
+      (proyecto as any).inventory_columns_microsite_by_type ?? proyecto.inventory_columns_by_type,
+    );
+  }, [active?.tipo_tipologia, proyecto.tipo_proyecto, proyecto.inventory_columns, proyecto.inventory_columns_by_type]);
 
   // Tipologías available for the selected unit (for multi-tipo banner comparison)
   const unitAvailableTipos = useMemo(() => {
@@ -364,6 +375,9 @@ export default function TipologiasPage() {
     ) ?? null;
   }, [active?.video_id, proyecto.videos]);
 
+  // Resolve linked tour 360 for active tipología
+  const linkedTour = active?.tour_360_url || null;
+
   // Floor plan images for Lightbox zoom (all floors, starting from activePisoIdx)
   const planoImages: LightboxImage[] = useMemo(() => {
     const withPlano = pisos.filter((p) => p.plano_url);
@@ -474,6 +488,11 @@ export default function TipologiasPage() {
                 )}
               >
                 <span className="text-base font-medium tracking-wide">{tipo.nombre}</span>
+                {tipo.tipo_tipologia === "local_comercial" && (
+                  <span className="ml-2 px-1.5 py-px rounded-full text-[8px] font-ui font-bold uppercase tracking-[0.15em] bg-[rgba(var(--site-primary-rgb),0.12)] text-[var(--site-primary)]">
+                    {tSite("tipologias.comercial")}
+                  </span>
+                )}
                 {isActive && (
                   <motion.div
                     layoutId="tipo-tab-indicator"
@@ -596,8 +615,8 @@ export default function TipologiasPage() {
                   </div>
                 )}
 
-                {/* Render gallery + Video buttons — bottom left */}
-                {(renderImages.length > 0 || linkedVideo) && !selectedUnit && (
+                {/* Render gallery + Video + Tour buttons — bottom left */}
+                {(renderImages.length > 0 || linkedVideo || linkedTour) && !selectedUnit && (
                   <div className="absolute bottom-4 left-4 z-10 flex flex-col gap-2">
                     {/* Renders button */}
                     {renderImages.length > 0 && (
@@ -653,6 +672,27 @@ export default function TipologiasPage() {
                         </div>
                       </button>
                     )}
+
+                    {/* Tour 360 button */}
+                    {linkedTour && (
+                      <button
+                        onClick={() => setShowTourModal(true)}
+                        className="bg-[var(--surface-2)] rounded-xl overflow-hidden border border-[var(--border-default)] shadow-lg cursor-pointer group transition-all hover:border-[rgba(var(--site-primary-rgb),0.4)] hover:shadow-[var(--glow-sm)] flex items-center gap-2.5 px-3 py-2.5"
+                      >
+                        <div className="w-10 h-10 rounded-lg overflow-hidden flex-shrink-0 bg-[var(--surface-3)] flex items-center justify-center">
+                          <View size={16} className="text-[var(--site-primary)]" />
+                        </div>
+                        <div className="text-left">
+                          <span className="text-[11px] text-[var(--text-secondary)] font-medium tracking-wide flex items-center gap-1.5">
+                            <View size={12} className="text-[var(--site-primary)]" />
+                            {tSite("tipologias.viewTour360")}
+                          </span>
+                          <span className="text-[10px] text-[var(--text-muted)]">
+                            Tour 360
+                          </span>
+                        </div>
+                      </button>
+                    )}
                   </div>
                 )}
 
@@ -678,75 +718,105 @@ export default function TipologiasPage() {
                 <AnimatePresence>
                   {selectedUnit && (
                     <motion.div
-                      initial={{ opacity: 0, y: 20 }}
+                      initial={{ opacity: 0, y: 24 }}
                       animate={{ opacity: 1, y: 0 }}
-                      exit={{ opacity: 0, y: 20 }}
-                      transition={{ type: "spring", damping: 25 }}
-                      className="absolute bottom-4 left-4 right-4 z-20 rounded-2xl p-4 border border-[var(--glass-border)]"
-                      style={{ background: "rgba(0,0,0,0.92)", backdropFilter: "blur(32px)", WebkitBackdropFilter: "blur(32px)" }}
+                      exit={{ opacity: 0, y: 24 }}
+                      transition={{ type: "spring", damping: 28, stiffness: 300 }}
+                      className="absolute bottom-4 left-4 right-4 z-20 rounded-[1.25rem] overflow-hidden"
+                      style={{
+                        background: "rgba(10, 10, 11, 0.82)",
+                        backdropFilter: "blur(40px) saturate(1.4)",
+                        WebkitBackdropFilter: "blur(40px) saturate(1.4)",
+                        boxShadow: "0 -4px 40px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.06), 0 0 0 1px rgba(255,255,255,0.08)",
+                      }}
                     >
-                      <button
-                        onClick={() => setSelectedUnit(null)}
-                        aria-label={tSite("tipologias.closeDetail")}
-                        className="absolute top-3 right-3 p-1.5 rounded-full bg-[var(--glass-bg-hover)] hover:bg-[var(--glass-bg-hover)] transition-colors cursor-pointer"
-                      >
-                        <X size={12} className="text-[var(--text-secondary)]" />
-                      </button>
+                      {/* Top accent line */}
+                      <div className="h-px w-full" style={{ background: `linear-gradient(90deg, transparent, rgba(var(--site-primary-rgb), 0.4), transparent)` }} />
 
-                      <div className="flex items-start gap-4">
-                        <div className="flex-1">
-                          <div className="flex items-center gap-2 mb-1">
-                            <h3 className="text-base font-medium text-[var(--text-primary)]">
+                      <div className="p-4 flex gap-4">
+                        {/* Render thumbnail */}
+                        {active?.renders?.[0] && (
+                          <div className="flex-shrink-0 w-20 h-20 rounded-xl overflow-hidden border border-white/8 relative">
+                            <img
+                              src={active.renders[0]}
+                              alt={active.nombre}
+                              className="w-full h-full object-cover"
+                            />
+                            <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent" />
+                          </div>
+                        )}
+
+                        {/* Info section */}
+                        <div className="flex-1 min-w-0">
+                          {/* Header: unit name + status + tipología name */}
+                          <div className="flex items-center gap-2 mb-1.5">
+                            <h3 className="text-base font-medium text-[var(--text-primary)] truncate">
                               {getUnitDisplayName(selectedUnit, unitPrefix)}
                             </h3>
                             {(() => {
                               const cfg = estadoConfigDynamic[selectedUnit.estado];
                               return (
-                                <span className={cn("inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-medium", cfg.bg, cfg.color)}>
+                                <span className={cn("inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-medium flex-shrink-0", cfg.bg, cfg.color)}>
                                   <span className={cn("w-1.5 h-1.5 rounded-full", cfg.dot)} />
                                   {cfg.label}
                                 </span>
                               );
                             })()}
+                            {active && (
+                              <span className="text-[11px] font-mono text-[var(--text-tertiary)] truncate flex-shrink-0">
+                                {active.nombre}
+                              </span>
+                            )}
                           </div>
 
-                          <div className="flex flex-wrap gap-x-4 gap-y-1 font-mono text-xs text-[var(--text-secondary)] mb-2">
-                            {columns.area_m2 && selectedUnit.area_m2 && (
-                              <span className="flex items-center gap-1">
-                                <Maximize size={11} /> {selectedUnit.area_m2} m²
+                          {/* Specs as pill-style items — fall back to tipología values when unit fields are null.
+                              Column config gates unit-specific fields (piso, orientacion, vista).
+                              Tipología-level specs (hab, baños, areas, parq) always show when available,
+                              matching the sidebar behavior. */}
+                          <div className="flex flex-wrap gap-1.5 mb-2.5">
+                            {(selectedUnit.area_m2 ?? bannerTipo?.area_m2) != null && (
+                              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg text-[11px] font-mono text-[var(--text-secondary)] bg-white/5 border border-white/6">
+                                <Maximize size={10} className="text-[var(--site-primary)] opacity-70" /> {selectedUnit.area_m2 ?? bannerTipo?.area_m2} m²
                               </span>
                             )}
-                            {columns.area_construida && selectedUnit.area_construida != null && (
-                              <span className="flex items-center gap-1">
-                                <Maximize size={11} /> {selectedUnit.area_construida} m² {tSite("tipologias.areaConstruida").toLowerCase()}
+                            {(selectedUnit.area_construida ?? bannerTipo?.area_construida) != null && (
+                              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg text-[11px] font-mono text-[var(--text-secondary)] bg-white/5 border border-white/6">
+                                <Maximize size={10} className="text-[var(--site-primary)] opacity-70" /> {selectedUnit.area_construida ?? bannerTipo?.area_construida} m² {tSite("tipologias.areaConstruida").toLowerCase()}
                               </span>
                             )}
-                            {columns.area_privada && selectedUnit.area_privada != null && (
-                              <span className="flex items-center gap-1">
-                                <Maximize size={11} /> {selectedUnit.area_privada} m² {tSite("tipologias.areaPrivada").toLowerCase()}
+                            {(selectedUnit.area_privada ?? bannerTipo?.area_privada) != null && (
+                              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg text-[11px] font-mono text-[var(--text-secondary)] bg-white/5 border border-white/6">
+                                <Maximize size={10} className="text-[var(--site-primary)] opacity-70" /> {selectedUnit.area_privada ?? bannerTipo?.area_privada} m² {tSite("tipologias.areaPrivada").toLowerCase()}
                               </span>
                             )}
-                            {columns.area_lote && selectedUnit.area_lote != null && (
-                              <span className="flex items-center gap-1">
-                                <Maximize size={11} /> {selectedUnit.area_lote} m² {tSite("tipologias.areaLote").toLowerCase()}
+                            {(selectedUnit.area_lote ?? bannerTipo?.area_lote) != null && (
+                              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg text-[11px] font-mono text-[var(--text-secondary)] bg-white/5 border border-white/6">
+                                <Maximize size={10} className="text-[var(--site-primary)] opacity-70" /> {selectedUnit.area_lote ?? bannerTipo?.area_lote} m² {tSite("tipologias.areaLote").toLowerCase()}
                               </span>
                             )}
                             {columns.piso && selectedUnit.piso && (
-                              <span>{tSite("tipologias.floor")} {selectedUnit.piso}</span>
-                            )}
-                            {columns.habitaciones && selectedUnit.habitaciones !== null && (
-                              <span className="flex items-center gap-1">
-                                <BedDouble size={11} /> {selectedUnit.habitaciones} {tSite("cotizador.hab")}
+                              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg text-[11px] font-mono text-[var(--text-secondary)] bg-white/5 border border-white/6">
+                                <Building2 size={10} className="text-[var(--site-primary)] opacity-70" /> {tSite("tipologias.floor")} {selectedUnit.piso}
                               </span>
                             )}
-                            {columns.banos && selectedUnit.banos !== null && (
-                              <span className="flex items-center gap-1">
-                                <Bath size={11} /> {selectedUnit.banos} {tSite("cotizador.banos")}
+                            {(selectedUnit.habitaciones ?? bannerTipo?.habitaciones) != null && (
+                              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg text-[11px] font-mono text-[var(--text-secondary)] bg-white/5 border border-white/6">
+                                <BedDouble size={10} className="text-[var(--site-primary)] opacity-70" /> {selectedUnit.habitaciones ?? bannerTipo?.habitaciones} {tSite("cotizador.hab")}
                               </span>
                             )}
+                            {(selectedUnit.banos ?? bannerTipo?.banos) != null && (
+                              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg text-[11px] font-mono text-[var(--text-secondary)] bg-white/5 border border-white/6">
+                                <Bath size={10} className="text-[var(--site-primary)] opacity-70" /> {selectedUnit.banos ?? bannerTipo?.banos} {tSite("cotizador.banos")}
+                              </span>
+                            )}
+                            {(() => { const p = selectedUnit.parqueaderos ?? bannerTipo?.parqueaderos; return p != null && p > 0 ? (
+                              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg text-[11px] font-mono text-[var(--text-secondary)] bg-white/5 border border-white/6">
+                                <Car size={10} className="text-[var(--site-primary)] opacity-70" /> {p} Parq.
+                              </span>
+                            ) : null; })()}
                             {columns.orientacion && selectedUnit.orientacion && (
-                              <span className="flex items-center gap-1">
-                                <Compass size={11} /> {selectedUnit.orientacion}
+                              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg text-[11px] font-mono text-[var(--text-secondary)] bg-white/5 border border-white/6">
+                                <Compass size={10} className="text-[var(--site-primary)] opacity-70" /> {selectedUnit.orientacion}
                               </span>
                             )}
                             {columns.vista && (() => {
@@ -756,111 +826,135 @@ export default function TipologiasPage() {
                               return unitVista ? (
                                 <button
                                   onClick={() => setShowVistaModal(unitVista)}
-                                  className="flex items-center gap-1 text-[var(--site-primary)] hover:opacity-80 transition-opacity cursor-pointer"
+                                  className="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg text-[11px] font-mono bg-white/5 border border-white/6 text-[var(--site-primary)] hover:bg-white/8 transition-colors cursor-pointer"
                                 >
-                                  <Eye size={11} />
+                                  <Eye size={10} />
                                   {tSite("tipologias.verVista")}
                                 </button>
                               ) : selectedUnit.vista ? (
-                                <span className="flex items-center gap-1">
-                                  <Eye size={11} /> {selectedUnit.vista}
+                                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg text-[11px] font-mono text-[var(--text-secondary)] bg-white/5 border border-white/6">
+                                  <Eye size={10} className="text-[var(--site-primary)] opacity-70" /> {selectedUnit.vista}
                                 </span>
                               ) : null;
                             })()}
                           </div>
 
-                          {columns.precio && !(selectedUnit.estado === "vendida" && ocultarPrecioVendidas) && (isTipologiaPricing ? active?.precio_desde : (selectedUnit.precio || (isLoteBased && bannerTipo?.precio_desde))) && (() => {
-                            if (isTipologiaPricing && active?.precio_desde) {
-                              return (
-                                <p className="font-mono text-lg text-[var(--site-primary)] tabular-nums">
-                                  {formatCurrency(active.precio_desde, proyecto.moneda_base ?? "COP")}
-                                </p>
-                              );
-                            }
-                            const terreno = selectedUnit.precio;
-                            const unitComplementos = (proyecto.parqueaderos_mode !== "sin_inventario" || proyecto.depositos_mode !== "sin_inventario")
-                              ? (proyecto.complementos ?? []).filter(c => c.unidad_id === selectedUnit.id)
-                              : [];
-                            const complementosTotal = unitComplementos.reduce((s, c) => s + (c.precio ?? 0), 0);
+                          {/* Características tags */}
+                          {active?.caracteristicas && active.caracteristicas.length > 0 && (
+                            <div className="flex flex-wrap gap-1 mb-2">
+                              {active.caracteristicas.slice(0, 4).map((c) => (
+                                <span key={c} className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md text-[9px] font-mono uppercase tracking-wider text-[var(--text-tertiary)] border border-white/5">
+                                  <CheckCircle2 size={8} className="text-[var(--site-primary)] opacity-60" />
+                                  {c}
+                                </span>
+                              ))}
+                              {active.caracteristicas.length > 4 && (
+                                <span className="inline-flex items-center px-1.5 py-0.5 rounded-md text-[9px] font-mono text-[var(--text-muted)]">
+                                  +{active.caracteristicas.length - 4}
+                                </span>
+                              )}
+                            </div>
+                          )}
 
-                            // Lote-based multi-tipo: show all tipologías side by side
-                            if (isLoteBased && isMultiTipo && unitAvailableTipos.length > 0) {
-                              return (
-                                <div className="flex gap-4">
-                                  {unitAvailableTipos.map((t) => {
-                                    const construccion = t.precio_desde ?? 0;
-                                    const total = (terreno ?? 0) + construccion;
-                                    return (
-                                      <div key={t.id} className="flex-1 min-w-0">
-                                        <p className="text-[10px] text-[var(--text-secondary)] mb-0.5 truncate">{t.nombre}</p>
-                                        <p className="font-mono text-base text-[var(--site-primary)] tabular-nums">
-                                          {terreno && construccion
-                                            ? formatCurrency(total, proyecto.moneda_base ?? "COP")
-                                            : construccion
-                                              ? formatCurrency(construccion, proyecto.moneda_base ?? "COP")
-                                              : "—"}
-                                        </p>
-                                        {terreno && construccion ? (
-                                          <p className="font-mono text-[9px] text-[var(--text-tertiary)]">
-                                            {formatCurrency(terreno, proyecto.moneda_base ?? "COP")} + {formatCurrency(construccion, proyecto.moneda_base ?? "COP")}
-                                          </p>
-                                        ) : null}
-                                      </div>
-                                    );
-                                  })}
-                                </div>
-                              );
-                            }
-
-                            // Lote-based single-tipo: show composite or construction-only
-                            if (isLoteBased && active?.precio_desde) {
-                              const construccion = active.precio_desde;
-                              const total = (terreno ?? 0) + construccion + complementosTotal;
-                              return (
-                                <div>
-                                  <p className="font-mono text-lg text-[var(--site-primary)] tabular-nums">
-                                    {terreno
-                                      ? formatCurrency(total, proyecto.moneda_base ?? "COP")
-                                      : formatCurrency(construccion, proyecto.moneda_base ?? "COP")}
-                                  </p>
-                                  <p className="font-mono text-[9px] text-[var(--text-tertiary)]">
-                                    {terreno
-                                      ? `${tSite("tipologias.terrain")} ${formatCurrency(terreno, proyecto.moneda_base ?? "COP")} + ${tSite("tipologias.construction")} ${formatCurrency(construccion, proyecto.moneda_base ?? "COP")}`
-                                      : tSite("tipologias.construction")}
-                                    {complementosTotal > 0 && ` + ${unitComplementos.length} complemento(s)`}
-                                  </p>
-                                </div>
-                              );
-                            }
-
-                            // Regular projects: unit price + complementos
-                            if (!terreno) return null;
-                            const totalPrecio = terreno + complementosTotal;
-                            return unitComplementos.length > 0 ? (
-                              <div>
-                                <p className="font-mono text-lg text-[var(--site-primary)] tabular-nums">
-                                  {formatCurrency(totalPrecio, proyecto.moneda_base ?? "COP")}
-                                </p>
-                                <p className="font-mono text-[9px] text-[var(--text-tertiary)]">
-                                  Inmueble {formatCurrency(terreno, proyecto.moneda_base ?? "COP")} + {unitComplementos.length} complemento(s)
-                                </p>
-                              </div>
-                            ) : (
-                              <p className="font-mono text-lg text-[var(--site-primary)] tabular-nums">
-                                {formatCurrency(terreno, proyecto.moneda_base ?? "COP")}
-                              </p>
-                            );
-                          })()}
                         </div>
 
-                        {/* Cotizar button */}
-                        <button
-                          onClick={() => setCotizarUnidad(selectedUnit)}
-                          className="flex-shrink-0 btn-warm px-5 py-2.5 flex items-center gap-2 text-xs tracking-wider cursor-pointer"
-                        >
-                          <Sparkles size={14} />
-                          {tSite("tipologias.enquire")}
-                        </button>
+                        {/* Price + CTA column */}
+                        <div className="flex-shrink-0 flex flex-col items-end justify-between gap-2">
+                          {/* Close button */}
+                          <button
+                            onClick={() => setSelectedUnit(null)}
+                            aria-label={tSite("tipologias.closeDetail")}
+                            className="p-1.5 rounded-full bg-white/6 hover:bg-white/10 transition-colors cursor-pointer"
+                          >
+                            <X size={12} className="text-[var(--text-secondary)]" />
+                          </button>
+
+                          {/* Price */}
+                          <div className="text-right">
+                            {columns.precio && !(selectedUnit.estado === "vendida" && ocultarPrecioVendidas) && (isTipologiaPricing ? active?.precio_desde : (selectedUnit.precio || (isLoteBased && bannerTipo?.precio_desde))) && (() => {
+                              if (isTipologiaPricing && active?.precio_desde) {
+                                return (
+                                  <p className="font-mono text-lg text-[var(--site-primary)] tabular-nums font-medium">
+                                    {formatCurrency(active.precio_desde, proyecto.moneda_base ?? "COP")}
+                                  </p>
+                                );
+                              }
+                              const terreno = selectedUnit.precio;
+                              const unitComplementos = (proyecto.parqueaderos_mode !== "sin_inventario" || proyecto.depositos_mode !== "sin_inventario")
+                                ? (proyecto.complementos ?? []).filter(c => c.unidad_id === selectedUnit.id)
+                                : [];
+                              const complementosTotal = unitComplementos.reduce((s, c) => s + (c.precio ?? 0), 0);
+
+                              if (isLoteBased && isMultiTipo && unitAvailableTipos.length > 0) {
+                                return (
+                                  <div className="flex gap-3">
+                                    {unitAvailableTipos.map((t) => {
+                                      const construccion = t.precio_desde ?? 0;
+                                      const total = (terreno ?? 0) + construccion;
+                                      return (
+                                        <div key={t.id} className="text-right">
+                                          <p className="text-[9px] text-[var(--text-secondary)] mb-0.5 truncate">{t.nombre}</p>
+                                          <p className="font-mono text-sm text-[var(--site-primary)] tabular-nums">
+                                            {terreno && construccion
+                                              ? formatCurrency(total, proyecto.moneda_base ?? "COP")
+                                              : construccion
+                                                ? formatCurrency(construccion, proyecto.moneda_base ?? "COP")
+                                                : "—"}
+                                          </p>
+                                        </div>
+                                      );
+                                    })}
+                                  </div>
+                                );
+                              }
+
+                              if (isLoteBased && active?.precio_desde) {
+                                const construccion = active.precio_desde;
+                                const total = (terreno ?? 0) + construccion + complementosTotal;
+                                return (
+                                  <div>
+                                    <p className="font-mono text-lg text-[var(--site-primary)] tabular-nums font-medium">
+                                      {terreno
+                                        ? formatCurrency(total, proyecto.moneda_base ?? "COP")
+                                        : formatCurrency(construccion, proyecto.moneda_base ?? "COP")}
+                                    </p>
+                                    <p className="font-mono text-[9px] text-[var(--text-tertiary)]">
+                                      {terreno
+                                        ? `${tSite("tipologias.terrain")} + ${tSite("tipologias.construction")}`
+                                        : tSite("tipologias.construction")}
+                                    </p>
+                                  </div>
+                                );
+                              }
+
+                              if (!terreno) return null;
+                              const totalPrecio = terreno + complementosTotal;
+                              return unitComplementos.length > 0 ? (
+                                <div>
+                                  <p className="font-mono text-lg text-[var(--site-primary)] tabular-nums font-medium">
+                                    {formatCurrency(totalPrecio, proyecto.moneda_base ?? "COP")}
+                                  </p>
+                                  <p className="font-mono text-[9px] text-[var(--text-tertiary)]">
+                                    + {unitComplementos.length} complemento(s)
+                                  </p>
+                                </div>
+                              ) : (
+                                <p className="font-mono text-lg text-[var(--site-primary)] tabular-nums font-medium">
+                                  {formatCurrency(terreno, proyecto.moneda_base ?? "COP")}
+                                </p>
+                              );
+                            })()}
+                          </div>
+
+                          {/* Cotizar button */}
+                          <button
+                            onClick={() => setCotizarUnidad(selectedUnit)}
+                            className="flex-shrink-0 btn-warm px-5 py-2.5 flex items-center gap-2 text-xs tracking-wider cursor-pointer"
+                          >
+                            <Sparkles size={14} />
+                            {tSite("tipologias.enquire")}
+                          </button>
+                        </div>
                       </div>
                     </motion.div>
                   )}
@@ -941,6 +1035,7 @@ export default function TipologiasPage() {
                             ))}
                           </div>
                         )}
+
                       </div>
                     </motion.div>
                   )}
@@ -990,9 +1085,9 @@ export default function TipologiasPage() {
                 })()}
 
                 {/* Quick stats row */}
-                {(active.habitaciones != null || active.banos != null || active.parqueaderos != null || (active.depositos ?? 0) > 0) && (
+                {(((columns.habitaciones !== false) && active.habitaciones != null) || ((columns.banos !== false) && active.banos != null) || active.parqueaderos != null || (active.depositos ?? 0) > 0) && (
                   <div className="flex items-center gap-3 flex-wrap">
-                    {active.habitaciones != null && (
+                    {columns.habitaciones !== false && active.habitaciones != null && (
                       <div className="flex items-center gap-1.5">
                         <BedDouble size={13} className="text-[var(--site-primary)]" strokeWidth={2.5} />
                         <span className="font-mono text-xs text-[var(--text-primary)] tabular-nums">
@@ -1000,7 +1095,7 @@ export default function TipologiasPage() {
                         </span>
                       </div>
                     )}
-                    {active.banos != null && (
+                    {columns.banos !== false && active.banos != null && (
                       <div className="flex items-center gap-1.5">
                         <Bath size={13} className="text-[var(--site-primary)]" strokeWidth={2.5} />
                         <span className="font-mono text-xs text-[var(--text-primary)] tabular-nums">
@@ -1024,6 +1119,27 @@ export default function TipologiasPage() {
                         </span>
                       </div>
                     )}
+                    {([
+                      { field: "tiene_jacuzzi" as const, icon: Bath, labelKey: "tipologias.jacuzzi" },
+                      { field: "tiene_piscina" as const, icon: Waves, labelKey: "tipologias.piscina" },
+                      { field: "tiene_bbq" as const, icon: UtensilsCrossed, labelKey: "tipologias.bbq" },
+                      { field: "tiene_terraza" as const, icon: Sun, labelKey: "tipologias.terraza" },
+                      { field: "tiene_jardin" as const, icon: TreePine, labelKey: "tipologias.jardin" },
+                      { field: "tiene_cuarto_servicio" as const, icon: DoorClosed, labelKey: "tipologias.cuartoServicio" },
+                      { field: "tiene_estudio" as const, icon: BookOpen, labelKey: "tipologias.estudio" },
+                      { field: "tiene_chimenea" as const, icon: Flame, labelKey: "tipologias.chimenea" },
+                      { field: "tiene_doble_altura" as const, icon: MoveVertical, labelKey: "tipologias.dobleAltura" },
+                      { field: "tiene_rooftop" as const, icon: CloudSun, labelKey: "tipologias.rooftop" },
+                    ] as const).map(({ field, icon: Icon, labelKey }) => (
+                      active[field] && (
+                        <div key={field} className="flex items-center gap-1.5">
+                          <Icon size={13} className="text-[var(--site-primary)]" strokeWidth={2.5} />
+                          <span className="font-mono text-xs text-[var(--text-primary)]">
+                            {tSite(labelKey)}
+                          </span>
+                        </div>
+                      )
+                    ))}
                   </div>
                 )}
 
@@ -1341,6 +1457,43 @@ export default function TipologiasPage() {
               />
               <CloseButton
                 onClick={() => setShowVideoModal(false)}
+                variant="dark"
+                size={16}
+                className="absolute top-3 right-3"
+              />
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* ====== TOUR 360 MODAL ====== */}
+      <AnimatePresence>
+        {showTourModal && linkedTour && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.2 }}
+            className="fixed inset-0 z-[70] flex items-center justify-center p-8"
+            onClick={() => setShowTourModal(false)}
+          >
+            <div className="absolute inset-0 bg-black/70 backdrop-blur-md" />
+            <motion.div
+              initial={{ opacity: 0, scale: 0.92 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.92 }}
+              transition={{ duration: 0.25, ease: [0.4, 0, 0.2, 1] }}
+              className="relative w-full max-w-5xl aspect-video rounded-2xl overflow-hidden shadow-2xl bg-black"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <iframe
+                src={linkedTour}
+                className="w-full h-full border-0"
+                allowFullScreen
+                title="Tour 360"
+              />
+              <CloseButton
+                onClick={() => setShowTourModal(false)}
                 variant="dark"
                 size={16}
                 className="absolute top-3 right-3"

@@ -27,6 +27,7 @@ import {
   Calendar,
   List,
   Type,
+  Store,
 } from "lucide-react";
 import { useSiteProject, useSiteBasePath } from "@/hooks/useSiteProject";
 import { usePersistedState } from "@/hooks/usePersistedState";
@@ -37,7 +38,7 @@ import { SiteEmptyState } from "@/components/site/SiteEmptyState";
 import { cn } from "@/lib/utils";
 import { formatCurrency } from "@/lib/currency";
 import { getUnitDisplayName } from "@/lib/unit-display";
-import { getInventoryColumns, getHybridInventoryColumns, getPrimaryArea, getVisibleCustomColumns } from "@/lib/inventory-columns";
+import { getInventoryColumns, getHybridInventoryColumns, resolveColumnsForTipologia, getPrimaryArea, getVisibleCustomColumns } from "@/lib/inventory-columns";
 import type { Unidad, UnidadTipologia, TipoTipologia, CustomColumnDef } from "@/types";
 
 type SortKey = "identificador_asc" | "identificador_desc" | "precio_asc" | "precio_desc" | "area_asc" | "area_desc" | "piso_asc" | "piso_desc" | `custom_${string}_asc` | `custom_${string}_desc`;
@@ -139,35 +140,46 @@ export default function InventarioPage() {
     return null;
   }, [isTipologiaPricing, tipologias, ocultarPrecioVendidas, isMultiTipo, unidadTipologias]);
 
-  // Hybrid tipo tabs
+  // Tipo tabs (hybrid + commercial)
   const [activeTipoTab, setActiveTipoTab] = useState<TipoTipologia | null>(null);
+  const hasCommercialTipos = useMemo(() =>
+    (tipologias || []).some(t => t.tipo_tipologia === "local_comercial"),
+    [tipologias]
+  );
+  const showTipoTabs = isHibrido || hasCommercialTipos;
+
   const availableTipoTabs = useMemo(() => {
-    if (!isHibrido) return [] as TipoTipologia[];
+    if (!showTipoTabs) return [] as TipoTipologia[];
     const types = new Set((tipologias || []).map(t => t.tipo_tipologia).filter((v): v is TipoTipologia => !!v));
-    return (["apartamento", "casa", "lote"] as TipoTipologia[]).filter(tipo => types.has(tipo));
-  }, [isHibrido, tipologias]);
+    return (["apartamento", "casa", "lote", "local_comercial"] as TipoTipologia[]).filter(tipo => types.has(tipo));
+  }, [showTipoTabs, tipologias]);
 
   useEffect(() => {
-    if (isHibrido && availableTipoTabs.length > 0 && !activeTipoTab) {
+    if (showTipoTabs && availableTipoTabs.length > 0 && !activeTipoTab) {
       setActiveTipoTab(availableTipoTabs[0]);
     }
-  }, [isHibrido, availableTipoTabs, activeTipoTab]);
+  }, [showTipoTabs, availableTipoTabs, activeTipoTab]);
 
   const tipoTabTipologiaIds = useMemo(() => {
-    if (!isHibrido || !activeTipoTab) return null;
+    if (!showTipoTabs || !activeTipoTab) return null;
     return new Set((tipologias || []).filter(t => t.tipo_tipologia === activeTipoTab).map(t => t.id));
-  }, [isHibrido, activeTipoTab, tipologias]);
+  }, [showTipoTabs, activeTipoTab, tipologias]);
 
   const isLoteBased = isHibrido
     ? (activeTipoTab === "casa" || activeTipoTab === "lote")
     : (isCasas || isLotes);
 
   const columns = useMemo(() => {
-    if (isHibrido && activeTipoTab) {
-      return getHybridInventoryColumns(activeTipoTab, (proyecto as any).inventory_columns_microsite_by_type ?? proyecto.inventory_columns_by_type);
+    if (showTipoTabs && activeTipoTab) {
+      return resolveColumnsForTipologia(
+        activeTipoTab,
+        proyecto.tipo_proyecto ?? "hibrido",
+        (proyecto as any).inventory_columns_microsite ?? proyecto.inventory_columns,
+        (proyecto as any).inventory_columns_microsite_by_type ?? proyecto.inventory_columns_by_type,
+      );
     }
     return getInventoryColumns(proyecto.tipo_proyecto ?? "hibrido", (proyecto as any).inventory_columns_microsite ?? proyecto.inventory_columns);
-  }, [isHibrido, activeTipoTab, proyecto.tipo_proyecto, proyecto.inventory_columns, proyecto.inventory_columns_by_type]);
+  }, [showTipoTabs, activeTipoTab, proyecto.tipo_proyecto, proyecto.inventory_columns, proyecto.inventory_columns_by_type]);
 
   // Filter state for select-type custom columns: key → selected value ("todas" = all)
   const [customFilters, setCustomFilters] = useState<Record<string, string>>({});
@@ -446,12 +458,12 @@ export default function InventarioPage() {
           </div>
         </div>
 
-        {/* ====== HYBRID TIPO TABS ====== */}
-        {isHibrido && availableTipoTabs.length > 0 && (
+        {/* ====== TIPO TABS (hybrid + commercial) ====== */}
+        {showTipoTabs && availableTipoTabs.length > 1 && (
           <div className="flex items-center gap-1.5 mb-3">
             {availableTipoTabs.map((tipo) => {
-              const Icon = tipo === "apartamento" ? Building2 : tipo === "casa" ? Home : MapPin;
-              const label = tipo === "apartamento" ? tSite("inventario.tabApartamentos") : tipo === "casa" ? tSite("inventario.tabCasas") : tSite("inventario.tabLotes");
+              const Icon = tipo === "apartamento" ? Building2 : tipo === "casa" ? Home : tipo === "local_comercial" ? Store : MapPin;
+              const label = tipo === "apartamento" ? tSite("inventario.tabApartamentos") : tipo === "casa" ? tSite("inventario.tabCasas") : tipo === "local_comercial" ? tSite("inventario.tabLocales") : tSite("inventario.tabLotes");
               const isActive = activeTipoTab === tipo;
               return (
                 <button

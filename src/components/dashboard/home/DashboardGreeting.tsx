@@ -7,6 +7,7 @@ import { useTranslation } from "@/i18n";
 
 interface Props {
   userEmail: string;
+  userName?: string | null;
   isAdmin: boolean;
   onCreateClick: () => void;
 }
@@ -33,10 +34,10 @@ function extractName(email: string): string {
   return local.charAt(0).toUpperCase() + local.slice(1);
 }
 
-export function DashboardGreeting({ userEmail, isAdmin, onCreateClick }: Props) {
+export function DashboardGreeting({ userEmail, userName, isAdmin, onCreateClick }: Props) {
   const { t } = useTranslation("dashboard");
   const greeting = getGreeting(t);
-  const name = extractName(userEmail);
+  const name = userName || extractName(userEmail);
   const date = formatDate();
 
   return (

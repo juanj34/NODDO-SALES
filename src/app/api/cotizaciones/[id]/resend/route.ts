@@ -3,7 +3,7 @@ import { getAuthContext } from "@/lib/auth-context";
 import { createClient } from "@supabase/supabase-js";
 import { sendCotizacionBuyer } from "@/lib/email";
 import { formatCurrency } from "@/lib/currency";
-import type { Currency } from "@/types";
+import type { Currency, EmailConfig } from "@/types";
 
 function getServiceClient() {
   return createClient(
@@ -26,10 +26,10 @@ export async function POST(
     const { id } = await params;
     const supabase = getServiceClient();
 
-    // Fetch cotización with project data
+    // Fetch cotización with full project data for branded email
     const { data: cotizacion, error } = await supabase
       .from("cotizaciones")
-      .select("*, proyectos(nombre, user_id, idioma)")
+      .select("*, proyectos(nombre, slug, subdomain, custom_domain, domain_verified, user_id, idioma, email_config, logo_url, constructora_logo_url, constructora_nombre, color_primario, whatsapp_numero, tour_360_url, brochure_url)")
       .eq("id", id)
       .single();
 
@@ -56,16 +56,50 @@ export async function POST(
     // Format total
     const moneda = (cotizacion.config_snapshot?.moneda || "COP") as Currency;
     const totalFormatted = formatCurrency(cotizacion.resultado.precio_neto, moneda);
+    const p = cotizacion.proyectos;
+    const emailCfg = p.email_config as EmailConfig | null;
+
+    // Build microsite URL
+    const rootDomain = process.env.NEXT_PUBLIC_ROOT_DOMAIN || "noddo.io";
+    const micrositeUrl = p.custom_domain && p.domain_verified
+      ? `https://${p.custom_domain}`
+      : `https://${p.subdomain || p.slug}.${rootDomain}`;
+
+    // Fetch recursos for attachments if needed
+    let recursosForEmail: { id: string; nombre: string; url: string }[] | undefined;
+    if (emailCfg?.adjuntos_recurso_ids?.length) {
+      const { data: recRows } = await supabase
+        .from("recursos")
+        .select("id, nombre, url")
+        .in("id", emailCfg.adjuntos_recurso_ids)
+        .eq("proyecto_id", cotizacion.proyecto_id);
+      if (recRows) recursosForEmail = recRows;
+    }
 
     // Resend email (project's language)
     await sendCotizacionBuyer({
       buyerEmail: cotizacion.email,
       buyerName: cotizacion.nombre,
-      projectName: cotizacion.proyectos.nombre,
+      projectName: p.nombre,
       unidadId: cotizacion.unidad_snapshot.identificador,
       totalFormatted,
       pdfBuffer,
-      locale: cotizacion.proyectos.idioma || "es",
+      locale: p.idioma || "es",
+      emailConfig: emailCfg,
+      projectSlug: p.slug,
+      projectLogoUrl: p.logo_url,
+      constructoraLogoUrl: p.constructora_logo_url,
+      constructoraNombre: p.constructora_nombre,
+      colorPrimario: p.color_primario,
+      whatsappNumero: p.whatsapp_numero,
+      tour360Url: p.tour_360_url,
+      brochureUrl: p.brochure_url,
+      micrositeUrl,
+      recursos: recursosForEmail,
+      agentName: cotizacion.agente_nombre || null,
+      agentPhone: cotizacion.agente_telefono || null,
+      agentEmail: null,
+      agentAvatarUrl: cotizacion.agente_avatar_url || null,
     });
 
     return NextResponse.json({ success: true });

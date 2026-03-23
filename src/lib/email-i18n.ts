@@ -50,6 +50,13 @@ interface CotizacionBuyerStrings {
   labels: { unit: string; total: string };
   body: string;        // "Adjunto encontrarás..."
   filename: string;    // "Cotizacion" / "Quote"
+  // Branded email defaults & CTA labels
+  defaultSaludo: string;
+  defaultDespedida: string;
+  whatsappCta: string;
+  tourCta: string;
+  brochureCta: string;
+  micrositeCta: string;
 }
 
 interface CotizacionAdminStrings {
@@ -201,6 +208,12 @@ const es: EmailStrings = {
     labels: { unit: "Unidad", total: "Total" },
     body: "Adjunto encontrarás tu cotización en PDF con el desglose completo del plan de pagos.",
     filename: "Cotizacion",
+    defaultSaludo: "Gracias por tu interés en nuestro proyecto.",
+    defaultDespedida: "El equipo comercial",
+    whatsappCta: "Escribir por WhatsApp",
+    tourCta: "Ver Tour 360",
+    brochureCta: "Ver Brochure",
+    micrositeCta: "Ver Proyecto",
   },
 
   cotizacionAdmin: {
@@ -354,6 +367,12 @@ const en: EmailStrings = {
     labels: { unit: "Unit", total: "Total" },
     body: "Attached you will find your quote in PDF with the complete breakdown of the payment plan.",
     filename: "Quote",
+    defaultSaludo: "Thank you for your interest in our project.",
+    defaultDespedida: "The sales team",
+    whatsappCta: "Message on WhatsApp",
+    tourCta: "View Tour 360",
+    brochureCta: "View Brochure",
+    micrositeCta: "View Project",
   },
 
   cotizacionAdmin: {
