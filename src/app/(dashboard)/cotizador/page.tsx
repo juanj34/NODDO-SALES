@@ -7,17 +7,25 @@ import {
   Loader2, ExternalLink, FileText, Search, Download, User,
   Plus, Trash2, Car, Package, Sparkles,
   Minus, AlertTriangle, Calendar, ChevronRight, ArrowLeft,
+  BedDouble, Bath, Eye, Maximize2, Phone, Globe,
+  ChevronDown, Mail, Ruler, Tag, Check,
+  Waves, UtensilsCrossed, Sun, TreePine,
+  DoorClosed, BookOpen, Flame, MoveVertical, CloudSun,
+  LandPlot, Fence, Building2, Home,
 } from "lucide-react";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
 import { formatCurrency } from "@/lib/currency";
-import type { Currency, ComplementoMode, ComplementoSeleccion, Complemento, Tipologia, UnidadTipologia } from "@/types";
+import type { Currency, ComplementoMode, ComplementoSeleccion, Complemento, Tipologia, UnidadTipologia, Lead } from "@/types";
 import { useTranslation } from "@/i18n";
 import { useToast } from "@/components/dashboard/Toast";
 import { useAuthRole } from "@/hooks/useAuthContext";
 import { calcularCotizacion, buildPrecioBaseComplementos } from "@/lib/cotizador/calcular";
 import type { CotizadorConfig, ResultadoCotizacion } from "@/types";
 import { CurrencyInput } from "@/components/dashboard/CurrencyInput";
+import { NodDoDropdown } from "@/components/ui/NodDoDropdown";
+import type { Option } from "@/components/ui/NodDoDropdown";
+import { COUNTRY_CODES } from "@/lib/booking-constants";
 import type { PaymentRow } from "@/lib/cotizador/payment-rows";
 import {
   newRowId,
@@ -31,6 +39,7 @@ import {
   paymentRowsFromConfig,
   paymentRowsToFases,
 } from "@/lib/cotizador/payment-rows";
+import { resolveDeliveryContext } from "@/lib/cotizador/delivery";
 
 /* ── Types ─────────────────────────────────────────────── */
 
@@ -39,6 +48,9 @@ interface UnitRow {
   identificador: string;
   piso: number | null;
   area_m2: number | null;
+  area_construida: number | null;
+  area_privada: number | null;
+  area_lote: number | null;
   precio: number | null;
   estado: string;
   habitaciones: number | null;
@@ -47,7 +59,26 @@ interface UnitRow {
   parqueaderos: number | null;
   depositos: number | null;
   tipologia_id: string | null;
-  tipologia: { nombre: string; parqueaderos: number | null; depositos: number | null; precio_desde: number | null } | null;
+  tipologia: {
+    nombre: string;
+    parqueaderos: number | null;
+    depositos: number | null;
+    precio_desde: number | null;
+    area_construida: number | null;
+    area_privada: number | null;
+    area_balcon: number | null;
+    area_lote: number | null;
+    tiene_jacuzzi: boolean;
+    tiene_piscina: boolean;
+    tiene_bbq: boolean;
+    tiene_terraza: boolean;
+    tiene_jardin: boolean;
+    tiene_cuarto_servicio: boolean;
+    tiene_estudio: boolean;
+    tiene_chimenea: boolean;
+    tiene_doble_altura: boolean;
+    tiene_rooftop: boolean;
+  } | null;
   torre: { nombre: string } | null;
 }
 
@@ -65,6 +96,28 @@ interface ProjectForCotizador {
   precio_source: "unidad" | "tipologia";
   tipologia_mode: "fija" | "multiple";
 }
+
+/* ── Extras config ────────────────────────────────────── */
+
+type LucideIcon = React.ComponentType<{ size?: number; className?: string }>;
+
+const EXTRAS_CONFIG: { field: string; label: string; icon: LucideIcon }[] = [
+  { field: "tiene_jacuzzi", label: "Jacuzzi", icon: Waves },
+  { field: "tiene_piscina", label: "Piscina", icon: Waves },
+  { field: "tiene_bbq", label: "BBQ", icon: UtensilsCrossed },
+  { field: "tiene_terraza", label: "Terraza", icon: Sun },
+  { field: "tiene_jardin", label: "Jardín", icon: TreePine },
+  { field: "tiene_cuarto_servicio", label: "Cuarto de servicio", icon: DoorClosed },
+  { field: "tiene_estudio", label: "Estudio", icon: BookOpen },
+  { field: "tiene_chimenea", label: "Chimenea", icon: Flame },
+  { field: "tiene_doble_altura", label: "Doble altura", icon: MoveVertical },
+  { field: "tiene_rooftop", label: "Rooftop", icon: CloudSun },
+];
+
+const countryCodeOptions: Option[] = COUNTRY_CODES.map((cc) => ({
+  value: cc.code,
+  label: `${cc.flag} ${cc.code}`,
+}));
 
 /* ── Helpers ───────────────────────────────────────────── */
 
@@ -136,6 +189,12 @@ export default function CotizadorPage() {
   const [clientName, setClientName] = useState("");
   const [clientEmail, setClientEmail] = useState("");
   const [clientPhone, setClientPhone] = useState("");
+  const [clientCountryCode, setClientCountryCode] = useState("+57");
+  const [clientMode, setClientMode] = useState<"nuevo" | "buscar">("buscar");
+  const [clientSearch, setClientSearch] = useState("");
+  const [clientSearchResults, setClientSearchResults] = useState<Lead[]>([]);
+  const [searchingClients, setSearchingClients] = useState(false);
+  const [selectedLeadId, setSelectedLeadId] = useState<string | null>(null);
 
   /* ── Generation ── */
   const [generating, setGenerating] = useState(false);
@@ -233,9 +292,19 @@ export default function CotizadorPage() {
   // Initialize payment rows from project config when project changes
   useEffect(() => {
     if (config) {
-      const entrega = config.fecha_estimada_entrega || "";
-      setFechaEntrega(entrega);
-      setPaymentRows(paymentRowsFromConfig(config, 0, "", entrega));
+      const dc = resolveDeliveryContext(config);
+      if (dc) {
+        // Auto-populate dates from delivery config
+        const compra = formatDateDisplay(dc.fechaInicio);
+        const entrega = formatDateDisplay(dc.fechaEntrega);
+        setFechaCompra(compra);
+        setFechaEntrega(entrega);
+        setPaymentRows(paymentRowsFromConfig(config, 0, compra, entrega, dc));
+      } else {
+        const entrega = config.fecha_estimada_entrega || "";
+        setFechaEntrega(entrega);
+        setPaymentRows(paymentRowsFromConfig(config, 0, "", entrega));
+      }
       setSelectedDiscounts([]);
       setPaymentPlanNombre(config.payment_plan_nombre ?? "");
       setAdminFee(config.admin_fee ?? 0);
@@ -254,7 +323,8 @@ export default function CotizadorPage() {
 
   useEffect(() => {
     if (config && selectedUnitPrice && selectedUnitPrice > 0) {
-      setPaymentRows(paymentRowsFromConfig(config, 0, fechaCompra, fechaEntrega));
+      const dc = resolveDeliveryContext(config);
+      setPaymentRows(paymentRowsFromConfig(config, 0, fechaCompra, fechaEntrega, dc));
     }
   }, [selectedUnitId]); // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -270,6 +340,29 @@ export default function CotizadorPage() {
       .map((ut) => ut.tipologia_id);
     setSelectedQuoteTipId(unitTipoIds.length === 1 ? unitTipoIds[0] : null);
   }, [selectedUnitId, selectedTipologiaId, isMultiTipo, unidadTipologias]);
+
+  // Client search debounce
+  useEffect(() => {
+    if (clientMode !== "buscar" || clientSearch.trim().length < 2) {
+      setClientSearchResults([]);
+      return;
+    }
+    const timer = setTimeout(async () => {
+      setSearchingClients(true);
+      try {
+        const params = new URLSearchParams({ search: clientSearch.trim(), limit: "5" });
+        if (selectedProjectId) params.set("proyecto_id", selectedProjectId);
+        const res = await fetch(`/api/leads?${params.toString()}`);
+        if (res.ok) {
+          const json = await res.json();
+          setClientSearchResults(json.data ?? []);
+        }
+      } finally {
+        setSearchingClients(false);
+      }
+    }, 300);
+    return () => clearTimeout(timer);
+  }, [clientSearch, clientMode, selectedProjectId]);
 
   /* ── Filtered units ── */
 
@@ -564,7 +657,7 @@ export default function CotizadorPage() {
           tipologia_id: isMultiTipo ? selectedQuoteTipId : undefined,
           nombre: clientName.trim(),
           email: clientEmail.trim(),
-          telefono: clientPhone.trim() || undefined,
+          telefono: clientPhone.trim() ? `${clientCountryCode}${clientPhone.trim()}` : undefined,
           agente_id: user?.id,
           agente_nombre: user?.email,
           custom_fases: paymentRowsToFases(paymentRows, rawTotal),
@@ -590,6 +683,9 @@ export default function CotizadorPage() {
         setClientName("");
         setClientEmail("");
         setClientPhone("");
+        setClientCountryCode("+57");
+        setSelectedLeadId(null);
+        setClientMode("nuevo");
         setSelectedQuoteTipId(null);
         setCurrentStep(0);
       } else {
@@ -741,7 +837,7 @@ export default function CotizadorPage() {
                         : "bg-[var(--surface-2)] text-[var(--text-tertiary)] hover:text-[var(--text-secondary)]"
                     )}
                   >
-                    Todos ({cotizableUnits.length})
+                    Todos <span className="font-mono">({cotizableUnits.length})</span>
                   </button>
                   {tipologiasFromUnits.map((tip) => (
                     <button
@@ -754,7 +850,7 @@ export default function CotizadorPage() {
                           : "bg-[var(--surface-2)] text-[var(--text-tertiary)] hover:text-[var(--text-secondary)]"
                       )}
                     >
-                      {tip.nombre} ({tip.count})
+                      {tip.nombre} <span className="font-mono">({tip.count})</span>
                     </button>
                   ))}
                 </div>
@@ -805,17 +901,35 @@ export default function CotizadorPage() {
                       <span className="text-xs text-[var(--text-primary)] font-medium block">
                         {unit.identificador}
                       </span>
-                      <span className="text-[10px] text-[var(--text-muted)] truncate block">
+                      <span className="text-[10px] text-[var(--text-muted)] truncate flex items-center gap-0.5">
                         {isMultiTipo
                           ? (() => {
                               const tipos = getUnitTipologias(unit.id);
-                              return tipos.length > 0 ? tipos.map((t) => t.nombre).join(" / ") : "—";
+                              const tipoLabel = selectedTipologiaId
+                                ? (tipologias.find((t) => t.id === selectedTipologiaId)?.nombre ?? "")
+                                : tipos.length === 1
+                                  ? tipos[0].nombre
+                                  : tipos.length > 1
+                                    ? `${tipos.length} tipologías`
+                                    : "—";
+                              const area = unit.area_m2 ?? tipos[0]?.area_m2;
+                              const parts: React.ReactNode[] = [];
+                              if (tipoLabel) parts.push(tipoLabel);
+                              if (area) parts.push(<span key="a" className="font-mono">{area}m²</span>);
+                              if (unit.piso !== null) parts.push(<span key="p">Piso <span className="font-mono">{unit.piso}</span></span>);
+                              return parts.length > 0 ? parts.reduce<React.ReactNode[]>((acc, p, i) => { if (i > 0) acc.push(<span key={`s${i}`}> · </span>); acc.push(p); return acc; }, []) : "—";
                             })()
-                          : (unit.tipologia?.nombre || "—")}
-                        {unit.area_m2 ? ` · ${unit.area_m2}m²` : ""}
+                          : (() => {
+                              const area = unit.area_m2 ?? unit.tipologia?.area_construida;
+                              const parts: React.ReactNode[] = [];
+                              if (unit.tipologia?.nombre) parts.push(unit.tipologia.nombre);
+                              if (area) parts.push(<span key="a" className="font-mono">{area}m²</span>);
+                              if (unit.piso !== null) parts.push(<span key="p">Piso <span className="font-mono">{unit.piso}</span></span>);
+                              return parts.length > 0 ? parts.reduce<React.ReactNode[]>((acc, p, i) => { if (i > 0) acc.push(<span key={`s${i}`}> · </span>); acc.push(p); return acc; }, []) : "—";
+                            })()}
                       </span>
                     </div>
-                    <span className="text-xs text-[var(--text-tertiary)] shrink-0">
+                    <span className="text-xs text-[var(--text-tertiary)] font-mono shrink-0">
                       {(() => {
                         if (isMultiTipo && precioSource === "tipologia") {
                           if (selectedTipologiaId) {
@@ -884,11 +998,9 @@ export default function CotizadorPage() {
                               )}
                             >
                               <span className="block">{tipo.nombre}</span>
-                              {tipo.area_m2 && (
-                                <span className="block text-[9px] font-normal normal-case tracking-normal mt-0.5 opacity-70">
-                                  {tipo.area_m2}m²
-                                  {tipo.habitaciones != null ? ` · ${tipo.habitaciones} hab` : ""}
-                                  {tipo.precio_desde ? ` · ${formatCurrency(tipo.precio_desde, moneda, {})}` : ""}
+                              {tipo.precio_desde && (
+                                <span className="block text-[9px] font-mono font-normal normal-case tracking-normal mt-0.5 opacity-70">
+                                  {formatCurrency(tipo.precio_desde, moneda, {})}
                                 </span>
                               )}
                             </button>
@@ -904,28 +1016,67 @@ export default function CotizadorPage() {
                     ) : null;
                   })()}
 
-                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                    {(isMultiTipo && selectedQuoteTipologia ? selectedQuoteTipologia.area_m2 : selectedUnit.area_m2) ? (
-                      <DetailBox label="Area" value={`${isMultiTipo && selectedQuoteTipologia ? selectedQuoteTipologia.area_m2 : selectedUnit.area_m2} m²`} />
-                    ) : null}
-                    {(isMultiTipo && selectedQuoteTipologia ? selectedQuoteTipologia.habitaciones : selectedUnit.habitaciones) !== null && (
-                      <DetailBox label="Hab." value={String(isMultiTipo && selectedQuoteTipologia ? selectedQuoteTipologia.habitaciones : selectedUnit.habitaciones)} />
-                    )}
-                    {(isMultiTipo && selectedQuoteTipologia ? selectedQuoteTipologia.banos : selectedUnit.banos) !== null && (
-                      <DetailBox label="Baños" value={String(isMultiTipo && selectedQuoteTipologia ? selectedQuoteTipologia.banos : selectedUnit.banos)} />
-                    )}
-                    {selectedUnit.vista && (
-                      <DetailBox label="Vista" value={selectedUnit.vista} />
-                    )}
-                  </div>
+                  {(() => {
+                    const tip = isMultiTipo ? selectedQuoteTipologia : null;
+                    const area = tip ? tip.area_m2 : selectedUnit.area_m2;
+                    const areaConstruida = tip ? tip.area_construida : (selectedUnit.area_construida ?? selectedUnit.tipologia?.area_construida ?? null);
+                    const areaPrivada = tip ? tip.area_privada : (selectedUnit.area_privada ?? selectedUnit.tipologia?.area_privada ?? null);
+                    const areaLote = tip ? tip.area_lote : (selectedUnit.area_lote ?? selectedUnit.tipologia?.area_lote ?? null);
+                    const areaBalcon = tip ? tip.area_balcon : (selectedUnit.tipologia?.area_balcon ?? null);
+                    const hab = tip ? tip.habitaciones : selectedUnit.habitaciones;
+                    const banos = tip ? tip.banos : selectedUnit.banos;
+                    const parq = tip ? tip.parqueaderos : (selectedUnit.parqueaderos ?? selectedUnit.tipologia?.parqueaderos ?? null);
+                    const depo = tip ? tip.depositos : (selectedUnit.depositos ?? selectedUnit.tipologia?.depositos ?? null);
+                    const vista = selectedUnit.vista;
+
+                    // Gather boolean extras
+                    const extrasSource = tip ?? selectedUnit.tipologia;
+                    const activeExtras = extrasSource
+                      ? EXTRAS_CONFIG.filter((e) => (extrasSource as Record<string, unknown>)[e.field] === true)
+                      : [];
+
+                    return (
+                      <>
+                        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                          {area != null && <DetailBox label="Área" value={`${area} m²`} icon={Maximize2} />}
+                          {areaConstruida != null && <DetailBox label="Á. Construida" value={`${areaConstruida} m²`} icon={Building2} />}
+                          {areaPrivada != null && <DetailBox label="Á. Privada" value={`${areaPrivada} m²`} icon={Home} />}
+                          {areaLote != null && <DetailBox label="Á. Lote" value={`${areaLote} m²`} icon={LandPlot} />}
+                          {areaBalcon != null && <DetailBox label="Balcón" value={`${areaBalcon} m²`} icon={Fence} />}
+                          {hab != null && <DetailBox label="Hab." value={String(hab)} icon={BedDouble} />}
+                          {banos != null && <DetailBox label="Baños" value={String(banos)} icon={Bath} />}
+                          {parq != null && <DetailBox label="Parq." value={String(parq)} icon={Car} />}
+                          {depo != null && <DetailBox label="Depósitos" value={String(depo)} icon={Package} />}
+                          {vista && <DetailBox label="Vista" value={vista} icon={Eye} />}
+                        </div>
+                        {activeExtras.length > 0 && (
+                          <div className="flex flex-wrap gap-1.5 mt-3">
+                            {activeExtras.map((e) => (
+                              <span
+                                key={e.field}
+                                className="inline-flex items-center gap-1 px-2 py-1 rounded-lg bg-[rgba(184,151,58,0.06)] border border-[rgba(184,151,58,0.15)] text-[10px] text-[var(--site-primary)]"
+                              >
+                                <e.icon size={10} />
+                                {e.label}
+                              </span>
+                            ))}
+                          </div>
+                        )}
+                      </>
+                    );
+                  })()}
                 </div>
 
-                {/* B: Complementos */}
-                {showComplementos && (
-                  <div className="bg-[var(--surface-1)] rounded-xl border border-[var(--border-subtle)] p-5">
-                    <span className="font-ui text-[9px] font-bold uppercase tracking-[0.14em] text-[var(--text-muted)] block mb-3">
+                {/* B: Complementos — always visible */}
+                <div className="bg-[var(--surface-1)] rounded-xl border border-[var(--border-subtle)] p-5">
+                  <div className="flex items-center gap-2 mb-3">
+                    <Sparkles size={13} className="text-[var(--site-primary)]" />
+                    <span className="font-ui text-[9px] font-bold uppercase tracking-[0.14em] text-[var(--text-muted)]">
                       Complementos
                     </span>
+                  </div>
+
+                  {showComplementos ? (
                     <div className="space-y-4">
                       {hasParqPrecioBase && selectedProject?.parqueaderos_precio_base && (
                         <PrecioBaseCounter
@@ -1013,7 +1164,7 @@ export default function CotizadorPage() {
                           moneda={moneda}
                         />
                       )}
-                      {hasAddons && (
+                      {hasAddons ? (
                         <ComplementoSelector
                           label="Addons"
                           icon={Sparkles}
@@ -1026,25 +1177,58 @@ export default function CotizadorPage() {
                           isExtra
                           moneda={moneda}
                         />
+                      ) : (
+                        <div className="p-3 rounded-lg bg-[var(--surface-2)] border border-dashed border-[var(--border-subtle)]">
+                          <div className="flex items-center gap-2 mb-1">
+                            <Sparkles size={12} className="text-[var(--text-muted)]" />
+                            <span className="text-xs text-[var(--text-muted)]">Addons</span>
+                          </div>
+                          <p className="text-[10px] text-[var(--text-muted)]">
+                            No hay addons disponibles.
+                            {isAdmin && (
+                              <Link href={`/editor/${selectedProjectId}/cotizador-settings`} className="text-[var(--site-primary)] hover:underline ml-1">
+                                Agregar addons →
+                              </Link>
+                            )}
+                          </p>
+                        </div>
                       )}
                     </div>
-                  </div>
-                )}
+                  ) : (
+                    <div className="text-center py-4">
+                      <p className="text-[11px] text-[var(--text-muted)] mb-2">
+                        No hay complementos configurados para este proyecto.
+                      </p>
+                      {isAdmin && (
+                        <Link
+                          href={`/editor/${selectedProjectId}/complementos`}
+                          className="inline-flex items-center gap-1.5 text-[10px] text-[var(--site-primary)] hover:underline"
+                        >
+                          Configurar complementos
+                          <ExternalLink size={10} />
+                        </Link>
+                      )}
+                    </div>
+                  )}
+                </div>
 
                 {/* C: Price Summary */}
                 <div className="bg-[var(--surface-1)] rounded-xl border border-[var(--border-subtle)] p-5">
-                  <span className="font-ui text-[9px] font-bold uppercase tracking-[0.14em] text-[var(--text-muted)] block mb-3">
-                    Resumen de precio
-                  </span>
+                  <div className="flex items-center gap-2 mb-3">
+                    <Tag size={13} className="text-[var(--site-primary)]" />
+                    <span className="font-ui text-[9px] font-bold uppercase tracking-[0.14em] text-[var(--text-muted)]">
+                      Resumen de precio
+                    </span>
+                  </div>
                   <div className="space-y-2 text-xs">
                     <div className="flex justify-between">
                       <span className="text-[var(--text-secondary)]">Precio unidad</span>
-                      <span className="text-[var(--text-primary)]">{formatCurrency(cotizacion.precio_base, moneda)}</span>
+                      <span className="text-[var(--text-primary)] font-mono">{formatCurrency(cotizacion.precio_base, moneda)}</span>
                     </div>
                     {cotizacion.complementos_total != null && cotizacion.complementos_total > 0 && (
                       <div className="flex justify-between">
                         <span className="text-[var(--text-secondary)]">+ Complementos</span>
-                        <span className="text-[var(--text-primary)]">{formatCurrency(cotizacion.complementos_total, moneda)}</span>
+                        <span className="text-[var(--text-primary)] font-mono">{formatCurrency(cotizacion.complementos_total, moneda)}</span>
                       </div>
                     )}
                     {config?.descuentos?.length ? (
@@ -1066,7 +1250,7 @@ export default function CotizadorPage() {
                             />
                             <span className="text-[var(--text-secondary)]">
                               {desc.nombre}
-                              <span className="text-[var(--text-muted)] ml-1">
+                              <span className="text-[var(--text-muted)] font-mono ml-1">
                                 ({desc.tipo === "porcentaje" ? `${desc.valor}%` : formatCurrency(desc.valor, moneda)})
                               </span>
                             </span>
@@ -1079,14 +1263,14 @@ export default function CotizadorPage() {
                         {cotizacion.descuentos_aplicados.map((d, i) => (
                           <div key={i} className="flex justify-between text-green-400">
                             <span>- {d.nombre}</span>
-                            <span>-{formatCurrency(d.monto, moneda)}</span>
+                            <span className="font-mono">-{formatCurrency(d.monto, moneda)}</span>
                           </div>
                         ))}
                       </>
                     )}
                     <div className="flex justify-between pt-2 border-t border-[var(--border-subtle)]">
                       <span className="font-medium text-[var(--text-primary)]">Total</span>
-                      <span className="font-heading text-lg text-[var(--site-primary)]">
+                      <span className="font-mono text-lg text-[var(--site-primary)] font-medium">
                         {formatCurrency(cotizacion.precio_total ?? cotizacion.precio_neto, moneda)}
                       </span>
                     </div>
@@ -1095,35 +1279,183 @@ export default function CotizadorPage() {
 
                 {/* D: Client Info */}
                 <div className="bg-[var(--surface-1)] rounded-xl border border-[var(--border-subtle)] p-5">
+                  {/* Header with BUSCAR / NUEVO toggle */}
                   <div className="flex items-center gap-2 mb-4">
                     <User size={14} className="text-[var(--site-primary)]" />
                     <span className="font-ui text-[9px] font-bold uppercase tracking-[0.14em] text-[var(--text-muted)]">
                       {t("cotizador.clientInfo")}
                     </span>
+                    <div className="ml-auto flex gap-1">
+                      {(["buscar", "nuevo"] as const).map((mode) => (
+                        <button
+                          key={mode}
+                          onClick={() => {
+                            setClientMode(mode);
+                            if (mode === "nuevo") {
+                              setClientSearch("");
+                              setClientSearchResults([]);
+                            }
+                            if (mode === "buscar") {
+                              setSelectedLeadId(null);
+                            }
+                          }}
+                          className={cn(
+                            "px-2.5 py-1 rounded-lg text-[9px] font-ui font-bold uppercase tracking-[0.1em] transition-all",
+                            clientMode === mode
+                              ? "bg-[rgba(184,151,58,0.12)] text-[var(--site-primary)] border border-[rgba(184,151,58,0.25)]"
+                              : "text-[var(--text-muted)] hover:text-[var(--text-secondary)] border border-transparent"
+                          )}
+                        >
+                          {mode === "buscar" ? "Buscar" : "Nuevo"}
+                        </button>
+                      ))}
+                    </div>
                   </div>
-                  <div className="space-y-3">
-                    <input
-                      type="text"
-                      value={clientName}
-                      onChange={(e) => setClientName(e.target.value)}
-                      placeholder={t("cotizador.clientName")}
-                      className="input-glass w-full text-xs"
-                    />
-                    <input
-                      type="email"
-                      value={clientEmail}
-                      onChange={(e) => setClientEmail(e.target.value)}
-                      placeholder={t("cotizador.clientEmail")}
-                      className="input-glass w-full text-xs"
-                    />
-                    <input
-                      type="tel"
-                      value={clientPhone}
-                      onChange={(e) => setClientPhone(e.target.value)}
-                      placeholder={t("cotizador.clientPhone")}
-                      className="input-glass w-full text-xs"
-                    />
-                  </div>
+
+                  {clientMode === "buscar" ? (
+                    <div className="space-y-3">
+                      <div className="relative">
+                        <Search size={13} className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--text-muted)]" />
+                        <input
+                          type="text"
+                          value={clientSearch}
+                          onChange={(e) => setClientSearch(e.target.value)}
+                          placeholder="Buscar por nombre, email o teléfono..."
+                          className="input-glass w-full pl-9 text-xs"
+                        />
+                      </div>
+                      {searchingClients && (
+                        <div className="flex justify-center py-3">
+                          <Loader2 size={14} className="animate-spin text-[var(--site-primary)]" />
+                        </div>
+                      )}
+                      {clientSearchResults.length > 0 && (
+                        <div className="rounded-lg border border-[var(--border-subtle)] overflow-hidden divide-y divide-[var(--border-subtle)]">
+                          {clientSearchResults.map((lead) => (
+                            <button
+                              key={lead.id}
+                              onClick={() => {
+                                setClientName(lead.nombre);
+                                setClientEmail(lead.email);
+                                const phoneRaw = lead.telefono ?? "";
+                                const ccMatch = phoneRaw.match(/^(\+\d{1,3})\s?/);
+                                if (ccMatch) {
+                                  setClientCountryCode(ccMatch[1]);
+                                  setClientPhone(phoneRaw.replace(ccMatch[0], ""));
+                                } else {
+                                  setClientPhone(phoneRaw);
+                                }
+                                setSelectedLeadId(lead.id);
+                                setClientMode("nuevo");
+                              }}
+                              className="w-full flex items-center gap-3 px-3 py-2.5 text-left hover:bg-[var(--surface-2)] transition-colors"
+                            >
+                              <User size={14} className="text-[var(--text-muted)] shrink-0" />
+                              <div className="flex-1 min-w-0">
+                                <span className="text-xs text-[var(--text-primary)] block">{lead.nombre}</span>
+                                <span className="text-[10px] text-[var(--text-muted)] block truncate">
+                                  {lead.email}
+                                  {lead.telefono ? ` · ${lead.telefono}` : ""}
+                                </span>
+                              </div>
+                              <span className="text-[9px] font-mono text-[var(--text-muted)]">
+                                {new Date(lead.created_at).toLocaleDateString()}
+                              </span>
+                            </button>
+                          ))}
+                        </div>
+                      )}
+                      {clientSearch.length >= 2 && !searchingClients && clientSearchResults.length === 0 && (
+                        <div className="rounded-lg border border-dashed border-[var(--border-default)] p-4 text-center">
+                          <p className="text-[10px] text-[var(--text-muted)] mb-2">
+                            No se encontraron clientes para &ldquo;{clientSearch}&rdquo;
+                          </p>
+                          <button
+                            onClick={() => {
+                              setClientName(clientSearch.trim());
+                              setClientMode("nuevo");
+                              setClientSearch("");
+                              setClientSearchResults([]);
+                            }}
+                            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[rgba(184,151,58,0.1)] border border-[rgba(184,151,58,0.2)] text-[10px] font-ui font-bold uppercase tracking-[0.1em] text-[var(--site-primary)] hover:bg-[rgba(184,151,58,0.15)] transition-all"
+                          >
+                            <Plus size={11} />
+                            Crear nuevo cliente
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                  ) : (
+                    <div className="space-y-3">
+                      {selectedLeadId && (
+                        <div className="flex items-center gap-2 px-2 py-1.5 rounded-lg bg-[rgba(74,222,128,0.06)] border border-[rgba(74,222,128,0.15)] text-[10px] text-green-400 mb-1">
+                          <Check size={10} />
+                          <span>Cliente existente seleccionado</span>
+                          <button
+                            onClick={() => {
+                              setSelectedLeadId(null);
+                              setClientName("");
+                              setClientEmail("");
+                              setClientPhone("");
+                            }}
+                            className="ml-auto text-[var(--text-muted)] hover:text-red-400 transition-colors"
+                          >
+                            ×
+                          </button>
+                        </div>
+                      )}
+                      {/* Name */}
+                      <div className="relative">
+                        <User size={13} className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--text-muted)]" />
+                        <input
+                          type="text"
+                          value={clientName}
+                          onChange={(e) => setClientName(e.target.value)}
+                          placeholder={t("cotizador.clientName")}
+                          className="input-glass w-full pl-9 text-xs"
+                        />
+                      </div>
+                      {/* Email */}
+                      <div className="relative">
+                        <Mail size={13} className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--text-muted)]" />
+                        <input
+                          type="email"
+                          value={clientEmail}
+                          onChange={(e) => setClientEmail(e.target.value)}
+                          placeholder={t("cotizador.clientEmail")}
+                          className="input-glass w-full pl-9 text-xs"
+                        />
+                      </div>
+                      {/* Phone with country code */}
+                      <div className="flex gap-2">
+                        <div className="w-[105px] shrink-0">
+                          <NodDoDropdown
+                            value={clientCountryCode}
+                            onChange={setClientCountryCode}
+                            options={countryCodeOptions}
+                            variant="dashboard"
+                            size="sm"
+                            renderSelected={(opt) => (
+                              <span className="text-xs">{opt.label}</span>
+                            )}
+                            renderOption={(opt) => (
+                              <span className="text-xs">{opt.label}</span>
+                            )}
+                          />
+                        </div>
+                        <div className="relative flex-1">
+                          <Phone size={13} className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--text-muted)]" />
+                          <input
+                            type="tel"
+                            value={clientPhone}
+                            onChange={(e) => setClientPhone(e.target.value)}
+                            placeholder={t("cotizador.clientPhone")}
+                            className="input-glass w-full pl-9 text-xs"
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  )}
                 </div>
 
                 {/* E: Continuar button */}
@@ -1172,7 +1504,7 @@ export default function CotizadorPage() {
                   {isMultiTipo ? (selectedQuoteTipologia?.nombre ?? "—") : (selectedUnit.tipologia?.nombre || "—")}
                   {(() => {
                     const area = isMultiTipo && selectedQuoteTipologia ? selectedQuoteTipologia.area_m2 : selectedUnit.area_m2;
-                    return area ? ` · ${area}m²` : "";
+                    return area ? <> · <span className="font-mono">{area}m²</span></> : "";
                   })()}
                 </span>
                 <div className="ml-auto px-3 py-1 rounded-lg bg-[rgba(184,151,58,0.1)] border border-[rgba(184,151,58,0.2)]">
@@ -1349,7 +1681,7 @@ export default function CotizadorPage() {
                           </span>
 
                           {/* Percentage */}
-                          <span className="text-[10px] text-[var(--text-muted)] text-center">{pct}%</span>
+                          <span className="text-[10px] text-[var(--text-muted)] font-mono text-center">{pct}%</span>
 
                           {/* Delete */}
                           {canDelete ? (
@@ -1397,7 +1729,7 @@ export default function CotizadorPage() {
                   <span className="text-xs font-medium text-[var(--site-primary)] text-right font-mono">
                     {formatCurrency(rawTotal + adminFee, moneda, {})}
                   </span>
-                  <span className="text-[10px] text-[var(--text-muted)] text-center">100%</span>
+                  <span className="text-[10px] text-[var(--text-muted)] font-mono text-center">100%</span>
                   <span />
                 </div>
               </div>
@@ -1406,12 +1738,12 @@ export default function CotizadorPage() {
               <div className="px-5 py-4 rounded-xl bg-[var(--surface-1)] border border-[var(--border-subtle)]">
                 <div className="flex items-center justify-between text-xs mb-2">
                   <span className="text-[var(--text-secondary)]">
-                    Asignado: <span className="text-[var(--text-primary)] font-medium">{formatCurrency(balanceAssigned, moneda, {})}</span>
-                    <span className="text-[var(--text-muted)] ml-1">({balancePct}%)</span>
+                    Asignado: <span className="text-[var(--text-primary)] font-mono font-medium">{formatCurrency(balanceAssigned, moneda, {})}</span>
+                    <span className="text-[var(--text-muted)] font-mono ml-1">({balancePct}%)</span>
                   </span>
                   <span className="text-[var(--text-secondary)]">
-                    Contra entrega: <span className={cn("font-medium", overBudget ? "text-red-400" : "text-[var(--text-primary)]")}>{formatCurrency(Math.max(0, balanceRemaining), moneda, {})}</span>
-                    <span className="text-[var(--text-muted)] ml-1">({Math.max(0, 100 - balancePct)}%)</span>
+                    Contra entrega: <span className={cn("font-mono font-medium", overBudget ? "text-red-400" : "text-[var(--text-primary)]")}>{formatCurrency(Math.max(0, balanceRemaining), moneda, {})}</span>
+                    <span className="text-[var(--text-muted)] font-mono ml-1">({Math.max(0, 100 - balancePct)}%)</span>
                   </span>
                 </div>
                 <div className="h-2 rounded-full bg-[var(--surface-3)] overflow-hidden">
@@ -1453,13 +1785,14 @@ export default function CotizadorPage() {
 
 /* ── Small Components ──────────────────────────────────── */
 
-function DetailBox({ label, value }: { label: string; value: string }) {
+function DetailBox({ label, value, icon: Icon }: { label: string; value: string; icon?: React.ComponentType<{ size?: number; className?: string }> }) {
   return (
     <div className="p-2.5 rounded-lg bg-[var(--surface-2)] border border-[var(--border-subtle)]">
-      <span className="font-ui text-[8px] font-bold uppercase tracking-[0.14em] text-[var(--text-muted)] block mb-0.5">
+      <span className="font-ui text-[8px] font-bold uppercase tracking-[0.14em] text-[var(--text-tertiary)] flex items-center gap-1.5 mb-1">
+        {Icon && <Icon size={12} className="text-[var(--site-primary)] opacity-60" />}
         {label}
       </span>
-      <span className="text-xs text-[var(--text-primary)]">{value}</span>
+      <span className="text-sm text-[var(--text-primary)] font-mono font-medium">{value}</span>
     </div>
   );
 }
@@ -1492,17 +1825,17 @@ function PrecioBaseCounter({
         >
           <Minus size={12} />
         </button>
-        <span className="text-sm text-[var(--text-primary)] font-medium min-w-[20px] text-center">{count}</span>
+        <span className="text-sm text-[var(--text-primary)] font-mono font-medium min-w-[20px] text-center">{count}</span>
         <button
           onClick={() => onChange(count + 1)}
           className="w-7 h-7 rounded-lg bg-[var(--surface-3)] border border-[var(--border-subtle)] flex items-center justify-center text-[var(--text-secondary)] hover:text-white hover:border-[var(--border-default)] transition-all"
         >
           <Plus size={12} />
         </button>
-        <span className="text-[10px] text-[var(--text-muted)] ml-1">
+        <span className="text-[10px] text-[var(--text-muted)] font-mono ml-1">
           × {formatCurrency(precioUnitario, moneda, {})}
         </span>
-        <span className="ml-auto text-xs text-[var(--site-primary)] font-medium">
+        <span className="ml-auto text-xs text-[var(--site-primary)] font-mono font-medium">
           = {formatCurrency(count * precioUnitario, moneda, {})}
         </span>
       </div>
@@ -1578,11 +1911,11 @@ function ComplementoSelector({
                     type="number"
                     value={s.precio_negociado ?? s.precio ?? ""}
                     onChange={(e) => onPriceChange(s.complemento_id, parseFloat(e.target.value) || 0)}
-                    className="w-20 text-right text-[10px] bg-transparent border-b border-[var(--border-default)] text-[var(--site-primary)] focus:outline-none"
+                    className="w-20 text-right text-[10px] font-mono bg-transparent border-b border-[var(--border-default)] text-[var(--site-primary)] focus:outline-none"
                     placeholder="Precio (0=gratis)"
                   />
                 ) : (
-                  <span className="text-[var(--site-primary)]">
+                  <span className="text-[var(--site-primary)] font-mono">
                     {formatCurrency(s.precio_negociado ?? s.precio ?? 0, moneda, {})}
                   </span>
                 )
@@ -1591,7 +1924,7 @@ function ComplementoSelector({
                   type="number"
                   value={s.precio_negociado ?? ""}
                   onChange={(e) => onPriceChange(s.complemento_id, parseFloat(e.target.value) || 0)}
-                  className="w-20 text-right text-[10px] bg-transparent border-b border-[var(--border-default)] text-[var(--site-primary)] focus:outline-none"
+                  className="w-20 text-right text-[10px] font-mono bg-transparent border-b border-[var(--border-default)] text-[var(--site-primary)] focus:outline-none"
                   placeholder="Precio (0=gratis)"
                 />
               ) : null}
@@ -1627,7 +1960,7 @@ function ComplementoSelector({
                   <span className="text-[10px] text-[var(--text-muted)]">({comp.subtipo})</span>
                 )}
                 {showPrecio && comp.precio != null && (
-                  <span className="ml-auto text-[var(--site-primary)]">
+                  <span className="ml-auto text-[var(--site-primary)] font-mono">
                     {formatCurrency(comp.precio, moneda, {})}
                   </span>
                 )}
