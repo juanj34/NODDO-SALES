@@ -47,12 +47,12 @@ interface PlanFeature {
 interface Plan {
   icon: typeof Zap;
   name: string;
+  slug: string;
   monthlyPrice: string | null;
   annualPrice: string | null;
   priceLabel: string;
   description: string;
   cta: string;
-  ctaHref: string;
   ctaStyle: "primary" | "outline";
   highlighted: boolean;
   badge?: string;
@@ -69,84 +69,83 @@ interface FAQ {
 const plans: Plan[] = [
   {
     icon: Zap,
-    name: "Proyecto",
-    monthlyPrice: "$149",
-    annualPrice: "$119",
+    name: "Esencial",
+    slug: "esencial",
+    monthlyPrice: "$79",
+    annualPrice: "$63",
     priceLabel: "USD/mes",
-    description: "Perfecto para desarrolladoras con un proyecto activo. Todo incluido, sin sorpresas.",
-    cta: "Comenzar ahora",
-    ctaHref: "/login",
+    description: "Tu microsite premium con todo lo visual. Perfecto para un proyecto activo.",
+    cta: "Comenzar gratis",
     ctaStyle: "outline",
     highlighted: false,
     features: [
       { text: "1 proyecto activo", included: true },
-      { text: "Unidades ilimitadas", included: true },
-      { text: "Galería de imágenes ilimitada", included: true },
-      { text: "Videos inmersivos (Cloudflare Stream)", included: true },
-      { text: "Mapas interactivos con POIs", included: true },
-      { text: "Fachadas interactivas", included: true },
-      { text: "Tours 360° (Matterport/Kuula)", included: true },
-      { text: "Formulario de contacto + CRM", included: true },
-      { text: "Analytics avanzado", included: true },
-      { text: "Gestión de disponibilidad en tiempo real", included: true },
-      { text: "Dominio personalizado", included: true },
-      { text: "50GB de almacenamiento", included: true },
-      { text: "Colaboradores ilimitados", included: true },
-      { text: "Soporte prioritario (24-48h)", included: true },
+      { text: "Hasta 200 unidades", included: true },
+      { text: "Microsite completo: Galería, Videos, Mapas, Tours 360°", included: true },
+      { text: "Formulario de contacto", included: true },
+      { text: "Disponibilidad en tiempo real", included: true },
+      { text: "10GB de almacenamiento", included: true },
+      { text: "Cotizador integrado", included: false },
+      { text: "Analytics avanzado", included: false },
+      { text: "Dominio personalizado", included: false },
+      { text: "Colaboradores", included: false },
     ],
   },
   {
     icon: Sparkles,
-    name: "Studio",
-    monthlyPrice: "$399",
-    annualPrice: "$319",
+    name: "Profesional",
+    slug: "profesional",
+    monthlyPrice: "$149",
+    annualPrice: "$119",
     priceLabel: "USD/mes",
-    description: "La opción más popular para desarrolladoras con portfolio activo. Todo incluido.",
+    description: "Todo en Esencial + herramientas de venta. La opción completa para equipos comerciales.",
     cta: "Comenzar ahora",
-    ctaHref: "/login",
     ctaStyle: "primary",
     highlighted: true,
     badge: "Más Popular",
     features: [
       { text: "5 proyectos activos", included: true },
-      { text: "Todo en Proyecto +", included: true },
-      { text: "250GB de almacenamiento total", included: true },
-      { text: "Prioridad en nuevas features", included: true },
-      { text: "Soporte prioritario (12-24h)", included: true },
+      { text: "Unidades ilimitadas", included: true },
+      { text: "Todo en Esencial +", included: true },
+      { text: "Cotizador integrado", included: true },
+      { text: "Analytics avanzado", included: true },
+      { text: "Dominio personalizado", included: true },
+      { text: "Hasta 3 colaboradores", included: true },
+      { text: "50GB por proyecto", included: true },
+      { text: "Soporte prioritario", included: true },
     ],
   },
   {
     icon: Building2,
     name: "Enterprise",
-    monthlyPrice: "Personalizado",
+    slug: "enterprise",
+    monthlyPrice: null,
     annualPrice: null,
     priceLabel: "",
-    description: "Para desarrolladoras que necesitan control total, integraciones y soporte premium.",
-    cta: "Contactar ventas",
-    ctaHref: "mailto:hola@noddo.io",
+    description: "Solución personalizada para desarrolladoras con portafolio extenso y necesidades específicas.",
+    cta: "Hablar con ventas",
     ctaStyle: "outline",
     highlighted: false,
     features: [
-      { text: "Proyectos ilimitados", included: true },
-      { text: "Todo en Studio +", included: true },
-      { text: "White-label completo (sin marca NODDO)", included: true },
-      { text: "API REST + Webhooks", included: true },
-      { text: "Importación CSV masiva", included: true },
-      { text: "Multi-workspace", included: true },
-      { text: "Asistencia IA para contenido", included: true },
-      { text: "500GB de almacenamiento", included: true },
+      { text: "10+ proyectos activos", included: true },
+      { text: "Todo en Profesional +", included: true },
+      { text: "Herramientas a medida", included: true },
       { text: "Onboarding dedicado", included: true },
-      { text: "Soporte 24/7 (chat/email)", included: true },
-      { text: "SLA 99.9% garantizado", included: true },
+      { text: "Soporte premium 24/7", included: true },
     ],
   },
 ];
 
 const faqs: FAQ[] = [
   {
-    question: "¿Todos los planes incluyen todas las características?",
+    question: "¿Qué incluye el plan Esencial?",
     answer:
-      "Sí. Todos los planes (Proyecto, Studio, Enterprise) incluyen TODAS las características premium: videos, mapas interactivos, fachadas, tours 360°, CRM, analytics, dominio personalizado y más. Sin costos adicionales, sin add-ons, sin sorpresas. Solo eliges según el número de proyectos que necesitas.",
+      "El plan Esencial incluye tu microsite premium completo: galería de imágenes, videos inmersivos, mapas interactivos con POIs, tours 360°, formulario de contacto y disponibilidad en tiempo real. Todo lo visual para presentar tu proyecto de forma profesional.",
+  },
+  {
+    question: "¿Qué agrega el plan Profesional?",
+    answer:
+      "El plan Profesional incluye todo lo del Esencial más las herramientas de venta: cotizador integrado para generar cotizaciones en PDF, analytics avanzado, dominio personalizado, hasta 3 colaboradores y 50GB por proyecto.",
   },
   {
     question: "¿Puedo cambiar de plan en cualquier momento?",
@@ -156,7 +155,7 @@ const faqs: FAQ[] = [
   {
     question: "¿Qué métodos de pago aceptan?",
     answer:
-      "Aceptamos tarjetas de crédito y débito (Visa, Mastercard, American Express). Para planes Enterprise ofrecemos facturación directa y pagos trimestrales/anuales.",
+      "Aceptamos tarjetas de crédito y débito (Visa, Mastercard, American Express). Ofrecemos pago mensual o anual con 20% de descuento.",
   },
   {
     question: "¿Hay algún contrato o permanencia mínima?",
@@ -164,14 +163,14 @@ const faqs: FAQ[] = [
       "No, todos nuestros planes son mes a mes sin cláusulas de permanencia. Puedes cancelar cuando quieras sin penalidades. El plan anual ahorra 20% comparado con el mensual.",
   },
   {
+    question: "¿Qué es el plan Enterprise?",
+    answer:
+      "Enterprise es una solución personalizada para desarrolladoras con más de 10 proyectos activos. Incluye herramientas a medida, onboarding dedicado y soporte premium 24/7. Contacta a ventas para un plan a tu medida.",
+  },
+  {
     question: "¿Qué sucede cuando mi proyecto se vende?",
     answer:
       "Puedes pausar o archivar proyectos vendidos sin costo. Solo pagas por los proyectos activos en preventa. Esto te permite gestionar tu inversión según tus necesidades reales.",
-  },
-  {
-    question: "¿Cuántos colaboradores puedo invitar?",
-    answer:
-      "Todos los planes incluyen colaboradores ilimitados sin costo adicional. Invita a tu equipo de ventas, marketing y administración sin preocuparte por cargos extras por usuario.",
   },
 ];
 
@@ -399,13 +398,6 @@ function PricingCard({
 
 /* ─── Page ─── */
 
-// Map plan names to slugs for tracking
-const PLAN_SLUGS: Record<string, string> = {
-  Proyecto: "proyecto",
-  Studio: "studio",
-  Enterprise: "enterprise",
-};
-
 export default function PricingPage() {
   const [annual, setAnnual] = useState(false);
   const { openBooking } = useBooking();
@@ -417,10 +409,8 @@ export default function PricingPage() {
   });
 
   const handlePlanCTA = (plan: Plan) => {
-    const slug = PLAN_SLUGS[plan.name] || plan.name.toLowerCase();
-    trackPricingPlanClicked(slug, PLAN_VALUES[slug] || 149);
-
-    if (plan.name === "Enterprise") {
+    trackPricingPlanClicked(plan.slug, PLAN_VALUES[plan.slug] || 149);
+    if (plan.slug === "enterprise") {
       openContact("enterprise", "pricing-enterprise");
     } else {
       openBooking();
@@ -563,19 +553,19 @@ export default function PricingPage() {
             className="font-heading text-3xl md:text-5xl font-light tracking-wider mb-5"
             style={{ color: "var(--mk-text-primary)" }}
           >
-            ¿Necesitas algo diferente?
+            ¿Listo para empezar?
           </h2>
           <p
             className="text-base md:text-lg leading-relaxed mb-10"
             style={{ color: "rgba(255, 255, 255, 0.5)" }}
           >
-            Contactanos para un plan a tu medida.
+            Agenda una demo y lanza tu proyecto en menos de 24 horas.
           </p>
           <button
-            onClick={() => openContact("enterprise", "pricing-bottom-cta")}
+            onClick={() => openBooking()}
             className="btn-mk-primary px-10 py-3.5 text-sm tracking-[0.12em] inline-flex items-center justify-center"
           >
-            Contactar ventas
+            Agendar Demo
           </button>
         </FadeInSection>
       </section>

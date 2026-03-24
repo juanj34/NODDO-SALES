@@ -116,12 +116,14 @@ export interface BookingHost {
   name: string;
   initials: string;
   title: string;
+  photo: string;
 }
 
 export const BOOKING_HOST: BookingHost = {
-  name: "Juan Castillo",
-  initials: "JC",
+  name: "Juan Jaramillo",
+  initials: "JJ",
   title: "Co-Founder",
+  photo: "/FOTO-PERFIL.jpeg",
 };
 
 /** What happens during the call — icon key + localized text */

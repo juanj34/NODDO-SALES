@@ -7,9 +7,12 @@ import { Globe } from "lucide-react";
 import { useSiteProject } from "@/hooks/useSiteProject";
 import { useTranslation } from "@/i18n";
 import { trackEvent } from "@/lib/tracking";
+import { useSectionVisibility } from "@/hooks/useSectionVisibility";
 
 export default function Tour360Page() {
+  const sectionVisible = useSectionVisibility("tour360");
   const proyecto = useSiteProject();
+  if (!sectionVisible) return null;
   const { t } = useTranslation("site");
 
   useEffect(() => {

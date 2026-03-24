@@ -23,7 +23,7 @@ export async function GET(request: NextRequest) {
 
     const { data, error } = await auth.supabase
       .from("unidades")
-      .select("*, tipologia:tipologias(nombre, parqueaderos, depositos), torre:torres(nombre)")
+      .select("*, tipologia:tipologias(nombre, parqueaderos, depositos, precio_desde), torre:torres(nombre)")
       .eq("proyecto_id", proyectoId)
       .order("piso", { ascending: false })
       .order("identificador");
@@ -52,9 +52,22 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // Check project tipologia_mode — in multiple mode, strip tipologia_id (junction table is source of truth)
+    const { data: proyecto } = await auth.supabase
+      .from("proyectos")
+      .select("tipologia_mode")
+      .eq("id", body.proyecto_id)
+      .single();
+    const isMultiTipo = proyecto?.tipologia_mode === "multiple";
+
+    const insertPayload = pick(body, ["proyecto_id", "tipologia_id", "identificador", "piso", "area_m2", "area_construida", "area_privada", "area_lote", "precio", "estado", "habitaciones", "banos", "orientacion", "vista", "vista_piso_id", "notas", "plano_url", "fachada_id", "fachada_x", "fachada_y", "planta_id", "planta_x", "planta_y", "torre_id", "lote", "etapa_nombre", "parqueaderos", "depositos", "orden", "custom_fields"]);
+    if (isMultiTipo) {
+      delete insertPayload.tipologia_id;
+    }
+
     const { data, error } = await auth.supabase
       .from("unidades")
-      .insert(pick(body, ["proyecto_id", "tipologia_id", "identificador", "piso", "area_m2", "area_construida", "area_privada", "area_lote", "precio", "estado", "habitaciones", "banos", "orientacion", "vista", "vista_piso_id", "notas", "plano_url", "fachada_id", "fachada_x", "fachada_y", "planta_id", "planta_x", "planta_y", "torre_id", "lote", "etapa_nombre", "parqueaderos", "depositos", "orden", "custom_fields"]))
+      .insert(insertPayload)
       .select()
       .single();
 

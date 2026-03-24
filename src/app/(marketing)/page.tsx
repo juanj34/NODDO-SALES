@@ -161,24 +161,6 @@ export default function MarketingHomePage() {
           transition={{ duration: 0.7, ease: [0.25, 0.46, 0.45, 0.94] }}
           className="relative z-10 max-w-5xl mx-auto"
         >
-          {/* FOMO indicator */}
-          <div className="flex items-center justify-center gap-2 mb-8">
-            <div
-              className="w-2 h-2 rounded-full"
-              style={{
-                background: "#4ade80",
-                boxShadow: "0 0 12px rgba(74,222,128,0.6)",
-                animation: "pulse-dot 2s ease-in-out infinite",
-              }}
-            />
-            <span
-              className="font-ui text-[10px] tracking-[0.18em] uppercase"
-              style={{ color: "rgba(244,240,232,0.5)" }}
-            >
-              <strong style={{ color: "#4ade80", fontWeight: 600 }}>34</strong> {t("finalCta.fomoTeams")}
-            </span>
-          </div>
-
           <h2 className="font-heading text-[clamp(32px,7vw,80px)] font-light leading-[1.1] tracking-[-0.02em] mb-6">
             {t("finalCta.headingLine1")}
             <br />
@@ -285,15 +267,6 @@ export default function MarketingHomePage() {
 
         {/* Animations */}
         <style jsx>{`
-          @keyframes pulse-dot {
-            0%, 100% {
-              opacity: 1;
-            }
-            50% {
-              opacity: 0.5;
-            }
-          }
-
           @keyframes pulse-ring-large {
             0% {
               box-shadow: 0 0 0 0 rgba(184,151,58,0.8);

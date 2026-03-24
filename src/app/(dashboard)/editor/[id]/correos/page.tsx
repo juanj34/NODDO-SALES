@@ -4,6 +4,7 @@ export const dynamic = "force-dynamic";
 
 import { useState, useCallback, useRef, useMemo, useEffect } from "react";
 import { useEditorProject } from "@/hooks/useEditorProject";
+import { useAuthRole } from "@/hooks/useAuthContext";
 import { useToast } from "@/components/dashboard/Toast";
 import {
   inputClass,
@@ -25,12 +26,15 @@ import {
   Image as ImageIcon,
   FileText,
   MessageSquare,
-  ExternalLink,
-  Check,
+  Sun,
+  Moon,
+  X,
 } from "lucide-react";
+import { FileUploader } from "@/components/dashboard/FileUploader";
 import { motion } from "framer-motion";
-import type { EmailConfig } from "@/types";
+import type { EmailConfig, CotizadorConfig, Currency } from "@/types";
 import { buildBrandedCotizacionEmail } from "@/lib/email-branded";
+import { formatCurrency } from "@/lib/currency";
 
 /* ── Defaults ──────────────────────────────────────────────────────── */
 
@@ -38,6 +42,9 @@ const DEFAULT_CONFIG: EmailConfig = {
   reply_to: null,
   show_project_logo: false,
   show_constructora_logo: false,
+  email_tema: "oscuro",
+  email_project_logo_url: null,
+  email_constructora_logo_url: null,
   saludo: null,
   cuerpo: null,
   despedida: null,
@@ -103,10 +110,56 @@ function Toggle({
   );
 }
 
+/* ── Segmented theme picker ───────────────────────────────────────── */
+
+function ThemePicker({
+  value,
+  onChange,
+  darkLabel,
+  lightLabel,
+}: {
+  value: "oscuro" | "claro";
+  onChange: (v: "oscuro" | "claro") => void;
+  darkLabel: string;
+  lightLabel: string;
+}) {
+  return (
+    <div className="flex items-center gap-1 rounded-lg bg-[var(--surface-2)] p-0.5">
+      <button
+        type="button"
+        onClick={() => onChange("oscuro")}
+        className={cn(
+          "flex items-center gap-1.5 px-3 py-1.5 rounded-md text-[11px] font-ui font-bold uppercase tracking-wider transition-all",
+          value === "oscuro"
+            ? "bg-[var(--surface-4)] text-[var(--text-primary)] shadow-sm"
+            : "text-[var(--text-muted)] hover:text-[var(--text-secondary)]"
+        )}
+      >
+        <Moon size={12} />
+        {darkLabel}
+      </button>
+      <button
+        type="button"
+        onClick={() => onChange("claro")}
+        className={cn(
+          "flex items-center gap-1.5 px-3 py-1.5 rounded-md text-[11px] font-ui font-bold uppercase tracking-wider transition-all",
+          value === "claro"
+            ? "bg-[var(--surface-4)] text-[var(--text-primary)] shadow-sm"
+            : "text-[var(--text-muted)] hover:text-[var(--text-secondary)]"
+        )}
+      >
+        <Sun size={12} />
+        {lightLabel}
+      </button>
+    </div>
+  );
+}
+
 /* ── Main Page ─────────────────────────────────────────────────────── */
 
 export default function CorreosPage() {
   const { project, save } = useEditorProject();
+  const { user, profile } = useAuthRole();
   const toast = useToast();
   const { t } = useTranslation("editor");
 
@@ -120,21 +173,35 @@ export default function CorreosPage() {
   const configRef = useRef(config);
   configRef.current = config;
 
-  // Initialize from project
+  // Initialize from project + default reply_to to user's email
   useEffect(() => {
     if (project && !initialized) {
-      if (project.email_config) {
-        setConfig({ ...DEFAULT_CONFIG, ...project.email_config });
+      const saved = project.email_config
+        ? { ...DEFAULT_CONFIG, ...project.email_config }
+        : { ...DEFAULT_CONFIG };
+      if (!saved.reply_to && user?.email) {
+        saved.reply_to = user.email;
       }
+      setConfig(saved);
       setInitialized(true);
     }
-  }, [project, initialized]);
+  }, [project, initialized, user]);
 
   const scheduleAutoSave = useCallback(() => {
     if (saveTimerRef.current) clearTimeout(saveTimerRef.current);
     saveTimerRef.current = setTimeout(async () => {
       await save({ email_config: configRef.current });
     }, 1500);
+  }, [save]);
+
+  // Flush pending save on unmount (prevents data loss on navigation)
+  useEffect(() => {
+    return () => {
+      if (saveTimerRef.current) {
+        clearTimeout(saveTimerRef.current);
+        save({ email_config: configRef.current });
+      }
+    };
   }, [save]);
 
   const updateConfig = useCallback(
@@ -202,13 +269,22 @@ export default function CorreosPage() {
     [scheduleAutoSave]
   );
 
-  // Build preview HTML
+  // Build preview HTML using real project data when available
   const previewHtml = useMemo(() => {
     if (!project) return "";
     const rootDomain = "noddo.io";
     const micrositeUrl = project.custom_domain && project.domain_verified
       ? `https://${project.custom_domain}`
       : `https://${project.subdomain || project.slug}.${rootDomain}`;
+
+    const firstTipo = project.tipologias?.[0] ?? null;
+    const firstUnidad = project.unidades?.[0] ?? null;
+    const moneda = ((project.cotizador_config as CotizadorConfig | null)?.moneda || "COP") as Currency;
+
+    // Agent signature from current user
+    const agentName = profile
+      ? [profile.nombre, profile.apellido].filter(Boolean).join(" ") || null
+      : null;
 
     return buildBrandedCotizacionEmail({
       locale: (project.idioma as "es" | "en") || "es",
@@ -220,19 +296,30 @@ export default function CorreosPage() {
       constructoraNombre: project.constructora_nombre,
       colorPrimario: project.color_primario || "#b8973a",
       buyerName: "María López",
-      unidadId: "Apto 301",
-      totalFormatted: "$450,000,000",
+      unidadId: firstUnidad?.identificador || "Apto 301",
+      totalFormatted: firstUnidad?.precio
+        ? formatCurrency(firstUnidad.precio, moneda)
+        : "$450,000,000",
+      tipologiaName: firstTipo?.nombre ?? null,
+      areaM2: firstTipo?.area_m2 ?? firstUnidad?.area_m2 ?? null,
+      habitaciones: firstTipo?.habitaciones ?? firstUnidad?.habitaciones ?? null,
+      banos: firstTipo?.banos ?? firstUnidad?.banos ?? null,
       whatsappNumero: project.whatsapp_numero,
       tour360Url: project.tour_360_url,
       brochureUrl: project.brochure_url,
       micrositeUrl,
+      agentName,
+      agentPhone: profile?.telefono ?? null,
+      agentEmail: user?.email ?? null,
+      agentAvatarUrl: profile?.avatar_url ?? null,
     });
-  }, [project, config]);
+  }, [project, config, profile, user]);
 
   if (!project) return null;
 
   const recursos = project.recursos || [];
   const ts = t as unknown as (key: string) => string;
+  const tema = config.email_tema || "oscuro";
 
   return (
     <motion.div
@@ -274,44 +361,138 @@ export default function CorreosPage() {
               <ImageIcon size={14} />
               {ts("correos.branding.title")}
             </h3>
-            <div className="space-y-1">
-              <div className="flex items-center gap-3">
-                {project.logo_url ? (
-                  <img
-                    src={project.logo_url}
-                    alt=""
-                    className="h-8 max-w-[120px] object-contain rounded bg-[var(--surface-3)] p-1"
-                  />
-                ) : (
-                  <span className="text-[11px] text-[var(--text-muted)] italic">
-                    {ts("correos.branding.noLogo")}
-                  </span>
-                )}
-                <Toggle
-                  checked={config.show_project_logo}
-                  onChange={(v) => updateConfig("show_project_logo", v)}
-                  disabled={!project.logo_url}
-                  label={ts("correos.branding.projectLogo")}
+            <div className="space-y-3">
+              {/* Theme picker */}
+              <div className="flex items-center justify-between py-1">
+                <span className="text-[13px] text-[var(--text-secondary)] font-medium">
+                  {ts("correos.branding.tema")}
+                </span>
+                <ThemePicker
+                  value={tema}
+                  onChange={(v) => updateConfig("email_tema", v)}
+                  darkLabel={ts("correos.branding.temaDark")}
+                  lightLabel={ts("correos.branding.temaLight")}
                 />
               </div>
-              <div className="flex items-center gap-3">
-                {project.constructora_logo_url ? (
-                  <img
-                    src={project.constructora_logo_url}
-                    alt=""
-                    className="h-8 max-w-[120px] object-contain rounded bg-[var(--surface-3)] p-1"
-                  />
-                ) : (
-                  <span className="text-[11px] text-[var(--text-muted)] italic">
-                    {ts("correos.branding.noLogo")}
-                  </span>
-                )}
-                <Toggle
-                  checked={config.show_constructora_logo}
-                  onChange={(v) => updateConfig("show_constructora_logo", v)}
-                  disabled={!project.constructora_logo_url}
-                  label={ts("correos.branding.constructoraLogo")}
-                />
+
+              <div className="border-t border-[var(--border-subtle)] pt-2 space-y-3">
+                {/* Project Logo */}
+                <div>
+                  <div className="flex items-center gap-3">
+                    {project.logo_url ? (
+                      <img
+                        src={config.email_project_logo_url || project.logo_url}
+                        alt=""
+                        className="h-8 max-w-[120px] object-contain rounded bg-[var(--surface-3)] p-1"
+                      />
+                    ) : (
+                      <span className="text-[11px] text-[var(--text-muted)] italic">
+                        {ts("correos.branding.noLogo")}
+                      </span>
+                    )}
+                    <Toggle
+                      checked={config.show_project_logo}
+                      onChange={(v) => updateConfig("show_project_logo", v)}
+                      disabled={!project.logo_url}
+                      label={ts("correos.branding.projectLogo")}
+                    />
+                  </div>
+                  {config.show_project_logo && project.logo_url && (
+                    <div className="mt-2 ml-0">
+                      {config.email_project_logo_url ? (
+                        <div className="flex items-center gap-2">
+                          <img
+                            src={config.email_project_logo_url}
+                            alt=""
+                            className="h-7 max-w-[100px] object-contain rounded bg-[var(--surface-3)] p-1"
+                          />
+                          <span className="text-[10px] text-[var(--text-muted)]">
+                            {ts("correos.branding.customLogo")}
+                          </span>
+                          <button
+                            type="button"
+                            onClick={() => updateConfig("email_project_logo_url", null)}
+                            className="p-0.5 rounded hover:bg-[var(--surface-3)] text-[var(--text-muted)] hover:text-[var(--text-secondary)] transition-colors"
+                          >
+                            <X size={12} />
+                          </button>
+                        </div>
+                      ) : (
+                        <div className="max-w-[240px]">
+                          <p className={cn(fieldHint, "mb-1.5")}>
+                            {ts("correos.branding.customLogoHint")}
+                          </p>
+                          <FileUploader
+                            currentUrl={null}
+                            onUpload={(url) => updateConfig("email_project_logo_url", url)}
+                            folder={`proyectos/${project.id}`}
+                            label={ts("correos.branding.uploadCustom")}
+                            aspect="logo"
+                          />
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </div>
+
+                {/* Constructora Logo */}
+                <div>
+                  <div className="flex items-center gap-3">
+                    {project.constructora_logo_url ? (
+                      <img
+                        src={config.email_constructora_logo_url || project.constructora_logo_url}
+                        alt=""
+                        className="h-8 max-w-[120px] object-contain rounded bg-[var(--surface-3)] p-1"
+                      />
+                    ) : (
+                      <span className="text-[11px] text-[var(--text-muted)] italic">
+                        {ts("correos.branding.noLogo")}
+                      </span>
+                    )}
+                    <Toggle
+                      checked={config.show_constructora_logo}
+                      onChange={(v) => updateConfig("show_constructora_logo", v)}
+                      disabled={!project.constructora_logo_url}
+                      label={ts("correos.branding.constructoraLogo")}
+                    />
+                  </div>
+                  {config.show_constructora_logo && project.constructora_logo_url && (
+                    <div className="mt-2 ml-0">
+                      {config.email_constructora_logo_url ? (
+                        <div className="flex items-center gap-2">
+                          <img
+                            src={config.email_constructora_logo_url}
+                            alt=""
+                            className="h-7 max-w-[100px] object-contain rounded bg-[var(--surface-3)] p-1"
+                          />
+                          <span className="text-[10px] text-[var(--text-muted)]">
+                            {ts("correos.branding.customLogo")}
+                          </span>
+                          <button
+                            type="button"
+                            onClick={() => updateConfig("email_constructora_logo_url", null)}
+                            className="p-0.5 rounded hover:bg-[var(--surface-3)] text-[var(--text-muted)] hover:text-[var(--text-secondary)] transition-colors"
+                          >
+                            <X size={12} />
+                          </button>
+                        </div>
+                      ) : (
+                        <div className="max-w-[240px]">
+                          <p className={cn(fieldHint, "mb-1.5")}>
+                            {ts("correos.branding.customLogoHint")}
+                          </p>
+                          <FileUploader
+                            currentUrl={null}
+                            onUpload={(url) => updateConfig("email_constructora_logo_url", url)}
+                            folder={`proyectos/${project.id}`}
+                            label={ts("correos.branding.uploadCustom")}
+                            aspect="logo"
+                          />
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </div>
               </div>
             </div>
           </div>
@@ -384,34 +565,27 @@ export default function CorreosPage() {
                 />
               )}
 
-              {/* Recursos */}
+              {/* Recursos — using Toggle components */}
               {recursos.length > 0 ? (
                 <div className="mt-3 pt-3 border-t border-[var(--border-subtle)]">
                   <p className={cn(labelClass, "mb-2")}>
                     {ts("correos.attachments.recursos")}
                   </p>
-                  <p className={cn(fieldHint, "mb-3")}>
+                  <p className={cn(fieldHint, "mb-1")}>
                     {ts("correos.attachments.recursosHint")}
                   </p>
-                  <div className="space-y-1.5">
+                  <div className="space-y-0">
                     {recursos.map((r) => (
-                      <label
-                        key={r.id}
-                        className="flex items-center gap-3 py-1.5 cursor-pointer group"
-                      >
-                        <input
-                          type="checkbox"
-                          checked={config.adjuntos_recurso_ids?.includes(r.id) || false}
-                          onChange={() => toggleRecurso(r.id)}
-                          className="accent-[var(--site-primary)] w-3.5 h-3.5 rounded"
-                        />
-                        <span className="text-[12px] text-[var(--text-secondary)] group-hover:text-white transition-colors truncate flex-1">
-                          {r.nombre}
-                        </span>
-                        <span className="text-[9px] font-ui font-bold uppercase tracking-wider text-[var(--text-muted)] bg-[var(--surface-3)] px-1.5 py-0.5 rounded">
+                      <div key={r.id} className="flex items-center gap-2">
+                        <span className="text-[9px] font-ui font-bold uppercase tracking-wider text-[var(--text-muted)] bg-[var(--surface-3)] px-1.5 py-0.5 rounded shrink-0">
                           {r.tipo}
                         </span>
-                      </label>
+                        <Toggle
+                          checked={config.adjuntos_recurso_ids?.includes(r.id) || false}
+                          onChange={() => toggleRecurso(r.id)}
+                          label={r.nombre}
+                        />
+                      </div>
                     ))}
                   </div>
                 </div>
@@ -474,12 +648,15 @@ export default function CorreosPage() {
               <p className={sectionDescription}>
                 {ts("correos.previewNote")}
               </p>
-              <div className="rounded-lg overflow-hidden border border-[var(--border-default)] bg-[#0a0a0a]">
+              <div className={cn(
+                "rounded-lg overflow-hidden border border-[var(--border-default)]",
+                tema === "claro" ? "bg-[#f5f5f0]" : "bg-[#0a0a0a]"
+              )}>
                 <iframe
                   srcDoc={previewHtml}
                   title="Email preview"
                   className="w-full border-0"
-                  style={{ height: 580, pointerEvents: "none" }}
+                  style={{ height: 700, pointerEvents: "none" }}
                   sandbox=""
                 />
               </div>

@@ -29,6 +29,7 @@ import { useMediaQuery } from "@/hooks/useMediaQuery";
 import { MobileBottomSheet } from "@/components/site/MobileBottomSheet";
 import { cn } from "@/lib/utils";
 import type { PuntoInteres } from "@/types";
+import { useSectionVisibility } from "@/hooks/useSectionVisibility";
 
 // Lazy load Mapbox (~250KB) only when this page loads
 const MapboxMap = dynamic(
@@ -105,7 +106,9 @@ function getCategoryConfig(categoria: string): CategoryConfig {
 }
 
 export default function UbicacionPage() {
+  const sectionVisible = useSectionVisibility("ubicacion");
   const proyecto = useSiteProject();
+  if (!sectionVisible) return null;
   const {
     ubicacion_lat: lat,
     ubicacion_lng: lng,

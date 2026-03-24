@@ -75,7 +75,7 @@ export const GHL_CUSTOM_FIELDS = {
 // ─── Plan values (USD/month) - All-inclusive pricing ────────────────────
 
 export const PLAN_VALUES: Record<string, number> = {
-  proyecto: 149,
-  studio: 399,
-  enterprise: 799, // Starting price, custom pricing for large clients
+  esencial: 79,
+  profesional: 149,
+  enterprise: 499,
 };

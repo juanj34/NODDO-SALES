@@ -19,6 +19,7 @@ import type { Recurso } from "@/types";
 import { useTranslation } from "@/i18n";
 import { trackEvent } from "@/lib/tracking";
 import { SiteEmptyState } from "@/components/site/SiteEmptyState";
+import { useSectionVisibility } from "@/hooks/useSectionVisibility";
 
 const tipoIcons: Record<
   Recurso["tipo"],
@@ -58,7 +59,9 @@ const tipoLabelKeys: Record<Recurso["tipo"], string> = {
 };
 
 export default function RecursosPage() {
+  const sectionVisible = useSectionVisibility("recursos");
   const proyecto = useSiteProject();
+  if (!sectionVisible) return null;
   const recursos = proyecto.recursos || [];
   const [viewingRecurso, setViewingRecurso] = useState<Recurso | null>(null);
   const { t } = useTranslation("site");

@@ -73,6 +73,14 @@ export function useAutoSave<T>({
     }
   }, [debouncedData, onSave, shouldSave, onSaveSuccess, onSaveError]);
 
+  // Keep refs to latest values for unmount flush
+  const dataRef = useRef(data);
+  const lastSavedDataRef = useRef(lastSavedData);
+  const onSaveRef = useRef(onSave);
+  dataRef.current = data;
+  lastSavedDataRef.current = lastSavedData;
+  onSaveRef.current = onSave;
+
   // Trigger save when debounced data changes
   useEffect(() => {
     // Skip first render
@@ -88,6 +96,15 @@ export function useAutoSave<T>({
 
     save();
   }, [debouncedData, save, lastSavedData]);
+
+  // Flush pending unsaved data on unmount (prevents data loss on navigation)
+  useEffect(() => {
+    return () => {
+      if (JSON.stringify(dataRef.current) !== JSON.stringify(lastSavedDataRef.current)) {
+        onSaveRef.current(dataRef.current);
+      }
+    };
+  }, []);
 
   // Manual save trigger (for forcing save before navigation, etc.)
   const saveNow = useCallback(async () => {

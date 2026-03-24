@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState, useCallback, useMemo } from "react";
+import Image from "next/image";
 import {
   ShieldCheck,
   Loader2,
@@ -11,12 +12,10 @@ import {
   Check,
   Calendar,
   X,
-  Search,
-  Monitor,
-  FileText,
 } from "lucide-react";
 import { useTranslation } from "@/i18n";
 import { NodDoDropdown } from "@/components/ui/NodDoDropdown";
+import { NodDoLogo } from "@/components/ui/NodDoLogo";
 import {
   GHL_BOOKING_URL,
   SUPABASE_FN_URL,
@@ -32,9 +31,6 @@ import {
   getGmtLabel,
   formatDateLong,
   BOOKING_HOST,
-  CALL_BENEFITS,
-  SOCIAL_PROOF_STAT,
-  BOOKING_TESTIMONIAL,
 } from "@/lib/booking-constants";
 import {
   trackBookingOpened,
@@ -61,104 +57,98 @@ type Step =
 type LocalSlot = { localTime: string; calDate: string; calTime: string };
 type LocalSlotsData = Record<string, LocalSlot[]>;
 
-// ─── Initials Avatar ────────────────────────────────────────────────────
+// ─── Host Avatar (photo) ────────────────────────────────────────────────
 
-const InitialsAvatar = ({ size = 56, className = "" }: { size?: number; className?: string }) => (
+const HostAvatar = ({ size = 56, className = "" }: { size?: number; className?: string }) => (
   <div
-    className={`rounded-full bg-[rgba(184,151,58,0.15)] border-2 border-[rgba(184,151,58,0.4)] flex items-center justify-center shrink-0 ${className}`}
+    className={`rounded-full border-2 border-[rgba(184,151,58,0.4)] overflow-hidden shrink-0 ${className}`}
     style={{ width: size, height: size }}
   >
-    <span
-      className="font-heading font-light text-[var(--mk-accent)]"
-      style={{ fontSize: size * 0.36 }}
-    >
-      {BOOKING_HOST.initials}
-    </span>
+    <Image
+      src={BOOKING_HOST.photo}
+      alt={BOOKING_HOST.name}
+      width={size}
+      height={size}
+      className="object-cover w-full h-full"
+    />
   </div>
 );
 
-// ─── Host Card (replaces SessionCard) ───────────────────────────────────
+// ─── Custom SVG Icons for badges ────────────────────────────────────────
+
+const IconAnalysis = () => (
+  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M21 21l-4.35-4.35" />
+    <circle cx="11" cy="11" r="8" />
+    <path d="M8 11h6M11 8v6" />
+  </svg>
+);
+
+const IconDemo = () => (
+  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+    <rect x="2" y="3" width="20" height="14" rx="2" />
+    <path d="M8 21h8M12 17v4" />
+    <path d="M10 9l4 2-4 2V9z" fill="currentColor" stroke="none" />
+  </svg>
+);
+
+const IconPricing = () => (
+  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M4 7h16M4 12h16M4 17h10" />
+    <circle cx="19" cy="17" r="2.5" />
+    <path d="M19 15.5v-1M19 19.5v1" />
+  </svg>
+);
+
+// ─── Host Card ──────────────────────────────────────────────────────────
 
 const HostCard = () => {
   const { t } = useTranslation("common");
   return (
-    <div className="flex flex-col items-center pt-4 pb-4">
-      {/* Avatar with glow + online dot */}
-      <div className="relative mb-2.5">
-        <div className="absolute -inset-1.5 rounded-full bg-[rgba(184,151,58,0.1)] blur-md" />
-        <InitialsAvatar size={56} className="relative" />
-        <div className="absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 rounded-full bg-[#4a9e6b] border-2 border-[#141414]" />
+    <div className="flex flex-col items-center pt-3 pb-4">
+      {/* NODDO logo */}
+      <NodDoLogo width={72} colorNod="rgba(244,240,232,.35)" colorDo="#b8983c" />
+
+      {/* Avatar with glow ring */}
+      <div className="relative mt-3 mb-3">
+        <div className="absolute -inset-2 rounded-full bg-[rgba(184,151,58,0.08)] blur-lg" />
+        <HostAvatar size={64} className="relative border-[rgba(184,151,58,0.5)]" />
       </div>
 
-      {/* Host label */}
-      <p className="font-ui text-[9px] font-bold uppercase tracking-[0.2em] text-[var(--mk-text-muted)] mb-1">
-        {t("booking.hostLabel")}
+      {/* Session title with advisor name */}
+      <p className="font-heading text-lg font-light text-[var(--mk-text-primary)] mb-0.5">
+        {t("booking.sessionWith")} {BOOKING_HOST.name.split(" ")[0]}
       </p>
 
-      {/* Name */}
-      <p className="font-heading text-xl font-light text-[var(--mk-text-primary)]">
-        {BOOKING_HOST.name}
+      {/* Subtitle */}
+      <p className="text-[11px] text-[var(--mk-text-tertiary)]">
+        {t("booking.sessionSub")}
       </p>
-
-      {/* Title */}
-      <p className="text-[11px] text-[var(--mk-text-tertiary)] mt-0.5">
-        {BOOKING_HOST.title}, NODDO
-      </p>
-
-      {/* Divider */}
-      <div className="w-8 h-px bg-[rgba(184,151,58,0.3)] mt-3 mb-2.5" />
-
-      {/* Format pills */}
-      <div className="flex items-center gap-1.5">
-        {[t("booking.duration"), t("booking.formatVideo"), "Google Meet"].map((label) => (
-          <span
-            key={label}
-            className="font-ui text-[8px] font-bold uppercase tracking-wider text-[var(--mk-text-tertiary)] bg-white/[0.04] border border-white/[0.06] rounded-md px-2 py-0.5"
-          >
-            {label}
-          </span>
-        ))}
-      </div>
     </div>
   );
 };
 
-// ─── Call Benefits ──────────────────────────────────────────────────────
+// ─── Call Badges (what happens in the call) ─────────────────────────────
 
-const CallBenefits = () => {
-  const { locale } = useTranslation("common");
-  const benefits = CALL_BENEFITS[locale === "en" ? "en" : "es"];
-  const iconMap: Record<string, typeof Search> = { Search, Monitor, FileText };
+const CallBadges = () => {
+  const { t } = useTranslation("common");
+  const badges = [
+    { Icon: IconAnalysis, label: t("booking.badgeAnalysis") },
+    { Icon: IconDemo, label: t("booking.badgeDemo") },
+    { Icon: IconPricing, label: t("booking.badgePricing") },
+  ];
 
   return (
-    <div className="glass-booking rounded-xl p-3.5 mb-4 space-y-2.5">
-      {benefits.map((b) => {
-        const Icon = iconMap[b.icon];
-        return (
-          <div key={b.icon} className="flex items-start gap-2.5">
-            <Icon className="w-3.5 h-3.5 text-[var(--mk-accent)] mt-0.5 shrink-0" />
-            <p className="text-[12px] text-[var(--mk-text-secondary)] leading-snug">
-              {b.text}
-            </p>
-          </div>
-        );
-      })}
-    </div>
-  );
-};
-
-// ─── Social Proof Strip ─────────────────────────────────────────────────
-
-const SocialProofStrip = () => {
-  const { locale } = useTranslation("common");
-  const text = SOCIAL_PROOF_STAT[locale === "en" ? "en" : "es"];
-  return (
-    <div className="flex items-center justify-center gap-2 mb-4">
-      <span className="w-1 h-1 rounded-full bg-[rgba(184,151,58,0.5)]" />
-      <p className="font-ui text-[9px] font-bold uppercase tracking-[0.15em] text-[var(--mk-text-muted)]">
-        {text}
-      </p>
-      <span className="w-1 h-1 rounded-full bg-[rgba(184,151,58,0.5)]" />
+    <div className="flex flex-wrap items-center justify-center gap-2 mb-5">
+      {badges.map(({ Icon, label }) => (
+        <span
+          key={label}
+          className="inline-flex items-center gap-1.5 text-[10px] text-[var(--mk-text-secondary)] bg-white/[0.04] border border-white/[0.08] rounded-lg px-2.5 py-1.5"
+        >
+          <span className="text-[var(--mk-accent)]"><Icon /></span>
+          {label}
+        </span>
+      ))}
     </div>
   );
 };
@@ -169,13 +159,13 @@ const HostMiniCard = () => {
   const { t } = useTranslation("common");
   return (
     <div className="glass-booking rounded-xl p-3 mb-4 flex items-center gap-3">
-      <InitialsAvatar size={32} className="!border" />
+      <HostAvatar size={32} className="!border" />
       <div className="flex-1 min-w-0">
         <p className="text-[12px] font-bold text-white truncate">
-          {BOOKING_HOST.name}
+          {t("booking.sessionWith")} {BOOKING_HOST.name.split(" ")[0]}
         </p>
         <p className="text-[10px] text-[var(--mk-text-tertiary)]">
-          {t("booking.sessionTitle")}
+          {t("booking.sessionSub")}
         </p>
       </div>
       <span className="font-ui text-[9px] font-bold uppercase tracking-wider text-[var(--mk-accent)] bg-[rgba(184,151,58,0.1)] border border-[rgba(184,151,58,0.15)] rounded-md px-2 py-1 shrink-0">
@@ -185,24 +175,7 @@ const HostMiniCard = () => {
   );
 };
 
-// ─── Testimonial Snippet (confirm step) ─────────────────────────────────
-
-const TestimonialSnippet = () => {
-  const { locale } = useTranslation("common");
-  const testimonial = BOOKING_TESTIMONIAL[locale === "en" ? "en" : "es"];
-  return (
-    <div className="border-l-2 border-[rgba(184,151,58,0.25)] pl-3.5 py-1 mb-5">
-      <p className="text-[11px] italic text-[var(--mk-text-tertiary)] leading-relaxed">
-        &ldquo;{testimonial.quote}&rdquo;
-      </p>
-      <p className="text-[9px] text-[var(--mk-text-muted)] mt-1.5">
-        &mdash; {testimonial.name}, {testimonial.role}
-      </p>
-    </div>
-  );
-};
-
-// ─── Step Indicator (refined) ───────────────────────────────────────────
+// ─── Step Indicator ─────────────────────────────────────────────────────
 
 const StepIndicator = ({ currentStep }: { currentStep: number }) => {
   const { t } = useTranslation("common");
@@ -221,28 +194,30 @@ const StepIndicator = ({ currentStep }: { currentStep: number }) => {
           <div key={label} className="flex items-center">
             {i > 0 && (
               <div
-                className={`w-8 h-px ${
+                className={`w-10 h-px ${
                   done ? "bg-[var(--mk-accent)]" : "bg-white/[0.08]"
                 }`}
               />
             )}
-            <div className="flex flex-col items-center gap-1 px-1">
+            <div className="flex items-center gap-1.5">
               <div
-                className={`w-1.5 h-1.5 rounded-full transition-all ${
+                className={`w-5 h-5 rounded-full flex items-center justify-center text-[9px] font-bold transition-all ${
                   done
-                    ? "bg-[var(--mk-accent)]"
+                    ? "bg-[var(--mk-accent)] text-black"
                     : active
-                    ? "bg-transparent border border-[var(--mk-accent)] shadow-[0_0_6px_rgba(184,151,58,0.4)]"
-                    : "bg-white/[0.08]"
+                    ? "border border-[var(--mk-accent)] text-[var(--mk-accent)] shadow-[0_0_8px_rgba(184,151,58,0.3)]"
+                    : "bg-white/[0.06] text-white/25"
                 }`}
-              />
+              >
+                {done ? <Check className="w-3 h-3" /> : i + 1}
+              </div>
               <span
-                className={`font-ui text-[8px] font-bold uppercase tracking-[0.15em] ${
+                className={`font-ui text-[9px] font-bold uppercase tracking-[0.12em] ${
                   active
                     ? "text-[var(--mk-accent)]"
                     : done
                     ? "text-white/50"
-                    : "text-white/20"
+                    : "text-white/25"
                 }`}
               >
                 {label}
@@ -251,22 +226,6 @@ const StepIndicator = ({ currentStep }: { currentStep: number }) => {
           </div>
         );
       })}
-    </div>
-  );
-};
-
-// ─── Scarcity Banner (refined, inline) ──────────────────────────────────
-
-const ScarcityBanner = ({ totalSlots }: { totalSlots: number }) => {
-  const { t } = useTranslation("common");
-  return (
-    <div className="flex items-center justify-center gap-2 mb-4">
-      <span className="w-1.5 h-1.5 rounded-full bg-[var(--mk-accent)] animate-pulse" />
-      <p className="font-ui text-[10px] text-[var(--mk-text-tertiary)]">
-        {t("booking.scarcityPrefix")}
-        <span className="text-[var(--mk-accent)] font-bold">{totalSlots}</span>
-        {t("booking.scarcitySuffix")}
-      </p>
     </div>
   );
 };
@@ -496,6 +455,7 @@ const ModalHeader = ({
           <ChevronLeft className="w-5 h-5" />
         </button>
       )}
+      <Image src="/LOGO_FAVICON-GOL.svg" alt="NODDO" width={18} height={18} className="shrink-0" />
       <div className="flex-1 min-w-0">
         <h3 className="font-ui text-sm font-bold text-[var(--mk-text-primary)] uppercase tracking-wide">
           {t("booking.agendaHeader")}
@@ -620,11 +580,6 @@ const BookingFlow = ({ onClose }: BookingFlowProps) => {
   }, [step, clientTz]);
 
   const availableDates = Object.keys(localSlots).sort();
-  const rawTotalSlots = Object.values(localSlots).reduce(
-    (sum, arr) => sum + arr.length,
-    0
-  );
-  const totalSlots = Math.min(rawTotalSlots, 7);
 
   // ── Handle booking submission ──
   const handleBook = useCallback(async () => {
@@ -754,11 +709,9 @@ const BookingFlow = ({ onClose }: BookingFlowProps) => {
         <div className="relative w-16 h-16">
           {/* Spinning ring */}
           <div className="absolute inset-0 rounded-full border border-[rgba(184,151,58,0.15)] border-t-[var(--mk-accent)] animate-spin" />
-          {/* Initials inside */}
-          <div className="absolute inset-2 rounded-full bg-[rgba(184,151,58,0.1)] flex items-center justify-center">
-            <span className="font-heading text-base font-light text-[var(--mk-accent)]">
-              {BOOKING_HOST.initials}
-            </span>
+          {/* Photo inside */}
+          <div className="absolute inset-2">
+            <HostAvatar size={48} className="!border-0" />
           </div>
         </div>
         <p className="text-sm text-white font-bold">
@@ -788,13 +741,8 @@ const BookingFlow = ({ onClose }: BookingFlowProps) => {
         <div className="overflow-y-auto px-5 pb-6 flex-1">
           {/* Success avatar with green ring */}
           <div className="flex flex-col items-center mb-6">
-            <div className="relative w-20 h-20 mb-4 animate-success-pop">
-              <div className="absolute inset-0 rounded-full border-2 border-green-500/50" />
-              <div className="absolute inset-2 rounded-full bg-[rgba(184,151,58,0.12)] flex items-center justify-center">
-                <span className="font-heading text-xl font-light text-[var(--mk-accent)]">
-                  {BOOKING_HOST.initials}
-                </span>
-              </div>
+            <div className="relative mb-4 animate-success-pop">
+              <HostAvatar size={72} className="border-green-500/50" />
               <div className="absolute -bottom-1 -right-1 w-6 h-6 rounded-full bg-green-500 border-2 border-[#141414] flex items-center justify-center">
                 <Check className="w-3.5 h-3.5 text-white" />
               </div>
@@ -822,7 +770,7 @@ const BookingFlow = ({ onClose }: BookingFlowProps) => {
 
           {/* Host waiting strip */}
           <div className="flex items-center justify-center gap-2 mb-5">
-            <InitialsAvatar size={20} className="!border" />
+            <HostAvatar size={20} className="!border" />
             <p className="text-[11px] text-[var(--mk-text-tertiary)]">
               {t("booking.hostWaiting")}
             </p>
@@ -854,10 +802,8 @@ const BookingFlow = ({ onClose }: BookingFlowProps) => {
         {onClose && <ModalHeader onClose={onClose} />}
         <div className="overflow-y-auto px-5 pt-4 pb-5 flex-1">
           <HostCard />
-          <CallBenefits />
-          <SocialProofStrip />
           <StepIndicator currentStep={0} />
-          <ScarcityBanner totalSlots={totalSlots} />
+          <CallBadges />
           <DayPillGrid
             dates={availableDates}
             selected={selectedDate}
@@ -974,7 +920,7 @@ const BookingFlow = ({ onClose }: BookingFlowProps) => {
                 {locale === "en" ? "Video call" : "Videollamada"}
               </p>
             </div>
-            <InitialsAvatar size={28} className="!border" />
+            <HostAvatar size={28} className="!border" />
           </div>
 
           {/* Form */}
@@ -1047,9 +993,6 @@ const BookingFlow = ({ onClose }: BookingFlowProps) => {
               </span>
             </label>
           </div>
-
-          {/* Testimonial */}
-          <TestimonialSnippet />
 
           {bookingError && (
             <div className="text-center mb-3">

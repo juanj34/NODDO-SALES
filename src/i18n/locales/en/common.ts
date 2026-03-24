@@ -215,13 +215,14 @@ const common = {
     stepTime: "Time",
     stepConfirm: "Confirm",
     // Session info
-    sessionTitle: "NODDO Demo",
-    sessionSub: "30 min · Video call",
+    sessionWith: "Strategic Session with",
+    sessionSub: "30 min · Video call · Google Meet",
+    // Badges
+    badgeAnalysis: "Project analysis",
+    badgeDemo: "Live demo",
+    badgePricing: "Custom pricing",
     // Loading
     loadingSlots: "Loading availability...",
-    // Scarcity
-    scarcityPrefix: "Only ",
-    scarcitySuffix: " slots left this week",
     // Calendar
     next: "Continue",
     // Timeslots
@@ -236,7 +237,7 @@ const common = {
     placeholderEmail: "name@company.com",
     waReminder: "WhatsApp reminder",
     bookCta: "Confirm Demo",
-    trustLine: "No commitment · Free cancellation",
+    trustLine: "Free cancellation · Data protected",
     privacyText: "By scheduling, you accept our",
     privacyLink: "privacy policy",
     // Booking in progress
@@ -257,7 +258,7 @@ const common = {
     fallbackProblem: "We couldn't load the calendar",
     fallbackDescription: "You can schedule directly or contact us via WhatsApp",
     fallbackOpen: "Open calendar",
-    fallbackFooter: "Free session · No commitment",
+    fallbackFooter: "Free session · Google Meet",
     // Header
     agendaHeader: "Schedule Demo",
     // Day abbreviations

@@ -26,6 +26,8 @@ import { LanguageToggle } from "@/components/ui/LanguageToggle";
 import { AudioMuteButton } from "@/components/site/AudioPlayer";
 import { CurrencySelector } from "@/components/site/CurrencySelector";
 import { UnitToggle } from "@/components/site/UnitToggle";
+import { isSectionVisible, ROUTE_TO_SECTION } from "@/lib/secciones-visibles";
+import type { SeccionesVisibles } from "@/types";
 
 
 interface SiteNavProps {
@@ -42,9 +44,10 @@ interface SiteNavProps {
   hasImplantaciones?: boolean;
   hasTour360?: boolean;
   hasAvances?: boolean;
+  seccionesVisibles?: SeccionesVisibles | null;
 }
 
-export function SiteNav({ basePath, projectName, logoUrl, faviconUrl, constructoraLogoUrl, constructoraWebsite, expanded, disclaimer, politicaPrivacidadUrl, etapaLabel, hasImplantaciones, hasTour360, hasAvances }: SiteNavProps) {
+export function SiteNav({ basePath, projectName, logoUrl, faviconUrl, constructoraLogoUrl, constructoraWebsite, expanded, disclaimer, politicaPrivacidadUrl, etapaLabel, hasImplantaciones, hasTour360, hasAvances, seccionesVisibles }: SiteNavProps) {
   const pathname = usePathname();
   const [isOpen, setIsOpen] = useState(false);
   const [hoveredItem, setHoveredItem] = useState<string | null>(null);
@@ -67,7 +70,12 @@ export function SiteNav({ basePath, projectName, logoUrl, faviconUrl, constructo
     ...(hasAvances ? [{ label: tNav("avances"), href: "/avances", Icon: HardHat }] : []),
     ...(hasTour360 ? [{ label: tNav("tour360"), href: "/tour-360", Icon: Globe }] : []),
     { label: tNav("contacto"), href: "/contacto", Icon: MessageCircle },
-  ];
+  ].filter((item) => {
+    const segment = item.href.replace("/", "");
+    const sectionKey = ROUTE_TO_SECTION[segment];
+    if (!sectionKey) return true;
+    return isSectionVisible(seccionesVisibles, sectionKey);
+  });
 
   const sidebarWidth = expanded ? 200 : 60;
 

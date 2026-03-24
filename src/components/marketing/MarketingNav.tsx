@@ -2,30 +2,94 @@
 
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
-import { useState, useEffect, useCallback } from "react";
-import { LogIn, ArrowRight } from "lucide-react";
+import { useState, useEffect, useCallback, useRef } from "react";
+import {
+  LogIn,
+  ArrowRight,
+  ChevronDown,
+  Layers,
+  Plug,
+  Map,
+  ShieldCheck,
+  BookOpen,
+  BarChart3,
+  HelpCircle,
+  LifeBuoy,
+} from "lucide-react";
 import { NodDoLogo } from "@/components/ui/NodDoLogo";
 import { LanguageToggle } from "@/components/ui/LanguageToggle";
 import { useBooking } from "./BookingProvider";
 import { useTranslation } from "@/i18n";
 
-interface NavLink {
+interface DropdownItem {
   label: string;
-  href?: string;
-  action?: "booking";
+  description: string;
+  href: string;
+  icon: React.ElementType;
 }
 
 export function MarketingNav() {
   const [visible, setVisible] = useState(true);
   const [lastScrollY, setLastScrollY] = useState(0);
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [openDropdown, setOpenDropdown] = useState<string | null>(null);
+  const [mobileExpanded, setMobileExpanded] = useState<string | null>(null);
+  const dropdownTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
   const { openBooking } = useBooking();
   const { t } = useTranslation("marketing");
 
-  const navLinks: NavLink[] = [
-    { label: t("nav.product"), href: "#capacidades" },
-    { label: t("nav.pricing"), href: "/pricing" },
-    { label: t("nav.contact"), action: "booking" },
+  const productItems: DropdownItem[] = [
+    {
+      label: t("nav.productDropdown.features"),
+      description: t("nav.productDropdown.featuresDesc"),
+      href: "/#capacidades",
+      icon: Layers,
+    },
+    {
+      label: t("nav.productDropdown.integrations"),
+      description: t("nav.productDropdown.integrationsDesc"),
+      href: "/integraciones",
+      icon: Plug,
+    },
+    {
+      label: t("nav.productDropdown.roadmap"),
+      description: t("nav.productDropdown.roadmapDesc"),
+      href: "/roadmap",
+      icon: Map,
+    },
+    {
+      label: t("nav.productDropdown.security"),
+      description: t("nav.productDropdown.securityDesc"),
+      href: "/seguridad",
+      icon: ShieldCheck,
+    },
+  ];
+
+  const resourceItems: DropdownItem[] = [
+    {
+      label: t("nav.resourcesDropdown.blog"),
+      description: t("nav.resourcesDropdown.blogDesc"),
+      href: "/recursos",
+      icon: BookOpen,
+    },
+    {
+      label: t("nav.resourcesDropdown.caseStudies"),
+      description: t("nav.resourcesDropdown.caseStudiesDesc"),
+      href: "/casos-de-estudio",
+      icon: BarChart3,
+    },
+    {
+      label: t("nav.resourcesDropdown.faq"),
+      description: t("nav.resourcesDropdown.faqDesc"),
+      href: "/faq",
+      icon: HelpCircle,
+    },
+    {
+      label: t("nav.resourcesDropdown.helpCenter"),
+      description: t("nav.resourcesDropdown.helpCenterDesc"),
+      href: "/ayuda",
+      icon: LifeBuoy,
+    },
   ];
 
   const handleScroll = useCallback(() => {
@@ -35,6 +99,7 @@ export function MarketingNav() {
     } else if (currentY > lastScrollY) {
       setVisible(false);
       setMobileOpen(false);
+      setOpenDropdown(null);
     } else {
       setVisible(true);
     }
@@ -46,12 +111,17 @@ export function MarketingNav() {
     return () => window.removeEventListener("scroll", handleScroll);
   }, [handleScroll]);
 
-  const handleNavAction = (link: NavLink) => {
-    if (link.action === "booking") {
-      setMobileOpen(false);
-      openBooking();
-    }
+  const handleDropdownEnter = (key: string) => {
+    if (dropdownTimeout.current) clearTimeout(dropdownTimeout.current);
+    setOpenDropdown(key);
   };
+
+  const handleDropdownLeave = () => {
+    dropdownTimeout.current = setTimeout(() => setOpenDropdown(null), 150);
+  };
+
+  const linkClasses =
+    "text-[11px] font-semibold tracking-[0.18em] uppercase text-[rgba(244,240,232,0.4)] hover:text-[var(--mk-accent)] transition-colors duration-200";
 
   return (
     <motion.header
@@ -67,32 +137,66 @@ export function MarketingNav() {
       }}
     >
       <nav className="px-6 lg:px-24 py-6 flex items-center justify-between">
-        {/* Logo: NOD<gold>DO</gold> */}
+        {/* Logo */}
         <Link href="/" aria-label="NODDO Home">
           <NodDoLogo height={18} />
         </Link>
 
         {/* Desktop links */}
-        <ul className="hidden md:flex items-center gap-10">
-          {navLinks.map((link) => (
-            <li key={link.label}>
-              {link.action ? (
-                <button
-                  onClick={() => handleNavAction(link)}
-                  className="text-[11px] font-semibold tracking-[0.18em] uppercase text-[rgba(244,240,232,0.4)] hover:text-[var(--mk-accent)] transition-colors duration-200"
-                >
-                  {link.label}
-                </button>
-              ) : (
-                <Link
-                  href={link.href!}
-                  className="text-[11px] font-semibold tracking-[0.18em] uppercase text-[rgba(244,240,232,0.4)] hover:text-[var(--mk-accent)] transition-colors duration-200"
-                >
-                  {link.label}
-                </Link>
+        <ul className="hidden md:flex items-center gap-8">
+          {/* Producto dropdown */}
+          <li
+            className="relative"
+            onMouseEnter={() => handleDropdownEnter("product")}
+            onMouseLeave={handleDropdownLeave}
+          >
+            <button className={`${linkClasses} inline-flex items-center gap-1`}>
+              {t("nav.product")}
+              <ChevronDown
+                size={10}
+                strokeWidth={2.5}
+                className={`transition-transform duration-200 ${openDropdown === "product" ? "rotate-180" : ""}`}
+              />
+            </button>
+            <AnimatePresence>
+              {openDropdown === "product" && (
+                <DropdownPanel items={productItems} />
               )}
-            </li>
-          ))}
+            </AnimatePresence>
+          </li>
+
+          {/* Recursos dropdown */}
+          <li
+            className="relative"
+            onMouseEnter={() => handleDropdownEnter("resources")}
+            onMouseLeave={handleDropdownLeave}
+          >
+            <button className={`${linkClasses} inline-flex items-center gap-1`}>
+              {t("nav.resources")}
+              <ChevronDown
+                size={10}
+                strokeWidth={2.5}
+                className={`transition-transform duration-200 ${openDropdown === "resources" ? "rotate-180" : ""}`}
+              />
+            </button>
+            <AnimatePresence>
+              {openDropdown === "resources" && (
+                <DropdownPanel items={resourceItems} />
+              )}
+            </AnimatePresence>
+          </li>
+
+          {/* Direct links */}
+          <li>
+            <Link href="/pricing" className={linkClasses}>
+              {t("nav.pricing")}
+            </Link>
+          </li>
+          <li>
+            <Link href="/nosotros" className={linkClasses}>
+              {t("nav.about")}
+            </Link>
+          </li>
         </ul>
 
         {/* Right side */}
@@ -155,27 +259,50 @@ export function MarketingNav() {
               WebkitBackdropFilter: "blur(8px)",
             }}
           >
-            <div className="mx-auto max-w-7xl px-6 py-4 flex flex-col gap-4">
-              {navLinks.map((link) =>
-                link.action ? (
-                  <button
-                    key={link.label}
-                    onClick={() => handleNavAction(link)}
-                    className="text-left text-[11px] tracking-[0.2em] uppercase text-[var(--mk-text-secondary)] hover:text-[var(--mk-accent)] transition-colors duration-200"
-                  >
-                    {link.label}
-                  </button>
-                ) : (
-                  <Link
-                    key={link.label}
-                    href={link.href!}
-                    onClick={() => setMobileOpen(false)}
-                    className="text-[11px] tracking-[0.2em] uppercase text-[var(--mk-text-secondary)] hover:text-[var(--mk-accent)] transition-colors duration-200"
-                  >
-                    {link.label}
-                  </Link>
-                )
-              )}
+            <div className="mx-auto max-w-7xl px-6 py-4 flex flex-col gap-2">
+              {/* Producto accordion */}
+              <MobileAccordion
+                label={t("nav.product")}
+                items={productItems}
+                expanded={mobileExpanded === "product"}
+                onToggle={() =>
+                  setMobileExpanded((prev) =>
+                    prev === "product" ? null : "product"
+                  )
+                }
+                onNavigate={() => setMobileOpen(false)}
+              />
+
+              {/* Recursos accordion */}
+              <MobileAccordion
+                label={t("nav.resources")}
+                items={resourceItems}
+                expanded={mobileExpanded === "resources"}
+                onToggle={() =>
+                  setMobileExpanded((prev) =>
+                    prev === "resources" ? null : "resources"
+                  )
+                }
+                onNavigate={() => setMobileOpen(false)}
+              />
+
+              {/* Direct links */}
+              <Link
+                href="/pricing"
+                onClick={() => setMobileOpen(false)}
+                className="text-[11px] tracking-[0.2em] uppercase text-[var(--mk-text-secondary)] hover:text-[var(--mk-accent)] transition-colors duration-200 py-2"
+              >
+                {t("nav.pricing")}
+              </Link>
+              <Link
+                href="/nosotros"
+                onClick={() => setMobileOpen(false)}
+                className="text-[11px] tracking-[0.2em] uppercase text-[var(--mk-text-secondary)] hover:text-[var(--mk-accent)] transition-colors duration-200 py-2"
+              >
+                {t("nav.about")}
+              </Link>
+
+              {/* Login */}
               <Link
                 href="/login"
                 onClick={() => setMobileOpen(false)}
@@ -191,5 +318,129 @@ export function MarketingNav() {
         )}
       </AnimatePresence>
     </motion.header>
+  );
+}
+
+/* ── Desktop Dropdown Panel ── */
+function DropdownPanel({ items }: { items: DropdownItem[] }) {
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 8 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, y: 8 }}
+      transition={{ duration: 0.2, ease: "easeOut" }}
+      className="absolute top-full left-1/2 -translate-x-1/2 pt-3"
+      style={{ width: 280 }}
+    >
+      <div
+        className="rounded-xl overflow-hidden"
+        style={{
+          background: "rgba(20, 20, 20, 0.97)",
+          border: "1px solid rgba(255,255,255,0.08)",
+          backdropFilter: "blur(24px)",
+          boxShadow:
+            "0 20px 60px rgba(0,0,0,0.5), 0 0 0 1px rgba(255,255,255,0.03)",
+        }}
+      >
+        <div className="p-2">
+          {items.map((item) => {
+            const Icon = item.icon;
+            return (
+              <Link
+                key={item.href}
+                href={item.href}
+                className="flex items-start gap-3 p-3 rounded-lg hover:bg-[rgba(255,255,255,0.05)] transition-colors duration-150 group"
+              >
+                <div
+                  className="p-1.5 rounded-md shrink-0 mt-0.5"
+                  style={{
+                    backgroundColor: "rgba(184,151,58,0.1)",
+                    border: "1px solid rgba(184,151,58,0.15)",
+                  }}
+                >
+                  <Icon
+                    size={14}
+                    strokeWidth={2}
+                    style={{ color: "#b8973a" }}
+                  />
+                </div>
+                <div>
+                  <div
+                    className="text-[11px] font-semibold tracking-[0.1em] uppercase group-hover:text-[var(--mk-accent)] transition-colors duration-150"
+                    style={{ color: "rgba(244,240,232,0.85)" }}
+                  >
+                    {item.label}
+                  </div>
+                  <div
+                    className="text-[10px] leading-[1.5] mt-0.5"
+                    style={{ color: "rgba(244,240,232,0.35)" }}
+                  >
+                    {item.description}
+                  </div>
+                </div>
+              </Link>
+            );
+          })}
+        </div>
+      </div>
+    </motion.div>
+  );
+}
+
+/* ── Mobile Accordion ── */
+function MobileAccordion({
+  label,
+  items,
+  expanded,
+  onToggle,
+  onNavigate,
+}: {
+  label: string;
+  items: DropdownItem[];
+  expanded: boolean;
+  onToggle: () => void;
+  onNavigate: () => void;
+}) {
+  return (
+    <div>
+      <button
+        onClick={onToggle}
+        className="w-full flex items-center justify-between text-[11px] tracking-[0.2em] uppercase text-[var(--mk-text-secondary)] hover:text-[var(--mk-accent)] transition-colors duration-200 py-2"
+      >
+        {label}
+        <ChevronDown
+          size={12}
+          className={`transition-transform duration-200 ${expanded ? "rotate-180" : ""}`}
+        />
+      </button>
+      <AnimatePresence>
+        {expanded && (
+          <motion.div
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: "auto" }}
+            exit={{ opacity: 0, height: 0 }}
+            transition={{ duration: 0.2 }}
+            className="overflow-hidden"
+          >
+            <div className="pl-4 pb-2 flex flex-col gap-1">
+              {items.map((item) => {
+                const Icon = item.icon;
+                return (
+                  <Link
+                    key={item.href}
+                    href={item.href}
+                    onClick={onNavigate}
+                    className="flex items-center gap-2.5 py-2 text-[11px] tracking-[0.12em] text-[rgba(244,240,232,0.45)] hover:text-[var(--mk-accent)] transition-colors duration-150"
+                  >
+                    <Icon size={13} strokeWidth={2} style={{ color: "#b8973a", opacity: 0.6 }} />
+                    {item.label}
+                  </Link>
+                );
+              })}
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
   );
 }

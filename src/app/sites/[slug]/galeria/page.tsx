@@ -10,6 +10,7 @@ import { ChevronLeft, ChevronRight, Maximize2 } from "lucide-react";
 import { SiteEmptyState } from "@/components/site/SiteEmptyState";
 import type { GaleriaCategoria, GaleriaImagen } from "@/types";
 import { useTranslation } from "@/i18n";
+import { useSectionVisibility } from "@/hooks/useSectionVisibility";
 
 interface GalleryScope {
   id: string;
@@ -18,7 +19,9 @@ interface GalleryScope {
 }
 
 export default function GaleriaPage() {
+  const sectionVisible = useSectionVisibility("galeria");
   const proyecto = useSiteProject();
+  if (!sectionVisible) return null;
   const categorias = proyecto.galeria_categorias || [];
   const torres = proyecto.torres || [];
   const { t } = useTranslation("site");

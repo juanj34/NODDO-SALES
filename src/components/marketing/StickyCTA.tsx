@@ -64,9 +64,21 @@ export function StickyCTA() {
             </span>
           </div>
 
-          {/* Social proof text */}
-          <div style={{ fontSize: 10, color: "rgba(244,240,232,0.5)", letterSpacing: "0.02em" }}>
-            <strong style={{ color: "var(--mk-text-primary)", fontWeight: 500 }}>100+</strong> {t("stickyCta.projectsLive")}
+          {/* Social proof text with live dot */}
+          <div className="flex items-center gap-1.5" style={{ fontSize: 10, color: "rgba(244,240,232,0.5)", letterSpacing: "0.02em" }}>
+            <div
+              style={{
+                width: 6,
+                height: 6,
+                borderRadius: "50%",
+                background: "#4ade80",
+                boxShadow: "0 0 8px rgba(74,222,128,0.6)",
+                flexShrink: 0,
+              }}
+            />
+            <span>
+              <strong style={{ color: "var(--mk-text-primary)", fontWeight: 500 }}>100+</strong> {t("stickyCta.projectsLive")}
+            </span>
           </div>
         </div>
 
@@ -95,7 +107,7 @@ export function StickyCTA() {
       <div className="hidden md:flex items-center gap-6">
         {/* Left: Avatar Stack */}
         <div className="flex items-center gap-3">
-          {/* Stacked avatars with real photos */}
+          {/* Stacked avatars */}
           <div className="flex items-center" style={{ marginLeft: -4 }}>
             {[
               "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=80&h=80&fit=crop&crop=faces",
@@ -122,13 +134,12 @@ export function StickyCTA() {
                   width={32}
                   height={32}
                   className="object-cover"
-                  unoptimized={false}
                 />
               </div>
             ))}
           </div>
 
-          {/* Social proof text */}
+          {/* Social proof text with stars + live dot */}
           <div className="flex flex-col" style={{ gap: 2 }}>
             <div className="flex items-center gap-1.5">
               {[1, 2, 3, 4, 5].map((i) => (
@@ -144,19 +155,19 @@ export function StickyCTA() {
                 5.0
               </span>
             </div>
-            <div style={{ fontSize: 10, color: "rgba(244,240,232,0.45)", letterSpacing: "0.02em" }}>
-              <strong style={{ color: "var(--mk-text-primary)", fontWeight: 500 }}>100+</strong> {t("stickyCta.developers")}
-              <span style={{
-                marginLeft: 6,
-                padding: "2px 6px",
-                background: "rgba(184,151,58,0.15)",
-                borderRadius: "4px",
-                fontSize: 9,
-                fontWeight: 600,
-                color: "#b8973a",
-                letterSpacing: "0.04em",
-              }}>
-                {t("stickyCta.conversion")}
+            <div className="flex items-center gap-1.5" style={{ fontSize: 10, color: "rgba(244,240,232,0.45)", letterSpacing: "0.02em" }}>
+              <div
+                style={{
+                  width: 6,
+                  height: 6,
+                  borderRadius: "50%",
+                  background: "#4ade80",
+                  boxShadow: "0 0 8px rgba(74,222,128,0.6)",
+                  flexShrink: 0,
+                }}
+              />
+              <span>
+                <strong style={{ color: "var(--mk-text-primary)", fontWeight: 500 }}>100+</strong> {t("stickyCta.projectsLive")}
               </span>
             </div>
           </div>

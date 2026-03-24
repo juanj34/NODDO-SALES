@@ -549,11 +549,7 @@ export function SalesImpactSection() {
                       overflow: "hidden",
                     }}
                   >
-                    <Image src={photoUrl} alt="undefined" width={400} height={300} style={{
-                        width: "100%",
-                        height: "100%",
-                        objectFit: "cover",
-                      }} />
+                    <Image src={photoUrl} alt="" width={24} height={24} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
                   </div>
                 ))}
               </div>

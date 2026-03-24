@@ -30,39 +30,38 @@ export function PricingSection() {
 
   const plans: Plan[] = [
     {
-      name: t("pricing.plans.basicName"),
-      slug: "basic",
+      name: t("pricing.plans.esencialName"),
+      slug: "esencial",
       pricePrefix: "$",
-      price: t("pricing.plans.basicPrice"),
-      period: t("pricing.plans.basicPeriod"),
+      price: t("pricing.plans.esencialPrice"),
+      period: t("pricing.plans.esencialPeriod"),
       features: [
-        { text: t("pricing.plans.basicF0"), on: true },
-        { text: t("pricing.plans.basicF1"), on: true },
-        { text: t("pricing.plans.basicF2"), on: true },
-        { text: t("pricing.plans.basicF3"), on: true },
-        { text: t("pricing.plans.basicF4"), on: false },
-        { text: t("pricing.plans.basicF5"), on: false },
+        { text: t("pricing.plans.esencialF0"), on: true },
+        { text: t("pricing.plans.esencialF1"), on: true },
+        { text: t("pricing.plans.esencialF2"), on: true },
+        { text: t("pricing.plans.esencialF3"), on: true },
+        { text: t("pricing.plans.esencialF4"), on: true },
       ],
-      ctaLabel: t("pricing.plans.basicCta"),
+      ctaLabel: t("pricing.plans.esencialCta"),
       ctaAction: "booking",
     },
     {
-      name: t("pricing.plans.premiumName"),
-      slug: "premium",
+      name: t("pricing.plans.profesionalName"),
+      slug: "profesional",
       pricePrefix: "$",
-      price: t("pricing.plans.premiumPrice"),
-      period: t("pricing.plans.premiumPeriod"),
+      price: t("pricing.plans.profesionalPrice"),
+      period: t("pricing.plans.profesionalPeriod"),
       featured: true,
-      badge: t("pricing.plans.premiumBadge"),
+      badge: t("pricing.plans.profesionalBadge"),
       features: [
-        { text: t("pricing.plans.premiumF0"), on: true },
-        { text: t("pricing.plans.premiumF1"), on: true },
-        { text: t("pricing.plans.premiumF2"), on: true },
-        { text: t("pricing.plans.premiumF3"), on: true },
-        { text: t("pricing.plans.premiumF4"), on: true },
-        { text: t("pricing.plans.premiumF5"), on: true },
+        { text: t("pricing.plans.profesionalF0"), on: true },
+        { text: t("pricing.plans.profesionalF1"), on: true },
+        { text: t("pricing.plans.profesionalF2"), on: true },
+        { text: t("pricing.plans.profesionalF3"), on: true },
+        { text: t("pricing.plans.profesionalF4"), on: true },
+        { text: t("pricing.plans.profesionalF5"), on: true },
       ],
-      ctaLabel: t("pricing.plans.premiumCta"),
+      ctaLabel: t("pricing.plans.profesionalCta"),
       ctaAction: "booking",
     },
     {
@@ -76,7 +75,6 @@ export function PricingSection() {
         { text: t("pricing.plans.enterpriseF2"), on: true },
         { text: t("pricing.plans.enterpriseF3"), on: true },
         { text: t("pricing.plans.enterpriseF4"), on: true },
-        { text: t("pricing.plans.enterpriseF5"), on: true },
       ],
       ctaLabel: t("pricing.plans.enterpriseCta"),
       ctaAction: "contact",
@@ -85,9 +83,7 @@ export function PricingSection() {
 
   const handlePlanClick = useCallback(
     (plan: Plan) => {
-      // Track which plan was clicked
       trackPricingPlanClicked(plan.slug, PLAN_VALUES[plan.slug] || 149);
-
       if (plan.ctaAction === "contact") {
         openContact(plan.slug, `pricing-${plan.slug}`);
       } else {
@@ -222,25 +218,6 @@ export function PricingSection() {
 
         {/* Trust elements below pricing */}
         <div className="text-center mt-12">
-          {/* Urgency badge */}
-          <div
-            className="inline-flex items-center gap-2 mb-6"
-            style={{
-              background: "rgba(184,151,58,0.08)",
-              border: "1px solid rgba(184,151,58,0.2)",
-              padding: "8px 20px",
-              borderRadius: "8px",
-            }}
-          >
-            <span style={{ fontSize: 16 }}>⏰</span>
-            <span
-              className="font-ui text-[10px] tracking-[0.12em] uppercase"
-              style={{ color: "var(--mk-accent)" }}
-            >
-              {t("pricing.urgency")}
-            </span>
-          </div>
-
           {/* Trust micro-copy */}
           <div className="flex flex-col sm:flex-row items-center justify-center gap-3 sm:gap-6 text-[12px]" style={{ color: "rgba(244,240,232,0.3)" }}>
             <div className="flex items-center gap-1.5">

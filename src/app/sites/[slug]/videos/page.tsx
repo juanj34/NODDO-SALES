@@ -12,9 +12,12 @@ import { cn } from "@/lib/utils";
 import { useTranslation } from "@/i18n";
 import { trackEvent } from "@/lib/tracking";
 import { getVideoSrc, getVideoThumb } from "@/lib/video-utils";
+import { useSectionVisibility } from "@/hooks/useSectionVisibility";
 
 export default function VideosPage() {
+  const sectionVisible = useSectionVisibility("videos");
   const proyecto = useSiteProject();
+  if (!sectionVisible) return null;
   const { t } = useTranslation("site");
 
   // Filter out videos that are still processing or errored

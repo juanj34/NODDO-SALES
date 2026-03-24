@@ -134,8 +134,25 @@ export interface Proyecto {
   inventory_columns: InventoryColumnConfig | null;
   inventory_columns_by_type: InventoryColumnsByType | null;
   custom_columns: CustomColumnDef[];
+  secciones_visibles: SeccionesVisibles | null;
   created_at: string;
   updated_at: string;
+}
+
+/* ── Section Visibility ──────────────────────────────────────────── */
+
+export interface SeccionesVisibles {
+  galeria: boolean;
+  tipologias: boolean;
+  inventario: boolean;
+  explorar: boolean;
+  implantaciones: boolean;
+  ubicacion: boolean;
+  videos: boolean;
+  recursos: boolean;
+  avances: boolean;
+  tour360: boolean;
+  contacto: boolean;
 }
 
 export interface ProyectoStats {
@@ -746,6 +763,9 @@ export interface EmailConfig {
   reply_to: string | null;
   show_project_logo: boolean;
   show_constructora_logo: boolean;
+  email_tema?: "oscuro" | "claro";
+  email_project_logo_url?: string | null;
+  email_constructora_logo_url?: string | null;
   saludo: string | null;
   cuerpo: string | null;
   despedida: string | null;

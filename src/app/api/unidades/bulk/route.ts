@@ -16,23 +16,31 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Verify project ownership
+    // Verify project ownership and check tipologia_mode
     const { data: project } = await auth.supabase
       .from("proyectos")
-      .select("id")
+      .select("id, tipologia_mode")
       .eq("id", proyecto_id)
       .eq("user_id", auth.adminUserId)
       .maybeSingle();
     if (!project) {
       return NextResponse.json({ error: "Proyecto no encontrado" }, { status: 404 });
     }
+    const isMultiTipo = project.tipologia_mode === "multiple";
 
     const rows = unidades.map(
-      (u: Record<string, unknown>, i: number) => ({
-        ...pick(u, ["tipologia_id", "identificador", "piso", "area_m2", "area_construida", "area_privada", "area_lote", "precio", "estado", "habitaciones", "banos", "orientacion", "vista", "notas", "plano_url", "fachada_id", "fachada_x", "fachada_y", "planta_id", "planta_x", "planta_y", "torre_id", "lote", "etapa_nombre", "parqueaderos", "depositos", "custom_fields"]),
-        proyecto_id,
-        orden: u.orden ?? i,
-      })
+      (u: Record<string, unknown>, i: number) => {
+        const row: Record<string, unknown> = {
+          ...pick(u, ["tipologia_id", "identificador", "piso", "area_m2", "area_construida", "area_privada", "area_lote", "precio", "estado", "habitaciones", "banos", "orientacion", "vista", "notas", "plano_url", "fachada_id", "fachada_x", "fachada_y", "planta_id", "planta_x", "planta_y", "torre_id", "lote", "etapa_nombre", "parqueaderos", "depositos", "custom_fields"]),
+          proyecto_id,
+          orden: u.orden ?? i,
+        };
+        // In multi-tipología mode, strip tipologia_id — junction table is source of truth
+        if (isMultiTipo) {
+          delete row.tipologia_id;
+        }
+        return row;
+      }
     );
 
     const { data, error } = await auth.supabase

@@ -38,11 +38,6 @@ export function HeroSection() {
       ),
     },
   ];
-  const stats = [
-    { value: t("hero.stats.s1value"), label: t("hero.stats.s1label") },
-    { value: t("hero.stats.s2value"), label: t("hero.stats.s2label") },
-    { value: t("hero.stats.s3value"), label: t("hero.stats.s3label") },
-  ];
   const [activeIndex, setActiveIndex] = useState(0);
   const [isPaused, setIsPaused] = useState(false);
 
@@ -50,7 +45,7 @@ export function HeroSection() {
     if (isPaused) return;
     const interval = setInterval(() => {
       setActiveIndex((prev) => (prev + 1) % perspectives.length);
-    }, 5000);
+    }, 12000);
     return () => clearInterval(interval);
   }, [isPaused]);
 
@@ -272,29 +267,6 @@ export function HeroSection() {
             }
           }
         `}</style>
-
-        {/* Stats strip */}
-        <motion.div
-          initial={{ opacity: 0, y: 24 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8, delay: 1.0, ease: "easeOut" }}
-          className="grid grid-cols-3 gap-4 sm:gap-8 lg:gap-12 mt-10 lg:mt-16 pt-8 lg:pt-10"
-          style={{ borderTop: "1px solid rgba(244, 240, 232, 0.06)" }}
-        >
-          {stats.map((stat) => (
-            <div key={stat.label}>
-              <div className="font-heading text-3xl sm:text-4xl lg:text-5xl font-light leading-none mb-1.5 text-[var(--mk-accent-light)]">
-                {stat.value}
-              </div>
-              <div
-                className="font-ui text-[8px] sm:text-[9px] lg:text-[10px] tracking-[0.15em] sm:tracking-[0.2em] uppercase"
-                style={{ color: "rgba(244, 240, 232, 0.5)" }}
-              >
-                {stat.label}
-              </div>
-            </div>
-          ))}
-        </motion.div>
 
         {/* ── Mobile hero visual ── */}
         <motion.div

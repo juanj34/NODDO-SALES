@@ -42,9 +42,12 @@ import { resolvePisos } from "@/lib/piso-utils";
 import { formatCurrency } from "@/lib/currency";
 import { getUnitDisplayName } from "@/lib/unit-display";
 import type { Unidad, UnidadTipologia, LightboxImage, VistaPiso } from "@/types";
+import { useSectionVisibility } from "@/hooks/useSectionVisibility";
 
 export default function TipologiasPage() {
+  const sectionVisible = useSectionVisibility("tipologias");
   const proyecto = useSiteProject();
+  if (!sectionVisible) return null;
   const searchParams = useSearchParams();
   const { t: tSite } = useTranslation("site");
   const unitPrefix = proyecto.unidad_display_prefix;

@@ -1,0 +1,26 @@
+{
+  "id": "f70572f6-7b19-4917-968a-2370dd07e647",
+  "nombre": "\u00cdndigo Houses",
+  "all_projects": [
+    {
+      "id": "f70572f6-7b19-4917-968a-2370dd07e647",
+      "nombre": "\u00cdndigo Houses",
+      "slug": "indigo-houses"
+    },
+    {
+      "id": "87517f34-b866-4418-8d05-fe90aca8a9c2",
+      "nombre": "Garden Houses",
+      "slug": "garden-houses"
+    },
+    {
+      "id": "f4068eea-6ed7-4a0a-a985-ff62345e378e",
+      "nombre": "The Meriva Collection",
+      "slug": "meriva"
+    },
+    {
+      "id": "71b92bd7-cb89-48b2-8ac6-b766ca3011d2",
+      "nombre": "Alto de Yeguas",
+      "slug": "alto-de-yeguas"
+    }
+  ]
+}

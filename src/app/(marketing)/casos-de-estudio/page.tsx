@@ -2,234 +2,16 @@
 
 import Image from "next/image";
 import { motion } from "framer-motion";
-import { TrendingUp, Clock, DollarSign, Users, ArrowRight, Quote, CheckCircle2, Target } from "lucide-react";
+import {
+  TrendingUp,
+  ArrowRight,
+  Quote,
+  CheckCircle2,
+  Target,
+} from "lucide-react";
 import Link from "next/link";
+import { caseStudies } from "@/data/case-studies";
 import { usePageView } from "@/hooks/usePageView";
-
-const caseStudies = [
-  {
-    id: "torre-candelaria",
-    client: "Arco Urbano",
-    project: "Torre Candelaria",
-    location: "Medellín, Colombia",
-    units: 120,
-    type: "Apartamentos premium",
-    logo: "AU",
-    image: "https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?w=800&h=600&fit=crop",
-    challenge: {
-      title: "Vendían solo 2-3 unidades por mes con agencia tradicional",
-      description: "Arco Urbano estaba pagando $12,000 USD a una agencia para un sitio web estático que tardó 5 meses en lanzar. El sitio era bonito pero completamente inútil para ventas: cambiar un precio requería abrir ticket de soporte, el inventario se actualizaba manualmente con PDFs, y los leads llegaban dispersos en emails sin rastreo de origen.",
-      metrics: [
-        "2-3 unidades vendidas/mes",
-        "Costo de agencia: $12,000 USD",
-        "5 meses de desarrollo",
-        "Leads sin rastreo UTM",
-      ],
-    },
-    solution: {
-      title: "Implementaron NODDO con inventario en vivo + cotizador automático",
-      description: "Migraron a NODDO en 3 días. Configuraron el Noddo Grid para mostrar disponibilidad en tiempo real por piso y vista. Activaron el cotizador automático que genera PDFs personalizados al instante. Integraron su CRM (GoHighLevel) para que cada lead cayera automáticamente en el pipeline de ventas con toda la información: nombre, email, WhatsApp, unidad de interés, y parámetros UTM de la campaña que lo trajo.",
-      implementation: [
-        {
-          day: "Día 1",
-          tasks: "Migración de contenido (renders, planos, textos) desde el sitio anterior",
-        },
-        {
-          day: "Día 2",
-          tasks: "Configuración del Noddo Grid (120 unidades), branding personalizado, dominio propio",
-        },
-        {
-          day: "Día 3",
-          tasks: "Integración GoHighLevel, capacitación del equipo de ventas, publicación en vivo",
-        },
-      ],
-    },
-    results: {
-      title: "40% de unidades vendidas en 60 días",
-      metrics: [
-        {
-          label: "Unidades vendidas",
-          before: "2-3/mes",
-          after: "48 en 60 días",
-          change: "+1500%",
-          icon: TrendingUp,
-        },
-        {
-          label: "Leads capturados",
-          before: "15/mes",
-          after: "87/mes",
-          change: "+480%",
-          icon: Users,
-        },
-        {
-          label: "Costo por lead",
-          before: "$120",
-          after: "$8",
-          change: "-93%",
-          icon: DollarSign,
-        },
-        {
-          label: "Tiempo de implementación",
-          before: "5 meses",
-          after: "3 días",
-          change: "-98%",
-          icon: Clock,
-        },
-      ],
-      quote: "Lanzamos Torre Candelaria en 3 días. Antes con la agencia nos tardamos 5 meses en tener algo parecido — y costó 12 veces más. Los leads que llegan ya saben qué piso y qué tipología quieren. Eso acelera el cierre brutal.",
-      author: "Jorge Mora",
-      role: "Director Comercial · Arco Urbano",
-    },
-  },
-  {
-    id: "conjunto-vertice",
-    client: "Vértice Grupo",
-    project: "4 Proyectos Simultáneos",
-    location: "Bogotá, Cali, Barranquilla",
-    units: 340,
-    type: "Portafolio multi-proyecto",
-    logo: "VG",
-    image: "https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?w=800&h=600&fit=crop",
-    challenge: {
-      title: "Manejaban 4 proyectos con equipos de marketing separados para cada uno",
-      description: "Vértice Grupo tenía 4 proyectos activos en 3 ciudades diferentes. Cada proyecto tenía su propia agencia, su propio sitio web, y su propio equipo de marketing. Esto generaba: costos duplicados ($8,000 USD/mes en total), inconsistencia de marca, imposibilidad de comparar métricas entre proyectos, y cero visibilidad centralizada de leads.",
-      metrics: [
-        "4 agencias diferentes ($8k/mes total)",
-        "Inconsistencia de marca",
-        "Leads dispersos en 4 sistemas",
-        "Sin analytics consolidados",
-      ],
-    },
-    solution: {
-      title: "Centralizaron los 4 proyectos en un solo dashboard NODDO",
-      description: "Migraron los 4 proyectos a NODDO Studio. Cada proyecto mantiene su propio branding y dominio personalizado, pero todos se administran desde un solo dashboard. El equipo de ventas puede ver leads de todos los proyectos en una sola vista, comparar performance, y detectar qué campañas funcionan mejor. Los leads se integran automáticamente con su CRM central (HubSpot) etiquetados por proyecto.",
-      implementation: [
-        {
-          day: "Semana 1",
-          tasks: "Migración Proyecto 1 (Bogotá) + capacitación equipo comercial",
-        },
-        {
-          day: "Semana 2",
-          tasks: "Migración Proyecto 2 (Cali) + Proyecto 3 (Barranquilla)",
-        },
-        {
-          day: "Semana 3",
-          tasks: "Migración Proyecto 4 (Bogotá Norte) + integración HubSpot centralizada",
-        },
-      ],
-    },
-    results: {
-      title: "Reducción de costos del 78% manteniendo 4 proyectos activos",
-      metrics: [
-        {
-          label: "Costo mensual total",
-          before: "$8,000/mes",
-          after: "$1,760/mes",
-          change: "-78%",
-          icon: DollarSign,
-        },
-        {
-          label: "Tiempo de gestión",
-          before: "160h/mes",
-          after: "40h/mes",
-          change: "-75%",
-          icon: Clock,
-        },
-        {
-          label: "Leads totales",
-          before: "120/mes",
-          after: "340/mes",
-          change: "+183%",
-          icon: Users,
-        },
-        {
-          label: "Tasa de conversión",
-          before: "1.2%",
-          after: "3.8%",
-          change: "+217%",
-          icon: TrendingUp,
-        },
-      ],
-      quote: "Manejamos 4 proyectos simultáneos desde un solo dashboard. Antes necesitaba un equipo de marketing para cada uno. Ahora mi equipo de ventas tiene todo en tiempo real — leads, inventario, analytics — en un solo lugar. La visibilidad cambió el juego.",
-      author: "Lorena Castaño",
-      role: "Gerente General · Vértice Grupo",
-    },
-  },
-  {
-    id: "reserva-campestre",
-    client: "Cimientos & Co",
-    project: "Reserva Campestre",
-    location: "Santa Marta, Colombia",
-    units: 45,
-    type: "Casas campestres",
-    logo: "CC",
-    image: "https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?w=800&h=600&fit=crop",
-    challenge: {
-      title: "La junta directiva rechazaba presupuestos digitales por falta de diferenciación",
-      description: "Cimientos & Co había intentado 3 veces aprobar presupuesto para un sitio web del proyecto Reserva Campestre, pero la junta directiva lo rechazaba porque 'todos los sitios de casas campestres se ven iguales'. Necesitaban algo que los diferenciara visualmente y que justificara la inversión. Los brochures en PDF no estaban generando suficientes leads calificados.",
-      metrics: [
-        "3 propuestas rechazadas por la junta",
-        "40-50 leads/mes con brochures PDF",
-        "Tasa de calificación: 15%",
-        "Sin forma de rastrear origen de leads",
-      ],
-    },
-    solution: {
-      title: "Implementaron el Noddo Grid interactivo que convenció a la junta",
-      description: "La propuesta de valor fue el Noddo Grid: un plano interactivo del proyecto donde los compradores podían hacer clic en cada lote para ver disponibilidad, specs, precio, y renders específicos. Esto nunca lo habían visto en la competencia. La junta aprobó el presupuesto inmediatamente. Además, activaron cotizador automático y mapas satelitales con POIs de colegios, clubes y restaurantes cercanos.",
-      implementation: [
-        {
-          day: "Día 1",
-          tasks: "Configuración Noddo Grid (45 lotes) + carga de renders por lote",
-        },
-        {
-          day: "Día 2",
-          tasks: "Mapeo de 18 POIs relevantes (colegios, clubes, centros comerciales)",
-        },
-        {
-          day: "Día 3",
-          tasks: "Cotizador personalizado + branding + dominio propio + publicación",
-        },
-      ],
-    },
-    results: {
-      title: "87% de leads llegan pre-calificados sabiendo qué lote quieren",
-      metrics: [
-        {
-          label: "Leads mensuales",
-          before: "40-50",
-          after: "110-130",
-          change: "+160%",
-          icon: Users,
-        },
-        {
-          label: "Tasa de calificación",
-          before: "15%",
-          after: "87%",
-          change: "+480%",
-          icon: Target,
-        },
-        {
-          label: "Tiempo promedio de cierre",
-          before: "45 días",
-          after: "22 días",
-          change: "-51%",
-          icon: Clock,
-        },
-        {
-          label: "Costo de adquisición (CAC)",
-          before: "$850",
-          after: "$280",
-          change: "-67%",
-          icon: DollarSign,
-        },
-      ],
-      quote: "El Noddo Grid fue lo que convenció a nuestra junta. Los compradores pueden hacer clic en el masterplan y ver exactamente qué lotes quedan, con vista, precio, y renders. Eso no lo tiene ningún brochure del mercado. Los leads que llegan ya saben qué quieren — eso reduce fricción brutal.",
-      author: "Ricardo Fuentes",
-      role: "VP de Proyectos · Cimientos & Co",
-    },
-  },
-];
 
 const ease = [0.25, 0.46, 0.45, 0.94] as const;
 
@@ -273,7 +55,10 @@ export default function CasosDeEstudioPage() {
           >
             Historias de quienes
             <br />
-            ya <span style={{ fontStyle: "italic", color: "#b8973a" }}>venden diferente</span>
+            ya{" "}
+            <span style={{ fontStyle: "italic", color: "#b8973a" }}>
+              venden diferente
+            </span>
           </motion.h1>
 
           <motion.p
@@ -286,8 +71,8 @@ export default function CasosDeEstudioPage() {
               color: "rgba(244,240,232,0.55)",
             }}
           >
-            Resultados reales de constructoras que dejaron atrás las agencias tradicionales. Datos
-            duros, métricas verificables, ROI comprobado.
+            Resultados reales de constructoras que dejaron atrás las agencias
+            tradicionales. Datos duros, métricas verificables, ROI comprobado.
           </motion.p>
         </div>
 
@@ -363,13 +148,20 @@ export default function CasosDeEstudioPage() {
                     </div>
                   </div>
 
-                  <Image src={study.image} alt="" width={400} height={300} className="w-full md:w-80 h-48 object-cover rounded-xl" style={{
+                  <Image
+                    src={study.image}
+                    alt=""
+                    width={400}
+                    height={300}
+                    className="w-full md:w-80 h-48 object-cover rounded-xl"
+                    style={{
                       border: "1px solid rgba(255, 255, 255, 0.1)",
-                    }} />
+                    }}
+                  />
                 </div>
               </div>
 
-              {/* Challenge */}
+              {/* Challenge + Solution */}
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
                 <div className="glass-card p-8">
                   <div className="flex items-start gap-3 mb-4">
@@ -380,7 +172,10 @@ export default function CasosDeEstudioPage() {
                         border: "1px solid rgba(239, 68, 68, 0.3)",
                       }}
                     >
-                      <Target className="w-5 h-5" style={{ color: "#ef4444" }} />
+                      <Target
+                        className="w-5 h-5"
+                        style={{ color: "#ef4444" }}
+                      />
                     </div>
                     <div>
                       <h3
@@ -447,7 +242,10 @@ export default function CasosDeEstudioPage() {
                         border: "1px solid rgba(184, 151, 58, 0.3)",
                       }}
                     >
-                      <CheckCircle2 className="w-5 h-5" style={{ color: "#b8973a" }} />
+                      <CheckCircle2
+                        className="w-5 h-5"
+                        style={{ color: "#b8973a" }}
+                      />
                     </div>
                     <div>
                       <h3
@@ -548,7 +346,10 @@ export default function CasosDeEstudioPage() {
                           border: "1px solid rgba(255, 255, 255, 0.08)",
                         }}
                       >
-                        <Icon className="w-6 h-6 mb-3" style={{ color: "#b8973a" }} />
+                        <Icon
+                          className="w-6 h-6 mb-3"
+                          style={{ color: "#b8973a" }}
+                        />
                         <div
                           className="text-xs uppercase tracking-wider mb-2"
                           style={{
@@ -583,7 +384,9 @@ export default function CasosDeEstudioPage() {
                           className="text-sm font-bold"
                           style={{
                             fontFamily: "var(--font-syne)",
-                            color: metric.change.startsWith("-") ? "#10b981" : "#b8973a",
+                            color: metric.change.startsWith("-")
+                              ? "#10b981"
+                              : "#b8973a",
                           }}
                         >
                           {metric.change}
@@ -595,7 +398,7 @@ export default function CasosDeEstudioPage() {
 
                 {/* Testimonial quote */}
                 <div
-                  className="p-6 rounded-xl relative"
+                  className="p-6 rounded-xl relative mb-6"
                   style={{
                     backgroundColor: "rgba(184, 151, 58, 0.05)",
                     border: "1px solid rgba(184, 151, 58, 0.15)",
@@ -624,7 +427,10 @@ export default function CasosDeEstudioPage() {
                         fontFamily: "var(--font-syne)",
                       }}
                     >
-                      {study.results.author.split(" ").map((n) => n[0]).join("")}
+                      {study.results.author
+                        .split(" ")
+                        .map((n) => n[0])
+                        .join("")}
                     </div>
                     <div>
                       <p
@@ -648,6 +454,20 @@ export default function CasosDeEstudioPage() {
                     </div>
                   </div>
                 </div>
+
+                {/* Ver Caso Completo link */}
+                <Link
+                  href={`/casos-de-estudio/${study.id}`}
+                  className="inline-flex items-center gap-2 text-sm transition-all duration-200 hover:gap-3"
+                  style={{
+                    fontFamily: "var(--font-syne)",
+                    fontWeight: 700,
+                    color: "#b8973a",
+                  }}
+                >
+                  Ver caso completo
+                  <ArrowRight className="w-4 h-4" />
+                </Link>
               </div>
             </motion.article>
           ))}
@@ -671,7 +491,9 @@ export default function CasosDeEstudioPage() {
               }}
             >
               ¿Listo para tener{" "}
-              <span style={{ fontStyle: "italic", color: "#b8973a" }}>tu caso de éxito?</span>
+              <span style={{ fontStyle: "italic", color: "#b8973a" }}>
+                tu caso de éxito?
+              </span>
             </h2>
             <p
               className="text-base mb-8 max-w-2xl mx-auto"
@@ -680,8 +502,8 @@ export default function CasosDeEstudioPage() {
                 color: "rgba(244,240,232,0.55)",
               }}
             >
-              Agenda una llamada de 30 minutos y te mostramos cómo NODDO puede transformar tu
-              estrategia de ventas digitales
+              Agenda una llamada de 30 minutos y te mostramos cómo NODDO puede
+              transformar tu estrategia de ventas digitales
             </p>
             <Link
               href="/"
@@ -689,7 +511,8 @@ export default function CasosDeEstudioPage() {
               style={{
                 fontFamily: "var(--font-syne)",
                 fontWeight: 700,
-                background: "linear-gradient(135deg, #b8973a 0%, #d4b05a 100%)",
+                background:
+                  "linear-gradient(135deg, #b8973a 0%, #d4b05a 100%)",
                 color: "#0a0a0b",
                 boxShadow: "0 0 30px rgba(184, 151, 58, 0.3)",
               }}

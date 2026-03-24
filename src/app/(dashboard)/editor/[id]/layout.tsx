@@ -186,6 +186,8 @@ const editorSections: TabSection[] = [
     label: "Ajustes",
     tabs: [
       { id: "config", label: "Configuracion", icon: Settings, href: "/config" },
+      { id: "visibilidad", label: "Visibilidad", icon: Eye, href: "/visibilidad" },
+      { id: "cotizador-settings", label: "Cotizador", icon: Calculator, href: "/cotizador-settings" },
       { id: "correos", label: "Correos", icon: Mail, href: "/correos" },
       { id: "dominio", label: "Dominio", icon: Globe, href: "/dominio" },
       { id: "webhooks", label: "Webhooks", icon: Webhook, href: "/webhooks" },

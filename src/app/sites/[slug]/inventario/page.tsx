@@ -42,13 +42,16 @@ import { formatCurrency } from "@/lib/currency";
 import { getUnitDisplayName } from "@/lib/unit-display";
 import { getInventoryColumns, getHybridInventoryColumns, resolveColumnsForTipologia, getPrimaryArea, getVisibleCustomColumns } from "@/lib/inventory-columns";
 import type { Unidad, UnidadTipologia, TipoTipologia, CustomColumnDef } from "@/types";
+import { useSectionVisibility } from "@/hooks/useSectionVisibility";
 
 type SortKey = "identificador_asc" | "identificador_desc" | "precio_asc" | "precio_desc" | "area_asc" | "area_desc" | "piso_asc" | "piso_desc" | `custom_${string}_asc` | `custom_${string}_desc`;
 
 const CUSTOM_COL_ICON = { text: Type, number: Hash, date: Calendar, select: List } as const;
 
 export default function InventarioPage() {
+  const sectionVisible = useSectionVisibility("inventario");
   const proyecto = useSiteProject();
+  if (!sectionVisible) return null;
   const basePath = useSiteBasePath();
   const { t: tSite } = useTranslation("site");
   const unitPrefix = proyecto.unidad_display_prefix;

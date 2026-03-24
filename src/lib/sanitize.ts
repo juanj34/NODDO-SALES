@@ -10,8 +10,18 @@ export function sanitizeHtml(dirty: string): string {
       "p", "br", "strong", "b", "em", "i", "u", "s",
       "h1", "h2", "h3", "h4", "h5", "h6",
       "ul", "ol", "li", "a", "blockquote", "code", "pre",
-      "span", "div", "hr",
+      "span", "div", "hr", "img", "iframe",
     ],
-    ALLOWED_ATTR: ["href", "target", "rel", "class"],
+    ALLOWED_ATTR: [
+      "href", "target", "rel", "class",
+      // img
+      "src", "alt", "width", "height", "loading",
+      // iframe (YouTube embeds)
+      "src", "title", "allow", "allowfullscreen", "frameborder",
+      // data attributes for tiptap YouTube wrapper
+      "data-youtube-video",
+    ],
+    ADD_TAGS: ["iframe"],
+    ADD_ATTR: ["allow", "allowfullscreen", "frameborder"],
   });
 }

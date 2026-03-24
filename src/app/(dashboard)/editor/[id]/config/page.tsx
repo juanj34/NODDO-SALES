@@ -17,7 +17,7 @@ import {
   Link2, Building2, Home, MapPin, Layers,
   Maximize, DollarSign, BedDouble, Bath, Compass,
   RotateCcw, TableProperties, Ruler, LandPlot,
-  Calculator, Waves, Sparkles,
+  Waves, Sparkles,
   UtensilsCrossed, Sun, TreePine, DoorClosed, BookOpen,
   Flame, MoveVertical, CloudSun, Store,
 } from "lucide-react";
@@ -28,7 +28,6 @@ import { CurrencyInput } from "@/components/dashboard/CurrencyInput";
 import { cn } from "@/lib/utils";
 import { getInventoryColumns, getDefaultColumns, getHybridInventoryColumns, getDefaultColumnsForTipo, INVENTORY_COLUMN_KEYS } from "@/lib/inventory-columns";
 import type { InventoryColumnConfig, InventoryColumnsByType, ComplementoMode, TipoTipologia } from "@/types";
-import { CotizadorSandbox } from "@/components/dashboard/cotizador/CotizadorSandbox";
 
 /* ── Column icon map ────────────────────────────────────────────── */
 
@@ -118,7 +117,6 @@ export default function ConfigPage() {
   const [inventoryColumnsMicrosite, setInventoryColumnsMicrosite] = useState<InventoryColumnConfig | null>(null);
   const [inventoryColumnsMicrositeByType, setInventoryColumnsMicrositeByType] = useState<InventoryColumnsByType | null>(null);
   const [columnsViewTab, setColumnsViewTab] = useState<"editor" | "microsite">("editor");
-  const [configTab, setConfigTab] = useState<"general" | "cotizador">("general");
 
   /* ── Sync state from project ── */
   useEffect(() => {
@@ -363,40 +361,8 @@ export default function ConfigPage() {
         description={t("config.description")}
       />
 
-      {/* Tab Selector: General | Cotizador */}
-      <div className="flex items-center gap-1 p-1 bg-[var(--surface-2)] rounded-xl w-fit">
-        {([
-          { id: "general" as const, label: t("config.tabs.general"), icon: Settings },
-          { id: "cotizador" as const, label: t("config.tabs.cotizador"), icon: Calculator },
-        ]).map((tab) => {
-          const isActive = configTab === tab.id;
-          const TabIcon = tab.icon;
-          return (
-            <button
-              key={tab.id}
-              type="button"
-              onClick={() => setConfigTab(tab.id)}
-              className={cn(
-                "relative flex items-center gap-2 px-4 py-2.5 rounded-lg transition-all font-ui text-xs font-bold uppercase tracking-[0.08em]",
-                isActive
-                  ? "bg-[var(--site-primary)] text-[var(--surface-0)] shadow-[0_2px_8px_rgba(var(--site-primary-rgb),0.3)]"
-                  : "text-[var(--text-tertiary)] hover:text-[var(--text-primary)] hover:bg-white/5"
-              )}
-            >
-              <TabIcon size={13} />
-              {tab.label}
-            </button>
-          );
-        })}
-      </div>
-
-      {/* ── Tab Content: Cotizador ── */}
-      {configTab === "cotizador" && (
-        <CotizadorSandbox />
-      )}
-
-      {/* ── Tab Content: General ── */}
-      {configTab === "general" && (<>
+      {/* ── General Configuration ── */}
+      <>
 
       {/* ═══════════════════════════════════════════════════════════
           URL del Micrositio (Slug)
@@ -1260,7 +1226,7 @@ export default function ConfigPage() {
         )}
       </div>
 
-      </>)}
+      </>
     </motion.div>
   );
 }

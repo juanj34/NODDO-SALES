@@ -95,6 +95,11 @@ interface CotizacionBuyerData {
   brochureUrl?: string | null;
   micrositeUrl?: string | null;
   recursos?: { id: string; nombre: string; url: string }[];
+  // Tipología details for email body
+  tipologiaName?: string | null;
+  areaM2?: number | null;
+  habitaciones?: number | null;
+  banos?: number | null;
   // Agent info for signature
   agentName?: string | null;
   agentPhone?: string | null;
@@ -128,6 +133,10 @@ export async function sendCotizacionBuyer(data: CotizacionBuyerData) {
         buyerName: data.buyerName,
         unidadId: data.unidadId,
         totalFormatted: data.totalFormatted,
+        tipologiaName: data.tipologiaName ?? null,
+        areaM2: data.areaM2 ?? null,
+        habitaciones: data.habitaciones ?? null,
+        banos: data.banos ?? null,
         whatsappNumero: data.whatsappNumero ?? null,
         tour360Url: data.tour360Url ?? null,
         brochureUrl: data.brochureUrl ?? null,
@@ -142,6 +151,10 @@ export async function sendCotizacionBuyer(data: CotizacionBuyerData) {
         escapeHtml(data.projectName),
         `${detailTable([
           { label: s.cotizacionBuyer.labels.unit, value: data.unidadId },
+          ...(data.tipologiaName ? [{ label: s.cotizacionBuyer.labels.tipologia, value: data.tipologiaName }] : []),
+          ...(data.areaM2 != null ? [{ label: s.cotizacionBuyer.labels.area, value: `${data.areaM2} m\u00B2` }] : []),
+          ...(data.habitaciones != null ? [{ label: s.cotizacionBuyer.labels.habitaciones, value: String(data.habitaciones) }] : []),
+          ...(data.banos != null ? [{ label: s.cotizacionBuyer.labels.banos, value: String(data.banos) }] : []),
           { label: s.cotizacionBuyer.labels.total, value: data.totalFormatted, highlight: true },
         ])}
         <tr><td align="center" style="padding:0 40px 16px;">
@@ -746,19 +759,28 @@ export function emailWrapper(heading: string, subLabel: string | undefined, body
 </html>`;
 }
 
-export function detailTable(rows: { label: string; value: string; highlight?: boolean }[]): string {
+export function detailTable(
+  rows: { label: string; value: string; highlight?: boolean }[],
+  theme?: { detailBg: string; detailBorder: string; detailLabel: string; detailValue: string; primaryColor: string },
+): string {
+  const bg = theme?.detailBg ?? "#1a1a1a";
+  const border = theme?.detailBorder ?? "#222222";
+  const labelColor = theme?.detailLabel ?? "#5a5550";
+  const valueColor = theme?.detailValue ?? "#f4f0e8";
+  const highlightColor = theme?.primaryColor ?? "#b8973a";
+
   const rowsHtml = rows
     .map(
       (row) =>
         `<tr>
-          <td style="padding:8px 16px;font-size:11px;color:#5a5550;font-weight:600;text-transform:uppercase;letter-spacing:0.1em;vertical-align:top;width:140px;">${row.label}</td>
-          <td style="padding:8px 16px;font-size:13px;${row.highlight ? "color:#b8973a;font-weight:600;" : "color:#f4f0e8;font-weight:300;"}">${escapeHtml(row.value)}</td>
+          <td style="padding:8px 16px;font-size:11px;color:${labelColor};font-weight:600;text-transform:uppercase;letter-spacing:0.1em;vertical-align:top;width:140px;">${row.label}</td>
+          <td style="padding:8px 16px;font-family:'Courier New',Courier,monospace;font-size:13px;${row.highlight ? `color:${highlightColor};font-weight:700;` : `color:${valueColor};font-weight:400;`}">${escapeHtml(row.value)}</td>
         </tr>`
     )
     .join("");
 
   return `<tr><td style="padding:0 24px 28px;">
-    <table width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color:#1a1a1a;border:1px solid #222222;border-radius:12px;overflow:hidden;">
+    <table width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color:${bg};border:1px solid ${border};border-radius:12px;overflow:hidden;">
       ${rowsHtml}
     </table>
   </td></tr>`;

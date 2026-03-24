@@ -96,7 +96,8 @@ export function SiteLayoutClient({ proyecto, basePath, children }: Props) {
                 etapaLabel={proyecto.etapa_label}
                 hasImplantaciones={proyecto.planos_interactivos?.some(p => p.tipo === "urbanismo" && p.visible) ?? false}
                 hasTour360={!!proyecto.tour_360_url}
-                hasAvances={(proyecto.avances_obra?.length || 0) > 0}
+                hasAvances={(proyecto.avances_obra?.filter(a => a.estado === "publicado").length || 0) > 0}
+                seccionesVisibles={proyecto.secciones_visibles}
               />
               {/* Sidebar toggle arrow — outside the nav, centered vertically */}
               <motion.button

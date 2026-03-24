@@ -274,7 +274,7 @@ const site = {
     guaranteed: "Garantizado",
     familiesTrust: "500+ familias confían",
     certified: "Certificado",
-    noCommitment: "Sin compromiso",
+    noCommitment: "Asesoría gratuita",
     freePDF: "PDF personalizado",
     fiveMin: "En 5 minutos",
     flexiblePlans: "Planes flexibles",

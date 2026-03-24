@@ -80,7 +80,7 @@ export function CountersSection() {
   const counters: CounterData[] = [
     { target: 2847, suffix: t("counters.c0suffix"), label: t("counters.c0label") },
     { target: 34, suffix: t("counters.c1suffix"), label: t("counters.c1label") },
-    { target: 98, suffix: t("counters.c2suffix"), label: t("counters.c2label") },
+    { target: 42, suffix: t("counters.c2suffix"), label: t("counters.c2label") },
     { target: 1, suffix: t("counters.c3suffix"), label: t("counters.c3label") },
   ];
 

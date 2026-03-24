@@ -357,6 +357,9 @@ Este proyecto usa modo multi-tipología. Cada unidad puede tener VARIAS tipolog�
             );
             break;
           case "tipologia_id":
+            // In multi-tipología mode, ignore tipologia_id changes — junction table is source of truth.
+            // tipologia_id is only set when unit transitions to committed state (via PUT /api/unidades/[id]).
+            if (isMultiTipo) break;
             if (value === null) {
               cleanUpdates[field] = null;
             } else if (

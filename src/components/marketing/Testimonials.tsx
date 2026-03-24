@@ -69,19 +69,18 @@ export function Testimonials() {
               transition={{ duration: 0.6, delay: i * 0.12, ease }}
               className="bg-[var(--mk-bg)] p-6 sm:p-8 lg:p-10 flex flex-col relative"
             >
-              {/* Stars */}
+              {/* Gold accent bar */}
               <div
                 className="absolute"
                 style={{
                   top: 24,
                   right: 24,
-                  color: "var(--mk-accent)",
-                  fontSize: 10,
-                  letterSpacing: 2,
+                  width: 24,
+                  height: 2,
+                  background: "rgba(184,151,58,0.4)",
+                  borderRadius: 1,
                 }}
-              >
-                ★★★★★
-              </div>
+              />
 
               {/* Quote mark */}
               <span

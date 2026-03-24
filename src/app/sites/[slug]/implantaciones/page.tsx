@@ -13,11 +13,14 @@ import { resolveHotspotImages } from "@/lib/hotspot-utils";
 import { Lightbox } from "@/components/site/Lightbox";
 import { useTranslation } from "@/i18n";
 import { DynamicIcon } from "@/data/amenidades-catalog";
+import { useSectionVisibility } from "@/hooks/useSectionVisibility";
 
 /* ── Component ───────────────────────────────────────────── */
 
 export default function ImplantacionesPage() {
+  const sectionVisible = useSectionVisibility("implantaciones");
   const proyecto = useSiteProject();
+  if (!sectionVisible) return null;
   const { t } = useTranslation("site");
 
   /* ── Visible urbanismo planos (editor "Implantaciones") ── */

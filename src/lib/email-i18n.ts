@@ -47,7 +47,14 @@ interface LeadConfirmationStrings {
 interface CotizacionBuyerStrings {
   subject: string;
   heading: string;
-  labels: { unit: string; total: string };
+  labels: {
+    unit: string;
+    total: string;
+    tipologia: string;
+    area: string;
+    habitaciones: string;
+    banos: string;
+  };
   body: string;        // "Adjunto encontrarás..."
   filename: string;    // "Cotizacion" / "Quote"
   // Branded email defaults & CTA labels
@@ -183,7 +190,14 @@ const es: EmailStrings = {
   cotizacionBuyer: {
     subject: "Tu cotización — {project}",
     heading: "Tu cotización está lista",
-    labels: { unit: "Unidad", total: "Total" },
+    labels: {
+      unit: "Unidad",
+      total: "Total",
+      tipologia: "Tipología",
+      area: "Área",
+      habitaciones: "Habitaciones",
+      banos: "Baños",
+    },
     body: "Adjunto encontrarás tu cotización en PDF con el desglose completo del plan de pagos.",
     filename: "Cotizacion",
     defaultSaludo: "Gracias por tu interés en nuestro proyecto.",
@@ -308,7 +322,14 @@ const en: EmailStrings = {
   cotizacionBuyer: {
     subject: "Your quote — {project}",
     heading: "Your quote is ready",
-    labels: { unit: "Unit", total: "Total" },
+    labels: {
+      unit: "Unit",
+      total: "Total",
+      tipologia: "Type",
+      area: "Area",
+      habitaciones: "Bedrooms",
+      banos: "Bathrooms",
+    },
     body: "Attached you will find your quote in PDF with the complete breakdown of the payment plan.",
     filename: "Quote",
     defaultSaludo: "Thank you for your interest in our project.",

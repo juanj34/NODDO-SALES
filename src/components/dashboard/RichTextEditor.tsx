@@ -3,8 +3,10 @@
 import { useEditor, EditorContent } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
 import Link from "@tiptap/extension-link";
+import ImageExt from "@tiptap/extension-image";
+import Youtube from "@tiptap/extension-youtube";
 import Placeholder from "@tiptap/extension-placeholder";
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState, useCallback } from "react";
 import { cn } from "@/lib/utils";
 import {
   Bold,
@@ -17,12 +19,17 @@ import {
   Link2,
   Undo2,
   Redo2,
+  ImagePlus,
+  Youtube as YoutubeIcon,
+  Loader2,
 } from "lucide-react";
 
 interface RichTextEditorProps {
   content: string;
   onChange: (html: string) => void;
   placeholder?: string;
+  /** Enable image upload + YouTube embed buttons (default false for backward compat) */
+  enableMedia?: boolean;
 }
 
 function ToolbarButton({
@@ -30,19 +37,23 @@ function ToolbarButton({
   active,
   onClick,
   label,
+  disabled,
 }: {
   icon: typeof Bold;
   active: boolean;
   onClick: () => void;
   label: string;
+  disabled?: boolean;
 }) {
   return (
     <button
       type="button"
       onClick={onClick}
       aria-label={label}
+      disabled={disabled}
       className={cn(
         "p-1.5 rounded-md transition-all cursor-pointer",
+        disabled && "opacity-30 cursor-not-allowed",
         active
           ? "text-[var(--site-primary)] bg-[rgba(var(--site-primary-rgb),0.12)]"
           : "text-[var(--text-tertiary)] hover:text-white hover:bg-[var(--surface-4)]"
@@ -57,10 +68,13 @@ function Separator() {
   return <div className="w-px h-4 bg-[var(--border-subtle)] mx-0.5" />;
 }
 
-export function RichTextEditor({ content, onChange, placeholder }: RichTextEditorProps) {
+export function RichTextEditor({ content, onChange, placeholder, enableMedia }: RichTextEditorProps) {
   const contentRef = useRef(content);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [uploading, setUploading] = useState(false);
 
   const editor = useEditor({
+    immediatelyRender: false,
     extensions: [
       StarterKit.configure({
         heading: { levels: [2, 3] },
@@ -78,6 +92,22 @@ export function RichTextEditor({ content, onChange, placeholder }: RichTextEdito
       Placeholder.configure({
         placeholder: placeholder || "",
       }),
+      ...(enableMedia
+        ? [
+            ImageExt.configure({
+              HTMLAttributes: {
+                class: "rte-inline-image",
+              },
+            }),
+            Youtube.configure({
+              HTMLAttributes: {
+                class: "rte-youtube-embed",
+              },
+              width: 0,
+              height: 0,
+            }),
+          ]
+        : []),
     ],
     content,
     editorProps: {
@@ -101,6 +131,67 @@ export function RichTextEditor({ content, onChange, placeholder }: RichTextEdito
     }
   }, [content, editor]);
 
+  const handleImageUpload = useCallback(async (file: File) => {
+    if (!editor || !file) return;
+    setUploading(true);
+    try {
+      const formData = new FormData();
+      formData.append("file", file);
+      formData.append("folder", "avances");
+      const res = await fetch("/api/upload", { method: "POST", body: formData });
+      if (!res.ok) throw new Error("Upload failed");
+      const { url } = await res.json();
+      editor.chain().focus().setImage({ src: url, alt: file.name }).run();
+    } catch {
+      // silently fail — user can retry
+    } finally {
+      setUploading(false);
+    }
+  }, [editor]);
+
+  // Handle file input change
+  const onFileChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) handleImageUpload(file);
+    e.target.value = "";
+  }, [handleImageUpload]);
+
+  // Handle paste/drop images
+  useEffect(() => {
+    if (!editor || !enableMedia) return;
+    const handlePaste = (_: unknown, event: ClipboardEvent) => {
+      const items = event.clipboardData?.items;
+      if (!items) return false;
+      for (const item of items) {
+        if (item.type.startsWith("image/")) {
+          event.preventDefault();
+          const file = item.getAsFile();
+          if (file) handleImageUpload(file);
+          return true;
+        }
+      }
+      return false;
+    };
+    const handleDrop = (_: unknown, event: DragEvent) => {
+      const files = event.dataTransfer?.files;
+      if (!files) return false;
+      for (const file of files) {
+        if (file.type.startsWith("image/")) {
+          event.preventDefault();
+          handleImageUpload(file);
+          return true;
+        }
+      }
+      return false;
+    };
+    editor.on("paste" as never, handlePaste);
+    editor.on("drop" as never, handleDrop);
+    return () => {
+      editor.off("paste" as never, handlePaste);
+      editor.off("drop" as never, handleDrop);
+    };
+  }, [editor, enableMedia, handleImageUpload]);
+
   if (!editor) return null;
 
   const setLink = () => {
@@ -112,6 +203,12 @@ export function RichTextEditor({ content, onChange, placeholder }: RichTextEdito
       return;
     }
     editor.chain().focus().extendMarkRange("link").setLink({ href: url }).run();
+  };
+
+  const addYoutube = () => {
+    const url = window.prompt("URL del video de YouTube:", "https://www.youtube.com/watch?v=");
+    if (!url) return;
+    editor.commands.setYoutubeVideo({ src: url });
   };
 
   return (
@@ -176,6 +273,24 @@ export function RichTextEditor({ content, onChange, placeholder }: RichTextEdito
           onClick={setLink}
           label="Link"
         />
+        {enableMedia && (
+          <>
+            <Separator />
+            <ToolbarButton
+              icon={uploading ? Loader2 : ImagePlus}
+              active={false}
+              onClick={() => fileInputRef.current?.click()}
+              label="Insertar imagen"
+              disabled={uploading}
+            />
+            <ToolbarButton
+              icon={YoutubeIcon}
+              active={false}
+              onClick={addYoutube}
+              label="Insertar video YouTube"
+            />
+          </>
+        )}
         <div className="ml-auto" />
         <ToolbarButton
           icon={Undo2}
@@ -190,6 +305,17 @@ export function RichTextEditor({ content, onChange, placeholder }: RichTextEdito
           label="Redo"
         />
       </div>
+
+      {/* Hidden file input for image upload */}
+      {enableMedia && (
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept="image/*"
+          className="hidden"
+          onChange={onFileChange}
+        />
+      )}
 
       {/* Editor content */}
       <EditorContent editor={editor} className="px-4 py-2.5" />

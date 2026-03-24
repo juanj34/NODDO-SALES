@@ -37,6 +37,7 @@ import VistaModal from "@/components/site/VistaModal";
 import { cn } from "@/lib/utils";
 import { getUnitDisplayName } from "@/lib/unit-display";
 import type { Unidad, Fachada, Torre, PlanoInteractivo, PlanoPunto, VistaPiso, UnidadTipologia } from "@/types";
+import { useSectionVisibility } from "@/hooks/useSectionVisibility";
 
 const ESTADO_PRIORITY: Record<string, number> = {
   disponible: 0,
@@ -60,7 +61,9 @@ function formatPrecioShort(precio: number): string {
 }
 
 export default function ExplorarPage() {
+  const sectionVisible = useSectionVisibility("explorar");
   const proyecto = useSiteProject();
+  if (!sectionVisible) return null;
   const basePath = useSiteBasePath();
   const searchParams = useSearchParams();
   const { t: tSite, locale } = useTranslation("site");

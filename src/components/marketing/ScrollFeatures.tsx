@@ -673,8 +673,7 @@ export function ScrollFeatures() {
 
           {/* Cards viewport */}
           <div
-            className="absolute left-0 right-0 bottom-0"
-            style={{ top: 120 }}
+            className="absolute inset-0"
           >
             {STEPS.map((step, i) => (
               <div

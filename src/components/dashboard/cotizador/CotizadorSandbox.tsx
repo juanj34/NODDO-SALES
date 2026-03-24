@@ -196,7 +196,7 @@ function FaseCard({
 
 /* ─── CotizadorSandbox ─── */
 
-export function CotizadorSandbox() {
+export function CotizadorSandbox({ hidePdfOptions }: { hidePdfOptions?: boolean } = {}) {
   const { project, save } = useEditorProject();
 
   const cotizadorEnabled = project.cotizador_enabled;
@@ -486,7 +486,8 @@ export function CotizadorSandbox() {
           </div>
         </div>
 
-        {/* Advanced options (collapsed) */}
+        {/* Advanced options (collapsed) — hidden when PDF settings are separate */}
+        {!hidePdfOptions && (
         <div className={cn("bg-[var(--surface-1)] border border-[var(--border-subtle)] overflow-hidden", radius.xl)}>
           <button
             type="button"
@@ -622,6 +623,7 @@ export function CotizadorSandbox() {
             </div>
           )}
         </div>
+        )}
       </div>
 
       {/* Right: Preview */}

@@ -39,6 +39,7 @@ const PROYECTO_FIELDS = [
   "inventory_columns_microsite_by_type",
   "custom_columns",
   "unidad_display_prefix",
+  "secciones_visibles",
 ];
 
 export async function GET(

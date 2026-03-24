@@ -12,6 +12,7 @@ import { sanitizeHtml } from "@/lib/sanitize";
 import type { AvanceObra } from "@/types";
 import { useTranslation } from "@/i18n";
 import { SiteEmptyState } from "@/components/site/SiteEmptyState";
+import { useSectionVisibility } from "@/hooks/useSectionVisibility";
 
 /* ── Helpers ── */
 function formatDate(dateStr: string, locale: string): string {
@@ -110,23 +111,38 @@ function TimelineDot({ isFirst }: { isFirst: boolean }) {
 
 /* ── Main Page ── */
 export default function AvancesPage() {
+  const sectionVisible = useSectionVisibility("avances");
   const proyecto = useSiteProject();
-  const avances = (proyecto.avances_obra || []).sort(
-    (a, b) => new Date(b.fecha).getTime() - new Date(a.fecha).getTime()
-  );
+  if (!sectionVisible) return null;
+  const avances = (proyecto.avances_obra || [])
+    .filter((a) => a.estado === "publicado")
+    .sort((a, b) => new Date(b.fecha).getTime() - new Date(a.fecha).getTime());
   const [selectedAvance, setSelectedAvance] = useState<AvanceObra | null>(null);
+  const [lightboxSrc, setLightboxSrc] = useState<string | null>(null);
   const { t, locale } = useTranslation("site");
   const dateLocale = locale === "en" ? "en-US" : "es";
 
   const closeModal = useCallback(() => setSelectedAvance(null), []);
+  const closeLightbox = useCallback(() => setLightboxSrc(null), []);
   useEffect(() => {
-    if (!selectedAvance) return;
+    if (!selectedAvance && !lightboxSrc) return;
     const handleKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") closeModal();
+      if (e.key === "Escape") {
+        if (lightboxSrc) closeLightbox();
+        else closeModal();
+      }
     };
     window.addEventListener("keydown", handleKey);
     return () => window.removeEventListener("keydown", handleKey);
-  }, [selectedAvance, closeModal]);
+  }, [selectedAvance, lightboxSrc, closeModal, closeLightbox]);
+
+  /** Click handler for inline images in prose content */
+  const handleProseClick = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
+    const target = e.target as HTMLElement;
+    if (target.tagName === "IMG" && (target as HTMLImageElement).src) {
+      setLightboxSrc((target as HTMLImageElement).src);
+    }
+  }, []);
 
   const isSingle = avances.length === 1;
 
@@ -323,12 +339,42 @@ export default function AvancesPage() {
                 {/* Description */}
                 {selectedAvance.descripcion && (
                   <div
+                    onClick={handleProseClick}
                     className="text-sm text-[var(--text-secondary)] leading-[1.85] prose prose-invert prose-sm max-w-none"
                     dangerouslySetInnerHTML={{ __html: sanitizeHtml(selectedAvance.descripcion) }}
                   />
                 )}
               </div>
             </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* ── Image Lightbox ── */}
+      <AnimatePresence>
+        {lightboxSrc && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            onClick={closeLightbox}
+            className="fixed inset-0 z-[90] flex items-center justify-center p-4 bg-black/95 backdrop-blur-lg cursor-zoom-out"
+          >
+            <motion.img
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.9, opacity: 0 }}
+              transition={{ type: "spring", damping: 25, stiffness: 300 }}
+              src={lightboxSrc}
+              alt=""
+              className="max-w-full max-h-[90vh] object-contain rounded-xl"
+            />
+            <button
+              onClick={closeLightbox}
+              className="absolute top-4 right-4 w-10 h-10 flex items-center justify-center rounded-full bg-white/10 border border-white/10 text-white/70 hover:text-white hover:bg-white/20 transition-colors cursor-pointer"
+            >
+              <X size={18} />
+            </button>
           </motion.div>
         )}
       </AnimatePresence>

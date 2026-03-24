@@ -10,9 +10,12 @@ import { SectionTransition } from "@/components/site/SectionTransition";
 import { ArrowLeft } from "lucide-react";
 import { useSiteProject, useSiteBasePath } from "@/hooks/useSiteProject";
 import { useTranslation } from "@/i18n";
+import { useSectionVisibility } from "@/hooks/useSectionVisibility";
 
 export default function GaleriaCategoria() {
+  const sectionVisible = useSectionVisibility("galeria");
   const proyecto = useSiteProject();
+  if (!sectionVisible) return null;
   const pathname = usePathname();
   const basePath = useSiteBasePath();
   const { t } = useTranslation("site");

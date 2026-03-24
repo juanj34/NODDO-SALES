@@ -8,9 +8,12 @@ import { LeadFormMultiStep as LeadForm } from "@/components/site/LeadFormMultiSt
 import { Clock, ShieldCheck, UserCheck } from "lucide-react";
 import { useSiteProject } from "@/hooks/useSiteProject";
 import { useTranslation } from "@/i18n";
+import { useSectionVisibility } from "@/hooks/useSectionVisibility";
 
 export default function ContactoPage() {
+  const sectionVisible = useSectionVisibility("contacto");
   const proyecto = useSiteProject();
+  if (!sectionVisible) return null;
   const { t } = useTranslation("site");
   const [selectedTipologia, setSelectedTipologia] = useState("");
 

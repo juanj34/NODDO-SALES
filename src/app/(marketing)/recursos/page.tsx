@@ -1,73 +1,12 @@
 "use client";
 
 import Image from "next/image";
+import Link from "next/link";
 import React from "react";
 import { motion } from "framer-motion";
-import { BookOpen, ArrowRight, TrendingUp, Target, Lightbulb, CheckSquare, DollarSign } from "lucide-react";
+import { BookOpen, ArrowRight, Lightbulb } from "lucide-react";
+import { articles } from "@/data/articles";
 import { usePageView } from "@/hooks/usePageView";
-
-const articles = [
-  {
-    id: "guia-vender-apartamentos-online-2026",
-    title: "Guía completa: Cómo vender apartamentos online en 2026",
-    excerpt: "Todo lo que necesitas saber para digitalizar tu estrategia de ventas inmobiliarias. Desde inventario en vivo hasta automatización de leads.",
-    category: "Guías",
-    readTime: "12 min",
-    date: "15 Mar 2026",
-    icon: BookOpen,
-    color: "#b8973a",
-    image: "https://images.unsplash.com/photo-1560518883-ce09059eeffa?w=800&h=600&fit=crop",
-    tags: ["Marketing Digital", "Ventas", "Estrategia"],
-  },
-  {
-    id: "10-errores-sitios-web-constructoras",
-    title: "10 errores que cometen las constructoras en sus sitios web",
-    excerpt: "PDFs estáticos, inventario desactualizado, formularios sin rastreo... Identificamos los errores más comunes y cómo evitarlos.",
-    category: "Mejores Prácticas",
-    readTime: "8 min",
-    date: "12 Mar 2026",
-    icon: Target,
-    color: "#d4b05a",
-    image: "https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?w=800&h=600&fit=crop",
-    tags: ["UX", "Conversión", "Errores Comunes"],
-  },
-  {
-    id: "inventario-tiempo-real-vs-pdfs",
-    title: "Por qué el inventario en tiempo real vende más que PDFs estáticos",
-    excerpt: "Análisis con datos: proyectos con inventario interactivo convierten 3.2x más que los que usan PDFs. Casos reales + métricas.",
-    category: "Análisis",
-    readTime: "10 min",
-    date: "8 Mar 2026",
-    icon: TrendingUp,
-    color: "#a07e2e",
-    image: "https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=800&h=600&fit=crop",
-    tags: ["Inventario", "Conversión", "Datos"],
-  },
-  {
-    id: "calcular-roi-marketing-inmobiliario",
-    title: "Cómo calcular el ROI de tu marketing inmobiliario digital",
-    excerpt: "Framework paso a paso para medir retorno de inversión: costo por lead, tasa de conversión, CAC, LTV. Incluye plantilla Excel gratuita.",
-    category: "Finanzas",
-    readTime: "15 min",
-    date: "5 Mar 2026",
-    icon: DollarSign,
-    color: "#10b981",
-    image: "https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=800&h=600&fit=crop",
-    tags: ["ROI", "Métricas", "Finanzas"],
-  },
-  {
-    id: "checklist-lanzar-proyecto-3-dias",
-    title: "Checklist: Lanzar un proyecto inmobiliario en 3 días",
-    excerpt: "Guía accionable para lanzar tu microsite premium en tiempo récord. Desde preparación de contenido hasta publicación en vivo.",
-    category: "Checklist",
-    readTime: "6 min",
-    date: "1 Mar 2026",
-    icon: CheckSquare,
-    color: "#b8973a",
-    image: "https://images.unsplash.com/photo-1484480974693-6ca0a78fb36b?w=800&h=600&fit=crop",
-    tags: ["Onboarding", "Checklist", "Guía Rápida"],
-  },
-];
 
 const ease = [0.25, 0.46, 0.45, 0.94] as const;
 
@@ -80,12 +19,9 @@ export default function RecursosPage() {
         {/* Decorative book SVG */}
         <div className="absolute top-20 left-10 opacity-5 pointer-events-none hidden lg:block">
           <svg width="150" height="200" viewBox="0 0 150 200" fill="none">
-            {/* Book */}
             <rect x="30" y="20" width="90" height="160" stroke="#b8973a" strokeWidth="1.5" />
             <rect x="30" y="20" width="90" height="160" fill="rgba(184, 151, 58, 0.05)" />
-            {/* Spine */}
             <rect x="30" y="20" width="10" height="160" stroke="#b8973a" strokeWidth="1" />
-            {/* Pages */}
             {[0, 1, 2, 3, 4].map((i) => (
               <line
                 key={i}
@@ -98,7 +34,6 @@ export default function RecursosPage() {
                 opacity="0.4"
               />
             ))}
-            {/* Bookmark */}
             <path d="M80 20 L80 60 L85 55 L90 60 L90 20" stroke="#b8973a" strokeWidth="0.8" />
           </svg>
         </div>
@@ -165,102 +100,104 @@ export default function RecursosPage() {
           transition={{ duration: 0.7, ease }}
           className="mb-16"
         >
-          <div className="glass-card overflow-hidden group hover:bg-white/5 transition-all duration-300">
-            <div className="grid grid-cols-1 lg:grid-cols-2">
-              <div className="relative h-64 lg:h-auto overflow-hidden">
-                <Image src={articles[0].image} alt="" fill className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
-                <div
-                  className="absolute top-4 left-4 px-3 py-1.5 rounded-lg text-xs uppercase tracking-wider"
-                  style={{
-                    fontFamily: "var(--font-syne)",
-                    fontWeight: 700,
-                    backgroundColor: "rgba(184, 151, 58, 0.95)",
-                    color: "#0a0a0b",
-                  }}
-                >
-                  ⭐ Destacado
-                </div>
-              </div>
-
-              <div className="p-8 lg:p-10 flex flex-col justify-center">
-                <div className="flex items-center gap-3 mb-4">
-                  {React.createElement(articles[0].icon, {
-                    className: "w-5 h-5",
-                    style: { color: articles[0].color },
-                  })}
-                  <span
-                    className="text-xs uppercase tracking-wider"
+          <Link href={`/recursos/${articles[0].id}`} className="block">
+            <div className="glass-card overflow-hidden group hover:bg-white/5 transition-all duration-300">
+              <div className="grid grid-cols-1 lg:grid-cols-2">
+                <div className="relative h-64 lg:h-auto overflow-hidden">
+                  <Image src={articles[0].image} alt="" fill className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
+                  <div
+                    className="absolute top-4 left-4 px-3 py-1.5 rounded-lg text-xs uppercase tracking-wider"
                     style={{
                       fontFamily: "var(--font-syne)",
-                      fontWeight: 600,
-                      color: "rgba(244,240,232,0.55)",
+                      fontWeight: 700,
+                      backgroundColor: "rgba(184, 151, 58, 0.95)",
+                      color: "#0a0a0b",
                     }}
                   >
-                    {articles[0].category}
-                  </span>
-                  <span
-                    className="text-xs"
-                    style={{
-                      fontWeight: 300,
-                      color: "rgba(244,240,232,0.35)",
-                    }}
-                  >
-                    • {articles[0].readTime}
-                  </span>
+                    Destacado
+                  </div>
                 </div>
 
-                <h2
-                  className="text-3xl md:text-4xl mb-4"
-                  style={{
-                    fontFamily: "var(--font-cormorant)",
-                    fontWeight: 400,
-                    color: "rgba(244,240,232,0.92)",
-                  }}
-                >
-                  {articles[0].title}
-                </h2>
-
-                <p
-                  className="text-base leading-[1.8] mb-6"
-                  style={{
-                    fontWeight: 300,
-                    color: "rgba(244,240,232,0.70)",
-                  }}
-                >
-                  {articles[0].excerpt}
-                </p>
-
-                <div className="flex flex-wrap gap-2 mb-6">
-                  {articles[0].tags.map((tag) => (
+                <div className="p-8 lg:p-10 flex flex-col justify-center">
+                  <div className="flex items-center gap-3 mb-4">
+                    {React.createElement(articles[0].icon, {
+                      className: "w-5 h-5",
+                      style: { color: articles[0].color },
+                    })}
                     <span
-                      key={tag}
-                      className="px-3 py-1 rounded-lg text-xs"
+                      className="text-xs uppercase tracking-wider"
                       style={{
-                        fontWeight: 400,
-                        backgroundColor: "rgba(255, 255, 255, 0.05)",
+                        fontFamily: "var(--font-syne)",
+                        fontWeight: 600,
                         color: "rgba(244,240,232,0.55)",
                       }}
                     >
-                      {tag}
+                      {articles[0].category}
                     </span>
-                  ))}
-                </div>
+                    <span
+                      className="text-xs"
+                      style={{
+                        fontWeight: 300,
+                        color: "rgba(244,240,232,0.35)",
+                      }}
+                    >
+                      • {articles[0].readTime}
+                    </span>
+                  </div>
 
-                <button
-                  className="inline-flex items-center gap-2 px-6 py-3 rounded-xl text-sm font-medium transition-all duration-200 hover:scale-105 self-start"
-                  style={{
-                    fontFamily: "var(--font-syne)",
-                    fontWeight: 700,
-                    background: "linear-gradient(135deg, #b8973a 0%, #d4b05a 100%)",
-                    color: "#0a0a0b",
-                  }}
-                >
-                  Leer Artículo
-                  <ArrowRight className="w-4 h-4" />
-                </button>
+                  <h2
+                    className="text-3xl md:text-4xl mb-4"
+                    style={{
+                      fontFamily: "var(--font-cormorant)",
+                      fontWeight: 400,
+                      color: "rgba(244,240,232,0.92)",
+                    }}
+                  >
+                    {articles[0].title}
+                  </h2>
+
+                  <p
+                    className="text-base leading-[1.8] mb-6"
+                    style={{
+                      fontWeight: 300,
+                      color: "rgba(244,240,232,0.70)",
+                    }}
+                  >
+                    {articles[0].excerpt}
+                  </p>
+
+                  <div className="flex flex-wrap gap-2 mb-6">
+                    {articles[0].tags.map((tag) => (
+                      <span
+                        key={tag}
+                        className="px-3 py-1 rounded-lg text-xs"
+                        style={{
+                          fontWeight: 400,
+                          backgroundColor: "rgba(255, 255, 255, 0.05)",
+                          color: "rgba(244,240,232,0.55)",
+                        }}
+                      >
+                        {tag}
+                      </span>
+                    ))}
+                  </div>
+
+                  <span
+                    className="inline-flex items-center gap-2 px-6 py-3 rounded-xl text-sm font-medium transition-all duration-200 group-hover:scale-105 self-start"
+                    style={{
+                      fontFamily: "var(--font-syne)",
+                      fontWeight: 700,
+                      background: "linear-gradient(135deg, #b8973a 0%, #d4b05a 100%)",
+                      color: "#0a0a0b",
+                    }}
+                  >
+                    Leer Artículo
+                    <ArrowRight className="w-4 h-4" />
+                  </span>
+                </div>
               </div>
             </div>
-          </div>
+          </Link>
         </motion.div>
 
         {/* Articles grid */}
@@ -274,87 +211,88 @@ export default function RecursosPage() {
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true, margin: "-60px" }}
                 transition={{ duration: 0.6, delay: index * 0.1, ease }}
-                className="glass-card overflow-hidden group hover:bg-white/5 transition-all duration-300"
               >
-                <div className="relative h-48 overflow-hidden">
-                  <Image src={article.image} alt="" fill className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
-                </div>
+                <Link href={`/recursos/${article.id}`} className="block h-full">
+                  <div className="glass-card overflow-hidden group hover:bg-white/5 transition-all duration-300 h-full flex flex-col">
+                    <div className="relative h-48 overflow-hidden">
+                      <Image src={article.image} alt="" fill className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
+                    </div>
 
-                <div className="p-6">
-                  <div className="flex items-center gap-3 mb-3">
-                    <Icon className="w-4 h-4" style={{ color: article.color }} />
-                    <span
-                      className="text-xs uppercase tracking-wider"
-                      style={{
-                        fontFamily: "var(--font-syne)",
-                        fontWeight: 600,
-                        color: "rgba(244,240,232,0.55)",
-                      }}
-                    >
-                      {article.category}
-                    </span>
-                    <span
-                      className="text-xs"
-                      style={{
-                        fontWeight: 300,
-                        color: "rgba(244,240,232,0.35)",
-                      }}
-                    >
-                      • {article.readTime}
-                    </span>
-                  </div>
+                    <div className="p-6 flex flex-col flex-1">
+                      <div className="flex items-center gap-3 mb-3">
+                        <Icon className="w-4 h-4" style={{ color: article.color }} />
+                        <span
+                          className="text-xs uppercase tracking-wider"
+                          style={{
+                            fontFamily: "var(--font-syne)",
+                            fontWeight: 600,
+                            color: "rgba(244,240,232,0.55)",
+                          }}
+                        >
+                          {article.category}
+                        </span>
+                        <span
+                          className="text-xs"
+                          style={{
+                            fontWeight: 300,
+                            color: "rgba(244,240,232,0.35)",
+                          }}
+                        >
+                          • {article.readTime}
+                        </span>
+                      </div>
 
-                  <h3
-                    className="text-2xl mb-3"
-                    style={{
-                      fontFamily: "var(--font-cormorant)",
-                      fontWeight: 400,
-                      color: "rgba(244,240,232,0.92)",
-                    }}
-                  >
-                    {article.title}
-                  </h3>
-
-                  <p
-                    className="text-sm leading-[1.7] mb-4"
-                    style={{
-                      fontWeight: 300,
-                      color: "rgba(244,240,232,0.70)",
-                    }}
-                  >
-                    {article.excerpt}
-                  </p>
-
-                  <div className="flex flex-wrap gap-2 mb-4">
-                    {article.tags.map((tag) => (
-                      <span
-                        key={tag}
-                        className="px-2 py-0.5 rounded text-[10px]"
+                      <h3
+                        className="text-2xl mb-3"
                         style={{
+                          fontFamily: "var(--font-cormorant)",
                           fontWeight: 400,
-                          backgroundColor: "rgba(255, 255, 255, 0.05)",
-                          color: "rgba(244,240,232,0.45)",
+                          color: "rgba(244,240,232,0.92)",
                         }}
                       >
-                        {tag}
-                      </span>
-                    ))}
-                  </div>
+                        {article.title}
+                      </h3>
 
-                  <button
-                    className="inline-flex items-center gap-2 text-sm transition-all duration-200 group/btn"
-                    style={{
-                      fontFamily: "var(--font-syne)",
-                      fontWeight: 600,
-                      color: "#b8973a",
-                    }}
-                  >
-                    Leer más
-                    <ArrowRight
-                      className="w-4 h-4 transition-transform duration-200 group-hover/btn:translate-x-1"
-                    />
-                  </button>
-                </div>
+                      <p
+                        className="text-sm leading-[1.7] mb-4 flex-1"
+                        style={{
+                          fontWeight: 300,
+                          color: "rgba(244,240,232,0.70)",
+                        }}
+                      >
+                        {article.excerpt}
+                      </p>
+
+                      <div className="flex flex-wrap gap-2 mb-4">
+                        {article.tags.map((tag) => (
+                          <span
+                            key={tag}
+                            className="px-2 py-0.5 rounded text-[10px]"
+                            style={{
+                              fontWeight: 400,
+                              backgroundColor: "rgba(255, 255, 255, 0.05)",
+                              color: "rgba(244,240,232,0.45)",
+                            }}
+                          >
+                            {tag}
+                          </span>
+                        ))}
+                      </div>
+
+                      <span
+                        className="inline-flex items-center gap-2 text-sm transition-all duration-200 group-hover:gap-3"
+                        style={{
+                          fontFamily: "var(--font-syne)",
+                          fontWeight: 600,
+                          color: "#b8973a",
+                        }}
+                      >
+                        Leer más
+                        <ArrowRight className="w-4 h-4" />
+                      </span>
+                    </div>
+                  </div>
+                </Link>
               </motion.div>
             );
           })}
@@ -369,7 +307,6 @@ export default function RecursosPage() {
           className="mt-20"
         >
           <div className="glass-card p-12 text-center relative overflow-hidden">
-            {/* Decorative pattern */}
             <div
               className="absolute inset-0 opacity-3 pointer-events-none"
               style={{
