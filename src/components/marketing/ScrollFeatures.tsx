@@ -673,20 +673,21 @@ export function ScrollFeatures() {
 
           {/* Cards viewport */}
           <div
-            className="absolute left-0 right-0 bottom-0 flex items-center px-6 lg:px-14 lg:pr-[72px]"
+            className="absolute left-0 right-0 bottom-0"
             style={{ top: 120 }}
           >
             {STEPS.map((step, i) => (
               <div
                 key={i}
                 ref={(el) => { stepRefs.current[i] = el; }}
-                className="absolute w-[calc(100%-48px)] lg:w-[calc(100%-128px)] left-6 lg:left-14"
+                className="absolute inset-0 flex items-center"
                 style={{
                   opacity: i === 0 ? 1 : 0,
                   willChange: "opacity, transform",
                   pointerEvents: "none",
                 }}
               >
+              <div className="w-full px-6 lg:px-14 lg:pr-[72px]">
                 {/* Step number + label */}
                 <div
                   style={{
@@ -809,6 +810,7 @@ export function ScrollFeatures() {
                   />
                   {step.tag}
                 </span>
+              </div>
               </div>
             ))}
           </div>

@@ -8,7 +8,7 @@ import { useTranslation } from "@/i18n";
 /** Brochure estático — PDF pages stacked, gathering dust, with "unread" red X overlay */
 function IllustrationBrochure() {
   return (
-    <svg viewBox="0 0 220 150" fill="none" className="w-full" style={{ maxWidth: 220 }}>
+    <svg viewBox="0 0 220 150" fill="none" className="w-full" style={{ maxWidth: 180 }}>
       <defs>
         <linearGradient id="pb-page" x1="0" y1="0" x2="0" y2="1">
           <stop offset="0%" stopColor="rgba(184,151,58,0.06)" />
@@ -92,7 +92,7 @@ function IllustrationBrochure() {
 /** CGI desperdiciado — 3D renders trapped inside folders, isometric cube + film reel */
 function IllustrationCGI() {
   return (
-    <svg viewBox="0 0 220 150" fill="none" className="w-full" style={{ maxWidth: 220 }}>
+    <svg viewBox="0 0 220 150" fill="none" className="w-full" style={{ maxWidth: 180 }}>
       <defs>
         <linearGradient id="pc-folder" x1="0" y1="0" x2="0" y2="1">
           <stop offset="0%" stopColor="rgba(184,151,58,0.05)" />
@@ -190,7 +190,7 @@ function IllustrationCGI() {
 /** Proceso fragmentado — scattered tools: Excel grid, PDF, phone, email — broken connections */
 function IllustrationFragmented() {
   return (
-    <svg viewBox="0 0 220 150" fill="none" className="w-full" style={{ maxWidth: 220 }}>
+    <svg viewBox="0 0 220 150" fill="none" className="w-full" style={{ maxWidth: 180 }}>
       <style>{`
         .pf-conn1 { stroke-dasharray: 5 4; animation: pf-flow 1.5s linear infinite; }
         .pf-conn2 { stroke-dasharray: 5 4; animation: pf-flow 1.8s linear infinite .15s; }
@@ -310,7 +310,7 @@ function IllustrationFragmented() {
 /** Leads sin trazabilidad — user silhouettes fading into void, broken funnel, no data lines */
 function IllustrationLeads() {
   return (
-    <svg viewBox="0 0 220 150" fill="none" className="w-full" style={{ maxWidth: 220 }}>
+    <svg viewBox="0 0 220 150" fill="none" className="w-full" style={{ maxWidth: 180 }}>
       <defs>
         <linearGradient id="pl-funnel" x1="0" y1="0" x2="0" y2="1">
           <stop offset="0%" stopColor="rgba(184,151,58,0.08)" />
@@ -433,53 +433,93 @@ const ease = [0.25, 0.46, 0.45, 0.94] as const;
 export function ProblemSection() {
   const { t } = useTranslation("marketing");
 
+  const accent = "var(--mk-accent)";
+  const hl = "rgba(244,240,232,0.72)";
+
   const problems = [
     {
       num: "01",
       illustration: <IllustrationBrochure />,
       title: t("problem.items.i0title"),
-      body: t("problem.items.i0body"),
+      body: (
+        <>
+          Inviertes millones en brochures que terminan en un PDF que{" "}
+          <strong style={{ color: hl, fontWeight: 500 }}>nadie abre</strong>.{" "}
+          <em style={{ color: accent }}>Sin interactividad</em>, sin inmersión,
+          sin forma de medir si alguien lo leyó.
+        </>
+      ),
     },
     {
       num: "02",
       illustration: <IllustrationCGI />,
       title: t("problem.items.i1title"),
-      body: t("problem.items.i1body"),
+      body: (
+        <>
+          Renders, recorridos 360°, videos, interiores —{" "}
+          <strong style={{ color: hl, fontWeight: 500 }}>miles de dólares</strong> en
+          producción visual que terminan perdidos en carpetas que{" "}
+          <em style={{ color: accent }}>nadie ve</em>.
+        </>
+      ),
     },
     {
       num: "03",
       illustration: <IllustrationFragmented />,
       title: t("problem.items.i2title"),
-      body: t("problem.items.i2body"),
+      body: (
+        <>
+          El comprador pregunta por una unidad y el vendedor busca en un Excel.{" "}
+          <strong style={{ color: hl, fontWeight: 500 }}>5 minutos después</strong> → se
+          enfría → el <em style={{ color: accent }}>momento de venta se pierde</em>.
+        </>
+      ),
     },
     {
       num: "04",
       illustration: <IllustrationLeads />,
       title: t("problem.items.i3title"),
-      body: t("problem.items.i3body"),
+      body: (
+        <>
+          <strong style={{ color: hl, fontWeight: 500 }}>No sabes</strong> quién vio tu
+          proyecto, qué unidad le interesó ni de qué campaña llegó. Cada oportunidad
+          sin capturar es <em style={{ color: accent }}>una venta que se pierde</em>.
+        </>
+      ),
     },
   ];
 
   return (
-    <section className="relative z-[1] py-16 sm:py-24 lg:py-40 px-4 sm:px-6 lg:px-20 border-t border-[var(--mk-border-rule)]">
+    <section className="relative z-[1] py-10 sm:py-12 lg:py-16 px-4 sm:px-6 lg:px-20 border-t border-[var(--mk-border-rule)]">
       <div style={{ maxWidth: 1200, margin: "0 auto" }}>
         {/* Header */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-20 mb-16 lg:mb-20">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-16 mb-8 lg:mb-10">
           <div>
-            <div className="mk-section-label mb-6">{t("problem.label")}</div>
-            <h2 className="mk-section-heading">
-              {t("problem.headingLine1")}
-              <br />
+            <div className="mk-section-label mb-4">{t("problem.label")}</div>
+            <h2
+              className="mk-section-heading"
+              style={{ fontSize: "clamp(32px, 4vw, 52px)" }}
+            >
+              {t("problem.headingLine1")}{" "}
               <em>{t("problem.headingEmphasis")}</em>
             </h2>
           </div>
 
           <div className="flex items-end">
             <p
-              className="text-[15px] leading-[1.9] max-w-[480px]"
-              style={{ color: "rgba(244,240,232,0.5)" }}
+              className="text-[13px] leading-[1.8] max-w-[480px]"
+              style={{ color: "rgba(244,240,232,0.45)" }}
             >
-              {t("problem.description")}
+              Las constructoras invierten{" "}
+              <strong style={{ color: "rgba(244,240,232,0.68)", fontWeight: 500 }}>
+                fortunas en renders, videos y brochures
+              </strong>{" "}
+              para vender sus proyectos. Pero toda esa producción termina{" "}
+              <em style={{ color: "var(--mk-accent)", fontStyle: "italic" }}>fragmentada</em>{" "}
+              en PDFs estáticos, carpetas dispersas y procesos manuales que{" "}
+              <strong style={{ color: "rgba(244,240,232,0.68)", fontWeight: 500 }}>
+                no convierten
+              </strong>.
             </p>
           </div>
         </div>
@@ -496,12 +536,12 @@ export function ProblemSection() {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true, margin: "-60px" }}
               transition={{ duration: 0.6, delay: i * 0.12, ease }}
-              className="relative z-[1] group p-6 sm:p-8 md:p-10"
+              className="relative z-[1] group p-5 sm:p-6 md:p-8"
               style={{ background: "var(--mk-bg)" }}
             >
               {/* Number watermark */}
               <div
-                className="font-heading leading-none absolute top-6 left-6 sm:top-10 sm:left-10 text-[48px] sm:text-[64px]"
+                className="font-heading leading-none absolute top-4 left-5 sm:top-6 sm:left-8 text-[40px] sm:text-[52px]"
                 style={{
                   fontWeight: 300,
                   color: "rgba(244,240,232,0.04)",
@@ -512,13 +552,13 @@ export function ProblemSection() {
               </div>
 
               {/* Large illustration */}
-              <div className="mb-4 sm:mb-6 flex justify-center" style={{ minHeight: 100 }}>
+              <div className="mb-3 sm:mb-4 flex justify-center" style={{ minHeight: 80 }}>
                 {problem.illustration}
               </div>
 
               {/* Title */}
               <div
-                className="font-ui text-[14px] font-bold uppercase tracking-[0.08em] mb-3"
+                className="font-ui text-[13px] font-bold uppercase tracking-[0.08em] mb-2"
                 style={{ color: "rgba(244,240,232,0.85)" }}
               >
                 {problem.title}
@@ -526,7 +566,7 @@ export function ProblemSection() {
 
               {/* Body */}
               <div
-                className="text-[14px] leading-[1.8]"
+                className="text-[13px] leading-[1.75]"
                 style={{ color: "rgba(244,240,232,0.45)" }}
               >
                 {problem.body}
