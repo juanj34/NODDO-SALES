@@ -1,7 +1,6 @@
 import { getAuthContext } from "@/lib/auth-context";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { sendCollaboratorInvite, getUserLocale } from "@/lib/email";
-import { checkCollaboratorLimit } from "@/lib/plan-limits";
 import { NextRequest, NextResponse } from "next/server";
 
 export async function GET() {
@@ -71,15 +70,6 @@ export async function POST(request: NextRequest) {
     if (!email) {
       return NextResponse.json(
         { error: "El email es requerido" },
-        { status: 400 }
-      );
-    }
-
-    // Check dynamic collaborator limit from user plan
-    const collabLimit = await checkCollaboratorLimit(auth.supabase, auth.user.id);
-    if (!collabLimit.allowed) {
-      return NextResponse.json(
-        { error: `Máximo ${collabLimit.max} colaboradores permitidos` },
         { status: 400 }
       );
     }

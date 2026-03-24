@@ -1,7 +1,5 @@
 import { pick } from "@/lib/api-utils";
 import { getAuthContext } from "@/lib/auth-context";
-import { checkFeature } from "@/lib/feature-flags";
-import { checkFeatureAccess } from "@/lib/feature-access";
 import { NextRequest, NextResponse } from "next/server";
 
 export async function POST(request: NextRequest) {
@@ -18,31 +16,6 @@ export async function POST(request: NextRequest) {
         { error: "proyecto_id y url (o stream_uid) son requeridos" },
         { status: 400 }
       );
-    }
-
-    // Only check video_hosting feature for Cloudflare Stream uploads.
-    // Plain YouTube URL references don't consume hosting resources.
-    if (body.stream_uid) {
-      const planAccess = await checkFeatureAccess(auth.supabase, auth.adminUserId, "video_hosting");
-      if (!planAccess.allowed) {
-        return NextResponse.json(
-          {
-            error: `Video hosting requiere plan ${planAccess.requiredPlan}`,
-            upgrade_required: true,
-            current_plan: planAccess.currentPlan,
-            required_plan: planAccess.requiredPlan,
-          },
-          { status: 403 }
-        );
-      }
-
-      const videoEnabled = await checkFeature(auth.supabase, body.proyecto_id, "video_hosting");
-      if (!videoEnabled) {
-        return NextResponse.json(
-          { error: "Video Hosting no está habilitado para este proyecto" },
-          { status: 403 }
-        );
-      }
     }
 
     // Auto-generate YouTube thumbnail if not provided

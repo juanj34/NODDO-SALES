@@ -1,6 +1,4 @@
 import { getAuthContext } from "@/lib/auth-context";
-import { checkFeature } from "@/lib/feature-flags";
-import { checkFeatureAccess } from "@/lib/feature-access";
 import { generateWebhookSecret } from "@/lib/webhooks";
 import { NextRequest, NextResponse } from "next/server";
 import type { WebhookConfig, WebhookEventType } from "@/types";
@@ -16,20 +14,6 @@ export async function GET(
     const auth = await getAuthContext();
     if (!auth) return NextResponse.json({ error: "No autorizado" }, { status: 401 });
     if (auth.role !== "admin") return NextResponse.json({ error: "Solo administradores" }, { status: 403 });
-
-    // Check plan-based access first
-    const planAccess = await checkFeatureAccess(auth.supabase, auth.adminUserId, "webhooks");
-    if (!planAccess.allowed) {
-      return NextResponse.json(
-        {
-          error: `Webhooks requieren plan ${planAccess.requiredPlan}`,
-          upgrade_required: true,
-          current_plan: planAccess.currentPlan,
-          required_plan: planAccess.requiredPlan,
-        },
-        { status: 403 }
-      );
-    }
 
     const { data: proyecto, error } = await auth.supabase
       .from("proyectos")
@@ -62,29 +46,6 @@ export async function PUT(
     const auth = await getAuthContext();
     if (!auth) return NextResponse.json({ error: "No autorizado" }, { status: 401 });
     if (auth.role !== "admin") return NextResponse.json({ error: "Solo administradores" }, { status: 403 });
-
-    // Check plan-based access first
-    const planAccess = await checkFeatureAccess(auth.supabase, auth.adminUserId, "webhooks");
-    if (!planAccess.allowed) {
-      return NextResponse.json(
-        {
-          error: `Webhooks requieren plan ${planAccess.requiredPlan}`,
-          upgrade_required: true,
-          current_plan: planAccess.currentPlan,
-          required_plan: planAccess.requiredPlan,
-        },
-        { status: 403 }
-      );
-    }
-
-    // Check feature flag
-    const webhooksEnabled = await checkFeature(auth.supabase, id, "webhooks");
-    if (!webhooksEnabled) {
-      return NextResponse.json(
-        { error: "Webhooks no están habilitados para este proyecto" },
-        { status: 403 }
-      );
-    }
 
     const body = await request.json();
     const { enabled, url, events, regenerate_secret } = body;

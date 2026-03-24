@@ -176,6 +176,8 @@ export async function POST(request: NextRequest) {
       precio_base_parqueaderos,
       precio_base_depositos,
       separacion_incluida,
+      payment_plan_nombre,
+      admin_fee,
     } = body as {
       proyecto_id: string;
       unidad_id: string;
@@ -195,6 +197,8 @@ export async function POST(request: NextRequest) {
       precio_base_parqueaderos?: number;
       precio_base_depositos?: number;
       separacion_incluida?: boolean;
+      payment_plan_nombre?: string;
+      admin_fee?: number;
     };
 
     // Validate required fields
@@ -219,17 +223,6 @@ export async function POST(request: NextRequest) {
     }
     if (!proyecto.cotizador_enabled || !proyecto.cotizador_config) {
       return NextResponse.json({ error: "Cotizador no habilitado" }, { status: 403 });
-    }
-
-    // Check feature flag (cotizador must be enabled in project_features)
-    const { data: featureRow } = await supabase
-      .from("project_features")
-      .select("enabled")
-      .eq("proyecto_id", proyecto_id)
-      .eq("feature", "cotizador")
-      .maybeSingle();
-    if (featureRow && !featureRow.enabled) {
-      return NextResponse.json({ error: "Cotizador no habilitado para este proyecto" }, { status: 403 });
     }
 
     const config = proyecto.cotizador_config as CotizadorConfig;
@@ -328,6 +321,12 @@ export async function POST(request: NextRequest) {
 
     if (separacion_incluida !== undefined) {
       effectiveConfig.separacion_incluida_en_inicial = separacion_incluida;
+    }
+    if (payment_plan_nombre !== undefined) {
+      effectiveConfig.payment_plan_nombre = payment_plan_nombre;
+    }
+    if (admin_fee !== undefined) {
+      effectiveConfig.admin_fee = admin_fee;
     }
 
     // Fetch selected complementos from DB
@@ -506,9 +505,12 @@ export async function POST(request: NextRequest) {
       tour360Url: proyecto.tour_360_url,
       whatsappNumero: proyecto.whatsapp_numero,
       disclaimer: proyecto.disclaimer,
-      pdfSaludo: config.pdf_saludo ?? null,
-      pdfDespedida: config.pdf_despedida ?? null,
-      fechaEstimadaEntrega: config.fecha_estimada_entrega ?? null,
+      pdfSaludo: effectiveConfig.pdf_saludo ?? null,
+      pdfDespedida: effectiveConfig.pdf_despedida ?? null,
+      fechaEstimadaEntrega: effectiveConfig.fecha_estimada_entrega ?? null,
+      paymentPlanNombre: effectiveConfig.payment_plan_nombre ?? null,
+      adminFee: resultado.admin_fee ?? null,
+      adminFeeLabel: resultado.admin_fee_label ?? null,
       coverStyle: config.pdf_cover_style ?? "hero",
       pdfTheme: config.pdf_theme ?? "neutral",
       pisoLabel: unit.piso != null ? (projectLocale === "en" ? `Floor ${unit.piso}` : `Piso ${unit.piso}`) : null,

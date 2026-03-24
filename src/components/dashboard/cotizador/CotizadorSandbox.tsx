@@ -12,8 +12,7 @@ import {
   Plus,
   Trash2,
   GripVertical,
-  Lock,
-  Calculator,
+  ChevronDown,
 } from "lucide-react";
 import { Reorder, useDragControls } from "framer-motion";
 import { calcularCotizacion } from "@/lib/cotizador/calcular";
@@ -208,6 +207,7 @@ export function CotizadorSandbox() {
   });
 
   const moneda = (config.moneda || "COP") as Currency;
+  const [advancedOpen, setAdvancedOpen] = useState(false);
 
   // Sample price for preview
   const cheapestUnit = useMemo(() => {
@@ -235,7 +235,7 @@ export function CotizadorSandbox() {
     setConfig(newConfig);
     if (saveTimerRef.current) clearTimeout(saveTimerRef.current);
     saveTimerRef.current = setTimeout(() => {
-      save({ cotizador_config: newConfig });
+      save({ cotizador_config: newConfig, cotizador_enabled: true });
     }, 1500);
   }, [save]);
 
@@ -289,52 +289,98 @@ export function CotizadorSandbox() {
     saveConfig({ ...config, descuentos: config.descuentos.filter((d) => d.id !== id) });
   }, [config, saveConfig]);
 
-  // If cotizador is not enabled, show locked state
-  if (!cotizadorEnabled) {
-    return (
-      <div className="flex flex-col items-center justify-center py-20 text-center">
-        <div className={cn("w-16 h-16 bg-[var(--surface-2)] border border-[var(--border-subtle)] flex items-center justify-center mb-6", radius["2xl"])}>
-          <Lock size={24} className="text-[var(--text-muted)]" />
-        </div>
-        <h3 className={cn("text-white font-light mb-2", fontSize.heading)}>Módulo Premium</h3>
-        <p className={cn("text-[var(--text-tertiary)] max-w-sm leading-relaxed mb-6", fontSize.md)}>
-          El cotizador automático genera PDFs de cotización branded para tus compradores.
-          Contacta a NODDO para activar este módulo.
-        </p>
-        <a
-          href="https://wa.me/971585407848?text=Quiero%20activar%20el%20cotizador"
-          target="_blank"
-          rel="noopener noreferrer"
-          className={cn("flex items-center px-6 py-3 bg-[var(--site-primary)] text-[#141414] font-ui font-bold uppercase hover:brightness-110 transition-all", gap.normal, radius.xl, fontSize.md, letterSpacing.wider)}
-        >
-          <Calculator size={14} />
-          Contactar NODDO
-        </a>
-      </div>
-    );
-  }
+  // Toggle cotizador enabled/disabled
+  const handleToggleEnabled = useCallback(() => {
+    const newVal = !cotizadorEnabled;
+    save({ cotizador_enabled: newVal, ...(newVal && !project.cotizador_config ? { cotizador_config: config } : {}) });
+  }, [cotizadorEnabled, save, config, project.cotizador_config]);
 
   return (
     <div className={cn("grid grid-cols-1 lg:grid-cols-2", gap.spacious)}>
       {/* Left: Config */}
       <div className={cn("flex flex-col", gap.spacious)}>
-        {/* Currency */}
-        <div>
-          <label className={cn(labelClass, "flex items-center", gap.normal)}>
-            Moneda
-            <InfoTooltip
-              content={tooltips.cotizador.moneda.long}
-              variant="dashboard"
-              placement="auto"
+        {/* Enable toggle */}
+        <div className={cn("flex items-center justify-between p-4 bg-[var(--surface-1)] border border-[var(--border-subtle)]", radius.xl)}>
+          <div>
+            <p className={cn("text-white font-medium", fontSize.md)}>Cotizador</p>
+            <p className={cn("text-[var(--text-muted)]", fontSize.label)}>
+              {cotizadorEnabled ? "Activo — tus agentes pueden generar cotizaciones" : "Desactivado"}
+            </p>
+          </div>
+          <button
+            type="button"
+            onClick={handleToggleEnabled}
+            className={cn(
+              "relative w-11 h-6 rounded-full transition-colors",
+              cotizadorEnabled ? "bg-[var(--site-primary)]" : "bg-[var(--surface-3)]"
+            )}
+          >
+            <span className={cn(
+              "absolute top-0.5 left-0.5 w-5 h-5 rounded-full bg-white transition-transform",
+              cotizadorEnabled ? "translate-x-5" : "translate-x-0"
+            )} />
+          </button>
+        </div>
+
+        {/* Basics row */}
+        <div className={cn("grid grid-cols-2", gap.relaxed)}>
+          <div>
+            <label className={cn(labelClass, "flex items-center", gap.normal)}>
+              Moneda
+              <InfoTooltip
+                content={tooltips.cotizador.moneda.long}
+                variant="dashboard"
+                placement="auto"
+              />
+            </label>
+            <div className="w-32">
+              <NodDoDropdown
+                variant="dashboard"
+                size="md"
+                value={config.moneda}
+                onChange={(val) => saveConfig({ ...config, moneda: val })}
+                options={MONEDAS.map((m) => ({ value: m.value, label: m.label }))}
+              />
+            </div>
+          </div>
+          <div>
+            <label className={cn("block text-[var(--text-muted)] mb-1 uppercase", fontSize.label, letterSpacing.wider)}>
+              Nombre del plan
+            </label>
+            <input
+              type="text"
+              value={config.payment_plan_nombre ?? ""}
+              onChange={(e) => saveConfig({ ...config, payment_plan_nombre: e.target.value || undefined })}
+              className={cn(inputClass, fontSize.md)}
+              placeholder="ej. Plan 30/70, EID Promotion..."
             />
-          </label>
-          <div className="w-32">
-            <NodDoDropdown
-              variant="dashboard"
-              size="md"
-              value={config.moneda}
-              onChange={(val) => saveConfig({ ...config, moneda: val })}
-              options={MONEDAS.map((m) => ({ value: m.value, label: m.label }))}
+          </div>
+        </div>
+
+        {/* Admin fee */}
+        <div className={cn("grid grid-cols-2", gap.relaxed)}>
+          <div>
+            <label className={cn("block text-[var(--text-muted)] mb-1 uppercase", fontSize.label, letterSpacing.wider)}>
+              Admin Fee ({config.moneda})
+            </label>
+            <CurrencyInput
+              value={config.admin_fee ?? ""}
+              onChange={(v) => saveConfig({ ...config, admin_fee: Number(v) || undefined })}
+              currency={moneda as Currency}
+              inputClassName={cn("w-full bg-[var(--surface-3)] border border-[var(--border-default)] px-3 py-2 text-white focus:outline-none focus:border-[rgba(var(--site-primary-rgb),0.5)]", radius.lg, fontSize.md)}
+              placeholder="0"
+            />
+          </div>
+          <div>
+            <label className={cn("block text-[var(--text-muted)] mb-1 uppercase", fontSize.label, letterSpacing.wider)}>
+              Etiqueta del admin fee
+            </label>
+            <input
+              type="text"
+              value={config.admin_fee_label ?? ""}
+              onChange={(e) => saveConfig({ ...config, admin_fee_label: e.target.value || undefined })}
+              className={cn(inputClass, fontSize.md)}
+              placeholder="Admin Fee"
             />
           </div>
         </div>
@@ -440,162 +486,141 @@ export function CotizadorSandbox() {
           </div>
         </div>
 
-        {/* Options */}
-        <div className={cn("bg-[var(--surface-1)] border border-[var(--border-subtle)] p-5 flex flex-col", radius.xl, gap.loose)}>
-          <h3 className={cn("font-medium text-white", fontSize.md)}>Opciones</h3>
+        {/* Advanced options (collapsed) */}
+        <div className={cn("bg-[var(--surface-1)] border border-[var(--border-subtle)] overflow-hidden", radius.xl)}>
+          <button
+            type="button"
+            onClick={() => setAdvancedOpen((v) => !v)}
+            className={cn("w-full flex items-center justify-between p-4 hover:bg-[var(--surface-2)] transition-colors")}
+          >
+            <span className={cn("font-medium text-[var(--text-secondary)]", fontSize.md)}>Opciones avanzadas</span>
+            <ChevronDown size={14} className={cn("text-[var(--text-muted)] transition-transform", advancedOpen && "rotate-180")} />
+          </button>
 
-          <label className={cn("flex items-center cursor-pointer", gap.relaxed)}>
-            <input
-              type="checkbox"
-              checked={config.separacion_incluida_en_inicial}
-              onChange={(e) => saveConfig({ ...config, separacion_incluida_en_inicial: e.target.checked })}
-              className="w-4 h-4 rounded bg-[var(--surface-3)] border border-[var(--border-default)] accent-[var(--site-primary)]"
-            />
-            <span className={cn("text-[var(--text-secondary)] flex items-center", fontSize.md, gap.normal)}>
-              La separación se descuenta de la cuota inicial
-              <InfoTooltip
-                content={tooltips.cotizador.separacionIncluida.long}
-                variant="dashboard"
-                placement="auto"
-              />
-            </span>
-          </label>
+          {advancedOpen && (
+            <div className={cn("px-5 pb-5 flex flex-col", gap.loose)}>
+              {/* Separación checkbox */}
+              <label className={cn("flex items-center cursor-pointer", gap.relaxed)}>
+                <input
+                  type="checkbox"
+                  checked={config.separacion_incluida_en_inicial}
+                  onChange={(e) => saveConfig({ ...config, separacion_incluida_en_inicial: e.target.checked })}
+                  className="w-4 h-4 rounded bg-[var(--surface-3)] border border-[var(--border-default)] accent-[var(--site-primary)]"
+                />
+                <span className={cn("text-[var(--text-secondary)] flex items-center", fontSize.md, gap.normal)}>
+                  La separación se descuenta de la cuota inicial
+                  <InfoTooltip
+                    content={tooltips.cotizador.separacionIncluida.long}
+                    variant="dashboard"
+                    placement="auto"
+                  />
+                </span>
+              </label>
 
-          <div>
-            <label className={cn("flex items-center text-[var(--text-muted)] mb-1 uppercase", fontSize.label, gap.normal, letterSpacing.wider)}>
-              Notas legales (aparecen en el PDF)
-              <InfoTooltip
-                content={tooltips.cotizador.notasLegales.long}
-                variant="dashboard"
-                placement="auto"
-              />
-            </label>
-            <textarea
-              value={config.notas_legales ?? ""}
-              onChange={(e) => saveConfig({ ...config, notas_legales: e.target.value || null })}
-              rows={3}
-              className={cn(inputClass, "resize-none", fontSize.md)}
-              placeholder="Los precios están sujetos a cambios sin previo aviso..."
-            />
-          </div>
-        </div>
+              {/* Fecha estimada de entrega */}
+              <div>
+                <label className={cn("block text-[var(--text-muted)] mb-1 uppercase", fontSize.label, letterSpacing.wider)}>
+                  Fecha estimada de entrega
+                </label>
+                <input
+                  type="text"
+                  value={config.fecha_estimada_entrega ?? ""}
+                  onChange={(e) => saveConfig({ ...config, fecha_estimada_entrega: e.target.value || undefined })}
+                  className={cn(inputClass, fontSize.md)}
+                  placeholder="Q2-2028, Diciembre 2027..."
+                />
+              </div>
 
-        {/* PDF Customization */}
-        <div className={cn("bg-[var(--surface-1)] border border-[var(--border-subtle)] p-5 flex flex-col", radius.xl, gap.loose)}>
-          <h3 className={cn("font-medium text-white", fontSize.md)}>Personalización del PDF</h3>
+              {/* Notas legales */}
+              <div>
+                <label className={cn("flex items-center text-[var(--text-muted)] mb-1 uppercase", fontSize.label, gap.normal, letterSpacing.wider)}>
+                  Notas legales (aparecen en el PDF)
+                  <InfoTooltip
+                    content={tooltips.cotizador.notasLegales.long}
+                    variant="dashboard"
+                    placement="auto"
+                  />
+                </label>
+                <textarea
+                  value={config.notas_legales ?? ""}
+                  onChange={(e) => saveConfig({ ...config, notas_legales: e.target.value || null })}
+                  rows={3}
+                  className={cn(inputClass, "resize-none", fontSize.md)}
+                  placeholder="Los precios están sujetos a cambios sin previo aviso..."
+                />
+              </div>
 
-          {/* Cover Style Toggle */}
-          <div>
-            <label className={cn("block text-[var(--text-muted)] mb-1.5 uppercase", fontSize.label, letterSpacing.wider)}>
-              Estilo de portada
-            </label>
-            <div className="flex gap-2">
-              <button
-                type="button"
-                onClick={() => saveConfig({ ...config, pdf_cover_style: "hero" })}
-                className={cn(
-                  "flex-1 px-3 py-2 border text-center transition-colors",
-                  radius.lg, fontSize.body,
-                  (config.pdf_cover_style ?? "hero") === "hero"
-                    ? "border-[rgba(var(--site-primary-rgb),0.6)] bg-[rgba(var(--site-primary-rgb),0.1)] text-[var(--site-primary)]"
-                    : "border-[var(--border-default)] bg-[var(--surface-3)] text-[var(--text-secondary)] hover:border-[var(--border-strong)]"
-                )}
-              >
-                Hero (Foto)
-              </button>
-              <button
-                type="button"
-                onClick={() => saveConfig({ ...config, pdf_cover_style: "minimalista" })}
-                className={cn(
-                  "flex-1 px-3 py-2 border text-center transition-colors",
-                  radius.lg, fontSize.body,
-                  config.pdf_cover_style === "minimalista"
-                    ? "border-[rgba(var(--site-primary-rgb),0.6)] bg-[rgba(var(--site-primary-rgb),0.1)] text-[var(--site-primary)]"
-                    : "border-[var(--border-default)] bg-[var(--surface-3)] text-[var(--text-secondary)] hover:border-[var(--border-strong)]"
-                )}
-              >
-                Minimalista
-              </button>
+              {/* Cover Style + Theme */}
+              <div className={cn("grid grid-cols-2", gap.relaxed)}>
+                <div>
+                  <label className={cn("block text-[var(--text-muted)] mb-1.5 uppercase", fontSize.label, letterSpacing.wider)}>Estilo portada</label>
+                  <div className="flex gap-2">
+                    {(["hero", "minimalista"] as const).map((style) => (
+                      <button
+                        key={style}
+                        type="button"
+                        onClick={() => saveConfig({ ...config, pdf_cover_style: style })}
+                        className={cn(
+                          "flex-1 px-2 py-1.5 border text-center transition-colors",
+                          radius.lg, fontSize.label,
+                          (config.pdf_cover_style ?? "hero") === style
+                            ? "border-[rgba(var(--site-primary-rgb),0.6)] bg-[rgba(var(--site-primary-rgb),0.1)] text-[var(--site-primary)]"
+                            : "border-[var(--border-default)] bg-[var(--surface-3)] text-[var(--text-secondary)] hover:border-[var(--border-strong)]"
+                        )}
+                      >
+                        {style === "hero" ? "Hero" : "Minimal"}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+                <div>
+                  <label className={cn("block text-[var(--text-muted)] mb-1.5 uppercase", fontSize.label, letterSpacing.wider)}>Tema PDF</label>
+                  <div className="flex gap-2">
+                    {(["dark", "neutral"] as const).map((theme) => (
+                      <button
+                        key={theme}
+                        type="button"
+                        onClick={() => saveConfig({ ...config, pdf_theme: theme })}
+                        className={cn(
+                          "flex-1 px-2 py-1.5 border text-center transition-colors",
+                          radius.lg, fontSize.label,
+                          (config.pdf_theme ?? "neutral") === theme
+                            ? "border-[rgba(var(--site-primary-rgb),0.6)] bg-[rgba(var(--site-primary-rgb),0.1)] text-[var(--site-primary)]"
+                            : "border-[var(--border-default)] bg-[var(--surface-3)] text-[var(--text-secondary)] hover:border-[var(--border-strong)]"
+                        )}
+                      >
+                        {theme === "dark" ? "Oscuro" : "Neutro"}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              </div>
+
+              {/* Saludo + Despedida */}
+              <div className={cn("grid grid-cols-1 sm:grid-cols-2", gap.relaxed)}>
+                <div>
+                  <label className={cn("block text-[var(--text-muted)] mb-1 uppercase", fontSize.label, letterSpacing.wider)}>Saludo</label>
+                  <textarea
+                    value={config.pdf_saludo ?? ""}
+                    onChange={(e) => saveConfig({ ...config, pdf_saludo: e.target.value || undefined })}
+                    rows={2}
+                    className={cn(inputClass, "resize-none", fontSize.md)}
+                    placeholder="Gracias por considerar nuestro proyecto..."
+                  />
+                </div>
+                <div>
+                  <label className={cn("block text-[var(--text-muted)] mb-1 uppercase", fontSize.label, letterSpacing.wider)}>Despedida</label>
+                  <input
+                    type="text"
+                    value={config.pdf_despedida ?? ""}
+                    onChange={(e) => saveConfig({ ...config, pdf_despedida: e.target.value || undefined })}
+                    className={cn(inputClass, fontSize.md)}
+                    placeholder="Cordialmente,"
+                  />
+                </div>
+              </div>
             </div>
-            <p className={fieldHint}>Hero usa la imagen de portada como fondo. Minimalista usa un fondo limpio con el logo del proyecto.</p>
-          </div>
-
-          {/* Theme Toggle */}
-          <div>
-            <label className={cn("block text-[var(--text-muted)] mb-1.5 uppercase", fontSize.label, letterSpacing.wider)}>
-              Tema del PDF
-            </label>
-            <div className="flex gap-2">
-              <button
-                type="button"
-                onClick={() => saveConfig({ ...config, pdf_theme: "dark" })}
-                className={cn(
-                  "flex-1 px-3 py-2 border text-center transition-colors",
-                  radius.lg, fontSize.body,
-                  config.pdf_theme === "dark"
-                    ? "border-[rgba(var(--site-primary-rgb),0.6)] bg-[rgba(var(--site-primary-rgb),0.1)] text-[var(--site-primary)]"
-                    : "border-[var(--border-default)] bg-[var(--surface-3)] text-[var(--text-secondary)] hover:border-[var(--border-strong)]"
-                )}
-              >
-                Oscuro
-              </button>
-              <button
-                type="button"
-                onClick={() => saveConfig({ ...config, pdf_theme: "neutral" })}
-                className={cn(
-                  "flex-1 px-3 py-2 border text-center transition-colors",
-                  radius.lg, fontSize.body,
-                  (config.pdf_theme ?? "neutral") === "neutral"
-                    ? "border-[rgba(var(--site-primary-rgb),0.6)] bg-[rgba(var(--site-primary-rgb),0.1)] text-[var(--site-primary)]"
-                    : "border-[var(--border-default)] bg-[var(--surface-3)] text-[var(--text-secondary)] hover:border-[var(--border-strong)]"
-                )}
-              >
-                Elegante / Neutro
-              </button>
-            </div>
-            <p className={fieldHint}>El tema neutro usa fondos blancos con texto oscuro para un look más formal.</p>
-          </div>
-
-          <div>
-            <label className={cn("block text-[var(--text-muted)] mb-1 uppercase", fontSize.label, letterSpacing.wider)}>
-              Saludo personalizado
-            </label>
-            <textarea
-              value={config.pdf_saludo ?? ""}
-              onChange={(e) => saveConfig({ ...config, pdf_saludo: e.target.value || undefined })}
-              rows={2}
-              className={cn(inputClass, "resize-none", fontSize.md)}
-              placeholder="Gracias por considerar nuestro proyecto como su nuevo hogar..."
-            />
-            <p className={fieldHint}>Aparece en la página de oferta. Dejar vacío para usar el saludo por defecto.</p>
-          </div>
-
-          <div>
-            <label className={cn("block text-[var(--text-muted)] mb-1 uppercase", fontSize.label, letterSpacing.wider)}>
-              Despedida
-            </label>
-            <input
-              type="text"
-              value={config.pdf_despedida ?? ""}
-              onChange={(e) => saveConfig({ ...config, pdf_despedida: e.target.value || undefined })}
-              className={cn(inputClass, fontSize.md)}
-              placeholder="Cordialmente,"
-            />
-          </div>
-
-          <div>
-            <label className={cn("block text-[var(--text-muted)] mb-1 uppercase", fontSize.label, letterSpacing.wider)}>
-              Fecha estimada de entrega
-            </label>
-            <input
-              type="text"
-              value={config.fecha_estimada_entrega ?? ""}
-              onChange={(e) => saveConfig({ ...config, fecha_estimada_entrega: e.target.value || undefined })}
-              className={cn(inputClass, fontSize.md)}
-              placeholder="Diciembre 2027"
-            />
-            <p className={fieldHint}>Se muestra en la sección de detalle de unidad del PDF.</p>
-          </div>
+          )}
         </div>
       </div>
 

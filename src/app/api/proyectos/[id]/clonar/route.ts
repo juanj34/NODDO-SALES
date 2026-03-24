@@ -1,5 +1,4 @@
 import { getAuthContext } from "@/lib/auth-context";
-import { checkProjectLimit } from "@/lib/plan-limits";
 import { NextRequest, NextResponse } from "next/server";
 
 export async function POST(
@@ -13,15 +12,6 @@ export async function POST(
       return NextResponse.json({ error: "No autorizado" }, { status: 401 });
     if (auth.role !== "admin")
       return NextResponse.json({ error: "Solo administradores" }, { status: 403 });
-
-    // Check plan limit
-    const limit = await checkProjectLimit(auth.supabase, auth.user.id);
-    if (!limit.allowed) {
-      return NextResponse.json(
-        { error: `Has alcanzado el límite de ${limit.max} proyecto(s) en tu plan` },
-        { status: 403 }
-      );
-    }
 
     // Fetch source project
     const { data: source, error: srcErr } = await auth.supabase

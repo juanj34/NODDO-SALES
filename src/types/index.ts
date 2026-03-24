@@ -733,6 +733,11 @@ export interface CotizadorConfig {
   // PDF style options
   pdf_cover_style?: "hero" | "minimalista";
   pdf_theme?: "dark" | "neutral";
+  // Payment plan header
+  payment_plan_nombre?: string;
+  // Admin fee (flat fee shown separately in PDF)
+  admin_fee?: number;
+  admin_fee_label?: string;
 }
 
 /* -- Email Configuration -- */
@@ -760,6 +765,7 @@ export interface FaseResultado {
   monto_por_cuota: number;
   frecuencia: string;
   fecha?: string;
+  porcentaje?: number;
 }
 
 export interface ResultadoCotizacion {
@@ -770,6 +776,8 @@ export interface ResultadoCotizacion {
   complementos?: ComplementoSeleccion[];
   complementos_total?: number;
   precio_total?: number;
+  admin_fee?: number;
+  admin_fee_label?: string;
 }
 
 export interface Cotizacion {

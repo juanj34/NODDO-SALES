@@ -85,6 +85,11 @@ export interface PDFData {
   pisoLabel?: string | null;
   // Locale
   idioma?: EmailLocale;
+  // Payment plan header
+  paymentPlanNombre?: string | null;
+  // Admin fee
+  adminFee?: number | null;
+  adminFeeLabel?: string | null;
 }
 
 /* ── Helpers ── */
@@ -682,236 +687,200 @@ function drawOfferPage(doc: jsPDF, data: PDFData, accent: RGB, accentLight: RGB,
   doc.rect(0, 0, pageW, pageH, "F");
   drawPageFrame(doc, pageW, pageH, accent, accentLight);
 
-  // Dual-logo header
+  // ── Dual-logo header ──
   let y = drawDualLogoHeader(doc, data, accent, theme, pageW, margin);
-  y += 4;
+  y += 6;
 
-  // Date & agent (right-aligned below header)
-  doc.setFontSize(8);
-  doc.setFont(FONT.MONO, "normal");
-  doc.setTextColor(theme.textMuted[0], theme.textMuted[1], theme.textMuted[2]);
-  doc.text(data.fecha, pageW - margin, y, { align: "right" });
-  if (data.agenteName) {
-    y += 4.5;
-    doc.setFontSize(7.5);
-    doc.setFont(FONT.LABEL, "bold");
-    doc.setTextColor(accent[0], accent[1], accent[2]);
-    doc.text(`${strings.advisor}: ${data.agenteName}`, pageW - margin, y, { align: "right" });
-    // Agent phone
-    if (data.agentePhone) {
-      y += 3.8;
-      doc.setFontSize(7);
-      doc.setFont(FONT.MONO, "normal");
-      doc.setTextColor(theme.textSecondary[0], theme.textSecondary[1], theme.textSecondary[2]);
-      doc.text(data.agentePhone, pageW - margin, y, { align: "right" });
-    }
-    // Agent email
-    if (data.agenteEmail) {
-      y += 3.8;
-      doc.setFontSize(7);
-      doc.setFont(FONT.MONO, "normal");
-      doc.setTextColor(theme.textSecondary[0], theme.textSecondary[1], theme.textSecondary[2]);
-      doc.text(data.agenteEmail, pageW - margin, y, { align: "right" });
-    }
-  }
+  // ── SALES OFFER title block (bordered rectangle) ──
+  const titleText = locale === "en" ? "SALES OFFER" : "OFERTA DE VENTA";
+  const titleBlockH = 18;
+  doc.setFillColor(theme.gridBg[0], theme.gridBg[1], theme.gridBg[2]);
+  doc.roundedRect(margin, y, contentW, titleBlockH, 2, 2, "F");
+  doc.setDrawColor(accent[0], accent[1], accent[2]);
+  doc.setLineWidth(0.4);
+  doc.roundedRect(margin, y, contentW, titleBlockH, 2, 2, "S");
 
-  y += 8;
-
-  // ── Title ──
-  doc.setFontSize(24);
+  doc.setFontSize(16);
   doc.setFont(FONT.HEADING, "normal");
   doc.setTextColor(theme.text[0], theme.text[1], theme.text[2]);
-  doc.text(strings.purchaseOffer, margin, y);
+  doc.text(titleText, pageW / 2, y + 8, { align: "center" });
 
-  // Reference number
-  doc.setFontSize(8);
+  // Unit subtitle
+  const u = data.unidad_medida || "m²";
+  const areaDisplay = data.area_m2 ? ` / ${data.area_m2} ${u}` : "";
+  doc.setFontSize(8.5);
   doc.setFont(FONT.MONO, "normal");
-  doc.setTextColor(accent[0], accent[1], accent[2]);
-  doc.text(data.referenceNumber, pageW - margin, y, { align: "right" });
+  doc.setTextColor(theme.textSecondary[0], theme.textSecondary[1], theme.textSecondary[2]);
+  doc.text(`${strings.unit} No: ${data.unidadId}${areaDisplay}`, pageW / 2, y + 14, { align: "center" });
 
+  y += titleBlockH + 6;
+
+  // ── Reference No + Date ──
+  doc.setFontSize(7.5);
+  doc.setFont(FONT.MONO, "normal");
+  doc.setTextColor(theme.textMuted[0], theme.textMuted[1], theme.textMuted[2]);
+  doc.text(`Reference No: ${data.referenceNumber}`, margin, y);
+  doc.text(`Date: ${data.fecha}`, pageW - margin, y, { align: "right" });
+
+  y += 3;
+  doc.setDrawColor(accent[0], accent[1], accent[2]);
+  doc.setLineWidth(0.3);
+  doc.line(margin, y, pageW - margin, y);
   y += 5;
 
-  // Divider
-  doc.setDrawColor(accent[0], accent[1], accent[2]);
-  doc.setLineWidth(0.5);
-  doc.line(margin, y, margin + 45, y);
-  doc.setDrawColor(theme.divider[0], theme.divider[1], theme.divider[2]);
-  doc.setLineWidth(0.15);
-  doc.line(margin + 45, y, pageW - margin, y);
+  // ── PROJECT DETAILS ──
+  const pDetailsLabel = locale === "en" ? "PROJECTS DETAILS" : "DETALLES DEL PROYECTO";
+  y = drawSectionLabel(doc, pDetailsLabel, margin, y, accent, contentW, theme);
 
-  y += 8;
-
-  // ── Greeting ──
-  const saludo =
-    data.pdfSaludo ||
-    strings.defaultGreeting.replace("{name}", data.buyerName).replace("{project}", data.projectName);
-  doc.setFontSize(9);
-  doc.setFont(FONT.BODY, "normal");
-  doc.setTextColor(theme.textSecondary[0], theme.textSecondary[1], theme.textSecondary[2]);
-  const saludoLines = doc.splitTextToSize(saludo, contentW);
-  doc.text(saludoLines, margin, y);
-  y += saludoLines.length * 4.2 + 6;
-
-  // ── DETALLE DE LA UNIDAD ──
-  y = drawSectionLabel(doc, strings.unitDetail, margin, y, accent, contentW, theme);
-
-  // Unit details grid
   const gridX = margin;
   const gridW = contentW;
   const colW = gridW / 2;
   const cellH = 11;
 
-  const detailPairs: [string, string][] = [];
-  detailPairs.push([strings.unit, data.unidadId]);
-  if (data.tipologiaName) detailPairs.push([strings.typology, data.tipologiaName]);
-  const u = data.unidad_medida || "m²";
-  if (data.area_construida) detailPairs.push([strings.area_construida, `${data.area_construida} ${u}`]);
-  if (data.area_privada) detailPairs.push([strings.area_privada, `${data.area_privada} ${u}`]);
-  if (data.area_lote) detailPairs.push([strings.area_lote, `${data.area_lote} ${u}`]);
-  if (!data.area_construida && !data.area_privada && !data.area_lote && data.area_m2) {
-    detailPairs.push([strings.area, `${data.area_m2} ${u}`]);
+  // Project info grid (2 columns)
+  const projPairs: [string, string][] = [
+    [locale === "en" ? "Project Name:" : "Proyecto:", `${data.projectName}${data.constructoraName ? ` by ${data.constructoraName}` : ""}`],
+    [locale === "en" ? "Location:" : "Ubicación:", data.config.fecha_estimada_entrega ? "—" : "—"],
+  ];
+  projPairs.push([locale === "en" ? "Project Status:" : "Estado:", "Off-Plan"]);
+  if (data.fechaEstimadaEntrega) {
+    projPairs[1] = [locale === "en" ? "Estimated Completion Date:" : "Fecha estimada de entrega:", data.fechaEstimadaEntrega];
   }
-  if (data.piso !== null && data.piso !== undefined) detailPairs.push([strings.floor, `${data.piso}`]);
-  if (data.habitaciones) detailPairs.push([strings.bedrooms, `${data.habitaciones}`]);
-  if (data.banos) detailPairs.push([strings.bathrooms, `${data.banos}`]);
-  if (data.vista) detailPairs.push([strings.view, data.vista]);
-  if (data.orientacion) detailPairs.push([strings.orientation, data.orientacion]);
-  if (data.parqueaderos) detailPairs.push([strings.parking, `${data.parqueaderos}`]);
-  if (data.depositos) detailPairs.push([strings.storage, `${data.depositos}`]);
-  if (data.tiene_jacuzzi) detailPairs.push([strings.jacuzzi, strings.yes]);
-  if (data.tiene_piscina) detailPairs.push([strings.pool, strings.yes]);
-  if (data.tiene_bbq) detailPairs.push([strings.bbq, strings.yes]);
-  if (data.tiene_terraza) detailPairs.push([strings.terrace, strings.yes]);
-  if (data.tiene_jardin) detailPairs.push([strings.garden, strings.yes]);
-  if (data.tiene_cuarto_servicio) detailPairs.push([strings.maidsRoom, strings.yes]);
-  if (data.tiene_estudio) detailPairs.push([strings.study, strings.yes]);
-  if (data.tiene_chimenea) detailPairs.push([strings.fireplace, strings.yes]);
-  if (data.tiene_doble_altura) detailPairs.push([strings.doubleHeight, strings.yes]);
-  if (data.tiene_rooftop) detailPairs.push([strings.rooftop, strings.yes]);
-  if (data.fechaEstimadaEntrega) detailPairs.push([strings.estimatedDelivery, data.fechaEstimadaEntrega]);
 
-  const rows = Math.ceil(detailPairs.length / 2);
-  const gridH = rows * cellH + 6;
+  const projRows = Math.ceil(projPairs.length / 2);
+  const projGridH = projRows * cellH + 4;
   doc.setFillColor(theme.gridBg[0], theme.gridBg[1], theme.gridBg[2]);
-  doc.roundedRect(gridX, y - 2, gridW, gridH, 2.5, 2.5, "F");
+  doc.roundedRect(gridX, y - 2, gridW, projGridH, 2, 2, "F");
   doc.setDrawColor(theme.gridBorder[0], theme.gridBorder[1], theme.gridBorder[2]);
-  doc.setLineWidth(0.2);
-  doc.roundedRect(gridX, y - 2, gridW, gridH, 2.5, 2.5, "S");
+  doc.setLineWidth(0.15);
+  doc.roundedRect(gridX, y - 2, gridW, projGridH, 2, 2, "S");
 
-  for (let i = 0; i < detailPairs.length; i++) {
+  for (let i = 0; i < projPairs.length; i++) {
     const row = Math.floor(i / 2);
     const col = i % 2;
-    const cellX = gridX + col * colW + 8;
-    const cellY = y + row * cellH + 6;
+    const cellX = gridX + col * colW + 6;
+    const cellY = y + row * cellH + 5;
 
-    doc.setFontSize(7);
-    doc.setFont(FONT.LABEL, "bold");
-    doc.setTextColor(accent[0], accent[1], accent[2]);
-    doc.text(detailPairs[i][0].toUpperCase(), cellX, cellY);
+    doc.setFontSize(6.5);
+    doc.setFont(FONT.BODY, "normal");
+    doc.setTextColor(theme.textMuted[0], theme.textMuted[1], theme.textMuted[2]);
+    doc.text(projPairs[i][0], cellX, cellY);
 
-    doc.setFontSize(10);
+    doc.setFontSize(9);
     doc.setFont(FONT.MONO, "normal");
     doc.setTextColor(theme.text[0], theme.text[1], theme.text[2]);
-    doc.text(detailPairs[i][1], cellX, cellY + 5.5);
+    doc.text(projPairs[i][1], cellX + colW - 12, cellY, { align: "right" });
   }
 
-  y += gridH + 4;
+  y += projGridH + 3;
 
-  // ── Complementos section ──
-  const complementos = data.complementos || data.resultado.complementos;
-  if (complementos && complementos.length > 0) {
-    y = drawSectionLabel(doc, strings.complements, margin, y, accent, contentW, theme);
+  // ── PROPERTY DETAILS & SIZING DETAILS ──
+  const propLabel = locale === "en" ? "PROPERTY DETAILS & SIZING DETAILS" : "DETALLES DE LA PROPIEDAD";
+  y = drawSectionLabel(doc, propLabel, margin, y, accent, contentW, theme);
 
-    const includedComps = complementos.filter((c) => !c.es_extra && !c.es_precio_base);
-    const extraComps = complementos.filter((c) => c.es_extra || c.es_precio_base);
-
-    for (const comp of [...includedComps, ...extraComps]) {
-      const isExtra = comp.es_extra || comp.es_precio_base;
-      const label = comp.es_precio_base && comp.cantidad
-        ? comp.identificador
-        : comp.subtipo
-          ? `${comp.identificador} — ${comp.subtipo}`
-          : comp.identificador;
-      const tipoLabel = comp.tipo === "parqueadero"
-        ? strings.parking_label
-        : comp.tipo === "deposito"
-          ? strings.storage_label
-          : strings.addon_label;
-      const prefix = comp.tipo === "addon"
-        ? label
-        : isExtra ? `${tipoLabel} (${strings.additional})` : tipoLabel;
-
-      doc.setFontSize(8.5);
-      doc.setFont(FONT.BODY, "normal");
-      doc.setTextColor(theme.text[0], theme.text[1], theme.text[2]);
-      const displayText = comp.tipo === "addon" ? label : `${prefix}: ${label}`;
-      doc.text(displayText, margin + 4, y);
-
-      const effectivePrice = comp.precio_negociado ?? comp.precio ?? 0;
-      if (comp.suma_al_total && (comp.precio != null || comp.precio_negociado != null) && effectivePrice > 0) {
-        doc.setTextColor(accent[0], accent[1], accent[2]);
-        doc.text(formatCurrency(effectivePrice, moneda), pageW - margin - 4, y, { align: "right" });
-      } else if (isExtra && effectivePrice === 0) {
-        doc.setFontSize(7.5);
-        doc.setTextColor(46, 139, 87);
-        doc.text(strings.courtesy, pageW - margin - 4, y, { align: "right" });
-      } else {
-        doc.setFontSize(7.5);
-        doc.setTextColor(theme.textMuted[0], theme.textMuted[1], theme.textMuted[2]);
-        doc.text(strings.included, pageW - margin - 4, y, { align: "right" });
-      }
-
-      y += 7;
-    }
-
-    const compTotal = data.resultado.complementos_total;
-    if (compTotal && compTotal > 0) {
-      doc.setDrawColor(theme.divider[0], theme.divider[1], theme.divider[2]);
-      doc.setLineWidth(0.15);
-      doc.line(margin + contentW * 0.6, y - 2, pageW - margin, y - 2);
-
-      doc.setFontSize(8);
-      doc.setFont(FONT.LABEL, "bold");
-      doc.setTextColor(theme.textSecondary[0], theme.textSecondary[1], theme.textSecondary[2]);
-      doc.text(strings.complementsSubtotal, margin + contentW * 0.6, y + 3);
-      doc.setTextColor(accent[0], accent[1], accent[2]);
-      doc.text(formatCurrency(compTotal, moneda), pageW - margin - 4, y + 3, { align: "right" });
-      y += 10;
-    }
-
-    y += 4;
+  // Build left and right columns
+  const leftPairs: [string, string][] = [];
+  if (data.tipologiaName) leftPairs.push([locale === "en" ? "Unit Type:" : "Tipología:", data.tipologiaName]);
+  leftPairs.push([locale === "en" ? "Unit No:" : "Unidad:", data.unidadId]);
+  if (data.piso !== null && data.piso !== undefined) leftPairs.push([strings.floor + ":", `${data.piso}`]);
+  if (data.parqueaderos) leftPairs.push([locale === "en" ? "No. of Parking:" : "Parqueaderos:", `${data.parqueaderos}`]);
+  if (data.tiene_jacuzzi || data.tiene_piscina) {
+    leftPairs.push(["Pool / Jacuzzi:", data.tiene_jacuzzi && data.tiene_piscina ? strings.yes : data.tiene_jacuzzi ? "Jacuzzi" : "Pool"]);
   }
 
-  // ── Total Price ──
+  const rightPairs: [string, string][] = [];
+  if (data.area_construida) rightPairs.push([strings.area_construida + ":", `${data.area_construida} ${u}`]);
+  if (data.area_privada) rightPairs.push([strings.area_privada + ":", `${data.area_privada} ${u}`]);
+  if (data.area_m2 && !data.area_construida) rightPairs.push([strings.area + ":", `${data.area_m2} ${u}`]);
+  if (data.habitaciones) rightPairs.push([strings.bedrooms + ":", `${data.habitaciones}`]);
+  if (data.banos) rightPairs.push([strings.bathrooms + ":", `${data.banos}`]);
+  if (data.vista) rightPairs.push([locale === "en" ? "Unit View:" : "Vista:", data.vista]);
+  if (data.orientacion) rightPairs.push([strings.orientation + ":", data.orientacion]);
+
+  const propRowCount = Math.max(leftPairs.length, rightPairs.length);
+  const propGridH = propRowCount * cellH + 4;
+  doc.setFillColor(theme.gridBg[0], theme.gridBg[1], theme.gridBg[2]);
+  doc.roundedRect(gridX, y - 2, gridW, propGridH, 2, 2, "F");
+  doc.setDrawColor(theme.gridBorder[0], theme.gridBorder[1], theme.gridBorder[2]);
+  doc.setLineWidth(0.15);
+  doc.roundedRect(gridX, y - 2, gridW, propGridH, 2, 2, "S");
+  // Vertical divider
+  doc.line(gridX + colW, y - 2, gridX + colW, y - 2 + propGridH);
+
+  // Draw left column
+  for (let i = 0; i < leftPairs.length; i++) {
+    const cellX = gridX + 6;
+    const cellY = y + i * cellH + 5;
+    doc.setFontSize(7);
+    doc.setFont(FONT.BODY, "normal");
+    doc.setTextColor(theme.textMuted[0], theme.textMuted[1], theme.textMuted[2]);
+    doc.text(leftPairs[i][0], cellX, cellY);
+    doc.setFontSize(9);
+    doc.setFont(FONT.MONO, "normal");
+    doc.setTextColor(theme.text[0], theme.text[1], theme.text[2]);
+    doc.text(leftPairs[i][1], gridX + colW - 6, cellY, { align: "right" });
+
+    if (i < leftPairs.length - 1) {
+      doc.setDrawColor(theme.gridBorder[0], theme.gridBorder[1], theme.gridBorder[2]);
+      doc.setLineWidth(0.1);
+      doc.line(gridX + 4, cellY + 4, gridX + colW - 4, cellY + 4);
+    }
+  }
+
+  // Draw right column
+  for (let i = 0; i < rightPairs.length; i++) {
+    const cellX = gridX + colW + 6;
+    const cellY = y + i * cellH + 5;
+    doc.setFontSize(7);
+    doc.setFont(FONT.BODY, "normal");
+    doc.setTextColor(theme.textMuted[0], theme.textMuted[1], theme.textMuted[2]);
+    doc.text(rightPairs[i][0], cellX, cellY);
+    doc.setFontSize(9);
+    doc.setFont(FONT.MONO, "normal");
+    doc.setTextColor(theme.text[0], theme.text[1], theme.text[2]);
+    doc.text(rightPairs[i][1], pageW - margin - 6, cellY, { align: "right" });
+
+    if (i < rightPairs.length - 1) {
+      doc.setDrawColor(theme.gridBorder[0], theme.gridBorder[1], theme.gridBorder[2]);
+      doc.setLineWidth(0.1);
+      doc.line(gridX + colW + 4, cellY + 4, pageW - margin - 4, cellY + 4);
+    }
+  }
+
+  y += propGridH + 5;
+
+  // ── PAYMENT PLAN ──
+  const planName = data.paymentPlanNombre || (locale === "en" ? "Payment Plan" : "Plan de Pagos");
+  y = drawSectionLabel(doc, planName, margin, y, accent, contentW, theme);
+
+  // Selling Price + Admin Fee header bar
   const displayTotal = data.resultado.precio_total ?? data.resultado.precio_neto;
-  doc.setFillColor(accent[0], accent[1], accent[2]);
-  doc.roundedRect(gridX, y, gridW, 13, 2, 2, "F");
+  const adminFee = data.adminFee ?? data.resultado.admin_fee ?? 0;
+  const adminLabel = data.adminFeeLabel ?? data.resultado.admin_fee_label ?? "Admin Fee";
+
+  doc.setFillColor(theme.gridBg[0], theme.gridBg[1], theme.gridBg[2]);
+  doc.roundedRect(margin, y - 3, contentW, 10, 1.5, 1.5, "F");
+  doc.setDrawColor(theme.gridBorder[0], theme.gridBorder[1], theme.gridBorder[2]);
+  doc.setLineWidth(0.15);
+  doc.roundedRect(margin, y - 3, contentW, 10, 1.5, 1.5, "S");
+
   doc.setFontSize(8);
   doc.setFont(FONT.LABEL, "bold");
-  doc.setTextColor(255, 255, 255);
-  doc.text(strings.totalPrice, gridX + 6, y + 5.5);
-  doc.setFontSize(14);
-  doc.setFont(FONT.MONO, "normal");
-  doc.text(
-    formatCurrency(displayTotal, moneda),
-    pageW - margin - 6,
-    y + 8.5,
-    { align: "right" },
-  );
+  doc.setTextColor(theme.text[0], theme.text[1], theme.text[2]);
+  const priceLabel = locale === "en" ? "Selling Price:" : "Precio de venta:";
+  doc.text(`${priceLabel} ${formatCurrency(displayTotal, moneda)}`, margin + 6, y + 2.5);
 
-  y += 20;
+  if (adminFee > 0) {
+    doc.text(`${adminLabel}: ${formatCurrency(adminFee, moneda)}`, gridX + colW + 6, y + 2.5);
+  }
 
-  // ── PLAN DE PAGOS ──
-  y = drawSectionLabel(doc, strings.paymentPlan, margin, y, accent, contentW, theme);
+  y += 12;
 
-  const hasDates = data.resultado.fases.some((f) => f.fecha);
-
-  const colConcepto = margin + 4;
-  const colFecha = hasDates ? margin + contentW * 0.30 : 0;
-  const colPct = margin + contentW * (hasDates ? 0.45 : 0.42);
-  const colMonto = margin + contentW * (hasDates ? 0.53 : 0.52);
-  const colCuotas = margin + contentW * (hasDates ? 0.74 : 0.73);
-  const colValorCuota = margin + contentW * (hasDates ? 0.87 : 0.86);
+  // ── 4-column payment table (Wynwood format) ──
+  const colDesc = margin + 6;
+  const colPct = margin + contentW * 0.50;
+  const colDate = margin + contentW * 0.62;
+  const colAmt = pageW - margin - 6;
 
   // Table header
   doc.setFillColor(theme.tableHeader[0], theme.tableHeader[1], theme.tableHeader[2]);
@@ -919,12 +888,10 @@ function drawOfferPage(doc: jsPDF, data: PDFData, accent: RGB, accentLight: RGB,
   doc.setFontSize(7);
   doc.setFont(FONT.LABEL, "bold");
   doc.setTextColor(theme.tableHeaderText[0], theme.tableHeaderText[1], theme.tableHeaderText[2]);
-  doc.text(strings.concept, colConcepto, y);
-  if (hasDates) doc.text(strings.date, colFecha, y);
-  doc.text("%", colPct, y);
-  doc.text(strings.amount, colMonto, y);
-  doc.text(strings.installments, colCuotas, y);
-  doc.text(strings.installmentValue, colValorCuota, y);
+  doc.text(locale === "en" ? "Description" : "Descripción", colDesc, y);
+  doc.text(locale === "en" ? "Percentage" : "Porcentaje", colPct, y);
+  doc.text(locale === "en" ? "Date" : "Fecha", colDate, y);
+  doc.text(locale === "en" ? "Amount" : "Monto", colAmt, y, { align: "right" });
 
   y += 9;
 
@@ -937,46 +904,61 @@ function drawOfferPage(doc: jsPDF, data: PDFData, accent: RGB, accentLight: RGB,
       doc.rect(margin, y - 5, contentW, rowH, "F");
     }
 
+    // Circle bullet
+    doc.setDrawColor(accent[0], accent[1], accent[2]);
+    doc.setLineWidth(0.4);
+    doc.circle(margin + 2.5, y - 1.5, 1.2, "S");
+
+    // Description
     doc.setFontSize(8.5);
     doc.setFont(FONT.BODY, "normal");
     doc.setTextColor(theme.text[0], theme.text[1], theme.text[2]);
-    doc.text(fase.nombre, colConcepto, y);
-
-    if (hasDates) {
-      doc.setFontSize(7.5);
-      doc.setFont(FONT.MONO, "normal");
-      doc.setTextColor(theme.textMuted[0], theme.textMuted[1], theme.textMuted[2]);
-      doc.text(fase.fecha || "—", colFecha, y);
+    let desc = fase.nombre;
+    // If first installment includes admin fee, note it
+    if (i === 0 && adminFee > 0) {
+      const pct = fase.porcentaje ?? Math.round((fase.monto_total / displayTotal) * 100);
+      desc = `${fase.nombre} (+${pct}% + ${adminLabel})`;
     }
+    doc.text(desc, colDesc, y);
 
+    // Percentage
     const totalBase = data.resultado.precio_total ?? data.resultado.precio_neto;
-    const pct = totalBase > 0 ? Math.round((fase.monto_total / totalBase) * 100) : 0;
+    const pct = fase.porcentaje ?? (totalBase > 0 ? Math.round((fase.monto_total / totalBase) * 100) : 0);
     doc.setFontSize(8);
     doc.setFont(FONT.MONO, "normal");
     doc.setTextColor(accent[0], accent[1], accent[2]);
     doc.text(`${pct}%`, colPct, y);
 
+    // Date
+    doc.setFontSize(8);
+    doc.setFont(FONT.MONO, "normal");
     doc.setTextColor(theme.textSecondary[0], theme.textSecondary[1], theme.textSecondary[2]);
-    doc.text(formatCurrency(fase.monto_total, moneda), colMonto, y);
+    doc.text(fase.fecha || "—", colDate, y);
 
-    doc.setFontSize(7.5);
-    doc.setTextColor(theme.textMuted[0], theme.textMuted[1], theme.textMuted[2]);
-    const fl = frecLabels[locale];
-    const cuotaText =
-      fase.cuotas > 1
-        ? `${fase.cuotas}x ${fl[fase.frecuencia] || fase.frecuencia}`
-        : fl[fase.frecuencia] || fase.frecuencia;
-    doc.text(cuotaText, colCuotas, y);
-
-    if (fase.cuotas > 1) {
-      doc.text(formatCurrency(fase.monto_por_cuota, moneda), colValorCuota, y);
-    }
+    // Amount (include admin fee on first installment)
+    const displayAmt = i === 0 && adminFee > 0 ? fase.monto_total + adminFee : fase.monto_total;
+    doc.setTextColor(theme.text[0], theme.text[1], theme.text[2]);
+    doc.text(formatCurrency(displayAmt, moneda), colAmt, y, { align: "right" });
 
     y += rowH;
 
+    // Row divider
     doc.setDrawColor(theme.divider[0], theme.divider[1], theme.divider[2]);
     doc.setLineWidth(0.12);
     doc.line(margin, y - 3, pageW - margin, y - 3);
+
+    // Installment subtitle
+    if (fase.cuotas > 1) {
+      doc.setFontSize(6.5);
+      doc.setFont(FONT.BODY, "normal");
+      doc.setTextColor(theme.textMuted[0], theme.textMuted[1], theme.textMuted[2]);
+      const fl = frecLabels[locale];
+      doc.text(
+        `(${fase.cuotas} ${fl[fase.frecuencia] || fase.frecuencia} × ${formatCurrency(fase.monto_por_cuota, moneda)})`,
+        colDesc, y - 0.5,
+      );
+      y += 4;
+    }
   });
 
   // Discounts
@@ -986,51 +968,48 @@ function drawOfferPage(doc: jsPDF, data: PDFData, accent: RGB, accentLight: RGB,
       doc.setFontSize(8.5);
       doc.setFont(FONT.BODY, "normal");
       doc.setTextColor(46, 139, 87);
-      doc.text(`↓ ${desc.nombre}`, colConcepto, y);
+      doc.text(`↓ ${desc.nombre}`, colDesc, y);
       doc.setFont(FONT.MONO, "normal");
-      doc.text(`-${formatCurrency(desc.monto, moneda)}`, colMonto, y);
+      doc.text(`-${formatCurrency(desc.monto, moneda)}`, colAmt, y, { align: "right" });
       y += 7;
     }
   }
 
-  y += 2;
-
-  // Total row
-  doc.setFillColor(accent[0], accent[1], accent[2]);
-  doc.roundedRect(margin, y - 5, contentW, 10, 1.5, 1.5, "F");
-  doc.setFontSize(9);
-  doc.setFont(FONT.LABEL, "bold");
-  doc.setTextColor(255, 255, 255);
-  const finalTotal = data.resultado.precio_total ?? data.resultado.precio_neto;
-  doc.text(strings.total, colConcepto, y);
-  doc.setFont(FONT.MONO, "normal");
-  doc.text("100%", colPct, y);
-  doc.text(formatCurrency(finalTotal, moneda), colMonto, y);
-
-  y += 18;
-
-  // ── Sign-off ──
-  const despedida = data.pdfDespedida || strings.defaultClosing;
-
-  doc.setFontSize(9);
-  doc.setFont(FONT.BODY, "normal");
-  doc.setTextColor(theme.textSecondary[0], theme.textSecondary[1], theme.textSecondary[2]);
-  doc.text(despedida, margin, y);
   y += 6;
 
-  if (data.constructoraName) {
-    doc.setFontSize(11);
-    doc.setFont(FONT.HEADING, "normal");
-    doc.setTextColor(theme.text[0], theme.text[1], theme.text[2]);
-    doc.text(data.constructoraName, margin, y);
-    y += 5;
+  // ── Notes / disclaimers ──
+  const notes = data.config.notas_legales || data.disclaimer;
+  if (notes) {
+    doc.setFontSize(6.5);
+    doc.setFont(FONT.BODY, "italic");
+    doc.setTextColor(theme.textMuted[0], theme.textMuted[1], theme.textMuted[2]);
+    const noteLines = doc.splitTextToSize(notes, contentW);
+    doc.text(noteLines, pageW / 2, y, { align: "center" });
+    y += noteLines.length * 3 + 4;
   }
 
-  if (data.agenteName) {
+  // ── Sign-off (compact) ──
+  if (y < pageH - 25) {
+    const despedida = data.pdfDespedida || strings.defaultClosing;
     doc.setFontSize(9);
     doc.setFont(FONT.BODY, "normal");
-    doc.setTextColor(accent[0], accent[1], accent[2]);
-    doc.text(data.agenteName, margin, y);
+    doc.setTextColor(theme.textSecondary[0], theme.textSecondary[1], theme.textSecondary[2]);
+    doc.text(despedida, margin, y);
+    y += 5;
+
+    if (data.constructoraName) {
+      doc.setFontSize(10);
+      doc.setFont(FONT.HEADING, "normal");
+      doc.setTextColor(theme.text[0], theme.text[1], theme.text[2]);
+      doc.text(data.constructoraName, margin, y);
+      y += 5;
+    }
+    if (data.agenteName) {
+      doc.setFontSize(8);
+      doc.setFont(FONT.BODY, "normal");
+      doc.setTextColor(accent[0], accent[1], accent[2]);
+      doc.text(data.agenteName, margin, y);
+    }
   }
 
   // Footer

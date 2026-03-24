@@ -1,6 +1,5 @@
 import { getAuthContext } from "@/lib/auth-context";
 import { pick } from "@/lib/api-utils";
-import { getProjectFeatures } from "@/lib/feature-flags";
 import { logActivity } from "@/lib/activity-logger";
 import { NextRequest, NextResponse } from "next/server";
 
@@ -124,9 +123,6 @@ export async function GET(
       ? await auth.supabase.from("plano_puntos").select("*").in("plano_id", planoIds).order("orden")
       : { data: [] };
 
-    // Fetch project features
-    const features = await getProjectFeatures(auth.supabase, id);
-
     return NextResponse.json({
       ...proyecto,
       tipologias: tipologias || [],
@@ -142,7 +138,6 @@ export async function GET(
       avances_obra: avancesObra || [],
       complementos: complementos || [],
       unidad_tipologias: unidadTipologias || [],
-      features,
     });
   } catch (err) {
     return NextResponse.json(

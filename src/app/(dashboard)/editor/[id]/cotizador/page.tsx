@@ -21,6 +21,7 @@ import { NodDoDropdown } from "@/components/ui/NodDoDropdown";
 import { PageHeader } from "@/components/dashboard/base/PageHeader";
 import { Calculator } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
+import { ComplementosSection } from "@/components/dashboard/ComplementosSection";
 
 /* ── Types ─────────────────────────────────────────────── */
 
@@ -108,10 +109,13 @@ function timeAgo(dateStr: string): string {
 
 /* ── Page ──────────────────────────────────────────────── */
 
+type CotizadorSubTab = "cotizar" | "addons";
+
 export default function CotizadorOperativoPage() {
-  const { project } = useEditorProject();
+  const { project, refresh } = useEditorProject();
   const toast = useToast();
   const { user } = useAuthRole();
+  const [subTab, setSubTab] = useState<CotizadorSubTab>("cotizar");
 
   const projectId = project.id;
   const cotizadorEnabled = project.cotizador_enabled && project.cotizador_config;
@@ -150,6 +154,10 @@ export default function CotizadorOperativoPage() {
   // Sandbox: editable phases
   const [editableFases, setEditableFases] = useState<EditableFase[]>([]);
   const [separacionIncluidaEnInicial, setSeparacionIncluidaEnInicial] = useState(false);
+
+  // Per-quote overrides
+  const [paymentPlanNombre, setPaymentPlanNombre] = useState("");
+  const [adminFee, setAdminFee] = useState<number>(0);
 
   // Sandbox: selected discounts
   const [selectedDiscounts, setSelectedDiscounts] = useState<string[]>([]);
@@ -208,6 +216,8 @@ export default function CotizadorOperativoPage() {
       setEditableFases(fasesFromConfig(config));
       setSeparacionIncluidaEnInicial(config.separacion_incluida_en_inicial ?? false);
       setSelectedDiscounts([]);
+      setPaymentPlanNombre(config.payment_plan_nombre ?? "");
+      setAdminFee(config.admin_fee ?? 0);
     }
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -338,6 +348,8 @@ export default function CotizadorOperativoPage() {
     return {
       ...config,
       separacion_incluida_en_inicial: separacionIncluidaEnInicial,
+      payment_plan_nombre: paymentPlanNombre || undefined,
+      admin_fee: adminFee || undefined,
       fases: editableFases.map((f) => ({
         id: f.id,
         nombre: f.nombre,
@@ -345,9 +357,10 @@ export default function CotizadorOperativoPage() {
         valor: f.valor,
         cuotas: f.cuotas,
         frecuencia: f.frecuencia,
+        fecha: f.fecha || undefined,
       })),
     };
-  }, [config, editableFases, separacionIncluidaEnInicial]);
+  }, [config, editableFases, separacionIncluidaEnInicial, paymentPlanNombre, adminFee]);
 
   // Calculate cotización live
   const cotizacion: ResultadoCotizacion | null = useMemo(() => {
@@ -449,6 +462,8 @@ export default function CotizadorOperativoPage() {
           precio_base_parqueaderos: hasParqPrecioBase ? precioBaseParqCount : undefined,
           precio_base_depositos: hasDepoPrecioBase ? precioBaseDepoCount : undefined,
           separacion_incluida: separacionIncluidaEnInicial,
+          payment_plan_nombre: paymentPlanNombre || undefined,
+          admin_fee: adminFee || undefined,
         }),
       });
 
@@ -501,24 +516,85 @@ export default function CotizadorOperativoPage() {
     if (config) {
       setEditableFases(fasesFromConfig(config));
       setSeparacionIncluidaEnInicial(config.separacion_incluida_en_inicial ?? false);
+      setPaymentPlanNombre(config.payment_plan_nombre ?? "");
+      setAdminFee(config.admin_fee ?? 0);
     }
   }, [config]);
 
-  // Not enabled state
-  if (!cotizadorEnabled) {
+  const subTabs: { id: CotizadorSubTab; label: string; icon: React.ComponentType<{ size?: number; className?: string }> }[] = [
+    { id: "cotizar", label: "Cotizar", icon: Calculator },
+    { id: "addons", label: "Addons", icon: Sparkles },
+  ];
+
+  // Not enabled state — only for cotizar sub-tab
+  if (!cotizadorEnabled && subTab === "cotizar") {
     return (
-      <div className="max-w-4xl mx-auto">
+      <div className="max-w-4xl mx-auto space-y-5">
         <PageHeader
           icon={Calculator}
           title="Cotizador"
-          description="Crea cotizaciones para tus compradores"
+          description="Herramienta de cotización y extras opcionales"
         />
-        <div className="bg-[var(--surface-1)] rounded-xl border border-[var(--border-subtle)] p-10 text-center mt-6">
+        {/* Sub-tabs */}
+        <div className="flex items-center gap-1 p-1 rounded-xl bg-[var(--surface-1)] border border-[var(--border-subtle)] w-fit">
+          {subTabs.map((t) => (
+            <button
+              key={t.id}
+              onClick={() => setSubTab(t.id)}
+              className={cn(
+                "flex items-center gap-1.5 px-4 py-2 rounded-lg text-xs font-ui font-bold uppercase tracking-[0.1em] transition-all",
+                subTab === t.id
+                  ? "bg-[var(--surface-3)] text-[var(--text-primary)] shadow-sm"
+                  : "text-[var(--text-tertiary)] hover:text-[var(--text-secondary)]"
+              )}
+            >
+              <t.icon size={13} />
+              {t.label}
+            </button>
+          ))}
+        </div>
+        <div className="bg-[var(--surface-1)] rounded-xl border border-[var(--border-subtle)] p-10 text-center">
           <FileText size={32} className="mx-auto text-[var(--text-muted)] mb-4" />
           <p className="text-sm text-[var(--text-tertiary)] mb-3">
             Configura el cotizador en Configuración &gt; Cotizador para habilitar esta herramienta.
           </p>
         </div>
+      </div>
+    );
+  }
+
+  // Addons sub-tab
+  if (subTab === "addons") {
+    return (
+      <div className="max-w-5xl mx-auto space-y-5">
+        <PageHeader
+          icon={Calculator}
+          title="Cotizador"
+          description="Herramienta de cotización y extras opcionales"
+        />
+        {/* Sub-tabs */}
+        <div className="flex items-center gap-1 p-1 rounded-xl bg-[var(--surface-1)] border border-[var(--border-subtle)] w-fit">
+          {subTabs.map((t) => (
+            <button
+              key={t.id}
+              onClick={() => setSubTab(t.id)}
+              className={cn(
+                "flex items-center gap-1.5 px-4 py-2 rounded-lg text-xs font-ui font-bold uppercase tracking-[0.1em] transition-all",
+                subTab === t.id
+                  ? "bg-[var(--surface-3)] text-[var(--text-primary)] shadow-sm"
+                  : "text-[var(--text-tertiary)] hover:text-[var(--text-secondary)]"
+              )}
+            >
+              <t.icon size={13} />
+              {t.label}
+            </button>
+          ))}
+        </div>
+        <ComplementosSection
+          project={project}
+          onRefresh={refresh}
+          fixedTab="addon"
+        />
       </div>
     );
   }
@@ -529,8 +605,26 @@ export default function CotizadorOperativoPage() {
       <PageHeader
         icon={Calculator}
         title="Cotizador"
-        description="Crea cotizaciones para tus compradores"
+        description="Herramienta de cotización y extras opcionales"
       />
+      {/* Sub-tabs */}
+      <div className="flex items-center gap-1 p-1 rounded-xl bg-[var(--surface-1)] border border-[var(--border-subtle)] w-fit">
+        {subTabs.map((t) => (
+          <button
+            key={t.id}
+            onClick={() => setSubTab(t.id)}
+            className={cn(
+              "flex items-center gap-1.5 px-4 py-2 rounded-lg text-xs font-ui font-bold uppercase tracking-[0.1em] transition-all",
+              subTab === t.id
+                ? "bg-[var(--surface-3)] text-[var(--text-primary)] shadow-sm"
+                : "text-[var(--text-tertiary)] hover:text-[var(--text-secondary)]"
+            )}
+          >
+            <t.icon size={13} />
+            {t.label}
+          </button>
+        ))}
+      </div>
 
       {/* Recent cotizaciones strip */}
       {recentCotizaciones.length > 0 && !successState && (
@@ -1032,139 +1126,158 @@ export default function CotizadorOperativoPage() {
                     </div>
                   )}
 
-                  {/* E: Editable Payment Plan */}
+                  {/* E: Payment Plan — Sales Offer Table */}
                   {cotizacion && (
-                    <div className="bg-[var(--surface-1)] rounded-xl border border-[var(--border-subtle)] p-5">
-                      <div className="flex items-center justify-between mb-3">
-                        <span className="font-ui text-[9px] font-bold uppercase tracking-[0.14em] text-[var(--text-muted)]">
-                          Plan de pagos
-                        </span>
-                        <button
-                          onClick={addFase}
-                          className="flex items-center gap-1 text-[10px] text-[var(--site-primary)] hover:text-white transition-colors"
-                        >
-                          <Plus size={12} /> Agregar fase
-                        </button>
+                    <div className="bg-[var(--surface-1)] rounded-xl border border-[var(--border-subtle)] overflow-hidden">
+                      {/* Header: Plan name + Selling Price + Admin Fee */}
+                      <div className="px-5 pt-5 pb-3 space-y-3">
+                        <input
+                          type="text"
+                          value={paymentPlanNombre}
+                          onChange={(e) => setPaymentPlanNombre(e.target.value)}
+                          className="w-full bg-transparent text-sm font-medium text-[var(--text-primary)] placeholder:text-[var(--text-muted)] focus:outline-none border-b border-transparent focus:border-[rgba(var(--site-primary-rgb),0.3)] pb-1"
+                          placeholder="Nombre del plan (ej. Payment Plan 35/65)"
+                        />
+                        <div className="flex items-center gap-4 text-xs">
+                          <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-[rgba(var(--site-primary-rgb),0.08)] border border-[rgba(var(--site-primary-rgb),0.15)]">
+                            <span className="text-[var(--text-muted)] font-ui text-[9px] uppercase tracking-wider font-bold">Precio</span>
+                            <span className="text-[var(--site-primary)] font-mono font-medium">
+                              {formatCurrency(cotizacion.precio_total ?? cotizacion.precio_neto, moneda)}
+                            </span>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <span className="text-[var(--text-muted)] font-ui text-[9px] uppercase tracking-wider font-bold">Admin Fee</span>
+                            <CurrencyInput
+                              value={adminFee || ""}
+                              onChange={(v) => setAdminFee(Number(v) || 0)}
+                              currency={moneda}
+                              inputClassName="w-24 bg-[var(--surface-2)] border border-[var(--border-subtle)] rounded-lg px-2 py-1 text-xs text-white focus:outline-none focus:border-[rgba(var(--site-primary-rgb),0.4)]"
+                              placeholder="0"
+                            />
+                          </div>
+                        </div>
                       </div>
 
-                      <label className="flex items-center gap-2 mb-3 cursor-pointer text-xs text-[var(--text-secondary)]">
-                        <input
-                          type="checkbox"
-                          checked={separacionIncluidaEnInicial}
-                          onChange={(e) => setSeparacionIncluidaEnInicial(e.target.checked)}
-                          className="rounded border-[var(--border-default)] bg-[var(--surface-2)] text-[var(--site-primary)] focus:ring-[var(--site-primary)] w-3.5 h-3.5"
-                        />
-                        Separación incluida en cuota inicial
-                      </label>
+                      {/* Table header */}
+                      <div className="grid grid-cols-[1fr_60px_100px_1fr_28px] gap-1 px-5 py-2 bg-[var(--surface-2)] border-y border-[var(--border-subtle)]">
+                        <span className="text-[8px] font-ui font-bold uppercase tracking-[0.14em] text-[var(--text-muted)]">Descripción</span>
+                        <span className="text-[8px] font-ui font-bold uppercase tracking-[0.14em] text-[var(--text-muted)] text-center">%</span>
+                        <span className="text-[8px] font-ui font-bold uppercase tracking-[0.14em] text-[var(--text-muted)]">Fecha</span>
+                        <span className="text-[8px] font-ui font-bold uppercase tracking-[0.14em] text-[var(--text-muted)] text-right">Monto</span>
+                        <span />
+                      </div>
 
-                      <div className="space-y-2">
-                        {editableFases.map((fase, i) => (
-                          <div
-                            key={fase.id}
-                            className="p-3 rounded-lg bg-[var(--surface-2)] border border-[var(--border-subtle)]"
-                          >
-                            <div className="grid grid-cols-12 gap-2 items-end">
-                              <div className="col-span-3">
-                                <label className="text-[9px] text-[var(--text-muted)] uppercase tracking-wider block mb-1">Nombre</label>
+                      {/* Table rows */}
+                      <div className="divide-y divide-[var(--border-subtle)]">
+                        {editableFases.map((fase, i) => {
+                          const faseResult = cotizacion.fases[i];
+                          const pctOfTotal = faseResult
+                            ? Math.round((faseResult.monto_total / (cotizacion.precio_total ?? cotizacion.precio_neto)) * 100)
+                            : 0;
+                          return (
+                            <div key={fase.id} className="group">
+                              <div className="grid grid-cols-[1fr_60px_100px_1fr_28px] gap-1 px-5 py-2.5 items-center">
+                                {/* Description */}
                                 <input
                                   type="text"
                                   value={fase.nombre}
                                   onChange={(e) => updateFase(fase.id, "nombre", e.target.value)}
-                                  className="input-glass w-full text-xs py-1.5"
+                                  className="bg-transparent text-xs text-[var(--text-primary)] focus:outline-none placeholder:text-[var(--text-muted)] border-b border-transparent focus:border-[rgba(var(--site-primary-rgb),0.3)]"
+                                  placeholder="Descripción"
                                 />
-                              </div>
-                              <div className="col-span-2">
-                                <label className="text-[9px] text-[var(--text-muted)] uppercase tracking-wider block mb-1">Tipo</label>
-                                <NodDoDropdown
-                                  variant="form"
-                                  size="sm"
-                                  value={fase.tipo}
-                                  onChange={(val) => updateFase(fase.id, "tipo", val)}
-                                  options={[
-                                    { value: "fijo", label: "Fijo ($)" },
-                                    { value: "porcentaje", label: "% " },
-                                    { value: "resto", label: "Resto" },
-                                  ]}
-                                />
-                              </div>
-                              <div className="col-span-2">
-                                <label className="text-[9px] text-[var(--text-muted)] uppercase tracking-wider block mb-1">Valor</label>
-                                {fase.tipo === "fijo" ? (
-                                  <CurrencyInput
-                                    value={fase.valor || ""}
-                                    onChange={(v) => updateFase(fase.id, "valor", parseFloat(v) || 0)}
-                                    currency={moneda}
-                                    inputClassName="input-glass w-full text-xs py-1.5"
-                                  />
+                                {/* Percentage */}
+                                {fase.tipo === "porcentaje" ? (
+                                  <div className="flex items-center justify-center">
+                                    <input
+                                      type="number"
+                                      value={fase.valor || ""}
+                                      onChange={(e) => updateFase(fase.id, "valor", parseFloat(e.target.value) || 0)}
+                                      className="w-10 bg-transparent text-xs text-center text-[var(--text-secondary)] focus:outline-none border-b border-transparent focus:border-[rgba(var(--site-primary-rgb),0.3)]"
+                                    />
+                                    <span className="text-[10px] text-[var(--text-muted)]">%</span>
+                                  </div>
+                                ) : fase.tipo === "resto" ? (
+                                  <span className="text-[10px] text-[var(--text-muted)] text-center">{pctOfTotal}%</span>
                                 ) : (
-                                  <input
-                                    type="number"
-                                    value={fase.tipo === "resto" ? "" : fase.valor}
-                                    onChange={(e) => updateFase(fase.id, "valor", parseFloat(e.target.value) || 0)}
-                                    disabled={fase.tipo === "resto"}
-                                    className="input-glass w-full text-xs py-1.5 disabled:opacity-40"
-                                    placeholder={fase.tipo === "resto" ? "Auto" : ""}
-                                  />
+                                  <span className="text-[10px] text-[var(--text-muted)] text-center">{pctOfTotal}%</span>
                                 )}
-                              </div>
-                              <div className="col-span-1">
-                                <label className="text-[9px] text-[var(--text-muted)] uppercase tracking-wider block mb-1">Cuotas</label>
+                                {/* Date */}
                                 <input
-                                  type="number"
-                                  min={1}
-                                  value={fase.cuotas}
-                                  onChange={(e) => updateFase(fase.id, "cuotas", parseInt(e.target.value) || 1)}
-                                  className="input-glass w-full text-xs py-1.5"
+                                  type="text"
+                                  value={fase.fecha ?? ""}
+                                  onChange={(e) => updateFase(fase.id, "fecha", e.target.value || "")}
+                                  className="bg-transparent text-xs text-[var(--text-secondary)] focus:outline-none placeholder:text-[var(--text-muted)] border-b border-transparent focus:border-[rgba(var(--site-primary-rgb),0.3)]"
+                                  placeholder="dd/mm/aaaa"
                                 />
-                              </div>
-                              <div className="col-span-2">
-                                <label className="text-[9px] text-[var(--text-muted)] uppercase tracking-wider block mb-1">Frec.</label>
-                                <NodDoDropdown
-                                  variant="form"
-                                  size="sm"
-                                  value={fase.frecuencia}
-                                  onChange={(val) => updateFase(fase.id, "frecuencia", val)}
-                                  options={[
-                                    { value: "unica", label: "Única" },
-                                    { value: "mensual", label: "Mensual" },
-                                    { value: "bimestral", label: "Bimestral" },
-                                    { value: "trimestral", label: "Trimestral" },
-                                  ]}
-                                />
-                              </div>
-                              <div className="col-span-2 flex items-center gap-2 justify-end">
-                                {cotizacion.fases[i] && (
-                                  <span className="text-[10px] text-[var(--site-primary)]">
-                                    {formatCurrency(cotizacion.fases[i].monto_total, moneda, {})}
+                                {/* Amount */}
+                                {fase.tipo === "fijo" ? (
+                                  <div className="text-right">
+                                    <CurrencyInput
+                                      value={fase.valor || ""}
+                                      onChange={(v) => updateFase(fase.id, "valor", parseFloat(v) || 0)}
+                                      currency={moneda}
+                                      inputClassName="w-full bg-transparent text-xs text-right text-[var(--text-primary)] focus:outline-none border-b border-transparent focus:border-[rgba(var(--site-primary-rgb),0.3)]"
+                                    />
+                                  </div>
+                                ) : (
+                                  <span className="text-xs text-[var(--text-primary)] text-right font-mono">
+                                    {faseResult ? formatCurrency(faseResult.monto_total, moneda, {}) : "—"}
                                   </span>
                                 )}
+                                {/* Delete */}
                                 <button
                                   onClick={() => removeFase(fase.id)}
-                                  className="p-1 hover:bg-red-500/10 rounded text-[var(--text-muted)] hover:text-red-400 transition-colors"
-                                  title="Eliminar fase"
+                                  className="p-1 opacity-0 group-hover:opacity-100 hover:bg-red-500/10 rounded text-[var(--text-muted)] hover:text-red-400 transition-all"
+                                  title="Eliminar"
                                 >
-                                  <Trash2 size={12} />
+                                  <Trash2 size={11} />
                                 </button>
                               </div>
+                              {/* Installment detail (shown when cuotas > 1) */}
+                              {faseResult && faseResult.cuotas > 1 && (
+                                <div className="px-5 pb-2 -mt-1">
+                                  <span className="text-[10px] text-[var(--text-muted)]">
+                                    {faseResult.cuotas} cuotas de {formatCurrency(faseResult.monto_por_cuota, moneda)} · {frecLabels[fase.frecuencia]}
+                                  </span>
+                                </div>
+                              )}
                             </div>
-                            {/* Fecha row */}
-                            <div className="mt-2 flex items-center gap-2">
-                              <label className="text-[9px] text-[var(--text-muted)] uppercase tracking-wider shrink-0">Fecha</label>
-                              <input
-                                type="text"
-                                value={fase.fecha ?? ""}
-                                onChange={(e) => updateFase(fase.id, "fecha", e.target.value || "")}
-                                className="input-glass flex-1 text-xs py-1"
-                                placeholder="ej. 01/03/2026, A la firma, Al 50% de obra..."
-                              />
-                            </div>
-                            {cotizacion.fases[i] && cotizacion.fases[i].cuotas > 1 && (
-                              <div className="mt-1 text-[10px] text-[var(--text-muted)]">
-                                {cotizacion.fases[i].cuotas} cuotas de {formatCurrency(cotizacion.fases[i].monto_por_cuota, moneda)} · {frecLabels[fase.frecuencia]}
-                              </div>
-                            )}
-                          </div>
-                        ))}
+                          );
+                        })}
+                      </div>
+
+                      {/* Totals row */}
+                      <div className="grid grid-cols-[1fr_60px_100px_1fr_28px] gap-1 px-5 py-3 bg-[var(--surface-2)] border-t border-[var(--border-default)]">
+                        <span className="text-xs font-medium text-[var(--text-primary)]">Total</span>
+                        <span className="text-[10px] text-[var(--text-muted)] text-center">100%</span>
+                        <span />
+                        <span className="text-xs font-medium text-[var(--site-primary)] text-right font-mono">
+                          {formatCurrency(
+                            (cotizacion.precio_total ?? cotizacion.precio_neto) + adminFee,
+                            moneda,
+                            {}
+                          )}
+                        </span>
+                        <span />
+                      </div>
+
+                      {/* Add row + options */}
+                      <div className="px-5 py-3 flex items-center justify-between">
+                        <button
+                          onClick={addFase}
+                          className="flex items-center gap-1.5 text-[10px] text-[var(--site-primary)] hover:text-white transition-colors"
+                        >
+                          <Plus size={12} /> Agregar pago
+                        </button>
+                        <label className="flex items-center gap-2 cursor-pointer text-[10px] text-[var(--text-muted)]">
+                          <input
+                            type="checkbox"
+                            checked={separacionIncluidaEnInicial}
+                            onChange={(e) => setSeparacionIncluidaEnInicial(e.target.checked)}
+                            className="rounded border-[var(--border-default)] bg-[var(--surface-2)] text-[var(--site-primary)] focus:ring-[var(--site-primary)] w-3 h-3"
+                          />
+                          Separación incluida en inicial
+                        </label>
                       </div>
                     </div>
                   )}

@@ -123,10 +123,13 @@ export function calcularCotizacion(
       monto_por_cuota,
       frecuencia: fase.frecuencia,
       fecha: fase.fecha || undefined,
+      porcentaje: precio_total > 0 ? Math.round((monto_total / precio_total) * 100) : 0,
     });
 
     acumulado += monto_total;
   }
+
+  const admin_fee = config.admin_fee ?? 0;
 
   return {
     precio_base,
@@ -136,5 +139,7 @@ export function calcularCotizacion(
     complementos: complementos.length > 0 ? complementos : undefined,
     complementos_total: complementos.length > 0 ? complementos_total : undefined,
     precio_total: complementos.length > 0 ? precio_total : undefined,
+    admin_fee: admin_fee > 0 ? admin_fee : undefined,
+    admin_fee_label: config.admin_fee_label || undefined,
   };
 }

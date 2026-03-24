@@ -22,12 +22,9 @@ import {
   ChevronRight,
   Mail,
   HardDrive,
-  ToggleLeft,
-  ToggleRight,
 } from "lucide-react";
 import { useToast } from "@/components/dashboard/Toast";
 import { useConfirm } from "@/components/dashboard/ConfirmModal";
-import { ALL_FEATURES, FEATURE_LABELS, type ProjectFeature } from "@/lib/feature-flags";
 
 interface ProjectRow {
   id: string;
@@ -46,7 +43,6 @@ interface ProjectRow {
   storage_videos_bytes: number | null;
   storage_media_bytes: number | null;
   storage_limit_bytes: number | null;
-  features: Record<string, boolean>;
 }
 
 const estadoColors: Record<string, string> = {
@@ -62,7 +58,6 @@ export default function AdminProyectosPage() {
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [expandedProject, setExpandedProject] = useState<string | null>(null);
-  const [savingFeatures, setSavingFeatures] = useState<string | null>(null);
   const toast = useToast();
   const { confirm } = useConfirm();
 
@@ -118,49 +113,6 @@ export default function AdminProyectosPage() {
       await fetchProjects();
     } else {
       toast.error("Error al eliminar");
-    }
-  };
-
-  const handleToggleFeature = async (projectId: string, feature: ProjectFeature, enabled: boolean) => {
-    // Optimistic update
-    setProjects((prev) =>
-      prev.map((p) =>
-        p.id === projectId
-          ? { ...p, features: { ...p.features, [feature]: enabled } }
-          : p
-      )
-    );
-    setSavingFeatures(projectId);
-
-    try {
-      const res = await fetch(`/api/admin/proyectos/${projectId}/features`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ features: { [feature]: enabled } }),
-      });
-      if (!res.ok) {
-        // Revert on failure
-        setProjects((prev) =>
-          prev.map((p) =>
-            p.id === projectId
-              ? { ...p, features: { ...p.features, [feature]: !enabled } }
-              : p
-          )
-        );
-        toast.error("Error al actualizar feature");
-      }
-    } catch {
-      // Revert
-      setProjects((prev) =>
-        prev.map((p) =>
-          p.id === projectId
-            ? { ...p, features: { ...p.features, [feature]: !enabled } }
-            : p
-        )
-      );
-      toast.error("Error al actualizar feature");
-    } finally {
-      setSavingFeatures(null);
     }
   };
 
@@ -445,42 +397,6 @@ export default function AdminProyectosPage() {
                                   </div>
                                 </div>
 
-                                {/* Feature Toggles */}
-                                <div className="space-y-3">
-                                  <h4 className="font-ui text-[10px] font-bold uppercase tracking-wider text-[var(--text-muted)]">
-                                    Features
-                                  </h4>
-                                  <div className="grid grid-cols-2 gap-2">
-                                    {ALL_FEATURES.map((feature) => {
-                                      const isEnabled = p.features?.[feature] ?? false;
-                                      const isSaving = savingFeatures === p.id;
-                                      return (
-                                        <button
-                                          key={feature}
-                                          onClick={(e) => {
-                                            e.stopPropagation();
-                                            handleToggleFeature(p.id, feature, !isEnabled);
-                                          }}
-                                          disabled={isSaving}
-                                          className={`flex items-center gap-2 px-3 py-2 rounded-lg border text-left transition-all ${
-                                            isEnabled
-                                              ? "bg-[rgba(184,151,58,0.08)] border-[rgba(184,151,58,0.25)] text-[var(--site-primary)]"
-                                              : "bg-[var(--surface-3)] border-[var(--border-subtle)] text-[var(--text-muted)] hover:text-[var(--text-secondary)] hover:border-[var(--border-default)]"
-                                          } disabled:opacity-50`}
-                                        >
-                                          {isEnabled ? (
-                                            <ToggleRight size={16} className="text-[var(--site-primary)] shrink-0" />
-                                          ) : (
-                                            <ToggleLeft size={16} className="shrink-0" />
-                                          )}
-                                          <span className="text-[11px] font-ui font-bold uppercase tracking-wider truncate">
-                                            {FEATURE_LABELS[feature].es}
-                                          </span>
-                                        </button>
-                                      );
-                                    })}
-                                  </div>
-                                </div>
                               </div>
                             </div>
                           </td>

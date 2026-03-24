@@ -34,7 +34,6 @@ import {
   BarChart3,
   ToggleLeft,
   Calculator,
-  Lock,
   Archive,
   ArchiveRestore,
   HardDrive,
@@ -42,7 +41,6 @@ import {
   Webhook,
   Binoculars,
   Monitor,
-  Sparkles,
   Mail,
 } from "lucide-react";
 import Link from "next/link";
@@ -140,7 +138,6 @@ interface TabItem {
   icon: typeof LayoutDashboard;
   href: string;
   badgeKey?: keyof BadgeCounts;
-  featureKey?: string; // maps to project_features.feature
 }
 
 interface TabSection {
@@ -177,8 +174,8 @@ const editorSections: TabSection[] = [
       { id: "fachadas", label: "Noddo Grid", icon: Eye, href: "/fachadas" },
       { id: "planos", label: "Implantaciones", icon: MapIcon, href: "/planos", badgeKey: "planos" },
       { id: "galeria", label: "Galeria", icon: ImageIcon, href: "/galeria", badgeKey: "galeria" },
-      { id: "videos", label: "Videos", icon: Film, href: "/videos", badgeKey: "videos", featureKey: "video_hosting" },
-      { id: "tour", label: "Tour 360", icon: View, href: "/tour", featureKey: "tour_360" },
+      { id: "videos", label: "Videos", icon: Film, href: "/videos", badgeKey: "videos" },
+      { id: "tour", label: "Tour 360", icon: View, href: "/tour" },
       { id: "ubicacion", label: "Ubicacion", icon: MapPin, href: "/ubicacion", badgeKey: "puntos_interes" },
       { id: "vistas", label: "Vistas", icon: Binoculars, href: "/vistas", badgeKey: "vistas" },
       { id: "recursos", label: "Recursos", icon: FileText, href: "/recursos", badgeKey: "recursos" },
@@ -190,14 +187,14 @@ const editorSections: TabSection[] = [
     tabs: [
       { id: "config", label: "Configuracion", icon: Settings, href: "/config" },
       { id: "correos", label: "Correos", icon: Mail, href: "/correos" },
-      { id: "dominio", label: "Dominio", icon: Globe, href: "/dominio", featureKey: "custom_domain" },
-      { id: "webhooks", label: "Webhooks", icon: Webhook, href: "/webhooks", featureKey: "webhooks" },
+      { id: "dominio", label: "Dominio", icon: Globe, href: "/dominio" },
+      { id: "webhooks", label: "Webhooks", icon: Webhook, href: "/webhooks" },
     ],
   },
   {
     label: "Datos",
     tabs: [
-      { id: "estadisticas", label: "Estadisticas", icon: BarChart3, href: "/estadisticas", featureKey: "analytics" },
+      { id: "estadisticas", label: "Estadisticas", icon: BarChart3, href: "/estadisticas" },
     ],
   },
   {
@@ -205,7 +202,6 @@ const editorSections: TabSection[] = [
     tabs: [
       { id: "disponibilidad", label: "Disponibilidad", icon: ToggleLeft, href: "/disponibilidad" },
       { id: "cotizador", label: "Cotizador", icon: Calculator, href: "/cotizador" },
-      { id: "addons", label: "Addons", icon: Sparkles, href: "/addons" },
     ],
   },
 ];
@@ -655,23 +651,6 @@ export default function EditorLayout({
                     const count = tab.badgeKey && badgeCounts ? badgeCounts[tab.badgeKey] : null;
                     const TabIcon = tab.id === "torres" ? torresIcon : tab.icon;
                     const tabLabel = tab.id === "torres" ? torresLabel : tab.label;
-                    // Check if feature is locked (feature exists in project_features and is disabled)
-                    const features = (project as unknown as Record<string, unknown>).features as Record<string, boolean> | undefined;
-                    const isFeatureLocked = tab.featureKey && features ? features[tab.featureKey] === false : false;
-
-                    if (isFeatureLocked) {
-                      return (
-                        <div
-                          key={tab.id}
-                          className="flex items-center gap-2 px-2.5 py-[6px] rounded-lg font-ui text-[10.5px] font-semibold uppercase tracking-[0.08em] text-[var(--text-muted)] opacity-50 cursor-not-allowed"
-                          title="Feature no habilitada"
-                        >
-                          <TabIcon size={15} className="shrink-0" />
-                          <span className="flex-1 truncate">{tabLabel}</span>
-                          <Lock size={10} className="shrink-0" />
-                        </div>
-                      );
-                    }
 
                     return (
                       <Link

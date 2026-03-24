@@ -129,26 +129,6 @@ interface NoShowStrings {
   whatsappNote: string;
 }
 
-interface PlanUpgradeStrings {
-  subject: string;     // "Bienvenido a {plan} — NODDO"
-  heading: string;     // "Bienvenido a {plan}"
-  body: string;        // "Tu plan ha sido actualizado..."
-  labels: { newPlan: string; maxProjects: string; maxUnits: string };
-  unlimited: string;
-  unlimitedFem: string; // "Ilimitadas" / "Unlimited"
-  featuresUnlocked: string;
-  exploreCta: string;
-  features: Record<string, string[]>;
-}
-
-interface FeatureBlockedStrings {
-  subject: string;
-  heading: string;     // "Desbloquea {feature}"
-  body: string;        // "Intentaste usar..."
-  body2: string;       // "Actualiza tu plan..."
-  upgradeCta: string;  // "Actualizar a {plan}"
-}
-
 /* ── Full locale bundle ─────────────────────────────────────────────── */
 
 export interface EmailStrings {
@@ -163,8 +143,6 @@ export interface EmailStrings {
   bookingAdmin: BookingAdminStrings;
   bookingReminder: BookingReminderStrings;
   noShow: NoShowStrings;
-  planUpgrade: PlanUpgradeStrings;
-  featureBlocked: FeatureBlockedStrings;
 }
 
 /* ── Spanish ────────────────────────────────────────────────────────── */
@@ -290,40 +268,6 @@ const es: EmailStrings = {
     whatsappNote: 'También puedes escribirnos por <a href="https://wa.me/971585407848?text=Hola,%20quiero%20reagendar%20mi%20demo%20de%20NODDO" style="color:#b8973a;text-decoration:underline;">WhatsApp</a> si prefieres.',
   },
 
-  planUpgrade: {
-    subject: "Bienvenido a {plan} — NODDO",
-    heading: "Bienvenido a {plan}",
-    body: 'Tu plan ha sido actualizado de <strong style="color:#f4f0e8;">{oldPlan}</strong> a <strong style="color:#b8973a;">{newPlan}</strong> ({price}). Ya puedes aprovechar todas las nuevas features.',
-    labels: { newPlan: "Plan nuevo", maxProjects: "Max proyectos", maxUnits: "Max unidades" },
-    unlimited: "Ilimitados",
-    unlimitedFem: "Ilimitadas",
-    featuresUnlocked: "Nuevas features desbloqueadas",
-    exploreCta: "Explorar mis proyectos",
-    features: {
-      premium: [
-        "Videos inmersivos (Cloudflare Stream)",
-        "Mapas interactivos con POIs",
-        "Tours 360° (Matterport/Kuula)",
-        "Analytics avanzado",
-        "Dominio personalizado",
-      ],
-      enterprise: [
-        "Todo en Premium +",
-        "White-label (sin marca NODDO)",
-        "API REST + Webhooks",
-        "Importación CSV masiva",
-        "Soporte 24/7 con SLA",
-      ],
-    },
-  },
-
-  featureBlocked: {
-    subject: "Desbloquea {feature} — NODDO",
-    heading: "Desbloquea {feature}",
-    body: 'Intentaste usar <strong style="color:#f4f0e8;">{feature}</strong>, pero esta feature requiere el plan <strong style="color:#b8973a;">{plan}</strong> ({price}).',
-    body2: "Actualiza tu plan y desbloquea esta y muchas otras features premium para maximizar la comercialización de tus proyectos.",
-    upgradeCta: "Actualizar a {plan}",
-  },
 };
 
 /* ── English ────────────────────────────────────────────────────────── */
@@ -449,40 +393,6 @@ const en: EmailStrings = {
     whatsappNote: 'You can also reach us on <a href="https://wa.me/971585407848?text=Hi,%20I%20want%20to%20reschedule%20my%20NODDO%20demo" style="color:#b8973a;text-decoration:underline;">WhatsApp</a> if you prefer.',
   },
 
-  planUpgrade: {
-    subject: "Welcome to {plan} — NODDO",
-    heading: "Welcome to {plan}",
-    body: 'Your plan has been upgraded from <strong style="color:#f4f0e8;">{oldPlan}</strong> to <strong style="color:#b8973a;">{newPlan}</strong> ({price}). You can now take advantage of all the new features.',
-    labels: { newPlan: "New plan", maxProjects: "Max projects", maxUnits: "Max units" },
-    unlimited: "Unlimited",
-    unlimitedFem: "Unlimited",
-    featuresUnlocked: "New features unlocked",
-    exploreCta: "Explore my projects",
-    features: {
-      premium: [
-        "Immersive videos (Cloudflare Stream)",
-        "Interactive maps with POIs",
-        "360° tours (Matterport/Kuula)",
-        "Advanced analytics",
-        "Custom domain",
-      ],
-      enterprise: [
-        "Everything in Premium +",
-        "White-label (no NODDO branding)",
-        "REST API + Webhooks",
-        "Bulk CSV import",
-        "24/7 support with SLA",
-      ],
-    },
-  },
-
-  featureBlocked: {
-    subject: "Unlock {feature} — NODDO",
-    heading: "Unlock {feature}",
-    body: 'You tried to use <strong style="color:#f4f0e8;">{feature}</strong>, but this feature requires the <strong style="color:#b8973a;">{plan}</strong> plan ({price}).',
-    body2: "Upgrade your plan and unlock this and many other premium features to maximize the marketing of your projects.",
-    upgradeCta: "Upgrade to {plan}",
-  },
 };
 
 /* ── Accessor ───────────────────────────────────────────────────────── */

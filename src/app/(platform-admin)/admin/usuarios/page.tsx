@@ -6,12 +6,10 @@ import Image from "next/image";
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
-import { PLAN_DEFAULTS } from "@/lib/plan-limits";
 import {
   Users,
   Search,
   Loader2,
-  CreditCard,
   FolderOpen,
   MessageSquare,
   Ban,
@@ -37,9 +35,6 @@ interface UserRow {
   last_sign_in_at: string | null;
   projectCount: number;
   leadCount: number;
-  plan: string | null;
-  planStatus: string | null;
-  maxProjects: number | null;
 }
 
 interface UserDetail {
@@ -49,23 +44,8 @@ interface UserDetail {
   last_sign_in_at: string | null;
   banned: boolean;
   projects: { id: string; nombre: string; slug: string; estado: string; created_at: string; render_principal_url: string | null }[];
-  plan: { plan: string; status: string; max_projects: number; max_units_per_project: number | null; started_at: string } | null;
   leadCount: number;
 }
-
-const PLAN_COLORS: Record<string, string> = {
-  proyecto: "text-neutral-400 bg-neutral-500/15 border-neutral-500/20",
-  studio: "text-[var(--site-primary)] bg-[rgba(184,151,58,0.15)] border-[rgba(184,151,58,0.20)]",
-  enterprise: "text-[#E5E7EB] bg-[rgba(229,231,235,0.15)] border-[rgba(229,231,235,0.20)]",
-};
-
-const PLANS = ["proyecto", "studio", "enterprise"] as const;
-
-const PLAN_LABELS: Record<string, string> = {
-  proyecto: "Proyecto",
-  studio: "Studio",
-  enterprise: "Enterprise",
-};
 
 const estadoColors: Record<string, string> = {
   publicado: "text-emerald-400 bg-emerald-500/15 border-emerald-500/20",
@@ -78,12 +58,6 @@ export default function AdminUsuariosPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
   const [search, setSearch] = useState("");
-  const [changingPlan, setChangingPlan] = useState<string | null>(null);
-  const [selectedPlan, setSelectedPlan] = useState<string>("");
-  const [savingPlan, setSavingPlan] = useState(false);
-  const [customMaxProjects, setCustomMaxProjects] = useState<number>(1);
-  const [customMaxUnits, setCustomMaxUnits] = useState<number | null>(200);
-  const [customMaxCollabs, setCustomMaxCollabs] = useState<number>(5);
   const [expandedUser, setExpandedUser] = useState<string | null>(null);
   const [userDetail, setUserDetail] = useState<UserDetail | null>(null);
   const [loadingDetail, setLoadingDetail] = useState(false);
@@ -133,35 +107,6 @@ export default function AdminUsuariosPage() {
   const filtered = search
     ? users.filter((u) => u.email.toLowerCase().includes(search.toLowerCase()))
     : users;
-
-  const handleAssignPlan = async (userId: string) => {
-    if (!selectedPlan) return;
-    setSavingPlan(true);
-    try {
-      const res = await fetch(`/api/admin/usuarios/${userId}/plan`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          plan: selectedPlan,
-          max_projects: customMaxProjects,
-          max_units_per_project: customMaxUnits,
-          max_collaborators: customMaxCollabs,
-        }),
-      });
-      if (res.ok) {
-        toast.success("Plan actualizado");
-        setChangingPlan(null);
-        setSelectedPlan("");
-        await fetchUsers();
-        if (expandedUser === userId) fetchUserDetail(userId);
-      } else {
-        const data = await res.json();
-        toast.error(data.error || "Error");
-      }
-    } finally {
-      setSavingPlan(false);
-    }
-  };
 
   const handleToggleBan = async (userId: string, ban: boolean) => {
     const ok = await confirm({
@@ -213,12 +158,9 @@ export default function AdminUsuariosPage() {
   };
 
   const handleExportCSV = () => {
-    const headers = ["Email", "Plan", "Estado Plan", "Max Proyectos", "Proyectos", "Leads", "Fecha Registro"];
+    const headers = ["Email", "Proyectos", "Leads", "Fecha Registro"];
     const rows = filtered.map((u) => [
       u.email,
-      u.plan || "",
-      u.planStatus || "",
-      u.maxProjects ?? "",
       u.projectCount,
       u.leadCount,
       u.created_at,
@@ -302,9 +244,6 @@ export default function AdminUsuariosPage() {
                   <th className="text-left px-4 py-3 font-ui text-[10px] font-bold uppercase tracking-wider text-[var(--text-muted)]">
                     Último Acceso
                   </th>
-                  <th className="text-left px-4 py-3 font-ui text-[10px] font-bold uppercase tracking-wider text-[var(--text-muted)]">
-                    Plan
-                  </th>
                   <th className="text-center px-4 py-3 font-ui text-[10px] font-bold uppercase tracking-wider text-[var(--text-muted)]">
                     <FolderOpen size={12} className="inline mr-1" />
                     Proy
@@ -354,15 +293,6 @@ export default function AdminUsuariosPage() {
                           </span>
                         )}
                       </td>
-                      <td className="px-4 py-3">
-                        {user.plan ? (
-                          <span className={`inline-flex items-center px-2 py-0.5 rounded-md font-ui text-[10px] font-bold uppercase tracking-wider border ${PLAN_COLORS[user.plan] || "text-neutral-400 bg-neutral-500/15 border-neutral-500/20"}`}>
-                            {PLAN_LABELS[user.plan] || user.plan}
-                          </span>
-                        ) : (
-                          <span className="text-[10px] text-[var(--text-muted)]">&mdash;</span>
-                        )}
-                      </td>
                       <td className="px-4 py-3 text-center">
                         <span className="text-xs text-[var(--text-secondary)]">{user.projectCount}</span>
                       </td>
@@ -371,25 +301,6 @@ export default function AdminUsuariosPage() {
                       </td>
                       <td className="px-4 py-3 text-right">
                         <div className="flex items-center justify-end gap-1" onClick={(e) => e.stopPropagation()}>
-                          <button
-                            onClick={() => {
-                              if (changingPlan === user.id) {
-                                setChangingPlan(null);
-                              } else {
-                                setChangingPlan(user.id);
-                                const plan = user.plan || "proyecto";
-                                setSelectedPlan(plan);
-                                const defaults = PLAN_DEFAULTS[plan as keyof typeof PLAN_DEFAULTS] || PLAN_DEFAULTS.proyecto;
-                                setCustomMaxProjects(user.maxProjects ?? defaults.max_projects);
-                                setCustomMaxUnits(defaults.max_units_per_project);
-                                setCustomMaxCollabs(defaults.max_collaborators);
-                              }
-                            }}
-                            className="flex items-center gap-1 px-2 py-1 rounded-md text-[10px] font-ui font-bold uppercase tracking-wider text-[var(--text-tertiary)] hover:text-[var(--site-primary)] hover:bg-[var(--surface-3)] transition-all"
-                          >
-                            <CreditCard size={11} />
-                            Plan
-                          </button>
                           <button
                             onClick={() => handleToggleBan(user.id, !userDetail?.banned)}
                             className="flex items-center gap-1 px-2 py-1 rounded-md text-[10px] font-ui font-bold uppercase tracking-wider text-[var(--text-tertiary)] hover:text-amber-400 hover:bg-[var(--surface-3)] transition-all"
@@ -418,7 +329,7 @@ export default function AdminUsuariosPage() {
                           exit={{ opacity: 0, height: 0 }}
                           className="border-b border-[var(--border-subtle)]"
                         >
-                          <td colSpan={8} className="p-0">
+                          <td colSpan={7} className="p-0">
                             <div className="px-6 py-5 bg-[var(--surface-2)]/50">
                               {loadingDetail ? (
                                 <div className="flex items-center justify-center py-8">
@@ -453,22 +364,6 @@ export default function AdminUsuariosPage() {
                                         </div>
                                       )}
                                     </div>
-
-                                    {/* Plan info */}
-                                    {userDetail.plan && (
-                                      <div className="mt-3 p-3 rounded-lg bg-[var(--surface-3)] border border-[var(--border-subtle)]">
-                                        <div className="flex items-center gap-2 mb-1">
-                                          <CreditCard size={12} className="text-[var(--text-muted)]" />
-                                          <span className={`px-2 py-0.5 rounded-md font-ui text-[10px] font-bold uppercase tracking-wider border ${PLAN_COLORS[userDetail.plan.plan] || ""}`}>
-                                            {PLAN_LABELS[userDetail.plan.plan] || userDetail.plan.plan}
-                                          </span>
-                                        </div>
-                                        <p className="text-[10px] text-[var(--text-muted)] mt-1">
-                                          Max: {userDetail.plan.max_projects} proyecto{userDetail.plan.max_projects !== 1 ? "s" : ""}
-                                          {userDetail.plan.max_units_per_project ? `, ${userDetail.plan.max_units_per_project} uds` : ", uds ilimitadas"}
-                                        </p>
-                                      </div>
-                                    )}
 
                                     {/* Action buttons */}
                                     <div className="flex flex-wrap gap-2 pt-2">
@@ -584,134 +479,6 @@ export default function AdminUsuariosPage() {
         </div>
       )}
 
-      {/* Change plan modal */}
-      <AnimatePresence>
-        {changingPlan && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4"
-            onClick={() => setChangingPlan(null)}
-          >
-            <motion.div
-              initial={{ scale: 0.95, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0.95, opacity: 0 }}
-              transition={{ type: "spring", damping: 25, stiffness: 300 }}
-              onClick={(e) => e.stopPropagation()}
-              className="glass-card p-6 w-full max-w-sm space-y-4"
-            >
-              <div className="flex items-center justify-between">
-                <h3 className="text-sm font-medium text-[var(--text-primary)] flex items-center gap-2">
-                  <CreditCard size={16} className="text-[var(--site-primary)]" />
-                  Asignar Plan
-                </h3>
-                <button
-                  onClick={() => setChangingPlan(null)}
-                  className="text-[var(--text-muted)] hover:text-[var(--text-secondary)] transition-colors"
-                >
-                  <X size={16} />
-                </button>
-              </div>
-
-              <p className="text-[11px] text-[var(--text-tertiary)]">
-                {users.find((u) => u.id === changingPlan)?.email}
-              </p>
-
-              <div className="grid grid-cols-3 gap-2">
-                {PLANS.map((plan) => (
-                  <button
-                    key={plan}
-                    onClick={() => {
-                      setSelectedPlan(plan);
-                      const defaults = PLAN_DEFAULTS[plan];
-                      setCustomMaxProjects(defaults.max_projects);
-                      setCustomMaxUnits(defaults.max_units_per_project);
-                      setCustomMaxCollabs(defaults.max_collaborators);
-                    }}
-                    className={`px-3 py-2 rounded-lg border text-xs font-ui font-bold uppercase tracking-wider transition-all ${
-                      selectedPlan === plan
-                        ? `${PLAN_COLORS[plan]} border`
-                        : "text-[var(--text-tertiary)] bg-[var(--surface-2)] border-[var(--border-subtle)] hover:border-[var(--border-default)]"
-                    }`}
-                  >
-                    {PLAN_LABELS[plan]}
-                  </button>
-                ))}
-              </div>
-
-              {/* Custom limits */}
-              <div className="space-y-3 pt-1">
-                <h4 className="font-ui text-[10px] font-bold uppercase tracking-wider text-[var(--text-muted)]">
-                  Límites
-                </h4>
-                <div className="grid grid-cols-3 gap-2">
-                  <div>
-                    <label className="block text-[9px] text-[var(--text-muted)] uppercase tracking-wider font-bold mb-1">
-                      Max Proy.
-                    </label>
-                    <input
-                      type="number"
-                      min={1}
-                      max={999}
-                      value={customMaxProjects}
-                      onChange={(e) => setCustomMaxProjects(parseInt(e.target.value) || 1)}
-                      className="input-glass w-full text-xs text-center py-1.5"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-[9px] text-[var(--text-muted)] uppercase tracking-wider font-bold mb-1">
-                      Max Uds.
-                    </label>
-                    <input
-                      type="number"
-                      min={0}
-                      value={customMaxUnits ?? ""}
-                      placeholder="∞"
-                      onChange={(e) => {
-                        const v = e.target.value;
-                        setCustomMaxUnits(v === "" ? null : parseInt(v) || 0);
-                      }}
-                      className="input-glass w-full text-xs text-center py-1.5"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-[9px] text-[var(--text-muted)] uppercase tracking-wider font-bold mb-1">
-                      Max Colab.
-                    </label>
-                    <input
-                      type="number"
-                      min={0}
-                      max={20}
-                      value={customMaxCollabs}
-                      onChange={(e) => setCustomMaxCollabs(parseInt(e.target.value) || 0)}
-                      className="input-glass w-full text-xs text-center py-1.5"
-                    />
-                  </div>
-                </div>
-              </div>
-
-              <div className="flex gap-2 pt-1">
-                <button
-                  onClick={() => setChangingPlan(null)}
-                  className="flex-1 py-2.5 font-ui text-xs font-bold uppercase tracking-[0.1em] border border-[var(--border-default)] rounded-[0.75rem] text-[var(--text-secondary)] hover:text-white hover:border-[var(--border-strong)] transition-all"
-                >
-                  Cancelar
-                </button>
-                <button
-                  onClick={() => handleAssignPlan(changingPlan)}
-                  disabled={savingPlan || !selectedPlan}
-                  className="flex-1 btn-noddo py-2.5 font-ui text-xs font-bold uppercase tracking-[0.1em] flex items-center justify-center gap-2 disabled:opacity-50"
-                >
-                  {savingPlan ? <Loader2 size={13} className="animate-spin" /> : <CheckCircle size={13} />}
-                  Guardar
-                </button>
-              </div>
-            </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
     </div>
   );
 }

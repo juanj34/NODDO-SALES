@@ -24,6 +24,42 @@ import {
   Phone,
 } from "lucide-react";
 
+const COUNTRY_CODES = [
+  { code: "+57", flag: "🇨🇴", label: "CO" },
+  { code: "+52", flag: "🇲🇽", label: "MX" },
+  { code: "+1", flag: "🇺🇸", label: "US" },
+  { code: "+507", flag: "🇵🇦", label: "PA" },
+  { code: "+506", flag: "🇨🇷", label: "CR" },
+  { code: "+593", flag: "🇪🇨", label: "EC" },
+  { code: "+51", flag: "🇵🇪", label: "PE" },
+  { code: "+56", flag: "🇨🇱", label: "CL" },
+  { code: "+54", flag: "🇦🇷", label: "AR" },
+  { code: "+55", flag: "🇧🇷", label: "BR" },
+  { code: "+34", flag: "🇪🇸", label: "ES" },
+  { code: "+971", flag: "🇦🇪", label: "AE" },
+  { code: "+58", flag: "🇻🇪", label: "VE" },
+  { code: "+502", flag: "🇬🇹", label: "GT" },
+  { code: "+503", flag: "🇸🇻", label: "SV" },
+  { code: "+504", flag: "🇭🇳", label: "HN" },
+  { code: "+505", flag: "🇳🇮", label: "NI" },
+  { code: "+591", flag: "🇧🇴", label: "BO" },
+  { code: "+595", flag: "🇵🇾", label: "PY" },
+  { code: "+598", flag: "🇺🇾", label: "UY" },
+];
+
+function parsePhoneWithCode(fullPhone: string): { code: string; number: string } {
+  if (!fullPhone) return { code: "+57", number: "" };
+  // Try to match a country code from our list (longest first to avoid partial matches)
+  const sorted = [...COUNTRY_CODES].sort((a, b) => b.code.length - a.code.length);
+  for (const cc of sorted) {
+    if (fullPhone.startsWith(cc.code)) {
+      return { code: cc.code, number: fullPhone.slice(cc.code.length) };
+    }
+  }
+  // No country code found — assume it's a local number with default +57
+  return { code: "+57", number: fullPhone };
+}
+
 function formatDate(iso: string | undefined | null, fallback: string): string {
   if (!iso) return fallback;
   return new Date(iso).toLocaleDateString("es-CO", {
@@ -45,6 +81,7 @@ export default function CuentaPage() {
   const [profileNombre, setProfileNombre] = useState("");
   const [profileApellido, setProfileApellido] = useState("");
   const [profileTelefono, setProfileTelefono] = useState("");
+  const [profileCodigoPais, setProfileCodigoPais] = useState("+57");
   const [profileAvatarUrl, setProfileAvatarUrl] = useState<string | null>(null);
   const [profileLoading, setProfileLoading] = useState(false);
   const [profileSuccess, setProfileSuccess] = useState(false);
@@ -57,7 +94,9 @@ export default function CuentaPage() {
     if (profile) {
       setProfileNombre(profile.nombre || "");
       setProfileApellido(profile.apellido || "");
-      setProfileTelefono(profile.telefono || "");
+      const parsed = parsePhoneWithCode(profile.telefono || "");
+      setProfileCodigoPais(parsed.code);
+      setProfileTelefono(parsed.number);
       setProfileAvatarUrl(profile.avatar_url);
     }
   }, [profile]);
@@ -75,7 +114,7 @@ export default function CuentaPage() {
         body: JSON.stringify({
           nombre: profileNombre,
           apellido: profileApellido,
-          telefono: profileTelefono || null,
+          telefono: profileTelefono ? `${profileCodigoPais}${profileTelefono}` : null,
         }),
       });
       if (!res.ok) throw new Error("Error");
@@ -425,16 +464,29 @@ export default function CuentaPage() {
               <label className="block font-ui text-[10px] text-[var(--text-muted)] uppercase tracking-wider mb-1.5">
                 {t("cuenta.phone")}
               </label>
-              <div className="relative">
-                <Phone size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--text-muted)]" />
-                <input
-                  type="tel"
-                  value={profileTelefono}
-                  onChange={(e) => setProfileTelefono(e.target.value)}
-                  className="input-glass w-full pl-9"
-                  placeholder={t("cuenta.phonePlaceholder")}
-                  maxLength={30}
-                />
+              <div className="flex gap-2">
+                <select
+                  value={profileCodigoPais}
+                  onChange={(e) => setProfileCodigoPais(e.target.value)}
+                  className="input-glass w-[110px] shrink-0 text-xs font-mono appearance-none cursor-pointer"
+                >
+                  {COUNTRY_CODES.map((cc) => (
+                    <option key={cc.code} value={cc.code}>
+                      {cc.flag} {cc.code}
+                    </option>
+                  ))}
+                </select>
+                <div className="relative flex-1">
+                  <Phone size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--text-muted)]" />
+                  <input
+                    type="tel"
+                    value={profileTelefono}
+                    onChange={(e) => setProfileTelefono(e.target.value.replace(/[^\d]/g, ""))}
+                    className="input-glass w-full pl-9"
+                    placeholder="3507922786"
+                    maxLength={15}
+                  />
+                </div>
               </div>
             </div>
 
