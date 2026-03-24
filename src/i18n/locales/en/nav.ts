@@ -11,6 +11,7 @@ const nav = {
   brochure: "Brochure",
   torre: "Grid",
   avances: "Progress",
+  planPago: "Payment Plan",
   privacyPolicy: "Privacy policy",
   legalInfo: "Legal Information",
 } as const;

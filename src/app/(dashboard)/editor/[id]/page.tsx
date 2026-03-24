@@ -33,6 +33,7 @@ import {
   Loader2,
   Sun,
   Moon,
+  BookOpen,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useTranslation } from "@/i18n";
@@ -73,6 +74,7 @@ export default function EditorGeneralPage() {
   const [faviconUrl, setFaviconUrl] = useState("");
   const [ogImageUrl, setOgImageUrl] = useState("");
   const [backgroundAudioUrl, setBackgroundAudioUrl] = useState("");
+  const [brochureUrl, setBrochureUrl] = useState("");
   const [audioUploading, setAudioUploading] = useState(false);
   const audioInputRef = useRef<HTMLInputElement>(null);
   const [validationError, setValidationError] = useState<string | null>(null);
@@ -103,6 +105,7 @@ export default function EditorGeneralPage() {
     setFaviconUrl(project.favicon_url || "");
     setOgImageUrl(project.og_image_url || "");
     setBackgroundAudioUrl(project.background_audio_url || "");
+    setBrochureUrl(project.brochure_url || "");
     setIdioma(project.idioma || "es");
   }, [project]);
 
@@ -129,6 +132,7 @@ export default function EditorGeneralPage() {
       favicon_url: faviconUrl || null,
       og_image_url: ogImageUrl || null,
       background_audio_url: backgroundAudioUrl || null,
+      brochure_url: brochureUrl || null,
       idioma,
     };
 
@@ -448,6 +452,41 @@ export default function EditorGeneralPage() {
                       </div>
                     )}
                     <p className={fieldHint}>{t("config.audio.hint")}</p>
+                  </div>
+
+                  {/* Brochure PDF */}
+                  <div>
+                    <label className={labelClass}>
+                      <BookOpen size={14} className="inline mr-1.5 -mt-0.5" />
+                      Brochure del proyecto
+                    </label>
+                    {brochureUrl ? (
+                      <div className="flex items-center gap-3 p-3 rounded-xl bg-[var(--surface-2)] border border-[var(--border-default)]">
+                        <div className="w-10 h-10 rounded-lg bg-[rgba(var(--noddo-primary-rgb),0.10)] border border-[rgba(var(--noddo-primary-rgb),0.20)] flex items-center justify-center shrink-0">
+                          <BookOpen size={18} className="text-[var(--site-primary)]" />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm text-[var(--text-primary)] truncate">Brochure cargado</p>
+                          <p className="text-[10px] text-[var(--text-tertiary)] truncate font-mono">{brochureUrl.split("/").pop()}</p>
+                        </div>
+                        <button
+                          onClick={() => { setBrochureUrl(""); scheduleAutoSave(); }}
+                          className="w-8 h-8 rounded-lg bg-red-500/10 border border-red-500/20 flex items-center justify-center text-red-400 hover:bg-red-500/20 transition-colors cursor-pointer shrink-0"
+                        >
+                          <Trash2 size={14} />
+                        </button>
+                      </div>
+                    ) : (
+                      <FileUploader
+                        currentUrl={null}
+                        onUpload={(url) => { setBrochureUrl(url); scheduleAutoSave(); }}
+                        folder={`proyectos/${projectId}/recursos`}
+                        label="Subir brochure (PDF)"
+                        accept="application/pdf"
+                        enablePaste={false}
+                      />
+                    )}
+                    <p className={fieldHint}>PDF del brochure que se mostrará en la sección Brochure del micrositio. Formato recomendado: 16:9 horizontal.</p>
                   </div>
                 </div>
               </div>

@@ -1,4 +1,6 @@
 import type { FaseConfig, CotizadorConfig } from "@/types";
+import type { DeliveryContext } from "./delivery";
+import { adjustFasesToDelivery } from "./delivery";
 
 /* ── Types ─────────────────────────────────────────────── */
 
@@ -159,9 +161,21 @@ export function paymentRowsFromConfig(
   totalPrice: number,
   fechaCompra?: string,
   fechaEntrega?: string,
+  deliveryContext?: DeliveryContext | null,
 ): PaymentRow[] {
   const rows: PaymentRow[] = [];
-  const fases = config.fases;
+
+  // If delivery context provided, adjust phases and auto-populate dates
+  let fases = config.fases;
+  if (deliveryContext) {
+    fases = adjustFasesToDelivery(config.fases, deliveryContext.mesesDisponibles).fases;
+    if (!fechaCompra) {
+      fechaCompra = formatDateDisplay(deliveryContext.fechaInicio);
+    }
+    if (!fechaEntrega) {
+      fechaEntrega = formatDateDisplay(deliveryContext.fechaEntrega);
+    }
+  }
 
   for (let i = 0; i < fases.length; i++) {
     const fase = fases[i];

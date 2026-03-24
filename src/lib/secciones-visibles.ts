@@ -13,6 +13,7 @@ export const SECTION_KEYS: (keyof SeccionesVisibles)[] = [
   "avances",
   "tour360",
   "contacto",
+  "plan_pago",
 ];
 
 /** Default config: all sections visible */
@@ -29,6 +30,7 @@ export function getDefaultSeccionesVisibles(): SeccionesVisibles {
     avances: true,
     tour360: true,
     contacto: true,
+    plan_pago: true,
   };
 }
 
@@ -61,6 +63,7 @@ export const ROUTE_TO_SECTION: Record<string, keyof SeccionesVisibles> = {
   avances: "avances",
   "tour-360": "tour360",
   contacto: "contacto",
+  "plan-de-pago": "plan_pago",
 };
 
 /** Section display metadata for the editor UI */
@@ -81,4 +84,5 @@ export const SECTION_DISPLAY: {
   { key: "avances", labelKey: "visibility.sections.avances", descKey: "visibility.sections.avancesDesc", icon: "HardHat" },
   { key: "tour360", labelKey: "visibility.sections.tour360", descKey: "visibility.sections.tour360Desc", icon: "Globe" },
   { key: "contacto", labelKey: "visibility.sections.contacto", descKey: "visibility.sections.contactoDesc", icon: "MessageCircle" },
+  { key: "plan_pago", labelKey: "visibility.sections.planPago", descKey: "visibility.sections.planPagoDesc", icon: "CreditCard" },
 ];

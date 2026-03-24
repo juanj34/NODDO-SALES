@@ -1197,6 +1197,8 @@ const editor = {
       tour360Desc: "Recorrido virtual inmersivo",
       contacto: "Contacto",
       contactoDesc: "Formulario de contacto para capturar leads",
+      planPago: "Plan de Pagos",
+      planPagoDesc: "Simulador de plan de pagos para visitantes",
     },
   },
 } as const;

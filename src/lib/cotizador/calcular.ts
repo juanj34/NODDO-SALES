@@ -1,4 +1,6 @@
 import type { CotizadorConfig, ResultadoCotizacion, FaseResultado, ComplementoSeleccion } from "@/types";
+import type { DeliveryContext } from "./delivery";
+import { adjustFasesToDelivery } from "./delivery";
 
 /**
  * Build virtual ComplementoSeleccion items for precio_base mode.
@@ -54,7 +56,8 @@ export function calcularCotizacion(
   precioUnidad: number,
   config: CotizadorConfig,
   descuentosSeleccionados: string[] = [],
-  complementos: ComplementoSeleccion[] = []
+  complementos: ComplementoSeleccion[] = [],
+  deliveryContext?: DeliveryContext | null,
 ): ResultadoCotizacion {
   const precio_base = precioUnidad;
 
@@ -80,11 +83,16 @@ export function calcularCotizacion(
 
   const precio_total = precio_neto + complementos_total;
 
+  // Adjust phases for delivery timeline if configured
+  const effectiveFases = deliveryContext
+    ? adjustFasesToDelivery(config.fases, deliveryContext.mesesDisponibles).fases
+    : config.fases;
+
   // Calculate phases on precio_total (includes complementos if any)
   const fases: FaseResultado[] = [];
   let acumulado = 0;
 
-  for (const fase of config.fases) {
+  for (const fase of effectiveFases) {
     let monto_total: number;
 
     switch (fase.tipo) {
@@ -106,7 +114,7 @@ export function calcularCotizacion(
       config.separacion_incluida_en_inicial &&
       fase.tipo === "porcentaje" &&
       fases.length > 0 &&
-      config.fases[0]?.tipo === "fijo"
+      effectiveFases[0]?.tipo === "fijo"
     ) {
       // This is the cuota inicial phase (first % phase after a fixed separación)
       const separacionMonto = fases[0].monto_total;
@@ -141,5 +149,9 @@ export function calcularCotizacion(
     precio_total: complementos.length > 0 ? precio_total : undefined,
     admin_fee: admin_fee > 0 ? admin_fee : undefined,
     admin_fee_label: config.admin_fee_label || undefined,
+    fecha_entrega_calculada: deliveryContext
+      ? deliveryContext.fechaEntrega.toISOString().split("T")[0]
+      : undefined,
+    meses_restantes: deliveryContext?.mesesDisponibles,
   };
 }

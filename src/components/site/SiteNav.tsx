@@ -20,6 +20,8 @@ import {
   HardHat,
   Settings,
   Info,
+  CreditCard,
+  BookOpen,
 } from "lucide-react";
 import { useTranslation } from "@/i18n";
 import { LanguageToggle } from "@/components/ui/LanguageToggle";
@@ -44,10 +46,12 @@ interface SiteNavProps {
   hasImplantaciones?: boolean;
   hasTour360?: boolean;
   hasAvances?: boolean;
+  hasBrochure?: boolean;
+  hasPlanPago?: boolean;
   seccionesVisibles?: SeccionesVisibles | null;
 }
 
-export function SiteNav({ basePath, projectName, logoUrl, faviconUrl, constructoraLogoUrl, constructoraWebsite, expanded, disclaimer, politicaPrivacidadUrl, etapaLabel, hasImplantaciones, hasTour360, hasAvances, seccionesVisibles }: SiteNavProps) {
+export function SiteNav({ basePath, projectName, logoUrl, faviconUrl, constructoraLogoUrl, constructoraWebsite, expanded, disclaimer, politicaPrivacidadUrl, etapaLabel, hasImplantaciones, hasTour360, hasAvances, hasBrochure, hasPlanPago, seccionesVisibles }: SiteNavProps) {
   const pathname = usePathname();
   const [isOpen, setIsOpen] = useState(false);
   const [hoveredItem, setHoveredItem] = useState<string | null>(null);
@@ -66,9 +70,11 @@ export function SiteNav({ basePath, projectName, logoUrl, faviconUrl, constructo
     ...(hasImplantaciones ? [{ label: tNav("implantaciones"), href: "/implantaciones", Icon: MapIcon }] : []),
     { label: tNav("ubicacion"), href: "/ubicacion", Icon: MapPin },
     { label: tNav("videos"), href: "/videos", Icon: Film },
-    { label: tNav("recursos"), href: "/recursos", Icon: FileText },
     ...(hasAvances ? [{ label: tNav("avances"), href: "/avances", Icon: HardHat }] : []),
     ...(hasTour360 ? [{ label: tNav("tour360"), href: "/tour-360", Icon: Globe }] : []),
+    ...(hasBrochure ? [{ label: tNav("brochure"), href: "/brochure", Icon: BookOpen }] : []),
+    { label: tNav("recursos"), href: "/recursos", Icon: FileText },
+    ...(hasPlanPago ? [{ label: tNav("planPago"), href: "/plan-de-pago", Icon: CreditCard }] : []),
     { label: tNav("contacto"), href: "/contacto", Icon: MessageCircle },
   ].filter((item) => {
     const segment = item.href.replace("/", "");

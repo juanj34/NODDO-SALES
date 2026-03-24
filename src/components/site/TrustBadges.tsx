@@ -1,6 +1,6 @@
 "use client";
 
-import { LucideIcon, Shield, Clock, Users, Award } from "lucide-react";
+import { LucideIcon, Shield, Clock, Users, Award, FileText } from "lucide-react";
 import { motion } from "framer-motion";
 
 type TrustBadgeVariant = "security" | "speed" | "social" | "guarantee";
@@ -117,6 +117,25 @@ export const trustBadgePresets = {
     {
       icon: Award,
       text: t("site.trustBadges.flexiblePlans"),
+      variant: "guarantee",
+    },
+  ],
+  leadOnly: (t: (key: string) => string): TrustBadge[] => [
+    {
+      icon: Shield,
+      text: t("site.trustBadges.dataEncrypted"),
+      variant: "security",
+    },
+    {
+      icon: Clock,
+      text: t("site.trustBadges.fastResponse"),
+      subtext: t("site.trustBadges.guaranteed"),
+      variant: "speed",
+    },
+    {
+      icon: FileText,
+      text: t("site.trustBadges.personalizedQuote"),
+      subtext: t("site.trustBadges.byAdvisor"),
       variant: "guarantee",
     },
   ],

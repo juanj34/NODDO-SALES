@@ -368,6 +368,7 @@ export default function AvancesPage() {
                   }
                   placeholder={t("avances.descriptionPlaceholder")}
                   enableMedia
+                  enableAI
                 />
               </div>
 

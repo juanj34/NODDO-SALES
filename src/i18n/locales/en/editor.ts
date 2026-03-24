@@ -1197,6 +1197,8 @@ const editor = {
       tour360Desc: "Immersive virtual tour",
       contacto: "Contact",
       contactoDesc: "Contact form to capture leads",
+      planPago: "Payment Plan",
+      planPagoDesc: "Payment plan simulator for public visitors",
     },
   },
 } as const;

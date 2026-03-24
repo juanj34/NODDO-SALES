@@ -518,18 +518,71 @@ export function CotizadorSandbox({ hidePdfOptions }: { hidePdfOptions?: boolean 
                 </span>
               </label>
 
-              {/* Fecha estimada de entrega */}
+              {/* Tipo de entrega */}
               <div>
-                <label className={cn("block text-[var(--text-muted)] mb-1 uppercase", fontSize.label, letterSpacing.wider)}>
-                  Fecha estimada de entrega
+                <label className={cn("block text-[var(--text-muted)] mb-2 uppercase", fontSize.label, letterSpacing.wider)}>
+                  Tipo de entrega
                 </label>
-                <input
-                  type="text"
-                  value={config.fecha_estimada_entrega ?? ""}
-                  onChange={(e) => saveConfig({ ...config, fecha_estimada_entrega: e.target.value || undefined })}
-                  className={cn(inputClass, fontSize.md)}
-                  placeholder="Q2-2028, Diciembre 2027..."
-                />
+                <div className="flex gap-2 mb-2">
+                  {([
+                    { value: null, label: "Sin configurar" },
+                    { value: "fecha_fija" as const, label: "Fecha fija" },
+                    { value: "plazo_desde_compra" as const, label: "Plazo desde compra" },
+                  ] as const).map((opt) => (
+                    <button
+                      key={String(opt.value)}
+                      type="button"
+                      onClick={() => saveConfig({
+                        ...config,
+                        tipo_entrega: opt.value,
+                        ...(opt.value === null ? { fecha_estimada_entrega: undefined, plazo_entrega_meses: undefined } : {}),
+                      })}
+                      className={cn(
+                        "flex-1 px-2 py-1.5 border text-center transition-colors",
+                        radius.lg, fontSize.label,
+                        (config.tipo_entrega ?? null) === opt.value
+                          ? "border-[rgba(var(--site-primary-rgb),0.6)] bg-[rgba(var(--site-primary-rgb),0.1)] text-[var(--site-primary)]"
+                          : "border-[var(--border-default)] bg-[var(--surface-3)] text-[var(--text-secondary)] hover:border-[var(--border-strong)]"
+                      )}
+                    >
+                      {opt.label}
+                    </button>
+                  ))}
+                </div>
+                {config.tipo_entrega === "fecha_fija" && (
+                  <div>
+                    <label className={cn("block text-[var(--text-muted)] mb-1 uppercase", fontSize.label, letterSpacing.wider)}>
+                      Fecha de entrega
+                    </label>
+                    <input
+                      type="date"
+                      value={config.fecha_estimada_entrega ?? ""}
+                      onChange={(e) => saveConfig({ ...config, fecha_estimada_entrega: e.target.value || undefined })}
+                      className={cn(inputClass, fontSize.md)}
+                    />
+                    <p className={cn("text-[var(--text-muted)] mt-1", fontSize.caption)}>
+                      Las cuotas se ajustan según meses restantes
+                    </p>
+                  </div>
+                )}
+                {config.tipo_entrega === "plazo_desde_compra" && (
+                  <div>
+                    <label className={cn("block text-[var(--text-muted)] mb-1 uppercase", fontSize.label, letterSpacing.wider)}>
+                      Plazo de entrega (meses)
+                    </label>
+                    <input
+                      type="number"
+                      value={config.plazo_entrega_meses ?? 24}
+                      onChange={(e) => saveConfig({ ...config, plazo_entrega_meses: parseInt(e.target.value) || 24 })}
+                      min={6}
+                      max={120}
+                      className={cn(inputClass, fontSize.md, "w-32")}
+                    />
+                    <p className={cn("text-[var(--text-muted)] mt-1", fontSize.caption)}>
+                      Plan de pagos desde fecha de cotización + plazo
+                    </p>
+                  </div>
+                )}
               </div>
 
               {/* Notas legales */}

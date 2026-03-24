@@ -153,6 +153,7 @@ export interface SeccionesVisibles {
   avances: boolean;
   tour360: boolean;
   contacto: boolean;
+  plan_pago: boolean;
 }
 
 export interface ProyectoStats {
@@ -755,6 +756,14 @@ export interface CotizadorConfig {
   // Admin fee (flat fee shown separately in PDF)
   admin_fee?: number;
   admin_fee_label?: string;
+  // Delivery configuration
+  /** Delivery model: fixed date (buildings) or term from purchase (houses/lots) */
+  tipo_entrega?: "fecha_fija" | "plazo_desde_compra" | null;
+  /** Months from purchase to delivery (for plazo_desde_compra). Default: 24 */
+  plazo_entrega_meses?: number;
+  // Microsite payment plan page
+  /** Background image URL for the payment plan page (low opacity behind cards) */
+  plan_pago_bg_url?: string;
 }
 
 /* -- Email Configuration -- */
@@ -798,6 +807,10 @@ export interface ResultadoCotizacion {
   precio_total?: number;
   admin_fee?: number;
   admin_fee_label?: string;
+  /** Computed delivery date (ISO string) when tipo_entrega is configured */
+  fecha_entrega_calculada?: string;
+  /** Remaining months until delivery */
+  meses_restantes?: number;
 }
 
 export interface Cotizacion {

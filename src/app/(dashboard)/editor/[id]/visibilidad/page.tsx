@@ -10,7 +10,7 @@ import { PageHeader } from "@/components/dashboard/base/PageHeader";
 import {
   Eye, EyeOff, RotateCcw,
   Image as ImageIcon, Layers, Package, Building2,
-  Map as MapIcon, MapPin, Film, FileText, HardHat, Globe, MessageCircle,
+  Map as MapIcon, MapPin, Film, FileText, HardHat, Globe, MessageCircle, CreditCard,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import { motion } from "framer-motion";
@@ -27,7 +27,7 @@ import {
 
 const ICON_MAP: Record<string, LucideIcon> = {
   ImageIcon, Layers, Package, Building2,
-  MapIcon, MapPin, Film, FileText, HardHat, Globe, MessageCircle,
+  MapIcon, MapPin, Film, FileText, HardHat, Globe, MessageCircle, CreditCard,
 };
 
 /* ── Page ─────────────────────────────────────────────────────────── */

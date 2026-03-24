@@ -79,6 +79,9 @@ export interface PDFData {
   pdfSaludo: string | null;
   pdfDespedida: string | null;
   fechaEstimadaEntrega: string | null;
+  // Delivery type info
+  tipoEntrega?: "fecha_fija" | "plazo_desde_compra" | null;
+  mesesRestantes?: number | null;
   // Style
   coverStyle?: "hero" | "minimalista";
   pdfTheme?: "dark" | "neutral";
@@ -978,7 +981,12 @@ function drawOfferPage(doc: jsPDF, data: PDFData, accent: RGB, accentLight: RGB,
   y += 6;
 
   // ── Notes / disclaimers ──
-  const notes = data.config.notas_legales || data.disclaimer;
+  const autoNote = data.tipoEntrega
+    ? ((data.idioma ?? "es") === "en"
+      ? "Indicative quotation — subject to confirmation by the sales team."
+      : "Cotización indicativa — sujeta a confirmación por el equipo comercial.")
+    : null;
+  const notes = [autoNote, data.config.notas_legales, data.disclaimer].filter(Boolean).join(" ");
   if (notes) {
     doc.setFontSize(6.5);
     doc.setFont(FONT.BODY, "italic");
@@ -1180,6 +1188,15 @@ function drawInfoPage(doc: jsPDF, data: PDFData, accent: RGB, accentLight: RGB, 
 
   // ── Legal disclaimer ──
   const legalParts: string[] = [];
+  // Auto-add indicative disclaimer when delivery type is configured
+  if (data.tipoEntrega) {
+    const locale = data.idioma ?? "es";
+    legalParts.push(
+      locale === "en"
+        ? "Indicative quotation — subject to confirmation by the sales team. The payment plan adjusts dynamically based on the quotation date."
+        : "Cotización indicativa — sujeta a confirmación por el equipo comercial. El plan de pagos se ajusta dinámicamente según la fecha de la cotización."
+    );
+  }
   if (data.disclaimer) legalParts.push(data.disclaimer);
   if (data.config.notas_legales) legalParts.push(data.config.notas_legales);
   const legalText = legalParts.join("\n\n");
@@ -1274,7 +1291,8 @@ export function generarPDF(data: PDFData): Buffer {
     data.tour360Url ||
     data.whatsappNumero ||
     data.disclaimer ||
-    data.config.notas_legales;
+    data.config.notas_legales ||
+    data.tipoEntrega;
 
   if (hasInfoContent) {
     doc.addPage();

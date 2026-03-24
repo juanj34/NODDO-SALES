@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect } from "react";
-import { AnimatePresence } from "framer-motion";
 import dynamic from "next/dynamic";
 import { Loader2 } from "lucide-react";
 import { useSiteProject } from "@/hooks/useSiteProject";
@@ -10,15 +9,15 @@ import { trackEvent } from "@/lib/tracking";
 import { SiteEmptyState } from "@/components/site/SiteEmptyState";
 import { SectionTransition } from "@/components/site/SectionTransition";
 
-const PDFViewer = dynamic(
+const PDFScrollViewer = dynamic(
   () =>
-    import("@/components/site/PDFViewer").then((mod) => ({
-      default: mod.PDFViewer,
+    import("@/components/site/PDFScrollViewer").then((mod) => ({
+      default: mod.PDFScrollViewer,
     })),
   {
     ssr: false,
     loading: () => (
-      <div className="fixed inset-0 z-[80] flex items-center justify-center bg-black/95">
+      <div className="fixed inset-0 z-[80] flex items-center justify-center bg-[var(--surface-0)]">
         <Loader2 className="animate-spin text-[var(--site-primary)]" size={32} />
       </div>
     ),
@@ -49,13 +48,11 @@ export default function BrochurePage() {
   }
 
   return (
-    <AnimatePresence>
-      <PDFViewer
-        url={proyecto.brochure_url}
-        onClose={() => window.history.back()}
-        projectId={proyecto.id}
-        projectName={proyecto.nombre}
-      />
-    </AnimatePresence>
+    <PDFScrollViewer
+      url={proyecto.brochure_url}
+      onClose={() => window.history.back()}
+      projectId={proyecto.id}
+      trackingEvent="brochure_download"
+    />
   );
 }

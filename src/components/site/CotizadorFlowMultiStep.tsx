@@ -25,11 +25,13 @@ import type {
   InventoryColumnConfig,
 } from "@/types";
 import { calcularCotizacion } from "@/lib/cotizador/calcular";
+import { resolveDeliveryContext } from "@/lib/cotizador/delivery";
 import { formatCurrency } from "@/lib/currency";
 import { trackEvent } from "@/lib/tracking";
 import { getUnitDisplayName } from "@/lib/unit-display";
 import { MultiStepForm, useMultiStepForm } from "@/components/site/MultiStepForm";
 import { TrustBadges, trustBadgePresets } from "@/components/site/TrustBadges";
+import { ProcessTimeline, timelinePresets } from "@/components/site/ProcessTimeline";
 import { NodDoDropdown } from "@/components/ui/NodDoDropdown";
 
 /* ─── Shared country codes (8 countries) ─── */
@@ -285,15 +287,21 @@ export function CotizadorFlowMultiStep({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  // Resolve delivery context for dynamic payment plans
+  const deliveryContext = useMemo(() => {
+    if (!config) return null;
+    return resolveDeliveryContext(config);
+  }, [config]);
+
   // Calculate quotation (only for cotizador mode)
   const resultado: ResultadoCotizacion | null = useMemo(() => {
     if (!isCotizador || !unidad.precio || !config) return null;
     try {
-      return calcularCotizacion(unidad.precio, config, []);
+      return calcularCotizacion(unidad.precio, config, [], [], deliveryContext);
     } catch {
       return null;
     }
-  }, [isCotizador, unidad.precio, config]);
+  }, [isCotizador, unidad.precio, config, deliveryContext]);
 
   const moneda = ((config?.moneda || "COP") as Currency);
 
@@ -459,7 +467,10 @@ export function CotizadorFlowMultiStep({
             </div>
 
             <TrustBadges
-              badges={trustBadgePresets.cotizador(tSite)}
+              badges={isCotizador
+                ? trustBadgePresets.cotizador(tSite)
+                : trustBadgePresets.leadOnly(tSite)
+              }
               className="mt-4"
             />
 
@@ -585,23 +596,41 @@ export function CotizadorFlowMultiStep({
                     {tSite("cotizador.pdfIncludes")}
                   </p>
                 </div>
+
+                {deliveryContext && (
+                  <p className="text-[9px] text-[var(--text-muted)] text-center leading-relaxed">
+                    Cotización indicativa — sujeta a confirmación por el equipo comercial
+                  </p>
+                )}
               </>
             )}
 
-            {/* ── Lead mode: Message field ── */}
+            {/* ── Lead mode: Process timeline + Message ── */}
             {!isCotizador && (
-              <div>
-                <label className="block text-[10px] tracking-[0.2em] uppercase text-[var(--text-tertiary)] mb-1 font-ui font-bold">
-                  {tCommon("form.messageOptional")}
-                </label>
-                <textarea
-                  placeholder="..."
-                  rows={3}
-                  value={mensaje}
-                  onChange={(e) => setMensaje(e.target.value)}
-                  className="input-glass w-full resize-none"
-                />
-              </div>
+              <>
+                <div className="bg-[var(--glass-bg)] rounded-2xl p-4 border border-[var(--border-default)]">
+                  <h4 className="text-[10px] tracking-[0.2em] uppercase text-[var(--site-primary)] mb-3 font-ui font-bold">
+                    {tSite("cotizador.whatHappensNext")}
+                  </h4>
+                  <ProcessTimeline
+                    steps={timelinePresets.contactFlow(tSite)}
+                    variant="vertical"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-[10px] tracking-[0.2em] uppercase text-[var(--text-tertiary)] mb-1 font-ui font-bold">
+                    {tCommon("form.messageOptional")}
+                  </label>
+                  <textarea
+                    placeholder="..."
+                    rows={3}
+                    value={mensaje}
+                    onChange={(e) => setMensaje(e.target.value)}
+                    className="input-glass w-full resize-none"
+                  />
+                </div>
+              </>
             )}
 
             {/* Action buttons */}

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 import sharp from "sharp";
 import { calcularCotizacion, buildPrecioBaseComplementos } from "@/lib/cotizador/calcular";
+import { resolveDeliveryContext, formatDeliveryDisplay } from "@/lib/cotizador/delivery";
 import { generarPDF } from "@/lib/cotizador/generar-pdf";
 import { sendCotizacionBuyer, sendCotizacionAdmin, getUserLocale } from "@/lib/email";
 import type { EmailLocale } from "@/lib/email-i18n";
@@ -390,12 +391,16 @@ export async function POST(request: NextRequest) {
     }
     const precioFinal = unit.precio;
 
+    // Resolve delivery context for dynamic payment plans
+    const deliveryContext = resolveDeliveryContext(effectiveConfig);
+
     // Calculate quotation (server-side — source of truth)
     const resultado = calcularCotizacion(
       precioFinal,
       effectiveConfig,
       descuentos_seleccionados || [],
       complementoSelecciones,
+      deliveryContext,
     );
 
     // Determine cover image URL (config override > project render > tipología render)
@@ -507,7 +512,11 @@ export async function POST(request: NextRequest) {
       disclaimer: proyecto.disclaimer,
       pdfSaludo: effectiveConfig.pdf_saludo ?? null,
       pdfDespedida: effectiveConfig.pdf_despedida ?? null,
-      fechaEstimadaEntrega: effectiveConfig.fecha_estimada_entrega ?? null,
+      fechaEstimadaEntrega: deliveryContext && effectiveConfig.tipo_entrega
+        ? formatDeliveryDisplay(deliveryContext, effectiveConfig.tipo_entrega)
+        : effectiveConfig.fecha_estimada_entrega ?? null,
+      tipoEntrega: effectiveConfig.tipo_entrega ?? null,
+      mesesRestantes: deliveryContext?.mesesDisponibles ?? null,
       paymentPlanNombre: effectiveConfig.payment_plan_nombre ?? null,
       adminFee: resultado.admin_fee ?? null,
       adminFeeLabel: resultado.admin_fee_label ?? null,

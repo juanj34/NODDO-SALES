@@ -1,17 +1,17 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { useState, useCallback } from "react";
+import { motion } from "framer-motion";
+import dynamic from "next/dynamic";
 import { SectionTransition } from "@/components/site/SectionTransition";
 import { AmbientBackground } from "@/components/site/AmbientBackground";
 import {
   FileText,
-  Download,
-  X,
   BookOpen,
   ClipboardList,
   DollarSign,
   File,
+  Loader2,
 } from "lucide-react";
 import { useSiteProject } from "@/hooks/useSiteProject";
 import { cn } from "@/lib/utils";
@@ -20,6 +20,21 @@ import { useTranslation } from "@/i18n";
 import { trackEvent } from "@/lib/tracking";
 import { SiteEmptyState } from "@/components/site/SiteEmptyState";
 import { useSectionVisibility } from "@/hooks/useSectionVisibility";
+
+const PDFScrollViewer = dynamic(
+  () =>
+    import("@/components/site/PDFScrollViewer").then((mod) => ({
+      default: mod.PDFScrollViewer,
+    })),
+  {
+    ssr: false,
+    loading: () => (
+      <div className="fixed inset-0 z-[80] flex items-center justify-center bg-[var(--surface-0)]">
+        <Loader2 className="animate-spin text-[var(--site-primary)]" size={32} />
+      </div>
+    ),
+  }
+);
 
 const tipoIcons: Record<
   Recurso["tipo"],
@@ -58,6 +73,11 @@ const tipoLabelKeys: Record<Recurso["tipo"], string> = {
   otro: "recursos.types.otro",
 };
 
+function isPDF(url: string): boolean {
+  const lower = url.toLowerCase().split("?")[0];
+  return lower.endsWith(".pdf");
+}
+
 export default function RecursosPage() {
   const sectionVisible = useSectionVisibility("recursos");
   const proyecto = useSiteProject();
@@ -67,189 +87,131 @@ export default function RecursosPage() {
   const { t } = useTranslation("site");
 
   const closeViewer = useCallback(() => setViewingRecurso(null), []);
-  useEffect(() => {
-    if (!viewingRecurso) return;
-    const handleKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") closeViewer();
-    };
-    window.addEventListener("keydown", handleKey);
-    return () => window.removeEventListener("keydown", handleKey);
-  }, [viewingRecurso, closeViewer]);
+
+  const handleRecursoClick = useCallback(
+    (recurso: Recurso) => {
+      if (isPDF(recurso.url)) {
+        setViewingRecurso(recurso);
+      } else {
+        // Non-PDF files: open in new tab
+        trackEvent(proyecto.id, "recurso_download", undefined, {
+          recurso: recurso.nombre,
+          tipo: recurso.tipo,
+        });
+        window.open(recurso.url, "_blank", "noopener,noreferrer");
+      }
+    },
+    [proyecto.id]
+  );
 
   return (
-    <SectionTransition className="relative min-h-screen flex flex-col items-center justify-center px-6 lg:px-12 py-12 overflow-hidden">
-      <AmbientBackground variant="gold" />
+    <>
+      <SectionTransition className="relative min-h-screen flex flex-col items-center justify-center px-6 lg:px-12 py-12 overflow-hidden">
+        <AmbientBackground variant="gold" />
 
-      <div className="relative z-10 w-full max-w-5xl">
-        {/* Header */}
-        <motion.div
-          initial={{ opacity: 0, y: -20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="mb-10 text-center"
-        >
+        <div className="relative z-10 w-full max-w-5xl">
+          {/* Header */}
           <motion.div
-            initial={{ opacity: 0, scale: 0.8 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ delay: 0.1 }}
-            className="w-14 h-14 rounded-2xl bg-[rgba(var(--site-primary-rgb),0.10)] border border-[rgba(var(--site-primary-rgb),0.20)] flex items-center justify-center mx-auto mb-5"
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="mb-10 text-center"
           >
-            <FileText size={24} className="text-[var(--site-primary)]" />
-          </motion.div>
-          <h1 className="text-3xl font-site-heading text-white tracking-wide mb-3">
-            {t("recursos.heading")}
-          </h1>
-          <p className="text-[var(--text-tertiary)] text-sm max-w-md mx-auto leading-relaxed">
-            {t("recursos.description", { name: proyecto.nombre })}
-          </p>
-        </motion.div>
-
-        {/* Cards grid */}
-        {recursos.length > 0 ? (
-          <motion.div
-            variants={stagger}
-            initial="hidden"
-            animate="visible"
-            className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4"
-          >
-            {recursos.map((recurso) => {
-              const iconConfig = tipoIcons[recurso.tipo];
-              const Icon = iconConfig.icon;
-
-              return (
-                <motion.button
-                  key={recurso.id}
-                  variants={cardVariant}
-                  whileHover={{ scale: 1.03, y: -4 }}
-                  whileTap={{ scale: 0.97 }}
-                  onClick={() => setViewingRecurso(recurso)}
-                  className="glass-card p-6 text-left group cursor-pointer relative overflow-hidden"
-                >
-                  {/* Gradient accent */}
-                  <div
-                    className={cn(
-                      "absolute inset-0 bg-gradient-to-br opacity-0 group-hover:opacity-100 transition-opacity duration-500",
-                      iconConfig.gradient
-                    )}
-                  />
-
-                  <div className="relative z-10">
-                    <div className="w-12 h-12 rounded-xl bg-white/5 border border-[var(--border-default)] flex items-center justify-center mb-4 group-hover:border-[rgba(var(--site-primary-rgb),0.30)] transition-colors">
-                      <Icon
-                        size={22}
-                        className="text-[var(--site-primary)]"
-                      />
-                    </div>
-
-                    <span className="inline-block text-[10px] tracking-[0.2em] uppercase text-[var(--text-tertiary)] bg-white/5 px-2 py-0.5 rounded-full mb-3">
-                      {t(tipoLabelKeys[recurso.tipo])}
-                    </span>
-
-                    <h3 className="text-sm font-medium tracking-wider text-white mb-2">
-                      {recurso.nombre}
-                    </h3>
-
-                    {recurso.descripcion && (
-                      <p className="text-[var(--text-tertiary)] text-xs leading-relaxed line-clamp-2">
-                        {recurso.descripcion}
-                      </p>
-                    )}
-                  </div>
-                </motion.button>
-              );
-            })}
-          </motion.div>
-        ) : (
-          <SiteEmptyState
-            variant="recursos"
-            title={t("recursos.notAvailable")}
-            description={t("recursos.notConfigured")}
-            compact
-          />
-        )}
-      </div>
-
-      {/* Document Viewer Modal */}
-      <AnimatePresence>
-        {viewingRecurso && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 z-[80] flex items-center justify-center p-6"
-          >
-            {/* Backdrop */}
             <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              onClick={() => setViewingRecurso(null)}
-              className="absolute inset-0 bg-black/90 backdrop-blur-sm"
-            />
-
-            {/* Modal content */}
-            <motion.div
-              initial={{ opacity: 0, scale: 0.9, y: 20 }}
-              animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.9, y: 20 }}
-              transition={{ type: "spring", damping: 25, stiffness: 300 }}
-              className="relative z-10 w-full max-w-4xl h-[85vh] flex flex-col bg-[var(--surface-1)] rounded-[1.25rem] overflow-hidden border border-[var(--border-default)]"
+              initial={{ opacity: 0, scale: 0.8 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ delay: 0.1 }}
+              className="w-14 h-14 rounded-2xl bg-[rgba(var(--site-primary-rgb),0.10)] border border-[rgba(var(--site-primary-rgb),0.20)] flex items-center justify-center mx-auto mb-5"
             >
-              {/* Modal header */}
-              <div className="flex items-center justify-between px-6 py-4 border-b border-[var(--border-default)]">
-                <div className="flex items-center gap-3">
-                  {(() => {
-                    const Icon =
-                      tipoIcons[viewingRecurso.tipo].icon;
-                    return (
-                      <Icon
-                        size={18}
-                        className="text-[var(--site-primary)]"
-                      />
-                    );
-                  })()}
-                  <div>
-                    <h3 className="text-sm font-medium tracking-wider">
-                      {viewingRecurso.nombre}
-                    </h3>
-                    <span className="text-[10px] text-[var(--text-tertiary)] tracking-wider uppercase">
-                      {t(tipoLabelKeys[viewingRecurso.tipo])}
-                    </span>
-                  </div>
-                </div>
-
-                <div className="flex items-center gap-2">
-                  <a
-                    href={viewingRecurso.url}
-                    download
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    onClick={() => trackEvent(proyecto.id, "recurso_download", undefined, { recurso: viewingRecurso.nombre, tipo: viewingRecurso.tipo })}
-                    className="btn-outline-warm inline-flex items-center gap-2 px-4 py-2 text-xs tracking-[0.15em]"
-                  >
-                    <Download size={14} />
-                    {t("recursos.download")}
-                  </a>
-                  <button
-                    onClick={() => setViewingRecurso(null)}
-                    className="w-9 h-9 flex items-center justify-center glass rounded-full text-[var(--text-secondary)] hover:text-white transition-colors cursor-pointer"
-                  >
-                    <X size={18} />
-                  </button>
-                </div>
-              </div>
-
-              {/* PDF viewer */}
-              <div className="flex-1 bg-black/40">
-                <iframe
-                  src={viewingRecurso.url}
-                  className="w-full h-full border-0"
-                  title={viewingRecurso.nombre}
-                />
-              </div>
+              <FileText size={24} className="text-[var(--site-primary)]" />
             </motion.div>
+            <h1 className="text-3xl font-site-heading text-white tracking-wide mb-3">
+              {t("recursos.heading")}
+            </h1>
+            <p className="text-[var(--text-tertiary)] text-sm max-w-md mx-auto leading-relaxed">
+              {t("recursos.description", { name: proyecto.nombre })}
+            </p>
           </motion.div>
-        )}
-      </AnimatePresence>
-    </SectionTransition>
+
+          {/* Cards grid */}
+          {recursos.length > 0 ? (
+            <motion.div
+              variants={stagger}
+              initial="hidden"
+              animate="visible"
+              className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4"
+            >
+              {recursos.map((recurso) => {
+                const iconConfig = tipoIcons[recurso.tipo];
+                const Icon = iconConfig.icon;
+
+                return (
+                  <motion.button
+                    key={recurso.id}
+                    variants={cardVariant}
+                    whileHover={{ scale: 1.03, y: -4 }}
+                    whileTap={{ scale: 0.97 }}
+                    onClick={() => handleRecursoClick(recurso)}
+                    className="glass-card p-6 text-left group cursor-pointer relative overflow-hidden"
+                  >
+                    {/* Gradient accent */}
+                    <div
+                      className={cn(
+                        "absolute inset-0 bg-gradient-to-br opacity-0 group-hover:opacity-100 transition-opacity duration-500",
+                        iconConfig.gradient
+                      )}
+                    />
+
+                    <div className="relative z-10">
+                      <div className="w-12 h-12 rounded-xl bg-white/5 border border-[var(--border-default)] flex items-center justify-center mb-4 group-hover:border-[rgba(var(--site-primary-rgb),0.30)] transition-colors">
+                        <Icon
+                          size={22}
+                          className="text-[var(--site-primary)]"
+                        />
+                      </div>
+
+                      <span className="inline-block text-[10px] tracking-[0.2em] uppercase text-[var(--text-tertiary)] bg-white/5 px-2 py-0.5 rounded-full mb-3">
+                        {t(tipoLabelKeys[recurso.tipo])}
+                      </span>
+
+                      <h3 className="text-sm font-medium tracking-wider text-white mb-2">
+                        {recurso.nombre}
+                      </h3>
+
+                      {recurso.descripcion && (
+                        <p className="text-[var(--text-tertiary)] text-xs leading-relaxed line-clamp-2">
+                          {recurso.descripcion}
+                        </p>
+                      )}
+                    </div>
+                  </motion.button>
+                );
+              })}
+            </motion.div>
+          ) : (
+            <SiteEmptyState
+              variant="recursos"
+              title={t("recursos.notAvailable")}
+              description={t("recursos.notConfigured")}
+              compact
+            />
+          )}
+        </div>
+      </SectionTransition>
+
+      {/* Fullscreen PDF Viewer */}
+      {viewingRecurso && isPDF(viewingRecurso.url) && (
+        <PDFScrollViewer
+          url={viewingRecurso.url}
+          onClose={closeViewer}
+          title={viewingRecurso.nombre}
+          projectId={proyecto.id}
+          trackingEvent="recurso_download"
+          trackingMeta={{
+            recurso: viewingRecurso.nombre,
+            tipo: viewingRecurso.tipo,
+          }}
+        />
+      )}
+    </>
   );
 }

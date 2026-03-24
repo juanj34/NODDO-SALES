@@ -10,6 +10,8 @@ import { cn } from "@/lib/utils";
 import { InfoTooltip } from "@/components/ui/InfoTooltip";
 import tooltips from "@/i18n/locales/es/tooltips";
 import { fontSize, gap, letterSpacing, radius } from "@/lib/design-tokens";
+import { FileUploader } from "@/components/dashboard/FileUploader";
+import { X } from "lucide-react";
 import type { CotizadorConfig } from "@/types";
 
 const DEFAULT_CONFIG: CotizadorConfig = {
@@ -46,6 +48,57 @@ export function CotizadorPdfSettings() {
 
   return (
     <div className={cn("flex flex-col", gap.spacious)}>
+      {/* Micrositio — Plan de Pagos background */}
+      <div className={cn("bg-[var(--surface-1)] border border-[var(--border-subtle)] p-5", radius.xl)}>
+        <label className={cn("block text-[var(--text-muted)] mb-3 uppercase", fontSize.label, letterSpacing.wider)}>
+          Fondo del Plan de Pagos (micrositio)
+        </label>
+        <p className={cn("text-[var(--text-muted)] mb-3", fontSize.caption)}>
+          Imagen decorativa que aparece de fondo con baja opacidad en la sección de plan de pagos del micrositio.
+        </p>
+        {config.plan_pago_bg_url ? (
+          <div className="relative w-full max-w-sm">
+            <img
+              src={config.plan_pago_bg_url}
+              alt="Fondo plan de pagos"
+              className={cn("w-full h-40 object-cover border border-[var(--border-subtle)]", radius.lg)}
+            />
+            <button
+              type="button"
+              onClick={() => saveConfig({ ...config, plan_pago_bg_url: undefined })}
+              className="absolute top-2 right-2 w-7 h-7 flex items-center justify-center bg-black/60 hover:bg-black/80 rounded-full transition-colors"
+            >
+              <X size={14} className="text-white" />
+            </button>
+          </div>
+        ) : (
+          <FileUploader
+            onUpload={(url) => saveConfig({ ...config, plan_pago_bg_url: url })}
+            currentUrl={null}
+            folder={`proyectos/${project.id}/cotizador`}
+            label="Subir imagen de fondo"
+            aspect="video"
+          />
+        )}
+      </div>
+
+      {/* Nombre personalizado del plan */}
+      <div className={cn("bg-[var(--surface-1)] border border-[var(--border-subtle)] p-5", radius.xl)}>
+        <label className={cn("block text-[var(--text-muted)] mb-1 uppercase", fontSize.label, letterSpacing.wider)}>
+          Nombre del plan de pagos
+        </label>
+        <input
+          type="text"
+          value={config.payment_plan_nombre ?? ""}
+          onChange={(e) => saveConfig({ ...config, payment_plan_nombre: e.target.value || undefined })}
+          className={cn(inputClass, fontSize.md)}
+          placeholder="Plan de Pagos"
+        />
+        <p className={cn("text-[var(--text-muted)] mt-1.5", fontSize.caption)}>
+          Aparece como título en el micrositio y en el PDF. Si no se llena, se usa el título por defecto.
+        </p>
+      </div>
+
       {/* Separación checkbox */}
       <div className={cn("bg-[var(--surface-1)] border border-[var(--border-subtle)] p-5", radius.xl)}>
         <label className={cn("flex items-center cursor-pointer", gap.relaxed)}>
@@ -66,18 +119,74 @@ export function CotizadorPdfSettings() {
         </label>
       </div>
 
-      {/* Fecha estimada de entrega */}
+      {/* Tipo de entrega */}
       <div className={cn("bg-[var(--surface-1)] border border-[var(--border-subtle)] p-5", radius.xl)}>
-        <label className={cn("block text-[var(--text-muted)] mb-1 uppercase", fontSize.label, letterSpacing.wider)}>
-          Fecha estimada de entrega
+        <label className={cn("block text-[var(--text-muted)] mb-2 uppercase", fontSize.label, letterSpacing.wider)}>
+          Tipo de entrega
         </label>
-        <input
-          type="text"
-          value={config.fecha_estimada_entrega ?? ""}
-          onChange={(e) => saveConfig({ ...config, fecha_estimada_entrega: e.target.value || undefined })}
-          className={cn(inputClass, fontSize.md)}
-          placeholder="Q2-2028, Diciembre 2027..."
-        />
+        <div className="flex gap-2 mb-3">
+          {([
+            { value: null, label: "Sin configurar" },
+            { value: "fecha_fija" as const, label: "Fecha fija" },
+            { value: "plazo_desde_compra" as const, label: "Plazo desde compra" },
+          ] as const).map((opt) => (
+            <button
+              key={String(opt.value)}
+              type="button"
+              onClick={() => saveConfig({
+                ...config,
+                tipo_entrega: opt.value,
+                // Clear date when switching to null
+                ...(opt.value === null ? { fecha_estimada_entrega: undefined, plazo_entrega_meses: undefined } : {}),
+              })}
+              className={cn(
+                "flex-1 px-2 py-1.5 border text-center transition-colors",
+                radius.lg, fontSize.label,
+                (config.tipo_entrega ?? null) === opt.value
+                  ? "border-[rgba(var(--site-primary-rgb),0.6)] bg-[rgba(var(--site-primary-rgb),0.1)] text-[var(--site-primary)]"
+                  : "border-[var(--border-default)] bg-[var(--surface-3)] text-[var(--text-secondary)] hover:border-[var(--border-strong)]"
+              )}
+            >
+              {opt.label}
+            </button>
+          ))}
+        </div>
+
+        {config.tipo_entrega === "fecha_fija" && (
+          <div>
+            <label className={cn("block text-[var(--text-muted)] mb-1 uppercase", fontSize.label, letterSpacing.wider)}>
+              Fecha de entrega
+            </label>
+            <input
+              type="date"
+              value={config.fecha_estimada_entrega ?? ""}
+              onChange={(e) => saveConfig({ ...config, fecha_estimada_entrega: e.target.value || undefined })}
+              className={cn(inputClass, fontSize.md)}
+            />
+            <p className={cn("text-[var(--text-muted)] mt-1.5", fontSize.caption)}>
+              Las cuotas se ajustan automáticamente según los meses restantes hasta esta fecha
+            </p>
+          </div>
+        )}
+
+        {config.tipo_entrega === "plazo_desde_compra" && (
+          <div>
+            <label className={cn("block text-[var(--text-muted)] mb-1 uppercase", fontSize.label, letterSpacing.wider)}>
+              Plazo de entrega (meses)
+            </label>
+            <input
+              type="number"
+              value={config.plazo_entrega_meses ?? 24}
+              onChange={(e) => saveConfig({ ...config, plazo_entrega_meses: parseInt(e.target.value) || 24 })}
+              min={6}
+              max={120}
+              className={cn(inputClass, fontSize.md, "w-32")}
+            />
+            <p className={cn("text-[var(--text-muted)] mt-1.5", fontSize.caption)}>
+              El plan de pagos se calcula desde la fecha de cotización + este plazo
+            </p>
+          </div>
+        )}
       </div>
 
       {/* Cover Style + Theme */}
