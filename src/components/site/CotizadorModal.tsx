@@ -35,6 +35,8 @@ import type {
 } from "@/types";
 import { useTranslation, getEstadoConfig } from "@/i18n";
 import { useSiteProject } from "@/hooks/useSiteProject";
+import { useAgentMode } from "@/hooks/useAgentMode";
+import { AgentCotizadorModal } from "@/components/site/AgentCotizadorModal";
 import { CotizadorFlowMultiStep } from "@/components/site/CotizadorFlowMultiStep";
 
 interface CotizadorModalProps {
@@ -314,9 +316,29 @@ export function CotizadorModal({
   availableTipologias,
   tipoProyecto,
 }: CotizadorModalProps) {
+  const { isAgentMode } = useAgentMode();
   const { t: tCommon, locale } = useTranslation("common");
   const { t: tSite } = useTranslation("site");
   const proyecto = useSiteProject();
+
+  // Agent mode: render the full dashboard CotizadorTool in a fullscreen modal
+  if (isAgentMode) {
+    return <AgentCotizadorModal open={isOpen} onClose={onClose} />;
+  }
+
+  const enabledExtras = useMemo(() => ({
+    tiene_jacuzzi: proyecto.habilitar_extra_jacuzzi,
+    tiene_piscina: proyecto.habilitar_extra_piscina,
+    tiene_bbq: proyecto.habilitar_extra_bbq,
+    tiene_terraza: proyecto.habilitar_extra_terraza,
+    tiene_jardin: proyecto.habilitar_extra_jardin,
+    tiene_cuarto_servicio: proyecto.habilitar_extra_cuarto_servicio,
+    tiene_estudio: proyecto.habilitar_extra_estudio,
+    tiene_chimenea: proyecto.habilitar_extra_chimenea,
+    tiene_doble_altura: proyecto.habilitar_extra_doble_altura,
+    tiene_rooftop: proyecto.habilitar_extra_rooftop,
+  }), [proyecto]);
+
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [pdfUrl, setPdfUrl] = useState<string | null>(null);
 
@@ -644,6 +666,7 @@ export function CotizadorModal({
                   construccionPrice={construccionPrice}
                   unitPrefix={proyecto.unidad_display_prefix}
                   areaSymbol={areaSymbol}
+                  enabledExtras={enabledExtras}
                   onSuccess={(url) => {
                     setPdfUrl(url);
                     setIsSubmitted(true);

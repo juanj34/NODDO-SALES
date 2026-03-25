@@ -58,6 +58,7 @@ import { resolvePisos } from "@/lib/piso-utils";
 import { CurrencyInput } from "@/components/dashboard/CurrencyInput";
 import { PriceAuditBadge } from "@/components/dashboard/PriceAuditBadge";
 import { deriveTipoTipologia, getInventoryColumns, getHybridInventoryColumns } from "@/lib/inventory-columns";
+import { getTipologiaFields } from "@/lib/tipologia-fields";
 import { AITextImprover } from "@/components/dashboard/AITextImprover";
 import { tipologiaSchema } from "@/lib/validation/schemas";
 import { InlineError } from "@/components/ui/ErrorBoundary";
@@ -219,6 +220,7 @@ function CopyHotspotsDropdown({
 }) {
   const [open, setOpen] = useState(false);
   const { confirm } = useConfirm();
+  const { t } = useTranslation("editor");
   const ref = useRef<HTMLDivElement>(null);
 
   // Close on outside click
@@ -242,8 +244,8 @@ function CopyHotspotsDropdown({
     if (
       currentHotspotCount > 0 &&
       !(await confirm({
-        title: "Copiar hotspots",
-        message: `Esto reemplazará los ${currentHotspotCount} hotspots actuales con los ${source.hotspots.length} de "${source.nombre}". ¿Continuar?`,
+        title: t("tipologias.copyHotspots"),
+        message: t("tipologias.copyHotspotsReplace", { current: currentHotspotCount, count: source.hotspots.length, name: source.nombre }),
       }))
     ) {
       return;
@@ -251,8 +253,8 @@ function CopyHotspotsDropdown({
     if (
       currentHotspotCount === 0 &&
       !(await confirm({
-        title: "Copiar hotspots",
-        message: `Se copiarán ${source.hotspots.length} hotspots de "${source.nombre}". ¿Continuar?`,
+        title: t("tipologias.copyHotspots"),
+        message: t("tipologias.copyHotspotsConfirm", { count: source.hotspots.length, name: source.nombre }),
       }))
     ) {
       return;
@@ -277,7 +279,7 @@ function CopyHotspotsDropdown({
         )}
       >
         <ClipboardCopy size={iconSize.xs} />
-        Copiar de otra tipología
+        {t("tipologias.copyFromOther")}
         <ChevronDown size={10} className={cn("transition-transform", open && "rotate-180")} />
       </button>
 
@@ -299,7 +301,7 @@ function CopyHotspotsDropdown({
                 fontSize.label,
                 letterSpacing.wider
               )}>
-                Tipologías con hotspots
+                {t("tipologias.withHotspots")}
               </p>
             </div>
             <div className="max-h-48 overflow-y-auto py-1">
@@ -438,7 +440,7 @@ function TipologiaListItem({
 
 /* ─── Tabs ─── */
 
-type TipoTab = "general" | "plano" | "hotspots";
+type TipoTab = "general" | "multimedia" | "plano" | "hotspots";
 
 /* ─── Page ─── */
 
@@ -452,6 +454,7 @@ export default function TipologiasPage() {
 
   const TIPO_TABS: { id: TipoTab; label: string; icon: LucideIcon }[] = [
     { id: "general", label: t("tipologias.tabs.general"), icon: FileText },
+    { id: "multimedia", label: t("tipologias.tabs.multimedia"), icon: Video },
     { id: "plano", label: t("tipologias.tabs.floorPlan"), icon: Map },
     { id: "hotspots", label: t("tipologias.tabs.hotspots"), icon: MousePointerClick },
   ];
@@ -591,10 +594,10 @@ export default function TipologiasPage() {
     },
     onSaveError: (error) => {
       if (error instanceof ZodError) {
-        setValidationError(error.issues[0]?.message || "Error de validación");
-        toast.error(error.issues[0]?.message || "Error de validación");
+        setValidationError(error.issues[0]?.message || t("errors.validationError"));
+        toast.error(error.issues[0]?.message || t("errors.validationError"));
       } else {
-        toast.error("Error al guardar: " + error.message);
+        toast.error(t("tipologias.saveError") + ": " + error.message);
       }
     },
   });
@@ -638,9 +641,9 @@ export default function TipologiasPage() {
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ ids }),
         });
-        if (!res.ok) toast.error("Error al reordenar");
+        if (!res.ok) toast.error(t("tipologias.reorderError"));
       } catch {
-        toast.error("Error de conexión");
+        toast.error(t("errors.connectionError"));
       }
     }, 300);
   };
@@ -706,7 +709,7 @@ export default function TipologiasPage() {
   const addFloor = () => {
     const newPiso: TipologiaPiso = {
       id: crypto.randomUUID(),
-      nombre: `Piso ${form.pisos.length + 1}`,
+      nombre: `Plano ${form.pisos.length + 1}`,
       plano_url: "",
       hotspots: [],
       orden: form.pisos.length,
@@ -759,23 +762,28 @@ export default function TipologiasPage() {
     return getInventoryColumns(project.tipo_proyecto ?? "hibrido", project.inventory_columns);
   }, [form.tipo_tipologia, project.tipo_proyecto, project.inventory_columns, project.inventory_columns_by_type]);
 
+  const tipFields = useMemo(() =>
+    getTipologiaFields(project.tipo_proyecto ?? "hibrido", project.tipologia_fields),
+    [project.tipo_proyecto, project.tipologia_fields]
+  );
+
 
   const handleDelete = async (id: string) => {
     const tip = tipologias.find((t) => t.id === id);
     if (!tip) return;
     const nUnits = unidades.filter((u) => u.tipologia_id === id).length;
     if (!(await confirm({
-      title: "Eliminar tipología",
-      message: "Esta acción no se puede deshacer.",
+      title: t("tipologias.deleteTitle"),
+      message: t("tipologias.deleteConfirmMsg"),
       description: tip.nombre,
-      details: nUnits > 0 ? `${nUnits} unidades perderán su tipología asignada` : undefined,
+      details: nUnits > 0 ? t("tipologias.deleteUnitsWarning", { count: nUnits }) : undefined,
       typeToConfirm: tip.nombre,
     }))) return;
     setDeletingId(id);
     try {
       const res = await fetch(`/api/tipologias/${id}`, { method: "DELETE" });
       if (!res.ok) {
-        toast.error("Error al eliminar tipología");
+        toast.error(t("tipologias.deleteError"));
         return;
       }
       await refresh();
@@ -790,7 +798,7 @@ export default function TipologiasPage() {
         }
       }
     } catch {
-      toast.error("Error de conexión");
+      toast.error(t("errors.connectionError"));
     } finally {
       setDeletingId(null);
     }
@@ -851,7 +859,7 @@ export default function TipologiasPage() {
         toast.error(t("tipologias.duplicateError"));
       }
     } catch {
-      toast.error("Error de conexión");
+      toast.error(t("errors.connectionError"));
     } finally {
       setDuplicatingId(null);
     }
@@ -1214,62 +1222,6 @@ export default function TipologiasPage() {
                             </p>
                           </div>
                         )}
-                        {!isHibrido && (
-                          <div>
-                            <button
-                              type="button"
-                              onClick={() => {
-                                const newTipo = form.tipo_tipologia === "local_comercial"
-                                  ? (deriveTipoTipologia(project.tipo_proyecto) || "apartamento")
-                                  : "local_comercial";
-                                updateForm("tipo_tipologia", newTipo);
-                                if (selectedId && !isCreating) {
-                                  saveTipologia({
-                                    tipologiaId: selectedId,
-                                    payload: { tipo_tipologia: newTipo },
-                                    optimisticUpdate: (prev) => ({
-                                      ...prev,
-                                      tipologias: prev.tipologias.map((t) =>
-                                        t.id === selectedId
-                                          ? { ...t, tipo_tipologia: newTipo }
-                                          : t
-                                      ),
-                                    }),
-                                  });
-                                }
-                              }}
-                              className={cn(
-                                "flex items-center w-full px-3 py-2 border transition-all text-left",
-                                gap.normal,
-                                fontSize.subtitle,
-                                radius.md,
-                                form.tipo_tipologia === "local_comercial"
-                                  ? "bg-[rgba(var(--site-primary-rgb),0.08)] border-[rgba(var(--site-primary-rgb),0.3)] text-white"
-                                  : "bg-[var(--surface-1)] border-[var(--border-subtle)] text-[var(--text-muted)] hover:border-[var(--border-default)]"
-                              )}
-                            >
-                              <Store size={iconSize.sm} className={form.tipo_tipologia === "local_comercial" ? "text-[var(--site-primary)]" : ""} />
-                              <span className="flex-1">{t("tipologias.tipoLocalComercial")}</span>
-                              <div className={cn(
-                                "w-8 h-5 rounded-full transition-all relative",
-                                form.tipo_tipologia === "local_comercial"
-                                  ? "bg-[var(--site-primary)]"
-                                  : "bg-[var(--surface-3)]"
-                              )}>
-                                <div className={cn(
-                                  "absolute top-0.5 w-4 h-4 rounded-full bg-white transition-all",
-                                  form.tipo_tipologia === "local_comercial" ? "left-3.5" : "left-0.5"
-                                )} />
-                              </div>
-                            </button>
-                            <p className={cn(
-                              "text-[var(--text-muted)] mt-1.5",
-                              fontSize.label
-                            )}>
-                              {t("tipologias.tipoLocalComercialHint")}
-                            </p>
-                          </div>
-                        )}
                         {isMultiTorre && (
                           <div>
                             <Label>{torresLabel}</Label>
@@ -1332,88 +1284,6 @@ export default function TipologiasPage() {
                             label={t("tipologias.description")}
                             maxLength={5000}
                           />
-                        </div>
-
-                        {/* ── Video vinculado ── */}
-                        {(project.videos || []).length > 0 && (
-                          <div>
-                            <Label className="flex items-center gap-1.5">
-                              <Video size={iconSize.xs} className="text-[var(--site-primary)]" />
-                              {t("tipologias.linkedVideo")}
-                            </Label>
-                            <select
-                              value={form.video_id || ""}
-                              onChange={(e) => {
-                                const newVideoId = e.target.value || null;
-                                updateForm("video_id", newVideoId);
-                                // Immediate background save for discrete changes (no debounce)
-                                if (selectedId && !isCreating) {
-                                  saveTipologia({
-                                    tipologiaId: selectedId,
-                                    payload: { video_id: newVideoId },
-                                    optimisticUpdate: (prev) => ({
-                                      ...prev,
-                                      tipologias: prev.tipologias.map((t) =>
-                                        t.id === selectedId
-                                          ? { ...t, video_id: newVideoId }
-                                          : t
-                                      ),
-                                    }),
-                                  });
-                                }
-                              }}
-                              className={inputClass}
-                            >
-                              <option value="">{t("tipologias.noVideoLinked")}</option>
-                              {(project.videos || [])
-                                .filter((v) => !v.stream_uid || v.stream_status === "ready")
-                                .map((v) => (
-                                  <option key={v.id} value={v.id}>
-                                    {v.titulo || `Video ${(v.orden ?? 0) + 1}`}
-                                  </option>
-                                ))}
-                            </select>
-                            <p className={cn("text-[var(--text-muted)] mt-1.5", fontSize.label)}>
-                              {t("tipologias.linkedVideoHint")}
-                            </p>
-                          </div>
-                        )}
-
-                        {/* ── Tour 360 vinculado ── */}
-                        <div>
-                          <Label className="flex items-center gap-1.5">
-                            <View size={iconSize.xs} className="text-[var(--site-primary)]" />
-                            {t("tipologias.linkedTour")}
-                          </Label>
-                          <input
-                            type="text"
-                            value={form.tour_360_url}
-                            onChange={(e) => {
-                              const raw = e.target.value;
-                              const extracted = extractTourUrl(raw);
-                              updateForm("tour_360_url", extracted);
-                              // Immediate background save for discrete changes
-                              if (selectedId && !isCreating) {
-                                saveTipologia({
-                                  tipologiaId: selectedId,
-                                  payload: { tour_360_url: extracted || null },
-                                  optimisticUpdate: (prev) => ({
-                                    ...prev,
-                                    tipologias: prev.tipologias.map((t) =>
-                                      t.id === selectedId
-                                        ? { ...t, tour_360_url: extracted || null }
-                                        : t
-                                    ),
-                                  }),
-                                });
-                              }
-                            }}
-                            placeholder={t("tipologias.linkedTourPlaceholder")}
-                            className={inputClass}
-                          />
-                          <p className={cn("text-[var(--text-muted)] mt-1.5", fontSize.label)}>
-                            {t("tipologias.linkedTourHint")}
-                          </p>
                         </div>
 
                         {/* ── Precio ── */}
@@ -1521,7 +1391,7 @@ export default function TipologiasPage() {
                         <div>
                           <Label variant="section">{t("tipologias.specsAreas")}</Label>
                           <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-                            {effectiveColumns.area_m2 && (
+                            {tipFields.area_m2 && (
                               <div className="flex items-center gap-3 p-3 bg-[var(--surface-1)] rounded-xl border border-[var(--border-subtle)] hover:border-[var(--border-default)] transition-all">
                                 <div className="w-9 h-9 rounded-lg bg-[var(--surface-2)] flex items-center justify-center shrink-0">
                                   <Maximize size={iconSize.md} className="text-[var(--text-tertiary)]" />
@@ -1533,7 +1403,7 @@ export default function TipologiasPage() {
                                 {form.area_m2 && <span className="text-[11px] font-mono text-[var(--text-muted)] shrink-0">m²</span>}
                               </div>
                             )}
-                            {effectiveColumns.area_m2 && (
+                            {tipFields.area_balcon && (
                               <div className="flex items-center gap-3 p-3 bg-[var(--surface-1)] rounded-xl border border-[var(--border-subtle)] hover:border-[var(--border-default)] transition-all">
                                 <div className="w-9 h-9 rounded-lg bg-[var(--surface-2)] flex items-center justify-center shrink-0">
                                   <Palmtree size={iconSize.md} className="text-[var(--text-tertiary)]" />
@@ -1545,7 +1415,7 @@ export default function TipologiasPage() {
                                 {form.area_balcon && <span className="text-[11px] font-mono text-[var(--text-muted)] shrink-0">m²</span>}
                               </div>
                             )}
-                            {effectiveColumns.area_m2 && (
+                            {tipFields.area_m2 && (
                               <div className="flex items-center gap-3 p-3 bg-[var(--surface-1)] rounded-xl border border-[rgba(var(--site-primary-rgb),0.15)] transition-all">
                                 <div className="w-9 h-9 rounded-lg bg-[rgba(var(--site-primary-rgb),0.12)] flex items-center justify-center shrink-0">
                                   <LayoutGrid size={iconSize.md} className="text-[var(--site-primary)]" />
@@ -1560,6 +1430,7 @@ export default function TipologiasPage() {
                                 </div>
                               </div>
                             )}
+                            {tipFields.area_construida && (
                             <div className="flex items-center gap-3 p-3 bg-[var(--surface-1)] rounded-xl border border-[var(--border-subtle)] hover:border-[var(--border-default)] transition-all">
                               <div className="w-9 h-9 rounded-lg bg-[var(--surface-2)] flex items-center justify-center shrink-0">
                                 <Ruler size={iconSize.md} className="text-[var(--text-tertiary)]" />
@@ -1570,6 +1441,8 @@ export default function TipologiasPage() {
                               </div>
                               {form.area_construida && <span className="text-[11px] font-mono text-[var(--text-muted)] shrink-0">m²</span>}
                             </div>
+                            )}
+                            {tipFields.area_privada && (
                             <div className="flex items-center gap-3 p-3 bg-[var(--surface-1)] rounded-xl border border-[var(--border-subtle)] hover:border-[var(--border-default)] transition-all">
                               <div className="w-9 h-9 rounded-lg bg-[var(--surface-2)] flex items-center justify-center shrink-0">
                                 <Home size={iconSize.md} className="text-[var(--text-tertiary)]" />
@@ -1580,7 +1453,8 @@ export default function TipologiasPage() {
                               </div>
                               {form.area_privada && <span className="text-[11px] font-mono text-[var(--text-muted)] shrink-0">m²</span>}
                             </div>
-                            {effectiveColumns.area_lote && (
+                            )}
+                            {tipFields.area_lote && (
                               <div className="flex items-center gap-3 p-3 bg-[var(--surface-1)] rounded-xl border border-[var(--border-subtle)] hover:border-[var(--border-default)] transition-all">
                                 <div className="w-9 h-9 rounded-lg bg-[var(--surface-2)] flex items-center justify-center shrink-0">
                                   <LandPlot size={iconSize.md} className="text-[var(--text-tertiary)]" />
@@ -1599,7 +1473,7 @@ export default function TipologiasPage() {
                         <div>
                           <Label variant="section">{t("tipologias.specsSpaces")}</Label>
                           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                            {form.tipo_tipologia !== "local_comercial" && (
+                            {tipFields.habitaciones && (
                             <div className="flex items-center gap-3 p-3 bg-[var(--surface-1)] rounded-xl border border-[var(--border-subtle)] hover:border-[var(--border-default)] transition-all">
                               <div className="w-9 h-9 rounded-lg bg-[var(--surface-2)] flex items-center justify-center shrink-0">
                                 <BedDouble size={iconSize.md} className="text-[var(--text-tertiary)]" />
@@ -1610,7 +1484,7 @@ export default function TipologiasPage() {
                               </div>
                             </div>
                             )}
-                            {form.tipo_tipologia !== "local_comercial" && (
+                            {tipFields.banos && (
                             <div className="flex items-center gap-3 p-3 bg-[var(--surface-1)] rounded-xl border border-[var(--border-subtle)] hover:border-[var(--border-default)] transition-all">
                               <div className="w-9 h-9 rounded-lg bg-[var(--surface-2)] flex items-center justify-center shrink-0">
                                 <Bath size={iconSize.md} className="text-[var(--text-tertiary)]" />
@@ -1621,6 +1495,7 @@ export default function TipologiasPage() {
                               </div>
                             </div>
                             )}
+                            {tipFields.parqueaderos && (
                             <div className="flex items-center gap-3 p-3 bg-[var(--surface-1)] rounded-xl border border-[var(--border-subtle)] hover:border-[var(--border-default)] transition-all">
                               <div className="w-9 h-9 rounded-lg bg-[var(--surface-2)] flex items-center justify-center shrink-0">
                                 <Car size={iconSize.md} className="text-[var(--text-tertiary)]" />
@@ -1630,6 +1505,8 @@ export default function TipologiasPage() {
                                 <input type="number" value={form.parqueaderos} onChange={(e) => updateForm("parqueaderos", e.target.value)} placeholder="0" className="w-full bg-transparent text-sm font-mono text-white placeholder:text-[var(--text-muted)] focus:outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none" />
                               </div>
                             </div>
+                            )}
+                            {tipFields.depositos && (
                             <div className="flex items-center gap-3 p-3 bg-[var(--surface-1)] rounded-xl border border-[var(--border-subtle)] hover:border-[var(--border-default)] transition-all">
                               <div className="w-9 h-9 rounded-lg bg-[var(--surface-2)] flex items-center justify-center shrink-0">
                                 <Archive size={iconSize.md} className="text-[var(--text-tertiary)]" />
@@ -1639,6 +1516,7 @@ export default function TipologiasPage() {
                                 <input type="number" value={form.depositos} onChange={(e) => updateForm("depositos", e.target.value)} placeholder="0" className="w-full bg-transparent text-sm font-mono text-white placeholder:text-[var(--text-muted)] focus:outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none" />
                               </div>
                             </div>
+                            )}
                           </div>
                         </div>
 
@@ -1681,6 +1559,101 @@ export default function TipologiasPage() {
                           </div>
                         )}
 
+                      </>
+                    )}
+
+                    {/* ── TAB: Multimedia ── */}
+                    {activeTab === "multimedia" && (
+                      <>
+                        {/* ── Video vinculado ── */}
+                        {(project.videos || []).length > 0 ? (
+                          <div>
+                            <Label className="flex items-center gap-1.5">
+                              <Video size={iconSize.xs} className="text-[var(--site-primary)]" />
+                              {t("tipologias.linkedVideo")}
+                            </Label>
+                            <select
+                              value={form.video_id || ""}
+                              onChange={(e) => {
+                                const newVideoId = e.target.value || null;
+                                updateForm("video_id", newVideoId);
+                                if (selectedId && !isCreating) {
+                                  saveTipologia({
+                                    tipologiaId: selectedId,
+                                    payload: { video_id: newVideoId },
+                                    optimisticUpdate: (prev) => ({
+                                      ...prev,
+                                      tipologias: prev.tipologias.map((t) =>
+                                        t.id === selectedId
+                                          ? { ...t, video_id: newVideoId }
+                                          : t
+                                      ),
+                                    }),
+                                  });
+                                }
+                              }}
+                              className={inputClass}
+                            >
+                              <option value="">{t("tipologias.noVideoLinked")}</option>
+                              {(project.videos || [])
+                                .filter((v) => !v.stream_uid || v.stream_status === "ready")
+                                .map((v) => (
+                                  <option key={v.id} value={v.id}>
+                                    {v.titulo || `Video ${(v.orden ?? 0) + 1}`}
+                                  </option>
+                                ))}
+                            </select>
+                            <p className={cn("text-[var(--text-muted)] mt-1.5", fontSize.label)}>
+                              {t("tipologias.linkedVideoHint")}
+                            </p>
+                          </div>
+                        ) : (
+                          <div className="p-6 rounded-xl border border-[var(--border-subtle)] bg-[var(--surface-1)] text-center">
+                            <Video size={iconSize.lg} className="text-[var(--text-muted)] mx-auto mb-2" />
+                            <p className={cn("text-[var(--text-tertiary)]", fontSize.subtitle)}>
+                              {t("tipologias.noVideoLinked")}
+                            </p>
+                            <p className={cn("text-[var(--text-muted)] mt-1", fontSize.label)}>
+                              {t("tipologias.linkedVideoHint")}
+                            </p>
+                          </div>
+                        )}
+
+                        {/* ── Tour 360 vinculado ── */}
+                        <div>
+                          <Label className="flex items-center gap-1.5">
+                            <View size={iconSize.xs} className="text-[var(--site-primary)]" />
+                            {t("tipologias.linkedTour")}
+                          </Label>
+                          <input
+                            type="text"
+                            value={form.tour_360_url}
+                            onChange={(e) => {
+                              const raw = e.target.value;
+                              const extracted = extractTourUrl(raw);
+                              updateForm("tour_360_url", extracted);
+                              if (selectedId && !isCreating) {
+                                saveTipologia({
+                                  tipologiaId: selectedId,
+                                  payload: { tour_360_url: extracted || null },
+                                  optimisticUpdate: (prev) => ({
+                                    ...prev,
+                                    tipologias: prev.tipologias.map((t) =>
+                                      t.id === selectedId
+                                        ? { ...t, tour_360_url: extracted || null }
+                                        : t
+                                    ),
+                                  }),
+                                });
+                              }
+                            }}
+                            placeholder={t("tipologias.linkedTourPlaceholder")}
+                            className={inputClass}
+                          />
+                          <p className={cn("text-[var(--text-muted)] mt-1.5", fontSize.label)}>
+                            {t("tipologias.linkedTourHint")}
+                          </p>
+                        </div>
                       </>
                     )}
 
@@ -1732,7 +1705,7 @@ export default function TipologiasPage() {
                                 type="text"
                                 value={form.pisos[activePisoIndex].nombre}
                                 onChange={(e) => updatePiso(activePisoIndex, { nombre: e.target.value })}
-                                placeholder="Piso 1"
+                                placeholder="Plano 1"
                                 className={inputClass + " max-w-[280px]"}
                               />
                             </div>

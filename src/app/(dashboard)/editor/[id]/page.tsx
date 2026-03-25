@@ -188,13 +188,13 @@ export default function EditorGeneralPage() {
       const res = await fetch("/api/upload", { method: "POST", body: formData });
       if (!res.ok) {
         const data = await res.json();
-        throw new Error(data.error || "Error al subir");
+        throw new Error(data.error || t("errors.saveError"));
       }
       const { url } = await res.json();
       setBackgroundAudioUrl(url);
       scheduleAutoSave();
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Error al subir audio");
+      toast.error(err instanceof Error ? err.message : t("errors.saveError"));
     } finally {
       setAudioUploading(false);
     }
@@ -339,7 +339,7 @@ export default function EditorGeneralPage() {
                       {logoUrl && (
                         <div className="mt-4 space-y-2">
                           <label className={labelClass + " flex items-center justify-between"}>
-                            <span>Tamaño del logo</span>
+                            <span>{t("general.landing.logoSize")}</span>
                             <span className="text-[var(--text-tertiary)] font-mono text-xs">{logoHeight}px</span>
                           </label>
                           <input
@@ -355,7 +355,7 @@ export default function EditorGeneralPage() {
                           />
                           <div className="flex justify-between text-[9px] text-[var(--text-muted)] font-mono">
                             <span>40px</span>
-                            <span>96px (defecto)</span>
+                            <span>{t("general.landing.logoSizeDefault")}</span>
                             <span>240px</span>
                           </div>
                         </div>
@@ -458,7 +458,7 @@ export default function EditorGeneralPage() {
                   <div>
                     <label className={labelClass}>
                       <BookOpen size={14} className="inline mr-1.5 -mt-0.5" />
-                      Brochure del proyecto
+                      {t("general.landing.brochureLabel")}
                     </label>
                     {brochureUrl ? (
                       <div className="flex items-center gap-3 p-3 rounded-xl bg-[var(--surface-2)] border border-[var(--border-default)]">
@@ -466,7 +466,7 @@ export default function EditorGeneralPage() {
                           <BookOpen size={18} className="text-[var(--site-primary)]" />
                         </div>
                         <div className="flex-1 min-w-0">
-                          <p className="text-sm text-[var(--text-primary)] truncate">Brochure cargado</p>
+                          <p className="text-sm text-[var(--text-primary)] truncate">{t("general.landing.brochureLoaded")}</p>
                           <p className="text-[10px] text-[var(--text-tertiary)] truncate font-mono">{brochureUrl.split("/").pop()}</p>
                         </div>
                         <button
@@ -481,12 +481,12 @@ export default function EditorGeneralPage() {
                         currentUrl={null}
                         onUpload={(url) => { setBrochureUrl(url); scheduleAutoSave(); }}
                         folder={`proyectos/${projectId}/recursos`}
-                        label="Subir brochure (PDF)"
+                        label={t("general.landing.uploadBrochure")}
                         accept="application/pdf"
                         enablePaste={false}
                       />
                     )}
-                    <p className={fieldHint}>PDF del brochure que se mostrará en la sección Brochure del micrositio. Formato recomendado: 16:9 horizontal.</p>
+                    <p className={fieldHint}>{t("general.landing.brochureHint")}</p>
                   </div>
                 </div>
               </div>
@@ -542,11 +542,11 @@ export default function EditorGeneralPage() {
 
               {/* Theme mode toggle */}
               <div className="mb-6">
-                <label className={labelClass}>Modo del tema</label>
+                <label className={labelClass}>{t("general.design.themeMode")}</label>
                 <div className="flex gap-2 mt-1.5">
                   {([
-                    { value: "oscuro" as const, label: "Oscuro", Icon: Moon, bg: "#141414", text: "#f4f0e8" },
-                    { value: "claro" as const, label: "Claro", Icon: Sun, bg: "#faf9f7", text: "#141412" },
+                    { value: "oscuro" as const, label: t("general.design.dark"), Icon: Moon, bg: "#141414", text: "#f4f0e8" },
+                    { value: "claro" as const, label: t("general.design.light"), Icon: Sun, bg: "#faf9f7", text: "#141412" },
                   ]).map((opt) => (
                     <button
                       key={opt.value}
@@ -580,7 +580,7 @@ export default function EditorGeneralPage() {
                     </button>
                   ))}
                 </div>
-                <p className={fieldHint}>Define si el micrositio usa fondo oscuro o claro. Esto ajusta textos, bordes y efectos de vidrio automáticamente.</p>
+                <p className={fieldHint}>{t("general.design.themeModeHint")}</p>
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
@@ -627,8 +627,8 @@ export default function EditorGeneralPage() {
               <div>
                 <label className={labelClass}>{t("general.advanced.micrositeLanguage")}</label>
                 <select value={idioma} onChange={(e) => { setIdioma(e.target.value as "es" | "en"); scheduleAutoSave(); }} className={inputClass}>
-                  <option value="es">Espanol</option>
-                  <option value="en">English</option>
+                  <option value="es">{t("general.advanced.spanish")}</option>
+                  <option value="en">{t("general.advanced.english")}</option>
                 </select>
                 <p className={fieldHint}>{t("general.advanced.micrositeLanguageHint")}</p>
               </div>

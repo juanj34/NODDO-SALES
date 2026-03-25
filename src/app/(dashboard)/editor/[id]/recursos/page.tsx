@@ -112,7 +112,7 @@ export default function RecursosPage() {
           body: JSON.stringify(payload),
         });
         if (!res.ok) {
-          toast.error("Error al guardar recurso");
+          toast.error(t("recursos.saveError"));
           return;
         }
       } else {
@@ -122,14 +122,14 @@ export default function RecursosPage() {
           body: JSON.stringify({ ...payload, proyecto_id: projectId }),
         });
         if (!res.ok) {
-          toast.error("Error al crear recurso");
+          toast.error(t("recursos.createResourceError"));
           return;
         }
       }
       await refresh();
       cancel();
     } catch {
-      toast.error("Error de conexión");
+      toast.error(t("errors.connectionError"));
     } finally {
       setSaving(false);
     }
@@ -139,10 +139,10 @@ export default function RecursosPage() {
     if (!(await confirm({ title: t("recursos.deleteTitle"), message: t("recursos.deleteConfirm") }))) return;
     try {
       const res = await fetch(`/api/recursos/${id}`, { method: "DELETE" });
-      if (!res.ok) toast.error("Error al eliminar recurso");
+      if (!res.ok) toast.error(t("recursos.deleteResourceError"));
       await refresh();
     } catch {
-      toast.error("Error de conexión");
+      toast.error(t("errors.connectionError"));
     }
   });
 

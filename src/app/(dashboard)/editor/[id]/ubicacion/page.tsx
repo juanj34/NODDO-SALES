@@ -51,6 +51,18 @@ const CATEGORIAS = [
   "Deporte",
 ];
 
+// Map DB category values to translation keys for display
+const CATEGORIA_LABEL_KEYS: Record<string, string> = {
+  Comercio: "ubicacion.pois.categories.comercio",
+  Recreacion: "ubicacion.pois.categories.recreacion",
+  Salud: "ubicacion.pois.categories.salud",
+  Educacion: "ubicacion.pois.categories.educacion",
+  Transporte: "ubicacion.pois.categories.transporte",
+  Gastronomia: "ubicacion.pois.categories.gastronomia",
+  Cultura: "ubicacion.pois.categories.cultura",
+  Deporte: "ubicacion.pois.categories.deporte",
+};
+
 function haversineDistance(
   lat1: number,
   lng1: number,
@@ -269,7 +281,7 @@ export default function UbicacionPage() {
           body: JSON.stringify(payload),
         });
         if (!res.ok) {
-          toast.error("Error al guardar punto de interés");
+          toast.error(t("ubicacion.pois.savePOIError"));
           return;
         }
       } else {
@@ -279,7 +291,7 @@ export default function UbicacionPage() {
           body: JSON.stringify({ ...payload, proyecto_id: projectId }),
         });
         if (!res.ok) {
-          toast.error("Error al crear punto de interés");
+          toast.error(t("ubicacion.pois.createPOIError"));
           return;
         }
       }
@@ -292,7 +304,7 @@ export default function UbicacionPage() {
           toast.error(err.issues[0].message);
         }
       } else {
-        toast.error("Error de conexión");
+        toast.error(t("errors.connectionError"));
       }
     } finally {
       setPoiSaving(false);
@@ -300,13 +312,13 @@ export default function UbicacionPage() {
   };
 
   const deletePoiAction = useAsyncAction(async (id: string) => {
-    if (!(await confirm({ title: "Eliminar punto de interés", message: "¿Seguro que deseas eliminar este punto de interés?" }))) return;
+    if (!(await confirm({ title: t("ubicacion.pois.deletePOI"), message: t("ubicacion.pois.deleteConfirmMsg") }))) return;
     try {
       const res = await fetch(`/api/puntos-interes/${id}`, { method: "DELETE" });
-      if (!res.ok) toast.error("Error al eliminar punto de interés");
+      if (!res.ok) toast.error(t("ubicacion.pois.deletePOIError"));
       await refresh();
     } catch {
-      toast.error("Error de conexión");
+      toast.error(t("errors.connectionError"));
     }
   });
 
@@ -341,7 +353,7 @@ export default function UbicacionPage() {
         const data = await res.json();
         const newPois: DiscoveredPOI[] = data.pois || [];
         if (newPois.length === 0) {
-          toast.error("No se encontraron puntos de interés. Intenta otra categoría.");
+          toast.error(t("ubicacion.pois.noPOIsFound"));
           return;
         }
         // Deduplicate by nombre (case-insensitive)
@@ -367,13 +379,13 @@ export default function UbicacionPage() {
           else CATEGORIAS.forEach((c) => next.add(c));
           return next;
         });
-        toast.success(`${unique.length} punto(s) encontrado(s)`);
+        toast.success(t("ubicacion.pois.poisFound", { count: unique.length }));
       } else {
         const errData = await res.json().catch(() => null);
-        toast.error(errData?.error || "Error al buscar puntos de interés");
+        toast.error(errData?.error || t("ubicacion.pois.searchPOIError"));
       }
     } catch {
-      toast.error("Error de conexión al servicio de IA");
+      toast.error(t("errors.aiConnectionError"));
     } finally {
       setSearchingCategory(null);
     }
@@ -403,12 +415,12 @@ export default function UbicacionPage() {
         });
         if (!res.ok) failed++;
       }
-      if (failed > 0) toast.error(`Error al agregar ${failed} punto(s)`);
-      else toast.success(`${selected.length} punto(s) de interés agregado(s)`);
+      if (failed > 0) toast.error(t("ubicacion.pois.addPOIError", { count: failed }));
+      else toast.success(t("ubicacion.pois.addPOISuccess", { count: selected.length }));
       await refresh();
       setDiscoveryOpen(false);
     } catch {
-      toast.error("Error de conexión");
+      toast.error(t("errors.connectionError"));
     } finally {
       setAddingSaving(false);
     }
@@ -633,7 +645,7 @@ export default function UbicacionPage() {
                       : "bg-[var(--surface-2)] text-[var(--text-secondary)] hover:text-white"
                   }`}
                 >
-                  {cat}
+                  {t(CATEGORIA_LABEL_KEYS[cat] ?? cat)}
                 </button>
               ))}
             </div>
@@ -671,7 +683,7 @@ export default function UbicacionPage() {
                         size="md"
                         value={poiForm.categoria}
                         onChange={(val) => setPoiForm((p) => ({ ...p, categoria: val }))}
-                        options={CATEGORIAS.map((c) => ({ value: c, label: c }))}
+                        options={CATEGORIAS.map((c) => ({ value: c, label: t(CATEGORIA_LABEL_KEYS[c] ?? c) }))}
                       />
                     </div>
                   </div>
@@ -894,9 +906,9 @@ export default function UbicacionPage() {
                     <Sparkles size={16} className="text-[var(--site-primary)]" />
                   </div>
                   <div>
-                    <h3 className="text-sm font-medium">Descubrir Puntos de Interés</h3>
+                    <h3 className="text-sm font-medium">{t("ubicacion.pois.discoverPOIs")}</h3>
                     <p className="text-xs text-[var(--text-muted)]">
-                      Selecciona una categoría para buscar con IA
+                      {t("ubicacion.pois.discoverHint")}
                     </p>
                   </div>
                 </div>
@@ -929,7 +941,7 @@ export default function UbicacionPage() {
                     ) : (
                       <Sparkles size={12} />
                     )}
-                    Todas
+                    {t("ubicacion.pois.allCategories")}
                   </button>
                   {CATEGORIAS.map((cat) => {
                     const isSearching = searchingCategory === cat;
@@ -952,7 +964,7 @@ export default function UbicacionPage() {
                         ) : wasSearched ? (
                           <Check size={12} />
                         ) : null}
-                        {cat}
+                        {t(CATEGORIA_LABEL_KEYS[cat] ?? cat)}
                       </button>
                     );
                   })}
@@ -967,10 +979,10 @@ export default function UbicacionPage() {
                       <MapPin size={20} className="text-[var(--text-muted)]" />
                     </div>
                     <p className="text-sm text-[var(--text-secondary)] mb-1">
-                      Sin resultados aún
+                      {t("ubicacion.pois.noResults")}
                     </p>
                     <p className="text-xs text-[var(--text-muted)] max-w-xs">
-                      Haz clic en una categoría arriba para buscar puntos de interés cercanos con IA
+                      {t("ubicacion.pois.discoverHint2")}
                     </p>
                   </div>
                 ) : (
@@ -978,7 +990,7 @@ export default function UbicacionPage() {
                     {/* Select all / none */}
                     <div className="flex items-center justify-between px-2 py-1">
                       <span className="text-xs text-[var(--text-muted)]">
-                        {selectedDiscovered.size} de {discoveryResults.length} seleccionados
+                        {t("ubicacion.pois.selectedCount", { selected: selectedDiscovered.size, total: discoveryResults.length })}
                       </span>
                       <div className="flex items-center gap-2">
                         <button
@@ -989,14 +1001,14 @@ export default function UbicacionPage() {
                           }
                           className="text-xs text-[var(--site-primary)] hover:underline"
                         >
-                          Seleccionar todos
+                          {t("ubicacion.pois.selectAll")}
                         </button>
                         <span className="text-[var(--text-muted)]">·</span>
                         <button
                           onClick={() => setSelectedDiscovered(new Set())}
                           className="text-xs text-[var(--text-muted)] hover:text-white hover:underline"
                         >
-                          Ninguno
+                          {t("ubicacion.pois.selectNone")}
                         </button>
                       </div>
                     </div>
@@ -1008,7 +1020,7 @@ export default function UbicacionPage() {
                       <div key={cat}>
                         <div className="px-2 pt-3 pb-1">
                           <span className="text-[10px] font-bold uppercase tracking-widest text-[var(--text-muted)]">
-                            {cat}
+                            {t(CATEGORIA_LABEL_KEYS[cat] ?? cat)}
                           </span>
                         </div>
                         {discoveryResults
@@ -1064,7 +1076,7 @@ export default function UbicacionPage() {
               {discoveryResults.length > 0 && (
                 <div className="px-6 py-4 border-t border-[var(--border-subtle)] flex items-center justify-between">
                   <p className="text-xs text-[var(--text-muted)]">
-                    Puedes buscar más categorías antes de agregar
+                    {t("ubicacion.pois.discoverNote")}
                   </p>
                   <button
                     onClick={addDiscoveredPois}
@@ -1076,7 +1088,7 @@ export default function UbicacionPage() {
                     ) : (
                       <Check size={14} />
                     )}
-                    Agregar {selectedDiscovered.size} seleccionado{selectedDiscovered.size !== 1 ? "s" : ""}
+                    {t("ubicacion.pois.addSelected", { n: selectedDiscovered.size })}
                   </button>
                 </div>
               )}

@@ -16,7 +16,7 @@ import {
 } from "lucide-react";
 import { Reorder, useDragControls } from "framer-motion";
 import { calcularCotizacion } from "@/lib/cotizador/calcular";
-import type { CotizadorConfig, FaseConfig, DescuentoConfig, ResultadoCotizacion } from "@/types";
+import type { CotizadorConfig, FaseConfig, DescuentoConfig, ImpuestoConfig, ResultadoCotizacion } from "@/types";
 import { NodDoDropdown } from "@/components/ui/NodDoDropdown";
 import { InfoTooltip } from "@/components/ui/InfoTooltip";
 import { formatCurrency } from "@/lib/currency";
@@ -199,8 +199,6 @@ function FaseCard({
 export function CotizadorSandbox({ hidePdfOptions }: { hidePdfOptions?: boolean } = {}) {
   const { project, save } = useEditorProject();
 
-  const cotizadorEnabled = project.cotizador_enabled;
-
   // Local state for config editing
   const [config, setConfig] = useState<CotizadorConfig>(() => {
     return project.cotizador_config ?? DEFAULT_CONFIG;
@@ -235,7 +233,7 @@ export function CotizadorSandbox({ hidePdfOptions }: { hidePdfOptions?: boolean 
     setConfig(newConfig);
     if (saveTimerRef.current) clearTimeout(saveTimerRef.current);
     saveTimerRef.current = setTimeout(() => {
-      save({ cotizador_config: newConfig, cotizador_enabled: true });
+      save({ cotizador_config: newConfig });
     }, 1500);
   }, [save]);
 
@@ -289,39 +287,24 @@ export function CotizadorSandbox({ hidePdfOptions }: { hidePdfOptions?: boolean 
     saveConfig({ ...config, descuentos: config.descuentos.filter((d) => d.id !== id) });
   }, [config, saveConfig]);
 
-  // Toggle cotizador enabled/disabled
-  const handleToggleEnabled = useCallback(() => {
-    const newVal = !cotizadorEnabled;
-    save({ cotizador_enabled: newVal, ...(newVal && !project.cotizador_config ? { cotizador_config: config } : {}) });
-  }, [cotizadorEnabled, save, config, project.cotizador_config]);
+  // Impuesto handlers
+  const addImpuesto = useCallback(() => {
+    const newImp: ImpuestoConfig = { id: uid(), nombre: "", porcentaje: 0 };
+    saveConfig({ ...config, impuestos: [...(config.impuestos ?? []), newImp] });
+  }, [config, saveConfig]);
+
+  const updateImpuesto = useCallback((id: string, updated: ImpuestoConfig) => {
+    saveConfig({ ...config, impuestos: (config.impuestos ?? []).map((i) => i.id === id ? updated : i) });
+  }, [config, saveConfig]);
+
+  const removeImpuesto = useCallback((id: string) => {
+    saveConfig({ ...config, impuestos: (config.impuestos ?? []).filter((i) => i.id !== id) });
+  }, [config, saveConfig]);
 
   return (
     <div className={cn("grid grid-cols-1 lg:grid-cols-2", gap.spacious)}>
       {/* Left: Config */}
       <div className={cn("flex flex-col", gap.spacious)}>
-        {/* Enable toggle */}
-        <div className={cn("flex items-center justify-between p-4 bg-[var(--surface-1)] border border-[var(--border-subtle)]", radius.xl)}>
-          <div>
-            <p className={cn("text-white font-medium", fontSize.md)}>Cotizador</p>
-            <p className={cn("text-[var(--text-muted)]", fontSize.label)}>
-              {cotizadorEnabled ? "Activo — tus agentes pueden generar cotizaciones" : "Desactivado"}
-            </p>
-          </div>
-          <button
-            type="button"
-            onClick={handleToggleEnabled}
-            className={cn(
-              "relative w-11 h-6 rounded-full transition-colors",
-              cotizadorEnabled ? "bg-[var(--site-primary)]" : "bg-[var(--surface-3)]"
-            )}
-          >
-            <span className={cn(
-              "absolute top-0.5 left-0.5 w-5 h-5 rounded-full bg-white transition-transform",
-              cotizadorEnabled ? "translate-x-5" : "translate-x-0"
-            )} />
-          </button>
-        </div>
-
         {/* Basics row */}
         <div className={cn("grid grid-cols-2", gap.relaxed)}>
           <div>
@@ -480,6 +463,60 @@ export function CotizadorSandbox({ hidePdfOptions }: { hidePdfOptions?: boolean 
                       />
                     )}
                   </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Impuestos / Taxes */}
+        <div>
+          <div className="flex items-center justify-between mb-3">
+            <label className={labelClass}>Impuestos / Fees</label>
+            <button
+              onClick={addImpuesto}
+              className={cn("flex items-center text-[var(--site-primary)] hover:text-[var(--site-primary)]/80 transition-colors", gap.compact, fontSize.md)}
+            >
+              <Plus size={13} /> Agregar impuesto
+            </button>
+          </div>
+          <div className={cn("flex flex-col", gap.relaxed)}>
+            {(config.impuestos ?? []).length === 0 && (
+              <p className={cn("text-[var(--text-muted)] py-3", fontSize.md)}>Sin impuestos configurados (ej. DLD Fee 4%, Registration Tax 2%)</p>
+            )}
+            {(config.impuestos ?? []).map((imp) => (
+              <div
+                key={imp.id}
+                className={cn("bg-[var(--surface-2)] border border-[var(--border-subtle)] p-4", radius.xl)}
+              >
+                <div className={cn("grid grid-cols-1 sm:grid-cols-[1fr_100px_auto]", gap.relaxed, "items-end")}>
+                  <div>
+                    <label className={cn("block text-[var(--text-muted)] mb-1 uppercase", fontSize.label, letterSpacing.wider)}>Nombre</label>
+                    <input
+                      type="text"
+                      value={imp.nombre}
+                      onChange={(e) => updateImpuesto(imp.id, { ...imp, nombre: e.target.value })}
+                      className={cn(inputClass, fontSize.md)}
+                      placeholder="ej. DLD Fee, Registration Tax, VAT"
+                    />
+                  </div>
+                  <div>
+                    <label className={cn("block text-[var(--text-muted)] mb-1 uppercase", fontSize.label, letterSpacing.wider)}>%</label>
+                    <input
+                      type="number"
+                      value={imp.porcentaje || ""}
+                      onChange={(e) => updateImpuesto(imp.id, { ...imp, porcentaje: Number(e.target.value) })}
+                      className={cn("w-full bg-[var(--surface-3)] border border-[var(--border-default)] px-3 py-2 text-white focus:outline-none focus:border-[rgba(var(--site-primary-rgb),0.5)]", radius.lg, fontSize.md)}
+                      placeholder="4"
+                      step="0.1"
+                    />
+                  </div>
+                  <button
+                    onClick={() => removeImpuesto(imp.id)}
+                    className="p-2 text-[var(--text-muted)] hover:text-red-400 transition-colors"
+                  >
+                    <Trash2 size={13} />
+                  </button>
                 </div>
               </div>
             ))}
@@ -722,11 +759,30 @@ export function CotizadorSandbox({ hidePdfOptions }: { hidePdfOptions?: boolean 
                 ))}
               </div>
 
+              {/* Admin fee */}
+              {preview.admin_fee && preview.admin_fee > 0 && (
+                <div className="flex items-center justify-between py-2 border-b border-[var(--border-subtle)]">
+                  <p className={cn("text-[var(--text-secondary)]", fontSize.md)}>{preview.admin_fee_label || "Admin Fee"}</p>
+                  <p className={cn("text-[var(--text-secondary)]", fontSize.md)}>{formatCurrency(preview.admin_fee, moneda)}</p>
+                </div>
+              )}
+
+              {/* Taxes */}
+              {preview.impuestos_aplicados?.map((imp, i) => (
+                <div key={i} className="flex items-center justify-between py-2 border-b border-[var(--border-subtle)]">
+                  <p className={cn("text-[var(--text-secondary)]", fontSize.md)}>{imp.nombre} ({imp.porcentaje}%)</p>
+                  <p className={cn("text-[var(--text-secondary)]", fontSize.md)}>{formatCurrency(imp.monto, moneda)}</p>
+                </div>
+              ))}
+
               {/* Total */}
               <div className="flex items-center justify-between pt-3 border-t border-[var(--border-default)]">
                 <p className={cn("font-medium text-white", fontSize.md)}>Total</p>
                 <p className={cn("font-semibold text-[var(--site-primary)]", fontSize.md)}>
-                  {formatCurrency(preview.precio_neto, moneda)}
+                  {formatCurrency(
+                    preview.precio_neto + (preview.admin_fee ?? 0) + (preview.impuestos_total ?? 0),
+                    moneda,
+                  )}
                 </p>
               </div>
 

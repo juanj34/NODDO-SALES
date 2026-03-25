@@ -38,10 +38,8 @@ import {
   ArchiveRestore,
   HardDrive,
   Plus,
-  Webhook,
   Binoculars,
   Monitor,
-  Mail,
 } from "lucide-react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
@@ -51,6 +49,7 @@ import { useTranslation } from "@/i18n";
 import { useAuthRole } from "@/hooks/useAuthContext";
 import { useConfirm } from "@/components/dashboard/ConfirmModal";
 import { NodDoLogo } from "@/components/ui/NodDoLogo";
+import { LanguageToggle } from "@/components/ui/LanguageToggle";
 import { useMobileDrawer } from "@/hooks/useMobileDrawer";
 import { RouteProgressBar } from "@/components/ui/RouteProgressBar";
 import { TourUploadProvider, useTourUploadContext } from "@/contexts/TourUploadContext";
@@ -67,16 +66,16 @@ function formatBytes(bytes: number): string {
   return `${parseFloat((bytes / Math.pow(k, i)).toFixed(1))} ${sizes[i]}`;
 }
 
-function timeAgo(dateStr: string): string {
+function timeAgo(dateStr: string, t: (key: string, vars?: Record<string, string | number>) => string, locale: string): string {
   const seconds = Math.floor((Date.now() - new Date(dateStr).getTime()) / 1000);
-  if (seconds < 60) return "hace un momento";
+  if (seconds < 60) return t("layout.timeAgo.justNow");
   const minutes = Math.floor(seconds / 60);
-  if (minutes < 60) return `hace ${minutes}m`;
+  if (minutes < 60) return t("layout.timeAgo.minutesAgo", { n: minutes });
   const hours = Math.floor(minutes / 60);
-  if (hours < 24) return `hace ${hours}h`;
+  if (hours < 24) return t("layout.timeAgo.hoursAgo", { n: hours });
   const days = Math.floor(hours / 24);
-  if (days < 30) return `hace ${days}d`;
-  return new Date(dateStr).toLocaleDateString("es");
+  if (days < 30) return t("layout.timeAgo.daysAgo", { n: days });
+  return new Date(dateStr).toLocaleDateString(locale === "en" ? "en" : "es");
 }
 
 /* ------------------------------------------------------------------ */
@@ -134,14 +133,14 @@ function SafeBackLink({
 
 interface TabItem {
   id: string;
-  label: string;
+  labelKey: string;
   icon: typeof LayoutDashboard;
   href: string;
   badgeKey?: keyof BadgeCounts;
 }
 
 interface TabSection {
-  label: string;
+  labelKey: string;
   tabs: TabItem[];
 }
 
@@ -160,50 +159,41 @@ interface BadgeCounts {
 
 const editorSections: TabSection[] = [
   {
-    label: "Proyecto",
+    labelKey: "layout.sidebar.proyecto",
     tabs: [
-      { id: "general", label: "General", icon: LayoutDashboard, href: "" },
-      { id: "torres", label: "Torres", icon: Building2, href: "/torres", badgeKey: "torres" },
+      { id: "general", labelKey: "layout.sidebar.general", icon: LayoutDashboard, href: "" },
+      { id: "torres", labelKey: "layout.sidebar.torres", icon: Building2, href: "/torres", badgeKey: "torres" },
     ],
   },
   {
-    label: "Contenido",
+    labelKey: "layout.sidebar.contenido",
     tabs: [
-      { id: "tipologias", label: "Tipologias", icon: Layers, href: "/tipologias", badgeKey: "tipologias" },
-      { id: "inventario", label: "Inventario", icon: Package, href: "/inventario", badgeKey: "inventario" },
-      { id: "fachadas", label: "Noddo Grid", icon: Eye, href: "/fachadas" },
-      { id: "planos", label: "Implantaciones", icon: MapIcon, href: "/planos", badgeKey: "planos" },
-      { id: "galeria", label: "Galeria", icon: ImageIcon, href: "/galeria", badgeKey: "galeria" },
-      { id: "videos", label: "Videos", icon: Film, href: "/videos", badgeKey: "videos" },
-      { id: "tour", label: "Tour 360", icon: View, href: "/tour" },
-      { id: "ubicacion", label: "Ubicacion", icon: MapPin, href: "/ubicacion", badgeKey: "puntos_interes" },
-      { id: "vistas", label: "Vistas", icon: Binoculars, href: "/vistas", badgeKey: "vistas" },
-      { id: "recursos", label: "Recursos", icon: FileText, href: "/recursos", badgeKey: "recursos" },
-      { id: "avances", label: "Avances", icon: HardHat, href: "/avances", badgeKey: "avances" },
+      { id: "tipologias", labelKey: "layout.sidebar.tipologias", icon: Layers, href: "/tipologias", badgeKey: "tipologias" },
+      { id: "inventario", labelKey: "layout.sidebar.inventario", icon: Package, href: "/inventario", badgeKey: "inventario" },
+      { id: "fachadas", labelKey: "layout.sidebar.noddoGrid", icon: Eye, href: "/fachadas" },
+      { id: "planos", labelKey: "layout.sidebar.implantaciones", icon: MapIcon, href: "/planos", badgeKey: "planos" },
+      { id: "galeria", labelKey: "layout.sidebar.galeria", icon: ImageIcon, href: "/galeria", badgeKey: "galeria" },
+      { id: "videos", labelKey: "layout.sidebar.videos", icon: Film, href: "/videos", badgeKey: "videos" },
+      { id: "tour", labelKey: "layout.sidebar.tour360", icon: View, href: "/tour" },
+      { id: "ubicacion", labelKey: "layout.sidebar.ubicacion", icon: MapPin, href: "/ubicacion", badgeKey: "puntos_interes" },
+      { id: "vistas", labelKey: "layout.sidebar.vistas", icon: Binoculars, href: "/vistas", badgeKey: "vistas" },
+      { id: "recursos", labelKey: "layout.sidebar.recursos", icon: FileText, href: "/recursos", badgeKey: "recursos" },
+      { id: "avances", labelKey: "layout.sidebar.avances", icon: HardHat, href: "/avances", badgeKey: "avances" },
     ],
   },
   {
-    label: "Ajustes",
+    labelKey: "layout.sidebar.ajustes",
     tabs: [
-      { id: "config", label: "Configuracion", icon: Settings, href: "/config" },
-      { id: "visibilidad", label: "Visibilidad", icon: Eye, href: "/visibilidad" },
-      { id: "cotizador-settings", label: "Cotizador", icon: Calculator, href: "/cotizador-settings" },
-      { id: "correos", label: "Correos", icon: Mail, href: "/correos" },
-      { id: "dominio", label: "Dominio", icon: Globe, href: "/dominio" },
-      { id: "webhooks", label: "Webhooks", icon: Webhook, href: "/webhooks" },
+      { id: "config", labelKey: "layout.sidebar.configuracion", icon: Settings, href: "/config" },
+      { id: "cotizaciones", labelKey: "layout.sidebar.cotizaciones", icon: Calculator, href: "/cotizaciones" },
     ],
   },
   {
-    label: "Datos",
+    labelKey: "layout.sidebar.herramientas",
     tabs: [
-      { id: "estadisticas", label: "Estadisticas", icon: BarChart3, href: "/estadisticas" },
-    ],
-  },
-  {
-    label: "Herramientas",
-    tabs: [
-      { id: "disponibilidad", label: "Disponibilidad", icon: ToggleLeft, href: "/disponibilidad" },
-      { id: "cotizador", label: "Cotizador", icon: Calculator, href: "/cotizador" },
+      { id: "disponibilidad", labelKey: "layout.sidebar.disponibilidad", icon: ToggleLeft, href: "/disponibilidad" },
+      { id: "cotizador", labelKey: "layout.sidebar.cotizador", icon: Calculator, href: "/cotizador" },
+      { id: "estadisticas", labelKey: "layout.sidebar.estadisticas", icon: BarChart3, href: "/estadisticas" },
     ],
   },
 ];
@@ -240,7 +230,7 @@ export default function EditorLayout({
 
   const pathname = usePathname();
   const toast = useToast();
-  const { t } = useTranslation("editor");
+  const { t, locale } = useTranslation("editor");
   const { confirm } = useConfirm();
 
   const { role } = useAuthRole();
@@ -465,19 +455,19 @@ export default function EditorLayout({
   // Dynamic torres label based on project type and actual torre content
   const torresLabel = useMemo(() => {
     const tipoProyecto = project?.tipo_proyecto ?? "hibrido";
-    if (tipoProyecto === "apartamentos") return "Torres";
+    if (tipoProyecto === "apartamentos") return t("layout.sidebar.torres");
 
     const torres = project?.torres ?? [];
-    const hasTorre = torres.some((t) => (t.tipo ?? "torre") === "torre");
-    const hasUrbanismo = torres.some((t) => t.tipo === "urbanismo");
+    const hasTorre = torres.some((tr) => (tr.tipo ?? "torre") === "torre");
+    const hasUrbanismo = torres.some((tr) => tr.tipo === "urbanismo");
 
-    if (hasTorre && hasUrbanismo) return "Agrupaciones";
-    if (hasUrbanismo) return "Urbanismos";
+    if (hasTorre && hasUrbanismo) return t("torres.titleAgrupaciones");
+    if (hasUrbanismo) return t("torres.titleUrbanismos");
     if (hasTorre && (tipoProyecto === "casas" || tipoProyecto === "lotes")) return "Grid";
-    if (torres.length === 0) return tipoProyecto === "casas" || tipoProyecto === "lotes" ? "Grid" : "Torres";
+    if (torres.length === 0) return tipoProyecto === "casas" || tipoProyecto === "lotes" ? "Grid" : t("layout.sidebar.torres");
 
-    return "Torres";
-  }, [project?.tipo_proyecto, project?.torres]);
+    return t("layout.sidebar.torres");
+  }, [project?.tipo_proyecto, project?.torres, t]);
 
   const torresIcon = useMemo(() => {
     const tipoProyecto = project?.tipo_proyecto ?? "hibrido";
@@ -486,7 +476,7 @@ export default function EditorLayout({
 
     // Casas e Híbrido: dynamic based on actual content
     const torres = project?.torres ?? [];
-    const allTorre = torres.length > 0 && torres.every((t) => (t.tipo ?? "torre") === "torre");
+    const allTorre = torres.length > 0 && torres.every((tr) => (tr.tipo ?? "torre") === "torre");
     return allTorre ? Building2 : Home;
   }, [project?.tipo_proyecto, project?.torres]);
 
@@ -643,16 +633,16 @@ export default function EditorLayout({
           {/* Grouped navigation */}
           <nav className="flex-1 overflow-y-auto py-1">
             {filteredSections.map((section) => (
-              <div key={section.label}>
+              <div key={section.labelKey}>
                 <p className="font-ui text-[9px] uppercase tracking-wider text-[var(--text-muted)] px-4 pt-2.5 pb-1 font-bold select-none">
-                  {section.label}
+                  {t(section.labelKey)}
                 </p>
                 <div className="px-2.5 space-y-px">
                   {section.tabs.map((tab) => {
                     const isActive = activeTab === tab.id;
                     const count = tab.badgeKey && badgeCounts ? badgeCounts[tab.badgeKey] : null;
                     const TabIcon = tab.id === "torres" ? torresIcon : tab.icon;
-                    const tabLabel = tab.id === "torres" ? torresLabel : tab.label;
+                    const tabLabel = tab.id === "torres" ? torresLabel : t(tab.labelKey);
 
                     return (
                       <Link
@@ -719,6 +709,11 @@ export default function EditorLayout({
             </div>
           )}
 
+          {/* Language toggle */}
+          <div className="px-4 py-1.5 flex items-center justify-center border-t border-[var(--border-subtle)]">
+            <LanguageToggle />
+          </div>
+
           {/* Help link — opens in new tab with contextual hash */}
           <div className="px-2.5 pt-1.5 pb-1 border-t border-[var(--border-subtle)]">
             <a
@@ -752,7 +747,7 @@ export default function EditorLayout({
                   className="flex items-center justify-center gap-2 w-full px-3 py-2 bg-blue-500/10 border border-blue-500/30 rounded-lg font-ui text-[10px] font-bold uppercase tracking-[0.1em] text-blue-400 hover:text-blue-300 hover:border-blue-500/50 hover:bg-blue-500/20 transition-all"
                 >
                   <Monitor size={13} />
-                  Ver en Localhost
+                  {t("layout.viewLocalhost")}
                 </Link>
               ) : (
                 <a
@@ -840,7 +835,7 @@ export default function EditorLayout({
                     </span>
                     {lastPublished && publishStatus === "publicado" && (
                       <span className="text-[10px] text-[var(--text-muted)] hidden sm:inline">
-                        {timeAgo(lastPublished)}
+                        {timeAgo(lastPublished, t, locale)}
                       </span>
                     )}
                   </div>
@@ -919,7 +914,7 @@ export default function EditorLayout({
                                   v{v.version_number}
                                 </div>
                                 <span className="text-xs text-[var(--text-secondary)]">
-                                  {timeAgo(v.published_at)}
+                                  {timeAgo(v.published_at, t, locale)}
                                 </span>
                               </div>
                               {confirmRestoreId === v.id ? (
@@ -1071,7 +1066,7 @@ export default function EditorLayout({
                         {/* No custom domain hint */}
                         {!project.custom_domain && (
                           <Link
-                            href={`/editor/${id}/dominio`}
+                            href={`/editor/${id}/config?tab=dominio`}
                             onClick={() => setShowPublishDropdown(false)}
                             className="flex items-center gap-3 p-2.5 rounded-lg border border-dashed border-[var(--border-subtle)] hover:border-[var(--border-default)] transition-colors"
                           >

@@ -82,7 +82,7 @@ function AvanceCard({
           }`}
         >
           {isPublished ? <Eye size={10} /> : <EyeOff size={10} />}
-          {isPublished ? "Publicado" : "Borrador"}
+          {isPublished ? t("avances.published") : t("avances.draft")}
         </button>
         {/* Video badge */}
         {avance.video_url && (
@@ -201,7 +201,7 @@ export default function AvancesPage() {
           body: JSON.stringify(payload),
         });
         if (!res.ok) {
-          toast.error("Error al guardar avance");
+          toast.error(t("avances.saveError"));
           return;
         }
       } else {
@@ -211,14 +211,14 @@ export default function AvancesPage() {
           body: JSON.stringify({ ...payload, proyecto_id: projectId }),
         });
         if (!res.ok) {
-          toast.error("Error al crear avance");
+          toast.error(t("avances.createAvanceError"));
           return;
         }
       }
       await refresh();
       cancel();
     } catch {
-      toast.error("Error de conexión");
+      toast.error(t("errors.connectionError"));
     } finally {
       setSaving(false);
     }
@@ -234,10 +234,10 @@ export default function AvancesPage() {
       return;
     try {
       const res = await fetch(`/api/avances-obra/${id}`, { method: "DELETE" });
-      if (!res.ok) toast.error("Error al eliminar");
+      if (!res.ok) toast.error(t("avances.deleteAvanceError"));
       await refresh();
     } catch {
-      toast.error("Error de conexión");
+      toast.error(t("errors.connectionError"));
     }
   };
 
@@ -250,10 +250,10 @@ export default function AvancesPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ estado: newEstado }),
       });
-      if (!res.ok) toast.error("Error al cambiar estado");
+      if (!res.ok) toast.error(t("avances.changeStatusError"));
       await refresh();
     } catch {
-      toast.error("Error de conexión");
+      toast.error(t("errors.connectionError"));
     }
   };
 
@@ -324,7 +324,7 @@ export default function AvancesPage() {
 
               {/* Estado toggle */}
               <div>
-                <label className={labelClass}>Estado</label>
+                <label className={labelClass}>{t("avances.statusField")}</label>
                 <div className="flex items-center gap-1 p-1 bg-[var(--surface-3)] rounded-lg w-fit">
                   <button
                     type="button"
@@ -338,7 +338,7 @@ export default function AvancesPage() {
                     }`}
                   >
                     <EyeOff size={12} />
-                    Borrador
+                    {t("avances.draft")}
                   </button>
                   <button
                     type="button"
@@ -352,7 +352,7 @@ export default function AvancesPage() {
                     }`}
                   >
                     <Eye size={12} />
-                    Publicado
+                    {t("avances.published")}
                   </button>
                 </div>
               </div>

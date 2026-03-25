@@ -22,6 +22,8 @@ import {
   Info,
   CreditCard,
   BookOpen,
+  Lock,
+  Shield,
 } from "lucide-react";
 import { useTranslation } from "@/i18n";
 import { LanguageToggle } from "@/components/ui/LanguageToggle";
@@ -29,6 +31,8 @@ import { AudioMuteButton } from "@/components/site/AudioPlayer";
 import { CurrencySelector } from "@/components/site/CurrencySelector";
 import { UnitToggle } from "@/components/site/UnitToggle";
 import { isSectionVisible, ROUTE_TO_SECTION } from "@/lib/secciones-visibles";
+import { useAgentMode } from "@/hooks/useAgentMode";
+import { AgentLoginModal } from "@/components/site/AgentLoginModal";
 import type { SeccionesVisibles } from "@/types";
 
 
@@ -57,6 +61,8 @@ export function SiteNav({ basePath, projectName, logoUrl, faviconUrl, constructo
   const [hoveredItem, setHoveredItem] = useState<string | null>(null);
   const [showDisclaimer, setShowDisclaimer] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
+  const [showAgentLogin, setShowAgentLogin] = useState(false);
+  const { isAgentMode, agentUser, logout, loading: agentLoading } = useAgentMode();
   const { t: tNav } = useTranslation("nav");
   const { t: tCommon } = useTranslation("common");
 
@@ -332,6 +338,50 @@ export function SiteNav({ basePath, projectName, logoUrl, faviconUrl, constructo
                         </label>
                         <AudioMuteButton size={14} />
                       </div>
+
+                      {/* Agent mode */}
+                      {!agentLoading && (
+                        <>
+                          <div className="h-px bg-[var(--border-subtle)]" />
+                          {isAgentMode ? (
+                            <div className="space-y-1.5">
+                              <div className="flex items-center gap-1.5">
+                                <Shield size={10} className="text-[var(--site-primary)]" />
+                                <span className="text-[8px] font-ui uppercase tracking-[0.12em] text-[var(--site-primary)]">
+                                  Modo Agente
+                                </span>
+                              </div>
+                              <p className="text-[10px] font-mono text-[var(--text-tertiary)] truncate">
+                                {agentUser?.nombre || agentUser?.email}
+                              </p>
+                              <button
+                                type="button"
+                                onClick={async () => {
+                                  setShowSettings(false);
+                                  await logout();
+                                }}
+                                className="w-full text-[9px] font-ui uppercase tracking-[0.1em] text-white/50 hover:text-white py-1 transition-colors cursor-pointer"
+                              >
+                                Cerrar sesión
+                              </button>
+                            </div>
+                          ) : (
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setShowSettings(false);
+                                setShowAgentLogin(true);
+                              }}
+                              className="flex items-center gap-2 w-full py-1 text-[var(--text-muted)] hover:text-[var(--text-secondary)] transition-colors cursor-pointer"
+                            >
+                              <Lock size={11} />
+                              <span className="text-[8px] font-ui uppercase tracking-[0.12em]">
+                                Agente
+                              </span>
+                            </button>
+                          )}
+                        </>
+                      )}
                     </div>
                   </motion.div>
                 )}
@@ -459,6 +509,12 @@ export function SiteNav({ basePath, projectName, logoUrl, faviconUrl, constructo
           </motion.div>
         )}
       </AnimatePresence>
+
+      {/* Agent login modal */}
+      <AgentLoginModal
+        open={showAgentLogin}
+        onClose={() => setShowAgentLogin(false)}
+      />
     </>
   );
 }

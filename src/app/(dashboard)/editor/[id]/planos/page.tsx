@@ -187,7 +187,7 @@ export default function PlanoInteractivoPage() {
   const handleSaveNombre = async (planoId: string, nombre: string) => {
     const trimmed = nombre.trim();
     if (!trimmed) {
-      toast.error("El nombre no puede estar vacío");
+      toast.error(t("planos.nameRequired"));
       return;
     }
     setPlanos((prev) =>
@@ -200,7 +200,7 @@ export default function PlanoInteractivoPage() {
       body: JSON.stringify({ nombre: trimmed }),
     });
     await refresh();
-    toast.success("Nombre actualizado");
+    toast.success(t("planos.nameUpdated"));
   };
 
   /* ------------------------------------------------------------------
@@ -235,9 +235,9 @@ export default function PlanoInteractivoPage() {
       });
       if (res.ok) {
         await refresh();
-        toast.success("Plano actualizado");
+        toast.success(t("planos.updated"));
       } else {
-        const err = await res.json().catch(() => ({ error: "Error desconocido" }));
+        const err = await res.json().catch(() => ({ error: t("errors.unknown") }));
         toast.error(err.error || `Error ${res.status}`);
       }
     },
@@ -269,7 +269,7 @@ export default function PlanoInteractivoPage() {
         setPuntos((prev) => [...prev, created]);
         await refresh();
       } else {
-        const err = await res.json().catch(() => ({ error: "Error desconocido" }));
+        const err = await res.json().catch(() => ({ error: t("errors.unknown") }));
         toast.error(err.error || `Error ${res.status}`);
       }
     },
@@ -290,7 +290,7 @@ export default function PlanoInteractivoPage() {
         body: JSON.stringify(data),
       });
       if (!res.ok) {
-        const err = await res.json().catch(() => ({ error: "Error desconocido" }));
+        const err = await res.json().catch(() => ({ error: t("errors.unknown") }));
         toast.error(err.error || `Error ${res.status}`);
       }
       await refresh();
@@ -492,13 +492,13 @@ export default function PlanoInteractivoPage() {
                     {[
                       {
                         id: "info" as const,
-                        label: "Información",
+                        label: t("planos.tabs.info"),
                         icon: Map,
                         count: selectedPlano.amenidades_data?.length ?? 0,
                       },
                       {
                         id: "hotspots" as const,
-                        label: "Puntos",
+                        label: t("planos.tabs.hotspots"),
                         icon: MapPin,
                         count: selectedPuntos.length,
                       },
@@ -549,7 +549,7 @@ export default function PlanoInteractivoPage() {
                           {/* Title */}
                           <div className="px-5 py-4">
                             <p className="font-ui text-[10px] text-[var(--text-muted)] tracking-[.12em] uppercase font-bold mb-2.5">
-                              Título
+                              {t("planos.infoLabels.title")}
                             </p>
                             {editingNombre ? (
                               <div className="flex items-center gap-2">
@@ -600,7 +600,7 @@ export default function PlanoInteractivoPage() {
                           {/* Description */}
                           <div className="px-5 py-4">
                             <p className="font-ui text-[10px] text-[var(--text-muted)] tracking-[.12em] uppercase font-bold mb-2.5">
-                              Descripción
+                              {t("planos.infoLabels.description")}
                             </p>
                             {editingDescripcion ? (
                               <div className="flex items-start gap-2">
@@ -646,7 +646,7 @@ export default function PlanoInteractivoPage() {
                           {/* Amenidades */}
                           <div className="px-5 py-4">
                             <p className="font-ui text-[10px] text-[var(--text-muted)] tracking-[.12em] uppercase font-bold mb-3">
-                              Amenidades
+                              {t("planos.infoLabels.amenidades")}
                             </p>
                             <AmenidadesEditor
                               entity={selectedPlano}

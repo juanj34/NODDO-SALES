@@ -978,6 +978,21 @@ function drawOfferPage(doc: jsPDF, data: PDFData, accent: RGB, accentLight: RGB,
     }
   }
 
+  // Taxes / Impuestos
+  if (data.resultado.impuestos_aplicados && data.resultado.impuestos_aplicados.length > 0) {
+    y += 1;
+    for (const imp of data.resultado.impuestos_aplicados) {
+      doc.setFontSize(8.5);
+      doc.setFont(FONT.BODY, "normal");
+      doc.setTextColor(theme.textSecondary[0], theme.textSecondary[1], theme.textSecondary[2]);
+      doc.text(`${imp.nombre} (${imp.porcentaje}%)`, colDesc, y);
+      doc.setFont(FONT.MONO, "normal");
+      doc.setTextColor(theme.text[0], theme.text[1], theme.text[2]);
+      doc.text(formatCurrency(imp.monto, moneda), colAmt, y, { align: "right" });
+      y += 7;
+    }
+  }
+
   y += 6;
 
   // ── Notes / disclaimers ──

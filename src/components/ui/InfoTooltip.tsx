@@ -188,13 +188,13 @@ export function InfoTooltip({
     const handleClickOutside = (e: MouseEvent) => {
       if (
         isOpen &&
-        !isPinned &&
         tooltipRef.current &&
         !tooltipRef.current.contains(e.target as Node) &&
         triggerRef.current &&
         !triggerRef.current.contains(e.target as Node)
       ) {
         setIsOpen(false);
+        setIsPinned(false);
       }
     };
 

@@ -160,9 +160,9 @@ export default function GaleriaPage() {
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ ids }),
         });
-        if (!res.ok) toast.error("Error al reordenar categorías");
+        if (!res.ok) toast.error(t("galeria.reorderError"));
       } catch {
-        toast.error("Error de conexión");
+        toast.error(t("errors.connectionError"));
       }
     }, 300);
   };
@@ -208,10 +208,10 @@ export default function GaleriaPage() {
     if (!cat) return;
     const nImages = cat.imagenes?.length ?? 0;
     if (!(await confirm({
-      title: "Eliminar categoría",
-      message: "Se eliminarán permanentemente todas las imágenes de esta categoría.",
+      title: t("galeria.deleteCategory"),
+      message: t("galeria.deleteCategoryConfirm"),
       description: cat.nombre,
-      details: nImages > 0 ? `${nImages} imágenes serán eliminadas permanentemente` : undefined,
+      details: nImages > 0 ? t("galeria.deleteImageCount", { count: nImages }) : undefined,
       typeToConfirm: cat.nombre,
     }))) return;
     const deletedId = selectedCatId;
@@ -220,10 +220,10 @@ export default function GaleriaPage() {
     setSelectedCatId(null);
     fetch(`/api/galeria/categorias/${deletedId}`, { method: "DELETE" })
       .then((res) => {
-        if (!res.ok) toast.error("Error al eliminar categoría");
+        if (!res.ok) toast.error(t("galeria.deleteCategoryError"));
         refresh().catch(() => {});
       })
-      .catch(() => toast.error("Error de conexión"));
+      .catch(() => toast.error(t("errors.connectionError")));
   });
 
   const deleteImage = (imgId: string) => {
@@ -231,10 +231,10 @@ export default function GaleriaPage() {
     setLocalImages((prev) => prev.filter((i) => i.id !== imgId));
     fetch(`/api/galeria/imagenes/${imgId}`, { method: "DELETE" })
       .then((res) => {
-        if (!res.ok) toast.error("Error al eliminar imagen");
+        if (!res.ok) toast.error(t("galeria.deleteImageError"));
         refresh().catch(() => {});
       })
-      .catch(() => toast.error("Error de conexión"));
+      .catch(() => toast.error(t("errors.connectionError")));
   };
 
   /* ── Image reorder (HTML5 drag-and-drop for grid) ── */
@@ -277,11 +277,11 @@ export default function GaleriaPage() {
       body: JSON.stringify({ ids: reordered.map((img) => img.id) }),
     })
       .then((res) => {
-        if (!res.ok) toast.error("Error al reordenar");
+        if (!res.ok) toast.error(t("galeria.reorderError"));
         refresh().catch(() => {});
       })
-      .catch(() => toast.error("Error de conexión"));
-  }, [draggedIdx, localImages, refresh, toast]);
+      .catch(() => toast.error(t("errors.connectionError")));
+  }, [draggedIdx, localImages, refresh, toast, t]);
 
   const handleImageDragEnd = useCallback(() => {
     setDraggedIdx(null);
@@ -318,10 +318,10 @@ export default function GaleriaPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ alt_text: newTitle }),
       });
-      if (!res.ok) toast.error("Error al guardar título");
+      if (!res.ok) toast.error(t("galeria.saveTitleError"));
       refresh().catch(() => {});
     } catch {
-      toast.error("Error de conexión");
+      toast.error(t("errors.connectionError"));
     }
   }, [editingTitleId, titleValue, localImages, refresh, toast]);
 
@@ -554,7 +554,7 @@ export default function GaleriaPage() {
                               if (e.key === "Escape") setEditingTitleId(null);
                             }}
                             onClick={(e) => e.stopPropagation()}
-                            placeholder="Título de imagen..."
+                            placeholder={t("galeria.imageTitlePlaceholder")}
                             className="w-full bg-transparent text-[10px] text-white placeholder:text-white/30 border-b border-white/30 focus:border-[var(--site-primary)] outline-none pb-0.5"
                           />
                         ) : (
@@ -567,7 +567,7 @@ export default function GaleriaPage() {
                             ) : (
                               <span className="text-[10px] text-white/25 opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-1">
                                 <Type size={8} />
-                                Añadir título
+                                {t("galeria.addTitle")}
                               </span>
                             )}
                           </button>

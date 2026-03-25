@@ -37,6 +37,7 @@ import { getVideoSrc, getVideoThumb } from "@/lib/video-utils";
 import { SiteEmptyState } from "@/components/site/SiteEmptyState";
 import VistaModal from "@/components/site/VistaModal";
 import { getInventoryColumns, getHybridInventoryColumns, resolveColumnsForTipologia, getPrimaryArea } from "@/lib/inventory-columns";
+import { getTipologiaFields } from "@/lib/tipologia-fields";
 import { resolveHotspotImages } from "@/lib/hotspot-utils";
 import { resolvePisos } from "@/lib/piso-utils";
 import { formatCurrency } from "@/lib/currency";
@@ -260,6 +261,11 @@ export default function TipologiasPage() {
       (proyecto as any).inventory_columns_microsite_by_type ?? proyecto.inventory_columns_by_type,
     );
   }, [active?.tipo_tipologia, proyecto.tipo_proyecto, proyecto.inventory_columns, proyecto.inventory_columns_by_type]);
+
+  const tipFields = useMemo(() =>
+    getTipologiaFields(proyecto.tipo_proyecto ?? "hibrido", (proyecto as any).tipologia_fields),
+    [proyecto.tipo_proyecto, (proyecto as any).tipologia_fields]
+  );
 
   // Tipologías available for the selected unit (for multi-tipo banner comparison)
   const unitAvailableTipos = useMemo(() => {
@@ -1063,13 +1069,13 @@ export default function TipologiasPage() {
                 {/* Area rows */}
                 {(() => {
                   const areaFields: Array<{ label: string; value: number }> = [];
-                  if (columns.area_m2 && active.area_m2 != null) areaFields.push({ label: tSite("tipologias.internalArea"), value: active.area_m2 });
-                  if (columns.area_m2 && active.area_balcon != null && active.area_balcon > 0) areaFields.push({ label: tSite("tipologias.balcony"), value: active.area_balcon });
-                  if (columns.area_construida && active.area_construida != null) areaFields.push({ label: tSite("tipologias.areaConstruida"), value: active.area_construida });
-                  if (columns.area_privada && active.area_privada != null) areaFields.push({ label: tSite("tipologias.areaPrivada"), value: active.area_privada });
-                  if (columns.area_lote && active.area_lote != null) areaFields.push({ label: tSite("tipologias.areaLote"), value: active.area_lote });
-                  const showTotal = columns.area_m2 && active.area_m2 != null && active.area_balcon != null && active.area_balcon > 0
-                    && !columns.area_construida && !columns.area_privada && !columns.area_lote;
+                  if (tipFields.area_m2 && active.area_m2 != null) areaFields.push({ label: tSite("tipologias.internalArea"), value: active.area_m2 });
+                  if (tipFields.area_balcon && active.area_balcon != null && active.area_balcon > 0) areaFields.push({ label: tSite("tipologias.balcony"), value: active.area_balcon });
+                  if (tipFields.area_construida && active.area_construida != null) areaFields.push({ label: tSite("tipologias.areaConstruida"), value: active.area_construida });
+                  if (tipFields.area_privada && active.area_privada != null) areaFields.push({ label: tSite("tipologias.areaPrivada"), value: active.area_privada });
+                  if (tipFields.area_lote && active.area_lote != null) areaFields.push({ label: tSite("tipologias.areaLote"), value: active.area_lote });
+                  const showTotal = tipFields.area_m2 && active.area_m2 != null && tipFields.area_balcon && active.area_balcon != null && active.area_balcon > 0
+                    && !tipFields.area_construida && !tipFields.area_privada && !tipFields.area_lote;
                   const totalArea = showTotal ? (active.area_m2 || 0) + (active.area_balcon || 0) : null;
 
                   if (areaFields.length === 0) return null;
@@ -1101,9 +1107,9 @@ export default function TipologiasPage() {
                 })()}
 
                 {/* Quick stats row */}
-                {(((columns.habitaciones !== false) && active.habitaciones != null) || ((columns.banos !== false) && active.banos != null) || active.parqueaderos != null || (active.depositos ?? 0) > 0) && (
+                {((tipFields.habitaciones && active.habitaciones != null) || (tipFields.banos && active.banos != null) || (tipFields.parqueaderos && active.parqueaderos != null) || (tipFields.depositos && (active.depositos ?? 0) > 0)) && (
                   <div className="flex items-center gap-3 flex-wrap">
-                    {columns.habitaciones !== false && active.habitaciones != null && (
+                    {tipFields.habitaciones && active.habitaciones != null && (
                       <div className="flex items-center gap-1.5">
                         <BedDouble size={13} className="text-[var(--site-primary)]" strokeWidth={2.5} />
                         <span className="font-mono text-xs text-[var(--text-primary)] tabular-nums">
@@ -1111,7 +1117,7 @@ export default function TipologiasPage() {
                         </span>
                       </div>
                     )}
-                    {columns.banos !== false && active.banos != null && (
+                    {tipFields.banos && active.banos != null && (
                       <div className="flex items-center gap-1.5">
                         <Bath size={13} className="text-[var(--site-primary)]" strokeWidth={2.5} />
                         <span className="font-mono text-xs text-[var(--text-primary)] tabular-nums">
@@ -1119,7 +1125,7 @@ export default function TipologiasPage() {
                         </span>
                       </div>
                     )}
-                    {active.parqueaderos != null && (
+                    {tipFields.parqueaderos && active.parqueaderos != null && (
                       <div className="flex items-center gap-1.5">
                         <Car size={13} className="text-[var(--site-primary)]" strokeWidth={2.5} />
                         <span className="font-mono text-xs text-[var(--text-primary)] tabular-nums">
@@ -1127,7 +1133,7 @@ export default function TipologiasPage() {
                         </span>
                       </div>
                     )}
-                    {(active.depositos ?? 0) > 0 && (
+                    {tipFields.depositos && (active.depositos ?? 0) > 0 && (
                       <div className="flex items-center gap-1.5">
                         <Archive size={13} className="text-[var(--site-primary)]" strokeWidth={2.5} />
                         <span className="font-mono text-xs text-[var(--text-primary)] tabular-nums">
@@ -1136,18 +1142,18 @@ export default function TipologiasPage() {
                       </div>
                     )}
                     {([
-                      { field: "tiene_jacuzzi" as const, icon: Bath, labelKey: "tipologias.jacuzzi" },
-                      { field: "tiene_piscina" as const, icon: Waves, labelKey: "tipologias.piscina" },
-                      { field: "tiene_bbq" as const, icon: UtensilsCrossed, labelKey: "tipologias.bbq" },
-                      { field: "tiene_terraza" as const, icon: Sun, labelKey: "tipologias.terraza" },
-                      { field: "tiene_jardin" as const, icon: TreePine, labelKey: "tipologias.jardin" },
-                      { field: "tiene_cuarto_servicio" as const, icon: DoorClosed, labelKey: "tipologias.cuartoServicio" },
-                      { field: "tiene_estudio" as const, icon: BookOpen, labelKey: "tipologias.estudio" },
-                      { field: "tiene_chimenea" as const, icon: Flame, labelKey: "tipologias.chimenea" },
-                      { field: "tiene_doble_altura" as const, icon: MoveVertical, labelKey: "tipologias.dobleAltura" },
-                      { field: "tiene_rooftop" as const, icon: CloudSun, labelKey: "tipologias.rooftop" },
-                    ] as const).map(({ field, icon: Icon, labelKey }) => (
-                      active[field] && (
+                      { field: "tiene_jacuzzi" as const, projectFlag: "habilitar_extra_jacuzzi" as const, icon: Bath, labelKey: "tipologias.jacuzzi" },
+                      { field: "tiene_piscina" as const, projectFlag: "habilitar_extra_piscina" as const, icon: Waves, labelKey: "tipologias.piscina" },
+                      { field: "tiene_bbq" as const, projectFlag: "habilitar_extra_bbq" as const, icon: UtensilsCrossed, labelKey: "tipologias.bbq" },
+                      { field: "tiene_terraza" as const, projectFlag: "habilitar_extra_terraza" as const, icon: Sun, labelKey: "tipologias.terraza" },
+                      { field: "tiene_jardin" as const, projectFlag: "habilitar_extra_jardin" as const, icon: TreePine, labelKey: "tipologias.jardin" },
+                      { field: "tiene_cuarto_servicio" as const, projectFlag: "habilitar_extra_cuarto_servicio" as const, icon: DoorClosed, labelKey: "tipologias.cuartoServicio" },
+                      { field: "tiene_estudio" as const, projectFlag: "habilitar_extra_estudio" as const, icon: BookOpen, labelKey: "tipologias.estudio" },
+                      { field: "tiene_chimenea" as const, projectFlag: "habilitar_extra_chimenea" as const, icon: Flame, labelKey: "tipologias.chimenea" },
+                      { field: "tiene_doble_altura" as const, projectFlag: "habilitar_extra_doble_altura" as const, icon: MoveVertical, labelKey: "tipologias.dobleAltura" },
+                      { field: "tiene_rooftop" as const, projectFlag: "habilitar_extra_rooftop" as const, icon: CloudSun, labelKey: "tipologias.rooftop" },
+                    ] as const).map(({ field, projectFlag, icon: Icon, labelKey }) => (
+                      proyecto[projectFlag] && active[field] && (
                         <div key={field} className="flex items-center gap-1.5">
                           <Icon size={13} className="text-[var(--site-primary)]" strokeWidth={2.5} />
                           <span className="font-mono text-xs text-[var(--text-primary)]">
@@ -1160,7 +1166,7 @@ export default function TipologiasPage() {
                 )}
 
                 {/* Price */}
-                {columns.precio && precioDesde && (
+                {tipFields.precio && precioDesde && (
                   <div className="flex items-center justify-between gap-4">
                     <span className="font-ui text-[9px] font-bold tracking-[0.15em] text-[var(--site-primary)] uppercase">
                       {tSite("tipologias.from")}

@@ -119,13 +119,13 @@ function DraggableVideo({
         {/* Stream badge */}
         {video.stream_uid && video.stream_status === "ready" && (
           <div className="absolute top-1 left-1 px-1.5 py-0.5 rounded bg-[var(--site-primary)]/20 text-[9px] text-[var(--site-primary)]">
-            Stream
+            {t("videos.streamBadge")}
           </div>
         )}
       </div>
       <div className="flex-1 min-w-0">
         <h3 className="text-sm font-medium text-white">
-          {video.titulo || "Sin titulo"}
+          {video.titulo || t("videos.untitled")}
         </h3>
         <p className="text-xs text-[var(--text-tertiary)] truncate mt-0.5">
           {video.stream_uid
@@ -221,9 +221,9 @@ export default function VideosPage() {
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ ids }),
         });
-        if (!res.ok) toast.error("Error al reordenar");
+        if (!res.ok) toast.error(t("videos.reorderError"));
       } catch {
-        toast.error("Error de conexión");
+        toast.error(t("errors.connectionError"));
       }
     }, 300);
   };
@@ -264,7 +264,7 @@ export default function VideosPage() {
         });
         if (!res.ok) {
           const err = await res.json().catch(() => null);
-          toast.error(err?.error || "Error al guardar video");
+          toast.error(err?.error || t("videos.saveError"));
           return;
         }
         const updated: Video = await res.json();
@@ -277,7 +277,7 @@ export default function VideosPage() {
         });
         if (!res.ok) {
           const err = await res.json().catch(() => null);
-          toast.error(err?.error || "Error al crear video");
+          toast.error(err?.error || t("videos.createError"));
           return;
         }
         const created: Video = await res.json();
@@ -287,7 +287,7 @@ export default function VideosPage() {
       // Background refresh to sync full project state (non-blocking)
       refresh().catch(() => {});
     } catch {
-      toast.error("Error de conexión");
+      toast.error(t("errors.connectionError"));
     } finally {
       setSaving(false);
     }
@@ -310,15 +310,15 @@ export default function VideosPage() {
     const msg = video?.stream_uid
       ? t("videos.deleteStreamConfirm")
       : "¿Seguro que deseas eliminar este video?";
-    if (!(await confirm({ title: "Eliminar video", message: msg }))) return;
+    if (!(await confirm({ title: t("videos.deleteTitle"), message: msg }))) return;
     // Optimistic: remove from local state immediately
     setOrderedVideos((prev) => prev.filter((v) => v.id !== videoId));
     fetch(`/api/videos/${videoId}`, { method: "DELETE" })
       .then((res) => {
-        if (!res.ok) toast.error("Error al eliminar video");
+        if (!res.ok) toast.error(t("videos.deleteError"));
         refresh().catch(() => {});
       })
-      .catch(() => toast.error("Error de conexión"));
+      .catch(() => toast.error(t("errors.connectionError")));
   });
 
   return (

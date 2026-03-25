@@ -135,11 +135,42 @@ export interface Proyecto {
   inventory_columns_by_type: InventoryColumnsByType | null;
   custom_columns: CustomColumnDef[];
   secciones_visibles: SeccionesVisibles | null;
+  tipologia_fields: TipologiaFieldsConfig | null;
+  agent_mode_config: AgentModeConfig | null;
   created_at: string;
   updated_at: string;
 }
 
+/* ── Tipología Field Visibility ────────────────────────────────── */
+
+/** Controls which spec fields are visible in tipología editor form,
+ *  microsite detail panels, and cotizador. Separate from inventory_columns
+ *  which controls unit LIST views. */
+export interface TipologiaFieldsConfig {
+  area_m2: boolean;
+  area_construida: boolean;
+  area_privada: boolean;
+  area_lote: boolean;
+  area_balcon: boolean;
+  habitaciones: boolean;
+  banos: boolean;
+  parqueaderos: boolean;
+  depositos: boolean;
+  precio: boolean;
+}
+
 /* ── Section Visibility ──────────────────────────────────────────── */
+
+/* ── Agent Mode Config ──────────────────────────────────────────── */
+
+export interface AgentModeConfig {
+  enabled: boolean;
+  mostrar_precios: boolean;
+  mostrar_vendidas: boolean;
+  mostrar_precio_vendidas: boolean;
+  mostrar_todas_secciones: boolean;
+  habilitar_cotizador: boolean;
+}
 
 export interface SeccionesVisibles {
   galeria: boolean;
@@ -737,6 +768,12 @@ export interface DescuentoConfig {
   valor: number;
 }
 
+export interface ImpuestoConfig {
+  id: string;
+  nombre: string;
+  porcentaje: number;
+}
+
 export interface CotizadorConfig {
   moneda: string;
   fases: FaseConfig[];
@@ -764,6 +801,8 @@ export interface CotizadorConfig {
   // Microsite payment plan page
   /** Background image URL for the payment plan page (low opacity behind cards) */
   plan_pago_bg_url?: string;
+  // Taxes / fees (DLD, registration, VAT, etc.)
+  impuestos?: ImpuestoConfig[];
 }
 
 /* -- Email Configuration -- */
@@ -807,6 +846,9 @@ export interface ResultadoCotizacion {
   precio_total?: number;
   admin_fee?: number;
   admin_fee_label?: string;
+  // Taxes / fees
+  impuestos_aplicados?: { nombre: string; monto: number; porcentaje: number }[];
+  impuestos_total?: number;
   /** Computed delivery date (ISO string) when tipo_entrega is configured */
   fecha_entrega_calculada?: string;
   /** Remaining months until delivery */
@@ -1035,6 +1077,33 @@ export interface ActivityLog {
 }
 
 /* ── Plans & Billing ── */
+
+/* ── Cotizador Tool ── */
+
+export interface ProjectForCotizador {
+  id: string;
+  nombre: string;
+  cotizador_enabled: boolean;
+  cotizador_config: CotizadorConfig | null;
+  color_primario: string | null;
+  parqueaderos_mode: ComplementoMode;
+  depositos_mode: ComplementoMode;
+  parqueaderos_precio_base: number | null;
+  depositos_precio_base: number | null;
+  precio_source: "unidad" | "tipologia";
+  tipologia_mode: "fija" | "multiple";
+  tipologia_fields?: TipologiaFieldsConfig | null;
+  habilitar_extra_jacuzzi?: boolean;
+  habilitar_extra_piscina?: boolean;
+  habilitar_extra_bbq?: boolean;
+  habilitar_extra_terraza?: boolean;
+  habilitar_extra_jardin?: boolean;
+  habilitar_extra_cuarto_servicio?: boolean;
+  habilitar_extra_estudio?: boolean;
+  habilitar_extra_chimenea?: boolean;
+  habilitar_extra_doble_altura?: boolean;
+  habilitar_extra_rooftop?: boolean;
+}
 
 export type Plan = "proyecto" | "studio" | "enterprise";
 

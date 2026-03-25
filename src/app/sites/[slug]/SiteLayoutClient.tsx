@@ -19,6 +19,8 @@ import { RouteProgressBar } from "@/components/ui/RouteProgressBar";
 import { SiteProjectContext } from "@/hooks/useSiteProject";
 import { CurrencyProvider } from "@/contexts/CurrencyContext";
 import { UnitPreferenceProvider } from "@/contexts/UnitPreferenceContext";
+import { AgentModeProvider } from "@/hooks/useAgentMode";
+import { AgentModeIndicator } from "@/components/site/AgentModeIndicator";
 import type { ProyectoCompleto } from "@/types";
 
 interface Props {
@@ -53,6 +55,7 @@ export function SiteLayoutClient({ proyecto, basePath, children }: Props) {
 
   return (
     <SiteProjectContext.Provider value={{ proyecto, basePath }}>
+      <AgentModeProvider proyecto={proyecto} basePath={basePath}>
       <CurrencyProvider>
         <UnitPreferenceProvider>
           <link rel="canonical" href={canonicalUrl} />
@@ -144,6 +147,7 @@ export function SiteLayoutClient({ proyecto, basePath, children }: Props) {
               proyectoId={proyecto.id}
             />
           )}
+          <AgentModeIndicator />
           <NoddoBadge hide={!!proyecto.hide_noddo_badge} />
           <SmoothScroll>
             <main
@@ -157,6 +161,7 @@ export function SiteLayoutClient({ proyecto, basePath, children }: Props) {
       </AudioProvider>
         </UnitPreferenceProvider>
       </CurrencyProvider>
+      </AgentModeProvider>
     </SiteProjectContext.Provider>
   );
 }

@@ -40,6 +40,8 @@ const PROYECTO_FIELDS = [
   "custom_columns",
   "unidad_display_prefix",
   "secciones_visibles",
+  "tipologia_fields",
+  "agent_mode_config",
 ];
 
 export async function GET(

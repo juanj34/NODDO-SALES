@@ -103,6 +103,7 @@ function UnitDetailsCard({
   tSite,
   unitPrefix,
   areaSymbol = "m²",
+  enabledExtras,
 }: {
   unidad: Unidad;
   tipologia: Tipologia | undefined;
@@ -110,6 +111,7 @@ function UnitDetailsCard({
   tSite: (key: string) => string;
   unitPrefix?: string | null;
   areaSymbol?: string;
+  enabledExtras?: Record<string, boolean>;
 }) {
   return (
     <div className="bg-[var(--glass-bg)] rounded-xl p-4 border border-[var(--border-default)]">
@@ -187,7 +189,7 @@ function UnitDetailsCard({
           { field: "tiene_doble_altura" as const, icon: MoveVertical, labelKey: "tipologias.dobleAltura" },
           { field: "tiene_rooftop" as const, icon: CloudSun, labelKey: "tipologias.rooftop" },
         ] as const).map(({ field, icon: Icon, labelKey }) => (
-          tipologia?.[field] && (
+          (enabledExtras?.[field] ?? true) && tipologia?.[field] && (
             <div key={field} className="flex items-center gap-1.5">
               <Icon size={12} className="text-[var(--text-muted)]" />
               <span className="text-[var(--text-primary)]">{tSite(labelKey)}</span>
@@ -244,6 +246,8 @@ interface CotizadorFlowMultiStepProps {
   unitPrefix?: string | null;
   /** Area unit symbol (m² or sqft) */
   areaSymbol?: string;
+  /** Map of "tiene_*" field name → whether the project has that extra enabled */
+  enabledExtras?: Record<string, boolean>;
 }
 
 /* ─── Unified Flow Component ─── */
@@ -264,6 +268,7 @@ export function CotizadorFlowMultiStep({
   construccionPrice,
   unitPrefix,
   areaSymbol = "m²",
+  enabledExtras,
 }: CotizadorFlowMultiStepProps) {
   const isCotizador = cotizadorEnabled && !!config && !!unidad.precio;
   const { currentStep, nextStep, prevStep } = useMultiStepForm(2);
@@ -500,6 +505,7 @@ export function CotizadorFlowMultiStep({
               tSite={tSite}
               unitPrefix={unitPrefix}
               areaSymbol={areaSymbol}
+              enabledExtras={enabledExtras}
             />
 
             {/* Price display for units with price (both modes) */}

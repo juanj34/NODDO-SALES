@@ -254,13 +254,13 @@ export default function NoddoGridPage() {
       if (res.ok) {
         const created: Fachada = await res.json();
         setSelectedFachadaId(created.id);
-        toast.success("Fachada creada");
+        toast.success(t("fachadas.created"));
         await refresh();
       } else {
-        toast.error("Error al crear fachada");
+        toast.error(t("fachadas.createError"));
       }
     }).catch(() => {
-      toast.error("Error de conexión");
+      toast.error(t("errors.connectionError"));
     });
   };
 
@@ -270,10 +270,10 @@ export default function NoddoGridPage() {
     const label = target.tipo === "planta" ? "planta" : "fachada";
     const nUnits = unidades.filter((u) => u.fachada_id === id || u.planta_id === id).length;
     if (!(await confirm({
-      title: `Eliminar ${label}`,
-      message: "Las unidades asignadas serán desvinculadas.",
+      title: t("fachadas.deleteTitle", { label }),
+      message: t("fachadas.deleteUnitsUnlinked"),
       description: target.nombre,
-      details: nUnits > 0 ? `${nUnits} unidades perderán su posición en esta ${label}` : undefined,
+      details: nUnits > 0 ? t("fachadas.deleteUnitsWarning", { count: nUnits, label }) : undefined,
       typeToConfirm: target.nombre,
     }))) return;
     setDeletingId(id);
@@ -314,7 +314,7 @@ export default function NoddoGridPage() {
       await refresh();
     } catch {
       setFachadas((fs) => fs.map((f) => (f.id === id ? { ...f, nombre: prev.nombre } : f)));
-      toast.error("Error al renombrar");
+      toast.error(t("fachadas.renameError"));
     }
   };
 
@@ -346,12 +346,12 @@ export default function NoddoGridPage() {
         });
         if (!res.ok) {
           const err = await res.json().catch(() => null);
-          console.error("Error al guardar posición:", { status: res.status, unitId, payload, error: err });
-          toast.error(err?.error || "Error al guardar posición");
+          console.error("Error saving position:", { status: res.status, unitId, payload, error: err });
+          toast.error(err?.error || t("fachadas.savePositionError"));
         }
         await refresh();
       } catch {
-        toast.error("Error de conexión");
+        toast.error(t("errors.connectionError"));
         try { await refresh(); } catch { /* ignore */ }
       }
     },
@@ -374,14 +374,14 @@ export default function NoddoGridPage() {
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(clearFields),
         });
-        if (!res.ok) toast.error("Error al remover unidad");
+        if (!res.ok) toast.error(t("fachadas.removeUnitError"));
         await refresh();
       } catch {
-        toast.error("Error de conexión");
+        toast.error(t("errors.connectionError"));
         try { await refresh(); } catch { /* ignore */ }
       }
     },
-    [refresh, toast, viewMode]
+    [refresh, toast, viewMode, t]
   );
 
   const handleClearAll = useCallback(
@@ -414,14 +414,14 @@ export default function NoddoGridPage() {
             })
           )
         );
-        if (results.some((r) => !r.ok)) toast.error("Error al limpiar algunas unidades");
+        if (results.some((r) => !r.ok)) toast.error(t("fachadas.cleanError"));
         await refresh();
       } catch {
-        toast.error("Error de conexión");
+        toast.error(t("errors.connectionError"));
         try { await refresh(); } catch { /* ignore */ }
       }
     },
-    [unidades, refresh, toast, viewMode]
+    [unidades, refresh, toast, viewMode, t]
   );
 
   /* ------------------------------------------------------------------
@@ -565,10 +565,10 @@ export default function NoddoGridPage() {
       toDelete.some((f) => u.planta_id === f.id || u.fachada_id === f.id)
     ).length;
     if (!(await confirm({
-      title: "Eliminar tipo de planta",
-      message: `Se eliminarán ${toDelete.length} piso${toDelete.length > 1 ? "s" : ""} de esta planta tipo.`,
+      title: t("fachadas.deletePlantaTipo"),
+      message: t("fachadas.deletePlantaTipoMsg", { count: toDelete.length }),
       description: tipoNombre,
-      details: affectedUnits > 0 ? `${affectedUnits} unidades perderán sus posiciones` : undefined,
+      details: affectedUnits > 0 ? t("fachadas.deletePlantaTipoUnitsWarning", { count: affectedUnits }) : undefined,
       typeToConfirm: tipoNombre,
     }))) return;
     try {

@@ -1638,13 +1638,9 @@ export default function InventarioPage() {
   const isLotes = tipoProyecto === "lotes";
   const isHibrido = tipoProyecto === "hibrido";
 
-  // --- Tipo tabs (hybrid + commercial) ---
+  // --- Tipo tabs (hybrid projects) ---
   const [activeTipoTab, setActiveTipoTab] = useState<TipoTipologia | null>(null);
-  const hasCommercialTipos = useMemo(() =>
-    tipologias.some(t => t.tipo_tipologia === "local_comercial"),
-    [tipologias]
-  );
-  const showTipoTabs = isHibrido || hasCommercialTipos;
+  const showTipoTabs = isHibrido;
 
   const availableTipoTabs = useMemo(() => {
     if (!showTipoTabs) return [] as TipoTipologia[];
@@ -1869,7 +1865,7 @@ export default function InventarioPage() {
           refresh().catch(() => {});
         })
         .catch(() => {
-          toast.error("Error al crear unidad");
+          toast.error(t("inventario.createUnitError"));
         });
     },
     // eslint-disable-next-line react-hooks/exhaustive-deps -- toast is stable
@@ -1966,7 +1962,7 @@ export default function InventarioPage() {
     const idsToDelete = new Set(selectedIds);
     setBulkDeleteConfirm(false);
     setSelectedIds(new Set());
-    toast.success(`${idsToDelete.size} unidad${idsToDelete.size !== 1 ? "es" : ""} eliminada${idsToDelete.size !== 1 ? "s" : ""}`);
+    toast.success(t("inventario.bulkDeleteSuccess", { count: idsToDelete.size }));
     saveEntity({
       url: "/api/unidades/bulk",
       method: "DELETE",
@@ -2034,7 +2030,7 @@ export default function InventarioPage() {
         .map(id => unidades.find(u => u.id === id))
         .filter((u): u is Unidad => !!u && !u.tipologia_id);
       if (unitsWithoutTipo.length > 0) {
-        toast.error(`${unitsWithoutTipo.length} unidad(es) sin tipología confirmada. Confirma la tipología antes de cambiar a "${bulkEstado}".`);
+        toast.error(t("inventario.unitsWithoutTypology", { count: unitsWithoutTipo.length, estado: bulkEstado }));
         return;
       }
     }
@@ -2149,7 +2145,7 @@ export default function InventarioPage() {
       return u && !["vendida", "reservada", "separado"].includes(u.estado);
     });
     if (eligibleIds.length === 0) {
-      toast.error("No se pueden modificar tipologías de unidades vendidas/reservadas/separadas.");
+      toast.error(t("inventario.cannotModifyTypology"));
       return;
     }
     const newTipId = bulkTipologiaId === "__none__" ? null : bulkTipologiaId;
@@ -2297,7 +2293,7 @@ export default function InventarioPage() {
       }
       refresh().catch(() => {});
     };
-    exec().catch(() => toast.error("Error al actualizar tipologías"));
+    exec().catch(() => toast.error(t("inventario.updateTypologyError")));
   }, [projectId, unidades, updateLocal, refresh, toast]);
 
   // Handle confirming tipología in the required modal (multi-tipo mode)
@@ -2325,7 +2321,7 @@ export default function InventarioPage() {
         body: JSON.stringify({ estado: newEstado }),
       });
       refresh().catch(() => {});
-    })().catch(() => toast.error("Error al confirmar tipología"));
+    })().catch(() => toast.error(t("inventario.confirmTypologyError")));
   }, [tipologiaRequiredModal, updateLocal, refresh, toast]);
 
   // Bulk assign tipologías in multi-tipo mode
@@ -2337,7 +2333,7 @@ export default function InventarioPage() {
       return u && !["vendida", "reservada", "separado"].includes(u.estado);
     });
     if (eligibleIds.length === 0) {
-      toast.error("No se pueden modificar tipologías de unidades vendidas/reservadas/separadas.");
+      toast.error(t("inventario.cannotModifyTypology"));
       return;
     }
     // Optimistic: add new unidad_tipologias entries and clear selection
@@ -2373,7 +2369,7 @@ export default function InventarioPage() {
         if (!res.ok) throw new Error("Error assigning tipologías");
         refresh().catch(() => {});
       })
-      .catch(() => toast.error("Error al asignar tipologías"));
+      .catch(() => toast.error(t("inventario.assignTypologyError")));
   }, [selectedIds, bulkMultiTipoIds, projectId, updateLocal, refresh, toast, unidades]);
 
   // --- Build edit form initial data ---

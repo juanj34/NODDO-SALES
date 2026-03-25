@@ -4,6 +4,7 @@ export const dynamic = "force-dynamic";
 
 import Image from "next/image";
 import { useState, useEffect, useMemo, useCallback } from "react";
+import { useTranslation } from "@/i18n";
 import { useEditorProject } from "@/hooks/useEditorProject";
 import { useToast } from "@/components/dashboard/Toast";
 import { useConfirm } from "@/components/dashboard/ConfirmModal";
@@ -90,6 +91,7 @@ const EMPTY_FORM: VistaFormState = {
    Page Component
    ================================================================== */
 export default function VistasPage() {
+  const { t } = useTranslation("editor");
   const { project, projectId, refresh } = useEditorProject();
   const toast = useToast();
   const { confirm } = useConfirm();
@@ -251,20 +253,20 @@ export default function VistasPage() {
         if (count > 0) {
           toast.success(
             isEdit
-              ? `Vista actualizada. ${count} unidad${count > 1 ? "es" : ""} asignada${count > 1 ? "s" : ""}.`
-              : `Vista creada. ${count} unidad${count > 1 ? "es" : ""} asignada${count > 1 ? "s" : ""} automaticamente.`
+              ? t("vistas.updatedWithCount", { count: String(count) })
+              : t("vistas.createdWithCount", { count: String(count) })
           );
         } else {
-          toast.success(isEdit ? "Vista actualizada" : "Vista creada");
+          toast.success(isEdit ? t("vistas.updated") : t("vistas.created"));
         }
         closePanel();
         await refresh();
       } else {
         const err = await res.json().catch(() => null);
-        toast.error(err?.error ?? "Error al guardar vista");
+        toast.error(err?.error ?? t("vistas.saveError"));
       }
     } catch {
-      toast.error("Error de conexion");
+      toast.error(t("errors.connectionError"));
     } finally {
       setSaving(false);
     }
@@ -273,8 +275,8 @@ export default function VistasPage() {
   /* ── Delete ── */
   const handleDelete = async (vista: VistaPiso) => {
     const ok = await confirm({
-      title: "Eliminar vista",
-      message: `Eliminar "${vista.nombre}"? Las unidades asignadas seran desvinculadas.`,
+      title: t("vistas.deleteTitle"),
+      message: t("vistas.deleteConfirm", { name: vista.nombre }),
     });
     if (!ok) return;
 
@@ -284,13 +286,13 @@ export default function VistasPage() {
         method: "DELETE",
       });
       if (res.ok) {
-        toast.success("Vista eliminada");
+        toast.success(t("vistas.deleted"));
         await refresh();
       } else {
-        toast.error("Error al eliminar vista");
+        toast.error(t("vistas.deleteError"));
       }
     } catch {
-      toast.error("Error de conexion");
+      toast.error(t("errors.connectionError"));
     } finally {
       setDeletingId(null);
     }
@@ -333,12 +335,12 @@ export default function VistasPage() {
       {/* ── Page Header ── */}
       <PageHeader
         icon={Eye}
-        title="Vistas por Piso"
-        description="Define las vistas disponibles por rango de pisos y tipologia. Las unidades se asignan automaticamente."
+        title={t("vistas.title")}
+        description={t("vistas.description")}
         actions={
           <button onClick={openCreate} className={btnPrimary}>
             <Plus size={14} />
-            Nueva Vista
+            {t("vistas.newVista")}
           </button>
         }
       />
@@ -378,14 +380,13 @@ export default function VistasPage() {
           <div className={emptyStateIcon}>
             <Eye size={24} className="text-[var(--text-muted)]" />
           </div>
-          <p className={emptyStateTitle}>No hay vistas configuradas</p>
+          <p className={emptyStateTitle}>{t("vistas.noVistas")}</p>
           <p className={emptyStateDescription}>
-            Crea vistas por piso para asignar automaticamente a las unidades
-            segun su tipologia y rango de pisos.
+            {t("vistas.noVistasDescription")}
           </p>
           <button onClick={openCreate} className={btnPrimary}>
             <Plus size={14} />
-            Crear primera vista
+            {t("vistas.createFirst")}
           </button>
         </div>
       )}
@@ -522,7 +523,7 @@ export default function VistasPage() {
             <div className="flex items-center gap-2">
               <Users size={14} className="text-[rgba(184,151,58,1)]" />
               <span className="font-ui text-xs font-bold uppercase tracking-[0.1em] text-[var(--text-secondary)]">
-                Resumen de asignaciones
+                {t("vistas.assignmentSummary")}
               </span>
               <span className={badgeGold}>{assignmentRows.length}</span>
             </div>
@@ -553,18 +554,18 @@ export default function VistasPage() {
                     <thead>
                       <tr className="bg-[var(--surface-2)] text-[var(--text-tertiary)]">
                         <th className="text-left px-3 py-2 font-ui text-[10px] font-bold uppercase tracking-wider">
-                          Unidad
+                          {t("vistas.table.unit")}
                         </th>
                         <th className="text-left px-3 py-2 font-ui text-[10px] font-bold uppercase tracking-wider">
-                          Piso
+                          {t("vistas.table.floor")}
                         </th>
                         {isMultiTorre && (
                           <th className="text-left px-3 py-2 font-ui text-[10px] font-bold uppercase tracking-wider">
-                            Torre
+                            {t("vistas.table.tower")}
                           </th>
                         )}
                         <th className="text-left px-3 py-2 font-ui text-[10px] font-bold uppercase tracking-wider">
-                          Vista asignada
+                          {t("vistas.table.assignedView")}
                         </th>
                       </tr>
                     </thead>
@@ -625,7 +626,7 @@ export default function VistasPage() {
               <div className="flex items-center justify-between px-6 py-4 border-b border-[var(--border-subtle)]">
                 <h3 className="text-sm font-medium text-white flex items-center gap-2">
                   <Eye size={16} className="text-[rgba(184,151,58,1)]" />
-                  {editingVistaId ? "Editar vista" : "Nueva vista"}
+                  {editingVistaId ? t("vistas.editVista") : t("vistas.newVista")}
                 </h3>
                 <button
                   onClick={closePanel}
@@ -640,13 +641,13 @@ export default function VistasPage() {
                 {/* Nombre */}
                 <div>
                   <label className={labelClass}>
-                    Nombre <span className="text-red-400">*</span>
+                    {t("vistas.form.name")} <span className="text-red-400">*</span>
                   </label>
                   <input
                     type="text"
                     value={form.nombre}
                     onChange={(e) => updateForm("nombre", e.target.value)}
-                    placeholder="Ej: Vista al parque, Vista ciudad norte..."
+                    placeholder={t("vistas.form.namePlaceholder")}
                     className={inputClass}
                     autoFocus
                   />
@@ -654,12 +655,12 @@ export default function VistasPage() {
 
                 {/* Orientacion */}
                 <div>
-                  <label className={labelClass}>Orientacion</label>
+                  <label className={labelClass}>{t("vistas.form.orientation")}</label>
                   <input
                     type="text"
                     value={form.orientacion}
                     onChange={(e) => updateForm("orientacion", e.target.value)}
-                    placeholder="Ej: Norte, Sureste..."
+                    placeholder={t("vistas.form.orientationPlaceholder")}
                     className={inputClass}
                     list="orientacion-list"
                   />
@@ -673,22 +674,22 @@ export default function VistasPage() {
                 {/* Piso min / max */}
                 <div className="grid grid-cols-2 gap-3">
                   <div>
-                    <label className={labelClass}>Piso minimo</label>
+                    <label className={labelClass}>{t("vistas.form.floorMin")}</label>
                     <input
                       type="number"
                       value={form.piso_min}
                       onChange={(e) => updateForm("piso_min", e.target.value)}
-                      placeholder="Ej: 1"
+                      placeholder={t("vistas.form.floorMinPlaceholder")}
                       className={inputClass}
                     />
                   </div>
                   <div>
-                    <label className={labelClass}>Piso maximo</label>
+                    <label className={labelClass}>{t("vistas.form.floorMax")}</label>
                     <input
                       type="number"
                       value={form.piso_max}
                       onChange={(e) => updateForm("piso_max", e.target.value)}
-                      placeholder="Ej: 10"
+                      placeholder={t("vistas.form.floorMaxPlaceholder")}
                       className={inputClass}
                     />
                   </div>
@@ -697,14 +698,14 @@ export default function VistasPage() {
                 {/* Torre dropdown (if multi-torre) */}
                 {isMultiTorre && (
                   <div>
-                    <label className={labelClass}>Torre</label>
+                    <label className={labelClass}>{t("vistas.form.tower")}</label>
                     <NodDoDropdown
                       variant="dashboard"
                       size="md"
                       value={form.torre_id}
                       onChange={(val) => updateForm("torre_id", val)}
                       options={[
-                        { value: "", label: "General (todas las torres)" },
+                        { value: "", label: t("vistas.form.allTowers") },
                         ...torres.map((t) => ({
                           value: t.id,
                           label: t.nombre,
@@ -717,9 +718,9 @@ export default function VistasPage() {
                 {/* Tipologia multi-select */}
                 <div>
                   <label className={labelClass}>
-                    Tipologias{" "}
+                    {t("vistas.form.tipologias")}{" "}
                     <span className="text-[var(--text-muted)] font-normal">
-                      (selecciona las que aplican)
+                      {t("vistas.form.tipologiasHint")}
                     </span>
                   </label>
                   {filteredTipologias.length > 0 ? (
@@ -775,7 +776,7 @@ export default function VistasPage() {
                     </div>
                   ) : (
                     <p className="text-xs text-[var(--text-muted)] py-3">
-                      No hay tipologias configuradas en este proyecto.
+                      {t("vistas.form.noTipologias")}
                     </p>
                   )}
                   {form.tipologia_ids.length > 0 && (
@@ -790,24 +791,24 @@ export default function VistasPage() {
                 {/* Image uploader */}
                 <div>
                   <label className={labelClass}>
-                    Imagen <span className="text-red-400">*</span>
+                    {t("vistas.form.image")} <span className="text-red-400">*</span>
                   </label>
                   <FileUploader
                     currentUrl={form.imagen_url || null}
                     onUpload={(url) => updateForm("imagen_url", url)}
                     folder={`proyectos/${projectId}/vistas`}
-                    label="Subir imagen de la vista"
+                    label={t("vistas.form.uploadImage")}
                     aspect="video"
                   />
                 </div>
 
                 {/* Descripcion */}
                 <div>
-                  <label className={labelClass}>Descripcion</label>
+                  <label className={labelClass}>{t("vistas.form.description")}</label>
                   <textarea
                     value={form.descripcion}
                     onChange={(e) => updateForm("descripcion", e.target.value)}
-                    placeholder="Descripcion opcional de esta vista..."
+                    placeholder={t("vistas.form.descriptionPlaceholder")}
                     rows={3}
                     className={inputClass + " resize-none"}
                   />
@@ -827,13 +828,13 @@ export default function VistasPage() {
                     <Save size={14} />
                   )}
                   {saving
-                    ? "Guardando..."
+                    ? t("vistas.form.saving")
                     : editingVistaId
-                      ? "Guardar cambios"
-                      : "Crear vista"}
+                      ? t("vistas.form.saveChanges")
+                      : t("vistas.form.createVista")}
                 </button>
                 <button onClick={closePanel} className={btnSecondary}>
-                  Cancelar
+                  {t("vistas.form.cancel")}
                 </button>
               </div>
             </motion.div>

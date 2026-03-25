@@ -182,14 +182,14 @@ export default function TorresPage() {
         await refresh();
         setSelectedTorreId(created.id);
         setTorreDetailTab("info");
-        toast.success(addTipo === "urbanismo" ? "Urbanismo creado" : "Torre creada");
+        toast.success(addTipo === "urbanismo" ? t("torres.urbanismCreated") : t("torres.towerCreated"));
       } else {
-        const err = await res.json().catch(() => ({ error: "Error desconocido" }));
+        const err = await res.json().catch(() => ({ error: t("errors.unknown") }));
         toast.error(err.error || `Error ${res.status}`);
         console.error("Torre creation failed:", res.status, err);
       }
     } catch (err) {
-      toast.error("Error de conexión");
+      toast.error(t("errors.connectionError"));
       console.error("Torre creation error:", err);
     } finally {
       setSaving(false);
@@ -214,8 +214,8 @@ export default function TorresPage() {
           body: JSON.stringify(data),
         });
         if (!res.ok) {
-          const err = await res.json().catch(() => ({ error: "Error desconocido" }));
-          toast.error(err.error || `Error al guardar (${res.status})`);
+          const err = await res.json().catch(() => ({ error: t("errors.unknown") }));
+          toast.error(err.error || t("errors.saveError"));
           return;
         }
         const updated = await res.json();
@@ -227,7 +227,7 @@ export default function TorresPage() {
           ),
         }));
       } catch (err) {
-        toast.error("Error de conexión al guardar");
+        toast.error(t("errors.connectionError"));
         console.error("Torre update error:", err);
       }
     },
@@ -250,7 +250,7 @@ export default function TorresPage() {
           title: t("torres.deleteTitle"),
           message: t("torres.deleteConfirm"),
           description: torre.nombre,
-          details: parts.length > 0 ? `${parts.join(" y ")} serán desvinculadas` : undefined,
+          details: parts.length > 0 ? t("torres.deleteDetails", { items: parts.join(" y ") }) : undefined,
           typeToConfirm: torre.nombre,
         }))
       )
@@ -301,9 +301,9 @@ export default function TorresPage() {
       const label = torre.tipo === "urbanismo" ? "urbanismo" : "torre";
       if (
         !(await confirm({
-          title: `Duplicar ${label}`,
-          message: `Se creará una copia de "${torre.nombre}" con toda su información. Las fachadas y unidades no se copiarán.`,
-          confirmLabel: "Duplicar",
+          title: t("torres.duplicateTitle", { label }),
+          message: t("torres.duplicateMessage", { name: torre.nombre }),
+          confirmLabel: t("torres.duplicateConfirmLabel"),
           variant: "warning",
         }))
       )
@@ -337,13 +337,13 @@ export default function TorresPage() {
           await refresh();
           setSelectedTorreId(created.id);
           setTorreDetailTab("info");
-          toast.success(`${label.charAt(0).toUpperCase() + label.slice(1)} duplicado`);
+          toast.success(t("torres.duplicated", { label: label.charAt(0).toUpperCase() + label.slice(1) }));
         } else {
-          const err = await res.json().catch(() => ({ error: "Error desconocido" }));
+          const err = await res.json().catch(() => ({ error: t("errors.unknown") }));
           toast.error(err.error || `Error ${res.status}`);
         }
       } catch {
-        toast.error("Error de conexión");
+        toast.error(t("errors.connectionError"));
       } finally {
         setDuplicatingId(null);
       }
@@ -526,7 +526,7 @@ export default function TorresPage() {
               className={cn("flex items-center mb-3 text-[var(--text-secondary)] hover:text-white transition-colors", gap.normal, fontSize.md)}
             >
               <ChevronRight size={iconSize.sm} className="rotate-180" />
-              {t("torres.backToList") ?? "Volver a torres"}
+              {t("torres.backToList")}
             </button>
           )}
           <AnimatePresence mode="wait">
@@ -670,7 +670,7 @@ export default function TorresPage() {
                 <div className={cn("flex items-center gap-1 p-1 bg-[var(--surface-1)] border border-[var(--border-subtle)] mb-4", radius.lg)}>
                   {([
                     { id: "info" as const, label: t("torres.tabs.info"), icon: Building2 },
-                    { id: "amenidades" as const, label: "Amenidades", icon: Sparkles },
+                    { id: "amenidades" as const, label: t("torres.tabs.amenidades"), icon: Sparkles },
                     { id: "fachadas" as const, label: t("torres.tabs.fachadas"), icon: Eye },
                     { id: "unidades" as const, label: t("torres.tabs.units"), icon: Package },
                   ]).map((tab) => {
@@ -797,7 +797,7 @@ export default function TorresPage() {
                 animate={{ opacity: 1 }}
                 className={cn("flex items-center justify-center h-64 text-[var(--text-muted)]", fontSize.md)}
               >
-                Selecciona una torre de la lista
+                {t("torres.selectFromList")}
               </motion.div>
             )}
           </AnimatePresence>
@@ -840,7 +840,7 @@ function FachadasTabContent({ torre, fachadas: fachadasList, projectId }: Fachad
           ))}
         </div>
       ) : (
-        <p className={cn("font-heading font-light text-[var(--text-tertiary)]", fontSize.md)}>No hay fachadas asignadas.</p>
+        <p className={cn("font-heading font-light text-[var(--text-tertiary)]", fontSize.md)}>{t("torres.noFachadas")}</p>
       )}
       <Link
         href={`/editor/${projectId}/fachadas`}
@@ -896,7 +896,7 @@ function UnidadesTabContent({ torre, unidades: unidadesList, tipologias, project
           })}
         </div>
       ) : (
-        <p className={cn("font-heading font-light text-[var(--text-tertiary)]", fontSize.md)}>No hay unidades asignadas.</p>
+        <p className={cn("font-heading font-light text-[var(--text-tertiary)]", fontSize.md)}>{t("torres.noUnidades")}</p>
       )}
       <Link
         href={`/editor/${projectId}/inventario`}
@@ -959,11 +959,11 @@ function TorreEditFormInline({
   }, [torre.id]);
 
   const compositionFields = [
-    { key: "pisos_sotano" as const, label: "Sótanos", placeholder: "0", value: pisosSotano, setter: setPisosSotano },
-    { key: "pisos_planta_baja" as const, label: "Planta Baja", placeholder: "1", value: pisosPlantaBaja, setter: setPisosPlantaBaja },
-    { key: "pisos_podio" as const, label: "Podios", placeholder: "0", value: pisosPodio, setter: setPisosPodio },
-    { key: "pisos_residenciales" as const, label: "Residencial", placeholder: "0", value: pisosResidenciales, setter: setPisosResidenciales },
-    { key: "pisos_rooftop" as const, label: "Rooftop", placeholder: "0", value: pisosRooftop, setter: setPisosRooftop },
+    { key: "pisos_sotano" as const, label: t("torres.floors.basement"), placeholder: "0", value: pisosSotano, setter: setPisosSotano },
+    { key: "pisos_planta_baja" as const, label: t("torres.floors.groundFloor"), placeholder: "1", value: pisosPlantaBaja, setter: setPisosPlantaBaja },
+    { key: "pisos_podio" as const, label: t("torres.floors.podium"), placeholder: "0", value: pisosPodio, setter: setPisosPodio },
+    { key: "pisos_residenciales" as const, label: t("torres.floors.residential"), placeholder: "0", value: pisosResidenciales, setter: setPisosResidenciales },
+    { key: "pisos_rooftop" as const, label: t("torres.floors.rooftop"), placeholder: "0", value: pisosRooftop, setter: setPisosRooftop },
   ];
 
   return (
@@ -1029,7 +1029,7 @@ function TorreEditFormInline({
 
       {/* Composición del edificio — only for torre type */}
       {(torre.tipo ?? "torre") !== "urbanismo" && <div>
-        <Label>Composición del edificio</Label>
+        <Label>{t("torres.infoForm.buildingComposition")}</Label>
         <div className={cn("grid grid-cols-5 mt-1", gap.relaxed)}>
           {compositionFields.map((field) => (
             <div key={field.key} className="text-center">
@@ -1063,11 +1063,11 @@ function TorreEditFormInline({
           if (total === 0) return null;
 
           const sections = [
-            { label: "Rooftop", count: rt, color: "bg-amber-400/70", text: "text-amber-300" },
-            { label: "Residencial", count: res, color: "bg-[rgba(var(--site-primary-rgb),0.5)]", text: "text-[var(--site-primary)]" },
-            { label: "Podio", count: pod, color: "bg-blue-400/30", text: "text-blue-300" },
-            { label: "PB", count: pb, color: "bg-emerald-400/30", text: "text-emerald-300" },
-            { label: "Sótano", count: s, color: "bg-white/8", text: "text-[var(--text-muted)]" },
+            { label: t("torres.floors.rooftop"), count: rt, color: "bg-amber-400/70", text: "text-amber-300" },
+            { label: t("torres.floors.residential"), count: res, color: "bg-[rgba(var(--site-primary-rgb),0.5)]", text: "text-[var(--site-primary)]" },
+            { label: t("torres.floors.podium"), count: pod, color: "bg-blue-400/30", text: "text-blue-300" },
+            { label: t("torres.floors.groundFloorShort"), count: pb, color: "bg-emerald-400/30", text: "text-emerald-300" },
+            { label: t("torres.floors.basementSingle"), count: s, color: "bg-white/8", text: "text-[var(--text-muted)]" },
           ].filter((sec) => sec.count > 0);
 
           return (
@@ -1092,7 +1092,7 @@ function TorreEditFormInline({
                   </div>
                 ))}
                 <div className="border-t border-[var(--border-subtle)] mt-1 pt-1">
-                  <span className={cn(fontSize.label, "text-[var(--text-secondary)] font-medium")}>Total: {total} niveles</span>
+                  <span className={cn(fontSize.label, "text-[var(--text-secondary)] font-medium")}>{t("torres.floors.total", { count: String(total) })}</span>
                 </div>
               </div>
             </div>

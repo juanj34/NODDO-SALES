@@ -139,6 +139,16 @@ export function calcularCotizacion(
 
   const admin_fee = config.admin_fee ?? 0;
 
+  // Calculate taxes on precio_total (includes complementos)
+  const impuestos_aplicados = (config.impuestos ?? [])
+    .filter((imp) => imp.porcentaje > 0)
+    .map((imp) => ({
+      nombre: imp.nombre,
+      monto: Math.round(precio_total * (imp.porcentaje / 100)),
+      porcentaje: imp.porcentaje,
+    }));
+  const impuestos_total = impuestos_aplicados.reduce((sum, imp) => sum + imp.monto, 0);
+
   return {
     precio_base,
     descuentos_aplicados,
@@ -149,6 +159,8 @@ export function calcularCotizacion(
     precio_total: complementos.length > 0 ? precio_total : undefined,
     admin_fee: admin_fee > 0 ? admin_fee : undefined,
     admin_fee_label: config.admin_fee_label || undefined,
+    impuestos_aplicados: impuestos_aplicados.length > 0 ? impuestos_aplicados : undefined,
+    impuestos_total: impuestos_total > 0 ? impuestos_total : undefined,
     fecha_entrega_calculada: deliveryContext
       ? deliveryContext.fechaEntrega.toISOString().split("T")[0]
       : undefined,

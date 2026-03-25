@@ -22,6 +22,7 @@ import {
   Car, Warehouse, Compass, Eye, MapPin, Building2, Layers,
 } from "lucide-react";
 import { useToast } from "@/components/dashboard/Toast";
+import { useTranslation } from "@/i18n";
 import type { Unidad, ComplementoMode } from "@/types";
 import { AnimatePresence, motion } from "framer-motion";
 
@@ -57,6 +58,7 @@ const ESTADO_ORDER: Record<EstadoUnidad, number> = {
 export default function DisponibilidadPage() {
   const { project, updateLocal } = useEditorProject();
   const toast = useToast();
+  const { t } = useTranslation("editor");
 
   // ── Derived data ──────────────────────────────────────────────────
   const unidades = useMemo(() => project.unidades ?? [], [project.unidades]);
@@ -234,16 +236,16 @@ export default function DisponibilidadPage() {
       });
       if (!res.ok) {
         const data = await res.json().catch(() => ({ error: "Error" }));
-        toast.error(data.error || "Error al publicar disponibilidad");
+        toast.error(data.error || t("disponibilidadPage.updateError"));
         return;
       }
-      toast.success("Disponibilidad publicada en el micrositio");
+      toast.success(t("disponibilidadPage.published"));
     } catch {
-      toast.error("Error de conexión");
+      toast.error(t("errors.connectionError"));
     } finally {
       setPublishing(false);
     }
-  }, [project.id, toast]);
+  }, [project.id, toast, t]);
 
   // ── Pre-sale complemento validation ───────────────────────────────
   const parqMode = project.parqueaderos_mode as ComplementoMode;
@@ -252,18 +254,14 @@ export default function DisponibilidadPage() {
   const depoInventory = depoMode === "inventario_incluido" || depoMode === "inventario_separado";
   // ── Status change logic ───────────────────────────────────────────
 
-  // Tipología selection modal for multi-tipo units
-  const [tipoSelectUnit, setTipoSelectUnit] = useState<{
-    unitId: string;
-    estado: EstadoUnidad;
-  } | null>(null);
-
-  // General confirmation modal for all status changes
-  const [confirmModal, setConfirmModal] = useState<{
+  // Unified status-change modal state
+  const [statusModal, setStatusModal] = useState<{
     unitId: string;
     newEstado: EstadoUnidad;
     clearTipo: boolean;
     complementoWarning?: string;
+    needsTipoSelection: boolean;
+    selectedTipoId: string | null;
   } | null>(null);
 
   const handleStatusChange = useCallback(
@@ -271,17 +269,15 @@ export default function DisponibilidadPage() {
       const unit = unidades.find((u) => u.id === unitId);
       if (!unit || unit.estado === newEstado) return;
 
-      // Multi-tipo validation: require tipología selection before selling/reserving
+      // Determine if tipología selection is needed (multi-tipo, no tipo assigned, committing)
+      let needsTipoSelection = false;
       if (
         isMultiTipo &&
         !unit.tipologia_id &&
         ["separado", "reservada", "vendida"].includes(newEstado)
       ) {
         const hasOptions = unidadTipologias.some((ut) => ut.unidad_id === unitId);
-        if (hasOptions) {
-          setTipoSelectUnit({ unitId, estado: newEstado });
-          return;
-        }
+        if (hasOptions) needsTipoSelection = true;
       }
 
       // Check if reverting from committed to available (multi-tipo: will clear tipo)
@@ -313,7 +309,23 @@ export default function DisponibilidadPage() {
         }
       }
 
-      setConfirmModal({ unitId, newEstado, clearTipo, complementoWarning });
+      // Auto-select if only one tipología option is available
+      let autoSelectedTipoId: string | null = null;
+      if (needsTipoSelection) {
+        const availIds = unidadTipologias
+          .filter((ut) => ut.unidad_id === unitId)
+          .map((ut) => ut.tipologia_id);
+        if (availIds.length === 1) autoSelectedTipoId = availIds[0];
+      }
+
+      setStatusModal({
+        unitId,
+        newEstado,
+        clearTipo,
+        complementoWarning,
+        needsTipoSelection,
+        selectedTipoId: autoSelectedTipoId,
+      });
     },
     [
       unidades,
@@ -327,13 +339,18 @@ export default function DisponibilidadPage() {
   );
 
   const handleConfirmStatusChange = useCallback(async () => {
-    if (!confirmModal) return;
-    const { unitId, newEstado, clearTipo } = confirmModal;
+    if (!statusModal) return;
+    const { unitId, newEstado, clearTipo, needsTipoSelection, selectedTipoId } = statusModal;
     const unit = unidades.find((u) => u.id === unitId);
     if (!unit) return;
 
     const oldEstado = unit.estado;
     const oldTipoId = unit.tipologia_id;
+
+    // Build update payload
+    const body: Record<string, unknown> = { estado: newEstado };
+    if (clearTipo) body.tipologia_id = null;
+    if (needsTipoSelection && selectedTipoId) body.tipologia_id = selectedTipoId;
 
     // Optimistic update
     setUpdatingIds((prev) => new Set(prev).add(unitId));
@@ -341,16 +358,18 @@ export default function DisponibilidadPage() {
       ...prev,
       unidades: prev.unidades.map((u) =>
         u.id === unitId
-          ? { ...u, estado: newEstado, ...(clearTipo ? { tipologia_id: null } : {}) }
+          ? {
+              ...u,
+              estado: newEstado,
+              ...(clearTipo ? { tipologia_id: null } : {}),
+              ...(needsTipoSelection && selectedTipoId ? { tipologia_id: selectedTipoId } : {}),
+            }
           : u
       ),
     }));
-    setConfirmModal(null);
+    setStatusModal(null);
 
     try {
-      const body: Record<string, unknown> = { estado: newEstado };
-      if (clearTipo) body.tipologia_id = null;
-
       const res = await fetch(`/api/unidades/${unitId}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
@@ -358,18 +377,22 @@ export default function DisponibilidadPage() {
       });
 
       if (!res.ok) throw new Error("Error");
-      toast.success(`${unit.identificador} → ${newEstado}`);
+      const selTipo = selectedTipoId
+        ? tipologias.find((t) => t.id === selectedTipoId)
+        : null;
+      const suffix = selTipo ? ` · ${selTipo.nombre}` : "";
+      toast.success(`${unit.identificador} → ${newEstado}${suffix}`);
     } catch {
       // Revert on error
       updateLocal((prev) => ({
         ...prev,
         unidades: prev.unidades.map((u) =>
           u.id === unitId
-            ? { ...u, estado: oldEstado, ...(clearTipo ? { tipologia_id: oldTipoId } : {}) }
+            ? { ...u, estado: oldEstado, tipologia_id: oldTipoId }
             : u
         ),
       }));
-      toast.error("Error al actualizar estado");
+      toast.error(t("disponibilidadPage.updateError"));
     } finally {
       setUpdatingIds((prev) => {
         const next = new Set(prev);
@@ -377,7 +400,7 @@ export default function DisponibilidadPage() {
         return next;
       });
     }
-  }, [confirmModal, unidades, updateLocal, toast]);
+  }, [statusModal, unidades, tipologias, updateLocal, toast, t]);
 
   // ── Sort icon helper ──────────────────────────────────────────────
   const SortIcon = useCallback(
@@ -706,135 +729,40 @@ export default function DisponibilidadPage() {
         ))}
       </div>
 
-      {/* ── Modal: select tipología before status change (multi-tipo) ── */}
+      {/* ── Unified status-change confirmation modal ──────────────── */}
       <AnimatePresence>
-        {tipoSelectUnit &&
+        {statusModal &&
           (() => {
-            const unit = unidades.find(
-              (u) => u.id === tipoSelectUnit.unitId
-            );
-            const availTipos = tipologias.filter((t) =>
-              unidadTipologias.some(
-                (ut) =>
-                  ut.unidad_id === tipoSelectUnit.unitId &&
-                  ut.tipologia_id === t.id
-              )
-            );
-            return (
-              <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm"
-                onClick={() => setTipoSelectUnit(null)}
-              >
-                <motion.div
-                  initial={{ scale: 0.95, opacity: 0 }}
-                  animate={{ scale: 1, opacity: 1 }}
-                  exit={{ scale: 0.95, opacity: 0 }}
-                  onClick={(e) => e.stopPropagation()}
-                  className="bg-[var(--surface-2)] border border-[var(--border-default)] rounded-2xl p-6 max-w-md w-full mx-4 shadow-2xl"
-                >
-                  <h3 className="text-sm font-medium text-white mb-1">
-                    Seleccionar tipología
-                  </h3>
-                  <p className="text-xs text-[var(--text-secondary)] mb-4">
-                    {unit?.identificador}: elige la tipología antes de cambiar a{" "}
-                    {tipoSelectUnit.estado}
-                  </p>
-                  <div className="space-y-2 mb-4">
-                    {availTipos.map((tipo) => (
-                      <button
-                        key={tipo.id}
-                        onClick={() => {
-                          // Optimistic update first, then fire-and-forget
-                          updateLocal((prev) => ({
-                            ...prev,
-                            unidades: prev.unidades.map((u) =>
-                              u.id === tipoSelectUnit.unitId
-                                ? {
-                                    ...u,
-                                    tipologia_id: tipo.id,
-                                    estado: tipoSelectUnit.estado,
-                                  }
-                                : u
-                            ),
-                          }));
-                          toast.success(
-                            `${unit?.identificador} → ${tipo.nombre} · ${tipoSelectUnit.estado}`
-                          );
-                          setTipoSelectUnit(null);
-                          fetch(
-                            `/api/unidades/${tipoSelectUnit.unitId}`,
-                            {
-                              method: "PUT",
-                              headers: {
-                                "Content-Type": "application/json",
-                              },
-                              body: JSON.stringify({
-                                tipologia_id: tipo.id,
-                                estado: tipoSelectUnit.estado,
-                              }),
-                            }
-                          ).catch(() => toast.error("Error al guardar"));
-                        }}
-                        className="w-full flex items-center justify-between p-3 bg-[var(--surface-1)] border border-[var(--border-subtle)] rounded-xl hover:border-[rgba(var(--site-primary-rgb),0.3)] transition-colors text-left"
-                      >
-                        <div>
-                          <p className="text-xs font-medium text-white">
-                            {tipo.nombre}
-                          </p>
-                          <p className="text-[10px] text-[var(--text-muted)] mt-0.5">
-                            {[
-                              tipo.area_m2 && `${tipo.area_m2} m²`,
-                              tipo.habitaciones != null &&
-                                `${tipo.habitaciones} hab`,
-                              tipo.banos != null && `${tipo.banos} baños`,
-                            ]
-                              .filter(Boolean)
-                              .join(" · ")}
-                          </p>
-                        </div>
-                        {tipo.precio_desde != null && (
-                          <span className="text-xs text-[var(--site-primary)] font-medium">
-                            {formatCurrency(tipo.precio_desde)}
-                          </span>
-                        )}
-                      </button>
-                    ))}
-                  </div>
-                  <button
-                    onClick={() => setTipoSelectUnit(null)}
-                    className="w-full px-4 py-2 text-xs font-ui uppercase tracking-wider text-[var(--text-secondary)] bg-[var(--surface-3)] border border-[var(--border-default)] rounded-xl hover:bg-[var(--surface-4)] transition-colors"
-                  >
-                    Cancelar
-                  </button>
-                </motion.div>
-              </motion.div>
-            );
-          })()}
-      </AnimatePresence>
-
-      {/* ── Confirmation modal for status changes ──────────────────── */}
-      <AnimatePresence>
-        {confirmModal &&
-          (() => {
-            const unit = unidades.find((u) => u.id === confirmModal.unitId);
+            const unit = unidades.find((u) => u.id === statusModal.unitId);
             if (!unit) return null;
-            const tip = tipologias.find((t) => t.id === unit.tipologia_id);
+
+            // Resolve tipología: use selectedTipoId (from selector), or unit's current tipologia_id
+            const resolvedTipoId = statusModal.selectedTipoId ?? unit.tipologia_id;
+            const tip = resolvedTipoId ? tipologias.find((t) => t.id === resolvedTipoId) : null;
             const torre = torres.find((t) => t.id === unit.torre_id);
+
+            // Available tipologías for multi-tipo selector
+            const availTipos = statusModal.needsTipoSelection
+              ? tipologias.filter((t) =>
+                  unidadTipologias.some(
+                    (ut) => ut.unidad_id === statusModal.unitId && ut.tipologia_id === t.id
+                  )
+                )
+              : [];
+
+            // Build info data using resolved tipología
             const area = getPrimaryArea(unit, columns) ?? tip?.area_m2;
             const price = unit.estado === "vendida" && unit.precio_venta != null
               ? unit.precio_venta
               : isTipologiaPricing
                 ? (tip?.precio_desde ?? unit.precio)
                 : unit.precio;
-            const newSc = UNIT_STATUS_COLORS[confirmModal.newEstado];
+            const newSc = UNIT_STATUS_COLORS[statusModal.newEstado];
             const oldSc = UNIT_STATUS_COLORS[unit.estado];
 
             // Build info fields dynamically — only show fields with values (fall back to tipología data)
             const infoFields: { icon: typeof LayoutGrid; label: string; value: string; highlight?: boolean }[] = [];
-            if (tip) infoFields.push({ icon: LayoutGrid, label: "Tipología", value: tip.nombre });
+            if (tip && !statusModal.needsTipoSelection) infoFields.push({ icon: LayoutGrid, label: "Tipología", value: tip.nombre });
             if (area != null) infoFields.push({ icon: Maximize2, label: "Área", value: `${area} m²` });
             if (price != null) infoFields.push({ icon: DollarSign, label: "Precio", value: formatCurrency(price), highlight: true });
             const hab = unit.habitaciones ?? tip?.habitaciones;
@@ -854,13 +782,17 @@ export default function DisponibilidadPage() {
             if (unit.piso != null) metaParts.push(`Piso ${unit.piso}`);
             if (unit.etapa_nombre) metaParts.push(unit.etapa_nombre);
 
+            // Contextual title & description
+            const estadoLabel = UNIT_STATUS_COLORS[statusModal.newEstado].label;
+            const canConfirm = !statusModal.needsTipoSelection || !!statusModal.selectedTipoId;
+
             return (
               <motion.div
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
                 className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm"
-                onClick={() => setConfirmModal(null)}
+                onClick={() => setStatusModal(null)}
               >
                 <motion.div
                   initial={{ scale: 0.95, opacity: 0 }}
@@ -873,6 +805,14 @@ export default function DisponibilidadPage() {
                   <div className="px-6 pt-5 pb-4 border-b border-[var(--border-subtle)]">
                     <div className="flex items-start justify-between gap-3">
                       <div className="flex-1 min-w-0">
+                        {/* Contextual title */}
+                        <p className="text-xs text-[var(--text-secondary)] mb-2 leading-relaxed">
+                          {statusModal.clearTipo
+                            ? `Vas a revertir esta unidad a ${estadoLabel.toLowerCase()}. Se liberará la tipología asignada.`
+                            : statusModal.needsTipoSelection
+                              ? "Selecciona la tipología con la que se registrará esta unidad antes de confirmar el cambio."
+                              : `Estás por cambiar el estado de esta unidad a ${estadoLabel.toLowerCase()}.`}
+                        </p>
                         <div className="flex items-center gap-3 mb-1">
                           <h3 className="text-2xl font-heading font-light text-white leading-none">
                             {unit.identificador}
@@ -892,7 +832,7 @@ export default function DisponibilidadPage() {
                               newSc.bg, newSc.text, newSc.border
                             )}>
                               <span className={cn("w-1.5 h-1.5 rounded-full", newSc.dot)} />
-                              {UNIT_STATUS_COLORS[confirmModal.newEstado].short}
+                              {UNIT_STATUS_COLORS[statusModal.newEstado].short}
                             </span>
                           </div>
                         </div>
@@ -904,7 +844,7 @@ export default function DisponibilidadPage() {
                         )}
                       </div>
                       <button
-                        onClick={() => setConfirmModal(null)}
+                        onClick={() => setStatusModal(null)}
                         className="p-1.5 rounded-lg hover:bg-[var(--surface-3)] transition-colors text-[var(--text-muted)] hover:text-white shrink-0"
                       >
                         <X size={16} />
@@ -912,9 +852,74 @@ export default function DisponibilidadPage() {
                     </div>
                   </div>
 
+                  {/* Tipología selector (multi-tipo only) */}
+                  {statusModal.needsTipoSelection && availTipos.length > 0 && (
+                    <div className="px-6 py-4 border-b border-[var(--border-subtle)]">
+                      <p className="text-[9px] font-ui uppercase tracking-[0.12em] text-[var(--site-primary)] mb-3 font-bold">
+                        Seleccionar tipología
+                      </p>
+                      <div className="space-y-2">
+                        {availTipos.map((tipo) => {
+                          const isSelected = statusModal.selectedTipoId === tipo.id;
+                          return (
+                            <button
+                              key={tipo.id}
+                              onClick={() =>
+                                setStatusModal((prev) =>
+                                  prev ? { ...prev, selectedTipoId: tipo.id } : prev
+                                )
+                              }
+                              className={cn(
+                                "w-full flex items-center gap-3 p-3 rounded-xl border transition-all text-left",
+                                isSelected
+                                  ? "bg-[rgba(var(--site-primary-rgb),0.08)] border-[rgba(var(--site-primary-rgb),0.4)] shadow-[0_0_12px_rgba(var(--site-primary-rgb),0.08)]"
+                                  : "bg-[var(--surface-1)] border-[var(--border-subtle)] hover:border-[rgba(var(--site-primary-rgb),0.25)]"
+                              )}
+                            >
+                              {/* Radio indicator */}
+                              <div className={cn(
+                                "w-4 h-4 rounded-full border-2 flex items-center justify-center shrink-0 transition-colors",
+                                isSelected
+                                  ? "border-[var(--site-primary)] bg-[var(--site-primary)]"
+                                  : "border-[var(--border-default)]"
+                              )}>
+                                {isSelected && <div className="w-1.5 h-1.5 rounded-full bg-[#141414]" />}
+                              </div>
+                              <div className="flex-1 min-w-0">
+                                <p className="text-xs font-medium text-white">
+                                  {tipo.nombre}
+                                </p>
+                                <p className="text-[10px] text-[var(--text-muted)] mt-0.5">
+                                  {[
+                                    tipo.area_m2 && `${tipo.area_m2} m²`,
+                                    tipo.habitaciones != null && `${tipo.habitaciones} hab`,
+                                    tipo.banos != null && `${tipo.banos} baños`,
+                                  ]
+                                    .filter(Boolean)
+                                    .join(" · ")}
+                                </p>
+                              </div>
+                              {tipo.precio_desde != null && (
+                                <span className="text-xs text-[var(--site-primary)] font-mono font-medium shrink-0">
+                                  {formatCurrency(tipo.precio_desde)}
+                                </span>
+                              )}
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  )}
+
                   {/* Unit info grid */}
                   {infoFields.length > 0 && (
-                    <div className="px-6 py-4 border-b border-[var(--border-subtle)]">
+                    <div className={cn(
+                      "px-6 py-4 border-b border-[var(--border-subtle)] transition-opacity",
+                      statusModal.needsTipoSelection && !statusModal.selectedTipoId && "opacity-40"
+                    )}>
+                      <p className="text-[9px] font-ui uppercase tracking-[0.12em] text-[var(--text-muted)] mb-3 font-bold">
+                        Detalles de la unidad
+                      </p>
                       <div className="grid grid-cols-2 gap-x-6 gap-y-3">
                         {infoFields.map((field) => (
                           <div key={field.label} className="flex items-center gap-2.5">
@@ -941,7 +946,7 @@ export default function DisponibilidadPage() {
                   {/* Warnings + Actions */}
                   <div className="px-6 py-4">
                     {/* Warnings */}
-                    {confirmModal.clearTipo && (
+                    {statusModal.clearTipo && (
                       <div className="flex items-start gap-2.5 p-3 bg-amber-500/8 border border-amber-500/15 rounded-xl mb-3">
                         <AlertTriangle size={14} className="text-amber-400 shrink-0 mt-0.5" />
                         <div>
@@ -952,11 +957,11 @@ export default function DisponibilidadPage() {
                         </div>
                       </div>
                     )}
-                    {confirmModal.complementoWarning && (
+                    {statusModal.complementoWarning && (
                       <div className="flex items-start gap-2.5 p-3 bg-amber-500/8 border border-amber-500/15 rounded-xl mb-3">
                         <AlertTriangle size={14} className="text-amber-400 shrink-0 mt-0.5" />
                         <p className="text-[11px] text-amber-400 leading-snug">
-                          {confirmModal.complementoWarning}
+                          {statusModal.complementoWarning}
                         </p>
                       </div>
                     )}
@@ -964,16 +969,22 @@ export default function DisponibilidadPage() {
                     {/* Actions */}
                     <div className="flex items-center gap-3 mt-1">
                       <button
-                        onClick={() => setConfirmModal(null)}
+                        onClick={() => setStatusModal(null)}
                         className="flex-1 px-4 py-2.5 text-[11px] font-ui uppercase tracking-wider text-[var(--text-secondary)] bg-[var(--surface-3)] border border-[var(--border-default)] rounded-xl hover:bg-[var(--surface-4)] transition-colors"
                       >
                         Cancelar
                       </button>
                       <button
                         onClick={handleConfirmStatusChange}
-                        className="flex-1 px-4 py-2.5 text-[11px] font-ui uppercase tracking-wider rounded-xl transition-all bg-[rgba(var(--site-primary-rgb),0.15)] text-[var(--site-primary)] border border-[rgba(var(--site-primary-rgb),0.3)] hover:bg-[rgba(var(--site-primary-rgb),0.25)] hover:border-[var(--site-primary)]"
+                        disabled={!canConfirm}
+                        className={cn(
+                          "flex-1 px-4 py-2.5 text-[11px] font-ui uppercase tracking-wider rounded-xl transition-all border",
+                          canConfirm
+                            ? `${newSc.bg} ${newSc.text} ${newSc.border} hover:brightness-125`
+                            : "opacity-40 cursor-not-allowed bg-[var(--surface-3)] text-[var(--text-muted)] border-[var(--border-subtle)]"
+                        )}
                       >
-                        Confirmar cambio
+                        Confirmar como {estadoLabel}
                       </button>
                     </div>
                   </div>

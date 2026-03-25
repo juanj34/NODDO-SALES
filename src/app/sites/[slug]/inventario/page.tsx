@@ -146,13 +146,9 @@ export default function InventarioPage() {
     return null;
   }, [isTipologiaPricing, tipologias, ocultarPrecioVendidas, isMultiTipo, unidadTipologias]);
 
-  // Tipo tabs (hybrid + commercial)
+  // Tipo tabs (hybrid projects)
   const [activeTipoTab, setActiveTipoTab] = useState<TipoTipologia | null>(null);
-  const hasCommercialTipos = useMemo(() =>
-    (tipologias || []).some(t => t.tipo_tipologia === "local_comercial"),
-    [tipologias]
-  );
-  const showTipoTabs = isHibrido || hasCommercialTipos;
+  const showTipoTabs = isHibrido;
 
   const availableTipoTabs = useMemo(() => {
     if (!showTipoTabs) return [] as TipoTipologia[];
