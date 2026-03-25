@@ -395,6 +395,7 @@ export async function sendLeadConfirmation(data: LeadConfirmationData) {
 interface CollaboratorInviteData {
   email: string;
   inviterName: string;
+  rol?: "director" | "asesor";
   locale?: EmailLocale;
 }
 
@@ -410,12 +411,16 @@ export async function sendCollaboratorInvite(data: CollaboratorInviteData) {
   const fromAddress = process.env.RESEND_FROM_EMAIL || "NODDO <notificaciones@noddo.io>";
   const appUrl = process.env.NEXT_PUBLIC_APP_URL || "https://noddo.io";
 
+  const bodyTemplate = data.rol === "director"
+    ? s.collaboratorInvite.bodyDirector
+    : s.collaboratorInvite.bodyAsesor;
+
   const html = emailWrapper(
     s.collaboratorInvite.heading,
     undefined,
     `<tr><td align="center" style="padding:0 40px 24px;">
       <p style="margin:0;font-size:13px;color:#8a8580;line-height:1.7;">
-        ${t(s.collaboratorInvite.body, { inviter: escapeHtml(data.inviterName) })}
+        ${t(bodyTemplate, { inviter: escapeHtml(data.inviterName) })}
       </p>
     </td></tr>
     ${ctaButton(appUrl + "/login", s.collaboratorInvite.cta)}`,
@@ -432,6 +437,105 @@ export async function sendCollaboratorInvite(data: CollaboratorInviteData) {
     });
   } catch (err) {
     console.error("[email] Failed to send collaborator invite:", err);
+  }
+}
+
+/* ── Collaborator welcome: sent when collaborator activates account ── */
+
+interface CollaboratorWelcomeData {
+  email: string;
+  rol: "director" | "asesor";
+  locale?: EmailLocale;
+}
+
+export async function sendCollaboratorWelcome(data: CollaboratorWelcomeData) {
+  const resend = getResend();
+  if (!resend) {
+    console.warn("[email] RESEND_API_KEY not configured — skipping collaborator welcome");
+    return;
+  }
+
+  const locale = data.locale || "es";
+  const s = getEmailStrings(locale);
+  const fromAddress = process.env.RESEND_FROM_EMAIL || "NODDO <notificaciones@noddo.io>";
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL || "https://noddo.io";
+
+  const bodyText = data.rol === "director"
+    ? s.collaboratorWelcome.bodyDirector
+    : s.collaboratorWelcome.bodyAsesor;
+
+  const html = emailWrapper(
+    s.collaboratorWelcome.heading,
+    undefined,
+    `<tr><td align="center" style="padding:0 40px 24px;">
+      <p style="margin:0;font-size:13px;color:#8a8580;line-height:1.7;">
+        ${bodyText}
+      </p>
+    </td></tr>
+    ${ctaButton(appUrl + "/proyectos", s.collaboratorWelcome.cta)}`,
+    locale,
+  );
+
+  try {
+    await resend.emails.send({
+      from: fromAddress,
+      to: data.email,
+      subject: s.collaboratorWelcome.subject,
+      html,
+      headers: { "List-Unsubscribe": "<mailto:hola@noddo.io?subject=Cancelar%20suscripcion>" },
+    });
+  } catch (err) {
+    console.error("[email] Failed to send collaborator welcome:", err);
+  }
+}
+
+/* ── Collaborator status change: when admin suspends/reactivates ── */
+
+interface CollaboratorStatusData {
+  email: string;
+  action: "suspended" | "reactivated";
+  locale?: EmailLocale;
+}
+
+export async function sendCollaboratorStatusChange(data: CollaboratorStatusData) {
+  const resend = getResend();
+  if (!resend) {
+    console.warn("[email] RESEND_API_KEY not configured — skipping status change email");
+    return;
+  }
+
+  const locale = data.locale || "es";
+  const s = getEmailStrings(locale);
+  const fromAddress = process.env.RESEND_FROM_EMAIL || "NODDO <notificaciones@noddo.io>";
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL || "https://noddo.io";
+
+  const isSuspended = data.action === "suspended";
+  const subject = isSuspended ? s.collaboratorStatus.subjectSuspended : s.collaboratorStatus.subjectReactivated;
+  const heading = isSuspended ? s.collaboratorStatus.headingSuspended : s.collaboratorStatus.headingReactivated;
+  const body = isSuspended ? s.collaboratorStatus.bodySuspended : s.collaboratorStatus.bodyReactivated;
+
+  const html = emailWrapper(
+    heading,
+    undefined,
+    `<tr><td align="center" style="padding:0 40px 24px;">
+      <p style="margin:0;font-size:13px;color:#8a8580;line-height:1.7;">
+        ${body}
+      </p>
+    </td></tr>
+    ${!isSuspended ? ctaButton(appUrl + "/login", s.collaboratorWelcome.cta) : ""}`,
+    locale,
+  );
+
+  try {
+    await resend.emails.send({
+      from: fromAddress,
+      to: data.email,
+      subject,
+      html,
+      headers: { "List-Unsubscribe": "<mailto:hola@noddo.io?subject=Cancelar%20suscripcion>" },
+    });
+  } catch (err) {
+    console.error("[email] Failed to send status change email:", err);
   }
 }
 

@@ -2,26 +2,48 @@
 
 export const dynamic = "force-dynamic";
 
-import { useState, useEffect, useCallback, useMemo } from "react";
+import { useState, useEffect, useCallback, useMemo, useRef } from "react";
 import { Loader2, ExternalLink, Search, ArrowUpDown, ArrowUp, ArrowDown, X, Upload } from "lucide-react";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
 import { useTranslation } from "@/i18n";
 import { useToast } from "@/components/dashboard/Toast";
+import { useAuthRole } from "@/hooks/useAuthContext";
 import { NodDoDropdown } from "@/components/ui/NodDoDropdown";
 import { formatCurrency } from "@/lib/currency";
+import {
+  StatusChangeModal,
+  type ProjectContextForModal,
+  type StatusChangePayload,
+  type EstadoUnidad,
+  type ModalUnit,
+} from "@/components/dashboard/StatusChangeModal";
 
 /* ── Types ─────────────────────────────────────────────── */
-
-type EstadoUnidad = "disponible" | "separado" | "reservada" | "vendida" | "proximamente";
 
 interface UnitRow {
   id: string;
   identificador: string;
   piso: number | null;
   area_m2: number | null;
+  area_construida: number | null;
+  area_privada: number | null;
+  area_lote: number | null;
   precio: number | null;
+  precio_venta: number | null;
+  lead_id: string | null;
+  cotizacion_id: string | null;
   estado: EstadoUnidad;
+  habitaciones: number | null;
+  banos: number | null;
+  parqueaderos: number | null;
+  depositos: number | null;
+  orientacion: string | null;
+  vista: string | null;
+  lote: string | null;
+  etapa_nombre: string | null;
+  torre_id: string | null;
+  tipologia_id: string | null;
   tipologia: { nombre: string } | null;
   torre: { nombre: string } | null;
 }
@@ -48,14 +70,12 @@ const ESTADOS: { key: EstadoUnidad; color: string; bg: string; dot: string }[] =
   { key: "proximamente", color: "#60a5fa", bg: "rgba(96,165,250,0.12)", dot: "bg-blue-500" },
 ];
 
-/* ── Helpers ───────────────────────────────────────────── */
-// formatPrice moved to src/lib/currency.ts → formatCurrency(, "COP", {}) with compact option
-
 /* ── Page ──────────────────────────────────────────────── */
 
 export default function DisponibilidadPage() {
   const { t } = useTranslation("dashboard");
   const toast = useToast();
+  const { role } = useAuthRole();
 
   // Projects
   const [projects, setProjects] = useState<ProjectTab[]>([]);
@@ -78,6 +98,17 @@ export default function DisponibilidadPage() {
   const [sortField, setSortField] = useState<SortField | null>(null);
   const [sortDir, setSortDir] = useState<SortDir>("asc");
   const [publishing, setPublishing] = useState(false);
+
+  // Modal state
+  const [modalTarget, setModalTarget] = useState<{
+    unit: ModalUnit;
+    newEstado: EstadoUnidad;
+  } | null>(null);
+  const [modalContext, setModalContext] = useState<ProjectContextForModal | null>(null);
+  const [loadingContext, setLoadingContext] = useState(false);
+
+  // Project context cache
+  const contextCacheRef = useRef<Map<string, ProjectContextForModal>>(new Map());
 
   // Fetch projects
   useEffect(() => {
@@ -197,26 +228,19 @@ export default function DisponibilidadPage() {
 
   const grouped = useMemo(() => {
     const map = new Map<number | null, UnitRow[]>();
-
-    // Group units by floor while preserving sorted order
     for (const u of sortedFiltered) {
       const key = u.piso;
       if (!map.has(key)) map.set(key, []);
       map.get(key)!.push(u);
     }
-
-    // Keep floors in the order they appear in sortedFiltered
-    // This preserves the sort order chosen by the user
     const entries: [number | null, UnitRow[]][] = [];
     const seenFloors = new Set<number | null>();
-
     for (const u of sortedFiltered) {
       if (!seenFloors.has(u.piso)) {
         seenFloors.add(u.piso);
         entries.push([u.piso, map.get(u.piso)!]);
       }
     }
-
     return entries;
   }, [sortedFiltered]);
 
@@ -229,30 +253,115 @@ export default function DisponibilidadPage() {
     return counts;
   }, [filtered]);
 
-  // Status change
-  const handleStatusChange = useCallback(async (unitId: string, newEstado: EstadoUnidad) => {
-    // Optimistic
-    setUnits((prev) =>
-      prev.map((u) => (u.id === unitId ? { ...u, estado: newEstado } : u))
-    );
+  // Status change — open modal with lazy-loaded context
+  const handleStatusChange = useCallback(async (unit: UnitRow, newEstado: EstadoUnidad) => {
+    if (unit.estado === newEstado) return;
 
-    const res = await fetch(`/api/unidades/${unitId}`, {
-      method: "PUT",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ estado: newEstado }),
-    });
+    const modalUnit: ModalUnit = {
+      id: unit.id,
+      identificador: unit.identificador,
+      tipologia_id: unit.tipologia_id,
+      estado: unit.estado,
+      piso: unit.piso,
+      area_m2: unit.area_m2,
+      area_construida: unit.area_construida ?? null,
+      area_privada: unit.area_privada ?? null,
+      area_lote: unit.area_lote ?? null,
+      precio: unit.precio,
+      precio_venta: unit.precio_venta,
+      lead_id: unit.lead_id,
+      cotizacion_id: unit.cotizacion_id,
+      habitaciones: unit.habitaciones,
+      banos: unit.banos,
+      parqueaderos: unit.parqueaderos,
+      depositos: unit.depositos,
+      orientacion: unit.orientacion,
+      vista: unit.vista,
+      lote: unit.lote,
+      etapa_nombre: unit.etapa_nombre,
+      torre_id: unit.torre_id,
+    };
 
-    if (!res.ok) {
-      // Revert
-      const original = units.find((u) => u.id === unitId);
-      if (original) {
-        setUnits((prev) =>
-          prev.map((u) => (u.id === unitId ? { ...u, estado: original.estado } : u))
-        );
+    setModalTarget({ unit: modalUnit, newEstado });
+
+    // Load project context if not cached
+    const projectId = selectedProjectId!;
+    const cached = contextCacheRef.current.get(projectId);
+    if (cached) {
+      setModalContext(cached);
+    } else {
+      setLoadingContext(true);
+      setModalContext(null);
+      try {
+        const res = await fetch(`/api/proyectos/${projectId}/disponibilidad-context`);
+        if (res.ok) {
+          const data = await res.json();
+          const ctx: ProjectContextForModal = {
+            projectId,
+            tipologiaMode: data.tipologia_mode ?? "fija",
+            precioSource: data.precio_source ?? "unidad",
+            monedaBase: data.moneda_base ?? "COP",
+            disponibilidadConfig: data.disponibilidad_config ?? {},
+            tipologias: data.tipologias ?? [],
+            torres: data.torres ?? [],
+            unidadTipologias: data.unidad_tipologias ?? [],
+          };
+          contextCacheRef.current.set(projectId, ctx);
+          setModalContext(ctx);
+        } else {
+          toast.error("Error al cargar contexto del proyecto");
+          setModalTarget(null);
+        }
+      } catch {
+        toast.error("Error de conexión");
+        setModalTarget(null);
+      } finally {
+        setLoadingContext(false);
       }
+    }
+  }, [selectedProjectId, toast]);
+
+  // Confirm status change via modal
+  const handleConfirmStatusChange = useCallback(async (payload: StatusChangePayload) => {
+    if (!modalTarget) return;
+    const unitId = modalTarget.unit.id;
+    const original = units.find((u) => u.id === unitId);
+    if (!original) return;
+
+    // Optimistic update
+    setUnits((prev) =>
+      prev.map((u) =>
+        u.id === unitId
+          ? {
+              ...u,
+              estado: payload.estado,
+              ...(payload.tipologia_id !== undefined ? { tipologia_id: payload.tipologia_id } : {}),
+              ...(payload.precio_venta !== undefined ? { precio_venta: payload.precio_venta } : {}),
+              ...(payload.lead_id !== undefined ? { lead_id: payload.lead_id } : {}),
+              ...(payload.cotizacion_id !== undefined ? { cotizacion_id: payload.cotizacion_id } : {}),
+            }
+          : u
+      )
+    );
+    setModalTarget(null);
+
+    try {
+      const res = await fetch(`/api/unidades/${unitId}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+
+      if (!res.ok) throw new Error("Error");
+      toast.success(`${original.identificador} → ${payload.estado}`);
+    } catch {
+      // Revert
+      setUnits((prev) =>
+        prev.map((u) => (u.id === unitId ? { ...original } : u))
+      );
       toast.error("Error al actualizar estado");
     }
-  }, [units, toast]);
+  }, [modalTarget, units, toast]);
 
   // Toggle sort
   const toggleSort = useCallback((field: SortField) => {
@@ -433,7 +542,6 @@ export default function DisponibilidadPage() {
 
             {/* Filter row */}
             <div className="flex gap-2 flex-wrap items-center">
-              {/* Torre filter */}
               {torres.length > 1 && (
                 <NodDoDropdown
                   variant="dashboard"
@@ -446,8 +554,6 @@ export default function DisponibilidadPage() {
                   ]}
                 />
               )}
-
-              {/* Tipologia filter */}
               {tipologias.length > 1 && (
                 <NodDoDropdown
                   variant="dashboard"
@@ -460,8 +566,6 @@ export default function DisponibilidadPage() {
                   ]}
                 />
               )}
-
-              {/* Estado filter */}
               <NodDoDropdown
                 variant="dashboard"
                 size="sm"
@@ -492,8 +596,6 @@ export default function DisponibilidadPage() {
                   </span>
                 )}
               />
-
-              {/* Clear all */}
               {hasActiveFilters && (
                 <button
                   onClick={clearAllFilters}
@@ -517,13 +619,8 @@ export default function DisponibilidadPage() {
                   filterEstado !== "all" && filterEstado !== e.key ? "opacity-40" : "opacity-100"
                 )}
               >
-                <span
-                  className="w-2 h-2 rounded-full"
-                  style={{ background: e.color }}
-                />
-                <span className="text-[11px] text-[var(--text-tertiary)]">
-                  {summary[e.key]}
-                </span>
+                <span className="w-2 h-2 rounded-full" style={{ background: e.color }} />
+                <span className="text-[11px] text-[var(--text-tertiary)]">{summary[e.key]}</span>
                 <span className="text-[10px] text-[var(--text-muted)] font-ui uppercase tracking-wider">
                   {t(`disponibilidad.summary.${e.key}` as `disponibilidad.summary.disponible`)}
                 </span>
@@ -587,18 +684,13 @@ export default function DisponibilidadPage() {
           {/* Units by floor */}
           {filtered.length === 0 ? (
             <div className="bg-[var(--surface-1)] rounded-xl border border-[var(--border-subtle)] p-10 text-center">
-              <p className="text-sm text-[var(--text-tertiary)] mb-2">
-                No se encontraron unidades
-              </p>
-              <p className="text-xs text-[var(--text-muted)]">
-                Ajusta los filtros o la búsqueda para ver resultados
-              </p>
+              <p className="text-sm text-[var(--text-tertiary)] mb-2">No se encontraron unidades</p>
+              <p className="text-xs text-[var(--text-muted)]">Ajusta los filtros o la búsqueda para ver resultados</p>
             </div>
           ) : (
             <div className="space-y-2">
               {grouped.map(([piso, floorUnits]) => (
                 <div key={piso ?? "null"} className="bg-[var(--surface-1)] rounded-xl border border-[var(--border-subtle)] overflow-hidden">
-                  {/* Floor header — more prominent */}
                   <div className="px-4 py-3 border-b border-[var(--border-default)] bg-[var(--surface-2)]">
                     <div className="flex items-center gap-3">
                       <span className="font-ui text-[11px] font-bold uppercase tracking-[0.14em] text-[var(--text-secondary)]">
@@ -618,7 +710,6 @@ export default function DisponibilidadPage() {
                         {floorUnits.length} {floorUnits.length === 1 ? "unidad" : "unidades"}
                       </span>
                       <div className="flex-1" />
-                      {/* Mini status summary for this floor */}
                       <div className="flex gap-2">
                         {ESTADOS.map((e) => {
                           const count = floorUnits.filter((u) => u.estado === e.key).length;
@@ -634,34 +725,24 @@ export default function DisponibilidadPage() {
                     </div>
                   </div>
 
-                  {/* Unit rows */}
                   <div className="divide-y divide-[var(--border-subtle)]">
                     {floorUnits.map((unit) => (
                       <div
                         key={unit.id}
                         className="flex items-center gap-3 px-4 py-2.5 hover:bg-[var(--surface-2)] transition-colors"
                       >
-                        {/* ID */}
                         <span className="text-xs text-[var(--text-primary)] font-medium w-20 shrink-0">
                           {unit.identificador}
                         </span>
-
-                        {/* Piso (matches sort header) */}
                         <span className="text-[11px] text-[var(--text-muted)] w-14 shrink-0 hidden sm:block">
                           {unit.piso ?? "—"}
                         </span>
-
-                        {/* Tipologia */}
                         <span className="text-[11px] text-[var(--text-tertiary)] truncate flex-1 min-w-0">
                           {unit.tipologia?.nombre || "—"}
                         </span>
-
-                        {/* Area */}
                         <span className="text-[11px] text-[var(--text-muted)] shrink-0 w-16 hidden sm:block">
                           {unit.area_m2 ? `${unit.area_m2}m²` : "—"}
                         </span>
-
-                        {/* Price */}
                         <span className="text-[11px] text-[var(--text-tertiary)] shrink-0 w-16 text-right hidden sm:block">
                           {unit.precio ? formatCurrency(unit.precio, "COP", {}) : "—"}
                         </span>
@@ -672,7 +753,7 @@ export default function DisponibilidadPage() {
                             <button
                               key={e.key}
                               onClick={() => {
-                                if (unit.estado !== e.key) handleStatusChange(unit.id, e.key);
+                                if (unit.estado !== e.key) handleStatusChange(unit, e.key);
                               }}
                               title={e.key}
                               className={cn(
@@ -686,10 +767,7 @@ export default function DisponibilidadPage() {
                                 ...(unit.estado === e.key ? { ringColor: e.color } : {}),
                               }}
                             >
-                              <span
-                                className="w-2 h-2 rounded-full"
-                                style={{ background: e.color }}
-                              />
+                              <span className="w-2 h-2 rounded-full" style={{ background: e.color }} />
                             </button>
                           ))}
                         </div>
@@ -701,6 +779,28 @@ export default function DisponibilidadPage() {
             </div>
           )}
         </>
+      )}
+
+      {/* ── Status change modal ──────────────────────────────────── */}
+      {modalTarget && modalContext && (
+        <StatusChangeModal
+          unit={modalTarget.unit}
+          newEstado={modalTarget.newEstado}
+          projectContext={modalContext}
+          userRole={role || "admin"}
+          onConfirm={handleConfirmStatusChange}
+          onClose={() => setModalTarget(null)}
+        />
+      )}
+
+      {/* Loading context overlay */}
+      {modalTarget && loadingContext && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm">
+          <div className="bg-[var(--surface-2)] border border-[var(--border-default)] rounded-2xl p-8 flex flex-col items-center gap-3">
+            <Loader2 size={24} className="animate-spin text-[var(--site-primary)]" />
+            <p className="text-xs text-[var(--text-tertiary)]">Cargando contexto...</p>
+          </div>
+        </div>
       )}
     </div>
   );

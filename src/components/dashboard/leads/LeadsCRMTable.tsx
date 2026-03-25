@@ -8,6 +8,13 @@ import { fontSize } from "@/lib/design-tokens";
 import { LeadStatusBadge } from "./LeadStatusBadge";
 import type { LeadWithMeta } from "@/types";
 
+export interface TeamMember {
+  id: string;
+  nombre: string;
+  email: string;
+  rol: "director" | "asesor";
+}
+
 interface Props {
   leads: LeadWithMeta[];
   loading: boolean;
@@ -17,6 +24,9 @@ interface Props {
   onSortChange: (dir: "newest" | "oldest") => void;
   locale: string;
   multiProject: boolean;
+  canAssign?: boolean;
+  team?: TeamMember[];
+  onAssign?: (leadId: string, userId: string | null) => void;
 }
 
 export function LeadsCRMTable({
@@ -28,6 +38,9 @@ export function LeadsCRMTable({
   onSortChange,
   locale,
   multiProject,
+  canAssign,
+  team,
+  onAssign,
 }: Props) {
   const formatShortDate = (d: string) =>
     new Date(d).toLocaleDateString(locale === "es" ? "es-CO" : "en-US", {
@@ -96,6 +109,11 @@ export function LeadsCRMTable({
             <th scope="col" className="text-left px-5 py-3">
               <Label variant="section" className="mb-0">Status</Label>
             </th>
+            {canAssign && (
+              <th scope="col" className="text-left px-5 py-3 hidden lg:table-cell">
+                <Label variant="section" className="mb-0">{locale === "es" ? "Asignado" : "Assigned"}</Label>
+              </th>
+            )}
             <th scope="col" className="text-center px-5 py-3">
               <Label variant="section" className="mb-0">
                 <span className="hidden sm:inline">{locale === "es" ? "Cotiz." : "Quotes"}</span>
@@ -184,6 +202,16 @@ export function LeadsCRMTable({
                 <td className="px-5 py-3.5">
                   <LeadStatusBadge status={lead.status} locale={locale} size="sm" />
                 </td>
+                {canAssign && (
+                  <td className="px-5 py-3.5 hidden lg:table-cell">
+                    <AssigneeCell
+                      lead={lead}
+                      team={team || []}
+                      onAssign={onAssign}
+                      locale={locale}
+                    />
+                  </td>
+                )}
                 <td className="px-5 py-3.5 text-center">
                   {lead.cotizaciones_count > 0 ? (
                     <Badge variant="primary" size="sm" className="min-w-[22px] h-[22px] px-1.5">
@@ -202,5 +230,48 @@ export function LeadsCRMTable({
         </tbody>
       </table>
     </motion.div>
+  );
+}
+
+function AssigneeCell({
+  lead,
+  team,
+  onAssign,
+  locale,
+}: {
+  lead: LeadWithMeta;
+  team: TeamMember[];
+  onAssign?: (leadId: string, userId: string | null) => void;
+  locale: string;
+}) {
+  if (!onAssign) {
+    return (
+      <span className={cn("text-[var(--text-muted)]", fontSize.subtitle)}>
+        {lead.asignado_nombre || (locale === "es" ? "Sin asignar" : "Unassigned")}
+      </span>
+    );
+  }
+
+  return (
+    <select
+      value={lead.asignado_a || ""}
+      onClick={(e) => e.stopPropagation()}
+      onChange={(e) => {
+        e.stopPropagation();
+        onAssign(lead.id, e.target.value || null);
+      }}
+      className={cn(
+        "bg-[var(--surface-3)] border border-[var(--border-subtle)] rounded-lg px-2 py-1 text-[11px] max-w-[140px] truncate",
+        "focus:outline-none focus:ring-1 focus:ring-[var(--site-primary)] transition-colors",
+        lead.asignado_a ? "text-[var(--text-secondary)]" : "text-[var(--text-muted)]"
+      )}
+    >
+      <option value="">{locale === "es" ? "Sin asignar" : "Unassigned"}</option>
+      {team.map((m) => (
+        <option key={m.id} value={m.id}>
+          {m.nombre}
+        </option>
+      ))}
+    </select>
   );
 }

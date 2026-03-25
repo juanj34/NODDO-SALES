@@ -1,5 +1,5 @@
 import { pick } from "@/lib/api-utils";
-import { getAuthContext, getAccessibleProjectIds, verifyProjectOwnership } from "@/lib/auth-context";
+import { getAuthContext, getAccessibleProjectIds, verifyProjectOwnership, requirePermission } from "@/lib/auth-context";
 import { NextRequest, NextResponse } from "next/server";
 
 const COMPLEMENTO_FIELDS = [
@@ -29,8 +29,8 @@ export async function PUT(
       return NextResponse.json({ error: "Complemento no encontrado" }, { status: 404 });
     }
 
-    // Collaborators can ONLY update estado
-    if (auth.role === "colaborador") {
+    // Asesores can ONLY update estado; Directors have full access
+    if (auth.role === "asesor") {
       const bodyKeys = Object.keys(body);
       if (bodyKeys.some((k) => k !== "estado")) {
         return NextResponse.json(
@@ -38,6 +38,11 @@ export async function PUT(
           { status: 403 }
         );
       }
+      const accessible = await getAccessibleProjectIds(auth);
+      if (accessible && !accessible.includes(complemento.proyecto_id)) {
+        return NextResponse.json({ error: "Sin acceso a este proyecto" }, { status: 403 });
+      }
+    } else if (auth.role === "director") {
       const accessible = await getAccessibleProjectIds(auth);
       if (accessible && !accessible.includes(complemento.proyecto_id)) {
         return NextResponse.json({ error: "Sin acceso a este proyecto" }, { status: 403 });
@@ -73,7 +78,8 @@ export async function DELETE(
     const { id } = await params;
     const auth = await getAuthContext();
     if (!auth) return NextResponse.json({ error: "No autorizado" }, { status: 401 });
-    if (auth.role !== "admin") return NextResponse.json({ error: "Solo administradores" }, { status: 403 });
+    const denied = requirePermission(auth, "inventory.write");
+    if (denied) return denied;
 
     const { error } = await auth.supabase
       .from("complementos")

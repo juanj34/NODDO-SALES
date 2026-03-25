@@ -65,7 +65,8 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json();
-    const { email, nombre } = body;
+    const { email, nombre, rol } = body;
+    const validRol = rol === "director" ? "director" : "asesor";
 
     if (!email) {
       return NextResponse.json(
@@ -123,6 +124,7 @@ export async function POST(request: NextRequest) {
         email: email.toLowerCase(),
         nombre: nombre || null,
         estado,
+        rol: validRol,
         activated_at: estado === "activo" ? new Date().toISOString() : null,
       })
       .select()
@@ -138,11 +140,12 @@ export async function POST(request: NextRequest) {
       throw error;
     }
 
-    // Send invite email (non-blocking, admin's locale)
+    // Send invite email (non-blocking, admin's locale, role-specific)
     const adminLocale = await getUserLocale(auth.supabase, auth.user.id);
     sendCollaboratorInvite({
       email: email.toLowerCase(),
       inviterName: auth.user.email || "Un administrador",
+      rol: validRol,
       locale: adminLocale,
     }).catch((err) => console.error("[collab] invite email error:", err));
 

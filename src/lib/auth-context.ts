@@ -1,7 +1,10 @@
 import { createClient } from "@/lib/supabase/server";
+import { NextResponse } from "next/server";
 import type { SupabaseClient } from "@supabase/supabase-js";
+import type { UserRole } from "@/types";
+import { hasPermission, type Permission } from "@/lib/permissions";
 
-export type UserRole = "admin" | "colaborador";
+export type { UserRole };
 
 export interface UserProfile {
   nombre: string;
@@ -37,10 +40,10 @@ export async function getAuthContext(): Promise<AuthContext | null> {
 
   if (!user || !user.email) return null;
 
-  // Check if this user is an active collaborator
+  // Check if this user is an active collaborator (now fetching rol)
   const { data: collab } = await supabase
     .from("colaboradores")
-    .select("admin_user_id")
+    .select("admin_user_id, rol")
     .eq("colaborador_user_id", user.id)
     .eq("estado", "activo")
     .limit(1)
@@ -68,7 +71,7 @@ export async function getAuthContext(): Promise<AuthContext | null> {
   if (collab) {
     return {
       user: { id: user.id, email: user.email, user_metadata: user.user_metadata },
-      role: "colaborador",
+      role: (collab.rol as "director" | "asesor") || "asesor",
       adminUserId: collab.admin_user_id,
       isPlatformAdmin: !!platformAdmin,
       profile,
@@ -84,6 +87,23 @@ export async function getAuthContext(): Promise<AuthContext | null> {
     profile,
     supabase,
   };
+}
+
+/**
+ * Guard helper for API routes. Returns 403 response if role lacks permission.
+ * Usage: const denied = requirePermission(auth, "content.write"); if (denied) return denied;
+ */
+export function requirePermission(
+  auth: AuthContext,
+  permission: Permission
+): NextResponse | null {
+  if (!hasPermission(auth.role, permission)) {
+    return NextResponse.json(
+      { error: "No tienes permisos para esta acción" },
+      { status: 403 }
+    );
+  }
+  return null;
 }
 
 /**
@@ -131,6 +151,17 @@ export async function linkPendingCollaborator(
 ): Promise<void> {
   if (!user.email) return;
 
+  // Fetch pending record before update (to get rol for welcome email)
+  const { data: pending } = await supabase
+    .from("colaboradores")
+    .select("id, rol")
+    .eq("email", user.email)
+    .eq("estado", "pendiente")
+    .is("colaborador_user_id", null)
+    .maybeSingle();
+
+  if (!pending) return;
+
   await supabase
     .from("colaboradores")
     .update({
@@ -138,7 +169,16 @@ export async function linkPendingCollaborator(
       estado: "activo",
       activated_at: new Date().toISOString(),
     })
-    .eq("email", user.email)
-    .eq("estado", "pendiente")
-    .is("colaborador_user_id", null);
+    .eq("id", pending.id);
+
+  // Send role-specific welcome email (fire-and-forget)
+  try {
+    const { sendCollaboratorWelcome } = await import("@/lib/email");
+    sendCollaboratorWelcome({
+      email: user.email,
+      rol: (pending.rol as "director" | "asesor") || "asesor",
+    }).catch((err) => console.error("[collab] welcome email error:", err));
+  } catch {
+    // Email module not available — skip silently
+  }
 }

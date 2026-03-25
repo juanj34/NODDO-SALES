@@ -85,8 +85,26 @@ interface WelcomeStrings {
 interface CollaboratorInviteStrings {
   subject: string;     // "{inviter} te invita..."
   heading: string;
-  body: string;        // "{inviter} te ha invitado como colaborador..."
+  bodyDirector: string;
+  bodyAsesor: string;
   cta: string;
+}
+
+interface CollaboratorWelcomeStrings {
+  subject: string;
+  heading: string;
+  bodyDirector: string;
+  bodyAsesor: string;
+  cta: string;
+}
+
+interface CollaboratorStatusStrings {
+  subjectSuspended: string;
+  subjectReactivated: string;
+  headingSuspended: string;
+  headingReactivated: string;
+  bodySuspended: string;
+  bodyReactivated: string;
 }
 
 interface BookingConfirmationStrings {
@@ -146,6 +164,8 @@ export interface EmailStrings {
   cotizacionAdmin: CotizacionAdminStrings;
   welcome: WelcomeStrings;
   collaboratorInvite: CollaboratorInviteStrings;
+  collaboratorWelcome: CollaboratorWelcomeStrings;
+  collaboratorStatus: CollaboratorStatusStrings;
   bookingConfirmation: BookingConfirmationStrings;
   bookingAdmin: BookingAdminStrings;
   bookingReminder: BookingReminderStrings;
@@ -227,8 +247,26 @@ const es: EmailStrings = {
   collaboratorInvite: {
     subject: "{inviter} te invita a colaborar en NODDO",
     heading: "Has sido invitado",
-    body: '<strong style="color:#f4f0e8;">{inviter}</strong> te ha invitado como colaborador en NODDO. Podrás gestionar el inventario de sus proyectos inmobiliarios.',
+    bodyDirector: '<strong style="color:#f4f0e8;">{inviter}</strong> te ha invitado como <strong style="color:#b8973a;">Director</strong> en NODDO. Podrás gestionar contenido, leads e inventario de los proyectos asignados.',
+    bodyAsesor: '<strong style="color:#f4f0e8;">{inviter}</strong> te ha invitado como <strong style="color:#b8973a;">Asesor</strong> en NODDO. Podrás gestionar disponibilidad, cotizaciones y tus leads asignados.',
     cta: "Acceder a NODDO",
+  },
+
+  collaboratorWelcome: {
+    subject: "Bienvenido a NODDO",
+    heading: "Bienvenido al equipo",
+    bodyDirector: 'Tu cuenta como <strong style="color:#b8973a;">Director</strong> está activa. Ya puedes acceder a los proyectos asignados y gestionar contenido, leads e inventario.',
+    bodyAsesor: 'Tu cuenta como <strong style="color:#b8973a;">Asesor</strong> está activa. Ya puedes acceder a disponibilidad, cotizador y tus leads asignados.',
+    cta: "Ir a NODDO",
+  },
+
+  collaboratorStatus: {
+    subjectSuspended: "Tu acceso a NODDO ha sido suspendido",
+    subjectReactivated: "Tu acceso a NODDO ha sido reactivado",
+    headingSuspended: "Acceso suspendido",
+    headingReactivated: "Acceso reactivado",
+    bodySuspended: "Tu acceso a la plataforma NODDO ha sido suspendido por el administrador. Si crees que esto es un error, contacta a tu administrador.",
+    bodyReactivated: "Tu acceso a la plataforma NODDO ha sido reactivado. Ya puedes volver a iniciar sesión y acceder a tus proyectos asignados.",
   },
 
   bookingConfirmation: {
@@ -359,8 +397,26 @@ const en: EmailStrings = {
   collaboratorInvite: {
     subject: "{inviter} invites you to collaborate on NODDO",
     heading: "You have been invited",
-    body: '<strong style="color:#f4f0e8;">{inviter}</strong> has invited you as a collaborator on NODDO. You will be able to manage the inventory of their real estate projects.',
+    bodyDirector: '<strong style="color:#f4f0e8;">{inviter}</strong> has invited you as a <strong style="color:#b8973a;">Director</strong> on NODDO. You will be able to manage content, leads, and inventory for assigned projects.',
+    bodyAsesor: '<strong style="color:#f4f0e8;">{inviter}</strong> has invited you as an <strong style="color:#b8973a;">Advisor</strong> on NODDO. You will be able to manage availability, quotations, and your assigned leads.',
     cta: "Go to NODDO",
+  },
+
+  collaboratorWelcome: {
+    subject: "Welcome to NODDO",
+    heading: "Welcome to the team",
+    bodyDirector: 'Your <strong style="color:#b8973a;">Director</strong> account is active. You can now access assigned projects and manage content, leads, and inventory.',
+    bodyAsesor: 'Your <strong style="color:#b8973a;">Advisor</strong> account is active. You can now access availability, quotation tools, and your assigned leads.',
+    cta: "Go to NODDO",
+  },
+
+  collaboratorStatus: {
+    subjectSuspended: "Your NODDO access has been suspended",
+    subjectReactivated: "Your NODDO access has been reactivated",
+    headingSuspended: "Access suspended",
+    headingReactivated: "Access reactivated",
+    bodySuspended: "Your access to the NODDO platform has been suspended by the administrator. If you believe this is an error, please contact your administrator.",
+    bodyReactivated: "Your access to the NODDO platform has been reactivated. You can now log in again and access your assigned projects.",
   },
 
   bookingConfirmation: {

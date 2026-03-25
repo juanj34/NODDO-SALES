@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getAuthContext } from "@/lib/auth-context";
+import { getAuthContext, requirePermission } from "@/lib/auth-context";
 import { getPresignedUploadUrls, type FileToSign } from "@/lib/r2";
 
 const MAX_FILES = 100_000;
@@ -11,9 +11,8 @@ export async function POST(request: NextRequest) {
     if (!auth) {
       return NextResponse.json({ error: "No autenticado" }, { status: 401 });
     }
-    if (auth.role !== "admin") {
-      return NextResponse.json({ error: "Solo administradores" }, { status: 403 });
-    }
+    const denied = requirePermission(auth, "content.write");
+    if (denied) return denied;
 
     const body = await request.json();
     const { proyecto_id, files, total_tour_bytes, tipologia_id } = body as {

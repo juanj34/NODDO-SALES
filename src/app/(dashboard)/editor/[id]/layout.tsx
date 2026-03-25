@@ -47,6 +47,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import type { ProyectoVersion } from "@/types";
 import { useTranslation } from "@/i18n";
 import { useAuthRole } from "@/hooks/useAuthContext";
+import { usePermissions } from "@/hooks/usePermissions";
 import { useConfirm } from "@/components/dashboard/ConfirmModal";
 import { NodDoLogo } from "@/components/ui/NodDoLogo";
 import { LanguageToggle } from "@/components/ui/LanguageToggle";
@@ -234,7 +235,7 @@ export default function EditorLayout({
   const { confirm } = useConfirm();
 
   const { role } = useAuthRole();
-  const isCollaborator = role === "colaborador";
+  const { can, isAdmin, isCollaborator } = usePermissions();
   const basePath = `/editor/${id}`;
   const { open: drawerOpen, toggle: toggleDrawer, close: closeDrawer } = useMobileDrawer();
 
@@ -480,17 +481,30 @@ export default function EditorLayout({
     return allTorre ? Building2 : Home;
   }, [project?.tipo_proyecto, project?.torres]);
 
-  // Collaborators see Inventario + Disponibilidad (both allow estado changes)
+  // Role-based tab filtering:
+  // Admin: all tabs
+  // Director: all except config (can view General/Torres read-only)
+  // Asesor: inventario (read-only), disponibilidad, cotizador, tipologias (read-only)
   const filteredSections = useMemo(() => {
-    if (!isCollaborator) return editorSections;
-    const allowedTabs = ["inventario", "disponibilidad"];
+    if (isAdmin) return editorSections;
+    if (role === "director") {
+      const hiddenTabs = ["config"];
+      return editorSections
+        .map((section) => ({
+          ...section,
+          tabs: section.tabs.filter((tab) => !hiddenTabs.includes(tab.id)),
+        }))
+        .filter((section) => section.tabs.length > 0);
+    }
+    // Asesor: limited tabs
+    const allowedTabs = ["tipologias", "inventario", "disponibilidad", "cotizador"];
     return editorSections
       .map((section) => ({
         ...section,
         tabs: section.tabs.filter((tab) => allowedTabs.includes(tab.id)),
       }))
       .filter((section) => section.tabs.length > 0);
-  }, [isCollaborator]);
+  }, [isAdmin, role]);
 
   const lastPublished = useMemo(() => {
     if (versions.length > 0) return versions[0].published_at;
@@ -766,12 +780,18 @@ export default function EditorLayout({
 
         {/* Main content area */}
         <div className="flex-1 flex flex-col min-w-0">
-          {/* Collaborator banner */}
-          {isCollaborator && (
+          {/* Role banner for collaborators */}
+          {isCollaborator && role && (
             <div className="shrink-0 flex items-center gap-2 px-6 h-10 border-b border-[var(--border-subtle)] bg-[rgba(var(--site-primary-rgb),0.06)]">
               <Package size={13} className="text-[var(--site-primary)]" />
               <span className="text-[11px] text-[var(--text-secondary)]">
-                {t("layout.collaboratorRestriction")}
+                {role === "director"
+                  ? (locale === "es"
+                    ? "Estás editando como Director — algunos ajustes requieren acceso de Administrador"
+                    : "Editing as Director — some settings require Administrator access")
+                  : (locale === "es"
+                    ? "Estás en modo Asesor — acceso limitado a disponibilidad, cotizador y leads asignados"
+                    : "Advisor mode — limited to availability, quotation tool, and assigned leads")}
               </span>
             </div>
           )}

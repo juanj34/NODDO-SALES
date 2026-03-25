@@ -12,10 +12,10 @@ export async function GET(
       return NextResponse.json({ error: "No autorizado" }, { status: 401 });
     }
 
-    // Fetch the lead to get email and proyecto_id
+    // Fetch the lead to get email, proyecto_id, and asignado_a
     const { data: lead, error: leadError } = await auth.supabase
       .from("leads")
-      .select("email, proyecto_id")
+      .select("email, proyecto_id, asignado_a")
       .eq("id", id)
       .single();
 
@@ -32,6 +32,11 @@ export async function GET(
       .single();
 
     if (!proyecto) {
+      return NextResponse.json({ error: "No autorizado" }, { status: 403 });
+    }
+
+    // Asesores can only view cotizaciones for leads assigned to them
+    if (auth.role === "asesor" && lead.asignado_a !== auth.user.id) {
       return NextResponse.json({ error: "No autorizado" }, { status: 403 });
     }
 

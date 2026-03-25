@@ -24,8 +24,8 @@ export async function DELETE() {
       .eq("admin_user_id", auth.user.id);
   }
 
-  // If collaborator, remove the collaborator record
-  if (auth.role === "colaborador") {
+  // If collaborator (director or asesor), remove the collaborator record
+  if (auth.role === "director" || auth.role === "asesor") {
     await adminSupabase
       .from("colaboradores")
       .delete()

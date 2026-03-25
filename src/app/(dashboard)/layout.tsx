@@ -19,6 +19,8 @@ import { CommandPalette } from "@/components/dashboard/CommandPalette";
 import { useTranslation } from "@/i18n";
 import { LanguageToggle } from "@/components/ui/LanguageToggle";
 import { AuthContextProvider, useAuthRole } from "@/hooks/useAuthContext";
+import { usePermissions } from "@/hooks/usePermissions";
+import { ROLE_LABELS } from "@/lib/permissions";
 import { NodDoLogo } from "@/components/ui/NodDoLogo";
 import { useMobileDrawer } from "@/hooks/useMobileDrawer";
 import { RouteProgressBar } from "@/components/ui/RouteProgressBar";
@@ -81,6 +83,7 @@ function DashboardShell({ children }: { children: React.ReactNode }) {
   const router = useRouter();
   const { t } = useTranslation("dashboard");
   const { user, role, isPlatformAdmin, profile, loading } = useAuthRole();
+  const { can, isAdmin, isCollaborator } = usePermissions();
   const { open: drawerOpen, toggle: toggleDrawer, close: closeDrawer } = useMobileDrawer();
 
   // Sidebar projects state removed - using simple link now
@@ -104,7 +107,7 @@ function DashboardShell({ children }: { children: React.ReactNode }) {
     router.push("/login");
   };
 
-  const isAdmin = role === "admin";
+  // isAdmin and can() now come from usePermissions()
 
   return (
     <div className="min-h-screen relative bg-[var(--surface-0)] text-white flex">
@@ -229,36 +232,42 @@ function DashboardShell({ children }: { children: React.ReactNode }) {
             onClick={closeDrawer}
             iconSize={15}
           />
-          <SidebarLink
-            href="/analytics"
-            icon={BarChart3}
-            label="Analytics"
-            pathname={pathname}
-            onClick={closeDrawer}
-            iconSize={15}
-          />
-          <SidebarLink
-            href="/financiero"
-            icon={CircleDollarSign}
-            label={t("sidebar.financiero")}
-            pathname={pathname}
-            onClick={closeDrawer}
-            iconSize={15}
-          />
-          <SidebarLink
-            href="/bitacora"
-            icon={Clock}
-            label={t("sidebar.bitacora")}
-            pathname={pathname}
-            onClick={closeDrawer}
-            iconSize={15}
-          />
+          {can("analytics.read") && (
+            <SidebarLink
+              href="/analytics"
+              icon={BarChart3}
+              label="Analytics"
+              pathname={pathname}
+              onClick={closeDrawer}
+              iconSize={15}
+            />
+          )}
+          {can("financiero.read") && (
+            <SidebarLink
+              href="/financiero"
+              icon={CircleDollarSign}
+              label={t("sidebar.financiero")}
+              pathname={pathname}
+              onClick={closeDrawer}
+              iconSize={15}
+            />
+          )}
+          {can("bitacora.read") && (
+            <SidebarLink
+              href="/bitacora"
+              icon={Clock}
+              label={t("sidebar.bitacora")}
+              pathname={pathname}
+              onClick={closeDrawer}
+              iconSize={15}
+            />
+          )}
 
           {/* ── Divider ────────────────────────── */}
           <div className="!my-3 h-px bg-[var(--border-subtle)]" />
 
           {/* ── EQUIPO (admin only) ──────────────── */}
-          {isAdmin && (
+          {can("team.manage") && (
             <SidebarLink
               href="/equipo"
               icon={Users}
@@ -348,9 +357,9 @@ function DashboardShell({ children }: { children: React.ReactNode }) {
                   {user?.email || "\u2014"}
                 </span>
               )}
-              {role === "colaborador" && (
+              {isCollaborator && role && (
                 <span className="font-ui text-[10px] text-[var(--site-primary)] font-bold uppercase tracking-wider">
-                  {t("sidebar.collaborator")}
+                  {ROLE_LABELS[role]}
                 </span>
               )}
             </div>

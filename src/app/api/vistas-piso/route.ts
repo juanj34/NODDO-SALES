@@ -1,5 +1,5 @@
 import { pick } from "@/lib/api-utils";
-import { getAuthContext, getAccessibleProjectIds } from "@/lib/auth-context";
+import { getAuthContext, getAccessibleProjectIds, requirePermission } from "@/lib/auth-context";
 import { NextRequest, NextResponse } from "next/server";
 
 const VISTA_FIELDS = [
@@ -44,7 +44,8 @@ export async function POST(request: NextRequest) {
   try {
     const auth = await getAuthContext();
     if (!auth) return NextResponse.json({ error: "No autorizado" }, { status: 401 });
-    if (auth.role !== "admin") return NextResponse.json({ error: "Solo administradores" }, { status: 403 });
+    const denied = requirePermission(auth, "content.write");
+    if (denied) return denied;
 
     const body = await request.json();
     if (!body.proyecto_id || !body.nombre || !body.imagen_url) {

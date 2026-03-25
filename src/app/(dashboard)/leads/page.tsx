@@ -8,9 +8,10 @@ import { ChevronLeft, ChevronRight } from "lucide-react";
 import type { LeadWithMeta, LeadStats } from "@/types";
 import { useTranslation } from "@/i18n";
 import { useToast } from "@/components/dashboard/Toast";
+import { usePermissions } from "@/hooks/usePermissions";
 import { LeadsCRMStats } from "@/components/dashboard/leads/LeadsCRMStats";
 import { LeadsCRMFilters, type DatePreset } from "@/components/dashboard/leads/LeadsCRMFilters";
-import { LeadsCRMTable } from "@/components/dashboard/leads/LeadsCRMTable";
+import { LeadsCRMTable, type TeamMember } from "@/components/dashboard/leads/LeadsCRMTable";
 import { LeadDetailPanel } from "@/components/dashboard/leads/LeadDetailPanel";
 import { cn } from "@/lib/utils";
 
@@ -31,12 +32,15 @@ function toInputDate(d: Date): string {
 export default function LeadsPage() {
   const { locale } = useTranslation("dashboard");
   const toast = useToast();
+  const { can, isAsesor } = usePermissions();
+  const canAssign = can("leads.assign");
 
   // Data state
   const [leads, setLeads] = useState<LeadWithMeta[]>([]);
   const [total, setTotal] = useState(0);
   const [stats, setStats] = useState<LeadStats | null>(null);
   const [projects, setProjects] = useState<{ id: string; nombre: string }[]>([]);
+  const [team, setTeam] = useState<TeamMember[]>([]);
   const [page, setPage] = useState(1);
   const [loading, setLoading] = useState(true);
   const limit = 50;
@@ -61,6 +65,7 @@ export default function LeadsPage() {
 
   // Stats tracking — only load stats once initially
   const [statsLoaded, setStatsLoaded] = useState(false);
+  const [teamLoaded, setTeamLoaded] = useState(false);
 
   // Search debounce
   useEffect(() => {
@@ -79,9 +84,6 @@ export default function LeadsPage() {
     try {
       const params = new URLSearchParams();
       if (debouncedSearch) params.set("search", debouncedSearch);
-      // For multi-select status: API only supports single status, so we pass the first one
-      // If multiple statuses selected, we need to make multiple requests or handle differently
-      // For simplicity, single status for API, but we show chips as toggles
       if (statusFilters.length === 1) {
         params.set("status", statusFilters[0]);
       }
@@ -97,6 +99,10 @@ export default function LeadsPage() {
       // Include stats on first load
       if (!statsLoaded) {
         params.set("include_stats", "true");
+      }
+      // Include team on first load (for assignment dropdowns)
+      if (!teamLoaded && canAssign) {
+        params.set("include_team", "true");
       }
 
       const res = await fetch(`/api/leads?${params.toString()}`);
@@ -119,6 +125,10 @@ export default function LeadsPage() {
         if (json.projects) {
           setProjects(json.projects);
         }
+        if (json.team) {
+          setTeam(json.team);
+          setTeamLoaded(true);
+        }
       }
     } catch {
       toast.error(locale === "es" ? "Error cargando registros" : "Error loading leads");
@@ -127,7 +137,7 @@ export default function LeadsPage() {
     } finally {
       setLoading(false);
     }
-  }, [debouncedSearch, statusFilters, datePreset, customDateFrom, customDateTo, proyectoId, sortDir, page, statsLoaded, locale, toast]);
+  }, [debouncedSearch, statusFilters, datePreset, customDateFrom, customDateTo, proyectoId, sortDir, page, statsLoaded, teamLoaded, canAssign, locale, toast]);
 
   useEffect(() => {
     fetchLeads();
@@ -172,6 +182,40 @@ export default function LeadsPage() {
     }
   };
 
+  // Assignment handler with optimistic update
+  const handleAssign = async (leadId: string, userId: string | null) => {
+    // Find assignee name for optimistic update
+    const assigneeName = userId ? (team.find((m) => m.id === userId)?.nombre || null) : null;
+
+    // Optimistic update
+    setLeads((prev) =>
+      prev.map((l) =>
+        l.id === leadId ? { ...l, asignado_a: userId, asignado_nombre: assigneeName } : l
+      )
+    );
+
+    try {
+      const res = await fetch(`/api/leads/${leadId}/asignar`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ asignado_a: userId }),
+      });
+      if (!res.ok) {
+        fetchLeads();
+        toast.error(locale === "es" ? "Error asignando lead" : "Error assigning lead");
+      } else {
+        toast.success(
+          userId
+            ? (locale === "es" ? `Lead asignado a ${assigneeName}` : `Lead assigned to ${assigneeName}`)
+            : (locale === "es" ? "Lead desasignado" : "Lead unassigned")
+        );
+      }
+    } catch {
+      fetchLeads();
+      toast.error(locale === "es" ? "Error asignando lead" : "Error assigning lead");
+    }
+  };
+
   // CSV export
   const exportCSV = async () => {
     if (total === 0) return;
@@ -200,6 +244,7 @@ export default function LeadsPage() {
         locale === "es" ? "País" : "Country",
         locale === "es" ? "Tipología" : "Type",
         "Status",
+        locale === "es" ? "Asignado a" : "Assigned to",
         locale === "es" ? "Mensaje" : "Message",
         locale === "es" ? "Proyecto" : "Project",
         locale === "es" ? "Cotizaciones" : "Quotes",
@@ -215,6 +260,7 @@ export default function LeadsPage() {
         l.pais ?? "",
         l.tipologia_interes ?? "",
         l.status ?? "nuevo",
+        l.asignado_nombre ?? "",
         l.mensaje ?? "",
         l.proyecto_nombre ?? "",
         String(l.cotizaciones_count ?? 0),
@@ -261,7 +307,9 @@ export default function LeadsPage() {
         <div className="px-6 pt-6 md:px-8 md:pt-8">
           <div className="mb-6">
             <h1 className="font-heading text-2xl font-light">
-              {locale === "es" ? "Registros" : "Leads"}
+              {isAsesor
+                ? (locale === "es" ? "Mis Registros" : "My Leads")
+                : (locale === "es" ? "Registros" : "Leads")}
             </h1>
             <p className="text-[var(--text-tertiary)] text-sm mt-1">
               {loading
@@ -310,6 +358,9 @@ export default function LeadsPage() {
             onSortChange={setSortDir}
             locale={locale}
             multiProject={projects.length > 1}
+            canAssign={canAssign}
+            team={team}
+            onAssign={handleAssign}
           />
 
           {/* Pagination */}
@@ -354,6 +405,9 @@ export default function LeadsPage() {
             onStatusChange={handleStatusChange}
             updatingStatus={updatingStatus}
             locale={locale}
+            canAssign={canAssign}
+            team={team}
+            onAssign={handleAssign}
           />
         )}
       </AnimatePresence>

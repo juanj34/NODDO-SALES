@@ -37,7 +37,7 @@ export type DashboardEventType =
 interface DashboardTrackPayload {
   event_type: DashboardEventType;
   user_id?: string;
-  user_role?: "admin" | "colaborador";
+  user_role?: "admin" | "director" | "asesor";
   page_path?: string;
   session_id: string;
   visitor_id: string;
@@ -55,7 +55,7 @@ export function trackDashboardEvent(
   eventType: DashboardEventType,
   metadata?: Record<string, unknown>,
   userId?: string,
-  userRole?: "admin" | "colaborador"
+  userRole?: "admin" | "director" | "asesor"
 ): void {
   if (typeof window === "undefined") return;
 
@@ -104,7 +104,7 @@ export function trackDashboardEvent(
  */
 export function useDashboardTracking(
   userId?: string,
-  userRole?: "admin" | "colaborador"
+  userRole?: "admin" | "director" | "asesor"
 ) {
   return {
     track: (eventType: DashboardEventType, metadata?: Record<string, unknown>) => {

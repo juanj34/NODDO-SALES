@@ -1,4 +1,5 @@
 import { getAuthContext } from "@/lib/auth-context";
+import { sendCollaboratorStatusChange } from "@/lib/email";
 import { NextRequest, NextResponse } from "next/server";
 
 export async function PUT(
@@ -28,6 +29,27 @@ export async function PUT(
       }
       updateFields.estado = body.estado;
     }
+    if (body.rol !== undefined) {
+      if (!["director", "asesor"].includes(body.rol)) {
+        return NextResponse.json(
+          { error: "Rol inválido" },
+          { status: 400 }
+        );
+      }
+      updateFields.rol = body.rol;
+    }
+
+    // Fetch current estado before update (for status change email)
+    let previousEstado: string | null = null;
+    if (body.estado !== undefined) {
+      const { data: current } = await auth.supabase
+        .from("colaboradores")
+        .select("estado, email")
+        .eq("id", id)
+        .eq("admin_user_id", auth.user.id)
+        .single();
+      previousEstado = current?.estado ?? null;
+    }
 
     const { data, error } = await auth.supabase
       .from("colaboradores")
@@ -42,6 +64,14 @@ export async function PUT(
       return NextResponse.json(
         { error: "Colaborador no encontrado" },
         { status: 404 }
+      );
+    }
+
+    // Send status change email if estado changed
+    if (body.estado !== undefined && previousEstado && previousEstado !== body.estado && data.email) {
+      const action = body.estado === "suspendido" ? "suspended" : "reactivated";
+      sendCollaboratorStatusChange({ email: data.email, action }).catch((err) =>
+        console.error("[collab] status email error:", err)
       );
     }
 

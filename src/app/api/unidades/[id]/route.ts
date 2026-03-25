@@ -1,5 +1,5 @@
 import { pick } from "@/lib/api-utils";
-import { getAuthContext, getAccessibleProjectIds, verifyProjectOwnership } from "@/lib/auth-context";
+import { getAuthContext, getAccessibleProjectIds, verifyProjectOwnership, requirePermission } from "@/lib/auth-context";
 import { logActivity } from "@/lib/activity-logger";
 import { NextRequest, NextResponse } from "next/server";
 
@@ -27,8 +27,8 @@ export async function PUT(
     }
     const proyectoId = unidad.proyecto_id;
 
-    // Collaborators can ONLY update estado
-    if (auth.role === "colaborador") {
+    // Asesores can ONLY update estado; Directors have full inventory access
+    if (auth.role === "asesor") {
       const allowedKeys = ["estado"];
       const bodyKeys = Object.keys(body);
       if (bodyKeys.some((k) => !allowedKeys.includes(k))) {
@@ -37,7 +37,11 @@ export async function PUT(
           { status: 403 }
         );
       }
-      // Verify collaborator has access to this project
+      const accessible = await getAccessibleProjectIds(auth);
+      if (accessible && !accessible.includes(proyectoId)) {
+        return NextResponse.json({ error: "Sin acceso a este proyecto" }, { status: 403 });
+      }
+    } else if (auth.role === "director") {
       const accessible = await getAccessibleProjectIds(auth);
       if (accessible && !accessible.includes(proyectoId)) {
         return NextResponse.json({ error: "Sin acceso a este proyecto" }, { status: 403 });
@@ -60,47 +64,73 @@ export async function PUT(
     // --- Compute precio_venta override BEFORE the main update ---
     // This ensures the trigger captures precio_venta in the same transaction
     let precioVentaOverride: Record<string, unknown> = {};
-    let proyecto: { tipologia_mode?: string; parqueaderos_mode?: string; depositos_mode?: string; precio_source?: string } | null = null;
+    let proyecto: { tipologia_mode?: string; parqueaderos_mode?: string; depositos_mode?: string; precio_source?: string; disponibilidad_config?: Record<string, boolean> } | null = null;
 
     if (body.estado !== undefined) {
       const { data: proj } = await auth.supabase
         .from("proyectos")
-        .select("tipologia_mode, parqueaderos_mode, depositos_mode, precio_source")
+        .select("tipologia_mode, parqueaderos_mode, depositos_mode, precio_source, disponibilidad_config")
         .eq("id", proyectoId)
         .single();
       proyecto = proj;
 
-      if (body.estado === "vendida" && unidad.estado !== "vendida") {
-        let precioVenta: number | null = null;
-        if (proyecto?.precio_source === "tipologia") {
-          const tipId = body.tipologia_id ?? unidad.tipologia_id;
-          if (tipId) {
-            const { data: tip } = await auth.supabase
-              .from("tipologias")
-              .select("precio_desde")
-              .eq("id", tipId)
-              .single();
-            precioVenta = tip?.precio_desde ?? null;
-          }
+      const isCommitting = ["separado", "reservada", "vendida"].includes(body.estado);
+      const wasCommitted = ["separado", "reservada", "vendida"].includes(unidad.estado);
+      const isReverting = wasCommitted && ["disponible", "proximamente"].includes(body.estado);
+
+      if (isCommitting && !wasCommitted) {
+        // Transitioning to a committed state — set precio_venta
+        if (body.precio_venta !== undefined && body.precio_venta !== null) {
+          // Explicit precio_venta provided by the user
+          precioVentaOverride = { precio_venta: parseFloat(body.precio_venta) };
         } else {
-          precioVenta = body.precio != null ? parseFloat(body.precio) : unidad.precio ?? null;
+          // Auto-compute from tipologia or unit price
+          let precioVenta: number | null = null;
+          if (proyecto?.precio_source === "tipologia") {
+            const tipId = body.tipologia_id ?? unidad.tipologia_id;
+            if (tipId) {
+              const { data: tip } = await auth.supabase
+                .from("tipologias")
+                .select("precio_desde")
+                .eq("id", tipId)
+                .single();
+              precioVenta = tip?.precio_desde ?? null;
+            }
+          } else {
+            precioVenta = body.precio != null ? parseFloat(body.precio) : unidad.precio ?? null;
+          }
+          if (precioVenta !== null) {
+            precioVentaOverride = { precio_venta: precioVenta };
+          }
         }
-        if (precioVenta !== null) {
-          precioVentaOverride = { precio_venta: precioVenta };
-        }
-      } else if (unidad.estado === "vendida" && body.estado !== "vendida") {
-        precioVentaOverride = { precio_venta: null };
+      } else if (isCommitting && wasCommitted && body.precio_venta !== undefined) {
+        // Moving between committed states (e.g. separado → vendida) with explicit price
+        precioVentaOverride = { precio_venta: body.precio_venta !== null ? parseFloat(body.precio_venta) : null };
+      } else if (isReverting) {
+        // Reverting to disponible/proximamente — clear sale data
+        precioVentaOverride = { precio_venta: null, lead_id: null, cotizacion_id: null };
       }
     }
 
     // Strip manual precio_venta from body for non-vendida units (guard)
-    const pickedBody = pick(body, ["tipologia_id", "identificador", "piso", "area_m2", "area_construida", "area_privada", "area_lote", "precio", "precio_venta", "estado", "habitaciones", "banos", "orientacion", "vista", "vista_piso_id", "notas", "plano_url", "fachada_id", "fachada_x", "fachada_y", "planta_id", "planta_x", "planta_y", "torre_id", "lote", "etapa_nombre", "parqueaderos", "depositos", "orden", "custom_fields"]);
+    const pickedBody = pick(body, ["tipologia_id", "identificador", "piso", "area_m2", "area_construida", "area_privada", "area_lote", "precio", "precio_venta", "estado", "habitaciones", "banos", "orientacion", "vista", "vista_piso_id", "notas", "plano_url", "fachada_id", "fachada_x", "fachada_y", "planta_id", "planta_x", "planta_y", "torre_id", "lote", "etapa_nombre", "parqueaderos", "depositos", "orden", "custom_fields", "lead_id", "cotizacion_id"]);
 
-    // Only allow manual precio_venta for units that are currently vendida (and staying vendida)
+    // Only allow manual precio_venta for units that are/will be in a committed state
     if (pickedBody.precio_venta !== undefined) {
-      const isVendida = unidad.estado === "vendida" && (body.estado === undefined || body.estado === "vendida");
-      if (!isVendida) {
+      const currentEstado = body.estado ?? unidad.estado;
+      const isCommitted = ["separado", "reservada", "vendida"].includes(currentEstado);
+      if (!isCommitted) {
         delete pickedBody.precio_venta;
+      }
+    }
+
+    // Only allow lead_id/cotizacion_id for committed states
+    if (pickedBody.lead_id !== undefined || pickedBody.cotizacion_id !== undefined) {
+      const currentEstado = body.estado ?? unidad.estado;
+      const isCommitted = ["separado", "reservada", "vendida"].includes(currentEstado);
+      if (!isCommitted) {
+        delete pickedBody.lead_id;
+        delete pickedBody.cotizacion_id;
       }
     }
 
@@ -152,6 +182,23 @@ export async function PUT(
             { status: 422 }
           );
         }
+      }
+    }
+
+    // Validate disponibilidad_config requirements for committed states
+    if (body.estado !== undefined && ["separado", "reservada", "vendida"].includes(body.estado) && auth.role === "admin") {
+      const dispConfig = (proyecto?.disponibilidad_config ?? {}) as Record<string, boolean>;
+      if (dispConfig.require_lead_on_commit && !body.lead_id && !data.lead_id) {
+        return NextResponse.json(
+          { error: "Debe asignar un cliente antes de comprometer la unidad", code: "LEAD_REQUIRED" },
+          { status: 422 }
+        );
+      }
+      if (dispConfig.require_cotizacion_on_commit && !body.cotizacion_id && !data.cotizacion_id) {
+        return NextResponse.json(
+          { error: "Debe vincular una cotización antes de comprometer la unidad", code: "COTIZACION_REQUIRED" },
+          { status: 422 }
+        );
       }
     }
 
@@ -233,9 +280,8 @@ export async function DELETE(
     if (!auth) {
       return NextResponse.json({ error: "No autorizado" }, { status: 401 });
     }
-    if (auth.role !== "admin") {
-      return NextResponse.json({ error: "Solo administradores" }, { status: 403 });
-    }
+    const denied = requirePermission(auth, "inventory.write");
+    if (denied) return denied;
 
     const { error } = await auth.supabase
       .from("unidades")

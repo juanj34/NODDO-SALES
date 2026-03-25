@@ -42,6 +42,7 @@ const PROYECTO_FIELDS = [
   "secciones_visibles",
   "tipologia_fields",
   "agent_mode_config",
+  "disponibilidad_config",
 ];
 
 export async function GET(

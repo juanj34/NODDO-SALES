@@ -1,4 +1,4 @@
-import { getAuthContext } from "@/lib/auth-context";
+import { getAuthContext, requirePermission } from "@/lib/auth-context";
 import { callAI, parseAIJson, sanitizeInput } from "@/lib/ai";
 import { NextRequest, NextResponse } from "next/server";
 
@@ -85,11 +85,8 @@ export async function POST(request: NextRequest) {
     const auth = await getAuthContext();
     if (!auth)
       return NextResponse.json({ error: "No autorizado" }, { status: 401 });
-    if (auth.role !== "admin")
-      return NextResponse.json(
-        { error: "Solo administradores" },
-        { status: 403 }
-      );
+    const denied = requirePermission(auth, "ai.use");
+    if (denied) return denied;
 
     const { headers, sampleRows, uniqueValues, tipologias, torres, fachadas, importMode: rawMode, customColumns } = await request.json();
     const importMode: ImportMode = (rawMode === "parqueaderos" || rawMode === "depositos") ? rawMode : "unidades";

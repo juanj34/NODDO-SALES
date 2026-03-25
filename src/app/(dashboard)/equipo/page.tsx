@@ -19,6 +19,8 @@ import {
   FolderOpen,
   Check,
   RotateCw,
+  ArrowLeftRight,
+  KeyRound,
 } from "lucide-react";
 import { useAuthRole } from "@/hooks/useAuthContext";
 import { useRouter } from "next/navigation";
@@ -26,6 +28,7 @@ import { useTranslation } from "@/i18n";
 import { useToast } from "@/components/dashboard/Toast";
 import type { Colaborador } from "@/types";
 import { cn } from "@/lib/utils";
+import { ROLE_LABELS, ROLE_DESCRIPTIONS } from "@/lib/permissions";
 
 const estadoStyles: Record<string, string> = {
   pendiente: "bg-amber-500/15 text-amber-400 border-amber-500/20",
@@ -49,9 +52,11 @@ export default function EquipoPage() {
   const [showInvite, setShowInvite] = useState(false);
   const [inviteEmail, setInviteEmail] = useState("");
   const [inviteName, setInviteName] = useState("");
+  const [inviteRol, setInviteRol] = useState<"director" | "asesor">("asesor");
   const [sending, setSending] = useState(false);
   const [menuOpen, setMenuOpen] = useState<string | null>(null);
   const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
+  const [maxCollaborators, setMaxCollaborators] = useState(3);
 
   // Projects for assignment
   const [adminProjects, setAdminProjects] = useState<ProjectOption[]>([]);
@@ -110,6 +115,21 @@ export default function EquipoPage() {
     }
   }, []);
 
+  // Fetch plan limit for collaborators
+  const fetchPlanLimit = useCallback(async () => {
+    try {
+      const res = await fetch("/api/plan-limit");
+      if (res.ok) {
+        const data = await res.json();
+        if (typeof data.max_collaborators === "number") {
+          setMaxCollaborators(data.max_collaborators);
+        }
+      }
+    } catch {
+      // fallback to default (3)
+    }
+  }, []);
+
   useEffect(() => {
     if (!authLoading && role !== "admin") {
       router.replace("/proyectos");
@@ -118,8 +138,9 @@ export default function EquipoPage() {
     if (!authLoading) {
       fetchColaboradores();
       fetchProjects();
+      fetchPlanLimit();
     }
-  }, [authLoading, role, router, fetchColaboradores, fetchProjects]);
+  }, [authLoading, role, router, fetchColaboradores, fetchProjects, fetchPlanLimit]);
 
   const handleInvite = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -128,7 +149,7 @@ export default function EquipoPage() {
       const res = await fetch("/api/colaboradores", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email: inviteEmail, nombre: inviteName || null }),
+        body: JSON.stringify({ email: inviteEmail, nombre: inviteName || null, rol: inviteRol }),
       });
       if (res.ok) {
         const newColab = await res.json();
@@ -146,6 +167,7 @@ export default function EquipoPage() {
         setShowInvite(false);
         setInviteEmail("");
         setInviteName("");
+        setInviteRol("asesor");
         setInviteAllProjects(true);
         setInviteSelectedProjects(new Set());
         fetchColaboradores();
@@ -174,6 +196,42 @@ export default function EquipoPage() {
       }
     } catch {
       toast.error("Error al actualizar");
+    }
+  };
+
+  const handleToggleRol = async (id: string, currentRol: "director" | "asesor") => {
+    const newRol = currentRol === "director" ? "asesor" : "director";
+    try {
+      const res = await fetch(`/api/colaboradores/${id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ rol: newRol }),
+      });
+      if (res.ok) {
+        toast.success(`Rol cambiado a ${ROLE_LABELS[newRol]}`);
+        fetchColaboradores();
+        setMenuOpen(null);
+      } else {
+        const data = await res.json();
+        toast.error(data.error || "Error al cambiar rol");
+      }
+    } catch {
+      toast.error("Error de conexión");
+    }
+  };
+
+  const handleResetPassword = async (id: string) => {
+    try {
+      const res = await fetch(`/api/colaboradores/${id}/reset-password`, { method: "POST" });
+      if (res.ok) {
+        toast.success("Se envió un enlace de recuperación de contraseña");
+        setMenuOpen(null);
+      } else {
+        const data = await res.json();
+        toast.error(data.error || "Error al enviar enlace");
+      }
+    } catch {
+      toast.error("Error de conexión");
     }
   };
 
@@ -287,7 +345,7 @@ export default function EquipoPage() {
         </div>
         <button
           onClick={() => setShowInvite(true)}
-          disabled={activeCount >= 3}
+          disabled={activeCount >= maxCollaborators}
           className="btn-noddo flex items-center gap-2 px-5 py-2.5 font-ui text-xs font-bold uppercase tracking-[0.1em] disabled:opacity-40 disabled:cursor-not-allowed"
         >
           <UserPlus size={15} />
@@ -382,6 +440,18 @@ export default function EquipoPage() {
                     </div>
                   </div>
 
+                  {/* Role badge */}
+                  <span
+                    className={cn(
+                      "font-ui text-[9px] font-bold uppercase tracking-[0.12em] px-2 py-0.5 rounded border",
+                      colab.rol === "director"
+                        ? "bg-[rgba(var(--site-primary-rgb),0.12)] text-[var(--site-primary)] border-[rgba(var(--site-primary-rgb),0.25)]"
+                        : "bg-[var(--surface-3)] text-[var(--text-muted)] border-[var(--border-default)]"
+                    )}
+                  >
+                    {ROLE_LABELS[colab.rol] || "Asesor"}
+                  </span>
+
                   {/* Status badge */}
                   <span
                     className={cn(
@@ -418,6 +488,26 @@ export default function EquipoPage() {
                             <FolderOpen size={13} />
                             {t("equipo.editProjects")}
                           </button>
+
+                          {/* Cambiar rol */}
+                          <button
+                            onClick={() => handleToggleRol(colab.id, colab.rol || "asesor")}
+                            className="w-full flex items-center gap-2.5 px-4 py-2.5 text-xs text-[var(--text-secondary)] hover:bg-[var(--surface-3)] transition-colors"
+                          >
+                            <ArrowLeftRight size={13} />
+                            Cambiar a {ROLE_LABELS[colab.rol === "director" ? "asesor" : "director"]}
+                          </button>
+
+                          {/* Resetear contraseña — only for active collaborators */}
+                          {colab.estado === "activo" && (
+                            <button
+                              onClick={() => handleResetPassword(colab.id)}
+                              className="w-full flex items-center gap-2.5 px-4 py-2.5 text-xs text-[var(--text-secondary)] hover:bg-[var(--surface-3)] transition-colors"
+                            >
+                              <KeyRound size={13} />
+                              Resetear contraseña
+                            </button>
+                          )}
 
                           {/* Resend invite for pending */}
                           {colab.estado === "pendiente" && (
@@ -569,6 +659,33 @@ export default function EquipoPage() {
                   placeholder={t("equipo.namePlaceholder")}
                   className="input-glass w-full"
                 />
+              </div>
+
+              {/* Role selector */}
+              <div>
+                <label className="block font-ui text-[10px] text-[var(--text-secondary)] mb-2 tracking-wider uppercase font-bold">
+                  Rol
+                </label>
+                <div className="flex gap-2">
+                  {(["director", "asesor"] as const).map((rol) => (
+                    <button
+                      key={rol}
+                      type="button"
+                      onClick={() => setInviteRol(rol)}
+                      className={cn(
+                        "font-ui text-[11px] font-bold uppercase tracking-[0.1em] px-4 py-2 rounded-[0.625rem] border cursor-pointer transition-all",
+                        inviteRol === rol
+                          ? "bg-[rgba(var(--site-primary-rgb),0.15)] text-[var(--site-primary)] border-[rgba(var(--site-primary-rgb),0.4)]"
+                          : "bg-[var(--surface-3)] text-[var(--text-tertiary)] border-[var(--border-default)]"
+                      )}
+                    >
+                      {ROLE_LABELS[rol]}
+                    </button>
+                  ))}
+                </div>
+                <p className="text-[11px] text-[var(--text-muted)] mt-2 leading-relaxed">
+                  {ROLE_DESCRIPTIONS[inviteRol]}
+                </p>
               </div>
 
               {/* Project access */}

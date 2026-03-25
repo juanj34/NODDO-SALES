@@ -12,7 +12,7 @@ export interface ActivityLogParams {
   userId: string;
   userEmail: string;
   userName?: string | null;
-  userRole: "admin" | "colaborador";
+  userRole: "admin" | "director" | "asesor";
   proyectoId?: string | null;
   proyectoNombre?: string | null;
   actionType: string;
@@ -68,6 +68,7 @@ function desc(params: ActivityLogParams): { es: string; en: string } {
   // -- Lead --
   if (a === "lead.new") return { es: `Nuevo lead: ${m.nombre} (${m.email}) en "${p}"`, en: `New lead: ${m.nombre} (${m.email}) in "${p}"` };
   if (a === "lead.status_change") return { es: `Cambió lead ${m.nombre}: ${m.statusAnterior} → ${m.statusNuevo}`, en: `Changed lead ${m.nombre}: ${m.statusAnterior} → ${m.statusNuevo}` };
+  if (a === "lead.assign") return { es: `Asignó lead ${m.nombre} a ${m.asignado_nombre || "nadie"}`, en: `Assigned lead ${m.nombre} to ${m.asignado_nombre || "nobody"}` };
 
   // -- Cotización --
   if (a === "cotizacion.create") return { es: `Generó cotización para ${m.buyerName || m.email} en "${p}"`, en: `Generated quote for ${m.buyerName || m.email} in "${p}"` };

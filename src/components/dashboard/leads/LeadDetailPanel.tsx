@@ -16,11 +16,13 @@ import {
   Check,
   Loader2,
   FileText,
+  UserCircle,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { STATUS_CONFIG } from "./LeadStatusBadge";
 import { LeadCotizacionCard } from "./LeadCotizacionCard";
 import type { LeadWithMeta, LeadCotizacionSummary } from "@/types";
+import type { TeamMember } from "./LeadsCRMTable";
 
 interface Props {
   leadId: string;
@@ -29,6 +31,9 @@ interface Props {
   onStatusChange: (leadId: string, newStatus: string) => void;
   updatingStatus: string | null;
   locale: string;
+  canAssign?: boolean;
+  team?: TeamMember[];
+  onAssign?: (leadId: string, userId: string | null) => void;
 }
 
 export function LeadDetailPanel({
@@ -38,6 +43,9 @@ export function LeadDetailPanel({
   onStatusChange,
   updatingStatus,
   locale,
+  canAssign,
+  team,
+  onAssign,
 }: Props) {
   const [cotizaciones, setCotizaciones] = useState<LeadCotizacionSummary[]>([]);
   const [loadingCotiz, setLoadingCotiz] = useState(false);
@@ -209,6 +217,28 @@ export function LeadDetailPanel({
           </div>
         </div>
 
+        {/* Assignment Selector (admin/director only) */}
+        {canAssign && team && onAssign && (
+          <div>
+            <label className="block font-ui text-[10px] text-[var(--text-muted)] mb-2 tracking-wider uppercase font-bold">
+              <UserCircle size={12} className="inline mr-1 -mt-0.5" />
+              {locale === "es" ? "Asignado a" : "Assigned to"}
+            </label>
+            <select
+              value={lead.asignado_a || ""}
+              onChange={(e) => onAssign(lead.id, e.target.value || null)}
+              className="w-full bg-[var(--surface-3)] border border-[var(--border-subtle)] rounded-lg px-3 py-2 text-sm text-[var(--text-secondary)] focus:outline-none focus:ring-1 focus:ring-[var(--site-primary)] transition-colors"
+            >
+              <option value="">{locale === "es" ? "Sin asignar" : "Unassigned"}</option>
+              {team.map((m) => (
+                <option key={m.id} value={m.id}>
+                  {m.nombre} ({m.rol === "director" ? "Director" : "Asesor"})
+                </option>
+              ))}
+            </select>
+          </div>
+        )}
+
         {/* Cotizaciones Section */}
         <div>
           <div className="flex items-center gap-2 mb-3">
@@ -272,6 +302,13 @@ export function LeadDetailPanel({
                 icon={<Globe size={13} />}
                 label={locale === "es" ? "Proyecto" : "Project"}
                 value={lead.proyecto_nombre}
+              />
+            )}
+            {!canAssign && lead.asignado_nombre && (
+              <DetailRow
+                icon={<UserCircle size={13} />}
+                label={locale === "es" ? "Asignado a" : "Assigned to"}
+                value={lead.asignado_nombre}
               />
             )}
           </div>

@@ -1,4 +1,4 @@
-import { getAuthContext } from "@/lib/auth-context";
+import { getAuthContext, requirePermission } from "@/lib/auth-context";
 import { createDirectUpload } from "@/lib/cloudflare-stream";
 import { NextRequest, NextResponse } from "next/server";
 
@@ -7,11 +7,8 @@ export async function POST(request: NextRequest) {
     const auth = await getAuthContext();
     if (!auth)
       return NextResponse.json({ error: "No autorizado" }, { status: 401 });
-    if (auth.role !== "admin")
-      return NextResponse.json(
-        { error: "Solo administradores" },
-        { status: 403 }
-      );
+    const denied = requirePermission(auth, "content.write");
+    if (denied) return denied;
 
     const body = await request.json();
     const { proyecto_id, filename } = body;

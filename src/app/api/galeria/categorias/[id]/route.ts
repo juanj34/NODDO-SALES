@@ -1,4 +1,4 @@
-import { getAuthContext } from "@/lib/auth-context";
+import { getAuthContext, requirePermission } from "@/lib/auth-context";
 import { NextRequest, NextResponse } from "next/server";
 
 export async function PUT(
@@ -10,8 +10,8 @@ export async function PUT(
     const auth = await getAuthContext();
     if (!auth)
       return NextResponse.json({ error: "No autorizado" }, { status: 401 });
-    if (auth.role !== "admin")
-      return NextResponse.json({ error: "Solo administradores" }, { status: 403 });
+    const denied = requirePermission(auth, "content.write");
+    if (denied) return denied;
 
     const body = await request.json();
     const allowed = ["nombre", "slug", "orden", "torre_id"];
@@ -46,8 +46,8 @@ export async function DELETE(
     const auth = await getAuthContext();
     if (!auth)
       return NextResponse.json({ error: "No autorizado" }, { status: 401 });
-    if (auth.role !== "admin")
-      return NextResponse.json({ error: "Solo administradores" }, { status: 403 });
+    const denied = requirePermission(auth, "content.write");
+    if (denied) return denied;
 
     const { error } = await auth.supabase
       .from("galeria_categorias")

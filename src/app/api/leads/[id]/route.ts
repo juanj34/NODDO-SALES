@@ -15,9 +15,17 @@ export async function PUT(
       return NextResponse.json({ error: "No autorizado" }, { status: 401 });
 
     const body = await request.json();
-    const { status } = body;
+    const { status, notas } = body;
 
-    if (!status || !VALID_STATUSES.includes(status)) {
+    // At least one field must be provided
+    if (!status && notas === undefined) {
+      return NextResponse.json(
+        { error: "Nada que actualizar" },
+        { status: 400 }
+      );
+    }
+
+    if (status && !VALID_STATUSES.includes(status)) {
       return NextResponse.json(
         { error: `Status inválido. Opciones: ${VALID_STATUSES.join(", ")}` },
         { status: 400 }
@@ -34,11 +42,38 @@ export async function PUT(
       return NextResponse.json({ error: "Sin proyectos" }, { status: 403 });
     }
 
-    const projectIds = proyectos.map((p) => p.id);
+    const projectIds = proyectos.map((p: { id: string }) => p.id);
+
+    // Asesores can only update leads assigned to them
+    if (auth.role === "asesor") {
+      const { data: lead } = await auth.supabase
+        .from("leads")
+        .select("asignado_a")
+        .eq("id", id)
+        .in("proyecto_id", projectIds)
+        .single();
+
+      if (!lead) {
+        return NextResponse.json({ error: "Lead no encontrado" }, { status: 404 });
+      }
+      if (lead.asignado_a !== auth.user.id) {
+        return NextResponse.json(
+          { error: "Solo puedes actualizar leads asignados a ti" },
+          { status: 403 }
+        );
+      }
+    }
+
+    // Build update payload — asesores can only change status
+    const updatePayload: Record<string, unknown> = {};
+    if (status) updatePayload.status = status;
+    if (notas !== undefined && auth.role !== "asesor") {
+      updatePayload.notas = notas;
+    }
 
     const { data, error } = await auth.supabase
       .from("leads")
-      .update({ status })
+      .update(updatePayload)
       .eq("id", id)
       .in("proyecto_id", projectIds)
       .select()

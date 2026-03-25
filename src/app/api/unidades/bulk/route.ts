@@ -1,12 +1,13 @@
 import { pick } from "@/lib/api-utils";
-import { getAuthContext } from "@/lib/auth-context";
+import { getAuthContext, requirePermission } from "@/lib/auth-context";
 import { NextRequest, NextResponse } from "next/server";
 
 export async function POST(request: NextRequest) {
   try {
     const auth = await getAuthContext();
     if (!auth) return NextResponse.json({ error: "No autorizado" }, { status: 401 });
-    if (auth.role !== "admin") return NextResponse.json({ error: "Solo administradores" }, { status: 403 });
+    const denied = requirePermission(auth, "inventory.write");
+    if (denied) return denied;
 
     const { unidades, proyecto_id } = await request.json();
     if (!proyecto_id || !Array.isArray(unidades) || unidades.length === 0) {
@@ -77,7 +78,8 @@ export async function DELETE(request: NextRequest) {
   try {
     const auth = await getAuthContext();
     if (!auth) return NextResponse.json({ error: "No autorizado" }, { status: 401 });
-    if (auth.role !== "admin") return NextResponse.json({ error: "Solo administradores" }, { status: 403 });
+    const denied = requirePermission(auth, "inventory.write");
+    if (denied) return denied;
 
     const { ids, proyecto_id } = await request.json();
     if (!proyecto_id || !Array.isArray(ids) || ids.length === 0) {

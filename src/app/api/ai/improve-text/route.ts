@@ -1,4 +1,4 @@
-import { getAuthContext } from "@/lib/auth-context";
+import { getAuthContext, requirePermission } from "@/lib/auth-context";
 import { callAIText, sanitizeInput } from "@/lib/ai";
 import {
   checkRateLimit,
@@ -32,17 +32,13 @@ type LanguageOption = (typeof ALLOWED_LANGUAGES)[number];
 
 export async function POST(request: NextRequest) {
   try {
-    // 1. Auth check (admin only)
+    // 1. Auth check
     const auth = await getAuthContext();
     if (!auth) {
       return NextResponse.json({ error: "No autorizado" }, { status: 401 });
     }
-    if (auth.role !== "admin") {
-      return NextResponse.json(
-        { error: "Solo administradores pueden usar esta función" },
-        { status: 403 }
-      );
-    }
+    const denied = requirePermission(auth, "ai.use");
+    if (denied) return denied;
 
     // 2. Rate limiting (50 requests per 24h per user)
     const rateLimitResult = await checkRateLimit(

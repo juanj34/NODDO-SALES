@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getAuthContext } from "@/lib/auth-context";
+import { getAuthContext, requirePermission } from "@/lib/auth-context";
 import { uploadFileToR2 } from "@/lib/r2";
 
 export async function POST(request: NextRequest) {
@@ -8,9 +8,8 @@ export async function POST(request: NextRequest) {
     if (!auth) {
       return NextResponse.json({ error: "No autenticado" }, { status: 401 });
     }
-    if (auth.role !== "admin") {
-      return NextResponse.json({ error: "Solo administradores" }, { status: 403 });
-    }
+    const denied = requirePermission(auth, "content.write");
+    if (denied) return denied;
 
     const formData = await request.formData();
     const file = formData.get("file") as File | null;

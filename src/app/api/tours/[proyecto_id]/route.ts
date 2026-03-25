@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getAuthContext } from "@/lib/auth-context";
+import { getAuthContext, requirePermission } from "@/lib/auth-context";
 import { deleteTourFiles } from "@/lib/r2";
 
 export async function DELETE(
@@ -11,9 +11,8 @@ export async function DELETE(
     if (!auth) {
       return NextResponse.json({ error: "No autenticado" }, { status: 401 });
     }
-    if (auth.role !== "admin") {
-      return NextResponse.json({ error: "Solo administradores" }, { status: 403 });
-    }
+    const denied = requirePermission(auth, "content.write");
+    if (denied) return denied;
 
     const { proyecto_id } = await params;
 

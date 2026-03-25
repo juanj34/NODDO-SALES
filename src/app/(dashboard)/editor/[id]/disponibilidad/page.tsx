@@ -17,14 +17,18 @@ import { cn } from "@/lib/utils";
 import { formatCurrency as formatCurrencyFn } from "@/lib/currency";
 import {
   Package, Upload, Loader2, ArrowUpDown, ArrowUp, ArrowDown,
-  AlertTriangle, ArrowRight, X,
-  LayoutGrid, Maximize2, DollarSign, BedDouble, Bath,
-  Car, Warehouse, Compass, Eye, MapPin, Building2, Layers,
 } from "lucide-react";
 import { useToast } from "@/components/dashboard/Toast";
 import { useTranslation } from "@/i18n";
+import { useAuthRole } from "@/hooks/useAuthContext";
 import type { Unidad, ComplementoMode } from "@/types";
-import { AnimatePresence, motion } from "framer-motion";
+import {
+  StatusChangeModal,
+  type ProjectContextForModal,
+  type StatusChangePayload,
+  type EstadoUnidad,
+  type ModalUnit,
+} from "@/components/dashboard/StatusChangeModal";
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -32,7 +36,6 @@ import { AnimatePresence, motion } from "framer-motion";
 
 const formatCurrency = (n: number) => formatCurrencyFn(n, "COP");
 
-type EstadoUnidad = Unidad["estado"];
 type SortField = "identificador" | "area" | "precio" | "estado";
 
 const ALL_ESTADOS: { value: EstadoUnidad; label: string; short: string }[] = [
@@ -59,6 +62,7 @@ export default function DisponibilidadPage() {
   const { project, updateLocal } = useEditorProject();
   const toast = useToast();
   const { t } = useTranslation("editor");
+  const { role } = useAuthRole();
 
   // ── Derived data ──────────────────────────────────────────────────
   const unidades = useMemo(() => project.unidades ?? [], [project.unidades]);
@@ -252,39 +256,42 @@ export default function DisponibilidadPage() {
   const depoMode = project.depositos_mode as ComplementoMode;
   const parqInventory = parqMode === "inventario_incluido" || parqMode === "inventario_separado";
   const depoInventory = depoMode === "inventario_incluido" || depoMode === "inventario_separado";
-  // ── Status change logic ───────────────────────────────────────────
 
-  // Unified status-change modal state
-  const [statusModal, setStatusModal] = useState<{
-    unitId: string;
+  // ── Status change modal ─────────────────────────────────────────
+  const [modalTarget, setModalTarget] = useState<{
+    unit: ModalUnit;
     newEstado: EstadoUnidad;
-    clearTipo: boolean;
     complementoWarning?: string;
-    needsTipoSelection: boolean;
-    selectedTipoId: string | null;
   } | null>(null);
+
+  // Build project context for the shared modal
+  const projectContextForModal = useMemo((): ProjectContextForModal => ({
+    projectId: project.id,
+    tipologiaMode: project.tipologia_mode ?? "fija",
+    precioSource: project.precio_source ?? "unidad",
+    monedaBase: project.moneda_base ?? "COP",
+    disponibilidadConfig: project.disponibilidad_config ?? {},
+    tipologias: tipologias.map((t) => ({
+      id: t.id,
+      nombre: t.nombre,
+      area_m2: t.area_m2 ?? null,
+      habitaciones: t.habitaciones ?? null,
+      banos: t.banos ?? null,
+      precio_desde: t.precio_desde ?? null,
+      parqueaderos: t.parqueaderos ?? null,
+      depositos: t.depositos ?? null,
+    })),
+    torres: torres.map((t) => ({ id: t.id, nombre: t.nombre })),
+    unidadTipologias: unidadTipologias.map((ut) => ({
+      unidad_id: ut.unidad_id,
+      tipologia_id: ut.tipologia_id,
+    })),
+  }), [project, tipologias, torres, unidadTipologias]);
 
   const handleStatusChange = useCallback(
     (unitId: string, newEstado: EstadoUnidad) => {
       const unit = unidades.find((u) => u.id === unitId);
       if (!unit || unit.estado === newEstado) return;
-
-      // Determine if tipología selection is needed (multi-tipo, no tipo assigned, committing)
-      let needsTipoSelection = false;
-      if (
-        isMultiTipo &&
-        !unit.tipologia_id &&
-        ["separado", "reservada", "vendida"].includes(newEstado)
-      ) {
-        const hasOptions = unidadTipologias.some((ut) => ut.unidad_id === unitId);
-        if (hasOptions) needsTipoSelection = true;
-      }
-
-      // Check if reverting from committed to available (multi-tipo: will clear tipo)
-      const isReverting =
-        ["vendida", "reservada", "separado"].includes(unit.estado) &&
-        ["disponible", "proximamente"].includes(newEstado);
-      const clearTipo = isMultiTipo && isReverting && !!unit.tipologia_id;
 
       // Pre-sale complemento warning
       let complementoWarning = "";
@@ -309,48 +316,47 @@ export default function DisponibilidadPage() {
         }
       }
 
-      // Auto-select if only one tipología option is available
-      let autoSelectedTipoId: string | null = null;
-      if (needsTipoSelection) {
-        const availIds = unidadTipologias
-          .filter((ut) => ut.unidad_id === unitId)
-          .map((ut) => ut.tipologia_id);
-        if (availIds.length === 1) autoSelectedTipoId = availIds[0];
-      }
+      const modalUnit: ModalUnit = {
+        id: unit.id,
+        identificador: unit.identificador,
+        tipologia_id: unit.tipologia_id,
+        estado: unit.estado,
+        piso: unit.piso,
+        area_m2: unit.area_m2,
+        area_construida: unit.area_construida ?? null,
+        area_privada: unit.area_privada ?? null,
+        area_lote: unit.area_lote ?? null,
+        precio: unit.precio,
+        precio_venta: unit.precio_venta,
+        lead_id: unit.lead_id ?? null,
+        cotizacion_id: unit.cotizacion_id ?? null,
+        habitaciones: unit.habitaciones,
+        banos: unit.banos,
+        parqueaderos: unit.parqueaderos,
+        depositos: unit.depositos,
+        orientacion: unit.orientacion,
+        vista: unit.vista,
+        lote: unit.lote,
+        etapa_nombre: unit.etapa_nombre,
+        torre_id: unit.torre_id,
+      };
 
-      setStatusModal({
-        unitId,
-        newEstado,
-        clearTipo,
-        complementoWarning,
-        needsTipoSelection,
-        selectedTipoId: autoSelectedTipoId,
-      });
+      setModalTarget({ unit: modalUnit, newEstado, complementoWarning });
     },
-    [
-      unidades,
-      tipologias,
-      parqInventory,
-      depoInventory,
-      project.complementos,
-      isMultiTipo,
-      unidadTipologias,
-    ]
+    [unidades, tipologias, parqInventory, depoInventory, project.complementos]
   );
 
-  const handleConfirmStatusChange = useCallback(async () => {
-    if (!statusModal) return;
-    const { unitId, newEstado, clearTipo, needsTipoSelection, selectedTipoId } = statusModal;
+  const handleConfirmStatusChange = useCallback(async (payload: StatusChangePayload) => {
+    if (!modalTarget) return;
+    const unitId = modalTarget.unit.id;
     const unit = unidades.find((u) => u.id === unitId);
     if (!unit) return;
 
     const oldEstado = unit.estado;
     const oldTipoId = unit.tipologia_id;
-
-    // Build update payload
-    const body: Record<string, unknown> = { estado: newEstado };
-    if (clearTipo) body.tipologia_id = null;
-    if (needsTipoSelection && selectedTipoId) body.tipologia_id = selectedTipoId;
+    const oldPrecioVenta = unit.precio_venta;
+    const oldLeadId = unit.lead_id;
+    const oldCotizacionId = unit.cotizacion_id;
 
     // Optimistic update
     setUpdatingIds((prev) => new Set(prev).add(unitId));
@@ -360,35 +366,37 @@ export default function DisponibilidadPage() {
         u.id === unitId
           ? {
               ...u,
-              estado: newEstado,
-              ...(clearTipo ? { tipologia_id: null } : {}),
-              ...(needsTipoSelection && selectedTipoId ? { tipologia_id: selectedTipoId } : {}),
+              estado: payload.estado,
+              ...(payload.tipologia_id !== undefined ? { tipologia_id: payload.tipologia_id } : {}),
+              ...(payload.precio_venta !== undefined ? { precio_venta: payload.precio_venta } : {}),
+              ...(payload.lead_id !== undefined ? { lead_id: payload.lead_id } : {}),
+              ...(payload.cotizacion_id !== undefined ? { cotizacion_id: payload.cotizacion_id } : {}),
             }
           : u
       ),
     }));
-    setStatusModal(null);
+    setModalTarget(null);
 
     try {
       const res = await fetch(`/api/unidades/${unitId}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(body),
+        body: JSON.stringify(payload),
       });
 
       if (!res.ok) throw new Error("Error");
-      const selTipo = selectedTipoId
-        ? tipologias.find((t) => t.id === selectedTipoId)
+      const selTipo = payload.tipologia_id
+        ? tipologias.find((t) => t.id === payload.tipologia_id)
         : null;
       const suffix = selTipo ? ` · ${selTipo.nombre}` : "";
-      toast.success(`${unit.identificador} → ${newEstado}${suffix}`);
+      toast.success(`${unit.identificador} → ${payload.estado}${suffix}`);
     } catch {
       // Revert on error
       updateLocal((prev) => ({
         ...prev,
         unidades: prev.unidades.map((u) =>
           u.id === unitId
-            ? { ...u, estado: oldEstado, tipologia_id: oldTipoId }
+            ? { ...u, estado: oldEstado, tipologia_id: oldTipoId, precio_venta: oldPrecioVenta, lead_id: oldLeadId, cotizacion_id: oldCotizacionId }
             : u
         ),
       }));
@@ -400,7 +408,7 @@ export default function DisponibilidadPage() {
         return next;
       });
     }
-  }, [statusModal, unidades, tipologias, updateLocal, toast, t]);
+  }, [modalTarget, unidades, tipologias, updateLocal, toast, t]);
 
   // ── Sort icon helper ──────────────────────────────────────────────
   const SortIcon = useCallback(
@@ -729,270 +737,20 @@ export default function DisponibilidadPage() {
         ))}
       </div>
 
-      {/* ── Unified status-change confirmation modal ──────────────── */}
-      <AnimatePresence>
-        {statusModal &&
-          (() => {
-            const unit = unidades.find((u) => u.id === statusModal.unitId);
-            if (!unit) return null;
-
-            // Resolve tipología: use selectedTipoId (from selector), or unit's current tipologia_id
-            const resolvedTipoId = statusModal.selectedTipoId ?? unit.tipologia_id;
-            const tip = resolvedTipoId ? tipologias.find((t) => t.id === resolvedTipoId) : null;
-            const torre = torres.find((t) => t.id === unit.torre_id);
-
-            // Available tipologías for multi-tipo selector
-            const availTipos = statusModal.needsTipoSelection
-              ? tipologias.filter((t) =>
-                  unidadTipologias.some(
-                    (ut) => ut.unidad_id === statusModal.unitId && ut.tipologia_id === t.id
-                  )
-                )
-              : [];
-
-            // Build info data using resolved tipología
-            const area = getPrimaryArea(unit, columns) ?? tip?.area_m2;
-            const price = unit.estado === "vendida" && unit.precio_venta != null
-              ? unit.precio_venta
-              : isTipologiaPricing
-                ? (tip?.precio_desde ?? unit.precio)
-                : unit.precio;
-            const newSc = UNIT_STATUS_COLORS[statusModal.newEstado];
-            const oldSc = UNIT_STATUS_COLORS[unit.estado];
-
-            // Build info fields dynamically — only show fields with values (fall back to tipología data)
-            const infoFields: { icon: typeof LayoutGrid; label: string; value: string; highlight?: boolean }[] = [];
-            if (tip && !statusModal.needsTipoSelection) infoFields.push({ icon: LayoutGrid, label: "Tipología", value: tip.nombre });
-            if (area != null) infoFields.push({ icon: Maximize2, label: "Área", value: `${area} m²` });
-            if (price != null) infoFields.push({ icon: DollarSign, label: "Precio", value: formatCurrency(price), highlight: true });
-            const hab = unit.habitaciones ?? tip?.habitaciones;
-            if (hab != null) infoFields.push({ icon: BedDouble, label: "Habitaciones", value: String(hab) });
-            const ban = unit.banos ?? tip?.banos;
-            if (ban != null) infoFields.push({ icon: Bath, label: "Baños", value: String(ban) });
-            const parq = unit.parqueaderos ?? tip?.parqueaderos;
-            if (parq != null) infoFields.push({ icon: Car, label: "Parqueaderos", value: String(parq) });
-            if (unit.depositos != null) infoFields.push({ icon: Warehouse, label: "Depósitos", value: String(unit.depositos) });
-            if (unit.orientacion) infoFields.push({ icon: Compass, label: "Orientación", value: unit.orientacion });
-            if (unit.vista) infoFields.push({ icon: Eye, label: "Vista", value: unit.vista });
-            if (unit.lote) infoFields.push({ icon: MapPin, label: "Lote", value: unit.lote });
-
-            // Metadata line (torre, piso, etapa)
-            const metaParts: string[] = [];
-            if (torre) metaParts.push(torre.nombre);
-            if (unit.piso != null) metaParts.push(`Piso ${unit.piso}`);
-            if (unit.etapa_nombre) metaParts.push(unit.etapa_nombre);
-
-            // Contextual title & description
-            const estadoLabel = UNIT_STATUS_COLORS[statusModal.newEstado].label;
-            const canConfirm = !statusModal.needsTipoSelection || !!statusModal.selectedTipoId;
-
-            return (
-              <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm"
-                onClick={() => setStatusModal(null)}
-              >
-                <motion.div
-                  initial={{ scale: 0.95, opacity: 0 }}
-                  animate={{ scale: 1, opacity: 1 }}
-                  exit={{ scale: 0.95, opacity: 0 }}
-                  onClick={(e) => e.stopPropagation()}
-                  className="bg-[var(--surface-2)] border border-[var(--border-default)] rounded-2xl max-w-lg w-full mx-4 shadow-2xl overflow-hidden"
-                >
-                  {/* Header */}
-                  <div className="px-6 pt-5 pb-4 border-b border-[var(--border-subtle)]">
-                    <div className="flex items-start justify-between gap-3">
-                      <div className="flex-1 min-w-0">
-                        {/* Contextual title */}
-                        <p className="text-xs text-[var(--text-secondary)] mb-2 leading-relaxed">
-                          {statusModal.clearTipo
-                            ? `Vas a revertir esta unidad a ${estadoLabel.toLowerCase()}. Se liberará la tipología asignada.`
-                            : statusModal.needsTipoSelection
-                              ? "Selecciona la tipología con la que se registrará esta unidad antes de confirmar el cambio."
-                              : `Estás por cambiar el estado de esta unidad a ${estadoLabel.toLowerCase()}.`}
-                        </p>
-                        <div className="flex items-center gap-3 mb-1">
-                          <h3 className="text-2xl font-heading font-light text-white leading-none">
-                            {unit.identificador}
-                          </h3>
-                          {/* Estado transition inline */}
-                          <div className="flex items-center gap-1.5">
-                            <span className={cn(
-                              "inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[9px] font-ui font-bold uppercase tracking-wider border",
-                              oldSc.bg, oldSc.text, oldSc.border
-                            )}>
-                              <span className={cn("w-1.5 h-1.5 rounded-full", oldSc.dot)} />
-                              {UNIT_STATUS_COLORS[unit.estado].short}
-                            </span>
-                            <ArrowRight size={12} className="text-[var(--text-muted)] shrink-0" />
-                            <span className={cn(
-                              "inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[9px] font-ui font-bold uppercase tracking-wider border",
-                              newSc.bg, newSc.text, newSc.border
-                            )}>
-                              <span className={cn("w-1.5 h-1.5 rounded-full", newSc.dot)} />
-                              {UNIT_STATUS_COLORS[statusModal.newEstado].short}
-                            </span>
-                          </div>
-                        </div>
-                        {metaParts.length > 0 && (
-                          <div className="flex items-center gap-1.5 text-[10px] font-mono text-[var(--text-muted)]">
-                            {torre && <Building2 size={10} className="shrink-0" />}
-                            {metaParts.join(" · ")}
-                          </div>
-                        )}
-                      </div>
-                      <button
-                        onClick={() => setStatusModal(null)}
-                        className="p-1.5 rounded-lg hover:bg-[var(--surface-3)] transition-colors text-[var(--text-muted)] hover:text-white shrink-0"
-                      >
-                        <X size={16} />
-                      </button>
-                    </div>
-                  </div>
-
-                  {/* Tipología selector (multi-tipo only) */}
-                  {statusModal.needsTipoSelection && availTipos.length > 0 && (
-                    <div className="px-6 py-4 border-b border-[var(--border-subtle)]">
-                      <p className="text-[9px] font-ui uppercase tracking-[0.12em] text-[var(--site-primary)] mb-3 font-bold">
-                        Seleccionar tipología
-                      </p>
-                      <div className="space-y-2">
-                        {availTipos.map((tipo) => {
-                          const isSelected = statusModal.selectedTipoId === tipo.id;
-                          return (
-                            <button
-                              key={tipo.id}
-                              onClick={() =>
-                                setStatusModal((prev) =>
-                                  prev ? { ...prev, selectedTipoId: tipo.id } : prev
-                                )
-                              }
-                              className={cn(
-                                "w-full flex items-center gap-3 p-3 rounded-xl border transition-all text-left",
-                                isSelected
-                                  ? "bg-[rgba(var(--site-primary-rgb),0.08)] border-[rgba(var(--site-primary-rgb),0.4)] shadow-[0_0_12px_rgba(var(--site-primary-rgb),0.08)]"
-                                  : "bg-[var(--surface-1)] border-[var(--border-subtle)] hover:border-[rgba(var(--site-primary-rgb),0.25)]"
-                              )}
-                            >
-                              {/* Radio indicator */}
-                              <div className={cn(
-                                "w-4 h-4 rounded-full border-2 flex items-center justify-center shrink-0 transition-colors",
-                                isSelected
-                                  ? "border-[var(--site-primary)] bg-[var(--site-primary)]"
-                                  : "border-[var(--border-default)]"
-                              )}>
-                                {isSelected && <div className="w-1.5 h-1.5 rounded-full bg-[#141414]" />}
-                              </div>
-                              <div className="flex-1 min-w-0">
-                                <p className="text-xs font-medium text-white">
-                                  {tipo.nombre}
-                                </p>
-                                <p className="text-[10px] text-[var(--text-muted)] mt-0.5">
-                                  {[
-                                    tipo.area_m2 && `${tipo.area_m2} m²`,
-                                    tipo.habitaciones != null && `${tipo.habitaciones} hab`,
-                                    tipo.banos != null && `${tipo.banos} baños`,
-                                  ]
-                                    .filter(Boolean)
-                                    .join(" · ")}
-                                </p>
-                              </div>
-                              {tipo.precio_desde != null && (
-                                <span className="text-xs text-[var(--site-primary)] font-mono font-medium shrink-0">
-                                  {formatCurrency(tipo.precio_desde)}
-                                </span>
-                              )}
-                            </button>
-                          );
-                        })}
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Unit info grid */}
-                  {infoFields.length > 0 && (
-                    <div className={cn(
-                      "px-6 py-4 border-b border-[var(--border-subtle)] transition-opacity",
-                      statusModal.needsTipoSelection && !statusModal.selectedTipoId && "opacity-40"
-                    )}>
-                      <p className="text-[9px] font-ui uppercase tracking-[0.12em] text-[var(--text-muted)] mb-3 font-bold">
-                        Detalles de la unidad
-                      </p>
-                      <div className="grid grid-cols-2 gap-x-6 gap-y-3">
-                        {infoFields.map((field) => (
-                          <div key={field.label} className="flex items-center gap-2.5">
-                            <div className="w-7 h-7 rounded-lg bg-[var(--surface-3)] flex items-center justify-center shrink-0">
-                              <field.icon size={13} className="text-[var(--text-tertiary)]" />
-                            </div>
-                            <div className="min-w-0">
-                              <p className="text-[9px] font-ui uppercase tracking-[0.12em] text-[var(--text-muted)] leading-none mb-0.5">
-                                {field.label}
-                              </p>
-                              <p className={cn(
-                                "text-xs font-mono leading-none truncate",
-                                field.highlight ? "text-[var(--site-primary)] font-medium" : "text-white"
-                              )}>
-                                {field.value}
-                              </p>
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Warnings + Actions */}
-                  <div className="px-6 py-4">
-                    {/* Warnings */}
-                    {statusModal.clearTipo && (
-                      <div className="flex items-start gap-2.5 p-3 bg-amber-500/8 border border-amber-500/15 rounded-xl mb-3">
-                        <AlertTriangle size={14} className="text-amber-400 shrink-0 mt-0.5" />
-                        <div>
-                          <p className="text-[11px] font-medium text-amber-400 leading-snug">
-                            Se liberará la tipología asignada
-                          </p>
-                          <p className="text-[10px] text-amber-400/60 mt-0.5">{tip?.nombre}</p>
-                        </div>
-                      </div>
-                    )}
-                    {statusModal.complementoWarning && (
-                      <div className="flex items-start gap-2.5 p-3 bg-amber-500/8 border border-amber-500/15 rounded-xl mb-3">
-                        <AlertTriangle size={14} className="text-amber-400 shrink-0 mt-0.5" />
-                        <p className="text-[11px] text-amber-400 leading-snug">
-                          {statusModal.complementoWarning}
-                        </p>
-                      </div>
-                    )}
-
-                    {/* Actions */}
-                    <div className="flex items-center gap-3 mt-1">
-                      <button
-                        onClick={() => setStatusModal(null)}
-                        className="flex-1 px-4 py-2.5 text-[11px] font-ui uppercase tracking-wider text-[var(--text-secondary)] bg-[var(--surface-3)] border border-[var(--border-default)] rounded-xl hover:bg-[var(--surface-4)] transition-colors"
-                      >
-                        Cancelar
-                      </button>
-                      <button
-                        onClick={handleConfirmStatusChange}
-                        disabled={!canConfirm}
-                        className={cn(
-                          "flex-1 px-4 py-2.5 text-[11px] font-ui uppercase tracking-wider rounded-xl transition-all border",
-                          canConfirm
-                            ? `${newSc.bg} ${newSc.text} ${newSc.border} hover:brightness-125`
-                            : "opacity-40 cursor-not-allowed bg-[var(--surface-3)] text-[var(--text-muted)] border-[var(--border-subtle)]"
-                        )}
-                      >
-                        Confirmar como {estadoLabel}
-                      </button>
-                    </div>
-                  </div>
-                </motion.div>
-              </motion.div>
-            );
-          })()}
-      </AnimatePresence>
+      {/* ── Status change modal ──────────────────────────────────── */}
+      {modalTarget && (
+        <StatusChangeModal
+          unit={modalTarget.unit}
+          newEstado={modalTarget.newEstado}
+          projectContext={{
+            ...projectContextForModal,
+            complementoWarning: modalTarget.complementoWarning,
+          }}
+          userRole={role || "admin"}
+          onConfirm={handleConfirmStatusChange}
+          onClose={() => setModalTarget(null)}
+        />
+      )}
     </div>
   );
 }

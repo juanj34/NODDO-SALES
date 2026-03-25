@@ -137,6 +137,7 @@ export interface Proyecto {
   secciones_visibles: SeccionesVisibles | null;
   tipologia_fields: TipologiaFieldsConfig | null;
   agent_mode_config: AgentModeConfig | null;
+  disponibilidad_config: DisponibilidadConfig | null;
   created_at: string;
   updated_at: string;
 }
@@ -170,6 +171,11 @@ export interface AgentModeConfig {
   mostrar_precio_vendidas: boolean;
   mostrar_todas_secciones: boolean;
   habilitar_cotizador: boolean;
+}
+
+export interface DisponibilidadConfig {
+  require_lead_on_commit?: boolean;
+  require_cotizacion_on_commit?: boolean;
 }
 
 export interface SeccionesVisibles {
@@ -314,12 +320,14 @@ export interface Lead {
   utm_medium: string | null;
   utm_campaign: string | null;
   status: "nuevo" | "contactado" | "calificado" | "cerrado";
+  asignado_a: string | null;
   created_at: string;
 }
 
 export interface LeadWithMeta extends Lead {
   cotizaciones_count: number;
   proyecto_nombre?: string;
+  asignado_nombre?: string | null;
 }
 
 export interface LeadCotizacionSummary {
@@ -375,6 +383,8 @@ export interface Unidad {
   area_lote: number | null;
   precio: number | null;
   precio_venta: number | null;
+  lead_id: string | null;
+  cotizacion_id: string | null;
   estado: "disponible" | "separado" | "reservada" | "vendida" | "proximamente";
   habitaciones: number | null;
   banos: number | null;
@@ -560,6 +570,7 @@ export interface Colaborador {
   email: string;
   nombre: string | null;
   estado: "pendiente" | "activo" | "suspendido";
+  rol: "director" | "asesor";
   invited_at: string;
   activated_at: string | null;
   created_at: string;
@@ -571,7 +582,7 @@ export interface Colaborador {
   } | null;
 }
 
-export type UserRole = "admin" | "colaborador";
+export type UserRole = "admin" | "director" | "asesor";
 
 /* ── User Profiles ── */
 
@@ -1063,7 +1074,7 @@ export interface ActivityLog {
   user_id: string | null;
   user_email: string;
   user_name: string | null;
-  user_role: "admin" | "colaborador";
+  user_role: "admin" | "director" | "asesor";
   proyecto_id: string | null;
   proyecto_nombre: string | null;
   action_type: string;

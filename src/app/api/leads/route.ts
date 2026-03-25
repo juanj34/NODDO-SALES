@@ -226,7 +226,6 @@ export async function GET(request: NextRequest) {
     if (!auth) {
       return NextResponse.json({ error: "No autorizado" }, { status: 401 });
     }
-    // Both admin and collaborator can access leads
 
     const { searchParams } = new URL(request.url);
     const tipologia = searchParams.get("tipologia");
@@ -239,6 +238,7 @@ export async function GET(request: NextRequest) {
     const sort = searchParams.get("sort") || "newest";
     const includeStats = searchParams.get("include_stats") === "true";
     const includeCotizCount = searchParams.get("include_cotizacion_count") === "true";
+    const includeTeam = searchParams.get("include_team") === "true";
     const page = Math.max(1, parseInt(searchParams.get("page") || "1"));
     const limit = Math.min(100, Math.max(1, parseInt(searchParams.get("limit") || "50")));
     const offset = (page - 1) * limit;
@@ -255,6 +255,7 @@ export async function GET(request: NextRequest) {
         emptyResponse.stats = { total_all: 0, this_month: 0, with_cotizaciones: 0, by_status: {} };
         emptyResponse.projects = [];
       }
+      if (includeTeam) emptyResponse.team = [];
       return NextResponse.json(emptyResponse);
     }
 
@@ -273,6 +274,10 @@ export async function GET(request: NextRequest) {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const applyFilters = (q: any) => {
       let filtered = q.in("proyecto_id", activeProjectIds);
+      // Asesores can only see leads assigned to them
+      if (auth.role === "asesor") {
+        filtered = filtered.eq("asignado_a", auth.user.id);
+      }
       if (tipologia) filtered = filtered.eq("tipologia_interes", tipologia);
       if (status) filtered = filtered.eq("status", status);
       if (source) filtered = filtered.eq("utm_source", source);
@@ -304,10 +309,36 @@ export async function GET(request: NextRequest) {
 
     const leads = data || [];
 
-    // Enrich leads with proyecto_nombre
+    // Build assignee name map for enrichment
+    const assigneeIds = [...new Set(
+      leads
+        .map((l: Record<string, unknown>) => l.asignado_a as string | null)
+        .filter(Boolean)
+    )] as string[];
+
+    const assigneeMap = new Map<string, string>();
+    if (assigneeIds.length > 0) {
+      const { data: collabs } = await auth.supabase
+        .from("colaboradores")
+        .select("colaborador_user_id, nombre, email")
+        .eq("admin_user_id", auth.adminUserId)
+        .in("colaborador_user_id", assigneeIds);
+
+      if (collabs) {
+        for (const c of collabs) {
+          assigneeMap.set(
+            c.colaborador_user_id,
+            c.nombre || c.email || ""
+          );
+        }
+      }
+    }
+
+    // Enrich leads with proyecto_nombre and asignado_nombre
     const enrichedLeads = leads.map((l: Record<string, unknown>) => ({
       ...l,
       proyecto_nombre: projectNameMap.get(l.proyecto_id as string) || "",
+      asignado_nombre: l.asignado_a ? (assigneeMap.get(l.asignado_a as string) || null) : null,
       cotizaciones_count: 0,
     }));
 
@@ -340,25 +371,53 @@ export async function GET(request: NextRequest) {
       limit,
     };
 
+    // Include team members (active collaborators) for assignment dropdowns
+    if (includeTeam && auth.role !== "asesor") {
+      const { data: teamData } = await auth.supabase
+        .from("colaboradores")
+        .select("colaborador_user_id, nombre, email, rol")
+        .eq("admin_user_id", auth.adminUserId)
+        .eq("estado", "activo")
+        .not("colaborador_user_id", "is", null);
+
+      response.team = (teamData || []).map((c: Record<string, unknown>) => ({
+        id: c.colaborador_user_id,
+        nombre: c.nombre || c.email || "",
+        email: c.email,
+        rol: c.rol,
+      }));
+    }
+
     // Compute stats if requested
     if (includeStats) {
       const allProjectIds = proyectos.map((p) => p.id);
 
+      // For asesores, stats should only reflect their assigned leads
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const applyAsesorFilter = (q: any) => {
+        if (auth.role === "asesor") return q.eq("asignado_a", auth.user.id);
+        return q;
+      };
+
       // Total all leads (no filters)
-      const { count: totalAll } = await auth.supabase
-        .from("leads")
-        .select("*", { count: "exact", head: true })
-        .in("proyecto_id", allProjectIds);
+      const { count: totalAll } = await applyAsesorFilter(
+        auth.supabase
+          .from("leads")
+          .select("*", { count: "exact", head: true })
+          .in("proyecto_id", allProjectIds)
+      );
 
       // This month
       const firstOfMonth = new Date();
       firstOfMonth.setDate(1);
       firstOfMonth.setHours(0, 0, 0, 0);
-      const { count: thisMonth } = await auth.supabase
-        .from("leads")
-        .select("*", { count: "exact", head: true })
-        .in("proyecto_id", allProjectIds)
-        .gte("created_at", firstOfMonth.toISOString());
+      const { count: thisMonth } = await applyAsesorFilter(
+        auth.supabase
+          .from("leads")
+          .select("*", { count: "exact", head: true })
+          .in("proyecto_id", allProjectIds)
+          .gte("created_at", firstOfMonth.toISOString())
+      );
 
       // Leads with cotizaciones (distinct emails in cotizaciones that exist in leads)
       const { data: cotizEmails } = await auth.supabase
@@ -374,11 +433,12 @@ export async function GET(request: NextRequest) {
       }
 
       // Count leads matching those pairs
-      // Since we can't do a join easily, get all lead emails in a single query
-      const { data: allLeadPairs } = await auth.supabase
-        .from("leads")
-        .select("email, proyecto_id")
-        .in("proyecto_id", allProjectIds);
+      const { data: allLeadPairs } = await applyAsesorFilter(
+        auth.supabase
+          .from("leads")
+          .select("email, proyecto_id")
+          .in("proyecto_id", allProjectIds)
+      );
 
       let withCotizaciones = 0;
       const seenPairs = new Set<string>();
@@ -397,11 +457,13 @@ export async function GET(request: NextRequest) {
       const byStatus: Record<string, number> = {};
       await Promise.all(
         statuses.map(async (s) => {
-          const { count: c } = await auth.supabase
-            .from("leads")
-            .select("*", { count: "exact", head: true })
-            .in("proyecto_id", allProjectIds)
-            .eq("status", s);
+          const { count: c } = await applyAsesorFilter(
+            auth.supabase
+              .from("leads")
+              .select("*", { count: "exact", head: true })
+              .in("proyecto_id", allProjectIds)
+              .eq("status", s)
+          );
           byStatus[s] = c || 0;
         })
       );

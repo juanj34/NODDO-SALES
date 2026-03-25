@@ -1,5 +1,5 @@
 import { pick } from "@/lib/api-utils";
-import { getAuthContext } from "@/lib/auth-context";
+import { getAuthContext, requirePermission } from "@/lib/auth-context";
 import { NextRequest, NextResponse } from "next/server";
 
 const COMPLEMENTO_FIELDS = [
@@ -11,7 +11,8 @@ export async function POST(request: NextRequest) {
   try {
     const auth = await getAuthContext();
     if (!auth) return NextResponse.json({ error: "No autorizado" }, { status: 401 });
-    if (auth.role !== "admin") return NextResponse.json({ error: "Solo administradores" }, { status: 403 });
+    const denied = requirePermission(auth, "inventory.write");
+    if (denied) return denied;
 
     const body = await request.json();
     const { proyecto_id, complementos } = body;

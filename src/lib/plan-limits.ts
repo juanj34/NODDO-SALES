@@ -13,7 +13,7 @@ export const PLAN_DEFAULTS: Record<PlanType, {
   trial: { max_projects: 1, max_units_per_project: 20, max_collaborators: 0 },
   proyecto: { max_projects: 1, max_units_per_project: 200, max_collaborators: 3 },
   studio: { max_projects: 5, max_units_per_project: 500, max_collaborators: 5 },
-  enterprise: { max_projects: 50, max_units_per_project: 2000, max_collaborators: 20 },
+  enterprise: { max_projects: 50, max_units_per_project: 2000, max_collaborators: 10 },
 };
 
 export const PLAN_LABELS: Record<string, string> = {
