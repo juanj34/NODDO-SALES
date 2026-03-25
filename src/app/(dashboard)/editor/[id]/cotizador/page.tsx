@@ -8,6 +8,10 @@ import {
   Plus, Trash2, Car, Package, Check, Copy,
   ExternalLink, Minus, ArrowLeft, Clock, Sparkles,
   AlertTriangle, Calendar, ChevronRight, Calculator,
+  BedDouble, Bath, Eye, Maximize2, Phone, Mail,
+  Building2, Home, LandPlot, Fence,
+  Waves, UtensilsCrossed, Sun, TreePine,
+  DoorClosed, BookOpen, Flame, MoveVertical, CloudSun,
 } from "lucide-react";
 import Image from "next/image";
 import { cn } from "@/lib/utils";
@@ -19,6 +23,9 @@ import { useEditorProject } from "@/hooks/useEditorProject";
 import { calcularCotizacion, buildPrecioBaseComplementos } from "@/lib/cotizador/calcular";
 import type { CotizadorConfig, ResultadoCotizacion } from "@/types";
 import { CurrencyInput } from "@/components/dashboard/CurrencyInput";
+import { NodDoDropdown } from "@/components/ui/NodDoDropdown";
+import type { Option } from "@/components/ui/NodDoDropdown";
+import { COUNTRY_CODES } from "@/lib/booking-constants";
 import { PageHeader } from "@/components/dashboard/base/PageHeader";
 import { motion, AnimatePresence } from "framer-motion";
 import type { PaymentRow } from "@/lib/cotizador/payment-rows";
@@ -37,11 +44,34 @@ import {
 
 /* ── Types ─────────────────────────────────────────────── */
 
+type LucideIcon = React.ComponentType<{ size?: number; className?: string }>;
+
+const EXTRAS_CONFIG: { field: string; label: string; icon: LucideIcon }[] = [
+  { field: "tiene_jacuzzi", label: "Jacuzzi", icon: Waves },
+  { field: "tiene_piscina", label: "Piscina", icon: Waves },
+  { field: "tiene_bbq", label: "BBQ", icon: UtensilsCrossed },
+  { field: "tiene_terraza", label: "Terraza", icon: Sun },
+  { field: "tiene_jardin", label: "Jardín", icon: TreePine },
+  { field: "tiene_cuarto_servicio", label: "Cuarto de servicio", icon: DoorClosed },
+  { field: "tiene_estudio", label: "Estudio", icon: BookOpen },
+  { field: "tiene_chimenea", label: "Chimenea", icon: Flame },
+  { field: "tiene_doble_altura", label: "Doble altura", icon: MoveVertical },
+  { field: "tiene_rooftop", label: "Rooftop", icon: CloudSun },
+];
+
+const countryCodeOptions: Option[] = COUNTRY_CODES.map((cc) => ({
+  value: cc.code,
+  label: `${cc.flag} ${cc.code}`,
+}));
+
 interface UnitRow {
   id: string;
   identificador: string;
   piso: number | null;
   area_m2: number | null;
+  area_construida: number | null;
+  area_privada: number | null;
+  area_lote: number | null;
   precio: number | null;
   estado: string;
   habitaciones: number | null;
@@ -50,7 +80,26 @@ interface UnitRow {
   parqueaderos: number | null;
   depositos: number | null;
   tipologia_id: string | null;
-  tipologia: { nombre: string; parqueaderos: number | null; depositos: number | null; precio_desde: number | null } | null;
+  tipologia: {
+    nombre: string;
+    parqueaderos: number | null;
+    depositos: number | null;
+    precio_desde: number | null;
+    area_construida: number | null;
+    area_privada: number | null;
+    area_balcon: number | null;
+    area_lote: number | null;
+    tiene_jacuzzi: boolean;
+    tiene_piscina: boolean;
+    tiene_bbq: boolean;
+    tiene_terraza: boolean;
+    tiene_jardin: boolean;
+    tiene_cuarto_servicio: boolean;
+    tiene_estudio: boolean;
+    tiene_chimenea: boolean;
+    tiene_doble_altura: boolean;
+    tiene_rooftop: boolean;
+  } | null;
   torre: { nombre: string } | null;
 }
 
@@ -149,6 +198,7 @@ export default function CotizadorOperativoPage() {
   const [clientName, setClientName] = useState("");
   const [clientEmail, setClientEmail] = useState("");
   const [clientPhone, setClientPhone] = useState("");
+  const [clientCountryCode, setClientCountryCode] = useState("+57");
 
   /* ── Payment rows ── */
   const [paymentRows, setPaymentRows] = useState<PaymentRow[]>([]);
@@ -189,7 +239,7 @@ export default function CotizadorOperativoPage() {
 
   const effectiveClientName = leadMode === "search" && selectedLead ? selectedLead.nombre : clientName;
   const effectiveClientEmail = leadMode === "search" && selectedLead ? selectedLead.email : clientEmail;
-  const effectiveClientPhone = leadMode === "search" && selectedLead ? (selectedLead.telefono || "") : clientPhone;
+  const effectiveClientPhone = leadMode === "search" && selectedLead ? (selectedLead.telefono || "") : (clientPhone ? `${clientCountryCode}${clientPhone}` : "");
 
   const clientFormValid = effectiveClientName.trim().length > 0 && EMAIL_RE.test(effectiveClientEmail.trim());
   const showAdminFee = (config?.admin_fee ?? 0) > 0;
@@ -835,7 +885,7 @@ export default function CotizadorOperativoPage() {
                               : "bg-[var(--surface-2)] text-[var(--text-tertiary)] hover:text-[var(--text-secondary)]"
                           )}
                         >
-                          Todos ({cotizableUnits.length})
+                          Todos <span className="font-mono">({cotizableUnits.length})</span>
                         </button>
                         {tipologias.map((tip) => {
                           const count = tipologiaCounts.get(tip.id) ?? 0;
@@ -851,7 +901,7 @@ export default function CotizadorOperativoPage() {
                                   : "bg-[var(--surface-2)] text-[var(--text-tertiary)] hover:text-[var(--text-secondary)]"
                               )}
                             >
-                              {tip.nombre} ({count})
+                              {tip.nombre} <span className="font-mono">({count})</span>
                             </button>
                           );
                         })}
@@ -952,7 +1002,7 @@ export default function CotizadorOperativoPage() {
                               {unit.area_m2 ? ` · ${unit.area_m2}m²` : ""}
                             </span>
                           </div>
-                          <span className="text-xs text-[var(--text-tertiary)] shrink-0">
+                          <span className="text-xs text-[var(--text-tertiary)] font-mono shrink-0">
                             {(() => {
                               if (isMultiTipo && precioSource === "tipologia") {
                                 // Use selected tab tipo, or cheapest available tipo
@@ -1092,32 +1142,77 @@ export default function CotizadorOperativoPage() {
                                     ))}
                                   </div>
                                 )}
+                                {leadSearch.length >= 2 && !searchingLeads && leads.length === 0 && (
+                                  <div className="mt-2 rounded-lg border border-dashed border-[var(--border-default)] p-3 text-center">
+                                    <p className="text-[10px] text-[var(--text-muted)] mb-2">
+                                      No se encontraron clientes para &ldquo;{leadSearch}&rdquo;
+                                    </p>
+                                    <button
+                                      onClick={() => {
+                                        setClientName(leadSearch.trim());
+                                        setLeadMode("new");
+                                        setLeadSearch("");
+                                        setLeads([]);
+                                      }}
+                                      className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[rgba(var(--site-primary-rgb),0.1)] border border-[rgba(var(--site-primary-rgb),0.2)] text-[10px] font-ui font-bold uppercase tracking-[0.1em] text-[var(--site-primary)] hover:bg-[rgba(var(--site-primary-rgb),0.15)] transition-all"
+                                    >
+                                      <Plus size={11} />
+                                      Crear nuevo cliente
+                                    </button>
+                                  </div>
+                                )}
                               </div>
                             )}
                           </div>
                         ) : (
                           <div className="space-y-2.5">
-                            <input
-                              type="text"
-                              value={clientName}
-                              onChange={(e) => setClientName(e.target.value)}
-                              placeholder="Nombre completo"
-                              className="input-glass w-full text-xs"
-                            />
-                            <input
-                              type="email"
-                              value={clientEmail}
-                              onChange={(e) => setClientEmail(e.target.value)}
-                              placeholder="Email"
-                              className="input-glass w-full text-xs"
-                            />
-                            <input
-                              type="tel"
-                              value={clientPhone}
-                              onChange={(e) => setClientPhone(e.target.value)}
-                              placeholder="Teléfono (opcional)"
-                              className="input-glass w-full text-xs"
-                            />
+                            <div className="relative">
+                              <User size={13} className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--text-muted)]" />
+                              <input
+                                type="text"
+                                value={clientName}
+                                onChange={(e) => setClientName(e.target.value)}
+                                placeholder="Nombre completo"
+                                className="input-glass w-full pl-9 text-xs"
+                              />
+                            </div>
+                            <div className="relative">
+                              <Mail size={13} className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--text-muted)]" />
+                              <input
+                                type="email"
+                                value={clientEmail}
+                                onChange={(e) => setClientEmail(e.target.value)}
+                                placeholder="Email"
+                                className="input-glass w-full pl-9 text-xs"
+                              />
+                            </div>
+                            <div className="flex gap-2">
+                              <div className="w-[105px] shrink-0">
+                                <NodDoDropdown
+                                  value={clientCountryCode}
+                                  onChange={setClientCountryCode}
+                                  options={countryCodeOptions}
+                                  variant="dashboard"
+                                  size="sm"
+                                  renderSelected={(opt) => (
+                                    <span className="text-xs">{opt.label}</span>
+                                  )}
+                                  renderOption={(opt) => (
+                                    <span className="text-xs">{opt.label}</span>
+                                  )}
+                                />
+                              </div>
+                              <div className="relative flex-1">
+                                <Phone size={13} className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--text-muted)]" />
+                                <input
+                                  type="tel"
+                                  value={clientPhone}
+                                  onChange={(e) => setClientPhone(e.target.value)}
+                                  placeholder="Teléfono (opcional)"
+                                  className="input-glass w-full pl-9 text-xs"
+                                />
+                              </div>
+                            </div>
                           </div>
                         )}
                       </div>
@@ -1154,11 +1249,9 @@ export default function CotizadorOperativoPage() {
                                     )}
                                   >
                                     <span className="block">{tipo.nombre}</span>
-                                    {tipo.area_m2 && (
-                                      <span className="block text-[9px] font-normal normal-case tracking-normal mt-0.5 opacity-70">
-                                        {tipo.area_m2}m²
-                                        {tipo.habitaciones != null ? ` · ${tipo.habitaciones} hab` : ""}
-                                        {tipo.precio_desde ? ` · ${formatCurrency(tipo.precio_desde, moneda, {})}` : ""}
+                                    {tipo.precio_desde && (
+                                      <span className="block text-[9px] font-mono font-normal normal-case tracking-normal mt-0.5 opacity-70">
+                                        {formatCurrency(tipo.precio_desde, moneda, {})}
                                       </span>
                                     )}
                                   </button>
@@ -1174,20 +1267,54 @@ export default function CotizadorOperativoPage() {
                           ) : null;
                         })()}
 
-                        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                          {(isMultiTipo && selectedQuoteTipologia ? selectedQuoteTipologia.area_m2 : selectedUnit.area_m2) ? (
-                            <DetailBox label="Area" value={`${isMultiTipo && selectedQuoteTipologia ? selectedQuoteTipologia.area_m2 : selectedUnit.area_m2} m²`} />
-                          ) : null}
-                          {(isMultiTipo && selectedQuoteTipologia ? selectedQuoteTipologia.habitaciones : selectedUnit.habitaciones) !== null && (
-                            <DetailBox label="Hab." value={String(isMultiTipo && selectedQuoteTipologia ? selectedQuoteTipologia.habitaciones : selectedUnit.habitaciones)} />
-                          )}
-                          {(isMultiTipo && selectedQuoteTipologia ? selectedQuoteTipologia.banos : selectedUnit.banos) !== null && (
-                            <DetailBox label="Baños" value={String(isMultiTipo && selectedQuoteTipologia ? selectedQuoteTipologia.banos : selectedUnit.banos)} />
-                          )}
-                          {selectedUnit.vista && (
-                            <DetailBox label="Vista" value={selectedUnit.vista} />
-                          )}
-                        </div>
+                        {(() => {
+                          const tip = isMultiTipo ? selectedQuoteTipologia : null;
+                          const area = tip ? tip.area_m2 : selectedUnit.area_m2;
+                          const areaConstruida = tip ? tip.area_construida : (selectedUnit.area_construida ?? selectedUnit.tipologia?.area_construida ?? null);
+                          const areaPrivada = tip ? tip.area_privada : (selectedUnit.area_privada ?? selectedUnit.tipologia?.area_privada ?? null);
+                          const areaLote = tip ? tip.area_lote : (selectedUnit.area_lote ?? selectedUnit.tipologia?.area_lote ?? null);
+                          const areaBalcon = tip ? tip.area_balcon : (selectedUnit.tipologia?.area_balcon ?? null);
+                          const hab = tip ? tip.habitaciones : selectedUnit.habitaciones;
+                          const banos = tip ? tip.banos : selectedUnit.banos;
+                          const parq = tip ? tip.parqueaderos : (selectedUnit.parqueaderos ?? selectedUnit.tipologia?.parqueaderos ?? null);
+                          const depo = tip ? tip.depositos : (selectedUnit.depositos ?? selectedUnit.tipologia?.depositos ?? null);
+                          const vista = selectedUnit.vista;
+
+                          const extrasSource = tip ?? selectedUnit.tipologia;
+                          const activeExtras = extrasSource
+                            ? EXTRAS_CONFIG.filter((e) => (extrasSource as Record<string, unknown>)[e.field] === true)
+                            : [];
+
+                          return (
+                            <>
+                              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                                {area != null && <DetailBox label="Área" value={`${area} m²`} icon={Maximize2} />}
+                                {areaConstruida != null && <DetailBox label="Á. Construida" value={`${areaConstruida} m²`} icon={Building2} />}
+                                {areaPrivada != null && <DetailBox label="Á. Privada" value={`${areaPrivada} m²`} icon={Home} />}
+                                {areaLote != null && <DetailBox label="Á. Lote" value={`${areaLote} m²`} icon={LandPlot} />}
+                                {areaBalcon != null && <DetailBox label="Balcón" value={`${areaBalcon} m²`} icon={Fence} />}
+                                {hab != null && <DetailBox label="Hab." value={String(hab)} icon={BedDouble} />}
+                                {banos != null && <DetailBox label="Baños" value={String(banos)} icon={Bath} />}
+                                {parq != null && <DetailBox label="Parq." value={String(parq)} icon={Car} />}
+                                {depo != null && <DetailBox label="Depósitos" value={String(depo)} icon={Package} />}
+                                {vista && <DetailBox label="Vista" value={vista} icon={Eye} />}
+                              </div>
+                              {activeExtras.length > 0 && (
+                                <div className="flex flex-wrap gap-1.5 mt-3">
+                                  {activeExtras.map((e) => (
+                                    <span
+                                      key={e.field}
+                                      className="inline-flex items-center gap-1 px-2 py-1 rounded-lg bg-[rgba(var(--site-primary-rgb),0.06)] border border-[rgba(var(--site-primary-rgb),0.15)] text-[10px] text-[var(--site-primary)]"
+                                    >
+                                      <e.icon size={10} />
+                                      {e.label}
+                                    </span>
+                                  ))}
+                                </div>
+                              )}
+                            </>
+                          );
+                        })()}
                       </div>
 
                       {/* C: Complementos */}
@@ -1700,13 +1827,14 @@ export default function CotizadorOperativoPage() {
 
 /* ── Small Components ──────────────────────────────────── */
 
-function DetailBox({ label, value }: { label: string; value: string }) {
+function DetailBox({ label, value, icon: Icon }: { label: string; value: string; icon?: React.ComponentType<{ size?: number; className?: string }> }) {
   return (
     <div className="p-2.5 rounded-lg bg-[var(--surface-2)] border border-[var(--border-subtle)]">
-      <span className="font-ui text-[8px] font-bold uppercase tracking-[0.14em] text-[var(--text-muted)] block mb-0.5">
+      <span className="font-ui text-[8px] font-bold uppercase tracking-[0.14em] text-[var(--text-tertiary)] flex items-center gap-1.5 mb-1">
+        {Icon && <Icon size={12} className="text-[var(--site-primary)] opacity-60" />}
         {label}
       </span>
-      <span className="text-xs text-[var(--text-primary)]">{value}</span>
+      <span className="text-sm text-[var(--text-primary)] font-mono font-medium">{value}</span>
     </div>
   );
 }
