@@ -9,7 +9,7 @@ import type { EmailLocale } from "@/lib/email-i18n";
 import { isRateLimited, apiLimiter } from "@/lib/rate-limit";
 import { getWebhookConfig, dispatchWebhook } from "@/lib/webhooks";
 import type { WebhookPayload } from "@/lib/webhooks";
-import type { CotizadorConfig, FaseConfig, Unidad, Currency, ComplementoSeleccion, EmailConfig } from "@/types";
+import type { CotizadorConfig, FaseConfig, DescuentoConfig, Unidad, Currency, ComplementoSeleccion, EmailConfig } from "@/types";
 import { formatCurrency } from "@/lib/currency";
 import { logActivity } from "@/lib/activity-logger";
 import { getAuthContext } from "@/lib/auth-context";
@@ -171,7 +171,7 @@ export async function POST(request: NextRequest) {
       tipologia_id: selectedTipologiaId,
       // Sandbox fields
       custom_fases,
-      descuentos_seleccionados,
+      custom_descuentos,
       complemento_ids,
       complemento_selections,
       precio_base_parqueaderos,
@@ -179,6 +179,7 @@ export async function POST(request: NextRequest) {
       separacion_incluida,
       payment_plan_nombre,
       admin_fee,
+      amoblado,
     } = body as {
       proyecto_id: string;
       unidad_id: string;
@@ -192,7 +193,7 @@ export async function POST(request: NextRequest) {
       agente_nombre?: string;
       tipologia_id?: string;
       custom_fases?: FaseConfig[];
-      descuentos_seleccionados?: string[];
+      custom_descuentos?: DescuentoConfig[];
       complemento_ids?: string[];
       complemento_selections?: { complemento_id: string; es_extra: boolean; precio_negociado?: number }[];
       precio_base_parqueaderos?: number;
@@ -200,6 +201,7 @@ export async function POST(request: NextRequest) {
       separacion_incluida?: boolean;
       payment_plan_nombre?: string;
       admin_fee?: number;
+      amoblado?: boolean;
     };
 
     // Validate required fields
@@ -215,7 +217,7 @@ export async function POST(request: NextRequest) {
     // Fetch project with cotizador config
     const { data: proyecto, error: projErr } = await supabase
       .from("proyectos")
-      .select("id, nombre, slug, subdomain, custom_domain, domain_verified, constructora_nombre, constructora_logo_url, logo_url, color_primario, cotizador_enabled, cotizador_config, email_config, user_id, render_principal_url, tour_360_url, brochure_url, whatsapp_numero, disclaimer, parqueaderos_mode, depositos_mode, parqueaderos_precio_base, depositos_precio_base, idioma, tipo_proyecto, precio_source, unidad_medida_base")
+      .select("id, nombre, slug, subdomain, custom_domain, domain_verified, constructora_nombre, constructora_logo_url, logo_url, color_primario, cotizador_enabled, cotizador_config, email_config, user_id, render_principal_url, tour_360_url, brochure_url, whatsapp_numero, disclaimer, parqueaderos_mode, depositos_mode, parqueaderos_precio_base, depositos_precio_base, idioma, tipo_proyecto, precio_source, unidad_medida_base, estado_construccion, politica_amoblado")
       .eq("id", proyecto_id)
       .single();
 
@@ -398,7 +400,7 @@ export async function POST(request: NextRequest) {
     const resultado = calcularCotizacion(
       precioFinal,
       effectiveConfig,
-      descuentos_seleccionados || [],
+      custom_descuentos || [],
       complementoSelecciones,
       deliveryContext,
     );
@@ -524,6 +526,8 @@ export async function POST(request: NextRequest) {
       pdfTheme: config.pdf_theme ?? "neutral",
       pisoLabel: unit.piso != null ? (projectLocale === "en" ? `Floor ${unit.piso}` : `Piso ${unit.piso}`) : null,
       idioma: projectLocale,
+      estadoConstruccion: proyecto.estado_construccion ?? "sobre_planos",
+      amoblado: amoblado || proyecto.politica_amoblado === "incluido" || undefined,
     });
 
     // Snapshot unit data

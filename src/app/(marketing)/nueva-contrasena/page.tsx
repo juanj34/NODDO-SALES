@@ -211,7 +211,7 @@ function NuevaContrasenaForm() {
                     <div className="relative">
                       <Lock
                         size={14}
-                        className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[var(--mk-text-muted)]"
+                        className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[var(--mk-text-muted)] pointer-events-none"
                       />
                       <input
                         type="password"
@@ -234,7 +234,7 @@ function NuevaContrasenaForm() {
                     <div className="relative">
                       <Lock
                         size={14}
-                        className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[var(--mk-text-muted)]"
+                        className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[var(--mk-text-muted)] pointer-events-none"
                       />
                       <input
                         type="password"

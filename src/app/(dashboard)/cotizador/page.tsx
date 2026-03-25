@@ -48,6 +48,8 @@ export default function CotizadorPage() {
               habilitar_extra_chimenea: p.habilitar_extra_chimenea as boolean | undefined,
               habilitar_extra_doble_altura: p.habilitar_extra_doble_altura as boolean | undefined,
               habilitar_extra_rooftop: p.habilitar_extra_rooftop as boolean | undefined,
+              politica_amoblado: (p.politica_amoblado as "incluido" | "opcional" | "no") ?? "no",
+              precio_amoblado: (p.precio_amoblado as number | null) ?? null,
             })
           );
           setProjects(mapped);

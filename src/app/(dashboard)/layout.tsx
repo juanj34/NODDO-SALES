@@ -161,7 +161,7 @@ function DashboardShell({ children }: { children: React.ReactNode }) {
         </div>
 
         {/* Navigation */}
-        <nav className="flex-1 overflow-y-auto p-4 space-y-1">
+        <nav className="flex-1 p-4 space-y-1">
           {/* ── HOME ─────────────────────────────── */}
           <SidebarLink
             href="/dashboard"

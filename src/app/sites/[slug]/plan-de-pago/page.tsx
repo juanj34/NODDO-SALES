@@ -63,6 +63,17 @@ export default function PlanDePagoPage() {
     return calcularCotizacion(price, config);
   }, [selectedUnit, config, getUnitPrice]);
 
+  // Detect separación → cuota inicial grouping
+  const sepGroup = useMemo(() => {
+    if (!config || !resultado || resultado.fases.length < 2) return null;
+    const firstFase = config.fases[0];
+    const secondFase = config.fases[1];
+    if (firstFase?.tipo !== "fijo" || secondFase?.tipo !== "porcentaje") return null;
+    const sepMonto = resultado.fases[0]?.monto_total ?? 0;
+    const cuotaMonto = resultado.fases[1]?.monto_total ?? 0;
+    return { pct: secondFase.valor, total: sepMonto + cuotaMonto };
+  }, [config, resultado]);
+
   // Separate regular phases from the "contra entrega" (last resto-type phase)
   const { regularFases, contraEntrega } = useMemo(() => {
     if (!resultado) return { regularFases: [], contraEntrega: null };
@@ -233,6 +244,22 @@ export default function PlanDePagoPage() {
               exit={{ opacity: 0 }}
               transition={{ duration: 0.3 }}
             >
+              {/* Cuota inicial grouping label */}
+              {sepGroup && (
+                <motion.div
+                  initial={{ opacity: 0, y: 8 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.3 }}
+                  className="flex items-center gap-3 mb-4"
+                >
+                  <div className="h-px flex-1 bg-[rgba(var(--site-primary-rgb),0.15)]" />
+                  <span className="font-ui text-[10px] tracking-[0.18em] uppercase text-[var(--site-primary)] font-bold whitespace-nowrap">
+                    {t("planPago.cuotaInicial")} ({sepGroup.pct}%) — {formatCurrency(sepGroup.total, moneda)}
+                  </span>
+                  <div className="h-px flex-1 bg-[rgba(var(--site-primary-rgb),0.15)]" />
+                </motion.div>
+              )}
+
               {/* Regular payment phases — 3-column grid with bordered cards */}
               <div className="grid grid-cols-2 lg:grid-cols-3 gap-5 mb-6">
                 {regularFases.map((fase: FaseResultado, i: number) => (
@@ -243,6 +270,7 @@ export default function PlanDePagoPage() {
                     moneda={moneda}
                     frequencyLabel={frequencyLabel}
                     installmentsLabel={t("planPago.installments")}
+                    isSepGroup={!!sepGroup && i < 2}
                   />
                 ))}
               </div>
@@ -325,19 +353,25 @@ function PhaseCard({
   moneda,
   frequencyLabel,
   installmentsLabel,
+  isSepGroup,
 }: {
   fase: FaseResultado;
   index: number;
   moneda: MonedaType;
   frequencyLabel: (freq: string) => string;
   installmentsLabel: string;
+  isSepGroup?: boolean;
 }) {
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.4, delay: index * 0.08 }}
-      className="group flex flex-col items-center text-center px-4 py-8 rounded-[1.25rem] border border-[var(--border-subtle)] bg-white/[0.02] backdrop-blur-sm transition-colors hover:border-[rgba(var(--site-primary-rgb),0.20)]"
+      className={`group flex flex-col items-center text-center px-4 py-8 rounded-[1.25rem] border bg-white/[0.02] backdrop-blur-sm transition-colors ${
+        isSepGroup
+          ? "border-[rgba(var(--site-primary-rgb),0.15)] hover:border-[rgba(var(--site-primary-rgb),0.30)]"
+          : "border-[var(--border-subtle)] hover:border-[rgba(var(--site-primary-rgb),0.20)]"
+      }`}
     >
       {/* Large percentage */}
       <span className="font-site-heading text-[clamp(32px,5vw,52px)] font-light italic text-[var(--text-primary)] leading-none">

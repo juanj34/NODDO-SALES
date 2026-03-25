@@ -138,6 +138,9 @@ export interface Proyecto {
   tipologia_fields: TipologiaFieldsConfig | null;
   agent_mode_config: AgentModeConfig | null;
   disponibilidad_config: DisponibilidadConfig | null;
+  estado_construccion: "sobre_planos" | "en_construccion" | "entregado";
+  politica_amoblado: "incluido" | "opcional" | "no";
+  precio_amoblado: number | null;
   created_at: string;
   updated_at: string;
 }
@@ -785,6 +788,30 @@ export interface ImpuestoConfig {
   porcentaje: number;
 }
 
+/* ── Payment Plan Templates ── */
+
+export interface ReglaFecha {
+  tipo: "al_reservar" | "meses_desde_reserva" | "al_completar";
+  /** Only used when tipo === "meses_desde_reserva" */
+  meses?: number;
+}
+
+export interface PlantillaPagoFila {
+  id: string;
+  nombre: string;
+  tipo_valor: "porcentaje" | "fijo" | "resto";
+  valor: number;
+  regla_fecha: ReglaFecha;
+}
+
+export interface PlantillaPago {
+  id: string;
+  nombre: string;
+  filas: PlantillaPagoFila[];
+  es_default?: boolean;
+  created_at?: string;
+}
+
 export interface CotizadorConfig {
   moneda: string;
   fases: FaseConfig[];
@@ -814,6 +841,8 @@ export interface CotizadorConfig {
   plan_pago_bg_url?: string;
   // Taxes / fees (DLD, registration, VAT, etc.)
   impuestos?: ImpuestoConfig[];
+  // Reusable payment plan templates
+  plantillas_pago?: PlantillaPago[];
 }
 
 /* -- Email Configuration -- */
@@ -897,7 +926,8 @@ export type AuditAction =
   | "admin_added"
   | "admin_removed"
   | "features_updated"
-  | "project_moderated";
+  | "project_moderated"
+  | "user_invited";
 
 export type AuditTargetType = "user" | "project" | "admin";
 
@@ -1114,6 +1144,8 @@ export interface ProjectForCotizador {
   habilitar_extra_chimenea?: boolean;
   habilitar_extra_doble_altura?: boolean;
   habilitar_extra_rooftop?: boolean;
+  politica_amoblado?: "incluido" | "opcional" | "no";
+  precio_amoblado?: number | null;
 }
 
 export type Plan = "proyecto" | "studio" | "enterprise";

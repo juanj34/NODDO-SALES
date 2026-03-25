@@ -181,7 +181,7 @@ export function AmenidadesEditor({ entity, projectId, onUpdate, embedded }: Amen
 
       {/* Search */}
       <div className="relative mb-4">
-        <Search size={14} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[var(--text-muted)]" />
+        <Search size={14} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[var(--text-muted)] pointer-events-none" />
         <input
           type="text"
           value={search}

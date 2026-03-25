@@ -5,7 +5,6 @@ import { useEditorProject } from "@/hooks/useEditorProject";
 import {
   inputClass,
   labelClass,
-  fieldHint,
 } from "@/components/dashboard/editor-styles";
 import { cn } from "@/lib/utils";
 import {
@@ -16,7 +15,7 @@ import {
 } from "lucide-react";
 import { Reorder, useDragControls } from "framer-motion";
 import { calcularCotizacion } from "@/lib/cotizador/calcular";
-import type { CotizadorConfig, FaseConfig, DescuentoConfig, ImpuestoConfig, ResultadoCotizacion } from "@/types";
+import type { CotizadorConfig, FaseConfig, ImpuestoConfig, ResultadoCotizacion } from "@/types";
 import { NodDoDropdown } from "@/components/ui/NodDoDropdown";
 import { InfoTooltip } from "@/components/ui/InfoTooltip";
 import { formatCurrency } from "@/lib/currency";
@@ -24,6 +23,7 @@ import type { Currency } from "@/lib/currency";
 import { CurrencyInput } from "@/components/dashboard/CurrencyInput";
 import tooltips from "@/i18n/locales/es/tooltips";
 import { fontSize, gap, letterSpacing, radius } from "@/lib/design-tokens";
+import { PlantillaEditor } from "@/components/dashboard/cotizador/PlantillaEditor";
 
 /* ─── Helpers ─── */
 
@@ -51,10 +51,10 @@ const DEFAULT_CONFIG: CotizadorConfig = {
   fases: [
     { id: uid(), nombre: "Separación", tipo: "fijo", valor: 5000000, cuotas: 1, frecuencia: "unica" },
     { id: uid(), nombre: "Cuota inicial", tipo: "porcentaje", valor: 30, cuotas: 6, frecuencia: "mensual" },
-    { id: uid(), nombre: "Contra entrega", tipo: "resto", valor: 0, cuotas: 1, frecuencia: "unica" },
+    { id: uid(), nombre: "Entrega", tipo: "resto", valor: 0, cuotas: 1, frecuencia: "unica" },
   ],
   descuentos: [],
-  separacion_incluida_en_inicial: false,
+  separacion_incluida_en_inicial: true,
   notas_legales: null,
 };
 
@@ -268,25 +268,6 @@ export function CotizadorSandbox({ hidePdfOptions }: { hidePdfOptions?: boolean 
     saveConfig({ ...config, fases: newOrder });
   }, [config, saveConfig]);
 
-  // Discount handlers
-  const addDescuento = useCallback(() => {
-    const newDesc: DescuentoConfig = {
-      id: uid(),
-      nombre: "Nuevo descuento",
-      tipo: "porcentaje",
-      valor: 5,
-    };
-    saveConfig({ ...config, descuentos: [...config.descuentos, newDesc] });
-  }, [config, saveConfig]);
-
-  const updateDescuento = useCallback((id: string, updated: DescuentoConfig) => {
-    saveConfig({ ...config, descuentos: config.descuentos.map((d) => d.id === id ? updated : d) });
-  }, [config, saveConfig]);
-
-  const removeDescuento = useCallback((id: string) => {
-    saveConfig({ ...config, descuentos: config.descuentos.filter((d) => d.id !== id) });
-  }, [config, saveConfig]);
-
   // Impuesto handlers
   const addImpuesto = useCallback(() => {
     const newImp: ImpuestoConfig = { id: uid(), nombre: "", porcentaje: 0 };
@@ -340,34 +321,6 @@ export function CotizadorSandbox({ hidePdfOptions }: { hidePdfOptions?: boolean 
           </div>
         </div>
 
-        {/* Admin fee */}
-        <div className={cn("grid grid-cols-2", gap.relaxed)}>
-          <div>
-            <label className={cn("block text-[var(--text-muted)] mb-1 uppercase", fontSize.label, letterSpacing.wider)}>
-              Admin Fee ({config.moneda})
-            </label>
-            <CurrencyInput
-              value={config.admin_fee ?? ""}
-              onChange={(v) => saveConfig({ ...config, admin_fee: Number(v) || undefined })}
-              currency={moneda as Currency}
-              inputClassName={cn("w-full bg-[var(--surface-3)] border border-[var(--border-default)] px-3 py-2 text-white focus:outline-none focus:border-[rgba(var(--site-primary-rgb),0.5)]", radius.lg, fontSize.md)}
-              placeholder="0"
-            />
-          </div>
-          <div>
-            <label className={cn("block text-[var(--text-muted)] mb-1 uppercase", fontSize.label, letterSpacing.wider)}>
-              Etiqueta del admin fee
-            </label>
-            <input
-              type="text"
-              value={config.admin_fee_label ?? ""}
-              onChange={(e) => saveConfig({ ...config, admin_fee_label: e.target.value || undefined })}
-              className={cn(inputClass, fontSize.md)}
-              placeholder="Admin Fee"
-            />
-          </div>
-        </div>
-
         {/* Phases */}
         <div>
           <div className="flex items-center justify-between mb-3">
@@ -390,83 +343,6 @@ export function CotizadorSandbox({ hidePdfOptions }: { hidePdfOptions?: boolean 
               />
             ))}
           </Reorder.Group>
-        </div>
-
-        {/* Discounts */}
-        <div>
-          <div className="flex items-center justify-between mb-3">
-            <label className={labelClass}>Descuentos</label>
-            <button
-              onClick={addDescuento}
-              className={cn("flex items-center text-[var(--site-primary)] hover:text-[var(--site-primary)]/80 transition-colors", gap.compact, fontSize.md)}
-            >
-              <Plus size={13} /> Agregar descuento
-            </button>
-          </div>
-          <div className={cn("flex flex-col", gap.relaxed)}>
-            {config.descuentos.length === 0 && (
-              <p className={cn("text-[var(--text-muted)] py-3", fontSize.md)}>Sin descuentos configurados</p>
-            )}
-            {config.descuentos.map((desc) => (
-              <div
-                key={desc.id}
-                className={cn("bg-[var(--surface-2)] border border-[var(--border-subtle)] p-4", radius.xl)}
-              >
-                <div className={cn("flex items-center mb-3", gap.normal)}>
-                  <input
-                    type="text"
-                    value={desc.nombre}
-                    onChange={(e) => updateDescuento(desc.id, { ...desc, nombre: e.target.value })}
-                    className={cn("flex-1 bg-transparent border-none font-medium text-white focus:outline-none placeholder:text-[var(--text-muted)]", fontSize.md)}
-                    placeholder="Nombre del descuento"
-                  />
-                  <button
-                    onClick={() => removeDescuento(desc.id)}
-                    className="p-1 text-[var(--text-muted)] hover:text-red-400 transition-colors"
-                  >
-                    <Trash2 size={13} />
-                  </button>
-                </div>
-                <div className={cn("grid grid-cols-1 sm:grid-cols-2", gap.relaxed)}>
-                  <div>
-                    <label className={cn("block text-[var(--text-muted)] mb-1 uppercase", fontSize.label, letterSpacing.wider)}>Tipo</label>
-                    <NodDoDropdown
-                      variant="dashboard"
-                      size="sm"
-                      value={desc.tipo}
-                      onChange={(val) => updateDescuento(desc.id, { ...desc, tipo: val as DescuentoConfig["tipo"] })}
-                      options={[
-                        { value: "porcentaje", label: "Porcentaje" },
-                        { value: "fijo", label: "Monto fijo" },
-                      ]}
-                    />
-                  </div>
-                  <div>
-                    <label className={cn("block text-[var(--text-muted)] mb-1 uppercase", fontSize.label, letterSpacing.wider)}>
-                      {desc.tipo === "porcentaje" ? "%" : config.moneda}
-                    </label>
-                    {desc.tipo === "fijo" ? (
-                      <CurrencyInput
-                        value={desc.valor || ""}
-                        onChange={(v) => updateDescuento(desc.id, { ...desc, valor: Number(v) })}
-                        currency={moneda as Currency}
-                        placeholder="10,000,000"
-                        inputClassName={cn("w-full bg-[var(--surface-3)] border border-[var(--border-default)] px-3 py-2 text-white focus:outline-none focus:border-[rgba(var(--site-primary-rgb),0.5)]", radius.lg, fontSize.md)}
-                      />
-                    ) : (
-                      <input
-                        type="number"
-                        value={desc.valor || ""}
-                        onChange={(e) => updateDescuento(desc.id, { ...desc, valor: Number(e.target.value) })}
-                        className={cn("w-full bg-[var(--surface-3)] border border-[var(--border-default)] px-3 py-2 text-white focus:outline-none focus:border-[rgba(var(--site-primary-rgb),0.5)]", radius.lg, fontSize.md)}
-                        placeholder="5"
-                      />
-                    )}
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
         </div>
 
         {/* Impuestos / Taxes */}
@@ -523,6 +399,53 @@ export function CotizadorSandbox({ hidePdfOptions }: { hidePdfOptions?: boolean 
           </div>
         </div>
 
+        {/* Admin fee (optional — for specific markets like Dubai) */}
+        <div>
+          <div className="flex items-center justify-between mb-3">
+            <label className={labelClass}>Admin Fee</label>
+          </div>
+          <div className={cn("bg-[var(--surface-2)] border border-[var(--border-subtle)] p-4", radius.xl)}>
+            <div className={cn("grid grid-cols-1 sm:grid-cols-2", gap.relaxed)}>
+              <div>
+                <label className={cn("block text-[var(--text-muted)] mb-1 uppercase", fontSize.label, letterSpacing.wider)}>
+                  Monto ({config.moneda})
+                </label>
+                <CurrencyInput
+                  value={config.admin_fee ?? ""}
+                  onChange={(v) => saveConfig({ ...config, admin_fee: Number(v) || undefined })}
+                  currency={moneda as Currency}
+                  inputClassName={cn("w-full bg-[var(--surface-3)] border border-[var(--border-default)] px-3 py-2 text-white focus:outline-none focus:border-[rgba(var(--site-primary-rgb),0.5)]", radius.lg, fontSize.md)}
+                  placeholder="0"
+                />
+              </div>
+              <div>
+                <label className={cn("block text-[var(--text-muted)] mb-1 uppercase", fontSize.label, letterSpacing.wider)}>
+                  Etiqueta
+                </label>
+                <input
+                  type="text"
+                  value={config.admin_fee_label ?? ""}
+                  onChange={(e) => saveConfig({ ...config, admin_fee_label: e.target.value || undefined })}
+                  className={cn(inputClass, fontSize.md)}
+                  placeholder="Admin Fee"
+                />
+              </div>
+            </div>
+            <p className={cn("text-[var(--text-muted)] mt-2", fontSize.caption)}>
+              Cargo fijo adicional (ej. Admin Fee en Dubai). Se muestra como línea separada en la cotización.
+            </p>
+          </div>
+        </div>
+
+        {/* Payment plan templates */}
+        <div>
+          <label className={labelClass}>Plantillas de plan de pago</label>
+          <p className={cn("text-[var(--text-muted)] mb-3", fontSize.body)}>
+            Define planes flexibles con fechas relativas a la reserva
+          </p>
+          <PlantillaEditor config={config} saveConfig={saveConfig} moneda={config.moneda} />
+        </div>
+
         {/* Advanced options (collapsed) — hidden when PDF settings are separate */}
         {!hidePdfOptions && (
         <div className={cn("bg-[var(--surface-1)] border border-[var(--border-subtle)] overflow-hidden", radius.xl)}>
@@ -537,24 +460,6 @@ export function CotizadorSandbox({ hidePdfOptions }: { hidePdfOptions?: boolean 
 
           {advancedOpen && (
             <div className={cn("px-5 pb-5 flex flex-col", gap.loose)}>
-              {/* Separación checkbox */}
-              <label className={cn("flex items-center cursor-pointer", gap.relaxed)}>
-                <input
-                  type="checkbox"
-                  checked={config.separacion_incluida_en_inicial}
-                  onChange={(e) => saveConfig({ ...config, separacion_incluida_en_inicial: e.target.checked })}
-                  className="w-4 h-4 rounded bg-[var(--surface-3)] border border-[var(--border-default)] accent-[var(--site-primary)]"
-                />
-                <span className={cn("text-[var(--text-secondary)] flex items-center", fontSize.md, gap.normal)}>
-                  La separación se descuenta de la cuota inicial
-                  <InfoTooltip
-                    content={tooltips.cotizador.separacionIncluida.long}
-                    variant="dashboard"
-                    placement="auto"
-                  />
-                </span>
-              </label>
-
               {/* Tipo de entrega */}
               <div>
                 <label className={cn("block text-[var(--text-muted)] mb-2 uppercase", fontSize.label, letterSpacing.wider)}>
@@ -734,12 +639,41 @@ export function CotizadorSandbox({ hidePdfOptions }: { hidePdfOptions?: boolean 
             />
           </div>
 
-          {preview && (
+          {preview && (() => {
+            // Detect separación → cuota inicial grouping
+            const hasSepGroup = config.fases[0]?.tipo === "fijo" && config.fases.length > 1 && config.fases[1]?.tipo === "porcentaje";
+            const sepMonto = hasSepGroup ? preview.fases[0]?.monto_total ?? 0 : 0;
+            const cuotaInicialPct = hasSepGroup ? config.fases[1].valor : 0;
+            const cuotaInicialTotal = hasSepGroup ? sepMonto + (preview.fases[1]?.monto_total ?? 0) : 0;
+
+            return (
             <div className={cn("flex flex-col", gap.loose)}>
               {/* Breakdown */}
               <div className={cn("flex flex-col", gap.normal)}>
-                {preview.fases.map((fase, i) => (
-                  <div key={i} className="flex items-start justify-between py-2 border-b border-[var(--border-subtle)] last:border-0">
+                {/* Cuota inicial grouping header */}
+                {hasSepGroup && (
+                  <div className={cn("flex items-center justify-between pb-1 border-b border-[rgba(var(--site-primary-rgb),0.15)]")}>
+                    <p className={cn("text-[var(--site-primary)] font-medium", fontSize.label, "uppercase tracking-wider font-ui")}>
+                      Cuota inicial ({cuotaInicialPct}%)
+                    </p>
+                    <p className={cn("text-[var(--site-primary)] font-medium font-mono", fontSize.label)}>
+                      {formatCurrency(cuotaInicialTotal, moneda)}
+                    </p>
+                  </div>
+                )}
+                {preview.fases.map((fase, i) => {
+                  const isSepRow = hasSepGroup && i === 0;
+                  const isCuotaRow = hasSepGroup && i === 1;
+                  const isGrouped = isSepRow || isCuotaRow;
+
+                  return (
+                  <div
+                    key={i}
+                    className={cn(
+                      "flex items-start justify-between py-2 border-b border-[var(--border-subtle)] last:border-0",
+                      isGrouped && "ml-3 border-l-2 border-l-[rgba(var(--site-primary-rgb),0.2)] pl-3",
+                    )}
+                  >
                     <div>
                       <p className={cn("text-white font-medium", fontSize.md)}>{fase.nombre}</p>
                       {fase.fecha && (
@@ -756,7 +690,8 @@ export function CotizadorSandbox({ hidePdfOptions }: { hidePdfOptions?: boolean 
                       {formatCurrency(fase.monto_total, moneda)}
                     </p>
                   </div>
-                ))}
+                  );
+                })}
               </div>
 
               {/* Admin fee */}
@@ -800,7 +735,8 @@ export function CotizadorSandbox({ hidePdfOptions }: { hidePdfOptions?: boolean 
                 return null;
               })()}
             </div>
-          )}
+            );
+          })()}
 
           {!preview && config.fases.length > 0 && (
             <p className={cn("text-[var(--text-muted)]", fontSize.md)}>Ingresa un precio para ver la vista previa</p>

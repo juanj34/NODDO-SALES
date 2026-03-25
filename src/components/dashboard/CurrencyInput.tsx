@@ -85,18 +85,14 @@ export function CurrencyInput({
     ? localDisplay
     : formatDisplay(value, currency);
 
-  const formattedPlaceholder = placeholder
-    ? `${config.symbol} ${placeholder}`
-    : `${config.symbol} 0`;
+  const formattedPlaceholder = placeholder ?? "0";
 
   return (
     <div className={`relative ${className ?? ""}`}>
-      {/* Currency symbol prefix */}
-      {(displayValue || isFocused) && (
-        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--text-muted)] text-sm pointer-events-none select-none">
-          {config.symbol}
-        </span>
-      )}
+      {/* Currency symbol prefix — always visible so layout never shifts */}
+      <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[var(--text-muted)] text-sm pointer-events-none select-none">
+        {config.symbol}
+      </span>
       <input
         ref={inputRef}
         type="text"
@@ -107,7 +103,7 @@ export function CurrencyInput({
         onBlur={handleBlur}
         placeholder={formattedPlaceholder}
         disabled={disabled}
-        className={`${inputClassName ?? ""} ${displayValue || isFocused ? "pl-8" : ""} [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none`}
+        className={`${inputClassName ?? ""} pl-12 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none`}
       />
     </div>
   );

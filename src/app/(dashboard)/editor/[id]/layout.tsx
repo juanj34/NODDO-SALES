@@ -645,7 +645,7 @@ export default function EditorLayout({
           <div className="mx-4 border-t border-[var(--border-subtle)]" />
 
           {/* Grouped navigation */}
-          <nav className="flex-1 overflow-y-auto py-1">
+          <nav className="flex-1 py-1">
             {filteredSections.map((section) => (
               <div key={section.labelKey}>
                 <p className="font-ui text-[9px] uppercase tracking-wider text-[var(--text-muted)] px-4 pt-2.5 pb-1 font-bold select-none">

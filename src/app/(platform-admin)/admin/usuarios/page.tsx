@@ -24,9 +24,12 @@ import {
   Shield,
   Edit2,
   Download,
+  UserPlus,
+  Send,
 } from "lucide-react";
 import { useToast } from "@/components/dashboard/Toast";
 import { useConfirm } from "@/components/dashboard/ConfirmModal";
+import { PLAN_LABELS } from "@/lib/plan-limits";
 
 interface UserRow {
   id: string;
@@ -53,6 +56,12 @@ const estadoColors: Record<string, string> = {
   archivado: "text-neutral-400 bg-neutral-500/15 border-neutral-500/20",
 };
 
+const INVITE_PLANS = [
+  { value: "proyecto", label: "Proyecto" },
+  { value: "studio", label: "Studio" },
+  { value: "enterprise", label: "Enterprise" },
+] as const;
+
 export default function AdminUsuariosPage() {
   const [users, setUsers] = useState<UserRow[]>([]);
   const [loading, setLoading] = useState(true);
@@ -61,6 +70,14 @@ export default function AdminUsuariosPage() {
   const [expandedUser, setExpandedUser] = useState<string | null>(null);
   const [userDetail, setUserDetail] = useState<UserDetail | null>(null);
   const [loadingDetail, setLoadingDetail] = useState(false);
+
+  // Invite modal state
+  const [showInviteModal, setShowInviteModal] = useState(false);
+  const [inviteEmail, setInviteEmail] = useState("");
+  const [inviteNombre, setInviteNombre] = useState("");
+  const [invitePlan, setInvitePlan] = useState<string>("proyecto");
+  const [inviteLoading, setInviteLoading] = useState(false);
+
   const toast = useToast();
   const { confirm } = useConfirm();
 
@@ -152,6 +169,65 @@ export default function AdminUsuariosPage() {
     }
   };
 
+  const handleInvite = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setInviteLoading(true);
+    try {
+      const res = await fetch("/api/admin/usuarios/invite", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          email: inviteEmail,
+          plan: invitePlan,
+          nombre: inviteNombre || undefined,
+        }),
+      });
+      const data = await res.json();
+      if (res.ok) {
+        toast.success(`Invitación enviada a ${inviteEmail}`);
+        setShowInviteModal(false);
+        setInviteEmail("");
+        setInviteNombre("");
+        setInvitePlan("proyecto");
+        await fetchUsers();
+      } else {
+        toast.error(data.error || "Error al enviar invitación");
+      }
+    } catch {
+      toast.error("Error de conexión");
+    } finally {
+      setInviteLoading(false);
+    }
+  };
+
+  const handleResendInvite = async (userId: string, email: string) => {
+    const ok = await confirm({
+      title: "Reenviar invitación",
+      message: `Se reenviará el email de invitación a ${email}.`,
+      confirmLabel: "Reenviar",
+      variant: "warning",
+    });
+    if (!ok) return;
+    try {
+      const res = await fetch("/api/admin/usuarios/invite", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, plan: "proyecto", resend: true }),
+      });
+      if (res.status === 409) {
+        // User already exists, means they already accepted — that's fine for resend
+        toast.info("El usuario ya ha aceptado la invitación");
+      } else if (res.ok) {
+        toast.success("Invitación reenviada");
+      } else {
+        const data = await res.json();
+        toast.error(data.error || "Error al reenviar");
+      }
+    } catch {
+      toast.error("Error de conexión");
+    }
+  };
+
   const formatDate = (d: string) => {
     const date = new Date(d);
     return date.toLocaleDateString("es-CO", { day: "2-digit", month: "short", year: "numeric" });
@@ -188,20 +264,33 @@ export default function AdminUsuariosPage() {
             {users.length} usuarios registrados
           </p>
         </div>
-        {users.length > 0 && (
+        <div className="flex items-center gap-2">
           <button
-            onClick={handleExportCSV}
-            className="flex items-center gap-2 px-4 py-2 rounded-lg bg-[var(--surface-2)] border border-[var(--border-subtle)] text-xs font-ui font-bold uppercase tracking-wider text-[var(--text-secondary)] hover:text-white hover:border-[var(--border-default)] transition-all"
+            onClick={() => setShowInviteModal(true)}
+            className="flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-ui font-bold uppercase tracking-wider transition-all cursor-pointer"
+            style={{
+              background: "linear-gradient(135deg, #b8973a 0%, #d4b05a 100%)",
+              color: "#141414",
+            }}
           >
-            <Download size={13} />
-            Exportar CSV
+            <UserPlus size={13} />
+            Invitar Usuario
           </button>
-        )}
+          {users.length > 0 && (
+            <button
+              onClick={handleExportCSV}
+              className="flex items-center gap-2 px-4 py-2 rounded-lg bg-[var(--surface-2)] border border-[var(--border-subtle)] text-xs font-ui font-bold uppercase tracking-wider text-[var(--text-secondary)] hover:text-white hover:border-[var(--border-default)] transition-all"
+            >
+              <Download size={13} />
+              Exportar CSV
+            </button>
+          )}
+        </div>
       </div>
 
       {/* Search */}
       <div className="relative max-w-sm">
-        <Search size={14} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[var(--text-muted)]" />
+        <Search size={14} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[var(--text-muted)] pointer-events-none" />
         <input
           type="text"
           value={search}
@@ -242,7 +331,7 @@ export default function AdminUsuariosPage() {
                     Registro
                   </th>
                   <th className="text-left px-4 py-3 font-ui text-[10px] font-bold uppercase tracking-wider text-[var(--text-muted)]">
-                    Último Acceso
+                    Estado
                   </th>
                   <th className="text-center px-4 py-3 font-ui text-[10px] font-bold uppercase tracking-wider text-[var(--text-muted)]">
                     <FolderOpen size={12} className="inline mr-1" />
@@ -284,12 +373,12 @@ export default function AdminUsuariosPage() {
                       </td>
                       <td className="px-4 py-3">
                         {user.last_sign_in_at ? (
-                          <span className="text-xs text-[var(--text-tertiary)]">
-                            {formatDate(user.last_sign_in_at)}
+                          <span className="px-2 py-0.5 rounded-md bg-emerald-500/15 border border-emerald-500/20 font-ui text-[9px] font-bold uppercase tracking-wider text-emerald-400">
+                            Activo
                           </span>
                         ) : (
-                          <span className="px-2 py-0.5 rounded-md bg-neutral-500/15 border border-neutral-500/20 font-ui text-[9px] font-bold uppercase tracking-wider text-neutral-400">
-                            Nunca
+                          <span className="px-2 py-0.5 rounded-md bg-amber-500/15 border border-amber-500/20 font-ui text-[9px] font-bold uppercase tracking-wider text-amber-400">
+                            Pendiente
                           </span>
                         )}
                       </td>
@@ -367,6 +456,15 @@ export default function AdminUsuariosPage() {
 
                                     {/* Action buttons */}
                                     <div className="flex flex-wrap gap-2 pt-2">
+                                      {!userDetail.last_sign_in_at && (
+                                        <button
+                                          onClick={() => handleResendInvite(userDetail.id, userDetail.email)}
+                                          className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[10px] font-ui font-bold uppercase tracking-wider text-[var(--site-primary)] bg-[rgba(var(--site-primary-rgb),0.1)] border border-[rgba(var(--site-primary-rgb),0.2)] hover:bg-[rgba(var(--site-primary-rgb),0.2)] transition-all"
+                                        >
+                                          <Send size={11} />
+                                          Reenviar Invitación
+                                        </button>
+                                      )}
                                       <button
                                         onClick={() => {
                                           const subject = encodeURIComponent("NODDO - Actualización de tu cuenta");
@@ -479,6 +577,128 @@ export default function AdminUsuariosPage() {
         </div>
       )}
 
+      {/* Invite Modal */}
+      <AnimatePresence>
+        {showInviteModal && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 flex items-center justify-center px-4"
+            onClick={() => setShowInviteModal(false)}
+          >
+            {/* Backdrop */}
+            <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" />
+
+            {/* Modal */}
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95, y: 16 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 16 }}
+              transition={{ duration: 0.2 }}
+              className="relative w-full max-w-md bg-[var(--surface-1)] border border-[var(--border-default)] rounded-2xl shadow-xl overflow-hidden"
+              onClick={(e) => e.stopPropagation()}
+            >
+              {/* Gold accent bar */}
+              <div className="h-[3px] bg-[var(--site-primary)]" />
+
+              <div className="p-6 sm:p-8">
+                {/* Header */}
+                <div className="flex items-center justify-between mb-6">
+                  <div>
+                    <h2 className="font-heading text-xl font-light text-[var(--text-primary)]">
+                      Invitar Usuario
+                    </h2>
+                    <p className="text-xs text-[var(--text-tertiary)] mt-1">
+                      Se creará una cuenta y se enviará un email de invitación
+                    </p>
+                  </div>
+                  <button
+                    onClick={() => setShowInviteModal(false)}
+                    className="text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-colors"
+                  >
+                    <X size={18} />
+                  </button>
+                </div>
+
+                <form onSubmit={handleInvite} className="space-y-4">
+                  {/* Email */}
+                  <div>
+                    <label className="block font-ui text-[10px] text-[var(--text-secondary)] mb-2 tracking-[0.15em] uppercase font-bold">
+                      Email *
+                    </label>
+                    <input
+                      type="email"
+                      value={inviteEmail}
+                      onChange={(e) => setInviteEmail(e.target.value)}
+                      required
+                      className="input-glass w-full text-sm"
+                      placeholder="usuario@empresa.com"
+                    />
+                  </div>
+
+                  {/* Nombre */}
+                  <div>
+                    <label className="block font-ui text-[10px] text-[var(--text-secondary)] mb-2 tracking-[0.15em] uppercase font-bold">
+                      Nombre
+                    </label>
+                    <input
+                      type="text"
+                      value={inviteNombre}
+                      onChange={(e) => setInviteNombre(e.target.value)}
+                      className="input-glass w-full text-sm"
+                      placeholder="Juan Pérez (opcional)"
+                    />
+                  </div>
+
+                  {/* Plan */}
+                  <div>
+                    <label className="block font-ui text-[10px] text-[var(--text-secondary)] mb-2 tracking-[0.15em] uppercase font-bold">
+                      Plan *
+                    </label>
+                    <div className="flex gap-2">
+                      {INVITE_PLANS.map((p) => (
+                        <button
+                          key={p.value}
+                          type="button"
+                          onClick={() => setInvitePlan(p.value)}
+                          className={`flex-1 py-2.5 px-3 rounded-lg text-xs font-ui font-bold uppercase tracking-wider border transition-all ${
+                            invitePlan === p.value
+                              ? "text-[var(--site-primary)] bg-[rgba(var(--site-primary-rgb),0.15)] border-[rgba(var(--site-primary-rgb),0.3)]"
+                              : "text-[var(--text-tertiary)] bg-[var(--surface-3)] border-[var(--border-subtle)] hover:border-[var(--border-default)]"
+                          }`}
+                        >
+                          {p.label}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Submit */}
+                  <button
+                    type="submit"
+                    disabled={inviteLoading || !inviteEmail}
+                    className="w-full py-3 rounded-lg text-xs font-ui font-bold uppercase tracking-wider transition-all disabled:opacity-50 cursor-pointer flex items-center justify-center gap-2"
+                    style={{
+                      background: "linear-gradient(135deg, #b8973a 0%, #d4b05a 100%)",
+                      color: "#141414",
+                    }}
+                  >
+                    {inviteLoading ? (
+                      <Loader2 size={14} className="animate-spin" />
+                    ) : (
+                      <>
+                        <Send size={13} />
+                        Enviar Invitación
+                      </>
+                    )}
+                  </button>
+                </form>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }

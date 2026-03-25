@@ -250,6 +250,7 @@ const site = {
     noUnitsAvailable: "No units available",
     noUnitsDescription: "There are no units with prices available for the payment simulator.",
     selectPrompt: "Select a unit to view its payment plan",
+    cuotaInicial: "Down payment",
   },
   cotizador: {
     heading: "Enquire About Unit",

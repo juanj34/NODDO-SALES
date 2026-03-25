@@ -39,6 +39,8 @@ interface FileUploaderProps {
   minHeight?: number;
   /** Enable paste (Ctrl+V) support. Default: true */
   enablePaste?: boolean;
+  /** Render a compact, smaller dropzone (fixed h-24 instead of aspect ratio) */
+  compact?: boolean;
 }
 
 /* ------------------------------------------------------------------
@@ -97,6 +99,7 @@ export function FileUploader({
   minWidth = 1280,
   minHeight = 720,
   enablePaste = true,
+  compact = false,
 }: FileUploaderProps) {
   const { t } = useTranslation("editor");
   const [uploading, setUploading] = useState(false);
@@ -605,7 +608,7 @@ export function FileUploader({
       <div
         ref={containerRef}
         className={`relative border-2 border-dashed rounded-xl overflow-hidden transition-all duration-200 ${
-          aspect === "video" ? "aspect-video" : aspect === "logo" ? "aspect-[3/1]" : "aspect-square"
+          compact ? "h-24" : aspect === "video" ? "aspect-video" : aspect === "logo" ? "aspect-[3/1]" : "aspect-square"
         } ${
           isDragging
             ? "border-[var(--site-primary)] bg-[rgba(var(--site-primary-rgb),0.08)] scale-[1.01]"
@@ -709,16 +712,18 @@ export function FileUploader({
               </div>
             ) : isDragging ? (
               <>
-                <ImageIcon size={28} className="text-[var(--site-primary)]" />
-                <span className="text-xs text-[var(--site-primary)]">{t("fileUploader.dropHere")}</span>
+                <ImageIcon size={compact ? 20 : 28} className="text-[var(--site-primary)]" />
+                <span className={`${compact ? "text-[10px]" : "text-xs"} text-[var(--site-primary)]`}>{t("fileUploader.dropHere")}</span>
               </>
             ) : (
               <>
-                <Upload size={24} />
-                <span className="text-xs">{label}</span>
-                <span className="text-[10px] text-[var(--text-muted)]">
-                  {multiple ? t("fileUploader.dragOrClick") : t("fileUploader.dragOrClickShort")}
-                </span>
+                <Upload size={compact ? 16 : 24} />
+                <span className={compact ? "text-[10px]" : "text-xs"}>{label}</span>
+                {!compact && (
+                  <span className="text-[10px] text-[var(--text-muted)]">
+                    {multiple ? t("fileUploader.dragOrClick") : t("fileUploader.dragOrClickShort")}
+                  </span>
+                )}
               </>
             )}
           </button>

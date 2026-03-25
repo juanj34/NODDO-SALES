@@ -976,14 +976,14 @@ export function ComplementosSection({ project, onRefresh, parqueaderosMode, depo
         <div className="relative flex-1 min-w-0 sm:min-w-[200px] sm:max-w-xs">
           <Search
             size={14}
-            className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--text-muted)]"
+            className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[var(--text-muted)] pointer-events-none"
           />
           <input
             type="text"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             placeholder="Buscar por identificador..."
-            className={inputClass + " pl-9"}
+            className={inputClass + " pl-10"}
           />
         </div>
         <button

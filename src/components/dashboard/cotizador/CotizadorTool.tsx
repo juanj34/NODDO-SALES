@@ -5,7 +5,7 @@ import {
   Loader2, FileText, Search, Download, User,
   Plus, Trash2, Car, Package, Check, Copy,
   ExternalLink, Minus, ArrowLeft, Clock, Sparkles,
-  AlertTriangle, Calendar, ChevronRight,
+  AlertTriangle, ChevronRight, ChevronDown, RotateCcw,
   BedDouble, Bath, Eye, Maximize2, Phone, Mail,
   Building2, Home, LandPlot, Fence,
   Waves, UtensilsCrossed, Sun, TreePine,
@@ -14,7 +14,7 @@ import {
 import Image from "next/image";
 import { cn } from "@/lib/utils";
 import { formatCurrency } from "@/lib/currency";
-import type { Currency, ComplementoMode, ComplementoSeleccion, Complemento, Tipologia, UnidadTipologia, ProjectForCotizador } from "@/types";
+import type { Currency, ComplementoMode, ComplementoSeleccion, Complemento, Tipologia, UnidadTipologia, ProjectForCotizador, DescuentoConfig } from "@/types";
 import { useToast } from "@/components/dashboard/Toast";
 import { useTranslation } from "@/i18n";
 import { useAuthRole } from "@/hooks/useAuthContext";
@@ -22,6 +22,7 @@ import { calcularCotizacion, buildPrecioBaseComplementos } from "@/lib/cotizador
 import { getTipologiaFields } from "@/lib/tipologia-fields";
 import type { CotizadorConfig, ResultadoCotizacion } from "@/types";
 import { CurrencyInput } from "@/components/dashboard/CurrencyInput";
+import { DatePickerInput } from "@/components/dashboard/DatePickerInput";
 import { NodDoDropdown } from "@/components/ui/NodDoDropdown";
 import type { Option } from "@/components/ui/NodDoDropdown";
 import { COUNTRY_CODES } from "@/lib/booking-constants";
@@ -40,6 +41,7 @@ import {
   paymentRowsToFases,
 } from "@/lib/cotizador/payment-rows";
 import { resolveDeliveryContext } from "@/lib/cotizador/delivery";
+import { resolveTemplate } from "@/lib/cotizador/plantilla-pago";
 
 /* ── Types ─────────────────────────────────────────────── */
 
@@ -232,13 +234,19 @@ export function CotizadorTool({ project, tipologias, unidadTipologias }: Cotizad
 
   /* ── Payment rows ── */
   const [paymentRows, setPaymentRows] = useState<PaymentRow[]>([]);
+  const [selectedPlantillaId, setSelectedPlantillaId] = useState<string | null>(null);
 
   /* ── Per-quote overrides ── */
   const [paymentPlanNombre, setPaymentPlanNombre] = useState("");
   const [adminFee, setAdminFee] = useState<number>(0);
+  const [priceOverride, setPriceOverride] = useState<number | null>(null);
+  const [priceAdjustOpen, setPriceAdjustOpen] = useState(false);
 
-  /* ── Selected discounts ── */
-  const [selectedDiscounts, setSelectedDiscounts] = useState<string[]>([]);
+  /* ── Ad-hoc discounts ── */
+  const [adHocDiscounts, setAdHocDiscounts] = useState<DescuentoConfig[]>([]);
+
+  /* ── Furnished toggle (only when policy is "opcional") ── */
+  const [furnishedOn, setFurnishedOn] = useState(project.politica_amoblado === "incluido");
 
   /* ── Selected complementos ── */
   const [selectedComplementos, setSelectedComplementos] = useState<ComplementoSeleccion[]>([]);
@@ -298,23 +306,35 @@ export function CotizadorTool({ project, tipologias, unidadTipologias }: Cotizad
     })();
   }, [projectId]);
 
-  // Initialize payment rows from project config
+  // Initialize payment rows from project config (or default template)
   useEffect(() => {
     if (config) {
       const dc = resolveDeliveryContext(config);
+      let compra = "";
+      let entrega = "";
       if (dc) {
-        const compra = formatDateDisplay(dc.fechaInicio);
-        const entrega = formatDateDisplay(dc.fechaEntrega);
+        compra = formatDateDisplay(dc.fechaInicio);
+        entrega = formatDateDisplay(dc.fechaEntrega);
         setFechaCompra(compra);
         setFechaEntrega(entrega);
-        setPaymentRows(paymentRowsFromConfig(config, 0, compra, entrega, dc));
       } else {
-        const entrega = config.fecha_estimada_entrega || "";
+        entrega = config.fecha_estimada_entrega || "";
         setFechaEntrega(entrega);
-        setPaymentRows(paymentRowsFromConfig(config, 0, "", entrega));
       }
-      setSelectedDiscounts([]);
-      setPaymentPlanNombre(config.payment_plan_nombre ?? "");
+
+      // Check for default template
+      const plantillas = config.plantillas_pago ?? [];
+      const defaultPlantilla = plantillas.find((p) => p.es_default) ?? (plantillas.length > 0 ? plantillas[0] : null);
+      if (defaultPlantilla && (compra || entrega)) {
+        setSelectedPlantillaId(defaultPlantilla.id);
+        setPaymentRows(resolveTemplate(defaultPlantilla, compra, entrega));
+        setPaymentPlanNombre(defaultPlantilla.nombre);
+      } else {
+        setSelectedPlantillaId(null);
+        setPaymentRows(paymentRowsFromConfig(config, 0, compra, entrega, dc));
+        setPaymentPlanNombre(config.payment_plan_nombre ?? "");
+      }
+      setAdHocDiscounts([]);
       setAdminFee(config.admin_fee ?? 0);
     }
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
@@ -330,8 +350,14 @@ export function CotizadorTool({ project, tipologias, unidadTipologias }: Cotizad
 
   useEffect(() => {
     if (config && selectedUnitPrice && selectedUnitPrice > 0) {
-      const dc = resolveDeliveryContext(config);
-      setPaymentRows(paymentRowsFromConfig(config, 0, fechaCompra, fechaEntrega, dc));
+      // If a template is selected, re-resolve it; otherwise use fases
+      const plantilla = (config.plantillas_pago ?? []).find((p) => p.id === selectedPlantillaId);
+      if (plantilla && (fechaCompra || fechaEntrega)) {
+        setPaymentRows(resolveTemplate(plantilla, fechaCompra, fechaEntrega));
+      } else {
+        const dc = resolveDeliveryContext(config);
+        setPaymentRows(paymentRowsFromConfig(config, 0, fechaCompra, fechaEntrega, dc));
+      }
     }
   }, [selectedUnitId]); // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -506,8 +532,20 @@ export function CotizadorTool({ project, tipologias, unidadTipologias }: Cotizad
     if (hasDepoPrecioBase && precioBaseDepoCount > 0 && project.depositos_precio_base) {
       items.push(...buildPrecioBaseComplementos(0, null, precioBaseDepoCount, project.depositos_precio_base));
     }
+    // Furnished upgrade as virtual complemento
+    if (furnishedOn && project.politica_amoblado === "opcional" && project.precio_amoblado) {
+      items.push({
+        complemento_id: "__amoblado__",
+        tipo: "addon",
+        identificador: "Amoblado",
+        subtipo: null,
+        precio: project.precio_amoblado,
+        suma_al_total: true,
+        es_precio_base: true,
+      });
+    }
     return items;
-  }, [selectedComplementos, hasParqPrecioBase, hasDepoPrecioBase, precioBaseParqCount, precioBaseDepoCount, project]);
+  }, [selectedComplementos, hasParqPrecioBase, hasDepoPrecioBase, precioBaseParqCount, precioBaseDepoCount, project, furnishedOn]);
 
   /* ── Pricing (3-phase to avoid circular deps) ── */
 
@@ -515,10 +553,13 @@ export function CotizadorTool({ project, tipologias, unidadTipologias }: Cotizad
     if (!selectedUnitPrice || !config) return 0;
     try {
       const tempConfig: CotizadorConfig = { ...config, fases: [] };
-      const result = calcularCotizacion(selectedUnitPrice, tempConfig, selectedDiscounts, allComplementos);
+      const result = calcularCotizacion(selectedUnitPrice, tempConfig, adHocDiscounts, allComplementos);
       return result.precio_total ?? result.precio_neto;
     } catch { return selectedUnitPrice; }
-  }, [selectedUnitPrice, config, selectedDiscounts, allComplementos]);
+  }, [selectedUnitPrice, config, adHocDiscounts, allComplementos]);
+
+  /** Effective total for payment distribution — uses override if set */
+  const effectiveTotal = priceOverride ?? rawTotal;
 
   const customConfig = useMemo((): CotizadorConfig | null => {
     if (!config) return null;
@@ -527,25 +568,25 @@ export function CotizadorTool({ project, tipologias, unidadTipologias }: Cotizad
       separacion_incluida_en_inicial: false,
       payment_plan_nombre: paymentPlanNombre || undefined,
       admin_fee: adminFee || undefined,
-      fases: paymentRowsToFases(paymentRows, rawTotal),
+      fases: paymentRowsToFases(paymentRows, effectiveTotal),
     };
-  }, [config, paymentRows, rawTotal, paymentPlanNombre, adminFee]);
+  }, [config, paymentRows, effectiveTotal, paymentPlanNombre, adminFee]);
 
   const cotizacion: ResultadoCotizacion | null = useMemo(() => {
     if (!selectedUnitPrice || !customConfig) return null;
     try {
-      return calcularCotizacion(selectedUnitPrice, customConfig, selectedDiscounts, allComplementos);
+      return calcularCotizacion(selectedUnitPrice, customConfig, adHocDiscounts, allComplementos);
     } catch { return null; }
-  }, [selectedUnitPrice, customConfig, selectedDiscounts, allComplementos]);
+  }, [selectedUnitPrice, customConfig, adHocDiscounts, allComplementos]);
 
   /* ── Payment balance & structure ── */
 
   const { assigned: balanceAssigned, pctAssigned: balancePct } = useMemo(
-    () => computeBalance(paymentRows, rawTotal),
-    [paymentRows, rawTotal]
+    () => computeBalance(paymentRows, effectiveTotal),
+    [paymentRows, effectiveTotal]
   );
-  const balanceRemaining = rawTotal - balanceAssigned;
-  const structure = useMemo(() => deriveStructure(paymentRows, rawTotal), [paymentRows, rawTotal]);
+  const balanceRemaining = effectiveTotal - balanceAssigned;
+  const structure = useMemo(() => deriveStructure(paymentRows, effectiveTotal), [paymentRows, effectiveTotal]);
   const overBudget = balanceRemaining < 0;
 
   const needsQuoteTip = isMultiTipo && getUnitTipologias(selectedUnitId ?? "").length > 1;
@@ -554,12 +595,22 @@ export function CotizadorTool({ project, tipologias, unidadTipologias }: Cotizad
   /* ── Callbacks ── */
 
   const updateRow = useCallback((id: string, field: keyof PaymentRow, value: string | number) => {
-    setPaymentRows((prev) =>
-      prev.map((r) => (r.id === id ? { ...r, [field]: value } : r))
-    );
+    setSelectedPlantillaId(null); // switch to custom mode on manual edit
+    setPaymentRows((prev) => {
+      const updated = prev.map((r) => (r.id === id ? { ...r, [field]: value } : r));
+      // Sync resto row date → top-level fechaEntrega
+      if (field === "fecha" && typeof value === "string") {
+        const target = prev.find((r) => r.id === id);
+        if (target?.tipo_valor === "resto") {
+          setFechaEntrega(value);
+        }
+      }
+      return updated;
+    });
   }, []);
 
   const addCuota = useCallback(() => {
+    setSelectedPlantillaId(null);
     setPaymentRows((prev) => {
       const nonRestoRows = prev.filter((r) => r.tipo_valor !== "resto");
       const lastRow = nonRestoRows[nonRestoRows.length - 1];
@@ -586,6 +637,7 @@ export function CotizadorTool({ project, tipologias, unidadTipologias }: Cotizad
   }, []);
 
   const removeCuota = useCallback((id: string) => {
+    setSelectedPlantillaId(null);
     setPaymentRows((prev) => prev.filter((r) => r.id !== id));
   }, []);
 
@@ -594,18 +646,37 @@ export function CotizadorTool({ project, tipologias, unidadTipologias }: Cotizad
       prev.map((r) => {
         if (r.id !== id || r.tipo_valor === "resto") return r;
         if (r.tipo_valor === "porcentaje") {
-          const amount = rawTotal > 0 ? Math.round(rawTotal * (r.valor / 100)) : 0;
+          const amount = effectiveTotal > 0 ? Math.round(effectiveTotal * (r.valor / 100)) : 0;
           return { ...r, tipo_valor: "fijo" as const, valor: amount };
         }
-        const pct = rawTotal > 0 ? Math.round((r.valor / rawTotal) * 10000) / 100 : 0;
+        const pct = effectiveTotal > 0 ? Math.round((r.valor / effectiveTotal) * 10000) / 100 : 0;
         return { ...r, tipo_valor: "porcentaje" as const, valor: pct };
       })
     );
-  }, [rawTotal]);
+  }, [effectiveTotal]);
 
   const handleAutoDistribute = useCallback(() => {
     setPaymentRows((prev) => autoDistributeDates(prev, fechaCompra, fechaEntrega));
   }, [fechaCompra, fechaEntrega]);
+
+  /* ── Re-resolve template when dates change ── */
+  useEffect(() => {
+    if (!selectedPlantillaId || !config) return;
+    const plantilla = (config.plantillas_pago ?? []).find((p) => p.id === selectedPlantillaId);
+    if (plantilla && (fechaCompra || fechaEntrega)) {
+      setPaymentRows(resolveTemplate(plantilla, fechaCompra, fechaEntrega));
+    }
+  }, [fechaCompra, fechaEntrega, selectedPlantillaId, config]);
+
+  /* ── Sync top-level fechaEntrega → resto row date (custom mode only) ── */
+  useEffect(() => {
+    if (!fechaEntrega || selectedPlantillaId) return;
+    setPaymentRows((prev) => {
+      const restoRow = prev.find((r) => r.tipo_valor === "resto");
+      if (!restoRow || restoRow.fecha === fechaEntrega) return prev;
+      return prev.map((r) => r.tipo_valor === "resto" ? { ...r, fecha: fechaEntrega } : r);
+    });
+  }, [fechaEntrega, selectedPlantillaId]);
 
   const addComplemento = useCallback(
     (comp: Complemento) => {
@@ -656,8 +727,8 @@ export function CotizadorTool({ project, tipologias, unidadTipologias }: Cotizad
           telefono: effectiveClientPhone.trim() || undefined,
           agente_id: user?.id,
           agente_nombre: user?.email,
-          custom_fases: paymentRowsToFases(paymentRows, rawTotal),
-          descuentos_seleccionados: selectedDiscounts,
+          custom_fases: paymentRowsToFases(paymentRows, effectiveTotal),
+          custom_descuentos: adHocDiscounts,
           complemento_ids: selectedComplementos.filter((c) => !c.es_precio_base).map((c) => c.complemento_id),
           complemento_selections: selectedComplementos.filter((c) => !c.es_precio_base).map((c) => ({
             complemento_id: c.complemento_id,
@@ -669,6 +740,8 @@ export function CotizadorTool({ project, tipologias, unidadTipologias }: Cotizad
           separacion_incluida: false,
           payment_plan_nombre: paymentPlanNombre || undefined,
           admin_fee: adminFee || undefined,
+          precio_negociado: priceOverride ?? undefined,
+          amoblado: furnishedOn || project.politica_amoblado === "incluido",
         }),
       });
 
@@ -709,8 +782,11 @@ export function CotizadorTool({ project, tipologias, unidadTipologias }: Cotizad
     setCurrentStep(0);
     setSelectedUnitId(null);
     setSelectedQuoteTipId(null);
-    setSelectedDiscounts([]);
+    setAdHocDiscounts([]);
+    setFurnishedOn(project.politica_amoblado === "incluido");
     setSelectedComplementos([]);
+    setPriceOverride(null);
+    setPriceAdjustOpen(false);
     if (!keepClient) {
       setSelectedLead(null);
       setLeadSearch("");
@@ -720,9 +796,18 @@ export function CotizadorTool({ project, tipologias, unidadTipologias }: Cotizad
       setLeadMode("search");
     }
     if (config) {
-      const dc = resolveDeliveryContext(config);
-      setPaymentRows(paymentRowsFromConfig(config, 0, fechaCompra, fechaEntrega, dc));
-      setPaymentPlanNombre(config.payment_plan_nombre ?? "");
+      const plantillas = config.plantillas_pago ?? [];
+      const defaultPlantilla = plantillas.find((p) => p.es_default) ?? (plantillas.length > 0 ? plantillas[0] : null);
+      if (defaultPlantilla && (fechaCompra || fechaEntrega)) {
+        setSelectedPlantillaId(defaultPlantilla.id);
+        setPaymentRows(resolveTemplate(defaultPlantilla, fechaCompra, fechaEntrega));
+        setPaymentPlanNombre(defaultPlantilla.nombre);
+      } else {
+        setSelectedPlantillaId(null);
+        const dc = resolveDeliveryContext(config);
+        setPaymentRows(paymentRowsFromConfig(config, 0, fechaCompra, fechaEntrega, dc));
+        setPaymentPlanNombre(config.payment_plan_nombre ?? "");
+      }
       setAdminFee(config.admin_fee ?? 0);
     }
   }, [config, fechaCompra, fechaEntrega]);
@@ -984,13 +1069,13 @@ export function CotizadorTool({ project, tipologias, unidadTipologias }: Cotizad
                   {/* Unit search */}
                   <div className="p-3 border-b border-[var(--border-subtle)]">
                     <div className="relative">
-                      <Search size={13} className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--text-muted)]" />
+                      <Search size={13} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[var(--text-muted)] pointer-events-none" />
                       <input
                         type="text"
                         value={unitSearch}
                         onChange={(e) => setUnitSearch(e.target.value)}
                         placeholder="Buscar unidad..."
-                        className="input-glass w-full pl-9 text-xs"
+                        className="input-glass w-full pl-10 text-xs"
                       />
                     </div>
                   </div>
@@ -1138,13 +1223,13 @@ export function CotizadorTool({ project, tipologias, unidadTipologias }: Cotizad
                               </div>
                             ) : (
                               <div className="relative">
-                                <Search size={13} className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--text-muted)]" />
+                                <Search size={13} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[var(--text-muted)] pointer-events-none" />
                                 <input
                                   type="text"
                                   value={leadSearch}
                                   onChange={(e) => setLeadSearch(e.target.value)}
                                   placeholder="Buscar por nombre o email..."
-                                  className="input-glass w-full pl-9 text-xs"
+                                  className="input-glass w-full pl-10 text-xs"
                                 />
                                 {searchingLeads && (
                                   <Loader2 size={13} className="absolute right-3 top-1/2 -translate-y-1/2 animate-spin text-[var(--text-muted)]" />
@@ -1191,23 +1276,23 @@ export function CotizadorTool({ project, tipologias, unidadTipologias }: Cotizad
                         ) : (
                           <div className="space-y-2.5">
                             <div className="relative">
-                              <User size={13} className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--text-muted)]" />
+                              <User size={13} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[var(--text-muted)] pointer-events-none" />
                               <input
                                 type="text"
                                 value={clientName}
                                 onChange={(e) => setClientName(e.target.value)}
                                 placeholder="Nombre completo"
-                                className="input-glass w-full pl-9 text-xs"
+                                className="input-glass w-full pl-10 text-xs"
                               />
                             </div>
                             <div className="relative">
-                              <Mail size={13} className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--text-muted)]" />
+                              <Mail size={13} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[var(--text-muted)] pointer-events-none" />
                               <input
                                 type="email"
                                 value={clientEmail}
                                 onChange={(e) => setClientEmail(e.target.value)}
                                 placeholder="Email"
-                                className="input-glass w-full pl-9 text-xs"
+                                className="input-glass w-full pl-10 text-xs"
                               />
                             </div>
                             <div className="flex gap-2">
@@ -1227,13 +1312,13 @@ export function CotizadorTool({ project, tipologias, unidadTipologias }: Cotizad
                                 />
                               </div>
                               <div className="relative flex-1">
-                                <Phone size={13} className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--text-muted)]" />
+                                <Phone size={13} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[var(--text-muted)] pointer-events-none" />
                                 <input
                                   type="tel"
                                   value={clientPhone}
                                   onChange={(e) => setClientPhone(e.target.value)}
                                   placeholder="Teléfono (opcional)"
-                                  className="input-glass w-full pl-9 text-xs"
+                                  className="input-glass w-full pl-10 text-xs"
                                 />
                               </div>
                             </div>
@@ -1469,31 +1554,87 @@ export function CotizadorTool({ project, tipologias, unidadTipologias }: Cotizad
                                 <span className="text-[var(--text-primary)]">{formatCurrency(cotizacion.complementos_total, moneda)}</span>
                               </div>
                             )}
-                            {config?.descuentos?.length ? (
-                              <div className="pt-2 border-t border-[var(--border-subtle)]">
-                                <span className="text-[10px] text-[var(--text-muted)] block mb-2">Descuentos</span>
-                                {config.descuentos.map((desc) => (
-                                  <label key={desc.id} className="flex items-center gap-2 py-1 cursor-pointer">
-                                    <input
-                                      type="checkbox"
-                                      checked={selectedDiscounts.includes(desc.id)}
-                                      onChange={(e) => {
-                                        setSelectedDiscounts((prev) =>
-                                          e.target.checked ? [...prev, desc.id] : prev.filter((d) => d !== desc.id)
-                                        );
-                                      }}
-                                      className="rounded border-[var(--border-default)] bg-[var(--surface-2)] text-[var(--site-primary)] focus:ring-[var(--site-primary)] w-3.5 h-3.5"
-                                    />
-                                    <span className="text-[var(--text-secondary)]">
-                                      {desc.nombre}
-                                      <span className="text-[var(--text-muted)] ml-1">
-                                        ({desc.tipo === "porcentaje" ? `${desc.valor}%` : formatCurrency(desc.valor, moneda)})
-                                      </span>
-                                    </span>
-                                  </label>
-                                ))}
+                            {/* Furnished toggle */}
+                            {project.politica_amoblado === "opcional" && (
+                              <label className="flex items-center justify-between py-1.5 cursor-pointer">
+                                <div className="flex items-center gap-2">
+                                  <input
+                                    type="checkbox"
+                                    checked={furnishedOn}
+                                    onChange={(e) => setFurnishedOn(e.target.checked)}
+                                    className="rounded border-[var(--border-default)] bg-[var(--surface-2)] text-[var(--site-primary)] focus:ring-[var(--site-primary)] w-3.5 h-3.5"
+                                  />
+                                  <span className="text-[var(--text-secondary)]">Amoblado</span>
+                                </div>
+                                {project.precio_amoblado ? (
+                                  <span className="text-[10px] text-[var(--text-muted)]">+{formatCurrency(project.precio_amoblado, moneda)}</span>
+                                ) : null}
+                              </label>
+                            )}
+                            {project.politica_amoblado === "incluido" && (
+                              <div className="flex justify-between py-1 text-[10px]">
+                                <span className="text-[var(--text-muted)]">Amoblado</span>
+                                <span className="text-green-400">Incluido</span>
                               </div>
-                            ) : null}
+                            )}
+                            {/* Ad-hoc discounts */}
+                            <div className="pt-2 border-t border-[var(--border-subtle)]">
+                              <div className="flex items-center justify-between mb-2">
+                                <span className="text-[10px] text-[var(--text-muted)]">Descuentos</span>
+                                <button
+                                  onClick={() => setAdHocDiscounts((prev) => [...prev, {
+                                    id: crypto.randomUUID(),
+                                    nombre: "",
+                                    tipo: "porcentaje",
+                                    valor: 0,
+                                  }])}
+                                  className="flex items-center gap-1 text-[10px] text-[var(--site-primary)] hover:text-[var(--site-primary)]/80 transition-colors"
+                                >
+                                  <Plus size={11} /> Agregar
+                                </button>
+                              </div>
+                              {adHocDiscounts.map((desc) => (
+                                <div key={desc.id} className="flex items-center gap-1.5 py-1">
+                                  <input
+                                    type="text"
+                                    value={desc.nombre}
+                                    onChange={(e) => setAdHocDiscounts((prev) =>
+                                      prev.map((d) => d.id === desc.id ? { ...d, nombre: e.target.value } : d)
+                                    )}
+                                    placeholder="Nombre"
+                                    className="flex-1 min-w-0 bg-[var(--surface-2)] border border-[var(--border-subtle)] rounded-lg px-2 py-1 text-[11px] text-white placeholder:text-[var(--text-muted)] focus:outline-none focus:border-[rgba(var(--site-primary-rgb),0.5)]"
+                                  />
+                                  <select
+                                    value={desc.tipo}
+                                    onChange={(e) => setAdHocDiscounts((prev) =>
+                                      prev.map((d) => d.id === desc.id ? { ...d, tipo: e.target.value as "porcentaje" | "fijo" } : d)
+                                    )}
+                                    className="bg-[var(--surface-2)] border border-[var(--border-subtle)] rounded-lg px-1.5 py-1 text-[11px] text-white focus:outline-none w-[52px]"
+                                  >
+                                    <option value="porcentaje">%</option>
+                                    <option value="fijo">{moneda}</option>
+                                  </select>
+                                  <input
+                                    type="number"
+                                    value={desc.valor || ""}
+                                    onChange={(e) => setAdHocDiscounts((prev) =>
+                                      prev.map((d) => d.id === desc.id ? { ...d, valor: Number(e.target.value) } : d)
+                                    )}
+                                    placeholder="0"
+                                    className="w-16 bg-[var(--surface-2)] border border-[var(--border-subtle)] rounded-lg px-2 py-1 text-[11px] text-white text-right placeholder:text-[var(--text-muted)] focus:outline-none focus:border-[rgba(var(--site-primary-rgb),0.5)]"
+                                  />
+                                  <button
+                                    onClick={() => setAdHocDiscounts((prev) => prev.filter((d) => d.id !== desc.id))}
+                                    className="p-0.5 text-[var(--text-muted)] hover:text-red-400 transition-colors"
+                                  >
+                                    <Trash2 size={11} />
+                                  </button>
+                                </div>
+                              ))}
+                              {adHocDiscounts.length === 0 && (
+                                <p className="text-[10px] text-[var(--text-muted)] italic py-1">Sin descuentos</p>
+                              )}
+                            </div>
                             {cotizacion.descuentos_aplicados.length > 0 && (
                               <>
                                 {cotizacion.descuentos_aplicados.map((d, i) => (
@@ -1573,40 +1714,160 @@ export function CotizadorTool({ project, tipologias, unidadTipologias }: Cotizad
                     return area ? ` · ${area}m²` : "";
                   })()}
                 </span>
-                <div className="ml-auto px-3 py-1 rounded-lg bg-[rgba(var(--site-primary-rgb),0.1)] border border-[rgba(var(--site-primary-rgb),0.2)]">
-                  <span className="text-[var(--site-primary)] font-mono text-sm font-medium">
-                    {formatCurrency(cotizacion.precio_total ?? cotizacion.precio_neto, moneda, {})}
-                  </span>
+                <div className="ml-auto flex items-center gap-2">
+                  {priceOverride !== null && (
+                    <span className="text-[8px] font-ui font-bold uppercase tracking-wider text-[var(--site-primary)] bg-[rgba(var(--site-primary-rgb),0.1)] px-1.5 py-0.5 rounded">
+                      Ajustado
+                    </span>
+                  )}
+                  <div className="px-3 py-1 rounded-lg bg-[rgba(var(--site-primary-rgb),0.1)] border border-[rgba(var(--site-primary-rgb),0.2)]">
+                    <span className="text-[var(--site-primary)] font-mono text-sm font-medium">
+                      {formatCurrency(effectiveTotal, moneda, {})}
+                    </span>
+                  </div>
                 </div>
+              </div>
+
+              {/* Template selector (only if templates exist) */}
+              {(config?.plantillas_pago ?? []).length > 0 && (
+                <div className="flex flex-wrap items-center gap-2 px-5 py-3 rounded-xl bg-[var(--surface-1)] border border-[var(--border-subtle)]">
+                  <span className="text-[9px] font-ui font-bold uppercase tracking-[0.14em] text-[var(--text-muted)] mr-1">
+                    Plantilla
+                  </span>
+                  {(config?.plantillas_pago ?? []).map((p) => (
+                    <button
+                      key={p.id}
+                      onClick={() => {
+                        setSelectedPlantillaId(p.id);
+                        setPaymentRows(resolveTemplate(p, fechaCompra, fechaEntrega));
+                        setPaymentPlanNombre(p.nombre);
+                      }}
+                      className={cn(
+                        "px-3 py-1.5 border text-[10px] font-ui font-bold uppercase tracking-wider transition-all rounded-lg",
+                        p.id === selectedPlantillaId
+                          ? "border-[rgba(var(--site-primary-rgb),0.6)] bg-[rgba(var(--site-primary-rgb),0.1)] text-[var(--site-primary)]"
+                          : "border-[var(--border-default)] bg-[var(--surface-3)] text-[var(--text-secondary)] hover:border-[var(--border-strong)]",
+                      )}
+                    >
+                      {p.nombre}
+                    </button>
+                  ))}
+                  <button
+                    onClick={() => {
+                      setSelectedPlantillaId(null);
+                      if (config) {
+                        const dc = resolveDeliveryContext(config);
+                        setPaymentRows(paymentRowsFromConfig(config, 0, fechaCompra, fechaEntrega, dc));
+                        setPaymentPlanNombre(config.payment_plan_nombre ?? "");
+                      }
+                    }}
+                    className={cn(
+                      "px-3 py-1.5 border text-[10px] font-ui font-bold uppercase tracking-wider transition-all rounded-lg",
+                      selectedPlantillaId === null
+                        ? "border-[rgba(var(--site-primary-rgb),0.6)] bg-[rgba(var(--site-primary-rgb),0.1)] text-[var(--site-primary)]"
+                        : "border-[var(--border-default)] bg-[var(--surface-3)] text-[var(--text-secondary)] hover:border-[var(--border-strong)]",
+                    )}
+                  >
+                    Personalizado
+                  </button>
+                </div>
+              )}
+
+              {/* Price adjustment panel */}
+              <div className="rounded-xl bg-[var(--surface-1)] border border-[var(--border-subtle)] overflow-hidden">
+                <button
+                  type="button"
+                  onClick={() => setPriceAdjustOpen(!priceAdjustOpen)}
+                  className="w-full flex items-center justify-between px-5 py-3 hover:bg-[var(--surface-2)] transition-colors"
+                >
+                  <span className="text-[9px] font-ui font-bold uppercase tracking-[0.14em] text-[var(--text-muted)]">
+                    Ajustar precio
+                  </span>
+                  <ChevronDown
+                    size={12}
+                    className={cn(
+                      "text-[var(--text-muted)] transition-transform duration-200",
+                      priceAdjustOpen && "rotate-180"
+                    )}
+                  />
+                </button>
+                {priceAdjustOpen && (
+                  <div className="px-5 pb-4 pt-1 border-t border-[var(--border-subtle)] space-y-3">
+                    {/* Price breakdown */}
+                    <div className="space-y-1.5">
+                      <div className="flex items-center justify-between text-xs">
+                        <span className="text-[var(--text-tertiary)]">Precio base</span>
+                        <span className="font-mono text-[var(--text-secondary)]">
+                          {formatCurrency(cotizacion.precio_base, moneda, {})}
+                        </span>
+                      </div>
+                      {cotizacion.descuentos_aplicados.length > 0 && cotizacion.descuentos_aplicados.map((d, i) => (
+                        <div key={i} className="flex items-center justify-between text-xs">
+                          <span className="text-green-400">− {d.nombre}</span>
+                          <span className="font-mono text-green-400">
+                            −{formatCurrency(d.monto, moneda, {})}
+                          </span>
+                        </div>
+                      ))}
+                      {(cotizacion.complementos_total ?? 0) > 0 && (
+                        <div className="flex items-center justify-between text-xs">
+                          <span className="text-[var(--text-tertiary)]">Complementos</span>
+                          <span className="font-mono text-[var(--text-secondary)]">
+                            +{formatCurrency(cotizacion.complementos_total ?? 0, moneda, {})}
+                          </span>
+                        </div>
+                      )}
+                      <div className="h-px bg-[var(--border-subtle)]" />
+                      <div className="flex items-center justify-between text-xs">
+                        <span className="text-[var(--text-secondary)] font-medium">Total calculado</span>
+                        <span className="font-mono text-[var(--text-primary)] font-medium">
+                          {formatCurrency(rawTotal, moneda, {})}
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* Override input */}
+                    <div className="flex items-center gap-3">
+                      <div className="flex-1">
+                        <label className="text-[9px] font-ui font-bold uppercase tracking-[0.14em] text-[var(--text-muted)] mb-1 block">
+                          Precio negociado
+                        </label>
+                        <CurrencyInput
+                          value={priceOverride ?? ""}
+                          onChange={(v) => setPriceOverride(v ? Number(v) : null)}
+                          currency={moneda}
+                          inputClassName="input-glass w-full text-xs font-mono"
+                          placeholder={formatCurrency(rawTotal, moneda, {}).replace(/[$.€ ]/g, "")}
+                        />
+                      </div>
+                      {priceOverride !== null && (
+                        <button
+                          type="button"
+                          onClick={() => setPriceOverride(null)}
+                          className="mt-4 p-2 rounded-lg bg-[var(--surface-3)] border border-[var(--border-subtle)] text-[var(--text-muted)] hover:text-white hover:border-[var(--border-default)] transition-all"
+                          title="Resetear al precio calculado"
+                        >
+                          <RotateCcw size={12} />
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                )}
               </div>
 
               {/* Key dates row */}
               <div className="flex flex-wrap items-end gap-4 px-5 py-4 rounded-xl bg-[var(--surface-1)] border border-[var(--border-subtle)]">
                 <div className="flex-1 min-w-[160px]">
                   <label className="flex items-center gap-1.5 text-[9px] font-ui font-bold uppercase tracking-[0.14em] text-[var(--text-muted)] mb-1.5">
-                    <Calendar size={11} />
                     Fecha de compra
                   </label>
-                  <input
-                    type="text"
-                    value={fechaCompra}
-                    onChange={(e) => setFechaCompra(e.target.value)}
-                    placeholder="dd/mm/aaaa"
-                    className="input-glass w-full text-xs font-mono"
-                  />
+                  <DatePickerInput value={fechaCompra} onChange={setFechaCompra} />
                 </div>
                 <div className="flex-1 min-w-[160px]">
                   <label className="flex items-center gap-1.5 text-[9px] font-ui font-bold uppercase tracking-[0.14em] text-[var(--text-muted)] mb-1.5">
-                    <Calendar size={11} />
                     Fecha de entrega
                   </label>
-                  <input
-                    type="text"
-                    value={fechaEntrega}
-                    onChange={(e) => setFechaEntrega(e.target.value)}
-                    placeholder="dd/mm/aaaa"
-                    className="input-glass w-full text-xs font-mono"
-                  />
+                  <DatePickerInput value={fechaEntrega} onChange={setFechaEntrega} />
                 </div>
                 <button
                   onClick={handleAutoDistribute}
@@ -1658,7 +1919,7 @@ export function CotizadorTool({ project, tipologias, unidadTipologias }: Cotizad
               {/* Payment table */}
               <div className="bg-[var(--surface-1)] rounded-xl border border-[var(--border-subtle)] overflow-hidden">
                 {/* Table header */}
-                <div className="grid grid-cols-[1fr_140px_100px_1fr_40px_28px] gap-1 px-5 py-2 bg-[var(--surface-2)] border-b border-[var(--border-subtle)]">
+                <div className="grid grid-cols-[1fr_180px_120px_1fr_40px_28px] gap-1 px-5 py-2 bg-[var(--surface-2)] border-b border-[var(--border-subtle)]">
                   <span className="text-[8px] font-ui font-bold uppercase tracking-[0.14em] text-[var(--text-muted)]">Descripción</span>
                   <span className="text-[8px] font-ui font-bold uppercase tracking-[0.14em] text-[var(--text-muted)]">Valor</span>
                   <span className="text-[8px] font-ui font-bold uppercase tracking-[0.14em] text-[var(--text-muted)]">Fecha</span>
@@ -1670,27 +1931,37 @@ export function CotizadorTool({ project, tipologias, unidadTipologias }: Cotizad
                 {/* Payment rows */}
                 <div className="divide-y divide-[var(--border-subtle)]">
                   {paymentRows.map((row, rowIdx) => {
-                    const resolvedAmount = resolveRowAmount(row, rawTotal, paymentRows);
-                    const pct = rawTotal > 0 ? Math.round((resolvedAmount / rawTotal) * 100) : 0;
+                    const resolvedAmount = resolveRowAmount(row, effectiveTotal, paymentRows);
+                    const pct = effectiveTotal > 0 ? Math.round((resolvedAmount / effectiveTotal) * 100) : 0;
                     const isResto = row.tipo_valor === "resto";
-                    const canDelete = !isResto && rowIdx > 0;
+                    const nonRestoCount = paymentRows.filter((r) => r.tipo_valor !== "resto").length;
+                    const canDelete = !isResto && nonRestoCount > 1;
+                    // Detect separación (first fixed row)
+                    const isSepRow = rowIdx === 0 && row.tipo_valor === "fijo" && paymentRows.length > 1;
 
                     return (
                       <div key={row.id} className="group">
-                        <div className="grid grid-cols-[1fr_140px_100px_1fr_40px_28px] gap-1 px-5 py-2.5 items-center">
+                        <div className="grid grid-cols-[1fr_180px_120px_1fr_40px_28px] gap-1 px-5 py-2.5 items-center">
                           {/* Description */}
-                          <input
-                            type="text"
-                            value={row.nombre}
-                            onChange={(e) => updateRow(row.id, "nombre", e.target.value)}
-                            className="bg-transparent text-xs text-[var(--text-primary)] focus:outline-none placeholder:text-[var(--text-muted)] border-b border-transparent focus:border-[rgba(var(--site-primary-rgb),0.3)]"
-                            placeholder="Descripción"
-                          />
+                          <div>
+                            <input
+                              type="text"
+                              value={row.nombre}
+                              onChange={(e) => updateRow(row.id, "nombre", e.target.value)}
+                              className="bg-transparent text-xs text-[var(--text-primary)] focus:outline-none placeholder:text-[var(--text-muted)] border-b border-transparent focus:border-[rgba(var(--site-primary-rgb),0.3)] w-full"
+                              placeholder="Descripción"
+                            />
+                            {isSepRow && (
+                              <span className="block text-[9px] text-[var(--site-primary)] opacity-70 mt-0.5">
+                                Forma parte de la cuota inicial
+                              </span>
+                            )}
+                          </div>
 
                           {/* Valor with tipo toggle */}
                           <div className="flex items-center gap-1">
                             {isResto ? (
-                              <span className="text-[8px] font-ui font-bold uppercase tracking-wider text-[var(--text-muted)] bg-[var(--surface-3)] px-2 py-1 rounded">auto</span>
+                              <span className="text-xs font-mono text-[var(--site-primary)] bg-[rgba(var(--site-primary-rgb),0.1)] px-2 py-1 rounded">{pct}%</span>
                             ) : (
                               <>
                                 <button
@@ -1727,12 +1998,10 @@ export function CotizadorTool({ project, tipologias, unidadTipologias }: Cotizad
                           </div>
 
                           {/* Date */}
-                          <input
-                            type="text"
+                          <DatePickerInput
                             value={row.fecha}
-                            onChange={(e) => updateRow(row.id, "fecha", e.target.value)}
-                            className="bg-transparent text-xs text-[var(--text-secondary)] font-mono focus:outline-none placeholder:text-[var(--text-muted)] border-b border-transparent focus:border-[rgba(var(--site-primary-rgb),0.3)]"
-                            placeholder="dd/mm/aaaa"
+                            onChange={(v) => updateRow(row.id, "fecha", v)}
+                            compact
                           />
 
                           {/* Resolved amount (read-only) */}
@@ -1788,12 +2057,12 @@ export function CotizadorTool({ project, tipologias, unidadTipologias }: Cotizad
                 )}
 
                 {/* Totals row */}
-                <div className="grid grid-cols-[1fr_140px_100px_1fr_40px_28px] gap-1 px-5 py-3 bg-[var(--surface-2)] border-t border-[var(--border-default)]">
+                <div className="grid grid-cols-[1fr_180px_120px_1fr_40px_28px] gap-1 px-5 py-3 bg-[var(--surface-2)] border-t border-[var(--border-default)]">
                   <span className="text-xs font-medium text-[var(--text-primary)]">Total</span>
                   <span />
                   <span />
                   <span className="text-xs font-medium text-[var(--site-primary)] text-right font-mono">
-                    {formatCurrency(rawTotal + adminFee, moneda, {})}
+                    {formatCurrency(effectiveTotal + adminFee, moneda, {})}
                   </span>
                   <span className="text-[10px] text-[var(--text-muted)] text-center">100%</span>
                   <span />
@@ -1808,7 +2077,7 @@ export function CotizadorTool({ project, tipologias, unidadTipologias }: Cotizad
                     <span className="text-[var(--text-muted)] ml-1">({balancePct}%)</span>
                   </span>
                   <span className="text-[var(--text-secondary)]">
-                    Contra entrega: <span className={cn("font-medium", overBudget ? "text-red-400" : "text-[var(--text-primary)]")}>{formatCurrency(Math.max(0, balanceRemaining), moneda, {})}</span>
+                    Entrega: <span className={cn("font-medium", overBudget ? "text-red-400" : "text-[var(--text-primary)]")}>{formatCurrency(Math.max(0, balanceRemaining), moneda, {})}</span>
                     <span className="text-[var(--text-muted)] ml-1">({Math.max(0, 100 - balancePct)}%)</span>
                   </span>
                 </div>

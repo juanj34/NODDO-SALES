@@ -80,6 +80,9 @@ export default function EditorGeneralPage() {
   const [validationError, setValidationError] = useState<string | null>(null);
   const [idioma, setIdioma] = useState<"es" | "en">("es");
   const [logoHeight, setLogoHeight] = useState(96);
+  const [estadoConstruccion, setEstadoConstruccion] = useState<"sobre_planos" | "en_construccion" | "entregado">("sobre_planos");
+  const [politicaAmoblado, setPoliticaAmoblado] = useState<"incluido" | "opcional" | "no">("no");
+  const [precioAmoblado, setPrecioAmoblado] = useState<number | null>(null);
 
   // Only populate state from project data ONCE on initial mount.
   // Re-running on every React Query cache update would overwrite unsaved local edits.
@@ -107,6 +110,9 @@ export default function EditorGeneralPage() {
     setBackgroundAudioUrl(project.background_audio_url || "");
     setBrochureUrl(project.brochure_url || "");
     setIdioma(project.idioma || "es");
+    setEstadoConstruccion(project.estado_construccion || "sobre_planos");
+    setPoliticaAmoblado(project.politica_amoblado || "no");
+    setPrecioAmoblado(project.precio_amoblado ?? null);
   }, [project]);
 
   const handleSave = async () => {
@@ -134,6 +140,9 @@ export default function EditorGeneralPage() {
       background_audio_url: backgroundAudioUrl || null,
       brochure_url: brochureUrl || null,
       idioma,
+      estado_construccion: estadoConstruccion,
+      politica_amoblado: politicaAmoblado,
+      precio_amoblado: politicaAmoblado === "opcional" ? precioAmoblado : null,
     };
 
     try {
@@ -657,6 +666,65 @@ export default function EditorGeneralPage() {
                   <input type="url" value={politicaPrivacidadUrl} onChange={(e) => { setPoliticaPrivacidadUrl(e.target.value); scheduleAutoSave(); }} className={inputClass} placeholder={t("general.advanced.privacyPolicyPlaceholder")} />
                   <p className={fieldHint}>{t("general.advanced.privacyPolicyHint")}</p>
                 </div>
+              </div>
+            </div>
+
+            {/* ── Estado de construcción & Amoblado ── */}
+            <div className={sectionCard}>
+              <h3 className={sectionTitle}>
+                <Building2 size={15} className="text-[var(--site-primary)]" />
+                Características del proyecto
+              </h3>
+              <p className={sectionDescription}>
+                Estado de construcción y política de amoblado que aparecen en las cotizaciones PDF.
+              </p>
+
+              <div className="space-y-5">
+                <div>
+                  <label className={labelClass}>Estado de construcción</label>
+                  <select
+                    value={estadoConstruccion}
+                    onChange={(e) => { setEstadoConstruccion(e.target.value as typeof estadoConstruccion); scheduleAutoSave(); }}
+                    className={inputClass}
+                  >
+                    <option value="sobre_planos">Sobre planos (Off-Plan)</option>
+                    <option value="en_construccion">En construcción</option>
+                    <option value="entregado">Entregado</option>
+                  </select>
+                  <p className={fieldHint}>Se muestra en el PDF de cotización como estado del proyecto.</p>
+                </div>
+
+                <div>
+                  <label className={labelClass}>Política de amoblado</label>
+                  <select
+                    value={politicaAmoblado}
+                    onChange={(e) => { setPoliticaAmoblado(e.target.value as typeof politicaAmoblado); scheduleAutoSave(); }}
+                    className={inputClass}
+                  >
+                    <option value="no">No aplica</option>
+                    <option value="incluido">Incluido (todas las unidades vienen amobladas)</option>
+                    <option value="opcional">Opcional (se ofrece como upgrade)</option>
+                  </select>
+                  <p className={fieldHint}>
+                    {politicaAmoblado === "incluido" && "El PDF mostrará \"Amoblado: Sí\" en todas las cotizaciones."}
+                    {politicaAmoblado === "opcional" && "El agente podrá activar/desactivar amoblado al cotizar."}
+                    {politicaAmoblado === "no" && "No se muestra información de amoblado en las cotizaciones."}
+                  </p>
+                </div>
+
+                {politicaAmoblado === "opcional" && (
+                  <div>
+                    <label className={labelClass}>Precio del amoblado ({project?.moneda_base || "COP"})</label>
+                    <input
+                      type="number"
+                      value={precioAmoblado ?? ""}
+                      onChange={(e) => { setPrecioAmoblado(e.target.value ? Number(e.target.value) : null); scheduleAutoSave(); }}
+                      className={inputClass}
+                      placeholder="ej. 25000000"
+                    />
+                    <p className={fieldHint}>Costo adicional cuando el agente activa amoblado en el cotizador.</p>
+                  </div>
+                )}
               </div>
             </div>
             </>

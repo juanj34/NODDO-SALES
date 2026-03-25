@@ -250,6 +250,7 @@ const site = {
     noUnitsAvailable: "Sin unidades disponibles",
     noUnitsDescription: "No hay unidades con precios disponibles para el simulador de pagos.",
     selectPrompt: "Selecciona una unidad para ver su plan de pagos",
+    cuotaInicial: "Cuota inicial",
   },
   cotizador: {
     heading: "Cotizar Unidad",

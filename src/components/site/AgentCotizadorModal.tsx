@@ -44,6 +44,8 @@ export function AgentCotizadorModal({ open, onClose }: AgentCotizadorModalProps)
       habilitar_extra_chimenea: proyecto.habilitar_extra_chimenea,
       habilitar_extra_doble_altura: proyecto.habilitar_extra_doble_altura,
       habilitar_extra_rooftop: proyecto.habilitar_extra_rooftop,
+      politica_amoblado: proyecto.politica_amoblado,
+      precio_amoblado: proyecto.precio_amoblado,
     }),
     [proyecto]
   );

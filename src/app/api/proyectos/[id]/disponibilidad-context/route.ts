@@ -32,7 +32,7 @@ export async function GET(
     ] = await Promise.all([
       auth.supabase
         .from("proyectos")
-        .select("tipologia_mode, precio_source, parqueaderos_mode, depositos_mode, moneda_base, disponibilidad_config")
+        .select("tipologia_mode, precio_source, parqueaderos_mode, depositos_mode, moneda_base, disponibilidad_config, unidad_display_prefix, tipo_proyecto, inventory_columns")
         .eq("id", id)
         .single(),
       auth.supabase
@@ -62,6 +62,9 @@ export async function GET(
       depositos_mode: proyecto.depositos_mode,
       moneda_base: proyecto.moneda_base,
       disponibilidad_config: proyecto.disponibilidad_config ?? {},
+      unidad_display_prefix: proyecto.unidad_display_prefix ?? null,
+      tipo_proyecto: proyecto.tipo_proyecto ?? "hibrido",
+      inventory_columns: proyecto.inventory_columns ?? null,
       tipologias: tipologias ?? [],
       torres: torres ?? [],
       unidad_tipologias: unidadTipologias ?? [],

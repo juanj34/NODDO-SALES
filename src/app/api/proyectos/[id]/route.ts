@@ -43,6 +43,9 @@ const PROYECTO_FIELDS = [
   "tipologia_fields",
   "agent_mode_config",
   "disponibilidad_config",
+  "estado_construccion",
+  "politica_amoblado",
+  "precio_amoblado",
 ];
 
 export async function GET(

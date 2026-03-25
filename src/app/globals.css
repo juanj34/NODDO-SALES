@@ -395,7 +395,10 @@ button:disabled,
     background: var(--surface-3);
     border: 1px solid var(--border-default);
     border-radius: 0.625rem;
-    padding: 0.625rem 0.875rem;
+    padding-top: 0.625rem;
+    padding-right: 0.875rem;
+    padding-bottom: 0.625rem;
+    padding-left: 0.875rem;
     color: white;
     font-size: 0.875rem;
     transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);

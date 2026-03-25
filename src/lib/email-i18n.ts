@@ -154,6 +154,13 @@ interface NoShowStrings {
   whatsappNote: string;
 }
 
+interface AdminInviteStrings {
+  subject: string;
+  heading: string;
+  body: string;
+  cta: string;
+}
+
 /* ── Full locale bundle ─────────────────────────────────────────────── */
 
 export interface EmailStrings {
@@ -170,6 +177,7 @@ export interface EmailStrings {
   bookingAdmin: BookingAdminStrings;
   bookingReminder: BookingReminderStrings;
   noShow: NoShowStrings;
+  adminInvite: AdminInviteStrings;
 }
 
 /* ── Spanish ────────────────────────────────────────────────────────── */
@@ -320,6 +328,13 @@ const es: EmailStrings = {
     whatsappNote: 'También puedes escribirnos por <a href="https://wa.me/971585407848?text=Hola,%20quiero%20reagendar%20mi%20demo%20de%20NODDO" style="color:#b8973a;text-decoration:underline;">WhatsApp</a> si prefieres.',
   },
 
+  adminInvite: {
+    subject: "Tu cuenta en NODDO esta lista",
+    heading: "Bienvenido a NODDO",
+    body: 'Has sido invitado a la plataforma NODDO. Tu plan: <strong style="color:#b8973a;">{plan}</strong>. Haz clic en el boton de abajo para activar tu cuenta y comenzar a crear micrositios premium para tus proyectos.',
+    cta: "Activar Cuenta",
+  },
+
 };
 
 /* ── English ────────────────────────────────────────────────────────── */
@@ -468,6 +483,13 @@ const en: EmailStrings = {
     body: "We noticed you couldn't make it to today's demo. No worries — we understand schedules can get busy. If you're still interested in seeing how NODDO can transform the way you market your projects, you can reschedule anytime.",
     rescheduleCta: "Reschedule demo",
     whatsappNote: 'You can also reach us on <a href="https://wa.me/971585407848?text=Hi,%20I%20want%20to%20reschedule%20my%20NODDO%20demo" style="color:#b8973a;text-decoration:underline;">WhatsApp</a> if you prefer.',
+  },
+
+  adminInvite: {
+    subject: "Your NODDO account is ready",
+    heading: "Welcome to NODDO",
+    body: 'You have been invited to the NODDO platform. Your plan: <strong style="color:#b8973a;">{plan}</strong>. Click the button below to activate your account and start creating premium microsites for your projects.',
+    cta: "Activate Account",
   },
 
 };

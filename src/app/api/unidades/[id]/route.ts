@@ -14,7 +14,14 @@ export async function PUT(
       return NextResponse.json({ error: "No autorizado" }, { status: 401 });
     }
 
-    const body = await request.json();
+    const rawBody = await request.json();
+    // Extract client-side metadata (for bitácora only, not DB)
+    const clientMetadata = rawBody._metadata as {
+      price_discrepancy?: { cotizacion_price: number; sale_price: number; percent_diff: number };
+      sold_without_client?: boolean;
+    } | undefined;
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const { _metadata, ...body } = rawBody;
 
     // Lookup the unidad to get its proyecto_id for ownership check
     const { data: unidad } = await auth.supabase
@@ -186,7 +193,9 @@ export async function PUT(
     }
 
     // Validate disponibilidad_config requirements for committed states
-    if (body.estado !== undefined && ["separado", "reservada", "vendida"].includes(body.estado) && auth.role === "admin") {
+    // Skip if explicitly selling without client (admin override)
+    const skipClientRequirement = clientMetadata?.sold_without_client === true && auth.role === "admin";
+    if (body.estado !== undefined && ["separado", "reservada", "vendida"].includes(body.estado) && auth.role === "admin" && !skipClientRequirement) {
       const dispConfig = (proyecto?.disponibilidad_config ?? {}) as Record<string, boolean>;
       if (dispConfig.require_lead_on_commit && !body.lead_id && !data.lead_id) {
         return NextResponse.json(
@@ -242,11 +251,21 @@ export async function PUT(
     // Log activity — detect estado and price changes
     const { data: proj } = await auth.supabase.from("proyectos").select("nombre").eq("id", proyectoId).single();
     if (body.estado !== undefined) {
+      const logMeta: Record<string, unknown> = {
+        identificador: data.identificador,
+        estadoAnterior: unidad.estado,
+        estadoNuevo: body.estado,
+      };
+      if (body.precio_venta != null) logMeta.precioVenta = body.precio_venta;
+      if (body.lead_id) logMeta.leadId = body.lead_id;
+      if (body.cotizacion_id) logMeta.cotizacionId = body.cotizacion_id;
+      if (clientMetadata?.price_discrepancy) logMeta.price_discrepancy = clientMetadata.price_discrepancy;
+      if (clientMetadata?.sold_without_client) logMeta.sold_without_client = true;
       logActivity({
         userId: auth.user.id, userEmail: auth.user.email!, userRole: auth.role,
         proyectoId, proyectoNombre: proj?.nombre,
         actionType: "unit.state_change", actionCategory: "unit",
-        metadata: { identificador: data.identificador, estadoNuevo: body.estado },
+        metadata: logMeta,
         entityType: "unidad", entityId: id,
       });
     } else {

@@ -93,6 +93,9 @@ export interface PDFData {
   // Admin fee
   adminFee?: number | null;
   adminFeeLabel?: string | null;
+  // Project characteristics
+  estadoConstruccion?: "sobre_planos" | "en_construccion" | "entregado" | null;
+  amoblado?: boolean;
 }
 
 /* ── Helpers ── */
@@ -199,6 +202,7 @@ interface PDFStrings {
   doubleHeight: string;
   rooftop: string;
   yes: string;
+  no: string;
   estimatedDelivery: string;
   complements: string;
   parking_label: string;
@@ -263,6 +267,7 @@ const PDF_STRINGS: Record<EmailLocale, PDFStrings> = {
     doubleHeight: "Doble altura",
     rooftop: "Rooftop privado",
     yes: "Sí",
+    no: "No",
     estimatedDelivery: "Entrega estimada",
     complements: "COMPLEMENTOS",
     parking_label: "Parqueadero",
@@ -325,6 +330,7 @@ const PDF_STRINGS: Record<EmailLocale, PDFStrings> = {
     doubleHeight: "Double height",
     rooftop: "Private rooftop",
     yes: "Yes",
+    no: "No",
     estimatedDelivery: "Estimated delivery",
     complements: "ADD-ONS",
     parking_label: "Parking",
@@ -745,7 +751,13 @@ function drawOfferPage(doc: jsPDF, data: PDFData, accent: RGB, accentLight: RGB,
     [locale === "en" ? "Project Name:" : "Proyecto:", `${data.projectName}${data.constructoraName ? ` by ${data.constructoraName}` : ""}`],
     [locale === "en" ? "Location:" : "Ubicación:", data.config.fecha_estimada_entrega ? "—" : "—"],
   ];
-  projPairs.push([locale === "en" ? "Project Status:" : "Estado:", "Off-Plan"]);
+  const statusLabels: Record<string, Record<string, string>> = {
+    sobre_planos: { es: "Sobre planos", en: "Off-Plan" },
+    en_construccion: { es: "En construcción", en: "Under Construction" },
+    entregado: { es: "Entregado", en: "Completed" },
+  };
+  const statusKey = data.estadoConstruccion || "sobre_planos";
+  projPairs.push([locale === "en" ? "Project Status:" : "Estado:", statusLabels[statusKey]?.[locale] ?? statusLabels.sobre_planos[locale]]);
   if (data.fechaEstimadaEntrega) {
     projPairs[1] = [locale === "en" ? "Estimated Completion Date:" : "Fecha estimada de entrega:", data.fechaEstimadaEntrega];
   }
@@ -789,6 +801,9 @@ function drawOfferPage(doc: jsPDF, data: PDFData, accent: RGB, accentLight: RGB,
   if (data.parqueaderos) leftPairs.push([locale === "en" ? "No. of Parking:" : "Parqueaderos:", `${data.parqueaderos}`]);
   if (data.tiene_jacuzzi || data.tiene_piscina) {
     leftPairs.push(["Pool / Jacuzzi:", data.tiene_jacuzzi && data.tiene_piscina ? strings.yes : data.tiene_jacuzzi ? "Jacuzzi" : "Pool"]);
+  }
+  if (data.amoblado !== undefined) {
+    leftPairs.push([locale === "en" ? "Furnished:" : "Amoblado:", data.amoblado ? strings.yes : strings.no]);
   }
 
   const rightPairs: [string, string][] = [];

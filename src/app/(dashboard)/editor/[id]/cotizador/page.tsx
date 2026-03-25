@@ -34,6 +34,8 @@ export default function CotizadorOperativoPage() {
     habilitar_extra_chimenea: project.habilitar_extra_chimenea,
     habilitar_extra_doble_altura: project.habilitar_extra_doble_altura,
     habilitar_extra_rooftop: project.habilitar_extra_rooftop,
+    politica_amoblado: project.politica_amoblado,
+    precio_amoblado: project.precio_amoblado,
   };
 
   return (

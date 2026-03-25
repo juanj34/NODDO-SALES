@@ -3,8 +3,9 @@
 export const dynamic = "force-dynamic";
 
 import { useState, useMemo, useCallback } from "react";
-import { getInventoryColumns, getPrimaryArea } from "@/lib/inventory-columns";
+import { getInventoryColumns, getPrimaryArea, INVENTORY_COLUMN_KEYS } from "@/lib/inventory-columns";
 import { UNIT_STATUS_COLORS } from "@/lib/status-colors";
+import type { InventoryColumnConfig } from "@/types";
 import { useEditorProject } from "@/hooks/useEditorProject";
 import {
   emptyState,
@@ -16,7 +17,7 @@ import { PageHeader } from "@/components/dashboard/base/PageHeader";
 import { cn } from "@/lib/utils";
 import { formatCurrency as formatCurrencyFn } from "@/lib/currency";
 import {
-  Package, Upload, Loader2, ArrowUpDown, ArrowUp, ArrowDown,
+  Package, Upload, Loader2, ArrowUpDown, ArrowUp, ArrowDown, Settings2,
 } from "lucide-react";
 import { useToast } from "@/components/dashboard/Toast";
 import { useTranslation } from "@/i18n";
@@ -37,6 +38,22 @@ import {
 const formatCurrency = (n: number) => formatCurrencyFn(n, "COP");
 
 type SortField = "identificador" | "area" | "precio" | "estado";
+
+const COL_LABELS: Record<string, string> = {
+  area_m2: "Área m²",
+  area_construida: "Área construida",
+  area_privada: "Área privada",
+  area_lote: "Área lote",
+  precio: "Precio",
+  habitaciones: "Habitaciones",
+  banos: "Baños",
+  parqueaderos: "Parqueaderos",
+  depositos: "Depósitos",
+  orientacion: "Orientación",
+  vista: "Vista",
+  piso: "Piso",
+  etapa: "Etapa",
+};
 
 const ALL_ESTADOS: { value: EstadoUnidad; label: string; short: string }[] = [
   { value: "disponible", label: "Disponible", short: "Disp." },
@@ -72,10 +89,23 @@ export default function DisponibilidadPage() {
   const isLotes = project.tipo_proyecto === "lotes";
   const isLoteBased = isCasas || isLotes;
   const isTipologiaPricing = project.precio_source === "tipologia";
-  const columns = useMemo(
+  const baseColumns = useMemo(
     () => getInventoryColumns(project.tipo_proyecto ?? "hibrido", project.inventory_columns),
     [project.tipo_proyecto, project.inventory_columns]
   );
+  // Column visibility override (user can toggle via gear icon)
+  const [columnOverrides, setColumnOverrides] = useState<Partial<InventoryColumnConfig>>({});
+  const [showColSettings, setShowColSettings] = useState(false);
+  const columns = useMemo(
+    () => ({ ...baseColumns, ...columnOverrides }),
+    [baseColumns, columnOverrides]
+  );
+  const toggleColumn = useCallback((key: keyof InventoryColumnConfig) => {
+    setColumnOverrides((prev) => {
+      const current = { ...baseColumns, ...prev };
+      return { ...prev, [key]: !current[key] };
+    });
+  }, [baseColumns]);
   const groupByEtapa = columns.etapa && !columns.piso;
   const isMultiTipo = project.tipologia_mode === "multiple";
   const unidadTipologias = useMemo(() => project.unidad_tipologias ?? [], [project.unidad_tipologias]);
@@ -271,6 +301,7 @@ export default function DisponibilidadPage() {
     precioSource: project.precio_source ?? "unidad",
     monedaBase: project.moneda_base ?? "COP",
     disponibilidadConfig: project.disponibilidad_config ?? {},
+    unitDisplayPrefix: project.unidad_display_prefix ?? null,
     tipologias: tipologias.map((t) => ({
       id: t.id,
       nombre: t.nombre,
@@ -452,18 +483,72 @@ export default function DisponibilidadPage() {
         title="Disponibilidad"
         description="Cambio rápido de estado de unidades"
         actions={
-          <button
-            onClick={handlePublishAvailability}
-            disabled={publishing}
-            className="inline-flex items-center gap-2 px-4 py-2 bg-[rgba(var(--site-primary-rgb),0.1)] border border-[rgba(var(--site-primary-rgb),0.3)] text-[var(--site-primary)] rounded-xl text-xs font-ui font-semibold uppercase tracking-wider hover:bg-[rgba(var(--site-primary-rgb),0.15)] transition-all disabled:opacity-50"
-          >
-            {publishing ? (
-              <Loader2 size={14} className="animate-spin" />
-            ) : (
-              <Upload size={14} />
-            )}
-            {publishing ? "Publicando..." : "Publicar disponibilidad"}
-          </button>
+          <div className="flex items-center gap-2">
+            {/* Column visibility gear */}
+            <div className="relative">
+              <button
+                onClick={() => setShowColSettings((v) => !v)}
+                className={cn(
+                  "p-2 rounded-lg border transition-all",
+                  showColSettings
+                    ? "bg-[rgba(var(--site-primary-rgb),0.12)] border-[rgba(var(--site-primary-rgb),0.25)] text-[var(--site-primary)]"
+                    : "bg-[var(--surface-2)] border-[var(--border-subtle)] text-[var(--text-tertiary)] hover:text-[var(--text-secondary)] hover:border-[var(--border-default)]"
+                )}
+                title="Columnas visibles"
+              >
+                <Settings2 size={16} />
+              </button>
+              {showColSettings && (
+                <>
+                  <div className="fixed inset-0 z-40" onClick={() => setShowColSettings(false)} />
+                  <div className="absolute right-0 top-full mt-2 z-50 w-56 bg-[var(--surface-2)] border border-[var(--border-default)] rounded-xl shadow-xl py-2">
+                    <p className="px-3 pb-2 text-[9px] font-ui uppercase tracking-widest text-[var(--text-muted)] font-bold border-b border-[var(--border-subtle)] mb-1">
+                      Columnas visibles
+                    </p>
+                    {INVENTORY_COLUMN_KEYS.map(({ key }) => {
+                      const isOn = columns[key];
+                      return (
+                        <button
+                          key={key}
+                          onClick={() => toggleColumn(key)}
+                          className="w-full flex items-center gap-2.5 px-3 py-1.5 text-xs hover:bg-[var(--surface-3)] transition-colors"
+                        >
+                          <span className={cn(
+                            "w-4 h-4 rounded border flex items-center justify-center transition-all shrink-0",
+                            isOn
+                              ? "bg-[rgba(var(--site-primary-rgb),0.2)] border-[rgba(var(--site-primary-rgb),0.4)]"
+                              : "bg-[var(--surface-3)] border-[var(--border-default)]"
+                          )}>
+                            {isOn && (
+                              <span className="w-2 h-2 rounded-sm bg-[var(--site-primary)]" />
+                            )}
+                          </span>
+                          <span className={cn(
+                            "transition-colors",
+                            isOn ? "text-[var(--text-primary)]" : "text-[var(--text-muted)]"
+                          )}>
+                            {COL_LABELS[key] ?? key}
+                          </span>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </>
+              )}
+            </div>
+            <button
+              onClick={handlePublishAvailability}
+              disabled={publishing}
+              className="inline-flex items-center gap-2 px-4 py-2 bg-[rgba(var(--site-primary-rgb),0.1)] border border-[rgba(var(--site-primary-rgb),0.3)] text-[var(--site-primary)] rounded-xl text-xs font-ui font-semibold uppercase tracking-wider hover:bg-[rgba(var(--site-primary-rgb),0.15)] transition-all disabled:opacity-50"
+            >
+              {publishing ? (
+                <Loader2 size={14} className="animate-spin" />
+              ) : (
+                <Upload size={14} />
+              )}
+              {publishing ? "Publicando..." : "Publicar disponibilidad"}
+            </button>
+          </div>
         }
       />
 

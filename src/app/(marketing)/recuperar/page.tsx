@@ -185,7 +185,7 @@ export default function RecuperarPage() {
                     <div className="relative">
                       <Mail
                         size={14}
-                        className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[var(--mk-text-muted)]"
+                        className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[var(--mk-text-muted)] pointer-events-none"
                       />
                       <input
                         type="email"

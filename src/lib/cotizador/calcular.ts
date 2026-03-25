@@ -1,4 +1,4 @@
-import type { CotizadorConfig, ResultadoCotizacion, FaseResultado, ComplementoSeleccion } from "@/types";
+import type { CotizadorConfig, DescuentoConfig, ResultadoCotizacion, FaseResultado, ComplementoSeleccion } from "@/types";
 import type { DeliveryContext } from "./delivery";
 import { adjustFasesToDelivery } from "./delivery";
 
@@ -55,18 +55,17 @@ export function buildPrecioBaseComplementos(
 export function calcularCotizacion(
   precioUnidad: number,
   config: CotizadorConfig,
-  descuentosSeleccionados: string[] = [],
+  descuentos: DescuentoConfig[] = [],
   complementos: ComplementoSeleccion[] = [],
   deliveryContext?: DeliveryContext | null,
 ): ResultadoCotizacion {
   const precio_base = precioUnidad;
 
-  // Apply selected discounts
+  // Apply ad-hoc discounts
   const descuentos_aplicados: { nombre: string; monto: number }[] = [];
   let totalDescuento = 0;
 
-  for (const desc of config.descuentos) {
-    if (!descuentosSeleccionados.includes(desc.id)) continue;
+  for (const desc of descuentos) {
     const monto = desc.tipo === "porcentaje"
       ? Math.round(precio_base * (desc.valor / 100))
       : desc.valor;
@@ -91,6 +90,9 @@ export function calcularCotizacion(
   // Calculate phases on precio_total (includes complementos if any)
   const fases: FaseResultado[] = [];
   let acumulado = 0;
+  // Separación always forms part of the cuota inicial — deduct once from the first % phase
+  const shouldDeductSeparacion = effectiveFases[0]?.tipo === "fijo" && effectiveFases.length > 1;
+  let separacionDeducted = false;
 
   for (const fase of effectiveFases) {
     let monto_total: number;
@@ -109,16 +111,16 @@ export function calcularCotizacion(
         monto_total = 0;
     }
 
-    // If separación is included in cuota inicial, subtract it
+    // Separación is always part of cuota inicial — subtract from the first % phase only
     if (
-      config.separacion_incluida_en_inicial &&
+      shouldDeductSeparacion &&
+      !separacionDeducted &&
       fase.tipo === "porcentaje" &&
-      fases.length > 0 &&
-      effectiveFases[0]?.tipo === "fijo"
+      fases.length > 0
     ) {
-      // This is the cuota inicial phase (first % phase after a fixed separación)
       const separacionMonto = fases[0].monto_total;
       monto_total = Math.max(0, monto_total - separacionMonto);
+      separacionDeducted = true;
     }
 
     const cuotas = Math.max(1, fase.cuotas);

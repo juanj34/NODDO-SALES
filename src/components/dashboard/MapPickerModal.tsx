@@ -337,14 +337,14 @@ export function MapPickerModal({
             <div className="relative">
               <Search
                 size={14}
-                className="absolute left-3 top-1/2 -translate-y-1/2 text-white/30"
+                className="absolute left-3.5 top-1/2 -translate-y-1/2 text-white/30 pointer-events-none"
               />
               <input
                 type="text"
                 value={searchQuery}
                 onChange={(e) => handleSearchInput(e.target.value)}
                 placeholder={t("mapPicker.searchPlaceholder")}
-                className="w-full bg-white/5 border border-white/10 rounded-lg pl-9 pr-3 py-2 text-sm text-white placeholder:text-white/30 focus:outline-none focus:border-[rgba(184,151,58,0.5)] focus:ring-1 focus:ring-[rgba(184,151,58,0.2)] transition-colors"
+                className="w-full bg-white/5 border border-white/10 rounded-lg pl-10 pr-3 py-2 text-sm text-white placeholder:text-white/30 focus:outline-none focus:border-[rgba(184,151,58,0.5)] focus:ring-1 focus:ring-[rgba(184,151,58,0.2)] transition-colors"
               />
               {searching && (
                 <Loader2

@@ -696,7 +696,10 @@ export default function EquipoPage() {
                   </label>
 
                   <div className="space-y-1.5">
-                    <label className="flex items-center gap-2.5 cursor-pointer px-3 py-2 rounded-lg hover:bg-[var(--surface-2)] transition-colors">
+                    <label
+                      className="flex items-center gap-2.5 cursor-pointer px-3 py-2 rounded-lg hover:bg-[var(--surface-2)] transition-colors"
+                      onClick={() => setInviteAllProjects(true)}
+                    >
                       <span
                         className={cn(
                           "w-4 h-4 rounded border flex items-center justify-center transition-all shrink-0",

@@ -11,7 +11,6 @@ import {
   Lock,
   AlertCircle,
   Loader2,
-  CheckCircle,
   ArrowRight,
 } from "lucide-react";
 
@@ -26,12 +25,10 @@ export default function LoginPage() {
 }
 
 function LoginForm() {
-  const [isLogin, setIsLogin] = useState(true);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [successMsg, setSuccessMsg] = useState<string | null>(null);
   const searchParams = useSearchParams();
   const redirect = searchParams.get("redirect") || "/dashboard";
 
@@ -42,31 +39,12 @@ function LoginForm() {
     setLoading(true);
     setError(null);
 
-    if (isLogin) {
-      const { error } = await supabase.auth.signInWithPassword({
-        email,
-        password,
-      });
-      if (error) {
-        setError(error.message);
-        setLoading(false);
-        return;
-      }
-    } else {
-      const { error } = await supabase.auth.signUp({
-        email,
-        password,
-        options: {
-          emailRedirectTo: `${window.location.origin}/auth/callback?redirect=${redirect}`,
-        },
-      });
-      if (error) {
-        setError(error.message);
-        setLoading(false);
-        return;
-      }
-      setError(null);
-      setSuccessMsg("Revisa tu email para confirmar tu cuenta.");
+    const { error } = await supabase.auth.signInWithPassword({
+      email,
+      password,
+    });
+    if (error) {
+      setError(error.message);
       setLoading(false);
       return;
     }
@@ -147,9 +125,7 @@ function LoginForm() {
             />
           </Link>
           <p className="text-[var(--mk-text-tertiary)] text-xs mt-4 tracking-wide font-light">
-            {isLogin
-              ? "Inicia sesion en tu cuenta"
-              : "Crea tu cuenta para comenzar"}
+            Acceso por invitacion
           </p>
         </motion.div>
 
@@ -163,29 +139,8 @@ function LoginForm() {
           <div className="relative p-8 sm:p-10">
             {/* Title */}
             <h1 className="font-heading text-2xl font-light text-[var(--mk-text-primary)] mb-6 tracking-wide">
-              {isLogin ? "Bienvenido" : "Crear cuenta"}
+              Bienvenido
             </h1>
-
-            {/* Success Message */}
-            {successMsg && (
-              <motion.div
-                initial={{ opacity: 0, y: -8 }}
-                animate={{ opacity: 1, y: 0 }}
-                className="mb-6 p-3.5 rounded-xl flex items-start gap-2.5"
-                style={{
-                  background: "rgba(52, 211, 153, 0.08)",
-                  border: "1px solid rgba(52, 211, 153, 0.2)",
-                }}
-              >
-                <CheckCircle
-                  size={16}
-                  className="shrink-0 mt-0.5 text-emerald-400"
-                />
-                <span className="text-emerald-300 text-xs font-light leading-relaxed">
-                  {successMsg}
-                </span>
-              </motion.div>
-            )}
 
             {/* Error Message */}
             {error && (
@@ -256,7 +211,7 @@ function LoginForm() {
                 <div className="relative">
                   <Mail
                     size={14}
-                    className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[var(--mk-text-muted)]"
+                    className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[var(--mk-text-muted)] pointer-events-none"
                   />
                   <input
                     type="email"
@@ -272,12 +227,12 @@ function LoginForm() {
               {/* Password Field */}
               <div>
                 <label className="block font-ui text-[10px] text-[var(--mk-text-secondary)] mb-2 tracking-[0.15em] uppercase font-bold">
-                  {isLogin ? "Contrasena" : "Crea una contrasena"}
+                  Contrasena
                 </label>
                 <div className="relative">
                   <Lock
                     size={14}
-                    className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[var(--mk-text-muted)]"
+                    className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[var(--mk-text-muted)] pointer-events-none"
                   />
                   <input
                     type="password"
@@ -302,53 +257,31 @@ function LoginForm() {
                   <Loader2 size={15} className="animate-spin" />
                 ) : (
                   <>
-                    {isLogin ? "Iniciar Sesion" : "Crear Cuenta"}
+                    Iniciar Sesion
                     <ArrowRight size={14} />
                   </>
                 )}
               </button>
 
               {/* Forgot Password Link */}
-              {isLogin && (
-                <div className="text-center mt-3">
-                  <Link
-                    href="/recuperar"
-                    className="text-[11px] font-light text-[var(--mk-text-muted)] hover:text-[var(--mk-accent)] transition-colors"
-                  >
-                    Olvidaste tu contrasena?
-                  </Link>
-                </div>
-              )}
+              <div className="text-center mt-3">
+                <Link
+                  href="/recuperar"
+                  className="text-[11px] font-light text-[var(--mk-text-muted)] hover:text-[var(--mk-accent)] transition-colors"
+                >
+                  Olvidaste tu contrasena?
+                </Link>
+              </div>
             </form>
           </div>
         </motion.div>
-
-        {/* Toggle Link */}
-        <motion.p
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.3 }}
-          className="text-center mt-8 text-xs font-light text-[var(--mk-text-tertiary)]"
-        >
-          {isLogin ? "No tienes cuenta?" : "Ya tienes cuenta?"}{" "}
-          <button
-            onClick={() => {
-              setIsLogin(!isLogin);
-              setError(null);
-              setSuccessMsg(null);
-            }}
-            className="text-[var(--mk-accent)] hover:text-[var(--mk-accent-light)] transition-colors cursor-pointer font-medium"
-          >
-            {isLogin ? "Registrate" : "Inicia sesion"}
-          </button>
-        </motion.p>
 
         {/* Tagline */}
         <motion.p
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
-          transition={{ delay: 0.4 }}
-          className="text-center mt-4 text-[10px] font-light text-[var(--mk-text-muted)]"
+          transition={{ delay: 0.3 }}
+          className="text-center mt-8 text-[10px] font-light text-[var(--mk-text-muted)]"
         >
           Micrositios premium para inmobiliarias
         </motion.p>

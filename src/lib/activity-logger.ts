@@ -43,7 +43,13 @@ function desc(params: ActivityLogParams): { es: string; en: string } {
     return { es: `Creó unidad ${m.identificador || ""} en "${p}"`, en: `Created unit ${m.identificador || ""} in "${p}"` };
   }
   if (a === "unit.update") return { es: `Actualizó unidad ${m.identificador || ""} en "${p}"`, en: `Updated unit ${m.identificador || ""} in "${p}"` };
-  if (a === "unit.state_change") return { es: `Cambió ${m.identificador} de ${m.estadoAnterior} a ${m.estadoNuevo}`, en: `Changed ${m.identificador} from ${m.estadoAnterior} to ${m.estadoNuevo}` };
+  if (a === "unit.state_change") {
+    let es = `Cambió ${m.identificador} de ${m.estadoAnterior} a ${m.estadoNuevo}`;
+    let en = `Changed ${m.identificador} from ${m.estadoAnterior} to ${m.estadoNuevo}`;
+    if (m.price_discrepancy) { es += " (precio difiere de cotización)"; en += " (price differs from quote)"; }
+    if (m.sold_without_client) { es += " (sin cliente)"; en += " (without client)"; }
+    return { es, en };
+  }
   if (a === "unit.price_change") return { es: `Cambió precio de ${m.identificador}: $${fmt(m.precioAnterior)} → $${fmt(m.precioNuevo)}`, en: `Changed price of ${m.identificador}: $${fmt(m.precioAnterior)} → $${fmt(m.precioNuevo)}` };
   if (a === "unit.delete") return { es: `Eliminó unidad ${m.identificador || ""} de "${p}"`, en: `Deleted unit ${m.identificador || ""} from "${p}"` };
   if (a === "unit.bulk_create") return { es: `Creó ${m.count} unidades en "${p}"`, en: `Created ${m.count} units in "${p}"` };

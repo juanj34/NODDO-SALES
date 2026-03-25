@@ -182,7 +182,7 @@ export function paymentRowsFromConfig(
     const section = determineSectionFromFase(fase, i);
 
     if (section === "contra_entrega" || fase.tipo === "resto") {
-      // Contra entrega → tipo_valor: "resto"
+      // Entrega → tipo_valor: "resto"
       rows.push({
         id: newRowId(),
         nombre: fase.nombre,

@@ -539,6 +539,53 @@ export async function sendCollaboratorStatusChange(data: CollaboratorStatusData)
   }
 }
 
+/* ── Admin user invite: sent by platform admin when creating a new user ── */
+
+interface AdminUserInviteData {
+  email: string;
+  plan: string;
+  locale?: EmailLocale;
+}
+
+export async function sendAdminUserInvite(data: AdminUserInviteData) {
+  const resend = getResend();
+  if (!resend) {
+    console.warn("[email] RESEND_API_KEY not configured — skipping admin user invite");
+    return;
+  }
+
+  const locale = data.locale || "es";
+  const s = getEmailStrings(locale);
+  const fromAddress = process.env.RESEND_FROM_EMAIL || "NODDO <notificaciones@noddo.io>";
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL || "https://noddo.io";
+
+  const planLabel = data.plan.charAt(0).toUpperCase() + data.plan.slice(1);
+
+  const html = emailWrapper(
+    s.adminInvite.heading,
+    undefined,
+    `<tr><td align="center" style="padding:0 40px 24px;">
+      <p style="margin:0;font-size:13px;color:#8a8580;line-height:1.7;">
+        ${t(s.adminInvite.body, { plan: planLabel })}
+      </p>
+    </td></tr>
+    ${ctaButton(appUrl + "/login", s.adminInvite.cta)}`,
+    locale,
+  );
+
+  try {
+    await resend.emails.send({
+      from: fromAddress,
+      to: data.email,
+      subject: s.adminInvite.subject,
+      html,
+      headers: { "List-Unsubscribe": "<mailto:hola@noddo.io?subject=Cancelar%20suscripcion>" },
+    });
+  } catch (err) {
+    console.error("[email] Failed to send admin user invite:", err);
+  }
+}
+
 /* ── Booking confirmation: sent to the person who booked a demo ── */
 
 interface BookingConfirmationData {
