@@ -1377,6 +1377,9 @@ export function CotizadorTool({ project, tipologias, unidadTipologias }: Cotizad
                         })()}
 
                         {(() => {
+                          // Don't show specs until a tipología is selected for multi-tipo units
+                          if (isMultiTipo && !selectedQuoteTipId) return null;
+
                           const tip = isMultiTipo ? selectedQuoteTipologia : null;
                           const area = tip ? tip.area_m2 : selectedUnit.area_m2;
                           const areaConstruida = tip ? tip.area_construida : (selectedUnit.area_construida ?? selectedUnit.tipologia?.area_construida ?? null);

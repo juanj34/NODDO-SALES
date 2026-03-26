@@ -92,9 +92,12 @@ export default function InventarioTab() {
   const [parqueaderosPrecioBase, setParqueaderosPrecioBase] = useState<number | null>(null);
   const [depositosPrecioBase, setDepositosPrecioBase] = useState<number | null>(null);
 
-  /* ── Sync from project ── */
+  const hasPendingSave = useRef(false);
+
+  /* ── Sync from project (skip if local edits are pending) ── */
   useEffect(() => {
     if (!project) return;
+    if (hasPendingSave.current) return;
     setInventoryColumns(project.inventory_columns ?? null);
     setInventoryColumnsByType(project.inventory_columns_by_type ?? null);
     setInventoryColumnsMicrosite((project as any).inventory_columns_microsite ?? null);
@@ -178,6 +181,7 @@ export default function InventarioTab() {
       parqueaderos_precio_base: parqueaderosMode === "precio_base" ? parqueaderosPrecioBase : null,
       depositos_precio_base: depositosMode === "precio_base" ? depositosPrecioBase : null,
     } as any);
+    hasPendingSave.current = false;
     if (!ok) toast.error(t("general.saveError"));
   }, [save, inventoryColumns, inventoryColumnsByType, inventoryColumnsMicrosite, inventoryColumnsMicrositeByType, ocultarVendidas, ocultarPrecioVendidas, extrasEnabled, parqueaderosMode, depositosMode, parqueaderosPrecioBase, depositosPrecioBase, toast, t]);
 
@@ -190,6 +194,7 @@ export default function InventarioTab() {
   }, [handleSave]);
 
   const scheduleAutoSave = useCallback(() => {
+    hasPendingSave.current = true;
     if (saveTimerRef.current) clearTimeout(saveTimerRef.current);
     saveTimerRef.current = setTimeout(() => handleSaveRef.current(), 1500);
   }, []);

@@ -79,10 +79,12 @@ export default function TipologiasTab() {
   /* ── State ── */
   const [tipologiaFields, setTipologiaFields] = useState<TipologiaFieldsConfig | null>(null);
   const [extrasEnabled, setExtrasEnabled] = useState<Record<string, boolean>>({});
+  const hasPendingSave = useRef(false);
 
-  /* ── Sync from project ── */
+  /* ── Sync from project (skip if local edits are pending) ── */
   useEffect(() => {
     if (!project) return;
+    if (hasPendingSave.current) return; // don't overwrite unsaved local changes
     setTipologiaFields(project.tipologia_fields ?? null);
     const extrasState: Record<string, boolean> = {};
     for (const extra of EXTRAS_CONFIG) {
@@ -109,6 +111,7 @@ export default function TipologiasTab() {
       tipologia_fields: tipologiaFields,
       ...Object.fromEntries(EXTRAS_CONFIG.map(e => [e.projectField, extrasEnabled[e.key] ?? false])),
     } as Record<string, unknown>);
+    hasPendingSave.current = false; // allow project sync again after save completes
     if (!ok) toast.error(t("general.saveError"));
   }, [save, tipologiaFields, extrasEnabled, toast, t]);
 
@@ -121,6 +124,7 @@ export default function TipologiasTab() {
   }, [handleSave]);
 
   const scheduleAutoSave = useCallback(() => {
+    hasPendingSave.current = true; // mark as dirty — block project sync
     if (saveTimerRef.current) clearTimeout(saveTimerRef.current);
     saveTimerRef.current = setTimeout(() => handleSaveRef.current(), 1500);
   }, []);

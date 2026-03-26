@@ -72,8 +72,11 @@ export default function MicrositeTab() {
     project.agent_mode_config ?? defaultAgentConfig
   );
 
-  // Sync from project on external change
+  const hasPendingSave = useRef(false);
+
+  // Sync from project on external change (skip if local edits are pending)
   useEffect(() => {
+    if (hasPendingSave.current) return;
     setVisibility(getEffectiveVisibility(project.secciones_visibles));
     setHideNoddoBadge(project?.hide_noddo_badge ?? false);
     setAgentConfig(project.agent_mode_config ?? defaultAgentConfig);
@@ -94,6 +97,7 @@ export default function MicrositeTab() {
       hide_noddo_badge: hideNoddoBadge,
       agent_mode_config: agentConfig,
     } as any);
+    hasPendingSave.current = false;
     if (!ok) toast.error(t("general.saveError"));
   }, [save, visibility, hideNoddoBadge, agentConfig, toast, t]);
 
@@ -106,6 +110,7 @@ export default function MicrositeTab() {
   }, [handleSave]);
 
   const scheduleAutoSave = useCallback(() => {
+    hasPendingSave.current = true;
     if (saveTimerRef.current) clearTimeout(saveTimerRef.current);
     saveTimerRef.current = setTimeout(() => handleSaveRef.current(), 1500);
   }, []);

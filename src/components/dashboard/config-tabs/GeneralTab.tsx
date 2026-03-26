@@ -34,9 +34,12 @@ export default function GeneralTab() {
   const [unitPrefix, setUnitPrefix] = useState("");
   const [whatsappNumero, setWhatsappNumero] = useState("");
 
-  /* ── Sync from project ── */
+  const hasPendingSave = useRef(false);
+
+  /* ── Sync from project (skip if local edits are pending) ── */
   useEffect(() => {
     if (!project) return;
+    if (hasPendingSave.current) return;
     setSlug(project.slug || "");
     setTipoProyecto(project.tipo_proyecto || "hibrido");
     setTipologiaMode(project.tipologia_mode || "fija");
@@ -57,6 +60,7 @@ export default function GeneralTab() {
       unidad_display_prefix: unitPrefix || null,
       whatsapp_numero: whatsappNumero || null,
     } as any);
+    hasPendingSave.current = false;
     if (!ok) toast.error(t("general.saveError"));
   }, [save, slug, tipoProyecto, tipologiaMode, precioSource, etapaLabel, unitPrefix, whatsappNumero, toast, t]);
 
@@ -69,6 +73,7 @@ export default function GeneralTab() {
   }, [handleSave]);
 
   const scheduleAutoSave = useCallback(() => {
+    hasPendingSave.current = true;
     if (saveTimerRef.current) clearTimeout(saveTimerRef.current);
     saveTimerRef.current = setTimeout(() => handleSaveRef.current(), 1500);
   }, []);
