@@ -241,7 +241,7 @@ const help = {
       description:
         "Configura fases de pago, descuentos y simulador interactivo",
       content:
-        "El cotizador te permite configurar un simulador de financiación que los visitantes de tu micrositio pueden usar para calcular cuotas y plan de pagos. Defines las fases (separación, inicial, contra entrega), descuentos aplicables y notas legales. El simulador genera PDFs descargables con el plan de pagos personalizado.",
+        "El cotizador te permite configurar un simulador de financiación que los visitantes de tu micrositio pueden usar para calcular cuotas y plan de pagos. Defines las fases (separación, inicial, entrega), descuentos aplicables y notas legales. El simulador genera PDFs descargables con el plan de pagos personalizado.",
       steps: [
         "En el editor, accede a la pestaña «Cotizador».",
         "Selecciona la moneda de tu proyecto (COP, USD, MXN).",

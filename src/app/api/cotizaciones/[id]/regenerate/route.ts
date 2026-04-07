@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getAuthContext } from "@/lib/auth-context";
 import { createClient } from "@supabase/supabase-js";
 import { calcularCotizacion } from "@/lib/cotizador/calcular";
-import { generarPDF } from "@/lib/cotizador/generar-pdf";
+import { generarPDF } from "@/lib/cotizador/pdf-react/render";
 import type { CotizadorConfig } from "@/types";
 import type { EmailLocale } from "@/lib/email-i18n";
 import sharp from "sharp";
@@ -73,7 +73,8 @@ export async function POST(
         proyectos(
           id, nombre, constructora_nombre, constructora_logo_url, logo_url, color_primario,
           cotizador_config, user_id, render_principal_url, tour_360_url,
-          whatsapp_numero, disclaimer, unidad_medida_base, idioma
+          whatsapp_numero, disclaimer, unidad_medida_base, idioma, ubicacion_direccion,
+          estado_construccion
         )
       `)
       .eq("id", id)
@@ -131,11 +132,15 @@ export async function POST(
       tipologiaRenders[0] ||
       null;
 
+    // Use PDF-specific logos if available, fallback to regular logos
+    const constructoraLogoUrl = config.pdf_logo_constructora_url || cotizacion.proyectos.constructora_logo_url;
+    const projectLogoUrl = config.pdf_logo_proyecto_url || cotizacion.proyectos.logo_url;
+
     // Fetch images in parallel
     const [coverImage, logoImage, projectLogoImage, planoImage, keyPlanImage] = await Promise.all([
       fetchImageAsBase64(coverUrl),
-      fetchImageAsBase64(cotizacion.proyectos.constructora_logo_url),
-      fetchImageAsBase64(cotizacion.proyectos.logo_url),
+      fetchImageAsBase64(constructoraLogoUrl),
+      fetchImageAsBase64(projectLogoUrl),
       fetchImageAsBase64(tipologiaPlanoUrl),
       fetchImageAsBase64(tipologiaUbicacionPlanoUrl),
     ]);
@@ -147,7 +152,7 @@ export async function POST(
     const fecha = now.toLocaleDateString(dateIntlLocale, { day: "numeric", month: "long", year: "numeric" });
     const refNumber = `COT-${now.getFullYear()}-${id.slice(0, 4).toUpperCase()}`;
 
-    const pdfBuffer = generarPDF({
+    const pdfBuffer = await generarPDF({
       projectName: cotizacion.proyectos.nombre,
       constructoraName: cotizacion.proyectos.constructora_nombre,
       colorPrimario: cotizacion.proyectos.color_primario,
@@ -209,6 +214,8 @@ export async function POST(
       pdfTheme: config.pdf_theme ?? "neutral",
       pisoLabel: snapshot.piso != null ? (projectLocale === "en" ? `Floor ${snapshot.piso}` : `Piso ${snapshot.piso}`) : null,
       idioma: projectLocale,
+      ubicacionDireccion: cotizacion.proyectos.ubicacion_direccion ?? null,
+      estadoConstruccion: cotizacion.proyectos.estado_construccion ?? "sobre_planos",
     });
 
     // Upload new PDF

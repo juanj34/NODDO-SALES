@@ -773,6 +773,8 @@ export interface FaseConfig {
   cuotas: number;
   frecuencia: "unica" | "mensual" | "bimestral" | "trimestral";
   fecha?: string;
+  /** Milestone condition text (e.g. "Al 50% de avance constructivo") */
+  condicion_hito?: string;
 }
 
 export interface DescuentoConfig {
@@ -782,18 +784,38 @@ export interface DescuentoConfig {
   valor: number;
 }
 
+/** @deprecated Use CargoAdicional instead */
 export interface ImpuestoConfig {
   id: string;
   nombre: string;
   porcentaje: number;
 }
 
+export interface CargoAdicional {
+  id: string;
+  nombre: string;
+  tipo: "porcentaje" | "fijo";
+  valor: number;
+}
+
+/* ── Construction Milestones ── */
+
+export interface HitoConstructivo {
+  id: string;
+  nombre: string;
+  nombre_en?: string;
+  orden: number;
+  fecha_estimada?: string;
+}
+
 /* ── Payment Plan Templates ── */
 
 export interface ReglaFecha {
-  tipo: "al_reservar" | "meses_desde_reserva" | "al_completar";
+  tipo: "al_reservar" | "meses_desde_reserva" | "al_completar" | "al_avance";
   /** Only used when tipo === "meses_desde_reserva" */
   meses?: number;
+  /** Only used when tipo === "al_avance" — e.g. 50 means "at 50% construction progress" */
+  porcentaje_avance?: number;
 }
 
 export interface PlantillaPagoFila {
@@ -807,9 +829,34 @@ export interface PlantillaPagoFila {
 export interface PlantillaPago {
   id: string;
   nombre: string;
+  titulo?: string;
   filas: PlantillaPagoFila[];
   es_default?: boolean;
   created_at?: string;
+  quick_def?: PlantillaQuickDef;
+  // ── Per-plantilla config (overrides project-level CotizadorConfig) ──
+  moneda?: string;
+  separacion_incluida_en_inicial?: boolean;
+  cargos_adicionales?: CargoAdicional[];
+  /** @deprecated Use cargos_adicionales */
+  impuestos?: ImpuestoConfig[];
+  /** @deprecated Use cargos_adicionales */
+  admin_fee?: number;
+  /** @deprecated Use cargos_adicionales */
+  admin_fee_label?: string;
+  tipo_entrega?: "fecha_fija" | "plazo_desde_compra" | null;
+  fecha_estimada_entrega?: string;
+  plazo_entrega_meses?: number;
+  notas_legales?: string | null;
+  habilitada_micrositio?: boolean;
+}
+
+export interface PlantillaQuickDef {
+  porcentaje_inicial: number;
+  cuotas: number;
+  frecuencia: "mensual" | "bimestral" | "trimestral";
+  incluye_separacion: boolean;
+  separacion_monto?: number;
 }
 
 export interface CotizadorConfig {
@@ -826,10 +873,16 @@ export interface CotizadorConfig {
   // PDF style options
   pdf_cover_style?: "hero" | "minimalista";
   pdf_theme?: "dark" | "neutral";
+  // PDF-specific logos (dark versions for white PDF pages)
+  pdf_logo_constructora_url?: string | null;
+  pdf_logo_proyecto_url?: string | null;
   // Payment plan header
   payment_plan_nombre?: string;
-  // Admin fee (flat fee shown separately in PDF)
+  // Unified additional charges (taxes, fees — replaces admin_fee + impuestos)
+  cargos_adicionales?: CargoAdicional[];
+  /** @deprecated Use cargos_adicionales */
   admin_fee?: number;
+  /** @deprecated Use cargos_adicionales */
   admin_fee_label?: string;
   // Delivery configuration
   /** Delivery model: fixed date (buildings) or term from purchase (houses/lots) */
@@ -839,10 +892,12 @@ export interface CotizadorConfig {
   // Microsite payment plan page
   /** Background image URL for the payment plan page (low opacity behind cards) */
   plan_pago_bg_url?: string;
-  // Taxes / fees (DLD, registration, VAT, etc.)
+  /** @deprecated Use cargos_adicionales */
   impuestos?: ImpuestoConfig[];
   // Reusable payment plan templates
   plantillas_pago?: PlantillaPago[];
+  // Construction milestones for anchoring payment phases
+  hitos_constructivos?: HitoConstructivo[];
 }
 
 /* -- Email Configuration -- */
@@ -874,6 +929,8 @@ export interface FaseResultado {
   frecuencia: string;
   fecha?: string;
   porcentaje?: number;
+  /** Milestone condition text (e.g. "Al completar estructura") */
+  condicion_hito?: string;
 }
 
 export interface ResultadoCotizacion {
@@ -884,10 +941,16 @@ export interface ResultadoCotizacion {
   complementos?: ComplementoSeleccion[];
   complementos_total?: number;
   precio_total?: number;
+  // Unified additional charges applied
+  cargos_aplicados?: { nombre: string; monto: number; tipo: "porcentaje" | "fijo"; porcentaje?: number }[];
+  cargos_total?: number;
+  /** @deprecated Use cargos_aplicados */
   admin_fee?: number;
+  /** @deprecated Use cargos_aplicados */
   admin_fee_label?: string;
-  // Taxes / fees
+  /** @deprecated Use cargos_aplicados */
   impuestos_aplicados?: { nombre: string; monto: number; porcentaje: number }[];
+  /** @deprecated Use cargos_aplicados */
   impuestos_total?: number;
   /** Computed delivery date (ISO string) when tipo_entrega is configured */
   fecha_entrega_calculada?: string;
@@ -1146,6 +1209,7 @@ export interface ProjectForCotizador {
   habilitar_extra_rooftop?: boolean;
   politica_amoblado?: "incluido" | "opcional" | "no";
   precio_amoblado?: number | null;
+  idioma?: string | null;
 }
 
 export type Plan = "proyecto" | "studio" | "enterprise";

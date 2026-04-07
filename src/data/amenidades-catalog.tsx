@@ -1,5 +1,23 @@
 import type { LucideProps } from "lucide-react";
-import * as LucideIcons from "lucide-react";
+import {
+  Anchor, Armchair, ArrowUpDown, ArrowUpFromLine,
+  Baby, Bath, BedDouble, BellRing, Bike, BookOpen, Brain, Briefcase,
+  Cake, Car, Castle, ChefHat, Church, Circle, CircleDot, Cloud, CloudFog, CloudSun,
+  Dog, DoorOpen, Droplets, Dumbbell,
+  Eye,
+  Film, Flag, Flame, Footprints,
+  Gamepad2, GlassWater, GraduationCap,
+  Hand, Heart,
+  Laptop,
+  MapPin, Mic, Moon, Mountain, Music,
+  Package, PartyPopper, PawPrint, PersonStanding, Plane, PlugZap, Presentation, Puzzle,
+  Route,
+  Scissors, Shield, Smartphone, Sparkles, Sprout, Square, Sun, Swords,
+  TableProperties, Target, Tent, Thermometer, TreePine,
+  Umbrella, Users, UtensilsCrossed,
+  Warehouse, WashingMachine, Waves, Wifi, Wind, Wine,
+  Zap,
+} from "lucide-react";
 
 /* ══════════════════════════════════════════════════════════════════
    Amenidades Catalog — 85+ predefined real estate amenities
@@ -22,11 +40,28 @@ export interface AmenidadItem {
 
 /* ── Dynamic Icon Component ──────────────────────────────────────── */
 
-const iconMap = LucideIcons as unknown as Record<string, React.ComponentType<LucideProps>>;
+const ICON_MAP: Record<string, React.ComponentType<LucideProps>> = {
+  Anchor, Armchair, ArrowUpDown, ArrowUpFromLine,
+  Baby, Bath, BedDouble, BellRing, Bike, BookOpen, Brain, Briefcase,
+  Cake, Car, Castle, ChefHat, Church, Circle, CircleDot, Cloud, CloudFog, CloudSun,
+  Dog, DoorOpen, Droplets, Dumbbell,
+  Eye,
+  Film, Flag, Flame, Footprints,
+  Gamepad2, GlassWater, GraduationCap,
+  Hand, Heart,
+  Laptop,
+  MapPin, Mic, Moon, Mountain, Music,
+  Package, PartyPopper, PawPrint, PersonStanding, Plane, PlugZap, Presentation, Puzzle,
+  Route,
+  Scissors, Shield, Smartphone, Sparkles, Sprout, Square, Sun, Swords,
+  TableProperties, Target, Tent, Thermometer, TreePine,
+  Umbrella, Users, UtensilsCrossed,
+  Warehouse, WashingMachine, Waves, Wifi, Wind, Wine,
+  Zap,
+};
 
 export function DynamicIcon({ name, ...props }: { name: string } & LucideProps) {
-  const Icon = iconMap[name];
-  if (!Icon) return <LucideIcons.CircleDot {...props} />;
+  const Icon = ICON_MAP[name] ?? CircleDot;
   return <Icon {...props} />;
 }
 

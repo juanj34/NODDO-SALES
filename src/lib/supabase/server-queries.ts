@@ -87,23 +87,30 @@ export async function getProyectoById(
     supabase.from("unidad_tipologias").select("*").eq("proyecto_id", id),
   ]);
 
-  // Load images for each category
-  const categoriasConImagenes: GaleriaCategoria[] = await Promise.all(
-    (categorias || []).map(async (cat) => {
-      const { data: imagenes } = await supabase
-        .from("galeria_imagenes")
-        .select("*")
-        .eq("categoria_id", cat.id)
-        .order("orden");
-      return { ...cat, imagenes: imagenes || [] };
-    })
-  );
-
-  // Load plano puntos
+  // Fetch gallery images + plano puntos in parallel (avoids N+1 and waterfall)
+  const catIds = (categorias || []).map((c: { id: string }) => c.id);
   const planoIds = (planos || []).map((p: { id: string }) => p.id);
-  const { data: planoPuntos } = planoIds.length > 0
-    ? await supabase.from("plano_puntos").select("*").in("plano_id", planoIds).order("orden")
-    : { data: [] };
+
+  const [{ data: allImages }, { data: planoPuntos }] = await Promise.all([
+    catIds.length > 0
+      ? supabase.from("galeria_imagenes").select("*").in("categoria_id", catIds).order("orden")
+      : Promise.resolve({ data: [] }),
+    planoIds.length > 0
+      ? supabase.from("plano_puntos").select("*").in("plano_id", planoIds).order("orden")
+      : Promise.resolve({ data: [] }),
+  ]);
+
+  const imgs = allImages || [];
+  const imagesByCategory: Record<string, typeof imgs> = {};
+  imgs.forEach((img: { categoria_id: string }) => {
+    if (!imagesByCategory[img.categoria_id]) imagesByCategory[img.categoria_id] = [];
+    imagesByCategory[img.categoria_id].push(img);
+  });
+
+  const categoriasConImagenes: GaleriaCategoria[] = (categorias || []).map((cat) => ({
+    ...cat,
+    imagenes: imagesByCategory[cat.id] || [],
+  }));
 
   return {
     ...proyecto,

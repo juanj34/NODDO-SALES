@@ -2,20 +2,20 @@
 
 import { useState } from "react";
 import { useEditorProject } from "@/hooks/useEditorProject";
-import { CreditCard, Sparkles, FileText } from "lucide-react";
+import { LayoutTemplate, Sparkles, FileText } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { CotizadorSandbox } from "@/components/dashboard/cotizador/CotizadorSandbox";
+import { PlantillasTab } from "@/components/dashboard/cotizador/PlantillasTab";
 import { CotizadorPdfSettings } from "@/components/dashboard/cotizador/CotizadorPdfSettings";
 import { ComplementosSection } from "@/components/dashboard/ComplementosSection";
 
-type SettingsTab = "plan" | "addons" | "pdf";
+type SettingsTab = "plantillas" | "addons" | "pdf";
 
 export default function CotizadorTab() {
   const { project, refresh } = useEditorProject();
-  const [activeTab, setActiveTab] = useState<SettingsTab>("plan");
+  const [activeTab, setActiveTab] = useState<SettingsTab>("plantillas");
 
   const tabs: { id: SettingsTab; label: string; icon: React.ComponentType<{ size?: number; className?: string }> }[] = [
-    { id: "plan", label: "Plan de pagos", icon: CreditCard },
+    { id: "plantillas", label: "Plantillas", icon: LayoutTemplate },
     { id: "addons", label: "Addons", icon: Sparkles },
     { id: "pdf", label: "PDF", icon: FileText },
   ];
@@ -47,8 +47,8 @@ export default function CotizadorTab() {
       </div>
 
       {/* Sub-tab Content */}
-      {activeTab === "plan" && (
-        <CotizadorSandbox hidePdfOptions />
+      {activeTab === "plantillas" && (
+        <PlantillasTab />
       )}
 
       {activeTab === "addons" && (

@@ -533,12 +533,11 @@ export default function EditorLayout({
   } | null>(null);
 
   useEffect(() => {
-    if (!project) return;
     fetch(`/api/proyectos/${id}/storage`)
       .then((r) => (r.ok ? r.json() : null))
       .then((d) => { if (d) setStorageData(d); })
       .catch(() => {});
-  }, [id, project]);
+  }, [id]);
 
   /* ---- "Saved" indicator ---- */
   const [showSaved, setShowSaved] = useState(false);

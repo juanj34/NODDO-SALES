@@ -73,7 +73,7 @@ export async function GET(
       );
     }
 
-    // Fetch related data
+    // Fetch related data in parallel
     const [
       { data: tipologias },
       { data: categorias },
@@ -87,6 +87,7 @@ export async function GET(
       { data: avancesObra },
       { data: complementos },
       { data: unidadTipologias },
+      { data: vistasPiso },
     ] = await Promise.all([
       auth.supabase.from("tipologias").select("*").eq("proyecto_id", id).order("orden"),
       auth.supabase.from("galeria_categorias").select("*").eq("proyecto_id", id).order("orden"),
@@ -100,17 +101,21 @@ export async function GET(
       auth.supabase.from("avances_obra").select("*").eq("proyecto_id", id).order("orden"),
       auth.supabase.from("complementos").select("*").eq("proyecto_id", id).order("orden"),
       auth.supabase.from("unidad_tipologias").select("*").eq("proyecto_id", id),
+      auth.supabase.from("vistas_piso").select("*").eq("proyecto_id", id).order("orden"),
     ]);
 
-    // Fetch all gallery images in a single query (avoids N+1)
+    // Fetch gallery images + plano puntos in parallel (both depend on IDs from above)
     const catIds = (categorias || []).map((c) => c.id);
-    const { data: allImages } = catIds.length > 0
-      ? await auth.supabase
-          .from("galeria_imagenes")
-          .select("*")
-          .in("categoria_id", catIds)
-          .order("orden")
-      : { data: [] };
+    const planoIds = (planos || []).map((p: { id: string }) => p.id);
+
+    const [{ data: allImages }, { data: planoPuntos }] = await Promise.all([
+      catIds.length > 0
+        ? auth.supabase.from("galeria_imagenes").select("*").in("categoria_id", catIds).order("orden")
+        : Promise.resolve({ data: [] }),
+      planoIds.length > 0
+        ? auth.supabase.from("plano_puntos").select("*").in("plano_id", planoIds).order("orden")
+        : Promise.resolve({ data: [] }),
+    ]);
 
     const imgs = allImages || [];
     const imagesByCategory: Record<string, typeof imgs> = {};
@@ -123,12 +128,6 @@ export async function GET(
       ...cat,
       imagenes: imagesByCategory[cat.id] || [],
     }));
-
-    // Fetch plano puntos
-    const planoIds = (planos || []).map((p: { id: string }) => p.id);
-    const { data: planoPuntos } = planoIds.length > 0
-      ? await auth.supabase.from("plano_puntos").select("*").in("plano_id", planoIds).order("orden")
-      : { data: [] };
 
     return NextResponse.json({
       ...proyecto,
@@ -145,6 +144,7 @@ export async function GET(
       avances_obra: avancesObra || [],
       complementos: complementos || [],
       unidad_tipologias: unidadTipologias || [],
+      vistas_piso: vistasPiso || [],
     });
   } catch (err) {
     return NextResponse.json(

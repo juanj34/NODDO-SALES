@@ -1,5 +1,5 @@
 import jsPDF from "jspdf";
-import type { ResultadoCotizacion, CotizadorConfig, Currency, ComplementoSeleccion } from "@/types";
+import type { ResultadoCotizacion, CotizadorConfig, Currency, ComplementoSeleccion, HitoConstructivo } from "@/types";
 import { formatCurrency } from "@/lib/currency";
 import type { EmailLocale } from "@/lib/email-i18n";
 import { registerFonts, FONT } from "./pdf-fonts";
@@ -79,6 +79,7 @@ export interface PDFData {
   pdfSaludo: string | null;
   pdfDespedida: string | null;
   fechaEstimadaEntrega: string | null;
+  ubicacionDireccion?: string | null;
   // Delivery type info
   tipoEntrega?: "fecha_fija" | "plazo_desde_compra" | null;
   mesesRestantes?: number | null;
@@ -90,12 +91,19 @@ export interface PDFData {
   idioma?: EmailLocale;
   // Payment plan header
   paymentPlanNombre?: string | null;
-  // Admin fee
+  /** @deprecated Cargos are now in resultado.cargos_aplicados */
   adminFee?: number | null;
+  /** @deprecated Cargos are now in resultado.cargos_aplicados */
   adminFeeLabel?: string | null;
   // Project characteristics
   estadoConstruccion?: "sobre_planos" | "en_construccion" | "entregado" | null;
   amoblado?: boolean;
+  // Multi-currency display (per-cotización)
+  monedaSecundaria?: Currency | null;
+  /** Exchange rate: 1 unit of primary = tipoCambio units of secondary */
+  tipoCambio?: number | null;
+  // Construction milestones
+  hitosConstructivos?: HitoConstructivo[];
 }
 
 /* ── Helpers ── */
@@ -235,6 +243,8 @@ interface PDFStrings {
   keyPlan: string;
   keyPlanDisclaimer: string;
   nthFloor: string;
+  equivalentIn: string;
+  condition: string;
 }
 
 const PDF_STRINGS: Record<EmailLocale, PDFStrings> = {
@@ -289,7 +299,7 @@ const PDF_STRINGS: Record<EmailLocale, PDFStrings> = {
     defaultClosing: "Cordialmente,",
     virtualTour: "RECORRIDO VIRTUAL",
     virtualTourDesc: "Descubra el interior de su unidad {unit} a través de nuestro recorrido virtual interactivo. Haga clic en el siguiente enlace para explorar cada detalle de su futuro hogar.",
-    viewTour: "Ver Recorrido Virtual →",
+    viewTour: "Ver Recorrido Virtual",
     contact: "CONTACTO",
     contactDesc: "Escríbanos por WhatsApp para agendar una visita o resolver sus dudas:",
     legalNotice: "AVISO LEGAL",
@@ -300,6 +310,8 @@ const PDF_STRINGS: Record<EmailLocale, PDFStrings> = {
     keyPlan: "UBICACIÓN EN EDIFICIO",
     keyPlanDisclaimer: "La ubicación mostrada es aproximada e ilustrativa. Las dimensiones pueden variar según piso y orientación.",
     nthFloor: "Piso {n}",
+    equivalentIn: "Equivalente en",
+    condition: "Condición",
   },
   en: {
     quotation: "QUOTATION",
@@ -352,7 +364,7 @@ const PDF_STRINGS: Record<EmailLocale, PDFStrings> = {
     defaultClosing: "Best regards,",
     virtualTour: "VIRTUAL TOUR",
     virtualTourDesc: "Discover the interior of unit {unit} through our interactive virtual tour. Click the link below to explore every detail of your future home.",
-    viewTour: "View Virtual Tour →",
+    viewTour: "View Virtual Tour",
     contact: "CONTACT",
     contactDesc: "Reach out via WhatsApp to schedule a visit or ask any questions:",
     legalNotice: "LEGAL NOTICE",
@@ -363,6 +375,8 @@ const PDF_STRINGS: Record<EmailLocale, PDFStrings> = {
     keyPlan: "KEY PLAN",
     keyPlanDisclaimer: "The location shown is approximate and illustrative. Dimensions may vary by floor and orientation.",
     nthFloor: "Floor {n}",
+    equivalentIn: "Equivalent in",
+    condition: "Condition",
   },
 };
 
@@ -538,11 +552,11 @@ function drawCoverHero(doc: jsPDF, data: PDFData, accent: RGB, strings: PDFStrin
   doc.setFillColor(accent[0], accent[1], accent[2]);
   doc.rect(0, 0, pageW, 3.5, "F");
 
-  // Constructora logo — subtle light pill for visibility on photo bg
+  // Constructora logo — visible white pill on photo bg
   if (data.constructoraLogoBase64 && data.constructoraLogoFormat) {
     try {
       doc.setFillColor(255, 255, 255);
-      doc.setGState(new (doc as unknown as { GState: new (opts: { opacity: number }) => unknown }).GState({ opacity: 0.15 }));
+      doc.setGState(new (doc as unknown as { GState: new (opts: { opacity: number }) => unknown }).GState({ opacity: 0.92 }));
       doc.roundedRect(18, 8, 38, 20, 3, 3, "F");
       doc.setGState(new (doc as unknown as { GState: new (opts: { opacity: number }) => unknown }).GState({ opacity: 1 }));
       doc.addImage(data.constructoraLogoBase64, data.constructoraLogoFormat, 22, 12, 30, 12);
@@ -724,12 +738,13 @@ function drawOfferPage(doc: jsPDF, data: PDFData, accent: RGB, accentLight: RGB,
 
   y += titleBlockH + 6;
 
-  // ── Reference No + Date ──
+  // ── Reference + Date ──
   doc.setFontSize(7.5);
   doc.setFont(FONT.MONO, "normal");
   doc.setTextColor(theme.textMuted[0], theme.textMuted[1], theme.textMuted[2]);
-  doc.text(`Reference No: ${data.referenceNumber}`, margin, y);
-  doc.text(`Date: ${data.fecha}`, pageW - margin, y, { align: "right" });
+  doc.text(`Ref: ${data.referenceNumber}`, margin, y);
+  const dateLabel = locale === "en" ? "Date:" : "Fecha:";
+  doc.text(`${dateLabel} ${data.fecha}`, pageW - margin, y, { align: "right" });
 
   y += 3;
   doc.setDrawColor(accent[0], accent[1], accent[2]);
@@ -738,7 +753,7 @@ function drawOfferPage(doc: jsPDF, data: PDFData, accent: RGB, accentLight: RGB,
   y += 5;
 
   // ── PROJECT DETAILS ──
-  const pDetailsLabel = locale === "en" ? "PROJECTS DETAILS" : "DETALLES DEL PROYECTO";
+  const pDetailsLabel = locale === "en" ? "PROJECT DETAILS" : "DETALLES DEL PROYECTO";
   y = drawSectionLabel(doc, pDetailsLabel, margin, y, accent, contentW, theme);
 
   const gridX = margin;
@@ -748,18 +763,21 @@ function drawOfferPage(doc: jsPDF, data: PDFData, accent: RGB, accentLight: RGB,
 
   // Project info grid (2 columns)
   const projPairs: [string, string][] = [
-    [locale === "en" ? "Project Name:" : "Proyecto:", `${data.projectName}${data.constructoraName ? ` by ${data.constructoraName}` : ""}`],
-    [locale === "en" ? "Location:" : "Ubicación:", data.config.fecha_estimada_entrega ? "—" : "—"],
+    [locale === "en" ? "Project:" : "Proyecto:", `${data.projectName}${data.constructoraName ? ` by ${data.constructoraName}` : ""}`],
   ];
+  // Ubicación — only show if we have data
+  if (data.ubicacionDireccion) {
+    projPairs.push([locale === "en" ? "Location:" : "Ubicación:", data.ubicacionDireccion]);
+  }
   const statusLabels: Record<string, Record<string, string>> = {
     sobre_planos: { es: "Sobre planos", en: "Off-Plan" },
     en_construccion: { es: "En construcción", en: "Under Construction" },
     entregado: { es: "Entregado", en: "Completed" },
   };
   const statusKey = data.estadoConstruccion || "sobre_planos";
-  projPairs.push([locale === "en" ? "Project Status:" : "Estado:", statusLabels[statusKey]?.[locale] ?? statusLabels.sobre_planos[locale]]);
+  projPairs.push([locale === "en" ? "Status:" : "Estado:", statusLabels[statusKey]?.[locale] ?? statusLabels.sobre_planos[locale]]);
   if (data.fechaEstimadaEntrega) {
-    projPairs[1] = [locale === "en" ? "Estimated Completion Date:" : "Fecha estimada de entrega:", data.fechaEstimadaEntrega];
+    projPairs.push([locale === "en" ? "Estimated delivery:" : "Entrega estimada:", data.fechaEstimadaEntrega]);
   }
 
   const projRows = Math.ceil(projPairs.length / 2);
@@ -784,84 +802,85 @@ function drawOfferPage(doc: jsPDF, data: PDFData, accent: RGB, accentLight: RGB,
     doc.setFontSize(9);
     doc.setFont(FONT.MONO, "normal");
     doc.setTextColor(theme.text[0], theme.text[1], theme.text[2]);
-    doc.text(projPairs[i][1], cellX + colW - 12, cellY, { align: "right" });
+    // Truncate long values to fit in column
+    const maxValW = colW - 18;
+    const valText = projPairs[i][1];
+    const truncated = doc.getTextWidth(valText) > maxValW
+      ? doc.splitTextToSize(valText, maxValW)[0]
+      : valText;
+    doc.text(truncated, cellX + colW - 12, cellY, { align: "right" });
   }
 
   y += projGridH + 3;
 
-  // ── PROPERTY DETAILS & SIZING DETAILS ──
-  const propLabel = locale === "en" ? "PROPERTY DETAILS & SIZING DETAILS" : "DETALLES DE LA PROPIEDAD";
+  // ── PROPERTY DETAILS ──
+  const propLabel = locale === "en" ? "PROPERTY DETAILS" : "DETALLES DE LA PROPIEDAD";
   y = drawSectionLabel(doc, propLabel, margin, y, accent, contentW, theme);
 
-  // Build left and right columns
-  const leftPairs: [string, string][] = [];
-  if (data.tipologiaName) leftPairs.push([locale === "en" ? "Unit Type:" : "Tipología:", data.tipologiaName]);
-  leftPairs.push([locale === "en" ? "Unit No:" : "Unidad:", data.unidadId]);
-  if (data.piso !== null && data.piso !== undefined) leftPairs.push([strings.floor + ":", `${data.piso}`]);
-  if (data.parqueaderos) leftPairs.push([locale === "en" ? "No. of Parking:" : "Parqueaderos:", `${data.parqueaderos}`]);
-  if (data.tiene_jacuzzi || data.tiene_piscina) {
-    leftPairs.push(["Pool / Jacuzzi:", data.tiene_jacuzzi && data.tiene_piscina ? strings.yes : data.tiene_jacuzzi ? "Jacuzzi" : "Pool"]);
-  }
-  if (data.amoblado !== undefined) {
-    leftPairs.push([locale === "en" ? "Furnished:" : "Amoblado:", data.amoblado ? strings.yes : strings.no]);
-  }
+  // Build ALL property pairs into a single flat array (fills 2-col grid evenly)
+  const allPropPairs: [string, string][] = [];
+  if (data.tipologiaName) allPropPairs.push([locale === "en" ? "Type:" : "Tipología:", data.tipologiaName]);
+  allPropPairs.push([locale === "en" ? "Unit:" : "Unidad:", data.unidadId]);
+  if (data.area_construida) allPropPairs.push([strings.area_construida + ":", `${data.area_construida} ${u}`]);
+  if (data.area_privada) allPropPairs.push([strings.area_privada + ":", `${data.area_privada} ${u}`]);
+  if (data.area_lote) allPropPairs.push([strings.area_lote + ":", `${data.area_lote} ${u}`]);
+  if (data.area_m2 && !data.area_construida && !data.area_privada) allPropPairs.push([strings.area + ":", `${data.area_m2} ${u}`]);
+  if (data.habitaciones) allPropPairs.push([strings.bedrooms + ":", `${data.habitaciones}`]);
+  if (data.banos) allPropPairs.push([strings.bathrooms + ":", `${data.banos}`]);
+  if (data.piso !== null && data.piso !== undefined) allPropPairs.push([strings.floor + ":", `${data.piso}`]);
+  if (data.vista) allPropPairs.push([locale === "en" ? "View:" : "Vista:", data.vista]);
+  if (data.orientacion) allPropPairs.push([strings.orientation + ":", data.orientacion]);
+  if (data.parqueaderos) allPropPairs.push([strings.parking + ":", `${data.parqueaderos}`]);
+  if (data.depositos) allPropPairs.push([strings.storage + ":", `${data.depositos}`]);
+  // Boolean features
+  if (data.tiene_terraza) allPropPairs.push([strings.terrace + ":", strings.yes]);
+  if (data.tiene_jardin) allPropPairs.push([strings.garden + ":", strings.yes]);
+  if (data.tiene_bbq) allPropPairs.push([strings.bbq + ":", strings.yes]);
+  if (data.tiene_jacuzzi) allPropPairs.push([strings.jacuzzi + ":", strings.yes]);
+  if (data.tiene_piscina) allPropPairs.push([strings.pool + ":", strings.yes]);
+  if (data.tiene_cuarto_servicio) allPropPairs.push([strings.maidsRoom + ":", strings.yes]);
+  if (data.tiene_estudio) allPropPairs.push([strings.study + ":", strings.yes]);
+  if (data.tiene_chimenea) allPropPairs.push([strings.fireplace + ":", strings.yes]);
+  if (data.tiene_doble_altura) allPropPairs.push([strings.doubleHeight + ":", strings.yes]);
+  if (data.tiene_rooftop) allPropPairs.push([strings.rooftop + ":", strings.yes]);
+  if (data.amoblado !== undefined) allPropPairs.push([locale === "en" ? "Furnished:" : "Amoblado:", data.amoblado ? strings.yes : strings.no]);
 
-  const rightPairs: [string, string][] = [];
-  if (data.area_construida) rightPairs.push([strings.area_construida + ":", `${data.area_construida} ${u}`]);
-  if (data.area_privada) rightPairs.push([strings.area_privada + ":", `${data.area_privada} ${u}`]);
-  if (data.area_m2 && !data.area_construida) rightPairs.push([strings.area + ":", `${data.area_m2} ${u}`]);
-  if (data.habitaciones) rightPairs.push([strings.bedrooms + ":", `${data.habitaciones}`]);
-  if (data.banos) rightPairs.push([strings.bathrooms + ":", `${data.banos}`]);
-  if (data.vista) rightPairs.push([locale === "en" ? "Unit View:" : "Vista:", data.vista]);
-  if (data.orientacion) rightPairs.push([strings.orientation + ":", data.orientacion]);
-
-  const propRowCount = Math.max(leftPairs.length, rightPairs.length);
+  // Render in 2-column grid, filling left-to-right
+  const propRowCount = Math.ceil(allPropPairs.length / 2);
   const propGridH = propRowCount * cellH + 4;
   doc.setFillColor(theme.gridBg[0], theme.gridBg[1], theme.gridBg[2]);
   doc.roundedRect(gridX, y - 2, gridW, propGridH, 2, 2, "F");
   doc.setDrawColor(theme.gridBorder[0], theme.gridBorder[1], theme.gridBorder[2]);
   doc.setLineWidth(0.15);
   doc.roundedRect(gridX, y - 2, gridW, propGridH, 2, 2, "S");
-  // Vertical divider
-  doc.line(gridX + colW, y - 2, gridX + colW, y - 2 + propGridH);
-
-  // Draw left column
-  for (let i = 0; i < leftPairs.length; i++) {
-    const cellX = gridX + 6;
-    const cellY = y + i * cellH + 5;
-    doc.setFontSize(7);
-    doc.setFont(FONT.BODY, "normal");
-    doc.setTextColor(theme.textMuted[0], theme.textMuted[1], theme.textMuted[2]);
-    doc.text(leftPairs[i][0], cellX, cellY);
-    doc.setFontSize(9);
-    doc.setFont(FONT.MONO, "normal");
-    doc.setTextColor(theme.text[0], theme.text[1], theme.text[2]);
-    doc.text(leftPairs[i][1], gridX + colW - 6, cellY, { align: "right" });
-
-    if (i < leftPairs.length - 1) {
-      doc.setDrawColor(theme.gridBorder[0], theme.gridBorder[1], theme.gridBorder[2]);
-      doc.setLineWidth(0.1);
-      doc.line(gridX + 4, cellY + 4, gridX + colW - 4, cellY + 4);
-    }
+  // Vertical divider (only if we have right-column items)
+  if (allPropPairs.length > 1) {
+    doc.line(gridX + colW, y - 2, gridX + colW, y - 2 + propGridH);
   }
 
-  // Draw right column
-  for (let i = 0; i < rightPairs.length; i++) {
-    const cellX = gridX + colW + 6;
-    const cellY = y + i * cellH + 5;
+  for (let i = 0; i < allPropPairs.length; i++) {
+    const row = Math.floor(i / 2);
+    const col = i % 2;
+    const cellX = gridX + col * colW + 6;
+    const cellY = y + row * cellH + 5;
+    const cellEndX = col === 0 ? gridX + colW - 6 : pageW - margin - 6;
+
     doc.setFontSize(7);
     doc.setFont(FONT.BODY, "normal");
     doc.setTextColor(theme.textMuted[0], theme.textMuted[1], theme.textMuted[2]);
-    doc.text(rightPairs[i][0], cellX, cellY);
+    doc.text(allPropPairs[i][0], cellX, cellY);
     doc.setFontSize(9);
     doc.setFont(FONT.MONO, "normal");
     doc.setTextColor(theme.text[0], theme.text[1], theme.text[2]);
-    doc.text(rightPairs[i][1], pageW - margin - 6, cellY, { align: "right" });
+    doc.text(allPropPairs[i][1], cellEndX, cellY, { align: "right" });
 
-    if (i < rightPairs.length - 1) {
+    // Row divider within column (not on last row)
+    if (row < propRowCount - 1) {
       doc.setDrawColor(theme.gridBorder[0], theme.gridBorder[1], theme.gridBorder[2]);
       doc.setLineWidth(0.1);
-      doc.line(gridX + colW + 4, cellY + 4, pageW - margin - 4, cellY + 4);
+      const lineX1 = gridX + col * colW + 4;
+      const lineX2 = col === 0 ? gridX + colW - 4 : pageW - margin - 4;
+      doc.line(lineX1, cellY + 4, lineX2, cellY + 4);
     }
   }
 
@@ -871,8 +890,12 @@ function drawOfferPage(doc: jsPDF, data: PDFData, accent: RGB, accentLight: RGB,
   const planName = data.paymentPlanNombre || (locale === "en" ? "Payment Plan" : "Plan de Pagos");
   y = drawSectionLabel(doc, planName, margin, y, accent, contentW, theme);
 
-  // Selling Price + Admin Fee header bar
+  // Selling Price header bar
   const displayTotal = data.resultado.precio_total ?? data.resultado.precio_neto;
+  // Unified cargos (backward compat: fall back to legacy admin_fee)
+  const cargosAplicados = data.resultado.cargos_aplicados ?? [];
+  const cargosTotal = data.resultado.cargos_total ?? 0;
+  // Legacy compat for first-installment admin fee display
   const adminFee = data.adminFee ?? data.resultado.admin_fee ?? 0;
   const adminLabel = data.adminFeeLabel ?? data.resultado.admin_fee_label ?? "Admin Fee";
 
@@ -882,11 +905,19 @@ function drawOfferPage(doc: jsPDF, data: PDFData, accent: RGB, accentLight: RGB,
   doc.setLineWidth(0.15);
   doc.roundedRect(margin, y - 3, contentW, 10, 1.5, 1.5, "S");
 
+  const hasDualCurrency = !!data.monedaSecundaria && !!data.tipoCambio;
+  const secCur = data.monedaSecundaria;
+  const xRate = data.tipoCambio ?? 0;
+
   doc.setFontSize(8);
   doc.setFont(FONT.LABEL, "bold");
   doc.setTextColor(theme.text[0], theme.text[1], theme.text[2]);
   const priceLabel = locale === "en" ? "Selling Price:" : "Precio de venta:";
-  doc.text(`${priceLabel} ${formatCurrency(displayTotal, moneda)}`, margin + 6, y + 2.5);
+  let priceStr = `${priceLabel} ${formatCurrency(displayTotal, moneda)}`;
+  if (hasDualCurrency && secCur) {
+    priceStr += `  ≈ ${formatCurrency(Math.round(displayTotal * xRate), secCur)}`;
+  }
+  doc.text(priceStr, margin + 6, y + 2.5);
 
   if (adminFee > 0) {
     doc.text(`${adminLabel}: ${formatCurrency(adminFee, moneda)}`, gridX + colW + 6, y + 2.5);
@@ -915,7 +946,10 @@ function drawOfferPage(doc: jsPDF, data: PDFData, accent: RGB, accentLight: RGB,
 
   // Table rows
   data.resultado.fases.forEach((fase, i) => {
-    const rowH = 8;
+    // Increase row height when we need extra lines for dual currency or milestone condition
+    const hasCondition = !!fase.condicion_hito;
+    const needsExtraLine = hasDualCurrency || hasCondition;
+    const rowH = needsExtraLine ? 12 : 8;
 
     if (i % 2 === 0) {
       doc.setFillColor(theme.rowAlt[0], theme.rowAlt[1], theme.rowAlt[2]);
@@ -927,15 +961,19 @@ function drawOfferPage(doc: jsPDF, data: PDFData, accent: RGB, accentLight: RGB,
     doc.setLineWidth(0.4);
     doc.circle(margin + 2.5, y - 1.5, 1.2, "S");
 
-    // Description
+    // Backward compat: normalize legacy "Contra entrega" → "Entrega"
     doc.setFontSize(8.5);
     doc.setFont(FONT.BODY, "normal");
     doc.setTextColor(theme.text[0], theme.text[1], theme.text[2]);
-    let desc = fase.nombre;
+    let faseDisplayName = fase.nombre;
+    if (/contra\s*entrega/i.test(faseDisplayName)) {
+      faseDisplayName = locale === "en" ? "Delivery" : "Entrega";
+    }
+    let desc = faseDisplayName;
     // If first installment includes admin fee, note it
     if (i === 0 && adminFee > 0) {
       const pct = fase.porcentaje ?? Math.round((fase.monto_total / displayTotal) * 100);
-      desc = `${fase.nombre} (+${pct}% + ${adminLabel})`;
+      desc = `${faseDisplayName} (+${pct}% + ${adminLabel})`;
     }
     doc.text(desc, colDesc, y);
 
@@ -951,12 +989,30 @@ function drawOfferPage(doc: jsPDF, data: PDFData, accent: RGB, accentLight: RGB,
     doc.setFontSize(8);
     doc.setFont(FONT.MONO, "normal");
     doc.setTextColor(theme.textSecondary[0], theme.textSecondary[1], theme.textSecondary[2]);
-    doc.text(fase.fecha || "—", colDate, y);
+    doc.text(fase.fecha || (hasCondition ? "" : "--"), colDate, y);
+
+    // Milestone condition below date
+    if (hasCondition) {
+      doc.setFontSize(6.5);
+      doc.setFont(FONT.BODY, "italic");
+      doc.setTextColor(accent[0], accent[1], accent[2]);
+      doc.text(fase.condicion_hito!, colDate, y + 4);
+    }
 
     // Amount (include admin fee on first installment)
     const displayAmt = i === 0 && adminFee > 0 ? fase.monto_total + adminFee : fase.monto_total;
+    doc.setFontSize(8);
+    doc.setFont(FONT.MONO, "normal");
     doc.setTextColor(theme.text[0], theme.text[1], theme.text[2]);
     doc.text(formatCurrency(displayAmt, moneda), colAmt, y, { align: "right" });
+
+    // Secondary currency amount
+    if (hasDualCurrency && secCur) {
+      doc.setFontSize(6.5);
+      doc.setFont(FONT.MONO, "normal");
+      doc.setTextColor(theme.textMuted[0], theme.textMuted[1], theme.textMuted[2]);
+      doc.text(`≈ ${formatCurrency(Math.round(displayAmt * xRate), secCur)}`, colAmt, y + 4, { align: "right" });
+    }
 
     y += rowH;
 
@@ -986,15 +1042,31 @@ function drawOfferPage(doc: jsPDF, data: PDFData, accent: RGB, accentLight: RGB,
       doc.setFontSize(8.5);
       doc.setFont(FONT.BODY, "normal");
       doc.setTextColor(46, 139, 87);
-      doc.text(`↓ ${desc.nombre}`, colDesc, y);
+      doc.text(`- ${desc.nombre}`, colDesc, y);
       doc.setFont(FONT.MONO, "normal");
       doc.text(`-${formatCurrency(desc.monto, moneda)}`, colAmt, y, { align: "right" });
       y += 7;
     }
   }
 
-  // Taxes / Impuestos
-  if (data.resultado.impuestos_aplicados && data.resultado.impuestos_aplicados.length > 0) {
+  // Additional charges (taxes, fees — unified)
+  if (cargosAplicados.length > 0) {
+    y += 1;
+    for (const cargo of cargosAplicados) {
+      doc.setFontSize(8.5);
+      doc.setFont(FONT.BODY, "normal");
+      doc.setTextColor(theme.textSecondary[0], theme.textSecondary[1], theme.textSecondary[2]);
+      const label = cargo.tipo === "porcentaje" && cargo.porcentaje
+        ? `${cargo.nombre} (${cargo.porcentaje}%)`
+        : cargo.nombre;
+      doc.text(label, colDesc, y);
+      doc.setFont(FONT.MONO, "normal");
+      doc.setTextColor(theme.text[0], theme.text[1], theme.text[2]);
+      doc.text(formatCurrency(cargo.monto, moneda), colAmt, y, { align: "right" });
+      y += 7;
+    }
+  } else if (data.resultado.impuestos_aplicados && data.resultado.impuestos_aplicados.length > 0) {
+    // Legacy fallback for old data
     y += 1;
     for (const imp of data.resultado.impuestos_aplicados) {
       doc.setFontSize(8.5);
@@ -1243,7 +1315,7 @@ function drawInfoPage(doc: jsPDF, data: PDFData, accent: RGB, accentLight: RGB, 
   }
 
   // ── Buyer info recap ──
-  y = Math.max(y + 10, pageH * 0.6);
+  y = Math.max(y + 16, pageH * 0.35);
   doc.setDrawColor(theme.divider[0], theme.divider[1], theme.divider[2]);
   doc.setLineWidth(0.15);
   doc.line(margin, y, pageW - margin, y);

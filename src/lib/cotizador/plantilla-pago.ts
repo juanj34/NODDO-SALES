@@ -1,4 +1,4 @@
-import type { PlantillaPago, PlantillaPagoFila } from "@/types";
+import type { PlantillaPago, PlantillaPagoFila, PlantillaQuickDef } from "@/types";
 import type { PaymentRow } from "./payment-rows";
 import { newRowId, addMonthsToDate, formatDateDisplay, parseDateStr } from "./payment-rows";
 
@@ -12,13 +12,22 @@ export function resolveTemplate(
   const reservaDate = parseDateStr(fechaReserva);
   const entregaDate = parseDateStr(fechaEntrega);
 
-  return plantilla.filas.map((fila) => ({
-    id: newRowId(),
-    nombre: fila.nombre,
-    tipo_valor: fila.tipo_valor,
-    valor: fila.valor,
-    fecha: resolveDate(fila.regla_fecha, reservaDate, entregaDate),
-  }));
+  return plantilla.filas.map((fila) => {
+    const row: PaymentRow = {
+      id: newRowId(),
+      nombre: fila.nombre,
+      tipo_valor: fila.tipo_valor,
+      valor: fila.valor,
+      fecha: resolveDate(fila.regla_fecha, reservaDate, entregaDate),
+    };
+
+    // Attach construction progress condition if anchored to avance
+    if (fila.regla_fecha.tipo === "al_avance" && fila.regla_fecha.porcentaje_avance) {
+      row.condicion_hito = `Al ${fila.regla_fecha.porcentaje_avance}% de avance`;
+    }
+
+    return row;
+  });
 }
 
 function resolveDate(
@@ -35,6 +44,8 @@ function resolveDate(
     }
     case "al_completar":
       return entrega ? formatDateDisplay(entrega) : "";
+    case "al_avance":
+      return ""; // No concrete date — condition-based
     default:
       return "";
   }
@@ -88,4 +99,60 @@ export function templatePctTotal(plantilla: PlantillaPago): number {
   return plantilla.filas
     .filter((f) => f.tipo_valor === "porcentaje")
     .reduce((sum, f) => sum + f.valor, 0);
+}
+
+/* ── Expand a quick-create definition into a full template ──── */
+
+export function expandQuickDef(
+  def: PlantillaQuickDef,
+  nombre: string,
+): PlantillaPago {
+  const filas: PlantillaPagoFila[] = [];
+  const freqMonths = def.frecuencia === "mensual" ? 1
+    : def.frecuencia === "bimestral" ? 2 : 3;
+
+  // Separación row (fijo, at reservation)
+  if (def.incluye_separacion && def.separacion_monto && def.separacion_monto > 0) {
+    filas.push({
+      id: crypto.randomUUID(),
+      nombre: "Separación",
+      tipo_valor: "fijo",
+      valor: def.separacion_monto,
+      regla_fecha: { tipo: "al_reservar" },
+    });
+  }
+
+  // Installment rows
+  const pctPerCuota = +(def.porcentaje_inicial / def.cuotas).toFixed(2);
+  for (let i = 0; i < def.cuotas; i++) {
+    const isLast = i === def.cuotas - 1;
+    const pct = isLast
+      ? +(def.porcentaje_inicial - pctPerCuota * (def.cuotas - 1)).toFixed(2)
+      : pctPerCuota;
+    filas.push({
+      id: crypto.randomUUID(),
+      nombre: `Cuota ${i + 1}`,
+      tipo_valor: "porcentaje",
+      valor: pct,
+      regla_fecha: { tipo: "meses_desde_reserva", meses: (i + 1) * freqMonths },
+    });
+  }
+
+  // Entrega (resto)
+  filas.push({
+    id: crypto.randomUUID(),
+    nombre: "Entrega",
+    tipo_valor: "resto",
+    valor: 0,
+    regla_fecha: { tipo: "al_completar" },
+  });
+
+  return {
+    id: crypto.randomUUID(),
+    nombre,
+    filas,
+    es_default: false,
+    created_at: new Date().toISOString(),
+    quick_def: def,
+  };
 }

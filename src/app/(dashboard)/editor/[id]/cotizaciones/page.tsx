@@ -3,20 +3,21 @@
 import { useState, useCallback } from "react";
 import { useEditorProject } from "@/hooks/useEditorProject";
 import { PageHeader } from "@/components/dashboard/base/PageHeader";
-import { Calculator, CreditCard, Sparkles, FileText, Globe } from "lucide-react";
+import { Calculator, LayoutTemplate, Sparkles, FileText, Globe } from "lucide-react";
 import { motion } from "framer-motion";
 import { useTranslation } from "@/i18n";
 import { cn } from "@/lib/utils";
-import { CotizadorSandbox } from "@/components/dashboard/cotizador/CotizadorSandbox";
+import { PlantillasTab } from "@/components/dashboard/cotizador/PlantillasTab";
 import { CotizadorPdfSettings } from "@/components/dashboard/cotizador/CotizadorPdfSettings";
+import { PdfSettingsPreview } from "@/components/dashboard/cotizador/PdfSettingsPreview";
 import { ComplementosSection } from "@/components/dashboard/ComplementosSection";
 
-type SettingsTab = "plan" | "addons" | "pdf";
+type SettingsTab = "plantillas" | "addons" | "pdf";
 
 export default function CotizacionesPage() {
   const { project, save, refresh } = useEditorProject();
   const { t } = useTranslation("editor");
-  const [activeTab, setActiveTab] = useState<SettingsTab>("plan");
+  const [activeTab, setActiveTab] = useState<SettingsTab>("plantillas");
   const [toggling, setToggling] = useState(false);
 
   const micrositeEnabled = project.cotizador_enabled ?? false;
@@ -31,7 +32,7 @@ export default function CotizacionesPage() {
   }, [save, micrositeEnabled]);
 
   const tabs: { id: SettingsTab; label: string; icon: React.ComponentType<{ size?: number; className?: string }> }[] = [
-    { id: "plan", label: "Plan de pagos", icon: CreditCard },
+    { id: "plantillas", label: "Plantillas", icon: LayoutTemplate },
     { id: "addons", label: "Addons", icon: Sparkles },
     { id: "pdf", label: "PDF", icon: FileText },
   ];
@@ -48,8 +49,8 @@ export default function CotizacionesPage() {
         title={t("layout.sidebar.cotizaciones")}
         description={
           t("layout.sidebar.cotizaciones") === "Cotizaciones"
-            ? "Configura el plan de pagos, addons y PDF de cotización"
-            : "Configure payment plans, add-ons and quotation PDF"
+            ? "Configura plantillas de pago, addons y PDF de cotización"
+            : "Configure payment templates, add-ons and quotation PDF"
         }
       />
 
@@ -111,8 +112,8 @@ export default function CotizacionesPage() {
       </div>
 
       {/* Sub-tab Content */}
-      {activeTab === "plan" && (
-        <CotizadorSandbox hidePdfOptions />
+      {activeTab === "plantillas" && (
+        <PlantillasTab />
       )}
 
       {activeTab === "addons" && (
@@ -124,7 +125,17 @@ export default function CotizacionesPage() {
       )}
 
       {activeTab === "pdf" && (
-        <CotizadorPdfSettings />
+        <div className="flex gap-6 items-start">
+          <div className="flex-1 min-w-0">
+            <CotizadorPdfSettings />
+          </div>
+          <div
+            className="w-[480px] shrink-0 sticky top-4 self-start rounded-xl overflow-hidden border border-[var(--border-subtle)] bg-[var(--surface-1)]"
+            style={{ height: "calc(100vh - 180px)" }}
+          >
+            <PdfSettingsPreview />
+          </div>
+        </div>
       )}
     </motion.div>
   );

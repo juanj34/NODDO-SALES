@@ -90,8 +90,11 @@ export function calcularCotizacion(
   // Calculate phases on precio_total (includes complementos if any)
   const fases: FaseResultado[] = [];
   let acumulado = 0;
-  // Separación always forms part of the cuota inicial — deduct once from the first % phase
-  const shouldDeductSeparacion = effectiveFases[0]?.tipo === "fijo" && effectiveFases.length > 1;
+  // When toggle is ON, separación is part of cuota inicial — deduct from the first % phase
+  const shouldDeductSeparacion =
+    config.separacion_incluida_en_inicial &&
+    effectiveFases[0]?.tipo === "fijo" &&
+    effectiveFases.length > 1;
   let separacionDeducted = false;
 
   for (const fase of effectiveFases) {
@@ -134,22 +137,49 @@ export function calcularCotizacion(
       frecuencia: fase.frecuencia,
       fecha: fase.fecha || undefined,
       porcentaje: precio_total > 0 ? Math.round((monto_total / precio_total) * 100) : 0,
+      condicion_hito: fase.condicion_hito || undefined,
     });
 
     acumulado += monto_total;
   }
 
-  const admin_fee = config.admin_fee ?? 0;
-
-  // Calculate taxes on precio_total (includes complementos)
-  const impuestos_aplicados = (config.impuestos ?? [])
-    .filter((imp) => imp.porcentaje > 0)
-    .map((imp) => ({
+  // ── Unified additional charges (backward compat: merge legacy impuestos + admin_fee) ──
+  const cargos = config.cargos_adicionales ?? [];
+  // If no new-style cargos, build from legacy fields
+  const effectiveCargos = cargos.length > 0 ? cargos : [
+    ...(config.impuestos ?? []).filter((imp) => imp.porcentaje > 0).map((imp) => ({
+      id: imp.id,
       nombre: imp.nombre,
-      monto: Math.round(precio_total * (imp.porcentaje / 100)),
-      porcentaje: imp.porcentaje,
+      tipo: "porcentaje" as const,
+      valor: imp.porcentaje,
+    })),
+    ...((config.admin_fee ?? 0) > 0 ? [{
+      id: "__legacy_admin_fee__",
+      nombre: config.admin_fee_label || "Admin Fee",
+      tipo: "fijo" as const,
+      valor: config.admin_fee!,
+    }] : []),
+  ];
+
+  const cargos_aplicados = effectiveCargos
+    .filter((c) => c.valor > 0)
+    .map((c) => ({
+      nombre: c.nombre,
+      tipo: c.tipo,
+      monto: c.tipo === "porcentaje"
+        ? Math.round(precio_total * (c.valor / 100))
+        : c.valor,
+      porcentaje: c.tipo === "porcentaje" ? c.valor : undefined,
     }));
-  const impuestos_total = impuestos_aplicados.reduce((sum, imp) => sum + imp.monto, 0);
+  const cargos_total = cargos_aplicados.reduce((sum, c) => sum + c.monto, 0);
+
+  // Backward compat: split into legacy fields for old consumers
+  const impuestos_aplicados = cargos_aplicados
+    .filter((c) => c.tipo === "porcentaje")
+    .map((c) => ({ nombre: c.nombre, monto: c.monto, porcentaje: c.porcentaje! }));
+  const impuestos_total = impuestos_aplicados.reduce((sum, c) => sum + c.monto, 0);
+  const admin_fee_items = cargos_aplicados.filter((c) => c.tipo === "fijo");
+  const admin_fee = admin_fee_items.reduce((sum, c) => sum + c.monto, 0);
 
   return {
     precio_base,
@@ -159,8 +189,11 @@ export function calcularCotizacion(
     complementos: complementos.length > 0 ? complementos : undefined,
     complementos_total: complementos.length > 0 ? complementos_total : undefined,
     precio_total: complementos.length > 0 ? precio_total : undefined,
+    cargos_aplicados: cargos_aplicados.length > 0 ? cargos_aplicados : undefined,
+    cargos_total: cargos_total > 0 ? cargos_total : undefined,
+    // Legacy compat
     admin_fee: admin_fee > 0 ? admin_fee : undefined,
-    admin_fee_label: config.admin_fee_label || undefined,
+    admin_fee_label: admin_fee_items.length === 1 ? admin_fee_items[0].nombre : undefined,
     impuestos_aplicados: impuestos_aplicados.length > 0 ? impuestos_aplicados : undefined,
     impuestos_total: impuestos_total > 0 ? impuestos_total : undefined,
     fecha_entrega_calculada: deliveryContext

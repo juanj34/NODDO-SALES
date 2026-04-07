@@ -11,7 +11,9 @@ import { useTranslation } from "@/i18n";
 import { formatCurrency } from "@/lib/currency";
 import { getUnitDisplayName } from "@/lib/unit-display";
 import { calcularCotizacion } from "@/lib/cotizador/calcular";
-import type { Unidad, CotizadorConfig, FaseResultado } from "@/types";
+import { resolveTemplate } from "@/lib/cotizador/plantilla-pago";
+import { paymentRowsToFases } from "@/lib/cotizador/payment-rows";
+import type { Unidad, CotizadorConfig, FaseResultado, PlantillaPago } from "@/types";
 
 type MonedaType = "COP" | "USD" | "MXN" | "AED" | "EUR";
 
@@ -24,7 +26,14 @@ export default function PlanDePagoPage() {
   const [dropdownOpen, setDropdownOpen] = useState(false);
 
   const config = proyecto.cotizador_config as CotizadorConfig | null;
-  const moneda = (config?.moneda ?? proyecto.moneda_base ?? "COP") as MonedaType;
+
+  // Find plantilla enabled for micrositio — falls back to default or first
+  const plantillaMicro = useMemo((): PlantillaPago | null => {
+    const plantillas = config?.plantillas_pago ?? [];
+    return plantillas.find((p) => p.habilitada_micrositio) ?? plantillas.find((p) => p.es_default) ?? plantillas[0] ?? null;
+  }, [config]);
+
+  const moneda = (plantillaMicro?.moneda ?? config?.moneda ?? proyecto.moneda_base ?? "COP") as MonedaType;
   const unitPrefix = proyecto.unidad_display_prefix;
   const tipologias = useMemo(() => proyecto.tipologias ?? [], [proyecto.tipologias]);
   const isTipologiaPricing = proyecto.precio_source === "tipologia";
@@ -60,37 +69,59 @@ export default function PlanDePagoPage() {
     if (!selectedUnit || !config) return null;
     const price = getUnitPrice(selectedUnit);
     if (!price) return null;
+
+    // If there's a micrositio plantilla, resolve its template into fases
+    if (plantillaMicro) {
+      const rows = resolveTemplate(plantillaMicro, "", "");
+      const fases = paymentRowsToFases(rows, price);
+      const mergedConfig: CotizadorConfig = {
+        ...config,
+        moneda: plantillaMicro.moneda ?? config.moneda,
+        separacion_incluida_en_inicial: plantillaMicro.separacion_incluida_en_inicial ?? config.separacion_incluida_en_inicial,
+        cargos_adicionales: plantillaMicro.cargos_adicionales ?? config.cargos_adicionales,
+        // Legacy fallback
+        impuestos: !plantillaMicro.cargos_adicionales && !config.cargos_adicionales ? (plantillaMicro.impuestos ?? config.impuestos) : undefined,
+        admin_fee: !plantillaMicro.cargos_adicionales && !config.cargos_adicionales ? (plantillaMicro.admin_fee ?? config.admin_fee) : undefined,
+        admin_fee_label: !plantillaMicro.cargos_adicionales && !config.cargos_adicionales ? (plantillaMicro.admin_fee_label ?? config.admin_fee_label) : undefined,
+        notas_legales: plantillaMicro.notas_legales !== undefined ? plantillaMicro.notas_legales : config.notas_legales,
+        fases,
+      };
+      return calcularCotizacion(price, mergedConfig);
+    }
+
     return calcularCotizacion(price, config);
-  }, [selectedUnit, config, getUnitPrice]);
+  }, [selectedUnit, config, getUnitPrice, plantillaMicro]);
 
   // Detect separación → cuota inicial grouping
   const sepGroup = useMemo(() => {
-    if (!config || !resultado || resultado.fases.length < 2) return null;
-    const firstFase = config.fases[0];
-    const secondFase = config.fases[1];
-    if (firstFase?.tipo !== "fijo" || secondFase?.tipo !== "porcentaje") return null;
-    const sepMonto = resultado.fases[0]?.monto_total ?? 0;
-    const cuotaMonto = resultado.fases[1]?.monto_total ?? 0;
-    return { pct: secondFase.valor, total: sepMonto + cuotaMonto };
-  }, [config, resultado]);
-
-  // Separate regular phases from the "contra entrega" (last resto-type phase)
-  const { regularFases, contraEntrega } = useMemo(() => {
-    if (!resultado) return { regularFases: [], contraEntrega: null };
+    if (!resultado || resultado.fases.length < 2) return null;
     const fases = resultado.fases;
-    // Find the last phase that's likely "contra entrega" (usually the resto/largest final phase)
+    const first = fases[0];
+    const second = fases[1];
+    // Separación is typically a small fixed amount + cuota inicial percentage
+    if (!first || !second) return null;
+    if (first.porcentaje != null && first.porcentaje < 5 && second.porcentaje != null && second.porcentaje >= 10) {
+      return { pct: second.porcentaje, total: (first.monto_total ?? 0) + (second.monto_total ?? 0) };
+    }
+    return null;
+  }, [resultado]);
+
+  // Separate regular phases from the "entrega" (last resto-type phase)
+  const { regularFases, entregaFase } = useMemo(() => {
+    if (!resultado) return { regularFases: [], entregaFase: null };
+    const fases = resultado.fases;
+    // Find the last phase that's likely the delivery phase (usually the resto/largest final phase)
     const lastFase = fases[fases.length - 1];
-    const isContraEntrega = fases.length > 1 && lastFase && (
-      lastFase.nombre.toLowerCase().includes("contra") ||
+    const isEntrega = fases.length > 1 && lastFase && (
       lastFase.nombre.toLowerCase().includes("entrega") ||
       lastFase.nombre.toLowerCase().includes("completion") ||
       lastFase.nombre.toLowerCase().includes("handover") ||
       (lastFase.porcentaje && lastFase.porcentaje >= 20 && lastFase.cuotas === 1)
     );
-    if (isContraEntrega) {
-      return { regularFases: fases.slice(0, -1), contraEntrega: lastFase };
+    if (isEntrega) {
+      return { regularFases: fases.slice(0, -1), entregaFase: lastFase };
     }
-    return { regularFases: fases, contraEntrega: null };
+    return { regularFases: fases, entregaFase: null };
   }, [resultado]);
 
   if (!sectionVisible) return null;
@@ -153,7 +184,7 @@ export default function PlanDePagoPage() {
           className="text-center mb-14"
         >
           <h1 className="font-site-heading text-[clamp(36px,5vw,64px)] font-light italic text-[var(--text-primary)] leading-[1.1]">
-            {config.payment_plan_nombre || t("planPago.heading")}
+            {plantillaMicro?.titulo ?? config.payment_plan_nombre ?? t("planPago.heading")}
           </h1>
           <p className="font-mono text-[13px] text-[var(--text-secondary)] leading-[1.7] max-w-md mx-auto mt-4">
             {t("planPago.subtitle")}
@@ -275,8 +306,8 @@ export default function PlanDePagoPage() {
                 ))}
               </div>
 
-              {/* Contra entrega — full-width featured card */}
-              {contraEntrega && (
+              {/* Entrega — full-width featured card */}
+              {entregaFase && (
                 <motion.div
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
@@ -284,20 +315,20 @@ export default function PlanDePagoPage() {
                   className="mb-8 flex flex-col items-center text-center px-8 py-10 rounded-[1.25rem] border border-[rgba(var(--site-primary-rgb),0.20)] bg-white/[0.02] backdrop-blur-sm"
                 >
                   <span className="font-site-heading text-[clamp(40px,6vw,72px)] font-light italic text-[var(--text-primary)] leading-none">
-                    {contraEntrega.porcentaje ?? 0}%
+                    {entregaFase.porcentaje ?? 0}%
                   </span>
                   <div className="w-16 h-px bg-[var(--site-primary)] opacity-40 my-4" />
                   <span className="font-mono text-[13px] text-[var(--text-secondary)] leading-[1.7]">
-                    {contraEntrega.nombre}
+                    {entregaFase.nombre}
                   </span>
                   <span className="font-mono text-[15px] text-[var(--site-primary)] tabular-nums font-medium mt-1">
-                    {formatCurrency(contraEntrega.monto_total, moneda)}
+                    {formatCurrency(entregaFase.monto_total, moneda)}
                   </span>
                 </motion.div>
               )}
 
               {/* Delivery date note */}
-              {config.fecha_estimada_entrega && (
+              {(plantillaMicro?.fecha_estimada_entrega ?? config.fecha_estimada_entrega) && (
                 <motion.p
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
@@ -306,7 +337,7 @@ export default function PlanDePagoPage() {
                 >
                   {t("planPago.heading")}:{" "}
                   <span className="font-bold text-[var(--text-secondary)]">
-                    {config.fecha_estimada_entrega}
+                    {plantillaMicro?.fecha_estimada_entrega ?? config.fecha_estimada_entrega}
                   </span>
                 </motion.p>
               )}
@@ -327,14 +358,14 @@ export default function PlanDePagoPage() {
               </motion.div>
 
               {/* Legal notes */}
-              {config.notas_legales && (
+              {(plantillaMicro?.notas_legales ?? config.notas_legales) && (
                 <motion.p
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   transition={{ delay: 0.5 }}
                   className="mt-8 text-center font-mono text-[11px] text-[var(--text-muted)] leading-[1.8] max-w-2xl mx-auto"
                 >
-                  {config.notas_legales}
+                  {plantillaMicro?.notas_legales ?? config.notas_legales}
                 </motion.p>
               )}
             </motion.div>

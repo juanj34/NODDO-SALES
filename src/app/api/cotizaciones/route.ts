@@ -3,7 +3,7 @@ import { createClient } from "@supabase/supabase-js";
 import sharp from "sharp";
 import { calcularCotizacion, buildPrecioBaseComplementos } from "@/lib/cotizador/calcular";
 import { resolveDeliveryContext, formatDeliveryDisplay } from "@/lib/cotizador/delivery";
-import { generarPDF } from "@/lib/cotizador/generar-pdf";
+import { generarPDF } from "@/lib/cotizador/pdf-react/render";
 import { sendCotizacionBuyer, sendCotizacionAdmin, getUserLocale } from "@/lib/email";
 import type { EmailLocale } from "@/lib/email-i18n";
 import { isRateLimited, apiLimiter } from "@/lib/rate-limit";
@@ -180,6 +180,10 @@ export async function POST(request: NextRequest) {
       payment_plan_nombre,
       admin_fee,
       amoblado,
+      // Per-cotización overrides
+      idioma,
+      moneda_secundaria,
+      tipo_cambio,
     } = body as {
       proyecto_id: string;
       unidad_id: string;
@@ -202,6 +206,9 @@ export async function POST(request: NextRequest) {
       payment_plan_nombre?: string;
       admin_fee?: number;
       amoblado?: boolean;
+      idioma?: "es" | "en";
+      moneda_secundaria?: Currency | null;
+      tipo_cambio?: number | null;
     };
 
     // Validate required fields
@@ -217,7 +224,7 @@ export async function POST(request: NextRequest) {
     // Fetch project with cotizador config
     const { data: proyecto, error: projErr } = await supabase
       .from("proyectos")
-      .select("id, nombre, slug, subdomain, custom_domain, domain_verified, constructora_nombre, constructora_logo_url, logo_url, color_primario, cotizador_enabled, cotizador_config, email_config, user_id, render_principal_url, tour_360_url, brochure_url, whatsapp_numero, disclaimer, parqueaderos_mode, depositos_mode, parqueaderos_precio_base, depositos_precio_base, idioma, tipo_proyecto, precio_source, unidad_medida_base, estado_construccion, politica_amoblado")
+      .select("id, nombre, slug, subdomain, custom_domain, domain_verified, constructora_nombre, constructora_logo_url, logo_url, color_primario, cotizador_enabled, cotizador_config, email_config, user_id, render_principal_url, tour_360_url, brochure_url, whatsapp_numero, disclaimer, parqueaderos_mode, depositos_mode, parqueaderos_precio_base, depositos_precio_base, idioma, tipo_proyecto, precio_source, unidad_medida_base, estado_construccion, politica_amoblado, ubicacion_direccion")
       .eq("id", proyecto_id)
       .single();
 
@@ -294,12 +301,18 @@ export async function POST(request: NextRequest) {
         unit.precio = tipo.precio_desde;
       }
 
-      // For multi-tipo lots without confirmed tipología, override unit specs from tipología
+      // Fallback: fill missing unit specs from tipología data
+      if (tipo) {
+        if (unit.area_m2 == null && tipo.area_m2 !== null) unit.area_m2 = tipo.area_m2;
+        if (unit.area_construida == null && tipo.area_construida !== null) unit.area_construida = tipo.area_construida;
+        if (unit.area_privada == null && tipo.area_privada !== null) unit.area_privada = tipo.area_privada;
+        if (unit.area_lote == null && tipo.area_lote !== null) unit.area_lote = tipo.area_lote;
+        if (unit.habitaciones == null && tipo.habitaciones !== null) unit.habitaciones = tipo.habitaciones;
+        if (unit.banos == null && tipo.banos !== null) unit.banos = tipo.banos;
+      }
+
+      // For multi-tipo lots without confirmed tipología, also override price
       if (!isTipologiaPricing && !unit.tipologia_id && selectedTipologiaId && tipo) {
-        if (tipo.area_m2 !== null) unit.area_m2 = tipo.area_m2;
-        if (tipo.area_construida !== null) unit.area_construida = tipo.area_construida;
-        if (tipo.area_privada !== null) unit.area_privada = tipo.area_privada;
-        if (tipo.area_lote !== null) unit.area_lote = tipo.area_lote;
         if (tipo.precio_desde !== null) {
           // For lotes: sum terrain + construction prices when both exist
           if (proyecto.tipo_proyecto === "lotes" && unit.precio) {
@@ -308,8 +321,6 @@ export async function POST(request: NextRequest) {
             unit.precio = tipo.precio_desde;
           }
         }
-        if (tipo.habitaciones !== null) unit.habitaciones = tipo.habitaciones;
-        if (tipo.banos !== null) unit.banos = tipo.banos;
       }
     }
 
@@ -412,11 +423,15 @@ export async function POST(request: NextRequest) {
       tipologiaRenders[0] ||
       null;
 
+    // Use PDF-specific logos if configured, fallback to regular project logos
+    const constructoraLogoUrl = config.pdf_logo_constructora_url || proyecto.constructora_logo_url;
+    const projectLogoUrl = config.pdf_logo_proyecto_url || proyecto.logo_url;
+
     // Fetch images in parallel (with timeout, graceful degradation)
     const [coverImage, logoImage, projectLogoImage, planoImage, keyPlanImage] = await Promise.all([
       fetchImageAsBase64(coverUrl),
-      fetchImageAsBase64(proyecto.constructora_logo_url),
-      fetchImageAsBase64(proyecto.logo_url),
+      fetchImageAsBase64(constructoraLogoUrl),
+      fetchImageAsBase64(projectLogoUrl),
       fetchImageAsBase64(tipologiaPlanoUrl),
       fetchImageAsBase64(tipologiaUbicacionPlanoUrl),
     ]);
@@ -450,13 +465,13 @@ export async function POST(request: NextRequest) {
 
     // Generate PDF
     const now = new Date();
-    const projectLocale: EmailLocale = (proyecto.idioma as EmailLocale) || "es";
+    const projectLocale: EmailLocale = idioma || (proyecto.idioma as EmailLocale) || "es";
     const dateIntlLocale = projectLocale === "en" ? "en-US" : "es-CO";
     const fecha = now.toLocaleDateString(dateIntlLocale, { day: "numeric", month: "long", year: "numeric" });
     const cotizacionId = crypto.randomUUID();
     const refNumber = `COT-${now.getFullYear()}-${cotizacionId.slice(0, 4).toUpperCase()}`;
 
-    const pdfBuffer = generarPDF({
+    const pdfBuffer = await generarPDF({
       projectName: proyecto.nombre,
       constructoraName: proyecto.constructora_nombre,
       colorPrimario: proyecto.color_primario,
@@ -528,6 +543,10 @@ export async function POST(request: NextRequest) {
       idioma: projectLocale,
       estadoConstruccion: proyecto.estado_construccion ?? "sobre_planos",
       amoblado: amoblado || proyecto.politica_amoblado === "incluido" || undefined,
+      ubicacionDireccion: proyecto.ubicacion_direccion ?? null,
+      monedaSecundaria: moneda_secundaria ?? null,
+      tipoCambio: tipo_cambio ?? null,
+      hitosConstructivos: effectiveConfig.hitos_constructivos ?? [],
     });
 
     // Snapshot unit data

@@ -10,6 +10,10 @@ export interface PaymentRow {
   tipo_valor: "porcentaje" | "fijo" | "resto";
   valor: number; // % number (e.g. 5) or fixed $ amount; ignored for "resto"
   fecha: string; // dd/mm/yyyy or empty
+  /** Milestone condition text (e.g. "Al 50% de avance constructivo") */
+  condicion_hito?: string;
+  /** Reference hito ID (for resolving from templates) */
+  hito_id?: string;
 }
 
 /* ── ID Generation ─────────────────────────────────────── */
@@ -23,12 +27,26 @@ export function newRowId(): string {
 
 export function parseDateStr(dateStr: string): Date | null {
   if (!dateStr) return null;
+  // dd/mm/yyyy
   const parts = dateStr.split("/");
   if (parts.length === 3) {
     const d = parseInt(parts[0], 10);
     const m = parseInt(parts[1], 10) - 1;
     const y = parseInt(parts[2], 10);
     if (!isNaN(d) && !isNaN(m) && !isNaN(y)) return new Date(y, m, d);
+  }
+  // MM/yyyy (month format from delivery date)
+  if (parts.length === 2) {
+    const m = parseInt(parts[0], 10);
+    const y = parseInt(parts[1], 10);
+    if (m >= 1 && m <= 12 && y >= 2000) return new Date(y, m, 0); // last day of month
+  }
+  // Q1-Q4 format: "Q4 2028" or "Q4-2028"
+  const qMatch = dateStr.match(/^Q([1-4])[\s-](\d{4})$/i);
+  if (qMatch) {
+    const quarter = parseInt(qMatch[1]);
+    const year = parseInt(qMatch[2]);
+    return new Date(year, quarter * 3, 0); // last day of quarter's last month
   }
   const iso = new Date(dateStr);
   return isNaN(iso.getTime()) ? null : iso;
@@ -147,11 +165,11 @@ export function autoDistributeDates(
 function determineSectionFromFase(
   fase: FaseConfig,
   index: number,
-): "separacion" | "cuota" | "contra_entrega" {
+): "separacion" | "cuota" | "entrega" {
   const lower = fase.nombre.toLowerCase();
   if (lower.includes("separaci") || lower.includes("booking") || lower.includes("reserv")) return "separacion";
-  if (lower.includes("contra") || lower.includes("entrega") || lower.includes("handover")) return "contra_entrega";
-  if (fase.tipo === "resto") return "contra_entrega";
+  if (lower.includes("entrega") || lower.includes("handover")) return "entrega";
+  if (fase.tipo === "resto") return "entrega";
   if (index === 0 && fase.tipo === "fijo") return "separacion";
   return "cuota";
 }
@@ -181,7 +199,7 @@ export function paymentRowsFromConfig(
     const fase = fases[i];
     const section = determineSectionFromFase(fase, i);
 
-    if (section === "contra_entrega" || fase.tipo === "resto") {
+    if (section === "entrega" || fase.tipo === "resto") {
       // Entrega → tipo_valor: "resto"
       rows.push({
         id: newRowId(),
@@ -189,6 +207,7 @@ export function paymentRowsFromConfig(
         tipo_valor: "resto",
         valor: 0,
         fecha: fechaEntrega || fase.fecha || "",
+        condicion_hito: fase.condicion_hito || undefined,
       });
     } else if (fase.tipo === "porcentaje" && fase.cuotas > 1) {
       // Expand percentage with multiple cuotas into individual rows
@@ -217,6 +236,7 @@ export function paymentRowsFromConfig(
         tipo_valor: "porcentaje",
         valor: fase.valor,
         fecha: section === "separacion" && fechaCompra ? fechaCompra : (fase.fecha || ""),
+        condicion_hito: fase.condicion_hito || undefined,
       });
     } else {
       // Fixed amount row
@@ -226,6 +246,7 @@ export function paymentRowsFromConfig(
         tipo_valor: "fijo",
         valor: fase.valor,
         fecha: section === "separacion" && fechaCompra ? fechaCompra : (fase.fecha || ""),
+        condicion_hito: fase.condicion_hito || undefined,
       });
     }
   }
@@ -251,5 +272,6 @@ export function paymentRowsToFases(
     cuotas: 1,
     frecuencia: "unica" as const,
     fecha: row.fecha || undefined,
+    condicion_hito: row.condicion_hito || undefined,
   }));
 }

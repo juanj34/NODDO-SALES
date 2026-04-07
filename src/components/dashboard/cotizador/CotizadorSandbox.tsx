@@ -1,42 +1,26 @@
 "use client";
 
-import { useState, useMemo, useCallback, useRef, useEffect } from "react";
+import { useState, useCallback, useRef, useEffect } from "react";
 import { useEditorProject } from "@/hooks/useEditorProject";
 import {
   inputClass,
   labelClass,
 } from "@/components/dashboard/editor-styles";
 import { cn } from "@/lib/utils";
-import {
-  Plus,
-  Trash2,
-  GripVertical,
-  ChevronDown,
-} from "lucide-react";
-import { Reorder, useDragControls } from "framer-motion";
-import { calcularCotizacion } from "@/lib/cotizador/calcular";
-import type { CotizadorConfig, FaseConfig, ImpuestoConfig, ResultadoCotizacion } from "@/types";
+import { Plus, Trash2 } from "lucide-react";
+import type { CotizadorConfig, ImpuestoConfig } from "@/types";
 import { NodDoDropdown } from "@/components/ui/NodDoDropdown";
 import { InfoTooltip } from "@/components/ui/InfoTooltip";
-import { formatCurrency } from "@/lib/currency";
 import type { Currency } from "@/lib/currency";
 import { CurrencyInput } from "@/components/dashboard/CurrencyInput";
 import tooltips from "@/i18n/locales/es/tooltips";
 import { fontSize, gap, letterSpacing, radius } from "@/lib/design-tokens";
-import { PlantillaEditor } from "@/components/dashboard/cotizador/PlantillaEditor";
 
 /* ─── Helpers ─── */
 
 function uid(): string {
   return crypto.randomUUID();
 }
-
-const FRECUENCIAS = [
-  { value: "unica", label: "Única" },
-  { value: "mensual", label: "Mensual" },
-  { value: "bimestral", label: "Bimestral" },
-  { value: "trimestral", label: "Trimestral" },
-] as const;
 
 const MONEDAS = [
   { value: "COP", label: "COP" },
@@ -48,183 +32,22 @@ const MONEDAS = [
 
 const DEFAULT_CONFIG: CotizadorConfig = {
   moneda: "COP",
-  fases: [
-    { id: uid(), nombre: "Separación", tipo: "fijo", valor: 5000000, cuotas: 1, frecuencia: "unica" },
-    { id: uid(), nombre: "Cuota inicial", tipo: "porcentaje", valor: 30, cuotas: 6, frecuencia: "mensual" },
-    { id: uid(), nombre: "Entrega", tipo: "resto", valor: 0, cuotas: 1, frecuencia: "unica" },
-  ],
+  fases: [],
   descuentos: [],
   separacion_incluida_en_inicial: true,
   notas_legales: null,
 };
 
-/* ─── Reorderable Phase Card ─── */
+/* ─── CotizadorSandbox (Project-level financial settings) ─── */
 
-function FaseCard({
-  fase,
-  onChange,
-  onRemove,
-  moneda,
-}: {
-  fase: FaseConfig;
-  onChange: (updated: FaseConfig) => void;
-  onRemove: () => void;
-  moneda: string;
-}) {
-  const controls = useDragControls();
-
-  return (
-    <Reorder.Item
-      value={fase}
-      dragListener={false}
-      dragControls={controls}
-      className={cn("bg-[var(--surface-2)] border border-[var(--border-subtle)] p-4 select-none", radius.xl, gap.relaxed, "flex flex-col")}
-    >
-      <div className={cn("flex items-center", gap.normal)}>
-        <button
-          onPointerDown={(e) => { e.preventDefault(); controls.start(e); }}
-          className="cursor-grab active:cursor-grabbing text-[var(--text-muted)] hover:text-[var(--text-tertiary)] touch-none"
-        >
-          <GripVertical size={14} />
-        </button>
-        <input
-          type="text"
-          value={fase.nombre}
-          onChange={(e) => onChange({ ...fase, nombre: e.target.value })}
-          className={cn("flex-1 bg-transparent border-none font-medium text-white focus:outline-none placeholder:text-[var(--text-muted)]", fontSize.md)}
-          placeholder="Nombre de la fase"
-        />
-        <button
-          onClick={onRemove}
-          className="p-1 text-[var(--text-muted)] hover:text-red-400 transition-colors"
-        >
-          <Trash2 size={13} />
-        </button>
-      </div>
-
-      <div className={cn("grid grid-cols-1 sm:grid-cols-2", gap.relaxed)}>
-        {/* Type */}
-        <div>
-          <label className={cn("flex items-center mb-1 text-[var(--text-muted)] uppercase", fontSize.label, gap.normal, letterSpacing.wider)}>
-            Tipo
-            <InfoTooltip
-              content={tooltips.cotizador.tipoFase.long}
-              variant="dashboard"
-              placement="auto"
-            />
-          </label>
-          <NodDoDropdown
-            variant="dashboard"
-            size="sm"
-            value={fase.tipo}
-            onChange={(val) => onChange({ ...fase, tipo: val as FaseConfig["tipo"] })}
-            options={[
-              { value: "fijo", label: "Monto fijo" },
-              { value: "porcentaje", label: "Porcentaje" },
-              { value: "resto", label: "Resto" },
-            ]}
-          />
-        </div>
-
-        {/* Value */}
-        <div>
-          <label className={cn("block text-[var(--text-muted)] mb-1 uppercase", fontSize.label, letterSpacing.wider)}>
-            {fase.tipo === "porcentaje" ? "Porcentaje" : fase.tipo === "fijo" ? `Valor (${moneda})` : "Auto"}
-          </label>
-          {fase.tipo === "resto" ? (
-            <div className={cn("bg-[var(--surface-3)] border border-[var(--border-default)] px-3 py-2 text-[var(--text-muted)]", radius.lg, fontSize.md)}>
-              Calculado automáticamente
-            </div>
-          ) : fase.tipo === "fijo" ? (
-            <CurrencyInput
-              value={fase.valor || ""}
-              onChange={(v) => onChange({ ...fase, valor: Number(v) })}
-              currency={moneda as Currency}
-              placeholder="5,000,000"
-              inputClassName={cn("w-full bg-[var(--surface-3)] border border-[var(--border-default)] px-3 py-2 text-white focus:outline-none focus:border-[rgba(var(--site-primary-rgb),0.5)]", radius.lg, fontSize.md)}
-            />
-          ) : (
-            <input
-              type="number"
-              value={fase.valor || ""}
-              onChange={(e) => onChange({ ...fase, valor: Number(e.target.value) })}
-              className={cn("w-full bg-[var(--surface-3)] border border-[var(--border-default)] px-3 py-2 text-white focus:outline-none focus:border-[rgba(var(--site-primary-rgb),0.5)]", radius.lg, fontSize.md)}
-              placeholder="30"
-            />
-          )}
-        </div>
-
-        {/* Installments */}
-        <div>
-          <label className={cn("block text-[var(--text-muted)] mb-1 uppercase", fontSize.label, letterSpacing.wider)}>Cuotas</label>
-          <input
-            type="number"
-            min={1}
-            value={fase.cuotas || ""}
-            onChange={(e) => onChange({ ...fase, cuotas: Math.max(1, Number(e.target.value)) })}
-            className={cn("w-full bg-[var(--surface-3)] border border-[var(--border-default)] px-3 py-2 text-white focus:outline-none focus:border-[rgba(var(--site-primary-rgb),0.5)]", radius.lg, fontSize.md)}
-          />
-        </div>
-
-        {/* Frequency */}
-        <div>
-          <label className={cn("block text-[var(--text-muted)] mb-1 uppercase", fontSize.label, letterSpacing.wider)}>Frecuencia</label>
-          <NodDoDropdown
-            variant="dashboard"
-            size="sm"
-            value={fase.frecuencia}
-            onChange={(val) => onChange({ ...fase, frecuencia: val as FaseConfig["frecuencia"] })}
-            options={FRECUENCIAS.map((f) => ({ value: f.value, label: f.label }))}
-          />
-        </div>
-
-        {/* Date */}
-        <div className="sm:col-span-2">
-          <label className={cn("block text-[var(--text-muted)] mb-1 uppercase", fontSize.label, letterSpacing.wider)}>Fecha</label>
-          <input
-            type="text"
-            value={fase.fecha ?? ""}
-            onChange={(e) => onChange({ ...fase, fecha: e.target.value || undefined })}
-            className={cn("w-full bg-[var(--surface-3)] border border-[var(--border-default)] px-3 py-2 text-white focus:outline-none focus:border-[rgba(var(--site-primary-rgb),0.5)]", radius.lg, fontSize.md)}
-            placeholder="ej. 01/03/2026, A la firma, Al 50% de obra..."
-          />
-        </div>
-      </div>
-    </Reorder.Item>
-  );
-}
-
-/* ─── CotizadorSandbox ─── */
-
-export function CotizadorSandbox({ hidePdfOptions }: { hidePdfOptions?: boolean } = {}) {
+export function CotizadorSandbox({ hidePdfOptions: _hidePdfOptions }: { hidePdfOptions?: boolean } = {}) {
   const { project, save } = useEditorProject();
 
-  // Local state for config editing
   const [config, setConfig] = useState<CotizadorConfig>(() => {
     return project.cotizador_config ?? DEFAULT_CONFIG;
   });
 
   const moneda = (config.moneda || "COP") as Currency;
-  const [advancedOpen, setAdvancedOpen] = useState(false);
-
-  // Sample price for preview
-  const cheapestUnit = useMemo(() => {
-    const available = (project.unidades ?? []).filter((u) => u.estado === "disponible" && u.precio != null);
-    if (available.length === 0) return null;
-    return available.reduce((min, u) => (u.precio! < min.precio! ? u : min), available[0]);
-  }, [project.unidades]);
-
-  const [samplePrice, setSamplePrice] = useState<number>(() => cheapestUnit?.precio ?? 350000000);
-
-  // Calculate preview
-  const preview: ResultadoCotizacion | null = useMemo(() => {
-    if (config.fases.length === 0 || samplePrice <= 0) return null;
-    try {
-      return calcularCotizacion(samplePrice, config, []);
-    } catch {
-      return null;
-    }
-  }, [samplePrice, config]);
 
   // Auto-save debounce
   const saveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -243,31 +66,6 @@ export function CotizadorSandbox({ hidePdfOptions }: { hidePdfOptions?: boolean 
     };
   }, []);
 
-  // Phase handlers
-  const updateFase = useCallback((id: string, updated: FaseConfig) => {
-    saveConfig({ ...config, fases: config.fases.map((f) => f.id === id ? updated : f) });
-  }, [config, saveConfig]);
-
-  const removeFase = useCallback((id: string) => {
-    saveConfig({ ...config, fases: config.fases.filter((f) => f.id !== id) });
-  }, [config, saveConfig]);
-
-  const addFase = useCallback(() => {
-    const newFase: FaseConfig = {
-      id: uid(),
-      nombre: "Nueva fase",
-      tipo: "porcentaje",
-      valor: 10,
-      cuotas: 1,
-      frecuencia: "unica",
-    };
-    saveConfig({ ...config, fases: [...config.fases, newFase] });
-  }, [config, saveConfig]);
-
-  const reorderFases = useCallback((newOrder: FaseConfig[]) => {
-    saveConfig({ ...config, fases: newOrder });
-  }, [config, saveConfig]);
-
   // Impuesto handlers
   const addImpuesto = useCallback(() => {
     const newImp: ImpuestoConfig = { id: uid(), nombre: "", porcentaje: 0 };
@@ -283,465 +81,225 @@ export function CotizadorSandbox({ hidePdfOptions }: { hidePdfOptions?: boolean 
   }, [config, saveConfig]);
 
   return (
-    <div className={cn("grid grid-cols-1 lg:grid-cols-2", gap.spacious)}>
-      {/* Left: Config */}
-      <div className={cn("flex flex-col", gap.spacious)}>
-        {/* Basics row */}
-        <div className={cn("grid grid-cols-2", gap.relaxed)}>
-          <div>
-            <label className={cn(labelClass, "flex items-center", gap.normal)}>
-              Moneda
-              <InfoTooltip
-                content={tooltips.cotizador.moneda.long}
-                variant="dashboard"
-                placement="auto"
-              />
-            </label>
-            <div className="w-32">
-              <NodDoDropdown
-                variant="dashboard"
-                size="md"
-                value={config.moneda}
-                onChange={(val) => saveConfig({ ...config, moneda: val })}
-                options={MONEDAS.map((m) => ({ value: m.value, label: m.label }))}
-              />
-            </div>
-          </div>
-          <div>
-            <label className={cn("block text-[var(--text-muted)] mb-1 uppercase", fontSize.label, letterSpacing.wider)}>
-              Nombre del plan
-            </label>
-            <input
-              type="text"
-              value={config.payment_plan_nombre ?? ""}
-              onChange={(e) => saveConfig({ ...config, payment_plan_nombre: e.target.value || undefined })}
-              className={cn(inputClass, fontSize.md)}
-              placeholder="ej. Plan 30/70, EID Promotion..."
+    <div className={cn("flex flex-col max-w-2xl", gap.spacious)}>
+      {/* Moneda */}
+      <div>
+        <label className={cn(labelClass, "flex items-center", gap.normal)}>
+          Moneda
+          <InfoTooltip
+            content={tooltips.cotizador.moneda.long}
+            variant="dashboard"
+            placement="auto"
+          />
+        </label>
+        <div className="w-32">
+          <NodDoDropdown
+            variant="dashboard"
+            size="md"
+            value={config.moneda}
+            onChange={(val) => saveConfig({ ...config, moneda: val })}
+            options={MONEDAS.map((m) => ({ value: m.value, label: m.label }))}
+          />
+        </div>
+      </div>
+
+      {/* Separación toggle */}
+      <div className={cn("bg-[var(--surface-1)] border border-[var(--border-subtle)] p-4", radius.xl)}>
+        <label className={cn("flex items-center cursor-pointer", gap.relaxed)}>
+          <input
+            type="checkbox"
+            checked={config.separacion_incluida_en_inicial}
+            onChange={(e) => saveConfig({ ...config, separacion_incluida_en_inicial: e.target.checked })}
+            className="w-4 h-4 rounded bg-[var(--surface-3)] border border-[var(--border-default)] accent-[var(--site-primary)]"
+          />
+          <span className={cn("text-[var(--text-secondary)] flex items-center", fontSize.md, gap.normal)}>
+            La separación se descuenta de la cuota inicial
+            <InfoTooltip
+              content={tooltips.cotizador.separacionIncluida.long}
+              variant="dashboard"
+              placement="auto"
             />
-          </div>
-        </div>
+          </span>
+        </label>
+        <p className={cn("text-[var(--text-muted)] mt-2 ml-[28px]", fontSize.caption)}>
+          Si un plan tiene 30% cuota inicial y $5M de separación, el 30% incluye los $5M. Sin esto, la separación se suma aparte.
+        </p>
+      </div>
 
-        {/* Phases */}
-        <div>
-          <div className="flex items-center justify-between mb-3">
-            <label className={labelClass}>Fases de pago</label>
-            <button
-              onClick={addFase}
-              className={cn("flex items-center text-[var(--site-primary)] hover:text-[var(--site-primary)]/80 transition-colors", gap.compact, fontSize.md)}
-            >
-              <Plus size={13} /> Agregar fase
-            </button>
-          </div>
-          <Reorder.Group axis="y" values={config.fases} onReorder={reorderFases} className={cn("flex flex-col", gap.relaxed)}>
-            {config.fases.map((fase) => (
-              <FaseCard
-                key={fase.id}
-                fase={fase}
-                onChange={(updated) => updateFase(fase.id, updated)}
-                onRemove={() => removeFase(fase.id)}
-                moneda={config.moneda}
-              />
-            ))}
-          </Reorder.Group>
-        </div>
-
-        {/* Impuestos / Taxes */}
-        <div>
-          <div className="flex items-center justify-between mb-3">
-            <label className={labelClass}>Impuestos / Fees</label>
-            <button
-              onClick={addImpuesto}
-              className={cn("flex items-center text-[var(--site-primary)] hover:text-[var(--site-primary)]/80 transition-colors", gap.compact, fontSize.md)}
-            >
-              <Plus size={13} /> Agregar impuesto
-            </button>
-          </div>
-          <div className={cn("flex flex-col", gap.relaxed)}>
-            {(config.impuestos ?? []).length === 0 && (
-              <p className={cn("text-[var(--text-muted)] py-3", fontSize.md)}>Sin impuestos configurados (ej. DLD Fee 4%, Registration Tax 2%)</p>
-            )}
-            {(config.impuestos ?? []).map((imp) => (
-              <div
-                key={imp.id}
-                className={cn("bg-[var(--surface-2)] border border-[var(--border-subtle)] p-4", radius.xl)}
-              >
-                <div className={cn("grid grid-cols-1 sm:grid-cols-[1fr_100px_auto]", gap.relaxed, "items-end")}>
-                  <div>
-                    <label className={cn("block text-[var(--text-muted)] mb-1 uppercase", fontSize.label, letterSpacing.wider)}>Nombre</label>
-                    <input
-                      type="text"
-                      value={imp.nombre}
-                      onChange={(e) => updateImpuesto(imp.id, { ...imp, nombre: e.target.value })}
-                      className={cn(inputClass, fontSize.md)}
-                      placeholder="ej. DLD Fee, Registration Tax, VAT"
-                    />
-                  </div>
-                  <div>
-                    <label className={cn("block text-[var(--text-muted)] mb-1 uppercase", fontSize.label, letterSpacing.wider)}>%</label>
-                    <input
-                      type="number"
-                      value={imp.porcentaje || ""}
-                      onChange={(e) => updateImpuesto(imp.id, { ...imp, porcentaje: Number(e.target.value) })}
-                      className={cn("w-full bg-[var(--surface-3)] border border-[var(--border-default)] px-3 py-2 text-white focus:outline-none focus:border-[rgba(var(--site-primary-rgb),0.5)]", radius.lg, fontSize.md)}
-                      placeholder="4"
-                      step="0.1"
-                    />
-                  </div>
-                  <button
-                    onClick={() => removeImpuesto(imp.id)}
-                    className="p-2 text-[var(--text-muted)] hover:text-red-400 transition-colors"
-                  >
-                    <Trash2 size={13} />
-                  </button>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        {/* Admin fee (optional — for specific markets like Dubai) */}
-        <div>
-          <div className="flex items-center justify-between mb-3">
-            <label className={labelClass}>Admin Fee</label>
-          </div>
-          <div className={cn("bg-[var(--surface-2)] border border-[var(--border-subtle)] p-4", radius.xl)}>
-            <div className={cn("grid grid-cols-1 sm:grid-cols-2", gap.relaxed)}>
-              <div>
-                <label className={cn("block text-[var(--text-muted)] mb-1 uppercase", fontSize.label, letterSpacing.wider)}>
-                  Monto ({config.moneda})
-                </label>
-                <CurrencyInput
-                  value={config.admin_fee ?? ""}
-                  onChange={(v) => saveConfig({ ...config, admin_fee: Number(v) || undefined })}
-                  currency={moneda as Currency}
-                  inputClassName={cn("w-full bg-[var(--surface-3)] border border-[var(--border-default)] px-3 py-2 text-white focus:outline-none focus:border-[rgba(var(--site-primary-rgb),0.5)]", radius.lg, fontSize.md)}
-                  placeholder="0"
-                />
-              </div>
-              <div>
-                <label className={cn("block text-[var(--text-muted)] mb-1 uppercase", fontSize.label, letterSpacing.wider)}>
-                  Etiqueta
-                </label>
-                <input
-                  type="text"
-                  value={config.admin_fee_label ?? ""}
-                  onChange={(e) => saveConfig({ ...config, admin_fee_label: e.target.value || undefined })}
-                  className={cn(inputClass, fontSize.md)}
-                  placeholder="Admin Fee"
-                />
-              </div>
-            </div>
-            <p className={cn("text-[var(--text-muted)] mt-2", fontSize.caption)}>
-              Cargo fijo adicional (ej. Admin Fee en Dubai). Se muestra como línea separada en la cotización.
-            </p>
-          </div>
-        </div>
-
-        {/* Payment plan templates */}
-        <div>
-          <label className={labelClass}>Plantillas de plan de pago</label>
-          <p className={cn("text-[var(--text-muted)] mb-3", fontSize.body)}>
-            Define planes flexibles con fechas relativas a la reserva
-          </p>
-          <PlantillaEditor config={config} saveConfig={saveConfig} moneda={config.moneda} />
-        </div>
-
-        {/* Advanced options (collapsed) — hidden when PDF settings are separate */}
-        {!hidePdfOptions && (
-        <div className={cn("bg-[var(--surface-1)] border border-[var(--border-subtle)] overflow-hidden", radius.xl)}>
+      {/* Impuestos / Taxes */}
+      <div>
+        <div className="flex items-center justify-between mb-3">
+          <label className={labelClass}>Impuestos / Fees</label>
           <button
-            type="button"
-            onClick={() => setAdvancedOpen((v) => !v)}
-            className={cn("w-full flex items-center justify-between p-4 hover:bg-[var(--surface-2)] transition-colors")}
+            onClick={addImpuesto}
+            className={cn("flex items-center text-[var(--site-primary)] hover:text-[var(--site-primary)]/80 transition-colors", gap.compact, fontSize.md)}
           >
-            <span className={cn("font-medium text-[var(--text-secondary)]", fontSize.md)}>Opciones avanzadas</span>
-            <ChevronDown size={14} className={cn("text-[var(--text-muted)] transition-transform", advancedOpen && "rotate-180")} />
+            <Plus size={13} /> Agregar impuesto
           </button>
-
-          {advancedOpen && (
-            <div className={cn("px-5 pb-5 flex flex-col", gap.loose)}>
-              {/* Tipo de entrega */}
-              <div>
-                <label className={cn("block text-[var(--text-muted)] mb-2 uppercase", fontSize.label, letterSpacing.wider)}>
-                  Tipo de entrega
-                </label>
-                <div className="flex gap-2 mb-2">
-                  {([
-                    { value: null, label: "Sin configurar" },
-                    { value: "fecha_fija" as const, label: "Fecha fija" },
-                    { value: "plazo_desde_compra" as const, label: "Plazo desde compra" },
-                  ] as const).map((opt) => (
-                    <button
-                      key={String(opt.value)}
-                      type="button"
-                      onClick={() => saveConfig({
-                        ...config,
-                        tipo_entrega: opt.value,
-                        ...(opt.value === null ? { fecha_estimada_entrega: undefined, plazo_entrega_meses: undefined } : {}),
-                      })}
-                      className={cn(
-                        "flex-1 px-2 py-1.5 border text-center transition-colors",
-                        radius.lg, fontSize.label,
-                        (config.tipo_entrega ?? null) === opt.value
-                          ? "border-[rgba(var(--site-primary-rgb),0.6)] bg-[rgba(var(--site-primary-rgb),0.1)] text-[var(--site-primary)]"
-                          : "border-[var(--border-default)] bg-[var(--surface-3)] text-[var(--text-secondary)] hover:border-[var(--border-strong)]"
-                      )}
-                    >
-                      {opt.label}
-                    </button>
-                  ))}
-                </div>
-                {config.tipo_entrega === "fecha_fija" && (
-                  <div>
-                    <label className={cn("block text-[var(--text-muted)] mb-1 uppercase", fontSize.label, letterSpacing.wider)}>
-                      Fecha de entrega
-                    </label>
-                    <input
-                      type="date"
-                      value={config.fecha_estimada_entrega ?? ""}
-                      onChange={(e) => saveConfig({ ...config, fecha_estimada_entrega: e.target.value || undefined })}
-                      className={cn(inputClass, fontSize.md)}
-                    />
-                    <p className={cn("text-[var(--text-muted)] mt-1", fontSize.caption)}>
-                      Las cuotas se ajustan según meses restantes
-                    </p>
-                  </div>
-                )}
-                {config.tipo_entrega === "plazo_desde_compra" && (
-                  <div>
-                    <label className={cn("block text-[var(--text-muted)] mb-1 uppercase", fontSize.label, letterSpacing.wider)}>
-                      Plazo de entrega (meses)
-                    </label>
-                    <input
-                      type="number"
-                      value={config.plazo_entrega_meses ?? 24}
-                      onChange={(e) => saveConfig({ ...config, plazo_entrega_meses: parseInt(e.target.value) || 24 })}
-                      min={6}
-                      max={120}
-                      className={cn(inputClass, fontSize.md, "w-32")}
-                    />
-                    <p className={cn("text-[var(--text-muted)] mt-1", fontSize.caption)}>
-                      Plan de pagos desde fecha de cotización + plazo
-                    </p>
-                  </div>
-                )}
-              </div>
-
-              {/* Notas legales */}
-              <div>
-                <label className={cn("flex items-center text-[var(--text-muted)] mb-1 uppercase", fontSize.label, gap.normal, letterSpacing.wider)}>
-                  Notas legales (aparecen en el PDF)
-                  <InfoTooltip
-                    content={tooltips.cotizador.notasLegales.long}
-                    variant="dashboard"
-                    placement="auto"
-                  />
-                </label>
-                <textarea
-                  value={config.notas_legales ?? ""}
-                  onChange={(e) => saveConfig({ ...config, notas_legales: e.target.value || null })}
-                  rows={3}
-                  className={cn(inputClass, "resize-none", fontSize.md)}
-                  placeholder="Los precios están sujetos a cambios sin previo aviso..."
-                />
-              </div>
-
-              {/* Cover Style + Theme */}
-              <div className={cn("grid grid-cols-2", gap.relaxed)}>
+        </div>
+        <div className={cn("flex flex-col", gap.relaxed)}>
+          {(config.impuestos ?? []).length === 0 && (
+            <p className={cn("text-[var(--text-muted)] py-3", fontSize.md)}>Sin impuestos configurados (ej. DLD Fee 4%, Registration Tax 2%)</p>
+          )}
+          {(config.impuestos ?? []).map((imp) => (
+            <div
+              key={imp.id}
+              className={cn("bg-[var(--surface-2)] border border-[var(--border-subtle)] p-4", radius.xl)}
+            >
+              <div className={cn("grid grid-cols-1 sm:grid-cols-[1fr_100px_auto]", gap.relaxed, "items-end")}>
                 <div>
-                  <label className={cn("block text-[var(--text-muted)] mb-1.5 uppercase", fontSize.label, letterSpacing.wider)}>Estilo portada</label>
-                  <div className="flex gap-2">
-                    {(["hero", "minimalista"] as const).map((style) => (
-                      <button
-                        key={style}
-                        type="button"
-                        onClick={() => saveConfig({ ...config, pdf_cover_style: style })}
-                        className={cn(
-                          "flex-1 px-2 py-1.5 border text-center transition-colors",
-                          radius.lg, fontSize.label,
-                          (config.pdf_cover_style ?? "hero") === style
-                            ? "border-[rgba(var(--site-primary-rgb),0.6)] bg-[rgba(var(--site-primary-rgb),0.1)] text-[var(--site-primary)]"
-                            : "border-[var(--border-default)] bg-[var(--surface-3)] text-[var(--text-secondary)] hover:border-[var(--border-strong)]"
-                        )}
-                      >
-                        {style === "hero" ? "Hero" : "Minimal"}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-                <div>
-                  <label className={cn("block text-[var(--text-muted)] mb-1.5 uppercase", fontSize.label, letterSpacing.wider)}>Tema PDF</label>
-                  <div className="flex gap-2">
-                    {(["dark", "neutral"] as const).map((theme) => (
-                      <button
-                        key={theme}
-                        type="button"
-                        onClick={() => saveConfig({ ...config, pdf_theme: theme })}
-                        className={cn(
-                          "flex-1 px-2 py-1.5 border text-center transition-colors",
-                          radius.lg, fontSize.label,
-                          (config.pdf_theme ?? "neutral") === theme
-                            ? "border-[rgba(var(--site-primary-rgb),0.6)] bg-[rgba(var(--site-primary-rgb),0.1)] text-[var(--site-primary)]"
-                            : "border-[var(--border-default)] bg-[var(--surface-3)] text-[var(--text-secondary)] hover:border-[var(--border-strong)]"
-                        )}
-                      >
-                        {theme === "dark" ? "Oscuro" : "Neutro"}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              </div>
-
-              {/* Saludo + Despedida */}
-              <div className={cn("grid grid-cols-1 sm:grid-cols-2", gap.relaxed)}>
-                <div>
-                  <label className={cn("block text-[var(--text-muted)] mb-1 uppercase", fontSize.label, letterSpacing.wider)}>Saludo</label>
-                  <textarea
-                    value={config.pdf_saludo ?? ""}
-                    onChange={(e) => saveConfig({ ...config, pdf_saludo: e.target.value || undefined })}
-                    rows={2}
-                    className={cn(inputClass, "resize-none", fontSize.md)}
-                    placeholder="Gracias por considerar nuestro proyecto..."
-                  />
-                </div>
-                <div>
-                  <label className={cn("block text-[var(--text-muted)] mb-1 uppercase", fontSize.label, letterSpacing.wider)}>Despedida</label>
+                  <label className={cn("block text-[var(--text-muted)] mb-1 uppercase", fontSize.label, letterSpacing.wider)}>Nombre</label>
                   <input
                     type="text"
-                    value={config.pdf_despedida ?? ""}
-                    onChange={(e) => saveConfig({ ...config, pdf_despedida: e.target.value || undefined })}
+                    value={imp.nombre}
+                    onChange={(e) => updateImpuesto(imp.id, { ...imp, nombre: e.target.value })}
                     className={cn(inputClass, fontSize.md)}
-                    placeholder="Cordialmente,"
+                    placeholder="ej. DLD Fee, Registration Tax, VAT"
                   />
                 </div>
+                <div>
+                  <label className={cn("block text-[var(--text-muted)] mb-1 uppercase", fontSize.label, letterSpacing.wider)}>%</label>
+                  <input
+                    type="number"
+                    value={imp.porcentaje || ""}
+                    onChange={(e) => updateImpuesto(imp.id, { ...imp, porcentaje: Number(e.target.value) })}
+                    className={cn("w-full bg-[var(--surface-3)] border border-[var(--border-default)] px-3 py-2 text-white focus:outline-none focus:border-[rgba(var(--site-primary-rgb),0.5)]", radius.lg, fontSize.md)}
+                    placeholder="4"
+                    step="0.1"
+                  />
+                </div>
+                <button
+                  onClick={() => removeImpuesto(imp.id)}
+                  className="p-2 text-[var(--text-muted)] hover:text-red-400 transition-colors"
+                >
+                  <Trash2 size={13} />
+                </button>
               </div>
             </div>
-          )}
+          ))}
         </div>
+      </div>
+
+      {/* Admin fee */}
+      <div>
+        <div className="flex items-center justify-between mb-3">
+          <label className={labelClass}>Admin Fee</label>
+        </div>
+        <div className={cn("bg-[var(--surface-2)] border border-[var(--border-subtle)] p-4", radius.xl)}>
+          <div className={cn("grid grid-cols-1 sm:grid-cols-2", gap.relaxed)}>
+            <div>
+              <label className={cn("block text-[var(--text-muted)] mb-1 uppercase", fontSize.label, letterSpacing.wider)}>
+                Monto ({config.moneda})
+              </label>
+              <CurrencyInput
+                value={config.admin_fee ?? ""}
+                onChange={(v) => saveConfig({ ...config, admin_fee: Number(v) || undefined })}
+                currency={moneda as Currency}
+                inputClassName={cn("w-full bg-[var(--surface-3)] border border-[var(--border-default)] px-3 py-2 text-white focus:outline-none focus:border-[rgba(var(--site-primary-rgb),0.5)]", radius.lg, fontSize.md)}
+                placeholder="0"
+              />
+            </div>
+            <div>
+              <label className={cn("block text-[var(--text-muted)] mb-1 uppercase", fontSize.label, letterSpacing.wider)}>
+                Etiqueta
+              </label>
+              <input
+                type="text"
+                value={config.admin_fee_label ?? ""}
+                onChange={(e) => saveConfig({ ...config, admin_fee_label: e.target.value || undefined })}
+                className={cn(inputClass, fontSize.md)}
+                placeholder="Admin Fee"
+              />
+            </div>
+          </div>
+          <p className={cn("text-[var(--text-muted)] mt-2", fontSize.caption)}>
+            Cargo fijo adicional (ej. Admin Fee en Dubai). Se muestra como línea separada en la cotización.
+          </p>
+        </div>
+      </div>
+
+      {/* Tipo de entrega */}
+      <div>
+        <label className={cn(labelClass, "mb-2")}>Tipo de entrega</label>
+        <div className="flex gap-2 mb-2">
+          {([
+            { value: null, label: "Sin configurar" },
+            { value: "fecha_fija" as const, label: "Fecha fija" },
+            { value: "plazo_desde_compra" as const, label: "Plazo desde compra" },
+          ] as const).map((opt) => (
+            <button
+              key={String(opt.value)}
+              type="button"
+              onClick={() => saveConfig({
+                ...config,
+                tipo_entrega: opt.value,
+                ...(opt.value === null ? { fecha_estimada_entrega: undefined, plazo_entrega_meses: undefined } : {}),
+              })}
+              className={cn(
+                "flex-1 px-2 py-1.5 border text-center transition-colors",
+                radius.lg, fontSize.label,
+                (config.tipo_entrega ?? null) === opt.value
+                  ? "border-[rgba(var(--site-primary-rgb),0.6)] bg-[rgba(var(--site-primary-rgb),0.1)] text-[var(--site-primary)]"
+                  : "border-[var(--border-default)] bg-[var(--surface-3)] text-[var(--text-secondary)] hover:border-[var(--border-strong)]"
+              )}
+            >
+              {opt.label}
+            </button>
+          ))}
+        </div>
+        {config.tipo_entrega === "fecha_fija" && (
+          <div>
+            <label className={cn("block text-[var(--text-muted)] mb-1 uppercase", fontSize.label, letterSpacing.wider)}>
+              Fecha de entrega
+            </label>
+            <input
+              type="date"
+              value={config.fecha_estimada_entrega ?? ""}
+              onChange={(e) => saveConfig({ ...config, fecha_estimada_entrega: e.target.value || undefined })}
+              className={cn(inputClass, fontSize.md)}
+            />
+            <p className={cn("text-[var(--text-muted)] mt-1", fontSize.caption)}>
+              Las cuotas se ajustan según meses restantes
+            </p>
+          </div>
+        )}
+        {config.tipo_entrega === "plazo_desde_compra" && (
+          <div>
+            <label className={cn("block text-[var(--text-muted)] mb-1 uppercase", fontSize.label, letterSpacing.wider)}>
+              Plazo de entrega (meses)
+            </label>
+            <input
+              type="number"
+              value={config.plazo_entrega_meses ?? 24}
+              onChange={(e) => saveConfig({ ...config, plazo_entrega_meses: parseInt(e.target.value) || 24 })}
+              min={6}
+              max={120}
+              className={cn(inputClass, fontSize.md, "w-32")}
+            />
+            <p className={cn("text-[var(--text-muted)] mt-1", fontSize.caption)}>
+              Plan de pagos desde fecha de cotización + plazo
+            </p>
+          </div>
         )}
       </div>
 
-      {/* Right: Preview */}
-      <div className="lg:sticky lg:top-6 lg:self-start">
-        <div className={cn("bg-[var(--surface-1)] border border-[var(--border-subtle)] p-6", radius.xl)}>
-          <h3 className={cn("font-medium text-white mb-4", fontSize.md)}>Vista previa</h3>
-
-          {/* Sample price input */}
-          <div className="mb-5">
-            <label className={cn("block text-[var(--text-muted)] mb-1 uppercase", fontSize.label, letterSpacing.wider)}>
-              Precio de ejemplo ({config.moneda})
-            </label>
-            <CurrencyInput
-              value={samplePrice || ""}
-              onChange={(v) => setSamplePrice(Number(v))}
-              currency={moneda as Currency}
-              inputClassName={cn("w-full bg-[var(--surface-3)] border border-[var(--border-default)] px-3 py-2.5 text-white focus:outline-none focus:border-[rgba(var(--site-primary-rgb),0.5)]", radius.lg, fontSize.md)}
-            />
-          </div>
-
-          {preview && (() => {
-            // Detect separación → cuota inicial grouping
-            const hasSepGroup = config.fases[0]?.tipo === "fijo" && config.fases.length > 1 && config.fases[1]?.tipo === "porcentaje";
-            const sepMonto = hasSepGroup ? preview.fases[0]?.monto_total ?? 0 : 0;
-            const cuotaInicialPct = hasSepGroup ? config.fases[1].valor : 0;
-            const cuotaInicialTotal = hasSepGroup ? sepMonto + (preview.fases[1]?.monto_total ?? 0) : 0;
-
-            return (
-            <div className={cn("flex flex-col", gap.loose)}>
-              {/* Breakdown */}
-              <div className={cn("flex flex-col", gap.normal)}>
-                {/* Cuota inicial grouping header */}
-                {hasSepGroup && (
-                  <div className={cn("flex items-center justify-between pb-1 border-b border-[rgba(var(--site-primary-rgb),0.15)]")}>
-                    <p className={cn("text-[var(--site-primary)] font-medium", fontSize.label, "uppercase tracking-wider font-ui")}>
-                      Cuota inicial ({cuotaInicialPct}%)
-                    </p>
-                    <p className={cn("text-[var(--site-primary)] font-medium font-mono", fontSize.label)}>
-                      {formatCurrency(cuotaInicialTotal, moneda)}
-                    </p>
-                  </div>
-                )}
-                {preview.fases.map((fase, i) => {
-                  const isSepRow = hasSepGroup && i === 0;
-                  const isCuotaRow = hasSepGroup && i === 1;
-                  const isGrouped = isSepRow || isCuotaRow;
-
-                  return (
-                  <div
-                    key={i}
-                    className={cn(
-                      "flex items-start justify-between py-2 border-b border-[var(--border-subtle)] last:border-0",
-                      isGrouped && "ml-3 border-l-2 border-l-[rgba(var(--site-primary-rgb),0.2)] pl-3",
-                    )}
-                  >
-                    <div>
-                      <p className={cn("text-white font-medium", fontSize.md)}>{fase.nombre}</p>
-                      {fase.fecha && (
-                        <p className={cn("text-[var(--text-muted)] mt-0.5", fontSize.label)}>{fase.fecha}</p>
-                      )}
-                      {fase.cuotas > 1 && (
-                        <p className={cn("text-[var(--text-muted)] mt-0.5", fontSize.label)}>
-                          {fase.cuotas} cuotas de {formatCurrency(fase.monto_por_cuota, moneda)}
-                          {fase.frecuencia !== "unica" && ` (${fase.frecuencia})`}
-                        </p>
-                      )}
-                    </div>
-                    <p className={cn("text-[var(--text-secondary)] font-medium", fontSize.md)}>
-                      {formatCurrency(fase.monto_total, moneda)}
-                    </p>
-                  </div>
-                  );
-                })}
-              </div>
-
-              {/* Admin fee */}
-              {preview.admin_fee && preview.admin_fee > 0 && (
-                <div className="flex items-center justify-between py-2 border-b border-[var(--border-subtle)]">
-                  <p className={cn("text-[var(--text-secondary)]", fontSize.md)}>{preview.admin_fee_label || "Admin Fee"}</p>
-                  <p className={cn("text-[var(--text-secondary)]", fontSize.md)}>{formatCurrency(preview.admin_fee, moneda)}</p>
-                </div>
-              )}
-
-              {/* Taxes */}
-              {preview.impuestos_aplicados?.map((imp, i) => (
-                <div key={i} className="flex items-center justify-between py-2 border-b border-[var(--border-subtle)]">
-                  <p className={cn("text-[var(--text-secondary)]", fontSize.md)}>{imp.nombre} ({imp.porcentaje}%)</p>
-                  <p className={cn("text-[var(--text-secondary)]", fontSize.md)}>{formatCurrency(imp.monto, moneda)}</p>
-                </div>
-              ))}
-
-              {/* Total */}
-              <div className="flex items-center justify-between pt-3 border-t border-[var(--border-default)]">
-                <p className={cn("font-medium text-white", fontSize.md)}>Total</p>
-                <p className={cn("font-semibold text-[var(--site-primary)]", fontSize.md)}>
-                  {formatCurrency(
-                    preview.precio_neto + (preview.admin_fee ?? 0) + (preview.impuestos_total ?? 0),
-                    moneda,
-                  )}
-                </p>
-              </div>
-
-              {/* Percentage check */}
-              {(() => {
-                const totalFases = preview.fases.reduce((sum, f) => sum + f.monto_total, 0);
-                const diff = Math.abs(totalFases - preview.precio_neto);
-                if (diff > 1) {
-                  return (
-                    <p className={cn("text-yellow-400 mt-2", fontSize.label)}>
-                      Las fases suman {formatCurrency(totalFases, moneda)} — diferencia de {formatCurrency(diff, moneda)} con el total
-                    </p>
-                  );
-                }
-                return null;
-              })()}
-            </div>
-            );
-          })()}
-
-          {!preview && config.fases.length > 0 && (
-            <p className={cn("text-[var(--text-muted)]", fontSize.md)}>Ingresa un precio para ver la vista previa</p>
-          )}
-        </div>
+      {/* Notas legales */}
+      <div>
+        <label className={cn(labelClass, "flex items-center", gap.normal)}>
+          Notas legales (aparecen en el PDF)
+          <InfoTooltip
+            content={tooltips.cotizador.notasLegales.long}
+            variant="dashboard"
+            placement="auto"
+          />
+        </label>
+        <textarea
+          value={config.notas_legales ?? ""}
+          onChange={(e) => saveConfig({ ...config, notas_legales: e.target.value || null })}
+          rows={3}
+          className={cn(inputClass, "resize-none", fontSize.md)}
+          placeholder="Los precios están sujetos a cambios sin previo aviso..."
+        />
       </div>
     </div>
   );

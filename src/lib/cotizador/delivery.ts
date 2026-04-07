@@ -23,19 +23,66 @@ export interface PhaseAdjustment {
 /* ── Date Parsing ──────────────────────────────────────── */
 
 /**
- * Parse fecha_estimada_entrega, distinguishing between:
+ * Parse fecha_estimada_entrega, supporting:
  * - ISO dates: "2028-12-15" → Date
- * - Legacy freeform text: "Q2-2028", "Diciembre 2027" → null
+ * - Quarter format: "Q2 2028" or "Q2-2028" → last day of quarter
+ * - Month format: "MM/yyyy" (e.g. "12/2028") → last day of month
  */
 export function parseFechaEntrega(value: string | undefined): Date | null {
   if (!value) return null;
   // ISO date format: YYYY-MM-DD
-  const isoMatch = /^\d{4}-\d{2}-\d{2}$/.test(value);
-  if (isoMatch) {
+  if (/^\d{4}-\d{2}-\d{2}$/.test(value)) {
     const d = new Date(value + "T00:00:00");
     return isNaN(d.getTime()) ? null : d;
   }
+  // Quarter format: "Q1 2028", "Q2-2028", etc.
+  const qMatch = value.match(/^Q([1-4])[\s-](\d{4})$/i);
+  if (qMatch) {
+    const quarter = parseInt(qMatch[1]);
+    const year = parseInt(qMatch[2]);
+    // Last month of quarter: Q1→Mar, Q2→Jun, Q3→Sep, Q4→Dec
+    const lastMonth = quarter * 3; // 1-indexed: 3, 6, 9, 12
+    // Last day of that month (month is 0-indexed, so lastMonth = next month's 0th day)
+    return new Date(year, lastMonth, 0);
+  }
+  // Month format: "MM/yyyy"
+  const mMatch = value.match(/^(\d{1,2})\/(\d{4})$/);
+  if (mMatch) {
+    const month = parseInt(mMatch[1]); // 1-12
+    const year = parseInt(mMatch[2]);
+    if (month >= 1 && month <= 12) {
+      return new Date(year, month, 0); // Last day of that month
+    }
+  }
   return null;
+}
+
+/**
+ * Human-readable display for delivery date strings.
+ * Used in PDF generation and UI display.
+ */
+const MONTH_NAMES_ES = [
+  "Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio",
+  "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre",
+];
+
+export function formatDeliveryDateDisplay(value: string | undefined): string {
+  if (!value) return "";
+  // Quarter format: "Q4 2028" → display as-is
+  if (/^Q[1-4][\s-]\d{4}$/i.test(value)) return value.replace("-", " ");
+  // Month format: "MM/yyyy" → "Diciembre 2028"
+  const mMatch = value.match(/^(\d{1,2})\/(\d{4})$/);
+  if (mMatch) {
+    const month = parseInt(mMatch[1]);
+    if (month >= 1 && month <= 12) return `${MONTH_NAMES_ES[month - 1]} ${mMatch[2]}`;
+  }
+  // ISO date → "Diciembre 2028"
+  if (/^\d{4}-\d{2}-\d{2}$/.test(value)) {
+    const d = new Date(value + "T00:00:00");
+    if (!isNaN(d.getTime())) return `${MONTH_NAMES_ES[d.getMonth()]} ${d.getFullYear()}`;
+  }
+  // Fallback: return as-is
+  return value;
 }
 
 /* ── Month Calculation ─────────────────────────────────── */
@@ -99,7 +146,7 @@ export function resolveDeliveryContext(
  * Adjust phase cuotas to fit within available months.
  *
  * - Single-payment phases (cuotas === 1) are not touched
- * - "resto" phases (contra entrega) are not touched
+ * - "resto" phases (entrega) are not touched
  * - Multi-cuota phases are proportionally reduced if they don't fit
  */
 export function adjustFasesToDelivery(
