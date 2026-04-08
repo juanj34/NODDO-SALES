@@ -12,6 +12,10 @@ const R2_SECRET_ACCESS_KEY = process.env.R2_SECRET_ACCESS_KEY!;
 const R2_BUCKET_NAME = process.env.R2_BUCKET_NAME || "noddo-tours";
 const R2_PUBLIC_URL = process.env.R2_PUBLIC_URL!;
 
+/* Media bucket (for PDFs, large files, etc.) */
+const R2_MEDIA_BUCKET = process.env.R2_MEDIA_BUCKET_NAME || "noddo-media";
+const R2_MEDIA_PUBLIC_URL = process.env.R2_MEDIA_PUBLIC_URL || R2_PUBLIC_URL;
+
 let _client: S3Client | null = null;
 
 function getR2Client(): S3Client {
@@ -103,6 +107,56 @@ export async function uploadFileToR2(
       Key: key,
       Body: body,
       ContentType: contentType,
+    })
+  );
+}
+
+/* ------------------------------------------------------------------ */
+/*  Media uploads (PDFs, large files → noddo-media bucket)             */
+/* ------------------------------------------------------------------ */
+
+export interface MediaPresignResult {
+  uploadUrl: string;
+  publicUrl: string;
+  key: string;
+}
+
+/**
+ * Generate a presigned PUT URL for a single media file upload.
+ * Browser uploads directly to R2 — no serverless size limits.
+ */
+export async function getPresignedMediaUploadUrl(
+  projectId: string,
+  folder: string,
+  fileName: string,
+  contentType: string,
+  size: number,
+): Promise<MediaPresignResult> {
+  const client = getR2Client();
+  const key = `${folder}/${fileName}`;
+
+  const command = new PutObjectCommand({
+    Bucket: R2_MEDIA_BUCKET,
+    Key: key,
+    ContentType: contentType,
+    ContentLength: size,
+  });
+
+  const uploadUrl = await getSignedUrl(client, command, { expiresIn: 900 });
+  const publicUrl = `${R2_MEDIA_PUBLIC_URL}/${key}`;
+
+  return { uploadUrl, publicUrl, key };
+}
+
+/**
+ * Delete a single media file from R2.
+ */
+export async function deleteMediaFile(key: string): Promise<void> {
+  const client = getR2Client();
+  await client.send(
+    new DeleteObjectsCommand({
+      Bucket: R2_MEDIA_BUCKET,
+      Delete: { Objects: [{ Key: key }], Quiet: true },
     })
   );
 }

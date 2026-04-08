@@ -55,7 +55,7 @@ const emptyForm = {
 };
 
 export default function RecursosPage() {
-  const { project, refresh, projectId } = useEditorProject();
+  const { project, refresh, save, updateLocal, projectId } = useEditorProject();
   const { t } = useTranslation("editor");
   const { confirm } = useConfirm();
   const toast = useToast();
@@ -72,6 +72,28 @@ export default function RecursosPage() {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [showForm, setShowForm] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [savingBrochure, setSavingBrochure] = useState(false);
+
+  const handleBrochureUpload = async (url: string) => {
+    setSavingBrochure(true);
+    try {
+      const ok = await save({ brochure_url: url });
+      if (!ok) toast.error(t("recursos.saveError"));
+    } finally {
+      setSavingBrochure(false);
+    }
+  };
+
+  const handleBrochureRemove = async () => {
+    if (!(await confirm({ title: t("recursos.deleteTitle"), message: t("recursos.deleteConfirm") }))) return;
+    setSavingBrochure(true);
+    try {
+      const ok = await save({ brochure_url: null });
+      if (!ok) toast.error(t("recursos.saveError"));
+    } finally {
+      setSavingBrochure(false);
+    }
+  };
 
   const openNew = () => {
     setForm(emptyForm);
@@ -137,11 +159,24 @@ export default function RecursosPage() {
 
   const deleteRecursoAction = useAsyncAction(async (id: string) => {
     if (!(await confirm({ title: t("recursos.deleteTitle"), message: t("recursos.deleteConfirm") }))) return;
+
+    // Optimistic: remove from UI immediately
+    const prev = project.recursos;
+    updateLocal((p) => ({
+      ...p,
+      recursos: p.recursos.filter((r) => r.id !== id),
+    }));
+
     try {
       const res = await fetch(`/api/recursos/${id}`, { method: "DELETE" });
-      if (!res.ok) toast.error(t("recursos.deleteResourceError"));
-      await refresh();
+      if (!res.ok) {
+        // Rollback on failure
+        updateLocal((p) => ({ ...p, recursos: prev }));
+        toast.error(t("recursos.deleteResourceError"));
+      }
     } catch {
+      // Rollback on network error
+      updateLocal((p) => ({ ...p, recursos: prev }));
       toast.error(t("errors.connectionError"));
     }
   });
@@ -166,6 +201,62 @@ export default function RecursosPage() {
           ) : undefined
         }
       />
+
+      {/* ── Brochure Principal ────────────────────────────────────── */}
+      <div className={sectionCard + " mb-6 border-[rgba(var(--site-primary-rgb),0.25)]"}>
+        <div className="flex items-center gap-3 mb-4">
+          <div className="w-10 h-10 rounded-lg bg-[rgba(var(--site-primary-rgb),0.12)] flex items-center justify-center">
+            <BookOpen size={18} className="text-[var(--site-primary)]" />
+          </div>
+          <div>
+            <h3 className={sectionTitle + " !mb-0"}>Brochure Principal</h3>
+            <p className="text-xs text-[var(--text-tertiary)]">
+              PDF principal que se muestra en la sección de brochure del micrositio
+            </p>
+          </div>
+        </div>
+
+        {project.brochure_url ? (
+          <div className="flex items-center gap-3">
+            <div className="flex-1 flex items-center gap-3 px-3.5 py-2.5 rounded-lg bg-[var(--surface-2)] border border-[var(--border-subtle)]">
+              <FileText size={16} className="text-[var(--site-primary)] shrink-0" />
+              <span className="text-sm text-[var(--text-secondary)] truncate font-mono">
+                {project.brochure_url.split("/").pop()}
+              </span>
+              <a
+                href={project.brochure_url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="ml-auto text-xs text-[var(--text-tertiary)] hover:text-white transition-colors shrink-0"
+              >
+                <Download size={14} />
+              </a>
+            </div>
+            <button
+              onClick={handleBrochureRemove}
+              disabled={savingBrochure}
+              className={btnDanger}
+            >
+              {savingBrochure ? <Loader2 size={12} className="animate-spin" /> : <Trash2 size={12} />}
+            </button>
+          </div>
+        ) : (
+          <FileUploader
+            currentUrl={null}
+            onUpload={handleBrochureUpload}
+            accept="application/pdf"
+            folder={`proyectos/${projectId}/brochure`}
+            label="Subir brochure PDF"
+          />
+        )}
+
+        {savingBrochure && (
+          <div className="flex items-center gap-2 mt-3 text-xs text-[var(--text-tertiary)]">
+            <Loader2 size={12} className="animate-spin" />
+            Guardando...
+          </div>
+        )}
+      </div>
 
       {/* ── Form ─────────────────────────────────────────────────── */}
       <AnimatePresence>

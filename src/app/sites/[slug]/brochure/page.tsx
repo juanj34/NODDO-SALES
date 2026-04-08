@@ -9,10 +9,10 @@ import { trackEvent } from "@/lib/tracking";
 import { SiteEmptyState } from "@/components/site/SiteEmptyState";
 import { SectionTransition } from "@/components/site/SectionTransition";
 
-const PDFScrollViewer = dynamic(
+const PDFPresentationViewer = dynamic(
   () =>
-    import("@/components/site/PDFScrollViewer").then((mod) => ({
-      default: mod.PDFScrollViewer,
+    import("@/components/site/PDFPresentationViewer").then((mod) => ({
+      default: mod.PDFPresentationViewer,
     })),
   {
     ssr: false,
@@ -48,7 +48,7 @@ export default function BrochurePage() {
   }
 
   return (
-    <PDFScrollViewer
+    <PDFPresentationViewer
       url={proyecto.brochure_url}
       onClose={() => window.history.back()}
       projectId={proyecto.id}

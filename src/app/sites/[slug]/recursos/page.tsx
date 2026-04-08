@@ -81,8 +81,6 @@ function isPDF(url: string): boolean {
 export default function RecursosPage() {
   const sectionVisible = useSectionVisibility("recursos");
   const proyecto = useSiteProject();
-  if (!sectionVisible) return null;
-  const recursos = proyecto.recursos || [];
   const [viewingRecurso, setViewingRecurso] = useState<Recurso | null>(null);
   const { t } = useTranslation("site");
 
@@ -93,7 +91,6 @@ export default function RecursosPage() {
       if (isPDF(recurso.url)) {
         setViewingRecurso(recurso);
       } else {
-        // Non-PDF files: open in new tab
         trackEvent(proyecto.id, "recurso_download", undefined, {
           recurso: recurso.nombre,
           tipo: recurso.tipo,
@@ -103,6 +100,10 @@ export default function RecursosPage() {
     },
     [proyecto.id]
   );
+
+  if (!sectionVisible) return null;
+
+  const recursos = proyecto.recursos || [];
 
   return (
     <>

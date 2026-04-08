@@ -8,7 +8,6 @@ import { ImageCropper } from "@/components/dashboard/ImageCropper";
 import { compressImage } from "@/lib/compress-image";
 import { useTranslation } from "@/i18n";
 import { UploadProgress, UploadProgressOverlay, type UploadState } from "@/components/ui/UploadProgress";
-import { createClient } from "@/lib/supabase/client";
 
 /* ------------------------------------------------------------------
    Types
@@ -138,34 +137,52 @@ export function FileUploader({
   /* ------------------------------------------------------------------
      Upload helpers
      ------------------------------------------------------------------ */
-  /** Upload non-image files (PDFs, etc.) directly to Supabase Storage
-      to bypass Vercel's 4.5MB serverless body limit */
-  const uploadDirectToStorage = useCallback(
+  /** Upload non-image files (PDFs, etc.) directly to Cloudflare R2.
+      Uses presigned URL + XMLHttpRequest for real upload progress. */
+  const uploadDirectToR2 = useCallback(
     async (file: File): Promise<UploadResult> => {
-      const supabase = createClient();
       const ext = file.name.split(".").pop() || "bin";
-      const prefix = folder ? folder + "/" : "";
-      const baseName = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
-      const fileName = `${prefix}${baseName}.${ext}`;
+      const baseName = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`;
 
-      const { error: uploadError } = await supabase.storage
-        .from("media")
-        .upload(fileName, file, { upsert: true });
+      // 1. Get presigned URL from server
+      const presignRes = await fetch("/api/media/presign", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          folder,
+          fileName: baseName,
+          contentType: file.type || "application/octet-stream",
+          size: file.size,
+        }),
+      });
 
-      if (uploadError) throw new Error(uploadError.message);
-
-      // Increment storage counter
-      const folderMatch = folder.match(/^proyectos\/([a-f0-9-]+)/i);
-      if (folderMatch?.[1]) {
-        supabase.rpc("increment_storage_media_bytes", {
-          p_id: folderMatch[1],
-          p_bytes: file.size,
-        }).then();
+      if (!presignRes.ok) {
+        const err = await presignRes.json().catch(() => ({ error: "Error al obtener URL" }));
+        throw new Error(err.error || "Error al obtener URL de subida");
       }
 
-      const {
-        data: { publicUrl },
-      } = supabase.storage.from("media").getPublicUrl(fileName);
+      const { uploadUrl, publicUrl } = await presignRes.json();
+
+      // 2. Upload directly to R2 with progress via XMLHttpRequest
+      await new Promise<void>((resolve, reject) => {
+        const xhr = new XMLHttpRequest();
+        xhr.open("PUT", uploadUrl);
+        xhr.setRequestHeader("Content-Type", file.type || "application/octet-stream");
+
+        xhr.upload.onprogress = (e) => {
+          if (e.lengthComputable) {
+            setUploadProgressPercent(Math.round((e.loaded / e.total) * 100));
+          }
+        };
+
+        xhr.onload = () => {
+          if (xhr.status >= 200 && xhr.status < 300) resolve();
+          else reject(new Error(`Upload failed: ${xhr.status} ${xhr.statusText}`));
+        };
+        xhr.onerror = () => reject(new Error("Error de red al subir archivo"));
+
+        xhr.send(file);
+      });
 
       return { url: publicUrl, width: 0, height: 0 };
     },
@@ -177,12 +194,12 @@ export function FileUploader({
       const isImage = file.type.startsWith("image/");
       const isVideo = file.type.startsWith("video/");
 
-      // Non-image, non-video files (PDFs, etc.): upload directly to Supabase
-      // to bypass Vercel's 4.5MB serverless function body limit
+      // Non-image, non-video files (PDFs, etc.): upload directly to R2
+      // via presigned URL — no serverless size limits, real progress
       if (!isImage && !isVideo) {
         setUploadState("uploading");
         setUploadProgressPercent(0);
-        const result = await uploadDirectToStorage(file);
+        const result = await uploadDirectToR2(file);
         setUploadProgressPercent(100);
         setUploadState("complete");
         return result;
@@ -261,7 +278,7 @@ export function FileUploader({
 
       return await res.json();
     },
-    [folder, t, uploadState, uploadDirectToStorage]
+    [folder, t, uploadState, uploadDirectToR2]
   );
 
   const uploadBlob = useCallback(
