@@ -116,7 +116,7 @@ export function ComparisonStrip() {
   ];
 
   return (
-    <section className="relative z-[1] py-28 lg:py-40 px-6 lg:px-20 border-t border-[var(--mk-border-rule)]">
+    <section className="relative z-[1] py-16 sm:py-24 lg:py-40 px-4 sm:px-6 lg:px-20 border-t border-[var(--mk-border-rule)]">
       <div style={{ maxWidth: 1100, margin: "0 auto" }}>
         <div className="mk-section-label mb-6">{t("comparison.label")}</div>
 
@@ -273,14 +273,14 @@ export function ComparisonStrip() {
               style={{ background: "var(--mk-bg)", padding: "16px 0" }}
             >
               <div
-                className="font-ui text-[12px] font-semibold tracking-[0.04em] mb-3"
-                style={{ color: "rgba(244,240,232,0.7)" }}
+                className="font-ui text-[13px] font-semibold tracking-[0.04em] mb-3"
+                style={{ color: "rgba(244,240,232,0.75)" }}
               >
                 {f.label}
               </div>
-              <div className="grid grid-cols-3 gap-2 text-[11px]">
+              <div className="grid grid-cols-3 gap-2">
                 <div style={{ fontSize: 12, color: "rgba(244,240,232,0.45)" }}>
-                  <div className="font-ui text-[9px] tracking-[0.12em] uppercase mb-1" style={{ color: "rgba(244,240,232,0.3)" }}>{t("comparison.colBrochure")}</div>
+                  <div className="font-ui text-[9px] tracking-[0.12em] uppercase mb-1.5" style={{ color: "rgba(244,240,232,0.3)" }}>{t("comparison.colBrochure")}</div>
                   <span style={{ color: iconColor(f.brochure.icon), marginRight: 3 }}>{f.brochure.icon}</span>
                   {f.brochure.text}
                 </div>

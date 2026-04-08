@@ -80,14 +80,28 @@ export function resolveRowAmount(
   row: PaymentRow,
   totalPrice: number,
   allRows: PaymentRow[],
+  separacionIncluida?: boolean,
 ): number {
   if (row.tipo_valor === "fijo") return row.valor;
   if (row.tipo_valor === "porcentaje") return Math.round(totalPrice * (row.valor / 100));
   // "resto" → total minus sum of all non-resto rows
+  // When separación is included in cuota inicial, skip the fijo separación
+  // because it's already part of the percentage cuotas, not additional
   let assigned = 0;
+  let skippedSep = false;
   for (const r of allRows) {
-    if (r.tipo_valor === "fijo") assigned += r.valor;
-    else if (r.tipo_valor === "porcentaje") assigned += Math.round(totalPrice * (r.valor / 100));
+    if (r.tipo_valor === "fijo") {
+      if (separacionIncluida && !skippedSep) {
+        const lower = r.nombre.toLowerCase();
+        if (lower.includes("separaci") || lower.includes("reserv") || lower.includes("booking")) {
+          skippedSep = true;
+          continue;
+        }
+      }
+      assigned += r.valor;
+    } else if (r.tipo_valor === "porcentaje") {
+      assigned += Math.round(totalPrice * (r.valor / 100));
+    }
   }
   return totalPrice - assigned;
 }
@@ -97,11 +111,23 @@ export function resolveRowAmount(
 export function computeBalance(
   rows: PaymentRow[],
   totalPrice: number,
+  separacionIncluida?: boolean,
 ): { assigned: number; remaining: number; pctAssigned: number } {
   let assigned = 0;
+  let skippedSep = false;
   for (const r of rows) {
-    if (r.tipo_valor === "fijo") assigned += r.valor;
-    else if (r.tipo_valor === "porcentaje") assigned += Math.round(totalPrice * (r.valor / 100));
+    if (r.tipo_valor === "fijo") {
+      if (separacionIncluida && !skippedSep) {
+        const lower = r.nombre.toLowerCase();
+        if (lower.includes("separaci") || lower.includes("reserv") || lower.includes("booking")) {
+          skippedSep = true;
+          continue;
+        }
+      }
+      assigned += r.valor;
+    } else if (r.tipo_valor === "porcentaje") {
+      assigned += Math.round(totalPrice * (r.valor / 100));
+    }
   }
   const remaining = totalPrice - assigned;
   const pctAssigned = totalPrice > 0 ? Math.round((assigned / totalPrice) * 100) : 0;
@@ -110,9 +136,9 @@ export function computeBalance(
 
 /* ── Structure Notation ────────────────────────────────── */
 
-export function deriveStructure(rows: PaymentRow[], totalPrice: number): string {
+export function deriveStructure(rows: PaymentRow[], totalPrice: number, separacionIncluida?: boolean): string {
   if (totalPrice <= 0) return "—";
-  const { pctAssigned } = computeBalance(rows, totalPrice);
+  const { pctAssigned } = computeBalance(rows, totalPrice, separacionIncluida);
   const pctDelivery = 100 - pctAssigned;
   if (pctDelivery <= 0) return "100/0";
   return `${pctAssigned}/${pctDelivery}`;

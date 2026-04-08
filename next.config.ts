@@ -3,6 +3,12 @@ import { withSentryConfig } from "@sentry/nextjs";
 
 const nextConfig: NextConfig = {
   poweredByHeader: false,
+  // Include font files in the serverless bundle (needed for PDF generation on Vercel)
+  outputFileTracingIncludes: {
+    "/api/cotizaciones": ["./src/lib/cotizador/fonts/**/*"],
+    "/api/cotizaciones/preview": ["./src/lib/cotizador/fonts/**/*"],
+    "/api/cotizaciones/\\[id\\]/regenerate": ["./src/lib/cotizador/fonts/**/*"],
+  },
   images: {
     formats: ["image/avif", "image/webp"],
     remotePatterns: [
@@ -34,13 +40,13 @@ const nextConfig: NextConfig = {
             key: "Content-Security-Policy",
             value: [
               "default-src 'self'",
-              "script-src 'self' 'unsafe-eval' 'unsafe-inline' https://www.google.com https://www.gstatic.com https://maps.googleapis.com https://www.youtube.com https://matterport.com https://client.crisp.chat",
+              "script-src 'self' 'unsafe-eval' 'unsafe-inline' https://www.google.com https://www.gstatic.com https://maps.googleapis.com https://www.youtube.com https://matterport.com https://client.crisp.chat https://connect.facebook.net https://*.googletagmanager.com https://*.google-analytics.com https://*.datahq04.com",
               "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://client.crisp.chat",
               "font-src 'self' https://fonts.gstatic.com https://client.crisp.chat data:",
               "img-src 'self' data: blob: https:",
               "media-src 'self' blob: https:",
-              "connect-src 'self' https://*.supabase.co https://*.google.com https://api.mapbox.com wss://*.supabase.co https://client.crisp.chat wss://client.relay.crisp.chat wss://stream.relay.crisp.chat",
-              "frame-src 'self' https://www.youtube.com https://matterport.com https://www.google.com https://game.crisp.chat https://iframe.videodelivery.net https:",
+              "connect-src 'self' https://*.supabase.co https://*.google.com https://api.mapbox.com wss://*.supabase.co https://client.crisp.chat wss://client.relay.crisp.chat wss://stream.relay.crisp.chat https://*.r2.cloudflarestorage.com https://*.r2.dev https://*.facebook.com https://*.facebook.net https://connect.facebook.net https://*.datahq04.com https://*.google-analytics.com https://*.analytics.google.com https://*.googletagmanager.com",
+              "frame-src 'self' blob: https://www.youtube.com https://matterport.com https://www.google.com https://game.crisp.chat https://iframe.videodelivery.net https:",
               "worker-src 'self' blob:",
               "object-src 'none'",
               "base-uri 'self'",

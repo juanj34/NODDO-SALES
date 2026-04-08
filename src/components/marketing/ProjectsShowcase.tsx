@@ -83,13 +83,12 @@ export function ProjectsShowcase() {
 
   return (
     <section
-      className="relative z-[1] border-t border-[var(--mk-border-rule)] overflow-hidden"
-      style={{ padding: "120px 24px" }}
+      className="relative z-[1] border-t border-[var(--mk-border-rule)] overflow-hidden py-16 px-4 sm:py-20 sm:px-6 lg:py-[120px] lg:px-6"
     >
       {/* Header */}
       <div
-        className="flex items-end justify-between mb-15 mx-auto px-6 lg:px-20"
-        style={{ maxWidth: 1320, marginBottom: 60 }}
+        className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-6 mx-auto px-0 sm:px-6 lg:px-20 mb-10 sm:mb-[60px]"
+        style={{ maxWidth: 1320 }}
       >
         <div>
           <div className="mk-section-label mb-6">{t("projectsShowcase.label")}</div>

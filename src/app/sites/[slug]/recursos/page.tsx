@@ -12,6 +12,11 @@ import {
   DollarSign,
   File,
   Loader2,
+  Ruler,
+  Image,
+  BookMarked,
+  ScrollText,
+  ShieldCheck,
 } from "lucide-react";
 import { useSiteProject } from "@/hooks/useSiteProject";
 import { cn } from "@/lib/utils";
@@ -44,6 +49,11 @@ const tipoIcons: Record<
   acabados: { icon: ClipboardList, gradient: "from-emerald-500/20 to-emerald-700/5" },
   ficha_tecnica: { icon: FileText, gradient: "from-blue-500/20 to-blue-700/5" },
   precios: { icon: DollarSign, gradient: "from-purple-500/20 to-purple-700/5" },
+  planos: { icon: Ruler, gradient: "from-cyan-500/20 to-cyan-700/5" },
+  render: { icon: Image, gradient: "from-rose-500/20 to-rose-700/5" },
+  manual: { icon: BookMarked, gradient: "from-teal-500/20 to-teal-700/5" },
+  reglamento: { icon: ScrollText, gradient: "from-orange-500/20 to-orange-700/5" },
+  garantias: { icon: ShieldCheck, gradient: "from-indigo-500/20 to-indigo-700/5" },
   otro: { icon: File, gradient: "from-gray-500/20 to-gray-700/5" },
 };
 
@@ -70,6 +80,11 @@ const tipoLabelKeys: Record<Recurso["tipo"], string> = {
   acabados: "recursos.types.acabados",
   ficha_tecnica: "recursos.types.ficha_tecnica",
   precios: "recursos.types.lista_precios",
+  planos: "recursos.types.planos",
+  render: "recursos.types.render",
+  manual: "recursos.types.manual",
+  reglamento: "recursos.types.reglamento",
+  garantias: "recursos.types.garantias",
   otro: "recursos.types.otro",
 };
 

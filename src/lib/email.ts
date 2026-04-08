@@ -167,7 +167,12 @@ export async function sendCotizacionBuyer(data: CotizacionBuyerData) {
 
   // Build attachments list
   const attachments: { filename: string; content: Buffer }[] = [];
-  const pdfFilename = `${s.cotizacionBuyer.filename}_${data.unidadId.replace(/\s+/g, "_")}.pdf`;
+  const pdfFilename = [
+    data.projectName,
+    data.unidadId,
+    data.tipologiaName,
+    data.buyerName,
+  ].filter(Boolean).join(" - ").replace(/[/\\:*?"<>|]/g, "").replace(/\s+/g, " ").trim() + ".pdf";
 
   if (!cfg || cfg.adjuntar_cotizacion_pdf !== false) {
     attachments.push({ filename: pdfFilename, content: data.pdfBuffer });

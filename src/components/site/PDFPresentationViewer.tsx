@@ -215,8 +215,9 @@ export function PDFPresentationViewer({
 
   const preloadPages = useMemo(() => {
     const pages: number[] = [];
-    if (currentPage > 1) pages.push(currentPage - 1);
-    if (currentPage < numPages) pages.push(currentPage + 1);
+    for (let i = Math.max(1, currentPage - 2); i <= Math.min(numPages, currentPage + 2); i++) {
+      if (i !== currentPage) pages.push(i);
+    }
     return pages;
   }, [currentPage, numPages]);
 
@@ -310,7 +311,7 @@ export function PDFPresentationViewer({
             }
           >
             {/* Visible current page */}
-            <AnimatePresence mode="wait" custom={direction}>
+            <AnimatePresence mode="popLayout" custom={direction}>
               <motion.div
                 key={currentPage}
                 custom={direction}

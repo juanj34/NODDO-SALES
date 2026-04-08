@@ -211,7 +211,7 @@ export function MarketingNav() {
           </Link>
           <button
             onClick={openBooking}
-            className="btn-mk-primary text-[10px] py-2.5 px-5 inline-flex items-center gap-2"
+            className="btn-mk-primary text-[10px] py-2.5 px-5 hidden md:inline-flex items-center gap-2"
           >
             {t("nav.bookCall")}
             <ArrowRight size={12} strokeWidth={2.5} />
@@ -313,6 +313,15 @@ export function MarketingNav() {
               <div className="pt-2 border-t border-[var(--mk-border-rule)]">
                 <LanguageToggle compact />
               </div>
+
+              {/* Mobile CTA */}
+              <button
+                onClick={() => { setMobileOpen(false); openBooking(); }}
+                className="btn-mk-primary w-full text-[10px] py-3 mt-3 inline-flex items-center justify-center gap-2"
+              >
+                {t("nav.bookCall")}
+                <ArrowRight size={12} strokeWidth={2.5} />
+              </button>
             </div>
           </motion.div>
         )}

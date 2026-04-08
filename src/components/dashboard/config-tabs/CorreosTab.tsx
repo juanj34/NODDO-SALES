@@ -472,6 +472,7 @@ export default function CorreosTab() {
                             folder={`proyectos/${project.id}`}
                             label={ts("correos.branding.uploadCustom")}
                             aspect="logo"
+                            compact
                           />
                         </div>
                       )}
@@ -531,6 +532,7 @@ export default function CorreosTab() {
                             folder={`proyectos/${project.id}`}
                             label={ts("correos.branding.uploadCustom")}
                             aspect="logo"
+                            compact
                           />
                         </div>
                       )}

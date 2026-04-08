@@ -18,6 +18,22 @@ export interface UploadProgressProps {
   onCancel?: () => void;
   error?: string | null;
   className?: string;
+  speed?: number; // bytes per second
+  eta?: number; // seconds remaining
+}
+
+function formatBytes(bytes: number): string {
+  if (bytes < 1024) return `${bytes} B`;
+  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(0)} KB`;
+  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+}
+
+function formatETA(seconds: number): string {
+  if (seconds < 1) return "<1s";
+  if (seconds < 60) return `${Math.round(seconds)}s`;
+  const m = Math.floor(seconds / 60);
+  const s = Math.round(seconds % 60);
+  return s > 0 ? `${m}m ${s}s` : `${m}m`;
 }
 
 /* ------------------------------------------------------------------
@@ -33,6 +49,8 @@ export function UploadProgress({
   onCancel,
   error,
   className = "",
+  speed,
+  eta,
 }: UploadProgressProps) {
   if (state === "idle") return null;
 
@@ -127,6 +145,12 @@ export function UploadProgress({
         {/* Label */}
         <div className="text-center space-y-1">
           <p className={`text-xs font-medium ${getStateColor()}`}>{getStateLabel()}</p>
+          {isUploading && speed != null && speed > 0 && (
+            <p className="text-[10px] text-[var(--text-tertiary)] font-mono tabular-nums">
+              {formatBytes(speed)}/s
+              {eta != null && eta > 0 && ` · ~${formatETA(eta)} restantes`}
+            </p>
+          )}
           {isError && error && (
             <p className="text-[10px] text-red-400/70 max-w-[200px]">{error}</p>
           )}
@@ -165,6 +189,12 @@ export function UploadProgress({
         </div>
 
         <div className="flex items-center gap-2 shrink-0">
+          {isUploading && speed != null && speed > 0 && (
+            <span className="text-[10px] text-[var(--text-tertiary)] font-mono tabular-nums">
+              {formatBytes(speed)}/s
+              {eta != null && eta > 0 && ` · ~${formatETA(eta)}`}
+            </span>
+          )}
           {showPercentage && isActive && (
             <span className={`text-xs font-medium tabular-nums ${getStateColor()}`}>
               {Math.round(progress)}%

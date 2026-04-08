@@ -746,10 +746,8 @@ export default function TipologiasPage() {
                       transition={{ type: "spring", damping: 28, stiffness: 300 }}
                       className="absolute bottom-4 left-4 right-4 z-20 rounded-[1.25rem] overflow-hidden"
                       style={{
-                        background: "rgba(10, 10, 11, 0.82)",
-                        backdropFilter: "blur(40px) saturate(1.4)",
-                        WebkitBackdropFilter: "blur(40px) saturate(1.4)",
-                        boxShadow: "0 -4px 40px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.06), 0 0 0 1px rgba(255,255,255,0.08)",
+                        background: "#0A0A0B",
+                        boxShadow: "0 -4px 40px rgba(0,0,0,0.6), 0 0 0 1px rgba(255,255,255,0.06)",
                       }}
                     >
                       {/* Top accent line */}
@@ -791,27 +789,24 @@ export default function TipologiasPage() {
                             )}
                           </div>
 
-                          {/* Specs as pill-style items — fall back to tipología values when unit fields are null.
-                              Column config gates unit-specific fields (piso, orientacion, vista).
-                              Tipología-level specs (hab, baños, areas, parq) always show when available,
-                              matching the sidebar behavior. */}
+                          {/* Specs as pill-style items — gated by columns config */}
                           <div className="flex flex-wrap gap-1.5 mb-2.5">
-                            {(selectedUnit.area_m2 ?? bannerTipo?.area_m2) != null && (
+                            {columns.area_m2 && (selectedUnit.area_m2 ?? bannerTipo?.area_m2) != null && !columns.area_construida && !columns.area_privada && !columns.area_lote && (
                               <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg text-[11px] font-mono text-[var(--text-secondary)] bg-white/5 border border-white/6">
                                 <Maximize size={10} className="text-[var(--site-primary)] opacity-70" /> {selectedUnit.area_m2 ?? bannerTipo?.area_m2} m²
                               </span>
                             )}
-                            {(selectedUnit.area_construida ?? bannerTipo?.area_construida) != null && (
+                            {columns.area_construida && (selectedUnit.area_construida ?? bannerTipo?.area_construida) != null && (
                               <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg text-[11px] font-mono text-[var(--text-secondary)] bg-white/5 border border-white/6">
                                 <Maximize size={10} className="text-[var(--site-primary)] opacity-70" /> {selectedUnit.area_construida ?? bannerTipo?.area_construida} m² {tSite("tipologias.areaConstruida").toLowerCase()}
                               </span>
                             )}
-                            {(selectedUnit.area_privada ?? bannerTipo?.area_privada) != null && (
+                            {columns.area_privada && (selectedUnit.area_privada ?? bannerTipo?.area_privada) != null && (
                               <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg text-[11px] font-mono text-[var(--text-secondary)] bg-white/5 border border-white/6">
                                 <Maximize size={10} className="text-[var(--site-primary)] opacity-70" /> {selectedUnit.area_privada ?? bannerTipo?.area_privada} m² {tSite("tipologias.areaPrivada").toLowerCase()}
                               </span>
                             )}
-                            {(selectedUnit.area_lote ?? bannerTipo?.area_lote) != null && (
+                            {columns.area_lote && (selectedUnit.area_lote ?? bannerTipo?.area_lote) != null && (
                               <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg text-[11px] font-mono text-[var(--text-secondary)] bg-white/5 border border-white/6">
                                 <Maximize size={10} className="text-[var(--site-primary)] opacity-70" /> {selectedUnit.area_lote ?? bannerTipo?.area_lote} m² {tSite("tipologias.areaLote").toLowerCase()}
                               </span>
@@ -821,17 +816,17 @@ export default function TipologiasPage() {
                                 <Building2 size={10} className="text-[var(--site-primary)] opacity-70" /> {tSite("tipologias.floor")} {selectedUnit.piso}
                               </span>
                             )}
-                            {(selectedUnit.habitaciones ?? bannerTipo?.habitaciones) != null && (
+                            {columns.habitaciones && (selectedUnit.habitaciones ?? bannerTipo?.habitaciones) != null && (
                               <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg text-[11px] font-mono text-[var(--text-secondary)] bg-white/5 border border-white/6">
                                 <BedDouble size={10} className="text-[var(--site-primary)] opacity-70" /> {selectedUnit.habitaciones ?? bannerTipo?.habitaciones} {tSite("cotizador.hab")}
                               </span>
                             )}
-                            {(selectedUnit.banos ?? bannerTipo?.banos) != null && (
+                            {columns.banos && (selectedUnit.banos ?? bannerTipo?.banos) != null && (
                               <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg text-[11px] font-mono text-[var(--text-secondary)] bg-white/5 border border-white/6">
                                 <Bath size={10} className="text-[var(--site-primary)] opacity-70" /> {selectedUnit.banos ?? bannerTipo?.banos} {tSite("cotizador.banos")}
                               </span>
                             )}
-                            {(() => { const p = selectedUnit.parqueaderos ?? bannerTipo?.parqueaderos; return p != null && p > 0 ? (
+                            {columns.parqueaderos && (() => { const p = selectedUnit.parqueaderos ?? bannerTipo?.parqueaderos; return p != null && p > 0 ? (
                               <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg text-[11px] font-mono text-[var(--text-secondary)] bg-white/5 border border-white/6">
                                 <Car size={10} className="text-[var(--site-primary)] opacity-70" /> {p} Parq.
                               </span>

@@ -202,6 +202,8 @@ export function hasNativeFolderPicker(): boolean {
 export interface TourUploadHook {
   status: Status;
   progress: number;
+  speed: number;
+  eta: number;
   filesUploaded: number;
   filesTotal: number;
   error: string | null;
@@ -215,20 +217,28 @@ export interface TourUploadHook {
 export function useTourUpload(): TourUploadHook {
   const [status, setStatus] = useState<Status>("idle");
   const [progress, setProgress] = useState(0);
+  const [speed, setSpeed] = useState(0);
+  const [eta, setETA] = useState(0);
   const [filesUploaded, setFilesUploaded] = useState(0);
   const [filesTotal, setFilesTotal] = useState(0);
   const [error, setError] = useState<string | null>(null);
   const [tourUrl, setTourUrl] = useState<string | null>(null);
   const cancelledRef = useRef(false);
+  const bytesUploadedRef = useRef(0);
+  const uploadStartRef = useRef(0);
 
   const reset = useCallback(() => {
     setStatus("idle");
     setProgress(0);
+    setSpeed(0);
+    setETA(0);
     setFilesUploaded(0);
     setFilesTotal(0);
     setError(null);
     setTourUrl(null);
     cancelledRef.current = false;
+    bytesUploadedRef.current = 0;
+    uploadStartRef.current = 0;
   }, []);
 
   const cancel = useCallback(() => {
@@ -244,6 +254,8 @@ export function useTourUpload(): TourUploadHook {
     async (filesToUpload: FileToUpload[], projectId: string, tipologiaId?: string) => {
       setFilesTotal(filesToUpload.length);
       setStatus("uploading");
+      bytesUploadedRef.current = 0;
+      uploadStartRef.current = Date.now();
 
       const totalTourBytes = filesToUpload.reduce((sum, f) => sum + f.size, 0);
 
@@ -303,8 +315,16 @@ export function useTourUpload(): TourUploadHook {
           }
 
           uploaded++;
+          bytesUploadedRef.current += item.size;
           setFilesUploaded(uploaded);
           setProgress(Math.round((uploaded / filesToUpload.length) * 100));
+          const elapsed = (Date.now() - uploadStartRef.current) / 1000;
+          if (elapsed > 0.3) {
+            const s = bytesUploadedRef.current / elapsed;
+            setSpeed(s);
+            const bytesRemaining = totalTourBytes - bytesUploadedRef.current;
+            setETA(bytesRemaining / s);
+          }
         }
       }
 
@@ -495,6 +515,8 @@ export function useTourUpload(): TourUploadHook {
   return {
     status,
     progress,
+    speed,
+    eta,
     filesUploaded,
     filesTotal,
     error,

@@ -313,29 +313,6 @@ export default function ImplantacionesPage() {
         {/* Ambient background */}
         <div className="absolute inset-0 bg-[var(--surface-0)]" />
 
-        {/* Header overlay — top left */}
-        <motion.div
-          className="absolute top-6 z-20"
-          style={{ left: isMobile ? "5rem" : "1.5rem" }}
-          initial={{ opacity: 0, y: -20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.2 }}
-        >
-          <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-xl bg-[rgba(var(--site-primary-rgb),0.15)] flex items-center justify-center">
-              <Layers size={18} className="text-[var(--site-primary)]" />
-            </div>
-            <div>
-              <h1 className="text-lg font-site-heading text-white">{t("implantaciones.heading")}</h1>
-              {activePlano && (
-                <p className="text-[10px] text-[var(--text-tertiary)] tracking-wider">
-                  {activePlano.nombre}
-                </p>
-              )}
-            </div>
-          </div>
-        </motion.div>
-
         {/* ====== Loading spinner (centered in left panel) ====== */}
         {activePlano && activePlano.imagen_url && !imageLoaded && !imageError && !imageTimedOut && (
           <div className="absolute inset-0 z-[15] flex items-center justify-center pointer-events-none">

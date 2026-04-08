@@ -54,27 +54,61 @@ export async function POST(request: NextRequest) {
     const clean = (val: unknown, max: number) =>
       typeof val === "string" ? val.slice(0, max) : null;
 
-    const { data, error } = await supabase
-      .from("leads")
-      .insert({
-        proyecto_id: body.proyecto_id,
-        nombre: clean(body.nombre, 200),
-        email: clean(body.email, 320),
-        telefono: clean(body.telefono, 30),
-        pais: clean(body.pais, 100),
-        tipologia_interes: clean(body.tipologia_interes, 200),
-        mensaje: clean(body.mensaje, 2000),
-        utm_source: clean(body.utm_source, 200),
-        utm_medium: clean(body.utm_medium, 200),
-        utm_campaign: clean(body.utm_campaign, 200),
-      })
-      .select()
-      .single();
+    const cleanEmail = clean(body.email, 320)!;
 
-    if (error) throw error;
+    // Check for existing lead with same email + proyecto_id to prevent duplicates
+    const { data: existing } = await supabase
+      .from("leads")
+      .select("*")
+      .eq("proyecto_id", body.proyecto_id)
+      .eq("email", cleanEmail)
+      .limit(1)
+      .maybeSingle();
+
+    let data;
+    if (existing) {
+      // Update fields that were empty or append new message
+      const updates: Record<string, unknown> = {};
+      if (!existing.telefono && body.telefono) updates.telefono = clean(body.telefono, 30);
+      if (!existing.pais && body.pais) updates.pais = clean(body.pais, 100);
+      if (body.mensaje) {
+        const prev = existing.mensaje || "";
+        const newMsg = clean(body.mensaje, 2000);
+        updates.mensaje = prev ? `${prev}\n---\n${newMsg}` : newMsg;
+      }
+      if (body.tipologia_interes && !existing.tipologia_interes) {
+        updates.tipologia_interes = clean(body.tipologia_interes, 200);
+      }
+      if (Object.keys(updates).length > 0) {
+        const { data: updated } = await supabase.from("leads").update(updates).eq("id", existing.id).select().single();
+        data = updated ?? existing;
+      } else {
+        data = existing;
+      }
+    } else {
+      const { data: newLead, error } = await supabase
+        .from("leads")
+        .insert({
+          proyecto_id: body.proyecto_id,
+          nombre: clean(body.nombre, 200),
+          email: cleanEmail,
+          telefono: clean(body.telefono, 30),
+          pais: clean(body.pais, 100),
+          tipologia_interes: clean(body.tipologia_interes, 200),
+          mensaje: clean(body.mensaje, 2000),
+          utm_source: clean(body.utm_source, 200),
+          utm_medium: clean(body.utm_medium, 200),
+          utm_campaign: clean(body.utm_campaign, 200),
+        })
+        .select()
+        .single();
+
+      if (error) throw error;
+      data = newLead;
+    }
 
     // Log new lead activity (fire-and-forget — public endpoint, no auth user)
-    logNewLeadActivity(body.proyecto_id, data);
+    if (!existing) logNewLeadActivity(body.proyecto_id, data);
 
     // Dispatch webhook (fire-and-forget)
     fireLeadWebhook(body.proyecto_id, data);

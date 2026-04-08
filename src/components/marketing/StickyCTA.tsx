@@ -29,8 +29,8 @@ export function StickyCTA() {
         opacity: visible ? 1 : 0,
         background: "linear-gradient(135deg, rgba(22,22,24,0.98) 0%, rgba(18,18,18,0.97) 100%)",
         border: "1px solid rgba(184,151,58,0.35)",
-        borderRadius: "14px",
-        padding: "12px 16px",
+        borderRadius: "12px",
+        padding: "10px 14px",
         backdropFilter: "blur(32px)",
         WebkitBackdropFilter: "blur(32px)",
         boxShadow: "0 0 0 1px rgba(184,151,58,0.08) inset, 0 24px 64px rgba(0,0,0,0.7), 0 0 40px rgba(184,151,58,0.15)",
@@ -45,62 +45,29 @@ export function StickyCTA() {
         e.currentTarget.style.boxShadow = "0 0 0 1px rgba(184,151,58,0.08) inset, 0 24px 64px rgba(0,0,0,0.7), 0 0 40px rgba(184,151,58,0.15)";
       }}
     >
-      {/* Mobile Layout */}
-      <div className="flex md:hidden items-center justify-between gap-4">
-        <div className="flex flex-col gap-1.5">
-          {/* Stars + Rating */}
-          <div className="flex items-center gap-1.5">
-            {[1, 2, 3, 4, 5].map((i) => (
-              <Star
-                key={i}
-                size={11}
-                fill="#b8973a"
-                stroke="#b8973a"
-                strokeWidth={1.5}
-              />
-            ))}
-            <span style={{ fontSize: 9, color: "rgba(244,240,232,0.7)", marginLeft: 2, fontWeight: 500 }}>
-              5.0
-            </span>
-          </div>
+      {/* Mobile Layout — compact pill */}
+      <div className="flex md:hidden items-center gap-3">
+        <div
+          style={{
+            width: 6,
+            height: 6,
+            borderRadius: "50%",
+            background: "#4ade80",
+            boxShadow: "0 0 8px rgba(74,222,128,0.6)",
+            flexShrink: 0,
+          }}
+        />
+        <span style={{ fontSize: 11, color: "rgba(244,240,232,0.55)", whiteSpace: "nowrap" }}>
+          <strong style={{ color: "var(--mk-text-primary)", fontWeight: 500 }}>100+</strong> {t("stickyCta.projectsLive")}
+        </span>
 
-          {/* Social proof text with live dot */}
-          <div className="flex items-center gap-1.5" style={{ fontSize: 10, color: "rgba(244,240,232,0.5)", letterSpacing: "0.02em" }}>
-            <div
-              style={{
-                width: 6,
-                height: 6,
-                borderRadius: "50%",
-                background: "#4ade80",
-                boxShadow: "0 0 8px rgba(74,222,128,0.6)",
-                flexShrink: 0,
-              }}
-            />
-            <span>
-              <strong style={{ color: "var(--mk-text-primary)", fontWeight: 500 }}>100+</strong> {t("stickyCta.projectsLive")}
-            </span>
-          </div>
-        </div>
-
-        <div className="relative">
-          {/* Pulsing glow ring */}
-          <div
-            className="absolute inset-0 rounded-[12px]"
-            style={{
-              background: "transparent",
-              boxShadow: "0 0 0 0 rgba(184,151,58,0.7)",
-              animation: "pulse-ring 2s cubic-bezier(0.4, 0, 0.6, 1) infinite",
-            }}
-          />
-
-          <button
-            onClick={openBooking}
-            className="btn-mk-primary flex-shrink-0 relative"
-            style={{ fontSize: 10, padding: "10px 18px", whiteSpace: "nowrap", fontWeight: 700, zIndex: 1 }}
-          >
-            {t("stickyCta.bookCall")}
-          </button>
-        </div>
+        <button
+          onClick={openBooking}
+          className="btn-mk-primary flex-shrink-0"
+          style={{ fontSize: 10, padding: "8px 16px", whiteSpace: "nowrap", fontWeight: 700 }}
+        >
+          {t("stickyCta.bookCall")}
+        </button>
       </div>
 
       {/* Desktop Layout */}

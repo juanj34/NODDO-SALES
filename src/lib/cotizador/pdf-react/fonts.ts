@@ -1,7 +1,9 @@
 /**
  * Font registration for @react-pdf/renderer
  *
- * Registers the 4 NODDO brand fonts:
+ * Registers the 4 NODDO brand fonts using the same path strategy as
+ * the jsPDF pdf-fonts.ts (__dirname-relative, works on Vercel).
+ *
  *   - Cormorant Garamond Light (300) → headings
  *   - Syne Bold (700)               → labels, UPPERCASE
  *   - Inter Regular (400)           → body text
@@ -24,7 +26,13 @@ let registered = false;
 export function registerFonts(): void {
   if (registered) return;
 
-  const fontsDir = path.join(process.cwd(), "src", "lib", "cotizador", "fonts");
+  // Use __dirname (same strategy as pdf-fonts.ts — works on Vercel)
+  // The fonts directory is a sibling of the cotizador lib files
+  const fontsDir = path.join(__dirname, "..", "fonts");
+  // Fallback: try process.cwd() for local dev with tsx
+  const fontsDirAlt = path.join(process.cwd(), "src", "lib", "cotizador", "fonts");
+
+  const dir = fs.existsSync(fontsDir) ? fontsDir : fontsDirAlt;
 
   const fonts = [
     { file: "cormorant-light.ttf", family: FONT_FAMILY.HEADING, weight: 300 as const },
@@ -34,12 +42,17 @@ export function registerFonts(): void {
   ];
 
   for (const { file, family, weight } of fonts) {
-    const filePath = path.join(fontsDir, file);
+    const filePath = path.join(dir, file);
     if (fs.existsSync(filePath)) {
+      // Read as buffer and create data URI — most reliable across all environments
+      const buffer = fs.readFileSync(filePath);
+      const dataUri = `data:font/truetype;base64,${buffer.toString("base64")}`;
       Font.register({
         family,
-        fonts: [{ src: filePath, fontWeight: weight }],
+        fonts: [{ src: dataUri, fontWeight: weight }],
       });
+    } else {
+      console.warn(`[react-pdf] font not found: ${filePath}`);
     }
   }
 

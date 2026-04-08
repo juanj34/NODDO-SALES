@@ -254,7 +254,7 @@ export function ScrollFeatures() {
           overflow: "hidden",
         }}
       >
-        {/* ── LEFT: Building + Layers (hidden on mobile) ── */}
+        {/* ── LEFT: Building + Layers (desktop only — mobile gets inline SVGs per card) ── */}
         <div
           className="hidden lg:flex"
           style={{
@@ -705,9 +705,9 @@ export function ScrollFeatures() {
                 </div>
 
                 {/* Mobile mini-visual — inline SVG per step */}
-                <div className="lg:hidden mb-4">
+                <div className="lg:hidden mb-6" style={{ padding: "16px", background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.04)", borderRadius: 10 }}>
                   {i === 0 && (
-                    <svg viewBox="0 0 160 48" fill="none" style={{ width: "100%", maxWidth: 200 }}>
+                    <svg viewBox="0 0 160 48" fill="none" style={{ width: "100%", maxWidth: 280 }}>
                       <rect x="0" y="0" width="160" height="48" rx="4" fill="rgba(255,255,255,.02)" stroke="rgba(184,151,58,.15)" strokeWidth=".5" />
                       {[0,1,2,3].map(col => [0,1,2].map(row => {
                         const colors = ["#4a9e6b","#c4853a","#888","#4a9e6b","#4a9e6b","#c4853a","#4a9e6b","#888","#4a9e6b","#4a9e6b","#4a9e6b","#888"];
@@ -720,7 +720,7 @@ export function ScrollFeatures() {
                     </svg>
                   )}
                   {i === 1 && (
-                    <svg viewBox="0 0 160 48" fill="none" style={{ width: "100%", maxWidth: 200 }}>
+                    <svg viewBox="0 0 160 48" fill="none" style={{ width: "100%", maxWidth: 280 }}>
                       <rect x="0" y="0" width="160" height="48" rx="4" fill="rgba(255,255,255,.02)" stroke="rgba(74,158,107,.15)" strokeWidth=".5" />
                       <text x="10" y="16" fontFamily="Syne,sans-serif" fontSize="5" fill="rgba(244,240,232,.3)" letterSpacing="1" fontWeight="700">DISPONIBLES</text>
                       <text x="10" y="36" fontFamily="Cormorant Garamond,serif" fontSize="18" fontWeight="300" fill="#4a9e6b">24</text>
@@ -737,7 +737,7 @@ export function ScrollFeatures() {
                     </svg>
                   )}
                   {i === 2 && (
-                    <svg viewBox="0 0 160 48" fill="none" style={{ width: "100%", maxWidth: 200 }}>
+                    <svg viewBox="0 0 160 48" fill="none" style={{ width: "100%", maxWidth: 280 }}>
                       <rect x="0" y="0" width="160" height="48" rx="4" fill="rgba(255,255,255,.02)" stroke="rgba(184,151,58,.15)" strokeWidth=".5" />
                       <circle cx="16" cy="18" r="8" fill="rgba(184,151,58,.08)" stroke="rgba(184,151,58,.2)" strokeWidth=".5" />
                       <text x="16" y="21" textAnchor="middle" fontFamily="Cormorant Garamond,serif" fontSize="8" fill="#d4b05a">MG</text>

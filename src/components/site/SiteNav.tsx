@@ -80,7 +80,6 @@ export function SiteNav({ basePath, projectName, logoUrl, faviconUrl, constructo
     ...(hasTour360 ? [{ label: tNav("tour360"), href: "/tour-360", Icon: Globe }] : []),
     ...(hasBrochure ? [{ label: tNav("brochure"), href: "/brochure", Icon: BookOpen }] : []),
     { label: tNav("recursos"), href: "/recursos", Icon: FileText },
-    ...(hasPlanPago ? [{ label: tNav("planPago"), href: "/plan-de-pago", Icon: CreditCard }] : []),
     { label: tNav("contacto"), href: "/contacto", Icon: MessageCircle },
   ].filter((item) => {
     const segment = item.href.replace("/", "");
@@ -268,25 +267,32 @@ export function SiteNav({ basePath, projectName, logoUrl, faviconUrl, constructo
         </div>
 
         {/* Footer: Settings + Legal + Logos */}
-        <div className={cn("flex-shrink-0 mt-3", expanded ? "px-4 w-full space-y-3" : "flex flex-col items-center gap-2.5")}>
+        <div className={cn("flex-shrink-0 mt-3 border-t border-[var(--border-subtle)] pt-3", expanded ? "px-4 w-full space-y-2" : "flex flex-col items-center gap-2")}>
 
-          {/* Top row: Settings gear + Info icon */}
-          <div className={cn("flex items-center gap-2", expanded ? "w-full" : "")}>
+          {/* Settings + Info row */}
+          <div className={cn("flex items-center", expanded ? "w-full gap-1" : "flex-col gap-1")}>
             {/* Settings popover trigger */}
             <div className="relative">
               <button
                 onClick={() => setShowSettings(!showSettings)}
                 onBlur={() => setTimeout(() => setShowSettings(false), 150)}
                 className={cn(
-                  "flex items-center justify-center rounded-xl transition-all cursor-pointer border",
-                  expanded ? "w-9 h-9" : "w-10 h-10",
+                  "flex items-center transition-all cursor-pointer rounded-lg",
+                  expanded
+                    ? "gap-2 px-2 py-1.5 w-full hover:bg-white/5"
+                    : "justify-center w-8 h-8 hover:bg-white/5",
                   showSettings
-                    ? "bg-[rgba(var(--site-primary-rgb),0.12)] border-[rgba(var(--site-primary-rgb),0.25)] text-[var(--site-primary)] shadow-[var(--glow-xs)]"
-                    : "bg-[var(--surface-2)] border-[var(--border-subtle)] text-[var(--text-tertiary)] hover:text-white hover:border-[var(--border-default)] hover:bg-[var(--surface-3)]"
+                    ? "text-[var(--site-primary)]"
+                    : "text-[var(--text-muted)] hover:text-[var(--text-tertiary)]"
                 )}
                 aria-label="Settings"
               >
-                <Settings size={expanded ? 14 : 16} strokeWidth={1.5} />
+                <Settings size={13} strokeWidth={1.5} />
+                {expanded && (
+                  <span className="text-[9px] font-ui uppercase tracking-[0.12em]">
+                    Ajustes
+                  </span>
+                )}
               </button>
 
               {/* Settings panel */}
@@ -393,28 +399,33 @@ export function SiteNav({ basePath, projectName, logoUrl, faviconUrl, constructo
               <button
                 onClick={() => setShowDisclaimer(true)}
                 className={cn(
-                  "flex items-center justify-center rounded-xl transition-all cursor-pointer border",
-                  expanded ? "w-9 h-9" : "w-10 h-10",
-                  "bg-[var(--surface-2)] border-[var(--border-subtle)] text-[var(--text-tertiary)] hover:text-[var(--site-primary)] hover:border-[var(--border-default)] hover:bg-[var(--surface-3)]"
+                  "flex items-center transition-all cursor-pointer rounded-lg",
+                  expanded
+                    ? "gap-2 px-2 py-1.5 hover:bg-white/5"
+                    : "justify-center w-8 h-8 hover:bg-white/5",
+                  "text-[var(--text-muted)] hover:text-[var(--text-tertiary)]"
                 )}
                 aria-label="Legal information"
               >
-                <Info size={expanded ? 14 : 16} strokeWidth={1.5} />
+                <Info size={13} strokeWidth={1.5} />
+                {expanded && (
+                  <span className="text-[9px] font-ui uppercase tracking-[0.12em]">
+                    Legal
+                  </span>
+                )}
               </button>
             )}
-
-            {expanded && <div className="flex-1" />}
           </div>
 
-          {/* Bottom row: Constructora logo */}
+          {/* Constructora logo */}
           {constructoraLogoUrl && (
-            <div className="flex items-center justify-center">
+            <div className={cn("flex items-center", expanded ? "justify-start px-2" : "justify-center")}>
               {constructoraWebsite ? (
                 <a
                   href={constructoraWebsite}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="opacity-30 hover:opacity-60 transition-all duration-200 hover:brightness-110"
+                  className="opacity-25 hover:opacity-50 transition-all duration-200"
                 >
                   <Image
                     src={constructoraLogoUrl}
@@ -423,12 +434,12 @@ export function SiteNav({ basePath, projectName, logoUrl, faviconUrl, constructo
                     height={300}
                     className={cn(
                       "object-contain",
-                      expanded ? "h-5 w-auto max-w-[80px]" : "h-4 w-auto max-w-[50px]"
+                      expanded ? "h-4 w-auto max-w-[72px]" : "h-3.5 w-auto max-w-[36px]"
                     )}
                   />
                 </a>
               ) : (
-                <div className="opacity-30">
+                <div className="opacity-25">
                   <Image
                     src={constructoraLogoUrl}
                     alt="Constructora"
@@ -436,7 +447,7 @@ export function SiteNav({ basePath, projectName, logoUrl, faviconUrl, constructo
                     height={300}
                     className={cn(
                       "object-contain",
-                      expanded ? "h-5 w-auto max-w-[80px]" : "h-4 w-auto max-w-[50px]"
+                      expanded ? "h-4 w-auto max-w-[72px]" : "h-3.5 w-auto max-w-[36px]"
                     )}
                   />
                 </div>

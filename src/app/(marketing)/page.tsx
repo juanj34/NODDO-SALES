@@ -61,7 +61,7 @@ export default function MarketingHomePage() {
       <FAQSection />
 
       {/* 12. FINAL CTA SECTION */}
-      <section className="relative z-[1] py-20 sm:py-28 lg:py-48 px-4 sm:px-6 text-center border-t border-[var(--mk-border-rule)] overflow-hidden">
+      <section className="relative z-[1] py-16 sm:py-28 lg:py-48 px-4 sm:px-6 text-center border-t border-[var(--mk-border-rule)] overflow-hidden">
         {/* Decorative skyline — wireframe blueprint style */}
         <div className="absolute inset-0 flex items-end justify-center pointer-events-none" style={{ opacity: 0.06 }}>
           <svg viewBox="0 0 1200 500" fill="none" className="w-full max-w-5xl" style={{ marginBottom: -1 }}>
@@ -170,7 +170,7 @@ export default function MarketingHomePage() {
           </h2>
 
           <p
-            className="text-[16px] leading-[1.7] mb-12 max-w-2xl mx-auto"
+            className="text-[14px] sm:text-[16px] leading-[1.7] mb-8 sm:mb-12 max-w-2xl mx-auto"
             style={{ color: "rgba(244, 240, 232, 0.5)" }}
           >
             {t("finalCta.description")}
@@ -217,7 +217,7 @@ export default function MarketingHomePage() {
           </div>
 
           {/* Social proof avatars */}
-          <div className="flex items-center justify-center gap-3 mt-10 pt-10" style={{ borderTop: "1px solid rgba(255,255,255,0.04)" }}>
+          <div className="flex items-center justify-center gap-3 mt-8 sm:mt-10 pt-8 sm:pt-10" style={{ borderTop: "1px solid rgba(255,255,255,0.04)" }}>
             <div className="flex items-center" style={{ marginLeft: -4 }}>
               {[
                 "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=80&h=80&fit=crop&crop=faces",

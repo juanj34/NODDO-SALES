@@ -376,6 +376,14 @@ export default function VideosPage() {
                       transition={{ duration: 0.3 }}
                     />
                   </div>
+                  {videoUpload.speed > 0 && (
+                    <p className="text-[10px] text-[var(--text-tertiary)] font-mono tabular-nums">
+                      {videoUpload.speed < 1024 * 1024
+                        ? `${(videoUpload.speed / 1024).toFixed(0)} KB/s`
+                        : `${(videoUpload.speed / (1024 * 1024)).toFixed(1)} MB/s`}
+                      {videoUpload.eta > 0 && ` · ~${videoUpload.eta < 60 ? `${Math.round(videoUpload.eta)}s` : `${Math.floor(videoUpload.eta / 60)}m ${Math.round(videoUpload.eta % 60)}s`} restantes`}
+                    </p>
+                  )}
                   <button
                     onClick={() => { videoUpload.cancel(); }}
                     className={btnSecondary}

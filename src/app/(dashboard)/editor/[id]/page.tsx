@@ -33,7 +33,6 @@ import {
   Loader2,
   Sun,
   Moon,
-  BookOpen,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useTranslation } from "@/i18n";
@@ -74,7 +73,6 @@ export default function EditorGeneralPage() {
   const [faviconUrl, setFaviconUrl] = useState("");
   const [ogImageUrl, setOgImageUrl] = useState("");
   const [backgroundAudioUrl, setBackgroundAudioUrl] = useState("");
-  const [brochureUrl, setBrochureUrl] = useState("");
   const [audioUploading, setAudioUploading] = useState(false);
   const audioInputRef = useRef<HTMLInputElement>(null);
   const [validationError, setValidationError] = useState<string | null>(null);
@@ -108,7 +106,6 @@ export default function EditorGeneralPage() {
     setFaviconUrl(project.favicon_url || "");
     setOgImageUrl(project.og_image_url || "");
     setBackgroundAudioUrl(project.background_audio_url || "");
-    setBrochureUrl(project.brochure_url || "");
     setIdioma(project.idioma || "es");
     setEstadoConstruccion(project.estado_construccion || "sobre_planos");
     setPoliticaAmoblado(project.politica_amoblado || "no");
@@ -138,7 +135,6 @@ export default function EditorGeneralPage() {
       favicon_url: faviconUrl || null,
       og_image_url: ogImageUrl || null,
       background_audio_url: backgroundAudioUrl || null,
-      brochure_url: brochureUrl || null,
       idioma,
       estado_construccion: estadoConstruccion,
       politica_amoblado: politicaAmoblado,
@@ -299,7 +295,7 @@ export default function EditorGeneralPage() {
                       <Globe size={14} className="inline mr-1.5 -mt-0.5" />
                       {t("general.landing.identity.favicon")}
                     </label>
-                    <FileUploader currentUrl={faviconUrl || null} onUpload={(url) => { setFaviconUrl(url); scheduleAutoSave(); }} folder={`proyectos/${projectId}`} label={t("general.landing.identity.uploadFavicon")} cropAspect={1} aspect="square" />
+                    <FileUploader currentUrl={faviconUrl || null} onUpload={(url) => { setFaviconUrl(url); scheduleAutoSave(); }} folder={`proyectos/${projectId}`} label={t("general.landing.identity.uploadFavicon")} cropAspect={1} aspect="square" compact />
                     <p className={fieldHint}>{t("general.landing.identity.faviconHint")}</p>
                   </div>
 
@@ -309,7 +305,7 @@ export default function EditorGeneralPage() {
                       <Share2 size={14} className="inline mr-1.5 -mt-0.5" />
                       {t("general.landing.identity.ogImage")}
                     </label>
-                    <FileUploader currentUrl={ogImageUrl || null} onUpload={(url) => { setOgImageUrl(url); scheduleAutoSave(); }} folder={`proyectos/${projectId}`} label={t("general.landing.identity.uploadOgImage")} cropAspect={1200 / 630} />
+                    <FileUploader currentUrl={ogImageUrl || null} onUpload={(url) => { setOgImageUrl(url); scheduleAutoSave(); }} folder={`proyectos/${projectId}`} label={t("general.landing.identity.uploadOgImage")} cropAspect={1200 / 630} compact />
                     <p className={fieldHint}>{t("general.landing.identity.ogImageHint")}</p>
                   </div>
                 </div>
@@ -463,40 +459,6 @@ export default function EditorGeneralPage() {
                     <p className={fieldHint}>{t("config.audio.hint")}</p>
                   </div>
 
-                  {/* Brochure PDF */}
-                  <div>
-                    <label className={labelClass}>
-                      <BookOpen size={14} className="inline mr-1.5 -mt-0.5" />
-                      {t("general.landing.brochureLabel")}
-                    </label>
-                    {brochureUrl ? (
-                      <div className="flex items-center gap-3 p-3 rounded-xl bg-[var(--surface-2)] border border-[var(--border-default)]">
-                        <div className="w-10 h-10 rounded-lg bg-[rgba(var(--noddo-primary-rgb),0.10)] border border-[rgba(var(--noddo-primary-rgb),0.20)] flex items-center justify-center shrink-0">
-                          <BookOpen size={18} className="text-[var(--site-primary)]" />
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <p className="text-sm text-[var(--text-primary)] truncate">{t("general.landing.brochureLoaded")}</p>
-                          <p className="text-[10px] text-[var(--text-tertiary)] truncate font-mono">{brochureUrl.split("/").pop()}</p>
-                        </div>
-                        <button
-                          onClick={() => { setBrochureUrl(""); scheduleAutoSave(); }}
-                          className="w-8 h-8 rounded-lg bg-red-500/10 border border-red-500/20 flex items-center justify-center text-red-400 hover:bg-red-500/20 transition-colors cursor-pointer shrink-0"
-                        >
-                          <Trash2 size={14} />
-                        </button>
-                      </div>
-                    ) : (
-                      <FileUploader
-                        currentUrl={null}
-                        onUpload={(url) => { setBrochureUrl(url); scheduleAutoSave(); }}
-                        folder={`proyectos/${projectId}/recursos`}
-                        label={t("general.landing.uploadBrochure")}
-                        accept="application/pdf"
-                        enablePaste={false}
-                      />
-                    )}
-                    <p className={fieldHint}>{t("general.landing.brochureHint")}</p>
-                  </div>
                 </div>
               </div>
             </div>
@@ -522,7 +484,7 @@ export default function EditorGeneralPage() {
                 <div>
                   <label className={labelClass}>{t("general.developer.logo")}</label>
                   <div className="max-w-sm">
-                    <FileUploader currentUrl={constructoraLogoUrl || null} onUpload={(url) => { setConstructoraLogoUrl(url); scheduleAutoSave(); }} folder={`proyectos/${projectId}`} label={t("general.developer.uploadLogo")} aspect="logo" />
+                    <FileUploader currentUrl={constructoraLogoUrl || null} onUpload={(url) => { setConstructoraLogoUrl(url); scheduleAutoSave(); }} folder={`proyectos/${projectId}`} label={t("general.developer.uploadLogo")} aspect="logo" compact />
                   </div>
                 </div>
 

@@ -552,7 +552,7 @@ export function ProblemSection() {
               </div>
 
               {/* Large illustration */}
-              <div className="mb-3 sm:mb-4 flex justify-center" style={{ minHeight: 80 }}>
+              <div className="mb-4 sm:mb-5 flex justify-center" style={{ minHeight: 100 }}>
                 {problem.illustration}
               </div>
 

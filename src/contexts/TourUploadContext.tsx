@@ -23,6 +23,8 @@ type Status = "idle" | "extracting" | "uploading" | "complete" | "error";
 export interface TourUploadContextValue {
   status: Status;
   progress: number;
+  speed: number;
+  eta: number;
   filesUploaded: number;
   filesTotal: number;
   error: string | null;
@@ -160,6 +162,8 @@ export function TourUploadProvider({
     () => ({
       status: tourUpload.status,
       progress: tourUpload.progress,
+      speed: tourUpload.speed,
+      eta: tourUpload.eta,
       filesUploaded: tourUpload.filesUploaded,
       filesTotal: tourUpload.filesTotal,
       error: tourUpload.error,

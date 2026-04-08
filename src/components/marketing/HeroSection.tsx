@@ -6,7 +6,7 @@ import { motion } from "framer-motion";
 import Link from "next/link";
 import { ArrowRight, Play } from "lucide-react";
 import { IsometricBuilding } from "./illustrations/IsometricBuilding";
-import { HeroMockup } from "./illustrations/HeroMockup";
+
 import { useBooking } from "./BookingProvider";
 import { useTranslation } from "@/i18n";
 
@@ -57,9 +57,9 @@ export function HeroSection() {
   }, []);
 
   return (
-    <section className="relative min-h-[100dvh] lg:min-h-screen grid grid-cols-1 lg:grid-cols-2 items-center px-5 sm:px-6 lg:px-24 gap-6 lg:gap-12 overflow-hidden z-[1]">
+    <section className="relative min-h-0 lg:min-h-screen grid grid-cols-1 lg:grid-cols-2 items-center px-5 sm:px-6 lg:px-24 gap-6 lg:gap-12 overflow-hidden z-[1]">
       {/* ── LEFT: Copy ── */}
-      <div className="relative z-[2] pt-24 sm:pt-28 pb-8 lg:pt-28 lg:pb-0">
+      <div className="relative z-[2] pt-24 sm:pt-28 pb-6 lg:pt-28 lg:pb-0">
         {/* Label with gold line */}
         <motion.div
           initial={{ opacity: 0, y: 24 }}
@@ -268,14 +268,16 @@ export function HeroSection() {
           }
         `}</style>
 
-        {/* ── Mobile hero visual ── */}
+        {/* ── Mobile hero visual — same SVG illustrations as desktop ── */}
         <motion.div
           initial={{ opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.9, delay: 1.2, ease: "easeOut" }}
-          className="lg:hidden mt-10 flex justify-center"
+          className="lg:hidden mt-6 flex justify-center"
         >
-          <HeroMockup className="w-full max-w-[320px]" />
+          <div className="w-full max-w-[280px]">
+            <IsometricBuilding />
+          </div>
         </motion.div>
       </div>
 

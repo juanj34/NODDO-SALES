@@ -1,20 +1,27 @@
 /**
  * React PDF Document for NODDO Cotizaciones
  *
- * Replaces the imperative jsPDF implementation with declarative React components.
- * Produces the same 5-page structure:
- *   Page 1: Cover (hero or minimalista)
- *   Page 2: Offer details with payment table
- *   Page 3: Floor plan (conditional)
- *   Page 4: Key plan (conditional)
- *   Page 5: Additional info (conditional)
+ * Produces professional cotización PDFs:
+ *   Page 1:   Cover (hero or minimalista)
+ *   Page 2+:  Offer details — wraps across pages
+ *   Page N:   Floor plan (conditional)
+ *   Page N+1: Key plan (conditional)
+ *   Page N+2: Additional info (conditional)
+ *
+ * Typography rules:
+ *   Cormorant (HEADING) — cover title, section titles only (≥14pt)
+ *   Syne (LABEL)        — section labels, table header, buttons (7–8pt, UPPERCASE)
+ *   Inter (BODY)         — all body text, descriptions, greetings (8pt)
+ *   DM Mono (MONO)      — prices, dates, ref numbers, data values (8pt)
+ *
+ * Only 3 body sizes: 7pt (fine print), 8pt (standard), 14pt+ (display)
  */
 
 import React from "react";
-import { Document, Page, View, Text, Image, StyleSheet, Link } from "@react-pdf/renderer";
+import { Document, Page, View, Text, Image, Link } from "@react-pdf/renderer";
 import type { PDFData } from "../generar-pdf";
 import type { EmailLocale } from "@/lib/email-i18n";
-import type { Currency } from "@/types";
+import type { Currency, ComplementoSeleccion } from "@/types";
 import { formatCurrency } from "@/lib/currency";
 import { FONT_FAMILY } from "./fonts";
 import {
@@ -29,838 +36,593 @@ import {
   lightenHex,
 } from "./theme";
 
-/* ── Page dimensions (letter, mm → pt: 1mm = 2.835pt) ── */
-const LETTER_W = 612; // 215.9mm
-const LETTER_H = 791; // 279.4mm
-const MARGIN = 62; // ~22mm
-const CONTENT_W = LETTER_W - MARGIN * 2;
+/* ── Constants ── */
+const LETTER_W = 612;
+const LETTER_H = 791;
+const M = 54; // margin (~19mm) — a bit tighter for more content room
+const CW = LETTER_W - M * 2;
 
-/* ── Base64 image helper ── */
-function imgSrc(base64: string | null | undefined, format: "JPEG" | "PNG" | null | undefined): string | undefined {
-  if (!base64 || !format) return undefined;
-  const mime = format === "PNG" ? "image/png" : "image/jpeg";
-  // Already has data URI prefix
-  if (base64.startsWith("data:")) return base64;
-  return `data:${mime};base64,${base64}`;
+/* ── Helpers ── */
+function imgSrc(b64: string | null | undefined, fmt: "JPEG" | "PNG" | null | undefined): string | undefined {
+  if (!b64 || !fmt) return undefined;
+  if (b64.startsWith("data:")) return b64;
+  return `data:${fmt === "PNG" ? "image/png" : "image/jpeg"};base64,${b64}`;
 }
 
-/* ── Shared styles ── */
-const s = StyleSheet.create({
-  page: {
-    fontFamily: FONT_FAMILY.BODY,
-    fontSize: 9,
-    paddingTop: 0,
-    paddingBottom: 0,
-    paddingHorizontal: 0,
-  },
-  // Accent bars top + bottom
-  accentBarTop: {
-    position: "absolute",
-    top: 0,
-    left: 0,
-    right: 0,
-    height: 11, // ~4mm
-  },
-  accentBarTopThin: {
-    position: "absolute",
-    top: 11,
-    left: 0,
-    right: 0,
-    height: 1.2,
-  },
-  accentBarBottom: {
-    position: "absolute",
-    bottom: 0,
-    left: 0,
-    right: 0,
-    height: 10, // ~3.5mm
-  },
-  // Content area with margins
-  content: {
-    paddingHorizontal: MARGIN,
-    paddingTop: 40,
-    paddingBottom: 36,
-    flex: 1,
-  },
-  footer: {
-    position: "absolute",
-    bottom: 22,
-    left: 0,
-    right: 0,
-    textAlign: "center",
-    fontSize: 6.5,
-  },
-});
-
 /* ═══════════════════════════════════════════════════
-   SHARED COMPONENTS
+   SHARED — used across multiple page types
    ═══════════════════════════════════════════════════ */
 
 function PageFrame({ accent, accentLight, theme, children }: {
-  accent: string;
-  accentLight: string;
-  theme: ThemePalette;
-  children: React.ReactNode;
+  accent: string; accentLight: string; theme: ThemePalette; children: React.ReactNode;
 }) {
   return (
-    <Page size="LETTER" style={[s.page, { backgroundColor: theme.bg }]}>
-      {/* Top accent bar */}
-      <View style={[s.accentBarTop, { backgroundColor: accent }]} />
-      <View style={[s.accentBarTopThin, { backgroundColor: accentLight }]} />
-      {/* Bottom accent bar */}
-      <View style={[s.accentBarBottom, { backgroundColor: accent }]} />
+    <Page size="LETTER" style={{ fontFamily: FONT_FAMILY.BODY, fontSize: 8, backgroundColor: theme.bg }}>
+      <View style={{ position: "absolute", top: 0, left: 0, right: 0, height: 8, backgroundColor: accent }} />
+      <View style={{ position: "absolute", top: 8, left: 0, right: 0, height: 0.8, backgroundColor: accentLight }} />
+      <View style={{ position: "absolute", bottom: 0, left: 0, right: 0, height: 7, backgroundColor: accent }} />
       {children}
     </Page>
   );
 }
 
-function DualLogoHeader({ data, accent, theme }: {
-  data: PDFData;
-  accent: string;
-  theme: ThemePalette;
-}) {
+function DualLogoHeader({ data, accent, theme }: { data: PDFData; accent: string; theme: ThemePalette }) {
   return (
-    <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: 16, paddingHorizontal: MARGIN, paddingTop: 36 }}>
-      {/* Constructora logo (left) */}
+    <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: 12, paddingHorizontal: M, paddingTop: 28 }}>
       {data.constructoraLogoBase64 && data.constructoraLogoFormat ? (
-        <Image
-          src={imgSrc(data.constructoraLogoBase64, data.constructoraLogoFormat)}
-          style={{ width: 70, height: 28, objectFit: "contain" }}
-        />
+        <Image src={imgSrc(data.constructoraLogoBase64, data.constructoraLogoFormat)} style={{ width: 60, height: 24, objectFit: "contain" }} />
       ) : data.constructoraName ? (
-        <Text style={{ fontFamily: FONT_FAMILY.LABEL, fontWeight: 700, fontSize: 7.5, color: theme.textMuted, letterSpacing: 1 }}>
-          {data.constructoraName.toUpperCase()}
-        </Text>
+        <Text style={{ fontFamily: FONT_FAMILY.LABEL, fontWeight: 700, fontSize: 7, color: theme.textMuted, letterSpacing: 1 }}>{data.constructoraName.toUpperCase()}</Text>
       ) : <View />}
-
-      {/* Project logo (right) */}
       {data.projectLogoBase64 && data.projectLogoFormat ? (
-        <Image
-          src={imgSrc(data.projectLogoBase64, data.projectLogoFormat)}
-          style={{ width: 70, height: 28, objectFit: "contain" }}
-        />
+        <Image src={imgSrc(data.projectLogoBase64, data.projectLogoFormat)} style={{ width: 60, height: 24, objectFit: "contain" }} />
       ) : (
-        <Text style={{ fontFamily: FONT_FAMILY.LABEL, fontWeight: 700, fontSize: 7.5, color: accent, letterSpacing: 1 }}>
-          {data.projectName}
-        </Text>
+        <Text style={{ fontFamily: FONT_FAMILY.LABEL, fontWeight: 700, fontSize: 7, color: accent, letterSpacing: 1 }}>{data.projectName.toUpperCase()}</Text>
       )}
     </View>
   );
 }
 
-function SectionLabel({ label, accent, theme }: {
-  label: string;
-  accent: string;
-  theme: ThemePalette;
-}) {
+function SectionLabel({ label, accent, theme }: { label: string; accent: string; theme: ThemePalette }) {
   return (
-    <View style={{ marginBottom: 8 }}>
-      <Text style={{ fontFamily: FONT_FAMILY.LABEL, fontWeight: 700, fontSize: 8.5, color: accent, letterSpacing: 1.5 }}>
-        {label}
-      </Text>
-      <View style={{ flexDirection: "row", marginTop: 4 }}>
-        <View style={{ width: 60, height: 1.5, backgroundColor: accent }} />
-        <View style={{ flex: 1, height: 0.5, backgroundColor: theme.divider, marginTop: 0.5 }} />
+    <View style={{ marginBottom: 6, marginTop: 4 }} minPresenceAhead={80}>
+      <Text style={{ fontFamily: FONT_FAMILY.LABEL, fontWeight: 700, fontSize: 7, color: accent, letterSpacing: 1.5 }}>{label}</Text>
+      <View style={{ flexDirection: "row", marginTop: 3 }}>
+        <View style={{ width: 40, height: 1.2, backgroundColor: accent }} />
+        <View style={{ flex: 1, height: 0.4, backgroundColor: theme.divider, marginTop: 0.4 }} />
       </View>
     </View>
   );
 }
 
-function FooterText({ strings, theme }: { strings: PDFStrings; theme: ThemePalette }) {
+function Footer({ strings, theme }: { strings: PDFStrings; theme: ThemePalette }) {
   return (
-    <Text style={[s.footer, { color: theme.footerText }]}>{strings.generatedBy}</Text>
+    <Text style={{ position: "absolute", bottom: 16, left: 0, right: 0, textAlign: "center", fontSize: 6, color: theme.footerText }}>{strings.generatedBy}</Text>
   );
 }
 
 /* ═══════════════════════════════════════════════════
-   PAGE 1: COVER — HERO
+   COVER — HERO
    ═══════════════════════════════════════════════════ */
 
-function CoverHero({ data, accent, strings }: {
-  data: PDFData;
-  accent: string;
-  strings: PDFStrings;
-}) {
-  const coverBg = "rgb(10,10,11)";
-  const coverText = "rgb(240,237,230)";
-  const coverSecondary = "rgb(160,155,145)";
-  const coverMuted = "rgb(110,107,100)";
+function CoverHero({ data, accent, strings }: { data: PDFData; accent: string; strings: PDFStrings }) {
   const hasCover = !!data.coverImageBase64 && !!data.coverImageFormat;
-
   return (
-    <Page size="LETTER" style={[s.page, { backgroundColor: coverBg }]}>
-      {/* Cover image - full bleed */}
+    <Page size="LETTER" style={{ fontFamily: FONT_FAMILY.BODY, fontSize: 8, backgroundColor: "rgb(10,10,11)" }}>
+      {/* Full-bleed cover image */}
       {hasCover && (
-        <Image
-          src={imgSrc(data.coverImageBase64, data.coverImageFormat)!}
-          style={{ position: "absolute", top: 0, left: 0, width: LETTER_W, height: LETTER_H, objectFit: "cover" }}
-        />
+        <Image src={imgSrc(data.coverImageBase64, data.coverImageFormat)!} style={{ position: "absolute", top: 0, left: 0, width: LETTER_W, height: LETTER_H, objectFit: "cover" }} />
       )}
-
-      {/* Dark gradient overlay (bottom half) */}
+      {/* Single dark overlay so text is readable over the image */}
       {hasCover && (
-        <View style={{ position: "absolute", bottom: 0, left: 0, right: 0, height: LETTER_H * 0.55, backgroundColor: "rgba(10,10,11,0.82)" }} />
+        <View style={{ position: "absolute", top: 0, left: 0, right: 0, bottom: 0, backgroundColor: "rgba(10,10,11,0.55)" }} />
       )}
-
-      {/* Top accent bar */}
-      <View style={[s.accentBarTop, { backgroundColor: accent }]} />
-
-      {/* Constructora logo pill */}
+      <View style={{ position: "absolute", top: 0, left: 0, right: 0, height: 8, backgroundColor: accent }} />
       {data.constructoraLogoBase64 && data.constructoraLogoFormat && (
-        <View style={{ position: "absolute", top: 22, left: 50, backgroundColor: "rgba(255,255,255,0.92)", borderRadius: 8, padding: 8 }}>
-          <Image
-            src={imgSrc(data.constructoraLogoBase64, data.constructoraLogoFormat)!}
-            style={{ width: 85, height: 34, objectFit: "contain" }}
-          />
+        <View style={{ position: "absolute", top: 20, left: M, backgroundColor: "rgba(255,255,255,0.92)", borderRadius: 6, padding: 6 }}>
+          <Image src={imgSrc(data.constructoraLogoBase64, data.constructoraLogoFormat)!} style={{ width: 70, height: 28, objectFit: "contain" }} />
         </View>
       )}
-
-      {/* Bottom content area */}
-      <View style={{ position: "absolute", bottom: 45, left: 62, right: 62 }}>
+      <View style={{ position: "absolute", bottom: 40, left: M, right: M }}>
         {data.constructoraName && (
-          <Text style={{ fontFamily: FONT_FAMILY.LABEL, fontWeight: 700, fontSize: 9, color: coverSecondary, letterSpacing: 2, marginBottom: 10 }}>
-            {data.constructoraName.toUpperCase()}
-          </Text>
+          <Text style={{ fontFamily: FONT_FAMILY.LABEL, fontWeight: 700, fontSize: 7, color: "rgb(160,155,145)", letterSpacing: 2, marginBottom: 8 }}>{data.constructoraName.toUpperCase()}</Text>
         )}
-
-        <Text style={{ fontFamily: FONT_FAMILY.HEADING, fontSize: 38, color: coverText, marginBottom: 10 }}>
-          {data.projectName}
-        </Text>
-
-        {/* Accent line */}
-        <View style={{ width: 140, height: 2.3, backgroundColor: accent, marginBottom: 12 }} />
-
-        <Text style={{ fontFamily: FONT_FAMILY.LABEL, fontWeight: 700, fontSize: 10, color: accent, letterSpacing: 2 }}>
-          {strings.quotation}
-        </Text>
-
-        <Text style={{ fontFamily: FONT_FAMILY.MONO, fontSize: 8, color: coverMuted, marginTop: 6 }}>
-          {data.referenceNumber}
-        </Text>
-
-        <View style={{ flexDirection: "row", justifyContent: "space-between", marginTop: 14 }}>
-          <Text style={{ fontFamily: FONT_FAMILY.LABEL, fontWeight: 700, fontSize: 9, color: coverText }}>
-            {strings.unit} {data.unidadId}
-          </Text>
-          <Text style={{ fontFamily: FONT_FAMILY.MONO, fontSize: 8, color: coverSecondary }}>
-            {data.fecha}
-          </Text>
+        <Text style={{ fontFamily: FONT_FAMILY.HEADING, fontSize: 36, color: "rgb(240,237,230)", marginBottom: 8 }}>{data.projectName}</Text>
+        <View style={{ width: 100, height: 2, backgroundColor: accent, marginBottom: 10 }} />
+        <Text style={{ fontFamily: FONT_FAMILY.LABEL, fontWeight: 700, fontSize: 8, color: accent, letterSpacing: 2 }}>{strings.quotation}</Text>
+        <Text style={{ fontFamily: FONT_FAMILY.MONO, fontSize: 7, color: "rgb(110,107,100)", marginTop: 4 }}>{data.referenceNumber}</Text>
+        <View style={{ flexDirection: "row", justifyContent: "space-between", marginTop: 12 }}>
+          <Text style={{ fontFamily: FONT_FAMILY.BODY, fontSize: 8, color: "rgb(240,237,230)" }}>{strings.unit} {data.unidadId}</Text>
+          <Text style={{ fontFamily: FONT_FAMILY.MONO, fontSize: 7, color: "rgb(160,155,145)" }}>{data.fecha}</Text>
         </View>
       </View>
-
-      {/* Bottom accent bar */}
-      <View style={[s.accentBarBottom, { backgroundColor: accent }]} />
+      <View style={{ position: "absolute", bottom: 0, left: 0, right: 0, height: 7, backgroundColor: accent }} />
     </Page>
   );
 }
 
 /* ═══════════════════════════════════════════════════
-   PAGE 1: COVER — MINIMALISTA
+   COVER — MINIMALISTA
    ═══════════════════════════════════════════════════ */
 
-function CoverMinimalista({ data, accent, theme, strings }: {
-  data: PDFData;
-  accent: string;
-  theme: ThemePalette;
-  strings: PDFStrings;
-}) {
+function CoverMinimalista({ data, accent, theme, strings }: { data: PDFData; accent: string; theme: ThemePalette; strings: PDFStrings }) {
   return (
-    <Page size="LETTER" style={[s.page, { backgroundColor: theme.coverBg }]}>
-      {/* Top accent bar */}
-      <View style={[s.accentBarTop, { backgroundColor: accent }]} />
-
-      <View style={{ flex: 1, justifyContent: "center", alignItems: "center", paddingHorizontal: MARGIN }}>
-        {/* Project logo */}
+    <Page size="LETTER" style={{ fontFamily: FONT_FAMILY.BODY, fontSize: 8, backgroundColor: theme.coverBg }}>
+      <View style={{ position: "absolute", top: 0, left: 0, right: 0, height: 8, backgroundColor: accent }} />
+      <View style={{ flex: 1, justifyContent: "center", alignItems: "center", paddingHorizontal: M }}>
         {data.projectLogoBase64 && data.projectLogoFormat && (
-          <Image
-            src={imgSrc(data.projectLogoBase64, data.projectLogoFormat)!}
-            style={{ width: 170, height: 70, objectFit: "contain", marginBottom: 24 }}
-          />
+          <Image src={imgSrc(data.projectLogoBase64, data.projectLogoFormat)!} style={{ width: 150, height: 60, objectFit: "contain", marginBottom: 20 }} />
         )}
-
-        {/* Project name */}
-        <Text style={{ fontFamily: FONT_FAMILY.HEADING, fontSize: 30, color: theme.coverText, textAlign: "center", marginBottom: 12 }}>
-          {data.projectName}
-        </Text>
-
-        {/* Accent line */}
-        <View style={{ width: 70, height: 2.3, backgroundColor: accent, marginBottom: 12 }} />
-
-        {/* COTIZACIÓN label */}
-        <Text style={{ fontFamily: FONT_FAMILY.LABEL, fontWeight: 700, fontSize: 10, color: accent, letterSpacing: 2 }}>
-          {strings.quotation}
-        </Text>
-
-        {/* Reference */}
-        <Text style={{ fontFamily: FONT_FAMILY.MONO, fontSize: 8, color: theme.coverTextMuted, marginTop: 8 }}>
-          {data.referenceNumber}
-        </Text>
-
-        {/* Unit */}
-        <Text style={{ fontFamily: FONT_FAMILY.LABEL, fontWeight: 700, fontSize: 9, color: theme.coverTextSecondary, letterSpacing: 1, marginTop: 12 }}>
-          {strings.unit} {data.unidadId}
-        </Text>
+        <Text style={{ fontFamily: FONT_FAMILY.HEADING, fontSize: 28, color: theme.coverText, textAlign: "center", marginBottom: 10 }}>{data.projectName}</Text>
+        <View style={{ width: 50, height: 2, backgroundColor: accent, marginBottom: 10 }} />
+        <Text style={{ fontFamily: FONT_FAMILY.LABEL, fontWeight: 700, fontSize: 8, color: accent, letterSpacing: 2 }}>{strings.quotation}</Text>
+        <Text style={{ fontFamily: FONT_FAMILY.MONO, fontSize: 7, color: theme.coverTextMuted, marginTop: 6 }}>{data.referenceNumber}</Text>
+        <Text style={{ fontFamily: FONT_FAMILY.BODY, fontSize: 8, color: theme.coverTextSecondary, marginTop: 10 }}>{strings.unit} {data.unidadId}</Text>
       </View>
-
-      {/* Constructora logo (bottom center) */}
-      <View style={{ position: "absolute", bottom: 55, left: 0, right: 0, alignItems: "center" }}>
+      <View style={{ position: "absolute", bottom: 45, left: 0, right: 0, alignItems: "center" }}>
         {data.constructoraLogoBase64 && data.constructoraLogoFormat ? (
-          <Image
-            src={imgSrc(data.constructoraLogoBase64, data.constructoraLogoFormat)!}
-            style={{ width: 85, height: 34, objectFit: "contain" }}
-          />
+          <Image src={imgSrc(data.constructoraLogoBase64, data.constructoraLogoFormat)!} style={{ width: 70, height: 28, objectFit: "contain" }} />
         ) : data.constructoraName ? (
-          <Text style={{ fontFamily: FONT_FAMILY.LABEL, fontWeight: 700, fontSize: 9, color: theme.coverTextSecondary, letterSpacing: 1.5 }}>
-            {data.constructoraName.toUpperCase()}
-          </Text>
+          <Text style={{ fontFamily: FONT_FAMILY.LABEL, fontWeight: 700, fontSize: 7, color: theme.coverTextSecondary, letterSpacing: 1.5 }}>{data.constructoraName.toUpperCase()}</Text>
         ) : null}
       </View>
-
-      {/* Date */}
-      <View style={{ position: "absolute", bottom: 34, left: 0, right: 0, alignItems: "center" }}>
-        <Text style={{ fontFamily: FONT_FAMILY.MONO, fontSize: 7, color: theme.coverTextMuted }}>
-          {data.fecha}
-        </Text>
+      <View style={{ position: "absolute", bottom: 30, left: 0, right: 0, alignItems: "center" }}>
+        <Text style={{ fontFamily: FONT_FAMILY.MONO, fontSize: 7, color: theme.coverTextMuted }}>{data.fecha}</Text>
       </View>
-
-      {/* Bottom accent bar */}
-      <View style={[s.accentBarBottom, { backgroundColor: accent }]} />
+      <View style={{ position: "absolute", bottom: 0, left: 0, right: 0, height: 7, backgroundColor: accent }} />
     </Page>
   );
 }
 
 /* ═══════════════════════════════════════════════════
-   PAGE 2: OFFER DETAILS
+   OFFER PAGE — SUB-COMPONENTS
    ═══════════════════════════════════════════════════ */
 
-/* Grid cell (key-value pair in 2-col layout) */
-function GridCell({ label, value, theme, isRight }: {
-  label: string;
-  value: string;
-  theme: ThemePalette;
-  isRight?: boolean;
+/** Detail row — single key:value pair, full width, stacked for long values */
+function DetailRow({ label, value, theme, accent }: {
+  label: string; value: string; theme: ThemePalette; accent: string;
 }) {
   return (
-    <View style={{
-      width: "50%",
+    <View wrap={false} style={{
       flexDirection: "row",
-      justifyContent: "space-between",
-      alignItems: "center",
-      paddingHorizontal: 14,
-      paddingVertical: 5,
-      ...(isRight ? { borderLeftWidth: 0.5, borderLeftColor: theme.gridBorder } : {}),
+      paddingVertical: 4,
+      paddingHorizontal: 10,
+      borderBottomWidth: 0.3,
+      borderBottomColor: theme.gridBorder,
     }}>
-      <Text style={{ fontFamily: FONT_FAMILY.BODY, fontSize: 7, color: theme.textMuted }}>
-        {label}
-      </Text>
-      <Text style={{ fontFamily: FONT_FAMILY.MONO, fontSize: 9, color: theme.text }}>
-        {value}
-      </Text>
+      <Text style={{ fontFamily: FONT_FAMILY.BODY, fontSize: 7, color: theme.textMuted, width: 100 }}>{label}</Text>
+      <Text style={{ fontFamily: FONT_FAMILY.BODY, fontSize: 8, color: theme.text, flex: 1 }}>{value}</Text>
     </View>
   );
 }
 
-function OfferPage({ data, accent, accentLight, theme, strings, locale }: {
-  data: PDFData;
-  accent: string;
-  accentLight: string;
-  theme: ThemePalette;
-  strings: PDFStrings;
-  locale: EmailLocale;
+/** Details section — label + list of key:value rows */
+function DetailsSection({ label, pairs, accent, theme }: {
+  label: string; pairs: [string, string][]; accent: string; theme: ThemePalette;
 }) {
-  const moneda = (data.config.moneda || "COP") as Currency;
-  const u = data.unidad_medida || "m²";
-  const areaDisplay = data.area_m2 ? ` / ${data.area_m2} ${u}` : "";
+  if (pairs.length === 0) return null;
+  return (
+    <View style={{ marginBottom: 10 }}>
+      <SectionLabel label={label} accent={accent} theme={theme} />
+      <View style={{ backgroundColor: theme.gridBg, borderRadius: 4, borderWidth: 0.4, borderColor: theme.gridBorder }}>
+        {pairs.map(([k, v], i) => (
+          <DetailRow key={i} label={k} value={v} theme={theme} accent={accent} />
+        ))}
+      </View>
+    </View>
+  );
+}
+
+/** Complementos list */
+function ComplementosBlock({ complementos, complementosTotal, moneda, accent, theme, strings, hasDualCurrency, secCur, xRate }: {
+  complementos: ComplementoSeleccion[]; complementosTotal: number; moneda: Currency;
+  accent: string; theme: ThemePalette; strings: PDFStrings;
+  hasDualCurrency: boolean; secCur?: Currency; xRate: number;
+}) {
+  if (complementos.length === 0) return null;
+
+  function lbl(c: ComplementoSeleccion): string {
+    const t = c.tipo === "parqueadero" ? strings.parking_label : c.tipo === "deposito" ? strings.storage_label : strings.addon_label;
+    let s = `${t}: ${c.identificador}`;
+    if (c.subtipo) s += ` (${c.subtipo})`;
+    if (c.cantidad && c.cantidad > 1) s += ` ×${c.cantidad}`;
+    if (c.es_extra) s += ` — ${strings.additional}`;
+    return s;
+  }
+
+  function price(c: ComplementoSeleccion): number | null {
+    const p = c.precio_negociado ?? c.precio;
+    if (p === null || p === undefined) return null;
+    return p * (c.cantidad ?? 1);
+  }
+
+  return (
+    <View style={{ marginBottom: 10 }}>
+      <SectionLabel label={strings.complements} accent={accent} theme={theme} />
+      {complementos.map((c, i) => {
+        const p = price(c);
+        const incl = (p === null || p === 0) && !c.suma_al_total;
+        return (
+          <View key={i} wrap={false} style={{
+            flexDirection: "row", justifyContent: "space-between", alignItems: "center",
+            paddingVertical: 4, paddingHorizontal: 10,
+            ...(i % 2 === 0 ? { backgroundColor: theme.rowAlt } : {}),
+            borderBottomWidth: 0.3, borderBottomColor: theme.divider,
+          }}>
+            <View style={{ flexDirection: "row", alignItems: "center", flex: 1 }}>
+              <View style={{ width: 4, height: 4, borderRadius: 2, backgroundColor: accent, marginRight: 6 }} />
+              <Text style={{ fontFamily: FONT_FAMILY.BODY, fontSize: 8, color: theme.text }}>{lbl(c)}</Text>
+            </View>
+            <View style={{ alignItems: "flex-end", minWidth: 80 }}>
+              <Text style={{ fontFamily: FONT_FAMILY.MONO, fontSize: 8, color: incl ? theme.textMuted : theme.text }}>
+                {incl ? strings.included : formatCurrency(p!, moneda)}
+              </Text>
+              {hasDualCurrency && secCur && p && !incl && (
+                <Text style={{ fontFamily: FONT_FAMILY.MONO, fontSize: 6, color: theme.textMuted }}>≈ {formatCurrency(Math.round(p * xRate), secCur)}</Text>
+              )}
+            </View>
+          </View>
+        );
+      })}
+      {complementosTotal > 0 && (
+        <View wrap={false} style={{ flexDirection: "row", justifyContent: "space-between", paddingVertical: 4, paddingHorizontal: 10, borderTopWidth: 0.6, borderTopColor: theme.gridBorder, marginTop: 1 }}>
+          <Text style={{ fontFamily: FONT_FAMILY.BODY, fontSize: 8, color: theme.textSecondary }}>{strings.complementsSubtotal}</Text>
+          <View style={{ alignItems: "flex-end" }}>
+            <Text style={{ fontFamily: FONT_FAMILY.MONO, fontSize: 8, color: theme.text }}>{formatCurrency(complementosTotal, moneda)}</Text>
+            {hasDualCurrency && secCur && (
+              <Text style={{ fontFamily: FONT_FAMILY.MONO, fontSize: 6, color: theme.textMuted }}>≈ {formatCurrency(Math.round(complementosTotal * xRate), secCur)}</Text>
+            )}
+          </View>
+        </View>
+      )}
+    </View>
+  );
+}
+
+/* ═══════════════════════════════════════════════════
+   OFFER PAGE — PAYMENT TABLE
+   ═══════════════════════════════════════════════════ */
+
+function PaymentTable({ data, moneda, accent, theme, strings, locale, hasDualCurrency, secCur, xRate }: {
+  data: PDFData; moneda: Currency; accent: string; theme: ThemePalette;
+  strings: PDFStrings; locale: EmailLocale;
+  hasDualCurrency: boolean; secCur?: Currency; xRate: number;
+}) {
   const displayTotal = data.resultado.precio_total ?? data.resultado.precio_neto;
   const cargosAplicados = data.resultado.cargos_aplicados ?? [];
-  const adminFee = data.resultado.admin_fee ?? 0;
-  const adminLabel = data.resultado.admin_fee_label ?? "Admin Fee";
-  const hasDualCurrency = !!data.monedaSecundaria && !!data.tipoCambio;
-  const secCur = data.monedaSecundaria;
-  const xRate = data.tipoCambio ?? 0;
 
-  // Build project pairs
-  const projPairs: [string, string][] = [
-    [strings.project + ":", `${data.projectName}${data.constructoraName ? ` by ${data.constructoraName}` : ""}`],
-  ];
-  if (data.ubicacionDireccion) projPairs.push([strings.location + ":", data.ubicacionDireccion]);
-  const statusKey = data.estadoConstruccion || "sobre_planos";
-  projPairs.push([strings.status + ":", STATUS_LABELS[statusKey]?.[locale] ?? STATUS_LABELS.sobre_planos[locale]]);
-  if (data.fechaEstimadaEntrega) projPairs.push([strings.estimatedDelivery + ":", data.fechaEstimadaEntrega]);
-
-  // Build property pairs
-  const propPairs: [string, string][] = [];
-  if (data.tipologiaName) propPairs.push([strings.typology + ":", data.tipologiaName]);
-  propPairs.push([strings.unit + ":", data.unidadId]);
-  if (data.area_construida) propPairs.push([strings.area_construida + ":", `${data.area_construida} ${u}`]);
-  if (data.area_privada) propPairs.push([strings.area_privada + ":", `${data.area_privada} ${u}`]);
-  if (data.area_lote) propPairs.push([strings.area_lote + ":", `${data.area_lote} ${u}`]);
-  if (data.area_m2 && !data.area_construida && !data.area_privada) propPairs.push([strings.area + ":", `${data.area_m2} ${u}`]);
-  if (data.habitaciones) propPairs.push([strings.bedrooms + ":", `${data.habitaciones}`]);
-  if (data.banos) propPairs.push([strings.bathrooms + ":", `${data.banos}`]);
-  if (data.piso !== null && data.piso !== undefined) propPairs.push([strings.floor + ":", `${data.piso}`]);
-  if (data.vista) propPairs.push([strings.view + ":", data.vista]);
-  if (data.orientacion) propPairs.push([strings.orientation + ":", data.orientacion]);
-  if (data.parqueaderos) propPairs.push([strings.parking + ":", `${data.parqueaderos}`]);
-  if (data.depositos) propPairs.push([strings.storage + ":", `${data.depositos}`]);
-  if (data.tiene_terraza) propPairs.push([strings.terrace + ":", strings.yes]);
-  if (data.tiene_jardin) propPairs.push([strings.garden + ":", strings.yes]);
-  if (data.tiene_bbq) propPairs.push([strings.bbq + ":", strings.yes]);
-  if (data.tiene_jacuzzi) propPairs.push([strings.jacuzzi + ":", strings.yes]);
-  if (data.tiene_piscina) propPairs.push([strings.pool + ":", strings.yes]);
-  if (data.tiene_cuarto_servicio) propPairs.push([strings.maidsRoom + ":", strings.yes]);
-  if (data.tiene_estudio) propPairs.push([strings.study + ":", strings.yes]);
-  if (data.tiene_chimenea) propPairs.push([strings.fireplace + ":", strings.yes]);
-  if (data.tiene_doble_altura) propPairs.push([strings.doubleHeight + ":", strings.yes]);
-  if (data.tiene_rooftop) propPairs.push([strings.rooftop + ":", strings.yes]);
-  if (data.amoblado !== undefined) propPairs.push([strings.furnished + ":", data.amoblado ? strings.yes : strings.no]);
-
-  // Group pairs into rows of 2
-  const pairRows = (pairs: [string, string][]) => {
-    const rows: [string, string][][] = [];
-    for (let i = 0; i < pairs.length; i += 2) {
-      rows.push(pairs.slice(i, i + 2));
-    }
-    return rows;
-  };
-
-  // Price header string
   let priceStr = `${strings.sellingPrice} ${formatCurrency(displayTotal, moneda)}`;
   if (hasDualCurrency && secCur) {
     priceStr += `  ≈ ${formatCurrency(Math.round(displayTotal * xRate), secCur)}`;
   }
 
-  // Notes
-  const autoNote = data.tipoEntrega
-    ? (locale === "en"
-      ? "Indicative quotation — subject to confirmation by the sales team."
-      : "Cotización indicativa — sujeta a confirmación por el equipo comercial.")
-    : null;
-  const notes = [autoNote, data.config.notas_legales, data.disclaimer].filter(Boolean).join(" ");
-
   return (
-    <PageFrame accent={accent} accentLight={accentLight} theme={theme}>
-      {/* Header */}
-      <DualLogoHeader data={data} accent={accent} theme={theme} />
+    <View break style={{ marginBottom: 10 }}>
+      <SectionLabel
+        label={data.paymentPlanNombre || (locale === "en" ? "PAYMENT PLAN" : "PLAN DE PAGOS")}
+        accent={accent} theme={theme}
+      />
 
-      <View style={{ paddingHorizontal: MARGIN }}>
-        {/* ── Title block ── */}
-        <View style={{
-          backgroundColor: theme.gridBg,
-          borderWidth: 1,
-          borderColor: accent,
-          borderRadius: 6,
-          paddingVertical: 10,
-          paddingHorizontal: 16,
-          alignItems: "center",
-          marginBottom: 8,
-        }}>
-          <Text style={{ fontFamily: FONT_FAMILY.HEADING, fontSize: 16, color: theme.text }}>
-            {strings.salesOffer}
-          </Text>
-          <Text style={{ fontFamily: FONT_FAMILY.MONO, fontSize: 8.5, color: theme.textSecondary, marginTop: 4 }}>
-            {strings.unit} No: {data.unidadId}{areaDisplay}
-          </Text>
-        </View>
+      {/* Price summary bar */}
+      <View wrap={false} style={{
+        backgroundColor: theme.gridBg, borderRadius: 4, borderWidth: 0.4, borderColor: theme.gridBorder,
+        paddingVertical: 5, paddingHorizontal: 10, marginBottom: 6,
+      }}>
+        <Text style={{ fontFamily: FONT_FAMILY.BODY, fontSize: 8, color: theme.text }}>{priceStr}</Text>
+      </View>
 
-        {/* ── Ref + Date ── */}
-        <View style={{ flexDirection: "row", justifyContent: "space-between", marginBottom: 4 }}>
-          <Text style={{ fontFamily: FONT_FAMILY.MONO, fontSize: 7.5, color: theme.textMuted }}>Ref: {data.referenceNumber}</Text>
-          <Text style={{ fontFamily: FONT_FAMILY.MONO, fontSize: 7.5, color: theme.textMuted }}>{locale === "en" ? "Date:" : "Fecha:"} {data.fecha}</Text>
-        </View>
-        <View style={{ height: 1, backgroundColor: accent, marginBottom: 10 }} />
+      {/* Table header — minPresenceAhead ensures rows follow */}
+      <View wrap={false} minPresenceAhead={60} style={{
+        flexDirection: "row", backgroundColor: theme.tableHeader, borderRadius: 3,
+        paddingVertical: 4, paddingHorizontal: 10, marginBottom: 1,
+      }}>
+        <Text style={{ fontFamily: FONT_FAMILY.LABEL, fontWeight: 700, fontSize: 7, color: theme.tableHeaderText, width: "40%", letterSpacing: 0.5 }}>{strings.description}</Text>
+        <Text style={{ fontFamily: FONT_FAMILY.LABEL, fontWeight: 700, fontSize: 7, color: theme.tableHeaderText, width: "12%", textAlign: "center", letterSpacing: 0.5 }}>%</Text>
+        <Text style={{ fontFamily: FONT_FAMILY.LABEL, fontWeight: 700, fontSize: 7, color: theme.tableHeaderText, width: "22%", textAlign: "center", letterSpacing: 0.5 }}>{locale === "en" ? "DATE" : "FECHA"}</Text>
+        <Text style={{ fontFamily: FONT_FAMILY.LABEL, fontWeight: 700, fontSize: 7, color: theme.tableHeaderText, width: "26%", textAlign: "right", letterSpacing: 0.5 }}>{locale === "en" ? "AMOUNT" : "MONTO"}</Text>
+      </View>
 
-        {/* ── Project Details ── */}
-        <SectionLabel label={strings.projectDetails} accent={accent} theme={theme} />
-        <View style={{
-          backgroundColor: theme.gridBg,
-          borderWidth: 0.5,
-          borderColor: theme.gridBorder,
-          borderRadius: 6,
-          marginBottom: 8,
-        }}>
-          {pairRows(projPairs).map((row, ri) => (
-            <View key={ri} style={{
-              flexDirection: "row",
-              ...(ri > 0 ? { borderTopWidth: 0.3, borderTopColor: theme.gridBorder } : {}),
-            }}>
-              {row.map((pair, ci) => (
-                <GridCell key={ci} label={pair[0]} value={pair[1]} theme={theme} isRight={ci === 1} />
-              ))}
-              {row.length === 1 && <View style={{ width: "50%" }} />}
-            </View>
-          ))}
-        </View>
+      {/* Rows */}
+      {data.resultado.fases.map((fase, i) => {
+        const totalBase = data.resultado.precio_total ?? data.resultado.precio_neto;
+        const pct = fase.porcentaje ?? (totalBase > 0 ? Math.round((fase.monto_total / totalBase) * 100) : 0);
+        let name = fase.nombre;
+        if (/contra\s*entrega/i.test(name)) name = locale === "en" ? "Delivery" : "Entrega";
+        const cond = fase.condicion_hito;
 
-        {/* ── Property Details ── */}
-        <SectionLabel label={strings.propertyDetails} accent={accent} theme={theme} />
-        <View style={{
-          backgroundColor: theme.gridBg,
-          borderWidth: 0.5,
-          borderColor: theme.gridBorder,
-          borderRadius: 6,
-          marginBottom: 8,
-        }}>
-          {pairRows(propPairs).map((row, ri) => (
-            <View key={ri} style={{
-              flexDirection: "row",
-              ...(ri > 0 ? { borderTopWidth: 0.3, borderTopColor: theme.gridBorder } : {}),
-            }}>
-              {row.map((pair, ci) => (
-                <GridCell key={ci} label={pair[0]} value={pair[1]} theme={theme} isRight={ci === 1} />
-              ))}
-              {row.length === 1 && <View style={{ width: "50%" }} />}
-            </View>
-          ))}
-        </View>
-
-        {/* ── Payment Plan ── */}
-        <SectionLabel
-          label={data.paymentPlanNombre || (locale === "en" ? "Payment Plan" : "Plan de Pagos")}
-          accent={accent}
-          theme={theme}
-        />
-
-        {/* Selling price bar */}
-        <View style={{
-          backgroundColor: theme.gridBg,
-          borderWidth: 0.5,
-          borderColor: theme.gridBorder,
-          borderRadius: 4,
-          paddingVertical: 5,
-          paddingHorizontal: 14,
-          flexDirection: "row",
-          justifyContent: "space-between",
-          marginBottom: 8,
-        }}>
-          <Text style={{ fontFamily: FONT_FAMILY.LABEL, fontWeight: 700, fontSize: 8, color: theme.text }}>
-            {priceStr}
-          </Text>
-          {adminFee > 0 && (
-            <Text style={{ fontFamily: FONT_FAMILY.LABEL, fontWeight: 700, fontSize: 8, color: theme.text }}>
-              {adminLabel}: {formatCurrency(adminFee, moneda)}
-            </Text>
-          )}
-        </View>
-
-        {/* Table header */}
-        <View style={{
-          flexDirection: "row",
-          backgroundColor: theme.tableHeader,
-          borderRadius: 4,
-          paddingVertical: 5,
-          paddingHorizontal: 14,
-          marginBottom: 2,
-        }}>
-          <Text style={{ fontFamily: FONT_FAMILY.LABEL, fontWeight: 700, fontSize: 7, color: theme.tableHeaderText, width: "42%" }}>
-            {strings.description}
-          </Text>
-          <Text style={{ fontFamily: FONT_FAMILY.LABEL, fontWeight: 700, fontSize: 7, color: theme.tableHeaderText, width: "14%", textAlign: "center" }}>
-            {strings.percentage}
-          </Text>
-          <Text style={{ fontFamily: FONT_FAMILY.LABEL, fontWeight: 700, fontSize: 7, color: theme.tableHeaderText, width: "20%", textAlign: "center" }}>
-            {locale === "en" ? "Date" : "Fecha"}
-          </Text>
-          <Text style={{ fontFamily: FONT_FAMILY.LABEL, fontWeight: 700, fontSize: 7, color: theme.tableHeaderText, width: "24%", textAlign: "right" }}>
-            {locale === "en" ? "Amount" : "Monto"}
-          </Text>
-        </View>
-
-        {/* Table rows */}
-        {data.resultado.fases.map((fase, i) => {
-          const totalBase = data.resultado.precio_total ?? data.resultado.precio_neto;
-          const pct = fase.porcentaje ?? (totalBase > 0 ? Math.round((fase.monto_total / totalBase) * 100) : 0);
-          const displayAmt = i === 0 && adminFee > 0 ? fase.monto_total + adminFee : fase.monto_total;
-          let faseDisplayName = fase.nombre;
-          if (/contra\s*entrega/i.test(faseDisplayName)) {
-            faseDisplayName = locale === "en" ? "Delivery" : "Entrega";
-          }
-          if (i === 0 && adminFee > 0) {
-            faseDisplayName = `${faseDisplayName} (+${pct}% + ${adminLabel})`;
-          }
-          const hasCondition = !!fase.condicion_hito;
-
-          return (
-            <View key={i}>
-              <View style={{
-                flexDirection: "row",
-                alignItems: "flex-start",
-                paddingVertical: 5,
-                paddingHorizontal: 14,
-                ...(i % 2 === 0 ? { backgroundColor: theme.rowAlt } : {}),
-                borderBottomWidth: 0.4,
-                borderBottomColor: theme.divider,
-              }}>
-                {/* Bullet + description */}
-                <View style={{ width: "42%", flexDirection: "row", alignItems: "flex-start" }}>
-                  <View style={{
-                    width: 7,
-                    height: 7,
-                    borderRadius: 3.5,
-                    borderWidth: 1.2,
-                    borderColor: accent,
-                    marginRight: 6,
-                    marginTop: 1,
-                  }} />
-                  <Text style={{ fontFamily: FONT_FAMILY.BODY, fontSize: 8.5, color: theme.text, flex: 1 }}>
-                    {faseDisplayName}
-                  </Text>
-                </View>
-
-                {/* Percentage */}
-                <Text style={{ fontFamily: FONT_FAMILY.MONO, fontSize: 8, color: accent, width: "14%", textAlign: "center" }}>
-                  {pct}%
-                </Text>
-
-                {/* Date + condition */}
-                <View style={{ width: "20%", alignItems: "center" }}>
-                  <Text style={{ fontFamily: FONT_FAMILY.MONO, fontSize: 8, color: theme.textSecondary }}>
-                    {fase.fecha || (hasCondition ? "" : "--")}
-                  </Text>
-                  {hasCondition && (
-                    <Text style={{ fontFamily: FONT_FAMILY.BODY, fontSize: 6.5, color: accent, fontStyle: "italic", marginTop: 2 }}>
-                      {fase.condicion_hito}
-                    </Text>
-                  )}
-                </View>
-
-                {/* Amount */}
-                <View style={{ width: "24%", alignItems: "flex-end" }}>
-                  <Text style={{ fontFamily: FONT_FAMILY.MONO, fontSize: 8, color: theme.text }}>
-                    {formatCurrency(displayAmt, moneda)}
-                  </Text>
-                  {hasDualCurrency && secCur && (
-                    <Text style={{ fontFamily: FONT_FAMILY.MONO, fontSize: 6.5, color: theme.textMuted, marginTop: 1 }}>
-                      ≈ {formatCurrency(Math.round(displayAmt * xRate), secCur)}
-                    </Text>
-                  )}
-                </View>
-              </View>
-
-              {/* Installment subtitle */}
+        return (
+          <View key={i} wrap={false} style={{
+            flexDirection: "row", alignItems: "flex-start",
+            paddingVertical: 5, paddingHorizontal: 10,
+            ...(i % 2 === 0 ? { backgroundColor: theme.rowAlt } : {}),
+            borderBottomWidth: 0.3, borderBottomColor: theme.divider,
+          }}>
+            {/* Name */}
+            <View style={{ width: "40%" }}>
+              <Text style={{ fontFamily: FONT_FAMILY.BODY, fontSize: 8, color: theme.text }}>{name}</Text>
               {fase.cuotas > 1 && (
-                <Text style={{ fontFamily: FONT_FAMILY.BODY, fontSize: 6.5, color: theme.textMuted, paddingLeft: 40, paddingBottom: 3 }}>
-                  ({fase.cuotas} {FREQ_LABELS[locale][fase.frecuencia] || fase.frecuencia} × {formatCurrency(fase.monto_por_cuota, moneda)})
+                <Text style={{ fontFamily: FONT_FAMILY.MONO, fontSize: 6, color: theme.textMuted, marginTop: 1 }}>
+                  {fase.cuotas} {FREQ_LABELS[locale][fase.frecuencia] || fase.frecuencia} × {formatCurrency(fase.monto_por_cuota, moneda)}
                 </Text>
               )}
             </View>
-          );
-        })}
+            {/* % */}
+            <Text style={{ fontFamily: FONT_FAMILY.MONO, fontSize: 8, color: accent, width: "12%", textAlign: "center" }}>{pct}%</Text>
+            {/* Date */}
+            <View style={{ width: "22%", alignItems: "center" }}>
+              <Text style={{ fontFamily: FONT_FAMILY.MONO, fontSize: 8, color: theme.textSecondary }}>{fase.fecha || (cond ? "" : "—")}</Text>
+              {cond && <Text style={{ fontFamily: FONT_FAMILY.BODY, fontSize: 6, color: accent, marginTop: 1 }}>{cond}</Text>}
+            </View>
+            {/* Amount */}
+            <View style={{ width: "26%", alignItems: "flex-end" }}>
+              <Text style={{ fontFamily: FONT_FAMILY.MONO, fontSize: 8, color: theme.text }}>{formatCurrency(fase.monto_total, moneda)}</Text>
+              {hasDualCurrency && secCur && (
+                <Text style={{ fontFamily: FONT_FAMILY.MONO, fontSize: 6, color: theme.textMuted }}>≈ {formatCurrency(Math.round(fase.monto_total * xRate), secCur)}</Text>
+              )}
+            </View>
+          </View>
+        );
+      })}
 
-        {/* Discounts */}
-        {data.resultado.descuentos_aplicados.length > 0 && (
-          <View style={{ marginTop: 4 }}>
-            {data.resultado.descuentos_aplicados.map((desc, i) => (
-              <View key={i} style={{ flexDirection: "row", justifyContent: "space-between", paddingHorizontal: 14, paddingVertical: 2 }}>
-                <Text style={{ fontFamily: FONT_FAMILY.BODY, fontSize: 8.5, color: "rgb(46,139,87)" }}>
-                  - {desc.nombre}
-                </Text>
-                <Text style={{ fontFamily: FONT_FAMILY.MONO, fontSize: 8.5, color: "rgb(46,139,87)" }}>
-                  -{formatCurrency(desc.monto, moneda)}
-                </Text>
+      {/* Discounts */}
+      {data.resultado.descuentos_aplicados.length > 0 && (
+        <View style={{ marginTop: 3 }}>
+          {data.resultado.descuentos_aplicados.map((d, i) => (
+            <View key={i} wrap={false} style={{ flexDirection: "row", justifyContent: "space-between", paddingHorizontal: 10, paddingVertical: 2 }}>
+              <Text style={{ fontFamily: FONT_FAMILY.BODY, fontSize: 8, color: "rgb(46,139,87)" }}>- {d.nombre}</Text>
+              <Text style={{ fontFamily: FONT_FAMILY.MONO, fontSize: 8, color: "rgb(46,139,87)" }}>-{formatCurrency(d.monto, moneda)}</Text>
+            </View>
+          ))}
+        </View>
+      )}
+
+      {/* Charges */}
+      {cargosAplicados.length > 0 && (
+        <View style={{ marginTop: 3 }}>
+          {cargosAplicados.map((c, i) => {
+            const l = c.tipo === "porcentaje" && c.porcentaje ? `${c.nombre} (${c.porcentaje}%)` : c.nombre;
+            return (
+              <View key={i} wrap={false} style={{ flexDirection: "row", justifyContent: "space-between", paddingHorizontal: 10, paddingVertical: 2 }}>
+                <Text style={{ fontFamily: FONT_FAMILY.BODY, fontSize: 8, color: theme.textSecondary }}>{l}</Text>
+                <Text style={{ fontFamily: FONT_FAMILY.MONO, fontSize: 8, color: theme.text }}>{formatCurrency(c.monto, moneda)}</Text>
               </View>
-            ))}
-          </View>
-        )}
+            );
+          })}
+        </View>
+      )}
 
-        {/* Additional charges */}
-        {cargosAplicados.length > 0 && (
-          <View style={{ marginTop: 4 }}>
-            {cargosAplicados.map((cargo, i) => {
-              const label = cargo.tipo === "porcentaje" && cargo.porcentaje
-                ? `${cargo.nombre} (${cargo.porcentaje}%)`
-                : cargo.nombre;
-              return (
-                <View key={i} style={{ flexDirection: "row", justifyContent: "space-between", paddingHorizontal: 14, paddingVertical: 2 }}>
-                  <Text style={{ fontFamily: FONT_FAMILY.BODY, fontSize: 8.5, color: theme.textSecondary }}>
-                    {label}
-                  </Text>
-                  <Text style={{ fontFamily: FONT_FAMILY.MONO, fontSize: 8, color: theme.text }}>
-                    {formatCurrency(cargo.monto, moneda)}
-                  </Text>
-                </View>
-              );
-            })}
-          </View>
-        )}
+      {/* Legacy impuestos */}
+      {cargosAplicados.length === 0 && data.resultado.impuestos_aplicados && data.resultado.impuestos_aplicados.length > 0 && (
+        <View style={{ marginTop: 3 }}>
+          {data.resultado.impuestos_aplicados.map((imp, i) => (
+            <View key={i} wrap={false} style={{ flexDirection: "row", justifyContent: "space-between", paddingHorizontal: 10, paddingVertical: 2 }}>
+              <Text style={{ fontFamily: FONT_FAMILY.BODY, fontSize: 8, color: theme.textSecondary }}>{imp.nombre} ({imp.porcentaje}%)</Text>
+              <Text style={{ fontFamily: FONT_FAMILY.MONO, fontSize: 8, color: theme.text }}>{formatCurrency(imp.monto, moneda)}</Text>
+            </View>
+          ))}
+        </View>
+      )}
 
-        {/* Legacy impuestos fallback */}
-        {cargosAplicados.length === 0 && data.resultado.impuestos_aplicados && data.resultado.impuestos_aplicados.length > 0 && (
-          <View style={{ marginTop: 4 }}>
-            {data.resultado.impuestos_aplicados.map((imp, i) => (
-              <View key={i} style={{ flexDirection: "row", justifyContent: "space-between", paddingHorizontal: 14, paddingVertical: 2 }}>
-                <Text style={{ fontFamily: FONT_FAMILY.BODY, fontSize: 8.5, color: theme.textSecondary }}>
-                  {imp.nombre} ({imp.porcentaje}%)
-                </Text>
-                <Text style={{ fontFamily: FONT_FAMILY.MONO, fontSize: 8, color: theme.text }}>
-                  {formatCurrency(imp.monto, moneda)}
-                </Text>
-              </View>
-            ))}
-          </View>
-        )}
-
-        {/* Notes */}
-        {notes && (
-          <Text style={{ fontFamily: FONT_FAMILY.BODY, fontStyle: "italic", fontSize: 6.5, color: theme.textMuted, textAlign: "center", marginTop: 14 }}>
-            {notes}
-          </Text>
-        )}
-
-        {/* Sign-off */}
-        <View style={{ marginTop: 14 }}>
-          <Text style={{ fontFamily: FONT_FAMILY.BODY, fontSize: 9, color: theme.textSecondary }}>
-            {data.pdfDespedida || strings.defaultClosing}
-          </Text>
-          {data.constructoraName && (
-            <Text style={{ fontFamily: FONT_FAMILY.HEADING, fontSize: 10, color: theme.text, marginTop: 4 }}>
-              {data.constructoraName}
-            </Text>
-          )}
-          {data.agenteName && (
-            <Text style={{ fontFamily: FONT_FAMILY.BODY, fontSize: 8, color: accent, marginTop: 2 }}>
-              {data.agenteName}
-            </Text>
+      {/* TOTAL */}
+      <View wrap={false} style={{
+        flexDirection: "row", justifyContent: "space-between", alignItems: "center",
+        backgroundColor: accent, borderRadius: 3, paddingVertical: 6, paddingHorizontal: 10,
+        marginTop: 4,
+      }}>
+        <Text style={{ fontFamily: FONT_FAMILY.LABEL, fontWeight: 700, fontSize: 8, color: "rgb(255,255,255)", letterSpacing: 1 }}>{strings.totalPrice}</Text>
+        <View style={{ alignItems: "flex-end" }}>
+          <Text style={{ fontFamily: FONT_FAMILY.MONO, fontSize: 9, color: "rgb(255,255,255)" }}>{formatCurrency(displayTotal, moneda)}</Text>
+          {hasDualCurrency && secCur && (
+            <Text style={{ fontFamily: FONT_FAMILY.MONO, fontSize: 6, color: "rgba(255,255,255,0.7)" }}>≈ {formatCurrency(Math.round(displayTotal * xRate), secCur)}</Text>
           )}
         </View>
       </View>
-
-      <FooterText strings={strings} theme={theme} />
-    </PageFrame>
+    </View>
   );
 }
 
 /* ═══════════════════════════════════════════════════
-   PAGE 3: FLOOR PLAN
+   OFFER PAGE — MAIN (wrapping)
+   ═══════════════════════════════════════════════════ */
+
+function OfferPage({ data, accent, accentLight, theme, strings, locale }: {
+  data: PDFData; accent: string; accentLight: string; theme: ThemePalette; strings: PDFStrings; locale: EmailLocale;
+}) {
+  const moneda = (data.config.moneda || "COP") as Currency;
+  const u = data.unidad_medida || "m²";
+  const hasDualCurrency = !!data.monedaSecundaria && !!data.tipoCambio;
+  const secCur = data.monedaSecundaria as Currency | undefined;
+  const xRate = data.tipoCambio ?? 0;
+  const complementos = data.complementos ?? data.resultado.complementos ?? [];
+  const complementosTotal = data.resultado.complementos_total ?? 0;
+  const areaDisplay = data.area_m2 ? ` — ${data.area_m2} ${u}` : "";
+
+  // Greeting
+  const greeting = (data.pdfSaludo || strings.defaultGreeting).replace("{name}", data.buyerName).replace("{project}", data.projectName);
+
+  // Project details
+  const projPairs: [string, string][] = [];
+  projPairs.push([strings.project, data.projectName + (data.constructoraName ? ` — ${data.constructoraName}` : "")]);
+  if (data.ubicacionDireccion) projPairs.push([strings.location, data.ubicacionDireccion]);
+  const sk = data.estadoConstruccion || "sobre_planos";
+  projPairs.push([strings.status, STATUS_LABELS[sk]?.[locale] ?? STATUS_LABELS.sobre_planos[locale]]);
+  if (data.fechaEstimadaEntrega) projPairs.push([strings.estimatedDelivery, data.fechaEstimadaEntrega]);
+
+  // Property details
+  const propPairs: [string, string][] = [];
+  if (data.tipologiaName) propPairs.push([strings.typology, data.tipologiaName]);
+  propPairs.push([strings.unit, data.unidadId]);
+  if (data.area_construida) propPairs.push([strings.area_construida, `${data.area_construida} ${u}`]);
+  if (data.area_privada) propPairs.push([strings.area_privada, `${data.area_privada} ${u}`]);
+  if (data.area_lote) propPairs.push([strings.area_lote, `${data.area_lote} ${u}`]);
+  if (data.area_m2 && !data.area_construida && !data.area_privada) propPairs.push([strings.area, `${data.area_m2} ${u}`]);
+  if (data.habitaciones) propPairs.push([strings.bedrooms, `${data.habitaciones}`]);
+  if (data.banos) propPairs.push([strings.bathrooms, `${data.banos}`]);
+  if (data.piso !== null && data.piso !== undefined) propPairs.push([strings.floor, `${data.piso}`]);
+  if (data.vista) propPairs.push([strings.view, data.vista]);
+  if (data.orientacion) propPairs.push([strings.orientation, data.orientacion]);
+  if (data.parqueaderos) propPairs.push([strings.parking, `${data.parqueaderos}`]);
+  if (data.depositos) propPairs.push([strings.storage, `${data.depositos}`]);
+  if (data.tiene_terraza) propPairs.push([strings.terrace, strings.yes]);
+  if (data.tiene_jardin) propPairs.push([strings.garden, strings.yes]);
+  if (data.tiene_bbq) propPairs.push([strings.bbq, strings.yes]);
+  if (data.tiene_jacuzzi) propPairs.push([strings.jacuzzi, strings.yes]);
+  if (data.tiene_piscina) propPairs.push([strings.pool, strings.yes]);
+  if (data.tiene_cuarto_servicio) propPairs.push([strings.maidsRoom, strings.yes]);
+  if (data.tiene_estudio) propPairs.push([strings.study, strings.yes]);
+  if (data.tiene_chimenea) propPairs.push([strings.fireplace, strings.yes]);
+  if (data.tiene_doble_altura) propPairs.push([strings.doubleHeight, strings.yes]);
+  if (data.tiene_rooftop) propPairs.push([strings.rooftop, strings.yes]);
+  if (data.amoblado) propPairs.push([strings.furnished, strings.yes]);
+
+  // Notes
+  const notesParts: string[] = [];
+  if (data.tipoEntrega) notesParts.push(locale === "en" ? "Indicative quotation — subject to confirmation by the sales team." : "Cotización indicativa — sujeta a confirmación por el equipo comercial.");
+  if (data.config.notas_legales) notesParts.push(data.config.notas_legales);
+  if (data.disclaimer) notesParts.push(data.disclaimer);
+  const notes = notesParts.join(" ");
+
+  return (
+    <Page
+      size="LETTER"
+      wrap={true}
+      style={{
+        fontFamily: FONT_FAMILY.BODY, fontSize: 8, backgroundColor: theme.bg,
+        paddingTop: 18, paddingBottom: 36, paddingHorizontal: M,
+      }}
+    >
+      {/* Fixed bars — repeat on every overflow page */}
+      <View fixed style={{ position: "absolute", top: 0, left: 0, right: 0, height: 8, backgroundColor: accent }} />
+      <View fixed style={{ position: "absolute", top: 8, left: 0, right: 0, height: 0.8, backgroundColor: accentLight }} />
+      <View fixed style={{ position: "absolute", bottom: 0, left: 0, right: 0, height: 7, backgroundColor: accent }} />
+      <Text fixed style={{ position: "absolute", bottom: 14, left: 0, right: 0, textAlign: "center", fontSize: 6, color: theme.footerText }}>{strings.generatedBy}</Text>
+
+      {/* Logos — first page only */}
+      <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: 10 }}>
+        {data.constructoraLogoBase64 && data.constructoraLogoFormat ? (
+          <Image src={imgSrc(data.constructoraLogoBase64, data.constructoraLogoFormat)} style={{ width: 60, height: 24, objectFit: "contain" }} />
+        ) : data.constructoraName ? (
+          <Text style={{ fontFamily: FONT_FAMILY.LABEL, fontWeight: 700, fontSize: 7, color: theme.textMuted, letterSpacing: 1 }}>{data.constructoraName.toUpperCase()}</Text>
+        ) : <View />}
+        {data.projectLogoBase64 && data.projectLogoFormat ? (
+          <Image src={imgSrc(data.projectLogoBase64, data.projectLogoFormat)} style={{ width: 60, height: 24, objectFit: "contain" }} />
+        ) : (
+          <Text style={{ fontFamily: FONT_FAMILY.LABEL, fontWeight: 700, fontSize: 7, color: accent, letterSpacing: 1 }}>{data.projectName.toUpperCase()}</Text>
+        )}
+      </View>
+
+      {/* Title */}
+      <View wrap={false} style={{ borderWidth: 0.8, borderColor: accent, borderRadius: 4, paddingVertical: 8, paddingHorizontal: 12, alignItems: "center", marginBottom: 6 }}>
+        <Text style={{ fontFamily: FONT_FAMILY.HEADING, fontSize: 14, color: theme.text }}>{strings.salesOffer}</Text>
+        <Text style={{ fontFamily: FONT_FAMILY.MONO, fontSize: 8, color: theme.textSecondary, marginTop: 2 }}>{strings.unit} {data.unidadId}{areaDisplay}</Text>
+      </View>
+
+      {/* Ref + Date */}
+      <View wrap={false} style={{ flexDirection: "row", justifyContent: "space-between", marginBottom: 3 }}>
+        <Text style={{ fontFamily: FONT_FAMILY.MONO, fontSize: 7, color: theme.textMuted }}>Ref: {data.referenceNumber}</Text>
+        <Text style={{ fontFamily: FONT_FAMILY.MONO, fontSize: 7, color: theme.textMuted }}>{data.fecha}</Text>
+      </View>
+      <View style={{ height: 0.6, backgroundColor: accent, marginBottom: 10 }} />
+
+      {/* Greeting */}
+      <View wrap={false} style={{ marginBottom: 10 }}>
+        <Text style={{ fontFamily: FONT_FAMILY.BODY, fontSize: 8, color: theme.textSecondary, lineHeight: 1.6 }}>{greeting}</Text>
+      </View>
+
+      {/* Project Details */}
+      <DetailsSection label={strings.projectDetails} pairs={projPairs} accent={accent} theme={theme} />
+
+      {/* Property Details */}
+      <DetailsSection label={strings.propertyDetails} pairs={propPairs} accent={accent} theme={theme} />
+
+      {/* Complementos */}
+      {complementos.length > 0 && (
+        <ComplementosBlock
+          complementos={complementos} complementosTotal={complementosTotal} moneda={moneda}
+          accent={accent} theme={theme} strings={strings}
+          hasDualCurrency={hasDualCurrency} secCur={secCur} xRate={xRate}
+        />
+      )}
+
+      {/* Payment Table — always starts on a fresh page */}
+      <PaymentTable
+        data={data} moneda={moneda} accent={accent} theme={theme}
+        strings={strings} locale={locale}
+        hasDualCurrency={hasDualCurrency} secCur={secCur} xRate={xRate}
+      />
+
+      {/* Notes */}
+      {notes && (
+        <Text style={{ fontFamily: FONT_FAMILY.BODY, fontSize: 7, color: theme.textMuted, textAlign: "center", marginBottom: 10 }}>{notes}</Text>
+      )}
+
+    </Page>
+  );
+}
+
+/* ═══════════════════════════════════════════════════
+   FLOOR PLAN PAGE
    ═══════════════════════════════════════════════════ */
 
 function FloorPlanPage({ data, accent, accentLight, theme, strings }: {
-  data: PDFData;
-  accent: string;
-  accentLight: string;
-  theme: ThemePalette;
-  strings: PDFStrings;
+  data: PDFData; accent: string; accentLight: string; theme: ThemePalette; strings: PDFStrings;
 }) {
-  const header = data.tipologiaName
-    ? `${data.tipologiaName} — ${strings.unit}: ${data.unidadId}`
-    : `${strings.unit}: ${data.unidadId}`;
-
+  const header = data.tipologiaName ? `${data.tipologiaName} — ${strings.unit}: ${data.unidadId}` : `${strings.unit}: ${data.unidadId}`;
   return (
     <PageFrame accent={accent} accentLight={accentLight} theme={theme}>
       <DualLogoHeader data={data} accent={accent} theme={theme} />
-      <View style={{ paddingHorizontal: MARGIN, flex: 1 }}>
+      <View style={{ paddingHorizontal: M, flex: 1, paddingBottom: 30 }}>
         <SectionLabel label={strings.floorPlan} accent={accent} theme={theme} />
-
-        <Text style={{ fontFamily: FONT_FAMILY.HEADING, fontSize: 16, color: theme.text, marginBottom: 14 }}>
-          {header}
-        </Text>
-
+        <Text style={{ fontFamily: FONT_FAMILY.HEADING, fontSize: 14, color: theme.text, marginBottom: 12 }}>{header}</Text>
         {data.planoBase64 && data.planoFormat && (
           <View style={{ flex: 1, alignItems: "center", justifyContent: "center" }}>
-            <Image
-              src={imgSrc(data.planoBase64, data.planoFormat)!}
-              style={{ maxWidth: CONTENT_W, maxHeight: 550, objectFit: "contain" }}
-            />
+            <Image src={imgSrc(data.planoBase64, data.planoFormat)!} style={{ maxWidth: CW, maxHeight: 550, objectFit: "contain" }} />
           </View>
         )}
       </View>
-
-      {/* Disclaimer */}
-      <Text style={{
-        position: "absolute",
-        bottom: 34,
-        left: MARGIN,
-        right: MARGIN,
-        fontFamily: FONT_FAMILY.BODY,
-        fontSize: 6,
-        color: theme.footerText,
-        textAlign: "center",
-      }}>
-        {strings.floorPlanDisclaimer}
-      </Text>
-
-      <FooterText strings={strings} theme={theme} />
+      <Text style={{ position: "absolute", bottom: 28, left: M, right: M, fontSize: 6, color: theme.footerText, textAlign: "center" }}>{strings.floorPlanDisclaimer}</Text>
+      <Footer strings={strings} theme={theme} />
     </PageFrame>
   );
 }
 
 /* ═══════════════════════════════════════════════════
-   PAGE 4: KEY PLAN
+   KEY PLAN PAGE
    ═══════════════════════════════════════════════════ */
 
 function KeyPlanPage({ data, accent, accentLight, theme, strings }: {
-  data: PDFData;
-  accent: string;
-  accentLight: string;
-  theme: ThemePalette;
-  strings: PDFStrings;
+  data: PDFData; accent: string; accentLight: string; theme: ThemePalette; strings: PDFStrings;
 }) {
   return (
     <PageFrame accent={accent} accentLight={accentLight} theme={theme}>
       <DualLogoHeader data={data} accent={accent} theme={theme} />
-      <View style={{ paddingHorizontal: MARGIN, flex: 1 }}>
+      <View style={{ paddingHorizontal: M, flex: 1, paddingBottom: 30 }}>
         <SectionLabel label={strings.keyPlan} accent={accent} theme={theme} />
-
-        {data.pisoLabel && (
-          <Text style={{ fontFamily: FONT_FAMILY.LABEL, fontWeight: 700, fontSize: 12, color: accent, marginBottom: 6 }}>
-            {data.pisoLabel}
-          </Text>
-        )}
-
-        <Text style={{ fontFamily: FONT_FAMILY.MONO, fontSize: 10, color: theme.textSecondary, marginBottom: 14 }}>
-          {strings.unit}: {data.unidadId}
-        </Text>
-
+        {data.pisoLabel && <Text style={{ fontFamily: FONT_FAMILY.BODY, fontSize: 8, color: accent, marginBottom: 4 }}>{data.pisoLabel}</Text>}
+        <Text style={{ fontFamily: FONT_FAMILY.MONO, fontSize: 8, color: theme.textSecondary, marginBottom: 12 }}>{strings.unit}: {data.unidadId}</Text>
         {data.keyPlanBase64 && data.keyPlanFormat && (
           <View style={{ flex: 1, alignItems: "center", justifyContent: "center" }}>
-            <Image
-              src={imgSrc(data.keyPlanBase64, data.keyPlanFormat)!}
-              style={{ maxWidth: CONTENT_W, maxHeight: 550, objectFit: "contain" }}
-            />
+            <Image src={imgSrc(data.keyPlanBase64, data.keyPlanFormat)!} style={{ maxWidth: CW, maxHeight: 550, objectFit: "contain" }} />
           </View>
         )}
       </View>
-
-      {/* Disclaimer */}
-      <Text style={{
-        position: "absolute",
-        bottom: 34,
-        left: MARGIN,
-        right: MARGIN,
-        fontFamily: FONT_FAMILY.BODY,
-        fontSize: 6,
-        color: theme.footerText,
-        textAlign: "center",
-      }}>
-        {strings.keyPlanDisclaimer}
-      </Text>
-
-      <FooterText strings={strings} theme={theme} />
+      <Text style={{ position: "absolute", bottom: 28, left: M, right: M, fontSize: 6, color: theme.footerText, textAlign: "center" }}>{strings.keyPlanDisclaimer}</Text>
+      <Footer strings={strings} theme={theme} />
     </PageFrame>
   );
 }
 
 /* ═══════════════════════════════════════════════════
-   PAGE 5: ADDITIONAL INFO
+   INFO PAGE
    ═══════════════════════════════════════════════════ */
 
 function InfoPage({ data, accent, accentLight, theme, strings, locale }: {
-  data: PDFData;
-  accent: string;
-  accentLight: string;
-  theme: ThemePalette;
-  strings: PDFStrings;
-  locale: EmailLocale;
+  data: PDFData; accent: string; accentLight: string; theme: ThemePalette; strings: PDFStrings; locale: EmailLocale;
 }) {
-  // Build legal text
   const legalParts: string[] = [];
-  if (data.tipoEntrega) {
-    legalParts.push(
-      locale === "en"
-        ? "Indicative quotation — subject to confirmation by the sales team. The payment plan adjusts dynamically based on the quotation date."
-        : "Cotización indicativa — sujeta a confirmación por el equipo comercial. El plan de pagos se ajusta dinámicamente según la fecha de la cotización."
-    );
-  }
+  if (data.tipoEntrega) legalParts.push(locale === "en"
+    ? "Indicative quotation — subject to confirmation by the sales team."
+    : "Cotización indicativa — sujeta a confirmación por el equipo comercial.");
   if (data.disclaimer) legalParts.push(data.disclaimer);
   if (data.config.notas_legales) legalParts.push(data.config.notas_legales);
   const legalText = legalParts.join("\n\n");
@@ -868,69 +630,53 @@ function InfoPage({ data, accent, accentLight, theme, strings, locale }: {
   return (
     <PageFrame accent={accent} accentLight={accentLight} theme={theme}>
       <DualLogoHeader data={data} accent={accent} theme={theme} />
-      <View style={{ paddingHorizontal: MARGIN, flex: 1 }}>
-
-        {/* Virtual Tour */}
+      <View style={{ paddingHorizontal: M, flex: 1, paddingBottom: 30 }}>
         {data.tour360Url && (
-          <View style={{ marginBottom: 30 }}>
+          <View style={{ marginBottom: 24 }}>
             <SectionLabel label={strings.virtualTour} accent={accent} theme={theme} />
-            <Text style={{ fontFamily: FONT_FAMILY.BODY, fontSize: 9, color: theme.textSecondary, marginBottom: 8 }}>
-              {strings.virtualTourDesc.replace("{unit}", data.unidadId)}
-            </Text>
-            <Link src={data.tour360Url} style={{ fontFamily: FONT_FAMILY.LABEL, fontWeight: 700, fontSize: 9, color: accent }}>
-              {strings.viewTour}
-            </Link>
+            <Text style={{ fontFamily: FONT_FAMILY.BODY, fontSize: 8, color: theme.textSecondary, marginBottom: 6 }}>{strings.virtualTourDesc.replace("{unit}", data.unidadId)}</Text>
+            <Link src={data.tour360Url} style={{ fontFamily: FONT_FAMILY.BODY, fontSize: 8, color: accent }}>{strings.viewTour}</Link>
           </View>
         )}
-
-        {/* Contact */}
         {data.whatsappNumero && (
-          <View style={{ marginBottom: 30 }}>
+          <View style={{ marginBottom: 24 }}>
             <SectionLabel label={strings.contact} accent={accent} theme={theme} />
-            <Text style={{ fontFamily: FONT_FAMILY.BODY, fontSize: 9, color: theme.textSecondary, marginBottom: 6 }}>
-              {strings.contactDesc}
-            </Text>
-            <Text style={{ fontFamily: FONT_FAMILY.MONO, fontSize: 10, color: theme.text }}>
-              {data.whatsappNumero}
-            </Text>
+            <Text style={{ fontFamily: FONT_FAMILY.BODY, fontSize: 8, color: theme.textSecondary, marginBottom: 4 }}>{strings.contactDesc}</Text>
+            <Text style={{ fontFamily: FONT_FAMILY.MONO, fontSize: 8, color: theme.text }}>{data.whatsappNumero}</Text>
           </View>
         )}
-
-        {/* Legal */}
         {legalText && (
-          <View style={{ marginBottom: 30 }}>
+          <View style={{ marginBottom: 24 }}>
             <SectionLabel label={strings.legalNotice} accent={accent} theme={theme} />
-            <Text style={{ fontFamily: FONT_FAMILY.BODY, fontSize: 7.5, color: theme.textMuted }}>
-              {legalText}
-            </Text>
+            <Text style={{ fontFamily: FONT_FAMILY.BODY, fontSize: 7, color: theme.textMuted }}>{legalText}</Text>
           </View>
         )}
-
-        {/* Buyer info */}
+        {/* Sign-off + Advisor */}
         <View style={{ marginTop: "auto" }}>
-          <View style={{ height: 0.5, backgroundColor: theme.divider, marginBottom: 14 }} />
-
-          <Text style={{ fontFamily: FONT_FAMILY.LABEL, fontWeight: 700, fontSize: 7, color: accent, letterSpacing: 1.5, marginBottom: 6 }}>
-            {strings.preparedFor}
-          </Text>
-
-          <Text style={{ fontFamily: FONT_FAMILY.HEADING, fontSize: 11, color: theme.text, marginBottom: 4 }}>
-            {data.buyerName}
-          </Text>
-
-          <Text style={{ fontFamily: FONT_FAMILY.MONO, fontSize: 8, color: theme.textMuted }}>
-            {data.buyerEmail}
-          </Text>
-
-          {data.buyerPhone && (
-            <Text style={{ fontFamily: FONT_FAMILY.MONO, fontSize: 8, color: theme.textMuted, marginTop: 3 }}>
-              {data.buyerPhone}
-            </Text>
+          <View style={{ height: 0.4, backgroundColor: theme.divider, marginBottom: 10 }} />
+          <Text style={{ fontFamily: FONT_FAMILY.BODY, fontSize: 8, color: theme.textSecondary }}>{data.pdfDespedida || strings.defaultClosing}</Text>
+          {data.constructoraName && (
+            <Text style={{ fontFamily: FONT_FAMILY.BODY, fontSize: 8, color: theme.text, marginTop: 3 }}>{data.constructoraName}</Text>
           )}
+          {data.agenteName && (
+            <View style={{ marginTop: 8 }}>
+              <Text style={{ fontFamily: FONT_FAMILY.LABEL, fontWeight: 700, fontSize: 7, color: accent, letterSpacing: 1, marginBottom: 2 }}>{locale === "en" ? "ADVISOR" : "ASESOR"}</Text>
+              <Text style={{ fontFamily: FONT_FAMILY.BODY, fontSize: 8, color: theme.text }}>{data.agenteName}</Text>
+              {data.agentePhone && <Text style={{ fontFamily: FONT_FAMILY.MONO, fontSize: 8, color: theme.textSecondary, marginTop: 1 }}>{data.agentePhone}</Text>}
+              {data.agenteEmail && <Text style={{ fontFamily: FONT_FAMILY.MONO, fontSize: 8, color: theme.textSecondary, marginTop: 1 }}>{data.agenteEmail}</Text>}
+            </View>
+          )}
+
+          {/* Prepared for */}
+          <View style={{ marginTop: 14 }}>
+            <Text style={{ fontFamily: FONT_FAMILY.LABEL, fontWeight: 700, fontSize: 7, color: accent, letterSpacing: 1.5, marginBottom: 4 }}>{strings.preparedFor}</Text>
+            <Text style={{ fontFamily: FONT_FAMILY.BODY, fontSize: 8, color: theme.text, marginBottom: 2 }}>{data.buyerName}</Text>
+            <Text style={{ fontFamily: FONT_FAMILY.MONO, fontSize: 8, color: theme.textMuted }}>{data.buyerEmail}</Text>
+            {data.buyerPhone && <Text style={{ fontFamily: FONT_FAMILY.MONO, fontSize: 8, color: theme.textMuted, marginTop: 2 }}>{data.buyerPhone}</Text>}
+          </View>
         </View>
       </View>
-
-      <FooterText strings={strings} theme={theme} />
+      <Footer strings={strings} theme={theme} />
     </PageFrame>
   );
 }
@@ -949,8 +695,6 @@ export function CotizacionDocument({ data }: { data: PDFData }) {
 
   const hasFloorPlan = !!data.planoBase64 && !!data.planoFormat;
   const hasKeyPlan = !!data.keyPlanBase64 && !!data.keyPlanFormat;
-  const hasInfoContent = !!data.tour360Url || !!data.whatsappNumero || !!data.disclaimer || !!data.config.notas_legales || !!data.tipoEntrega;
-
   return (
     <Document
       title={`Cotización ${data.projectName} - ${data.unidadId}`}
@@ -958,30 +702,19 @@ export function CotizacionDocument({ data }: { data: PDFData }) {
       subject={`Cotización para ${data.buyerName}`}
       creator="NODDO — noddo.io"
     >
-      {/* Page 1: Cover */}
       {coverStyle === "minimalista" ? (
         <CoverMinimalista data={data} accent={accent} theme={theme} strings={strings} />
       ) : (
         <CoverHero data={data} accent={accent} strings={strings} />
       )}
 
-      {/* Page 2: Offer Details */}
       <OfferPage data={data} accent={accent} accentLight={accentLight} theme={theme} strings={strings} locale={locale} />
 
-      {/* Page 3: Floor Plan (conditional) */}
-      {hasFloorPlan && (
-        <FloorPlanPage data={data} accent={accent} accentLight={accentLight} theme={theme} strings={strings} />
-      )}
+      {hasFloorPlan && <FloorPlanPage data={data} accent={accent} accentLight={accentLight} theme={theme} strings={strings} />}
+      {hasKeyPlan && <KeyPlanPage data={data} accent={accent} accentLight={accentLight} theme={theme} strings={strings} />}
 
-      {/* Page 4: Key Plan (conditional) */}
-      {hasKeyPlan && (
-        <KeyPlanPage data={data} accent={accent} accentLight={accentLight} theme={theme} strings={strings} />
-      )}
-
-      {/* Page 5: Additional Info (conditional) */}
-      {hasInfoContent && (
-        <InfoPage data={data} accent={accent} accentLight={accentLight} theme={theme} strings={strings} locale={locale} />
-      )}
+      {/* Info page — always renders (has sign-off, advisor, buyer info) */}
+      <InfoPage data={data} accent={accent} accentLight={accentLight} theme={theme} strings={strings} locale={locale} />
     </Document>
   );
 }

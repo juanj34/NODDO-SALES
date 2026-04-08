@@ -139,7 +139,6 @@ export async function getPresignedMediaUploadUrl(
     Bucket: R2_MEDIA_BUCKET,
     Key: key,
     ContentType: contentType,
-    ContentLength: size,
   });
 
   const uploadUrl = await getSignedUrl(client, command, { expiresIn: 900 });

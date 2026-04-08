@@ -106,6 +106,8 @@ export function FileUploader({
   const [uploadProgressPercent, setUploadProgressPercent] = useState(0);
   const [uploadError, setUploadError] = useState<string | null>(null);
   const [uploadProgress, setUploadProgress] = useState({ done: 0, total: 0 });
+  const [uploadSpeed, setUploadSpeed] = useState(0); // bytes/sec
+  const [uploadETA, setUploadETA] = useState(0); // seconds
   const [preview, setPreview] = useState<string | null>(currentUrl || null);
   const [isDragging, setIsDragging] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -169,17 +171,28 @@ export function FileUploader({
         xhr.open("PUT", uploadUrl);
         xhr.setRequestHeader("Content-Type", file.type || "application/octet-stream");
 
+        const uploadStart = Date.now();
         xhr.upload.onprogress = (e) => {
           if (e.lengthComputable) {
             setUploadProgressPercent(Math.round((e.loaded / e.total) * 100));
+            const elapsed = (Date.now() - uploadStart) / 1000;
+            if (elapsed > 0.3) {
+              const speed = e.loaded / elapsed;
+              setUploadSpeed(speed);
+              const remaining = e.total - e.loaded;
+              setUploadETA(remaining / speed);
+            }
           }
         };
 
         xhr.onload = () => {
           if (xhr.status >= 200 && xhr.status < 300) resolve();
-          else reject(new Error(`Upload failed: ${xhr.status} ${xhr.statusText}`));
+          else reject(new Error(`Upload failed: ${xhr.status} ${xhr.statusText} — ${xhr.responseText?.slice(0, 200)}`));
         };
-        xhr.onerror = () => reject(new Error("Error de red al subir archivo"));
+        xhr.onerror = () => {
+          console.error("[R2 upload] network error", { status: xhr.status, readyState: xhr.readyState, response: xhr.responseText?.slice(0, 500) });
+          reject(new Error("Error de red al subir archivo"));
+        };
 
         xhr.send(file);
       });
@@ -318,6 +331,8 @@ export function FileUploader({
       setUploadError(null);
       setUploadState("idle");
       setUploadProgressPercent(0);
+      setUploadSpeed(0);
+      setUploadETA(0);
       const isImage = file.type.startsWith("image/");
       if (!isImage) {
         // Non-image: upload directly
@@ -624,8 +639,8 @@ export function FileUploader({
     <>
       <div
         ref={containerRef}
-        className={`relative border-2 border-dashed rounded-xl overflow-hidden transition-all duration-200 ${
-          compact ? "h-24" : aspect === "video" ? "aspect-video" : aspect === "logo" ? "aspect-[3/1]" : "aspect-square"
+        className={`relative border-2 border-dashed overflow-hidden transition-all duration-200 rounded-xl ${
+          compact ? "h-28" : aspect === "video" ? "aspect-video" : aspect === "logo" ? "aspect-[3/1]" : "aspect-square"
         } ${
           isDragging
             ? "border-[var(--site-primary)] bg-[rgba(var(--site-primary-rgb),0.08)] scale-[1.01]"
@@ -638,44 +653,74 @@ export function FileUploader({
       >
         {preview && !cropSrc && !aspectWarning ? (
           <>
-            {(() => {
-              const fileType = getNonImageFileType(preview);
-              if (fileType) {
-                const Icon = fileType === "pdf" ? FileText : fileType === "video" ? Film : Music;
-                const fileName = decodeURIComponent(preview.split("/").pop()?.split("?")[0] || "");
-                return (
-                  <div className="w-full h-full flex flex-col items-center justify-center gap-2 bg-[var(--surface-2)]">
-                    <Icon size={32} className="text-[var(--site-primary)]" />
-                    <span className="text-xs text-[var(--text-secondary)] max-w-[80%] truncate text-center">
-                      {fileName}
-                    </span>
-                  </div>
-                );
-              }
-              return (
-                <Image
-                  src={preview}
-                  alt=""
-                  fill
-                  sizes="300px"
-                  unoptimized
-                  className={`w-full h-full ${aspect === "logo" ? "object-contain bg-[var(--surface-3)]" : "object-cover"}`}
-                  onError={() => {
-                    console.warn("[FileUploader] Image failed to load:", preview);
+            {compact ? (
+              /* Compact preview: centered icon/thumb + filename + remove */
+              <div className="w-full h-full flex flex-col items-center justify-center gap-2 bg-[var(--surface-2)] relative">
+                {(() => {
+                  const fileType = getNonImageFileType(preview);
+                  if (fileType) {
+                    const Icon = fileType === "pdf" ? FileText : fileType === "video" ? Film : Music;
+                    return <Icon size={24} className="text-[var(--site-primary)]" />;
+                  }
+                  return (
+                    <div className="w-12 h-12 rounded-lg overflow-hidden relative ring-1 ring-[var(--border-subtle)]">
+                      <Image src={preview} alt="" fill sizes="48px" unoptimized className="object-cover" />
+                    </div>
+                  );
+                })()}
+                <span className="text-[11px] text-[var(--text-secondary)] truncate max-w-[80%] font-mono">
+                  {decodeURIComponent(preview.split("/").pop()?.split("?")[0] || "")}
+                </span>
+                <button
+                  onClick={() => { setPreview(null); onUpload(""); }}
+                  className="absolute top-2 right-2 w-6 h-6 rounded-full bg-black/60 backdrop-blur-sm flex items-center justify-center text-[var(--text-muted)] hover:text-red-400 transition-colors"
+                >
+                  <X size={12} />
+                </button>
+              </div>
+            ) : (
+              /* Full preview: image/file fills the container */
+              <>
+                {(() => {
+                  const fileType = getNonImageFileType(preview);
+                  if (fileType) {
+                    const Icon = fileType === "pdf" ? FileText : fileType === "video" ? Film : Music;
+                    const fileName = decodeURIComponent(preview.split("/").pop()?.split("?")[0] || "");
+                    return (
+                      <div className="w-full h-full flex flex-col items-center justify-center gap-2 bg-[var(--surface-2)]">
+                        <Icon size={32} className="text-[var(--site-primary)]" />
+                        <span className="text-xs text-[var(--text-secondary)] max-w-[80%] truncate text-center">
+                          {fileName}
+                        </span>
+                      </div>
+                    );
+                  }
+                  return (
+                    <Image
+                      src={preview}
+                      alt=""
+                      fill
+                      sizes="300px"
+                      unoptimized
+                      className={`w-full h-full ${aspect === "logo" ? "object-contain bg-[var(--surface-3)]" : "object-cover"}`}
+                      onError={() => {
+                        console.warn("[FileUploader] Image failed to load:", preview);
+                      }}
+                    />
+                  );
+                })()}
+                {/* Remove button */}
+                <button
+                  onClick={() => {
+                    setPreview(null);
+                    onUpload("");
                   }}
-                />
-              );
-            })()}
-            {/* Remove button */}
-            <button
-              onClick={() => {
-                setPreview(null);
-                onUpload("");
-              }}
-              className="absolute top-2 right-2 w-7 h-7 bg-black/70 backdrop-blur-sm rounded-full flex items-center justify-center text-[var(--text-secondary)] hover:text-white transition-colors"
-            >
-              <X size={14} />
-            </button>
+                  className="absolute top-2 right-2 w-7 h-7 bg-black/70 backdrop-blur-sm rounded-full flex items-center justify-center text-[var(--text-secondary)] hover:text-white transition-colors"
+                >
+                  <X size={14} />
+                </button>
+              </>
+            )}
             {/* Upload progress overlay */}
             <AnimatePresence>
               {uploadState !== "idle" && (
@@ -683,6 +728,8 @@ export function FileUploader({
                   state={uploadState}
                   progress={uploadProgressPercent}
                   error={uploadError}
+                  speed={uploadSpeed}
+                  eta={uploadETA}
                   label={
                     uploadState === "processing"
                       ? t("fileUploader.compressingFile")
@@ -708,18 +755,51 @@ export function FileUploader({
             className="w-full h-full flex flex-col items-center justify-center gap-2 text-[var(--text-muted)] hover:text-[var(--text-tertiary)] transition-colors"
           >
             {uploadState === "processing" || uploadState === "uploading" ? (
-              <div className="w-full max-w-[240px] px-6">
-                <UploadProgress
-                  state={uploadState}
-                  progress={uploadProgressPercent}
-                  variant="circular"
-                  label={
-                    uploadState === "processing"
-                      ? t("fileUploader.compressingFile")
-                      : t("fileUploader.uploading")
-                  }
-                />
-              </div>
+              compact ? (
+                /* Compact: linear progress with speed/ETA — fits in h-28 */
+                <div className="w-full px-6 space-y-2.5">
+                  <div className="flex items-center justify-between">
+                    <span className="text-[11px] text-[var(--site-primary)] font-medium">
+                      {uploadState === "processing" ? t("fileUploader.compressingFile") : t("fileUploader.uploading")}
+                    </span>
+                    <span className="text-[11px] text-[var(--site-primary)] font-mono tabular-nums font-medium">
+                      {uploadProgressPercent}%
+                    </span>
+                  </div>
+                  <div className="w-full h-1.5 bg-white/8 rounded-full overflow-hidden">
+                    <motion.div
+                      className="h-full rounded-full bg-[var(--site-primary)]"
+                      initial={{ width: "0%" }}
+                      animate={{ width: `${uploadProgressPercent}%` }}
+                      transition={{ duration: 0.3, ease: "easeOut" }}
+                      style={{ boxShadow: "0 0 8px rgba(var(--site-primary-rgb), 0.4)" }}
+                    />
+                  </div>
+                  {uploadSpeed > 0 && (
+                    <p className="text-[10px] text-[var(--text-tertiary)] font-mono tabular-nums text-center">
+                      {uploadSpeed < 1024 * 1024
+                        ? `${(uploadSpeed / 1024).toFixed(0)} KB/s`
+                        : `${(uploadSpeed / (1024 * 1024)).toFixed(1)} MB/s`}
+                      {uploadETA > 0 && ` · ~${uploadETA < 60 ? `${Math.round(uploadETA)}s` : `${Math.floor(uploadETA / 60)}m ${Math.round(uploadETA % 60)}s`} restantes`}
+                    </p>
+                  )}
+                </div>
+              ) : (
+                <div className="w-full max-w-[240px] px-6">
+                  <UploadProgress
+                    state={uploadState}
+                    progress={uploadProgressPercent}
+                    variant="circular"
+                    speed={uploadSpeed}
+                    eta={uploadETA}
+                    label={
+                      uploadState === "processing"
+                        ? t("fileUploader.compressingFile")
+                        : t("fileUploader.uploading")
+                    }
+                  />
+                </div>
+              )
             ) : uploading && showProgress ? (
               <div className="flex flex-col items-center gap-2">
                 <Loader2 size={24} className="animate-spin text-[var(--site-primary)]" />
@@ -729,18 +809,16 @@ export function FileUploader({
               </div>
             ) : isDragging ? (
               <>
-                <ImageIcon size={compact ? 20 : 28} className="text-[var(--site-primary)]" />
-                <span className={`${compact ? "text-[10px]" : "text-xs"} text-[var(--site-primary)]`}>{t("fileUploader.dropHere")}</span>
+                <ImageIcon size={compact ? 24 : 28} className="text-[var(--site-primary)]" />
+                <span className="text-xs text-[var(--site-primary)]">{t("fileUploader.dropHere")}</span>
               </>
             ) : (
               <>
-                <Upload size={compact ? 16 : 24} />
-                <span className={compact ? "text-[10px]" : "text-xs"}>{label}</span>
-                {!compact && (
-                  <span className="text-[10px] text-[var(--text-muted)]">
-                    {multiple ? t("fileUploader.dragOrClick") : t("fileUploader.dragOrClickShort")}
-                  </span>
-                )}
+                <Upload size={compact ? 20 : 24} />
+                <span className="text-xs">{label}</span>
+                <span className="text-[10px] text-[var(--text-muted)]">
+                  {multiple ? t("fileUploader.dragOrClick") : t("fileUploader.dragOrClickShort")}
+                </span>
               </>
             )}
           </button>

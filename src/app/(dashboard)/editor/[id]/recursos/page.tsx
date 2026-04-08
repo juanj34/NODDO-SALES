@@ -35,6 +35,11 @@ import {
   Palette,
   DollarSign,
   File,
+  Ruler,
+  Image,
+  BookMarked,
+  ScrollText,
+  ShieldCheck,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { NodDoDropdown } from "@/components/ui/NodDoDropdown";
@@ -44,6 +49,11 @@ const tipoIcons: Record<string, typeof FileText> = {
   ficha_tecnica: FileText,
   acabados: Palette,
   precios: DollarSign,
+  planos: Ruler,
+  render: Image,
+  manual: BookMarked,
+  reglamento: ScrollText,
+  garantias: ShieldCheck,
   otro: File,
 };
 
@@ -65,13 +75,23 @@ export default function RecursosPage() {
     ficha_tecnica: t("recursos.types.ficha_tecnica"),
     acabados: t("recursos.types.acabados"),
     precios: t("recursos.types.lista_precios"),
+    planos: t("recursos.types.planos"),
+    render: t("recursos.types.render"),
+    manual: t("recursos.types.manual"),
+    reglamento: t("recursos.types.reglamento"),
+    garantias: t("recursos.types.garantias"),
     otro: t("recursos.types.otro"),
   };
+
+  const tipoOptions = Object.entries(tipoIcons).map(([value, Icon]) => ({
+    value,
+    label: tipoLabels[value] || value,
+    icon: <Icon size={14} />,
+  }));
 
   const [form, setForm] = useState(emptyForm);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [showForm, setShowForm] = useState(false);
-  const [saving, setSaving] = useState(false);
   const [savingBrochure, setSavingBrochure] = useState(false);
 
   const handleBrochureUpload = async (url: string) => {
@@ -119,48 +139,86 @@ export default function RecursosPage() {
   };
 
   const handleSave = async () => {
-    setSaving(true);
     const payload = {
       nombre: form.nombre,
       descripcion: form.descripcion || null,
       tipo: form.tipo,
       url: form.url,
     };
-    try {
-      if (editingId) {
+
+    const prevRecursos = project.recursos;
+
+    if (editingId) {
+      // Optimistic update for edit
+      updateLocal((p) => ({
+        ...p,
+        recursos: p.recursos.map((r) =>
+          r.id === editingId ? { ...r, ...payload } : r
+        ),
+      }));
+      cancel();
+
+      try {
         const res = await fetch(`/api/recursos/${editingId}`, {
           method: "PUT",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(payload),
         });
         if (!res.ok) {
+          updateLocal((p) => ({ ...p, recursos: prevRecursos }));
           toast.error(t("recursos.saveError"));
-          return;
         }
-      } else {
+      } catch {
+        updateLocal((p) => ({ ...p, recursos: prevRecursos }));
+        toast.error(t("errors.connectionError"));
+      }
+    } else {
+      // Optimistic create with temp ID
+      const tempId = `temp-${Date.now()}`;
+      const optimistic: Recurso = {
+        id: tempId,
+        proyecto_id: projectId,
+        nombre: payload.nombre,
+        descripcion: payload.descripcion,
+        tipo: payload.tipo as Recurso["tipo"],
+        url: payload.url,
+        orden: project.recursos.length,
+      };
+      updateLocal((p) => ({
+        ...p,
+        recursos: [...p.recursos, optimistic],
+      }));
+      cancel();
+
+      try {
         const res = await fetch("/api/recursos", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ ...payload, proyecto_id: projectId }),
         });
         if (!res.ok) {
+          updateLocal((p) => ({ ...p, recursos: prevRecursos }));
           toast.error(t("recursos.createResourceError"));
-          return;
+        } else {
+          // Replace temp ID with real one from server
+          const created = await res.json();
+          updateLocal((p) => ({
+            ...p,
+            recursos: p.recursos.map((r) =>
+              r.id === tempId ? { ...r, id: created.id ?? r.id } : r
+            ),
+          }));
         }
+      } catch {
+        updateLocal((p) => ({ ...p, recursos: prevRecursos }));
+        toast.error(t("errors.connectionError"));
       }
-      await refresh();
-      cancel();
-    } catch {
-      toast.error(t("errors.connectionError"));
-    } finally {
-      setSaving(false);
     }
   };
 
   const deleteRecursoAction = useAsyncAction(async (id: string) => {
     if (!(await confirm({ title: t("recursos.deleteTitle"), message: t("recursos.deleteConfirm") }))) return;
 
-    // Optimistic: remove from UI immediately
     const prev = project.recursos;
     updateLocal((p) => ({
       ...p,
@@ -170,12 +228,10 @@ export default function RecursosPage() {
     try {
       const res = await fetch(`/api/recursos/${id}`, { method: "DELETE" });
       if (!res.ok) {
-        // Rollback on failure
         updateLocal((p) => ({ ...p, recursos: prev }));
         toast.error(t("recursos.deleteResourceError"));
       }
     } catch {
-      // Rollback on network error
       updateLocal((p) => ({ ...p, recursos: prev }));
       toast.error(t("errors.connectionError"));
     }
@@ -204,54 +260,57 @@ export default function RecursosPage() {
 
       {/* ── Brochure Principal ────────────────────────────────────── */}
       <div className={sectionCard + " mb-6 border-[rgba(var(--site-primary-rgb),0.25)]"}>
-        <div className="flex items-center gap-3 mb-4">
-          <div className="w-10 h-10 rounded-lg bg-[rgba(var(--site-primary-rgb),0.12)] flex items-center justify-center">
-            <BookOpen size={18} className="text-[var(--site-primary)]" />
+        <div className="flex items-center justify-between gap-3">
+          <div className="flex items-center gap-3">
+            <div className="w-9 h-9 rounded-lg bg-[rgba(var(--site-primary-rgb),0.12)] flex items-center justify-center shrink-0">
+              <BookOpen size={16} className="text-[var(--site-primary)]" />
+            </div>
+            <div>
+              <h3 className={sectionTitle + " !mb-0 text-sm"}>Brochure Principal</h3>
+              <p className="text-[11px] text-[var(--text-tertiary)]">
+                PDF principal del micrositio
+              </p>
+            </div>
           </div>
-          <div>
-            <h3 className={sectionTitle + " !mb-0"}>Brochure Principal</h3>
-            <p className="text-xs text-[var(--text-tertiary)]">
-              PDF principal que se muestra en la sección de brochure del micrositio
-            </p>
-          </div>
+
+          {project.brochure_url ? (
+            <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2.5 px-3 py-2 rounded-lg bg-[var(--surface-2)] border border-[var(--border-subtle)]">
+                <FileText size={14} className="text-[var(--site-primary)] shrink-0" />
+                <span className="text-xs text-[var(--text-secondary)] font-mono max-w-[200px] truncate">
+                  {project.brochure_url.split("/").pop()}
+                </span>
+                <a
+                  href={project.brochure_url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-[var(--text-tertiary)] hover:text-white transition-colors"
+                >
+                  <Download size={13} />
+                </a>
+              </div>
+              <button
+                onClick={handleBrochureRemove}
+                disabled={savingBrochure}
+                className={btnDanger}
+              >
+                {savingBrochure ? <Loader2 size={12} className="animate-spin" /> : <Trash2 size={12} />}
+              </button>
+            </div>
+          ) : (
+            <FileUploader
+              currentUrl={null}
+              onUpload={handleBrochureUpload}
+              accept="application/pdf"
+              folder={`proyectos/${projectId}/brochure`}
+              label="Subir PDF"
+              compact
+            />
+          )}
         </div>
 
-        {project.brochure_url ? (
-          <div className="flex items-center gap-3">
-            <div className="flex-1 flex items-center gap-3 px-3.5 py-2.5 rounded-lg bg-[var(--surface-2)] border border-[var(--border-subtle)]">
-              <FileText size={16} className="text-[var(--site-primary)] shrink-0" />
-              <span className="text-sm text-[var(--text-secondary)] truncate font-mono">
-                {project.brochure_url.split("/").pop()}
-              </span>
-              <a
-                href={project.brochure_url}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="ml-auto text-xs text-[var(--text-tertiary)] hover:text-white transition-colors shrink-0"
-              >
-                <Download size={14} />
-              </a>
-            </div>
-            <button
-              onClick={handleBrochureRemove}
-              disabled={savingBrochure}
-              className={btnDanger}
-            >
-              {savingBrochure ? <Loader2 size={12} className="animate-spin" /> : <Trash2 size={12} />}
-            </button>
-          </div>
-        ) : (
-          <FileUploader
-            currentUrl={null}
-            onUpload={handleBrochureUpload}
-            accept="application/pdf"
-            folder={`proyectos/${projectId}/brochure`}
-            label="Subir brochure PDF"
-          />
-        )}
-
         {savingBrochure && (
-          <div className="flex items-center gap-2 mt-3 text-xs text-[var(--text-tertiary)]">
+          <div className="flex items-center gap-2 mt-2 text-xs text-[var(--text-tertiary)]">
             <Loader2 size={12} className="animate-spin" />
             Guardando...
           </div>
@@ -267,12 +326,18 @@ export default function RecursosPage() {
             exit={{ opacity: 0, height: 0 }}
             className="mb-6 overflow-hidden"
           >
-            <div className={sectionCard + " space-y-4"}>
-              <h3 className={sectionTitle}>
-                {editingId ? t("recursos.editResource") : t("recursos.newResource")}
-              </h3>
+            <div className={sectionCard + " space-y-3"}>
+              <div className="flex items-center justify-between">
+                <h3 className={sectionTitle + " !mb-0"}>
+                  {editingId ? t("recursos.editResource") : t("recursos.newResource")}
+                </h3>
+                <button onClick={cancel} className="text-[var(--text-muted)] hover:text-[var(--text-secondary)] transition-colors">
+                  <X size={16} />
+                </button>
+              </div>
 
-              <div className="grid grid-cols-2 gap-4">
+              {/* Row 1: Name + Type */}
+              <div className="grid grid-cols-[1fr_200px] gap-3">
                 <div>
                   <label className={labelClass}>{t("recursos.nameRequired")}</label>
                   <input
@@ -297,17 +362,12 @@ export default function RecursosPage() {
                         tipo: val as Recurso["tipo"],
                       }))
                     }
-                    options={[
-                      { value: "brochure", label: t("recursos.types.brochure") },
-                      { value: "ficha_tecnica", label: t("recursos.types.ficha_tecnica") },
-                      { value: "acabados", label: t("recursos.types.acabados") },
-                      { value: "precios", label: t("recursos.types.lista_precios") },
-                      { value: "otro", label: t("recursos.types.otro") },
-                    ]}
+                    options={tipoOptions}
                   />
                 </div>
               </div>
 
+              {/* Row 2: Description */}
               <div>
                 <label className={labelClass}>{t("recursos.description2")}</label>
                 <input
@@ -321,33 +381,41 @@ export default function RecursosPage() {
                 />
               </div>
 
-              <div>
-                <label className={labelClass}>{t("recursos.fileRequired")}</label>
-                <FileUploader
-                  currentUrl={form.url || null}
-                  onUpload={(url) => setForm((p) => ({ ...p, url }))}
-                  accept="application/pdf,image/*"
-                  folder={`proyectos/${projectId}/recursos`}
-                  label={t("recursos.uploadFile")}
-                />
-              </div>
-
-              <div className="flex items-center gap-3 pt-2">
+              {/* Row 3: File upload (compact) + Actions */}
+              <div className="flex items-end gap-3">
+                <div className="flex-1">
+                  <label className={labelClass}>{t("recursos.fileRequired")}</label>
+                  {form.url ? (
+                    <div className="flex items-center gap-2.5 px-3 py-2 rounded-lg bg-[var(--surface-2)] border border-[var(--border-subtle)]">
+                      <FileText size={14} className="text-[var(--site-primary)] shrink-0" />
+                      <span className="text-xs text-[var(--text-secondary)] font-mono truncate">
+                        {decodeURIComponent(form.url.split("/").pop()?.split("?")[0] || "")}
+                      </span>
+                      <button
+                        onClick={() => setForm((p) => ({ ...p, url: "" }))}
+                        className="ml-auto text-[var(--text-muted)] hover:text-red-400 transition-colors shrink-0"
+                      >
+                        <X size={13} />
+                      </button>
+                    </div>
+                  ) : (
+                    <FileUploader
+                      currentUrl={null}
+                      onUpload={(url) => setForm((p) => ({ ...p, url }))}
+                      accept="application/pdf,image/*"
+                      folder={`proyectos/${projectId}/recursos`}
+                      label={t("recursos.uploadFile")}
+                      compact
+                    />
+                  )}
+                </div>
                 <button
                   onClick={handleSave}
-                  disabled={saving || !form.nombre.trim() || !form.url}
-                  className={btnPrimary}
+                  disabled={!form.nombre.trim() || !form.url}
+                  className={btnPrimary + " shrink-0"}
                 >
-                  {saving ? (
-                    <Loader2 size={14} className="animate-spin" />
-                  ) : (
-                    <Check size={14} />
-                  )}
+                  <Check size={14} />
                   {editingId ? t("recursos.update") : t("recursos.create")}
-                </button>
-                <button onClick={cancel} className={btnSecondary}>
-                  <X size={14} />
-                  {t("recursos.cancel")}
                 </button>
               </div>
             </div>
@@ -371,13 +439,13 @@ export default function RecursosPage() {
 
       {/* ── Resource List ────────────────────────────────────────── */}
       {project.recursos.length > 0 && (
-        <div className="space-y-3">
+        <div className="space-y-2">
           {project.recursos.map((r) => {
             const Icon = tipoIcons[r.tipo] || File;
             return (
               <div key={r.id} className={listItem}>
-                <div className="w-10 h-10 rounded-lg bg-[rgba(var(--site-primary-rgb),0.1)] flex items-center justify-center shrink-0">
-                  <Icon size={18} className="text-[var(--site-primary)]" />
+                <div className="w-9 h-9 rounded-lg bg-[rgba(var(--site-primary-rgb),0.1)] flex items-center justify-center shrink-0">
+                  <Icon size={16} className="text-[var(--site-primary)]" />
                 </div>
                 <div className="flex-1 min-w-0">
                   <h3 className="text-sm">{r.nombre}</h3>

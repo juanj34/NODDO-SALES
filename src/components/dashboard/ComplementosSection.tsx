@@ -249,6 +249,8 @@ function ComplementoForm({
   const set = (field: keyof ComplementoFormData, value: string) =>
     setForm((prev) => ({ ...prev, [field]: value }));
 
+  const isAddon = form.tipo === "addon";
+
   const filteredUnits = useMemo(() => {
     if (!unitSearch.trim()) return unidades.slice(0, 20);
     const q = unitSearch.toLowerCase();
@@ -258,6 +260,74 @@ function ComplementoForm({
   }, [unidades, unitSearch]);
 
   const selectedUnit = unidades.find((u) => u.id === form.unidad_id);
+
+  // ── Simplified addon form ──
+  if (isAddon) {
+    return (
+      <motion.div
+        initial={{ opacity: 0, height: 0 }}
+        animate={{ opacity: 1, height: "auto" }}
+        exit={{ opacity: 0, height: 0 }}
+        className="overflow-hidden"
+      >
+        <div className="p-5 bg-[var(--surface-2)] border border-[var(--border-subtle)] rounded-xl space-y-4">
+          <div className="grid grid-cols-1 sm:grid-cols-[1fr_1fr_200px] gap-4">
+            <div>
+              <label className={labelClass}>Nombre</label>
+              <input
+                type="text"
+                value={form.identificador}
+                onChange={(e) => set("identificador", e.target.value)}
+                placeholder="Ej: Jacuzzi, Terraza privada..."
+                className={inputClass}
+              />
+            </div>
+            <div>
+              <label className={labelClass}>Descripción</label>
+              <input
+                type="text"
+                value={form.notas}
+                onChange={(e) => set("notas", e.target.value)}
+                placeholder="Detalles adicionales..."
+                className={inputClass}
+              />
+            </div>
+            <div>
+              <label className={labelClass}>Precio</label>
+              <CurrencyInput
+                value={form.precio}
+                onChange={(v) => set("precio", v)}
+                currency={currency}
+                placeholder="45,000,000"
+                inputClassName={inputClass}
+              />
+            </div>
+          </div>
+
+          <div className="flex items-center gap-3 pt-2">
+            <button
+              onClick={() => onSubmit(form)}
+              disabled={!form.identificador.trim() || submitting}
+              className={btnPrimary}
+            >
+              {submitting ? (
+                <Loader2 size={14} className="animate-spin" />
+              ) : (
+                <Check size={14} />
+              )}
+              {submitting ? "Guardando..." : "Guardar"}
+            </button>
+            <button onClick={onCancel} className={btnSecondary}>
+              <X size={14} />
+              Cancelar
+            </button>
+          </div>
+        </div>
+      </motion.div>
+    );
+  }
+
+  // ── Full complemento form (parqueaderos / depositos) ──
 
   return (
     <motion.div
@@ -275,7 +345,7 @@ function ComplementoForm({
               type="text"
               value={form.identificador}
               onChange={(e) => set("identificador", e.target.value)}
-              placeholder={form.tipo === "addon" ? "ADDON-01" : "P-01"}
+              placeholder="P-01"
               className={inputClass}
             />
           </div>
@@ -305,7 +375,7 @@ function ComplementoForm({
               type="text"
               value={form.subtipo}
               onChange={(e) => set("subtipo", e.target.value)}
-              placeholder={form.tipo === "addon" ? "Jacuzzi, Amoblado..." : "Cubierto, Doble..."}
+              placeholder="Cubierto, Doble..."
               className={inputClass}
             />
           </div>
@@ -1018,7 +1088,7 @@ export function ComplementosSection({ project, onRefresh, parqueaderosMode, depo
 
       {/* Bulk actions */}
       <AnimatePresence>
-        {selectedIds.size > 0 && (
+        {selectedIds.size > 0 && activeTab !== "addon" && (
           <motion.div
             initial={{ opacity: 0, height: 0 }}
             animate={{ opacity: 1, height: "auto" }}
@@ -1127,43 +1197,58 @@ export function ComplementosSection({ project, onRefresh, parqueaderosMode, depo
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b border-[var(--border-default)]">
-                <th className="text-left py-3 px-4 w-10">
-                  <button
-                    onClick={toggleSelectAll}
-                    className="text-[var(--text-tertiary)] hover:text-[var(--text-secondary)] transition-colors"
-                  >
-                    {allFilteredSelected ? (
-                      <CheckSquare size={16} className="text-[#b8973a]" />
-                    ) : someFilteredSelected ? (
-                      <MinusSquare size={16} className="text-[rgba(184,151,58,0.6)]" />
-                    ) : (
-                      <Square size={16} />
-                    )}
-                  </button>
-                </th>
+                {activeTab !== "addon" && (
+                  <th className="text-left py-3 px-4 w-10">
+                    <button
+                      onClick={toggleSelectAll}
+                      className="text-[var(--text-tertiary)] hover:text-[var(--text-secondary)] transition-colors"
+                    >
+                      {allFilteredSelected ? (
+                        <CheckSquare size={16} className="text-[#b8973a]" />
+                      ) : someFilteredSelected ? (
+                        <MinusSquare size={16} className="text-[rgba(184,151,58,0.6)]" />
+                      ) : (
+                        <Square size={16} />
+                      )}
+                    </button>
+                  </th>
+                )}
                 <th className="text-left py-3 px-4 text-[var(--text-tertiary)] font-ui font-bold text-[10px] uppercase tracking-wider">
-                  Identificador
+                  {activeTab === "addon" ? "Nombre" : "Identificador"}
                 </th>
-                <th className="text-left py-3 px-4 text-[var(--text-tertiary)] font-ui font-bold text-[10px] uppercase tracking-wider">
-                  Subtipo
-                </th>
-                <th className="text-left py-3 px-4 text-[var(--text-tertiary)] font-ui font-bold text-[10px] uppercase tracking-wider">
-                  Nivel
-                </th>
-                <th className="text-left py-3 px-4 text-[var(--text-tertiary)] font-ui font-bold text-[10px] uppercase tracking-wider">
-                  Area m2
-                </th>
+                {activeTab === "addon" && (
+                  <th className="text-left py-3 px-4 text-[var(--text-tertiary)] font-ui font-bold text-[10px] uppercase tracking-wider">
+                    Descripción
+                  </th>
+                )}
+                {activeTab !== "addon" && (
+                  <>
+                    <th className="text-left py-3 px-4 text-[var(--text-tertiary)] font-ui font-bold text-[10px] uppercase tracking-wider">
+                      Subtipo
+                    </th>
+                    <th className="text-left py-3 px-4 text-[var(--text-tertiary)] font-ui font-bold text-[10px] uppercase tracking-wider">
+                      Nivel
+                    </th>
+                    <th className="text-left py-3 px-4 text-[var(--text-tertiary)] font-ui font-bold text-[10px] uppercase tracking-wider">
+                      Area m2
+                    </th>
+                  </>
+                )}
                 {showPrecioForTab(activeTab) && (
                   <th className="text-left py-3 px-4 text-[var(--text-tertiary)] font-ui font-bold text-[10px] uppercase tracking-wider">
                     Precio
                   </th>
                 )}
-                <th className="text-left py-3 px-4 text-[var(--text-tertiary)] font-ui font-bold text-[10px] uppercase tracking-wider">
-                  Estado
-                </th>
-                <th className="text-left py-3 px-4 text-[var(--text-tertiary)] font-ui font-bold text-[10px] uppercase tracking-wider">
-                  Asignado a
-                </th>
+                {activeTab !== "addon" && (
+                  <>
+                    <th className="text-left py-3 px-4 text-[var(--text-tertiary)] font-ui font-bold text-[10px] uppercase tracking-wider">
+                      Estado
+                    </th>
+                    <th className="text-left py-3 px-4 text-[var(--text-tertiary)] font-ui font-bold text-[10px] uppercase tracking-wider">
+                      Asignado a
+                    </th>
+                  </>
+                )}
                 <th className="text-right py-3 px-4 text-[var(--text-tertiary)] font-ui font-bold text-[10px] uppercase tracking-wider">
                   {/* Actions */}
                 </th>
@@ -1173,7 +1258,7 @@ export function ComplementosSection({ project, onRefresh, parqueaderosMode, depo
               {filteredComplementos.length === 0 ? (
                 <tr>
                   <td
-                    colSpan={9}
+                    colSpan={activeTab === "addon" ? 4 : 9}
                     className="py-16 text-center text-[var(--text-muted)] text-sm"
                   >
                     {complementos.filter((c) => c.tipo === activeTab).length === 0
@@ -1195,7 +1280,7 @@ export function ComplementosSection({ project, onRefresh, parqueaderosMode, depo
                     className="border-b border-[var(--border-subtle)] hover:bg-[var(--surface-2)] transition-colors group"
                   >
                     {editingId === comp.id ? (
-                      <td colSpan={9} className="p-4">
+                      <td colSpan={activeTab === "addon" ? 4 : 9} className="p-4">
                         <ComplementoForm
                           initial={getEditFormData(comp)}
                           unidades={unidades}
@@ -1208,6 +1293,41 @@ export function ComplementosSection({ project, onRefresh, parqueaderosMode, depo
                           fixedTipo={!!fixedTab}
                         />
                       </td>
+                    ) : activeTab === "addon" ? (
+                      <>
+                        <td className="py-3 px-4 text-white font-medium">
+                          {comp.identificador}
+                        </td>
+                        <td className="py-3 px-4 text-[var(--text-secondary)]">
+                          {comp.notas || "-"}
+                        </td>
+                        <td className="py-3 px-4 text-[var(--text-secondary)] font-mono">
+                          {comp.precio
+                            ? formatCurrency(comp.precio, project.moneda_base)
+                            : "-"}
+                        </td>
+                        <td className="py-3 px-4">
+                          <div className="flex items-center justify-end gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                            <button
+                              onClick={() => {
+                                setEditingId(comp.id);
+                                setShowCreateForm(false);
+                              }}
+                              className="p-1.5 hover:bg-[var(--surface-2)] rounded-lg transition-colors text-[var(--text-tertiary)] hover:text-white"
+                              title="Editar"
+                            >
+                              <Pencil size={14} />
+                            </button>
+                            <button
+                              onClick={() => setDeleteConfirm(comp.id)}
+                              className={btnDanger}
+                              title="Eliminar"
+                            >
+                              <Trash2 size={14} />
+                            </button>
+                          </div>
+                        </td>
+                      </>
                     ) : (
                       <>
                         <td className="py-3 px-4">

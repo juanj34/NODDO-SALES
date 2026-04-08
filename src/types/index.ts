@@ -369,7 +369,7 @@ export interface Recurso {
   proyecto_id: string;
   nombre: string;
   descripcion: string | null;
-  tipo: "brochure" | "ficha_tecnica" | "acabados" | "precios" | "otro";
+  tipo: "brochure" | "ficha_tecnica" | "acabados" | "precios" | "planos" | "render" | "manual" | "reglamento" | "garantias" | "otro";
   url: string;
   orden: number;
 }

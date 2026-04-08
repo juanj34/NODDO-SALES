@@ -20,7 +20,7 @@ export function FAQSection() {
   ];
 
   return (
-    <section className="relative z-[1] py-28 lg:py-40 px-6 lg:px-20 border-t border-[var(--mk-border-rule)]">
+    <section className="relative z-[1] py-16 sm:py-24 lg:py-40 px-4 sm:px-6 lg:px-20 border-t border-[var(--mk-border-rule)]">
       <div style={{ maxWidth: 800, margin: "0 auto" }}>
         <div className="mk-section-label mb-6">{t("faq.label")}</div>
 

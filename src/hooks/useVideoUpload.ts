@@ -11,6 +11,8 @@ const POLL_INTERVAL = 5000;
 export interface VideoUploadHook {
   status: Status;
   progress: number;
+  speed: number;
+  eta: number;
   error: string | null;
   videoId: string | null;
   streamUid: string | null;
@@ -22,6 +24,8 @@ export interface VideoUploadHook {
 export function useVideoUpload(): VideoUploadHook {
   const [status, setStatus] = useState<Status>("idle");
   const [progress, setProgress] = useState(0);
+  const [speed, setSpeed] = useState(0);
+  const [eta, setETA] = useState(0);
   const [error, setError] = useState<string | null>(null);
   const [videoId, setVideoId] = useState<string | null>(null);
   const [streamUid, setStreamUid] = useState<string | null>(null);
@@ -40,6 +44,8 @@ export function useVideoUpload(): VideoUploadHook {
     stopPolling();
     setStatus("idle");
     setProgress(0);
+    setSpeed(0);
+    setETA(0);
     setError(null);
     setVideoId(null);
     setStreamUid(null);
@@ -67,6 +73,8 @@ export function useVideoUpload(): VideoUploadHook {
     setVideoId(null);
     setStreamUid(null);
     setProgress(0);
+    setSpeed(0);
+    setETA(0);
 
     try {
       // Validate file
@@ -108,9 +116,16 @@ export function useVideoUpload(): VideoUploadHook {
         const xhr = new XMLHttpRequest();
         xhrRef.current = xhr;
 
+        const uploadStart = Date.now();
         xhr.upload.onprogress = (e) => {
           if (e.lengthComputable) {
             setProgress(Math.round((e.loaded / e.total) * 100));
+            const elapsed = (Date.now() - uploadStart) / 1000;
+            if (elapsed > 0.3) {
+              const s = e.loaded / elapsed;
+              setSpeed(s);
+              setETA((e.total - e.loaded) / s);
+            }
           }
         };
 
@@ -193,6 +208,8 @@ export function useVideoUpload(): VideoUploadHook {
   return {
     status,
     progress,
+    speed,
+    eta,
     error,
     videoId,
     streamUid,

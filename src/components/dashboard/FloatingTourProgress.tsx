@@ -21,6 +21,8 @@ export function FloatingTourProgress() {
   const {
     status,
     progress,
+    speed,
+    eta,
     filesUploaded,
     filesTotal,
     error,
@@ -63,6 +65,8 @@ export function FloatingTourProgress() {
           <ExpandedCard
             status={status}
             progress={progress}
+            speed={speed}
+            eta={eta}
             filesUploaded={filesUploaded}
             filesTotal={filesTotal}
             error={error}
@@ -170,9 +174,24 @@ function MinimizedPill({
 
 /* ─────────────────────── Expanded Card ─────────────────────── */
 
+function formatSpeed(bytes: number): string {
+  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(0)} KB/s`;
+  return `${(bytes / (1024 * 1024)).toFixed(1)} MB/s`;
+}
+
+function formatETA(seconds: number): string {
+  if (seconds < 1) return "<1s";
+  if (seconds < 60) return `~${Math.round(seconds)}s`;
+  const m = Math.floor(seconds / 60);
+  const s = Math.round(seconds % 60);
+  return s > 0 ? `~${m}m ${s}s` : `~${m}m`;
+}
+
 function ExpandedCard({
   status,
   progress,
+  speed,
+  eta,
   filesUploaded,
   filesTotal,
   error,
@@ -184,6 +203,8 @@ function ExpandedCard({
 }: {
   status: string;
   progress: number;
+  speed: number;
+  eta: number;
   filesUploaded: number;
   filesTotal: number;
   error: string | null;
@@ -285,6 +306,12 @@ function ExpandedCard({
                 {progress}%
               </span>
             </div>
+            {speed > 0 && (
+              <p className="font-mono text-[10px] text-[var(--text-tertiary)] tabular-nums">
+                {formatSpeed(speed)}
+                {eta > 0 && ` · ${formatETA(eta)} restantes`}
+              </p>
+            )}
             <button
               onClick={onCancel}
               className={cn(

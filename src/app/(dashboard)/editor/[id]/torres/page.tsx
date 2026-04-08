@@ -1176,6 +1176,7 @@ function TorreEditFormInline({
             folder={`proyectos/${projectId}/torres`}
             label={t("torres.infoForm.uploadLogo")}
             aspect="logo"
+            compact
           />
         </div>
       </div>
