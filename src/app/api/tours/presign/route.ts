@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getAuthContext, requirePermission } from "@/lib/auth-context";
-import { getPresignedUploadUrls, type FileToSign } from "@/lib/r2";
+import { getPresignedUploadUrls, ensureToursBucketCors, type FileToSign } from "@/lib/r2";
 
 const MAX_FILES = 100_000;
 const MAX_TOTAL_SIZE = 5 * 1024 * 1024 * 1024; // 5GB
@@ -75,6 +75,9 @@ export async function POST(request: NextRequest) {
         { status: 400 }
       );
     }
+
+    // Ensure R2 bucket has CORS configured for direct browser uploads
+    await ensureToursBucketCors();
 
     const subpath = tipologia_id ? `tipologias/${tipologia_id}` : undefined;
     const result = await getPresignedUploadUrls(proyecto_id, files, subpath);

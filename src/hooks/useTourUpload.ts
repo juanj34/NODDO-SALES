@@ -252,7 +252,7 @@ export function useTourUpload(): TourUploadHook {
     setFilesTotal(0);
   }, []);
 
-  /** Shared: validate + upload files through server proxy */
+  /** Shared: presign in batches + upload directly to R2 */
   const presignAndUpload = useCallback(
     async (filesToUpload: FileToUpload[], projectId: string, tipologiaId?: string) => {
       setFilesTotal(filesToUpload.length);
@@ -263,37 +263,60 @@ export function useTourUpload(): TourUploadHook {
       const totalTourBytes = filesToUpload.reduce((sum, f) => sum + f.size, 0);
       setTotalBytes(totalTourBytes);
 
-      // Validate permissions and get tourBaseUrl with a single presign call
-      const firstBatch = filesToUpload.slice(0, Math.min(PRESIGN_BATCH_SIZE, filesToUpload.length));
-      const presignBody: Record<string, unknown> = {
-        proyecto_id: projectId,
-        files: firstBatch.map((f) => ({
-          path: f.path,
-          contentType: f.contentType,
-          size: f.size,
-        })),
-        total_tour_bytes: totalTourBytes,
-      };
-      if (tipologiaId) presignBody.tipologia_id = tipologiaId;
+      // Presign files in batches to get direct R2 upload URLs
+      let tourBaseUrl = "";
+      const uploadQueue: { file: File; uploadUrl: string; path: string; size: number; contentType: string }[] = [];
 
-      const presignRes = await fetch("/api/tours/presign", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(presignBody),
-      });
+      for (let i = 0; i < filesToUpload.length; i += PRESIGN_BATCH_SIZE) {
+        if (cancelledRef.current) return;
 
-      if (!presignRes.ok) {
-        const data = await presignRes.json();
-        throw new Error(data.error || "Error al validar permisos");
+        const batch = filesToUpload.slice(i, i + PRESIGN_BATCH_SIZE);
+        const presignBody: Record<string, unknown> = {
+          proyecto_id: projectId,
+          files: batch.map((f) => ({
+            path: f.path,
+            contentType: f.contentType,
+            size: f.size,
+          })),
+          // Only send total bytes on the first batch
+          ...(i === 0 ? { total_tour_bytes: totalTourBytes } : {}),
+        };
+        if (tipologiaId) presignBody.tipologia_id = tipologiaId;
+
+        const presignRes = await fetch("/api/tours/presign", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(presignBody),
+        });
+
+        if (!presignRes.ok) {
+          const data = await presignRes.json();
+          throw new Error(data.error || "Error al validar permisos");
+        }
+
+        const result = await presignRes.json();
+        if (i === 0) tourBaseUrl = result.tourBaseUrl;
+
+        // Match signed URLs to files
+        for (const signed of result.files as { path: string; uploadUrl: string }[]) {
+          const original = batch.find((f) => f.path === signed.path);
+          if (original) {
+            uploadQueue.push({
+              file: original.file,
+              uploadUrl: signed.uploadUrl,
+              path: signed.path,
+              size: original.size,
+              contentType: original.contentType,
+            });
+          }
+        }
       }
-
-      const { tourBaseUrl } = await presignRes.json();
 
       if (cancelledRef.current) return;
 
-      // Upload files through our API proxy (avoids R2 CORS issues)
+      // Upload directly to R2 using presigned URLs (no Vercel size limits)
       let uploaded = 0;
-      const queue = [...filesToUpload];
+      const queue = [...uploadQueue];
 
       async function worker() {
         while (queue.length > 0) {
@@ -301,27 +324,20 @@ export function useTourUpload(): TourUploadHook {
           const item = queue.shift();
           if (!item) break;
 
-          const formData = new FormData();
-          formData.append("file", item.file);
-          formData.append("proyecto_id", projectId);
-          formData.append("path", item.path);
-          formData.append("contentType", item.contentType);
-          if (tipologiaId) formData.append("tipologia_id", tipologiaId);
-
-          const res = await fetch("/api/tours/upload-file", {
-            method: "POST",
-            body: formData,
+          const res = await fetch(item.uploadUrl, {
+            method: "PUT",
+            headers: { "Content-Type": item.contentType },
+            body: item.file,
           });
 
           if (!res.ok) {
-            const data = await res.json().catch(() => ({ error: "Upload failed" }));
-            throw new Error(data.error || `Error subiendo ${item.path}: ${res.status}`);
+            throw new Error(`Error subiendo ${item.path}: ${res.status}`);
           }
 
           uploaded++;
           bytesUploadedRef.current += item.size;
           setFilesUploaded(uploaded);
-          setProgress(Math.round((uploaded / filesToUpload.length) * 100));
+          setProgress(Math.round((uploaded / uploadQueue.length) * 100));
           const elapsed = (Date.now() - uploadStartRef.current) / 1000;
           if (elapsed > 0.3) {
             const s = bytesUploadedRef.current / elapsed;
@@ -333,7 +349,7 @@ export function useTourUpload(): TourUploadHook {
       }
 
       const workers = Array.from(
-        { length: Math.min(CONCURRENT_UPLOADS, filesToUpload.length) },
+        { length: Math.min(CONCURRENT_UPLOADS, uploadQueue.length) },
         () => worker()
       );
       await Promise.all(workers);

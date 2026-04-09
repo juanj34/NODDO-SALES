@@ -33,6 +33,7 @@ import {
   Loader2,
   Sun,
   Moon,
+  RotateCcw,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useTranslation } from "@/i18n";
@@ -524,10 +525,12 @@ export default function EditorGeneralPage() {
                       type="button"
                       onClick={() => {
                         setTemaModo(opt.value);
-                        if (opt.value === "claro" && colorFondo === "#0a0a0a") {
+                        if (opt.value === "claro") {
                           setColorFondo("#faf9f7");
-                        } else if (opt.value === "oscuro" && colorFondo === "#faf9f7") {
+                          setColorSecundario("#141412");
+                        } else {
                           setColorFondo("#0a0a0a");
+                          setColorSecundario("#f4f0e8");
                         }
                         scheduleAutoSave();
                       }}
@@ -554,31 +557,39 @@ export default function EditorGeneralPage() {
                 <p className={fieldHint}>{t("general.design.themeModeHint")}</p>
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
-                {[
-                  { label: t("general.design.primary"), value: colorPrimario, set: setColorPrimario, hint: t("general.design.primaryHint") },
-                  { label: t("general.design.secondary"), value: colorSecundario, set: setColorSecundario, hint: t("general.design.secondaryHint") },
-                  { label: t("general.design.background"), value: colorFondo, set: setColorFondo, hint: t("general.design.backgroundHint") },
-                ].map((c) => (
-                  <div key={c.label}>
-                    <label className={labelClass}>{c.label}</label>
-                    <div className="flex items-center gap-2.5">
-                      <div
-                        className="w-10 h-10 rounded-lg border border-[var(--border-default)] cursor-pointer shrink-0 relative overflow-hidden"
-                        style={{ backgroundColor: c.value }}
-                      >
-                        <input
-                          type="color"
-                          value={c.value}
-                          onChange={(e) => { c.set(e.target.value); scheduleAutoSave(); }}
-                          className="absolute inset-0 opacity-0 cursor-pointer w-full h-full"
-                        />
-                      </div>
-                      <input type="text" value={c.value} onChange={(e) => c.set(e.target.value)} className={inputClass} />
+              <div className="flex items-end gap-5">
+                <div className="flex-1 max-w-xs">
+                  <label className={labelClass}>{t("general.design.accent")}</label>
+                  <div className="flex items-center gap-2.5">
+                    <div
+                      className="w-10 h-10 rounded-lg border border-[var(--border-default)] cursor-pointer shrink-0 relative overflow-hidden"
+                      style={{ backgroundColor: colorPrimario }}
+                    >
+                      <input
+                        type="color"
+                        value={colorPrimario}
+                        onChange={(e) => { setColorPrimario(e.target.value); scheduleAutoSave(); }}
+                        className="absolute inset-0 opacity-0 cursor-pointer w-full h-full"
+                      />
                     </div>
-                    <p className={fieldHint}>{c.hint}</p>
+                    <input type="text" value={colorPrimario} onChange={(e) => { setColorPrimario(e.target.value); scheduleAutoSave(); }} className={inputClass} />
                   </div>
-                ))}
+                  <p className={fieldHint}>{t("general.design.accentHint")}</p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setColorPrimario("#b8973a");
+                    setTemaModo("oscuro");
+                    setColorSecundario("#f4f0e8");
+                    setColorFondo("#0a0a0a");
+                    scheduleAutoSave();
+                  }}
+                  className="flex items-center gap-1.5 px-3 py-2 mb-5 rounded-lg border border-[var(--border-default)] hover:border-[var(--border-strong)] text-[var(--text-tertiary)] hover:text-[var(--text-secondary)] transition-colors text-xs font-ui uppercase tracking-wider cursor-pointer"
+                >
+                  <RotateCcw size={12} />
+                  {t("general.design.resetDefaults")}
+                </button>
               </div>
             </div>
           )}

@@ -149,7 +149,7 @@ function DashboardShell({ children }: { children: React.ReactNode }) {
         className={cn(
           "w-64 bg-[var(--surface-1)] border-r border-[var(--border-subtle)] flex flex-col",
           "fixed inset-y-0 left-0 z-[40] transition-transform duration-300 ease-[cubic-bezier(0.4,0,0.2,1)]",
-          "md:relative md:translate-x-0",
+          "md:sticky md:top-0 md:h-screen md:translate-x-0",
           drawerOpen ? "translate-x-0" : "-translate-x-full"
         )}
       >
@@ -161,7 +161,7 @@ function DashboardShell({ children }: { children: React.ReactNode }) {
         </div>
 
         {/* Navigation */}
-        <nav className="flex-1 p-4 space-y-1">
+        <nav className="flex-1 p-4 space-y-1 overflow-hidden">
           {/* ── HOME ─────────────────────────────── */}
           <SidebarLink
             href="/dashboard"

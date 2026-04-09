@@ -289,7 +289,7 @@ export default function RecursosPage() {
             </div>
           </div>
 
-          {project.brochure_url ? (
+          {project.brochure_url && (
             <div className="flex items-center gap-2">
               <div className="flex items-center gap-2.5 px-3 py-2 rounded-lg bg-[var(--surface-2)] border border-[var(--border-subtle)]">
                 <FileText size={14} className="text-[var(--site-primary)] shrink-0" />
@@ -313,7 +313,11 @@ export default function RecursosPage() {
                 {savingBrochure ? <Loader2 size={12} className="animate-spin" /> : <Trash2 size={12} />}
               </button>
             </div>
-          ) : (
+          )}
+        </div>
+
+        {!project.brochure_url && (
+          <div className="mt-4">
             <FileUploader
               currentUrl={null}
               onUpload={handleBrochureUpload}
@@ -322,8 +326,8 @@ export default function RecursosPage() {
               label="Subir PDF"
               compact
             />
-          )}
-        </div>
+          </div>
+        )}
 
         {savingBrochure && (
           <div className="flex items-center gap-2 mt-2 text-xs text-[var(--text-tertiary)]">
