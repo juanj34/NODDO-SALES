@@ -7,10 +7,11 @@ export async function PATCH(
   { params }: { params: Promise<{ id: string }> }
 ) {
   const { id } = await params;
-  const { user } = await getAuthContext();
-  if (!user) {
+  const auth = await getAuthContext();
+  if (!auth) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
+  const { user } = auth;
 
   const supabase = await createClient();
   const body = await request.json();
@@ -60,10 +61,11 @@ export async function DELETE(
   { params }: { params: Promise<{ id: string }> }
 ) {
   const { id } = await params;
-  const { user } = await getAuthContext();
-  if (!user) {
+  const auth = await getAuthContext();
+  if (!auth) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
+  const { user } = auth;
 
   const supabase = await createClient();
 

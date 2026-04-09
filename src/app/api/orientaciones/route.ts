@@ -29,10 +29,11 @@ export async function GET(request: Request) {
 }
 
 export async function POST(request: Request) {
-  const { user, adminUserId } = await getAuthContext();
-  if (!user) {
+  const auth = await getAuthContext();
+  if (!auth) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
+  const { user } = auth;
 
   const supabase = await createClient();
   const body = await request.json();
