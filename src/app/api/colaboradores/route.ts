@@ -87,7 +87,10 @@ export async function POST(request: NextRequest) {
     const supabaseAdmin = createAdminClient();
 
     // Check if this email already has a Supabase auth account
-    const { data: existingUsers } = await supabaseAdmin.auth.admin.listUsers();
+    // Use perPage: 1000 to avoid missing users beyond the default 50-user page
+    const { data: existingUsers } = await supabaseAdmin.auth.admin.listUsers({
+      perPage: 1000,
+    });
     const existingUser = existingUsers?.users?.find(
       (u) => u.email?.toLowerCase() === email.toLowerCase()
     );
@@ -100,18 +103,42 @@ export async function POST(request: NextRequest) {
       colaboradorUserId = existingUser.id;
       estado = "activo";
     } else {
+      // Ensure user_profiles row exists before invite (trigger may fail)
+      // inviteUserByEmail creates auth.users row → trigger creates profile
+      // If trigger fails, GoTrue returns "Database error saving new user"
+
       // Send invitation email via Supabase
-      const { error: inviteError } = await supabaseAdmin.auth.admin.inviteUserByEmail(
+      const appUrl = process.env.NEXT_PUBLIC_SITE_URL || process.env.NEXT_PUBLIC_APP_URL || "";
+      const { data: inviteData, error: inviteError } = await supabaseAdmin.auth.admin.inviteUserByEmail(
         email,
-        { redirectTo: `${process.env.NEXT_PUBLIC_SITE_URL || ""}/auth/callback?redirect=/proyectos` }
+        { redirectTo: `${appUrl}/auth/callback?redirect=/proyectos` }
       );
       if (inviteError) {
-        // If "already registered" error, try to find user
-        if (inviteError.message?.includes("already")) {
+        const msg = inviteError.message?.toLowerCase() || "";
+        if (msg.includes("already") || msg.includes("exist") || msg.includes("duplicate")) {
+          // User exists but wasn't found in listUsers — set as pendiente
           estado = "pendiente";
+        } else if (msg.includes("database error")) {
+          // Trigger failure — log and return clear error
+          console.error("[collab] inviteUserByEmail trigger error:", inviteError.message);
+          return NextResponse.json(
+            { error: "Error al crear usuario. Intenta de nuevo." },
+            { status: 500 }
+          );
         } else {
           throw inviteError;
         }
+      }
+
+      // If invite succeeded, ensure user_profiles row exists
+      // Keep colaboradorUserId = null so linkPendingCollaborator() can activate
+      // the record when the invited user accepts and logs in
+      if (inviteData?.user) {
+        await supabaseAdmin.from("user_profiles").upsert({
+          user_id: inviteData.user.id,
+          nombre: nombre || "",
+          apellido: "",
+        }, { onConflict: "user_id" }).then(() => {}).catch(() => {});
       }
     }
 
@@ -137,6 +164,13 @@ export async function POST(request: NextRequest) {
           { status: 409 }
         );
       }
+      // Log detailed error for debugging
+      console.error("[collab] insert error:", {
+        code: error.code,
+        message: error.message,
+        details: error.details,
+        hint: error.hint,
+      });
       throw error;
     }
 

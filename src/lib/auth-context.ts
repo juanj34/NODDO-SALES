@@ -41,13 +41,46 @@ export async function getAuthContext(): Promise<AuthContext | null> {
   if (!user || !user.email) return null;
 
   // Check if this user is an active collaborator (now fetching rol)
-  const { data: collab } = await supabase
+  let { data: collab } = await supabase
     .from("colaboradores")
-    .select("admin_user_id, rol")
+    .select("id, admin_user_id, rol, estado")
     .eq("colaborador_user_id", user.id)
-    .eq("estado", "activo")
+    .in("estado", ["activo", "pendiente"])
     .limit(1)
     .maybeSingle();
+
+  // Auto-activate pending collaborators who already have a session
+  // (covers cases where linkPendingCollaborator wasn't triggered in /auth/callback)
+  if (collab && collab.estado === "pendiente") {
+    await supabase
+      .from("colaboradores")
+      .update({ estado: "activo", activated_at: new Date().toISOString() })
+      .eq("id", collab.id);
+    collab = { ...collab, estado: "activo" };
+  }
+
+  // Also check by email if no collab found by user_id (invitation with null colaborador_user_id)
+  if (!collab && user.email) {
+    const { data: pendingByEmail } = await supabase
+      .from("colaboradores")
+      .select("id, admin_user_id, rol, estado")
+      .eq("email", user.email.toLowerCase())
+      .eq("estado", "pendiente")
+      .limit(1)
+      .maybeSingle();
+
+    if (pendingByEmail) {
+      await supabase
+        .from("colaboradores")
+        .update({
+          colaborador_user_id: user.id,
+          estado: "activo",
+          activated_at: new Date().toISOString(),
+        })
+        .eq("id", pendingByEmail.id);
+      collab = { ...pendingByEmail, estado: "activo" };
+    }
+  }
 
   // Check if this user is a platform admin
   const { data: platformAdmin } = await supabase
@@ -152,12 +185,14 @@ export async function linkPendingCollaborator(
   if (!user.email) return;
 
   // Fetch pending record before update (to get rol for welcome email)
+  // Match by email OR by colaborador_user_id — covers both cases:
+  // 1. Invited user who hasn't been linked yet (colaborador_user_id is null)
+  // 2. Invited user whose ID was set during invite (colaborador_user_id is already set)
   const { data: pending } = await supabase
     .from("colaboradores")
     .select("id, rol")
-    .eq("email", user.email)
     .eq("estado", "pendiente")
-    .is("colaborador_user_id", null)
+    .or(`email.eq.${user.email.toLowerCase()},colaborador_user_id.eq.${user.id}`)
     .maybeSingle();
 
   if (!pending) return;
