@@ -4,6 +4,7 @@ export const dynamic = "force-dynamic";
 
 import { useState, useEffect, lazy, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
+import { useEditorProject } from "@/hooks/useEditorProject";
 import { PageHeader } from "@/components/dashboard/base/PageHeader";
 import {
   Settings,
@@ -71,6 +72,7 @@ function TabLoading() {
 export default function ConfigPage() {
   const { t } = useTranslation("editor");
   const searchParams = useSearchParams();
+  const { project, refresh } = useEditorProject();
 
   /* Read ?tab= query param for deep linking */
   const [activeTab, setActiveTab] = useState<ConfigTab>(() => {
@@ -129,7 +131,7 @@ export default function ConfigPage() {
       <Suspense fallback={<TabLoading />}>
         {activeTab === "general" && <GeneralTab />}
         {activeTab === "tipologias" && <TipologiasTab />}
-        {activeTab === "inventario" && <InventarioTab />}
+        {activeTab === "inventario" && <InventarioTab orientaciones={project?.orientaciones || []} vistas={project?.vistas || []} onRefresh={refresh} />}
         {activeTab === "micrositio" && <MicrositeTab />}
         {activeTab === "cotizador" && <CotizadorTab />}
         {activeTab === "correos" && <CorreosTab />}

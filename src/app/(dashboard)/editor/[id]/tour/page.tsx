@@ -253,15 +253,28 @@ function TipologiaTourRow({
 
       {/* Uploading indicator for this tipología */}
       {isUploading && (
-        <div className="flex items-center gap-2">
-          <Loader2 size={14} className="animate-spin text-[var(--site-primary)]" />
-          <span className="text-xs text-[var(--text-secondary)]">
-            {tourUpload.status === "extracting"
-              ? t("config.tour.extracting")
-              : `${t("config.tour.uploadingFiles")} (${tourUpload.filesUploaded}/${tourUpload.filesTotal})`}
-          </span>
-          {tourUpload.status === "uploading" && (
-            <span className="text-xs text-[var(--text-muted)] ml-auto">{tourUpload.progress}%</span>
+        <div className="space-y-2">
+          <div className="flex items-center gap-2">
+            <Loader2 size={14} className="animate-spin text-[var(--site-primary)]" />
+            <span className="text-xs text-[var(--text-secondary)]">
+              {tourUpload.status === "extracting"
+                ? t("config.tour.extracting")
+                : `${t("config.tour.uploadingFiles")} (${tourUpload.filesUploaded}/${tourUpload.filesTotal})`}
+            </span>
+            {tourUpload.status === "uploading" && (
+              <span className="text-xs text-[var(--text-muted)] ml-auto">{tourUpload.progress}%</span>
+            )}
+          </div>
+          {tourUpload.status === "uploading" && tourUpload.totalBytes > 0 && (
+            <div className="text-[11px] text-[var(--text-muted)] space-y-1">
+              <div className="flex justify-between">
+                <span>Velocidad: {(tourUpload.speed / 1024 / 1024).toFixed(1)} MB/s</span>
+                <span>Tamaño: {(tourUpload.totalBytes / 1024 / 1024).toFixed(1)} MB</span>
+              </div>
+              <div>
+                Estimado: {Math.floor(tourUpload.eta / 60)}m {Math.round(tourUpload.eta % 60)}s
+              </div>
+            </div>
           )}
         </div>
       )}
@@ -619,7 +632,25 @@ export default function TourPage() {
                     transition={{ duration: 0.3, ease: "easeOut" }}
                   />
                 </div>
-                <p className="text-xs text-[var(--text-muted)] text-right">{tourUpload.progress}%</p>
+                <div className="flex items-center justify-between">
+                  <p className="text-xs text-[var(--text-muted)]">{tourUpload.progress}%</p>
+                </div>
+                {tourUpload.totalBytes > 0 && (
+                  <div className="text-[11px] text-[var(--text-muted)] space-y-2 pt-2 border-t border-[var(--border-subtle)]">
+                    <div className="flex justify-between">
+                      <span>Velocidad:</span>
+                      <span className="text-[var(--text-secondary)]">{(tourUpload.speed / 1024 / 1024).toFixed(1)} MB/s</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span>Tamaño:</span>
+                      <span className="text-[var(--text-secondary)]">{(tourUpload.totalBytes / 1024 / 1024).toFixed(1)} MB</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span>Tiempo estimado:</span>
+                      <span className="text-[var(--text-secondary)]">{Math.floor(tourUpload.eta / 60)}m {Math.round(tourUpload.eta % 60)}s</span>
+                    </div>
+                  </div>
+                )}
               </div>
             )}
 

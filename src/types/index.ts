@@ -392,7 +392,9 @@ export interface Unidad {
   habitaciones: number | null;
   banos: number | null;
   orientacion: string | null;
+  orientacion_id: string | null;
   vista: string | null;
+  vista_id: string | null;
   vista_piso_id: string | null;
   notas: string | null;
   plano_url: string | null;
@@ -434,6 +436,22 @@ export interface Fachada {
   piso_numero: number | null;
   planta_tipo_nombre: string | null;
   puntos_vacios: { x: number; y: number }[];
+  orden: number;
+  created_at: string;
+}
+
+export interface Orientacion {
+  id: string;
+  proyecto_id: string;
+  nombre: string;
+  orden: number;
+  created_at: string;
+}
+
+export interface Vista {
+  id: string;
+  proyecto_id: string;
+  nombre: string;
   orden: number;
   created_at: string;
 }
@@ -504,6 +522,8 @@ export interface ProyectoCompleto extends Proyecto {
   unidades: Unidad[];
   recursos: Recurso[];
   fachadas: Fachada[];
+  orientaciones: Orientacion[];
+  vistas: Vista[];
   torres: Torre[];
   planos_interactivos: PlanoInteractivo[];
   plano_puntos: PlanoPunto[];

@@ -46,7 +46,7 @@ import { formatCurrency } from "@/lib/currency";
 import { useTranslation } from "@/i18n";
 import { useToast } from "@/components/dashboard/Toast";
 import { useMediaQuery } from "@/hooks/useMediaQuery";
-import type { Unidad, Tipologia, Torre, Fachada, Complemento, ComplementoMode, Currency, UnidadTipologia, InventoryColumnConfig, TipoTipologia, CustomColumnDef } from "@/types";
+import type { Unidad, Tipologia, Torre, Fachada, Orientacion, Vista, Complemento, ComplementoMode, Currency, UnidadTipologia, InventoryColumnConfig, TipoTipologia, CustomColumnDef } from "@/types";
 import { getInventoryColumns, getDefaultColumns, getHybridInventoryColumns, resolveColumnsForTipologia, INVENTORY_COLUMN_KEYS, getPrimaryArea, generateColumnKey, getVisibleCustomColumns } from "@/lib/inventory-columns";
 import { ComplementosSection } from "@/components/dashboard/ComplementosSection";
 import { FileUploader } from "@/components/dashboard/FileUploader";
@@ -82,8 +82,8 @@ interface UnitFormData {
   banos: string;
   parqueaderos: string;
   depositos: string;
-  orientacion: string;
-  vista: string;
+  orientacion_id: string;
+  vista_id: string;
   notas: string;
   plano_url: string;
   precio_venta: string;
@@ -118,8 +118,8 @@ const EMPTY_FORM: UnitFormData = {
   banos: "",
   parqueaderos: "",
   depositos: "",
-  orientacion: "",
-  vista: "",
+  orientacion_id: "",
+  vista_id: "",
   notas: "",
   plano_url: "",
   precio_venta: "",
@@ -445,6 +445,8 @@ function UnitForm({
   initial,
   tipologias,
   fachadas,
+  orientaciones,
+  vistas,
   onSubmit,
   onCancel,
   submitting,
@@ -463,6 +465,8 @@ function UnitForm({
   initial: UnitFormData;
   tipologias: Tipologia[];
   fachadas: Fachada[];
+  orientaciones: Orientacion[];
+  vistas: Vista[];
   onSubmit: (data: UnitFormData & { available_tipologia_ids?: string[]; custom_fields?: Record<string, unknown> }) => void;
   onCancel: () => void;
   submitting: boolean;
@@ -762,24 +766,32 @@ function UnitForm({
           {columns.orientacion && (
             <div>
               <label className={labelClass}>{t("inventario.fields.orientation")}</label>
-              <input
-                type="text"
-                value={form.orientacion}
-                onChange={(e) => set("orientacion", e.target.value)}
-                placeholder="Norte"
-                className={inputClass}
+              <NodDoDropdown
+                variant="form"
+                size="lg"
+                value={form.orientacion_id}
+                onChange={(val) => set("orientacion_id", val)}
+                placeholder={t("inventario.selectOrientation")}
+                options={[
+                  { value: "", label: t("inventario.selectOrientation") },
+                  ...orientaciones.map((o) => ({ value: o.id, label: o.nombre })),
+                ]}
               />
             </div>
           )}
           {columns.vista && (
             <div>
               <label className={labelClass}>{t("inventario.fields.view")}</label>
-              <input
-                type="text"
-                value={form.vista}
-                onChange={(e) => set("vista", e.target.value)}
-                placeholder="Exterior"
-                className={inputClass}
+              <NodDoDropdown
+                variant="form"
+                size="lg"
+                value={form.vista_id}
+                onChange={(val) => set("vista_id", val)}
+                placeholder={t("inventario.selectView")}
+                options={[
+                  { value: "", label: t("inventario.selectView") },
+                  ...vistas.map((v) => ({ value: v.id, label: v.nombre })),
+                ]}
               />
             </div>
           )}
@@ -1626,6 +1638,8 @@ export default function InventarioPage() {
   const unidades = useMemo(() => project.unidades || [], [project.unidades]);
   const tipologias = useMemo(() => project.tipologias || [], [project.tipologias]);
   const fachadas: Fachada[] = useMemo(() => project.fachadas || [], [project.fachadas]);
+  const orientaciones: Orientacion[] = useMemo(() => project.orientaciones || [], [project.orientaciones]);
+  const vistas: Vista[] = useMemo(() => project.vistas || [], [project.vistas]);
   const torres: Torre[] = useMemo(() => project.torres || [], [project.torres]);
   const isMultiTorre = torres.length > 1;
 
@@ -1838,8 +1852,8 @@ export default function InventarioPage() {
         banos: data.banos ? parseInt(data.banos) : null,
         parqueaderos: data.parqueaderos ? parseInt(data.parqueaderos) : null,
         depositos: data.depositos ? parseInt(data.depositos) : null,
-        orientacion: data.orientacion || null,
-        vista: data.vista || null,
+        orientacion_id: data.orientacion_id || null,
+        vista_id: data.vista_id || null,
         notas: data.notas || null,
         plano_url: data.plano_url || null,
         fachada_id: data.fachada_id || null,
@@ -1890,8 +1904,8 @@ export default function InventarioPage() {
         banos: data.banos ? parseInt(data.banos) : null,
         parqueaderos: data.parqueaderos ? parseInt(data.parqueaderos) : null,
         depositos: data.depositos ? parseInt(data.depositos) : null,
-        orientacion: data.orientacion || null,
-        vista: data.vista || null,
+        orientacion_id: data.orientacion_id || null,
+        vista_id: data.vista_id || null,
         notas: data.notas || null,
         plano_url: data.plano_url || null,
         fachada_id: data.fachada_id || null,
@@ -2390,8 +2404,8 @@ export default function InventarioPage() {
     banos: u.banos != null ? String(u.banos) : "",
     parqueaderos: u.parqueaderos != null ? String(u.parqueaderos) : "",
     depositos: u.depositos != null ? String(u.depositos) : "",
-    orientacion: u.orientacion || "",
-    vista: u.vista || "",
+    orientacion_id: u.orientacion_id || "",
+    vista_id: u.vista_id || "",
     notas: u.notas || "",
     plano_url: u.plano_url || "",
     precio_venta: u.precio_venta != null ? String(u.precio_venta) : "",
@@ -2753,6 +2767,8 @@ export default function InventarioPage() {
             initial={createFormInitial}
             tipologias={tipologiasForDropdown}
             fachadas={fachadas}
+            orientaciones={orientaciones}
+            vistas={vistas}
             onSubmit={handleCreate}
             onCancel={() => setShowCreateForm(false)}
             submitting={formLoading}
@@ -2963,6 +2979,8 @@ export default function InventarioPage() {
                   initial={getEditFormData(unit)}
                   tipologias={tipologiasForDropdown}
                   fachadas={fachadas}
+                  orientaciones={orientaciones}
+                  vistas={vistas}
                   onSubmit={(data) => handleUpdate(unit.id, data)}
                   onCancel={() => setEditingId(null)}
                   submitting={formLoading}
@@ -3102,6 +3120,16 @@ export default function InventarioPage() {
                       <span className="inline-flex items-center gap-1">{t("inventario.fields.storage")} {sortField === "depositos" ? (sortDir === "asc" ? <ChevronUp size={10} /> : <ChevronDown size={10} />) : <ArrowUpDown size={10} className="opacity-0 group-hover/th:opacity-100 transition-opacity" />}</span>
                     </th>
                   )}
+                  {columns.orientacion && (
+                    <th className={cn("text-left py-2 px-4 font-ui font-bold text-[10px] uppercase tracking-wider cursor-pointer select-none group/th hover:text-[var(--text-secondary)] transition-colors", sortField === "orientacion" ? "text-[var(--site-primary)]" : "text-[var(--text-tertiary)]")} onClick={() => toggleSort("orientacion")}>
+                      <span className="inline-flex items-center gap-1">{t("inventario.fields.orientation")} {sortField === "orientacion" ? (sortDir === "asc" ? <ChevronUp size={10} /> : <ChevronDown size={10} />) : <ArrowUpDown size={10} className="opacity-0 group-hover/th:opacity-100 transition-opacity" />}</span>
+                    </th>
+                  )}
+                  {columns.vista && (
+                    <th className={cn("text-left py-2 px-4 font-ui font-bold text-[10px] uppercase tracking-wider cursor-pointer select-none group/th hover:text-[var(--text-secondary)] transition-colors", sortField === "vista" ? "text-[var(--site-primary)]" : "text-[var(--text-tertiary)]")} onClick={() => toggleSort("vista")}>
+                      <span className="inline-flex items-center gap-1">{t("inventario.fields.view")} {sortField === "vista" ? (sortDir === "asc" ? <ChevronUp size={10} /> : <ChevronDown size={10} />) : <ArrowUpDown size={10} className="opacity-0 group-hover/th:opacity-100 transition-opacity" />}</span>
+                    </th>
+                  )}
                   {editorCustomCols.map((cc) => (
                     <th
                       key={cc.key}
@@ -3152,6 +3180,8 @@ export default function InventarioPage() {
                             initial={getEditFormData(unit)}
                             tipologias={tipologiasForDropdown}
                             fachadas={fachadas}
+                            orientaciones={orientaciones}
+                            vistas={vistas}
                             onSubmit={(data) => handleUpdate(unit.id, data)}
                             onCancel={() => setEditingId(null)}
                             submitting={formLoading}
@@ -3316,6 +3346,34 @@ export default function InventarioPage() {
                           {columns.depositos && (
                             <td className="py-2 px-4 text-[var(--text-secondary)]">
                               {unit.depositos ?? "-"}
+                            </td>
+                          )}
+                          {columns.orientacion && (
+                            <td className="py-2 px-4">
+                              <NodDoDropdown
+                                variant="table"
+                                size="sm"
+                                value={unit.orientacion_id || ""}
+                                onChange={(val) => handleInlineUpdate(unit.id, "orientacion_id", val || null)}
+                                options={[
+                                  { value: "", label: "—" },
+                                  ...orientaciones.map((o) => ({ value: o.id, label: o.nombre })),
+                                ]}
+                              />
+                            </td>
+                          )}
+                          {columns.vista && (
+                            <td className="py-2 px-4">
+                              <NodDoDropdown
+                                variant="table"
+                                size="sm"
+                                value={unit.vista_id || ""}
+                                onChange={(val) => handleInlineUpdate(unit.id, "vista_id", val || null)}
+                                options={[
+                                  { value: "", label: "—" },
+                                  ...vistas.map((v) => ({ value: v.id, label: v.nombre })),
+                                ]}
+                              />
                             </td>
                           )}
                           {editorCustomCols.map((cc) => {

@@ -35,7 +35,7 @@ export async function POST(request: NextRequest) {
       .from("proyectos")
       .select("id")
       .eq("id", projectId)
-      .eq("user_id", auth.user.id)
+      .eq("user_id", auth.adminUserId)
       .single();
 
     if (!proyecto) {

@@ -212,6 +212,7 @@ const site = {
   recursos: {
     heading: "Downloads",
     description: "Downloadable documents and materials for {{name}}",
+    view: "VIEW",
     download: "DOWNLOAD",
     notAvailable: "Downloads not available",
     notConfigured: "No downloadable resources have been added to this project yet.",

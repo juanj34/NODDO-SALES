@@ -2,8 +2,24 @@
 // AI utility — Gemini Flash with guardrails
 // ---------------------------------------------------------------------------
 
-const GEMINI_MODEL = "gemini-2.5-flash";
+const GEMINI_MODEL = "gemini-2.5-pro";
 const GEMINI_ENDPOINT = `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent`;
+
+/** Retry-aware fetch: retries on 503 (Gemini overload) up to maxRetries times */
+async function fetchWithRetry(
+  url: string,
+  init: RequestInit,
+  maxRetries = 2
+): Promise<Response> {
+  for (let attempt = 0; attempt <= maxRetries; attempt++) {
+    const res = await fetch(url, init);
+    if (res.status !== 503 || attempt === maxRetries) return res;
+    // exponential backoff: 600ms, 1200ms
+    await new Promise((r) => setTimeout(r, 600 * (attempt + 1)));
+  }
+  // unreachable, but TS needs it
+  return fetch(url, init);
+}
 
 /**
  * Call Gemini Flash with structured JSON output.
@@ -20,7 +36,7 @@ export async function callAI(
     throw new Error("GOOGLE_GEMINI_API_KEY no configurada");
   }
 
-  const res = await fetch(`${GEMINI_ENDPOINT}?key=${apiKey}`, {
+  const res = await fetchWithRetry(`${GEMINI_ENDPOINT}?key=${apiKey}`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
@@ -84,7 +100,7 @@ export async function callAIWithHistory(
     parts: [{ text: m.text }],
   }));
 
-  const res = await fetch(`${GEMINI_ENDPOINT}?key=${apiKey}`, {
+  const res = await fetchWithRetry(`${GEMINI_ENDPOINT}?key=${apiKey}`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
@@ -129,7 +145,7 @@ export async function callAIText(
     throw new Error("GOOGLE_GEMINI_API_KEY no configurada");
   }
 
-  const res = await fetch(`${GEMINI_ENDPOINT}?key=${apiKey}`, {
+  const res = await fetchWithRetry(`${GEMINI_ENDPOINT}?key=${apiKey}`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({

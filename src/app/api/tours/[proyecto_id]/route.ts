@@ -21,7 +21,7 @@ export async function DELETE(
       .from("proyectos")
       .select("id")
       .eq("id", proyecto_id)
-      .eq("user_id", auth.user.id)
+      .eq("user_id", auth.adminUserId)
       .single();
 
     if (projErr || !proyecto) {

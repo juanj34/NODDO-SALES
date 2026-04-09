@@ -15,7 +15,7 @@ import { ComplementosSection } from "@/components/dashboard/ComplementosSection"
 type SettingsTab = "plantillas" | "addons" | "pdf";
 
 export default function CotizacionesPage() {
-  const { project, save, refresh } = useEditorProject();
+  const { project, save, refresh, updateLocal } = useEditorProject();
   const { t } = useTranslation("editor");
   const [activeTab, setActiveTab] = useState<SettingsTab>("plantillas");
   const [toggling, setToggling] = useState(false);
@@ -23,13 +23,22 @@ export default function CotizacionesPage() {
   const micrositeEnabled = project.cotizador_enabled ?? false;
 
   const handleToggleMicrosite = useCallback(async () => {
+    const newValue = !micrositeEnabled;
+    // Optimistic toggle
+    updateLocal((prev) => ({ ...prev, cotizador_enabled: newValue }));
     setToggling(true);
     try {
-      await save({ cotizador_enabled: !micrositeEnabled });
+      const ok = await save({ cotizador_enabled: newValue });
+      if (!ok) {
+        // Rollback
+        updateLocal((prev) => ({ ...prev, cotizador_enabled: !newValue }));
+      }
+    } catch {
+      updateLocal((prev) => ({ ...prev, cotizador_enabled: !newValue }));
     } finally {
       setToggling(false);
     }
-  }, [save, micrositeEnabled]);
+  }, [save, micrositeEnabled, updateLocal]);
 
   const tabs: { id: SettingsTab; label: string; icon: React.ComponentType<{ size?: number; className?: string }> }[] = [
     { id: "plantillas", label: "Plantillas", icon: LayoutTemplate },

@@ -96,17 +96,16 @@ export async function middleware(request: NextRequest) {
     return langResponse;
   }
 
-  // ── Redirect /sites/[slug]/* to subdomain ──
+  // ── Redirect /sites/[slug]/* to subdomain (production only) ──
   // Prevents duplicate URLs: only the subdomain should be public
-  if (pathname.startsWith("/sites/")) {
+  if (pathname.startsWith("/sites/") && !hostname.includes("localhost")) {
     const match = pathname.match(/^\/sites\/([^/]+)(\/.*)?$/);
     if (match) {
       const slug = match[1];
       const rest = match[2] || "";
       const rootDomain = process.env.NEXT_PUBLIC_ROOT_DOMAIN || "noddo.io";
-      const protocol = rootDomain.includes("localhost") ? "http" : "https";
       return NextResponse.redirect(
-        new URL(`${protocol}://${slug}.${rootDomain}${rest}`),
+        new URL(`https://${slug}.${rootDomain}${rest}`),
         301
       );
     }

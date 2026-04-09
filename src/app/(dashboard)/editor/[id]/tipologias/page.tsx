@@ -46,19 +46,19 @@ import {
   GripVertical,
   Waves,
   UtensilsCrossed, Sun, TreePine, DoorClosed, BookOpen,
-  Flame, MoveVertical, CloudSun, Store,
+  Flame, MoveVertical, CloudSun, Store, Settings, RotateCcw, Package,
   type LucideIcon,
 } from "lucide-react";
 import { extractTourUrl } from "@/lib/tour-utils";
 import { useToast } from "@/components/dashboard/Toast";
 import { useConfirm } from "@/components/dashboard/ConfirmModal";
 import { useTranslation } from "@/i18n";
-import type { Tipologia, TipologiaHotspot, TipologiaPiso, TipoTipologia, Currency } from "@/types";
+import type { Tipologia, TipologiaHotspot, TipologiaPiso, TipoTipologia, Currency, TipologiaFieldsConfig } from "@/types";
 import { resolvePisos } from "@/lib/piso-utils";
 import { CurrencyInput } from "@/components/dashboard/CurrencyInput";
 import { PriceAuditBadge } from "@/components/dashboard/PriceAuditBadge";
 import { deriveTipoTipologia, getInventoryColumns, getHybridInventoryColumns } from "@/lib/inventory-columns";
-import { getTipologiaFields } from "@/lib/tipologia-fields";
+import { getTipologiaFields, TIPOLOGIA_FIELD_KEYS } from "@/lib/tipologia-fields";
 import { AITextImprover } from "@/components/dashboard/AITextImprover";
 import { tipologiaSchema } from "@/lib/validation/schemas";
 import { InlineError } from "@/components/ui/ErrorBoundary";
@@ -68,6 +68,7 @@ import { AutoSaveIndicator } from "@/components/dashboard/AutoSaveIndicator";
 import { useQueryClient } from "@tanstack/react-query";
 import { projectKeys } from "@/hooks/useProjectsQuery";
 import { useBackgroundSave } from "@/hooks/useBackgroundSave";
+import { useAuthRole } from "@/hooks/useAuthContext";
 import type { ProyectoCompleto } from "@/types";
 
 /* ─── Form types ─── */
@@ -120,6 +121,19 @@ const TIPO_EXTRAS = [
   { field: "tiene_chimenea" as const, projectFlag: "habilitar_extra_chimenea", icon: Flame, labelKey: "tipologias.chimenea" },
   { field: "tiene_doble_altura" as const, projectFlag: "habilitar_extra_doble_altura", icon: MoveVertical, labelKey: "tipologias.dobleAltura" },
   { field: "tiene_rooftop" as const, projectFlag: "habilitar_extra_rooftop", icon: CloudSun, labelKey: "tipologias.rooftop" },
+];
+
+/* ─── Field config constants for config modal ─── */
+
+const FIELD_ICON_MAP: Record<string, LucideIcon> = {
+  Maximize, Ruler, Home, LandPlot, Palmtree,
+  BedDouble, Bath, Car, Package, DollarSign,
+};
+
+const FIELD_CATEGORIES: { id: string; label: string; icon: LucideIcon; fields: (keyof TipologiaFieldsConfig)[] }[] = [
+  { id: "dimensions", label: "Dimensiones", icon: Maximize, fields: ["area_m2", "area_construida", "area_privada", "area_lote", "area_balcon"] },
+  { id: "spaces", label: "Espacios", icon: BedDouble, fields: ["habitaciones", "banos", "parqueaderos", "depositos"] },
+  { id: "financial", label: "Financiero", icon: DollarSign, fields: ["precio"] },
 ];
 
 const emptyTipologia: TipoForm = {
@@ -337,6 +351,312 @@ function CopyHotspotsDropdown({
   );
 }
 
+/* ─── Tipologías Config Modal ─── */
+
+function TipologiasConfigModal({
+  open,
+  onClose,
+}: {
+  open: boolean;
+  onClose: () => void;
+}) {
+  const { project, save } = useEditorProject();
+  const { t } = useTranslation("editor");
+  const toast = useToast();
+
+  const tipoProyecto = (project.tipo_proyecto || "hibrido") as "apartamentos" | "casas" | "lotes" | "hibrido";
+  const [tipologiaFields, setTipologiaFields] = useState<TipologiaFieldsConfig | null>(
+    project.tipologia_fields ?? null
+  );
+  const [extrasEnabled, setExtrasEnabled] = useState<Record<string, boolean>>(() => {
+    const state: Record<string, boolean> = {};
+    for (const extra of TIPO_EXTRAS) {
+      state[extra.projectFlag] = (project as unknown as Record<string, boolean>)[extra.projectFlag] ?? false;
+    }
+    return state;
+  });
+
+  /* Sync when project changes externally */
+  const hasPendingSave = useRef(false);
+  useEffect(() => {
+    if (hasPendingSave.current) return;
+    setTipologiaFields(project.tipologia_fields ?? null);
+    const state: Record<string, boolean> = {};
+    for (const extra of TIPO_EXTRAS) {
+      state[extra.projectFlag] = (project as unknown as Record<string, boolean>)[extra.projectFlag] ?? false;
+    }
+    setExtrasEnabled(state);
+  }, [project]);
+
+  /* Close on Escape key */
+  useEffect(() => {
+    if (!open) return;
+    const handleEsc = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        e.preventDefault();
+        onClose();
+      }
+    };
+    document.addEventListener("keydown", handleEsc);
+    return () => document.removeEventListener("keydown", handleEsc);
+  }, [open, onClose]);
+
+  const effectiveFields = useMemo(
+    () => getTipologiaFields(tipoProyecto, tipologiaFields),
+    [tipoProyecto, tipologiaFields]
+  );
+  const isCustomFields = tipologiaFields !== null;
+  const activeFieldCount = useMemo(
+    () => Object.values(effectiveFields).filter(Boolean).length,
+    [effectiveFields]
+  );
+
+  /* Auto-save with debounce */
+  const saveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const latestRef = useRef({ fields: tipologiaFields, extras: extrasEnabled });
+  latestRef.current = { fields: tipologiaFields, extras: extrasEnabled };
+
+  const flushSave = useCallback(async () => {
+    const { fields, extras } = latestRef.current;
+    const ok = await save({
+      tipologia_fields: fields,
+      ...extras,
+    } as Record<string, unknown>);
+    hasPendingSave.current = false;
+    if (!ok) toast.error(t("general.saveError"));
+  }, [save, toast, t]);
+
+  const scheduleAutoSave = useCallback(() => {
+    hasPendingSave.current = true;
+    if (saveTimerRef.current) clearTimeout(saveTimerRef.current);
+    saveTimerRef.current = setTimeout(() => flushSave(), 1200);
+  }, [flushSave]);
+
+  useEffect(() => {
+    return () => {
+      if (saveTimerRef.current) {
+        clearTimeout(saveTimerRef.current);
+        flushSave();
+      }
+    };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const handleFieldToggle = (key: keyof TipologiaFieldsConfig) => {
+    const current = getTipologiaFields(tipoProyecto, tipologiaFields);
+    const updated = { ...current, [key]: !current[key] };
+    setTipologiaFields(updated);
+    scheduleAutoSave();
+  };
+
+  const handleResetFields = () => {
+    setTipologiaFields(null);
+    scheduleAutoSave();
+  };
+
+  const handleExtraToggle = (projectFlag: string) => {
+    setExtrasEnabled(prev => ({ ...prev, [projectFlag]: !prev[projectFlag] }));
+    scheduleAutoSave();
+  };
+
+  return (
+    <AnimatePresence>
+      {open && (
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          transition={{ duration: 0.2 }}
+          className="fixed inset-0 z-[60] flex items-center justify-center p-4"
+        >
+          {/* Backdrop */}
+          <motion.div
+            className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+            onClick={onClose}
+          />
+
+          {/* Modal */}
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95, y: 10 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.95, y: 10 }}
+            transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
+            className="relative w-full max-w-lg max-h-[80vh] bg-[var(--surface-1)] border border-[var(--border-default)] rounded-[1.25rem] shadow-2xl flex flex-col overflow-hidden"
+          >
+            {/* Header */}
+            <div className="shrink-0 px-6 py-4 border-b border-[var(--border-subtle)] flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="w-9 h-9 rounded-xl bg-[rgba(var(--site-primary-rgb),0.1)] flex items-center justify-center">
+                  <Settings size={18} className="text-[var(--site-primary)]" />
+                </div>
+                <div>
+                  <h2 className="text-base font-heading font-light text-[var(--text-primary)]">
+                    Configuración de tipologías
+                  </h2>
+                  <p className="text-[11px] text-[var(--text-muted)]">
+                    Campos visibles y extras habilitados
+                  </p>
+                </div>
+              </div>
+              <button
+                onClick={onClose}
+                className="w-8 h-8 rounded-lg flex items-center justify-center text-[var(--text-muted)] hover:text-[var(--text-secondary)] hover:bg-[var(--surface-3)] transition-all"
+              >
+                <X size={16} />
+              </button>
+            </div>
+
+            {/* Scrollable content */}
+            <div className="flex-1 overflow-y-auto px-6 py-5 space-y-6">
+
+              {/* ── Fields Section ── */}
+              <div>
+                <div className="flex items-center justify-between mb-3">
+                  <span className={cn("font-ui font-bold uppercase text-[var(--text-tertiary)]", fontSize.label, letterSpacing.wider)}>
+                    Campos de tipología
+                  </span>
+                  <div className="flex items-center gap-2">
+                    <span className={cn("font-mono font-medium text-[var(--site-primary)]", fontSize.label)}>
+                      {activeFieldCount}/{TIPOLOGIA_FIELD_KEYS.length}
+                    </span>
+                    {isCustomFields && (
+                      <button
+                        type="button"
+                        onClick={handleResetFields}
+                        className={cn(
+                          "flex items-center gap-1 px-2 py-1 font-ui font-bold uppercase text-[var(--text-muted)] hover:text-[var(--text-primary)] bg-[var(--surface-2)] hover:bg-[var(--surface-3)] transition-all cursor-pointer",
+                          fontSize.caption,
+                          letterSpacing.wider,
+                          radius.md
+                        )}
+                      >
+                        <RotateCcw size={9} />
+                        {t("config.tipologiaFields.resetDefaults")}
+                      </button>
+                    )}
+                  </div>
+                </div>
+
+                {!isCustomFields && (
+                  <div className="mb-3 px-3 py-1.5 rounded-lg bg-[rgba(var(--site-primary-rgb),0.06)] border border-[rgba(var(--site-primary-rgb),0.15)]">
+                    <span className={cn("font-ui font-bold uppercase text-[var(--site-primary)]", fontSize.caption, letterSpacing.wider)}>
+                      {t("config.tipologiaFields.usingDefaults")}
+                    </span>
+                  </div>
+                )}
+
+                <div className="space-y-4">
+                  {FIELD_CATEGORIES.map((category) => {
+                    const CategoryIcon = category.icon;
+                    return (
+                      <div key={category.id}>
+                        <div className="flex items-center gap-2 mb-1.5">
+                          <CategoryIcon size={11} className="shrink-0 text-[var(--text-muted)]" />
+                          <span className={cn("font-ui font-bold uppercase text-[var(--text-muted)]", fontSize.caption, letterSpacing.wider)}>
+                            {category.label}
+                          </span>
+                          <div className="flex-1 h-px bg-[var(--border-subtle)]" />
+                        </div>
+                        <div className="grid grid-cols-2 gap-1.5">
+                          {category.fields.map((fieldKey) => {
+                            const fieldDef = TIPOLOGIA_FIELD_KEYS.find(f => f.key === fieldKey);
+                            if (!fieldDef) return null;
+                            const FieldIcon = FIELD_ICON_MAP[fieldDef.icon];
+                            const isOn = effectiveFields[fieldKey];
+                            return (
+                              <button
+                                key={fieldKey}
+                                type="button"
+                                onClick={() => handleFieldToggle(fieldKey)}
+                                className={cn(
+                                  "flex items-center gap-2.5 px-3 py-2 transition-all cursor-pointer",
+                                  radius.md,
+                                  isOn
+                                    ? "bg-[var(--surface-2)] border-l-2 border-l-[var(--site-primary)] border-t border-r border-b border-t-[var(--border-subtle)] border-r-[var(--border-subtle)] border-b-[var(--border-subtle)]"
+                                    : "bg-[var(--surface-0)] border-l-2 border-l-transparent border-t border-r border-b border-t-[var(--border-subtle)] border-r-[var(--border-subtle)] border-b-[var(--border-subtle)] hover:border-t-[var(--border-default)] hover:border-r-[var(--border-default)] hover:border-b-[var(--border-default)]"
+                                )}
+                              >
+                                <div className={cn(
+                                  "w-6 h-6 flex items-center justify-center shrink-0 transition-colors",
+                                  radius.md,
+                                  isOn ? "bg-[rgba(var(--site-primary-rgb),0.12)]" : "bg-[var(--surface-3)]"
+                                )}>
+                                  {FieldIcon && <FieldIcon size={12} className={cn("transition-colors", isOn ? "text-[var(--site-primary)]" : "text-[var(--text-muted)]")} />}
+                                </div>
+                                <span className={cn("flex-1 text-left font-medium transition-colors", fontSize.subtitle, isOn ? "text-[var(--text-primary)]" : "text-[var(--text-tertiary)]")}>
+                                  {t(fieldDef.labelKey)}
+                                </span>
+                                <div className={cn("relative inline-flex h-4 w-7 items-center rounded-full transition-colors shrink-0", isOn ? "bg-[var(--site-primary)]" : "bg-[var(--surface-3)]")}>
+                                  <span className={cn("inline-block h-2.5 w-2.5 rounded-full bg-white shadow-sm transition-transform", isOn ? "translate-x-[14px]" : "translate-x-[3px]")} />
+                                </div>
+                              </button>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* Divider */}
+              <div className="h-px bg-[var(--border-subtle)]" />
+
+              {/* ── Extras Section ── */}
+              <div>
+                <div className="flex items-center justify-between mb-2">
+                  <span className={cn("font-ui font-bold uppercase text-[var(--text-tertiary)]", fontSize.label, letterSpacing.wider)}>
+                    {t("config.extras.title")}
+                  </span>
+                </div>
+                <p className={cn("text-[var(--text-muted)] mb-3 leading-relaxed", fontSize.subtitle)}>
+                  {t("config.extras.description")}
+                </p>
+
+                <div className="grid grid-cols-2 gap-1.5">
+                  {TIPO_EXTRAS.map((extra) => {
+                    const isOn = extrasEnabled[extra.projectFlag] ?? false;
+                    const ExtraIcon = extra.icon;
+                    return (
+                      <button
+                        key={extra.field}
+                        type="button"
+                        onClick={() => handleExtraToggle(extra.projectFlag)}
+                        className={cn(
+                          "flex items-center gap-2.5 px-3 py-2 transition-all cursor-pointer",
+                          radius.md,
+                          isOn
+                            ? "bg-[var(--surface-2)] border-l-2 border-l-[var(--site-primary)] border-t border-r border-b border-t-[var(--border-subtle)] border-r-[var(--border-subtle)] border-b-[var(--border-subtle)]"
+                            : "bg-[var(--surface-0)] border-l-2 border-l-transparent border-t border-r border-b border-t-[var(--border-subtle)] border-r-[var(--border-subtle)] border-b-[var(--border-subtle)] hover:border-t-[var(--border-default)] hover:border-r-[var(--border-default)] hover:border-b-[var(--border-default)]"
+                        )}
+                      >
+                        <div className={cn(
+                          "w-6 h-6 flex items-center justify-center shrink-0 transition-colors",
+                          radius.md,
+                          isOn ? "bg-[rgba(var(--site-primary-rgb),0.12)]" : "bg-[var(--surface-3)]"
+                        )}>
+                          <ExtraIcon size={12} className={cn("transition-colors", isOn ? "text-[var(--site-primary)]" : "text-[var(--text-muted)]")} />
+                        </div>
+                        <span className={cn("flex-1 text-left font-medium transition-colors", fontSize.subtitle, isOn ? "text-[var(--text-primary)]" : "text-[var(--text-tertiary)]")}>
+                          {t(extra.labelKey)}
+                        </span>
+                        <div className={cn("relative inline-flex h-4 w-7 items-center rounded-full transition-colors shrink-0", isOn ? "bg-[var(--site-primary)]" : "bg-[var(--surface-3)]")}>
+                          <span className={cn("inline-block h-2.5 w-2.5 rounded-full bg-white shadow-sm transition-transform", isOn ? "translate-x-[14px]" : "translate-x-[3px]")} />
+                        </div>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+
+            </div>
+          </motion.div>
+        </motion.div>
+      )}
+    </AnimatePresence>
+  );
+}
+
 /* ─── Draggable list item ─── */
 
 function TipologiaListItem({
@@ -445,12 +765,15 @@ type TipoTab = "general" | "multimedia" | "plano" | "hotspots";
 /* ─── Page ─── */
 
 export default function TipologiasPage() {
-  const { project, refresh, projectId } = useEditorProject();
+  const { project, refresh, updateLocal, projectId } = useEditorProject();
   const queryClient = useQueryClient();
   const toast = useToast();
   const { confirm } = useConfirm();
   const { t } = useTranslation("editor");
   const { saveTipologia } = useBackgroundSave(projectId);
+  const { role } = useAuthRole();
+  const canConfigure = role === "admin" || role === "director";
+  const [configModalOpen, setConfigModalOpen] = useState(false);
 
   const TIPO_TABS: { id: TipoTab; label: string; icon: LucideIcon }[] = [
     { id: "general", label: t("tipologias.tabs.general"), icon: FileText },
@@ -780,24 +1103,33 @@ export default function TipologiasPage() {
       typeToConfirm: tip.nombre,
     }))) return;
     setDeletingId(id);
+
+    // Optimistic remove
+    const snapshot = project.tipologias;
+    updateLocal((prev) => ({
+      ...prev,
+      tipologias: prev.tipologias.filter((t) => t.id !== id),
+    }));
+
+    // Select next tipologia immediately
+    if (selectedId === id) {
+      const remaining = filteredTipologias.filter((t) => t.id !== id);
+      if (remaining.length > 0) {
+        selectTipologia(remaining[0]);
+      } else {
+        setSelectedId(null);
+        setForm({ ...emptyTipologia });
+      }
+    }
+
     try {
       const res = await fetch(`/api/tipologias/${id}`, { method: "DELETE" });
       if (!res.ok) {
+        updateLocal((prev) => ({ ...prev, tipologias: snapshot }));
         toast.error(t("tipologias.deleteError"));
-        return;
-      }
-      await refresh();
-      // Select next tipologia
-      if (selectedId === id) {
-        const remaining = filteredTipologias.filter((t) => t.id !== id);
-        if (remaining.length > 0) {
-          selectTipologia(remaining[0]);
-        } else {
-          setSelectedId(null);
-          setForm({ ...emptyTipologia });
-        }
       }
     } catch {
+      updateLocal((prev) => ({ ...prev, tipologias: snapshot }));
       toast.error(t("errors.connectionError"));
     } finally {
       setDeletingId(null);
@@ -807,6 +1139,23 @@ export default function TipologiasPage() {
   const handleDuplicate = async (tip: Tipologia) => {
     if (!(await confirm({ title: t("tipologias.duplicateTitle"), message: t("tipologias.duplicateConfirm") }))) return;
     setDuplicatingId(tip.id);
+
+    const tempId = `temp-dup-${Date.now()}`;
+    const tempTip = {
+      ...tip,
+      id: tempId,
+      nombre: `${tip.nombre} (copia)`,
+    };
+
+    // Optimistic: add duplicate to list immediately
+    updateLocal((prev) => ({
+      ...prev,
+      tipologias: [...prev.tipologias, tempTip],
+    }));
+    setSelectedId(tempId);
+    setIsCreating(false);
+    setForm(tipologiaToForm(tempTip));
+
     try {
       const payload = {
         proyecto_id: projectId,
@@ -848,17 +1197,31 @@ export default function TipologiasPage() {
       });
       if (res.ok) {
         const created = await res.json();
-        await refresh();
+        // Replace temp with real
+        updateLocal((prev) => ({
+          ...prev,
+          tipologias: prev.tipologias.map((t) =>
+            t.id === tempId ? { ...t, ...created } : t
+          ),
+        }));
         if (created?.id) {
           setSelectedId(created.id);
-          setIsCreating(false);
           setForm(tipologiaToForm(created));
         }
         toast.success(t("tipologias.duplicated"));
       } else {
+        // Rollback
+        updateLocal((prev) => ({
+          ...prev,
+          tipologias: prev.tipologias.filter((t) => t.id !== tempId),
+        }));
         toast.error(t("tipologias.duplicateError"));
       }
     } catch {
+      updateLocal((prev) => ({
+        ...prev,
+        tipologias: prev.tipologias.filter((t) => t.id !== tempId),
+      }));
       toast.error(t("errors.connectionError"));
     } finally {
       setDuplicatingId(null);
@@ -991,12 +1354,27 @@ export default function TipologiasPage() {
                   {t("tipologias.listTitle")}
                 </span>
               </div>
-              <span className={cn(
-                "text-[var(--text-muted)]",
-                fontSize.label
-              )}>
-                {filteredTipologias.length}
-              </span>
+              <div className={cn("flex items-center", gap.compact)}>
+                <span className={cn(
+                  "text-[var(--text-muted)]",
+                  fontSize.label
+                )}>
+                  {filteredTipologias.length}
+                </span>
+                {canConfigure && (
+                  <button
+                    type="button"
+                    onClick={() => setConfigModalOpen(true)}
+                    className={cn(
+                      "w-6 h-6 flex items-center justify-center text-[var(--text-muted)] hover:text-[var(--site-primary)] hover:bg-[rgba(var(--site-primary-rgb),0.08)] transition-all",
+                      radius.md
+                    )}
+                    title="Configuración de tipologías"
+                  >
+                    <Settings size={13} />
+                  </button>
+                )}
+              </div>
             </div>
           </div>
 
@@ -1883,6 +2261,14 @@ export default function TipologiasPage() {
         </div>
 
       </div>
+
+      {/* ═══ CONFIG MODAL (director+) ═══ */}
+      {canConfigure && (
+        <TipologiasConfigModal
+          open={configModalOpen}
+          onClose={() => setConfigModalOpen(false)}
+        />
+      )}
     </motion.div>
   );
 }

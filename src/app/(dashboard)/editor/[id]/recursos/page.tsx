@@ -95,10 +95,18 @@ export default function RecursosPage() {
   const [savingBrochure, setSavingBrochure] = useState(false);
 
   const handleBrochureUpload = async (url: string) => {
+    // Optimistic update
+    const prev = project.brochure_url;
+    updateLocal((p) => ({ ...p, brochure_url: url }));
     setSavingBrochure(true);
     try {
       const ok = await save({ brochure_url: url });
-      if (!ok) toast.error(t("recursos.saveError"));
+      if (!ok) {
+        updateLocal((p) => ({ ...p, brochure_url: prev }));
+        toast.error(t("recursos.saveError"));
+      }
+    } catch {
+      updateLocal((p) => ({ ...p, brochure_url: prev }));
     } finally {
       setSavingBrochure(false);
     }
@@ -106,10 +114,18 @@ export default function RecursosPage() {
 
   const handleBrochureRemove = async () => {
     if (!(await confirm({ title: t("recursos.deleteTitle"), message: t("recursos.deleteConfirm") }))) return;
+    // Optimistic remove
+    const prev = project.brochure_url;
+    updateLocal((p) => ({ ...p, brochure_url: null }));
     setSavingBrochure(true);
     try {
       const ok = await save({ brochure_url: null });
-      if (!ok) toast.error(t("recursos.saveError"));
+      if (!ok) {
+        updateLocal((p) => ({ ...p, brochure_url: prev }));
+        toast.error(t("recursos.saveError"));
+      }
+    } catch {
+      updateLocal((p) => ({ ...p, brochure_url: prev }));
     } finally {
       setSavingBrochure(false);
     }

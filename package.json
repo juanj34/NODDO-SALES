@@ -4,6 +4,8 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
+    "dev:restart": "node scripts/safe-restart-dev.js",
+    "dev:clean": "rm -rf .next && npm run dev",
     "build": "next build",
     "start": "next start",
     "lint": "eslint",

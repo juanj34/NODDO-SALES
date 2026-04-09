@@ -288,8 +288,8 @@ export default function AdminProyectosPage() {
                       <td className="px-4 py-3">
                         <div className="flex items-center gap-3">
                           {p.render_principal_url ? (
-                            <div className="w-10 h-7 rounded overflow-hidden bg-[var(--surface-3)] shrink-0">
-                              <Image src={p.render_principal_url} alt="undefined" fill className="w-full h-full object-cover" />
+                            <div className="relative w-10 h-7 rounded overflow-hidden bg-[var(--surface-3)] shrink-0">
+                              <Image src={p.render_principal_url} alt="" fill className="object-cover" />
                             </div>
                           ) : (
                             <div className="w-10 h-7 rounded bg-[var(--surface-3)] flex items-center justify-center shrink-0">

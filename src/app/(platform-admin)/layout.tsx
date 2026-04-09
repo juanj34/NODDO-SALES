@@ -123,12 +123,12 @@ function AdminShell({ children }: { children: React.ReactNode }) {
         )}
       >
         {/* Logo + Admin badge */}
-        <div className="p-6 border-b border-[var(--border-subtle)] flex items-center justify-between">
-          <Link href="/admin" className="hover:opacity-80 transition-opacity flex items-center gap-3" onClick={closeDrawer}>
-            <NodDoLogo height={18} colorNod="var(--text-primary)" colorDo="var(--site-primary)" />
-            <span className="flex items-center gap-1 px-2 py-0.5 rounded-md bg-red-500/15 border border-red-500/20">
-              <Shield size={10} className="text-red-400" />
-              <span className="font-ui text-[9px] font-bold uppercase tracking-wider text-red-400">Admin</span>
+        <div className="px-5 py-4 border-b border-[var(--border-subtle)] flex items-center justify-between gap-2">
+          <Link href="/admin" className="hover:opacity-80 transition-opacity flex items-center gap-2.5 min-w-0" onClick={closeDrawer}>
+            <NodDoLogo height={16} colorNod="var(--text-primary)" colorDo="var(--site-primary)" />
+            <span className="flex items-center gap-1 px-1.5 py-0.5 rounded bg-red-500/15 border border-red-500/20 shrink-0">
+              <Shield size={9} className="text-red-400" />
+              <span className="font-ui text-[8px] font-bold uppercase tracking-wider text-red-400">Admin</span>
             </span>
           </Link>
           <AlertsBell />

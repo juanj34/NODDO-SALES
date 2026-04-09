@@ -4,6 +4,7 @@ import { useEffect, useRef, useState, useCallback } from "react";
 import { MapPin, Check, Search, Loader2 } from "lucide-react";
 import { CloseButton } from "@/components/ui/CloseButton";
 import { useTranslation } from "@/i18n";
+import "mapbox-gl/dist/mapbox-gl.css";
 
 interface MapPickerModalProps {
   isOpen: boolean;
@@ -16,19 +17,6 @@ interface MapPickerModalProps {
 interface GeocodingResult {
   place_name: string;
   center: [number, number]; // [lng, lat]
-}
-
-// Inject mapbox CSS via <link> tag — bundler CSS imports can fail silently
-const MAPBOX_CSS_ID = "mapbox-gl-css-link";
-function ensureMapboxCSS() {
-  if (typeof document === "undefined") return;
-  if (document.getElementById(MAPBOX_CSS_ID)) return;
-  const link = document.createElement("link");
-  link.id = MAPBOX_CSS_ID;
-  link.rel = "stylesheet";
-  link.href =
-    "https://api.mapbox.com/mapbox-gl-js/v3.9.6/mapbox-gl.css";
-  document.head.appendChild(link);
 }
 
 function createPickerMarkerElement(): HTMLDivElement {
@@ -147,8 +135,6 @@ export function MapPickerModal({
     const timers: ReturnType<typeof setTimeout>[] = [];
 
     const init = async () => {
-      ensureMapboxCSS();
-
       const mapboxgl = (await import("mapbox-gl")).default;
       if (cancelled) return;
 

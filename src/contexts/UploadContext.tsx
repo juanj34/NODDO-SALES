@@ -34,36 +34,11 @@ export function useUploads() {
  */
 export function UploadProvider({ children }: { children: ReactNode }) {
   const [uploads, setUploads] = useState<UploadTask[]>([]);
-  const [callbacks, setCallbacks] = useState<Map<string, (results: string[]) => void>>(
-    new Map()
-  );
 
-  const queueUploads = useCallback(
-    (files: File[], onComplete: (results: string[]) => void, folder: string) => {
-      const batchId = crypto.randomUUID();
-      const tasks: UploadTask[] = files.map((file) => ({
-        id: crypto.randomUUID(),
-        file,
-        status: "queued",
-        progress: 0,
-      }));
-
-      // Store callback for this batch
-      setCallbacks((prev) => new Map(prev).set(batchId, onComplete));
-
-      // Add to queue
-      setUploads((prev) => [...prev, ...tasks]);
-
-      // Start processing immediately
-      processTasks(tasks, folder, batchId);
-    },
-    []
-  );
-
-  const processTasks = async (
+  const processTasks = useCallback(async (
     tasks: UploadTask[],
     folder: string,
-    batchId: string
+    onComplete: (results: string[]) => void
   ) => {
     const results: string[] = [];
 
@@ -127,17 +102,27 @@ export function UploadProvider({ children }: { children: ReactNode }) {
       }
     }
 
-    // Call completion callback
-    const callback = callbacks.get(batchId);
-    if (callback) {
-      callback(results);
-      setCallbacks((prev) => {
-        const next = new Map(prev);
-        next.delete(batchId);
-        return next;
-      });
-    }
-  };
+    // Call completion callback directly — no stale closure risk
+    onComplete(results);
+  }, []);
+
+  const queueUploads = useCallback(
+    (files: File[], onComplete: (results: string[]) => void, folder: string) => {
+      const tasks: UploadTask[] = files.map((file) => ({
+        id: crypto.randomUUID(),
+        file,
+        status: "queued",
+        progress: 0,
+      }));
+
+      // Add to queue
+      setUploads((prev) => [...prev, ...tasks]);
+
+      // Start processing immediately — pass callback directly
+      processTasks(tasks, folder, onComplete);
+    },
+    [processTasks]
+  );
 
   return (
     <UploadContext.Provider value={{ queueUploads, uploads }}>

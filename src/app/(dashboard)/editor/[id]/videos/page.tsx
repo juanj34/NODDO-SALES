@@ -257,33 +257,47 @@ export default function VideosPage() {
     };
     try {
       if (editingVideoId) {
+        // Optimistic update
+        const snapshot = [...orderedVideos];
+        setOrderedVideos((prev) => prev.map((v) =>
+          v.id === editingVideoId ? { ...v, ...payload } : v
+        ));
+        cancelForm();
+
         const res = await fetch(`/api/videos/${editingVideoId}`, {
           method: "PUT",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(payload),
         });
         if (!res.ok) {
+          setOrderedVideos(snapshot);
           const err = await res.json().catch(() => null);
           toast.error(err?.error || t("videos.saveError"));
-          return;
+        } else {
+          const updated: Video = await res.json();
+          setOrderedVideos((prev) => prev.map((v) => (v.id === updated.id ? updated : v)));
         }
-        const updated: Video = await res.json();
-        setOrderedVideos((prev) => prev.map((v) => (v.id === updated.id ? updated : v)));
       } else {
+        // Optimistic create with temp ID
+        const tempId = `temp-video-${Date.now()}`;
+        const tempVideo = { id: tempId, proyecto_id: projectId, ...payload, orden: orderedVideos.length } as Video;
+        setOrderedVideos((prev) => [...prev, tempVideo]);
+        cancelForm();
+
         const res = await fetch("/api/videos", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ ...payload, proyecto_id: projectId }),
         });
         if (!res.ok) {
+          setOrderedVideos((prev) => prev.filter((v) => v.id !== tempId));
           const err = await res.json().catch(() => null);
           toast.error(err?.error || t("videos.createError"));
-          return;
+        } else {
+          const created: Video = await res.json();
+          setOrderedVideos((prev) => prev.map((v) => (v.id === tempId ? created : v)));
         }
-        const created: Video = await res.json();
-        setOrderedVideos((prev) => [...prev, created]);
       }
-      cancelForm();
       // Background refresh to sync full project state (non-blocking)
       refresh().catch(() => {});
     } catch {

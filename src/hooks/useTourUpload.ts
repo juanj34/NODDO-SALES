@@ -206,6 +206,7 @@ export interface TourUploadHook {
   eta: number;
   filesUploaded: number;
   filesTotal: number;
+  totalBytes: number;
   error: string | null;
   tourUrl: string | null;
   upload: (file: File, projectId: string, tipologiaId?: string) => Promise<void>;
@@ -221,6 +222,7 @@ export function useTourUpload(): TourUploadHook {
   const [eta, setETA] = useState(0);
   const [filesUploaded, setFilesUploaded] = useState(0);
   const [filesTotal, setFilesTotal] = useState(0);
+  const [totalBytes, setTotalBytes] = useState(0);
   const [error, setError] = useState<string | null>(null);
   const [tourUrl, setTourUrl] = useState<string | null>(null);
   const cancelledRef = useRef(false);
@@ -234,6 +236,7 @@ export function useTourUpload(): TourUploadHook {
     setETA(0);
     setFilesUploaded(0);
     setFilesTotal(0);
+    setTotalBytes(0);
     setError(null);
     setTourUrl(null);
     cancelledRef.current = false;
@@ -258,6 +261,7 @@ export function useTourUpload(): TourUploadHook {
       uploadStartRef.current = Date.now();
 
       const totalTourBytes = filesToUpload.reduce((sum, f) => sum + f.size, 0);
+      setTotalBytes(totalTourBytes);
 
       // Validate permissions and get tourBaseUrl with a single presign call
       const firstBatch = filesToUpload.slice(0, Math.min(PRESIGN_BATCH_SIZE, filesToUpload.length));
@@ -519,6 +523,7 @@ export function useTourUpload(): TourUploadHook {
     eta,
     filesUploaded,
     filesTotal,
+    totalBytes,
     error,
     tourUrl,
     upload,

@@ -886,9 +886,30 @@ export default function InventarioPage() {
                     {/* Price + actions — single row */}
                     <div className="flex items-center justify-between pt-2 border-t border-white/5">
                       {(() => {
+                        // Multi-tipo: show per-tipología prices
+                        if (hasMultiTipos && !unit.tipologia_id) {
+                          const linkedTipos = getUnitAvailableTipologias(unit.id);
+                          const tiposWithPrice = linkedTipos.filter(t => t.precio_desde != null);
+                          if (tiposWithPrice.length > 0) {
+                            return (
+                              <div className="flex flex-col gap-0.5">
+                                {tiposWithPrice.map(t => (
+                                  <p key={t.id} className="text-[11px] text-[var(--text-secondary)] flex items-baseline gap-1.5">
+                                    <span className="text-[9px] text-[var(--text-tertiary)] truncate max-w-[80px]">{t.nombre}</span>
+                                    <span className="font-semibold text-white tabular-nums">
+                                      {formatCurrency(t.precio_desde!, proyecto.moneda_base ?? "COP")}
+                                    </span>
+                                  </p>
+                                ))}
+                              </div>
+                            );
+                          }
+                          return <span />;
+                        }
+
                         const price = getUnitPrice(unit);
                         if (price) {
-                          const showDesde = useRanges || (isTipologiaPricing && !unit.tipologia_id && isMultiTipo);
+                          const showDesde = isTipologiaPricing && !!unit.tipologia_id;
                           return (
                             <p className="text-sm font-semibold text-white">
                               {showDesde && <span className="text-[10px] text-[var(--text-tertiary)] mr-1">{tSite("tipologias.from")}</span>}
@@ -1096,12 +1117,28 @@ export default function InventarioPage() {
                     )}
                     <span className="flex-1 text-xs font-semibold text-white text-right tabular-nums">
                       {(() => {
+                        // Multi-tipo: show per-tipología prices stacked
+                        if (listHasMultiTipos && !unit.tipologia_id) {
+                          const linkedTipos = getUnitAvailableTipologias(unit.id);
+                          const tiposWithPrice = linkedTipos.filter(t => t.precio_desde != null);
+                          if (tiposWithPrice.length > 0) {
+                            return (
+                              <span className="flex flex-col items-end gap-0">
+                                {tiposWithPrice.map(t => (
+                                  <span key={t.id} className="flex items-baseline gap-1">
+                                    <span className="text-[9px] font-normal text-[var(--text-tertiary)]">{t.nombre}</span>
+                                    <span className="tabular-nums">{formatCurrency(t.precio_desde!, proyecto.moneda_base ?? "COP")}</span>
+                                  </span>
+                                ))}
+                              </span>
+                            );
+                          }
+                          return "—";
+                        }
+
                         const price = getUnitPrice(unit);
                         if (price) {
-                          const showDesde = listUseRanges || (isTipologiaPricing && !unit.tipologia_id && isMultiTipo);
-                          return showDesde
-                            ? `${tSite("tipologias.from")} ${formatCurrency(price, proyecto.moneda_base ?? "COP")}`
-                            : formatCurrency(price, proyecto.moneda_base ?? "COP");
+                          return formatCurrency(price, proyecto.moneda_base ?? "COP");
                         }
                         if (!isTipologiaPricing && listUseRanges && listSpecRanges?.precio)
                           return `${tSite("tipologias.from")} ${formatCurrency(listSpecRanges.precio.min, proyecto.moneda_base ?? "COP")}`;

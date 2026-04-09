@@ -62,7 +62,7 @@ const PERMISSION_MIN_ROLE: Record<Permission, UserRole> = {
   "project.create": "admin",
   "project.update": "admin",
   "project.delete": "admin",
-  "project.publish": "admin",
+  "project.publish": "director",
   "project.clone": "admin",
   "project.read": "asesor",
   "content.write": "director",

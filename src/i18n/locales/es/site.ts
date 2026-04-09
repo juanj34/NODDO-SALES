@@ -212,6 +212,7 @@ const site = {
   recursos: {
     heading: "Recursos",
     description: "Documentos y materiales descargables de {{name}}",
+    view: "VER",
     download: "DESCARGAR",
     notAvailable: "Recursos no disponibles",
     notConfigured: "Aún no se han agregado recursos descargables a este proyecto.",

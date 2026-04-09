@@ -198,11 +198,29 @@ export function useDeleteProject() {
       if (!res.ok) throw new Error(`HTTP ${res.status}: ${res.statusText}`);
       return await res.json();
     },
-    onSuccess: (_, deletedId) => {
-      // Remove from cache
-      queryClient.removeQueries({ queryKey: projectKeys.detail(deletedId) });
+    onMutate: async (deletedId) => {
+      // Cancel in-flight queries to avoid overwriting optimistic update
+      await queryClient.cancelQueries({ queryKey: projectKeys.lists() });
 
-      // Invalidate list to refetch
+      // Snapshot for rollback
+      const snapshot = queryClient.getQueryData<Proyecto[]>(projectKeys.lists());
+
+      // Optimistic remove from list
+      queryClient.setQueryData<Proyecto[]>(projectKeys.lists(), (old) =>
+        old ? old.filter((p) => p.id !== deletedId) : old
+      );
+
+      return { snapshot };
+    },
+    onError: (_err, _id, context) => {
+      // Rollback on error
+      if (context?.snapshot) {
+        queryClient.setQueryData<Proyecto[]>(projectKeys.lists(), context.snapshot);
+      }
+    },
+    onSettled: (_, __, deletedId) => {
+      // Remove detail cache and refetch list
+      queryClient.removeQueries({ queryKey: projectKeys.detail(deletedId) });
       queryClient.invalidateQueries({ queryKey: projectKeys.lists() });
     },
   });

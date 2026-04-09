@@ -1,4 +1,4 @@
-import { getAuthContext } from "@/lib/auth-context";
+import { getAuthContext, requirePermission } from "@/lib/auth-context";
 import { logActivity } from "@/lib/activity-logger";
 import { revalidateProyecto } from "@/lib/supabase/cached-queries";
 import { after, NextRequest, NextResponse } from "next/server";
@@ -11,7 +11,8 @@ export async function POST(
     const { id } = await params;
     const auth = await getAuthContext();
     if (!auth) return NextResponse.json({ error: "No autorizado" }, { status: 401 });
-    if (auth.role !== "admin") return NextResponse.json({ error: "Solo administradores" }, { status: 403 });
+    const denied = requirePermission(auth, "project.publish");
+    if (denied) return denied;
 
     // 1. Fetch full project (owner check via adminUserId)
     const { data: proyecto, error: projErr } = await auth.supabase

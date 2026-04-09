@@ -22,7 +22,8 @@ import { useTranslation } from "@/i18n";
 import { CurrencyInput } from "@/components/dashboard/CurrencyInput";
 import { cn } from "@/lib/utils";
 import { getInventoryColumns, getDefaultColumns, getHybridInventoryColumns, getDefaultColumnsForTipo, INVENTORY_COLUMN_KEYS } from "@/lib/inventory-columns";
-import type { InventoryColumnConfig, InventoryColumnsByType, ComplementoMode, TipoTipologia } from "@/types";
+import type { InventoryColumnConfig, InventoryColumnsByType, ComplementoMode, TipoTipologia, Orientacion, Vista } from "@/types";
+import { X, Plus } from "lucide-react";
 
 /* ── Column icon map ────────────────────────────────────────────── */
 
@@ -72,10 +73,17 @@ const EXTRAS_CONFIG: ExtraConfig[] = [
 
 /* ── Component ──────────────────────────────────────────────────── */
 
-export default function InventarioTab() {
-  const { project, save } = useEditorProject();
+interface InventarioTabProps {
+  orientaciones?: Orientacion[];
+  vistas?: Vista[];
+  onRefresh?: () => void;
+}
+
+export default function InventarioTab({ orientaciones = [], vistas = [], onRefresh }: InventarioTabProps = {}) {
+  const { project, save, refresh } = useEditorProject();
   const { t } = useTranslation("editor");
   const toast = useToast();
+  const refreshData = onRefresh || refresh;
 
   /* ── State ── */
   const [inventoryColumns, setInventoryColumns] = useState<InventoryColumnConfig | null>(null);
@@ -91,6 +99,11 @@ export default function InventarioTab() {
   const [depositosMode, setDepositosMode] = useState<ComplementoMode>("sin_inventario");
   const [parqueaderosPrecioBase, setParqueaderosPrecioBase] = useState<number | null>(null);
   const [depositosPrecioBase, setDepositosPrecioBase] = useState<number | null>(null);
+
+  const [newOrientacion, setNewOrientacion] = useState("");
+  const [savingOrientacion, setSavingOrientacion] = useState(false);
+  const [newVista, setNewVista] = useState("");
+  const [savingVista, setSavingVista] = useState(false);
 
   const hasPendingSave = useRef(false);
 
@@ -220,6 +233,79 @@ export default function InventarioTab() {
     setInventoryColumns(null);
     scheduleAutoSave();
   }, [scheduleAutoSave]);
+
+  /* ── Orientaciones & Vistas handlers ── */
+  const handleAddOrientacion = useCallback(async () => {
+    if (!newOrientacion.trim() || !project?.id) return;
+    setSavingOrientacion(true);
+    try {
+      const response = await fetch("/api/orientaciones", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ proyecto_id: project.id, nombre: newOrientacion.trim() }),
+      });
+      if (!response.ok) throw new Error("Failed to create orientacion");
+      setNewOrientacion("");
+      toast.success(t("config.orientacionCreated") || "Orientación creada");
+      refreshData();
+    } catch (error) {
+      toast.error(t("config.orientacionError") || "Error al crear orientación");
+      console.error(error);
+    } finally {
+      setSavingOrientacion(false);
+    }
+  }, [newOrientacion, project?.id, refreshData, t, toast]);
+
+  const handleDeleteOrientacion = useCallback(async (id: string) => {
+    setSavingOrientacion(true);
+    try {
+      const response = await fetch(`/api/orientaciones/${id}`, { method: "DELETE" });
+      if (!response.ok) throw new Error("Failed to delete orientacion");
+      toast.success(t("config.orientacionDeleted") || "Orientación eliminada");
+      refreshData();
+    } catch (error) {
+      toast.error(t("config.orientacionError") || "Error al eliminar orientación");
+      console.error(error);
+    } finally {
+      setSavingOrientacion(false);
+    }
+  }, [refreshData, t, toast]);
+
+  const handleAddVista = useCallback(async () => {
+    if (!newVista.trim() || !project?.id) return;
+    setSavingVista(true);
+    try {
+      const response = await fetch("/api/vistas", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ proyecto_id: project.id, nombre: newVista.trim() }),
+      });
+      if (!response.ok) throw new Error("Failed to create vista");
+      setNewVista("");
+      toast.success(t("config.vistaCreated") || "Vista creada");
+      refreshData();
+    } catch (error) {
+      toast.error(t("config.vistaError") || "Error al crear vista");
+      console.error(error);
+    } finally {
+      setSavingVista(false);
+    }
+  }, [newVista, project?.id, refreshData, t, toast]);
+
+  const handleDeleteVista = useCallback(async (id: string) => {
+    setSavingVista(true);
+    try {
+      const response = await fetch(`/api/vistas/${id}`, { method: "DELETE" });
+      if (!response.ok) throw new Error("Failed to delete vista");
+      toast.success(t("config.vistaDeleted") || "Vista eliminada");
+      refreshData();
+    } catch (error) {
+      toast.error(t("config.vistaError") || "Error al eliminar vista");
+      console.error(error);
+    } finally {
+      setSavingVista(false);
+    }
+  }, [refreshData, t, toast]);
 
   const handleHybridColumnToggle = useCallback((tipo: TipoTipologia, key: keyof InventoryColumnConfig) => {
     setInventoryColumnsByType(prev => {
@@ -612,6 +698,102 @@ export default function InventarioTab() {
           </div>
         )}
       </div>
+
+      {/* ═══ Orientaciones ═══ */}
+      {inventoryColumns?.orientacion && (
+        <div className={sectionCard}>
+          <div className={sectionTitle}>
+            <Compass size={15} className="text-[var(--site-primary)]" />
+            {t("config.orientations")}
+          </div>
+          <p className={sectionDescription}>{t("config.orientationsDesc")}</p>
+          <div className="space-y-2">
+            {orientaciones.map((o) => (
+              <div key={o.id} className="flex items-center justify-between p-2.5 rounded-[0.625rem] bg-[var(--surface-1)] border border-[var(--border-subtle)]">
+                <span className="text-sm text-[var(--text-secondary)]">{o.nombre}</span>
+                <button
+                  type="button"
+                  onClick={() => handleDeleteOrientacion(o.id)}
+                  disabled={savingOrientacion}
+                  className="flex items-center justify-center w-5 h-5 text-[var(--text-tertiary)] hover:text-[var(--text-secondary)] hover:bg-[var(--surface-2)] rounded transition-colors disabled:opacity-50"
+                >
+                  <X size={14} />
+                </button>
+              </div>
+            ))}
+            <div className="flex gap-2 mt-3 pt-3 border-t border-[var(--border-subtle)]">
+              <input
+                type="text"
+                value={newOrientacion}
+                onChange={(e) => setNewOrientacion(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") handleAddOrientacion();
+                  if (e.key === "Escape") setNewOrientacion("");
+                }}
+                placeholder={t("config.addOrientationPlaceholder")}
+                disabled={savingOrientacion}
+                className={`${inputClass} flex-1`}
+              />
+              <button
+                type="button"
+                onClick={handleAddOrientacion}
+                disabled={!newOrientacion.trim() || savingOrientacion}
+                className="flex items-center justify-center px-3 rounded-[0.625rem] bg-[var(--site-primary)] text-[var(--text-primary)] hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed font-ui font-bold text-[11px] uppercase"
+              >
+                <Plus size={14} />
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ═══ Vistas ═══ */}
+      {inventoryColumns?.vista && (
+        <div className={sectionCard}>
+          <div className={sectionTitle}>
+            <CloudSun size={15} className="text-[var(--site-primary)]" />
+            {t("config.views")}
+          </div>
+          <p className={sectionDescription}>{t("config.viewsDesc")}</p>
+          <div className="space-y-2">
+            {vistas.map((v) => (
+              <div key={v.id} className="flex items-center justify-between p-2.5 rounded-[0.625rem] bg-[var(--surface-1)] border border-[var(--border-subtle)]">
+                <span className="text-sm text-[var(--text-secondary)]">{v.nombre}</span>
+                <button
+                  type="button"
+                  onClick={() => handleDeleteVista(v.id)}
+                  disabled={savingVista}
+                  className="flex items-center justify-center w-5 h-5 text-[var(--text-tertiary)] hover:text-[var(--text-secondary)] hover:bg-[var(--surface-2)] rounded transition-colors disabled:opacity-50"
+                >
+                  <X size={14} />
+                </button>
+              </div>
+            ))}
+            <div className="flex gap-2 mt-3 pt-3 border-t border-[var(--border-subtle)]">
+              <input
+                type="text"
+                value={newVista}
+                onChange={(e) => setNewVista(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") handleAddVista();
+                  if (e.key === "Escape") setNewVista("");
+                }}
+                placeholder={t("config.addViewPlaceholder")}
+                disabled={savingVista}
+                className={`${inputClass} flex-1`}
+              />
+              <button
+                type="button"
+                onClick={handleAddVista}
+                disabled={!newVista.trim() || savingVista}
+                className="flex items-center justify-center px-3 rounded-[0.625rem] bg-[var(--site-primary)] text-[var(--text-primary)] hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed font-ui font-bold text-[11px] uppercase"
+              >
+                <Plus size={14} />
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

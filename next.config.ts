@@ -41,7 +41,7 @@ const nextConfig: NextConfig = {
             value: [
               "default-src 'self'",
               "script-src 'self' 'unsafe-eval' 'unsafe-inline' https://www.google.com https://www.gstatic.com https://maps.googleapis.com https://www.youtube.com https://matterport.com https://client.crisp.chat https://connect.facebook.net https://*.googletagmanager.com https://*.google-analytics.com https://*.datahq04.com",
-              "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://client.crisp.chat",
+              "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://client.crisp.chat https://api.mapbox.com",
               "font-src 'self' https://fonts.gstatic.com https://client.crisp.chat data:",
               "img-src 'self' data: blob: https:",
               "media-src 'self' blob: https:",

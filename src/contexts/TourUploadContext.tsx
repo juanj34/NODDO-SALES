@@ -27,6 +27,7 @@ export interface TourUploadContextValue {
   eta: number;
   filesUploaded: number;
   filesTotal: number;
+  totalBytes: number;
   error: string | null;
   tourUrl: string | null;
   upload: (file: File, tipologiaId?: string) => Promise<void>;
@@ -166,6 +167,7 @@ export function TourUploadProvider({
       eta: tourUpload.eta,
       filesUploaded: tourUpload.filesUploaded,
       filesTotal: tourUpload.filesTotal,
+      totalBytes: tourUpload.totalBytes,
       error: tourUpload.error,
       tourUrl: tourUpload.tourUrl,
       upload,
