@@ -134,11 +134,15 @@ export async function POST(request: NextRequest) {
       // Keep colaboradorUserId = null so linkPendingCollaborator() can activate
       // the record when the invited user accepts and logs in
       if (inviteData?.user) {
-        await supabaseAdmin.from("user_profiles").upsert({
-          user_id: inviteData.user.id,
-          nombre: nombre || "",
-          apellido: "",
-        }, { onConflict: "user_id" }).then(() => {}).catch(() => {});
+        try {
+          await supabaseAdmin.from("user_profiles").upsert({
+            user_id: inviteData.user.id,
+            nombre: nombre || "",
+            apellido: "",
+          }, { onConflict: "user_id" });
+        } catch {
+          // Non-critical — trigger may have already created the profile
+        }
       }
     }
 
