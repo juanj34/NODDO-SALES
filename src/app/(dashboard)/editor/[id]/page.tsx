@@ -33,6 +33,7 @@ import {
   Loader2,
   Sun,
   Moon,
+  RotateCcw,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useTranslation } from "@/i18n";
@@ -40,6 +41,7 @@ import { proyectoGeneralSchema } from "@/lib/validation/schemas";
 import { InlineError } from "@/components/ui/ErrorBoundary";
 import { ZodError } from "zod";
 import { AITextImprover } from "@/components/dashboard/AITextImprover";
+import { InfoTooltip } from "@/components/ui/InfoTooltip";
 
 type GeneralTab = "proyecto" | "inicio" | "constructora" | "diseno" | "avanzado";
 
@@ -54,6 +56,7 @@ const tabDefs: { id: GeneralTab; labelKey: string; icon: typeof Building2 }[] = 
 export default function EditorGeneralPage() {
   const { project, save, projectId } = useEditorProject();
   const { t } = useTranslation("editor");
+  const { t: tTooltips } = useTranslation("tooltips");
   const toast = useToast();
   const [activeTab, setActiveTab] = useState<GeneralTab>("proyecto");
   const [nombre, setNombre] = useState("");
@@ -294,6 +297,7 @@ export default function EditorGeneralPage() {
                     <label className={labelClass}>
                       <Globe size={14} className="inline mr-1.5 -mt-0.5" />
                       {t("general.landing.identity.favicon")}
+                      <InfoTooltip content={tTooltips("general.favicon.short")} variant="dashboard" />
                     </label>
                     <FileUploader currentUrl={faviconUrl || null} onUpload={(url) => { setFaviconUrl(url); scheduleAutoSave(); }} folder={`proyectos/${projectId}`} label={t("general.landing.identity.uploadFavicon")} cropAspect={1} aspect="square" compact />
                     <p className={fieldHint}>{t("general.landing.identity.faviconHint")}</p>
@@ -304,6 +308,7 @@ export default function EditorGeneralPage() {
                     <label className={labelClass}>
                       <Share2 size={14} className="inline mr-1.5 -mt-0.5" />
                       {t("general.landing.identity.ogImage")}
+                      <InfoTooltip content={tTooltips("general.ogImage.short")} variant="dashboard" />
                     </label>
                     <FileUploader currentUrl={ogImageUrl || null} onUpload={(url) => { setOgImageUrl(url); scheduleAutoSave(); }} folder={`proyectos/${projectId}`} label={t("general.landing.identity.uploadOgImage")} cropAspect={1200 / 630} compact />
                     <p className={fieldHint}>{t("general.landing.identity.ogImageHint")}</p>
@@ -329,7 +334,10 @@ export default function EditorGeneralPage() {
                 <div className="space-y-5">
                   {/* Hero render */}
                   <div>
-                    <label className={labelClass}>{t("general.landing.heroRender")}</label>
+                    <label className={labelClass}>
+                      {t("general.landing.heroRender")}
+                      <InfoTooltip content={tTooltips("general.renderPrincipal.short")} variant="dashboard" />
+                    </label>
                     <FileUploader currentUrl={renderPrincipalUrl || null} onUpload={(url) => { setRenderPrincipalUrl(url); scheduleAutoSave(); }} folder={`proyectos/${projectId}`} label={t("general.landing.uploadHero")} cropAspect={16 / 9} />
                     <p className={fieldHint}>{t("general.landing.heroHint")}</p>
                   </div>
@@ -337,7 +345,10 @@ export default function EditorGeneralPage() {
                   {/* Logo + Video side by side */}
                   <div className="grid grid-cols-2 gap-5">
                     <div>
-                      <label className={labelClass}>{t("general.landing.logo")}</label>
+                      <label className={labelClass}>
+                        {t("general.landing.logo")}
+                        <InfoTooltip content={tTooltips("general.logo.short")} variant="dashboard" />
+                      </label>
                       <FileUploader currentUrl={logoUrl || null} onUpload={(url) => { setLogoUrl(url); scheduleAutoSave(); }} folder={`proyectos/${projectId}`} label={t("general.landing.uploadLogo")} aspect="logo" />
 
                       {/* Logo Size Control */}
@@ -373,6 +384,7 @@ export default function EditorGeneralPage() {
                       <label className={labelClass}>
                         <Film size={14} className="inline mr-1.5 -mt-0.5" />
                         {t("general.landing.heroVideo")}
+                        <InfoTooltip content={tTooltips("general.heroVideo.short")} variant="dashboard" />
                       </label>
                       {heroVideoUrl ? (
                         <div className="relative aspect-video rounded-xl overflow-hidden border-2 border-dashed border-[var(--border-default)]">
@@ -407,6 +419,10 @@ export default function EditorGeneralPage() {
 
                   {/* Description */}
                   <div>
+                    <label className={labelClass}>
+                      {t("general.landing.descriptionLabel")}
+                      <InfoTooltip content={tTooltips("general.descripcion.short")} variant="dashboard" />
+                    </label>
                     <AITextImprover
                       value={descripcion}
                       onChange={(newValue) => {
@@ -415,7 +431,6 @@ export default function EditorGeneralPage() {
                       }}
                       rows={3}
                       placeholder={t("general.landing.descriptionPlaceholder")}
-                      label={t("general.landing.descriptionLabel")}
                       maxLength={5000}
                     />
                     <p className={fieldHint}>{t("general.landing.descriptionHint")}</p>
@@ -426,6 +441,7 @@ export default function EditorGeneralPage() {
                     <label className={labelClass}>
                       <Music size={14} className="inline mr-1.5 -mt-0.5" />
                       {t("config.audio.title")}
+                      <InfoTooltip content={tTooltips("general.backgroundAudio.short")} variant="dashboard" />
                     </label>
                     {backgroundAudioUrl ? (
                       <div className="flex items-center gap-3">
@@ -513,7 +529,10 @@ export default function EditorGeneralPage() {
 
               {/* Theme mode toggle */}
               <div className="mb-6">
-                <label className={labelClass}>{t("general.design.themeMode")}</label>
+                <label className={labelClass}>
+                  {t("general.design.themeMode")}
+                  <InfoTooltip content={tTooltips("general.temaModo.short")} variant="dashboard" />
+                </label>
                 <div className="flex gap-2 mt-1.5">
                   {([
                     { value: "oscuro" as const, label: t("general.design.dark"), Icon: Moon, bg: "#141414", text: "#f4f0e8" },
@@ -524,10 +543,12 @@ export default function EditorGeneralPage() {
                       type="button"
                       onClick={() => {
                         setTemaModo(opt.value);
-                        if (opt.value === "claro" && colorFondo === "#0a0a0a") {
+                        if (opt.value === "claro") {
                           setColorFondo("#faf9f7");
-                        } else if (opt.value === "oscuro" && colorFondo === "#faf9f7") {
+                          setColorSecundario("#141412");
+                        } else {
                           setColorFondo("#0a0a0a");
+                          setColorSecundario("#f4f0e8");
                         }
                         scheduleAutoSave();
                       }}
@@ -554,31 +575,42 @@ export default function EditorGeneralPage() {
                 <p className={fieldHint}>{t("general.design.themeModeHint")}</p>
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
-                {[
-                  { label: t("general.design.primary"), value: colorPrimario, set: setColorPrimario, hint: t("general.design.primaryHint") },
-                  { label: t("general.design.secondary"), value: colorSecundario, set: setColorSecundario, hint: t("general.design.secondaryHint") },
-                  { label: t("general.design.background"), value: colorFondo, set: setColorFondo, hint: t("general.design.backgroundHint") },
-                ].map((c) => (
-                  <div key={c.label}>
-                    <label className={labelClass}>{c.label}</label>
-                    <div className="flex items-center gap-2.5">
-                      <div
-                        className="w-10 h-10 rounded-lg border border-[var(--border-default)] cursor-pointer shrink-0 relative overflow-hidden"
-                        style={{ backgroundColor: c.value }}
-                      >
-                        <input
-                          type="color"
-                          value={c.value}
-                          onChange={(e) => { c.set(e.target.value); scheduleAutoSave(); }}
-                          className="absolute inset-0 opacity-0 cursor-pointer w-full h-full"
-                        />
-                      </div>
-                      <input type="text" value={c.value} onChange={(e) => c.set(e.target.value)} className={inputClass} />
+              <div className="flex items-end gap-5">
+                <div className="flex-1 max-w-xs">
+                  <label className={labelClass}>
+                    {t("general.design.accent")}
+                    <InfoTooltip content={tTooltips("general.colorPrimario.short")} variant="dashboard" />
+                  </label>
+                  <div className="flex items-center gap-2.5">
+                    <div
+                      className="w-10 h-10 rounded-lg border border-[var(--border-default)] cursor-pointer shrink-0 relative overflow-hidden"
+                      style={{ backgroundColor: colorPrimario }}
+                    >
+                      <input
+                        type="color"
+                        value={colorPrimario}
+                        onChange={(e) => { setColorPrimario(e.target.value); scheduleAutoSave(); }}
+                        className="absolute inset-0 opacity-0 cursor-pointer w-full h-full"
+                      />
                     </div>
-                    <p className={fieldHint}>{c.hint}</p>
+                    <input type="text" value={colorPrimario} onChange={(e) => { setColorPrimario(e.target.value); scheduleAutoSave(); }} className={inputClass} />
                   </div>
-                ))}
+                  <p className={fieldHint}>{t("general.design.accentHint")}</p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setColorPrimario("#b8973a");
+                    setTemaModo("oscuro");
+                    setColorSecundario("#f4f0e8");
+                    setColorFondo("#0a0a0a");
+                    scheduleAutoSave();
+                  }}
+                  className="flex items-center gap-1.5 px-3 py-2 mb-5 rounded-lg border border-[var(--border-default)] hover:border-[var(--border-strong)] text-[var(--text-tertiary)] hover:text-[var(--text-secondary)] transition-colors text-xs font-ui uppercase tracking-wider cursor-pointer"
+                >
+                  <RotateCcw size={12} />
+                  {t("general.design.resetDefaults")}
+                </button>
               </div>
             </div>
           )}
@@ -596,7 +628,10 @@ export default function EditorGeneralPage() {
               </p>
 
               <div>
-                <label className={labelClass}>{t("general.advanced.micrositeLanguage")}</label>
+                <label className={labelClass}>
+                  {t("general.advanced.micrositeLanguage")}
+                  <InfoTooltip content={tTooltips("general.idioma.short")} variant="dashboard" />
+                </label>
                 <select value={idioma} onChange={(e) => { setIdioma(e.target.value as "es" | "en"); scheduleAutoSave(); }} className={inputClass}>
                   <option value="es">{t("general.advanced.spanish")}</option>
                   <option value="en">{t("general.advanced.english")}</option>
@@ -616,7 +651,10 @@ export default function EditorGeneralPage() {
 
               <div className="space-y-5">
                 <div>
-                  <label className={labelClass}>{t("general.advanced.disclaimer")}</label>
+                  <label className={labelClass}>
+                    {t("general.advanced.disclaimer")}
+                    <InfoTooltip content={tTooltips("general.disclaimer.short")} variant="dashboard" />
+                  </label>
                   <textarea value={disclaimer} onChange={(e) => { setDisclaimer(e.target.value); scheduleAutoSave(); }} rows={3} className={inputClass + " resize-none"} placeholder={t("general.advanced.disclaimerPlaceholder")} />
                 </div>
 
@@ -624,6 +662,7 @@ export default function EditorGeneralPage() {
                   <label className={labelClass}>
                     <Link2 size={14} className="inline mr-1.5 -mt-0.5" />
                     {t("general.advanced.privacyPolicy")}
+                    <InfoTooltip content={tTooltips("general.privacyPolicy.short")} variant="dashboard" />
                   </label>
                   <input type="url" value={politicaPrivacidadUrl} onChange={(e) => { setPoliticaPrivacidadUrl(e.target.value); scheduleAutoSave(); }} className={inputClass} placeholder={t("general.advanced.privacyPolicyPlaceholder")} />
                   <p className={fieldHint}>{t("general.advanced.privacyPolicyHint")}</p>
@@ -643,7 +682,10 @@ export default function EditorGeneralPage() {
 
               <div className="space-y-5">
                 <div>
-                  <label className={labelClass}>Estado de construcción</label>
+                  <label className={labelClass}>
+                    Estado de construcción
+                    <InfoTooltip content={tTooltips("general.estadoConstruccion.short")} variant="dashboard" />
+                  </label>
                   <select
                     value={estadoConstruccion}
                     onChange={(e) => { setEstadoConstruccion(e.target.value as typeof estadoConstruccion); scheduleAutoSave(); }}
@@ -657,7 +699,10 @@ export default function EditorGeneralPage() {
                 </div>
 
                 <div>
-                  <label className={labelClass}>Política de amoblado</label>
+                  <label className={labelClass}>
+                    Política de amoblado
+                    <InfoTooltip content={tTooltips("general.politicaAmoblado.short")} variant="dashboard" />
+                  </label>
                   <select
                     value={politicaAmoblado}
                     onChange={(e) => { setPoliticaAmoblado(e.target.value as typeof politicaAmoblado); scheduleAutoSave(); }}

@@ -8,10 +8,10 @@ export async function PATCH(
 ) {
   const { id } = await params;
   const auth = await getAuthContext();
-  const user = auth?.user;
-  if (!user) {
+  if (!auth) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
+  const { user } = auth;
 
   const supabase = await createClient();
   const body = await request.json();
@@ -62,10 +62,10 @@ export async function DELETE(
 ) {
   const { id } = await params;
   const auth = await getAuthContext();
-  const user = auth?.user;
-  if (!user) {
+  if (!auth) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
+  const { user } = auth;
 
   const supabase = await createClient();
 

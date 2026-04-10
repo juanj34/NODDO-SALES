@@ -19,6 +19,8 @@ import {
   Palette,
 } from "lucide-react";
 import type { CotizadorConfig } from "@/types";
+import { InfoTooltip } from "@/components/ui/InfoTooltip";
+import { useTranslation } from "@/i18n";
 
 const DEFAULT_CONFIG: CotizadorConfig = {
   moneda: "COP",
@@ -93,6 +95,7 @@ function Hint({ children }: { children: React.ReactNode }) {
 
 export function CotizadorPdfSettings() {
   const { project, save } = useEditorProject();
+  const { t: tTooltips } = useTranslation("tooltips");
 
   const [config, setConfig] = useState<CotizadorConfig>(() => {
     return project.cotizador_config ?? DEFAULT_CONFIG;
@@ -308,6 +311,7 @@ export function CotizadorPdfSettings() {
           <div className="flex items-center gap-1.5">
             <Scale size={iconSize.xs} className={iconColor.muted} />
             <FieldLabel className="mb-0">Notas legales</FieldLabel>
+            <InfoTooltip content={tTooltips("cotizador.notasLegales.short")} variant="dashboard" />
           </div>
           <Hint>Las notas legales se configuran dentro de cada plantilla de pago, en la pestaña Plantillas.</Hint>
         </div>

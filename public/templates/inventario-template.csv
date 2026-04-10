@@ -1,0 +1,6 @@
+identificador,tipologia,piso,area_m2,precio,habitaciones,banos,parqueaderos,estado
+101,Apartamento Tipo A,1,65.5,350000000,2,2,1,disponible
+102,Apartamento Tipo A,1,65.5,350000000,2,2,1,disponible
+201,Apartamento Tipo B,2,78.3,420000000,3,2,1,disponible
+202,Apartamento Tipo C,2,55.0,290000000,1,1,0,disponible
+301,Penthouse,3,120.0,680000000,3,3,2,disponible

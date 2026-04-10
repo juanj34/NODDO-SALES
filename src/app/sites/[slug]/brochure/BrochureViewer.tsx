@@ -7,7 +7,9 @@ import {
   Minimize,
   BookOpen,
   Loader2,
+  FileText,
 } from "lucide-react";
+import { motion } from "framer-motion";
 import { trackEvent } from "@/lib/tracking";
 
 interface BrochureViewerProps {
@@ -100,9 +102,46 @@ export default function BrochureViewer({ url, projectId }: BrochureViewerProps) 
       <div className="flex-1 relative">
         {/* Loading state */}
         {!isLoaded && (
-          <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 z-10 bg-[var(--surface-0)]">
-            <Loader2 className="animate-spin text-[var(--site-primary)]" size={28} />
-            <span className="text-[11px] font-mono text-[var(--text-muted)]">Cargando brochure...</span>
+          <div className="absolute inset-0 flex flex-col items-center justify-center gap-6 z-10 bg-[var(--surface-0)]">
+            {/* Icon with pulsing glow ring */}
+            <div className="relative flex items-center justify-center">
+              <motion.div
+                className="absolute w-20 h-20 rounded-full border border-[rgba(var(--site-primary-rgb),0.15)]"
+                animate={{ scale: [1, 1.3, 1], opacity: [0.4, 0, 0.4] }}
+                transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
+              />
+              <motion.div
+                className="absolute w-20 h-20 rounded-full border border-[rgba(var(--site-primary-rgb),0.1)]"
+                animate={{ scale: [1, 1.5, 1], opacity: [0.2, 0, 0.2] }}
+                transition={{ duration: 2, repeat: Infinity, ease: "easeInOut", delay: 0.4 }}
+              />
+              <div className="w-14 h-14 rounded-2xl bg-[rgba(var(--site-primary-rgb),0.08)] border border-[rgba(var(--site-primary-rgb),0.12)] flex items-center justify-center">
+                <FileText size={24} className="text-[var(--site-primary)]" />
+              </div>
+            </div>
+
+            {/* Text */}
+            <div className="flex flex-col items-center gap-2">
+              <span className="text-sm font-mono text-[var(--text-secondary)]">
+                Cargando brochure
+              </span>
+              <div className="flex items-center gap-1.5">
+                <Loader2 className="animate-spin text-[var(--site-primary)]" size={12} />
+                <span className="text-[11px] font-mono text-[var(--text-muted)]">
+                  Preparando documento...
+                </span>
+              </div>
+            </div>
+
+            {/* Indeterminate progress bar */}
+            <div className="w-48 h-1 bg-white/5 rounded-full overflow-hidden">
+              <motion.div
+                className="h-full w-1/3 rounded-full bg-[var(--site-primary)]"
+                animate={{ x: ["-100%", "288px"] }}
+                transition={{ duration: 1.5, repeat: Infinity, ease: "easeInOut" }}
+                style={{ boxShadow: "0 0 8px rgba(var(--site-primary-rgb), 0.4)" }}
+              />
+            </div>
           </div>
         )}
         <iframe

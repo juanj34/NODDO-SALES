@@ -13,6 +13,9 @@
     "verify:vercel": "tsx scripts/verify-vercel-token.ts",
     "create-admin": "tsx scripts/create-first-admin.ts",
     "setup:prod": "bash scripts/quick-setup.sh",
+    "test:e2e": "playwright test",
+    "test:e2e:ui": "playwright test --ui",
+    "test:e2e:headed": "playwright test --headed",
     "security:audit": "npm audit --audit-level=moderate",
     "security:audit:fix": "npm audit fix",
     "security:full": "npm run security:audit && npm run lint && npm run typecheck",
@@ -72,6 +75,7 @@
     "xlsx": "^0.18.5"
   },
   "devDependencies": {
+    "@playwright/test": "^1.59.1",
     "@tailwindcss/postcss": "^4",
     "@types/node": "^20",
     "@types/react": "^19",

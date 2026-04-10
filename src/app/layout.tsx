@@ -41,6 +41,7 @@ export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
   viewportFit: "cover",
+  themeColor: "#b8973a",
 };
 
 export const metadata: Metadata = {
@@ -48,6 +49,12 @@ export const metadata: Metadata = {
   title: "NODDO — Micrositios Inmobiliarios",
   description:
     "Genera micrositios de venta inmobiliaria tipo sala de ventas digital para tus proyectos.",
+  manifest: "/manifest.json",
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "black-translucent",
+    title: "NODDO",
+  },
   openGraph: {
     title: "NODDO — Sala de Ventas Digital para Constructoras",
     description:

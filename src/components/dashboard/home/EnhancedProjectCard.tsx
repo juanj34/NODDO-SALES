@@ -4,7 +4,7 @@ import Image from "next/image";
 import { motion } from "framer-motion";
 import Tilt from "react-parallax-tilt";
 import Link from "next/link";
-import { Edit2, ExternalLink, Trash2, Eye, UserCheck, Zap, Copy, Loader2 } from "lucide-react";
+import { Edit2, ExternalLink, Trash2, Eye, UserCheck, Zap, Copy, Loader2, Building2 } from "lucide-react";
 import { useTranslation } from "@/i18n";
 import type { Proyecto } from "@/types";
 
@@ -77,8 +77,11 @@ export function EnhancedProjectCard({ proyecto, stats, index, isAdmin, onDelete,
           {proyecto.render_principal_url ? (
             <Image src={proyecto.render_principal_url} alt="" fill sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw" priority={index === 0} className="w-full h-full object-cover group-hover:scale-[1.05] transition-transform duration-[3000ms] ease-out" />
           ) : (
-            <div className="w-full h-full bg-[var(--surface-2)] flex items-center justify-center text-[var(--text-muted)] text-sm">
-              {t("proyectos.noImage")}
+            <div className="w-full h-full bg-gradient-to-br from-[var(--surface-2)] to-[var(--surface-1)] flex flex-col items-center justify-center gap-2">
+              <Building2 size={32} className="text-[var(--text-muted)]" strokeWidth={1} />
+              <span className="text-[11px] font-ui uppercase tracking-[0.12em] text-[var(--text-muted)]">
+                {t("proyectos.noImage")}
+              </span>
             </div>
           )}
 

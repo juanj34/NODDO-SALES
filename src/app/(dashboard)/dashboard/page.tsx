@@ -14,14 +14,26 @@ import { DashboardKPIStrip } from "@/components/dashboard/home/DashboardKPIStrip
 import { DashboardShortcutsEnhanced } from "@/components/dashboard/home/DashboardShortcutsEnhanced";
 import { RecentProjectsPreview } from "@/components/dashboard/home/RecentProjectsPreview";
 import { RecentActivityWidget } from "@/components/dashboard/bitacora/RecentActivityWidget";
+import { OnboardingWizard } from "@/components/dashboard/onboarding/OnboardingWizard";
 
 export default function DashboardPage() {
   const { data: projects = [], isLoading: loading, refetch: refresh } = useProjects();
   const { data: summary, isLoading: summaryLoading } = useDashboardSummary();
   const [kpiProjectFilter, setKpiProjectFilter] = useState<string | null>(null);
+  const [showOnboarding, setShowOnboarding] = useState(false);
   const router = useRouter();
   const { user, role, profile } = useAuthRole();
   const isAdmin = role === "admin";
+
+  // Show onboarding for admins with no projects (first-time users)
+  useEffect(() => {
+    if (!loading && isAdmin && projects.length === 0) {
+      const done = localStorage.getItem("noddo_onboarding_done");
+      if (!done) {
+        setShowOnboarding(true);
+      }
+    }
+  }, [loading, isAdmin, projects.length]);
 
   // Track page view
   useEffect(() => {
@@ -59,6 +71,15 @@ export default function DashboardPage() {
     return (
       <div className="min-h-screen bg-[var(--surface-0)] flex items-center justify-center">
         <Loader2 className="animate-spin text-[var(--site-primary)]" size={32} />
+      </div>
+    );
+  }
+
+  // Show onboarding wizard for first-time users
+  if (showOnboarding) {
+    return (
+      <div className="min-h-[80vh] flex items-center justify-center p-4 md:p-8">
+        <OnboardingWizard onDismiss={() => setShowOnboarding(false)} />
       </div>
     );
   }

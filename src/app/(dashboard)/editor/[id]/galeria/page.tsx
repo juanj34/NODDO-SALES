@@ -32,6 +32,7 @@ import {
 } from "lucide-react";
 import { motion, AnimatePresence, Reorder, useDragControls } from "framer-motion";
 import { useTranslation } from "@/i18n";
+import { InfoTooltip } from "@/components/ui/InfoTooltip";
 import type { GaleriaCategoria, GaleriaImagen, Torre } from "@/types";
 
 /* ── Draggable pill for category tab bar ── */
@@ -89,6 +90,7 @@ function DraggablePill({
 export default function GaleriaPage() {
   const { project, refresh, projectId } = useEditorProject();
   const { t } = useTranslation("editor");
+  const { t: tTooltips } = useTranslation("tooltips");
   const { confirm } = useConfirm();
   const toast = useToast();
 
@@ -334,7 +336,7 @@ export default function GaleriaPage() {
       <PageHeader
         icon={ImageIcon}
         title={t("galeria.title")}
-        description={t("galeria.description")}
+        description={<>{t("galeria.description")} <InfoTooltip content={tTooltips("galeria.concepto.short")} variant="dashboard" /></>}
       />
 
       {/* Empty state when no categories */}

@@ -38,6 +38,7 @@ import {
   EyeOff,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
+import { InfoTooltip } from "@/components/ui/InfoTooltip";
 
 /* ── Avance Card (Webflow CMS style) ── */
 function AvanceCard({
@@ -134,6 +135,7 @@ function AvanceCard({
 /* ── Main page ── */
 export default function AvancesPage() {
   const { t } = useTranslation("editor");
+  const { t: tTooltips } = useTranslation("tooltips");
   const { project, refresh, projectId } = useEditorProject();
   const { confirm } = useConfirm();
   const toast = useToast();
@@ -310,6 +312,7 @@ export default function AvancesPage() {
                 <div>
                   <label className={labelClass}>
                     {t("avances.dateField")}
+                    <InfoTooltip content={tTooltips("avances.fecha.short")} variant="dashboard" />
                   </label>
                   <input
                     type="date"
@@ -324,7 +327,10 @@ export default function AvancesPage() {
 
               {/* Estado toggle */}
               <div>
-                <label className={labelClass}>{t("avances.statusField")}</label>
+                <label className={labelClass}>
+                  {t("avances.statusField")}
+                  <InfoTooltip content={tTooltips("avances.estado.short")} variant="dashboard" />
+                </label>
                 <div className="flex items-center gap-1 p-1 bg-[var(--surface-3)] rounded-lg w-fit">
                   <button
                     type="button"
@@ -375,6 +381,7 @@ export default function AvancesPage() {
               <div>
                 <label className={labelClass}>
                   {t("avances.videoUrlField")}
+                  <InfoTooltip content={tTooltips("avances.videoUrl.short")} variant="dashboard" />
                 </label>
                 <input
                   type="url"

@@ -7,6 +7,7 @@ import { Calculator, LayoutTemplate, Sparkles, FileText, Globe } from "lucide-re
 import { motion } from "framer-motion";
 import { useTranslation } from "@/i18n";
 import { cn } from "@/lib/utils";
+import { InfoTooltip } from "@/components/ui/InfoTooltip";
 import { PlantillasTab } from "@/components/dashboard/cotizador/PlantillasTab";
 import { CotizadorPdfSettings } from "@/components/dashboard/cotizador/CotizadorPdfSettings";
 import { PdfSettingsPreview } from "@/components/dashboard/cotizador/PdfSettingsPreview";
@@ -17,6 +18,7 @@ type SettingsTab = "plantillas" | "addons" | "pdf";
 export default function CotizacionesPage() {
   const { project, save, refresh, updateLocal } = useEditorProject();
   const { t } = useTranslation("editor");
+  const { t: tTooltips } = useTranslation("tooltips");
   const [activeTab, setActiveTab] = useState<SettingsTab>("plantillas");
   const [toggling, setToggling] = useState(false);
 
@@ -67,10 +69,11 @@ export default function CotizacionesPage() {
       <div className="flex items-center gap-4 p-4 bg-[var(--surface-1)] rounded-xl border border-[var(--border-subtle)]">
         <Globe size={18} className="text-[var(--text-tertiary)] shrink-0" />
         <div className="flex-1 min-w-0">
-          <p className="text-sm font-medium text-[var(--text-primary)]">
+          <p className="text-sm font-medium text-[var(--text-primary)] inline-flex items-center gap-1.5">
             {t("layout.sidebar.cotizaciones") === "Cotizaciones"
               ? "Habilitar cotizador en micrositio"
               : "Enable quotation tool on microsite"}
+            <InfoTooltip content={tTooltips("config.seccionesVisibles.short")} variant="dashboard" />
           </p>
           <p className="text-xs text-[var(--text-tertiary)] mt-0.5">
             {t("layout.sidebar.cotizaciones") === "Cotizaciones"

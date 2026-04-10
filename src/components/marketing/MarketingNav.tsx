@@ -209,6 +209,12 @@ export function MarketingNav() {
             <LogIn size={13} strokeWidth={2} />
             {t("nav.login")}
           </Link>
+          <Link
+            href="/solicitar-demo"
+            className="hidden md:inline-flex items-center gap-1.5 text-[11px] tracking-[0.18em] uppercase text-[rgba(244,240,232,0.55)] hover:text-[var(--mk-accent)] transition-colors duration-200"
+          >
+            {t("nav.requestDemo")}
+          </Link>
           <button
             onClick={openBooking}
             className="btn-mk-primary text-[10px] py-2.5 px-5 hidden md:inline-flex items-center gap-2"

@@ -43,6 +43,7 @@ import {
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { NodDoDropdown } from "@/components/ui/NodDoDropdown";
+import { InfoTooltip } from "@/components/ui/InfoTooltip";
 
 const tipoIcons: Record<string, typeof FileText> = {
   brochure: BookOpen,
@@ -67,6 +68,7 @@ const emptyForm = {
 export default function RecursosPage() {
   const { project, refresh, save, updateLocal, projectId } = useEditorProject();
   const { t } = useTranslation("editor");
+  const { t: tTooltips } = useTranslation("tooltips");
   const { confirm } = useConfirm();
   const toast = useToast();
 
@@ -283,13 +285,14 @@ export default function RecursosPage() {
             </div>
             <div>
               <h3 className={sectionTitle + " !mb-0 text-sm"}>Brochure Principal</h3>
-              <p className="text-[11px] text-[var(--text-tertiary)]">
+              <p className="text-[11px] text-[var(--text-tertiary)] flex items-center gap-1">
                 PDF principal del micrositio
+                <InfoTooltip content={tTooltips("recursos.brochureUrl.short")} variant="dashboard" />
               </p>
             </div>
           </div>
 
-          {project.brochure_url ? (
+          {project.brochure_url && (
             <div className="flex items-center gap-2">
               <div className="flex items-center gap-2.5 px-3 py-2 rounded-lg bg-[var(--surface-2)] border border-[var(--border-subtle)]">
                 <FileText size={14} className="text-[var(--site-primary)] shrink-0" />
@@ -313,7 +316,11 @@ export default function RecursosPage() {
                 {savingBrochure ? <Loader2 size={12} className="animate-spin" /> : <Trash2 size={12} />}
               </button>
             </div>
-          ) : (
+          )}
+        </div>
+
+        {!project.brochure_url && (
+          <div className="mt-4">
             <FileUploader
               currentUrl={null}
               onUpload={handleBrochureUpload}
@@ -322,8 +329,8 @@ export default function RecursosPage() {
               label="Subir PDF"
               compact
             />
-          )}
-        </div>
+          </div>
+        )}
 
         {savingBrochure && (
           <div className="flex items-center gap-2 mt-2 text-xs text-[var(--text-tertiary)]">
@@ -367,7 +374,10 @@ export default function RecursosPage() {
                   />
                 </div>
                 <div>
-                  <label className={labelClass}>{t("recursos.type")}</label>
+                  <label className={labelClass}>
+                  {t("recursos.type")}
+                  <InfoTooltip content={tTooltips("recursos.tipo.short")} variant="dashboard" />
+                </label>
                   <NodDoDropdown
                     variant="form"
                     size="lg"

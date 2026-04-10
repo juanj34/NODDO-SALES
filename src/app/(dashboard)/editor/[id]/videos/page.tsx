@@ -39,6 +39,7 @@ import {
   AlertCircle,
 } from "lucide-react";
 import { motion, AnimatePresence, Reorder, useDragControls } from "framer-motion";
+import { InfoTooltip } from "@/components/ui/InfoTooltip";
 
 /* ── Helpers ── */
 
@@ -155,6 +156,7 @@ function DraggableVideo({
 /* ── Main page ── */
 export default function VideosPage() {
   const { t } = useTranslation("editor");
+  const { t: tTooltips } = useTranslation("tooltips");
   const { project, refresh, projectId } = useEditorProject();
   const { confirm } = useConfirm();
   const toast = useToast();
@@ -345,7 +347,7 @@ export default function VideosPage() {
       <PageHeader
         icon={Film}
         title={t("videos.title")}
-        description={t("videos.description")}
+        description={<>{t("videos.description")} <InfoTooltip content={tTooltips("videos.concepto.short")} variant="dashboard" /></>}
         actions={
           !showVideoForm && videoUpload.status === "idle" ? (
             <button onClick={openNew} className={btnPrimary}>
@@ -509,7 +511,10 @@ export default function VideosPage() {
                     />
                   </div>
                   <div>
-                    <label className={labelClass}>{t("videos.urlField")}</label>
+                    <label className={labelClass}>
+                      {t("videos.urlField")}
+                      <InfoTooltip content={tTooltips("videos.youtubeUrl.short")} variant="dashboard" />
+                    </label>
                     <input
                       type="url"
                       value={videoForm.url}

@@ -170,6 +170,7 @@ export function FileUploader({
         const xhr = new XMLHttpRequest();
         xhr.open("PUT", uploadUrl);
         xhr.setRequestHeader("Content-Type", file.type || "application/octet-stream");
+        xhr.timeout = 10 * 60 * 1000; // 10 minutes
 
         const uploadStart = Date.now();
         xhr.upload.onprogress = (e) => {
@@ -192,6 +193,9 @@ export function FileUploader({
         xhr.onerror = () => {
           console.error("[R2 upload] network error", { status: xhr.status, readyState: xhr.readyState, response: xhr.responseText?.slice(0, 500) });
           reject(new Error("Error de red al subir archivo"));
+        };
+        xhr.ontimeout = () => {
+          reject(new Error("La subida tardó demasiado. Intenta de nuevo."));
         };
 
         xhr.send(file);

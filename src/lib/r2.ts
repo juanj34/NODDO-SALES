@@ -3,6 +3,8 @@ import {
   PutObjectCommand,
   ListObjectsV2Command,
   DeleteObjectsCommand,
+  PutBucketCorsCommand,
+  GetBucketCorsCommand,
 } from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 
@@ -64,7 +66,6 @@ export async function getPresignedUploadUrls(
       Bucket: R2_BUCKET_NAME,
       Key: key,
       ContentType: file.contentType,
-      ContentLength: file.size,
     });
 
     const uploadUrl = await getSignedUrl(client, command, { expiresIn: 900 });
@@ -202,4 +203,70 @@ export async function deleteTourFiles(projectId: string, subpath?: string): Prom
   } while (continuationToken);
 
   return deleted;
+}
+
+/**
+ * Ensure CORS is configured on the tours bucket for direct browser uploads.
+ * Safe to call multiple times — only writes if CORS is missing.
+ */
+export async function ensureToursBucketCors(): Promise<void> {
+  const client = getR2Client();
+
+  try {
+    const existing = await client.send(
+      new GetBucketCorsCommand({ Bucket: R2_BUCKET_NAME })
+    );
+    if (existing.CORSRules && existing.CORSRules.length > 0) return;
+  } catch {
+    // NoSuchCORSConfiguration or similar — proceed to set it
+  }
+
+  await client.send(
+    new PutBucketCorsCommand({
+      Bucket: R2_BUCKET_NAME,
+      CORSConfiguration: {
+        CORSRules: [
+          {
+            AllowedOrigins: ["*"],
+            AllowedMethods: ["PUT"],
+            AllowedHeaders: ["Content-Type", "Content-Length"],
+            MaxAgeSeconds: 86400,
+          },
+        ],
+      },
+    })
+  );
+}
+
+/**
+ * Ensure CORS is configured on the media bucket for direct browser uploads.
+ * Safe to call multiple times — only writes if CORS is missing.
+ */
+export async function ensureMediaBucketCors(): Promise<void> {
+  const client = getR2Client();
+
+  try {
+    const existing = await client.send(
+      new GetBucketCorsCommand({ Bucket: R2_MEDIA_BUCKET })
+    );
+    if (existing.CORSRules && existing.CORSRules.length > 0) return;
+  } catch {
+    // NoSuchCORSConfiguration or similar — proceed to set it
+  }
+
+  await client.send(
+    new PutBucketCorsCommand({
+      Bucket: R2_MEDIA_BUCKET,
+      CORSConfiguration: {
+        CORSRules: [
+          {
+            AllowedOrigins: ["*"],
+            AllowedMethods: ["PUT"],
+            AllowedHeaders: ["Content-Type", "Content-Length"],
+            MaxAgeSeconds: 86400,
+          },
+        ],
+      },
+    })
+  );
 }

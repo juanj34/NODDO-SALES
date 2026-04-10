@@ -54,6 +54,7 @@ import tooltips from "@/i18n/locales/es/tooltips";
 export default function NoddoGridPage() {
   const { project, projectId, refresh } = useEditorProject();
   const { t } = useTranslation("editor");
+  const { t: tTooltips } = useTranslation("tooltips");
   const toast = useToast();
   const { confirm } = useConfirm();
 
@@ -1219,7 +1220,10 @@ export default function NoddoGridPage() {
                       />
                     </div>
                     <div>
-                      <label className={labelClass}>{t("fachadas.aerialView")}</label>
+                      <label className={labelClass}>
+                        {t("fachadas.aerialView")}
+                        <InfoTooltip content={tTooltips("fachadas.implantacion.short")} variant="dashboard" />
+                      </label>
                       <FileUploader
                         currentUrl={implantacionImagenUrl || null}
                         onUpload={(url) => setImplantacionImagenUrl(url)}
@@ -1447,7 +1451,10 @@ export default function NoddoGridPage() {
                 <input type="text" value={newNombre} onChange={(e) => setNewNombre(e.target.value)} placeholder={tg("namePlaceholder")} className={inputClass} autoFocus />
               </div>
               <div>
-                <label className={labelClass}>{tg("gridImageLabel")}</label>
+                <label className={labelClass}>
+                  {tg("gridImageLabel")}
+                  <InfoTooltip content={tTooltips("fachadas.fachada.short")} variant="dashboard" />
+                </label>
                 <FileUploader currentUrl={newImagenUrl || null} onUpload={(url) => setNewImagenUrl(url)} folder={`proyectos/${projectId}/fachadas`} label={tg("uploadGridImage")} />
               </div>
               <div className="flex items-center gap-2 pt-1">

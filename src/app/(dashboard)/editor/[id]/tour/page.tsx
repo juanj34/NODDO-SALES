@@ -18,6 +18,7 @@ import { extractTourUrl } from "@/lib/tour-utils";
 import { motion } from "framer-motion";
 import { useTranslation } from "@/i18n";
 import { cn } from "@/lib/utils";
+import { InfoTooltip } from "@/components/ui/InfoTooltip";
 import { useQueryClient } from "@tanstack/react-query";
 import { projectKeys } from "@/hooks/useProjectsQuery";
 import type { ProyectoCompleto, Tipologia } from "@/types";
@@ -360,6 +361,7 @@ function TipologiaTourRow({
 export default function TourPage() {
   const { project, save } = useEditorProject();
   const { t } = useTranslation("editor");
+  const { t: tTooltips } = useTranslation("tooltips");
   const toast = useToast();
   const { confirm } = useConfirm();
 
@@ -514,7 +516,7 @@ export default function TourPage() {
       <PageHeader
         icon={View}
         title={t("config.tour.title")}
-        description={t("config.tour.description")}
+        description={<>{t("config.tour.description")} <InfoTooltip content={tTooltips("tour.concepto.short")} variant="dashboard" /></>}
       />
 
       {/* Tour Virtual Section (Project-level) */}
@@ -550,7 +552,10 @@ export default function TourPage() {
         {/* Tab: Paste URL */}
         {tourTab === "url" && (
           <div>
-            <label className={labelClass}>{t("config.tour.urlLabel")}</label>
+            <label className={labelClass}>
+              {t("config.tour.urlLabel")}
+              <InfoTooltip content={tTooltips("tour.urlExterna.short")} variant="dashboard" />
+            </label>
             <input
               type="text"
               value={tour360RawInput}
@@ -791,7 +796,10 @@ export default function TourPage() {
             <h3 className="font-heading text-lg text-[var(--text-primary)]">
               {t("config.tour.tipologiaTours")}
             </h3>
-            <p className={fieldHint}>{t("config.tour.tipologiaToursDesc")}</p>
+            <p className={fieldHint}>
+              {t("config.tour.tipologiaToursDesc")}
+              <InfoTooltip content={tTooltips("tour.tipologiaTour.short")} variant="dashboard" />
+            </p>
           </div>
           <div className="space-y-3">
             {tipologias.map((tipo) => (

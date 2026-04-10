@@ -39,6 +39,7 @@ import type { Torre, Fachada, Unidad } from "@/types";
 import { getInventoryColumns } from "@/lib/inventory-columns";
 import { AITextImprover } from "@/components/dashboard/AITextImprover";
 import { AmenidadesEditor } from "@/components/dashboard/AmenidadesEditor";
+import { InfoTooltip } from "@/components/ui/InfoTooltip";
 import { fontSize, gap, radius, iconSize } from "@/lib/design-tokens";
 
 /* ── Default values for first torre ──────────────────────────────── */
@@ -62,6 +63,7 @@ type TorreDetailTab = "info" | "amenidades" | "fachadas" | "unidades";
 
 export default function TorresPage() {
   const { t } = useTranslation("editor");
+  const { t: tTooltips } = useTranslation("tooltips");
   const { project, projectId, refresh, updateLocal } = useEditorProject();
   const toast = useToast();
   const { confirm } = useConfirm();
@@ -365,7 +367,7 @@ export default function TorresPage() {
       <PageHeader
         icon={Building2}
         title={pageLabel}
-        description={pageDesc}
+        description={<>{pageDesc} <InfoTooltip content={tTooltips("torres.concepto.short")} variant="dashboard" /></>}
       />
 
       {/* ── Etapa hint for urbanismo projects ─────────────────── */}
@@ -931,6 +933,7 @@ function TorreEditFormInline({
   deletingId,
 }: TorreEditFormInlineProps) {
   const { t } = useTranslation("editor");
+  const { t: tTooltips } = useTranslation("tooltips");
 
   // Controlled state synced from torre prop
   const [nombre, setNombre] = useState(torre.nombre);
@@ -1013,7 +1016,7 @@ function TorreEditFormInline({
 
       {/* Row 1: Nombre */}
       <div>
-        <Label>{t("torres.infoForm.name")}</Label>
+        <Label>{t("torres.infoForm.name")} <InfoTooltip content={tTooltips("torres.nombre.short")} variant="dashboard" /></Label>
         <input
           type="text"
           value={nombre}
@@ -1139,6 +1142,7 @@ function TorreEditFormInline({
 
       {/* Row 4: Descripción */}
       <div>
+        <Label>{t("torres.infoForm.description")} <InfoTooltip content={tTooltips("torres.descripcion.short")} variant="dashboard" /></Label>
         <AITextImprover
           value={descripcion}
           onChange={(newValue) => {
@@ -1150,7 +1154,6 @@ function TorreEditFormInline({
           }}
           rows={3}
           placeholder={t("torres.infoForm.descriptionPlaceholder")}
-          label={t("torres.infoForm.description")}
           maxLength={5000}
         />
       </div>
@@ -1158,7 +1161,7 @@ function TorreEditFormInline({
       {/* Row 5: Imagen de portada + Logo */}
       <div className={cn("grid grid-cols-2", gap.loose)}>
         <div>
-          <Label>{t("torres.infoForm.coverImage")}</Label>
+          <Label>{t("torres.infoForm.coverImage")} <InfoTooltip content={tTooltips("torres.imagenUrl.short")} variant="dashboard" /></Label>
           <FileUploader
             currentUrl={torre.imagen_portada || null}
             onUpload={(url) =>

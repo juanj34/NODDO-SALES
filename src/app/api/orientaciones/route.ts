@@ -33,7 +33,7 @@ export async function POST(request: Request) {
   if (!auth) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
-  const { user } = auth;
+  const { user, adminUserId } = auth;
 
   const supabase = await createClient();
   const body = await request.json();

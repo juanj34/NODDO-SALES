@@ -42,6 +42,7 @@ import {
   Image as ImageIcon,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { InfoTooltip } from "@/components/ui/InfoTooltip";
 import type { VistaPiso, Torre, Tipologia, Unidad } from "@/types";
 
 /* ── Orientation suggestions ── */
@@ -92,6 +93,7 @@ const EMPTY_FORM: VistaFormState = {
    ================================================================== */
 export default function VistasPage() {
   const { t } = useTranslation("editor");
+  const { t: tTooltips } = useTranslation("tooltips");
   const { project, projectId, refresh } = useEditorProject();
   const toast = useToast();
   const { confirm } = useConfirm();
@@ -655,7 +657,10 @@ export default function VistasPage() {
 
                 {/* Orientacion */}
                 <div>
-                  <label className={labelClass}>{t("vistas.form.orientation")}</label>
+                  <label className={labelClass}>
+                    {t("vistas.form.orientation")}
+                    <InfoTooltip content={tTooltips("vistas.orientacion.short")} variant="dashboard" />
+                  </label>
                   <input
                     type="text"
                     value={form.orientacion}
@@ -674,7 +679,10 @@ export default function VistasPage() {
                 {/* Piso min / max */}
                 <div className="grid grid-cols-2 gap-3">
                   <div>
-                    <label className={labelClass}>{t("vistas.form.floorMin")}</label>
+                    <label className={labelClass}>
+                      {t("vistas.form.floorMin")}
+                      <InfoTooltip content={tTooltips("vistas.pisoRango.short")} variant="dashboard" />
+                    </label>
                     <input
                       type="number"
                       value={form.piso_min}
@@ -792,6 +800,7 @@ export default function VistasPage() {
                 <div>
                   <label className={labelClass}>
                     {t("vistas.form.image")} <span className="text-red-400">*</span>
+                    <InfoTooltip content={tTooltips("vistas.imagen.short")} variant="dashboard" />
                   </label>
                   <FileUploader
                     currentUrl={form.imagen_url || null}
