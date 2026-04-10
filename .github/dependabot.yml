@@ -24,9 +24,10 @@ updates:
     # Remove this block if you want all dependency updates
     ignore:
       - dependency-name: "*"
-        # Only update for security vulnerabilities
-        # Ignore minor and patch version bumps
+        # Only allow security updates — ignore ALL version bumps
+        # Major bumps cause breaking changes and fail CI
         update-types:
+          - "version-update:semver-major"
           - "version-update:semver-minor"
           - "version-update:semver-patch"
 
