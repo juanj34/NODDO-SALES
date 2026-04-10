@@ -7,6 +7,7 @@ import { leadLimiter, checkRateLimit, rateLimitExceeded } from "@/lib/rate-limit
 import { getWebhookConfig, dispatchWebhook } from "@/lib/webhooks";
 import { verifyRecaptcha, getRecaptchaToken } from "@/lib/recaptcha";
 import { logActivity } from "@/lib/activity-logger";
+import { createNotification } from "@/lib/notifications";
 import type { WebhookPayload } from "@/lib/webhooks";
 import { NextRequest, NextResponse } from "next/server";
 
@@ -125,6 +126,11 @@ export async function POST(request: NextRequest) {
       leadMessage: body.mensaje || null,
       leadCountry: body.pais || null,
     });
+
+    // In-app notification for project owner (fire-and-forget)
+    if (!existing) {
+      sendLeadInAppNotification(body.proyecto_id, body.nombre, body.email);
+    }
 
     return NextResponse.json(data, { status: 201 });
   } catch (err) {
@@ -517,5 +523,34 @@ export async function GET(request: NextRequest) {
       { error: err instanceof Error ? err.message : "Error" },
       { status: 500 }
     );
+  }
+}
+
+/** Send in-app notification to project owner when a new lead arrives */
+async function sendLeadInAppNotification(
+  projectId: string,
+  leadName: string,
+  leadEmail: string
+) {
+  try {
+    const adminSupabase = createAdminClient();
+    const { data: proyecto } = await adminSupabase
+      .from("proyectos")
+      .select("nombre, user_id")
+      .eq("id", projectId)
+      .single();
+
+    if (!proyecto) return;
+
+    createNotification({
+      userId: proyecto.user_id,
+      type: "lead.new",
+      title: `Nuevo lead en ${proyecto.nombre}`,
+      titleEn: `New lead in ${proyecto.nombre}`,
+      body: `${leadName} (${leadEmail})`,
+      metadata: { projectId, leadName, leadEmail, projectName: proyecto.nombre },
+    });
+  } catch {
+    // Non-critical — silently fail
   }
 }

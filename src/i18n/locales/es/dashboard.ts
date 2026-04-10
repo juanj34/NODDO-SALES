@@ -333,6 +333,14 @@ const dashboard = {
     prev: "Anterior",
     finish: "Comenzar",
   },
+  notifications: {
+    title: "Notificaciones",
+    markAllRead: "Marcar todo leído",
+    empty: "Sin notificaciones",
+    newLead: "Nuevo lead en {{project}}",
+    projectPublished: "Proyecto publicado",
+    cotizacionSent: "Cotización enviada",
+  },
 } as const;
 
 export default dashboard;
