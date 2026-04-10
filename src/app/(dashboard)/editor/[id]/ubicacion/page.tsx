@@ -41,6 +41,7 @@ import { MapPickerModal } from "@/components/dashboard/MapPickerModal";
 import { FileUploader } from "@/components/dashboard/FileUploader";
 import { poiSchema, proyectoUbicacionSchema } from "@/lib/validation/schemas";
 import { InlineError } from "@/components/ui/ErrorBoundary";
+import { InfoTooltip } from "@/components/ui/InfoTooltip";
 import { ZodError } from "zod";
 
 const CATEGORIAS = [
@@ -105,6 +106,7 @@ const TABS: { id: UbicacionTab; labelKey: string; icon: typeof MapPin }[] = [
 
 export default function UbicacionPage() {
   const { t } = useTranslation("editor");
+  const { t: tTooltips } = useTranslation("tooltips");
   const { project, save, refresh, updateLocal, projectId } = useEditorProject();
   const { confirm } = useConfirm();
   const toast = useToast();
@@ -663,7 +665,10 @@ export default function UbicacionPage() {
             </div>
             <div className="space-y-4">
               <div>
-                <label className={labelClass}>{t("ubicacion.coordinates.address")}</label>
+                <label className={labelClass}>
+                  {t("ubicacion.coordinates.address")}
+                  <InfoTooltip content={tTooltips("ubicacion.direccion.short")} variant="dashboard" />
+                </label>
                 <input
                   type="text"
                   value={ubicacionDireccion}
@@ -674,7 +679,10 @@ export default function UbicacionPage() {
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                  <label className={labelClass}>{t("ubicacion.coordinates.latitude")}</label>
+                  <label className={labelClass}>
+                    {t("ubicacion.coordinates.latitude")}
+                    <InfoTooltip content={tTooltips("ubicacion.coordenadas.short")} variant="dashboard" />
+                  </label>
                   <input
                     type="number"
                     step="0.000001"
@@ -881,7 +889,10 @@ export default function UbicacionPage() {
                       />
                     </div>
                     <div>
-                      <label className={labelClass}>{t("ubicacion.pois.categoryRequired")}</label>
+                      <label className={labelClass}>
+                        {t("ubicacion.pois.categoryRequired")}
+                        <InfoTooltip content={tTooltips("ubicacion.poiCategoria.short")} variant="dashboard" />
+                      </label>
                       <NodDoDropdown
                         variant="dashboard"
                         size="md"
@@ -955,7 +966,10 @@ export default function UbicacionPage() {
 
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
-                      <label className={labelClass}>{t("ubicacion.pois.distance")}</label>
+                      <label className={labelClass}>
+                        {t("ubicacion.pois.distance")}
+                        <InfoTooltip content={tTooltips("ubicacion.poiDistancia.short")} variant="dashboard" />
+                      </label>
                       <div className="flex gap-2">
                         <input
                           type="number"
@@ -980,7 +994,10 @@ export default function UbicacionPage() {
                       </div>
                     </div>
                     <div>
-                      <label className={labelClass}>{t("ubicacion.pois.time")}</label>
+                      <label className={labelClass}>
+                        {t("ubicacion.pois.time")}
+                        <InfoTooltip content={tTooltips("ubicacion.poiTiempo.short")} variant="dashboard" />
+                      </label>
                       <input
                         type="number"
                         value={poiForm.tiempo_minutos}

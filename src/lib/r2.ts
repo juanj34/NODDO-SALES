@@ -237,3 +237,36 @@ export async function ensureToursBucketCors(): Promise<void> {
     })
   );
 }
+
+/**
+ * Ensure CORS is configured on the media bucket for direct browser uploads.
+ * Safe to call multiple times — only writes if CORS is missing.
+ */
+export async function ensureMediaBucketCors(): Promise<void> {
+  const client = getR2Client();
+
+  try {
+    const existing = await client.send(
+      new GetBucketCorsCommand({ Bucket: R2_MEDIA_BUCKET })
+    );
+    if (existing.CORSRules && existing.CORSRules.length > 0) return;
+  } catch {
+    // NoSuchCORSConfiguration or similar — proceed to set it
+  }
+
+  await client.send(
+    new PutBucketCorsCommand({
+      Bucket: R2_MEDIA_BUCKET,
+      CORSConfiguration: {
+        CORSRules: [
+          {
+            AllowedOrigins: ["*"],
+            AllowedMethods: ["PUT"],
+            AllowedHeaders: ["Content-Type", "Content-Length"],
+            MaxAgeSeconds: 86400,
+          },
+        ],
+      },
+    })
+  );
+}

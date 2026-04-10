@@ -58,6 +58,7 @@ import { UNIT_STATUS_COLORS } from "@/lib/status-colors";
 import { useBackgroundSave } from "@/hooks/useBackgroundSave";
 import { Badge } from "@/components/ui";
 import { PageHeader } from "@/components/dashboard/base/PageHeader";
+import { InfoTooltip } from "@/components/ui/InfoTooltip";
 
 // ---------------------------------------------------------------------------
 // Types
@@ -483,6 +484,7 @@ function UnitForm({
   customFieldValues?: Record<string, unknown>;
 }) {
   const { t } = useTranslation("editor");
+  const { t: tTooltips } = useTranslation("tooltips");
   const [form, setForm] = useState<UnitFormData>(initial);
   const [selectedTipoIds, setSelectedTipoIds] = useState<string[]>(unitTipoIds);
   const [customFields, setCustomFields] = useState<Record<string, unknown>>(customFieldValues);
@@ -524,7 +526,10 @@ function UnitForm({
       <div className="p-5 bg-[var(--surface-2)] border border-[var(--border-subtle)] rounded-xl space-y-4">
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
           <div>
-            <label className={labelClass}>{t("inventario.fields.identifier")}</label>
+            <label className={labelClass}>
+              {t("inventario.fields.identifier")}
+              <InfoTooltip content={tTooltips("inventario.identificador.short")} variant="dashboard" />
+            </label>
             <input
               type="text"
               value={form.identificador}
@@ -691,7 +696,10 @@ function UnitForm({
             </div>
           )}
           <div>
-            <label className={labelClass}>{t("inventario.fields.state")}</label>
+            <label className={labelClass}>
+              {t("inventario.fields.state")}
+              <InfoTooltip content={tTooltips("inventario.estado.short")} variant="dashboard" />
+            </label>
             <NodDoDropdown
               variant="form"
               size="lg"
@@ -702,7 +710,10 @@ function UnitForm({
           </div>
           {form.estado === "vendida" && (
             <div>
-              <label className={labelClass}>Precio de venta</label>
+              <label className={labelClass}>
+                Precio de venta
+                <InfoTooltip content={tTooltips("inventario.precioVenta.short")} variant="dashboard" />
+              </label>
               <CurrencyInput
                 value={form.precio_venta}
                 onChange={(v) => set("precio_venta", v)}
@@ -765,7 +776,10 @@ function UnitForm({
           )}
           {columns.orientacion && (
             <div>
-              <label className={labelClass}>{t("inventario.fields.orientation")}</label>
+              <label className={labelClass}>
+                {t("inventario.fields.orientation")}
+                <InfoTooltip content={tTooltips("inventario.orientacion.short")} variant="dashboard" />
+              </label>
               <NodDoDropdown
                 variant="form"
                 size="lg"
@@ -781,7 +795,10 @@ function UnitForm({
           )}
           {columns.vista && (
             <div>
-              <label className={labelClass}>{t("inventario.fields.view")}</label>
+              <label className={labelClass}>
+                {t("inventario.fields.view")}
+                <InfoTooltip content={tTooltips("inventario.vista.short")} variant="dashboard" />
+              </label>
               <NodDoDropdown
                 variant="form"
                 size="lg"
@@ -1591,6 +1608,7 @@ export default function InventarioPage() {
   const { project, refresh, projectId, updateLocal } = useEditorProject();
   const { saveUnidad, saveEntity } = useBackgroundSave(projectId);
   const { t } = useTranslation("editor");
+  const { t: tTooltips } = useTranslation("tooltips");
   const toast = useToast();
   const isMobile = useMediaQuery("(max-width: 767px)");
 
@@ -2455,7 +2473,7 @@ export default function InventarioPage() {
       <PageHeader
         icon={Package}
         title={t("inventario.title")}
-        description={t("inventario.description")}
+        description={<>{t("inventario.description")} <InfoTooltip content={tTooltips("inventario.concepto.short")} variant="dashboard" /></>}
         className="mb-0"
         actions={
           <div className="flex items-center gap-2">

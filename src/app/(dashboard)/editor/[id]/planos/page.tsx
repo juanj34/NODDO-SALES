@@ -36,6 +36,7 @@ import {
 } from "lucide-react";
 import type { PlanoInteractivo, PlanoPunto } from "@/types";
 import { cn } from "@/lib/utils";
+import { InfoTooltip } from "@/components/ui/InfoTooltip";
 
 /* ------------------------------------------------------------------
    Page
@@ -43,6 +44,7 @@ import { cn } from "@/lib/utils";
 export default function PlanoInteractivoPage() {
   const { project, projectId, refresh } = useEditorProject();
   const { t } = useTranslation("editor");
+  const { t: tTooltips } = useTranslation("tooltips");
   const toast = useToast();
 
   /* ---- Local state ---- */
@@ -729,7 +731,10 @@ export default function PlanoInteractivoPage() {
                 </button>
               </div>
               <div>
-                <label className={labelClass}>{t("planos.nameLabel")}</label>
+                <label className={labelClass}>
+                  {t("planos.nameLabel")}
+                  <InfoTooltip content={tTooltips("fachadas.implantacion.short")} variant="dashboard" />
+                </label>
                 <input
                   type="text"
                   value={newNombre}
@@ -750,7 +755,10 @@ export default function PlanoInteractivoPage() {
                 />
               </div>
               <div>
-                <label className={labelClass}>{t("planos.imageLabel")}</label>
+                <label className={labelClass}>
+                  {t("planos.imageLabel")}
+                  <InfoTooltip content={tTooltips("fachadas.planta.short")} variant="dashboard" />
+                </label>
                 <FileUploader
                   currentUrl={newImagenUrl || null}
                   onUpload={(url) => setNewImagenUrl(url)}

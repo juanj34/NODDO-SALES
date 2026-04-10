@@ -62,6 +62,7 @@ import { getTipologiaFields, TIPOLOGIA_FIELD_KEYS } from "@/lib/tipologia-fields
 import { AITextImprover } from "@/components/dashboard/AITextImprover";
 import { tipologiaSchema } from "@/lib/validation/schemas";
 import { InlineError } from "@/components/ui/ErrorBoundary";
+import { InfoTooltip } from "@/components/ui/InfoTooltip";
 import { ZodError } from "zod";
 import { useAutoSave } from "@/hooks/useAutoSave";
 import { AutoSaveIndicator } from "@/components/dashboard/AutoSaveIndicator";
@@ -770,6 +771,7 @@ export default function TipologiasPage() {
   const toast = useToast();
   const { confirm } = useConfirm();
   const { t } = useTranslation("editor");
+  const { t: tTooltips } = useTranslation("tooltips");
   const { saveTipologia } = useBackgroundSave(projectId);
   const { role } = useAuthRole();
   const canConfigure = role === "admin" || role === "director";
@@ -1137,7 +1139,7 @@ export default function TipologiasPage() {
   };
 
   const handleDuplicate = async (tip: Tipologia) => {
-    if (!(await confirm({ title: t("tipologias.duplicateTitle"), message: t("tipologias.duplicateConfirm") }))) return;
+    if (!(await confirm({ title: t("tipologias.duplicateTitle"), message: t("tipologias.duplicateConfirm"), variant: "warning", confirmLabel: t("tipologias.duplicate") }))) return;
     setDuplicatingId(tip.id);
 
     const tempId = `temp-dup-${Date.now()}`;
@@ -1544,7 +1546,7 @@ export default function TipologiasPage() {
                         </div>
                         {isHibrido && (
                           <div>
-                            <Label>{t("tipologias.tipoTipologia")}</Label>
+                            <Label>{t("tipologias.tipoTipologia")} <InfoTooltip content={tTooltips("tipologias.tipoTipologia.short")} variant="dashboard" /></Label>
                             <div className={cn("grid grid-cols-4 mt-1", gap.normal)}>
                               {([
                                 { id: "apartamento" as const, icon: Building2, labelKey: "tipologias.tipoApartamento" },
@@ -1602,7 +1604,7 @@ export default function TipologiasPage() {
                         )}
                         {isMultiTorre && (
                           <div>
-                            <Label>{torresLabel}</Label>
+                            <Label>{torresLabel} <InfoTooltip content={tTooltips("tipologias.torreAsignacion.short")} variant="dashboard" /></Label>
                             <div className={cn("flex flex-wrap", gap.normal)}>
                               {torres.map((torre) => {
                                 const checked = form.torre_ids.includes(torre.id);
@@ -1733,7 +1735,7 @@ export default function TipologiasPage() {
                         </div>
 
                         <div>
-                          <Label>{t("tipologias.features")}</Label>
+                          <Label>{t("tipologias.features")} <InfoTooltip content={tTooltips("tipologias.caracteristicas.short")} variant="dashboard" /></Label>
                           <div className={cn("flex flex-wrap mb-2", gap.normal)}>
                             {form.caracteristicas.map((c, i) => (
                               <span
@@ -1901,7 +1903,7 @@ export default function TipologiasPage() {
                         {/* ── Extras (conditional on project config) ── */}
                         {TIPO_EXTRAS.some(e => (project as any)[e.projectFlag]) && (
                           <div>
-                            <Label>{t("tipologias.extras") || "Extras"}</Label>
+                            <Label>{t("tipologias.extras") || "Extras"} <InfoTooltip content={tTooltips("tipologias.extras.short")} variant="dashboard" /></Label>
                             <div className={cn("grid grid-cols-2 mt-1", gap.compact)}>
                               {TIPO_EXTRAS.filter(e => (project as any)[e.projectFlag]).map((extra) => {
                                 const isOn = form[extra.field] as boolean;
@@ -2040,7 +2042,7 @@ export default function TipologiasPage() {
                       <div className="space-y-6">
                         {/* Floor tabs */}
                         <div>
-                          <Label>{t("tipologias.floors")}</Label>
+                          <Label>{t("tipologias.floors")} <InfoTooltip content={tTooltips("tipologias.pisos.short")} variant="dashboard" /></Label>
                           <div className={cn("flex items-center flex-wrap mt-1", gap.compact)}>
                             {form.pisos.map((piso, i) => (
                               <button
@@ -2142,7 +2144,7 @@ export default function TipologiasPage() {
 
                         {/* Location image (global, not per-floor) */}
                         <div>
-                          <Label>{t("tipologias.locationInProject")}</Label>
+                          <Label>{t("tipologias.locationInProject")} <InfoTooltip content={tTooltips("tipologias.ubicacionPlano.short")} variant="dashboard" /></Label>
                           <p className="text-[10px] text-[var(--text-muted)] mb-2">{t("tipologias.locationDescription")}</p>
                           <div className="max-w-[280px]">
                             <FileUploader

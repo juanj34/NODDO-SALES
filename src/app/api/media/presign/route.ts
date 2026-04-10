@@ -1,5 +1,5 @@
 import { getAuthContext, requirePermission } from "@/lib/auth-context";
-import { getPresignedMediaUploadUrl } from "@/lib/r2";
+import { getPresignedMediaUploadUrl, ensureMediaBucketCors } from "@/lib/r2";
 import { NextRequest, NextResponse } from "next/server";
 
 const MAX_FILE_SIZE = 500 * 1024 * 1024; // 500MB
@@ -41,6 +41,8 @@ export async function POST(request: NextRequest) {
         { status: 400 }
       );
     }
+
+    await ensureMediaBucketCors();
 
     const result = await getPresignedMediaUploadUrl(
       auth.user.id,

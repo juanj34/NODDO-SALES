@@ -43,6 +43,7 @@ import {
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { NodDoDropdown } from "@/components/ui/NodDoDropdown";
+import { InfoTooltip } from "@/components/ui/InfoTooltip";
 
 const tipoIcons: Record<string, typeof FileText> = {
   brochure: BookOpen,
@@ -67,6 +68,7 @@ const emptyForm = {
 export default function RecursosPage() {
   const { project, refresh, save, updateLocal, projectId } = useEditorProject();
   const { t } = useTranslation("editor");
+  const { t: tTooltips } = useTranslation("tooltips");
   const { confirm } = useConfirm();
   const toast = useToast();
 
@@ -283,8 +285,9 @@ export default function RecursosPage() {
             </div>
             <div>
               <h3 className={sectionTitle + " !mb-0 text-sm"}>Brochure Principal</h3>
-              <p className="text-[11px] text-[var(--text-tertiary)]">
+              <p className="text-[11px] text-[var(--text-tertiary)] flex items-center gap-1">
                 PDF principal del micrositio
+                <InfoTooltip content={tTooltips("recursos.brochureUrl.short")} variant="dashboard" />
               </p>
             </div>
           </div>
@@ -371,7 +374,10 @@ export default function RecursosPage() {
                   />
                 </div>
                 <div>
-                  <label className={labelClass}>{t("recursos.type")}</label>
+                  <label className={labelClass}>
+                  {t("recursos.type")}
+                  <InfoTooltip content={tTooltips("recursos.tipo.short")} variant="dashboard" />
+                </label>
                   <NodDoDropdown
                     variant="form"
                     size="lg"

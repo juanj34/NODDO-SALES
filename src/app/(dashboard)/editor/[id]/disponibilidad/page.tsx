@@ -21,6 +21,7 @@ import {
 } from "lucide-react";
 import { useToast } from "@/components/dashboard/Toast";
 import { useTranslation } from "@/i18n";
+import { InfoTooltip } from "@/components/ui/InfoTooltip";
 import { useAuthRole } from "@/hooks/useAuthContext";
 import type { Unidad, ComplementoMode } from "@/types";
 import {
@@ -79,6 +80,7 @@ export default function DisponibilidadPage() {
   const { project, updateLocal } = useEditorProject();
   const toast = useToast();
   const { t } = useTranslation("editor");
+  const { t: tTooltips } = useTranslation("tooltips");
   const { role } = useAuthRole();
 
   // ── Derived data ──────────────────────────────────────────────────
@@ -720,6 +722,7 @@ export default function DisponibilidadPage() {
             )}
           >
             Estado <SortIcon field="estado" />
+            <InfoTooltip content={tTooltips("inventario.estado.short")} variant="dashboard" />
           </button>
         </div>
 
