@@ -611,6 +611,14 @@ const editor = {
     addTitle: "Add title",
   },
   inventario: {
+    setup: {
+      title: "Set up your inventory",
+      description: "Select which information you want to manage for this project's units. You can change this later in Settings.",
+      presets: "Presets",
+      columnsSelected: "columns",
+      continue: "Continue",
+      hint: "You can modify these columns anytime from Settings → Inventory",
+    },
     title: "Unit Inventory",
     description: "Manage available units, pricing and statuses",
     tabApartamentos: "Apartments",

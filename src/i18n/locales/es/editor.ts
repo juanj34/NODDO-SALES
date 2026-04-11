@@ -611,6 +611,14 @@ const editor = {
     addTitle: "Añadir título",
   },
   inventario: {
+    setup: {
+      title: "Configura tu inventario",
+      description: "Selecciona qué información quieres manejar para las unidades de este proyecto. Podrás cambiar esto después en Configuración.",
+      presets: "Presets",
+      columnsSelected: "columnas",
+      continue: "Continuar",
+      hint: "Puedes modificar estas columnas en cualquier momento desde Configuración → Inventario",
+    },
     title: "Inventario de Unidades",
     description: "Gestiona las unidades disponibles, precios y estados",
     tabApartamentos: "Apartamentos",

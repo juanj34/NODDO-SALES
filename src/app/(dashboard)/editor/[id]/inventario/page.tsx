@@ -59,6 +59,7 @@ import { useBackgroundSave } from "@/hooks/useBackgroundSave";
 import { Badge } from "@/components/ui";
 import { PageHeader } from "@/components/dashboard/base/PageHeader";
 import { InfoTooltip } from "@/components/ui/InfoTooltip";
+import { InventorySetupWizard } from "@/components/dashboard/editor/InventorySetupWizard";
 
 // ---------------------------------------------------------------------------
 // Types
@@ -2603,6 +2604,11 @@ export default function InventarioPage() {
     }
     return s;
   }, [statsUnidades]);
+
+  // Show setup wizard if inventory columns haven't been configured yet
+  if (!project.inventory_columns) {
+    return <InventorySetupWizard project={project} onComplete={refresh} />;
+  }
 
   return (
     <motion.div
