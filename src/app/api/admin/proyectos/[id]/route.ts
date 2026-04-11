@@ -17,12 +17,22 @@ export async function PUT(
   const admin = createAdminClient();
 
   const VALID_ESTADOS = ["borrador", "publicado", "archivado"];
+  const VALID_PLANS = ["basico", "pro"];
+
   if (body.estado !== undefined && !VALID_ESTADOS.includes(body.estado)) {
     return NextResponse.json({ error: "Estado inválido" }, { status: 400 });
   }
+  if (body.plan !== undefined && !VALID_PLANS.includes(body.plan)) {
+    return NextResponse.json({ error: "Plan inválido. Opciones: basico, pro" }, { status: 400 });
+  }
 
-  const updates: Record<string, string> = {};
+  const updates: Record<string, string | number> = {};
   if (body.estado !== undefined) updates.estado = body.estado;
+  if (body.plan !== undefined) {
+    updates.plan = body.plan;
+    // Update storage limit based on new plan
+    updates.storage_limit_bytes = body.plan === "pro" ? 53687091200 : 10737418240; // 50GB : 10GB
+  }
 
   if (Object.keys(updates).length === 0) {
     return NextResponse.json({ error: "Nada que actualizar" }, { status: 400 });
@@ -31,6 +41,27 @@ export async function PUT(
   const { error } = await admin.from("proyectos").update(updates).eq("id", id);
   if (error) {
     return NextResponse.json({ error: error.message }, { status: 500 });
+  }
+
+  // Log plan changes
+  if (body.plan !== undefined) {
+    await logAdminAction({
+      adminId: auth.user.id,
+      adminEmail: auth.user.email ?? "",
+      action: "project_plan_changed",
+      targetType: "project",
+      targetId: id,
+      details: { plan: body.plan },
+    });
+    // Log to billing_events
+    const { data: proyecto } = await admin.from("proyectos").select("user_id").eq("id", id).single();
+    if (proyecto) {
+      await admin.from("billing_events").insert({
+        user_id: proyecto.user_id,
+        event_type: "plan_assigned",
+        details: { proyecto_id: id, plan: body.plan },
+      });
+    }
   }
 
   if (body.estado === "archivado") {

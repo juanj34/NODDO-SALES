@@ -32,6 +32,7 @@ interface ProjectRow {
   slug: string;
   subdomain: string | null;
   estado: string;
+  plan: string;
   user_id: string;
   render_principal_url: string | null;
   constructora_nombre: string | null;
@@ -44,6 +45,11 @@ interface ProjectRow {
   storage_media_bytes: number | null;
   storage_limit_bytes: number | null;
 }
+
+const planColors: Record<string, string> = {
+  basico: "text-neutral-400 bg-neutral-500/15 border-neutral-500/20",
+  pro: "text-[var(--site-primary)] bg-[rgba(184,151,58,0.15)] border-[rgba(184,151,58,0.25)]",
+};
 
 const estadoColors: Record<string, string> = {
   publicado: "text-emerald-400 bg-emerald-500/15 border-emerald-500/20",
@@ -116,6 +122,20 @@ export default function AdminProyectosPage() {
     }
   };
 
+  const handleChangePlan = async (projectId: string, newPlan: string) => {
+    const res = await fetch(`/api/admin/proyectos/${projectId}`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ plan: newPlan }),
+    });
+    if (res.ok) {
+      toast.success(`Plan cambiado a ${newPlan === "pro" ? "Pro" : "Básico"}`);
+      await fetchProjects();
+    } else {
+      toast.error("Error al cambiar plan");
+    }
+  };
+
   const handleExpandProject = (projectId: string) => {
     setExpandedProject(expandedProject === projectId ? null : projectId);
   };
@@ -141,7 +161,7 @@ export default function AdminProyectosPage() {
   };
 
   const handleExportCSV = () => {
-    const headers = ["Nombre", "Slug", "Owner", "Constructora", "Estado", "Unidades", "Leads", "Storage (MB)", "Fecha"];
+    const headers = ["Nombre", "Slug", "Owner", "Constructora", "Estado", "Plan", "Unidades", "Leads", "Storage (MB)", "Fecha"];
     const rows = filtered.map((p) => {
       const totalStorage = (p.storage_tours_bytes || 0) + (p.storage_videos_bytes || 0) + (p.storage_media_bytes || 0);
       return [
@@ -252,6 +272,9 @@ export default function AdminProyectosPage() {
                   <th className="text-left px-4 py-3 font-ui text-[10px] font-bold uppercase tracking-wider text-[var(--text-muted)]">
                     Estado
                   </th>
+                  <th className="text-left px-4 py-3 font-ui text-[10px] font-bold uppercase tracking-wider text-[var(--text-muted)]">
+                    Plan
+                  </th>
                   <th className="text-center px-4 py-3 font-ui text-[10px] font-bold uppercase tracking-wider text-[var(--text-muted)]">
                     <Package size={12} className="inline mr-1" />
                     Uds
@@ -311,6 +334,16 @@ export default function AdminProyectosPage() {
                         <span className={`inline-flex px-2 py-0.5 rounded-md font-ui text-[10px] font-bold uppercase tracking-wider border ${estadoColors[p.estado] || estadoColors.borrador}`}>
                           {p.estado}
                         </span>
+                      </td>
+                      <td className="px-4 py-3" onClick={(e) => e.stopPropagation()}>
+                        <select
+                          value={p.plan || "basico"}
+                          onChange={(e) => handleChangePlan(p.id, e.target.value)}
+                          className={`appearance-none cursor-pointer px-2 py-0.5 rounded-md font-ui text-[10px] font-bold uppercase tracking-wider border bg-transparent ${planColors[p.plan] || planColors.basico}`}
+                        >
+                          <option value="basico">Básico</option>
+                          <option value="pro">Pro</option>
+                        </select>
                       </td>
                       <td className="px-4 py-3 text-center">
                         <span className="text-xs text-[var(--text-secondary)]">{p.unitCount}</span>

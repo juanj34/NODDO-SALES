@@ -32,10 +32,9 @@ import { StorageOverview } from "@/components/admin/StorageOverview";
 import type { PlatformStats } from "@/types";
 
 const PLAN_COLORS: Record<string, string> = {
-  trial: "text-neutral-400 bg-neutral-500/15",
-  proyecto: "text-[var(--site-primary)] bg-[rgba(184,151,58,0.15)]",
-  studio: "text-[#d4b05a] bg-[rgba(212,176,90,0.15)]",
-  enterprise: "text-[var(--site-primary)] bg-[rgba(var(--site-primary-rgb),0.15)]",
+  basico: "text-neutral-400 bg-neutral-500/15",
+  pro: "text-[var(--site-primary)] bg-[rgba(184,151,58,0.15)]",
+  enterprise: "text-[#d4b05a] bg-[rgba(212,176,90,0.15)]",
 };
 
 function Section({ title, children, delay = 0 }: { title: string; children: React.ReactNode; delay?: number }) {

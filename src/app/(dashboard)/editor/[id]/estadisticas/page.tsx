@@ -4,6 +4,8 @@ export const dynamic = "force-dynamic";
 
 import { useState, useMemo } from "react";
 import { useEditorProject } from "@/hooks/useEditorProject";
+import { usePlanGate } from "@/hooks/usePlanGate";
+import { PlanUpgradePrompt } from "@/components/dashboard/PlanUpgradePrompt";
 import { useAnalytics } from "@/hooks/useProjectsQuery";
 import {
   pageTitle,
@@ -79,7 +81,12 @@ function exportAnalyticsCSV(data: NonNullable<ReturnType<typeof import("@/hooks/
 
 export default function EstadisticasPage() {
   const { project } = useEditorProject();
+  const { isAvailable } = usePlanGate();
   const [range, setRange] = useState<TimeRange>("30d");
+
+  if (!isAvailable("estadisticas_avanzadas")) {
+    return <PlanUpgradePrompt feature="estadisticas_avanzadas" plan={project.plan} />;
+  }
   const [customFrom, setCustomFrom] = useState<Date | null>(null);
   const [customTo, setCustomTo] = useState<Date | null>(null);
 

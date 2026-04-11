@@ -57,8 +57,8 @@ const estadoColors: Record<string, string> = {
 };
 
 const INVITE_PLANS = [
-  { value: "proyecto", label: "Proyecto" },
-  { value: "studio", label: "Studio" },
+  { value: "basico", label: "Básico" },
+  { value: "pro", label: "Pro" },
   { value: "enterprise", label: "Enterprise" },
 ] as const;
 
@@ -75,7 +75,7 @@ export default function AdminUsuariosPage() {
   const [showInviteModal, setShowInviteModal] = useState(false);
   const [inviteEmail, setInviteEmail] = useState("");
   const [inviteNombre, setInviteNombre] = useState("");
-  const [invitePlan, setInvitePlan] = useState<string>("proyecto");
+  const [invitePlan, setInvitePlan] = useState<string>("basico");
   const [inviteLoading, setInviteLoading] = useState(false);
 
   const toast = useToast();
@@ -188,7 +188,7 @@ export default function AdminUsuariosPage() {
         setShowInviteModal(false);
         setInviteEmail("");
         setInviteNombre("");
-        setInvitePlan("proyecto");
+        setInvitePlan("basico");
         await fetchUsers();
       } else {
         toast.error(data.error || "Error al enviar invitación");
@@ -212,7 +212,7 @@ export default function AdminUsuariosPage() {
       const res = await fetch("/api/admin/usuarios/invite", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, plan: "proyecto", resend: true }),
+        body: JSON.stringify({ email, plan: "basico", resend: true }),
       });
       if (res.status === 409) {
         // User already exists, means they already accepted — that's fine for resend

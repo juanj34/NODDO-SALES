@@ -4,12 +4,19 @@ export const dynamic = "force-dynamic";
 
 import { Calculator } from "lucide-react";
 import { useEditorProject } from "@/hooks/useEditorProject";
+import { usePlanGate } from "@/hooks/usePlanGate";
 import { PageHeader } from "@/components/dashboard/base/PageHeader";
+import { PlanUpgradePrompt } from "@/components/dashboard/PlanUpgradePrompt";
 import { CotizadorTool } from "@/components/dashboard/cotizador/CotizadorTool";
 import type { ProjectForCotizador } from "@/types";
 
 export default function CotizadorOperativoPage() {
   const { project } = useEditorProject();
+  const { isAvailable } = usePlanGate();
+
+  if (!isAvailable("cotizador")) {
+    return <PlanUpgradePrompt feature="cotizador" plan={project.plan} />;
+  }
 
   const projectForCotizador: ProjectForCotizador = {
     id: project.id,

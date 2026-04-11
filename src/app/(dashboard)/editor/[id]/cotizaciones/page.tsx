@@ -2,7 +2,9 @@
 
 import { useState, useCallback } from "react";
 import { useEditorProject } from "@/hooks/useEditorProject";
+import { usePlanGate } from "@/hooks/usePlanGate";
 import { PageHeader } from "@/components/dashboard/base/PageHeader";
+import { PlanUpgradePrompt } from "@/components/dashboard/PlanUpgradePrompt";
 import { Calculator, LayoutTemplate, Sparkles, FileText, Globe } from "lucide-react";
 import { motion } from "framer-motion";
 import { useTranslation } from "@/i18n";
@@ -17,6 +19,11 @@ type SettingsTab = "plantillas" | "addons" | "pdf";
 
 export default function CotizacionesPage() {
   const { project, save, refresh, updateLocal } = useEditorProject();
+  const { isAvailable } = usePlanGate();
+
+  if (!isAvailable("cotizador")) {
+    return <PlanUpgradePrompt feature="cotizador" plan={project.plan} />;
+  }
   const { t } = useTranslation("editor");
   const { t: tTooltips } = useTranslation("tooltips");
   const [activeTab, setActiveTab] = useState<SettingsTab>("plantillas");

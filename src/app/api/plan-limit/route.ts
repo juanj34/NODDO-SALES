@@ -24,9 +24,9 @@ export async function GET() {
       });
     }
 
-    // No plan found — default to "proyecto" plan limits
+    // No plan found — default to "basico" plan limits
     return NextResponse.json({
-      max_collaborators: PLAN_DEFAULTS.proyecto.max_collaborators,
+      max_collaborators: PLAN_DEFAULTS.basico.max_collaborators,
     });
   } catch (err) {
     return NextResponse.json(

@@ -1,22 +1,21 @@
 /**
- * Project feature flags for the platform admin panel.
- * Features are stored in the `project_features` table (per-project toggles).
+ * Project feature flags.
+ *
+ * Features are now derived from the plan-config system. The project_features
+ * table in the database can still be used as per-project overrides for
+ * enterprise customers.
  */
 
-export const ALL_FEATURES = [
-  "analytics",
-  "cotizador",
-  "tour_360",
-  "brochure",
-  "videos",
-] as const;
+import { GATED_FEATURES, GATED_FEATURE_LABELS, type GatedFeature } from "./plan-config";
 
-export type ProjectFeature = (typeof ALL_FEATURES)[number];
+export { GATED_FEATURES, type GatedFeature } from "./plan-config";
 
-export const FEATURE_LABELS: Record<ProjectFeature, { es: string; en: string }> = {
-  analytics: { es: "Analíticas", en: "Analytics" },
-  cotizador: { es: "Cotizador", en: "Quotation Tool" },
-  tour_360: { es: "Tour 360°", en: "360° Tour" },
-  brochure: { es: "Brochure", en: "Brochure" },
-  videos: { es: "Videos", en: "Videos" },
+// Keep backward compat: ALL_FEATURES + ProjectFeature
+export const ALL_FEATURES = GATED_FEATURES;
+export type ProjectFeature = GatedFeature;
+
+export const FEATURE_LABELS: Record<GatedFeature, { es: string; en: string }> = {
+  cotizador: { es: GATED_FEATURE_LABELS.cotizador.es, en: GATED_FEATURE_LABELS.cotizador.en },
+  correos_branded: { es: GATED_FEATURE_LABELS.correos_branded.es, en: GATED_FEATURE_LABELS.correos_branded.en },
+  estadisticas_avanzadas: { es: GATED_FEATURE_LABELS.estadisticas_avanzadas.es, en: GATED_FEATURE_LABELS.estadisticas_avanzadas.en },
 };

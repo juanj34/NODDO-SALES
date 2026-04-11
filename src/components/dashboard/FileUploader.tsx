@@ -225,6 +225,38 @@ export function FileUploader({
         return result;
       }
 
+      // Videos: compress if large, then upload directly to R2 (not via serverless)
+      if (isVideo) {
+        if (file.size > 100 * 1024 * 1024) {
+          throw new Error("El video excede 100MB. Por favor usa un archivo más liviano.");
+        }
+
+        let videoToUpload = file;
+        // Compress videos > 5MB client-side
+        if (file.size > 5 * 1024 * 1024) {
+          setUploadState("processing");
+          setUploadProgressPercent(0);
+          try {
+            const { compressVideo } = await import("@/lib/compress-video");
+            videoToUpload = await compressVideo(file, (ratio) => {
+              setUploadProgressPercent(Math.round(ratio * 100));
+            });
+          } catch (err) {
+            // If compression fails, upload original file
+            console.warn("Video compression failed, uploading original:", err);
+            videoToUpload = file;
+          }
+        }
+
+        // Upload to R2 via presigned URL (with progress)
+        setUploadState("uploading");
+        setUploadProgressPercent(0);
+        const result = await uploadDirectToR2(videoToUpload);
+        setUploadProgressPercent(100);
+        setUploadState("complete");
+        return result;
+      }
+
       // Compress large images client-side before uploading
       let fileToUpload = file;
       if (isImage && file.size > 4 * 1024 * 1024) {
@@ -233,26 +265,6 @@ export function FileUploader({
         try {
           fileToUpload = await compressImage(file);
           setUploadProgressPercent(100);
-        } finally {
-          setUploadState("uploading");
-          setUploadProgressPercent(0);
-        }
-      }
-
-      // Reject videos over 100MB (too heavy for browser-based compression)
-      if (isVideo && file.size > 100 * 1024 * 1024) {
-        throw new Error("El video excede 100MB. Por favor usa un archivo más liviano.");
-      }
-
-      // Compress large videos client-side (FFmpeg WASM, lazy-loaded)
-      if (isVideo && file.size > 5 * 1024 * 1024) {
-        setUploadState("processing");
-        setUploadProgressPercent(0);
-        try {
-          const { compressVideo } = await import("@/lib/compress-video");
-          fileToUpload = await compressVideo(file, (ratio) => {
-            setUploadProgressPercent(Math.round(ratio * 100));
-          });
         } finally {
           setUploadState("uploading");
           setUploadProgressPercent(0);

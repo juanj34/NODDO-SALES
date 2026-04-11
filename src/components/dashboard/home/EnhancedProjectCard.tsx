@@ -110,6 +110,17 @@ export function EnhancedProjectCard({ proyecto, stats, index, isAdmin, onDelete,
                 {badge.label}
               </span>
             </div>
+            {proyecto.plan && (
+              <span
+                className={`px-2 py-0.5 rounded-md font-ui text-[9px] font-bold uppercase tracking-wider backdrop-blur-md border ${
+                  proyecto.plan === "pro"
+                    ? "text-[#b8973a] bg-[rgba(184,151,58,0.15)] border-[rgba(184,151,58,0.25)]"
+                    : "text-white/50 bg-black/30 border-white/10"
+                }`}
+              >
+                {proyecto.plan === "pro" ? "PRO" : "BÁSICO"}
+              </span>
+            )}
           </div>
 
         </div>

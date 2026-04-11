@@ -13,6 +13,7 @@ import type { CotizadorConfig, FaseConfig, DescuentoConfig, Unidad, Currency, Co
 import { formatCurrency } from "@/lib/currency";
 import { logActivity } from "@/lib/activity-logger";
 import { getAuthContext } from "@/lib/auth-context";
+import { requireFeature, PlanFeatureError } from "@/lib/plan-guard";
 
 // Use service-role client for public endpoint (no user auth required)
 function getServiceClient() {
@@ -164,6 +165,21 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json();
+    const proyecto_id_check = body?.proyecto_id;
+
+    // Plan gate: cotizador requires Pro plan
+    if (proyecto_id_check) {
+      const serviceClient = getServiceClient();
+      try {
+        await requireFeature(serviceClient, proyecto_id_check, "cotizador");
+      } catch (err) {
+        if (err instanceof PlanFeatureError) {
+          return NextResponse.json({ error: err.message }, { status: 403 });
+        }
+        throw err;
+      }
+    }
+
     const {
       proyecto_id, unidad_id, nombre, email, telefono,
       utm_source, utm_medium, utm_campaign, agente_id, agente_nombre,

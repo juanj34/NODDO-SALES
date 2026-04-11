@@ -5,7 +5,7 @@ import { sendAdminUserInvite } from "@/lib/email";
 import { PLAN_DEFAULTS, type PlanType } from "@/lib/plan-limits";
 import { NextRequest, NextResponse } from "next/server";
 
-const VALID_PLANS: PlanType[] = ["proyecto", "studio", "enterprise"];
+const VALID_PLANS: PlanType[] = ["basico", "pro", "enterprise"];
 
 export async function POST(request: NextRequest) {
   const auth = await getAuthContext();

@@ -55,6 +55,9 @@ import { useMobileDrawer } from "@/hooks/useMobileDrawer";
 import { RouteProgressBar } from "@/components/ui/RouteProgressBar";
 import { TourUploadProvider, useTourUploadContext } from "@/contexts/TourUploadContext";
 import { SetupGuidePill } from "@/components/dashboard/onboarding/SetupGuidePill";
+import { PlanGateBadge } from "@/components/dashboard/PlanGateBadge";
+import { EDITOR_TAB_FEATURE_MAP } from "@/lib/plan-feature-map";
+import { isFeatureAvailable, type ProjectPlan } from "@/lib/plan-config";
 
 /* ------------------------------------------------------------------ */
 /*  Helpers                                                            */
@@ -665,6 +668,9 @@ export default function EditorLayout({
                     const count = tab.badgeKey && badgeCounts ? badgeCounts[tab.badgeKey] : null;
                     const TabIcon = tab.id === "torres" ? torresIcon : tab.icon;
                     const tabLabel = tab.id === "torres" ? torresLabel : t(tab.labelKey);
+                    const gatedFeature = EDITOR_TAB_FEATURE_MAP[tab.id];
+                    const projectPlan = (project.plan ?? "basico") as ProjectPlan;
+                    const isLocked = gatedFeature ? !isFeatureAvailable(projectPlan, gatedFeature) : false;
 
                     return (
                       <Link
@@ -672,21 +678,27 @@ export default function EditorLayout({
                         href={`${basePath}${tab.href}`}
                         onClick={closeDrawer}
                         className={cn(
-                          "flex items-center gap-2 px-2.5 py-[6px] rounded-lg font-ui text-[10.5px] font-semibold uppercase tracking-[0.08em] transition-all duration-150",
-                          isActive
-                            ? "bg-[var(--surface-2)] text-white"
-                            : "text-[var(--text-tertiary)] hover:text-[var(--text-secondary)] hover:bg-[var(--surface-2)]/50"
+                          "group flex items-center gap-2 px-2.5 py-[6px] rounded-lg font-ui text-[10.5px] font-semibold uppercase tracking-[0.08em] transition-all duration-150",
+                          isLocked
+                            ? "text-[var(--text-muted)] hover:text-[var(--text-tertiary)] hover:bg-[var(--surface-2)]/30"
+                            : isActive
+                              ? "bg-[var(--surface-2)] text-white"
+                              : "text-[var(--text-tertiary)] hover:text-[var(--text-secondary)] hover:bg-[var(--surface-2)]/50"
                         )}
                       >
                         <TabIcon
                           size={15}
                           className={cn(
                             "shrink-0",
-                            isActive ? "text-[var(--site-primary)]" : ""
+                            isLocked
+                              ? "opacity-40"
+                              : isActive ? "text-[var(--site-primary)]" : ""
                           )}
                         />
-                        <span className="flex-1 truncate">{tabLabel}</span>
-                        {count !== null && count > 0 && (
+                        <span className={cn("flex-1 truncate", isLocked && "opacity-60")}>{tabLabel}</span>
+                        {isLocked ? (
+                          <PlanGateBadge />
+                        ) : count !== null && count > 0 ? (
                           <span
                             className={cn(
                               "text-[9px] font-medium px-1.5 py-px rounded-full min-w-[18px] text-center",
@@ -697,7 +709,7 @@ export default function EditorLayout({
                           >
                             {count}
                           </span>
-                        )}
+                        ) : null}
                       </Link>
                     );
                   })}

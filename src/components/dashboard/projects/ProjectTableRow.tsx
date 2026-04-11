@@ -90,9 +90,21 @@ export function ProjectTableRow({
         </div>
       </td>
 
-      {/* Estado */}
+      {/* Estado + Plan */}
       <td className="px-5 py-3">
-        <ProjectStatusBadge estado={proyecto.estado} />
+        <div className="flex items-center gap-2">
+          <ProjectStatusBadge estado={proyecto.estado} />
+          <span
+            className={cn(
+              "px-1.5 py-0.5 rounded font-ui text-[9px] font-bold uppercase tracking-wider border",
+              proyecto.plan === "pro"
+                ? "text-[var(--site-primary)] bg-[rgba(184,151,58,0.12)] border-[rgba(184,151,58,0.2)]"
+                : "text-[var(--text-muted)] bg-[var(--surface-3)] border-[var(--border-subtle)]"
+            )}
+          >
+            {proyecto.plan === "pro" ? "PRO" : "BÁSICO"}
+          </span>
+        </div>
       </td>
 
       {/* Unidades */}

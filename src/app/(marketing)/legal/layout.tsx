@@ -2,8 +2,9 @@ import { Metadata } from "next";
 import Link from "next/link";
 
 export const metadata: Metadata = {
-  title: "Legal - NODDO",
-  description: "Términos legales, privacidad y políticas de NODDO",
+  title: "Legal | NODDO — Términos, Privacidad y Políticas",
+  description: "Términos de servicio, política de privacidad y políticas legales de NODDO. Transparencia total en cómo manejamos tus datos.",
+  robots: { index: true, follow: true },
 };
 
 export default function LegalLayout({ children }: { children: React.ReactNode }) {

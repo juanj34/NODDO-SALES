@@ -82,8 +82,8 @@ export default function AdminRevenuePage() {
   }
 
   const planColors: Record<string, string> = {
-    basic: "text-neutral-400 bg-neutral-500/15 border-neutral-500/20",
-    premium: "text-[var(--site-primary)] bg-[rgba(var(--site-primary-rgb),0.15)] border-[rgba(var(--site-primary-rgb),0.2)]",
+    basico: "text-neutral-400 bg-neutral-500/15 border-neutral-500/20",
+    pro: "text-[var(--site-primary)] bg-[rgba(var(--site-primary-rgb),0.15)] border-[rgba(var(--site-primary-rgb),0.2)]",
     enterprise: "text-[#d4b05a] bg-[rgba(212,176,90,0.15)] border-[rgba(212,176,90,0.2)]",
   };
 

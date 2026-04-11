@@ -163,6 +163,53 @@ interface AdminInviteStrings {
 
 /* ── Full locale bundle ─────────────────────────────────────────────── */
 
+/* ── Billing email strings ──────────────────────────────────────────── */
+
+interface InvoiceStrings {
+  subject: string;
+  heading: string;
+  body: string;
+  planLabel: string;
+  amountLabel: string;
+  dueDateLabel: string;
+  periodLabel: string;
+  cta: string;
+}
+
+interface PaymentReminderStrings {
+  subject: string;
+  heading: string;
+  body: string;
+  cta: string;
+}
+
+interface PaymentOverdueStrings {
+  subject: string;
+  heading: string;
+  body: string;
+  warning: string;
+  cta: string;
+}
+
+interface PaymentReceiptStrings {
+  subject: string;
+  heading: string;
+  body: string;
+  amountLabel: string;
+  methodLabel: string;
+  nextBillingLabel: string;
+  cta: string;
+}
+
+interface PlanUpgradeStrings {
+  subject: string;
+  heading: string;
+  body: string;
+  newPlanLabel: string;
+  featuresHeading: string;
+  cta: string;
+}
+
 export interface EmailStrings {
   shared: SharedStrings;
   leadNotification: LeadNotificationStrings;
@@ -178,6 +225,11 @@ export interface EmailStrings {
   bookingReminder: BookingReminderStrings;
   noShow: NoShowStrings;
   adminInvite: AdminInviteStrings;
+  invoice: InvoiceStrings;
+  paymentReminder: PaymentReminderStrings;
+  paymentOverdue: PaymentOverdueStrings;
+  paymentReceipt: PaymentReceiptStrings;
+  planUpgrade: PlanUpgradeStrings;
 }
 
 /* ── Spanish ────────────────────────────────────────────────────────── */
@@ -335,6 +387,47 @@ const es: EmailStrings = {
     cta: "Activar Cuenta",
   },
 
+  invoice: {
+    subject: "Factura {invoiceNumber} — NODDO",
+    heading: "Tu factura de NODDO",
+    body: "Aquí tienes tu factura para el periodo de {periodStart} a {periodEnd}. Por favor realiza el pago antes de la fecha de vencimiento.",
+    planLabel: "Plan",
+    amountLabel: "Monto",
+    dueDateLabel: "Fecha de vencimiento",
+    periodLabel: "Periodo",
+    cta: "Ver Factura",
+  },
+  paymentReminder: {
+    subject: "Recordatorio de pago — NODDO",
+    heading: "Tu pago está próximo a vencer",
+    body: "Te recordamos que tu factura {invoiceNumber} por {amount} vence el {dueDate}. Realiza el pago a tiempo para mantener tu servicio activo.",
+    cta: "Realizar Pago",
+  },
+  paymentOverdue: {
+    subject: "Pago vencido — NODDO",
+    heading: "Tu pago está vencido",
+    body: "Tu factura {invoiceNumber} por {amount} venció el {dueDate}.",
+    warning: "Si el pago no se realiza pronto, tu servicio podría ser suspendido. Por favor ponte en contacto con nosotros si necesitas asistencia.",
+    cta: "Pagar Ahora",
+  },
+  paymentReceipt: {
+    subject: "Confirmación de pago — NODDO",
+    heading: "Pago recibido",
+    body: "Hemos recibido tu pago exitosamente. Gracias por confiar en NODDO.",
+    amountLabel: "Monto pagado",
+    methodLabel: "Método de pago",
+    nextBillingLabel: "Próximo cobro",
+    cta: "Ver Mi Cuenta",
+  },
+  planUpgrade: {
+    subject: "Plan actualizado a {plan} — NODDO",
+    heading: "¡Tu plan ha sido actualizado!",
+    body: "Tu proyecto ahora tiene acceso a todas las funciones del plan {plan}.",
+    newPlanLabel: "Nuevo plan",
+    featuresHeading: "Ahora tienes acceso a:",
+    cta: "Explorar Nuevas Funciones",
+  },
+
 };
 
 /* ── English ────────────────────────────────────────────────────────── */
@@ -490,6 +583,47 @@ const en: EmailStrings = {
     heading: "Welcome to NODDO",
     body: 'You have been invited to the NODDO platform. Your plan: <strong style="color:#b8973a;">{plan}</strong>. Click the button below to activate your account and start creating premium microsites for your projects.',
     cta: "Activate Account",
+  },
+
+  invoice: {
+    subject: "Invoice {invoiceNumber} — NODDO",
+    heading: "Your NODDO invoice",
+    body: "Here is your invoice for the period from {periodStart} to {periodEnd}. Please complete payment before the due date.",
+    planLabel: "Plan",
+    amountLabel: "Amount",
+    dueDateLabel: "Due date",
+    periodLabel: "Period",
+    cta: "View Invoice",
+  },
+  paymentReminder: {
+    subject: "Payment reminder — NODDO",
+    heading: "Your payment is due soon",
+    body: "This is a reminder that your invoice {invoiceNumber} for {amount} is due on {dueDate}. Please make your payment on time to keep your service active.",
+    cta: "Make Payment",
+  },
+  paymentOverdue: {
+    subject: "Payment overdue — NODDO",
+    heading: "Your payment is overdue",
+    body: "Your invoice {invoiceNumber} for {amount} was due on {dueDate}.",
+    warning: "If payment is not received soon, your service may be suspended. Please contact us if you need assistance.",
+    cta: "Pay Now",
+  },
+  paymentReceipt: {
+    subject: "Payment confirmed — NODDO",
+    heading: "Payment received",
+    body: "We have successfully received your payment. Thank you for trusting NODDO.",
+    amountLabel: "Amount paid",
+    methodLabel: "Payment method",
+    nextBillingLabel: "Next billing",
+    cta: "View My Account",
+  },
+  planUpgrade: {
+    subject: "Plan upgraded to {plan} — NODDO",
+    heading: "Your plan has been upgraded!",
+    body: "Your project now has access to all features in the {plan} plan.",
+    newPlanLabel: "New plan",
+    featuresHeading: "You now have access to:",
+    cta: "Explore New Features",
   },
 
 };

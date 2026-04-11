@@ -257,7 +257,7 @@ export async function getPortalBySlug(slug: string) {
   // Fetch published projects for this user
   const { data: projects } = await publicClient
     .from("proyectos")
-    .select("id, nombre, slug, descripcion, render_principal_url, hero_video_url, logo_url, constructora_nombre, constructora_logo_url, estado, subdomain, tipo_proyecto")
+    .select("id, nombre, slug, descripcion, render_principal_url, hero_video_url, logo_url, constructora_nombre, constructora_logo_url, estado, subdomain, tipo_proyecto, plan")
     .eq("user_id", portal.user_id)
     .eq("estado", "publicado");
 

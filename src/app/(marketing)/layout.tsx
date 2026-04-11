@@ -98,6 +98,34 @@ export default function MarketingLayout({
         style={{ backgroundImage: `url("${noiseDataUri}")` }}
       />
 
+      {/* Organization JSON-LD */}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify({
+            "@context": "https://schema.org",
+            "@type": "Organization",
+            name: "NODDO",
+            url: "https://noddo.io",
+            logo: "https://noddo.io/LOGO_FAVICON-GOL.svg",
+            description: "Plataforma SaaS de micrositios inmobiliarios para constructoras. Sala de ventas digital con inventario en vivo, cotizador y leads calificados.",
+            foundingDate: "2024",
+            contactPoint: {
+              "@type": "ContactPoint",
+              email: "hola@noddo.io",
+              contactType: "sales",
+              availableLanguage: ["Spanish", "English"],
+            },
+            sameAs: [],
+            areaServed: {
+              "@type": "GeoCircle",
+              geoMidpoint: { "@type": "GeoCoordinates", latitude: 6.25, longitude: -75.57 },
+              geoRadius: "10000 km",
+            },
+          }),
+        }}
+      />
+
       <BookingProvider>
         <ContactProvider>
           <CustomCursor />

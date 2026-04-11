@@ -1,17 +1,25 @@
 User-agent: *
 Allow: /
 
-# Marketing pages
-Allow: /pricing
-Allow: /privacidad
-Allow: /terminos
-
-# Block dashboard and API
+# Block private/admin areas
+Disallow: /dashboard
 Disallow: /proyectos
 Disallow: /editor/
 Disallow: /leads
+Disallow: /analytics
 Disallow: /admin/
 Disallow: /api/
 Disallow: /auth/
+Disallow: /cuenta
+Disallow: /login
+Disallow: /recuperar
+Disallow: /nueva-contrasena
+Disallow: /crear
+Disallow: /disponibilidad
+Disallow: /cotizaciones
+Disallow: /cotizador
+Disallow: /financiero
+Disallow: /equipo
+Disallow: /demo-confirmada
 
 Sitemap: https://noddo.io/sitemap.xml

@@ -12,8 +12,8 @@ function getResend() {
 }
 
 const PLAN_LABELS: Record<string, string> = {
-  basic: "Basic",
-  premium: "Premium",
+  basico: "Básico",
+  pro: "Pro",
   enterprise: "Enterprise",
 };
 
@@ -983,4 +983,235 @@ export function escapeHtml(str: string): string {
     .replace(/</g, "&lt;")
     .replace(/>/g, "&gt;")
     .replace(/"/g, "&quot;");
+}
+
+/* ── Billing emails ─────────────────────────────────────────────────── */
+
+interface InvoiceEmailData {
+  toEmail: string;
+  invoiceNumber: string;
+  plan: string;
+  amount: string;
+  currency: string;
+  dueDate: string;
+  periodStart: string;
+  periodEnd: string;
+  locale?: EmailLocale;
+}
+
+export async function sendInvoiceEmail(data: InvoiceEmailData) {
+  const resend = getResend();
+  if (!resend) return;
+  const locale = data.locale ?? "es";
+  const s = getEmailStrings(locale);
+
+  const subject = t(s.invoice.subject, { invoiceNumber: data.invoiceNumber });
+  const body = t(s.invoice.body, {
+    periodStart: data.periodStart,
+    periodEnd: data.periodEnd,
+  });
+
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL || "https://noddo.io";
+
+  const html = emailWrapper(
+    s.invoice.heading,
+    undefined,
+    `<tr><td style="padding:0 24px 20px;font-size:14px;line-height:1.7;color:#b0aaa2;">${body}</td></tr>
+    ${detailTable([
+      { label: s.invoice.planLabel, value: PLAN_LABELS[data.plan] || data.plan },
+      { label: s.invoice.amountLabel, value: `${data.amount} ${data.currency}`, highlight: true },
+      { label: s.invoice.dueDateLabel, value: data.dueDate },
+      { label: s.invoice.periodLabel, value: `${data.periodStart} — ${data.periodEnd}` },
+    ])}
+    ${ctaButton(`${appUrl}/cuenta`, s.invoice.cta)}`,
+    locale,
+  );
+
+  try {
+    await resend.emails.send({
+      from: process.env.RESEND_FROM_EMAIL || "NODDO <notificaciones@noddo.io>",
+      to: data.toEmail,
+      subject,
+      html,
+    });
+  } catch (err) {
+    console.error("[email] sendInvoiceEmail failed:", err);
+  }
+}
+
+interface PaymentReminderEmailData {
+  toEmail: string;
+  invoiceNumber: string;
+  amount: string;
+  dueDate: string;
+  locale?: EmailLocale;
+}
+
+export async function sendPaymentReminderEmail(data: PaymentReminderEmailData) {
+  const resend = getResend();
+  if (!resend) return;
+  const locale = data.locale ?? "es";
+  const s = getEmailStrings(locale);
+
+  const subject = s.paymentReminder.subject;
+  const body = t(s.paymentReminder.body, {
+    invoiceNumber: data.invoiceNumber,
+    amount: data.amount,
+    dueDate: data.dueDate,
+  });
+
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL || "https://noddo.io";
+
+  const html = emailWrapper(
+    s.paymentReminder.heading,
+    undefined,
+    `<tr><td style="padding:0 24px 28px;font-size:14px;line-height:1.7;color:#b0aaa2;">${body}</td></tr>
+    ${ctaButton(`${appUrl}/cuenta`, s.paymentReminder.cta)}`,
+    locale,
+  );
+
+  try {
+    await resend.emails.send({
+      from: process.env.RESEND_FROM_EMAIL || "NODDO <notificaciones@noddo.io>",
+      to: data.toEmail,
+      subject,
+      html,
+    });
+  } catch (err) {
+    console.error("[email] sendPaymentReminderEmail failed:", err);
+  }
+}
+
+interface PaymentOverdueEmailData {
+  toEmail: string;
+  invoiceNumber: string;
+  amount: string;
+  dueDate: string;
+  locale?: EmailLocale;
+}
+
+export async function sendPaymentOverdueEmail(data: PaymentOverdueEmailData) {
+  const resend = getResend();
+  if (!resend) return;
+  const locale = data.locale ?? "es";
+  const s = getEmailStrings(locale);
+
+  const subject = s.paymentOverdue.subject;
+  const body = t(s.paymentOverdue.body, {
+    invoiceNumber: data.invoiceNumber,
+    amount: data.amount,
+    dueDate: data.dueDate,
+  });
+
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL || "https://noddo.io";
+
+  const html = emailWrapper(
+    s.paymentOverdue.heading,
+    undefined,
+    `<tr><td style="padding:0 24px 16px;font-size:14px;line-height:1.7;color:#b0aaa2;">${body}</td></tr>
+    <tr><td style="padding:0 24px 28px;font-size:13px;line-height:1.7;color:#ef4444;font-weight:500;">${s.paymentOverdue.warning}</td></tr>
+    ${ctaButton(`${appUrl}/cuenta`, s.paymentOverdue.cta)}`,
+    locale,
+  );
+
+  try {
+    await resend.emails.send({
+      from: process.env.RESEND_FROM_EMAIL || "NODDO <notificaciones@noddo.io>",
+      to: data.toEmail,
+      subject,
+      html,
+    });
+  } catch (err) {
+    console.error("[email] sendPaymentOverdueEmail failed:", err);
+  }
+}
+
+interface PaymentReceiptEmailData {
+  toEmail: string;
+  amount: string;
+  currency: string;
+  paymentMethod: string;
+  nextBillingDate: string;
+  locale?: EmailLocale;
+}
+
+export async function sendPaymentReceiptEmail(data: PaymentReceiptEmailData) {
+  const resend = getResend();
+  if (!resend) return;
+  const locale = data.locale ?? "es";
+  const s = getEmailStrings(locale);
+
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL || "https://noddo.io";
+
+  const html = emailWrapper(
+    s.paymentReceipt.heading,
+    undefined,
+    `<tr><td style="padding:0 24px 20px;font-size:14px;line-height:1.7;color:#b0aaa2;">${s.paymentReceipt.body}</td></tr>
+    ${detailTable([
+      { label: s.paymentReceipt.amountLabel, value: `${data.amount} ${data.currency}`, highlight: true },
+      { label: s.paymentReceipt.methodLabel, value: data.paymentMethod },
+      { label: s.paymentReceipt.nextBillingLabel, value: data.nextBillingDate },
+    ])}
+    ${ctaButton(`${appUrl}/cuenta`, s.paymentReceipt.cta)}`,
+    locale,
+  );
+
+  try {
+    await resend.emails.send({
+      from: process.env.RESEND_FROM_EMAIL || "NODDO <notificaciones@noddo.io>",
+      to: data.toEmail,
+      subject: s.paymentReceipt.subject,
+      html,
+    });
+  } catch (err) {
+    console.error("[email] sendPaymentReceiptEmail failed:", err);
+  }
+}
+
+interface PlanUpgradeEmailData {
+  toEmail: string;
+  plan: string;
+  features: string[];
+  locale?: EmailLocale;
+}
+
+export async function sendPlanUpgradeConfirmation(data: PlanUpgradeEmailData) {
+  const resend = getResend();
+  if (!resend) return;
+  const locale = data.locale ?? "es";
+  const s = getEmailStrings(locale);
+
+  const planLabel = PLAN_LABELS[data.plan] || data.plan;
+  const subject = t(s.planUpgrade.subject, { plan: planLabel });
+  const body = t(s.planUpgrade.body, { plan: planLabel });
+
+  const featuresHtml = data.features
+    .map((f) => `<li style="padding:4px 0;color:#b0aaa2;font-size:13px;">✓ ${escapeHtml(f)}</li>`)
+    .join("");
+
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL || "https://noddo.io";
+
+  const html = emailWrapper(
+    s.planUpgrade.heading,
+    undefined,
+    `<tr><td style="padding:0 24px 16px;font-size:14px;line-height:1.7;color:#b0aaa2;">${body}</td></tr>
+    ${detailTable([
+      { label: s.planUpgrade.newPlanLabel, value: planLabel, highlight: true },
+    ])}
+    <tr><td style="padding:0 24px 8px;font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:#5a5550;">${s.planUpgrade.featuresHeading}</td></tr>
+    <tr><td style="padding:0 24px 24px;"><ul style="margin:0;padding-left:16px;list-style:none;">${featuresHtml}</ul></td></tr>
+    ${ctaButton(`${appUrl}/proyectos`, s.planUpgrade.cta)}`,
+    locale,
+  );
+
+  try {
+    await resend.emails.send({
+      from: process.env.RESEND_FROM_EMAIL || "NODDO <notificaciones@noddo.io>",
+      to: data.toEmail,
+      subject,
+      html,
+    });
+  } catch (err) {
+    console.error("[email] sendPlanUpgradeConfirmation failed:", err);
+  }
 }

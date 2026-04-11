@@ -61,14 +61,6 @@ export const metadata: Metadata = {
       "Showroom inmobiliario interactivo con fachada clicable, planos y leads automáticos. Publicado en 1 día.",
     url: "https://noddo.io",
     siteName: "NODDO",
-    images: [
-      {
-        url: "/og-image.jpg", // 1200x630
-        width: 1200,
-        height: 630,
-        alt: "NODDO — Showroom Digital Inmobiliario",
-      },
-    ],
     locale: "es_CO",
     type: "website",
   },
@@ -77,7 +69,6 @@ export const metadata: Metadata = {
     title: "NODDO — Sala de Ventas Digital",
     description:
       "Showroom inmobiliario interactivo. Sin agencia, sin código, sin esperar.",
-    images: ["/og-image.jpg"],
   },
 };
 
