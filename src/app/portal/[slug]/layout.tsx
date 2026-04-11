@@ -2,6 +2,7 @@ import { cache } from "react";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { getPortalBySlug } from "@/lib/supabase/server-queries";
+import { NoddoBadge } from "@/components/site/NoddoBadge";
 import type { ConstructoraPortal } from "@/types";
 
 interface PortalProject {
@@ -17,6 +18,7 @@ interface PortalProject {
   estado: string;
   subdomain: string | null;
   tipo_proyecto: string | null;
+  plan: string;
 }
 
 export interface PortalData extends ConstructoraPortal {
@@ -117,6 +119,7 @@ export default async function PortalLayout({ params, children }: Props) {
           // Using a wrapper div that stores the data for the client page to read
           children
         : children}
+      <NoddoBadge />
     </div>
   );
 }
