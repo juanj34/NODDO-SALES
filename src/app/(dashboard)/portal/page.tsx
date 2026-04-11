@@ -152,8 +152,10 @@ export default function PortalPage() {
     });
   }, []);
 
-  /* ── Copy URL ──────────────────────────────────────────────────── */
+  /* ── URLs ───────────────────────────────────────────────────────── */
+  const isLocalhost = typeof window !== "undefined" && window.location.hostname === "localhost";
   const portalUrl = slug ? `${slug}.noddo.io` : "";
+  const portalPreviewUrl = isLocalhost ? `/portal/${slug}` : `https://${portalUrl}`;
   const handleCopyUrl = useCallback(() => {
     if (!portalUrl) return;
     navigator.clipboard.writeText(`https://${portalUrl}`);
@@ -301,11 +303,11 @@ export default function PortalPage() {
                 <Copy size={13} />
               </button>
               <a
-                href={`https://${portalUrl}`}
+                href={portalPreviewUrl}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="p-1.5 rounded-lg hover:bg-[var(--surface-3)] text-[var(--text-tertiary)] hover:text-white transition-colors shrink-0"
-                title="Abrir portal"
+                title={isLocalhost ? "Ver en localhost" : "Abrir portal"}
               >
                 <ExternalLink size={13} />
               </a>
