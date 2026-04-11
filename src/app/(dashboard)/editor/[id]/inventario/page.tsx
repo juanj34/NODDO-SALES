@@ -40,6 +40,7 @@ import {
   Home,
   MapPin,
   Store,
+  FileDown,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { formatCurrency } from "@/lib/currency";
@@ -1782,6 +1783,39 @@ export default function InventarioPage() {
   const [bulkDeleting, setBulkDeleting] = useState(false);
   const [vendidaWarning, setVendidaWarning] = useState<{ callback: () => void } | null>(null);
 
+  // --- PDF export ---
+  const [exportingPdf, setExportingPdf] = useState(false);
+  const handleExportPdf = useCallback(async () => {
+    if (!projectId || exportingPdf) return;
+    setExportingPdf(true);
+    try {
+      const res = await fetch("/api/unidades/export-pdf", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ proyecto_id: projectId }),
+      });
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({ error: "Error desconocido" }));
+        throw new Error(data.error || "Error generando PDF");
+      }
+      const blob = await res.blob();
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `Disponibilidad_${new Date().toISOString().slice(0, 10)}.pdf`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
+      toast.success(t("inventario.pdfExported") || "PDF exportado");
+    } catch (err) {
+      console.error("[export-pdf]", err);
+      toast.error(err instanceof Error ? err.message : "Error exportando PDF");
+    } finally {
+      setExportingPdf(false);
+    }
+  }, [projectId, exportingPdf, toast, t]);
+
   // --- Bulk tipología/fachada ---
   const [bulkTipologiaId, setBulkTipologiaId] = useState("");
   const [bulkFachadaId, setBulkFachadaId] = useState("");
@@ -2657,6 +2691,14 @@ export default function InventarioPage() {
               >
                 <Settings size={14} />
               </button>
+              <button
+                onClick={handleExportPdf}
+                disabled={exportingPdf}
+                className={btnSecondary}
+                title="Exportar disponibilidad PDF"
+              >
+                {exportingPdf ? <Loader2 size={14} className="animate-spin" /> : <FileDown size={14} />}
+              </button>
             </>
           )}
           {isMobile && (
@@ -2693,6 +2735,9 @@ export default function InventarioPage() {
                       <div className="border-t border-[var(--border-subtle)]" />
                       <button onClick={() => { setShowColumnsModal(true); setShowMobileActions(false); }} className="flex items-center gap-2.5 w-full px-4 py-2.5 text-xs text-[var(--text-secondary)] hover:bg-[var(--surface-3)] transition-colors">
                         <Settings size={13} className="text-[var(--site-primary)]" /> {t("general.project.columnsTitle")}
+                      </button>
+                      <button onClick={() => { handleExportPdf(); setShowMobileActions(false); }} disabled={exportingPdf} className="flex items-center gap-2.5 w-full px-4 py-2.5 text-xs text-[var(--text-secondary)] hover:bg-[var(--surface-3)] transition-colors">
+                        {exportingPdf ? <Loader2 size={13} className="animate-spin text-[var(--site-primary)]" /> : <FileDown size={13} className="text-[var(--site-primary)]" />} Exportar PDF
                       </button>
                     </motion.div>
                   )}

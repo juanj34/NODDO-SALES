@@ -1,6 +1,7 @@
 import { getAuthContext } from "@/lib/auth-context";
 import { pick } from "@/lib/api-utils";
 import { reportApiError } from "@/lib/error-reporter";
+import { addDomainToVercel } from "@/lib/vercel";
 import { NextRequest, NextResponse } from "next/server";
 
 export async function GET() {
@@ -109,6 +110,16 @@ export async function POST(request: NextRequest) {
       .single();
 
     if (error) throw error;
+
+    // Register subdomain with Vercel (best-effort)
+    if (process.env.AUTH_BEARER_TOKEN && process.env.VERCEL_PROJECT_ID && data?.slug) {
+      const rootDomain = process.env.NEXT_PUBLIC_ROOT_DOMAIN || "noddo.io";
+      try {
+        await addDomainToVercel(`${data.slug}.${rootDomain}`);
+      } catch {
+        // Non-blocking — domain saved in DB regardless
+      }
+    }
 
     return NextResponse.json(data, { status: 201 });
   } catch (err) {

@@ -95,11 +95,14 @@ export function FileUploader({
   label = "Subir archivo",
   aspect = "video",
   cropAspect,
-  minWidth = 1280,
-  minHeight = 720,
+  minWidth: minWidthProp,
+  minHeight: minHeightProp,
   enablePaste = true,
   compact = false,
 }: FileUploaderProps) {
+  // Logos are typically small — don't warn about resolution for them
+  const minWidth = minWidthProp ?? (aspect === "logo" ? 64 : 1280);
+  const minHeight = minHeightProp ?? (aspect === "logo" ? 64 : 720);
   const { t } = useTranslation("editor");
   const [uploading, setUploading] = useState(false);
   const [uploadState, setUploadState] = useState<UploadState>("idle");

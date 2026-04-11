@@ -2,6 +2,7 @@
 
 import { useCallback } from "react";
 import { motion } from "framer-motion";
+import { Plus } from "lucide-react";
 import { useBooking } from "./BookingProvider";
 import { useContact } from "./ContactProvider";
 import { trackPricingPlanClicked } from "@/lib/marketing-tracking";
@@ -30,60 +31,64 @@ export function PricingSection() {
 
   const plans: Plan[] = [
     {
-      name: t("pricing.plans.esencialName"),
-      slug: "esencial",
+      name: t("pricing.plans.basicoName"),
+      slug: "basico",
       pricePrefix: "$",
-      price: t("pricing.plans.esencialPrice"),
-      period: t("pricing.plans.esencialPeriod"),
+      price: t("pricing.plans.basicoPrice"),
+      period: t("pricing.plans.basicoPeriod"),
       features: [
-        { text: t("pricing.plans.esencialF0"), on: true },
-        { text: t("pricing.plans.esencialF1"), on: true },
-        { text: t("pricing.plans.esencialF2"), on: true },
-        { text: t("pricing.plans.esencialF3"), on: true },
-        { text: t("pricing.plans.esencialF4"), on: true },
+        { text: t("pricing.plans.basicoF0"), on: true },
+        { text: t("pricing.plans.basicoF1"), on: true },
+        { text: t("pricing.plans.basicoF2"), on: true },
+        { text: t("pricing.plans.basicoF3"), on: true },
+        { text: t("pricing.plans.basicoF4"), on: true },
       ],
-      ctaLabel: t("pricing.plans.esencialCta"),
+      ctaLabel: t("pricing.plans.basicoCta"),
       ctaAction: "booking",
     },
     {
-      name: t("pricing.plans.profesionalName"),
-      slug: "profesional",
+      name: t("pricing.plans.proName"),
+      slug: "pro",
       pricePrefix: "$",
-      price: t("pricing.plans.profesionalPrice"),
-      period: t("pricing.plans.profesionalPeriod"),
+      price: t("pricing.plans.proPrice"),
+      period: t("pricing.plans.proPeriod"),
       featured: true,
-      badge: t("pricing.plans.profesionalBadge"),
+      badge: t("pricing.plans.proBadge"),
       features: [
-        { text: t("pricing.plans.profesionalF0"), on: true },
-        { text: t("pricing.plans.profesionalF1"), on: true },
-        { text: t("pricing.plans.profesionalF2"), on: true },
-        { text: t("pricing.plans.profesionalF3"), on: true },
-        { text: t("pricing.plans.profesionalF4"), on: true },
-        { text: t("pricing.plans.profesionalF5"), on: true },
+        { text: t("pricing.plans.proF0"), on: true },
+        { text: t("pricing.plans.proF1"), on: true },
+        { text: t("pricing.plans.proF2"), on: true },
+        { text: t("pricing.plans.proF3"), on: true },
       ],
-      ctaLabel: t("pricing.plans.profesionalCta"),
+      ctaLabel: t("pricing.plans.proCta"),
       ctaAction: "booking",
     },
     {
-      name: t("pricing.plans.enterpriseName"),
-      slug: "enterprise",
-      price: t("pricing.plans.enterprisePrice"),
-      period: t("pricing.plans.enterprisePeriod"),
+      name: t("pricing.plans.personalizadoName"),
+      slug: "personalizado",
+      price: t("pricing.plans.personalizadoPrice"),
+      period: t("pricing.plans.personalizadoPeriod"),
       features: [
-        { text: t("pricing.plans.enterpriseF0"), on: true },
-        { text: t("pricing.plans.enterpriseF1"), on: true },
-        { text: t("pricing.plans.enterpriseF2"), on: true },
-        { text: t("pricing.plans.enterpriseF3"), on: true },
-        { text: t("pricing.plans.enterpriseF4"), on: true },
+        { text: t("pricing.plans.personalizadoF0"), on: true },
+        { text: t("pricing.plans.personalizadoF1"), on: true },
+        { text: t("pricing.plans.personalizadoF2"), on: true },
+        { text: t("pricing.plans.personalizadoF3"), on: true },
+        { text: t("pricing.plans.personalizadoF4"), on: true },
       ],
-      ctaLabel: t("pricing.plans.enterpriseCta"),
+      ctaLabel: t("pricing.plans.personalizadoCta"),
       ctaAction: "contact",
     },
   ];
 
+  const addOns = [
+    { name: t("pricing.addOns.a0name"), desc: t("pricing.addOns.a0desc") },
+    { name: t("pricing.addOns.a1name"), desc: t("pricing.addOns.a1desc") },
+    { name: t("pricing.addOns.a2name"), desc: t("pricing.addOns.a2desc") },
+  ];
+
   const handlePlanClick = useCallback(
     (plan: Plan) => {
-      trackPricingPlanClicked(plan.slug, PLAN_VALUES[plan.slug] || 149);
+      trackPricingPlanClicked(plan.slug, PLAN_VALUES[plan.slug] || 249);
       if (plan.ctaAction === "contact") {
         openContact(plan.slug, `pricing-${plan.slug}`);
       } else {
@@ -186,7 +191,6 @@ export function PricingSection() {
               {/* CTA */}
               {plan.featured ? (
                 <div className="relative">
-                  {/* Pulsing glow ring for featured plan */}
                   <div
                     className="absolute inset-0 rounded-[12px]"
                     style={{
@@ -216,9 +220,51 @@ export function PricingSection() {
           ))}
         </div>
 
+        {/* Add-ons */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, margin: "-40px" }}
+          transition={{ duration: 0.6, delay: 0.3, ease }}
+          className="mt-12"
+        >
+          <div
+            className="font-ui text-[9px] font-bold tracking-[0.2em] uppercase mb-5 text-center"
+            style={{ color: "rgba(244,240,232,0.35)" }}
+          >
+            {t("pricing.addOns.label")}
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-px" style={{ background: "rgba(255,255,255,0.04)" }}>
+            {addOns.map((addon) => (
+              <div
+                key={addon.name}
+                className="flex items-start gap-3 p-5"
+                style={{ background: "var(--mk-bg)" }}
+              >
+                <Plus size={14} style={{ color: "var(--mk-accent)", flexShrink: 0, marginTop: 2 }} />
+                <div>
+                  <div className="text-[12px] font-medium" style={{ color: "rgba(244,240,232,0.8)" }}>
+                    {addon.name}
+                  </div>
+                  <div className="text-[11px] mt-0.5" style={{ color: "rgba(244,240,232,0.35)" }}>
+                    {addon.desc}
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </motion.div>
+
+        {/* Implementation note */}
+        <div className="text-center mt-8 mb-10">
+          <p className="text-[11px] italic" style={{ color: "rgba(244,240,232,0.3)", maxWidth: 500, margin: "0 auto" }}>
+            {t("pricing.implementation")}
+          </p>
+        </div>
+
         {/* Trust elements below pricing */}
-        <div className="text-center mt-12">
-          {/* Trust micro-copy */}
+        <div className="text-center">
           <div className="flex flex-col sm:flex-row items-center justify-center gap-3 sm:gap-6 text-[12px]" style={{ color: "rgba(244,240,232,0.3)" }}>
             <div className="flex items-center gap-1.5">
               <span style={{ color: "var(--mk-accent)" }}>✓</span>

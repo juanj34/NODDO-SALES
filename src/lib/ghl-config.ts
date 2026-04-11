@@ -45,10 +45,10 @@ export const GHL_TAGS = {
   high_intent: "high-intent",
   cta_clicked: "cta-clicked",
 
-  // Plans (all-inclusive tiers)
-  plan_proyecto: "plan-proyecto",
-  plan_studio: "plan-studio",
-  plan_enterprise: "plan-enterprise",
+  // Plans (per-project pricing)
+  plan_basico: "plan-basico",
+  plan_pro: "plan-pro",
+  plan_personalizado: "plan-personalizado",
 
   // Booking
   demo_booked: "demo-booked",
@@ -72,10 +72,10 @@ export const GHL_CUSTOM_FIELDS = {
   pais: "contact.pas",
 } as const;
 
-// ─── Plan values (USD/month) - All-inclusive pricing ────────────────────
+// ─── Plan values (USD/month per project) ────────────────────────────────
 
 export const PLAN_VALUES: Record<string, number> = {
-  esencial: 79,
-  profesional: 149,
-  enterprise: 499,
+  basico: 199,
+  pro: 249,
+  personalizado: 0,
 };

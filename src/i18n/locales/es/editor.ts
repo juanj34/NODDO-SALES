@@ -692,6 +692,8 @@ const editor = {
     dragDropFile: "Arrastra un archivo CSV o Excel aquí",
     dragDropFormats: ".csv, .tsv, .xlsx, .xls",
     orPaste: "o pega los datos",
+    exportPdf: "Exportar PDF",
+    pdfExported: "PDF exportado exitosamente",
     priceAdjust: "Ajustar precios",
     priceAdjustTitle: "Ajuste de Precios",
     applyTo: "Aplicar a",
@@ -1508,6 +1510,12 @@ const editor = {
     aiConnectionError: "Error de conexión al servicio de IA",
     validationError: "Error de validación",
     generic: "Error",
+  },
+
+  plan: {
+    proOnly: "Disponible en Plan Pro",
+    upgrade: "Actualizar a Pro",
+    currentPlan: "Tu plan actual",
   },
 } as const;
 

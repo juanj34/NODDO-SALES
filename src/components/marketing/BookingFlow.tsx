@@ -12,6 +12,9 @@ import {
   Check,
   Calendar,
   X,
+  TrendingUp,
+  Users,
+  Sparkles,
 } from "lucide-react";
 import { useTranslation } from "@/i18n";
 import { NodDoDropdown } from "@/components/ui/NodDoDropdown";
@@ -149,6 +152,55 @@ const CallBadges = () => {
           {label}
         </span>
       ))}
+    </div>
+  );
+};
+
+// ─── Booking Insight ────────────────────────────────────────────────────
+
+const BOOKING_INSIGHTS = [
+  {
+    Icon: TrendingUp,
+    stat: "47%",
+    text: "Los equipos con showroom digital cierran ventas un 47% más rápido",
+  },
+  {
+    Icon: Users,
+    stat: "2.4×",
+    text: "Los asesores que usan NODDO generan 2.4× más leads cualificados",
+  },
+  {
+    Icon: Sparkles,
+    stat: "100+",
+    text: "Desarrolladores inmobiliarios ya usan NODDO para vender mejor",
+  },
+];
+
+const BookingInsight = ({ index }: { index: number }) => {
+  const insight = BOOKING_INSIGHTS[index % BOOKING_INSIGHTS.length];
+  const Icon = insight.Icon;
+  return (
+    <div
+      className="flex items-start gap-3 rounded-xl px-4 py-3 mt-4"
+      style={{
+        background: "rgba(184,151,58,0.06)",
+        border: "1px solid rgba(184,151,58,0.12)",
+      }}
+    >
+      <div
+        className="w-7 h-7 rounded-lg flex items-center justify-center shrink-0"
+        style={{ background: "rgba(184,151,58,0.12)" }}
+      >
+        <Icon size={14} className="text-[#b8973a]" />
+      </div>
+      <div className="min-w-0">
+        <span className="font-heading text-base font-light text-[#b8973a]">
+          {insight.stat}
+        </span>
+        <p className="text-[10px] leading-relaxed mt-0.5 text-white/35">
+          {insight.text}
+        </p>
+      </div>
     </div>
   );
 };
@@ -825,6 +877,7 @@ const BookingFlow = ({ onClose }: BookingFlowProps) => {
             {t("booking.next")}
             <ChevronRight className="w-4 h-4" />
           </button>
+          <BookingInsight index={0} />
         </div>
       </>
     );
@@ -890,6 +943,7 @@ const BookingFlow = ({ onClose }: BookingFlowProps) => {
             {t("booking.confirmTime")}
             <ChevronRight className="w-4 h-4" />
           </button>
+          <BookingInsight index={1} />
         </div>
       </>
     );
@@ -1021,6 +1075,7 @@ const BookingFlow = ({ onClose }: BookingFlowProps) => {
               {t("booking.trustLine")}
             </p>
           </div>
+          <BookingInsight index={2} />
         </div>
       </>
     );

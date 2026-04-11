@@ -104,6 +104,19 @@ export function PortalGrid({ portal }: Props) {
                 {/* Gradient overlay */}
                 <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
 
+                {/* Plan badge (top-left corner) */}
+                <div className="absolute top-4 left-4 z-10">
+                  <span
+                    className={`inline-flex px-2.5 py-1 rounded-lg font-ui text-[9px] font-bold uppercase tracking-[0.15em] backdrop-blur-md border ${
+                      project.plan === "pro"
+                        ? "text-[var(--site-primary)] bg-[rgba(var(--site-primary-rgb),0.15)] border-[rgba(var(--site-primary-rgb),0.25)]"
+                        : "text-white/50 bg-black/30 border-white/10"
+                    }`}
+                  >
+                    {project.plan === "pro" ? "Pro" : "Básico"}
+                  </span>
+                </div>
+
                 {/* Project logo (top-right corner) */}
                 {project.logo_url && (
                   <div className="absolute top-4 right-4 z-10">
