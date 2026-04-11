@@ -2,65 +2,98 @@
 
 import Image from "next/image";
 import { motion } from "framer-motion";
-import { NodDoLogo } from "@/components/ui/NodDoLogo";
 import type { PortalData } from "@/app/portal/[slug]/layout";
 
 interface Props {
   portal: PortalData;
 }
 
-const staggerContainer = {
+const staggerContainer: import("framer-motion").Variants = {
   hidden: {},
   show: {
     transition: {
-      staggerChildren: 0.1,
-      delayChildren: 0.15,
+      staggerChildren: 0.12,
+      delayChildren: 0.3,
     },
   },
 };
 
 const cardVariant: import("framer-motion").Variants = {
-  hidden: { opacity: 0, y: 30 },
+  hidden: { opacity: 0, y: 40, scale: 0.97 },
   show: {
     opacity: 1,
     y: 0,
-    transition: { duration: 0.5, ease: [0.22, 1, 0.36, 1] },
+    scale: 1,
+    transition: { duration: 0.7, ease: [0.22, 1, 0.36, 1] },
+  },
+};
+
+const headerVariant: import("framer-motion").Variants = {
+  hidden: { opacity: 0, y: -20 },
+  show: {
+    opacity: 1,
+    y: 0,
+    transition: { duration: 0.8, ease: [0.22, 1, 0.36, 1] },
   },
 };
 
 export function PortalGrid({ portal }: Props) {
   const projects = portal.projects;
+  const count = projects.length;
+
+  // Dynamic grid: 1 project = full width hero, 2 = two columns, 3+ = masonry-like
+  const gridClass =
+    count === 1
+      ? "grid-cols-1"
+      : count === 2
+      ? "grid-cols-1 sm:grid-cols-2"
+      : count === 3
+      ? "grid-cols-1 sm:grid-cols-2 lg:grid-cols-3"
+      : "grid-cols-1 sm:grid-cols-2";
+
+  // For single project, use taller aspect ratio
+  const aspectClass = count === 1 ? "aspect-[21/9]" : "aspect-[16/10]";
 
   return (
     <div className="min-h-dvh bg-[var(--surface-0)]">
-      {/* ── Header ──────────────────────────────────────────────── */}
-      <header className="flex flex-col items-center gap-4 px-6 pb-8 pt-12 sm:px-10 sm:pb-12 sm:pt-16 md:pt-20">
+      {/* ── Header — minimal, cinematic ──────────────────────────── */}
+      <motion.header
+        variants={headerVariant}
+        initial="hidden"
+        animate="show"
+        className="flex flex-col items-center px-6 pt-16 pb-10 sm:pt-20 sm:pb-14 md:pt-28 md:pb-16"
+      >
         {portal.logo_url ? (
           <Image
             src={portal.logo_url}
             alt={portal.nombre}
-            width={180}
-            height={60}
-            className="h-10 w-auto object-contain sm:h-14"
+            width={220}
+            height={80}
+            className="h-12 w-auto object-contain sm:h-16 md:h-20"
+            priority
           />
         ) : (
-          <h1 className="font-heading text-4xl font-light tracking-wide text-white sm:text-5xl">
+          <h1 className="font-heading text-5xl font-light tracking-wide text-white sm:text-6xl md:text-7xl">
             {portal.nombre}
           </h1>
         )}
-        {portal.descripcion && (
-          <p className="max-w-xl text-center font-mono text-sm leading-[1.8] text-[var(--text-secondary)]">
-            {portal.descripcion}
-          </p>
-        )}
-        {/* Accent line */}
-        <div className="mt-2 h-px w-16 bg-[var(--site-primary)] opacity-50" />
-      </header>
 
-      {/* ── Project grid ────────────────────────────────────────── */}
+        {portal.descripcion && (
+          <motion.p
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.5, duration: 0.6 }}
+            className="mt-5 max-w-lg text-center font-mono text-[13px] leading-[1.9] text-white/35"
+          >
+            {portal.descripcion}
+          </motion.p>
+        )}
+      </motion.header>
+
+      {/* ── Project grid — edge-to-edge, cinematic ──────────────── */}
       {projects.length === 0 ? (
         <div className="flex items-center justify-center py-32">
-          <p className="font-mono text-sm text-[var(--text-secondary)]">
+          <p className="font-mono text-sm text-white/30">
             No hay proyectos disponibles.
           </p>
         </div>
@@ -69,12 +102,18 @@ export function PortalGrid({ portal }: Props) {
           variants={staggerContainer}
           initial="hidden"
           animate="show"
-          className="mx-auto grid max-w-6xl gap-5 px-5 pb-20 sm:grid-cols-2 sm:px-8 md:gap-6 lg:px-12"
+          className={`grid ${gridClass} gap-[2px] sm:gap-1 px-0 sm:px-4 md:px-6 lg:px-8 pb-1`}
         >
-          {projects.map((project) => {
+          {projects.map((project, index) => {
             const projectUrl = project.subdomain
               ? `https://${project.subdomain}.noddo.io`
               : `https://${project.slug}.noddo.io`;
+
+            // First project in 4+ grid gets featured size
+            const isFeatured = count >= 4 && index === 0;
+            const cardAspect = isFeatured
+              ? "sm:col-span-2 aspect-[16/9] sm:aspect-[21/9]"
+              : aspectClass;
 
             return (
               <motion.a
@@ -83,71 +122,80 @@ export function PortalGrid({ portal }: Props) {
                 href={projectUrl}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="group relative block aspect-[16/10] overflow-hidden rounded-[1.25rem] border border-[var(--border-subtle)] bg-[var(--surface-1)] transition-all duration-500 hover:border-[var(--border-default)] hover:shadow-[var(--glow-md)]"
+                className={`group relative block overflow-hidden ${cardAspect} sm:rounded-2xl bg-[var(--surface-1)]`}
                 style={{ willChange: "transform" }}
-                whileHover={{ scale: 1.02 }}
-                transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
               >
-                {/* Background image */}
+                {/* Background image with parallax-like zoom on hover */}
                 {project.render_principal_url ? (
                   <Image
                     src={project.render_principal_url}
                     alt={project.nombre}
                     fill
-                    className="object-cover transition-transform duration-700 group-hover:scale-105"
-                    sizes="(max-width: 640px) 100vw, 50vw"
+                    className="object-cover transition-transform duration-[1.2s] ease-out group-hover:scale-[1.08]"
+                    sizes={isFeatured ? "100vw" : "(max-width: 640px) 100vw, 50vw"}
+                    priority={index < 2}
                   />
                 ) : (
                   <div className="absolute inset-0 bg-[var(--surface-2)]" />
                 )}
 
-                {/* Gradient overlay */}
-                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
+                {/* Cinematic gradient overlay */}
+                <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/20 to-transparent opacity-80 transition-opacity duration-500 group-hover:opacity-70" />
 
-                {/* Project logo (top-right corner) */}
+                {/* Subtle vignette */}
+                <div className="absolute inset-0 shadow-[inset_0_0_120px_rgba(0,0,0,0.3)]" />
+
+                {/* Project logo (top-right, subtle) */}
                 {project.logo_url && (
-                  <div className="absolute top-4 right-4 z-10">
+                  <div className="absolute top-5 right-5 z-10 sm:top-6 sm:right-6">
                     <Image
                       src={project.logo_url}
-                      alt={`${project.nombre} logo`}
-                      width={48}
-                      height={48}
-                      className="h-8 w-auto object-contain opacity-50 transition-opacity duration-300 group-hover:opacity-80"
+                      alt=""
+                      width={60}
+                      height={60}
+                      className="h-8 w-auto object-contain opacity-30 transition-opacity duration-500 group-hover:opacity-60 sm:h-10"
                     />
                   </div>
                 )}
 
-                {/* Glass content at bottom */}
-                <div className="absolute inset-x-0 bottom-0 z-10 flex flex-col gap-2 p-5 sm:p-6">
-                  {project.tipo_proyecto && (
-                    <span className="self-start font-ui text-[9px] font-bold uppercase tracking-[0.2em] text-[var(--site-primary)]">
-                      {project.tipo_proyecto}
-                    </span>
-                  )}
-                  <h2 className="font-heading text-2xl font-light text-white sm:text-3xl">
+                {/* Content at bottom */}
+                <div className="absolute inset-x-0 bottom-0 z-10 p-5 sm:p-7 md:p-8">
+                  {/* Project name only — no subheader */}
+                  <h2
+                    className={`font-heading font-light text-white leading-[1.1] tracking-wide ${
+                      isFeatured
+                        ? "text-3xl sm:text-4xl md:text-5xl"
+                        : "text-2xl sm:text-3xl"
+                    }`}
+                  >
                     {project.nombre}
                   </h2>
-                  {project.descripcion && (
-                    <p className="line-clamp-2 max-w-md font-mono text-xs leading-[1.8] text-[var(--text-secondary)]">
-                      {project.descripcion}
-                    </p>
-                  )}
-                  <span className="mt-1 inline-flex items-center gap-1.5 self-start font-ui text-[10px] font-bold uppercase tracking-[0.15em] text-[var(--site-primary)] transition-all duration-300 group-hover:gap-2.5">
-                    Explorar
+
+                  {/* Explore CTA — appears on hover */}
+                  <div className="mt-3 flex items-center gap-2 opacity-0 translate-y-2 transition-all duration-500 group-hover:opacity-100 group-hover:translate-y-0">
+                    <span className="font-ui text-[10px] font-bold uppercase tracking-[0.2em] text-[var(--site-primary)]">
+                      Explorar
+                    </span>
                     <svg
-                      width="14"
-                      height="14"
+                      width="16"
+                      height="16"
                       viewBox="0 0 24 24"
                       fill="none"
                       stroke="currentColor"
                       strokeWidth="2"
                       strokeLinecap="round"
                       strokeLinejoin="round"
-                      className="transition-transform duration-300 group-hover:translate-x-1"
+                      className="text-[var(--site-primary)] transition-transform duration-300 group-hover:translate-x-1"
                     >
                       <path d="M5 12h14M12 5l7 7-7 7" />
                     </svg>
-                  </span>
+                  </div>
+
+                  {/* Gold accent line */}
+                  <div
+                    className="mt-4 h-[1px] w-0 transition-all duration-700 group-hover:w-16"
+                    style={{ background: `rgba(var(--site-primary-rgb), 0.5)` }}
+                  />
                 </div>
               </motion.a>
             );
@@ -155,24 +203,8 @@ export function PortalGrid({ portal }: Props) {
         </motion.div>
       )}
 
-      {/* ── Footer ──────────────────────────────────────────────── */}
-      <footer className="flex flex-col items-center gap-4 border-t border-[var(--border-subtle)] px-6 py-8">
-        <a
-          href="https://noddo.io"
-          target="_blank"
-          rel="noopener noreferrer"
-          className="inline-flex items-center gap-1.5 rounded-full border border-white/[0.06] bg-black/30 px-3 py-1.5 opacity-50 backdrop-blur-md transition-all duration-300 hover:opacity-80"
-        >
-          <span className="text-[7px] uppercase tracking-[0.12em] text-[var(--text-tertiary)]">
-            Powered by
-          </span>
-          <NodDoLogo
-            width={42}
-            colorNod="var(--text-secondary)"
-            colorDo="#b8983c"
-          />
-        </a>
-      </footer>
+      {/* Footer spacing for NoddoBadge (rendered by layout) */}
+      <div className="h-16" />
     </div>
   );
 }

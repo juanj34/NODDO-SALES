@@ -158,11 +158,6 @@ export function PortalSlider({ portal }: Props) {
               animate={{ y: 0, opacity: 1 }}
               transition={{ delay: 0.2, duration: 0.5 }}
             >
-              {project.tipo_proyecto && (
-                <span className="mb-3 inline-block font-ui text-[10px] font-bold uppercase tracking-[0.2em] text-[var(--site-primary)]">
-                  {project.tipo_proyecto}
-                </span>
-              )}
               <h2 className="font-heading text-4xl font-light leading-tight text-white sm:text-5xl md:text-6xl">
                 {project.nombre}
               </h2>
