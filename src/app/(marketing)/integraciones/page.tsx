@@ -4,143 +4,145 @@ import { motion } from "framer-motion";
 import { Plug, Zap, Globe, BarChart3, Send, Webhook, CheckCircle2, ArrowRight } from "lucide-react";
 import Link from "next/link";
 import { usePageView } from "@/hooks/usePageView";
-
-const integrations = [
-  {
-    category: "CRM y Ventas",
-    icon: Send,
-    color: "#b8973a",
-    items: [
-      {
-        name: "HubSpot",
-        description: "Sincroniza leads automáticamente con email, teléfono, UTM y unidad de interés",
-        available: "Studio, Enterprise",
-        logo: "HB",
-        features: ["Sincronización automática", "Campos personalizados", "Webhooks en tiempo real"],
-      },
-      {
-        name: "GoHighLevel",
-        description: "Crea contactos y oportunidades en tu pipeline de ventas automáticamente",
-        available: "Studio, Enterprise",
-        logo: "GHL",
-        features: ["Pipeline automático", "SMS y email triggers", "Seguimiento de conversiones"],
-      },
-      {
-        name: "Salesforce",
-        description: "Integración enterprise con sincronización bidireccional de leads y proyectos",
-        available: "Enterprise",
-        logo: "SF",
-        features: ["Sincronización bidireccional", "Custom objects", "API completa"],
-      },
-    ],
-  },
-  {
-    category: "Analytics y Tracking",
-    icon: BarChart3,
-    color: "#d4b05a",
-    items: [
-      {
-        name: "Google Analytics 4",
-        description: "Rastrea pageviews, conversiones, embudos y comportamiento de usuarios",
-        available: "Todos los planes",
-        logo: "GA",
-        features: ["Event tracking", "Custom dimensions", "Ecommerce tracking"],
-      },
-      {
-        name: "Facebook Pixel",
-        description: "Retargeting de visitantes interesados en unidades específicas",
-        available: "Todos los planes",
-        logo: "FB",
-        features: ["Conversiones personalizadas", "Audiences dinámicas", "Atribución de anuncios"],
-      },
-      {
-        name: "Google Tag Manager",
-        description: "Gestiona todos tus scripts de marketing desde un solo lugar",
-        available: "Todos los planes",
-        logo: "GTM",
-        features: ["Gestión de tags", "Triggers personalizados", "Variables dinámicas"],
-      },
-      {
-        name: "LinkedIn Insight",
-        description: "Atribución B2B para campañas LinkedIn y seguimiento de conversiones",
-        available: "Studio, Enterprise",
-        logo: "LI",
-        features: ["Conversión tracking", "Matched audiences", "Demographics"],
-      },
-    ],
-  },
-  {
-    category: "Automatización",
-    icon: Zap,
-    color: "#a07e2e",
-    items: [
-      {
-        name: "Zapier",
-        description: "Conecta NODDO con 5000+ apps (Gmail, Sheets, Slack, Notion, etc.)",
-        available: "Studio, Enterprise",
-        logo: "ZP",
-        features: ["5000+ integraciones", "Multi-step zaps", "Filtros y paths"],
-      },
-      {
-        name: "Make (Integromat)",
-        description: "Flujos de trabajo complejos con lógica condicional avanzada",
-        available: "Studio, Enterprise",
-        logo: "MK",
-        features: ["Scenarios complejos", "Error handling", "Data transformations"],
-      },
-      {
-        name: "Webhooks",
-        description: "Integra con cualquier sistema custom mediante webhooks HTTP",
-        available: "Todos los planes",
-        logo: "WH",
-        features: ["REST API", "Payload personalizado", "Retry automático"],
-      },
-    ],
-  },
-  {
-    category: "Infraestructura",
-    icon: Globe,
-    color: "#b8973a",
-    items: [
-      {
-        name: "Vercel",
-        description: "Hosting global con edge caching y 99.99% uptime",
-        available: "Incluido",
-        logo: "VR",
-        features: ["Edge network", "Auto-scaling", "SOC 2 Type II"],
-        certified: true,
-      },
-      {
-        name: "Supabase",
-        description: "PostgreSQL managed con RLS, backups automáticos y replicación",
-        available: "Incluido",
-        logo: "SB",
-        features: ["PostgreSQL", "Row Level Security", "ISO 27001"],
-        certified: true,
-      },
-      {
-        name: "Cloudflare",
-        description: "CDN global, protección DDoS y Web Application Firewall",
-        available: "Incluido",
-        logo: "CF",
-        features: ["DDoS protection", "WAF", "CDN global"],
-        certified: true,
-      },
-      {
-        name: "Mapbox",
-        description: "Mapas satelitales interactivos con POIs personalizados",
-        available: "Incluido",
-        logo: "MB",
-        features: ["Satellite imagery", "Custom markers", "Geocoding"],
-      },
-    ],
-  },
-];
+import { useTranslation } from "@/i18n";
 
 const ease = [0.25, 0.46, 0.45, 0.94] as const;
 
 export default function IntegracionesPage() {
   usePageView("Integraciones");
+  const { t } = useTranslation("marketing");
+
+  const integrations = [
+    {
+      category: t("integraciones.categories.crm"),
+      icon: Send,
+      color: "#b8973a",
+      items: [
+        {
+          name: t("integraciones.items.i0name"),
+          description: t("integraciones.items.i0desc"),
+          available: t("integraciones.items.i0avail"),
+          logo: "HB",
+          features: [t("integraciones.items.i0f0"), t("integraciones.items.i0f1"), t("integraciones.items.i0f2")],
+        },
+        {
+          name: t("integraciones.items.i1name"),
+          description: t("integraciones.items.i1desc"),
+          available: t("integraciones.items.i1avail"),
+          logo: "GHL",
+          features: [t("integraciones.items.i1f0"), t("integraciones.items.i1f1"), t("integraciones.items.i1f2")],
+        },
+        {
+          name: t("integraciones.items.i2name"),
+          description: t("integraciones.items.i2desc"),
+          available: t("integraciones.items.i2avail"),
+          logo: "SF",
+          features: [t("integraciones.items.i2f0"), t("integraciones.items.i2f1"), t("integraciones.items.i2f2")],
+        },
+      ],
+    },
+    {
+      category: t("integraciones.categories.analytics"),
+      icon: BarChart3,
+      color: "#d4b05a",
+      items: [
+        {
+          name: t("integraciones.items.i3name"),
+          description: t("integraciones.items.i3desc"),
+          available: t("integraciones.items.i3avail"),
+          logo: "GA",
+          features: [t("integraciones.items.i3f0"), t("integraciones.items.i3f1"), t("integraciones.items.i3f2")],
+        },
+        {
+          name: t("integraciones.items.i4name"),
+          description: t("integraciones.items.i4desc"),
+          available: t("integraciones.items.i4avail"),
+          logo: "FB",
+          features: [t("integraciones.items.i4f0"), t("integraciones.items.i4f1"), t("integraciones.items.i4f2")],
+        },
+        {
+          name: t("integraciones.items.i5name"),
+          description: t("integraciones.items.i5desc"),
+          available: t("integraciones.items.i5avail"),
+          logo: "GTM",
+          features: [t("integraciones.items.i5f0"), t("integraciones.items.i5f1"), t("integraciones.items.i5f2")],
+        },
+        {
+          name: t("integraciones.items.i6name"),
+          description: t("integraciones.items.i6desc"),
+          available: t("integraciones.items.i6avail"),
+          logo: "LI",
+          features: [t("integraciones.items.i6f0"), t("integraciones.items.i6f1"), t("integraciones.items.i6f2")],
+        },
+      ],
+    },
+    {
+      category: t("integraciones.categories.automation"),
+      icon: Zap,
+      color: "#a07e2e",
+      items: [
+        {
+          name: t("integraciones.items.i7name"),
+          description: t("integraciones.items.i7desc"),
+          available: t("integraciones.items.i7avail"),
+          logo: "ZP",
+          features: [t("integraciones.items.i7f0"), t("integraciones.items.i7f1"), t("integraciones.items.i7f2")],
+        },
+        {
+          name: t("integraciones.items.i8name"),
+          description: t("integraciones.items.i8desc"),
+          available: t("integraciones.items.i8avail"),
+          logo: "MK",
+          features: [t("integraciones.items.i8f0"), t("integraciones.items.i8f1"), t("integraciones.items.i8f2")],
+        },
+        {
+          name: t("integraciones.items.i9name"),
+          description: t("integraciones.items.i9desc"),
+          available: t("integraciones.items.i9avail"),
+          logo: "WH",
+          features: [t("integraciones.items.i9f0"), t("integraciones.items.i9f1"), t("integraciones.items.i9f2")],
+        },
+      ],
+    },
+    {
+      category: t("integraciones.categories.infrastructure"),
+      icon: Globe,
+      color: "#b8973a",
+      items: [
+        {
+          name: t("integraciones.items.i10name"),
+          description: t("integraciones.items.i10desc"),
+          available: t("integraciones.items.i10avail"),
+          logo: "VR",
+          features: [t("integraciones.items.i10f0"), t("integraciones.items.i10f1"), t("integraciones.items.i10f2")],
+          certified: true,
+        },
+        {
+          name: t("integraciones.items.i11name"),
+          description: t("integraciones.items.i11desc"),
+          available: t("integraciones.items.i11avail"),
+          logo: "SB",
+          features: [t("integraciones.items.i11f0"), t("integraciones.items.i11f1"), t("integraciones.items.i11f2")],
+          certified: true,
+        },
+        {
+          name: t("integraciones.items.i12name"),
+          description: t("integraciones.items.i12desc"),
+          available: t("integraciones.items.i12avail"),
+          logo: "CF",
+          features: [t("integraciones.items.i12f0"), t("integraciones.items.i12f1"), t("integraciones.items.i12f2")],
+          certified: true,
+        },
+        {
+          name: t("integraciones.items.i13name"),
+          description: t("integraciones.items.i13desc"),
+          available: t("integraciones.items.i13avail"),
+          logo: "MB",
+          features: [t("integraciones.items.i13f0"), t("integraciones.items.i13f1"), t("integraciones.items.i13f2")],
+        },
+      ],
+    },
+  ];
 
   return (
     <div className="min-h-screen pt-32 pb-24 px-6">
@@ -195,7 +197,7 @@ export default function IntegracionesPage() {
                 color: "rgba(244,240,232,0.92)",
               }}
             >
-              Integraciones
+              {t("integraciones.badge")}
             </span>
           </motion.div>
 
@@ -210,10 +212,10 @@ export default function IntegracionesPage() {
               color: "rgba(244,240,232,0.92)",
             }}
           >
-            NODDO se integra con
+            {t("integraciones.titleLine1")}
             <br />
             <span style={{ fontStyle: "italic", color: "#b8973a" }}>
-              las herramientas que ya usas
+              {t("integraciones.titleEmphasis")}
             </span>
           </motion.h1>
 
@@ -227,8 +229,7 @@ export default function IntegracionesPage() {
               color: "rgba(244,240,232,0.55)",
             }}
           >
-            Conecta tu CRM, analytics y herramientas de marketing en minutos. Sin configuración
-            técnica. Sin código. Solo selecciona, conecta y listo.
+            {t("integraciones.description")}
           </motion.p>
         </div>
 
@@ -310,7 +311,7 @@ export default function IntegracionesPage() {
                               fontWeight: 700,
                             }}
                           >
-                            CERTIFIED
+                            {t("integraciones.certified")}
                           </div>
                         )}
                       </div>
@@ -414,8 +415,8 @@ export default function IntegracionesPage() {
                 color: "rgba(244,240,232,0.92)",
               }}
             >
-              ¿Necesitas una integración{" "}
-              <span style={{ fontStyle: "italic", color: "#b8973a" }}>personalizada?</span>
+              {t("integraciones.ctaTitleLine1")}{" "}
+              <span style={{ fontStyle: "italic", color: "#b8973a" }}>{t("integraciones.ctaTitleEmphasis")}</span>
             </h2>
 
             <p
@@ -425,8 +426,7 @@ export default function IntegracionesPage() {
                 color: "rgba(244,240,232,0.55)",
               }}
             >
-              Nuestro equipo puede crear integraciones custom para clientes Enterprise. Webhooks
-              avanzados, sincronización bidireccional, y conectores a medida.
+              {t("integraciones.ctaDescription")}
             </p>
 
             <Link
@@ -440,7 +440,7 @@ export default function IntegracionesPage() {
                 boxShadow: "0 0 30px rgba(184, 151, 58, 0.3)",
               }}
             >
-              Ver Planes Enterprise
+              {t("integraciones.ctaButton")}
               <ArrowRight className="w-5 h-5" />
             </Link>
           </div>

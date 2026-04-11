@@ -12,10 +12,12 @@ import {
 import Link from "next/link";
 import { caseStudies } from "@/data/case-studies";
 import { usePageView } from "@/hooks/usePageView";
+import { useTranslation } from "@/i18n";
 
 const ease = [0.25, 0.46, 0.45, 0.94] as const;
 
 export default function CasosDeEstudioPage() {
+  const { t } = useTranslation("marketing");
   usePageView("Casos de Estudio");
 
   return (
@@ -38,7 +40,7 @@ export default function CasosDeEstudioPage() {
                 color: "rgba(244,240,232,0.92)",
               }}
             >
-              Casos de Éxito
+              {t("caseStudies.badge")}
             </span>
           </motion.div>
 
@@ -53,11 +55,11 @@ export default function CasosDeEstudioPage() {
               color: "rgba(244,240,232,0.92)",
             }}
           >
-            Historias de quienes
+            {t("caseStudies.titleLine1")}
             <br />
-            ya{" "}
+            {t("caseStudies.titleLine2")}
             <span style={{ fontStyle: "italic", color: "#b8973a" }}>
-              venden diferente
+              {t("caseStudies.titleEmphasis")}
             </span>
           </motion.h1>
 
@@ -71,8 +73,7 @@ export default function CasosDeEstudioPage() {
               color: "rgba(244,240,232,0.55)",
             }}
           >
-            Resultados reales de constructoras que dejaron atrás las agencias
-            tradicionales. Datos duros, métricas verificables, ROI comprobado.
+            {t("caseStudies.description")}
           </motion.p>
         </div>
 
@@ -186,7 +187,7 @@ export default function CasosDeEstudioPage() {
                           color: "rgba(244,240,232,0.92)",
                         }}
                       >
-                        El Desafío
+                        {t("caseStudies.challenge")}
                       </h3>
                       <p
                         className="text-base mb-2"
@@ -256,7 +257,7 @@ export default function CasosDeEstudioPage() {
                           color: "rgba(244,240,232,0.92)",
                         }}
                       >
-                        La Solución
+                        {t("caseStudies.solution")}
                       </h3>
                       <p
                         className="text-base mb-2"
@@ -319,7 +320,7 @@ export default function CasosDeEstudioPage() {
                     color: "rgba(244,240,232,0.92)",
                   }}
                 >
-                  Resultados
+                  {t("caseStudies.results")}
                 </h3>
                 <p
                   className="text-lg mb-8"
@@ -465,7 +466,7 @@ export default function CasosDeEstudioPage() {
                     color: "#b8973a",
                   }}
                 >
-                  Ver caso completo
+                  {t("caseStudies.viewFullCase")}
                   <ArrowRight className="w-4 h-4" />
                 </Link>
               </div>
@@ -490,9 +491,9 @@ export default function CasosDeEstudioPage() {
                 color: "rgba(244,240,232,0.92)",
               }}
             >
-              ¿Listo para tener{" "}
+              {t("caseStudies.ctaTitleLine1")}
               <span style={{ fontStyle: "italic", color: "#b8973a" }}>
-                tu caso de éxito?
+                {t("caseStudies.ctaTitleEmphasis")}
               </span>
             </h2>
             <p
@@ -502,8 +503,7 @@ export default function CasosDeEstudioPage() {
                 color: "rgba(244,240,232,0.55)",
               }}
             >
-              Agenda una llamada de 30 minutos y te mostramos cómo NODDO puede
-              transformar tu estrategia de ventas digitales
+              {t("caseStudies.ctaDescription")}
             </p>
             <Link
               href="/"
@@ -517,7 +517,7 @@ export default function CasosDeEstudioPage() {
                 boxShadow: "0 0 30px rgba(184, 151, 58, 0.3)",
               }}
             >
-              Agendar Llamada
+              {t("caseStudies.ctaButton")}
               <ArrowRight className="w-5 h-5" />
             </Link>
           </div>

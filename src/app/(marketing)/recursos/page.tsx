@@ -7,10 +7,12 @@ import { motion } from "framer-motion";
 import { BookOpen, ArrowRight, Lightbulb } from "lucide-react";
 import { articles } from "@/data/articles";
 import { usePageView } from "@/hooks/usePageView";
+import { useTranslation } from "@/i18n";
 
 const ease = [0.25, 0.46, 0.45, 0.94] as const;
 
 export default function RecursosPage() {
+  const { t } = useTranslation("marketing");
   usePageView("Recursos");
 
   return (
@@ -55,7 +57,7 @@ export default function RecursosPage() {
                 color: "rgba(244,240,232,0.92)",
               }}
             >
-              Centro de Recursos
+              {t("recursos.badge")}
             </span>
           </motion.div>
 
@@ -70,10 +72,10 @@ export default function RecursosPage() {
               color: "rgba(244,240,232,0.92)",
             }}
           >
-            Aprende a vender
+            {t("recursos.titleLine1")}
             <br />
             <span style={{ fontStyle: "italic", color: "#b8973a" }}>
-              mejor y más rápido
+              {t("recursos.titleEmphasis")}
             </span>
           </motion.h1>
 
@@ -87,8 +89,7 @@ export default function RecursosPage() {
               color: "rgba(244,240,232,0.55)",
             }}
           >
-            Guías prácticas, análisis de datos, y mejores prácticas del sector inmobiliario digital.
-            Aprende de expertos y casos reales.
+            {t("recursos.description")}
           </motion.p>
         </div>
 
@@ -114,7 +115,7 @@ export default function RecursosPage() {
                       color: "#0a0a0b",
                     }}
                   >
-                    Destacado
+                    {t("recursos.featured")}
                   </div>
                 </div>
 
@@ -191,7 +192,7 @@ export default function RecursosPage() {
                       color: "#0a0a0b",
                     }}
                   >
-                    Leer Artículo
+                    {t("recursos.readArticle")}
                     <ArrowRight className="w-4 h-4" />
                   </span>
                 </div>
@@ -287,7 +288,7 @@ export default function RecursosPage() {
                           color: "#b8973a",
                         }}
                       >
-                        Leer más
+                        {t("recursos.readMore")}
                         <ArrowRight className="w-4 h-4" />
                       </span>
                     </div>
@@ -331,8 +332,8 @@ export default function RecursosPage() {
                 color: "rgba(244,240,232,0.92)",
               }}
             >
-              No te pierdas{" "}
-              <span style={{ fontStyle: "italic", color: "#b8973a" }}>nada</span>
+              {t("recursos.newsletterTitle")}
+              <span style={{ fontStyle: "italic", color: "#b8973a" }}>{t("recursos.newsletterTitleEmphasis")}</span>
             </h2>
 
             <p
@@ -342,14 +343,13 @@ export default function RecursosPage() {
                 color: "rgba(244,240,232,0.55)",
               }}
             >
-              Recibe en tu email artículos nuevos, casos de estudio, y updates del producto. Una
-              vez al mes, sin spam.
+              {t("recursos.newsletterDescription")}
             </p>
 
             <form className="flex flex-col md:flex-row gap-4 max-w-lg mx-auto relative z-10">
               <input
                 type="email"
-                placeholder="tu@email.com"
+                placeholder={t("recursos.newsletterPlaceholder")}
                 className="flex-1 px-6 py-4 rounded-xl input-glass text-sm"
                 style={{
                   fontWeight: 300,
@@ -368,7 +368,7 @@ export default function RecursosPage() {
                   color: "#0a0a0b",
                 }}
               >
-                Suscribirme
+                {t("recursos.newsletterButton")}
               </button>
             </form>
 
@@ -379,7 +379,7 @@ export default function RecursosPage() {
                 color: "rgba(244,240,232,0.35)",
               }}
             >
-              Puedes cancelar cuando quieras. Cero spam, lo prometemos.
+              {t("recursos.newsletterDisclaimer")}
             </p>
           </div>
         </motion.div>

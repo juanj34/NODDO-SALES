@@ -3,159 +3,161 @@
 import { motion } from "framer-motion";
 import { Rocket, CheckCircle2, Clock, Lightbulb, ArrowRight, Sparkles } from "lucide-react";
 import { usePageView } from "@/hooks/usePageView";
-
-const roadmapItems = [
-  {
-    status: "completed",
-    title: "Recién Lanzado",
-    icon: CheckCircle2,
-    color: "#10b981",
-    items: [
-      {
-        name: "Multi-step forms con trust signals",
-        description: "Formularios de contacto en múltiples pasos con badges de confianza, progreso visual, y validación en tiempo real",
-        date: "Marzo 2026",
-        impact: "high",
-      },
-      {
-        name: "Cotizador automático en PDF",
-        description: "Genera cotizaciones personalizadas en PDF con branding del proyecto, specs de la unidad, precios, y formas de pago",
-        date: "Marzo 2026",
-        impact: "high",
-      },
-      {
-        name: "Sistema de colaboradores",
-        description: "Invita hasta 3 colaboradores (asesores de ventas) con permisos limitados para actualizar solo inventario",
-        date: "Febrero 2026",
-        impact: "medium",
-      },
-      {
-        name: "Analytics dashboard mejorado",
-        description: "Dashboard de analytics con métricas de conversión, fuentes de tráfico, y mapas de calor de clicks",
-        date: "Febrero 2026",
-        impact: "medium",
-      },
-      {
-        name: "Notificaciones de leads instantáneas",
-        description: "Emails automáticos al capturar lead + daily digest con resumen de actividad",
-        date: "Enero 2026",
-        impact: "high",
-      },
-    ],
-  },
-  {
-    status: "in-progress",
-    title: "En Desarrollo (Q2 2026)",
-    icon: Rocket,
-    color: "#b8973a",
-    items: [
-      {
-        name: "A/B Testing nativo",
-        description: "Prueba diferentes versiones de tu microsite: textos, CTAs, colores, layouts. Métricas automáticas para detectar qué convierte mejor",
-        eta: "Abril 2026",
-        impact: "high",
-        progress: 65,
-      },
-      {
-        name: "WhatsApp Business API",
-        description: "Integración oficial con WhatsApp Business: envía mensajes automatizados, templates aprobados, y chatbot básico para calificación de leads",
-        eta: "Mayo 2026",
-        impact: "high",
-        progress: 40,
-      },
-      {
-        name: "Analytics predictivos con AI",
-        description: "Predicción de probabilidad de venta por unidad, recomendaciones de pricing dinámico, y forecasting de conversión",
-        eta: "Junio 2026",
-        impact: "medium",
-        progress: 25,
-      },
-      {
-        name: "Editor visual de páginas",
-        description: "Drag-and-drop para personalizar layout de secciones sin código. Biblioteca de bloques pre-diseñados",
-        eta: "Junio 2026",
-        impact: "medium",
-        progress: 50,
-      },
-    ],
-  },
-  {
-    status: "planned",
-    title: "Próximamente (Q3-Q4 2026)",
-    icon: Clock,
-    color: "#d4b05a",
-    items: [
-      {
-        name: "App móvil nativa (iOS + Android)",
-        description: "App para el equipo de ventas: gestión de leads on-the-go, escaneo de QR para vincular visitantes a unidades, modo offline",
-        eta: "Q3 2026",
-        impact: "high",
-      },
-      {
-        name: "Tours VR (Oculus/Meta Quest)",
-        description: "Soporte para recorridos en realidad virtual compatibles con visores Oculus, Meta Quest, y Google Cardboard",
-        eta: "Q3 2026",
-        impact: "medium",
-      },
-      {
-        name: "Integración Salesforce nativa",
-        description: "Connector bidireccional oficial con Salesforce: sincroniza leads, oportunidades, y custom objects sin Zapier",
-        eta: "Q4 2026",
-        impact: "high",
-      },
-      {
-        name: "Marketplace de templates",
-        description: "Biblioteca de templates pre-diseñados por tipo de proyecto: apartamentos, casas, lotes, comercial, mixed-use",
-        eta: "Q4 2026",
-        impact: "low",
-      },
-      {
-        name: "Comparador de unidades",
-        description: "Herramienta para que compradores comparen hasta 4 unidades lado a lado: specs, precio, renders, disponibilidad",
-        eta: "Q4 2026",
-        impact: "medium",
-      },
-    ],
-  },
-  {
-    status: "considering",
-    title: "En Consideración (Votación de Usuarios)",
-    icon: Lightbulb,
-    color: "#a07e2e",
-    items: [
-      {
-        name: "Financiamiento simulado",
-        description: "Calculadora de crédito hipotecario integrada con bancos: simula cuota mensual, tasa de interés, y requisitos de aprobación",
-        votes: 47,
-      },
-      {
-        name: "Live chat con IA",
-        description: "Chatbot entrenado con info del proyecto que responde preguntas comunes 24/7, califica leads, y agenda citas",
-        votes: 38,
-      },
-      {
-        name: "Reservas online con pago",
-        description: "Sistema de reservas online: paga % inicial con Stripe, genera contrato digital, y bloquea unidad temporalmente",
-        votes: 32,
-      },
-      {
-        name: "Galería 360° interactiva",
-        description: "Fotos 360° navegables (tipo Google Street View) para recorrer departamentos terminados o modelo",
-        votes: 28,
-      },
-      {
-        name: "Reportes personalizados",
-        description: "Genera reportes en PDF/Excel con métricas custom, filtros avanzados, y branding del proyecto",
-        votes: 19,
-      },
-    ],
-  },
-];
+import { useTranslation } from "@/i18n";
 
 const ease = [0.25, 0.46, 0.45, 0.94] as const;
 
 export default function RoadmapPage() {
   usePageView("Roadmap");
+  const { t } = useTranslation("marketing");
+
+  const roadmapItems = [
+    {
+      status: "completed",
+      title: t("roadmap.sections.completedTitle"),
+      icon: CheckCircle2,
+      color: "#10b981",
+      items: [
+        {
+          name: t("roadmap.items.i0name"),
+          description: t("roadmap.items.i0desc"),
+          date: t("roadmap.items.i0date"),
+          impact: "high" as const,
+        },
+        {
+          name: t("roadmap.items.i1name"),
+          description: t("roadmap.items.i1desc"),
+          date: t("roadmap.items.i1date"),
+          impact: "high" as const,
+        },
+        {
+          name: t("roadmap.items.i2name"),
+          description: t("roadmap.items.i2desc"),
+          date: t("roadmap.items.i2date"),
+          impact: "medium" as const,
+        },
+        {
+          name: t("roadmap.items.i3name"),
+          description: t("roadmap.items.i3desc"),
+          date: t("roadmap.items.i3date"),
+          impact: "medium" as const,
+        },
+        {
+          name: t("roadmap.items.i4name"),
+          description: t("roadmap.items.i4desc"),
+          date: t("roadmap.items.i4date"),
+          impact: "high" as const,
+        },
+      ],
+    },
+    {
+      status: "in-progress",
+      title: t("roadmap.sections.inProgressTitle"),
+      icon: Rocket,
+      color: "#b8973a",
+      items: [
+        {
+          name: t("roadmap.items.i5name"),
+          description: t("roadmap.items.i5desc"),
+          eta: t("roadmap.items.i5eta"),
+          impact: "high" as const,
+          progress: 65,
+        },
+        {
+          name: t("roadmap.items.i6name"),
+          description: t("roadmap.items.i6desc"),
+          eta: t("roadmap.items.i6eta"),
+          impact: "high" as const,
+          progress: 40,
+        },
+        {
+          name: t("roadmap.items.i7name"),
+          description: t("roadmap.items.i7desc"),
+          eta: t("roadmap.items.i7eta"),
+          impact: "medium" as const,
+          progress: 25,
+        },
+        {
+          name: t("roadmap.items.i8name"),
+          description: t("roadmap.items.i8desc"),
+          eta: t("roadmap.items.i8eta"),
+          impact: "medium" as const,
+          progress: 50,
+        },
+      ],
+    },
+    {
+      status: "planned",
+      title: t("roadmap.sections.plannedTitle"),
+      icon: Clock,
+      color: "#d4b05a",
+      items: [
+        {
+          name: t("roadmap.items.i9name"),
+          description: t("roadmap.items.i9desc"),
+          eta: t("roadmap.items.i9eta"),
+          impact: "high" as const,
+        },
+        {
+          name: t("roadmap.items.i10name"),
+          description: t("roadmap.items.i10desc"),
+          eta: t("roadmap.items.i10eta"),
+          impact: "medium" as const,
+        },
+        {
+          name: t("roadmap.items.i11name"),
+          description: t("roadmap.items.i11desc"),
+          eta: t("roadmap.items.i11eta"),
+          impact: "high" as const,
+        },
+        {
+          name: t("roadmap.items.i12name"),
+          description: t("roadmap.items.i12desc"),
+          eta: t("roadmap.items.i12eta"),
+          impact: "low" as const,
+        },
+        {
+          name: t("roadmap.items.i13name"),
+          description: t("roadmap.items.i13desc"),
+          eta: t("roadmap.items.i13eta"),
+          impact: "medium" as const,
+        },
+      ],
+    },
+    {
+      status: "considering",
+      title: t("roadmap.sections.consideringTitle"),
+      icon: Lightbulb,
+      color: "#a07e2e",
+      items: [
+        {
+          name: t("roadmap.items.i14name"),
+          description: t("roadmap.items.i14desc"),
+          votes: 47,
+        },
+        {
+          name: t("roadmap.items.i15name"),
+          description: t("roadmap.items.i15desc"),
+          votes: 38,
+        },
+        {
+          name: t("roadmap.items.i16name"),
+          description: t("roadmap.items.i16desc"),
+          votes: 32,
+        },
+        {
+          name: t("roadmap.items.i17name"),
+          description: t("roadmap.items.i17desc"),
+          votes: 28,
+        },
+        {
+          name: t("roadmap.items.i18name"),
+          description: t("roadmap.items.i18desc"),
+          votes: 19,
+        },
+      ],
+    },
+  ];
 
   return (
     <div className="min-h-screen pt-32 pb-24 px-6">
@@ -204,7 +206,7 @@ export default function RoadmapPage() {
                 color: "rgba(244,240,232,0.92)",
               }}
             >
-              Roadmap
+              {t("roadmap.badge")}
             </span>
           </motion.div>
 
@@ -219,7 +221,7 @@ export default function RoadmapPage() {
               color: "rgba(244,240,232,0.92)",
             }}
           >
-            Hacia dónde vamos
+            {t("roadmap.title")}
           </motion.h1>
 
           <motion.p
@@ -232,8 +234,7 @@ export default function RoadmapPage() {
               color: "rgba(244,240,232,0.55)",
             }}
           >
-            Transparencia total. Aquí puedes ver qué estamos construyendo, qué acabamos de lanzar,
-            y qué features estamos considerando basados en feedback de usuarios.
+            {t("roadmap.description")}
           </motion.p>
         </div>
 
@@ -340,7 +341,7 @@ export default function RoadmapPage() {
                                     color: "rgba(244,240,232,0.55)",
                                   }}
                                 >
-                                  Progreso
+                                  {t("roadmap.progress")}
                                 </span>
                                 <span
                                   className="text-xs font-bold"
@@ -377,7 +378,7 @@ export default function RoadmapPage() {
                                   color: "rgba(244,240,232,0.55)",
                                 }}
                               >
-                                {item.votes} votos de usuarios
+                                {item.votes} {t("roadmap.votes")}
                               </span>
                               <button
                                 className="ml-2 px-3 py-1 rounded-lg text-xs transition-all duration-200 hover:scale-105"
@@ -389,7 +390,7 @@ export default function RoadmapPage() {
                                   border: "1px solid rgba(184, 151, 58, 0.3)",
                                 }}
                               >
-                                👍 Votar
+                                👍 {t("roadmap.voteButton")}
                               </button>
                             </div>
                           )}
@@ -411,7 +412,7 @@ export default function RoadmapPage() {
                               color: "rgba(244,240,232,0.45)",
                             }}
                           >
-                            {"date" in item ? "Lanzado" : "eta" in item ? "ETA" : "Propuesto"}
+                            {"date" in item ? t("roadmap.dateLaunched") : "eta" in item ? t("roadmap.dateEta") : t("roadmap.dateProposed")}
                           </div>
                           <div
                             className="text-sm"
@@ -456,8 +457,8 @@ export default function RoadmapPage() {
                 color: "rgba(244,240,232,0.92)",
               }}
             >
-              ¿Tienes una idea?{" "}
-              <span style={{ fontStyle: "italic", color: "#b8973a" }}>Cuéntanos</span>
+              {t("roadmap.ctaTitleLine1")}{" "}
+              <span style={{ fontStyle: "italic", color: "#b8973a" }}>{t("roadmap.ctaTitleEmphasis")}</span>
             </h2>
             <p
               className="text-base mb-8 max-w-2xl mx-auto"
@@ -466,11 +467,10 @@ export default function RoadmapPage() {
                 color: "rgba(244,240,232,0.55)",
               }}
             >
-              Escuchamos activamente a nuestros usuarios. Si tienes una idea de feature o mejora,
-              escríbenos. Las mejores propuestas entran al roadmap.
+              {t("roadmap.ctaDescription")}
             </p>
             <a
-              href="mailto:hola@noddo.io?subject=Sugerencia de Feature"
+              href="mailto:hola@noddo.io?subject=Feature Suggestion"
               className="inline-flex items-center gap-2 px-8 py-4 rounded-xl text-base font-medium transition-all duration-200 hover:scale-105"
               style={{
                 fontFamily: "var(--font-syne)",
@@ -480,7 +480,7 @@ export default function RoadmapPage() {
                 boxShadow: "0 0 30px rgba(184, 151, 58, 0.3)",
               }}
             >
-              Proponer Feature
+              {t("roadmap.ctaButton")}
               <ArrowRight className="w-5 h-5" />
             </a>
           </div>

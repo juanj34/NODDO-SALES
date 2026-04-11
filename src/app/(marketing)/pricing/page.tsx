@@ -2,11 +2,12 @@
 
 import { useState, useRef } from "react";
 import { motion, useInView, AnimatePresence } from "framer-motion";
-import { Check, X, Sparkles, Zap, Building2, ChevronDown } from "lucide-react";
+import { Check, Sparkles, Zap, Building2, ChevronDown, Plus } from "lucide-react";
 import { useBooking } from "@/components/marketing/BookingProvider";
 import { useContact } from "@/components/marketing/ContactProvider";
 import { trackPricingPlanClicked, trackPricingViewed } from "@/lib/marketing-tracking";
 import { PLAN_VALUES } from "@/lib/ghl-config";
+import { useTranslation } from "@/i18n";
 
 /* ─── Animation helpers ─── */
 
@@ -48,8 +49,7 @@ interface Plan {
   icon: typeof Zap;
   name: string;
   slug: string;
-  monthlyPrice: string | null;
-  annualPrice: string | null;
+  price: string | null;
   priceLabel: string;
   description: string;
   cta: string;
@@ -64,115 +64,10 @@ interface FAQ {
   answer: string;
 }
 
-/* ─── Data ─── */
-
-const plans: Plan[] = [
-  {
-    icon: Zap,
-    name: "Esencial",
-    slug: "esencial",
-    monthlyPrice: "$79",
-    annualPrice: "$63",
-    priceLabel: "USD/mes",
-    description: "Tu microsite premium con todo lo visual. Perfecto para un proyecto activo.",
-    cta: "Comenzar gratis",
-    ctaStyle: "outline",
-    highlighted: false,
-    features: [
-      { text: "1 proyecto activo", included: true },
-      { text: "Hasta 200 unidades", included: true },
-      { text: "Microsite completo: Galería, Videos, Mapas, Tours 360°", included: true },
-      { text: "Formulario de contacto", included: true },
-      { text: "Disponibilidad en tiempo real", included: true },
-      { text: "10GB de almacenamiento", included: true },
-      { text: "Cotizador integrado", included: false },
-      { text: "Analytics avanzado", included: false },
-      { text: "Dominio personalizado", included: false },
-      { text: "Colaboradores", included: false },
-    ],
-  },
-  {
-    icon: Sparkles,
-    name: "Profesional",
-    slug: "profesional",
-    monthlyPrice: "$149",
-    annualPrice: "$119",
-    priceLabel: "USD/mes",
-    description: "Todo en Esencial + herramientas de venta. La opción completa para equipos comerciales.",
-    cta: "Comenzar ahora",
-    ctaStyle: "primary",
-    highlighted: true,
-    badge: "Más Popular",
-    features: [
-      { text: "5 proyectos activos", included: true },
-      { text: "Unidades ilimitadas", included: true },
-      { text: "Todo en Esencial +", included: true },
-      { text: "Cotizador integrado", included: true },
-      { text: "Analytics avanzado", included: true },
-      { text: "Dominio personalizado", included: true },
-      { text: "Hasta 3 colaboradores", included: true },
-      { text: "50GB por proyecto", included: true },
-      { text: "Soporte prioritario", included: true },
-    ],
-  },
-  {
-    icon: Building2,
-    name: "Enterprise",
-    slug: "enterprise",
-    monthlyPrice: null,
-    annualPrice: null,
-    priceLabel: "",
-    description: "Solución personalizada para desarrolladoras con portafolio extenso y necesidades específicas.",
-    cta: "Hablar con ventas",
-    ctaStyle: "outline",
-    highlighted: false,
-    features: [
-      { text: "10+ proyectos activos", included: true },
-      { text: "Todo en Profesional +", included: true },
-      { text: "Herramientas a medida", included: true },
-      { text: "Onboarding dedicado", included: true },
-      { text: "Soporte premium 24/7", included: true },
-    ],
-  },
-];
-
-const faqs: FAQ[] = [
-  {
-    question: "¿Qué incluye el plan Esencial?",
-    answer:
-      "El plan Esencial incluye tu microsite premium completo: galería de imágenes, videos inmersivos, mapas interactivos con POIs, tours 360°, formulario de contacto y disponibilidad en tiempo real. Todo lo visual para presentar tu proyecto de forma profesional.",
-  },
-  {
-    question: "¿Qué agrega el plan Profesional?",
-    answer:
-      "El plan Profesional incluye todo lo del Esencial más las herramientas de venta: cotizador integrado para generar cotizaciones en PDF, analytics avanzado, dominio personalizado, hasta 3 colaboradores y 50GB por proyecto.",
-  },
-  {
-    question: "¿Puedo cambiar de plan en cualquier momento?",
-    answer:
-      "Sí, puedes actualizar o degradar tu plan en cualquier momento. Los cambios se aplican inmediatamente y se ajusta el cobro de forma proporcional.",
-  },
-  {
-    question: "¿Qué métodos de pago aceptan?",
-    answer:
-      "Aceptamos tarjetas de crédito y débito (Visa, Mastercard, American Express). Ofrecemos pago mensual o anual con 20% de descuento.",
-  },
-  {
-    question: "¿Hay algún contrato o permanencia mínima?",
-    answer:
-      "No, todos nuestros planes son mes a mes sin cláusulas de permanencia. Puedes cancelar cuando quieras sin penalidades. El plan anual ahorra 20% comparado con el mensual.",
-  },
-  {
-    question: "¿Qué es el plan Enterprise?",
-    answer:
-      "Enterprise es una solución personalizada para desarrolladoras con más de 10 proyectos activos. Incluye herramientas a medida, onboarding dedicado y soporte premium 24/7. Contacta a ventas para un plan a tu medida.",
-  },
-  {
-    question: "¿Qué sucede cuando mi proyecto se vende?",
-    answer:
-      "Puedes pausar o archivar proyectos vendidos sin costo. Solo pagas por los proyectos activos en preventa. Esto te permite gestionar tu inversión según tus necesidades reales.",
-  },
-];
+interface AddOn {
+  name: string;
+  description: string;
+}
 
 /* ─── Components ─── */
 
@@ -237,16 +132,13 @@ function FAQItem({ faq, index }: { faq: FAQ; index: number }) {
 
 function PricingCard({
   plan,
-  annual,
   index,
   onCtaClick,
 }: {
   plan: Plan;
-  annual: boolean;
   index: number;
   onCtaClick: () => void;
 }) {
-  const price = annual ? plan.annualPrice : plan.monthlyPrice;
   const Icon = plan.icon;
 
   return (
@@ -300,13 +192,13 @@ function PricingCard({
 
         {/* Price */}
         <div className="mb-4">
-          {price ? (
+          {plan.price ? (
             <div className="flex items-baseline gap-1.5">
               <span
                 className="text-3xl font-bold tracking-tight"
                 style={{ color: "var(--mk-text-primary)" }}
               >
-                {price}
+                {plan.price}
               </span>
               <span
                 className="text-sm"
@@ -320,7 +212,7 @@ function PricingCard({
               className="text-3xl font-bold tracking-tight"
               style={{ color: "var(--mk-text-primary)" }}
             >
-              Personalizado
+              {plan.priceLabel}
             </span>
           )}
         </div>
@@ -371,11 +263,12 @@ function PricingCard({
                     border: "1px solid var(--mk-border-subtle)",
                   }}
                 >
-                  <X
-                    size={12}
-                    strokeWidth={2.5}
+                  <span
+                    className="text-[10px]"
                     style={{ color: "var(--mk-text-muted)" }}
-                  />
+                  >
+                    —
+                  </span>
                 </div>
               )}
               <span
@@ -399,19 +292,104 @@ function PricingCard({
 /* ─── Page ─── */
 
 export default function PricingPage() {
-  const [annual, setAnnual] = useState(false);
   const { openBooking } = useBooking();
   const { openContact } = useContact();
+  const { t } = useTranslation("marketing");
 
   // Track pricing page view on mount
   useState(() => {
     trackPricingViewed();
   });
 
+  const plans: Plan[] = [
+    {
+      icon: Zap,
+      name: t("pricing.plans.basicoName"),
+      slug: "basico",
+      price: `$${t("pricing.plans.basicoPrice")}`,
+      priceLabel: t("pricing.plans.basicoPeriod"),
+      description: t("pricing.plans.basicoDesc"),
+      cta: t("pricing.plans.basicoCta"),
+      ctaStyle: "outline",
+      highlighted: false,
+      features: [
+        { text: t("pricing.plans.basicoF0"), included: true },
+        { text: t("pricing.plans.basicoF1"), included: true },
+        { text: t("pricing.plans.basicoF2"), included: true },
+        { text: t("pricing.plans.basicoF3"), included: true },
+        { text: t("pricing.plans.basicoF4"), included: true },
+        { text: t("pricing.plans.basicoX0"), included: false },
+        { text: t("pricing.plans.basicoX1"), included: false },
+        { text: t("pricing.plans.basicoX2"), included: false },
+      ],
+    },
+    {
+      icon: Sparkles,
+      name: t("pricing.plans.proName"),
+      slug: "pro",
+      price: `$${t("pricing.plans.proPrice")}`,
+      priceLabel: t("pricing.plans.proPeriod"),
+      description: t("pricing.plans.proDesc"),
+      cta: t("pricing.plans.proCta"),
+      ctaStyle: "primary",
+      highlighted: true,
+      badge: t("pricing.plans.proBadge"),
+      features: [
+        { text: t("pricing.plans.proF0"), included: true },
+        { text: t("pricing.plans.proF1"), included: true },
+        { text: t("pricing.plans.proF2"), included: true },
+        { text: t("pricing.plans.proF3"), included: true },
+      ],
+    },
+    {
+      icon: Building2,
+      name: t("pricing.plans.personalizadoName"),
+      slug: "personalizado",
+      price: null,
+      priceLabel: t("pricing.plans.personalizadoPrice"),
+      description: t("pricing.plans.personalizadoDesc"),
+      cta: t("pricing.plans.personalizadoCta"),
+      ctaStyle: "outline",
+      highlighted: false,
+      features: [
+        { text: t("pricing.plans.personalizadoF0"), included: true },
+        { text: t("pricing.plans.personalizadoF1"), included: true },
+        { text: t("pricing.plans.personalizadoF2"), included: true },
+        { text: t("pricing.plans.personalizadoF3"), included: true },
+        { text: t("pricing.plans.personalizadoF4"), included: true },
+      ],
+    },
+  ];
+
+  const addOns: AddOn[] = [
+    {
+      name: t("pricing.addOns.a0name"),
+      description: t("pricing.addOns.a0desc"),
+    },
+    {
+      name: t("pricing.addOns.a1name"),
+      description: t("pricing.addOns.a1desc"),
+    },
+    {
+      name: t("pricing.addOns.a2name"),
+      description: t("pricing.addOns.a2desc"),
+    },
+  ];
+
+  const faqs: FAQ[] = [
+    { question: t("pricing.faq.q0"), answer: t("pricing.faq.a0") },
+    { question: t("pricing.faq.q1"), answer: t("pricing.faq.a1") },
+    { question: t("pricing.faq.q2"), answer: t("pricing.faq.a2") },
+    { question: t("pricing.faq.q3"), answer: t("pricing.faq.a3") },
+    { question: t("pricing.faq.q4"), answer: t("pricing.faq.a4") },
+    { question: t("pricing.faq.q5"), answer: t("pricing.faq.a5") },
+    { question: t("pricing.faq.q6"), answer: t("pricing.faq.a6") },
+  ];
+
   const handlePlanCTA = (plan: Plan) => {
-    trackPricingPlanClicked(plan.slug, PLAN_VALUES[plan.slug] || 149);
-    if (plan.slug === "enterprise") {
-      openContact("enterprise", "pricing-enterprise");
+    trackPricingPlanClicked(plan.slug, PLAN_VALUES[plan.slug] || 249);
+    if (plan.slug === "personalizado") {
+      openContact("personalizado", "pricing-personalizado");
     } else {
       openBooking();
     }
@@ -432,7 +410,7 @@ export default function PricingPage() {
             className="text-xs tracking-[0.4em] uppercase mb-5"
             style={{ color: "var(--mk-accent)" }}
           >
-            Precios simples, resultados extraordinarios
+            {t("pricing.headerLabel")}
           </motion.p>
 
           <motion.h1
@@ -442,7 +420,7 @@ export default function PricingPage() {
             className="font-heading text-4xl md:text-6xl font-light tracking-wider mb-5"
             style={{ color: "var(--mk-text-primary)" }}
           >
-            Todo lo que necesitas para vender tu proyecto
+            {t("pricing.headerHeading")}
           </motion.h1>
 
           <motion.p
@@ -452,74 +430,94 @@ export default function PricingPage() {
             className="text-base md:text-lg leading-relaxed"
             style={{ color: "var(--mk-text-tertiary)" }}
           >
-            Sin costos ocultos. Sin add-ons. Todo incluido.
+            {t("pricing.headerSubtitle")}
           </motion.p>
         </div>
       </section>
 
-      {/* ─── Monthly / Annual Toggle ─── */}
-      <section className="relative pb-16 px-6">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, delay: 0.45, ease }}
-          className="flex justify-center"
-        >
-          <div
-            className="inline-flex items-center rounded-full p-1 relative"
-            style={{ background: "var(--mk-surface-2)" }}
-          >
-            <button
-              onClick={() => setAnnual(false)}
-              className="relative z-10 px-6 py-2 text-sm font-medium rounded-full transition-colors duration-300 cursor-pointer"
-              style={{
-                color: !annual ? "white" : "var(--mk-text-tertiary)",
-                background: !annual ? "var(--mk-text-primary)" : "transparent",
-              }}
-            >
-              Mensual
-            </button>
-            <button
-              onClick={() => setAnnual(true)}
-              className="relative z-10 px-6 py-2 text-sm font-medium rounded-full transition-colors duration-300 flex items-center gap-2 cursor-pointer"
-              style={{
-                color: annual ? "white" : "var(--mk-text-tertiary)",
-                background: annual ? "var(--mk-text-primary)" : "transparent",
-              }}
-            >
-              Anual
-              {annual && (
-                <motion.span
-                  initial={{ opacity: 0, scale: 0.8 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  className="text-[10px] font-bold tracking-wider px-2 py-0.5 rounded-full"
-                  style={{
-                    background: "rgba(255, 255, 255, 0.20)",
-                    color: "white",
-                  }}
-                >
-                  -20%
-                </motion.span>
-              )}
-            </button>
-          </div>
-        </motion.div>
-      </section>
-
       {/* ─── Pricing Cards ─── */}
-      <section className="relative px-6 pb-32">
+      <section className="relative px-6 pb-20">
         <div className="max-w-6xl mx-auto">
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-stretch">
             {plans.map((plan, i) => (
               <PricingCard
                 key={plan.name}
                 plan={plan}
-                annual={annual}
                 index={i}
                 onCtaClick={() => handlePlanCTA(plan)}
               />
             ))}
           </div>
+        </div>
+      </section>
+
+      {/* ─── Add-ons Section ─── */}
+      <section className="relative px-6 pb-20">
+        <div className="max-w-4xl mx-auto">
+          <FadeInSection className="text-center mb-10">
+            <p
+              className="text-xs tracking-[0.4em] uppercase mb-4"
+              style={{ color: "var(--mk-accent)" }}
+            >
+              {t("pricing.addOns.label")}
+            </p>
+            <h2
+              className="font-heading text-2xl md:text-4xl font-light tracking-wider"
+              style={{ color: "var(--mk-text-primary)" }}
+            >
+              {t("pricing.addOns.heading")}
+            </h2>
+          </FadeInSection>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            {addOns.map((addon, i) => (
+              <FadeInSection key={addon.name} delay={i * 0.08}>
+                <div
+                  className="rounded-[1.25rem] p-6 h-full"
+                  style={{
+                    background: "var(--mk-surface-3)",
+                    border: "1px solid var(--mk-border-subtle)",
+                  }}
+                >
+                  <div className="flex items-start gap-3">
+                    <div
+                      className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0"
+                      style={{
+                        background: "rgba(var(--mk-accent-rgb), 0.08)",
+                        border: "1px solid rgba(var(--mk-accent-rgb), 0.12)",
+                      }}
+                    >
+                      <Plus size={16} style={{ color: "var(--mk-accent)" }} />
+                    </div>
+                    <div>
+                      <h3
+                        className="text-sm font-semibold mb-1.5"
+                        style={{ color: "var(--mk-text-primary)" }}
+                      >
+                        {addon.name}
+                      </h3>
+                      <p
+                        className="text-sm leading-relaxed"
+                        style={{ color: "var(--mk-text-tertiary)" }}
+                      >
+                        {addon.description}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </FadeInSection>
+            ))}
+          </div>
+
+          {/* Implementation note */}
+          <FadeInSection delay={0.3}>
+            <p
+              className="text-center text-sm italic mt-8"
+              style={{ color: "var(--mk-text-muted)", maxWidth: 560, margin: "32px auto 0" }}
+            >
+              {t("pricing.implementation")}
+            </p>
+          </FadeInSection>
         </div>
       </section>
 
@@ -531,7 +529,7 @@ export default function PricingPage() {
               className="font-heading text-3xl md:text-5xl font-light tracking-wider"
               style={{ color: "var(--mk-text-primary)" }}
             >
-              Preguntas frecuentes
+              {t("pricing.faq.heading")}
             </h2>
           </FadeInSection>
 
@@ -553,19 +551,19 @@ export default function PricingPage() {
             className="font-heading text-3xl md:text-5xl font-light tracking-wider mb-5"
             style={{ color: "var(--mk-text-primary)" }}
           >
-            ¿Listo para empezar?
+            {t("pricing.cta.heading")}
           </h2>
           <p
             className="text-base md:text-lg leading-relaxed mb-10"
             style={{ color: "rgba(255, 255, 255, 0.5)" }}
           >
-            Agenda una demo y lanza tu proyecto en menos de 24 horas.
+            {t("pricing.cta.subtitle")}
           </p>
           <button
             onClick={() => openBooking()}
             className="btn-mk-primary px-10 py-3.5 text-sm tracking-[0.12em] inline-flex items-center justify-center"
           >
-            Agendar Demo
+            {t("pricing.cta.button")}
           </button>
         </FadeInSection>
       </section>
