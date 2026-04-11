@@ -1,210 +1,254 @@
 "use client";
 
+import { useState } from "react";
 import Image from "next/image";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
+import { ArrowRight } from "lucide-react";
 import type { PortalData } from "@/app/portal/[slug]/layout";
 
 interface Props {
   portal: PortalData;
 }
 
-const staggerContainer: import("framer-motion").Variants = {
-  hidden: {},
-  show: {
-    transition: {
-      staggerChildren: 0.12,
-      delayChildren: 0.3,
-    },
-  },
-};
-
-const cardVariant: import("framer-motion").Variants = {
-  hidden: { opacity: 0, y: 40, scale: 0.97 },
-  show: {
-    opacity: 1,
-    y: 0,
-    scale: 1,
-    transition: { duration: 0.7, ease: [0.22, 1, 0.36, 1] },
-  },
-};
-
-const headerVariant: import("framer-motion").Variants = {
-  hidden: { opacity: 0, y: -20 },
-  show: {
-    opacity: 1,
-    y: 0,
-    transition: { duration: 0.8, ease: [0.22, 1, 0.36, 1] },
-  },
-};
+/**
+ * PortalGrid — Cinematic fullscreen grid for constructora portals.
+ *
+ * Design philosophy:
+ * - Images ARE the layout. No padding, no gaps, no rounded corners — edge to edge.
+ * - Each project is a full-bleed panel that fills maximum viewport space.
+ * - Hover reveals content with a dramatic curtain effect.
+ * - Logo floats above everything, anchored to the viewport top.
+ * - For 2 projects: side-by-side, each taking 50% of viewport height.
+ * - For 3+: first project spans full width as hero, rest below.
+ */
 
 export function PortalGrid({ portal }: Props) {
   const projects = portal.projects;
   const count = projects.length;
 
-  // Dynamic grid: 1 project = full width hero, 2 = two columns, 3+ = masonry-like
-  const gridClass =
-    count === 1
-      ? "grid-cols-1"
-      : count === 2
-      ? "grid-cols-1 sm:grid-cols-2"
-      : count === 3
-      ? "grid-cols-1 sm:grid-cols-2 lg:grid-cols-3"
-      : "grid-cols-1 sm:grid-cols-2";
-
-  // For single project, use taller aspect ratio
-  const aspectClass = count === 1 ? "aspect-[21/9]" : "aspect-[16/10]";
+  if (count === 0) {
+    return (
+      <div className="flex h-dvh items-center justify-center bg-black">
+        <p className="font-mono text-sm text-white/30">
+          No hay proyectos disponibles.
+        </p>
+      </div>
+    );
+  }
 
   return (
-    <div className="min-h-dvh bg-[var(--surface-0)]">
-      {/* ── Header — minimal, cinematic ──────────────────────────── */}
-      <motion.header
-        variants={headerVariant}
-        initial="hidden"
-        animate="show"
-        className="flex flex-col items-center px-6 pt-16 pb-10 sm:pt-20 sm:pb-14 md:pt-28 md:pb-16"
+    <div className="min-h-dvh bg-black">
+      {/* ── Floating logo — anchored top center ──────────────────── */}
+      <motion.div
+        initial={{ opacity: 0, y: -10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.8, delay: 0.2, ease: [0.22, 1, 0.36, 1] }}
+        className="fixed top-0 left-0 right-0 z-30 flex justify-center pointer-events-none"
       >
-        {portal.logo_url ? (
-          <Image
-            src={portal.logo_url}
-            alt={portal.nombre}
-            width={220}
-            height={80}
-            className="h-12 w-auto object-contain sm:h-16 md:h-20"
-            priority
-          />
-        ) : (
-          <h1 className="font-heading text-5xl font-light tracking-wide text-white sm:text-6xl md:text-7xl">
-            {portal.nombre}
-          </h1>
-        )}
-
-        {portal.descripcion && (
-          <motion.p
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.5, duration: 0.6 }}
-            className="mt-5 max-w-lg text-center font-mono text-[13px] leading-[1.9] text-white/35"
-          >
-            {portal.descripcion}
-          </motion.p>
-        )}
-      </motion.header>
-
-      {/* ── Project grid — edge-to-edge, cinematic ──────────────── */}
-      {projects.length === 0 ? (
-        <div className="flex items-center justify-center py-32">
-          <p className="font-mono text-sm text-white/30">
-            No hay proyectos disponibles.
-          </p>
+        <div className="pt-6 sm:pt-8 pointer-events-auto">
+          {portal.logo_url ? (
+            <Image
+              src={portal.logo_url}
+              alt={portal.nombre}
+              width={160}
+              height={60}
+              className="h-8 w-auto object-contain sm:h-10 md:h-12 drop-shadow-[0_2px_20px_rgba(0,0,0,0.8)]"
+              priority
+            />
+          ) : (
+            <h1 className="font-heading text-2xl font-light tracking-[0.08em] text-white sm:text-3xl drop-shadow-[0_2px_20px_rgba(0,0,0,0.8)]">
+              {portal.nombre}
+            </h1>
+          )}
         </div>
-      ) : (
-        <motion.div
-          variants={staggerContainer}
-          initial="hidden"
-          animate="show"
-          className={`grid ${gridClass} gap-[2px] sm:gap-1 px-0 sm:px-4 md:px-6 lg:px-8 pb-1`}
-        >
-          {projects.map((project, index) => {
-            const projectUrl = project.subdomain
-              ? `https://${project.subdomain}.noddo.io`
-              : `https://${project.slug}.noddo.io`;
+      </motion.div>
 
-            // First project in 4+ grid gets featured size
-            const isFeatured = count >= 4 && index === 0;
-            const cardAspect = isFeatured
-              ? "sm:col-span-2 aspect-[16/9] sm:aspect-[21/9]"
-              : aspectClass;
+      {/* ── Project panels ──────────────────────────────────────── */}
+      <div
+        className={
+          count === 1
+            ? "h-dvh"
+            : count === 2
+            ? "flex flex-col sm:flex-row h-dvh"
+            : "flex flex-col"
+        }
+      >
+        {projects.map((project, index) => {
+          const projectUrl = project.subdomain
+            ? `https://${project.subdomain}.noddo.io`
+            : `https://${project.slug}.noddo.io`;
 
+          // For 3+ projects: first is hero (full width, 60vh), rest are grid
+          const isHero = count >= 3 && index === 0;
+          const isGridItem = count >= 3 && index > 0;
+
+          if (isGridItem && index === 1) {
+            // Render remaining projects as grid starting from index 1
+            const gridProjects = projects.slice(1);
             return (
-              <motion.a
-                key={project.id}
-                variants={cardVariant}
-                href={projectUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                className={`group relative block overflow-hidden ${cardAspect} sm:rounded-2xl bg-[var(--surface-1)]`}
-                style={{ willChange: "transform" }}
+              <div
+                key="grid"
+                className={`grid ${
+                  gridProjects.length === 1
+                    ? "grid-cols-1"
+                    : gridProjects.length === 2
+                    ? "grid-cols-2"
+                    : "grid-cols-2 sm:grid-cols-3"
+                }`}
+                style={{ minHeight: "40vh" }}
               >
-                {/* Background image with parallax-like zoom on hover */}
-                {project.render_principal_url ? (
-                  <Image
-                    src={project.render_principal_url}
-                    alt={project.nombre}
-                    fill
-                    className="object-cover transition-transform duration-[1.2s] ease-out group-hover:scale-[1.08]"
-                    sizes={isFeatured ? "100vw" : "(max-width: 640px) 100vw, 50vw"}
-                    priority={index < 2}
+                {gridProjects.map((gp, gi) => (
+                  <ProjectPanel
+                    key={gp.id}
+                    project={gp}
+                    url={
+                      gp.subdomain
+                        ? `https://${gp.subdomain}.noddo.io`
+                        : `https://${gp.slug}.noddo.io`
+                    }
+                    index={gi + 1}
+                    className="aspect-[4/3] sm:aspect-auto"
+                    nameSize="text-xl sm:text-2xl"
                   />
-                ) : (
-                  <div className="absolute inset-0 bg-[var(--surface-2)]" />
-                )}
-
-                {/* Cinematic gradient overlay */}
-                <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/20 to-transparent opacity-80 transition-opacity duration-500 group-hover:opacity-70" />
-
-                {/* Subtle vignette */}
-                <div className="absolute inset-0 shadow-[inset_0_0_120px_rgba(0,0,0,0.3)]" />
-
-                {/* Project logo (top-right, subtle) */}
-                {project.logo_url && (
-                  <div className="absolute top-5 right-5 z-10 sm:top-6 sm:right-6">
-                    <Image
-                      src={project.logo_url}
-                      alt=""
-                      width={60}
-                      height={60}
-                      className="h-8 w-auto object-contain opacity-30 transition-opacity duration-500 group-hover:opacity-60 sm:h-10"
-                    />
-                  </div>
-                )}
-
-                {/* Content at bottom */}
-                <div className="absolute inset-x-0 bottom-0 z-10 p-5 sm:p-7 md:p-8">
-                  {/* Project name only — no subheader */}
-                  <h2
-                    className={`font-heading font-light text-white leading-[1.1] tracking-wide ${
-                      isFeatured
-                        ? "text-3xl sm:text-4xl md:text-5xl"
-                        : "text-2xl sm:text-3xl"
-                    }`}
-                  >
-                    {project.nombre}
-                  </h2>
-
-                  {/* Explore CTA — appears on hover */}
-                  <div className="mt-3 flex items-center gap-2 opacity-0 translate-y-2 transition-all duration-500 group-hover:opacity-100 group-hover:translate-y-0">
-                    <span className="font-ui text-[10px] font-bold uppercase tracking-[0.2em] text-[var(--site-primary)]">
-                      Explorar
-                    </span>
-                    <svg
-                      width="16"
-                      height="16"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="2"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      className="text-[var(--site-primary)] transition-transform duration-300 group-hover:translate-x-1"
-                    >
-                      <path d="M5 12h14M12 5l7 7-7 7" />
-                    </svg>
-                  </div>
-
-                  {/* Gold accent line */}
-                  <div
-                    className="mt-4 h-[1px] w-0 transition-all duration-700 group-hover:w-16"
-                    style={{ background: `rgba(var(--site-primary-rgb), 0.5)` }}
-                  />
-                </div>
-              </motion.a>
+                ))}
+              </div>
             );
-          })}
-        </motion.div>
+          }
+
+          if (isGridItem) return null; // Already rendered in the grid block above
+
+          return (
+            <ProjectPanel
+              key={project.id}
+              project={project}
+              url={projectUrl}
+              index={index}
+              className={
+                count === 1
+                  ? "h-full"
+                  : count === 2
+                  ? "flex-1 min-h-[50vh]"
+                  : isHero
+                  ? "min-h-[60vh]"
+                  : ""
+              }
+              nameSize={
+                count === 1
+                  ? "text-4xl sm:text-6xl md:text-7xl"
+                  : count === 2
+                  ? "text-3xl sm:text-4xl md:text-5xl"
+                  : isHero
+                  ? "text-3xl sm:text-5xl md:text-6xl"
+                  : "text-xl sm:text-2xl"
+              }
+            />
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+/* ── Project Panel — each image fills its container ──────────────────── */
+
+interface ProjectPanelProps {
+  project: PortalData["projects"][number];
+  url: string;
+  index: number;
+  className?: string;
+  nameSize?: string;
+}
+
+function ProjectPanel({ project, url, index, className = "", nameSize = "text-3xl sm:text-4xl" }: ProjectPanelProps) {
+  const [hovered, setHovered] = useState(false);
+
+  return (
+    <motion.a
+      href={url}
+      target="_blank"
+      rel="noopener noreferrer"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ duration: 0.8, delay: 0.1 + index * 0.15, ease: [0.22, 1, 0.36, 1] }}
+      className={`group relative block overflow-hidden ${className}`}
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
+    >
+      {/* Background image */}
+      {project.render_principal_url ? (
+        <Image
+          src={project.render_principal_url}
+          alt={project.nombre}
+          fill
+          className="object-cover transition-transform duration-[1.5s] ease-out group-hover:scale-[1.06]"
+          sizes="100vw"
+          priority={index < 2}
+        />
+      ) : (
+        <div className="absolute inset-0 bg-neutral-900" />
       )}
 
-      {/* Footer spacing for NoddoBadge (rendered by layout) */}
-      <div className="h-16" />
-    </div>
+      {/* Dark gradient — stronger on hover */}
+      <div
+        className="absolute inset-0 transition-opacity duration-700"
+        style={{
+          background: "linear-gradient(to top, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0.15) 40%, rgba(0,0,0,0.08) 100%)",
+          opacity: hovered ? 1 : 0.7,
+        }}
+      />
+
+      {/* Thin border between panels */}
+      <div className="absolute inset-0 border border-white/[0.04]" />
+
+      {/* Project logo — top right, very subtle */}
+      {project.logo_url && (
+        <div className="absolute top-5 right-5 z-10 sm:top-6 sm:right-6">
+          <Image
+            src={project.logo_url}
+            alt=""
+            width={60}
+            height={60}
+            className="h-7 w-auto object-contain opacity-20 transition-opacity duration-500 group-hover:opacity-50 sm:h-9"
+          />
+        </div>
+      )}
+
+      {/* Content — bottom left */}
+      <div className="absolute inset-x-0 bottom-0 z-10 p-6 sm:p-8 md:p-10">
+        {/* Gold accent line that expands on hover */}
+        <motion.div
+          className="h-[2px] mb-4 origin-left"
+          style={{ background: `rgba(var(--site-primary-rgb), 0.6)` }}
+          initial={{ width: 0 }}
+          animate={{ width: hovered ? 48 : 24 }}
+          transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
+        />
+
+        {/* Project name */}
+        <h2
+          className={`font-heading font-light text-white leading-[1.05] tracking-wide ${nameSize}`}
+        >
+          {project.nombre}
+        </h2>
+
+        {/* CTA — slides in on hover */}
+        <AnimatePresence>
+          {hovered && (
+            <motion.div
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: 8 }}
+              transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
+              className="mt-4 flex items-center gap-2"
+            >
+              <span className="font-ui text-[10px] font-bold uppercase tracking-[0.2em] text-[var(--site-primary)]">
+                Explorar proyecto
+              </span>
+              <ArrowRight size={14} className="text-[var(--site-primary)]" />
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </div>
+    </motion.a>
   );
 }
