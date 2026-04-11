@@ -472,7 +472,7 @@ export default function InventarioTab({ orientaciones = [], vistas = [], onRefre
   ), [activeTipoTabs, t, renderColumnGrid]);
 
   return (
-    <div className="max-w-4xl space-y-8">
+    <div className="space-y-8">
       {/* ═══ Columnas del Inventario ═══ */}
       <div className={sectionCard}>
         <div>

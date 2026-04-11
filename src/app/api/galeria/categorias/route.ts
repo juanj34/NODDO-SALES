@@ -1,4 +1,5 @@
 import { getAuthContext, requirePermission, verifyProjectOwnership } from "@/lib/auth-context";
+import { logActivity } from "@/lib/activity-logger";
 import { NextRequest, NextResponse } from "next/server";
 
 export async function POST(request: NextRequest) {
@@ -36,6 +37,29 @@ export async function POST(request: NextRequest) {
       .single();
 
     if (error) throw error;
+
+    // Log activity (fire-and-forget)
+    if (data) {
+      const { data: proj } = await auth.supabase
+        .from("proyectos")
+        .select("nombre")
+        .eq("id", body.proyecto_id)
+        .single();
+
+      logActivity({
+        userId: auth.user.id,
+        userEmail: auth.user.email!,
+        userRole: auth.role,
+        proyectoId: body.proyecto_id,
+        proyectoNombre: proj?.nombre ?? null,
+        actionType: "gallery.category_create",
+        actionCategory: "gallery",
+        metadata: { nombre: data.nombre },
+        entityType: "galeria_categoria",
+        entityId: data.id,
+      });
+    }
+
     return NextResponse.json(data, { status: 201 });
   } catch (err) {
     return NextResponse.json(

@@ -1,3 +1,4 @@
+import { logActivity } from "@/lib/activity-logger";
 import { getAuthContext, requirePermission } from "@/lib/auth-context";
 import { NextRequest, NextResponse } from "next/server";
 
@@ -78,6 +79,16 @@ export async function POST(request: NextRequest) {
         { status: 500 }
       );
     }
+
+    const { data: proj } = await auth.supabase.from("proyectos").select("nombre").eq("id", body.proyecto_id).single();
+    logActivity({
+      userId: auth.user.id, userEmail: auth.user.email!, userRole: auth.role,
+      proyectoId: body.proyecto_id, proyectoNombre: proj?.nombre,
+      actionType: "plano.create", actionCategory: "content",
+      entityType: "plano", entityId: data.id,
+      metadata: { nombre: data.nombre, tipo: data.tipo },
+    });
+
     return NextResponse.json(data, { status: 201 });
   } catch (err) {
     console.error("Planos POST catch error:", err);

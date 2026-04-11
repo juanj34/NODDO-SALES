@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useMemo, useCallback } from "react";
+import { useState, useEffect, useRef, useMemo, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   X,
@@ -41,7 +41,7 @@ import {
   type ColumnMapping,
   type CSVCustomColumn,
 } from "@/lib/csv-parser";
-import type { Tipologia, Torre, Fachada, CustomColumnDef } from "@/types";
+import type { Tipologia, Torre, Fachada, CustomColumnDef, InventoryColumnConfig } from "@/types";
 
 type ImportMode = "unidades" | "parqueaderos" | "depositos";
 
@@ -75,6 +75,7 @@ interface PreviewUnit extends MappedUnit {
 
 const ESTADOS: { value: EstadoUnidad; label: string; color: string }[] = [
   { value: "disponible", label: "Disponible", color: "#22c55e" },
+  { value: "proximamente", label: "Próximamente", color: "#3b82f6" },
   { value: "separado", label: "Separado", color: "#eab308" },
   { value: "reservada", label: "Reservada", color: "#f97316" },
   { value: "vendida", label: "Vendida", color: "#ef4444" },
@@ -82,44 +83,51 @@ const ESTADOS: { value: EstadoUnidad; label: string; color: string }[] = [
 
 const ESTADO_COLORS: Record<string, string> = {
   disponible: "#22c55e",
+  proximamente: "#3b82f6",
   separado: "#eab308",
   reservada: "#f97316",
   vendida: "#ef4444",
 };
 
-const DB_FIELD_LABELS_UNIDADES: Record<string, string> = {
-  identificador: "Identificador",
-  piso: "Piso",
-  lote: "Lote",
-  etapa_nombre: "Etapa",
-  area_m2: "Área (m²)",
-  precio: "Precio",
-  estado: "Estado",
-  habitaciones: "Habitaciones",
-  banos: "Baños",
-  parqueaderos: "Parqueaderos",
-  depositos: "Depósitos",
-  orientacion: "Orientación",
-  vista: "Vista",
-  notas: "Notas",
-  _etapa: "Torre / Etapa",
-  _tipologia: "Tipología",
-  _fachada: "Fachada",
-};
+function getEtapaLabel(tipoProyecto: string): string {
+  if (tipoProyecto === "apartamentos") return "Torre";
+  if (tipoProyecto === "casas" || tipoProyecto === "lotes") return "Urbanismo";
+  return "Torre / Urbanismo";
+}
 
-const DB_FIELD_LABELS_COMPLEMENTOS: Record<string, string> = {
-  identificador: "Identificador",
-  subtipo: "Subtipo",
-  nivel: "Nivel",
-  area_m2: "Área (m²)",
-  precio: "Precio",
-  estado: "Estado",
-  notas: "Notas",
-  _etapa: "Torre / Etapa",
-};
-
-function getFieldLabels(mode: ImportMode) {
-  return mode === "unidades" ? DB_FIELD_LABELS_UNIDADES : DB_FIELD_LABELS_COMPLEMENTOS;
+function getFieldLabels(mode: ImportMode, tipoProyecto = "hibrido"): Record<string, string> {
+  const etapaLabel = getEtapaLabel(tipoProyecto);
+  if (mode !== "unidades") {
+    return {
+      identificador: "Identificador",
+      subtipo: "Subtipo",
+      nivel: "Nivel",
+      area_m2: "Área (m²)",
+      precio: "Precio",
+      estado: "Estado",
+      notas: "Notas",
+      _etapa: etapaLabel,
+    };
+  }
+  return {
+    identificador: "Identificador",
+    piso: "Piso",
+    lote: "Lote",
+    etapa_nombre: "Etapa",
+    area_m2: "Área (m²)",
+    precio: "Precio",
+    estado: "Estado",
+    habitaciones: "Habitaciones",
+    banos: "Baños",
+    parqueaderos: "Parqueaderos",
+    depositos: "Depósitos",
+    orientacion: "Orientación",
+    vista: "Vista",
+    notas: "Notas",
+    _etapa: etapaLabel,
+    _tipologia: "Tipología",
+    _fachada: "Fachada",
+  };
 }
 
 // ---------------------------------------------------------------------------
@@ -199,6 +207,7 @@ export function SmartImportModal({
   tipoProyecto = "apartamentos",
   tipologiaMode = "fija",
   customColumns = [],
+  inventoryColumns = null,
 }: {
   tipologias: Tipologia[];
   torres: Torre[];
@@ -206,27 +215,56 @@ export function SmartImportModal({
   proyectoId: string;
   activeTorreId: string | null;
   onClose: () => void;
-  onDone: () => void;
+  onDone: () => void | Promise<void>;
   importMode?: ImportMode;
   tipoProyecto?: "apartamentos" | "casas" | "hibrido" | "lotes";
   tipologiaMode?: "fija" | "multiple";
   customColumns?: CustomColumnDef[];
+  inventoryColumns?: InventoryColumnConfig | null;
 }) {
   const isCasas = tipoProyecto === "casas" || tipoProyecto === "hibrido";
   const isLotes = tipoProyecto === "lotes";
   const isLoteBased = isCasas || isLotes;
+
+  // ESC key to close
+  useEffect(() => {
+    const handleKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") onClose();
+    };
+    document.addEventListener("keydown", handleKey);
+    return () => document.removeEventListener("keydown", handleKey);
+  }, [onClose]);
+
   // ---- State ----
   const [step, setStep] = useState<Step>("upload");
   const [importMode, setImportMode] = useState<ImportMode>(initialMode);
+  // Map DB field names to inventory column config keys
+  const FIELD_TO_COLUMN: Record<string, keyof InventoryColumnConfig> = {
+    piso: "piso", lote: "lote", etapa_nombre: "etapa",
+    area_m2: "area_m2", area_construida: "area_construida",
+    area_privada: "area_privada", area_lote: "area_lote",
+    precio: "precio", habitaciones: "habitaciones", banos: "banos",
+    parqueaderos: "parqueaderos", depositos: "depositos",
+    orientacion: "orientacion", vista: "vista",
+  };
+
   const DB_FIELD_LABELS = useMemo(() => {
-    const base = getFieldLabels(importMode);
+    const base = getFieldLabels(importMode, tipoProyecto);
+    // Filter fields based on inventory column config
+    if (inventoryColumns && importMode === "unidades") {
+      for (const [field, colKey] of Object.entries(FIELD_TO_COLUMN)) {
+        if (!inventoryColumns[colKey] && field in base) {
+          delete base[field];
+        }
+      }
+    }
     if (importMode !== "unidades" || customColumns.length === 0) return base;
     const extended = { ...base };
     for (const cc of customColumns) {
       extended[`cf:${cc.key}`] = cc.label;
     }
     return extended;
-  }, [importMode, customColumns]);
+  }, [importMode, customColumns, inventoryColumns]);
   const ALL_DB_FIELDS = Object.keys(DB_FIELD_LABELS);
 
   // Custom column defs for the parser
@@ -401,10 +439,17 @@ export function SmartImportModal({
           fachadas: fachadas.map((f) => ({ id: f.id, nombre: f.nombre })),
           importMode,
           customColumns: customColumns.map((c) => ({ key: c.key, label: c.label, type: c.type })),
+          tipoProyecto,
         }),
       });
 
-      if (!res.ok) throw new Error("AI analysis failed");
+      if (!res.ok) {
+        if (res.status === 429) {
+          throw new Error("Has alcanzado el límite de uso de IA por hoy. Intenta mañana.");
+        }
+        const errData = await res.json().catch(() => null);
+        throw new Error(errData?.error || "Error al analizar el archivo.");
+      }
 
       const data: AIAnalysis = await res.json();
       setAnalysis(data);
@@ -417,9 +462,27 @@ export function SmartImportModal({
       }
       setStatusMap(sMap);
 
+      // Helper: extract unique non-empty values from a CSV column
+      const extractUniqueFromCSV = (csvCol: string): string[] => {
+        const colIdx = headers.indexOf(csvCol);
+        if (colIdx < 0) return [];
+        const unique = new Set<string>();
+        for (const row of allRows) {
+          const v = row[colIdx]?.trim();
+          if (v) unique.add(v);
+        }
+        return [...unique];
+      };
+
       // Initialize etapa→torre mapping
       const etMap: Record<string, string> = {};
-      for (const etapa of data.detectedEtapas || []) {
+      let etapaValues = data.detectedEtapas || [];
+      // Fallback: if AI mapped _etapa but returned no detectedEtapas, extract from CSV
+      if (etapaValues.length === 0) {
+        const etapaCol = Object.entries(data.columnMapping || {}).find(([, v]) => v === "_etapa")?.[0];
+        if (etapaCol) etapaValues = extractUniqueFromCSV(etapaCol);
+      }
+      for (const etapa of etapaValues) {
         const match = torres.find(
           (t) =>
             t.nombre.toLowerCase().includes(etapa.toLowerCase()) ||
@@ -431,7 +494,12 @@ export function SmartImportModal({
 
       // Initialize tipologia mapping
       const tipMap: Record<string, string> = {};
-      for (const tipVal of data.detectedTipologias || []) {
+      let tipValues = data.detectedTipologias || [];
+      if (tipValues.length === 0) {
+        const tipCol = Object.entries(data.columnMapping || {}).find(([, v]) => v === "_tipologia")?.[0];
+        if (tipCol) tipValues = extractUniqueFromCSV(tipCol);
+      }
+      for (const tipVal of tipValues) {
         const match = tipologias.find(
           (t) =>
             t.nombre.toLowerCase().includes(tipVal.toLowerCase()) ||
@@ -443,7 +511,12 @@ export function SmartImportModal({
 
       // Initialize fachada mapping
       const facMap: Record<string, string> = {};
-      for (const facVal of data.detectedFachadas || []) {
+      let facValues = data.detectedFachadas || [];
+      if (facValues.length === 0) {
+        const facCol = Object.entries(data.columnMapping || {}).find(([, v]) => v === "_fachada")?.[0];
+        if (facCol) facValues = extractUniqueFromCSV(facCol);
+      }
+      for (const facVal of facValues) {
         const match = fachadas.find(
           (f) =>
             f.nombre.toLowerCase().includes(facVal.toLowerCase()) ||
@@ -537,7 +610,7 @@ export function SmartImportModal({
         return {
           ...u,
           lote: u.lote ?? (defaults.lote || null),
-          etapa_nombre: u.etapa_nombre ?? (defaults.etapa_nombre || null),
+          etapa_nombre: u.etapa_nombre ?? u._etapa ?? (defaults.etapa_nombre || null),
           area_m2:
             u.area_m2 ?? (defaults.area_m2 ? parseFloat(defaults.area_m2) : null),
           precio:
@@ -649,7 +722,7 @@ export function SmartImportModal({
         });
         if (!res.ok) throw new Error("Error al crear unidades");
       }
-      onDone();
+      await onDone();
     } catch {
       setError("Error al importar. Intenta de nuevo.");
       setStep("preview");
@@ -748,14 +821,12 @@ export function SmartImportModal({
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
       className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-md p-4"
-      onClick={onClose}
     >
       <motion.div
         initial={{ scale: 0.96, opacity: 0, y: 8 }}
         animate={{ scale: 1, opacity: 1, y: 0 }}
         exit={{ scale: 0.96, opacity: 0, y: 8 }}
         transition={{ type: "spring", damping: 28, stiffness: 350 }}
-        onClick={(e) => e.stopPropagation()}
         className="bg-[var(--surface-0)] border border-[var(--border-default)] rounded-2xl w-full max-w-[calc(100vw-2rem)] lg:max-w-5xl max-h-[90vh] flex flex-col shadow-[0_25px_80px_rgba(0,0,0,0.5),0_0_0_1px_rgba(255,255,255,0.03)_inset]"
       >
         {/* ═══════════ Header ═══════════ */}
@@ -832,9 +903,10 @@ export function SmartImportModal({
             </div>
             <button
               onClick={onClose}
-              className="p-2 hover:bg-[var(--surface-3)] rounded-lg transition-colors"
+              className="flex items-center gap-1.5 px-2 py-1.5 hover:bg-[var(--surface-3)] rounded-lg transition-colors group"
             >
               <X size={16} className="text-[var(--text-tertiary)]" />
+              <kbd className="font-mono text-[9px] text-[var(--text-muted)] bg-[var(--surface-3)] border border-[var(--border-subtle)] rounded px-1.5 py-0.5 group-hover:text-[var(--text-tertiary)] transition-colors">ESC</kbd>
             </button>
           </div>
         </div>
@@ -890,7 +962,9 @@ export function SmartImportModal({
                             <Building2 size={11} className="text-[#b8973a] shrink-0" />
                             {tipoProyecto === "apartamentos"
                               ? 'Crea al menos una torre en la pestaña "Torres"'
-                              : 'Crea al menos una etapa en la pestaña "Etapas"'}
+                              : tipoProyecto === "hibrido"
+                                ? 'Crea al menos una torre o urbanismo en la pestaña "Agrupaciones"'
+                                : 'Crea al menos un urbanismo en la pestaña "Urbanismos"'}
                           </p>
                         )}
                         {tipologias.length === 0 && (
@@ -1201,14 +1275,16 @@ export function SmartImportModal({
                   </SectionCard>
                 )}
 
-                {/* Etapa → Torre Mapping */}
+                {/* Etapa → Torre/Urbanismo Mapping */}
                 {Object.keys(etapaToTorre).length > 0 && torres.length > 0 && (
                   <SectionCard
                     icon={Building2}
-                    title={tipoProyecto === "apartamentos" ? "Etapas → Torres" : "Etapas → Etapas"}
+                    title={tipoProyecto === "apartamentos" ? "Valores → Torres" : tipoProyecto === "hibrido" ? "Valores → Torres / Urbanismos" : "Valores → Urbanismos"}
                     description={tipoProyecto === "apartamentos"
-                      ? "Asigna cada valor de etapa detectado a una torre del proyecto"
-                      : "Asigna cada valor de etapa detectado a una etapa o manzana del proyecto"}
+                      ? "Asigna cada valor detectado a una torre del proyecto"
+                      : tipoProyecto === "hibrido"
+                        ? "Asigna cada valor detectado a una torre o urbanismo del proyecto"
+                        : "Asigna cada valor detectado a un urbanismo del proyecto"}
                     count={Object.keys(etapaToTorre).length}
                   >
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
@@ -1501,7 +1577,7 @@ export function SmartImportModal({
                         </th>
                         {[
                           "ID",
-                          "Torre",
+                          isLoteBased ? "Urbanismo" : "Torre",
                           "Tipología",
                           ...(fachadas.length > 0 && !isLoteBased ? ["Fachada"] : []),
                           ...(!isLoteBased ? ["Piso"] : []),

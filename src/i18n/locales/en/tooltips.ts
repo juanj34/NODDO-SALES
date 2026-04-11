@@ -75,7 +75,7 @@ const tooltips = {
     },
     tipoProyecto: {
       short: "Defines the type of real estate units in the project.",
-      long: "**Apartments:** Units in towers with floors. **Houses:** Standalone units with lots. **Hybrid:** Mix of types. **Lots:** Land only. This selection affects which fields appear in typologies and inventory.",
+      long: "**Apartments:** Units in towers with floors. **Houses:** Standalone units with lots. **Lots:** Land only. **Hybrid:** Mix of types — apartments, houses, lots, and/or commercial units in a single project. This selection affects which fields appear in typologies and inventory.",
     },
     tipologiaMode: {
       short: "Controls how typologies are assigned to units.",

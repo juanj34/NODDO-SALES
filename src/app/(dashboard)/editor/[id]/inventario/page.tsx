@@ -172,11 +172,28 @@ function MobileUnitCard({
   onDelete: (unitId: string) => void;
 }) {
   const tipo = tipologias.find((t) => t.id === unit.tipologia_id);
-  const displayPrice = unit.estado === "vendida" && unit.precio_venta != null
-    ? unit.precio_venta
-    : isTipologiaPricing ? (tipo?.precio_desde ?? null) : unit.precio;
+  const displayPrice = (() => {
+    // Sold with final negotiated price → show that
+    if (unit.estado === "vendida" && unit.precio_venta != null) return unit.precio_venta;
+    // Tipología-based pricing → unit price takes priority when set
+    if (isTipologiaPricing) {
+      if (unit.precio != null) return unit.precio;
+      if (unit.tipologia_id) {
+        const confirmed = tipologias.find(t => t.id === unit.tipologia_id);
+        return confirmed?.precio_desde ?? null;
+      }
+      if (isMultiTipo && unitTipos && unitTipos.length > 0) {
+        const prices = unitTipos.map(t => t.precio_desde).filter((p): p is number => p != null);
+        return prices.length > 0 ? Math.min(...prices) : null;
+      }
+      return tipo?.precio_desde ?? null;
+    }
+    // Unit-level pricing
+    if (isMultiTipo && !unit.tipologia_id) return null;
+    return unit.precio ?? null;
+  })();
   const displayArea = getPrimaryArea(unit, columns);
-  const showPrice = unit.estado === "vendida";
+  const showPrice = displayPrice != null;
   const isLocked = ["vendida", "reservada", "separado"].includes(unit.estado);
   const hideSpecs = isMultiTipo && !unit.tipologia_id;
   return (
@@ -219,10 +236,10 @@ function MobileUnitCard({
         {!hideSpecs && displayArea != null && <span>· {displayArea} m²</span>}
         {!hideSpecs && unit.habitaciones != null && <span>· {unit.habitaciones} hab</span>}
       </div>
-      {/* Row 3: Price (only for sold units) */}
-      {showPrice && displayPrice != null && (
+      {/* Row 3: Price */}
+      {showPrice && (
         <p className="text-xs text-[var(--text-secondary)] font-medium">
-          {displayPrice ? formatCurrency(displayPrice, "COP", {}) : "-"}
+          {formatCurrency(displayPrice!, "COP", {})}
         </p>
       )}
       {/* Row 4: Status pills + actions */}
@@ -566,7 +583,26 @@ function UnitForm({
                 variant="form"
                 size="lg"
                 value={form.tipologia_id}
-                onChange={(val) => set("tipologia_id", val)}
+                onChange={(val) => {
+                  set("tipologia_id", val);
+                  // Auto-fill fields from tipología data
+                  const tipo = tipologias.find((t) => t.id === val);
+                  if (tipo) {
+                    setForm((prev) => ({
+                      ...prev,
+                      tipologia_id: val,
+                      area_m2: prev.area_m2 || (tipo.area_m2 ? String(tipo.area_m2) : ""),
+                      area_construida: prev.area_construida || (tipo.area_construida ? String(tipo.area_construida) : ""),
+                      area_privada: prev.area_privada || (tipo.area_privada ? String(tipo.area_privada) : ""),
+                      area_lote: prev.area_lote || (tipo.area_lote ? String(tipo.area_lote) : ""),
+                      habitaciones: prev.habitaciones || (tipo.habitaciones ? String(tipo.habitaciones) : ""),
+                      banos: prev.banos || (tipo.banos ? String(tipo.banos) : ""),
+                      parqueaderos: prev.parqueaderos || (tipo.parqueaderos ? String(tipo.parqueaderos) : ""),
+                      depositos: prev.depositos || (tipo.depositos ? String(tipo.depositos) : ""),
+                      precio: prev.precio || (tipo.precio_desde ? String(tipo.precio_desde) : ""),
+                    }));
+                  }
+                }}
                 placeholder={t("inventario.noTypology")}
                 options={[
                   { value: "", label: t("inventario.noTypology") },
@@ -683,18 +719,23 @@ function UnitForm({
               />
             </div>
           )}
-          {!isTipologiaPricing && (
-            <div>
-              <label className={labelClass}>{t("inventario.fields.price")}</label>
-              <CurrencyInput
-                value={form.precio}
-                onChange={(v) => set("precio", v)}
-                currency={currency}
-                placeholder="350,000,000"
-                inputClassName={inputClass}
-              />
-            </div>
-          )}
+          <div>
+            <label className={labelClass}>
+              {t("inventario.fields.price")}
+              {isTipologiaPricing && (
+                <span className="ml-1 text-[9px] text-[var(--text-muted)] font-normal normal-case tracking-normal">
+                  ({t("inventario.fields.priceOverride") ?? "opcional — sobreescribe tipología"})
+                </span>
+              )}
+            </label>
+            <CurrencyInput
+              value={form.precio}
+              onChange={(v) => set("precio", v)}
+              currency={currency}
+              placeholder={isTipologiaPricing ? t("inventario.fields.priceFromTipologia") ?? "Desde tipología" : "350,000,000"}
+              inputClassName={inputClass}
+            />
+          </div>
           <div>
             <label className={labelClass}>
               {t("inventario.fields.state")}
@@ -1247,6 +1288,104 @@ function PriceAdjustModal({
 // AIChatModal removed — now using InventoryAssistant component from @/components/dashboard/InventoryAssistant
 
 // ---------------------------------------------------------------------------
+// Column Setup Wizard (first-time setup)
+// ---------------------------------------------------------------------------
+
+function ColumnSetupWizard({
+  tipoProyecto,
+  onSave,
+}: {
+  tipoProyecto: "apartamentos" | "casas" | "hibrido" | "lotes";
+  onSave: (config: InventoryColumnConfig) => Promise<void> | void;
+}) {
+  const { t } = useTranslation("editor");
+  const [config, setConfig] = useState<InventoryColumnConfig>(
+    () => getDefaultColumns(tipoProyecto)
+  );
+  const [saving, setSaving] = useState(false);
+
+  const handleToggle = (key: keyof InventoryColumnConfig) => {
+    setConfig((prev) => ({ ...prev, [key]: !prev[key] }));
+  };
+
+  const handleSave = async () => {
+    setSaving(true);
+    try {
+      await onSave(config);
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const activeCount = Object.values(config).filter(Boolean).length;
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      className="flex flex-col items-center justify-center py-16 px-4 max-w-lg mx-auto"
+    >
+      <div className="p-3 bg-[rgba(var(--site-primary-rgb),0.1)] rounded-xl mb-5">
+        <Settings size={24} className="text-[var(--site-primary)]" />
+      </div>
+
+      <h2 className="font-heading font-light text-2xl text-white mb-2 text-center">
+        {t("inventario.setupWizard.title")}
+      </h2>
+      <p className="text-xs text-[var(--text-tertiary)] text-center mb-8 max-w-sm leading-relaxed">
+        {t("inventario.setupWizard.description")}
+      </p>
+
+      <div className="w-full grid grid-cols-2 gap-2 mb-8">
+        {INVENTORY_COLUMN_KEYS.map(({ key, labelKey }) => {
+          const isOn = config[key];
+          return (
+            <button
+              key={key}
+              type="button"
+              onClick={() => handleToggle(key)}
+              className={cn(
+                "flex items-center gap-2.5 px-3 py-2.5 rounded-xl border transition-all text-left text-xs",
+                isOn
+                  ? "bg-[rgba(var(--site-primary-rgb),0.08)] border-[rgba(var(--site-primary-rgb),0.3)] text-white"
+                  : "bg-[var(--surface-1)] border-[var(--border-subtle)] text-[var(--text-muted)] hover:border-[var(--border-default)]"
+              )}
+            >
+              <div
+                className={cn(
+                  "w-4 h-4 rounded-[4px] border-2 flex items-center justify-center shrink-0 transition-all",
+                  isOn
+                    ? "bg-[var(--site-primary)] border-[var(--site-primary)]"
+                    : "border-[var(--border-default)]"
+                )}
+              >
+                {isOn && (
+                  <svg viewBox="0 0 12 12" className="w-2.5 h-2.5 text-black">
+                    <path d="M2 6l3 3 5-5" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                  </svg>
+                )}
+              </div>
+              {t(labelKey)}
+            </button>
+          );
+        })}
+      </div>
+
+      <p className="text-[10px] text-[var(--text-muted)] mb-4">
+        {activeCount} {t("inventario.setupWizard.columnsSelected")}
+      </p>
+
+      <button
+        onClick={handleSave}
+        disabled={saving}
+        className="btn-warm px-8 py-2.5 text-xs font-ui font-bold uppercase tracking-[0.1em]"
+      >
+        {saving ? <Loader2 size={14} className="animate-spin" /> : t("inventario.setupWizard.save")}
+      </button>
+    </motion.div>
+  );
+}
+
 // Columns Config Modal
 // ---------------------------------------------------------------------------
 
@@ -2223,9 +2362,11 @@ export default function InventarioPage() {
     });
   }, [selectedIds, bulkFachadaId, updateLocal, saveEntity, projectId]);
 
-  const handleImportDone = useCallback(() => {
+  const handleImportDone = useCallback(async () => {
     setShowImportModal(false);
-    refresh().catch(() => {});
+    try {
+      await refresh();
+    } catch { /* ignore */ }
   }, [refresh]);
 
   // Save inventory column config
@@ -2556,6 +2697,23 @@ export default function InventarioPage() {
         </div>
         }
       />
+
+      {/* Column setup wizard — shown on first visit when no columns configured */}
+      {project.inventory_columns === null && unidades.length === 0 ? (
+        <ColumnSetupWizard
+          tipoProyecto={tipoProyecto}
+          onSave={async (config) => {
+            try {
+              const res = await fetch(`/api/proyectos/${projectId}`, {
+                method: "PUT",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ inventory_columns: config }),
+              });
+              if (res.ok) await refresh();
+            } catch { /* ignore */ }
+          }}
+        />
+      ) : (<>
 
       {/* Tipo tabs — shown for hybrid projects or when commercial tipologías exist */}
       {showTipoTabs && availableTipoTabs.length > 1 && (
@@ -3315,24 +3473,34 @@ export default function InventarioPage() {
                           )}
                           <td className="py-2 px-4 text-[var(--text-secondary)]">
                             {(() => {
-                              // Only show price for sold units
-                              if (unit.estado !== "vendida") {
-                                return "-";
-                              }
-                              // Use locked precio_venta if available
-                              if (unit.precio_venta != null) {
+                              // Sold with final negotiated price → show that
+                              if (unit.estado === "vendida" && unit.precio_venta != null) {
                                 return formatCurrency(unit.precio_venta, moneda, {});
                               }
+                              // Tipología-based pricing — unit price takes priority
                               if (isTipologiaPricing) {
-                                const unitTipo = tipologias.find(tp => tp.id === unit.tipologia_id);
-                                return unitTipo?.precio_desde
-                                  ? formatCurrency(unitTipo.precio_desde, moneda, {})
-                                  : "-";
+                                if (unit.precio != null) {
+                                  return formatCurrency(unit.precio, moneda, {});
+                                }
+                                if (unit.tipologia_id) {
+                                  const confirmed = tipologias.find(tp => tp.id === unit.tipologia_id);
+                                  return confirmed?.precio_desde
+                                    ? formatCurrency(confirmed.precio_desde, moneda, {})
+                                    : "-";
+                                }
+                                if (isMultiTipo && unitTipos.length > 0) {
+                                  const prices = unitTipos.map(t => t.precio_desde).filter((p): p is number => p != null);
+                                  return prices.length > 0
+                                    ? formatCurrency(Math.min(...prices), moneda, {})
+                                    : "-";
+                                }
+                                return "-";
                               }
+                              // Unit-level pricing
                               if (isMultiTipo && !unit.tipologia_id) {
                                 return "-";
                               }
-                              return unit.precio
+                              return unit.precio != null
                                 ? formatCurrency(unit.precio, moneda, {})
                                 : "-";
                             })()}
@@ -3581,6 +3749,9 @@ export default function InventarioPage() {
             onClose={() => setShowImportModal(false)}
             onDone={handleImportDone}
             customColumns={project.custom_columns ?? []}
+            tipoProyecto={tipoProyecto}
+            tipologiaMode={tipologiaMode}
+            inventoryColumns={project.inventory_columns ?? null}
           />
         )}
       </AnimatePresence>
@@ -3705,6 +3876,7 @@ export default function InventarioPage() {
           </motion.div>
         )}
       </AnimatePresence>
+      </>)}
     </motion.div>
   );
 }

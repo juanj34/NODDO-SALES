@@ -1,4 +1,5 @@
 import { pick } from "@/lib/api-utils";
+import { logActivity } from "@/lib/activity-logger";
 import { getAuthContext, requirePermission } from "@/lib/auth-context";
 import { NextRequest, NextResponse } from "next/server";
 
@@ -44,12 +45,27 @@ export async function DELETE(
     const denied = requirePermission(auth, "content.write");
     if (denied) return denied;
 
+    // Fetch before delete for logging
+    const { data: recurso } = await auth.supabase.from("recursos").select("proyecto_id, nombre").eq("id", id).single();
+
     const { error } = await auth.supabase
       .from("recursos")
       .delete()
       .eq("id", id);
 
     if (error) throw error;
+
+    if (recurso) {
+      const { data: proj } = await auth.supabase.from("proyectos").select("nombre").eq("id", recurso.proyecto_id).single();
+      logActivity({
+        userId: auth.user.id, userEmail: auth.user.email!, userRole: auth.role,
+        proyectoId: recurso.proyecto_id, proyectoNombre: proj?.nombre,
+        actionType: "recurso.delete", actionCategory: "content",
+        entityType: "recurso", entityId: id,
+        metadata: { nombre: recurso.nombre },
+      });
+    }
+
     return NextResponse.json({ success: true });
   } catch (err) {
     return NextResponse.json(

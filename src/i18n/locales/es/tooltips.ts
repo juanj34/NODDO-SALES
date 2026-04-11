@@ -75,7 +75,7 @@ const tooltips = {
     },
     tipoProyecto: {
       short: "Define el tipo de unidades inmobiliarias del proyecto.",
-      long: "**Apartamentos:** Unidades en torres con pisos. **Casas:** Unidades independientes con lotes. **Híbrido:** Mezcla de tipos. **Lotes:** Solo terrenos. Esta selección afecta qué campos aparecen en tipologías e inventario.",
+      long: "**Apartamentos:** Unidades en torres con pisos. **Casas:** Unidades independientes con lotes. **Lotes:** Solo terrenos. **Híbrido:** Mezcla de tipos — apartamentos, casas, lotes y/o locales comerciales en un mismo proyecto. Esta selección afecta qué campos aparecen en tipologías e inventario.",
     },
     tipologiaMode: {
       short: "Controla cómo se asignan tipologías a las unidades.",

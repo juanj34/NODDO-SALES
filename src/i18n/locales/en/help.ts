@@ -420,7 +420,7 @@ const help = {
       content:
         "The Settings tab contains options controlling your project structure, inventory columns, special microsite features and display options.",
       steps: [
-        "'Project Type': Select your project type: Towers (vertical buildings), Development (houses/horizontal complexes), Hybrid (mixed types) or Lots. The type determines available inventory columns and system behavior.",
+        "'Project Type': Select your project type: Towers (vertical buildings), Development (houses/horizontal complexes), Lots (land), or Hybrid (mix of apartments, houses, lots, and/or commercial units in a single project). The type determines available inventory columns and system behavior.",
         "'Inventory Columns': Customize which fields display in the inventory table in the editor and microsite. You can enable/disable columns like built area, private area, lot area, orientation, view, floor, etc.",
         "'WhatsApp': Enter the WhatsApp number with country code (e.g.: 573001234567). A floating button will appear on the microsite.",
         "'Unit Prefix': Configure a prefix displayed before each unit's identifier on the microsite (e.g.: 'Apt', 'House', 'Lot').",

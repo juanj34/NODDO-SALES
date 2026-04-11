@@ -8,6 +8,8 @@ import {
   enumOrDefault,
 } from "@/lib/ai";
 import type { ConversationMessage } from "@/lib/ai";
+import { trackAIUsage } from "@/lib/ai-tracker";
+import { aiGlobalLimiter, checkRateLimit, rateLimitExceeded } from "@/lib/rate-limit";
 import { NextRequest, NextResponse } from "next/server";
 
 // ---------------------------------------------------------------------------
@@ -112,8 +114,15 @@ export async function POST(request: NextRequest) {
     const denied = requirePermission(auth, "ai.use");
     if (denied) return denied;
 
-    const { message, unidades, tipologias, fachadas, torres, history, tipologiaMode, customColumns } =
+    // Global AI rate limit
+    if (aiGlobalLimiter) {
+      const rl = await checkRateLimit(request, aiGlobalLimiter);
+      if (!rl.success) return rateLimitExceeded(rl.headers);
+    }
+
+    const { message, unidades, tipologias, fachadas, torres, history, tipologiaMode, customColumns, tipoProyecto: rawTipoProyecto } =
       await request.json();
+    const tipoProyecto: string = rawTipoProyecto || "hibrido";
     const isMultiTipo = tipologiaMode === "multiple";
     if (!message || typeof message !== "string") {
       return NextResponse.json(
@@ -227,7 +236,7 @@ ${(() => {
 
 ${tipologiasList ? `TIPOLOGÍAS DISPONIBLES (usa SOLO estos IDs):\n${tipologiasList}` : ""}
 ${fachadasList ? `FACHADAS DISPONIBLES (usa SOLO estos IDs):\n${fachadasList}` : ""}
-${torresList ? `TORRES DISPONIBLES:\n${torresList}` : ""}
+${torresList ? `${tipoProyecto === "apartamentos" ? "TORRES" : tipoProyecto === "hibrido" ? "AGRUPACIONES" : "ETAPAS"} DISPONIBLES:\n${torresList}` : ""}
 
 UNIDADES ACTUALES:
 ${unidadesJSON}
@@ -273,19 +282,20 @@ Este proyecto usa modo multi-tipología. Cada unidad puede tener VARIAS tipolog�
       { role: "user" as const, text: cleanMessage },
     ];
 
-    const result = await callAIWithHistory(systemPrompt, conversationMessages, {
+    const { text, usage } = await callAIWithHistory(systemPrompt, conversationMessages, {
       maxOutputTokens: 32768,
     });
+    trackAIUsage({ userId: auth.user.id, userEmail: auth.user.email, feature: "modify-units", usage });
 
     // ----- Parse + validate output -----
     const fallback = {
       summary: "No se pudieron procesar los cambios. La IA no devolvió un formato válido.",
       changes: [],
     };
-    const raw = parseAIJson<Record<string, unknown>>(result, fallback);
+    const raw = parseAIJson<Record<string, unknown>>(text, fallback);
 
     if (typeof raw !== "object" || raw === null || raw === fallback) {
-      console.error("modify-units: AI returned unparseable response:", result.slice(0, 500));
+      console.error("modify-units: AI returned unparseable response:", text.slice(0, 500));
       return NextResponse.json(fallback);
     }
 

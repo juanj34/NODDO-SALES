@@ -8,6 +8,8 @@ import {
   toPositiveOrNull,
   enumOrDefault,
 } from "@/lib/ai";
+import { trackAIUsage } from "@/lib/ai-tracker";
+import { aiGlobalLimiter, checkRateLimit, rateLimitExceeded } from "@/lib/rate-limit";
 import { NextRequest, NextResponse } from "next/server";
 
 // ---------------------------------------------------------------------------
@@ -90,6 +92,12 @@ export async function POST(request: NextRequest) {
     const denied = requirePermission(auth, "ai.use");
     if (denied) return denied;
 
+    // Global AI rate limit
+    if (aiGlobalLimiter) {
+      const rl = await checkRateLimit(request, aiGlobalLimiter);
+      if (!rl.success) return rateLimitExceeded(rl.headers);
+    }
+
     const { lat, lng, projectName, address, categoria } =
       await request.json();
     if (lat == null || lng == null) {
@@ -166,18 +174,19 @@ SEGURIDAD:
 Ubicación: lat ${originLat}, lng ${originLng}
 ${cleanAddress ? `Dirección: ${cleanAddress}` : ""}`;
 
-    const result = await callAI(systemPrompt, userMessage, {
+    const { text, usage } = await callAI(systemPrompt, userMessage, {
       maxOutputTokens: 16384,
     });
+    trackAIUsage({ userId: auth.user.id, userEmail: auth.user.email, feature: "discover-pois", usage });
 
     // ----- Parse + validate output -----
-    const parsed = parseAIJson<unknown>(result, []);
+    const parsed = parseAIJson<unknown>(text, []);
     const rawArray = extractArray(parsed);
 
     if (rawArray.length === 0) {
       console.warn(
         "discover-pois: AI returned no parseable array. Raw:",
-        result.slice(0, 500)
+        text.slice(0, 500)
       );
       return NextResponse.json({ pois: [] });
     }

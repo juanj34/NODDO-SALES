@@ -44,6 +44,7 @@ import { formatCurrency } from "@/lib/currency";
 import { getUnitDisplayName } from "@/lib/unit-display";
 import type { Unidad, UnidadTipologia, LightboxImage, VistaPiso } from "@/types";
 import { useSectionVisibility } from "@/hooks/useSectionVisibility";
+import { TowerCompositionDiagram } from "@/components/site/TowerCompositionDiagram";
 
 export default function TipologiasPage() {
   const sectionVisible = useSectionVisibility("tipologias");
@@ -92,6 +93,8 @@ export default function TipologiasPage() {
     isMultiTorre ? torres[0]?.id ?? null : null,
     proyecto.slug,
   );
+
+  const activeTorre = useMemo(() => activeTorreId ? torres.find(t => t.id === activeTorreId) ?? null : null, [activeTorreId, torres]);
 
   // Filter tipologías by active torre
   const visibleTipologias = useMemo(() => {
@@ -476,22 +479,40 @@ export default function TipologiasPage() {
     <SectionTransition className="min-h-screen lg:h-screen flex flex-col overflow-y-auto lg:overflow-hidden bg-[var(--site-bg)]">
       {/* ====== TOP: Torre Selector (multi-torre only) ====== */}
       {isMultiTorre && (
-        <div className="flex-shrink-0 flex items-center gap-2.5 px-6 lg:px-12 pt-6 pb-5">
-          {torres.map((torre) => (
-            <button
-              key={torre.id}
-              onClick={() => setActiveTorreId(torre.id)}
-              className={cn(
-                "font-ui flex items-center gap-2.5 px-5 py-2.5 rounded-full text-[11px] font-semibold tracking-[0.15em] uppercase transition-all cursor-pointer",
-                activeTorreId === torre.id
-                  ? "bg-[rgba(var(--site-primary-rgb),0.15)] text-[var(--site-primary)] ring-1 ring-[rgba(var(--site-primary-rgb),0.4)] shadow-[0_0_12px_rgba(var(--site-primary-rgb),0.15)]"
-                  : "text-[var(--text-tertiary)] hover:text-[var(--text-secondary)] hover:bg-white/[0.07] hover:ring-1 hover:ring-white/10"
-              )}
-            >
-              <Building2 size={14} strokeWidth={2.5} />
-              {torre.nombre}
-            </button>
-          ))}
+        <div className="flex-shrink-0 px-6 lg:px-12 pt-6 pb-5">
+          <div className="flex items-center gap-2.5">
+            {torres.map((torre) => (
+              <button
+                key={torre.id}
+                onClick={() => setActiveTorreId(torre.id)}
+                className={cn(
+                  "font-ui flex items-center gap-2.5 px-5 py-2.5 rounded-full text-[11px] font-semibold tracking-[0.15em] uppercase transition-all cursor-pointer",
+                  activeTorreId === torre.id
+                    ? "bg-[rgba(var(--site-primary-rgb),0.15)] text-[var(--site-primary)] ring-1 ring-[rgba(var(--site-primary-rgb),0.4)] shadow-[0_0_12px_rgba(var(--site-primary-rgb),0.15)]"
+                    : "text-[var(--text-tertiary)] hover:text-[var(--text-secondary)] hover:bg-white/[0.07] hover:ring-1 hover:ring-white/10"
+                )}
+              >
+                <Building2 size={14} strokeWidth={2.5} />
+                {torre.nombre}
+              </button>
+            ))}
+
+            {/* Tower composition diagram — inline beside torre buttons */}
+            {activeTorre && (
+              <AnimatePresence mode="wait">
+                <motion.div
+                  key={activeTorre.id}
+                  initial={{ opacity: 0, x: -8 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: 8 }}
+                  transition={{ duration: 0.3 }}
+                  className="ml-auto pl-4 border-l border-[var(--border-subtle)]"
+                >
+                  <TowerCompositionDiagram torre={activeTorre} />
+                </motion.div>
+              </AnimatePresence>
+            )}
+          </div>
         </div>
       )}
 

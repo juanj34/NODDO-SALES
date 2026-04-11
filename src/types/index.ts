@@ -133,6 +133,8 @@ export interface Proyecto {
   webhook_config: WebhookConfig | null;
   inventory_columns: InventoryColumnConfig | null;
   inventory_columns_by_type: InventoryColumnsByType | null;
+  inventory_columns_microsite: InventoryColumnConfig | null;
+  inventory_columns_microsite_by_type: InventoryColumnsByType | null;
   custom_columns: CustomColumnDef[];
   secciones_visibles: SeccionesVisibles | null;
   tipologia_fields: TipologiaFieldsConfig | null;

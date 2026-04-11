@@ -1,5 +1,7 @@
 import { getAuthContext, requirePermission } from "@/lib/auth-context";
 import { callAI, parseAIJson, sanitizeInput } from "@/lib/ai";
+import { trackAIUsage } from "@/lib/ai-tracker";
+import { aiGlobalLimiter, checkRateLimit, rateLimitExceeded } from "@/lib/rate-limit";
 import { NextRequest, NextResponse } from "next/server";
 
 // ---------------------------------------------------------------------------
@@ -24,6 +26,8 @@ interface AnalysisResult {
 const VALID_DB_FIELDS_UNIDADES = [
   "identificador",
   "piso",
+  "lote",
+  "etapa_nombre",
   "area_m2",
   "area_construida",
   "area_privada",
@@ -74,6 +78,7 @@ const VALID_ESTADOS = [
   "separado",
   "reservada",
   "vendida",
+  "proximamente",
 ] as const;
 
 // ---------------------------------------------------------------------------
@@ -88,7 +93,14 @@ export async function POST(request: NextRequest) {
     const denied = requirePermission(auth, "ai.use");
     if (denied) return denied;
 
-    const { headers, sampleRows, uniqueValues, tipologias, torres, fachadas, importMode: rawMode, customColumns } = await request.json();
+    // Global AI rate limit
+    if (aiGlobalLimiter) {
+      const rl = await checkRateLimit(request, aiGlobalLimiter);
+      if (!rl.success) return rateLimitExceeded(rl.headers);
+    }
+
+    const { headers, sampleRows, uniqueValues, tipologias, torres, fachadas, importMode: rawMode, customColumns, tipoProyecto: rawTipoProyecto } = await request.json();
+    const tipoProyecto: string = rawTipoProyecto || "hibrido";
     const importMode: ImportMode = (rawMode === "parqueaderos" || rawMode === "depositos") ? rawMode : "unidades";
     const { dbFields, allTargets } = getValidFields(importMode);
 
@@ -139,20 +151,22 @@ export async function POST(request: NextRequest) {
 - nivel: nivel/piso donde está ubicado (ej: "Sótano 1", "Nivel 2")
 - area_m2: área en metros cuadrados
 - precio: precio del item
-- estado: estado (disponible, separado, reservada, vendida)
+- estado: estado (disponible, separado, reservada, vendida, proximamente)
 - notas: observaciones
 
 CAMPOS ESPECIALES:
-- _etapa: columna que indica torre/etapa/sector (se mapeará a torre)`
+- _etapa: columna que indica la torre o urbanismo (se mapeará manualmente a una agrupación del proyecto)`
       : `CAMPOS DE BASE DE DATOS DISPONIBLES:
 - identificador: ID único de la unidad (ej: "Apto 101", "Casa 5", "1", "T1-301")
 - piso: número de piso
+- lote: número o nombre del lote (ej: "Lote 5", "L-12")
+- etapa_nombre: fase de construcción o etapa del proyecto (ej: "Etapa 1", "Fase 2", "1", "2"). Columnas CSV llamadas "Etapa", "Fase", "Etapa de construcción" van aquí. Texto libre.
 - area_m2: área total en metros cuadrados (general)
 - area_construida: área construida en metros cuadrados
 - area_privada: área privada en metros cuadrados
 - area_lote: área del lote en metros cuadrados
 - precio: precio de la unidad
-- estado: estado de venta (disponible, separado, reservada, vendida)
+- estado: estado de venta (disponible, separado, reservada, vendida, proximamente)
 - habitaciones: número de habitaciones/alcobas
 - banos: número de baños
 - parqueaderos: número de parqueaderos/garajes
@@ -162,9 +176,13 @@ CAMPOS ESPECIALES:
 - notas: observaciones
 
 CAMPOS ESPECIALES:
-- _etapa: columna que indica torre/etapa/sector/manzana/bloque (se mapeará manualmente a torre)
+- _etapa: SOLO para columnas que indican a qué torre o urbanismo pertenece la unidad (ej: "Torre 1", "Torre Norte", "Urbanismo Los Pinos"). NO usar para etapas de construcción — esas van en etapa_nombre.
 - _tipologia: columna que indica el tipo de unidad (se mapeará manualmente a tipología)
-- _fachada: columna que indica la fachada/elevación/bloque visual del edificio (se mapeará manualmente a fachada)${(() => {
+- _fachada: columna que indica la fachada/elevación/bloque visual del edificio (se mapeará manualmente a fachada)
+
+REGLA CRÍTICA sobre etapa vs _etapa:
+- "Etapa", "Fase", "Etapa de construcción", valores como "1", "2", "3", "Etapa 1" → etapa_nombre (texto libre)
+- "Torre", "Urbanismo", "Bloque", "Edificio", valores como "Torre A", "Urb. Los Pinos" → _etapa (se mapea a torre/urbanismo del proyecto)${(() => {
         if (customCols.length === 0) return "";
         const lines = customCols.map(c => `- cf:${c.key}: ${c.label} (${c.type})`);
         return `\n\nCAMPOS PERSONALIZADOS DEL PROYECTO (usa estos IDs exactos en columnMapping):\n${lines.join("\n")}`;
@@ -175,10 +193,16 @@ CAMPOS ESPECIALES:
 ${fieldsDescription}
 
 ${tipologiasList ? `TIPOLOGÍAS DEL PROYECTO:\n${tipologiasList}` : ""}
-${torresList ? `TORRES/MANZANAS DEL PROYECTO:\n${torresList}` : ""}
+${torresList ? `${tipoProyecto === "apartamentos" ? "TORRES" : tipoProyecto === "hibrido" ? "AGRUPACIONES" : "URBANISMOS"} DEL PROYECTO:\n${torresList}` : ""}
 ${fachadasList ? `FACHADAS DEL PROYECTO:\n${fachadasList}` : ""}
 
-ESTADOS VÁLIDOS: disponible, separado, reservada, vendida
+ESTADOS VÁLIDOS: disponible, separado, reservada, vendida, proximamente
+SINÓNIMOS COMUNES → estado correcto:
+- "pronto", "próximamente", "coming soon", "preventa", "pre-venta" → proximamente
+- "libre", "available", "activo" → disponible
+- "sold", "cerrada", "escriturada" → vendida
+- "apartado", "separada" → separado
+- "en proceso", "reserva", "reserved" → reservada
 
 FORMATO DE RESPUESTA (JSON):
 {
@@ -201,6 +225,13 @@ REGLAS:
 6. detectedFachadas: valores ÚNICOS encontrados en la columna mapeada a _fachada. Array vacío si no hay columna de fachada.
 7. missingFields: campos de BD que NO tienen columna correspondiente en el CSV.
 7. notes: breve explicación en español de qué tipo de archivo parece ser y qué se detectó.
+
+TIPO DE PROYECTO: ${tipoProyecto}
+${tipoProyecto === "casas" || tipoProyecto === "lotes"
+  ? `- Este es un proyecto de ${tipoProyecto}. Columnas llamadas "Etapa" SIEMPRE van a "etapa_nombre", NUNCA a "_etapa". Solo usa "_etapa" si hay una columna que claramente indica un urbanismo o desarrollo (ej: "Urbanismo", "Conjunto").`
+  : tipoProyecto === "hibrido"
+    ? `- Este es un proyecto híbrido. Columnas llamadas "Etapa" o "Fase" van a "etapa_nombre". Columnas llamadas "Torre", "Urbanismo", "Bloque" van a "_etapa".`
+    : `- Este es un proyecto de apartamentos. Columnas de torre/bloque/edificio van a "_etapa". Columnas de etapa de construcción/fase van a "etapa_nombre".`}
 
 IMPORTANTE:
 - Si hay múltiples columnas de área, mapéalas a los campos correspondientes: "Área Construida" → area_construida, "Área Privada" → area_privada, "Área Lote"/"Área Terreno" → area_lote, "Área"/"Área Total" → area_m2. NO ignores columnas de área relevantes.
@@ -231,8 +262,9 @@ SEGURIDAD:
 ${csvSample}
 </CSV_MUESTRA>${uniqueValuesSummary}`;
 
-    const result = await callAI(systemPrompt, userMessage);
-    const parsed = parseAIJson<Partial<AnalysisResult>>(result, {});
+    const { text, usage } = await callAI(systemPrompt, userMessage);
+    trackAIUsage({ userId: auth.user.id, userEmail: auth.user.email, feature: "analyze-csv", usage });
+    const parsed = parseAIJson<Partial<AnalysisResult>>(text, {});
 
     // Validate and sanitize response
     const validTargets = new Set<string>(allTargetsWithCustom);

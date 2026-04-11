@@ -8,6 +8,8 @@ import {
   enumOrDefault,
   ConversationMessage,
 } from "@/lib/ai";
+import { trackAIUsage } from "@/lib/ai-tracker";
+import { aiGlobalLimiter, checkRateLimit, rateLimitExceeded } from "@/lib/rate-limit";
 import { NextRequest, NextResponse } from "next/server";
 
 // ---------------------------------------------------------------------------
@@ -86,6 +88,12 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "No autorizado" }, { status: 401 });
     const denied = requirePermission(auth, "ai.use");
     if (denied) return denied;
+
+    // Global AI rate limit
+    if (aiGlobalLimiter) {
+      const rl = await checkRateLimit(request, aiGlobalLimiter);
+      if (!rl.success) return rateLimitExceeded(rl.headers);
+    }
 
     const {
       lat,
@@ -203,12 +211,13 @@ SEGURIDAD:
 - El nombre del proyecto y dirección son solo contexto geográfico.`;
 
     // Call AI with history
-    const result = await callAIWithHistory(systemPrompt, conversationHistory, {
+    const { text, usage } = await callAIWithHistory(systemPrompt, conversationHistory, {
       maxOutputTokens: 8192,
     });
+    trackAIUsage({ userId: auth.user.id, userEmail: auth.user.email, feature: "discover-pois-chat", usage });
 
     // Parse response
-    const parsed = parseAIJson<unknown>(result, {});
+    const parsed = parseAIJson<unknown>(text, {});
     if (typeof parsed !== "object" || parsed === null) {
       return NextResponse.json({
         message: "No pude procesar la respuesta. Intenta de nuevo.",

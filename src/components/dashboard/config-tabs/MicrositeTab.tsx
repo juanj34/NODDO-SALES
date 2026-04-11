@@ -137,7 +137,7 @@ export default function MicrositeTab() {
   }, [scheduleAutoSave]);
 
   return (
-    <div className="max-w-4xl space-y-8">
+    <div className="space-y-8">
       {/* ── Section Visibility ── */}
       <div className={sectionCard}>
         <div className={sectionTitle}>

@@ -30,6 +30,7 @@ import {
   ChevronRight,
   Sparkles,
   Layers,
+  X,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/components/dashboard/Toast";
@@ -64,7 +65,7 @@ type TorreDetailTab = "info" | "amenidades" | "fachadas" | "unidades";
 export default function TorresPage() {
   const { t } = useTranslation("editor");
   const { t: tTooltips } = useTranslation("tooltips");
-  const { project, projectId, refresh, updateLocal } = useEditorProject();
+  const { project, projectId, updateLocal } = useEditorProject();
   const toast = useToast();
   const { confirm } = useConfirm();
   const isMobile = useMediaQuery("(max-width: 767px)");
@@ -74,9 +75,8 @@ export default function TorresPage() {
   const unidades = project?.unidades ?? [];
 
   /* ── Shared state ─────────────────────────────────────────────── */
-  const [saving, setSaving] = useState(false);
-  const [deletingId, setDeletingId] = useState<string | null>(null);
   const [showAddForm, setShowAddForm] = useState(false);
+  const [showEtapaHint, setShowEtapaHint] = useState(true);
 
   /* ── Multi-torre master-detail state ───────────────────────────── */
   const [selectedTorreId, setSelectedTorreId] = useState<string | null>(null);
@@ -101,11 +101,14 @@ export default function TorresPage() {
 
   const selectedTorre = torres.find((t) => t.id === selectedTorreId) ?? null;
 
+  /* ── Project type (used throughout) ──────────────────────────── */
+  const tipoProyecto = project?.tipo_proyecto ?? "hibrido";
+
   /* ── Add form state ───────────────────────────────────────────── */
-  const [addNombre, setAddNombre] = useState(torres.length === 0 ? DEFAULTS.nombre : "");
+  const defaultAddNombre = (tipoProyecto === "casas" || tipoProyecto === "lotes") ? "Urbanismo Principal" : DEFAULTS.nombre;
+  const [addNombre, setAddNombre] = useState(torres.length === 0 ? defaultAddNombre : "");
   const [addPrefijo, setAddPrefijo] = useState("");
   const [addTipo, setAddTipo] = useState<"torre" | "urbanismo">(() => {
-    const tipoProyecto = project?.tipo_proyecto ?? "hibrido";
     if (tipoProyecto === "casas" || tipoProyecto === "lotes") return "urbanismo";
     if (tipoProyecto === "apartamentos") return "torre";
     return "torre"; // Default for hibrido
@@ -113,25 +116,31 @@ export default function TorresPage() {
   const [addNameError, setAddNameError] = useState(false);
 
   /* ── Column config (for etapa hint) ──────────────────────────── */
-  const columns = getInventoryColumns(project?.tipo_proyecto ?? "hibrido", project?.inventory_columns);
+  const columns = getInventoryColumns(tipoProyecto, project?.inventory_columns);
 
-  /* ── Dynamic page title based on torre types ─────────────────── */
+  /* ── Dynamic page title based on project type and torre content ── */
   const hasTorre = torres.some((t) => (t.tipo ?? "torre") === "torre");
   const hasUrbanismo = torres.some((t) => t.tipo === "urbanismo");
-  const pageLabel = torres.length === 0
-    ? t("torres.title")
-    : hasTorre && hasUrbanismo
-      ? t("torres.titleAgrupaciones")
-      : hasUrbanismo
-        ? t("torres.titleUrbanismos")
-        : t("torres.titleTorres");
-  const pageDesc = torres.length === 0
-    ? t("torres.description")
-    : hasTorre && hasUrbanismo
-      ? t("torres.descriptionAgrupaciones")
-      : hasUrbanismo
-        ? t("torres.descriptionUrbanismos")
-        : t("torres.description");
+
+  const pageLabel = (() => {
+    // For non-híbrido, use fixed labels regardless of content
+    if (tipoProyecto === "casas" || tipoProyecto === "lotes") return t("torres.titleUrbanismos");
+    if (tipoProyecto === "apartamentos") return t("torres.titleTorres");
+    // Híbrido: dynamic based on actual content
+    if (torres.length === 0) return t("torres.title");
+    if (hasTorre && hasUrbanismo) return t("torres.titleAgrupaciones");
+    if (hasUrbanismo) return t("torres.titleUrbanismos");
+    return t("torres.titleTorres");
+  })();
+
+  const pageDesc = (() => {
+    if (tipoProyecto === "casas" || tipoProyecto === "lotes") return t("torres.descriptionUrbanismos");
+    if (tipoProyecto === "apartamentos") return t("torres.description");
+    if (torres.length === 0) return t("torres.description");
+    if (hasTorre && hasUrbanismo) return t("torres.descriptionAgrupaciones");
+    if (hasUrbanismo) return t("torres.descriptionUrbanismos");
+    return t("torres.description");
+  })();
 
   /* ── Count helpers ────────────────────────────────────────────── */
   const fachadasForTorre = (torreId: string) =>
@@ -166,49 +175,102 @@ export default function TorresPage() {
       setAddNameError(true);
       return;
     }
-    setSaving(true);
+    // Optimistic: create a temporary torre and show it immediately
+    const tempId = `temp-${crypto.randomUUID()}`;
+    const optimisticTorre: Torre = {
+      id: tempId,
+      proyecto_id: projectId,
+      nombre: addNombre.trim(),
+      prefijo: addPrefijo.trim() || null,
+      tipo: addTipo,
+      num_pisos: null,
+      pisos_sotano: null,
+      pisos_planta_baja: null,
+      pisos_podio: null,
+      pisos_residenciales: null,
+      pisos_rooftop: null,
+      descripcion: null,
+      amenidades: null,
+      amenidades_data: null,
+      caracteristicas: null,
+      imagen_portada: null,
+      logo_url: null,
+      orden: torres.length,
+      created_at: new Date().toISOString(),
+    };
+    const savedTipo = addTipo;
+    resetAddForm();
+    setSelectedTorreId(tempId);
+    setTorreDetailTab("info");
+    updateLocal((prev) => ({
+      ...prev,
+      torres: [...prev.torres, optimisticTorre],
+    }));
+    toast.success(savedTipo === "urbanismo" ? t("torres.urbanismCreated") : t("torres.towerCreated"));
+
     try {
       const res = await fetch("/api/torres", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           proyecto_id: projectId,
-          nombre: addNombre.trim(),
-          prefijo: addPrefijo.trim() || null,
-          tipo: addTipo,
+          nombre: optimisticTorre.nombre,
+          prefijo: optimisticTorre.prefijo,
+          tipo: savedTipo,
         }),
       });
       if (res.ok) {
         const created = await res.json();
-        resetAddForm();
-        await refresh();
+        // Replace temp torre with real one from server
+        updateLocal((prev) => ({
+          ...prev,
+          torres: prev.torres.map((t) =>
+            t.id === tempId ? { ...optimisticTorre, ...created } : t
+          ),
+        }));
         setSelectedTorreId(created.id);
-        setTorreDetailTab("info");
-        toast.success(addTipo === "urbanismo" ? t("torres.urbanismCreated") : t("torres.towerCreated"));
       } else {
+        // Rollback
+        updateLocal((prev) => ({
+          ...prev,
+          torres: prev.torres.filter((t) => t.id !== tempId),
+        }));
+        setSelectedTorreId(torres.length > 0 ? torres[0].id : null);
         const err = await res.json().catch(() => ({ error: t("errors.unknown") }));
         toast.error(err.error || `Error ${res.status}`);
-        console.error("Torre creation failed:", res.status, err);
       }
     } catch (err) {
+      // Rollback
+      updateLocal((prev) => ({
+        ...prev,
+        torres: prev.torres.filter((t) => t.id !== tempId),
+      }));
+      setSelectedTorreId(torres.length > 0 ? torres[0].id : null);
       toast.error(t("errors.connectionError"));
       console.error("Torre creation error:", err);
-    } finally {
-      setSaving(false);
     }
   }, [
     projectId,
     addNombre,
     addPrefijo,
     addTipo,
-    refresh,
+    torres,
     resetAddForm,
+    updateLocal,
     toast,
   ]);
 
   /* ── Update torre (auto-save on blur) ─────────────────────────── */
   const handleUpdate = useCallback(
     async (torreId: string, data: Partial<Torre>) => {
+      // Optimistic: update local immediately
+      const prevTorre = torres.find((t) => t.id === torreId);
+      updateLocal((prev) => ({
+        ...prev,
+        torres: prev.torres.map((t) =>
+          t.id === torreId ? { ...t, ...data } : t
+        ),
+      }));
       try {
         const res = await fetch(`/api/torres/${torreId}`, {
           method: "PUT",
@@ -216,12 +278,21 @@ export default function TorresPage() {
           body: JSON.stringify(data),
         });
         if (!res.ok) {
+          // Rollback
+          if (prevTorre) {
+            updateLocal((prev) => ({
+              ...prev,
+              torres: prev.torres.map((t) =>
+                t.id === torreId ? prevTorre : t
+              ),
+            }));
+          }
           const err = await res.json().catch(() => ({ error: t("errors.unknown") }));
           toast.error(err.error || t("errors.saveError"));
           return;
         }
         const updated = await res.json();
-        // Optimistic local update — don't refetch the whole project
+        // Reconcile with server response
         updateLocal((prev) => ({
           ...prev,
           torres: prev.torres.map((t) =>
@@ -229,11 +300,20 @@ export default function TorresPage() {
           ),
         }));
       } catch (err) {
+        // Rollback
+        if (prevTorre) {
+          updateLocal((prev) => ({
+            ...prev,
+            torres: prev.torres.map((t) =>
+              t.id === torreId ? prevTorre : t
+            ),
+          }));
+        }
         toast.error(t("errors.connectionError"));
         console.error("Torre update error:", err);
       }
     },
-    [updateLocal, toast]
+    [torres, updateLocal, toast]
   );
 
   /* ── Delete torre ─────────────────────────────────────────────── */
@@ -241,11 +321,11 @@ export default function TorresPage() {
     async (torreId: string) => {
       const torre = torres.find((tr) => tr.id === torreId);
       if (!torre) return;
-      const nFach = fachadas.filter((f) => f.torre_id === torreId).length;
-      const nUni = unidades.filter((u) => u.torre_id === torreId).length;
+      const torresFachadas = fachadas.filter((f) => f.torre_id === torreId);
+      const torresUnidades = unidades.filter((u) => u.torre_id === torreId);
       const parts: string[] = [];
-      if (nUni > 0) parts.push(`${nUni} unidades`);
-      if (nFach > 0) parts.push(`${nFach} fachadas/plantas`);
+      if (torresUnidades.length > 0) parts.push(`${torresUnidades.length} unidades`);
+      if (torresFachadas.length > 0) parts.push(`${torresFachadas.length} fachadas/plantas`);
 
       if (
         !(await confirm({
@@ -257,47 +337,62 @@ export default function TorresPage() {
         }))
       )
         return;
-      setDeletingId(torreId);
+
+      // Optimistic: remove torre and detach related items immediately
+      const prevTorres = torres;
+      const prevFachadas = fachadas;
+      const prevUnidades = unidades;
+      updateLocal((prev) => ({
+        ...prev,
+        torres: prev.torres.filter((t) => t.id !== torreId),
+        fachadas: prev.fachadas.map((f) =>
+          f.torre_id === torreId ? { ...f, torre_id: null } : f
+        ),
+        unidades: prev.unidades.map((u) =>
+          u.torre_id === torreId ? { ...u, torre_id: null } : u
+        ),
+      }));
+      if (selectedTorreId === torreId) setSelectedTorreId(null);
+
       try {
         // Detach fachadas
         await Promise.all(
-          fachadas
-            .filter((f) => f.torre_id === torreId)
-            .map((f) =>
-              fetch(`/api/fachadas/${f.id}`, {
-                method: "PUT",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ torre_id: null }),
-              })
-            )
+          torresFachadas.map((f) =>
+            fetch(`/api/fachadas/${f.id}`, {
+              method: "PUT",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ torre_id: null }),
+            })
+          )
         );
         // Detach unidades
         await Promise.all(
-          unidades
-            .filter((u) => u.torre_id === torreId)
-            .map((u) =>
-              fetch(`/api/unidades/${u.id}`, {
-                method: "PUT",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ torre_id: null }),
-              })
-            )
+          torresUnidades.map((u) =>
+            fetch(`/api/unidades/${u.id}`, {
+              method: "PUT",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ torre_id: null }),
+            })
+          )
         );
         await fetch(`/api/torres/${torreId}`, { method: "DELETE" });
-        // If the deleted torre was selected, reset selection
-        if (selectedTorreId === torreId) setSelectedTorreId(null);
-        await refresh();
-      } finally {
-        setDeletingId(null);
+      } catch {
+        // Rollback on failure
+        updateLocal((prev) => ({
+          ...prev,
+          torres: prevTorres,
+          fachadas: prevFachadas,
+          unidades: prevUnidades,
+        }));
+        if (selectedTorreId === null) setSelectedTorreId(torreId);
+        toast.error(t("errors.connectionError"));
       }
     },
     // eslint-disable-next-line react-hooks/exhaustive-deps -- confirm and t are stable
-    [fachadas, unidades, selectedTorreId, refresh]
+    [torres, fachadas, unidades, selectedTorreId, updateLocal, toast]
   );
 
   /* ── Duplicate torre ───────────────────────────────────────────── */
-  const [duplicatingId, setDuplicatingId] = useState<string | null>(null);
-
   const handleDuplicate = useCallback(
     async (torre: Torre) => {
       const label = torre.tipo === "urbanismo" ? "urbanismo" : "torre";
@@ -310,16 +405,34 @@ export default function TorresPage() {
         }))
       )
         return;
-      setDuplicatingId(torre.id);
+
+      // Optimistic: add duplicated torre immediately
+      const tempId = `temp-${crypto.randomUUID()}`;
+      const optimisticTorre: Torre = {
+        ...torre,
+        id: tempId,
+        nombre: `${torre.nombre} (copia)`,
+        prefijo: torre.prefijo ? `${torre.prefijo}-2` : null,
+        orden: torres.length,
+        created_at: new Date().toISOString(),
+      };
+      updateLocal((prev) => ({
+        ...prev,
+        torres: [...prev.torres, optimisticTorre],
+      }));
+      setSelectedTorreId(tempId);
+      setTorreDetailTab("info");
+      toast.success(t("torres.duplicated", { label: label.charAt(0).toUpperCase() + label.slice(1) }));
+
       try {
         const res = await fetch("/api/torres", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             proyecto_id: projectId,
-            nombre: `${torre.nombre} (copia)`,
+            nombre: optimisticTorre.nombre,
             tipo: torre.tipo ?? "torre",
-            prefijo: torre.prefijo ? `${torre.prefijo}-2` : null,
+            prefijo: optimisticTorre.prefijo,
             num_pisos: torre.num_pisos,
             pisos_sotano: torre.pisos_sotano,
             pisos_planta_baja: torre.pisos_planta_baja,
@@ -336,22 +449,36 @@ export default function TorresPage() {
         });
         if (res.ok) {
           const created = await res.json();
-          await refresh();
+          // Replace temp with real
+          updateLocal((prev) => ({
+            ...prev,
+            torres: prev.torres.map((t) =>
+              t.id === tempId ? { ...optimisticTorre, ...created } : t
+            ),
+          }));
           setSelectedTorreId(created.id);
-          setTorreDetailTab("info");
-          toast.success(t("torres.duplicated", { label: label.charAt(0).toUpperCase() + label.slice(1) }));
         } else {
+          // Rollback
+          updateLocal((prev) => ({
+            ...prev,
+            torres: prev.torres.filter((t) => t.id !== tempId),
+          }));
+          setSelectedTorreId(torre.id);
           const err = await res.json().catch(() => ({ error: t("errors.unknown") }));
           toast.error(err.error || `Error ${res.status}`);
         }
       } catch {
+        // Rollback
+        updateLocal((prev) => ({
+          ...prev,
+          torres: prev.torres.filter((t) => t.id !== tempId),
+        }));
+        setSelectedTorreId(torre.id);
         toast.error(t("errors.connectionError"));
-      } finally {
-        setDuplicatingId(null);
       }
     },
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [projectId, refresh, toast]
+    [projectId, torres, updateLocal, toast]
   );
 
   /* ════════════════════════════════════════════════════════════════
@@ -371,14 +498,14 @@ export default function TorresPage() {
       />
 
       {/* ── Etapa hint for urbanismo projects ─────────────────── */}
-      {columns.etapa && hasUrbanismo && torres.length > 1 && (
+      {showEtapaHint && hasUrbanismo && (
         <div className={cn(
           "flex items-start p-4 mb-4 bg-[rgba(var(--site-primary-rgb),0.05)] border border-[rgba(var(--site-primary-rgb),0.15)]",
           gap.relaxed,
           radius.lg
         )}>
           <Layers size={iconSize.md} className="text-[var(--site-primary)] mt-0.5 shrink-0" />
-          <div>
+          <div className="flex-1">
             <p className={cn(fontSize.md, "font-medium text-white mb-1")}>
               {t("torres.etapaHintTitle")}
             </p>
@@ -386,6 +513,12 @@ export default function TorresPage() {
               {t("torres.etapaHintDescription")}
             </p>
           </div>
+          <button
+            onClick={() => setShowEtapaHint(false)}
+            className="text-[var(--text-muted)] hover:text-[var(--text-secondary)] transition-colors shrink-0 mt-0.5"
+          >
+            <X size={14} />
+          </button>
         </div>
       )}
 
@@ -405,7 +538,7 @@ export default function TorresPage() {
             const hasFloors = torre.tipo !== "urbanismo" && (torre.pisos_residenciales || torre.num_pisos);
             const nTotalFachadas = counts.fachadas + counts.plantas;
             const hasData = !!(hasFloors || nTotalFachadas > 0 || nUnidades > 0);
-            const isBusy = duplicatingId === torre.id || deletingId === torre.id;
+            const isBusy = false;
             return (
               <div
                 key={torre.id}
@@ -635,13 +768,9 @@ export default function TorresPage() {
                     {t("torres.addHint")}
                   </p>
                   <div className={cn("flex mt-3", gap.normal)}>
-                    <button onClick={handleAdd} disabled={saving} className={btnPrimary}>
-                      {saving ? (
-                        <Loader2 size={iconSize.sm} className="animate-spin" />
-                      ) : (
-                        <Plus size={iconSize.sm} />
-                      )}
-                      {saving ? t("torres.creating") : t("torres.createTower")}
+                    <button onClick={handleAdd} className={btnPrimary}>
+                      <Plus size={iconSize.sm} />
+                      {t("torres.createTower")}
                     </button>
                     {torres.length > 0 && (
                       <button
@@ -673,7 +802,7 @@ export default function TorresPage() {
                   {([
                     { id: "info" as const, label: t("torres.tabs.info"), icon: Building2 },
                     { id: "amenidades" as const, label: t("torres.tabs.amenidades"), icon: Sparkles },
-                    { id: "fachadas" as const, label: t("torres.tabs.fachadas"), icon: Eye },
+                    ...((selectedTorre.tipo ?? "torre") !== "urbanismo" ? [{ id: "fachadas" as const, label: t("torres.tabs.fachadas"), icon: Eye }] : []),
                     { id: "unidades" as const, label: t("torres.tabs.units"), icon: Package },
                   ]).map((tab) => {
                     const isActive = torreDetailTab === tab.id;
@@ -733,7 +862,7 @@ export default function TorresPage() {
                           tipoProyecto={project?.tipo_proyecto ?? "hibrido"}
                           onUpdate={handleUpdate}
                           onDelete={handleDelete}
-                          deletingId={deletingId}
+                          deletingId={null}
                         />
                       </div>
                     </motion.div>
@@ -962,11 +1091,11 @@ function TorreEditFormInline({
   }, [torre.id]);
 
   const compositionFields = [
-    { key: "pisos_sotano" as const, label: t("torres.floors.basement"), placeholder: "0", value: pisosSotano, setter: setPisosSotano },
-    { key: "pisos_planta_baja" as const, label: t("torres.floors.groundFloor"), placeholder: "1", value: pisosPlantaBaja, setter: setPisosPlantaBaja },
-    { key: "pisos_podio" as const, label: t("torres.floors.podium"), placeholder: "0", value: pisosPodio, setter: setPisosPodio },
-    { key: "pisos_residenciales" as const, label: t("torres.floors.residential"), placeholder: "0", value: pisosResidenciales, setter: setPisosResidenciales },
-    { key: "pisos_rooftop" as const, label: t("torres.floors.rooftop"), placeholder: "0", value: pisosRooftop, setter: setPisosRooftop },
+    { key: "pisos_sotano" as const, label: t("torres.floorTypes.basement"), placeholder: "0", value: pisosSotano, setter: setPisosSotano },
+    { key: "pisos_planta_baja" as const, label: t("torres.floorTypes.groundFloor"), placeholder: "1", value: pisosPlantaBaja, setter: setPisosPlantaBaja },
+    { key: "pisos_podio" as const, label: t("torres.floorTypes.podium"), placeholder: "0", value: pisosPodio, setter: setPisosPodio },
+    { key: "pisos_residenciales" as const, label: t("torres.floorTypes.residential"), placeholder: "0", value: pisosResidenciales, setter: setPisosResidenciales },
+    { key: "pisos_rooftop" as const, label: t("torres.floorTypes.rooftop"), placeholder: "0", value: pisosRooftop, setter: setPisosRooftop },
   ];
 
   return (
@@ -1066,11 +1195,11 @@ function TorreEditFormInline({
           if (total === 0) return null;
 
           const sections = [
-            { label: t("torres.floors.rooftop"), count: rt, color: "bg-amber-400/70", text: "text-amber-300" },
-            { label: t("torres.floors.residential"), count: res, color: "bg-[rgba(var(--site-primary-rgb),0.5)]", text: "text-[var(--site-primary)]" },
-            { label: t("torres.floors.podium"), count: pod, color: "bg-blue-400/30", text: "text-blue-300" },
-            { label: t("torres.floors.groundFloorShort"), count: pb, color: "bg-emerald-400/30", text: "text-emerald-300" },
-            { label: t("torres.floors.basementSingle"), count: s, color: "bg-white/8", text: "text-[var(--text-muted)]" },
+            { label: t("torres.floorTypes.rooftop"), count: rt, color: "bg-amber-400/70", text: "text-amber-300" },
+            { label: t("torres.floorTypes.residential"), count: res, color: "bg-[rgba(var(--site-primary-rgb),0.5)]", text: "text-[var(--site-primary)]" },
+            { label: t("torres.floorTypes.podium"), count: pod, color: "bg-blue-400/30", text: "text-blue-300" },
+            { label: t("torres.floorTypes.groundFloorShort"), count: pb, color: "bg-emerald-400/30", text: "text-emerald-300" },
+            { label: t("torres.floorTypes.basementSingle"), count: s, color: "bg-white/8", text: "text-[var(--text-muted)]" },
           ].filter((sec) => sec.count > 0);
 
           return (
@@ -1095,7 +1224,7 @@ function TorreEditFormInline({
                   </div>
                 ))}
                 <div className="border-t border-[var(--border-subtle)] mt-1 pt-1">
-                  <span className={cn(fontSize.label, "text-[var(--text-secondary)] font-medium")}>{t("torres.floors.total", { count: String(total) })}</span>
+                  <span className={cn(fontSize.label, "text-[var(--text-secondary)] font-medium")}>{t("torres.floorTypes.total", { count: String(total) })}</span>
                 </div>
               </div>
             </div>
@@ -1153,7 +1282,7 @@ function TorreEditFormInline({
             }
           }}
           rows={3}
-          placeholder={t("torres.infoForm.descriptionPlaceholder")}
+          placeholder={t((torre.tipo ?? "torre") === "urbanismo" ? "torres.infoForm.descriptionPlaceholderUrbanismo" : "torres.infoForm.descriptionPlaceholder")}
           maxLength={5000}
         />
       </div>

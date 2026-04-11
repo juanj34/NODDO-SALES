@@ -1,5 +1,6 @@
 import { pick } from "@/lib/api-utils";
 import { getAuthContext, requirePermission } from "@/lib/auth-context";
+import { logActivity } from "@/lib/activity-logger";
 import { NextRequest, NextResponse } from "next/server";
 
 export async function POST(
@@ -47,6 +48,29 @@ export async function POST(
       .single();
 
     if (insertError) throw insertError;
+
+    // Log activity (fire-and-forget)
+    if (cloned) {
+      const { data: proj } = await auth.supabase
+        .from("proyectos")
+        .select("nombre")
+        .eq("id", source.proyecto_id)
+        .single();
+
+      logActivity({
+        userId: auth.user.id,
+        userEmail: auth.user.email!,
+        userRole: auth.role,
+        proyectoId: source.proyecto_id,
+        proyectoNombre: proj?.nombre ?? null,
+        actionType: "tipologia.clone",
+        actionCategory: "tipologia",
+        metadata: { nombre: cloned.nombre },
+        entityType: "tipologia",
+        entityId: cloned.id,
+      });
+    }
+
     return NextResponse.json(cloned, { status: 201 });
   } catch (err) {
     return NextResponse.json(

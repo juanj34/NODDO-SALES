@@ -30,7 +30,7 @@ export default function GeneralTab() {
   const [tipoProyecto, setTipoProyecto] = useState<"apartamentos" | "casas" | "hibrido" | "lotes">("hibrido");
   const [tipologiaMode, setTipologiaMode] = useState<"fija" | "multiple">("fija");
   const [precioSource, setPrecioSource] = useState<"unidad" | "tipologia">("unidad");
-  const [etapaLabel, setEtapaLabel] = useState("Grid");
+  const [etapaLabel, setEtapaLabel] = useState("Etapas");
   const [unitPrefix, setUnitPrefix] = useState("");
   const [whatsappNumero, setWhatsappNumero] = useState("");
 
@@ -59,7 +59,7 @@ export default function GeneralTab() {
       etapa_label: etapaLabel || "Grid",
       unidad_display_prefix: unitPrefix || null,
       whatsapp_numero: whatsappNumero || null,
-    } as any);
+    });
     hasPendingSave.current = false;
     if (!ok) toast.error(t("general.saveError"));
   }, [save, slug, tipoProyecto, tipologiaMode, precioSource, etapaLabel, unitPrefix, whatsappNumero, toast, t]);
@@ -105,6 +105,13 @@ export default function GeneralTab() {
     }
 
     setTipoProyecto(newTipo);
+
+    // Auto-set etapa_label if it's still a default value (don't overwrite custom labels)
+    const defaultLabels = new Set(["Grid", "Torres", "Etapas", "Agrupaciones", ""]);
+    const newDefaultLabel = newTipo === "apartamentos" ? "Torres" : newTipo === "hibrido" ? "Agrupaciones" : "Etapas";
+    const autoSetLabel = defaultLabels.has(etapaLabel) ? newDefaultLabel : undefined;
+    if (autoSetLabel) setEtapaLabel(autoSetLabel);
+
     // Reset inventory columns when project type changes (saved to DB so InventarioTab picks up defaults)
     save({
       tipo_proyecto: newTipo,
@@ -112,11 +119,12 @@ export default function GeneralTab() {
       inventory_columns_by_type: null,
       inventory_columns_microsite: null,
       inventory_columns_microsite_by_type: null,
-    } as any);
-  }, [tipoProyecto, project?.unidades?.length, project?.torres?.length, confirm, t, save]);
+      ...(autoSetLabel ? { etapa_label: autoSetLabel } : {}),
+    });
+  }, [tipoProyecto, etapaLabel, project?.unidades?.length, project?.torres?.length, confirm, t, save]);
 
   return (
-    <div className="max-w-4xl space-y-8">
+    <div className="space-y-8">
       {/* ═══ URL del Micrositio (Slug) ═══ */}
       <div className={sectionCard}>
         <div className={sectionTitle}>

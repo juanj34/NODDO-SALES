@@ -880,7 +880,7 @@ button:disabled,
   font-family: var(--font-inter), system-ui, sans-serif;
   font-size: 14px;
   line-height: 1.75;
-  cursor: none;
+  cursor: auto;
 }
 
 /* ─── Marketing Scrollbar ─── */
@@ -909,7 +909,7 @@ button:disabled,
   border: none;
   border-radius: 0;
   padding: 12px 24px;
-  cursor: none;
+  cursor: auto;
   transition: background 0.2s, transform 0.2s;
 }
 
@@ -944,7 +944,7 @@ button:disabled,
   white-space: nowrap;
   border-radius: 0;
   padding: 12px 24px;
-  cursor: none;
+  cursor: auto;
   transition: border-color 0.2s, color 0.2s;
 }
 

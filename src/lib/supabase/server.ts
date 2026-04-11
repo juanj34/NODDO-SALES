@@ -11,7 +11,11 @@ export async function createClient() {
     {
       cookies: {
         getAll() {
-          return cookieStore.getAll();
+          return cookieStore.getAll().map((cookie) => ({
+            ...cookie,
+            // Strip control characters that corrupt Authorization headers in Node 24
+            value: cookie.value.replace(/[\x00-\x1f\x7f]/g, ""),
+          }));
         },
         setAll(
           cookiesToSet: { name: string; value: string; options: CookieOptions }[]

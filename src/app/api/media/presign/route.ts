@@ -1,19 +1,23 @@
-import { getAuthContext, requirePermission } from "@/lib/auth-context";
+import { getAuthContext, requirePermission, type AuthContext } from "@/lib/auth-context";
 import { getPresignedMediaUploadUrl, ensureMediaBucketCors } from "@/lib/r2";
+import { reportApiError } from "@/lib/error-reporter";
 import { NextRequest, NextResponse } from "next/server";
 
 const MAX_FILE_SIZE = 500 * 1024 * 1024; // 500MB
 
 export async function POST(request: NextRequest) {
+  let auth: AuthContext | null = null;
+  let reqBody: Record<string, unknown> | null = null;
+
   try {
-    const auth = await getAuthContext();
+    auth = await getAuthContext();
     if (!auth)
       return NextResponse.json({ error: "No autorizado" }, { status: 401 });
     const denied = requirePermission(auth, "content.write");
     if (denied) return denied;
 
-    const body = await request.json();
-    const { folder, fileName, contentType, size } = body as {
+    reqBody = await request.json();
+    const { folder, fileName, contentType, size } = reqBody as {
       folder: string;
       fileName: string;
       contentType: string;
@@ -55,6 +59,13 @@ export async function POST(request: NextRequest) {
     return NextResponse.json(result);
   } catch (err) {
     console.error("[media/presign] Error:", err);
+    void reportApiError(err, {
+      route: "/api/media/presign",
+      method: "POST",
+      statusCode: 500,
+      user: auth ? { id: auth.user.id, email: auth.user.email, role: auth.role } : null,
+      metadata: { folder: reqBody?.folder, fileName: reqBody?.fileName },
+    });
     return NextResponse.json(
       { error: err instanceof Error ? err.message : "Error al generar URL" },
       { status: 500 }

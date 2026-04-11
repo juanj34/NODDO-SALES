@@ -101,8 +101,8 @@ export default function ConfigPage() {
         description={t("config.description")}
       />
 
-      {/* Tab Bar — pill style, horizontal scroll on mobile */}
-      <div className="overflow-x-auto -mx-2 px-2 scrollbar-hide">
+      {/* Tab Bar — full width, horizontal scroll on mobile */}
+      <div className="overflow-x-auto scrollbar-hide">
         <div className="flex items-center gap-1 p-1 bg-[var(--surface-2)] rounded-xl w-fit">
           {TABS.map((tab) => {
             const isActive = activeTab === tab.id;

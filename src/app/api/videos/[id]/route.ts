@@ -1,4 +1,5 @@
 import { pick } from "@/lib/api-utils";
+import { logActivity } from "@/lib/activity-logger";
 import { getAuthContext, requirePermission } from "@/lib/auth-context";
 import { deleteStreamVideo } from "@/lib/cloudflare-stream";
 import { NextRequest, NextResponse } from "next/server";
@@ -24,6 +25,19 @@ export async function PUT(
       .single();
 
     if (error) throw error;
+
+    logActivity({
+      userId: auth.user.id,
+      userEmail: auth.user.email!,
+      userRole: auth.role,
+      proyectoId: data.proyecto_id,
+      actionType: "video.update",
+      actionCategory: "video",
+      metadata: { titulo: data.titulo },
+      entityType: "video",
+      entityId: id,
+    });
+
     return NextResponse.json(data);
   } catch (err) {
     return NextResponse.json(
@@ -48,7 +62,7 @@ export async function DELETE(
     // If this is a Stream-hosted video, delete from Cloudflare first
     const { data: video } = await auth.supabase
       .from("videos")
-      .select("stream_uid")
+      .select("stream_uid, proyecto_id, titulo")
       .eq("id", id)
       .single();
 
@@ -59,6 +73,19 @@ export async function DELETE(
     const { error } = await auth.supabase.from("videos").delete().eq("id", id);
 
     if (error) throw error;
+
+    logActivity({
+      userId: auth.user.id,
+      userEmail: auth.user.email!,
+      userRole: auth.role,
+      proyectoId: video?.proyecto_id,
+      actionType: "video.delete",
+      actionCategory: "video",
+      metadata: { titulo: video?.titulo },
+      entityType: "video",
+      entityId: id,
+    });
+
     return NextResponse.json({ success: true });
   } catch (err) {
     return NextResponse.json(

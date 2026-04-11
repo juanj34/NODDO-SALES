@@ -2,6 +2,7 @@ import { createClient } from "@/lib/supabase/server";
 import { getAuthContext } from "@/lib/auth-context";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { sendLeadNotification, sendLeadConfirmation, getUserLocale } from "@/lib/email";
+import { reportApiError } from "@/lib/error-reporter";
 import type { EmailLocale } from "@/lib/email-i18n";
 import { leadLimiter, checkRateLimit, rateLimitExceeded } from "@/lib/rate-limit";
 import { getWebhookConfig, dispatchWebhook } from "@/lib/webhooks";
@@ -134,6 +135,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json(data, { status: 201 });
   } catch (err) {
+    void reportApiError(err, { route: "/api/leads", method: "POST", statusCode: 500 });
     return NextResponse.json(
       { error: err instanceof Error ? err.message : "Error" },
       { status: 500 }
@@ -519,6 +521,7 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json(response);
   } catch (err) {
+    void reportApiError(err, { route: "/api/leads", method: "GET", statusCode: 500 });
     return NextResponse.json(
       { error: err instanceof Error ? err.message : "Error" },
       { status: 500 }

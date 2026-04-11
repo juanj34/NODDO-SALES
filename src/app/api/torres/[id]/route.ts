@@ -1,4 +1,5 @@
 import { pick } from "@/lib/api-utils";
+import { logActivity } from "@/lib/activity-logger";
 import { getAuthContext, requirePermission } from "@/lib/auth-context";
 import { NextRequest, NextResponse } from "next/server";
 
@@ -35,6 +36,19 @@ export async function PUT(
       .single();
 
     if (error) throw error;
+
+    logActivity({
+      userId: auth.user.id,
+      userEmail: auth.user.email!,
+      userRole: auth.role,
+      proyectoId: data.proyecto_id,
+      actionType: "torre.update",
+      actionCategory: "content",
+      metadata: { nombre: data.nombre },
+      entityType: "torre",
+      entityId: id,
+    });
+
     return NextResponse.json(data);
   } catch (err) {
     return NextResponse.json(
@@ -56,12 +70,32 @@ export async function DELETE(
     const denied = requirePermission(auth, "content.write");
     if (denied) return denied;
 
+    // Fetch before delete to get proyecto_id for activity log
+    const { data: torre } = await auth.supabase
+      .from("torres")
+      .select("proyecto_id, nombre")
+      .eq("id", id)
+      .single();
+
     const { error } = await auth.supabase
       .from("torres")
       .delete()
       .eq("id", id);
 
     if (error) throw error;
+
+    logActivity({
+      userId: auth.user.id,
+      userEmail: auth.user.email!,
+      userRole: auth.role,
+      proyectoId: torre?.proyecto_id,
+      actionType: "torre.delete",
+      actionCategory: "content",
+      metadata: { nombre: torre?.nombre },
+      entityType: "torre",
+      entityId: id,
+    });
+
     return NextResponse.json({ success: true });
   } catch (err) {
     return NextResponse.json(

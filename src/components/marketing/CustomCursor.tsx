@@ -38,8 +38,8 @@ export function CustomCursor() {
     };
 
     const animateRing = () => {
-      rx += (mx - rx) * 0.12;
-      ry += (my - ry) * 0.12;
+      rx += (mx - rx) * 0.35;
+      ry += (my - ry) * 0.35;
       ring.style.left = `${rx}px`;
       ring.style.top = `${ry}px`;
       rafId = requestAnimationFrame(animateRing);
@@ -47,17 +47,17 @@ export function CustomCursor() {
 
     // Hover expand on interactive elements
     const onEnter = () => {
-      dot.style.width = "16px";
-      dot.style.height = "16px";
-      ring.style.width = "48px";
-      ring.style.height = "48px";
+      dot.style.width = "12px";
+      dot.style.height = "12px";
+      ring.style.width = "44px";
+      ring.style.height = "44px";
     };
 
     const onLeave = () => {
-      dot.style.width = "8px";
-      dot.style.height = "8px";
-      ring.style.width = "32px";
-      ring.style.height = "32px";
+      dot.style.width = "6px";
+      dot.style.height = "6px";
+      ring.style.width = "28px";
+      ring.style.height = "28px";
     };
 
     document.addEventListener("mousemove", onMouseMove);
@@ -88,12 +88,12 @@ export function CustomCursor() {
         ref={dotRef}
         className="fixed z-[9999] pointer-events-none"
         style={{
-          width: 8,
-          height: 8,
+          width: 6,
+          height: 6,
           background: "var(--mk-accent)",
           borderRadius: "50%",
           transform: "translate(-50%, -50%)",
-          transition: "width 0.2s, height 0.2s, background 0.2s",
+          transition: "width 0.15s, height 0.15s",
           mixBlendMode: "screen",
         }}
       />
@@ -101,12 +101,12 @@ export function CustomCursor() {
         ref={ringRef}
         className="fixed z-[9998] pointer-events-none"
         style={{
-          width: 32,
-          height: 32,
-          border: "1px solid rgba(184, 151, 58, 0.4)",
+          width: 28,
+          height: 28,
+          border: "1px solid rgba(184, 151, 58, 0.3)",
           borderRadius: "50%",
           transform: "translate(-50%, -50%)",
-          transition: "width 0.3s, height 0.3s",
+          transition: "width 0.15s, height 0.15s",
         }}
       />
     </>

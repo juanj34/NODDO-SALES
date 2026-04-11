@@ -376,7 +376,7 @@ export default function CorreosTab() {
   const tema = config.email_tema || "oscuro";
 
   return (
-    <div className="max-w-5xl">
+    <div>
       <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
         {/* ── Left column: Configuration ── */}
         <div className="lg:col-span-3 space-y-5">

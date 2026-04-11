@@ -558,6 +558,7 @@ export function InventoryAssistant({
             history,
             tipologiaMode,
             customColumns,
+            tipoProyecto,
           }),
         });
 

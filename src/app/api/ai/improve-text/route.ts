@@ -1,5 +1,7 @@
 import { getAuthContext, requirePermission } from "@/lib/auth-context";
 import { callAIText, sanitizeInput } from "@/lib/ai";
+import type { AIUsageMetadata } from "@/lib/ai";
+import { trackAIUsage } from "@/lib/ai-tracker";
 import {
   checkRateLimit,
   rateLimitExceeded,
@@ -130,13 +132,8 @@ export async function POST(request: NextRequest) {
     );
     const cached = await getCachedImprovement(cacheKey);
     if (cached) {
-      await trackAIUsage(
-        auth.user.id,
-        style,
-        trimmedText.length,
-        cached.length,
-        true
-      );
+      const zeroUsage: AIUsageMetadata = { promptTokens: 0, completionTokens: 0, totalTokens: 0 };
+      trackAIUsage({ userId: auth.user.id, userEmail: auth.user.email, feature: "improve-text", usage: zeroUsage, cached: true, inputLength: trimmedText.length, outputLength: cached.length, style });
       return NextResponse.json(
         { improved: cached, cached: true },
         { headers: rateLimitResult.headers }
@@ -157,22 +154,16 @@ export async function POST(request: NextRequest) {
     const userMessage = buildUserMessage(cleanText);
 
     // 7. Call Gemini
-    const result = await callAIText(systemPrompt, userMessage);
+    const { text: resultText, usage } = await callAIText(systemPrompt, userMessage);
 
     // 8. Validate output
-    const improved = validateOutput(result, cleanText);
+    const improved = validateOutput(resultText, cleanText);
 
     // 9. Cache for 24h
     await cacheImprovement(cacheKey, improved);
 
     // 10. Track usage for analytics
-    await trackAIUsage(
-      auth.user.id,
-      style,
-      trimmedText.length,
-      improved.length,
-      false
-    );
+    trackAIUsage({ userId: auth.user.id, userEmail: auth.user.email, feature: "improve-text", usage, cached: false, inputLength: trimmedText.length, outputLength: improved.length, style });
 
     return NextResponse.json(
       { improved, cached: false },
@@ -187,35 +178,6 @@ export async function POST(request: NextRequest) {
       },
       { status: 500 }
     );
-  }
-}
-
-/* ─── Analytics ─── */
-
-async function trackAIUsage(
-  userId: string,
-  style: ImprovementStyle,
-  inputLength: number,
-  outputLength: number,
-  cached: boolean
-): Promise<void> {
-  try {
-    const { createClient } = await import("@supabase/supabase-js");
-    const supabase = createClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.SUPABASE_SERVICE_ROLE_KEY ||
-        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-    );
-    await supabase.from("ai_usage_logs").insert({
-      user_id: userId,
-      feature: "improve-text",
-      style,
-      input_length: inputLength,
-      output_length: outputLength,
-      cached,
-    });
-  } catch (err) {
-    console.error("Failed to track AI usage:", err);
   }
 }
 

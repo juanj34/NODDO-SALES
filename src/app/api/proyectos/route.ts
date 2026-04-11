@@ -1,6 +1,7 @@
 import { getAuthContext, getAccessibleProjectIds } from "@/lib/auth-context";
 import { pick } from "@/lib/api-utils";
 import { logActivity } from "@/lib/activity-logger";
+import { reportApiError } from "@/lib/error-reporter";
 import { NextRequest, NextResponse } from "next/server";
 
 export async function GET() {
@@ -26,6 +27,7 @@ export async function GET() {
     if (error) throw error;
     return NextResponse.json(data);
   } catch (err) {
+    void reportApiError(err, { route: "/api/proyectos", statusCode: 500 });
     return NextResponse.json(
       { error: err instanceof Error ? err.message : "Error" },
       { status: 500 }
@@ -104,6 +106,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json(data, { status: 201 });
   } catch (err) {
+    void reportApiError(err, { route: "/api/proyectos", statusCode: 500 });
     return NextResponse.json(
       { error: err instanceof Error ? err.message : "Error" },
       { status: 500 }

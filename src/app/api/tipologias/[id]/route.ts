@@ -1,5 +1,6 @@
 import { pick } from "@/lib/api-utils";
 import { getAuthContext, requirePermission } from "@/lib/auth-context";
+import { logActivity } from "@/lib/activity-logger";
 import { deleteTourFiles } from "@/lib/r2";
 import { NextRequest, NextResponse } from "next/server";
 
@@ -61,6 +62,28 @@ export async function PUT(
         });
     }
 
+    // Log activity (fire-and-forget)
+    if (data) {
+      const { data: proj } = await auth.supabase
+        .from("proyectos")
+        .select("nombre")
+        .eq("id", data.proyecto_id)
+        .single();
+
+      logActivity({
+        userId: auth.user.id,
+        userEmail: auth.user.email!,
+        userRole: auth.role,
+        proyectoId: data.proyecto_id,
+        proyectoNombre: proj?.nombre ?? null,
+        actionType: "tipologia.update",
+        actionCategory: "tipologia",
+        metadata: { nombre: data.nombre },
+        entityType: "tipologia",
+        entityId: id,
+      });
+    }
+
     return NextResponse.json(data);
   } catch (err) {
     return NextResponse.json(
@@ -100,7 +123,7 @@ export async function DELETE(
     const r2PublicUrl = process.env.R2_PUBLIC_URL || "";
     const { data: tipoData } = await auth.supabase
       .from("tipologias")
-      .select("tour_360_url, proyecto_id")
+      .select("nombre, tour_360_url, proyecto_id")
       .eq("id", id)
       .single();
 
@@ -118,6 +141,29 @@ export async function DELETE(
       .eq("id", id);
 
     if (error) throw error;
+
+    // Log activity (fire-and-forget)
+    if (tipoData) {
+      const { data: proj } = await auth.supabase
+        .from("proyectos")
+        .select("nombre")
+        .eq("id", tipoData.proyecto_id)
+        .single();
+
+      logActivity({
+        userId: auth.user.id,
+        userEmail: auth.user.email!,
+        userRole: auth.role,
+        proyectoId: tipoData.proyecto_id,
+        proyectoNombre: proj?.nombre ?? null,
+        actionType: "tipologia.delete",
+        actionCategory: "tipologia",
+        metadata: { nombre: tipoData.nombre },
+        entityType: "tipologia",
+        entityId: id,
+      });
+    }
+
     return NextResponse.json({ success: true });
   } catch (err) {
     return NextResponse.json(

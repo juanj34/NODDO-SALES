@@ -1,4 +1,5 @@
 import { getAuthContext, requirePermission } from "@/lib/auth-context";
+import { logActivity } from "@/lib/activity-logger";
 import { NextRequest, NextResponse } from "next/server";
 
 export async function POST(request: NextRequest) {
@@ -44,6 +45,19 @@ export async function POST(request: NextRequest) {
       .select();
 
     if (error) throw error;
+
+    // Log batch upload
+    const { data: cat } = await auth.supabase.from("galeria_categorias").select("proyecto_id").eq("id", categoria_id).single();
+    if (cat) {
+      const { data: proj } = await auth.supabase.from("proyectos").select("nombre").eq("id", cat.proyecto_id).single();
+      logActivity({
+        userId: auth.user.id, userEmail: auth.user.email!, userRole: auth.role,
+        proyectoId: cat.proyecto_id, proyectoNombre: proj?.nombre,
+        actionType: "gallery.images_upload", actionCategory: "gallery",
+        metadata: { count: imagenes.length },
+      });
+    }
+
     return NextResponse.json(data, { status: 201 });
   } catch (err) {
     return NextResponse.json(

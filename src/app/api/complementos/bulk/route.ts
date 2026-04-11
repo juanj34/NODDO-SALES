@@ -1,4 +1,5 @@
 import { pick } from "@/lib/api-utils";
+import { logActivity } from "@/lib/activity-logger";
 import { getAuthContext, requirePermission } from "@/lib/auth-context";
 import { NextRequest, NextResponse } from "next/server";
 
@@ -36,6 +37,15 @@ export async function POST(request: NextRequest) {
       .select();
 
     if (error) throw error;
+
+    const { data: proj } = await auth.supabase.from("proyectos").select("nombre").eq("id", proyecto_id).single();
+    logActivity({
+      userId: auth.user.id, userEmail: auth.user.email!, userRole: auth.role,
+      proyectoId: proyecto_id, proyectoNombre: proj?.nombre,
+      actionType: "complemento.create", actionCategory: "content",
+      metadata: { count: data?.length ?? complementos.length, tipo: complementos[0]?.tipo },
+    });
+
     return NextResponse.json(data, { status: 201 });
   } catch (err) {
     return NextResponse.json(

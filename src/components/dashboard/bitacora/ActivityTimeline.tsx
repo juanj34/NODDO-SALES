@@ -54,6 +54,149 @@ function relativeTime(iso: string, locale: string): string {
   return new Date(iso).toLocaleDateString(locale === "es" ? "es-CO" : "en-US", { month: "short", day: "numeric" });
 }
 
+/* ── Human-readable metadata display ──────────────────────────────────── */
+
+const FIELD_LABELS: Record<string, { es: string; en: string }> = {
+  nombre: { es: "Nombre", en: "Name" },
+  slug: { es: "Slug", en: "Slug" },
+  descripcion: { es: "Descripción", en: "Description" },
+  estado: { es: "Estado", en: "Status" },
+  color_primario: { es: "Color primario", en: "Primary color" },
+  color_secundario: { es: "Color secundario", en: "Secondary color" },
+  color_fondo: { es: "Color de fondo", en: "Background color" },
+  logo_url: { es: "Logo", en: "Logo" },
+  favicon_url: { es: "Favicon", en: "Favicon" },
+  render_principal_url: { es: "Render principal", en: "Main render" },
+  hero_video_url: { es: "Video hero", en: "Hero video" },
+  whatsapp_numero: { es: "WhatsApp", en: "WhatsApp" },
+  ubicacion_direccion: { es: "Ubicación", en: "Location" },
+  ubicacion_lat: { es: "Latitud", en: "Latitude" },
+  ubicacion_lng: { es: "Longitud", en: "Longitude" },
+  brochure_url: { es: "Brochure", en: "Brochure" },
+  tour_360_url: { es: "Tour 360", en: "360 Tour" },
+  constructora_nombre: { es: "Constructora", en: "Developer" },
+  subdomain: { es: "Subdominio", en: "Subdomain" },
+  custom_domain: { es: "Dominio personalizado", en: "Custom domain" },
+  email_config: { es: "Config. correos", en: "Email config" },
+  webhook_config: { es: "Webhooks", en: "Webhooks" },
+  cotizador_enabled: { es: "Cotizador", en: "Quote builder" },
+  secciones_visibles: { es: "Secciones visibles", en: "Visible sections" },
+  inventory_columns: { es: "Columnas inventario", en: "Inventory columns" },
+  tipo_proyecto: { es: "Tipo proyecto", en: "Project type" },
+  moneda_base: { es: "Moneda", en: "Currency" },
+  idioma: { es: "Idioma", en: "Language" },
+  etapa_label: { es: "Etapa", en: "Stage" },
+  disponibilidad_config: { es: "Config. disponibilidad", en: "Availability config" },
+  estado_construccion: { es: "Estado construcción", en: "Construction status" },
+  precio_source: { es: "Fuente de precios", en: "Price source" },
+};
+
+function truncateValue(v: unknown, max = 60): string {
+  if (v === null || v === undefined) return "—";
+  if (typeof v === "boolean") return v ? "✓" : "✗";
+  if (typeof v === "number") return v.toLocaleString("es-CO");
+  if (typeof v === "object") {
+    const s = JSON.stringify(v);
+    return s.length > max ? s.slice(0, max) + "…" : s;
+  }
+  const s = String(v);
+  // For URLs, show just the filename
+  if (s.startsWith("http") && s.length > max) {
+    const parts = s.split("/");
+    return "…/" + (parts[parts.length - 1] || "").slice(0, 40);
+  }
+  return s.length > max ? s.slice(0, max) + "…" : s;
+}
+
+function MetadataDisplay({
+  actionType,
+  metadata,
+  locale,
+}: {
+  actionType: string;
+  metadata: Record<string, unknown>;
+  locale: string;
+}) {
+  const isEs = locale === "es";
+
+  // project.update — show changed fields with before/after
+  if (actionType === "project.update" && metadata.changes) {
+    const changes = metadata.changes as Record<string, { from: unknown; to: unknown }>;
+    const entries = Object.entries(changes);
+    if (entries.length === 0) return null;
+    return (
+      <div className="space-y-1">
+        {entries.map(([field, { from, to }]) => {
+          const label = FIELD_LABELS[field]?.[isEs ? "es" : "en"] || field;
+          return (
+            <div key={field} className="flex items-start gap-2 text-[11px]">
+              <span className="text-[var(--text-tertiary)] min-w-[120px] shrink-0 font-mono text-[10px]">
+                {label}
+              </span>
+              <span className="text-red-400/70 line-through truncate max-w-[160px]" title={String(from ?? "")}>
+                {truncateValue(from, 30)}
+              </span>
+              <span className="text-[var(--text-muted)]">→</span>
+              <span className="text-emerald-400/80 truncate max-w-[160px]" title={String(to ?? "")}>
+                {truncateValue(to, 30)}
+              </span>
+            </div>
+          );
+        })}
+      </div>
+    );
+  }
+
+  // unit.state_change — show state transition
+  if (actionType === "unit.state_change") {
+    return (
+      <div className="flex items-center gap-2 text-[11px]">
+        <span className="font-mono text-[var(--text-tertiary)]">{String(metadata.identificador || "")}</span>
+        <span className="px-1.5 py-0.5 rounded bg-red-500/10 text-red-400 font-mono text-[10px]">
+          {String(metadata.estadoAnterior || "")}
+        </span>
+        <span className="text-[var(--text-muted)]">→</span>
+        <span className="px-1.5 py-0.5 rounded bg-emerald-500/10 text-emerald-400 font-mono text-[10px]">
+          {String(metadata.estadoNuevo || "")}
+        </span>
+      </div>
+    );
+  }
+
+  // unit.price_change — show formatted price diff
+  if (actionType === "unit.price_change") {
+    const fmt = (v: unknown) => typeof v === "number" ? `$${v.toLocaleString("es-CO")}` : String(v ?? "—");
+    return (
+      <div className="flex items-center gap-2 text-[11px]">
+        <span className="font-mono text-[var(--text-tertiary)]">{String(metadata.identificador || "")}</span>
+        <span className="font-mono text-red-400/70">{fmt(metadata.precioAnterior)}</span>
+        <span className="text-[var(--text-muted)]">→</span>
+        <span className="font-mono text-emerald-400/80">{fmt(metadata.precioNuevo)}</span>
+      </div>
+    );
+  }
+
+  // Generic: show key metadata as label:value pairs
+  const skipKeys = ["changedFields", "changes"];
+  const entries = Object.entries(metadata).filter(([k]) => !skipKeys.includes(k));
+  if (entries.length === 0) return null;
+
+  return (
+    <div className="space-y-1">
+      {entries.slice(0, 8).map(([key, val]) => (
+        <div key={key} className="flex items-start gap-2 text-[11px]">
+          <span className="text-[var(--text-tertiary)] min-w-[100px] shrink-0 font-mono text-[10px]">
+            {FIELD_LABELS[key]?.[isEs ? "es" : "en"] || key}
+          </span>
+          <span className="text-[var(--text-secondary)] truncate">
+            {truncateValue(val, 50)}
+          </span>
+        </div>
+      ))}
+    </div>
+  );
+}
+
 export function ActivityTimeline({ activities, loading, locale }: ActivityTimelineProps) {
   if (loading) {
     return (
@@ -176,9 +319,9 @@ export function ActivityTimeline({ activities, loading, locale }: ActivityTimeli
                         <summary className="cursor-pointer text-[11px] text-[var(--text-muted)] hover:text-[var(--text-tertiary)] transition-colors">
                           {locale === "es" ? "Ver detalles" : "View details"}
                         </summary>
-                        <pre className="mt-2 text-[10px] text-[var(--text-muted)] overflow-x-auto whitespace-pre-wrap break-all">
-                          {JSON.stringify(activity.metadata, null, 2)}
-                        </pre>
+                        <div className="mt-2 space-y-1.5">
+                          <MetadataDisplay actionType={activity.action_type} metadata={activity.metadata} locale={locale} />
+                        </div>
                       </details>
                     )}
                   </div>

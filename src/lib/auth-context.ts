@@ -34,9 +34,18 @@ export interface AuthContext {
  */
 export async function getAuthContext(): Promise<AuthContext | null> {
   const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+
+  let user;
+  try {
+    const { data } = await supabase.auth.getUser();
+    user = data.user;
+  } catch (err) {
+    // Corrupted JWT in cookies — treat as unauthenticated (Node 24 strict header validation)
+    if (err instanceof TypeError && (err as NodeJS.ErrnoException).code === "ERR_INVALID_CHAR") {
+      return null;
+    }
+    throw err;
+  }
 
   if (!user || !user.email) return null;
 

@@ -106,6 +106,19 @@ export const aiImprovementLimiter = (() => {
     : null;
 })();
 
+// Global AI rate limit - 100 AI calls per 24h per user (all features combined)
+export const aiGlobalLimiter = (() => {
+  const redis = getRedis();
+  return redis
+    ? new Ratelimit({
+        redis,
+        limiter: Ratelimit.slidingWindow(100, "24 h"),
+        analytics: true,
+        prefix: "@noddo/ai-global",
+      })
+    : null;
+})();
+
 /**
  * Helper to apply rate limiting in API routes
  */

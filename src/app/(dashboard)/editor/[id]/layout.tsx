@@ -54,6 +54,7 @@ import { LanguageToggle } from "@/components/ui/LanguageToggle";
 import { useMobileDrawer } from "@/hooks/useMobileDrawer";
 import { RouteProgressBar } from "@/components/ui/RouteProgressBar";
 import { TourUploadProvider, useTourUploadContext } from "@/contexts/TourUploadContext";
+import { SetupGuidePill } from "@/components/dashboard/onboarding/SetupGuidePill";
 
 /* ------------------------------------------------------------------ */
 /*  Helpers                                                            */
@@ -160,24 +161,29 @@ interface BadgeCounts {
 
 const editorSections: TabSection[] = [
   {
-    labelKey: "layout.sidebar.proyecto",
+    labelKey: "layout.sidebar.estructura",
     tabs: [
-      { id: "general", labelKey: "layout.sidebar.general", icon: LayoutDashboard, href: "" },
       { id: "torres", labelKey: "layout.sidebar.torres", icon: Building2, href: "/torres", badgeKey: "torres" },
+      { id: "tipologias", labelKey: "layout.sidebar.tipologias", icon: Layers, href: "/tipologias", badgeKey: "tipologias" },
+      { id: "inventario", labelKey: "layout.sidebar.inventario", icon: Package, href: "/inventario", badgeKey: "inventario" },
     ],
   },
   {
-    labelKey: "layout.sidebar.contenido",
+    labelKey: "layout.sidebar.contenidoVisual",
     tabs: [
-      { id: "tipologias", labelKey: "layout.sidebar.tipologias", icon: Layers, href: "/tipologias", badgeKey: "tipologias" },
-      { id: "inventario", labelKey: "layout.sidebar.inventario", icon: Package, href: "/inventario", badgeKey: "inventario" },
-      { id: "fachadas", labelKey: "layout.sidebar.noddoGrid", icon: Eye, href: "/fachadas" },
-      { id: "planos", labelKey: "layout.sidebar.implantaciones", icon: MapIcon, href: "/planos", badgeKey: "planos" },
       { id: "galeria", labelKey: "layout.sidebar.galeria", icon: ImageIcon, href: "/galeria", badgeKey: "galeria" },
       { id: "videos", labelKey: "layout.sidebar.videos", icon: Film, href: "/videos", badgeKey: "videos" },
       { id: "tour", labelKey: "layout.sidebar.tour360", icon: View, href: "/tour" },
+      { id: "fachadas", labelKey: "layout.sidebar.noddoGrid", icon: Eye, href: "/fachadas" },
+      { id: "planos", labelKey: "layout.sidebar.implantaciones", icon: MapIcon, href: "/planos", badgeKey: "planos" },
       { id: "ubicacion", labelKey: "layout.sidebar.ubicacion", icon: MapPin, href: "/ubicacion", badgeKey: "puntos_interes" },
       { id: "vistas", labelKey: "layout.sidebar.vistas", icon: Binoculars, href: "/vistas", badgeKey: "vistas" },
+    ],
+  },
+  {
+    labelKey: "layout.sidebar.informacion",
+    tabs: [
+      { id: "general", labelKey: "layout.sidebar.general", icon: LayoutDashboard, href: "" },
       { id: "recursos", labelKey: "layout.sidebar.recursos", icon: FileText, href: "/recursos", badgeKey: "recursos" },
       { id: "avances", labelKey: "layout.sidebar.avances", icon: HardHat, href: "/avances", badgeKey: "avances" },
     ],
@@ -280,6 +286,8 @@ export default function EditorLayout({
     try {
       const res = await fetch(`/api/proyectos/${id}/versiones`);
       if (res.ok) setVersions(await res.json());
+    } catch {
+      // Route may not exist yet — silently ignore
     } finally {
       setLoadingVersions(false);
     }
@@ -456,26 +464,27 @@ export default function EditorLayout({
   // Dynamic torres label based on project type and actual torre content
   const torresLabel = useMemo(() => {
     const tipoProyecto = project?.tipo_proyecto ?? "hibrido";
-    if (tipoProyecto === "apartamentos") return t("layout.sidebar.torres");
-
     const torres = project?.torres ?? [];
     const hasTorre = torres.some((tr) => (tr.tipo ?? "torre") === "torre");
     const hasUrbanismo = torres.some((tr) => tr.tipo === "urbanismo");
 
+    // When there IS content, derive from actual content
     if (hasTorre && hasUrbanismo) return t("torres.titleAgrupaciones");
-    if (hasUrbanismo) return t("torres.titleUrbanismos");
-    if (hasTorre && (tipoProyecto === "casas" || tipoProyecto === "lotes")) return "Grid";
-    if (torres.length === 0) return tipoProyecto === "casas" || tipoProyecto === "lotes" ? "Grid" : t("layout.sidebar.torres");
+    if (hasUrbanismo && !hasTorre) return t("torres.titleUrbanismos");
+    if (hasTorre) return t("layout.sidebar.torres");
 
-    return t("layout.sidebar.torres");
+    // Empty state: derive from project type
+    if (tipoProyecto === "apartamentos") return t("layout.sidebar.torres");
+    if (tipoProyecto === "casas" || tipoProyecto === "lotes") return t("torres.titleUrbanismos");
+    return t("torres.titleAgrupaciones"); // hibrido
   }, [project?.tipo_proyecto, project?.torres, t]);
 
   const torresIcon = useMemo(() => {
     const tipoProyecto = project?.tipo_proyecto ?? "hibrido";
-
     if (tipoProyecto === "apartamentos") return Building2;
+    if (tipoProyecto === "casas" || tipoProyecto === "lotes") return Home;
 
-    // Casas e Híbrido: dynamic based on actual content
+    // Híbrido: dynamic based on actual content
     const torres = project?.torres ?? [];
     const allTorre = torres.length > 0 && torres.every((tr) => (tr.tipo ?? "torre") === "torre");
     return allTorre ? Building2 : Home;
@@ -796,9 +805,26 @@ export default function EditorLayout({
           )}
           {/* ── Publish header strip ── */}
           {!isCollaborator && (
-            <div className="shrink-0 flex items-center justify-between px-3 md:px-6 h-12 border-b border-[var(--border-subtle)] bg-[var(--surface-1)]/60 backdrop-blur-sm">
-              {/* Left: auto-save indicator */}
-              <div className="flex items-center gap-2">
+            <div className="relative z-10 shrink-0 flex items-center justify-between px-3 md:px-6 h-12 border-b border-[var(--border-subtle)] bg-[var(--surface-1)]/60 backdrop-blur-sm">
+              {/* Left: setup guide pill (fixed position) + auto-save indicator */}
+              <div className="flex items-center gap-3">
+                {/* Setup guide pill — always first so it doesn't shift */}
+                {badgeCounts && (
+                  <SetupGuidePill
+                    projectId={id}
+                    basePath={basePath}
+                    locale={locale}
+                    badges={{
+                      torres: badgeCounts.torres,
+                      tipologias: badgeCounts.tipologias,
+                      inventario: badgeCounts.inventario,
+                      galeria: badgeCounts.galeria,
+                    }}
+                    hasUbicacion={!!(project?.ubicacion_lat && project?.ubicacion_lng)}
+                  />
+                )}
+
+                {/* Auto-save indicator — appears/disappears without shifting the pill */}
                 <AnimatePresence mode="wait">
                   {saving && (
                     <motion.div
@@ -887,7 +913,7 @@ export default function EditorLayout({
                   <button
                     onClick={toggleVersions}
                     className={cn(
-                      "flex items-center px-2 py-1.5 transition-all",
+                      "flex items-center self-stretch px-2 transition-all",
                       "bg-[var(--site-primary)] text-[var(--surface-0)] hover:brightness-110",
                       showVersions && "brightness-90"
                     )}

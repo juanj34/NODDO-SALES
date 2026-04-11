@@ -77,19 +77,24 @@ export async function GET(
         0
       ) || 0;
 
-    // Calculate actual media storage by listing files in Supabase Storage
-    const mediaBytes = await getStorageFolderBytes(
-      auth.supabase,
-      "media",
-      `proyectos/${id}`
-    );
+    // Use cached media storage value from DB (recalculate only if requested via ?refresh=true)
+    const url = new URL(_request.url);
+    const forceRefresh = url.searchParams.get("refresh") === "true";
 
-    // Update cached value in DB (fire-and-forget)
-    auth.supabase
-      .from("proyectos")
-      .update({ storage_media_bytes: mediaBytes })
-      .eq("id", id)
-      .then();
+    let mediaBytes = project.storage_media_bytes || 0;
+    if (forceRefresh || mediaBytes === 0) {
+      mediaBytes = await getStorageFolderBytes(
+        auth.supabase,
+        "media",
+        `proyectos/${id}`
+      );
+      // Update cached value in DB (fire-and-forget)
+      auth.supabase
+        .from("proyectos")
+        .update({ storage_media_bytes: mediaBytes })
+        .eq("id", id)
+        .then();
+    }
 
     const toursBytes = project.storage_tours_bytes || 0;
     const totalBytes = videosBytes + toursBytes + mediaBytes;

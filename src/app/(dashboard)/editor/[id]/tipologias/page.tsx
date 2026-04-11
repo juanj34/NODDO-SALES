@@ -800,6 +800,8 @@ export default function TipologiasPage() {
   const [activeTorreId, setActiveTorreId] = useState<string | null>(null);
   const [duplicatingId, setDuplicatingId] = useState<string | null>(null);
   const [validationError, setValidationError] = useState<string | null>(null);
+  /** Temp IDs with a creation POST already in flight — prevents duplicate POSTs from auto-save. */
+  const creatingInFlightRef = useRef<Set<string>>(new Set());
   const [activePisoIndex, setActivePisoIndex] = useState(0);
 
   /* ─── Build payload helper ─── */
@@ -873,37 +875,67 @@ export default function TipologiasPage() {
           ),
         } : old
       );
-    } else if (isCreating) {
-      // Create new
-      const res = await fetch("/api/tipologias", {
+    } else if (isCreating && selectedId) {
+      // Guard: skip if a POST is already in flight for this temp ID
+      if (creatingInFlightRef.current.has(selectedId)) return;
+      creatingInFlightRef.current.add(selectedId);
+
+      const tempId = selectedId;
+
+      // Fire-and-forget — don't await, let auto-save return immediately
+      fetch("/api/tipologias", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ proyecto_id: projectId, ...payload }),
-      });
+      })
+        .then(async (res) => {
+          if (!res.ok) {
+            const text = await res.text().catch(() => "Error desconocido");
+            throw new Error(text || res.statusText);
+          }
+          const created = await res.json() as Tipologia;
 
-      if (!res.ok) {
-        const errorText = await res.text();
-        throw new Error(errorText || res.statusText);
-      }
+          // Swap temp ID → real server ID in cache
+          queryClient.setQueryData<ProyectoCompleto>(
+            projectKeys.detail(projectId),
+            (old) => old ? {
+              ...old,
+              tipologias: old.tipologias.map((t) =>
+                t.id === tempId ? { ...t, ...created } : t
+              ),
+            } : old
+          );
 
-      const created = await res.json() as Tipologia;
+          // Update selection to real ID (if still viewing this tipología)
+          setSelectedId((prev) => prev === tempId ? created.id : prev);
+        })
+        .catch((err: Error) => {
+          // Rollback: remove optimistic entry
+          queryClient.setQueryData<ProyectoCompleto>(
+            projectKeys.detail(projectId),
+            (old) => old ? {
+              ...old,
+              tipologias: old.tipologias.filter((t) => t.id !== tempId),
+            } : old
+          );
+          // If still viewing the failed one, deselect
+          setSelectedId((prev) => {
+            if (prev === tempId) {
+              setIsCreating(false);
+              return null;
+            }
+            return prev;
+          });
+          toast.error(t("tipologias.saveError") + ": " + err.message);
+        })
+        .finally(() => {
+          creatingInFlightRef.current.delete(tempId);
+        });
 
-      // Add to cache directly (no full project refetch)
-      queryClient.setQueryData<ProyectoCompleto>(
-        projectKeys.detail(projectId),
-        (old) => old ? {
-          ...old,
-          tipologias: [...old.tipologias, created],
-        } : old
-      );
-
-      // Select the newly created tipologia
-      if (created?.id) {
-        setSelectedId(created.id);
-        setIsCreating(false);
-      }
+      // Mark creation done locally so user can create another immediately
+      setIsCreating(false);
     }
-  }, [buildPayload, selectedId, isCreating, projectId, queryClient]);
+  }, [buildPayload, selectedId, isCreating, projectId, queryClient, toast, t]);
 
   /* ─── Auto-save hook ─── */
   const { status: autoSaveStatus } = useAutoSave({
@@ -915,6 +947,9 @@ export default function TipologiasPage() {
       if (!data.nombre.trim()) return false;
       // Only auto-save if we're editing an existing tipologia or creating a new one
       if (!selectedId && !isCreating) return false;
+      // Don't save if selectedId is a temp ID with no creation pending
+      // (POST is in flight — wait for real ID before allowing updates)
+      if (selectedId?.startsWith("temp-") && !isCreating) return false;
       return true;
     },
     onSaveError: (error) => {
@@ -993,19 +1028,85 @@ export default function TipologiasPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeTorreId]);
 
-  const selectTipologia = useCallback((t: Tipologia) => {
-    setSelectedId(t.id);
+  const selectTipologia = useCallback((tip: Tipologia) => {
+    // If abandoning an unsaved temp tipología (no name yet), remove it from cache
+    setSelectedId((prevId) => {
+      if (prevId?.startsWith("temp-") && !creatingInFlightRef.current.has(prevId)) {
+        // Check if it was ever saved (has no name = never POSTed)
+        const cached = queryClient.getQueryData<ProyectoCompleto>(projectKeys.detail(projectId));
+        const tempTip = cached?.tipologias.find((t) => t.id === prevId);
+        if (tempTip && !tempTip.nombre) {
+          updateLocal((prev) => ({
+            ...prev,
+            tipologias: prev.tipologias.filter((t) => t.id !== prevId),
+          }));
+        }
+      }
+      return tip.id;
+    });
     setIsCreating(false);
-    setForm(tipologiaToForm(t));
+    setForm(tipologiaToForm(tip));
     setCaracInput("");
     setActiveTab("general");
     setActivePisoIndex(0);
-  }, []);
+  }, [queryClient, projectId, updateLocal]);
 
   const startCreating = () => {
-    setSelectedId(null);
+    const tempId = `temp-${crypto.randomUUID()}`;
+    const torreIds = activeTorreId && activeTorreId !== "__none__" ? [activeTorreId] : [];
+
+    // Build optimistic Tipologia for the cache
+    const optimistic: Tipologia = {
+      id: tempId,
+      proyecto_id: projectId,
+      nombre: "",
+      descripcion: null,
+      area_m2: null,
+      habitaciones: null,
+      banos: null,
+      precio_desde: null,
+      plano_url: null,
+      renders: [],
+      caracteristicas: [],
+      parqueaderos: null,
+      depositos: null,
+      area_balcon: null,
+      area_construida: null,
+      area_privada: null,
+      area_lote: null,
+      hotspots: [],
+      pisos: null,
+      ubicacion_plano_url: null,
+      torre_ids: torreIds,
+      tipo_tipologia: null,
+      orden: tipologias.length,
+      created_at: new Date().toISOString(),
+      precio_actualizado_en: null,
+      precio_actualizado_por: null,
+      video_id: null,
+      tour_360_url: null,
+      amenidades_data: null,
+      tiene_jacuzzi: false,
+      tiene_piscina: false,
+      tiene_bbq: false,
+      tiene_terraza: false,
+      tiene_jardin: false,
+      tiene_cuarto_servicio: false,
+      tiene_estudio: false,
+      tiene_chimenea: false,
+      tiene_doble_altura: false,
+      tiene_rooftop: false,
+    };
+
+    // Insert into cache immediately
+    updateLocal((prev) => ({
+      ...prev,
+      tipologias: [...prev.tipologias, optimistic],
+    }));
+
+    setSelectedId(tempId);
     setIsCreating(true);
-    setForm({ ...emptyTipologia, torre_ids: activeTorreId && activeTorreId !== "__none__" ? [activeTorreId] : [] });
+    setForm({ ...emptyTipologia, torre_ids: torreIds });
     setCaracInput("");
     setActiveTab("general");
   };
@@ -1392,7 +1493,7 @@ export default function TipologiasPage() {
                 <TipologiaListItem
                   key={t.id}
                   tipologia={t}
-                  isSelected={selectedId === t.id && !isCreating}
+                  isSelected={selectedId === t.id}
                   onSelect={() => selectTipologia(t)}
                   onDuplicate={() => handleDuplicate(t)}
                   onDelete={() => handleDelete(t.id)}
@@ -1402,17 +1503,6 @@ export default function TipologiasPage() {
               ))}
             </Reorder.Group>
 
-            {/* "Creating new" item */}
-            {isCreating && (
-              <div className="px-3 py-2.5 bg-[var(--surface-3)] border-l-2 border-l-[var(--site-primary)]">
-                <p className={cn(
-                  "font-medium text-[var(--site-primary)]",
-                  fontSize.base
-                )}>
-                  + {t("tipologias.newType")}
-                </p>
-              </div>
-            )}
           </div>
 
           {/* Add button */}
@@ -1451,11 +1541,19 @@ export default function TipologiasPage() {
                     {(selectedId || isCreating) && form.nombre.trim() && (
                       <AutoSaveIndicator status={autoSaveStatus} />
                     )}
-                    {isCreating && (
+                    {isCreating && selectedId?.startsWith("temp-") && (
                       <button
                         onClick={() => {
+                          // Remove the optimistic entry from cache
+                          const tempId = selectedId;
+                          updateLocal((prev) => ({
+                            ...prev,
+                            tipologias: prev.tipologias.filter((t) => t.id !== tempId),
+                          }));
                           setIsCreating(false);
-                          if (filteredTipologias.length > 0) selectTipologia(filteredTipologias[0]);
+                          const remaining = filteredTipologias.filter((t) => t.id !== tempId);
+                          if (remaining.length > 0) selectTipologia(remaining[0]);
+                          else { setSelectedId(null); setForm({ ...emptyTipologia }); }
                         }}
                         className="text-[var(--text-muted)] hover:text-[var(--text-secondary)]"
                       >
@@ -1563,7 +1661,7 @@ export default function TipologiasPage() {
                                     onClick={() => {
                                       updateForm("tipo_tipologia", tipo.id);
                                       // Immediate background save for discrete changes
-                                      if (selectedId && !isCreating) {
+                                      if (selectedId && !isCreating && !selectedId.startsWith("temp-")) {
                                         saveTipologia({
                                           tipologiaId: selectedId,
                                           payload: { tipo_tipologia: tipo.id },
@@ -1630,7 +1728,7 @@ export default function TipologiasPage() {
                                           : [...form.torre_ids, torre.id];
                                         updateForm("torre_ids", next);
                                         // Immediate background save for discrete changes
-                                        if (selectedId && !isCreating) {
+                                        if (selectedId && !isCreating && !selectedId.startsWith("temp-")) {
                                           saveTipologia({
                                             tipologiaId: selectedId,
                                             payload: { torre_ids: next },
@@ -1957,7 +2055,7 @@ export default function TipologiasPage() {
                               onChange={(e) => {
                                 const newVideoId = e.target.value || null;
                                 updateForm("video_id", newVideoId);
-                                if (selectedId && !isCreating) {
+                                if (selectedId && !isCreating && !selectedId.startsWith("temp-")) {
                                   saveTipologia({
                                     tipologiaId: selectedId,
                                     payload: { video_id: newVideoId },
@@ -2012,7 +2110,7 @@ export default function TipologiasPage() {
                               const raw = e.target.value;
                               const extracted = extractTourUrl(raw);
                               updateForm("tour_360_url", extracted);
-                              if (selectedId && !isCreating) {
+                              if (selectedId && !isCreating && !selectedId.startsWith("temp-")) {
                                 saveTipologia({
                                   tipologiaId: selectedId,
                                   payload: { tour_360_url: extracted || null },

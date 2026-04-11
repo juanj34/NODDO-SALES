@@ -1,4 +1,5 @@
 import { getAuthContext, requirePermission } from "@/lib/auth-context";
+import { reportApiError } from "@/lib/error-reporter";
 import { NextRequest, NextResponse } from "next/server";
 import sharp from "sharp";
 
@@ -186,6 +187,7 @@ export async function POST(request: NextRequest) {
       original_height: origHeight,
     });
   } catch (err) {
+    void reportApiError(err, { route: "/api/upload", method: "POST", statusCode: 500 });
     return NextResponse.json(
       { error: err instanceof Error ? err.message : "Error al subir" },
       { status: 500 }

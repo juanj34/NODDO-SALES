@@ -132,7 +132,7 @@ export default function DominioTab() {
   const customDomainChanged = customDomain !== (project.custom_domain || "");
 
   return (
-    <div className="max-w-4xl space-y-8">
+    <div className="space-y-8">
       {/* Subdomain section */}
       <div className={cardClass + " space-y-4"}>
         <div className="flex items-center gap-2">

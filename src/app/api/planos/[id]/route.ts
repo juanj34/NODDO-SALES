@@ -1,4 +1,5 @@
 import { pick } from "@/lib/api-utils";
+import { logActivity } from "@/lib/activity-logger";
 import { getAuthContext, requirePermission } from "@/lib/auth-context";
 import { NextRequest, NextResponse } from "next/server";
 
@@ -47,6 +48,16 @@ export async function PUT(
       .single();
 
     if (error) throw error;
+
+    const { data: proj } = await auth.supabase.from("proyectos").select("nombre").eq("id", plano.proyecto_id).single();
+    logActivity({
+      userId: auth.user.id, userEmail: auth.user.email!, userRole: auth.role,
+      proyectoId: plano.proyecto_id, proyectoNombre: proj?.nombre,
+      actionType: "plano.update", actionCategory: "content",
+      entityType: "plano", entityId: id,
+      metadata: { nombre: data.nombre },
+    });
+
     return NextResponse.json(data);
   } catch (err) {
     return NextResponse.json(
@@ -99,6 +110,15 @@ export async function DELETE(
       .eq("id", id);
 
     if (error) throw error;
+
+    const { data: proj } = await auth.supabase.from("proyectos").select("nombre").eq("id", plano.proyecto_id).single();
+    logActivity({
+      userId: auth.user.id, userEmail: auth.user.email!, userRole: auth.role,
+      proyectoId: plano.proyecto_id, proyectoNombre: proj?.nombre,
+      actionType: "plano.delete", actionCategory: "content",
+      entityType: "plano", entityId: id,
+    });
+
     return NextResponse.json({ success: true });
   } catch (err) {
     return NextResponse.json(

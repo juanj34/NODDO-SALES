@@ -27,6 +27,7 @@ import {
   HeartPulse,
   ShieldAlert,
   Mail,
+  Bug,
 } from "lucide-react";
 import { ToastProvider } from "@/components/dashboard/Toast";
 import { ConfirmProvider } from "@/components/dashboard/ConfirmModal";
@@ -45,6 +46,7 @@ const navItems = [
   { href: "/admin/revenue", label: "Revenue", icon: DollarSign },
   { href: "/admin/webhooks", label: "Webhooks", icon: Webhook },
   { href: "/admin/health", label: "Health", icon: HeartPulse },
+  { href: "/admin/errores", label: "Errores", icon: Bug },
   { href: "/admin/moderacion", label: "Moderación", icon: ShieldAlert },
   { href: "/admin/emails", label: "Emails", icon: Mail },
   { href: "/admin/citas", label: "Citas", icon: CalendarCheck },

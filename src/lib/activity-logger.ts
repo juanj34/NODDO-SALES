@@ -29,7 +29,69 @@ function desc(params: ActivityLogParams): { es: string; en: string } {
 
   // -- Project --
   if (a === "project.create") return { es: `Creó el proyecto "${p}"`, en: `Created project "${p}"` };
-  if (a === "project.update") return { es: `Actualizó el proyecto "${p}"`, en: `Updated project "${p}"` };
+  if (a === "project.update") {
+    const fields = (m.changedFields as string[]) || [];
+    if (fields.length === 0) return { es: `Actualizó "${p}"`, en: `Updated "${p}"` };
+    const labels: Record<string, { es: string; en: string }> = {
+      nombre: { es: "nombre", en: "name" },
+      slug: { es: "slug", en: "slug" },
+      descripcion: { es: "descripción", en: "description" },
+      estado: { es: "estado", en: "status" },
+      color_primario: { es: "color primario", en: "primary color" },
+      color_secundario: { es: "color secundario", en: "secondary color" },
+      color_fondo: { es: "color de fondo", en: "background color" },
+      logo_url: { es: "logo", en: "logo" },
+      favicon_url: { es: "favicon", en: "favicon" },
+      og_image_url: { es: "imagen OG", en: "OG image" },
+      render_principal_url: { es: "render principal", en: "main render" },
+      hero_video_url: { es: "video hero", en: "hero video" },
+      whatsapp_numero: { es: "WhatsApp", en: "WhatsApp" },
+      ubicacion_direccion: { es: "ubicación", en: "location" },
+      ubicacion_lat: { es: "coordenadas", en: "coordinates" },
+      ubicacion_lng: { es: "coordenadas", en: "coordinates" },
+      brochure_url: { es: "brochure", en: "brochure" },
+      tour_360_url: { es: "tour 360", en: "360 tour" },
+      constructora_nombre: { es: "constructora", en: "developer" },
+      constructora_logo_url: { es: "logo constructora", en: "developer logo" },
+      subdomain: { es: "subdominio", en: "subdomain" },
+      custom_domain: { es: "dominio personalizado", en: "custom domain" },
+      disclaimer: { es: "disclaimer", en: "disclaimer" },
+      email_config: { es: "configuración de correos", en: "email config" },
+      webhook_config: { es: "webhooks", en: "webhooks" },
+      cotizador_enabled: { es: "cotizador", en: "quote builder" },
+      cotizador_config: { es: "configuración cotizador", en: "quote config" },
+      secciones_visibles: { es: "secciones visibles", en: "visible sections" },
+      inventory_columns: { es: "columnas de inventario", en: "inventory columns" },
+      tipo_proyecto: { es: "tipo de proyecto", en: "project type" },
+      moneda_base: { es: "moneda", en: "currency" },
+      idioma: { es: "idioma", en: "language" },
+      etapa_label: { es: "etapa", en: "stage" },
+      background_audio_url: { es: "audio de fondo", en: "background audio" },
+      fachada_url: { es: "fachada", en: "facade" },
+      mapa_ubicacion_url: { es: "mapa de ubicación", en: "location map" },
+      disponibilidad_config: { es: "config. disponibilidad", en: "availability config" },
+      estado_construccion: { es: "estado de construcción", en: "construction status" },
+      precio_source: { es: "fuente de precios", en: "price source" },
+    };
+    // Deduplicate labels (e.g. ubicacion_lat + ubicacion_lng both map to "coordenadas")
+    const labelObjs = fields.map((f) => labels[f] || { es: f, en: f });
+    const seen = new Set<string>();
+    const uniqueLabels = labelObjs.filter((l) => {
+      const key = typeof l === "string" ? l : l.es;
+      if (seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    });
+    if (uniqueLabels.length <= 3) {
+      const esNames = uniqueLabels.map((l) => (typeof l === "string" ? l : l.es)).join(", ");
+      const enNames = uniqueLabels.map((l) => (typeof l === "string" ? l : l.en)).join(", ");
+      return { es: `Actualizó ${esNames} de "${p}"`, en: `Updated ${enNames} of "${p}"` };
+    }
+    return {
+      es: `Actualizó ${fields.length} campos de "${p}"`,
+      en: `Updated ${fields.length} fields of "${p}"`,
+    };
+  }
   if (a === "project.delete") return { es: `Eliminó el proyecto "${m.nombre || p}"`, en: `Deleted project "${m.nombre || p}"` };
   if (a === "project.publish") return { es: `Publicó "${p}"`, en: `Published "${p}"` };
   if (a === "project.unpublish") return { es: `Despublicó "${p}"`, en: `Unpublished "${p}"` };
@@ -62,6 +124,7 @@ function desc(params: ActivityLogParams): { es: string; en: string } {
 
   // -- Gallery --
   if (a === "gallery.category_create") return { es: `Creó categoría "${m.nombre}" en galería de "${p}"`, en: `Created category "${m.nombre}" in "${p}" gallery` };
+  if (a === "gallery.category_update") return { es: `Actualizó categoría "${m.nombre}" en galería de "${p}"`, en: `Updated category "${m.nombre}" in "${p}" gallery` };
   if (a === "gallery.category_delete") return { es: `Eliminó categoría "${m.nombre}" de galería de "${p}"`, en: `Deleted category "${m.nombre}" from "${p}" gallery` };
   if (a === "gallery.images_upload") return { es: `Subió ${m.count} imagen(es) a "${p}"`, en: `Uploaded ${m.count} image(s) to "${p}"` };
   if (a === "gallery.image_delete") return { es: `Eliminó imagen de galería en "${p}"`, en: `Deleted gallery image in "${p}"` };
@@ -95,14 +158,23 @@ function desc(params: ActivityLogParams): { es: string; en: string } {
   if (a === "fachada.update") return { es: `Actualizó fachada en "${p}"`, en: `Updated facade in "${p}"` };
   if (a === "fachada.delete") return { es: `Eliminó fachada de "${p}"`, en: `Deleted facade from "${p}"` };
   if (a === "plano.create") return { es: `Agregó plano en "${p}"`, en: `Added floor plan in "${p}"` };
+  if (a === "plano.update") return { es: `Actualizó plano en "${p}"`, en: `Updated floor plan in "${p}"` };
   if (a === "plano.delete") return { es: `Eliminó plano de "${p}"`, en: `Deleted floor plan from "${p}"` };
   if (a === "avance.create") return { es: `Agregó avance de obra en "${p}"`, en: `Added construction update in "${p}"` };
   if (a === "avance.update") return { es: `Actualizó avance de obra en "${p}"`, en: `Updated construction update in "${p}"` };
   if (a === "avance.delete") return { es: `Eliminó avance de obra de "${p}"`, en: `Deleted construction update from "${p}"` };
   if (a === "recurso.create") return { es: `Agregó recurso "${m.nombre || ""}" en "${p}"`, en: `Added resource "${m.nombre || ""}" in "${p}"` };
   if (a === "recurso.delete") return { es: `Eliminó recurso de "${p}"`, en: `Deleted resource from "${p}"` };
-  if (a === "complemento.create") return { es: `Creó ${m.tipo || "complemento"} ${m.identificador || ""} en "${p}"`, en: `Created ${m.tipo || "complement"} ${m.identificador || ""} in "${p}"` };
-  if (a === "complemento.delete") return { es: `Eliminó ${m.tipo || "complemento"} de "${p}"`, en: `Deleted ${m.tipo || "complement"} from "${p}"` };
+  if (a === "complemento.create") {
+    const count = (m.count as number) || 1;
+    if (count > 1) return { es: `Creó ${count} ${m.tipo || "complementos"} en "${p}"`, en: `Created ${count} ${m.tipo || "complements"} in "${p}"` };
+    return { es: `Creó ${m.tipo || "complemento"} ${m.identificador || ""} en "${p}"`, en: `Created ${m.tipo || "complement"} ${m.identificador || ""} in "${p}"` };
+  }
+  if (a === "complemento.delete") return { es: `Eliminó ${m.tipo || "complemento"} ${m.identificador || ""} de "${p}"`, en: `Deleted ${m.tipo || "complement"} ${m.identificador || ""} from "${p}"` };
+
+  // -- POI --
+  if (a === "poi.create") return { es: `Agregó punto de interés "${m.nombre || ""}" en "${p}"`, en: `Added POI "${m.nombre || ""}" in "${p}"` };
+  if (a === "poi.delete") return { es: `Eliminó punto de interés de "${p}"`, en: `Deleted POI from "${p}"` };
 
   // Fallback
   return { es: `Acción: ${a}`, en: `Action: ${a}` };

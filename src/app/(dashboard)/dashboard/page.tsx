@@ -5,7 +5,7 @@ export const dynamic = "force-dynamic";
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useProjects, useDashboardSummary } from "@/hooks/useProjectsQuery";
-import { Loader2 } from "lucide-react";
+import { DashboardSkeleton, KPIStripSkeleton } from "@/components/dashboard/home/DashboardSkeleton";
 import { useAuthRole } from "@/hooks/useAuthContext";
 import { trackDashboardEvent } from "@/lib/dashboard-tracking";
 
@@ -67,12 +67,8 @@ export default function DashboardPage() {
     router.push("/proyectos?create=true");
   };
 
-  if (loading || summaryLoading) {
-    return (
-      <div className="min-h-screen bg-[var(--surface-0)] flex items-center justify-center">
-        <Loader2 className="animate-spin text-[var(--site-primary)]" size={32} />
-      </div>
-    );
+  if (loading) {
+    return <DashboardSkeleton />;
   }
 
   // Show onboarding wizard for first-time users
@@ -95,13 +91,17 @@ export default function DashboardPage() {
       />
 
       {/* 2. KPI Strip (admin only, if has projects) */}
-      {isAdmin && projects.length > 0 && summary && (
-        <DashboardKPIStrip
-          data={summary}
-          projects={projects}
-          selectedProjectId={kpiProjectFilter}
-          onSelectProject={setKpiProjectFilter}
-        />
+      {isAdmin && projects.length > 0 && (
+        summaryLoading ? (
+          <KPIStripSkeleton />
+        ) : summary ? (
+          <DashboardKPIStrip
+            data={summary}
+            projects={projects}
+            selectedProjectId={kpiProjectFilter}
+            onSelectProject={setKpiProjectFilter}
+          />
+        ) : null
       )}
 
       {/* 3. Enhanced Shortcuts (admin only, if has projects) */}

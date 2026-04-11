@@ -1,4 +1,4 @@
-import { getAuthContext } from "@/lib/auth-context";
+import { getAuthContext, requirePermission } from "@/lib/auth-context";
 import { NextRequest, NextResponse } from "next/server";
 import {
   callAI,
@@ -7,6 +7,8 @@ import {
   toNumberOrNull,
   toPositiveOrNull,
 } from "@/lib/ai";
+import { trackAIUsage } from "@/lib/ai-tracker";
+import { aiGlobalLimiter, checkRateLimit, rateLimitExceeded } from "@/lib/rate-limit";
 
 // ---------------------------------------------------------------------------
 // Types
@@ -202,11 +204,14 @@ export async function POST(request: NextRequest) {
     const auth = await getAuthContext();
     if (!auth)
       return NextResponse.json({ error: "No autorizado" }, { status: 401 });
-    if (auth.role !== "admin")
-      return NextResponse.json(
-        { error: "Solo administradores" },
-        { status: 403 }
-      );
+    const denied = requirePermission(auth, "ai.use");
+    if (denied) return denied;
+
+    // Global AI rate limit
+    if (aiGlobalLimiter) {
+      const rl = await checkRateLimit(request, aiGlobalLimiter);
+      if (!rl.success) return rateLimitExceeded(rl.headers);
+    }
 
     const { messages, fileUrls } = await request.json();
 
@@ -241,7 +246,8 @@ export async function POST(request: NextRequest) {
       userContext += `\n\nArchivos subidos (URLs): ${cleanUrls.join(", ")}`;
     }
 
-    const response = await callAI(SYSTEM_PROMPT, userContext.trim());
+    const { text, usage } = await callAI(SYSTEM_PROMPT, userContext.trim());
+    trackAIUsage({ userId: auth.user.id, userEmail: auth.user.email, feature: "create-project", usage });
 
     // ----- Parse + validate output -----
     const fallback: ValidResponse = {
@@ -267,7 +273,7 @@ export async function POST(request: NextRequest) {
       summary: "No se pudo extraer información. Por favor describe tu proyecto.",
     };
 
-    const raw = parseAIJson<Record<string, unknown>>(response, {});
+    const raw = parseAIJson<Record<string, unknown>>(text, {});
 
     // Validate top-level structure
     if (

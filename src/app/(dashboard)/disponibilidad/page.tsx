@@ -868,7 +868,7 @@ export default function DisponibilidadPage() {
                   const displayPrice = unit.estado === "vendida" && unit.precio_venta != null
                     ? unit.precio_venta
                     : isTipologiaPricing
-                      ? (tipo?.precio_desde ?? unit.precio)
+                      ? (unit.precio ?? tipo?.precio_desde ?? null)
                       : unit.precio;
 
                   return (

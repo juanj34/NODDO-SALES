@@ -181,6 +181,8 @@ export default function ExplorarPage() {
     if (unit.estado === "vendida" && ocultarPrecioVendidas) return null;
     if (unit.estado === "vendida" && unit.precio_venta != null) return unit.precio_venta;
     if (!isTipologiaPricing) return unit.precio;
+    // Unit-level price takes priority even in tipología-pricing mode
+    if (unit.precio != null) return unit.precio;
     if (unit.tipologia_id) {
       const tipo = (tipologias || []).find(t => t.id === unit.tipologia_id);
       return tipo?.precio_desde ?? null;

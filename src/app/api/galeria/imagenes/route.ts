@@ -1,5 +1,6 @@
 import { pick } from "@/lib/api-utils";
 import { getAuthContext, requirePermission, verifyProjectOwnership } from "@/lib/auth-context";
+import { logActivity } from "@/lib/activity-logger";
 import { NextRequest, NextResponse } from "next/server";
 
 export async function POST(request: NextRequest) {
@@ -35,6 +36,17 @@ export async function POST(request: NextRequest) {
       .single();
 
     if (error) throw error;
+
+    // Fetch project name for activity log
+    const { data: proj } = await auth.supabase.from("proyectos").select("nombre").eq("id", cat.proyecto_id).single();
+    logActivity({
+      userId: auth.user.id, userEmail: auth.user.email!, userRole: auth.role,
+      proyectoId: cat.proyecto_id, proyectoNombre: proj?.nombre,
+      actionType: "gallery.images_upload", actionCategory: "gallery",
+      metadata: { count: 1 },
+      entityType: "galeria_imagen", entityId: data.id,
+    });
+
     return NextResponse.json(data, { status: 201 });
   } catch (err) {
     return NextResponse.json(

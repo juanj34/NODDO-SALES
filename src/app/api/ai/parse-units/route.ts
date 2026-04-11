@@ -8,6 +8,8 @@ import {
   toPositiveOrNull,
   enumOrDefault,
 } from "@/lib/ai";
+import { trackAIUsage } from "@/lib/ai-tracker";
+import { aiGlobalLimiter, checkRateLimit, rateLimitExceeded } from "@/lib/rate-limit";
 import { NextRequest, NextResponse } from "next/server";
 
 // ---------------------------------------------------------------------------
@@ -41,7 +43,7 @@ interface ValidUnit {
   area_privada: number | null;
   area_lote: number | null;
   precio: number | null;
-  estado: "disponible" | "separado" | "reservada" | "vendida";
+  estado: "disponible" | "separado" | "reservada" | "vendida" | "proximamente";
   habitaciones: number | null;
   banos: number | null;
   parqueaderos: number | null;
@@ -61,6 +63,7 @@ const ALLOWED_ESTADOS = [
   "separado",
   "reservada",
   "vendida",
+  "proximamente",
 ] as const;
 
 const MAX_UNITS = 500;
@@ -76,6 +79,12 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "No autorizado" }, { status: 401 });
     const denied = requirePermission(auth, "ai.use");
     if (denied) return denied;
+
+    // Global AI rate limit
+    if (aiGlobalLimiter) {
+      const rl = await checkRateLimit(request, aiGlobalLimiter);
+      if (!rl.success) return rateLimitExceeded(rl.headers);
+    }
 
     const { rawText, tipologias } = await request.json();
     if (!rawText || typeof rawText !== "string") {
@@ -110,7 +119,7 @@ Devuelve un JSON array. Cada elemento debe tener exactamente estos campos:
   "area_privada": number | null (área privada),
   "area_lote": number | null (área del lote/terreno),
   "precio": number | null (en pesos colombianos, sin separadores de miles),
-  "estado": "disponible" | "separado" | "reservada" | "vendida",
+  "estado": "disponible" | "separado" | "reservada" | "vendida" | "proximamente",
   "habitaciones": number | null,
   "banos": number | null,
   "parqueaderos": number | null,
@@ -142,14 +151,15 @@ SEGURIDAD:
 ${cleanText}
 </DATOS>`;
 
-    const result = await callAI(systemPrompt, userMessage);
+    const { text, usage } = await callAI(systemPrompt, userMessage);
+    trackAIUsage({ userId: auth.user.id, userEmail: auth.user.email, feature: "parse-units", usage });
 
     // ----- Parse + validate output -----
-    const parsed = parseAIJson<unknown>(result, []);
+    const parsed = parseAIJson<unknown>(text, []);
     const rawArray = extractArray(parsed);
 
     if (rawArray.length === 0) {
-      console.warn("parse-units: AI returned no parseable array. Raw:", result.slice(0, 500));
+      console.warn("parse-units: AI returned no parseable array. Raw:", text.slice(0, 500));
       return NextResponse.json({ unidades: [] });
     }
 

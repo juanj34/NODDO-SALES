@@ -1,4 +1,5 @@
 import { pick } from "@/lib/api-utils";
+import { logActivity } from "@/lib/activity-logger";
 import { getAuthContext, getAccessibleProjectIds, verifyProjectOwnership, requirePermission } from "@/lib/auth-context";
 import { NextRequest, NextResponse } from "next/server";
 
@@ -81,12 +82,27 @@ export async function DELETE(
     const denied = requirePermission(auth, "inventory.write");
     if (denied) return denied;
 
+    // Fetch before delete for logging
+    const { data: complemento } = await auth.supabase.from("complementos").select("proyecto_id, tipo, identificador").eq("id", id).single();
+
     const { error } = await auth.supabase
       .from("complementos")
       .delete()
       .eq("id", id);
 
     if (error) throw error;
+
+    if (complemento) {
+      const { data: proj } = await auth.supabase.from("proyectos").select("nombre").eq("id", complemento.proyecto_id).single();
+      logActivity({
+        userId: auth.user.id, userEmail: auth.user.email!, userRole: auth.role,
+        proyectoId: complemento.proyecto_id, proyectoNombre: proj?.nombre,
+        actionType: "complemento.delete", actionCategory: "content",
+        entityType: "complemento", entityId: id,
+        metadata: { tipo: complemento.tipo, identificador: complemento.identificador },
+      });
+    }
+
     return NextResponse.json({ success: true });
   } catch (err) {
     return NextResponse.json(

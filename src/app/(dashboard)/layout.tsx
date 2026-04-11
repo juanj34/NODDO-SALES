@@ -8,7 +8,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { createClient } from "@/lib/supabase/client";
 import { cn } from "@/lib/utils";
 import {
-  FolderOpen, Users, Settings, LogOut, Loader2, HelpCircle,
+  FolderOpen, Users, Settings, LogOut, HelpCircle,
   Menu, X, Shield, ToggleLeft, Calculator, ContactRound,
   BarChart3, FileText, LayoutDashboard, CircleDollarSign, Clock,
   ExternalLink,
@@ -96,8 +96,60 @@ function DashboardShell({ children }: { children: React.ReactNode }) {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-[var(--surface-0)] flex items-center justify-center">
-        <Loader2 className="animate-spin text-[var(--site-primary)]" size={32} />
+      <div className="min-h-screen bg-[var(--surface-0)] flex">
+        {/* Sidebar skeleton */}
+        <aside className="hidden md:flex w-64 bg-[var(--surface-1)] border-r border-[var(--border-subtle)] flex-col shrink-0">
+          <div className="p-6 border-b border-[var(--border-subtle)]">
+            <div className="h-[18px] w-24 rounded bg-[var(--surface-3)] animate-pulse" />
+          </div>
+          <div className="p-4 space-y-2 flex-1">
+            {[128, 108, -1, 96, 88, -1, 80, 96, 72, 88].map((w, i) =>
+              w === -1 ? (
+                <div key={i} className="!my-3 h-px bg-[var(--border-subtle)]" />
+              ) : (
+                <div key={i} className="flex items-center gap-3 px-3 py-2">
+                  <div className="w-4 h-4 rounded bg-[var(--surface-3)] animate-pulse" />
+                  <div className="rounded bg-[var(--surface-3)] animate-pulse" style={{ height: 12, width: w }} />
+                </div>
+              )
+            )}
+          </div>
+          <div className="p-4 border-t border-[var(--border-subtle)]">
+            <div className="flex items-center gap-3 px-3 py-2">
+              <div className="w-8 h-8 rounded-full bg-[var(--surface-3)] animate-pulse" />
+              <div className="space-y-1.5 flex-1">
+                <div className="h-3 w-24 rounded bg-[var(--surface-3)] animate-pulse" />
+                <div className="h-2.5 w-32 rounded bg-[var(--surface-2)] animate-pulse" />
+              </div>
+            </div>
+          </div>
+        </aside>
+
+        {/* Content skeleton */}
+        <main className="flex-1 p-4 md:p-8 max-w-7xl mx-auto space-y-8">
+          <div className="space-y-2">
+            <div className="h-8 w-72 rounded-xl bg-[var(--surface-2)] animate-pulse" />
+            <div className="h-4 w-44 rounded-lg bg-[var(--surface-2)] animate-pulse" />
+          </div>
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+            {[0, 1, 2, 3].map((i) => (
+              <div key={i} className="h-[100px] rounded-xl bg-[var(--surface-2)] animate-pulse" />
+            ))}
+          </div>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+            {[0, 1, 2, 3].map((i) => (
+              <div key={i} className="h-[72px] rounded-xl bg-[var(--surface-2)] animate-pulse" />
+            ))}
+          </div>
+          <div className="space-y-4">
+            <div className="h-3 w-28 rounded-lg bg-[var(--surface-2)] animate-pulse" />
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+              {[0, 1, 2].map((i) => (
+                <div key={i} className="h-[340px] rounded-xl bg-[var(--surface-2)] animate-pulse" />
+              ))}
+            </div>
+          </div>
+        </main>
       </div>
     );
   }

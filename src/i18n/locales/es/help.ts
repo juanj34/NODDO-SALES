@@ -452,7 +452,7 @@ const help = {
       content:
         "La pestaña de Configuración contiene ajustes que controlan la estructura de tu proyecto, las columnas del inventario, funcionalidades especiales del micrositio y opciones de visualización.",
       steps: [
-        "«Tipo de proyecto»: Selecciona el tipo de tu proyecto: Torres (edificios verticales), Urbanismo (casas/conjuntos horizontales), Híbrido (mezcla de tipos) o Lotes. El tipo determina las columnas de inventario disponibles y el comportamiento del sistema.",
+        "«Tipo de proyecto»: Selecciona el tipo de tu proyecto: Torres (edificios verticales), Urbanismo (casas/conjuntos horizontales), Lotes (terrenos), o Híbrido (mezcla de apartamentos, casas, lotes y/o locales comerciales en un mismo proyecto). El tipo determina las columnas de inventario disponibles y el comportamiento del sistema.",
         "«Columnas del inventario»: Personaliza qué campos se muestran en la tabla de inventario del editor y del micrositio. Puedes activar/desactivar columnas como área construida, área privada, área de lote, orientación, vista, piso, etc.",
         "«WhatsApp»: Ingresa el número de WhatsApp con código de país (ej: 573001234567). Aparecerá un botón flotante en el micrositio.",
         "«Prefijo de unidades»: Configura un prefijo que se muestra antes del identificador de cada unidad en el micrositio (ej: «Apto», «Casa», «Lote»).",

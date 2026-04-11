@@ -1,5 +1,6 @@
 import { pick } from "@/lib/api-utils";
 import { getAuthContext, requirePermission, verifyProjectOwnership } from "@/lib/auth-context";
+import { logActivity } from "@/lib/activity-logger";
 import { NextRequest, NextResponse } from "next/server";
 
 export async function POST(request: NextRequest) {
@@ -50,6 +51,26 @@ export async function POST(request: NextRequest) {
           changed_by: auth.user.email || auth.user.id,
         });
     }
+
+    // Log activity (fire-and-forget)
+    const { data: proj } = await auth.supabase
+      .from("proyectos")
+      .select("nombre")
+      .eq("id", body.proyecto_id)
+      .single();
+
+    logActivity({
+      userId: auth.user.id,
+      userEmail: auth.user.email!,
+      userRole: auth.role,
+      proyectoId: body.proyecto_id,
+      proyectoNombre: proj?.nombre ?? null,
+      actionType: "tipologia.create",
+      actionCategory: "tipologia",
+      metadata: { nombre: data.nombre },
+      entityType: "tipologia",
+      entityId: data.id,
+    });
 
     return NextResponse.json(data, { status: 201 });
   } catch (err) {

@@ -2,8 +2,30 @@
 // AI utility — Gemini Flash with guardrails
 // ---------------------------------------------------------------------------
 
-const GEMINI_MODEL = "gemini-2.5-pro";
+const GEMINI_MODEL = "gemini-2.5-flash";
 const GEMINI_ENDPOINT = `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent`;
+
+/* ── Token usage from Gemini response ────────────────────────────────── */
+
+export interface AIUsageMetadata {
+  promptTokens: number;
+  completionTokens: number;
+  totalTokens: number;
+}
+
+export interface AIResult {
+  text: string;
+  usage: AIUsageMetadata;
+}
+
+function extractUsage(data: Record<string, unknown>): AIUsageMetadata {
+  const meta = data.usageMetadata as Record<string, number> | undefined;
+  return {
+    promptTokens: meta?.promptTokenCount ?? 0,
+    completionTokens: meta?.candidatesTokenCount ?? 0,
+    totalTokens: meta?.totalTokenCount ?? 0,
+  };
+}
 
 /** Retry-aware fetch: retries on 503 (Gemini overload) up to maxRetries times */
 async function fetchWithRetry(
@@ -30,7 +52,7 @@ export async function callAI(
   systemPrompt: string,
   userMessage: string,
   options?: { maxOutputTokens?: number }
-): Promise<string> {
+): Promise<AIResult> {
   const apiKey = process.env.GOOGLE_GEMINI_API_KEY;
   if (!apiKey) {
     throw new Error("GOOGLE_GEMINI_API_KEY no configurada");
@@ -66,7 +88,7 @@ export async function callAI(
     throw new Error("La IA no generó una respuesta. Intenta de nuevo.");
   }
 
-  return text;
+  return { text, usage: extractUsage(data) };
 }
 
 // ---------------------------------------------------------------------------
@@ -86,7 +108,7 @@ export async function callAIWithHistory(
   systemPrompt: string,
   messages: ConversationMessage[],
   options?: { maxOutputTokens?: number }
-): Promise<string> {
+): Promise<AIResult> {
   const apiKey = process.env.GOOGLE_GEMINI_API_KEY;
   if (!apiKey) {
     throw new Error("GOOGLE_GEMINI_API_KEY no configurada");
@@ -129,7 +151,7 @@ export async function callAIWithHistory(
     throw new Error("La IA no generó una respuesta. Intenta de nuevo.");
   }
 
-  return text;
+  return { text, usage: extractUsage(data) };
 }
 
 /**
@@ -139,7 +161,7 @@ export async function callAIWithHistory(
 export async function callAIText(
   systemPrompt: string,
   userMessage: string
-): Promise<string> {
+): Promise<AIResult> {
   const apiKey = process.env.GOOGLE_GEMINI_API_KEY;
   if (!apiKey) {
     throw new Error("GOOGLE_GEMINI_API_KEY no configurada");
@@ -175,7 +197,7 @@ export async function callAIText(
     throw new Error("La IA no generó una respuesta. Intenta de nuevo.");
   }
 
-  return text.trim();
+  return { text: text.trim(), usage: extractUsage(data) };
 }
 
 // ---------------------------------------------------------------------------

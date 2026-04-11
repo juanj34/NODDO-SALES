@@ -1,4 +1,5 @@
 import { pick } from "@/lib/api-utils";
+import { logActivity } from "@/lib/activity-logger";
 import { getAuthContext, requirePermission } from "@/lib/auth-context";
 import { NextRequest, NextResponse } from "next/server";
 
@@ -57,6 +58,19 @@ export async function POST(request: NextRequest) {
       .single();
 
     if (error) throw error;
+
+    logActivity({
+      userId: auth.user.id,
+      userEmail: auth.user.email!,
+      userRole: auth.role,
+      proyectoId: data.proyecto_id,
+      actionType: "torre.create",
+      actionCategory: "content",
+      metadata: { nombre: data.nombre },
+      entityType: "torre",
+      entityId: data.id,
+    });
+
     return NextResponse.json(data, { status: 201 });
   } catch (err) {
     return NextResponse.json(

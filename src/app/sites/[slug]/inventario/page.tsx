@@ -125,10 +125,14 @@ export default function InventarioPage() {
   const unidadTipologias = useMemo<UnidadTipologia[]>(() => proyecto.unidad_tipologias ?? [], [proyecto.unidad_tipologias]);
 
   // Helper: resolve unit price based on pricing source (use precio_venta for sold units)
+  // Priority: sold price → unit-level price (if set) → tipología price → multi-tipo lowest
   const getUnitPrice = useCallback((unit: Unidad): number | null => {
     if (unit.estado === "vendida" && ocultarPrecioVendidas) return null;
     if (unit.estado === "vendida" && unit.precio_venta != null) return unit.precio_venta;
     if (!isTipologiaPricing) return unit.precio;
+    // Unit-level price takes priority even in tipología-pricing mode
+    // (e.g. commercial units with individual prices)
+    if (unit.precio != null) return unit.precio;
     if (unit.tipologia_id) {
       const tipo = (tipologias || []).find(t => t.id === unit.tipologia_id);
       return tipo?.precio_desde ?? null;

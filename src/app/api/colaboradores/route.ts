@@ -1,3 +1,4 @@
+import { logActivity } from "@/lib/activity-logger";
 import { getAuthContext } from "@/lib/auth-context";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { sendCollaboratorInvite, getUserLocale } from "@/lib/email";

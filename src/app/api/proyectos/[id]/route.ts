@@ -1,6 +1,7 @@
 import { getAuthContext } from "@/lib/auth-context";
 import { pick } from "@/lib/api-utils";
 import { logActivity } from "@/lib/activity-logger";
+import { reportApiError } from "@/lib/error-reporter";
 import { NextRequest, NextResponse } from "next/server";
 
 const PROYECTO_FIELDS = [
@@ -147,6 +148,7 @@ export async function GET(
       vistas_piso: vistasPiso || [],
     });
   } catch (err) {
+    void reportApiError(err, { route: "/api/proyectos/[id]", statusCode: 500 });
     return NextResponse.json(
       { error: err instanceof Error ? err.message : "Error" },
       { status: 500 }
@@ -179,6 +181,14 @@ export async function PUT(
       updateData.subdomain = body.slug;
     }
 
+    // Fetch current state before updating (for change tracking)
+    const { data: before } = await auth.supabase
+      .from("proyectos")
+      .select("*")
+      .eq("id", id)
+      .eq("user_id", auth.user.id)
+      .single();
+
     const { data, error } = await auth.supabase
       .from("proyectos")
       .update(updateData)
@@ -189,10 +199,26 @@ export async function PUT(
 
     if (error) throw error;
 
+    // Compute changed fields for detailed activity log
+    const changedFields = before
+      ? Object.keys(updateData).filter(
+          (k) => k !== "updated_at" && JSON.stringify(before[k]) !== JSON.stringify(data[k])
+        )
+      : Object.keys(updateData).filter((k) => k !== "updated_at");
+
     logActivity({
       userId: auth.user.id, userEmail: auth.user.email!, userRole: auth.role,
       proyectoId: id, proyectoNombre: data.nombre,
       actionType: "project.update", actionCategory: "project",
+      metadata: {
+        changedFields,
+        changes: Object.fromEntries(
+          changedFields.slice(0, 10).map((f) => [
+            f,
+            { from: before?.[f] ?? null, to: data[f] ?? null },
+          ])
+        ),
+      },
       entityType: "proyecto", entityId: id,
     });
 
@@ -205,6 +231,7 @@ export async function PUT(
 
     return NextResponse.json(data);
   } catch (err) {
+    void reportApiError(err, { route: "/api/proyectos/[id]", statusCode: 500 });
     return NextResponse.json(
       { error: err instanceof Error ? err.message : "Error" },
       { status: 500 }
@@ -247,6 +274,7 @@ export async function DELETE(
 
     return NextResponse.json({ success: true });
   } catch (err) {
+    void reportApiError(err, { route: "/api/proyectos/[id]", statusCode: 500 });
     return NextResponse.json(
       { error: err instanceof Error ? err.message : "Error" },
       { status: 500 }

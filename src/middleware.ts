@@ -127,7 +127,11 @@ export async function middleware(request: NextRequest) {
     {
       cookies: {
         getAll() {
-          return request.cookies.getAll();
+          return request.cookies.getAll().map((cookie) => ({
+            ...cookie,
+            // Strip control characters that corrupt Authorization headers in Node 24
+            value: cookie.value.replace(/[\x00-\x1f\x7f]/g, ""),
+          }));
         },
         setAll(
           cookiesToSet: {

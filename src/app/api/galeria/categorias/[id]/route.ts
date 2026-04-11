@@ -1,4 +1,5 @@
 import { getAuthContext, requirePermission } from "@/lib/auth-context";
+import { logActivity } from "@/lib/activity-logger";
 import { NextRequest, NextResponse } from "next/server";
 
 export async function PUT(
@@ -28,6 +29,29 @@ export async function PUT(
       .single();
 
     if (error) throw error;
+
+    // Log activity (fire-and-forget)
+    if (data) {
+      const { data: proj } = await auth.supabase
+        .from("proyectos")
+        .select("nombre")
+        .eq("id", data.proyecto_id)
+        .single();
+
+      logActivity({
+        userId: auth.user.id,
+        userEmail: auth.user.email!,
+        userRole: auth.role,
+        proyectoId: data.proyecto_id,
+        proyectoNombre: proj?.nombre ?? null,
+        actionType: "gallery.category_update",
+        actionCategory: "gallery",
+        metadata: { nombre: data.nombre },
+        entityType: "galeria_categoria",
+        entityId: id,
+      });
+    }
+
     return NextResponse.json(data);
   } catch (err) {
     return NextResponse.json(
@@ -49,12 +73,42 @@ export async function DELETE(
     const denied = requirePermission(auth, "content.write");
     if (denied) return denied;
 
+    // Fetch category info before deletion for logging
+    const { data: catData } = await auth.supabase
+      .from("galeria_categorias")
+      .select("nombre, proyecto_id")
+      .eq("id", id)
+      .single();
+
     const { error } = await auth.supabase
       .from("galeria_categorias")
       .delete()
       .eq("id", id);
 
     if (error) throw error;
+
+    // Log activity (fire-and-forget)
+    if (catData) {
+      const { data: proj } = await auth.supabase
+        .from("proyectos")
+        .select("nombre")
+        .eq("id", catData.proyecto_id)
+        .single();
+
+      logActivity({
+        userId: auth.user.id,
+        userEmail: auth.user.email!,
+        userRole: auth.role,
+        proyectoId: catData.proyecto_id,
+        proyectoNombre: proj?.nombre ?? null,
+        actionType: "gallery.category_delete",
+        actionCategory: "gallery",
+        metadata: { nombre: catData.nombre },
+        entityType: "galeria_categoria",
+        entityId: id,
+      });
+    }
+
     return NextResponse.json({ success: true });
   } catch (err) {
     return NextResponse.json(
