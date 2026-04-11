@@ -236,3 +236,46 @@ export async function getVideosByProyecto(
   if (error) throw error;
   return data || [];
 }
+
+// ---------------------------------------------------------------------------
+// Constructora Portal
+// ---------------------------------------------------------------------------
+
+/**
+ * Fetch a constructora portal by slug (public).
+ * Returns the portal + its published projects.
+ */
+export async function getPortalBySlug(slug: string) {
+  const { data: portal, error } = await publicClient
+    .from("constructora_portals")
+    .select("*")
+    .eq("slug", slug)
+    .single();
+
+  if (error || !portal) return null;
+
+  // Fetch published projects for this user
+  const { data: projects } = await publicClient
+    .from("proyectos")
+    .select("id, nombre, slug, descripcion, render_principal_url, hero_video_url, logo_url, constructora_nombre, constructora_logo_url, estado, subdomain, tipo_proyecto")
+    .eq("user_id", portal.user_id)
+    .eq("estado", "publicado");
+
+  let orderedProjects = projects || [];
+
+  // If portal has specific project order, sort accordingly
+  if (portal.proyecto_ids && portal.proyecto_ids.length > 0) {
+    const idSet = new Set(portal.proyecto_ids as string[]);
+    orderedProjects = orderedProjects
+      .filter((p: { id: string }) => idSet.has(p.id))
+      .sort((a: { id: string }, b: { id: string }) => {
+        const ids = portal.proyecto_ids as string[];
+        return ids.indexOf(a.id) - ids.indexOf(b.id);
+      });
+  }
+
+  return {
+    ...portal,
+    projects: orderedProjects,
+  };
+}

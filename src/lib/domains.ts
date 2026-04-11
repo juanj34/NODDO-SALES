@@ -68,3 +68,60 @@ export async function resolveCustomDomainToSlug(
     return null;
   }
 }
+
+/**
+ * Check if a subdomain corresponds to a constructora portal.
+ * Returns the portal slug if found, null otherwise.
+ */
+export async function resolvePortalSubdomain(
+  subdomain: string
+): Promise<string | null> {
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+
+  if (!supabaseUrl || !supabaseKey) return null;
+
+  try {
+    const res = await fetch(
+      `${supabaseUrl}/rest/v1/constructora_portals?slug=eq.${encodeURIComponent(subdomain)}&select=slug&limit=1`,
+      {
+        headers: {
+          apikey: supabaseKey,
+          Authorization: `Bearer ${supabaseKey}`,
+        },
+      }
+    );
+    const data = await res.json();
+    return data?.[0]?.slug || null;
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Resolve a custom domain to a portal slug.
+ */
+export async function resolvePortalCustomDomain(
+  domain: string
+): Promise<string | null> {
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+
+  if (!supabaseUrl || !supabaseKey) return null;
+
+  try {
+    const res = await fetch(
+      `${supabaseUrl}/rest/v1/constructora_portals?custom_domain=eq.${encodeURIComponent(domain)}&domain_verified=eq.true&select=slug&limit=1`,
+      {
+        headers: {
+          apikey: supabaseKey,
+          Authorization: `Bearer ${supabaseKey}`,
+        },
+      }
+    );
+    const data = await res.json();
+    return data?.[0]?.slug || null;
+  } catch {
+    return null;
+  }
+}

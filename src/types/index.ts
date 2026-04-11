@@ -84,6 +84,7 @@ export interface Proyecto {
   color_fondo: string;
   tema_modo: "oscuro" | "claro";
   estado: "borrador" | "publicado" | "archivado";
+  plan: "basico" | "pro";
   tipo_proyecto: "apartamentos" | "casas" | "hibrido" | "lotes";
   disclaimer: string;
   politica_privacidad_url: string | null;
@@ -1012,7 +1013,8 @@ export type AuditAction =
   | "admin_removed"
   | "features_updated"
   | "project_moderated"
-  | "user_invited";
+  | "user_invited"
+  | "project_plan_changed";
 
 export type AuditTargetType = "user" | "project" | "admin";
 
@@ -1234,7 +1236,7 @@ export interface ProjectForCotizador {
   idioma?: string | null;
 }
 
-export type Plan = "proyecto" | "studio" | "enterprise";
+export type Plan = "basico" | "pro" | "enterprise";
 
 export interface UserPlan {
   id: string;
@@ -1248,4 +1250,24 @@ export interface UserPlan {
   expires_at: string | null;
   notes: string | null;
   created_at: string;
+}
+
+/* ── Constructora Portal ─────────────────────────────────────────────── */
+
+export interface ConstructoraPortal {
+  id: string;
+  user_id: string;
+  nombre: string;
+  slug: string;
+  logo_url: string | null;
+  descripcion: string | null;
+  color_primario: string;
+  layout: "slider" | "grid";
+  custom_domain: string | null;
+  domain_verified: boolean;
+  proyecto_ids: string[] | null;
+  hero_video_url: string | null;
+  metadata: Record<string, unknown>;
+  created_at: string;
+  updated_at: string;
 }

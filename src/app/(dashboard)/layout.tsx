@@ -11,7 +11,7 @@ import {
   FolderOpen, Users, Settings, LogOut, HelpCircle,
   Menu, X, Shield, ToggleLeft, Calculator, ContactRound,
   BarChart3, FileText, LayoutDashboard, CircleDollarSign, Clock,
-  ExternalLink,
+  ExternalLink, Globe,
 } from "lucide-react";
 import { ToastProvider } from "@/components/dashboard/Toast";
 import { ConfirmProvider } from "@/components/dashboard/ConfirmModal";
@@ -231,6 +231,14 @@ function DashboardShell({ children }: { children: React.ReactNode }) {
             href="/proyectos"
             icon={FolderOpen}
             label={t("sidebar.projects")}
+            pathname={pathname}
+            onClick={closeDrawer}
+          />
+
+          <SidebarLink
+            href="/portal"
+            icon={Globe}
+            label="Portal"
             pathname={pathname}
             onClick={closeDrawer}
           />

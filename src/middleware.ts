@@ -1,6 +1,6 @@
 import { createServerClient, type CookieOptions } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
-import { parseDomain, resolveCustomDomainToSlug } from "@/lib/domains";
+import { parseDomain, resolveCustomDomainToSlug, resolvePortalSubdomain, resolvePortalCustomDomain } from "@/lib/domains";
 
 export async function middleware(request: NextRequest) {
   const hostname = request.headers.get("host") || "localhost:3000";
@@ -32,12 +32,26 @@ export async function middleware(request: NextRequest) {
     }
 
     let slug: string | undefined;
+    let isPortal = false;
 
     if (domainInfo.type === "subdomain") {
-      slug = domainInfo.subdomain;
+      // Check if subdomain is a portal first, then fall back to project
+      const portalSlug = await resolvePortalSubdomain(domainInfo.subdomain!);
+      if (portalSlug) {
+        slug = portalSlug;
+        isPortal = true;
+      } else {
+        slug = domainInfo.subdomain;
+      }
     } else {
-      // Custom domain: resolve to slug via DB lookup
-      slug = (await resolveCustomDomainToSlug(domainInfo.domain!)) ?? undefined;
+      // Custom domain: check portals first, then projects
+      const portalSlug = await resolvePortalCustomDomain(domainInfo.domain!);
+      if (portalSlug) {
+        slug = portalSlug;
+        isPortal = true;
+      } else {
+        slug = (await resolveCustomDomainToSlug(domainInfo.domain!)) ?? undefined;
+      }
     }
 
     if (!slug) {
@@ -47,9 +61,10 @@ export async function middleware(request: NextRequest) {
       return NextResponse.redirect(new URL(`${protocol}://${rootDomain}`));
     }
 
-    // Rewrite: / → /sites/slug, /galeria → /sites/slug/galeria, etc.
+    // Rewrite to portal or site
+    const basePath = isPortal ? `/portal/${slug}` : `/sites/${slug}`;
     const rewritePath =
-      pathname === "/" ? `/sites/${slug}` : `/sites/${slug}${pathname}`;
+      pathname === "/" ? basePath : isPortal ? basePath : `/sites/${slug}${pathname}`;
     const url = request.nextUrl.clone();
     url.pathname = rewritePath;
 
