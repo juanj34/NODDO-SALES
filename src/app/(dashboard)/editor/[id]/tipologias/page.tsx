@@ -774,7 +774,7 @@ export default function TipologiasPage() {
   const { t: tTooltips } = useTranslation("tooltips");
   const { saveTipologia } = useBackgroundSave(projectId);
   const { role } = useAuthRole();
-  const canConfigure = role === "admin" || role === "director";
+  const canConfigure = role === "admin" || role === "administrador" || role === "director";
   const [configModalOpen, setConfigModalOpen] = useState(false);
 
   const TIPO_TABS: { id: TipoTab; label: string; icon: LucideIcon }[] = [

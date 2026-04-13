@@ -1,4 +1,4 @@
-import { getAuthContext } from "@/lib/auth-context";
+import { getAuthContext, requirePermission } from "@/lib/auth-context";
 import { pick } from "@/lib/api-utils";
 import { reportApiError } from "@/lib/error-reporter";
 import { addDomainToVercel, removeDomainFromVercel } from "@/lib/vercel";
@@ -54,9 +54,8 @@ export async function PUT(
     if (!auth) {
       return NextResponse.json({ error: "No autorizado" }, { status: 401 });
     }
-    if (auth.role !== "admin") {
-      return NextResponse.json({ error: "Solo administradores" }, { status: 403 });
-    }
+    const denied = requirePermission(auth, "project.update");
+    if (denied) return denied;
 
     const body = await request.json();
 
@@ -65,7 +64,7 @@ export async function PUT(
       .from("constructora_portals")
       .select("slug")
       .eq("id", id)
-      .eq("user_id", auth.user.id)
+      .eq("user_id", auth.adminUserId)
       .single();
 
     if (!current) {
@@ -98,7 +97,7 @@ export async function PUT(
       .from("constructora_portals")
       .update(updateData)
       .eq("id", id)
-      .eq("user_id", auth.user.id)
+      .eq("user_id", auth.adminUserId)
       .select()
       .single();
 
@@ -139,23 +138,22 @@ export async function DELETE(
     if (!auth) {
       return NextResponse.json({ error: "No autorizado" }, { status: 401 });
     }
-    if (auth.role !== "admin") {
-      return NextResponse.json({ error: "Solo administradores" }, { status: 403 });
-    }
+    const denied = requirePermission(auth, "project.delete");
+    if (denied) return denied;
 
     // Get slug before deleting to remove domain from Vercel
     const { data: portal } = await auth.supabase
       .from("constructora_portals")
       .select("slug")
       .eq("id", id)
-      .eq("user_id", auth.user.id)
+      .eq("user_id", auth.adminUserId)
       .single();
 
     const { error } = await auth.supabase
       .from("constructora_portals")
       .delete()
       .eq("id", id)
-      .eq("user_id", auth.user.id);
+      .eq("user_id", auth.adminUserId);
 
     if (error) throw error;
 

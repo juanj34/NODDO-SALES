@@ -1,4 +1,4 @@
-import { getAuthContext, getAccessibleProjectIds } from "@/lib/auth-context";
+import { getAuthContext, getAccessibleProjectIds, requirePermission } from "@/lib/auth-context";
 import { pick } from "@/lib/api-utils";
 import { logActivity } from "@/lib/activity-logger";
 import { reportApiError } from "@/lib/error-reporter";
@@ -41,9 +41,8 @@ export async function POST(request: NextRequest) {
     if (!auth) {
       return NextResponse.json({ error: "No autorizado" }, { status: 401 });
     }
-    if (auth.role !== "admin") {
-      return NextResponse.json({ error: "Solo administradores pueden crear proyectos" }, { status: 403 });
-    }
+    const denied = requirePermission(auth, "project.create");
+    if (denied) return denied;
 
     const body = await request.json();
     const { nombre, slug } = body;
@@ -85,7 +84,7 @@ export async function POST(request: NextRequest) {
 
     const insertData = {
       ...pick(body, ["nombre", "slug", "descripcion", "estado"]),
-      user_id: auth.user.id,
+      user_id: auth.adminUserId,
       subdomain: slug,
     };
 

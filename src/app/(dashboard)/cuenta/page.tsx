@@ -193,7 +193,7 @@ export default function CuentaPage() {
 
   // Fetch notification preferences
   useEffect(() => {
-    if (role !== "admin") { setNotifLoading(false); return; }
+    if (role !== "admin" && role !== "administrador") { setNotifLoading(false); return; }
     fetch("/api/user/email-reports")
       .then((r) => r.json())
       .then((data) => {
@@ -411,7 +411,7 @@ export default function CuentaPage() {
               <div className="flex items-center gap-2 mt-1">
                 <Shield size={12} className="text-[var(--site-primary)]" />
                 <span className="font-ui text-[10px] font-bold uppercase tracking-wider text-[var(--site-primary)]">
-                  {role === "admin" ? t("cuenta.roleAdmin") : t("cuenta.roleCollaborator")}
+                  {role === "admin" ? t("cuenta.roleAdmin") : role === "administrador" ? "Administrador" : t("cuenta.roleCollaborator")}
                 </span>
               </div>
             </div>
@@ -540,8 +540,8 @@ export default function CuentaPage() {
           </div>
         </section>
 
-        {/* Notifications Section (admin only) */}
-        {role === "admin" && (
+        {/* Notifications Section (admin + administrador) */}
+        {(role === "admin" || role === "administrador") && (
           <section className="glass-card p-6 mb-6">
             <div className="flex items-center gap-2 mb-4">
               <Bell size={16} className="text-[var(--site-primary)]" />

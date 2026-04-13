@@ -112,7 +112,7 @@ interface StatusChangeModalProps {
   unit: ModalUnit;
   newEstado: EstadoUnidad;
   projectContext: ProjectContextForModal;
-  userRole: "admin" | "director" | "asesor";
+  userRole: "admin" | "administrador" | "director" | "asesor";
   onConfirm: (payload: StatusChangePayload) => Promise<void>;
   onClose: () => void;
 }
@@ -166,7 +166,7 @@ export function StatusChangeModal({
   const isCommitting = COMMITTED_STATES.includes(newEstado);
   const wasCommitted = COMMITTED_STATES.includes(unit.estado);
   const isReverting = wasCommitted && !isCommitting;
-  const isAdmin = userRole === "admin";
+  const isAdmin = userRole === "admin" || userRole === "administrador";
 
   // ── Tipología logic ────────────────────────────────────────────
   const showTipoSelector = useMemo(() => {

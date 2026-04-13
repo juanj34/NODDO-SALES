@@ -1,4 +1,4 @@
-import { getAuthContext } from "@/lib/auth-context";
+import { getAuthContext, requirePermission } from "@/lib/auth-context";
 import { NextRequest, NextResponse } from "next/server";
 
 export async function POST(
@@ -10,8 +10,8 @@ export async function POST(
     const auth = await getAuthContext();
     if (!auth)
       return NextResponse.json({ error: "No autorizado" }, { status: 401 });
-    if (auth.role !== "admin")
-      return NextResponse.json({ error: "Solo administradores" }, { status: 403 });
+    const denied = requirePermission(auth, "project.clone");
+    if (denied) return denied;
 
     // Fetch source project
     const { data: source, error: srcErr } = await auth.supabase
@@ -55,7 +55,7 @@ export async function POST(
         slug: newSlug,
         subdomain: newSlug,
         estado: "borrador",
-        user_id: auth.user.id,
+        user_id: auth.adminUserId,
       })
       .select()
       .single();

@@ -11,7 +11,7 @@ export async function POST(
     if (!auth) return NextResponse.json({ error: "No autorizado" }, { status: 401 });
 
     // All roles (admin, director, asesor) can publish availability
-    const isAdmin = auth.role === "admin";
+    const isAdmin = auth.role === "admin" || auth.role === "administrador";
 
     // Verify project ownership (admin) or access (collaborator)
     const { data: proyecto, error: projErr } = await auth.supabase

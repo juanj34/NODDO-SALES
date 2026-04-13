@@ -1,4 +1,4 @@
-import { getAuthContext } from "@/lib/auth-context";
+import { getAuthContext, requirePermission } from "@/lib/auth-context";
 import { generateWebhookSecret } from "@/lib/webhooks";
 import { NextRequest, NextResponse } from "next/server";
 import type { WebhookConfig, WebhookEventType } from "@/types";
@@ -13,13 +13,14 @@ export async function GET(
     const { id } = await params;
     const auth = await getAuthContext();
     if (!auth) return NextResponse.json({ error: "No autorizado" }, { status: 401 });
-    if (auth.role !== "admin") return NextResponse.json({ error: "Solo administradores" }, { status: 403 });
+    const denied = requirePermission(auth, "config.write");
+    if (denied) return denied;
 
     const { data: proyecto, error } = await auth.supabase
       .from("proyectos")
       .select("webhook_config")
       .eq("id", id)
-      .eq("user_id", auth.user.id)
+      .eq("user_id", auth.adminUserId)
       .single();
 
     if (error || !proyecto) return NextResponse.json({ error: "Proyecto no encontrado" }, { status: 404 });
@@ -45,7 +46,8 @@ export async function PUT(
     const { id } = await params;
     const auth = await getAuthContext();
     if (!auth) return NextResponse.json({ error: "No autorizado" }, { status: 401 });
-    if (auth.role !== "admin") return NextResponse.json({ error: "Solo administradores" }, { status: 403 });
+    const denied = requirePermission(auth, "config.write");
+    if (denied) return denied;
 
     const body = await request.json();
     const { enabled, url, events, regenerate_secret } = body;
@@ -80,7 +82,7 @@ export async function PUT(
       .from("proyectos")
       .select("webhook_config")
       .eq("id", id)
-      .eq("user_id", auth.user.id)
+      .eq("user_id", auth.adminUserId)
       .single();
 
     if (!proyecto) return NextResponse.json({ error: "Proyecto no encontrado" }, { status: 404 });
@@ -101,7 +103,7 @@ export async function PUT(
       .from("proyectos")
       .update({ webhook_config: newConfig, updated_at: new Date().toISOString() })
       .eq("id", id)
-      .eq("user_id", auth.user.id);
+      .eq("user_id", auth.adminUserId);
 
     if (error) throw error;
 
@@ -123,13 +125,14 @@ export async function DELETE(
     const { id } = await params;
     const auth = await getAuthContext();
     if (!auth) return NextResponse.json({ error: "No autorizado" }, { status: 401 });
-    if (auth.role !== "admin") return NextResponse.json({ error: "Solo administradores" }, { status: 403 });
+    const denied = requirePermission(auth, "config.write");
+    if (denied) return denied;
 
     const { error } = await auth.supabase
       .from("proyectos")
       .update({ webhook_config: null, updated_at: new Date().toISOString() })
       .eq("id", id)
-      .eq("user_id", auth.user.id);
+      .eq("user_id", auth.adminUserId);
 
     if (error) throw error;
     return NextResponse.json({ success: true });

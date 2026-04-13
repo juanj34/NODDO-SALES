@@ -35,7 +35,7 @@ interface ProjectCreationWizardProps {
   open: boolean;
   onClose: () => void;
   userId?: string;
-  userRole?: "admin" | "director" | "asesor";
+  userRole?: "admin" | "administrador" | "director" | "asesor";
 }
 
 const TOTAL_STEPS = 7;

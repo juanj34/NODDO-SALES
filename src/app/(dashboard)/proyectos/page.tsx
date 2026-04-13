@@ -20,6 +20,7 @@ import { useTranslation } from "@/i18n";
 import { useToast } from "@/components/dashboard/Toast";
 import { useConfirm } from "@/components/dashboard/ConfirmModal";
 import { useAuthRole } from "@/hooks/useAuthContext";
+import { isAtLeast as isAtLeastRole } from "@/lib/permissions";
 import { trackDashboardEvent } from "@/lib/dashboard-tracking";
 
 import { ProjectsFilters } from "@/components/dashboard/projects/ProjectsFilters";
@@ -46,7 +47,7 @@ export default function ProyectosPage() {
   const { t } = useTranslation("dashboard");
   const toast = useToast();
   const { user, role } = useAuthRole();
-  const isAdmin = role === "admin";
+  const isAdmin = role ? isAtLeastRole(role, "administrador") : false;
 
   // Track page view
   useEffect(() => {

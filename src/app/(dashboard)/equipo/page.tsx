@@ -28,7 +28,7 @@ import { useTranslation } from "@/i18n";
 import { useToast } from "@/components/dashboard/Toast";
 import type { Colaborador } from "@/types";
 import { cn } from "@/lib/utils";
-import { ROLE_LABELS, ROLE_DESCRIPTIONS } from "@/lib/permissions";
+import { ROLE_LABELS, ROLE_DESCRIPTIONS, hasPermission } from "@/lib/permissions";
 
 const estadoStyles: Record<string, string> = {
   pendiente: "bg-amber-500/15 text-amber-400 border-amber-500/20",
@@ -52,7 +52,7 @@ export default function EquipoPage() {
   const [showInvite, setShowInvite] = useState(false);
   const [inviteEmail, setInviteEmail] = useState("");
   const [inviteName, setInviteName] = useState("");
-  const [inviteRol, setInviteRol] = useState<"director" | "asesor">("asesor");
+  const [inviteRol, setInviteRol] = useState<"administrador" | "director" | "asesor">("asesor");
   const [sending, setSending] = useState(false);
   const [menuOpen, setMenuOpen] = useState<string | null>(null);
   const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
@@ -131,7 +131,7 @@ export default function EquipoPage() {
   }, []);
 
   useEffect(() => {
-    if (!authLoading && role !== "admin") {
+    if (!authLoading && !hasPermission(role || "asesor", "team.manage")) {
       router.replace("/proyectos");
       return;
     }
@@ -199,8 +199,13 @@ export default function EquipoPage() {
     }
   };
 
-  const handleToggleRol = async (id: string, currentRol: "director" | "asesor") => {
-    const newRol = currentRol === "director" ? "asesor" : "director";
+  // Roles the current user can assign (admin can assign all, administrador only director/asesor)
+  const assignableRoles: ("administrador" | "director" | "asesor")[] =
+    role === "admin"
+      ? ["administrador", "director", "asesor"]
+      : ["director", "asesor"];
+
+  const handleChangeRol = async (id: string, newRol: string) => {
     try {
       const res = await fetch(`/api/colaboradores/${id}`, {
         method: "PUT",
@@ -208,7 +213,7 @@ export default function EquipoPage() {
         body: JSON.stringify({ rol: newRol }),
       });
       if (res.ok) {
-        toast.success(`Rol cambiado a ${ROLE_LABELS[newRol]}`);
+        toast.success(`Rol cambiado a ${ROLE_LABELS[newRol as keyof typeof ROLE_LABELS]}`);
         fetchColaboradores();
         setMenuOpen(null);
       } else {
@@ -444,9 +449,11 @@ export default function EquipoPage() {
                   <span
                     className={cn(
                       "font-ui text-[9px] font-bold uppercase tracking-[0.12em] px-2 py-0.5 rounded border",
-                      colab.rol === "director"
-                        ? "bg-[rgba(var(--site-primary-rgb),0.12)] text-[var(--site-primary)] border-[rgba(var(--site-primary-rgb),0.25)]"
-                        : "bg-[var(--surface-3)] text-[var(--text-muted)] border-[var(--border-default)]"
+                      colab.rol === "administrador"
+                        ? "bg-[rgba(var(--site-primary-rgb),0.2)] text-[var(--site-primary)] border-[rgba(var(--site-primary-rgb),0.4)]"
+                        : colab.rol === "director"
+                          ? "bg-[rgba(var(--site-primary-rgb),0.12)] text-[var(--site-primary)] border-[rgba(var(--site-primary-rgb),0.25)]"
+                          : "bg-[var(--surface-3)] text-[var(--text-muted)] border-[var(--border-default)]"
                     )}
                   >
                     {ROLE_LABELS[colab.rol] || "Asesor"}
@@ -489,14 +496,19 @@ export default function EquipoPage() {
                             {t("equipo.editProjects")}
                           </button>
 
-                          {/* Cambiar rol */}
-                          <button
-                            onClick={() => handleToggleRol(colab.id, colab.rol || "asesor")}
-                            className="w-full flex items-center gap-2.5 px-4 py-2.5 text-xs text-[var(--text-secondary)] hover:bg-[var(--surface-3)] transition-colors"
-                          >
-                            <ArrowLeftRight size={13} />
-                            Cambiar a {ROLE_LABELS[colab.rol === "director" ? "asesor" : "director"]}
-                          </button>
+                          {/* Cambiar rol — show assignable roles except current */}
+                          {assignableRoles
+                            .filter((r) => r !== colab.rol)
+                            .map((newRol) => (
+                              <button
+                                key={newRol}
+                                onClick={() => handleChangeRol(colab.id, newRol)}
+                                className="w-full flex items-center gap-2.5 px-4 py-2.5 text-xs text-[var(--text-secondary)] hover:bg-[var(--surface-3)] transition-colors"
+                              >
+                                <ArrowLeftRight size={13} />
+                                Cambiar a {ROLE_LABELS[newRol]}
+                              </button>
+                            ))}
 
                           {/* Resetear contraseña — only for active collaborators */}
                           {colab.estado === "activo" && (
@@ -666,8 +678,8 @@ export default function EquipoPage() {
                 <label className="block font-ui text-[10px] text-[var(--text-secondary)] mb-2 tracking-wider uppercase font-bold">
                   Rol
                 </label>
-                <div className="flex gap-2">
-                  {(["director", "asesor"] as const).map((rol) => (
+                <div className="flex gap-2 flex-wrap">
+                  {assignableRoles.map((rol) => (
                     <button
                       key={rol}
                       type="button"

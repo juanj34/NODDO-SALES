@@ -113,7 +113,7 @@ export async function getAuthContext(): Promise<AuthContext | null> {
   if (collab) {
     return {
       user: { id: user.id, email: user.email, user_metadata: user.user_metadata },
-      role: (collab.rol as "director" | "asesor") || "asesor",
+      role: (collab.rol as "administrador" | "director" | "asesor") || "asesor",
       adminUserId: collab.admin_user_id,
       isPlatformAdmin: !!platformAdmin,
       profile,
@@ -155,7 +155,7 @@ export function requirePermission(
 export async function getAccessibleProjectIds(
   auth: AuthContext
 ): Promise<string[] | null> {
-  if (auth.role === "admin") return null;
+  if (auth.role === "admin" || auth.role === "administrador") return null;
 
   const { data: assigned } = await auth.supabase
     .from("colaborador_proyectos")
@@ -220,7 +220,7 @@ export async function linkPendingCollaborator(
     const { sendCollaboratorWelcome } = await import("@/lib/email");
     sendCollaboratorWelcome({
       email: user.email,
-      rol: (pending.rol as "director" | "asesor") || "asesor",
+      rol: (pending.rol as "administrador" | "director" | "asesor") || "asesor",
     }).catch((err) => console.error("[collab] welcome email error:", err));
   } catch {
     // Email module not available — skip silently

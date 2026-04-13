@@ -1,4 +1,4 @@
-import { getAuthContext } from "@/lib/auth-context";
+import { getAuthContext, requirePermission } from "@/lib/auth-context";
 import { NextRequest, NextResponse } from "next/server";
 import { SupabaseClient } from "@supabase/supabase-js";
 
@@ -41,11 +41,8 @@ export async function GET(
     const auth = await getAuthContext();
     if (!auth)
       return NextResponse.json({ error: "No autorizado" }, { status: 401 });
-    if (auth.role !== "admin")
-      return NextResponse.json(
-        { error: "Solo administradores" },
-        { status: 403 }
-      );
+    const denied = requirePermission(auth, "config.write");
+    if (denied) return denied;
 
     // Get project storage fields
     const { data: project, error: projError } = await auth.supabase

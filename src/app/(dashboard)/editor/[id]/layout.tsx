@@ -498,7 +498,7 @@ export default function EditorLayout({
   // Director: all except config (can view General/Torres read-only)
   // Asesor: inventario (read-only), disponibilidad, cotizador, tipologias (read-only)
   const filteredSections = useMemo(() => {
-    if (isAdmin) return editorSections;
+    if (isAdmin || role === "administrador") return editorSections;
     if (role === "director") {
       const hiddenTabs = ["config"];
       return editorSections

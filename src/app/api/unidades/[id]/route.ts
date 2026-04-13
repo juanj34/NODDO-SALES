@@ -1,5 +1,6 @@
 import { pick } from "@/lib/api-utils";
 import { getAuthContext, getAccessibleProjectIds, verifyProjectOwnership, requirePermission } from "@/lib/auth-context";
+import { isAtLeast } from "@/lib/permissions";
 import { logActivity } from "@/lib/activity-logger";
 import { NextRequest, NextResponse } from "next/server";
 
@@ -194,8 +195,8 @@ export async function PUT(
 
     // Validate disponibilidad_config requirements for committed states
     // Skip if explicitly selling without client (admin override)
-    const skipClientRequirement = clientMetadata?.sold_without_client === true && auth.role === "admin";
-    if (body.estado !== undefined && ["separado", "reservada", "vendida"].includes(body.estado) && auth.role === "admin" && !skipClientRequirement) {
+    const skipClientRequirement = clientMetadata?.sold_without_client === true && isAtLeast(auth.role, "administrador");
+    if (body.estado !== undefined && ["separado", "reservada", "vendida"].includes(body.estado) && isAtLeast(auth.role, "administrador") && !skipClientRequirement) {
       const dispConfig = (proyecto?.disponibilidad_config ?? {}) as Record<string, boolean>;
       if (dispConfig.require_lead_on_commit && !body.lead_id && !data.lead_id) {
         return NextResponse.json(

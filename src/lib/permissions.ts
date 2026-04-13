@@ -1,8 +1,9 @@
 /**
  * Role-based permission system for NODDO.
- * 3 roles: admin > director > asesor
+ * 4 roles: admin > administrador > director > asesor
  *
  * Admin = project owner (implicit, not in colaboradores table)
+ * Administrador = near-full access collaborator (everything except project.delete + billing)
  * Director = senior agent, can manage content, leads, inventory
  * Asesor = junior agent, limited to leads (assigned), availability, cotizador
  */
@@ -10,7 +11,8 @@
 import type { UserRole } from "@/types";
 
 const ROLE_LEVEL: Record<UserRole, number> = {
-  admin: 3,
+  admin: 4,
+  administrador: 3,
   director: 2,
   asesor: 1,
 };
@@ -59,11 +61,11 @@ export type Permission =
   | "ai.use";
 
 const PERMISSION_MIN_ROLE: Record<Permission, UserRole> = {
-  "project.create": "admin",
-  "project.update": "admin",
+  "project.create": "administrador",
+  "project.update": "administrador",
   "project.delete": "admin",
   "project.publish": "director",
-  "project.clone": "admin",
+  "project.clone": "administrador",
   "project.read": "asesor",
   "content.write": "director",
   "content.read": "asesor",
@@ -79,11 +81,11 @@ const PERMISSION_MIN_ROLE: Record<Permission, UserRole> = {
   "tools.disponibilidad": "asesor",
   "tools.cotizador": "asesor",
   "analytics.read": "director",
-  "financiero.read": "admin",
+  "financiero.read": "administrador",
   "bitacora.read": "director",
   "bitacora.read_own": "asesor",
-  "config.write": "admin",
-  "team.manage": "admin",
+  "config.write": "administrador",
+  "team.manage": "administrador",
   "account.billing": "admin",
   "account.profile": "asesor",
   "upload.files": "director",
@@ -108,13 +110,15 @@ export function isCollaborator(role: UserRole): boolean {
 
 /** Role display labels (Spanish). */
 export const ROLE_LABELS: Record<UserRole, string> = {
-  admin: "Administrador",
+  admin: "Propietario",
+  administrador: "Administrador",
   director: "Director",
   asesor: "Asesor",
 };
 
 /** Short role descriptions for invite modal. */
-export const ROLE_DESCRIPTIONS: Record<"director" | "asesor", string> = {
+export const ROLE_DESCRIPTIONS: Record<"administrador" | "director" | "asesor", string> = {
+  administrador: "Acceso total excepto eliminar proyectos y facturación",
   director: "Gestiona contenido, leads e inventario de los proyectos asignados",
   asesor: "Acceso a disponibilidad, cotizador y leads asignados",
 };

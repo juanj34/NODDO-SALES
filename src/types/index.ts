@@ -596,7 +596,7 @@ export interface Colaborador {
   email: string;
   nombre: string | null;
   estado: "pendiente" | "activo" | "suspendido";
-  rol: "director" | "asesor";
+  rol: "administrador" | "director" | "asesor";
   invited_at: string;
   activated_at: string | null;
   created_at: string;
@@ -608,7 +608,7 @@ export interface Colaborador {
   } | null;
 }
 
-export type UserRole = "admin" | "director" | "asesor";
+export type UserRole = "admin" | "administrador" | "director" | "asesor";
 
 /* ── User Profiles ── */
 
@@ -1191,7 +1191,7 @@ export interface ActivityLog {
   user_id: string | null;
   user_email: string;
   user_name: string | null;
-  user_role: "admin" | "director" | "asesor";
+  user_role: "admin" | "administrador" | "director" | "asesor";
   proyecto_id: string | null;
   proyecto_nombre: string | null;
   action_type: string;

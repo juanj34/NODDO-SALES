@@ -1,4 +1,4 @@
-import { getAuthContext } from "@/lib/auth-context";
+import { getAuthContext, requirePermission } from "@/lib/auth-context";
 import { pick } from "@/lib/api-utils";
 import { reportApiError } from "@/lib/error-reporter";
 import { addDomainToVercel } from "@/lib/vercel";
@@ -34,18 +34,14 @@ export async function POST(request: NextRequest) {
     if (!auth) {
       return NextResponse.json({ error: "No autorizado" }, { status: 401 });
     }
-    if (auth.role !== "admin") {
-      return NextResponse.json(
-        { error: "Solo administradores pueden crear portales" },
-        { status: 403 }
-      );
-    }
+    const denied = requirePermission(auth, "project.create");
+    if (denied) return denied;
 
     // Check user has 2+ published projects
     const { count, error: countError } = await auth.supabase
       .from("proyectos")
       .select("id", { count: "exact", head: true })
-      .eq("user_id", auth.user.id)
+      .eq("user_id", auth.adminUserId)
       .eq("estado", "publicado");
 
     if (countError) throw countError;
@@ -61,7 +57,7 @@ export async function POST(request: NextRequest) {
     const { data: existing } = await auth.supabase
       .from("constructora_portals")
       .select("id")
-      .eq("user_id", auth.user.id)
+      .eq("user_id", auth.adminUserId)
       .maybeSingle();
 
     if (existing) {
@@ -100,7 +96,7 @@ export async function POST(request: NextRequest) {
         "nombre", "slug", "logo_url", "descripcion", "color_primario",
         "layout", "custom_domain", "proyecto_ids", "hero_video_url", "metadata",
       ]),
-      user_id: auth.user.id,
+      user_id: auth.adminUserId,
     };
 
     const { data, error } = await auth.supabase

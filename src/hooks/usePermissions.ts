@@ -17,6 +17,7 @@ export function usePermissions() {
       isAtLeast: (minRole: UserRole) =>
         role ? isAtLeast(role, minRole) : false,
       isAdmin: role === "admin",
+      isAdministrador: role === "administrador",
       isDirector: role === "director",
       isAsesor: role === "asesor",
       isCollaborator: role ? isCollaborator(role) : false,

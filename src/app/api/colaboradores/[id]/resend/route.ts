@@ -1,4 +1,4 @@
-import { getAuthContext } from "@/lib/auth-context";
+import { getAuthContext, requirePermission } from "@/lib/auth-context";
 import { sendCollaboratorInvite, getUserLocale } from "@/lib/email";
 import { NextRequest, NextResponse } from "next/server";
 
@@ -11,15 +11,15 @@ export async function POST(
     const auth = await getAuthContext();
     if (!auth)
       return NextResponse.json({ error: "No autorizado" }, { status: 401 });
-    if (auth.role !== "admin")
-      return NextResponse.json({ error: "Solo administradores" }, { status: 403 });
+    const denied = requirePermission(auth, "team.manage");
+    if (denied) return denied;
 
     // Verify collaborator belongs to this admin and is pending
     const { data: colab, error } = await auth.supabase
       .from("colaboradores")
       .select("id, email, estado")
       .eq("id", id)
-      .eq("admin_user_id", auth.user.id)
+      .eq("admin_user_id", auth.adminUserId)
       .single();
 
     if (error || !colab) {

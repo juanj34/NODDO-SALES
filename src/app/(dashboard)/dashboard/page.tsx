@@ -7,6 +7,7 @@ import { useRouter } from "next/navigation";
 import { useProjects, useDashboardSummary } from "@/hooks/useProjectsQuery";
 import { DashboardSkeleton, KPIStripSkeleton } from "@/components/dashboard/home/DashboardSkeleton";
 import { useAuthRole } from "@/hooks/useAuthContext";
+import { isAtLeast as isAtLeastRole } from "@/lib/permissions";
 import { trackDashboardEvent } from "@/lib/dashboard-tracking";
 
 import { DashboardGreeting } from "@/components/dashboard/home/DashboardGreeting";
@@ -23,7 +24,7 @@ export default function DashboardPage() {
   const [showOnboarding, setShowOnboarding] = useState(false);
   const router = useRouter();
   const { user, role, profile } = useAuthRole();
-  const isAdmin = role === "admin";
+  const isAdmin = role ? isAtLeastRole(role, "administrador") : false;
 
   // Show onboarding for admins with no projects (first-time users)
   useEffect(() => {

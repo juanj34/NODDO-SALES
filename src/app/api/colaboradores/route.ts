@@ -1,7 +1,8 @@
 import { logActivity } from "@/lib/activity-logger";
-import { getAuthContext } from "@/lib/auth-context";
+import { getAuthContext, requirePermission } from "@/lib/auth-context";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { sendCollaboratorInvite, getUserLocale } from "@/lib/email";
+import { isAtLeast } from "@/lib/permissions";
 import { NextRequest, NextResponse } from "next/server";
 
 export async function GET() {
@@ -10,14 +11,13 @@ export async function GET() {
     if (!auth) {
       return NextResponse.json({ error: "No autorizado" }, { status: 401 });
     }
-    if (auth.role !== "admin") {
-      return NextResponse.json({ error: "Solo administradores" }, { status: 403 });
-    }
+    const denied = requirePermission(auth, "team.manage");
+    if (denied) return denied;
 
     const { data, error } = await auth.supabase
       .from("colaboradores")
       .select("*")
-      .eq("admin_user_id", auth.user.id)
+      .eq("admin_user_id", auth.adminUserId)
       .order("created_at", { ascending: false });
 
     if (error) throw error;
@@ -61,13 +61,24 @@ export async function POST(request: NextRequest) {
     if (!auth) {
       return NextResponse.json({ error: "No autorizado" }, { status: 401 });
     }
-    if (auth.role !== "admin") {
-      return NextResponse.json({ error: "Solo administradores" }, { status: 403 });
-    }
+    const denied = requirePermission(auth, "team.manage");
+    if (denied) return denied;
 
     const body = await request.json();
     const { email, nombre, rol } = body;
-    const validRol = rol === "director" ? "director" : "asesor";
+
+    // Validate rol — administrador can only create director/asesor, not other administradores
+    const allowedRoles: string[] = auth.role === "admin"
+      ? ["administrador", "director", "asesor"]
+      : ["director", "asesor"];
+
+    if (!allowedRoles.includes(rol)) {
+      return NextResponse.json(
+        { error: "Rol no permitido" },
+        { status: 403 }
+      );
+    }
+    const validRol = rol as "administrador" | "director" | "asesor";
 
     if (!email) {
       return NextResponse.json(
@@ -151,7 +162,7 @@ export async function POST(request: NextRequest) {
     const { data, error } = await auth.supabase
       .from("colaboradores")
       .insert({
-        admin_user_id: auth.user.id,
+        admin_user_id: auth.adminUserId,
         colaborador_user_id: colaboradorUserId,
         email: email.toLowerCase(),
         nombre: nombre || null,

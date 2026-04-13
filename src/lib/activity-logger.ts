@@ -12,7 +12,7 @@ export interface ActivityLogParams {
   userId: string;
   userEmail: string;
   userName?: string | null;
-  userRole: "admin" | "director" | "asesor";
+  userRole: "admin" | "administrador" | "director" | "asesor";
   proyectoId?: string | null;
   proyectoNombre?: string | null;
   actionType: string;

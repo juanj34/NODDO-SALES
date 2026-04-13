@@ -1,4 +1,4 @@
-import { getAuthContext } from "@/lib/auth-context";
+import { getAuthContext, requirePermission } from "@/lib/auth-context";
 import { dispatchWebhook } from "@/lib/webhooks";
 import type { WebhookPayload } from "@/lib/webhooks";
 import { NextRequest, NextResponse } from "next/server";
@@ -12,13 +12,14 @@ export async function POST(
     const { id } = await params;
     const auth = await getAuthContext();
     if (!auth) return NextResponse.json({ error: "No autorizado" }, { status: 401 });
-    if (auth.role !== "admin") return NextResponse.json({ error: "Solo administradores" }, { status: 403 });
+    const denied = requirePermission(auth, "config.write");
+    if (denied) return denied;
 
     const { data: proyecto, error } = await auth.supabase
       .from("proyectos")
       .select("nombre, webhook_config")
       .eq("id", id)
-      .eq("user_id", auth.user.id)
+      .eq("user_id", auth.adminUserId)
       .single();
 
     if (error || !proyecto) return NextResponse.json({ error: "Proyecto no encontrado" }, { status: 404 });

@@ -1,4 +1,4 @@
-import { getAuthContext } from "@/lib/auth-context";
+import { getAuthContext, requirePermission } from "@/lib/auth-context";
 import { pick } from "@/lib/api-utils";
 import { logActivity } from "@/lib/activity-logger";
 import { reportApiError } from "@/lib/error-reporter";
@@ -166,9 +166,8 @@ export async function PUT(
     if (!auth) {
       return NextResponse.json({ error: "No autorizado" }, { status: 401 });
     }
-    if (auth.role !== "admin") {
-      return NextResponse.json({ error: "Solo administradores" }, { status: 403 });
-    }
+    const denied = requirePermission(auth, "project.update");
+    if (denied) return denied;
 
     const body = await request.json();
 
@@ -186,14 +185,14 @@ export async function PUT(
       .from("proyectos")
       .select("*")
       .eq("id", id)
-      .eq("user_id", auth.user.id)
+      .eq("user_id", auth.adminUserId)
       .single();
 
     const { data, error } = await auth.supabase
       .from("proyectos")
       .update(updateData)
       .eq("id", id)
-      .eq("user_id", auth.user.id)
+      .eq("user_id", auth.adminUserId)
       .select()
       .single();
 
@@ -249,9 +248,8 @@ export async function DELETE(
     if (!auth) {
       return NextResponse.json({ error: "No autorizado" }, { status: 401 });
     }
-    if (auth.role !== "admin") {
-      return NextResponse.json({ error: "Solo administradores" }, { status: 403 });
-    }
+    const denied = requirePermission(auth, "project.delete");
+    if (denied) return denied;
 
     // Fetch name before deleting for the log
     const { data: proj } = await auth.supabase.from("proyectos").select("nombre").eq("id", id).single();
@@ -260,7 +258,7 @@ export async function DELETE(
       .from("proyectos")
       .delete()
       .eq("id", id)
-      .eq("user_id", auth.user.id);
+      .eq("user_id", auth.adminUserId);
 
     if (error) throw error;
 

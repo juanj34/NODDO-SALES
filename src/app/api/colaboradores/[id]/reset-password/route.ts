@@ -1,4 +1,4 @@
-import { getAuthContext } from "@/lib/auth-context";
+import { getAuthContext, requirePermission } from "@/lib/auth-context";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { NextRequest, NextResponse } from "next/server";
 
@@ -12,16 +12,15 @@ export async function POST(
     if (!auth) {
       return NextResponse.json({ error: "No autorizado" }, { status: 401 });
     }
-    if (auth.role !== "admin") {
-      return NextResponse.json({ error: "Solo administradores" }, { status: 403 });
-    }
+    const denied = requirePermission(auth, "team.manage");
+    if (denied) return denied;
 
     // Fetch the collaborator to get their email
     const { data: colab, error: fetchError } = await auth.supabase
       .from("colaboradores")
       .select("email, estado, colaborador_user_id")
       .eq("id", id)
-      .eq("admin_user_id", auth.user.id)
+      .eq("admin_user_id", auth.adminUserId)
       .single();
 
     if (fetchError || !colab) {

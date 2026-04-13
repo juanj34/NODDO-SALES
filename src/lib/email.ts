@@ -400,7 +400,7 @@ export async function sendLeadConfirmation(data: LeadConfirmationData) {
 interface CollaboratorInviteData {
   email: string;
   inviterName: string;
-  rol?: "director" | "asesor";
+  rol?: "administrador" | "director" | "asesor";
   locale?: EmailLocale;
 }
 
@@ -416,7 +416,7 @@ export async function sendCollaboratorInvite(data: CollaboratorInviteData) {
   const fromAddress = process.env.RESEND_FROM_EMAIL || "NODDO <notificaciones@noddo.io>";
   const appUrl = process.env.NEXT_PUBLIC_APP_URL || "https://noddo.io";
 
-  const bodyTemplate = data.rol === "director"
+  const bodyTemplate = data.rol === "director" || data.rol === "administrador"
     ? s.collaboratorInvite.bodyDirector
     : s.collaboratorInvite.bodyAsesor;
 
@@ -449,7 +449,7 @@ export async function sendCollaboratorInvite(data: CollaboratorInviteData) {
 
 interface CollaboratorWelcomeData {
   email: string;
-  rol: "director" | "asesor";
+  rol: "administrador" | "director" | "asesor";
   locale?: EmailLocale;
 }
 

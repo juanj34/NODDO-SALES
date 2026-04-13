@@ -1,4 +1,4 @@
-import { getAuthContext, getAccessibleProjectIds, verifyProjectOwnership } from "@/lib/auth-context";
+import { getAuthContext, getAccessibleProjectIds, verifyProjectOwnership, requirePermission } from "@/lib/auth-context";
 import { NextRequest, NextResponse } from "next/server";
 
 export async function GET(
@@ -12,8 +12,8 @@ export async function GET(
       return NextResponse.json({ error: "No autorizado" }, { status: 401 });
     }
 
-    // Verify access — all roles (admin, director, asesor) can use disponibilidad
-    if (auth.role !== "admin") {
+    // Verify access — all roles (admin, administrador, director, asesor) can use disponibilidad
+    if (auth.role !== "admin" && auth.role !== "administrador") {
       const accessible = await getAccessibleProjectIds(auth);
       if (accessible && !accessible.includes(id)) {
         return NextResponse.json({ error: "Sin acceso" }, { status: 403 });

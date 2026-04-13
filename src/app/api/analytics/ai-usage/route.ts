@@ -1,4 +1,4 @@
-import { getAuthContext } from "@/lib/auth-context";
+import { getAuthContext, requirePermission } from "@/lib/auth-context";
 import { NextRequest, NextResponse } from "next/server";
 
 /**
@@ -17,12 +17,8 @@ export async function GET(request: NextRequest) {
     if (!auth) {
       return NextResponse.json({ error: "No autorizado" }, { status: 401 });
     }
-    if (auth.role !== "admin") {
-      return NextResponse.json(
-        { error: "Solo administradores" },
-        { status: 403 }
-      );
-    }
+    const denied = requirePermission(auth, "financiero.read");
+    if (denied) return denied;
 
     const { searchParams } = new URL(request.url);
     const period = searchParams.get("period") || "30d";
