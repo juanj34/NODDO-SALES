@@ -26,7 +26,9 @@ import type {
 } from "@/types";
 import { calcularCotizacion } from "@/lib/cotizador/calcular";
 import { resolveDeliveryContext } from "@/lib/cotizador/delivery";
+import { buildQuickQuoteFases, suggestCuotasFromDelivery } from "@/lib/cotizador/quick-quote";
 import { formatCurrency } from "@/lib/currency";
+import { useSiteFormatCurrency } from "@/hooks/useSiteFormatCurrency";
 import { trackEvent } from "@/lib/tracking";
 import { getUnitDisplayName } from "@/lib/unit-display";
 import { MultiStepForm, useMultiStepForm } from "@/components/site/MultiStepForm";
@@ -272,6 +274,7 @@ export function CotizadorFlowMultiStep({
 }: CotizadorFlowMultiStepProps) {
   const isCotizador = cotizadorEnabled && !!config && !!unidad.precio;
   const { currentStep, nextStep, prevStep } = useMultiStepForm(2);
+  const { siteFormat } = useSiteFormatCurrency();
 
   // Track step progression
   const handleNextStep = () => {
@@ -298,15 +301,34 @@ export function CotizadorFlowMultiStep({
     return resolveDeliveryContext(config);
   }, [config]);
 
+  // Quick quote mode: use simplified params instead of full template config
+  const isQuickQuote = !!(config?.quick_quote_enabled && config?.quick_quote_defaults);
+
+  const quickQuoteParams = useMemo(() => {
+    if (!isQuickQuote || !config?.quick_quote_defaults) return null;
+    const defaults = config.quick_quote_defaults;
+    const dc = deliveryContext;
+    const effectiveCuotas = dc
+      ? suggestCuotasFromDelivery(dc.mesesDisponibles, defaults.frecuencia)
+      : defaults.cuotas;
+    return { ...defaults, cuotas: effectiveCuotas };
+  }, [isQuickQuote, config, deliveryContext]);
+
   // Calculate quotation (only for cotizador mode)
   const resultado: ResultadoCotizacion | null = useMemo(() => {
     if (!isCotizador || !unidad.precio || !config) return null;
     try {
+      // Quick quote: build config from simplified params
+      if (isQuickQuote && quickQuoteParams) {
+        const qqFases = buildQuickQuoteFases(quickQuoteParams);
+        const qqConfig: CotizadorConfig = { ...config, fases: qqFases, separacion_incluida_en_inicial: false };
+        return calcularCotizacion(unidad.precio, qqConfig, [], [], deliveryContext);
+      }
       return calcularCotizacion(unidad.precio, config, [], [], deliveryContext);
     } catch {
       return null;
     }
-  }, [isCotizador, unidad.precio, config, deliveryContext]);
+  }, [isCotizador, unidad.precio, config, deliveryContext, isQuickQuote, quickQuoteParams]);
 
   const moneda = ((config?.moneda || "COP") as Currency);
 
@@ -330,6 +352,7 @@ export function CotizadorFlowMultiStep({
             email,
             telefono: telefono ? `${countryCode} ${telefono}` : null,
             tipologia_id: selectedTipologiaId || undefined,
+            ...(isQuickQuote && quickQuoteParams ? { quick_quote: quickQuoteParams } : {}),
             utm_source: new URLSearchParams(window.location.search).get("utm_source"),
             utm_medium: new URLSearchParams(window.location.search).get("utm_medium"),
             utm_campaign: new URLSearchParams(window.location.search).get("utm_campaign"),
@@ -515,7 +538,7 @@ export function CotizadorFlowMultiStep({
                   {locale === "es" ? "Precio" : "Price"}
                 </span>
                 <span className="text-lg font-semibold text-[var(--site-primary)] font-mono">
-                  {formatCurrency(unidad.precio, moneda)}
+                  {siteFormat(unidad.precio)}
                 </span>
               </div>
             )}
@@ -531,7 +554,7 @@ export function CotizadorFlowMultiStep({
                     {tSite("cotizador.terrain")}
                   </span>
                   <span className="text-[var(--text-primary)] font-mono">
-                    {formatCurrency(terrenoPrice, moneda)}
+                    {siteFormat(terrenoPrice)}
                   </span>
                 </div>
                 <div className="flex justify-between text-xs mb-1.5">
@@ -539,14 +562,14 @@ export function CotizadorFlowMultiStep({
                     {tSite("cotizador.construction")}
                   </span>
                   <span className="text-[var(--text-primary)] font-mono">
-                    {formatCurrency(construccionPrice, moneda)}
+                    {siteFormat(construccionPrice)}
                   </span>
                 </div>
                 <div className="h-px bg-[var(--border-default)] my-2" />
                 <div className="flex justify-between text-xs font-semibold">
                   <span className="text-[var(--text-primary)]">Total</span>
                   <span className="text-[var(--site-primary)] font-mono">
-                    {formatCurrency(terrenoPrice + construccionPrice, moneda)}
+                    {siteFormat(terrenoPrice + construccionPrice)}
                   </span>
                 </div>
               </div>
@@ -573,7 +596,7 @@ export function CotizadorFlowMultiStep({
                             <p className="text-[10px] text-[var(--text-muted)] mt-0.5">
                               {fase.cuotas} {tSite("cotizador.installmentsOf")}{" "}
                               <span className="font-mono">
-                                {formatCurrency(fase.monto_por_cuota, moneda)}
+                                {siteFormat(fase.monto_por_cuota)}
                               </span>
                               {fase.frecuencia !== "unica" &&
                                 ` (${fase.frecuencia})`}
@@ -581,7 +604,7 @@ export function CotizadorFlowMultiStep({
                           )}
                         </div>
                         <p className="text-xs text-[var(--text-secondary)] font-medium font-mono">
-                          {formatCurrency(fase.monto_total, moneda)}
+                          {siteFormat(fase.monto_total)}
                         </p>
                       </div>
                     ))}
@@ -591,7 +614,7 @@ export function CotizadorFlowMultiStep({
                       Total
                     </p>
                     <p className="text-sm font-semibold text-[var(--site-primary)] font-mono">
-                      {formatCurrency(resultado.precio_neto, moneda)}
+                      {siteFormat(resultado.precio_neto)}
                     </p>
                   </div>
                 </div>

@@ -4,7 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import { cn } from "@/lib/utils";
 import {
   Image as ImageIcon,
@@ -63,6 +63,27 @@ export function SiteNav({ basePath, projectName, logoUrl, faviconUrl, constructo
   const [showSettings, setShowSettings] = useState(false);
   const [showAgentLogin, setShowAgentLogin] = useState(false);
   const { isAgentMode, agentUser, logout, loading: agentLoading } = useAgentMode();
+  const settingsPanelRef = useRef<HTMLDivElement>(null);
+
+  // Close settings panel on outside click, but keep it open when interacting
+  // with portal-based dropdowns (e.g. CurrencySelector's NodDoDropdown).
+  useEffect(() => {
+    if (!showSettings) return;
+
+    function handleMouseDown(e: MouseEvent) {
+      const target = e.target as Node;
+      // Click inside the settings panel wrapper — keep open
+      if (settingsPanelRef.current?.contains(target)) return;
+      // Click inside a portal dropdown panel — keep open
+      const portalPanel = document.getElementById("noddo-dropdown-panel");
+      if (portalPanel?.contains(target)) return;
+      setShowSettings(false);
+    }
+
+    document.addEventListener("mousedown", handleMouseDown);
+    return () => document.removeEventListener("mousedown", handleMouseDown);
+  }, [showSettings]);
+
   const { t: tNav } = useTranslation("nav");
   const { t: tCommon } = useTranslation("common");
 
@@ -272,10 +293,9 @@ export function SiteNav({ basePath, projectName, logoUrl, faviconUrl, constructo
           {/* Settings + Info row */}
           <div className={cn("flex items-center", expanded ? "w-full gap-1" : "flex-col gap-1")}>
             {/* Settings popover trigger */}
-            <div className="relative">
+            <div className="relative" ref={settingsPanelRef}>
               <button
                 onClick={() => setShowSettings(!showSettings)}
-                onBlur={() => setTimeout(() => setShowSettings(false), 150)}
                 className={cn(
                   "flex items-center transition-all cursor-pointer rounded-lg",
                   expanded

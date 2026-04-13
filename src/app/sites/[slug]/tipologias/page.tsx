@@ -40,7 +40,7 @@ import { getInventoryColumns, getHybridInventoryColumns, resolveColumnsForTipolo
 import { getTipologiaFields } from "@/lib/tipologia-fields";
 import { resolveHotspotImages } from "@/lib/hotspot-utils";
 import { resolvePisos } from "@/lib/piso-utils";
-import { formatCurrency } from "@/lib/currency";
+import { useSiteFormatCurrency } from "@/hooks/useSiteFormatCurrency";
 import { getUnitDisplayName } from "@/lib/unit-display";
 import type { Unidad, UnidadTipologia, LightboxImage, VistaPiso } from "@/types";
 import { useSectionVisibility } from "@/hooks/useSectionVisibility";
@@ -54,6 +54,7 @@ export default function TipologiasPage() {
   const { t: tSite } = useTranslation("site");
   const unitPrefix = proyecto.unidad_display_prefix;
   const { t: tCommon } = useTranslation("common");
+  const { siteFormat, isConverted, displayCurrency } = useSiteFormatCurrency();
 
   // ALL HOOKS MUST BE BEFORE ANY EARLY RETURNS
   // Extract data first (wrapped in useMemo to prevent dep warnings)
@@ -913,7 +914,7 @@ export default function TipologiasPage() {
                               if (isTipologiaPricing && active?.precio_desde) {
                                 return (
                                   <p className="font-mono text-lg text-[var(--site-primary)] tabular-nums font-medium">
-                                    {formatCurrency(active.precio_desde, proyecto.moneda_base ?? "COP")}
+                                    {siteFormat(active.precio_desde)}
                                   </p>
                                 );
                               }
@@ -934,9 +935,9 @@ export default function TipologiasPage() {
                                           <p className="text-[9px] text-[var(--text-secondary)] mb-0.5 truncate">{t.nombre}</p>
                                           <p className="font-mono text-sm text-[var(--site-primary)] tabular-nums">
                                             {terreno && construccion
-                                              ? formatCurrency(total, proyecto.moneda_base ?? "COP")
+                                              ? siteFormat(total)
                                               : construccion
-                                                ? formatCurrency(construccion, proyecto.moneda_base ?? "COP")
+                                                ? siteFormat(construccion)
                                                 : "—"}
                                           </p>
                                         </div>
@@ -953,8 +954,8 @@ export default function TipologiasPage() {
                                   <div>
                                     <p className="font-mono text-lg text-[var(--site-primary)] tabular-nums font-medium">
                                       {terreno
-                                        ? formatCurrency(total, proyecto.moneda_base ?? "COP")
-                                        : formatCurrency(construccion, proyecto.moneda_base ?? "COP")}
+                                        ? siteFormat(total)
+                                        : siteFormat(construccion)}
                                     </p>
                                     <p className="font-mono text-[9px] text-[var(--text-tertiary)]">
                                       {terreno
@@ -970,7 +971,7 @@ export default function TipologiasPage() {
                               return unitComplementos.length > 0 ? (
                                 <div>
                                   <p className="font-mono text-lg text-[var(--site-primary)] tabular-nums font-medium">
-                                    {formatCurrency(totalPrecio, proyecto.moneda_base ?? "COP")}
+                                    {siteFormat(totalPrecio)}
                                   </p>
                                   <p className="font-mono text-[9px] text-[var(--text-tertiary)]">
                                     + {unitComplementos.length} complemento(s)
@@ -978,7 +979,7 @@ export default function TipologiasPage() {
                                 </div>
                               ) : (
                                 <p className="font-mono text-lg text-[var(--site-primary)] tabular-nums font-medium">
-                                  {formatCurrency(terreno, proyecto.moneda_base ?? "COP")}
+                                  {siteFormat(terreno)}
                                 </p>
                               );
                             })()}
@@ -1188,9 +1189,14 @@ export default function TipologiasPage() {
                       {tSite("tipologias.from")}
                     </span>
                     <span className="font-mono text-base text-[var(--site-primary)] tabular-nums leading-none">
-                      {formatCurrency(precioDesde, proyecto.moneda_base ?? "COP")}
+                      {siteFormat(precioDesde)}
                     </span>
                   </div>
+                )}
+                {isConverted && (
+                  <p className="text-[9px] font-mono text-[var(--text-muted)] mt-1">
+                    ≈ {displayCurrency}
+                  </p>
                 )}
               </div>
 
@@ -1303,7 +1309,7 @@ export default function TipologiasPage() {
                                     return (
                                       <p className="font-mono text-sm text-[var(--text-secondary)] tabular-nums">
                                         {!allSame && <span className="text-[10px] text-[var(--text-tertiary)]">{tSite("tipologias.from")} </span>}
-                                        {formatCurrency(min, proyecto.moneda_base ?? "COP")}
+                                        {siteFormat(min)}
                                       </p>
                                     );
                                   }
@@ -1315,7 +1321,7 @@ export default function TipologiasPage() {
                                     : (t ? t + c : c || null);
                                   return (
                                     <p className="font-mono text-sm text-[var(--text-secondary)] tabular-nums">
-                                      {displayPrice ? formatCurrency(displayPrice, proyecto.moneda_base ?? "COP") : "—"}
+                                      {displayPrice ? siteFormat(displayPrice) : "—"}
                                     </p>
                                   );
                                 })()}

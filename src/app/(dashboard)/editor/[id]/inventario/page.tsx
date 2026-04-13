@@ -3509,17 +3509,32 @@ export default function InventarioPage() {
                           )}
                           {columns.area_construida && (
                             <td className="py-2 px-4 text-[var(--text-secondary)]">
-                              {unit.area_construida != null ? `${unit.area_construida} m²` : "-"}
+                              {unit.area_construida != null
+                                ? `${unit.area_construida} m²`
+                                : confirmedTipo?.area_construida != null
+                                  ? `${confirmedTipo.area_construida} m²`
+                                  : "-"
+                              }
                             </td>
                           )}
                           {columns.area_privada && (
                             <td className="py-2 px-4 text-[var(--text-secondary)]">
-                              {unit.area_privada != null ? `${unit.area_privada} m²` : "-"}
+                              {unit.area_privada != null
+                                ? `${unit.area_privada} m²`
+                                : confirmedTipo?.area_privada != null
+                                  ? `${confirmedTipo.area_privada} m²`
+                                  : "-"
+                              }
                             </td>
                           )}
                           {columns.area_lote && (
                             <td className="py-2 px-4 text-[var(--text-secondary)]">
-                              {unit.area_lote != null ? `${unit.area_lote} m²` : "-"}
+                              {unit.area_lote != null
+                                ? `${unit.area_lote} m²`
+                                : confirmedTipo?.area_lote != null
+                                  ? `${confirmedTipo.area_lote} m²`
+                                  : "-"
+                              }
                             </td>
                           )}
                           <td className="py-2 px-4 text-[var(--text-secondary)]">

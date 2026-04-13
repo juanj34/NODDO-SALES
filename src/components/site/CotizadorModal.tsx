@@ -24,6 +24,7 @@ import {
   getHybridInventoryColumns,
 } from "@/lib/inventory-columns";
 import { formatCurrency } from "@/lib/currency";
+import { useSiteFormatCurrency } from "@/hooks/useSiteFormatCurrency";
 import { UNIT_CONFIG } from "@/lib/units";
 import type {
   Unidad,
@@ -320,6 +321,7 @@ export function CotizadorModal({
   const { t: tCommon, locale } = useTranslation("common");
   const { t: tSite } = useTranslation("site");
   const proyecto = useSiteProject();
+  const { siteFormat } = useSiteFormatCurrency();
 
   // Agent mode: render the full dashboard CotizadorTool in a fullscreen modal
   if (isAgentMode) {
@@ -606,7 +608,7 @@ export function CotizadorModal({
                       </div>
                       {columns.precio && tipo.precio_desde && (
                         <p className="mt-2 text-sm font-semibold text-[var(--site-primary)]">
-                          {formatCurrency(tipo.precio_desde, moneda)}
+                          {siteFormat(tipo.precio_desde)}
                         </p>
                       )}
                     </motion.button>

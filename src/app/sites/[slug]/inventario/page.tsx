@@ -38,7 +38,7 @@ import { CotizadorModal } from "@/components/site/CotizadorModal";
 import { SectionTransition } from "@/components/site/SectionTransition";
 import { SiteEmptyState } from "@/components/site/SiteEmptyState";
 import { cn } from "@/lib/utils";
-import { formatCurrency } from "@/lib/currency";
+import { useSiteFormatCurrency } from "@/hooks/useSiteFormatCurrency";
 import { getUnitDisplayName } from "@/lib/unit-display";
 import { getInventoryColumns, getHybridInventoryColumns, resolveColumnsForTipologia, getPrimaryArea, getVisibleCustomColumns } from "@/lib/inventory-columns";
 import type { Unidad, UnidadTipologia, TipoTipologia, CustomColumnDef } from "@/types";
@@ -56,6 +56,7 @@ export default function InventarioPage() {
   const { t: tSite } = useTranslation("site");
   const unitPrefix = proyecto.unidad_display_prefix;
   const { t: tCommon } = useTranslation("common");
+  const { siteFormat, isConverted, displayCurrency } = useSiteFormatCurrency();
 
   // ALL HOOKS MUST BE CALLED BEFORE ANY EARLY RETURNS
   const estadoConfig = useMemo(() => getEstadoConfig(tCommon), [tCommon]);
@@ -125,13 +126,34 @@ export default function InventarioPage() {
   const unidadTipologias = useMemo<UnidadTipologia[]>(() => proyecto.unidad_tipologias ?? [], [proyecto.unidad_tipologias]);
 
   // Helper: resolve unit price based on pricing source (use precio_venta for sold units)
-  // When tipología pricing: price = tipología.precio_desde (unit.precio is ignored)
-  // When unit pricing: price = unit.precio (+ tipología.precio_desde for lot-based)
+  // Priority: unit.precio_venta (sold) > unit.precio > tipología.precio_desde
+  // Unit-based pricing still falls back to tipología when the unit has no custom price.
   const getUnitPrice = useCallback((unit: Unidad): number | null => {
     if (unit.estado === "proximamente") return null;
     if (unit.estado === "vendida" && ocultarPrecioVendidas) return null;
     if (unit.estado === "vendida" && unit.precio_venta != null) return unit.precio_venta;
-    if (!isTipologiaPricing) return unit.precio;
+
+    // Unit-based pricing: use unit.precio, fall back to tipología.precio_desde
+    if (!isTipologiaPricing) {
+      if (unit.precio != null) return unit.precio;
+      // Fallback: inherit price from tipología
+      if (unit.tipologia_id) {
+        const tipo = (tipologias || []).find(t => t.id === unit.tipologia_id);
+        return tipo?.precio_desde ?? null;
+      }
+      // Multi-tipo fallback: lowest linked tipología price
+      if (isMultiTipo) {
+        const tipoIds = unidadTipologias
+          .filter(ut => ut.unidad_id === unit.id)
+          .map(ut => ut.tipologia_id);
+        const prices = (tipologias || [])
+          .filter(t => tipoIds.includes(t.id) && t.precio_desde != null)
+          .map(t => t.precio_desde!);
+        return prices.length > 0 ? Math.min(...prices) : null;
+      }
+      return null;
+    }
+
     // Tipología pricing: resolve from tipología, NOT from unit.precio
     if (unit.tipologia_id) {
       const tipo = (tipologias || []).find(t => t.id === unit.tipologia_id);
@@ -778,7 +800,7 @@ export default function InventarioPage() {
                     {columns.etapa && unit.etapa_nombre && (
                       <div className="mb-1.5">
                         <span className="text-[9px] px-1.5 py-0.5 rounded-full bg-white/5 text-[var(--text-tertiary)]">
-                          {unit.etapa_nombre}
+                          {tSite("inventario.etapa")} {unit.etapa_nombre}
                         </span>
                       </div>
                     )}
@@ -826,19 +848,37 @@ export default function InventarioPage() {
                         </>
                       ) : (
                         <>
-                          {(getPrimaryArea(unit, columns) ?? tipo?.area_m2) != null && (
+                          {columns.area_m2 && (unit.area_m2 ?? tipo?.area_m2) != null && (
                             <span className="flex items-center gap-0.5">
                               <Maximize size={10} className="text-[var(--text-muted)]" />
-                              {getPrimaryArea(unit, columns) ?? tipo?.area_m2}m²
+                              {unit.area_m2 ?? tipo?.area_m2}m²
                             </span>
                           )}
-                          {columns.habitaciones && (unit.habitaciones ?? tipo?.habitaciones) !== null && (
+                          {columns.area_construida && (unit.area_construida ?? tipo?.area_construida) != null && (
+                            <span className="flex items-center gap-0.5">
+                              <Maximize size={10} className="text-[var(--text-muted)]" />
+                              {unit.area_construida ?? tipo?.area_construida}m²
+                            </span>
+                          )}
+                          {columns.area_privada && (unit.area_privada ?? tipo?.area_privada) != null && (
+                            <span className="flex items-center gap-0.5">
+                              <Maximize size={10} className="text-[var(--text-muted)]" />
+                              {unit.area_privada ?? tipo?.area_privada}m²
+                            </span>
+                          )}
+                          {columns.area_lote && (unit.area_lote ?? tipo?.area_lote) != null && (
+                            <span className="flex items-center gap-0.5">
+                              <Maximize size={10} className="text-[var(--text-muted)]" />
+                              {unit.area_lote ?? tipo?.area_lote}m²
+                            </span>
+                          )}
+                          {columns.habitaciones && (unit.habitaciones ?? tipo?.habitaciones) != null && (
                             <span className="flex items-center gap-0.5">
                               <BedDouble size={10} className="text-[var(--text-muted)]" />
                               {(() => { const h = unit.habitaciones ?? tipo?.habitaciones; return h === 0 ? tSite("inventario.studioShort") : h; })()}
                             </span>
                           )}
-                          {columns.banos && (unit.banos ?? tipo?.banos) !== null && (
+                          {columns.banos && (unit.banos ?? tipo?.banos) != null && (
                             <span className="flex items-center gap-0.5">
                               <Bath size={10} className="text-[var(--text-muted)]" />
                               {unit.banos ?? tipo?.banos}
@@ -902,7 +942,7 @@ export default function InventarioPage() {
                                   <p key={t.id} className="text-[11px] text-[var(--text-secondary)] flex items-baseline gap-1.5">
                                     <span className="text-[9px] text-[var(--text-tertiary)] truncate max-w-[80px]">{t.nombre}</span>
                                     <span className="font-semibold text-white tabular-nums">
-                                      {formatCurrency(t.precio_desde!, proyecto.moneda_base ?? "COP")}
+                                      {siteFormat(t.precio_desde!)}
                                     </span>
                                   </p>
                                 ))}
@@ -914,18 +954,18 @@ export default function InventarioPage() {
 
                         const price = getUnitPrice(unit);
                         if (price) {
-                          const showDesde = isTipologiaPricing && !!unit.tipologia_id;
+                          const showDesde = isTipologiaPricing && isMultiTipo && !!unit.tipologia_id;
                           return (
                             <p className="text-sm font-semibold text-white">
                               {showDesde && <span className="text-[10px] text-[var(--text-tertiary)] mr-1">{tSite("tipologias.from")}</span>}
-                              {formatCurrency(price, proyecto.moneda_base ?? "COP")}
+                              {siteFormat(price)}
                             </p>
                           );
                         }
                         if (!isTipologiaPricing && useRanges && specRanges?.precio) return (
                           <p className="text-sm font-semibold text-white">
                             <span className="text-[10px] text-[var(--text-tertiary)] mr-1">{tSite("tipologias.from")}</span>
-                            {formatCurrency(specRanges.precio.min, proyecto.moneda_base ?? "COP")}
+                            {siteFormat(specRanges.precio.min)}
                           </p>
                         );
                         return <span />;
@@ -1132,7 +1172,7 @@ export default function InventarioPage() {
                                 {tiposWithPrice.map(t => (
                                   <span key={t.id} className="flex items-baseline gap-1">
                                     <span className="text-[9px] font-normal text-[var(--text-tertiary)]">{t.nombre}</span>
-                                    <span className="tabular-nums">{formatCurrency(t.precio_desde!, proyecto.moneda_base ?? "COP")}</span>
+                                    <span className="tabular-nums">{siteFormat(t.precio_desde!)}</span>
                                   </span>
                                 ))}
                               </span>
@@ -1143,10 +1183,10 @@ export default function InventarioPage() {
 
                         const price = getUnitPrice(unit);
                         if (price) {
-                          return formatCurrency(price, proyecto.moneda_base ?? "COP");
+                          return siteFormat(price);
                         }
                         if (!isTipologiaPricing && listUseRanges && listSpecRanges?.precio)
-                          return `${tSite("tipologias.from")} ${formatCurrency(listSpecRanges.precio.min, proyecto.moneda_base ?? "COP")}`;
+                          return `${tSite("tipologias.from")} ${siteFormat(listSpecRanges.precio.min)}`;
                         return "—";
                       })()}
                     </span>
@@ -1320,7 +1360,7 @@ export default function InventarioPage() {
                       <div className="flex items-center gap-2">
                         {tipo.precio_desde != null && (
                           <p className="text-xs font-medium text-[var(--site-primary)]">
-                            {formatCurrency(tipo.precio_desde, proyecto.moneda_base ?? "COP")}
+                            {siteFormat(tipo.precio_desde)}
                           </p>
                         )}
                         <ChevronRight size={14} className="text-[var(--text-muted)] group-hover:text-[var(--site-primary)] transition-colors" />
