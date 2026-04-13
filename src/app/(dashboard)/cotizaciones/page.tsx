@@ -17,6 +17,7 @@ import { formatCurrency } from "@/lib/currency";
 import type { Currency } from "@/types";
 import { format, formatDistanceToNow } from "date-fns";
 import { es } from "date-fns/locale";
+import { NodDoProductTitle } from "@/components/ui/NodDoProductLogo";
 import { cn } from "@/lib/utils";
 
 interface Cotizacion {
@@ -196,7 +197,7 @@ export default function CotizacionesPage() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="font-heading text-2xl font-light text-[var(--text-primary)]">Cotizaciones</h1>
+          <h1 className="text-2xl"><NodDoProductTitle product="Quote" /></h1>
           <p className="text-xs text-[var(--text-tertiary)] mt-1">
             Historial de cotizaciones generadas
           </p>

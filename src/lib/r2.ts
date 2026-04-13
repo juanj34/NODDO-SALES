@@ -25,6 +25,7 @@ function getR2Client(): S3Client {
     _client = new S3Client({
       region: "auto",
       endpoint: `https://${R2_ACCOUNT_ID}.r2.cloudflarestorage.com`,
+      forcePathStyle: true,
       credentials: {
         accessKeyId: R2_ACCESS_KEY_ID,
         secretAccessKey: R2_SECRET_ACCESS_KEY,
@@ -205,53 +206,8 @@ export async function deleteTourFiles(projectId: string, subpath?: string): Prom
   return deleted;
 }
 
-/**
- * Ensure CORS is configured on the tours bucket for direct browser uploads.
- * Checks existing rules match expected config — updates if stale or missing.
- */
-export async function ensureToursBucketCors(): Promise<void> {
-  const client = getR2Client();
-
-  try {
-    const existing = await client.send(
-      new GetBucketCorsCommand({ Bucket: R2_BUCKET_NAME })
-    );
-    const rules = existing.CORSRules;
-    if (
-      rules &&
-      rules.length > 0 &&
-      rules[0].AllowedHeaders?.includes("*") &&
-      rules[0].AllowedMethods?.includes("PUT")
-    ) {
-      return;
-    }
-  } catch {
-    // NoSuchCORSConfiguration or similar — proceed to set it
-  }
-
-  await client.send(
-    new PutBucketCorsCommand({
-      Bucket: R2_BUCKET_NAME,
-      CORSConfiguration: {
-        CORSRules: [
-          {
-            AllowedOrigins: ["*"],
-            AllowedMethods: ["PUT", "GET", "HEAD"],
-            AllowedHeaders: ["*"],
-            ExposeHeaders: ["ETag", "Content-Length"],
-            MaxAgeSeconds: 86400,
-          },
-        ],
-      },
-    })
-  );
-}
-
-/**
- * The CORS rules we expect on the media bucket.
- * Compared against existing rules to detect stale configs.
- */
-const MEDIA_CORS_RULES = [
+/** The CORS rules we need on both buckets for direct browser uploads. */
+const REQUIRED_CORS_RULES = [
   {
     AllowedOrigins: ["*"],
     AllowedMethods: ["PUT", "GET", "HEAD"],
@@ -261,25 +217,41 @@ const MEDIA_CORS_RULES = [
   },
 ];
 
+/** Cache: bucket name → timestamp when CORS was last verified OK */
+const corsVerifiedAt = new Map<string, number>();
+const CORS_CACHE_TTL = 10 * 60 * 1000; // Re-check every 10 minutes
+
 /**
- * Ensure CORS is configured on the media bucket for direct browser uploads.
- * Checks existing rules match expected config — updates if stale or missing.
+ * Validate that existing CORS rules match our requirements.
+ * Checks AllowedOrigins, AllowedMethods AND AllowedHeaders (the previous
+ * check was missing AllowedOrigins, which could silently break uploads).
  */
-export async function ensureMediaBucketCors(): Promise<void> {
+function corsRulesAreValid(
+  rules: { AllowedOrigins?: string[]; AllowedMethods?: string[]; AllowedHeaders?: string[] }[] | undefined,
+): boolean {
+  if (!rules || rules.length === 0) return false;
+  const r = rules[0];
+  return !!(
+    r.AllowedOrigins?.includes("*") &&
+    r.AllowedMethods?.includes("PUT") &&
+    r.AllowedHeaders?.includes("*")
+  );
+}
+
+async function ensureBucketCors(bucket: string): Promise<void> {
+  // Skip if recently verified
+  const lastVerified = corsVerifiedAt.get(bucket);
+  if (lastVerified && Date.now() - lastVerified < CORS_CACHE_TTL) return;
+
   const client = getR2Client();
 
   try {
     const existing = await client.send(
-      new GetBucketCorsCommand({ Bucket: R2_MEDIA_BUCKET })
+      new GetBucketCorsCommand({ Bucket: bucket })
     );
-    const rules = existing.CORSRules;
-    if (
-      rules &&
-      rules.length > 0 &&
-      rules[0].AllowedHeaders?.includes("*") &&
-      rules[0].AllowedMethods?.includes("PUT")
-    ) {
-      return; // Already has correct permissive config
+    if (corsRulesAreValid(existing.CORSRules)) {
+      corsVerifiedAt.set(bucket, Date.now());
+      return;
     }
   } catch {
     // NoSuchCORSConfiguration or similar — proceed to set it
@@ -287,8 +259,23 @@ export async function ensureMediaBucketCors(): Promise<void> {
 
   await client.send(
     new PutBucketCorsCommand({
-      Bucket: R2_MEDIA_BUCKET,
-      CORSConfiguration: { CORSRules: MEDIA_CORS_RULES },
+      Bucket: bucket,
+      CORSConfiguration: { CORSRules: REQUIRED_CORS_RULES },
     })
   );
+  corsVerifiedAt.set(bucket, Date.now());
+}
+
+/**
+ * Ensure CORS is configured on the tours bucket for direct browser uploads.
+ */
+export async function ensureToursBucketCors(): Promise<void> {
+  return ensureBucketCors(R2_BUCKET_NAME);
+}
+
+/**
+ * Ensure CORS is configured on the media bucket for direct browser uploads.
+ */
+export async function ensureMediaBucketCors(): Promise<void> {
+  return ensureBucketCors(R2_MEDIA_BUCKET);
 }

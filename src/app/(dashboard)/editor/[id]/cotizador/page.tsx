@@ -2,12 +2,13 @@
 
 export const dynamic = "force-dynamic";
 
-import { Calculator } from "lucide-react";
 import { useEditorProject } from "@/hooks/useEditorProject";
 import { usePlanGate } from "@/hooks/usePlanGate";
 import { PageHeader } from "@/components/dashboard/base/PageHeader";
+import { NodDoBrandMark, NodDoProductTitle } from "@/components/ui/NodDoProductLogo";
 import { PlanUpgradePrompt } from "@/components/dashboard/PlanUpgradePrompt";
 import { CotizadorTool } from "@/components/dashboard/cotizador/CotizadorTool";
+import { NodoQuoteSettings } from "@/components/dashboard/cotizador/NodoQuoteSettings";
 import type { ProjectForCotizador } from "@/types";
 
 export default function CotizadorOperativoPage() {
@@ -47,12 +48,13 @@ export default function CotizadorOperativoPage() {
 
   return (
     <div className="max-w-7xl mx-auto space-y-5">
-      <PageHeader icon={Calculator} title="Cotizador" description="Herramienta de cotización" />
+      <PageHeader iconElement={<NodDoBrandMark size={22} />} title={<NodDoProductTitle product="Quote" />} description="Herramienta de cotización NodDo Quote" />
       <CotizadorTool
         project={projectForCotizador}
         tipologias={project.tipologias || []}
         unidadTipologias={project.unidad_tipologias || []}
       />
+      <NodoQuoteSettings />
     </div>
   );
 }

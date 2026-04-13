@@ -10,7 +10,7 @@ import {
   Building2, Home, LandPlot, Fence,
   Waves, UtensilsCrossed, Sun, TreePine,
   DoorClosed, BookOpen, Flame, MoveVertical, CloudSun,
-  Globe, RefreshCw,
+  Globe, RefreshCw, Layout,
 } from "lucide-react";
 import Image from "next/image";
 import { cn } from "@/lib/utils";
@@ -20,6 +20,7 @@ import { useToast } from "@/components/dashboard/Toast";
 import { useTranslation } from "@/i18n";
 import { useAuthRole } from "@/hooks/useAuthContext";
 import { calcularCotizacion, buildPrecioBaseComplementos } from "@/lib/cotizador/calcular";
+import { buildQuickQuoteFases, suggestCuotasFromDelivery } from "@/lib/cotizador/quick-quote";
 import { getTipologiaFields } from "@/lib/tipologia-fields";
 import type { CotizadorConfig, ResultadoCotizacion } from "@/types";
 import { CurrencyInput } from "@/components/dashboard/CurrencyInput";
@@ -85,6 +86,9 @@ interface UnitRow {
   tipologia_id: string | null;
   tipologia: {
     nombre: string;
+    area_m2: number | null;
+    habitaciones: number | null;
+    banos: number | null;
     parqueaderos: number | null;
     depositos: number | null;
     precio_desde: number | null;
@@ -245,6 +249,13 @@ export function CotizadorTool({ project, tipologias, unidadTipologias }: Cotizad
   /* ── Payment rows ── */
   const [paymentRows, setPaymentRows] = useState<PaymentRow[]>([]);
   const [selectedPlantillaId, setSelectedPlantillaId] = useState<string | null>(null);
+
+  /* ── Quick Quote mode ── */
+  const [quoteMode, setQuoteMode] = useState<"plantilla" | "rapido">("plantilla");
+  const [qqSeparacion, setQqSeparacion] = useState(10);
+  const [qqFinanciacion, setQqFinanciacion] = useState(50);
+  const [qqCuotas, setQqCuotas] = useState<number | null>(null);
+  const [qqFrecuencia, setQqFrecuencia] = useState<"mensual" | "bimestral" | "trimestral">("mensual");
 
   /* ── Per-quote overrides ── */
   const [paymentPlanNombre, setPaymentPlanNombre] = useState("");
@@ -698,6 +709,34 @@ export function CotizadorTool({ project, tipologias, unidadTipologias }: Cotizad
     } catch { return null; }
   }, [selectedUnitPrice, customConfig, adHocDiscounts, allComplementos]);
 
+  /* ── Quick Quote computations ── */
+  const suggestedCuotas = useMemo(() => {
+    if (!config) return null;
+    const dc = resolveDeliveryContext(config);
+    if (!dc) return null;
+    return suggestCuotasFromDelivery(dc.mesesDisponibles, qqFrecuencia);
+  }, [config, qqFrecuencia]);
+
+  const effectiveQqCuotas = qqCuotas ?? suggestedCuotas ?? 12;
+
+  const qqCotizacion: ResultadoCotizacion | null = useMemo(() => {
+    if (quoteMode !== "rapido" || !effectiveTotal || effectiveTotal <= 0 || !config) return null;
+    try {
+      const qqFases = buildQuickQuoteFases({
+        separacion_pct: qqSeparacion,
+        financiacion_pct: qqFinanciacion,
+        cuotas: effectiveQqCuotas,
+        frecuencia: qqFrecuencia,
+      });
+      const qqConfig: CotizadorConfig = { ...config, fases: qqFases, separacion_incluida_en_inicial: false };
+      const dc = resolveDeliveryContext(config);
+      return calcularCotizacion(effectiveTotal, qqConfig, adHocDiscounts, allComplementos, dc);
+    } catch { return null; }
+  }, [quoteMode, effectiveTotal, qqSeparacion, qqFinanciacion, effectiveQqCuotas, qqFrecuencia, config, adHocDiscounts, allComplementos]);
+
+  // Use quick quote result when in rapido mode
+  const activeCotizacion = quoteMode === "rapido" ? qqCotizacion : cotizacion;
+
   /* ── Payment balance & structure ── */
 
   const { assigned: balanceAssigned, pctAssigned: balancePct } = useMemo(
@@ -709,7 +748,7 @@ export function CotizadorTool({ project, tipologias, unidadTipologias }: Cotizad
   const overBudget = balanceRemaining < 0;
 
   const needsQuoteTip = isMultiTipo && getUnitTipologias(selectedUnitId ?? "").length > 1;
-  const canProceedToStep1 = !!selectedUnit && !!cotizacion && clientFormValid && (!needsQuoteTip || !!selectedQuoteTipId);
+  const canProceedToStep1 = !!selectedUnit && !!activeCotizacion && clientFormValid && (!needsQuoteTip || !!selectedQuoteTipId);
 
   /* ── Callbacks ── */
 
@@ -881,7 +920,16 @@ export function CotizadorTool({ project, tipologias, unidadTipologias }: Cotizad
           telefono: effectiveClientPhone.trim() || undefined,
           agente_id: user?.id,
           agente_nombre: user?.email,
-          custom_fases: paymentRowsToFases(paymentRows, effectiveTotal),
+          ...(quoteMode === "rapido" ? {
+            quick_quote: {
+              separacion_pct: qqSeparacion,
+              financiacion_pct: qqFinanciacion,
+              cuotas: effectiveQqCuotas,
+              frecuencia: qqFrecuencia,
+            },
+          } : {
+            custom_fases: paymentRowsToFases(paymentRows, effectiveTotal),
+          }),
           custom_descuentos: adHocDiscounts,
           complemento_ids: selectedComplementos.filter((c) => !c.es_precio_base).map((c) => c.complemento_id),
           complemento_selections: selectedComplementos.filter((c) => !c.es_precio_base).map((c) => ({
@@ -977,7 +1025,7 @@ export function CotizadorTool({ project, tipologias, unidadTipologias }: Cotizad
       <div className="bg-[var(--surface-1)] rounded-xl border border-[var(--border-subtle)] p-10 text-center">
         <FileText size={32} className="mx-auto text-[var(--text-muted)] mb-4" />
         <p className="text-sm text-[var(--text-tertiary)] mb-3">
-          Configura el cotizador en Ajustes &gt; Cotizaciones para habilitar esta herramienta.
+          NodDo Quote no está configurado. Usa la sección de Configuraciones abajo para habilitarlo.
         </p>
       </div>
     );
@@ -1582,13 +1630,13 @@ export function CotizadorTool({ project, tipologias, unidadTipologias }: Cotizad
                           if (isMultiTipo && !selectedQuoteTipId) return null;
 
                           const tip = isMultiTipo ? selectedQuoteTipologia : null;
-                          const area = tip ? tip.area_m2 : selectedUnit.area_m2;
+                          const area = tip ? tip.area_m2 : (selectedUnit.area_m2 ?? selectedUnit.tipologia?.area_m2 ?? null);
                           const areaConstruida = tip ? tip.area_construida : (selectedUnit.area_construida ?? selectedUnit.tipologia?.area_construida ?? null);
                           const areaPrivada = tip ? tip.area_privada : (selectedUnit.area_privada ?? selectedUnit.tipologia?.area_privada ?? null);
                           const areaLote = tip ? tip.area_lote : (selectedUnit.area_lote ?? selectedUnit.tipologia?.area_lote ?? null);
                           const areaBalcon = tip ? tip.area_balcon : (selectedUnit.tipologia?.area_balcon ?? null);
-                          const hab = tip ? tip.habitaciones : selectedUnit.habitaciones;
-                          const banos = tip ? tip.banos : selectedUnit.banos;
+                          const hab = tip ? tip.habitaciones : (selectedUnit.habitaciones ?? selectedUnit.tipologia?.habitaciones ?? null);
+                          const banos = tip ? tip.banos : (selectedUnit.banos ?? selectedUnit.tipologia?.banos ?? null);
                           const parq = tip ? tip.parqueaderos : (selectedUnit.parqueaderos ?? selectedUnit.tipologia?.parqueaderos ?? null);
                           const depo = tip ? tip.depositos : (selectedUnit.depositos ?? selectedUnit.tipologia?.depositos ?? null);
                           const vista = selectedUnit.vista;
@@ -1892,8 +1940,157 @@ export function CotizadorTool({ project, tipologias, unidadTipologias }: Cotizad
                 </div>
               </div>
 
-              {/* Template selector (only if templates exist) */}
-              {(config?.plantillas_pago ?? []).length > 0 && (
+              {/* Mode toggle: Plantilla vs Rápido */}
+              <div className="flex items-center gap-2 px-5 py-3 rounded-xl bg-[var(--surface-1)] border border-[var(--border-subtle)]">
+                <span className="text-[9px] font-ui font-bold uppercase tracking-[0.14em] text-[var(--text-muted)] mr-1">
+                  Modo
+                </span>
+                <button
+                  type="button"
+                  onClick={() => setQuoteMode("plantilla")}
+                  className={cn(
+                    "px-3 py-1.5 border text-[10px] font-ui font-bold uppercase tracking-wider transition-all rounded-lg",
+                    quoteMode === "plantilla"
+                      ? "border-[rgba(var(--site-primary-rgb),0.6)] bg-[rgba(var(--site-primary-rgb),0.1)] text-[var(--site-primary)]"
+                      : "border-[var(--border-default)] bg-[var(--surface-3)] text-[var(--text-secondary)] hover:border-[var(--border-strong)]",
+                  )}
+                >
+                  <Layout size={10} className="inline mr-1.5 -mt-0.5" />
+                  Plantilla
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setQuoteMode("rapido")}
+                  className={cn(
+                    "px-3 py-1.5 border text-[10px] font-ui font-bold uppercase tracking-wider transition-all rounded-lg",
+                    quoteMode === "rapido"
+                      ? "border-[rgba(var(--site-primary-rgb),0.6)] bg-[rgba(var(--site-primary-rgb),0.1)] text-[var(--site-primary)]"
+                      : "border-[var(--border-default)] bg-[var(--surface-3)] text-[var(--text-secondary)] hover:border-[var(--border-strong)]",
+                  )}
+                >
+                  <Sparkles size={10} className="inline mr-1.5 -mt-0.5" />
+                  Rápido
+                </button>
+              </div>
+
+              {/* Quick Quote form (rapido mode) */}
+              {quoteMode === "rapido" && (
+                <div className="rounded-xl bg-[var(--surface-1)] border border-[var(--border-subtle)] p-5 space-y-4">
+                  {/* Percentage bar */}
+                  <div className="flex h-2.5 rounded-full overflow-hidden bg-[var(--surface-3)]">
+                    {qqSeparacion > 0 && (
+                      <div style={{ width: `${qqSeparacion}%` }} className="bg-blue-500/70 transition-all" title={`Separación ${qqSeparacion}%`} />
+                    )}
+                    {(100 - qqSeparacion - qqFinanciacion) > 0 && (
+                      <div style={{ width: `${100 - qqSeparacion - qqFinanciacion}%` }} className="bg-[var(--site-primary)] transition-all" title={`Cuotas ${100 - qqSeparacion - qqFinanciacion}%`} />
+                    )}
+                    {qqFinanciacion > 0 && (
+                      <div style={{ width: `${qqFinanciacion}%` }} className="bg-amber-500/70 transition-all" title={`Financiación ${qqFinanciacion}%`} />
+                    )}
+                  </div>
+
+                  {/* Input grid */}
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="text-[10px] font-ui font-bold uppercase tracking-wider text-[var(--text-muted)] mb-1.5 block">
+                        Separación %
+                      </label>
+                      <input
+                        type="number"
+                        value={qqSeparacion}
+                        onChange={(e) => setQqSeparacion(Math.max(0, Math.min(100, Number(e.target.value) || 0)))}
+                        className="input-glass w-full text-sm font-mono"
+                        min={0}
+                        max={100}
+                      />
+                    </div>
+                    <div>
+                      <label className="text-[10px] font-ui font-bold uppercase tracking-wider text-[var(--text-muted)] mb-1.5 block">
+                        Financiación %
+                      </label>
+                      <input
+                        type="number"
+                        value={qqFinanciacion}
+                        onChange={(e) => setQqFinanciacion(Math.max(0, Math.min(100, Number(e.target.value) || 0)))}
+                        className="input-glass w-full text-sm font-mono"
+                        min={0}
+                        max={100}
+                      />
+                    </div>
+                    <div>
+                      <label className="text-[10px] font-ui font-bold uppercase tracking-wider text-[var(--text-muted)] mb-1.5 block">
+                        Cuotas
+                        {suggestedCuotas && (
+                          <span className="text-[var(--text-tertiary)] font-normal normal-case tracking-normal ml-1.5">
+                            (sugerido: {suggestedCuotas})
+                          </span>
+                        )}
+                      </label>
+                      <input
+                        type="number"
+                        value={qqCuotas ?? ""}
+                        onChange={(e) => setQqCuotas(e.target.value ? Math.max(1, Number(e.target.value)) : null)}
+                        placeholder={String(suggestedCuotas ?? 12)}
+                        className="input-glass w-full text-sm font-mono"
+                        min={1}
+                      />
+                    </div>
+                    <div>
+                      <label className="text-[10px] font-ui font-bold uppercase tracking-wider text-[var(--text-muted)] mb-1.5 block">
+                        Frecuencia
+                      </label>
+                      <select
+                        value={qqFrecuencia}
+                        onChange={(e) => setQqFrecuencia(e.target.value as "mensual" | "bimestral" | "trimestral")}
+                        className="input-glass w-full text-sm"
+                      >
+                        <option value="mensual">Mensual</option>
+                        <option value="bimestral">Bimestral</option>
+                        <option value="trimestral">Trimestral</option>
+                      </select>
+                    </div>
+                  </div>
+
+                  {/* Validation */}
+                  {qqSeparacion + qqFinanciacion > 100 && (
+                    <p className="text-xs text-red-400">Separación + financiación no puede exceder 100%</p>
+                  )}
+
+                  {/* Live preview */}
+                  {qqCotizacion && (
+                    <div className="space-y-2 pt-3 border-t border-[var(--border-subtle)]">
+                      <span className="text-[9px] font-ui font-bold uppercase tracking-[0.14em] text-[var(--text-muted)]">
+                        Vista previa
+                      </span>
+                      {qqCotizacion.fases.map((fase, i) => (
+                        <div key={i} className="flex items-center justify-between text-sm">
+                          <span className="text-[var(--text-secondary)]">
+                            {fase.nombre}
+                            {fase.cuotas > 1 && (
+                              <span className="text-[var(--text-tertiary)] text-xs ml-1">
+                                ({fase.cuotas} cuotas)
+                              </span>
+                            )}
+                          </span>
+                          <div className="text-right">
+                            <span className="font-mono font-medium text-white">
+                              {formatCurrency(fase.monto_total, moneda, {})}
+                            </span>
+                            {fase.cuotas > 1 && (
+                              <span className="text-[var(--text-tertiary)] text-[10px] font-mono ml-2">
+                                {formatCurrency(fase.monto_por_cuota, moneda, {})}/cuota
+                              </span>
+                            )}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* Template selector (only if templates exist AND in plantilla mode) */}
+              {quoteMode === "plantilla" && (config?.plantillas_pago ?? []).length > 0 && (
                 <div className="flex flex-wrap items-center gap-2 px-5 py-3 rounded-xl bg-[var(--surface-1)] border border-[var(--border-subtle)]">
                   <span className="text-[9px] font-ui font-bold uppercase tracking-[0.14em] text-[var(--text-muted)] mr-1">
                     Plantilla
@@ -2227,7 +2424,8 @@ export function CotizadorTool({ project, tipologias, unidadTipologias }: Cotizad
                 )}
               </div>
 
-              {/* Plan header: name + structure + admin fee */}
+              {/* Plan header + payment rows (hidden in rapido mode) */}
+              {quoteMode === "plantilla" && <>
               <div className="px-5 py-4 rounded-xl bg-[var(--surface-1)] border border-[var(--border-subtle)]">
                 <div className="flex flex-wrap items-center gap-4">
                   <div className="flex-1 min-w-[200px]">
@@ -2451,13 +2649,16 @@ export function CotizadorTool({ project, tipologias, unidadTipologias }: Cotizad
                 </div>
               </div>
 
+              {/* End of plantilla-mode payment rows */}
+              </>}
+
               {/* Generate button */}
               <button
                 onClick={handleGenerate}
-                disabled={generating || !clientFormValid || !cotizacion}
+                disabled={generating || !clientFormValid || !activeCotizacion}
                 className={cn(
                   "w-full py-3 rounded-xl font-ui text-xs font-bold uppercase tracking-[0.1em] flex items-center justify-center gap-2 transition-all",
-                  clientFormValid && cotizacion
+                  clientFormValid && activeCotizacion
                     ? "bg-[var(--site-primary)] text-[var(--surface-0)] hover:brightness-110 cursor-pointer"
                     : "bg-[var(--surface-2)] text-[var(--text-muted)] cursor-not-allowed"
                 )}

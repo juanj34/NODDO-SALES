@@ -5,6 +5,7 @@ export const dynamic = "force-dynamic";
 import { useState, useEffect } from "react";
 import { Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { NodDoProductTitle } from "@/components/ui/NodDoProductLogo";
 import { CotizadorTool } from "@/components/dashboard/cotizador/CotizadorTool";
 import type { ProjectForCotizador, CotizadorConfig, ComplementoMode, TipologiaFieldsConfig, Tipologia, UnidadTipologia } from "@/types";
 
@@ -101,7 +102,7 @@ export default function CotizadorPage() {
     return (
       <div className="p-8 max-w-3xl mx-auto text-center py-24">
         <h2 className="font-heading text-2xl font-light text-[var(--text-primary)] mb-3">
-          Cotizador
+          <NodDoProductTitle product="Quote" />
         </h2>
         <p className="text-sm text-[var(--text-tertiary)]">
           No tienes proyectos configurados.
@@ -114,8 +115,8 @@ export default function CotizadorPage() {
     <div className="p-4 md:p-8 max-w-7xl mx-auto space-y-6">
       {/* Header */}
       <div>
-        <h1 className="font-heading text-2xl font-light text-[var(--text-primary)] mb-1">
-          Cotizador
+        <h1 className="text-2xl mb-1">
+          <NodDoProductTitle product="Quote" />
         </h1>
         <p className="text-xs text-[var(--text-tertiary)]">
           Genera cotizaciones para tus unidades

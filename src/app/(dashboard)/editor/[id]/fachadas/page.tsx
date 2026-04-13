@@ -21,6 +21,7 @@ import {
   emptyStateDescription,
 } from "@/components/dashboard/editor-styles";
 import { PageHeader } from "@/components/dashboard/base/PageHeader";
+import { NodDoBrandMark, NodDoProductTitle } from "@/components/ui/NodDoProductLogo";
 import { FileUploader } from "@/components/dashboard/FileUploader";
 import { FacadeHotspotEditor } from "@/components/dashboard/FacadeHotspotEditor";
 import { PlanoHotspotEditor } from "@/components/dashboard/PlanoHotspotEditor";
@@ -1049,8 +1050,8 @@ export default function NoddoGridPage() {
     >
       {/* Page Header */}
       <PageHeader
-        icon={Eye}
-        title={t("fachadas.title")}
+        iconElement={<NodDoBrandMark size={22} />}
+        title={<NodDoProductTitle product="Grid" />}
         description={
           <span className="flex items-center gap-2">
             {t("fachadas.description")}

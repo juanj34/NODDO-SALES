@@ -23,7 +23,7 @@ const CATEGORIES = [
   { value: "project",     es: "Proyectos",      en: "Projects" },
   { value: "unit",        es: "Unidades",        en: "Units" },
   { value: "lead",        es: "Leads",           en: "Leads" },
-  { value: "cotizacion",  es: "Cotizaciones",    en: "Quotes" },
+  { value: "cotizacion",  es: "NodDo Quote",       en: "NodDo Quote" },
   { value: "gallery",     es: "Galeria",         en: "Gallery" },
   { value: "video",       es: "Videos",          en: "Videos" },
   { value: "tipologia",   es: "Tipologias",      en: "Types" },

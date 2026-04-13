@@ -120,5 +120,5 @@ export const ROLE_LABELS: Record<UserRole, string> = {
 export const ROLE_DESCRIPTIONS: Record<"administrador" | "director" | "asesor", string> = {
   administrador: "Acceso total excepto eliminar proyectos y facturación",
   director: "Gestiona contenido, leads e inventario de los proyectos asignados",
-  asesor: "Acceso a disponibilidad, cotizador y leads asignados",
+  asesor: "Acceso a disponibilidad, NodDo Quote y leads asignados",
 };

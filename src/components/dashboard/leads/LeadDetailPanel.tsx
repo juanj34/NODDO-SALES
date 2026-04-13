@@ -244,7 +244,7 @@ export function LeadDetailPanel({
           <div className="flex items-center gap-2 mb-3">
             <FileText size={13} className="text-[var(--text-muted)]" />
             <span className="font-ui text-[10px] text-[var(--text-muted)] tracking-wider uppercase font-bold">
-              {locale === "es" ? "Cotizaciones" : "Quotations"}
+              NodDo Quote
               {!loadingCotiz && ` (${cotizaciones.length})`}
             </span>
           </div>

@@ -23,28 +23,32 @@ export default function GaleriaPage() {
   const proyecto = useSiteProject();
   if (!sectionVisible) return null;
   const categorias = proyecto.galeria_categorias || [];
-  const torres = proyecto.torres || [];
+  const grupos = proyecto.galeria_grupos || [];
   const { t } = useTranslation("site");
 
-  // Compute scope structure
-  const generalCats = categorias.filter((c) => !c.torre_id);
-  const towerCatMap = new Map<string, GaleriaCategoria[]>();
+  // Compute scope structure from galeria_grupos
+  const flatCats = categorias.filter((c) => !c.galeria_grupo_id);
+
+  const grupoCatMap = new Map<string, GaleriaCategoria[]>();
   categorias.forEach((cat) => {
-    if (cat.torre_id) {
-      const existing = towerCatMap.get(cat.torre_id) || [];
+    if (cat.galeria_grupo_id) {
+      const existing = grupoCatMap.get(cat.galeria_grupo_id) || [];
       existing.push(cat);
-      towerCatMap.set(cat.torre_id, existing);
+      grupoCatMap.set(cat.galeria_grupo_id, existing);
     }
   });
-  const towersWithGallery = torres.filter((t) => towerCatMap.has(t.id));
 
   const scopes: GalleryScope[] = [];
-  if (generalCats.length > 0) {
-    scopes.push({ id: "general", label: t("galeria.general"), categories: generalCats });
+  const gruposWithCats = grupos.filter((g) => grupoCatMap.has(g.id));
+
+  if (gruposWithCats.length > 0) {
+    if (flatCats.length > 0) {
+      scopes.push({ id: "general", label: t("galeria.general"), categories: flatCats });
+    }
+    gruposWithCats.forEach((grupo) => {
+      scopes.push({ id: grupo.id, label: grupo.nombre, categories: grupoCatMap.get(grupo.id)! });
+    });
   }
-  towersWithGallery.forEach((torre) => {
-    scopes.push({ id: torre.id, label: torre.nombre, categories: towerCatMap.get(torre.id)! });
-  });
 
   const hasMultipleScopes = scopes.length > 1;
 
@@ -54,7 +58,8 @@ export default function GaleriaPage() {
   const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
 
   // Current categories based on scope
-  const currentScopeCategories = hasMultipleScopes
+  // No scopes = flat list of all categories; with scopes = filter by active scope
+  const currentScopeCategories = scopes.length > 0
     ? scopes[activeScope]?.categories ?? []
     : categorias;
 
@@ -143,17 +148,30 @@ export default function GaleriaPage() {
               else if (info.offset.x > 80) goPrev();
             }}
           >
-            <Image src={current.url} alt="" fill className="w-full h-full object-cover pointer-events-none" />
-            {/* Dark gradient overlay for readability */}
-            <div className="absolute inset-0 pointer-events-none" style={{ background: "linear-gradient(to top, rgba(var(--overlay-rgb), 0.8), rgba(var(--overlay-rgb), 0.1), rgba(var(--overlay-rgb), 0.3))" }} />
+            <Image src={current.url} alt="" fill sizes="100vw" priority className="w-full h-full object-cover pointer-events-none" />
+            {/* Dark gradient overlay for readability — stronger at top and bottom */}
+            <div className="absolute inset-0 pointer-events-none" style={{ background: "linear-gradient(to bottom, rgba(var(--overlay-rgb), 0.6) 0%, rgba(var(--overlay-rgb), 0.15) 35%, rgba(var(--overlay-rgb), 0.1) 50%, rgba(var(--overlay-rgb), 0.8) 100%)" }} />
           </motion.div>
         )}
       </AnimatePresence>
 
-      {/* Scope tabs — only when multiple scopes exist */}
+      {/* Top glass strip — frosted backdrop behind tabs for readability on light images */}
+      <div
+        className="absolute top-0 left-0 right-0 z-10 pointer-events-none"
+        style={{
+          height: hasMultipleScopes ? "8rem" : "6.5rem",
+          background: "linear-gradient(to bottom, rgba(var(--overlay-rgb), 0.5), transparent)",
+          backdropFilter: "blur(8px)",
+          WebkitBackdropFilter: "blur(8px)",
+          maskImage: "linear-gradient(to bottom, black 40%, transparent)",
+          WebkitMaskImage: "linear-gradient(to bottom, black 40%, transparent)",
+        }}
+      />
+
+      {/* Scope tabs — glass pill style for top-level groups */}
       {hasMultipleScopes && (
         <motion.div
-          className="absolute top-20 left-4 lg:top-6 lg:left-10 z-20 flex items-center gap-4 lg:gap-5 overflow-x-auto scrollbar-hide max-w-[calc(100vw-2rem)] lg:max-w-none"
+          className="absolute top-20 left-4 lg:top-6 lg:left-10 z-20 flex items-center gap-2 lg:gap-2.5 overflow-x-auto scrollbar-hide max-w-[calc(100vw-2rem)] lg:max-w-none"
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.2, duration: 0.5 }}
@@ -163,29 +181,22 @@ export default function GaleriaPage() {
               key={scope.id}
               onClick={() => handleScopeChange(idx)}
               className={cn(
-                "relative pb-2 text-[11px] tracking-[0.15em] uppercase font-bold transition-all duration-300 cursor-pointer",
+                "px-4 py-1.5 rounded-full text-[10px] tracking-[0.2em] uppercase font-bold transition-all duration-300 cursor-pointer whitespace-nowrap font-ui",
                 idx === activeScope
-                  ? "text-[var(--text-primary)]"
-                  : "text-[var(--text-muted)] hover:text-[var(--text-secondary)]"
+                  ? "bg-[rgba(var(--site-primary-rgb),0.15)] text-[var(--site-primary)] ring-1 ring-[rgba(var(--site-primary-rgb),0.35)] shadow-[0_0_12px_rgba(var(--site-primary-rgb),0.12)] backdrop-blur-sm"
+                  : "text-[var(--text-muted)] hover:text-[var(--text-secondary)] hover:bg-white/5 backdrop-blur-sm"
               )}
             >
               {scope.label}
-              {idx === activeScope && (
-                <motion.div
-                  layoutId="gallery-scope-indicator"
-                  className="absolute bottom-0 left-0 right-0 h-[2px] bg-[var(--site-primary)]"
-                  transition={{ type: "spring", bounce: 0.2, duration: 0.5 }}
-                />
-              )}
             </button>
           ))}
         </motion.div>
       )}
 
-      {/* Category tabs — top-left underline style */}
+      {/* Category tabs — elegant serif underline */}
       <motion.div
         className={cn(
-          "absolute left-4 lg:left-10 z-20 flex items-center gap-4 lg:gap-6 overflow-x-auto scrollbar-hide max-w-[calc(100vw-2rem)] lg:max-w-none",
+          "absolute left-4 lg:left-10 z-20 flex items-center gap-5 lg:gap-7 overflow-x-auto scrollbar-hide max-w-[calc(100vw-2rem)] lg:max-w-none",
           hasMultipleScopes ? "top-32 lg:top-16" : "top-20 lg:top-8"
         )}
         initial={{ opacity: 0, y: -20 }}
@@ -196,10 +207,11 @@ export default function GaleriaPage() {
           <button
             key={cat.id}
             onClick={() => handleCategoryChange(idx)}
+            style={{ textShadow: "0 1px 8px rgba(0,0,0,0.5)" }}
             className={cn(
-              "relative pb-2 text-xs tracking-[0.2em] uppercase transition-all duration-300 cursor-pointer",
+              "relative pb-2.5 text-sm lg:text-base font-site-heading tracking-wide transition-all duration-300 cursor-pointer whitespace-nowrap",
               idx === activeCategory
-                ? "text-[var(--text-primary)] font-medium"
+                ? "text-[var(--text-primary)]"
                 : "text-[var(--text-tertiary)] hover:text-[var(--text-secondary)]"
             )}
           >
@@ -207,7 +219,7 @@ export default function GaleriaPage() {
             {idx === activeCategory && (
               <motion.div
                 layoutId="gallery-tab-indicator"
-                className="absolute bottom-0 left-0 right-0 h-[2px] bg-[var(--site-primary)]"
+                className="absolute bottom-0 left-0 right-0 h-[2px] rounded-full bg-gradient-to-r from-[var(--site-primary)] to-[rgba(var(--site-primary-rgb),0.4)] shadow-[0_0_6px_rgba(var(--site-primary-rgb),0.3)]"
                 transition={{ type: "spring", bounce: 0.2, duration: 0.5 }}
               />
             )}
@@ -288,7 +300,7 @@ export default function GaleriaPage() {
                         : "border-transparent opacity-40 hover:opacity-100 grayscale-[0.3]"
                     )}
                   >
-                    <Image src={img.url} alt="" fill priority className="w-full h-full object-cover" />
+                    <Image src={img.thumbnail_url || img.url} alt="" fill sizes="80px" className="w-full h-full object-cover" />
                   </motion.button>
                 ))}
               </AnimatePresence>

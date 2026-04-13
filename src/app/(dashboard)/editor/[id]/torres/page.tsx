@@ -31,6 +31,7 @@ import {
   Sparkles,
   Layers,
   X,
+  Image as ImageIcon,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/components/dashboard/Toast";
@@ -195,6 +196,7 @@ export default function TorresPage() {
       caracteristicas: null,
       imagen_portada: null,
       logo_url: null,
+      galeria_independiente: false,
       orden: torres.length,
       created_at: new Date().toISOString(),
     };
@@ -1142,6 +1144,22 @@ function TorreEditFormInline({
           );
         })}
       </div>
+
+      {/* Gallery independent toggle */}
+      <button
+        onClick={() => onUpdate(torre.id, { galeria_independiente: !torre.galeria_independiente })}
+        className={cn(
+          "inline-flex items-center gap-1.5 px-3 py-1.5 font-medium transition-all border",
+          fontSize.md,
+          radius.md,
+          torre.galeria_independiente
+            ? "bg-[rgba(var(--site-primary-rgb),0.1)] border-[rgba(var(--site-primary-rgb),0.3)] text-[var(--site-primary)]"
+            : "bg-[var(--surface-2)] border-[var(--border-subtle)] text-[var(--text-muted)] hover:text-[var(--text-secondary)] hover:border-[var(--border-default)]"
+        )}
+      >
+        <ImageIcon size={iconSize.xs} />
+        {t("torres.independentGallery")}
+      </button>
 
       {/* Row 1: Nombre */}
       <div>

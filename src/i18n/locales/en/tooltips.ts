@@ -103,7 +103,7 @@ const tooltips = {
     },
     agentMode: {
       short: "Special mode for real estate agents with restrictions.",
-      long: "When enabled, **external agents** see a restricted version of the microsite based on your settings: no prices, no sold units, no quotation tool, etc. Useful for controlling what information agents share with clients.",
+      long: "When enabled, **external agents** see a restricted version of the microsite based on your settings: no prices, no sold units, no NodDo Quote, etc. Useful for controlling what information agents share with clients.",
     },
   },
 
@@ -170,8 +170,8 @@ const tooltips = {
       long: "Add tags with the typology's features: finishes, equipment, benefits. Example: **Fitted kitchen, Porcelain flooring, Built-in closets**. These appear as tags on the microsite.",
     },
     torreAsignacion: {
-      short: "Towers where this typology is available.",
-      long: "Select which **towers** offer this typology. If the project has a single tower, it's assigned automatically. With multiple towers, you can offer the same typology across several towers.",
+      short: "Groups where this typology is available.",
+      long: "Select which **groups** (towers or developments) offer this typology. If the project has a single group, it's assigned automatically. With multiple groups, you can offer the same typology across several groups.",
     },
     extras: {
       short: "Additional special features of the typology.",
@@ -402,7 +402,7 @@ const tooltips = {
   },
 
   /* ═══════════════════════════════════════════════════════════════════
-     Cotizador (existing — preserved unchanged)
+     NodDo Quote (existing — preserved unchanged)
      ═══════════════════════════════════════════════════════════════════ */
   cotizador: {
     tipoFase: {

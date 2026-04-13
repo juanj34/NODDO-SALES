@@ -10,7 +10,7 @@ interface FeatureAdoptionCardProps {
 }
 
 const FEATURE_LABELS: Record<string, string> = {
-  cotizador: "Cotizador",
+  cotizador: "NodDo Quote",
   webhooks: "Webhooks",
   custom_domain: "Dominio Custom",
   tour_360: "Tour 360°",

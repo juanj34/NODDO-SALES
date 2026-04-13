@@ -27,7 +27,7 @@ const SHORTCUT_CONFIG: Record<
     color: "rgba(245, 158, 11, 0.7)", // Amber
   },
   cotizador: {
-    label: "Cotizador",
+    label: "NodDo Quote",
     icon: Calculator,
     color: "rgba(139, 92, 246, 0.7)", // Purple
   },

@@ -79,7 +79,7 @@ const FIELD_LABELS: Record<string, { es: string; en: string }> = {
   custom_domain: { es: "Dominio personalizado", en: "Custom domain" },
   email_config: { es: "Config. correos", en: "Email config" },
   webhook_config: { es: "Webhooks", en: "Webhooks" },
-  cotizador_enabled: { es: "Cotizador", en: "Quote builder" },
+  cotizador_enabled: { es: "NodDo Quote", en: "NodDo Quote" },
   secciones_visibles: { es: "Secciones visibles", en: "Visible sections" },
   inventory_columns: { es: "Columnas inventario", en: "Inventory columns" },
   tipo_proyecto: { es: "Tipo proyecto", en: "Project type" },

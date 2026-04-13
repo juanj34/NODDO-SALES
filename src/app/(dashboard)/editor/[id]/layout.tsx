@@ -195,7 +195,6 @@ const editorSections: TabSection[] = [
     labelKey: "layout.sidebar.ajustes",
     tabs: [
       { id: "config", labelKey: "layout.sidebar.configuracion", icon: Settings, href: "/config" },
-      { id: "cotizaciones", labelKey: "layout.sidebar.cotizaciones", icon: Calculator, href: "/cotizaciones" },
     ],
   },
   {

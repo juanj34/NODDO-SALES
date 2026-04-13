@@ -237,13 +237,13 @@ const help = {
       ],
     },
     cotizador: {
-      title: "Cotizador y Simulador",
+      title: "NodDo Quote",
       description:
         "Configura fases de pago, descuentos y simulador interactivo",
       content:
-        "El cotizador te permite configurar un simulador de financiación que los visitantes de tu micrositio pueden usar para calcular cuotas y plan de pagos. Defines las fases (separación, inicial, entrega), descuentos aplicables y notas legales. El simulador genera PDFs descargables con el plan de pagos personalizado.",
+        "NodDo Quote te permite configurar un simulador de financiación que los visitantes de tu micrositio pueden usar para calcular cuotas y plan de pagos. Defines las fases (separación, inicial, entrega), descuentos aplicables y notas legales. El simulador genera PDFs descargables con el plan de pagos personalizado.",
       steps: [
-        "En el editor, accede a la pestaña «Cotizador».",
+        "En el editor, accede a la pestaña «NodDo Quote».",
         "Selecciona la moneda de tu proyecto (COP, USD, MXN).",
         "Configura las fases de pago: cada fase puede ser de tipo «fijo» (monto en moneda), «porcentaje» (% del precio de la unidad) o «resto» (saldo restante).",
         "Para cada fase define: nombre, tipo, valor, número de cuotas y frecuencia (única, mensual, bimestral, trimestral).",
@@ -255,8 +255,8 @@ const help = {
       ],
       tips: [
         "El simulador es una herramienta poderosa de conversión — los visitantes que generan una cotización son leads altamente cualificados.",
-        "Las cotizaciones generadas se guardan automáticamente en la sección «Cotizaciones» del dashboard, donde puedes ver el historial completo y descargar los PDFs.",
-        "Si cambias la configuración del cotizador, las cotizaciones anteriores NO se actualizan — se conservan con la configuración que tenían al momento de generarse.",
+        "Las cotizaciones generadas se guardan automáticamente en la sección «NodDo Quote» del dashboard, donde puedes ver el historial completo y descargar los PDFs.",
+        "Si cambias la configuración de NodDo Quote, las cotizaciones anteriores NO se actualizan — se conservan con la configuración que tenían al momento de generarse.",
         "El simulador solo aparece en el micrositio si tienes al menos una unidad con precio configurado en el inventario.",
       ],
     },

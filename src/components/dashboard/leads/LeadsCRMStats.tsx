@@ -11,7 +11,7 @@ interface Props {
 const cards = [
   { key: "total_all", label: "Total Registros", labelEn: "Total Leads", icon: Users },
   { key: "this_month", label: "Este Mes", labelEn: "This Month", icon: CalendarDays },
-  { key: "with_cotizaciones", label: "Con Cotizaciones", labelEn: "With Quotes", icon: FileText },
+  { key: "with_cotizaciones", label: "Con NodDo Quote", labelEn: "With NodDo Quote", icon: FileText },
   { key: "nuevo", label: "Nuevos", labelEn: "New", icon: Sparkles },
 ] as const;
 

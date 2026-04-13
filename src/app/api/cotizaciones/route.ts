@@ -9,7 +9,8 @@ import type { EmailLocale } from "@/lib/email-i18n";
 import { isRateLimited, apiLimiter } from "@/lib/rate-limit";
 import { getWebhookConfig, dispatchWebhook } from "@/lib/webhooks";
 import type { WebhookPayload } from "@/lib/webhooks";
-import type { CotizadorConfig, FaseConfig, DescuentoConfig, Unidad, Currency, ComplementoSeleccion, EmailConfig } from "@/types";
+import type { CotizadorConfig, FaseConfig, DescuentoConfig, Unidad, Currency, ComplementoSeleccion, EmailConfig, QuickQuoteParams } from "@/types";
+import { buildQuickQuoteFases, validateQuickQuoteParams } from "@/lib/cotizador/quick-quote";
 import { formatCurrency } from "@/lib/currency";
 import { logActivity } from "@/lib/activity-logger";
 import { getAuthContext } from "@/lib/auth-context";
@@ -187,6 +188,7 @@ export async function POST(request: NextRequest) {
       tipologia_id: selectedTipologiaId,
       // Sandbox fields
       custom_fases,
+      quick_quote,
       custom_descuentos,
       complemento_ids,
       complemento_selections,
@@ -213,6 +215,7 @@ export async function POST(request: NextRequest) {
       agente_nombre?: string;
       tipologia_id?: string;
       custom_fases?: FaseConfig[];
+      quick_quote?: QuickQuoteParams;
       custom_descuentos?: DescuentoConfig[];
       complemento_ids?: string[];
       complemento_selections?: { complemento_id: string; es_extra: boolean; precio_negociado?: number }[];
@@ -344,10 +347,23 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Unidad sin precio" }, { status: 400 });
     }
 
-    // Build effective config (custom phases override project defaults)
-    const effectiveConfig: CotizadorConfig = custom_fases
-      ? { ...config, fases: custom_fases }
-      : config;
+    // Build effective config (quick_quote > custom_fases > project defaults)
+    let effectiveConfig: CotizadorConfig;
+    if (quick_quote) {
+      const qqErrors = validateQuickQuoteParams(quick_quote);
+      if (qqErrors.length > 0) {
+        return NextResponse.json({ error: qqErrors[0] }, { status: 400 });
+      }
+      effectiveConfig = {
+        ...config,
+        fases: buildQuickQuoteFases(quick_quote),
+        separacion_incluida_en_inicial: false,
+      };
+    } else if (custom_fases) {
+      effectiveConfig = { ...config, fases: custom_fases };
+    } else {
+      effectiveConfig = config;
+    }
 
     if (separacion_incluida !== undefined) {
       effectiveConfig.separacion_incluida_en_inicial = separacion_incluida;

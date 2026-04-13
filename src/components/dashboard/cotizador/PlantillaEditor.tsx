@@ -148,6 +148,7 @@ function QuickCreatePanel({
     cuotas: 6,
     frecuencia: "mensual",
     incluye_separacion: true,
+    separacion_tipo: "fijo",
     separacion_monto: 5000000,
   });
 
@@ -210,19 +211,50 @@ function QuickCreatePanel({
             <span className={cn("text-[var(--text-muted)] uppercase", fontSize.label, letterSpacing.wider)}>Separación</span>
           </label>
           {def.incluye_separacion && (
-            <CurrencyInput
-              value={def.separacion_monto ?? ""} onChange={(v) => setDef({ ...def, separacion_monto: Number(v) || 0 })}
-              currency={moneda as Currency}
-              inputClassName={cn("w-full bg-[var(--surface-3)] border border-[var(--border-default)] px-3 py-2 text-white focus:outline-none focus:border-[rgba(var(--site-primary-rgb),0.5)]", radius.lg, fontSize.md)}
-              placeholder="5,000,000"
-            />
+            <div className="flex items-stretch gap-0">
+              {/* Type toggle: $ or % */}
+              <div className={cn("flex flex-col border border-r-0 border-[var(--border-default)] overflow-hidden shrink-0", radius.lg, "rounded-r-none")}>
+                {(["fijo", "porcentaje"] as const).map((tipo) => (
+                  <button
+                    key={tipo}
+                    type="button"
+                    onClick={() => setDef({ ...def, separacion_tipo: tipo, separacion_monto: tipo === "porcentaje" ? 5 : 5000000 })}
+                    className={cn(
+                      "px-2 py-1 text-[10px] font-bold transition-all flex-1",
+                      (def.separacion_tipo ?? "fijo") === tipo
+                        ? "bg-[rgba(var(--site-primary-rgb),0.15)] text-[var(--site-primary)]"
+                        : "bg-[var(--surface-3)] text-[var(--text-muted)] hover:text-[var(--text-secondary)]"
+                    )}
+                  >
+                    {tipo === "fijo" ? "$" : "%"}
+                  </button>
+                ))}
+              </div>
+              {/* Value input */}
+              {(def.separacion_tipo ?? "fijo") === "fijo" ? (
+                <CurrencyInput
+                  value={def.separacion_monto ?? ""} onChange={(v) => setDef({ ...def, separacion_monto: Number(v) || 0 })}
+                  currency={moneda as Currency}
+                  inputClassName={cn("w-full bg-[var(--surface-3)] border border-[var(--border-default)] px-3 py-2 text-white focus:outline-none focus:border-[rgba(var(--site-primary-rgb),0.5)]", radius.lg, "rounded-l-none", fontSize.md)}
+                  placeholder="5,000,000"
+                />
+              ) : (
+                <input
+                  type="number"
+                  value={def.separacion_monto ?? ""}
+                  onChange={(e) => setDef({ ...def, separacion_monto: Math.min(100, Math.max(0, Number(e.target.value))) })}
+                  className={cn("w-full bg-[var(--surface-3)] border border-[var(--border-default)] px-3 py-2 text-white focus:outline-none focus:border-[rgba(var(--site-primary-rgb),0.5)]", radius.lg, "rounded-l-none", fontSize.md)}
+                  placeholder="5" min={0} max={100}
+                />
+              )}
+            </div>
           )}
         </div>
       </div>
 
       <div className={cn("px-4 py-2.5 border bg-[rgba(var(--site-primary-rgb),0.05)] border-[rgba(var(--site-primary-rgb),0.15)]", radius.lg)}>
         <p className={cn("text-[var(--text-secondary)]", fontSize.md)}>
-          {def.incluye_separacion && def.separacion_monto ? "Separación + " : ""}
+          {def.incluye_separacion && def.separacion_monto ? `Separación ${(def.separacion_tipo ?? "fijo") === "porcentaje" ? `${def.separacion_monto}%` : ""} + ` : ""}
           {def.cuotas} cuotas de {pctPerCuota}% ({freqLabel}es) = {def.porcentaje_inicial}%
           {" → "}Entrega {entregaPct}%
         </p>

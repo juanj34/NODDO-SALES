@@ -217,12 +217,12 @@ const help = {
       ],
     },
     cotizador: {
-      title: "Quotation & Simulator",
+      title: "NodDo Quote",
       description: "Configure payment phases, discounts and interactive simulator",
       content:
-        "The quotation tool lets you configure a financing simulator that microsite visitors can use to calculate installments and payment plans. You define phases (reservation, down payment, on delivery), applicable discounts and legal notes. The simulator generates downloadable PDFs with personalized payment plans.",
+        "NodDo Quote lets you configure a financing simulator that microsite visitors can use to calculate installments and payment plans. You define phases (reservation, down payment, on delivery), applicable discounts and legal notes. The simulator generates downloadable PDFs with personalized payment plans.",
       steps: [
-        "In the editor, go to the 'Quotation' tab.",
+        "In the editor, go to the 'NodDo Quote' tab.",
         "Select your project currency (COP, USD, MXN).",
         "Configure payment phases: each phase can be 'fixed' (currency amount), 'percentage' (% of unit price) or 'remainder' (remaining balance).",
         "For each phase define: name, type, value, number of installments and frequency (one-time, monthly, bi-monthly, quarterly).",
@@ -233,9 +233,9 @@ const help = {
         "Use the interactive preview to test the simulator before publishing.",
       ],
       tips: [
-        "The simulator is a powerful conversion tool — visitors who generate a quotation are highly qualified leads.",
-        "Generated quotations are automatically saved in the dashboard's 'Quotations' section, where you can view complete history and download PDFs.",
-        "If you change quotation settings, previous quotations are NOT updated — they're preserved with the settings they had when generated.",
+        "The simulator is a powerful conversion tool — visitors who generate a quote are highly qualified leads.",
+        "Generated quotes are automatically saved in the dashboard's 'NodDo Quote' section, where you can view complete history and download PDFs.",
+        "If you change NodDo Quote settings, previous quotes are NOT updated — they're preserved with the settings they had when generated.",
         "The simulator only appears on the microsite if you have at least one unit with configured price in inventory.",
       ],
     },

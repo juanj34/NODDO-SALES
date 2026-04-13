@@ -60,6 +60,7 @@ export async function getProyectoById(
     { data: orientaciones },
     { data: vistas },
     { data: torres },
+    { data: galeriaGrupos },
     { data: planos },
     { data: avancesObra },
     { data: complementos },
@@ -84,6 +85,7 @@ export async function getProyectoById(
     supabase.from("orientaciones").select("*").eq("proyecto_id", id).order("orden"),
     supabase.from("vistas").select("*").eq("proyecto_id", id).order("orden"),
     supabase.from("torres").select("*").eq("proyecto_id", id).order("orden"),
+    supabase.from("galeria_grupos").select("*").eq("proyecto_id", id).order("orden"),
     supabase.from("planos_interactivos").select("*").eq("proyecto_id", id).order("orden"),
     supabase.from("avances_obra").select("*").eq("proyecto_id", id).order("orden"),
     supabase.from("complementos").select("*").eq("proyecto_id", id).order("orden"),
@@ -128,6 +130,7 @@ export async function getProyectoById(
     orientaciones: orientaciones || [],
     vistas: vistas || [],
     torres: torres || [],
+    galeria_grupos: galeriaGrupos || [],
     planos_interactivos: planos || [],
     plano_puntos: planoPuntos || [],
     avances_obra: avancesObra || [],
@@ -169,20 +172,38 @@ export async function getProyectoBySlug(
   const snap = version.snapshot as Record<string, unknown>;
   const snapProyecto = snap.proyecto as Record<string, unknown>;
 
+  // Sort helper: enforce `orden` field on snapshot arrays (JSON doesn't guarantee order)
+  const byOrden = <T extends { orden?: number | null }>(arr: T[]): T[] =>
+    [...arr].sort((a, b) => (a.orden ?? 0) - (b.orden ?? 0));
+
+  const tipologias = (snap.tipologias as ProyectoCompleto["tipologias"]) || [];
+  const galeria_categorias = (snap.galeria_categorias as ProyectoCompleto["galeria_categorias"]) || [];
+  const videos = (snap.videos as ProyectoCompleto["videos"]) || [];
+  const puntos_interes = (snap.puntos_interes as ProyectoCompleto["puntos_interes"]) || [];
+  const unidades = (snap.unidades as ProyectoCompleto["unidades"]) || [];
+  const recursos = (snap.recursos as ProyectoCompleto["recursos"]) || [];
+  const fachadas = (snap.fachadas as ProyectoCompleto["fachadas"]) || [];
+  const torres = (snap.torres as ProyectoCompleto["torres"]) || [];
+  const galeria_grupos = (snap.galeria_grupos as ProyectoCompleto["galeria_grupos"]) || [];
+  const planos_interactivos = (snap.planos_interactivos as ProyectoCompleto["planos_interactivos"]) || [];
+  const avances_obra = (snap.avances_obra as ProyectoCompleto["avances_obra"]) || [];
+  const complementos = (snap.complementos as ProyectoCompleto["complementos"]) || [];
+
   return {
     ...snapProyecto,
-    tipologias: (snap.tipologias as ProyectoCompleto["tipologias"]) || [],
-    galeria_categorias: (snap.galeria_categorias as ProyectoCompleto["galeria_categorias"]) || [],
-    videos: (snap.videos as ProyectoCompleto["videos"]) || [],
-    puntos_interes: (snap.puntos_interes as ProyectoCompleto["puntos_interes"]) || [],
-    unidades: (snap.unidades as ProyectoCompleto["unidades"]) || [],
-    recursos: (snap.recursos as ProyectoCompleto["recursos"]) || [],
-    fachadas: (snap.fachadas as ProyectoCompleto["fachadas"]) || [],
-    torres: (snap.torres as ProyectoCompleto["torres"]) || [],
-    planos_interactivos: (snap.planos_interactivos as ProyectoCompleto["planos_interactivos"]) || [],
+    tipologias: byOrden(tipologias),
+    galeria_categorias: byOrden(galeria_categorias),
+    videos: byOrden(videos),
+    puntos_interes: byOrden(puntos_interes),
+    unidades: byOrden(unidades),
+    recursos: byOrden(recursos),
+    fachadas: byOrden(fachadas),
+    torres: byOrden(torres),
+    galeria_grupos: byOrden(galeria_grupos),
+    planos_interactivos: byOrden(planos_interactivos),
     plano_puntos: (snap.plano_puntos as ProyectoCompleto["plano_puntos"]) || [],
-    avances_obra: (snap.avances_obra as ProyectoCompleto["avances_obra"]) || [],
-    complementos: (snap.complementos as ProyectoCompleto["complementos"]) || [],
+    avances_obra: byOrden(avances_obra),
+    complementos: byOrden(complementos),
     vistas_piso: (snap.vistas_piso as ProyectoCompleto["vistas_piso"]) || [],
     unidad_tipologias: (snap.unidad_tipologias as ProyectoCompleto["unidad_tipologias"]) || [],
   } as ProyectoCompleto;

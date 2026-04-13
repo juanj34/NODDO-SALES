@@ -289,7 +289,7 @@ function DashboardShell({ children }: { children: React.ReactNode }) {
           <SidebarLink
             href="/cotizaciones"
             icon={FileText}
-            label="Cotizaciones"
+            label="NodDo Quote"
             pathname={pathname}
             onClick={closeDrawer}
             iconSize={15}

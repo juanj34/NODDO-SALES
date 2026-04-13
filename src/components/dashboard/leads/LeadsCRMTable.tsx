@@ -117,7 +117,7 @@ export function LeadsCRMTable({
             <th scope="col" className="text-center px-5 py-3">
               <Label variant="section" className="mb-0">
                 <span className="hidden sm:inline">{locale === "es" ? "Cotiz." : "Quotes"}</span>
-                <FileText size={12} className="sm:hidden inline" aria-label={locale === "es" ? "Cotizaciones" : "Quotes"} />
+                <FileText size={12} className="sm:hidden inline" aria-label="NodDo Quote" />
               </Label>
             </th>
             <th scope="col" className="text-left px-5 py-3">

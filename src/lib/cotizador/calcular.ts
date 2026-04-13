@@ -136,7 +136,11 @@ export function calcularCotizacion(
       monto_por_cuota,
       frecuencia: fase.frecuencia,
       fecha: fase.fecha || undefined,
-      porcentaje: precio_total > 0 ? Math.round((monto_total / precio_total) * 100) : 0,
+      porcentaje: fase.tipo === "porcentaje"
+        ? fase.valor
+        : precio_total > 0
+          ? Math.round((monto_total / precio_total) * 100)
+          : 0,
       condicion_hito: fase.condicion_hito || undefined,
     });
 

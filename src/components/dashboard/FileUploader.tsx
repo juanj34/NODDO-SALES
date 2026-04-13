@@ -214,47 +214,73 @@ export function FileUploader({
       const isImage = file.type.startsWith("image/");
       const isVideo = file.type.startsWith("video/");
 
-      // Non-image, non-video files (PDFs, etc.): upload directly to R2
-      // via presigned URL — no serverless size limits, real progress
-      if (!isImage && !isVideo) {
-        setUploadState("uploading");
-        setUploadProgressPercent(0);
-        const result = await uploadDirectToR2(file);
-        setUploadProgressPercent(100);
-        setUploadState("complete");
-        return result;
-      }
-
-      // Videos: compress if large, then upload directly to R2 (not via serverless)
-      if (isVideo) {
-        if (file.size > 100 * 1024 * 1024) {
-          throw new Error("El video excede 100MB. Por favor usa un archivo más liviano.");
-        }
-
-        let videoToUpload = file;
-        // Compress videos > 5MB client-side
-        if (file.size > 5 * 1024 * 1024) {
-          setUploadState("processing");
-          setUploadProgressPercent(0);
-          try {
-            const { compressVideo } = await import("@/lib/compress-video");
-            videoToUpload = await compressVideo(file, (ratio) => {
-              setUploadProgressPercent(Math.round(ratio * 100));
-            });
-          } catch (err) {
-            // If compression fails, upload original file
-            console.warn("Video compression failed, uploading original:", err);
-            videoToUpload = file;
+      // Non-image files (PDFs, videos, etc.): upload directly to R2
+      // with automatic server fallback if R2 fails
+      if (!isImage) {
+        // Videos: compress if large
+        let fileToR2 = file;
+        if (isVideo) {
+          if (file.size > 100 * 1024 * 1024) {
+            throw new Error("El video excede 100MB. Por favor usa un archivo más liviano.");
+          }
+          if (file.size > 5 * 1024 * 1024) {
+            setUploadState("processing");
+            setUploadProgressPercent(0);
+            try {
+              const { compressVideo } = await import("@/lib/compress-video");
+              fileToR2 = await compressVideo(file, (ratio) => {
+                setUploadProgressPercent(Math.round(ratio * 100));
+              });
+            } catch (err) {
+              console.warn("Video compression failed, uploading original:", err);
+            }
           }
         }
 
-        // Upload to R2 via presigned URL (with progress)
+        // Try R2 direct upload (presigned URL + XHR with progress)
         setUploadState("uploading");
         setUploadProgressPercent(0);
-        const result = await uploadDirectToR2(videoToUpload);
+        try {
+          const result = await uploadDirectToR2(fileToR2);
+          setUploadProgressPercent(100);
+          setUploadState("complete");
+          return result;
+        } catch (r2Err) {
+          console.warn("[R2 fallback] Direct upload failed, using server upload:", r2Err);
+        }
+
+        // Fallback: upload via server API
+        setUploadState("uploading");
+        setUploadProgressPercent(0);
+        const formData = new FormData();
+        formData.append("file", fileToR2);
+        formData.append("bucket", "media");
+        formData.append("folder", folder);
+
+        const res = await fetch("/api/upload", {
+          method: "POST",
+          body: formData,
+        });
+
+        if (!res.ok) {
+          let errorMsg = t("fileUploader.uploadError");
+          try {
+            const data = await res.json();
+            errorMsg = data.error || errorMsg;
+          } catch {
+            const text = await res.text().catch(() => "");
+            if (text.toLowerCase().includes("entity too large") || res.status === 413) {
+              errorMsg = "El archivo excede el límite de tamaño. Intenta con un archivo más pequeño.";
+            } else if (text) {
+              errorMsg = text.slice(0, 200);
+            }
+          }
+          throw new Error(errorMsg);
+        }
+
         setUploadProgressPercent(100);
         setUploadState("complete");
-        return result;
+        return await res.json();
       }
 
       // Compress large images client-side before uploading

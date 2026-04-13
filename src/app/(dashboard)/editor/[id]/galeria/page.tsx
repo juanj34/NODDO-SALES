@@ -33,23 +33,23 @@ import {
 import { motion, AnimatePresence, Reorder, useDragControls } from "framer-motion";
 import { useTranslation } from "@/i18n";
 import { InfoTooltip } from "@/components/ui/InfoTooltip";
-import type { GaleriaCategoria, GaleriaImagen, Torre } from "@/types";
+import type { GaleriaCategoria, GaleriaImagen, GaleriaGrupo } from "@/types";
 
 /* ── Draggable pill for category tab bar ── */
 function DraggablePill({
   cat,
   isActive,
   onSelect,
-  torres,
+  grupos,
 }: {
   cat: GaleriaCategoria;
   isActive: boolean;
   onSelect: () => void;
-  torres: Torre[];
+  grupos: GaleriaGrupo[];
 }) {
   const controls = useDragControls();
   const count = cat.imagenes?.length || 0;
-  const torre = cat.torre_id ? torres.find((t) => t.id === cat.torre_id) : null;
+  const grupo = cat.galeria_grupo_id ? grupos.find((g) => g.id === cat.galeria_grupo_id) : null;
 
   return (
     <Reorder.Item
@@ -71,9 +71,9 @@ function DraggablePill({
       </div>
       <button onClick={onSelect} className="flex items-center gap-1.5">
         {cat.nombre}
-        {torre && (
+        {grupo && (
           <span className="text-[9px] px-1.5 py-0.5 rounded-full bg-[rgba(var(--site-primary-rgb),0.12)] text-[var(--site-primary)] truncate max-w-[70px]">
-            {torre.nombre}
+            {grupo.nombre}
           </span>
         )}
         {count > 0 && (
@@ -94,31 +94,36 @@ export default function GaleriaPage() {
   const { confirm } = useConfirm();
   const toast = useToast();
 
-  const torres: Torre[] = project.torres || [];
-  const hasTorres = torres.length > 0;
+  const [localGrupos, setLocalGrupos] = useState<GaleriaGrupo[]>(project.galeria_grupos || []);
+  const hasGrupos = localGrupos.length > 0;
 
   const [selectedCatId, setSelectedCatId] = useState<string | null>(null);
   const [orderedCategories, setOrderedCategories] = useState<GaleriaCategoria[]>(
     project.galeria_categorias
   );
-  const [scopeFilter, setScopeFilter] = useState<string | null>(null); // null=all, "general"=project-wide, torre.id=tower
+  const [scopeFilter, setScopeFilter] = useState<string | null>(null); // null=all, torre.id=independent torre
   const [showCatForm, setShowCatForm] = useState(false);
   const [showUploadModal, setShowUploadModal] = useState(false);
   const [newCatNombre, setNewCatNombre] = useState("");
-  const [newCatTorreId, setNewCatTorreId] = useState<string | null>(null);
+  const [newCatGrupoId, setNewCatGrupoId] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
+  const [showScopeForm, setShowScopeForm] = useState(false);
+  const [newScopeName, setNewScopeName] = useState("");
+  const [savingScope, setSavingScope] = useState(false);
 
-  // Filtered categories by scope
+  // Filtered categories by grupo scope
   const filteredCategories = orderedCategories.filter((cat) => {
     if (scopeFilter === null) return true;
-    if (scopeFilter === "general") return !cat.torre_id;
-    return cat.torre_id === scopeFilter;
+    return cat.galeria_grupo_id === scopeFilter;
   });
 
-  // Sync categories from project
+  // Sync from project
   useEffect(() => {
     setOrderedCategories(project.galeria_categorias);
   }, [project.galeria_categorias]);
+  useEffect(() => {
+    setLocalGrupos(project.galeria_grupos || []);
+  }, [project.galeria_grupos]);
 
   // Auto-select first visible category or fix invalid selection
   useEffect(() => {
@@ -185,22 +190,83 @@ export default function GaleriaPage() {
           proyecto_id: projectId,
           nombre: newCatNombre.trim(),
           slug: catSlug,
-          torre_id: newCatTorreId,
+          galeria_grupo_id: newCatGrupoId,
         }),
       });
-      if (res.ok) {
-        const created = await res.json();
-        // Optimistic: add category to local state immediately
-        setOrderedCategories((prev) => [...prev, { ...created, imagenes: [] }]);
-        setSelectedCatId(created.id);
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        toast.error(err.error || "Error al crear la categoría");
+        return;
       }
+      const created = await res.json();
+      // Optimistic: add category to local state immediately
+      setOrderedCategories((prev) => [...prev, { ...created, imagenes: [] }]);
+      setSelectedCatId(created.id);
       setNewCatNombre("");
-      setNewCatTorreId(null);
+      setNewCatGrupoId(null);
       setShowCatForm(false);
+      toast.success(`Categoría "${created.nombre}" creada`);
       // Background sync
       refresh().catch(() => {});
+    } catch {
+      toast.error("Error de conexión al crear la categoría");
     } finally {
       setSaving(false);
+    }
+  };
+
+  const deleteScope = async (grupoId: string) => {
+    const grupo = localGrupos.find((g) => g.id === grupoId);
+    if (!grupo) return;
+    const catsInScope = orderedCategories.filter((c) => c.galeria_grupo_id === grupoId);
+    if (!(await confirm({
+      title: "Eliminar grupo de galería",
+      message: `¿Eliminar el grupo "${grupo.nombre}"?`,
+      description: catsInScope.length > 0
+        ? `${catsInScope.length} categoría(s) serán desvinculadas y volverán a la lista general.`
+        : undefined,
+      typeToConfirm: grupo.nombre,
+    }))) return;
+    // Optimistic: unassign categories + remove grupo
+    setOrderedCategories((prev) =>
+      prev.map((c) => c.galeria_grupo_id === grupoId ? { ...c, galeria_grupo_id: null } : c)
+    );
+    setLocalGrupos((prev) => prev.filter((g) => g.id !== grupoId));
+    setScopeFilter(null);
+    toast.success(`Grupo "${grupo.nombre}" eliminado`);
+    // Fire-and-forget: DELETE removes grupo + FK sets categories to null
+    fetch(`/api/galeria/grupos/${grupoId}`, { method: "DELETE" })
+      .then(() => refresh().catch(() => {}))
+      .catch(() => toast.error("Error al eliminar grupo"));
+  };
+
+  const addScope = async () => {
+    if (!newScopeName.trim()) return;
+    setSavingScope(true);
+    try {
+      const res = await fetch("/api/galeria/grupos", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          proyecto_id: projectId,
+          nombre: newScopeName.trim(),
+        }),
+      });
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        toast.error(err.error || "Error al crear el grupo");
+        return;
+      }
+      const created = await res.json();
+      setLocalGrupos((prev) => [...prev, created]);
+      toast.success(`Grupo "${created.nombre}" creado`);
+      setNewScopeName("");
+      setShowScopeForm(false);
+      refresh().catch(() => {});
+    } catch {
+      toast.error("Error de conexión al crear el grupo");
+    } finally {
+      setSavingScope(false);
     }
   };
 
@@ -356,30 +422,79 @@ export default function GaleriaPage() {
       {/* Category tab bar + content */}
       {(orderedCategories.length > 0 || showCatForm) && (
         <div className="space-y-4">
-          {/* Scope filter — only when project has torres */}
-          {hasTorres && (
-            <div className="flex items-center gap-1.5 overflow-x-auto pb-1">
-              {[
-                { id: null, label: t("galeria.scopeAll") },
-                { id: "general", label: t("galeria.scopeGeneral") },
-                ...torres.map((t) => ({ id: t.id, label: t.nombre })),
-              ].map((scope) => (
+          {/* Scope filter + group creation */}
+          <div className="flex items-center gap-1.5 overflow-x-auto pb-1">
+            {hasGrupos && [
+              { id: null, label: t("galeria.scopeAll") },
+              ...localGrupos.map((grupo) => ({ id: grupo.id, label: grupo.nombre })),
+            ].map((scope) => (
+              <div key={scope.id ?? "all"} className="flex items-center shrink-0 group/scope">
                 <button
-                  key={scope.id ?? "all"}
                   onClick={() => setScopeFilter(scope.id)}
-                  className={`px-3 py-1 rounded-lg text-[10px] tracking-wide uppercase font-medium transition-all shrink-0 ${
+                  className={`px-3 py-1 rounded-lg text-[10px] tracking-wide uppercase font-medium transition-all ${
                     scopeFilter === scope.id
                       ? "bg-[rgba(var(--site-primary-rgb),0.15)] text-[var(--site-primary)] border border-[rgba(var(--site-primary-rgb),0.3)]"
                       : "text-[var(--text-muted)] hover:text-[var(--text-secondary)] border border-transparent hover:border-[var(--border-subtle)]"
-                  }`}
+                  }${scope.id ? " rounded-r-none border-r-0" : ""}`}
                 >
                   {scope.label}
                 </button>
-              ))}
-            </div>
-          )}
+                {scope.id && (
+                  <button
+                    onClick={() => deleteScope(scope.id!)}
+                    className={`px-1 py-1 rounded-r-lg text-[10px] transition-all opacity-0 group-hover/scope:opacity-100 ${
+                      scopeFilter === scope.id
+                        ? "bg-[rgba(var(--site-primary-rgb),0.15)] border border-l-0 border-[rgba(var(--site-primary-rgb),0.3)] text-[var(--text-secondary)] hover:text-red-400"
+                        : "border border-l-0 border-transparent text-[var(--text-muted)] hover:text-red-400"
+                    }`}
+                  >
+                    <X size={10} />
+                  </button>
+                )}
+              </div>
+            ))}
 
-          {/* Tab bar */}
+            {/* Add group button / inline form */}
+            {!showScopeForm ? (
+              <button
+                onClick={() => setShowScopeForm(true)}
+                className="flex items-center gap-1 px-2.5 py-1 rounded-lg text-[10px] text-[var(--text-muted)] hover:text-[var(--text-secondary)] hover:bg-[var(--surface-2)] border border-dashed border-[var(--border-default)] transition-all shrink-0"
+              >
+                <Plus size={10} />
+                {t("galeria.newScope")}
+              </button>
+            ) : (
+              <div className="flex items-center gap-1 shrink-0">
+                <input
+                  type="text"
+                  value={newScopeName}
+                  onChange={(e) => setNewScopeName(e.target.value)}
+                  placeholder={t("galeria.scopeNamePlaceholder")}
+                  className="px-2 py-1 rounded-lg text-[10px] bg-[var(--surface-2)] border border-[var(--border-default)] text-white placeholder:text-[var(--text-muted)] outline-none focus:border-[rgba(var(--site-primary-rgb),0.4)] w-32"
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") addScope();
+                    if (e.key === "Escape") { setShowScopeForm(false); setNewScopeName(""); }
+                  }}
+                  autoFocus
+                />
+                <button
+                  onClick={addScope}
+                  disabled={savingScope || !newScopeName.trim()}
+                  className="p-1 rounded-lg text-[var(--site-primary)] hover:bg-[rgba(var(--site-primary-rgb),0.1)] disabled:opacity-40 transition-all"
+                >
+                  {savingScope ? <Loader2 size={12} className="animate-spin" /> : <Check size={12} />}
+                </button>
+                <button
+                  onClick={() => { setShowScopeForm(false); setNewScopeName(""); }}
+                  className="p-1 rounded-lg text-[var(--text-muted)] hover:text-[var(--text-secondary)] transition-all"
+                >
+                  <X size={12} />
+                </button>
+              </div>
+            )}
+          </div>
+
+          {/* Category tab bar */}
           <div className="flex items-center gap-2 overflow-x-auto pb-1">
             {filteredCategories.length > 0 && (
               <Reorder.Group
@@ -395,7 +510,7 @@ export default function GaleriaPage() {
                     cat={cat}
                     isActive={selectedCatId === cat.id}
                     onSelect={() => setSelectedCatId(cat.id)}
-                    torres={torres}
+                    grupos={localGrupos}
                   />
                 ))}
               </Reorder.Group>
@@ -405,11 +520,10 @@ export default function GaleriaPage() {
             {!showCatForm && (
               <button
                 onClick={() => {
-                  // Pre-select torre based on current scope filter
-                  if (scopeFilter && scopeFilter !== "general") {
-                    setNewCatTorreId(scopeFilter);
+                  if (scopeFilter) {
+                    setNewCatGrupoId(scopeFilter);
                   } else {
-                    setNewCatTorreId(null);
+                    setNewCatGrupoId(null);
                   }
                   setShowCatForm(true);
                 }}
@@ -439,16 +553,16 @@ export default function GaleriaPage() {
                     onKeyDown={(e) => e.key === "Enter" && addCategoria()}
                     autoFocus
                   />
-                  {hasTorres && (
+                  {hasGrupos && (
                     <div className="w-auto min-w-[140px]">
                       <NodDoDropdown
                         variant="dashboard"
                         size="md"
-                        value={newCatTorreId ?? ""}
-                        onChange={(val) => setNewCatTorreId(val || null)}
+                        value={newCatGrupoId ?? ""}
+                        onChange={(val) => setNewCatGrupoId(val || null)}
                         options={[
                           { value: "", label: t("galeria.scopeProjectWide") },
-                          ...torres.map((torre) => ({ value: torre.id, label: torre.nombre })),
+                          ...localGrupos.map((g) => ({ value: g.id, label: g.nombre })),
                         ]}
                       />
                     </div>
@@ -469,7 +583,7 @@ export default function GaleriaPage() {
                     onClick={() => {
                       setShowCatForm(false);
                       setNewCatNombre("");
-                      setNewCatTorreId(null);
+                      setNewCatGrupoId(null);
                     }}
                     className={btnSecondary}
                   >
@@ -492,6 +606,35 @@ export default function GaleriaPage() {
                   <span className={badgeGold}>
                     {t("galeria.imageCount", { count: String(imageCount) })}
                   </span>
+                  {/* Group assignment dropdown */}
+                  {hasGrupos && (
+                    <NodDoDropdown
+                      variant="dashboard"
+                      size="md"
+                      value={selectedCat.galeria_grupo_id ?? ""}
+                      onChange={async (val) => {
+                        const newGrupoId = val || null;
+                        setOrderedCategories((prev) =>
+                          prev.map((c) => c.id === selectedCat.id ? { ...c, galeria_grupo_id: newGrupoId } : c)
+                        );
+                        try {
+                          const res = await fetch(`/api/galeria/categorias/${selectedCat.id}`, {
+                            method: "PUT",
+                            headers: { "Content-Type": "application/json" },
+                            body: JSON.stringify({ galeria_grupo_id: newGrupoId }),
+                          });
+                          if (!res.ok) toast.error("Error al asignar grupo");
+                          refresh().catch(() => {});
+                        } catch {
+                          toast.error("Error de conexión");
+                        }
+                      }}
+                      options={[
+                        { value: "", label: "Sin grupo" },
+                        ...localGrupos.map((g) => ({ value: g.id, label: g.nombre })),
+                      ]}
+                    />
+                  )}
                 </div>
                 <div className="flex items-center gap-2">
                   <button

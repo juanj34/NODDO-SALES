@@ -25,9 +25,11 @@ import { cn } from "@/lib/utils";
 
 interface PageHeaderProps {
   /** Lucide icon component to display */
-  icon: LucideIcon;
-  /** Page title (main heading) */
-  title: string;
+  icon?: LucideIcon;
+  /** Custom icon element (overrides icon prop) */
+  iconElement?: React.ReactNode;
+  /** Page title — string or custom ReactNode */
+  title: React.ReactNode;
   /** Optional description text below title */
   description?: React.ReactNode;
   /** Optional action buttons/elements to display on the right */
@@ -38,6 +40,7 @@ interface PageHeaderProps {
 
 export function PageHeader({
   icon: Icon,
+  iconElement,
   title,
   description,
   actions,
@@ -48,7 +51,7 @@ export function PageHeader({
       <div className="flex items-center gap-3">
         {/* Icon circle */}
         <div className="w-10 h-10 rounded-xl bg-[var(--surface-2)] border border-[var(--border-subtle)] flex items-center justify-center">
-          <Icon size={18} className="text-[var(--site-primary)]" />
+          {iconElement || (Icon && <Icon size={18} className="text-[var(--site-primary)]" />)}
         </div>
 
         {/* Title and description */}

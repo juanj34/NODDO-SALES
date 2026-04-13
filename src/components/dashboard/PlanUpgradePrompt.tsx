@@ -43,7 +43,7 @@ export function PlanUpgradePrompt({ feature, plan = "basico" }: PlanUpgradePromp
         `Up to ${proTier.max_collaborators} collaborators`,
       ]
     : [
-        "Cotizador integrado con PDF automático",
+        "NodDo Quote integrado con PDF automático",
         "Correos con logo y colores de tu constructora",
         "Estadísticas avanzadas con gráficos detallados",
         `${proTier.storage_bytes / 1024 ** 3}GB de almacenamiento`,

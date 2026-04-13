@@ -98,14 +98,14 @@ export function CommandPalette() {
                                 className="flex items-center px-4 py-3 rounded-lg text-sm text-[var(--text-secondary)] hover:bg-[var(--surface-3)] hover:text-white cursor-pointer transition-colors aria-selected:bg-[var(--surface-3)] aria-selected:text-white"
                             >
                                 <Calculator className="mr-3 shrink-0" size={16} />
-                                Cotizador
+                                NodDo Quote
                             </Command.Item>
                             <Command.Item
                                 onSelect={() => runCommand(() => router.push("/cotizaciones"))}
                                 className="flex items-center px-4 py-3 rounded-lg text-sm text-[var(--text-secondary)] hover:bg-[var(--surface-3)] hover:text-white cursor-pointer transition-colors aria-selected:bg-[var(--surface-3)] aria-selected:text-white"
                             >
                                 <FileText className="mr-3 shrink-0" size={16} />
-                                Cotizaciones
+                                NodDo Quote
                             </Command.Item>
                             <Command.Item
                                 onSelect={() => runCommand(() => router.push("/equipo"))}

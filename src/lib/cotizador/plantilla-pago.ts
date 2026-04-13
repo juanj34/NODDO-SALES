@@ -111,12 +111,13 @@ export function expandQuickDef(
   const freqMonths = def.frecuencia === "mensual" ? 1
     : def.frecuencia === "bimestral" ? 2 : 3;
 
-  // Separación row (fijo, at reservation)
+  // Separación row (fijo or porcentaje, at reservation)
   if (def.incluye_separacion && def.separacion_monto && def.separacion_monto > 0) {
+    const sepTipo = def.separacion_tipo ?? "fijo";
     filas.push({
       id: crypto.randomUUID(),
       nombre: "Separación",
-      tipo_valor: "fijo",
+      tipo_valor: sepTipo === "porcentaje" ? "porcentaje" : "fijo",
       valor: def.separacion_monto,
       regla_fecha: { tipo: "al_reservar" },
     });

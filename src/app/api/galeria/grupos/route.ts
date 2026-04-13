@@ -2,6 +2,32 @@ import { getAuthContext, requirePermission, verifyProjectOwnership } from "@/lib
 import { logActivity } from "@/lib/activity-logger";
 import { NextRequest, NextResponse } from "next/server";
 
+export async function GET(request: NextRequest) {
+  try {
+    const auth = await getAuthContext();
+    if (!auth)
+      return NextResponse.json({ error: "No autorizado" }, { status: 401 });
+
+    const proyectoId = request.nextUrl.searchParams.get("proyecto_id");
+    if (!proyectoId)
+      return NextResponse.json({ error: "proyecto_id requerido" }, { status: 400 });
+
+    const { data, error } = await auth.supabase
+      .from("galeria_grupos")
+      .select("*")
+      .eq("proyecto_id", proyectoId)
+      .order("orden");
+
+    if (error) throw error;
+    return NextResponse.json(data || []);
+  } catch (err) {
+    return NextResponse.json(
+      { error: err instanceof Error ? err.message : "Error" },
+      { status: 500 }
+    );
+  }
+}
+
 export async function POST(request: NextRequest) {
   try {
     const auth = await getAuthContext();
@@ -11,9 +37,9 @@ export async function POST(request: NextRequest) {
     if (denied) return denied;
 
     const body = await request.json();
-    if (!body.proyecto_id || !body.nombre || !body.slug) {
+    if (!body.proyecto_id || !body.nombre) {
       return NextResponse.json(
-        { error: "proyecto_id, nombre y slug son requeridos" },
+        { error: "proyecto_id y nombre son requeridos" },
         { status: 400 }
       );
     }
@@ -25,41 +51,28 @@ export async function POST(request: NextRequest) {
     const insertData: Record<string, unknown> = {
       proyecto_id: body.proyecto_id,
       nombre: body.nombre,
-      slug: body.slug,
     };
     if (body.orden !== undefined) insertData.orden = body.orden;
-    if (body.torre_id !== undefined) insertData.torre_id = body.torre_id;
-    if (body.galeria_grupo_id !== undefined) insertData.galeria_grupo_id = body.galeria_grupo_id;
 
     const { data, error } = await auth.supabase
-      .from("galeria_categorias")
+      .from("galeria_grupos")
       .insert(insertData)
       .select()
       .single();
 
     if (error) throw error;
 
-    // Log activity (fire-and-forget)
-    if (data) {
-      const { data: proj } = await auth.supabase
-        .from("proyectos")
-        .select("nombre")
-        .eq("id", body.proyecto_id)
-        .single();
-
-      logActivity({
-        userId: auth.user.id,
-        userEmail: auth.user.email!,
-        userRole: auth.role,
-        proyectoId: body.proyecto_id,
-        proyectoNombre: proj?.nombre ?? null,
-        actionType: "gallery.category_create",
-        actionCategory: "gallery",
-        metadata: { nombre: data.nombre },
-        entityType: "galeria_categoria",
-        entityId: data.id,
-      });
-    }
+    logActivity({
+      userId: auth.user.id,
+      userEmail: auth.user.email!,
+      userRole: auth.role,
+      proyectoId: body.proyecto_id,
+      actionType: "gallery.grupo_create",
+      actionCategory: "gallery",
+      metadata: { nombre: data.nombre },
+      entityType: "galeria_grupo",
+      entityId: data.id,
+    });
 
     return NextResponse.json(data, { status: 201 });
   } catch (err) {

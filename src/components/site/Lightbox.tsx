@@ -83,7 +83,7 @@ export function Lightbox({ images, initialIndex = 0, onClose }: LightboxProps) {
         </button>
 
         {/* Image + label */}
-        <div className="relative max-w-full max-h-[calc(100vh-200px)]">
+        <div className="relative w-full" style={{ height: "calc(100vh - 200px)" }}>
           <AnimatePresence mode="wait" custom={direction}>
             <motion.div
               key={current.id}
@@ -93,7 +93,7 @@ export function Lightbox({ images, initialIndex = 0, onClose }: LightboxProps) {
               animate="center"
               exit="exit"
               transition={{ duration: 0.3, ease: "easeInOut" }}
-              className="relative max-w-full max-h-[calc(100vh-200px)]"
+              className="relative w-full h-full"
               drag="x"
               dragConstraints={{ left: 0, right: 0 }}
               dragElastic={0.15}
@@ -105,9 +105,10 @@ export function Lightbox({ images, initialIndex = 0, onClose }: LightboxProps) {
               <Image
                 src={current.url}
                 alt={current.alt_text || ""}
-                width={1920}
-                height={1080}
-                className="max-w-full max-h-[calc(100vh-200px)] object-contain rounded-lg"
+                fill
+                sizes="100vw"
+                priority
+                className="object-contain rounded-lg"
               />
             </motion.div>
           </AnimatePresence>
@@ -150,8 +151,9 @@ export function Lightbox({ images, initialIndex = 0, onClose }: LightboxProps) {
             <Image
               src={img.thumbnail_url || img.url}
               alt={img.alt_text || ""}
-              width={64}
-              height={48}
+              width={80}
+              height={60}
+              sizes="80px"
               className="w-full h-full object-cover"
             />
           </button>

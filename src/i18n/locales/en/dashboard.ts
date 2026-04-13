@@ -9,7 +9,7 @@ const dashboard = {
     tools: "Tools",
     data: "Data",
     disponibilidad: "Availability",
-    cotizador: "Quotation",
+    cotizador: "NodDo Quote",
     registros: "Leads",
     home: "Home",
     allProjects: "All projects",
@@ -222,12 +222,12 @@ const dashboard = {
     },
   },
   cotizador: {
-    title: "Quotation",
+    title: "NodDo Quote",
     description: "Generate quotes for your units",
     selectUnit: "Select a unit",
     generatePdf: "Generate PDF",
-    notConfigured: "Quotation tool is not configured for this project",
-    notConfiguredCollab: "Quotation tool is not configured for this project. Contact your administrator.",
+    notConfigured: "NodDo Quote is not configured for this project",
+    notConfiguredCollab: "NodDo Quote is not configured for this project. Contact your administrator.",
     configureLink: "Configure in editor",
     noAvailable: "No available units",
     search: "Search unit...",
@@ -240,7 +240,7 @@ const dashboard = {
     agentLabel: "Agent",
   },
   cotizaciones: {
-    title: "Quotations",
+    title: "NodDo Quote",
     description: "Manage generated quotations",
     stats: {
       total: "Total",

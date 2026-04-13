@@ -23,7 +23,7 @@ export async function GET(request: NextRequest) {
 
     const { data, error } = await auth.supabase
       .from("unidades")
-      .select("*, tipologia:tipologias(nombre, parqueaderos, depositos, precio_desde, area_construida, area_privada, area_balcon, area_lote, tiene_jacuzzi, tiene_piscina, tiene_bbq, tiene_terraza, tiene_jardin, tiene_cuarto_servicio, tiene_estudio, tiene_chimenea, tiene_doble_altura, tiene_rooftop), torre:torres(nombre)")
+      .select("*, tipologia:tipologias(nombre, area_m2, habitaciones, banos, parqueaderos, depositos, precio_desde, area_construida, area_privada, area_balcon, area_lote, tiene_jacuzzi, tiene_piscina, tiene_bbq, tiene_terraza, tiene_jardin, tiene_cuarto_servicio, tiene_estudio, tiene_chimenea, tiene_doble_altura, tiene_rooftop), torre:torres(nombre)")
       .eq("proyecto_id", proyectoId)
       .order("piso", { ascending: false })
       .order("identificador");

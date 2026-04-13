@@ -6,7 +6,7 @@ import { Building2, LineChart, Map, MonitorSmartphone } from "lucide-react";
 export function StatsBar() {
     const stats = [
         { value: "48+", label: "Proyectos Activos", icon: Building2 },
-        { value: "12K", label: "Cotizaciones", icon: MonitorSmartphone },
+        { value: "12K", label: "NodDo Quotes", icon: MonitorSmartphone },
         { value: "$20M", label: "Ventas Facilitadas", icon: LineChart },
         { value: "100%", label: "Impacto Visual", icon: Map },
     ];

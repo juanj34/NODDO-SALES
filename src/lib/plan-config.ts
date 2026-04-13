@@ -24,8 +24,8 @@ export type GatedFeature = (typeof GATED_FEATURES)[number];
 
 export const GATED_FEATURE_LABELS: Record<GatedFeature, { es: string; en: string; description_es: string; description_en: string }> = {
   cotizador: {
-    es: "Cotizador integrado",
-    en: "Integrated Quotation Tool",
+    es: "NodDo Quote integrado",
+    en: "Integrated NodDo Quote",
     description_es: "Genera cotizaciones en PDF y envíalas automáticamente a compradores con toda la información del proyecto.",
     description_en: "Generate PDF quotations and automatically send them to buyers with all project information.",
   },

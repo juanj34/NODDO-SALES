@@ -308,7 +308,7 @@ const es: EmailStrings = {
     subject: "{inviter} te invita a colaborar en NODDO",
     heading: "Has sido invitado",
     bodyDirector: '<strong style="color:#f4f0e8;">{inviter}</strong> te ha invitado como <strong style="color:#b8973a;">Director</strong> en NODDO. Podrás gestionar contenido, leads e inventario de los proyectos asignados.',
-    bodyAsesor: '<strong style="color:#f4f0e8;">{inviter}</strong> te ha invitado como <strong style="color:#b8973a;">Asesor</strong> en NODDO. Podrás gestionar disponibilidad, cotizaciones y tus leads asignados.',
+    bodyAsesor: '<strong style="color:#f4f0e8;">{inviter}</strong> te ha invitado como <strong style="color:#b8973a;">Asesor</strong> en NODDO. Podrás gestionar disponibilidad, NodDo Quote y tus leads asignados.',
     cta: "Acceder a NODDO",
   },
 
@@ -316,7 +316,7 @@ const es: EmailStrings = {
     subject: "Bienvenido a NODDO",
     heading: "Bienvenido al equipo",
     bodyDirector: 'Tu cuenta como <strong style="color:#b8973a;">Director</strong> está activa. Ya puedes acceder a los proyectos asignados y gestionar contenido, leads e inventario.',
-    bodyAsesor: 'Tu cuenta como <strong style="color:#b8973a;">Asesor</strong> está activa. Ya puedes acceder a disponibilidad, cotizador y tus leads asignados.',
+    bodyAsesor: 'Tu cuenta como <strong style="color:#b8973a;">Asesor</strong> está activa. Ya puedes acceder a disponibilidad, NodDo Quote y tus leads asignados.',
     cta: "Ir a NODDO",
   },
 

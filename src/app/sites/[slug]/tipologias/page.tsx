@@ -97,17 +97,23 @@ export default function TipologiasPage() {
 
   const activeTorre = useMemo(() => activeTorreId ? torres.find(t => t.id === activeTorreId) ?? null : null, [activeTorreId, torres]);
 
-  // Filter tipologías by active torre
+  // Only show torre tabs when tipologías are actually differentiated across torres
+  const hasFilterableTipologias = useMemo(
+    () => tipologias.some((t) => t.torre_ids?.length > 0),
+    [tipologias]
+  );
+  const showTorreTabs = isMultiTorre && hasFilterableTipologias;
+
+  // Filter tipologías by active torre (shared tipologías without torre_ids show in all tabs)
   const visibleTipologias = useMemo(() => {
     let filtered = tipologias;
 
-    // Filter by torre
-    if (isMultiTorre && activeTorreId) {
-      filtered = filtered.filter((t) => t.torre_ids?.includes(activeTorreId));
+    if (showTorreTabs && activeTorreId) {
+      filtered = filtered.filter((t) => !t.torre_ids?.length || t.torre_ids.includes(activeTorreId));
     }
 
     return filtered;
-  }, [tipologias, isMultiTorre, activeTorreId]);
+  }, [tipologias, showTorreTabs, activeTorreId]);
 
   // Read query params for deep linking
   const tipoParam = searchParams.get("tipo");
@@ -445,7 +451,7 @@ export default function TipologiasPage() {
   if (!active) {
     return (
       <SectionTransition className="h-screen flex flex-col overflow-hidden bg-[var(--site-bg)]">
-        {isMultiTorre && (
+        {showTorreTabs && (
           <div className="flex-shrink-0 flex items-center gap-2 px-6 lg:px-12 pt-4 pb-1">
             {torres.map((torre) => (
               <button
@@ -479,7 +485,7 @@ export default function TipologiasPage() {
   return (
     <SectionTransition className="min-h-screen lg:h-screen flex flex-col overflow-y-auto lg:overflow-hidden bg-[var(--site-bg)]">
       {/* ====== TOP: Torre Selector (multi-torre only) ====== */}
-      {isMultiTorre && (
+      {showTorreTabs && (
         <div className="flex-shrink-0 px-6 lg:px-12 pt-6 pb-5">
           <div className="flex items-center gap-2.5">
             {torres.map((torre) => (
@@ -518,7 +524,7 @@ export default function TipologiasPage() {
       )}
 
       {/* ====== TOP: Tipología Tab Bar ====== */}
-      <div className={cn("flex-shrink-0 px-6 lg:px-12 pb-5", isMultiTorre ? "pt-3" : "pt-6")}>
+      <div className={cn("flex-shrink-0 px-6 lg:px-12 pb-5", showTorreTabs ? "pt-3" : "pt-6")}>
         <div className="flex items-end gap-8 mb-4">
           {visibleTipologias.map((tipo, idx) => {
             const isActive = idx === activeIndex;

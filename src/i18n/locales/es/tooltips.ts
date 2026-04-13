@@ -103,7 +103,7 @@ const tooltips = {
     },
     agentMode: {
       short: "Modo especial para agentes inmobiliarios con restricciones.",
-      long: "Cuando está activado, los **agentes externos** ven una versión limitada del micrositio según la configuración: sin precios, sin unidades vendidas, sin cotizador, etc. Útil para controlar qué información comparten los agentes con los clientes.",
+      long: "Cuando está activado, los **agentes externos** ven una versión limitada del micrositio según la configuración: sin precios, sin unidades vendidas, sin NodDo Quote, etc. Útil para controlar qué información comparten los agentes con los clientes.",
     },
   },
 
@@ -170,8 +170,8 @@ const tooltips = {
       long: "Agrega tags con las características de esta tipología: acabados, equipamiento, beneficios. Ejemplo: **Cocina integral, Piso en porcelanato, Closets empotrados**. Aparecen como etiquetas en el micrositio.",
     },
     torreAsignacion: {
-      short: "Torres en las que está disponible esta tipología.",
-      long: "Selecciona en qué **torres** se ofrece esta tipología. Si el proyecto tiene una sola torre, se asigna automáticamente. Si tiene varias, puedes ofrecer la misma tipología en múltiples torres.",
+      short: "Agrupaciones donde está disponible esta tipología.",
+      long: "Selecciona en qué **agrupaciones** (torres o urbanismos) se ofrece esta tipología. Si el proyecto tiene una sola agrupación, se asigna automáticamente. Si tiene varias, puedes ofrecer la misma tipología en múltiples agrupaciones.",
     },
     extras: {
       short: "Características especiales adicionales de la tipología.",
@@ -402,7 +402,7 @@ const tooltips = {
   },
 
   /* ═══════════════════════════════════════════════════════════════════
-     Cotizador (existentes — preservados sin cambios)
+     NodDo Quote (existentes — preservados sin cambios)
      ═══════════════════════════════════════════════════════════════════ */
   cotizador: {
     tipoFase: {

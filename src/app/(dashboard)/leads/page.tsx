@@ -247,7 +247,7 @@ export default function LeadsPage() {
         locale === "es" ? "Asignado a" : "Assigned to",
         locale === "es" ? "Mensaje" : "Message",
         locale === "es" ? "Proyecto" : "Project",
-        locale === "es" ? "Cotizaciones" : "Quotes",
+        "NodDo Quote",
         "UTM Source",
         "UTM Medium",
         "UTM Campaign",

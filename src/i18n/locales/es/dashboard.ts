@@ -9,7 +9,7 @@ const dashboard = {
     tools: "Herramientas",
     data: "Datos",
     disponibilidad: "Disponibilidad",
-    cotizador: "Cotizador",
+    cotizador: "NodDo Quote",
     registros: "Leads",
     home: "Inicio",
     allProjects: "Todos los proyectos",
@@ -222,12 +222,12 @@ const dashboard = {
     },
   },
   cotizador: {
-    title: "Cotizador",
+    title: "NodDo Quote",
     description: "Genera cotizaciones para tus unidades",
     selectUnit: "Selecciona una unidad",
     generatePdf: "Generar PDF",
-    notConfigured: "El cotizador no está configurado para este proyecto",
-    notConfiguredCollab: "El cotizador no está configurado para este proyecto. Contacta al administrador.",
+    notConfigured: "NodDo Quote no está configurado para este proyecto",
+    notConfiguredCollab: "NodDo Quote no está configurado para este proyecto. Contacta al administrador.",
     configureLink: "Configurar en el editor",
     noAvailable: "No hay unidades disponibles",
     search: "Buscar unidad...",
@@ -240,7 +240,7 @@ const dashboard = {
     agentLabel: "Asesor",
   },
   cotizaciones: {
-    title: "Cotizaciones",
+    title: "NodDo Quote",
     description: "Gestiona las cotizaciones generadas",
     stats: {
       total: "Total",

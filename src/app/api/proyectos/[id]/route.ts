@@ -49,6 +49,19 @@ const PROYECTO_FIELDS = [
   "precio_amoblado",
 ];
 
+/**
+ * Content/media fields that directors (content.write) can update
+ * without needing project.update (administrador) permission.
+ */
+const CONTENT_FIELDS = new Set([
+  "brochure_url", "render_principal_url", "hero_video_url",
+  "fachada_url", "mapa_ubicacion_url", "tour_360_url",
+  "background_audio_url", "favicon_url", "og_image_url",
+  "logo_url", "logo_height", "constructora_logo_url",
+  "secciones_visibles", "disclaimer", "politica_privacidad_url",
+  "etapa_label", "estado_construccion",
+]);
+
 export async function GET(
   _request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
@@ -166,10 +179,15 @@ export async function PUT(
     if (!auth) {
       return NextResponse.json({ error: "No autorizado" }, { status: 401 });
     }
-    const denied = requirePermission(auth, "project.update");
-    if (denied) return denied;
-
     const body = await request.json();
+
+    // Field-aware permission: content-only updates (brochure, media URLs) require
+    // content.write (director+), all other fields require project.update (administrador+)
+    const requestedFields = Object.keys(body).filter((k) => PROYECTO_FIELDS.includes(k));
+    const isContentOnly = requestedFields.length > 0 &&
+      requestedFields.every((f) => CONTENT_FIELDS.has(f));
+    const denied = requirePermission(auth, isContentOnly ? "content.write" : "project.update");
+    if (denied) return denied;
 
     const updateData: Record<string, unknown> = { ...pick(body, PROYECTO_FIELDS), updated_at: new Date().toISOString() };
 

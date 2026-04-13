@@ -272,6 +272,14 @@ export interface Tipologia {
   tiene_rooftop: boolean;
 }
 
+export interface GaleriaGrupo {
+  id: string;
+  proyecto_id: string;
+  nombre: string;
+  orden: number;
+  created_at: string;
+}
+
 export interface GaleriaCategoria {
   id: string;
   proyecto_id: string;
@@ -279,6 +287,7 @@ export interface GaleriaCategoria {
   slug: string;
   orden: number;
   torre_id: string | null;
+  galeria_grupo_id: string | null;
   imagenes?: GaleriaImagen[];
 }
 
@@ -477,6 +486,7 @@ export interface Torre {
   imagen_portada: string | null;
   logo_url: string | null;
   prefijo: string | null;
+  galeria_independiente: boolean;
   orden: number;
   created_at: string;
 }
@@ -520,6 +530,7 @@ export interface PlanoPunto {
 export interface ProyectoCompleto extends Proyecto {
   tipologias: Tipologia[];
   galeria_categorias: GaleriaCategoria[];
+  galeria_grupos: GaleriaGrupo[];
   videos: Video[];
   puntos_interes: PuntoInteres[];
   unidades: Unidad[];
@@ -879,6 +890,7 @@ export interface PlantillaQuickDef {
   cuotas: number;
   frecuencia: "mensual" | "bimestral" | "trimestral";
   incluye_separacion: boolean;
+  separacion_tipo?: "fijo" | "porcentaje";
   separacion_monto?: number;
 }
 
@@ -921,6 +933,17 @@ export interface CotizadorConfig {
   plantillas_pago?: PlantillaPago[];
   // Construction milestones for anchoring payment phases
   hitos_constructivos?: HitoConstructivo[];
+  // Quick Quote mode: simplified quotation without templates
+  quick_quote_enabled?: boolean;
+  quick_quote_defaults?: QuickQuoteParams;
+}
+
+/** Parameters for the Quick Quote mode — generates a 3-phase payment plan on the fly */
+export interface QuickQuoteParams {
+  separacion_pct: number;
+  financiacion_pct: number;
+  cuotas: number;
+  frecuencia: "mensual" | "bimestral" | "trimestral";
 }
 
 /* -- Email Configuration -- */

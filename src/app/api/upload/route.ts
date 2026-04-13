@@ -29,6 +29,7 @@ const AUDIO_TYPES = new Set([
 const MAX_IMAGE_SIZE = 10 * 1024 * 1024; // 10MB
 const MAX_VIDEO_SIZE = 50 * 1024 * 1024; // 50MB (post client-side compression)
 const MAX_AUDIO_SIZE = 15 * 1024 * 1024; // 15MB
+const MAX_DOC_SIZE = 50 * 1024 * 1024; // 50MB (PDFs, etc.)
 
 const MAX_OPTIMIZED_WIDTH = 1920;
 const OPTIMIZED_QUALITY = 80;
@@ -75,6 +76,13 @@ export async function POST(request: NextRequest) {
     if (isImage && file.size > MAX_IMAGE_SIZE) {
       return NextResponse.json(
         { error: `La imagen excede el limite de 10MB (${(file.size / 1024 / 1024).toFixed(1)}MB). Intenta con una imagen más pequeña.` },
+        { status: 400 }
+      );
+    }
+
+    if (!isImage && !isVideo && !isAudio && file.size > MAX_DOC_SIZE) {
+      return NextResponse.json(
+        { error: `El archivo excede el limite de 50MB (${(file.size / 1024 / 1024).toFixed(1)}MB)` },
         { status: 400 }
       );
     }

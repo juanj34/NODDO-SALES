@@ -8,7 +8,7 @@ export default function CotizadorSettingsRedirect() {
   const router = useRouter();
 
   useEffect(() => {
-    router.replace(`/editor/${id}/cotizaciones`);
+    router.replace(`/editor/${id}/cotizador`);
   }, [id, router]);
 
   return null;

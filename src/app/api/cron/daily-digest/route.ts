@@ -278,7 +278,7 @@ const EMAIL_COPY = {
     viewActivityLog: "Ver Bitacora completa",
     footer: "Recibes este email porque tienes habilitado el resumen diario.",
     disableLink: "Desactivar en Cuenta &rarr; Notificaciones",
-    catLabels: { project: "Proyectos", unit: "Unidades", lead: "Leads", cotizacion: "Cotizaciones", gallery: "Galeria", video: "Videos", tipologia: "Tipologias", colaborador: "Colaboradores", content: "Contenido", other: "Otros" } as Record<string, string>,
+    catLabels: { project: "Proyectos", unit: "Unidades", lead: "Leads", cotizacion: "NodDo Quote", gallery: "Galeria", video: "Videos", tipologia: "Tipologias", colaborador: "Colaboradores", content: "Contenido", other: "Otros" } as Record<string, string>,
   },
   en: {
     title: "NODDO - Daily Digest",
@@ -296,7 +296,7 @@ const EMAIL_COPY = {
     viewActivityLog: "View Activity Log",
     footer: "You receive this email because you have the daily digest enabled.",
     disableLink: "Disable in Account &rarr; Notifications",
-    catLabels: { project: "Projects", unit: "Units", lead: "Leads", cotizacion: "Quotes", gallery: "Gallery", video: "Videos", tipologia: "Types", colaborador: "Collaborators", content: "Content", other: "Other" } as Record<string, string>,
+    catLabels: { project: "Projects", unit: "Units", lead: "Leads", cotizacion: "NodDo Quote", gallery: "Gallery", video: "Videos", tipologia: "Types", colaborador: "Collaborators", content: "Content", other: "Other" } as Record<string, string>,
   },
 };
 
