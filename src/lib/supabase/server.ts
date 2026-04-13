@@ -13,8 +13,8 @@ export async function createClient() {
         getAll() {
           return cookieStore.getAll().map((cookie) => ({
             ...cookie,
-            // Strip control characters that corrupt Authorization headers in Node 24
-            value: cookie.value.replace(/[\x00-\x1f\x7f]/g, ""),
+            // Strip non-ASCII and control characters that corrupt Authorization headers in Node 24+
+            value: cookie.value.replace(/[^\x20-\x7e]/g, ""),
           }));
         },
         setAll(

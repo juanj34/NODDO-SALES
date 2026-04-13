@@ -50,16 +50,20 @@ export async function PUT(
 
     if (error) throw error;
 
-    // If price changed, save to history
+    // If price changed, save to history (non-blocking — don't fail the save)
     if ("precio_desde" in body && body.precio_desde !== undefined && body.precio_desde !== precioAnterior) {
-      await auth.supabase
-        .from("tipologia_precio_historial")
-        .insert({
-          tipologia_id: id,
-          precio_anterior: precioAnterior,
-          precio_nuevo: body.precio_desde,
-          changed_by: auth.user.email || auth.user.id,
-        });
+      try {
+        await auth.supabase
+          .from("tipologia_precio_historial")
+          .insert({
+            tipologia_id: id,
+            precio_anterior: precioAnterior,
+            precio_nuevo: body.precio_desde,
+            changed_by: auth.user.email || auth.user.id,
+          });
+      } catch {
+        // Price history is non-critical — don't block the tipología save
+      }
     }
 
     // Log activity (fire-and-forget)
