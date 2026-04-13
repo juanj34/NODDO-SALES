@@ -92,7 +92,7 @@ export function calcularCotizacion(
   let acumulado = 0;
   // When toggle is ON, separación is part of cuota inicial — deduct from the first % phase
   const shouldDeductSeparacion =
-    config.separacion_incluida_en_inicial &&
+    (config.separacion_incluida_en_inicial !== false) &&
     effectiveFases[0]?.tipo === "fijo" &&
     effectiveFases.length > 1;
   let separacionDeducted = false;

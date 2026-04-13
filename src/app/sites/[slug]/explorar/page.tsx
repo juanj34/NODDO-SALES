@@ -174,15 +174,17 @@ export default function ExplorarPage() {
   const [estadoFilter, setEstadoFilter] = useState<string>("disponible");
 
   // Price source resolution
+  // When tipología pricing: price = tipología.precio_desde (unit.precio is ignored)
+  // When unit pricing: price = unit.precio (+ tipología.precio_desde for lot-based)
   const isTipologiaPricing = proyecto.precio_source === "tipologia";
   const ocultarVendidas = (proyecto as any).ocultar_vendidas ?? false;
   const ocultarPrecioVendidas = (proyecto as any).ocultar_precio_vendidas ?? false;
   const getUnitPrice = useCallback((unit: Unidad): number | null => {
+    if (unit.estado === "proximamente") return null;
     if (unit.estado === "vendida" && ocultarPrecioVendidas) return null;
     if (unit.estado === "vendida" && unit.precio_venta != null) return unit.precio_venta;
     if (!isTipologiaPricing) return unit.precio;
-    // Unit-level price takes priority even in tipología-pricing mode
-    if (unit.precio != null) return unit.precio;
+    // Tipología pricing: resolve from tipología, NOT from unit.precio
     if (unit.tipologia_id) {
       const tipo = (tipologias || []).find(t => t.id === unit.tipologia_id);
       return tipo?.precio_desde ?? null;

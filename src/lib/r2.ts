@@ -207,7 +207,7 @@ export async function deleteTourFiles(projectId: string, subpath?: string): Prom
 
 /**
  * Ensure CORS is configured on the tours bucket for direct browser uploads.
- * Safe to call multiple times — only writes if CORS is missing.
+ * Checks existing rules match expected config — updates if stale or missing.
  */
 export async function ensureToursBucketCors(): Promise<void> {
   const client = getR2Client();
@@ -216,7 +216,15 @@ export async function ensureToursBucketCors(): Promise<void> {
     const existing = await client.send(
       new GetBucketCorsCommand({ Bucket: R2_BUCKET_NAME })
     );
-    if (existing.CORSRules && existing.CORSRules.length > 0) return;
+    const rules = existing.CORSRules;
+    if (
+      rules &&
+      rules.length > 0 &&
+      rules[0].AllowedHeaders?.includes("*") &&
+      rules[0].AllowedMethods?.includes("PUT")
+    ) {
+      return;
+    }
   } catch {
     // NoSuchCORSConfiguration or similar — proceed to set it
   }
@@ -228,8 +236,9 @@ export async function ensureToursBucketCors(): Promise<void> {
         CORSRules: [
           {
             AllowedOrigins: ["*"],
-            AllowedMethods: ["PUT"],
-            AllowedHeaders: ["Content-Type", "Content-Length"],
+            AllowedMethods: ["PUT", "GET", "HEAD"],
+            AllowedHeaders: ["*"],
+            ExposeHeaders: ["ETag", "Content-Length"],
             MaxAgeSeconds: 86400,
           },
         ],
@@ -239,8 +248,22 @@ export async function ensureToursBucketCors(): Promise<void> {
 }
 
 /**
+ * The CORS rules we expect on the media bucket.
+ * Compared against existing rules to detect stale configs.
+ */
+const MEDIA_CORS_RULES = [
+  {
+    AllowedOrigins: ["*"],
+    AllowedMethods: ["PUT", "GET", "HEAD"],
+    AllowedHeaders: ["*"],
+    ExposeHeaders: ["ETag", "Content-Length"],
+    MaxAgeSeconds: 86400,
+  },
+];
+
+/**
  * Ensure CORS is configured on the media bucket for direct browser uploads.
- * Safe to call multiple times — only writes if CORS is missing.
+ * Checks existing rules match expected config — updates if stale or missing.
  */
 export async function ensureMediaBucketCors(): Promise<void> {
   const client = getR2Client();
@@ -249,7 +272,15 @@ export async function ensureMediaBucketCors(): Promise<void> {
     const existing = await client.send(
       new GetBucketCorsCommand({ Bucket: R2_MEDIA_BUCKET })
     );
-    if (existing.CORSRules && existing.CORSRules.length > 0) return;
+    const rules = existing.CORSRules;
+    if (
+      rules &&
+      rules.length > 0 &&
+      rules[0].AllowedHeaders?.includes("*") &&
+      rules[0].AllowedMethods?.includes("PUT")
+    ) {
+      return; // Already has correct permissive config
+    }
   } catch {
     // NoSuchCORSConfiguration or similar — proceed to set it
   }
@@ -257,16 +288,7 @@ export async function ensureMediaBucketCors(): Promise<void> {
   await client.send(
     new PutBucketCorsCommand({
       Bucket: R2_MEDIA_BUCKET,
-      CORSConfiguration: {
-        CORSRules: [
-          {
-            AllowedOrigins: ["*"],
-            AllowedMethods: ["PUT"],
-            AllowedHeaders: ["Content-Type", "Content-Length"],
-            MaxAgeSeconds: 86400,
-          },
-        ],
-      },
+      CORSConfiguration: { CORSRules: MEDIA_CORS_RULES },
     })
   );
 }

@@ -125,14 +125,14 @@ export default function InventarioPage() {
   const unidadTipologias = useMemo<UnidadTipologia[]>(() => proyecto.unidad_tipologias ?? [], [proyecto.unidad_tipologias]);
 
   // Helper: resolve unit price based on pricing source (use precio_venta for sold units)
-  // Priority: sold price → unit-level price (if set) → tipología price → multi-tipo lowest
+  // When tipología pricing: price = tipología.precio_desde (unit.precio is ignored)
+  // When unit pricing: price = unit.precio (+ tipología.precio_desde for lot-based)
   const getUnitPrice = useCallback((unit: Unidad): number | null => {
+    if (unit.estado === "proximamente") return null;
     if (unit.estado === "vendida" && ocultarPrecioVendidas) return null;
     if (unit.estado === "vendida" && unit.precio_venta != null) return unit.precio_venta;
     if (!isTipologiaPricing) return unit.precio;
-    // Unit-level price takes priority even in tipología-pricing mode
-    // (e.g. commercial units with individual prices)
-    if (unit.precio != null) return unit.precio;
+    // Tipología pricing: resolve from tipología, NOT from unit.precio
     if (unit.tipologia_id) {
       const tipo = (tipologias || []).find(t => t.id === unit.tipologia_id);
       return tipo?.precio_desde ?? null;
@@ -890,7 +890,8 @@ export default function InventarioPage() {
                     {/* Price + actions — single row */}
                     <div className="flex items-center justify-between pt-2 border-t border-white/5">
                       {(() => {
-                        // Multi-tipo: show per-tipología prices
+                        // Multi-tipo: show per-tipología prices (lot-based: terreno + construcción)
+                        if (unit.estado === "proximamente") return <span />;
                         if (hasMultiTipos && !unit.tipologia_id) {
                           const linkedTipos = getUnitAvailableTipologias(unit.id);
                           const tiposWithPrice = linkedTipos.filter(t => t.precio_desde != null);

@@ -336,8 +336,8 @@ export default function TipologiasPage() {
   }, [unidades, active, isMultiTipo, unidadTipologias, ocultarVendidas]);
 
   // Dynamic "desde" price from cheapest available unit
-  // For lotes: includes construction price (terreno + tipología.precio_desde)
   // When tipología pricing: price comes directly from tipología.precio_desde
+  // When unit pricing + lot-based: terreno (unit.precio) + construcción (tipología.precio_desde)
   const precioDesde = useMemo(() => {
     if (!active) return null;
     if (isTipologiaPricing) return active.precio_desde;
@@ -909,7 +909,7 @@ export default function TipologiasPage() {
 
                           {/* Price */}
                           <div className="text-right">
-                            {columns.precio && !(selectedUnit.estado === "vendida" && ocultarPrecioVendidas) && (isTipologiaPricing ? active?.precio_desde : (selectedUnit.precio || (isLoteBased && bannerTipo?.precio_desde))) && (() => {
+                            {columns.precio && selectedUnit.estado !== "proximamente" && !(selectedUnit.estado === "vendida" && ocultarPrecioVendidas) && (isTipologiaPricing ? active?.precio_desde : (selectedUnit.precio || (isLoteBased && bannerTipo?.precio_desde))) && (() => {
                               if (isTipologiaPricing && active?.precio_desde) {
                                 return (
                                   <p className="font-mono text-lg text-[var(--site-primary)] tabular-nums font-medium">
@@ -1281,6 +1281,7 @@ export default function TipologiasPage() {
                               {/* Price & Status */}
                               <div className="text-right flex-shrink-0">
                                 {columns.precio && (() => {
+                                  if (unit.estado === "proximamente") return <p className="font-mono text-sm text-[var(--text-secondary)] tabular-nums">—</p>;
                                   if (unit.estado === "vendida" && ocultarPrecioVendidas) return <p className="font-mono text-sm text-[var(--text-secondary)] tabular-nums">—</p>;
                                   const t = unit.precio;
                                   // Multi-tipo: compute price range from assigned tipologías
@@ -1292,7 +1293,7 @@ export default function TipologiasPage() {
                                     const prices = unitTipos
                                       .map(tp => {
                                         const c = tp.precio_desde ?? 0;
-                                        return isLoteBased ? (t ?? 0) + c : c;
+                                        return isLoteBased && !isTipologiaPricing ? (t ?? 0) + c : c;
                                       })
                                       .filter(p => p > 0)
                                       .sort((a, b) => a - b);
@@ -1306,9 +1307,12 @@ export default function TipologiasPage() {
                                       </p>
                                     );
                                   }
-                                  // Single-tipo: original behavior
-                                  const c = isLoteBased && active?.precio_desde ? active.precio_desde : 0;
-                                  const displayPrice = t ? t + c : c || null;
+                                  // Single-tipo: for tipología pricing just show tipología price;
+                                  // for unit pricing + lot-based, add terreno + construcción
+                                  const c = isLoteBased && !isTipologiaPricing && active?.precio_desde ? active.precio_desde : 0;
+                                  const displayPrice = isTipologiaPricing
+                                    ? (active?.precio_desde || null)
+                                    : (t ? t + c : c || null);
                                   return (
                                     <p className="font-mono text-sm text-[var(--text-secondary)] tabular-nums">
                                       {displayPrice ? formatCurrency(displayPrice, proyecto.moneda_base ?? "COP") : "—"}
