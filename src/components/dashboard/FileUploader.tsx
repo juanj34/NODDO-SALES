@@ -246,10 +246,14 @@ export function FileUploader({
           setUploadState("complete");
           return result;
         } catch (r2Err) {
+          // For large files (>4MB), server fallback won't work (Vercel body limit)
+          if (fileToR2.size > 4 * 1024 * 1024) {
+            throw new Error("Error al subir el archivo. Intenta de nuevo.");
+          }
           console.warn("[R2 fallback] Direct upload failed, using server upload:", r2Err);
         }
 
-        // Fallback: upload via server API
+        // Fallback: upload via server API (only for small files)
         setUploadState("uploading");
         setUploadProgressPercent(0);
         const formData = new FormData();

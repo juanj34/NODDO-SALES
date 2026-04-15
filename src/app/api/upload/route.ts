@@ -1,4 +1,5 @@
 import { getAuthContext, requirePermission } from "@/lib/auth-context";
+import { createAdminClient } from "@/lib/supabase/admin";
 import { reportApiError } from "@/lib/error-reporter";
 import { NextRequest, NextResponse } from "next/server";
 import sharp from "sharp";
@@ -29,7 +30,7 @@ const AUDIO_TYPES = new Set([
 const MAX_IMAGE_SIZE = 10 * 1024 * 1024; // 10MB
 const MAX_VIDEO_SIZE = 50 * 1024 * 1024; // 50MB (post client-side compression)
 const MAX_AUDIO_SIZE = 15 * 1024 * 1024; // 15MB
-const MAX_DOC_SIZE = 50 * 1024 * 1024; // 50MB (PDFs, etc.)
+const MAX_DOC_SIZE = 150 * 1024 * 1024; // 150MB (PDFs, etc.)
 
 const MAX_OPTIMIZED_WIDTH = 1920;
 const OPTIMIZED_QUALITY = 80;
@@ -40,8 +41,12 @@ export async function POST(request: NextRequest) {
   try {
     const auth = await getAuthContext();
     if (!auth) return NextResponse.json({ error: "No autorizado" }, { status: 401 });
-    const denied = requirePermission(auth, "content.write");
+    const denied = requirePermission(auth, "upload.files");
     if (denied) return denied;
+
+    // Use admin client for storage — auth/permissions already validated above
+    const adminClient = createAdminClient();
+    const storage = adminClient.storage;
 
     const formData = await request.formData();
     const file = formData.get("file") as File | null;
@@ -99,7 +104,7 @@ export async function POST(request: NextRequest) {
       const ext = file.name.split(".").pop() || "bin";
       const fileName = `${prefix}${baseName}.${ext}`;
 
-      const { error: uploadError } = await auth.supabase.storage
+      const { error: uploadError } = await storage
         .from(bucket)
         .upload(fileName, file, { upsert: true });
 
@@ -107,7 +112,7 @@ export async function POST(request: NextRequest) {
 
       // Increment storage counter
       if (proyectoId) {
-        auth.supabase.rpc("increment_storage_media_bytes", {
+        adminClient.rpc("increment_storage_media_bytes", {
           p_id: proyectoId,
           p_bytes: file.size,
         }).then();
@@ -115,7 +120,7 @@ export async function POST(request: NextRequest) {
 
       const {
         data: { publicUrl },
-      } = auth.supabase.storage.from(bucket).getPublicUrl(fileName);
+      } = storage.from(bucket).getPublicUrl(fileName);
 
       return NextResponse.json({ url: publicUrl, path: fileName });
     }
@@ -136,7 +141,7 @@ export async function POST(request: NextRequest) {
       .webp({ quality: OPTIMIZED_QUALITY })
       .toBuffer();
 
-    const { error: optError } = await auth.supabase.storage
+    const { error: optError } = await storage
       .from(bucket)
       .upload(optimizedFileName, optimized, {
         upsert: true,
@@ -154,7 +159,7 @@ export async function POST(request: NextRequest) {
       .webp({ quality: THUMB_QUALITY })
       .toBuffer();
 
-    const { error: thumbError } = await auth.supabase.storage
+    const { error: thumbError } = await storage
       .from(bucket)
       .upload(thumbFileName, thumbnail, {
         upsert: true,
@@ -165,15 +170,15 @@ export async function POST(request: NextRequest) {
     // Get public URLs
     const {
       data: { publicUrl: optimizedUrl },
-    } = auth.supabase.storage.from(bucket).getPublicUrl(optimizedFileName);
+    } = storage.from(bucket).getPublicUrl(optimizedFileName);
 
     const {
       data: { publicUrl: thumbnailUrl },
-    } = auth.supabase.storage.from(bucket).getPublicUrl(thumbFileName);
+    } = storage.from(bucket).getPublicUrl(thumbFileName);
 
     // Increment storage counter (optimized + thumbnail)
     if (proyectoId) {
-      auth.supabase.rpc("increment_storage_media_bytes", {
+      adminClient.rpc("increment_storage_media_bytes", {
         p_id: proyectoId,
         p_bytes: optimized.length + thumbnail.length,
       }).then();

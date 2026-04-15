@@ -88,7 +88,7 @@ const PERMISSION_MIN_ROLE: Record<Permission, UserRole> = {
   "team.manage": "administrador",
   "account.billing": "admin",
   "account.profile": "asesor",
-  "upload.files": "director",
+  "upload.files": "asesor",
   "ai.use": "director",
 };
 

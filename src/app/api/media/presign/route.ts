@@ -13,7 +13,7 @@ export async function POST(request: NextRequest) {
     auth = await getAuthContext();
     if (!auth)
       return NextResponse.json({ error: "No autorizado" }, { status: 401 });
-    const denied = requirePermission(auth, "content.write");
+    const denied = requirePermission(auth, "upload.files");
     if (denied) return denied;
 
     reqBody = await request.json();
