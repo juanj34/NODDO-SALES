@@ -139,7 +139,7 @@ export default function ArticlePage() {
         <Link
           href="/recursos"
           className="inline-flex items-center gap-2 text-sm"
-          style={{ color: "#b8973a" }}
+          style={{ color: "var(--mk-accent)" }}
         >
           <ArrowLeft className="w-4 h-4" />
           Volver a Recursos
@@ -196,7 +196,7 @@ export default function ArticlePage() {
                 style={{
                   fontFamily: "var(--font-syne)",
                   fontWeight: 700,
-                  color: "#b8973a",
+                  color: "var(--mk-accent)",
                 }}
               >
                 {article.category}
@@ -320,9 +320,9 @@ export default function ArticlePage() {
               }}
             >
               ¿Listo para vender{" "}
-              <span style={{ fontStyle: "italic", color: "#b8973a" }}>
+              <em className="italic text-[var(--mk-accent-light)]">
                 diferente?
-              </span>
+              </em>
             </h2>
             <p
               className="text-sm mb-6 max-w-lg mx-auto relative z-10"
@@ -339,7 +339,7 @@ export default function ArticlePage() {
                 fontWeight: 700,
                 background:
                   "linear-gradient(135deg, #b8973a 0%, #d4b05a 100%)",
-                color: "#0a0a0b",
+                color: "var(--mk-bg)",
                 boxShadow: "0 0 30px rgba(184, 151, 58, 0.3)",
               }}
             >

@@ -86,10 +86,10 @@ function DigitalContractIllustration() {
       {/* Background grid pattern */}
       <g opacity="0.03">
         {Array.from({ length: 9 }).map((_, i) => (
-          <line key={`h${i}`} x1="20" y1={20 + i * 18} x2="300" y2={20 + i * 18} stroke="#b8973a" strokeWidth="0.3" />
+          <line key={`h${i}`} x1="20" y1={20 + i * 18} x2="300" y2={20 + i * 18} stroke="rgb(184,151,58)" strokeWidth="0.3" />
         ))}
         {Array.from({ length: 11 }).map((_, i) => (
-          <line key={`v${i}`} x1={20 + i * 28} y1="8" x2={20 + i * 28} y2="172" stroke="#b8973a" strokeWidth="0.3" />
+          <line key={`v${i}`} x1={20 + i * 28} y1="8" x2={20 + i * 28} y2="172" stroke="rgb(184,151,58)" strokeWidth="0.3" />
         ))}
       </g>
 
@@ -180,7 +180,7 @@ function DigitalContractIllustration() {
       <circle className="tm-seal-ring2" cx="185" cy="138" r="18" stroke="rgba(184,151,58,0.15)" strokeWidth="0.4" fill="none" />
       <circle className="tm-seal-ring3" cx="185" cy="138" r="18" stroke="rgba(184,151,58,0.1)" strokeWidth="0.3" fill="none" />
       {/* Main seal body */}
-      <circle cx="185" cy="138" r="14" stroke="#b8973a" strokeWidth="0.8" opacity="0.35" fill="url(#tm-seal-glow)" />
+      <circle cx="185" cy="138" r="14" stroke="rgb(184,151,58)" strokeWidth="0.8" opacity="0.35" fill="url(#tm-seal-glow)" />
       <circle cx="185" cy="138" r="11" stroke="rgba(184,151,58,0.2)" strokeWidth="0.4" fill="none" />
       {/* Seal scalloped edge — decorative bumps */}
       {Array.from({ length: 12 }).map((_, i) => {
@@ -238,12 +238,12 @@ function DigitalContractIllustration() {
       {/* Vertical trunk */}
       <line x1="240" y1="90" x2="240" y2="155" stroke="rgba(184,151,58,0.06)" strokeWidth="0.4" strokeDasharray="2 2" />
       {/* Node 1 — Accepted */}
-      <circle cx="240" cy="95" r="3" stroke="rgba(74,158,107,0.3)" strokeWidth="0.5" fill="rgba(74,158,107,0.06)" />
-      <path d="M238 95 L239.5 96.5 L242 93.5" stroke="rgba(74,158,107,0.4)" strokeWidth="0.5" fill="none" strokeLinecap="round" />
+      <circle cx="240" cy="95" r="3" stroke="rgba(184,151,58,0.3)" strokeWidth="0.5" fill="rgba(184,151,58,0.06)" />
+      <path d="M238 95 L239.5 96.5 L242 93.5" stroke="rgba(184,151,58,0.4)" strokeWidth="0.5" fill="none" strokeLinecap="round" />
       <line x1="243" y1="95" x2="254" y2="95" stroke="rgba(184,151,58,0.06)" strokeWidth="0.3" />
       {/* Node 2 — Accepted */}
-      <circle cx="240" cy="110" r="3" stroke="rgba(74,158,107,0.3)" strokeWidth="0.5" fill="rgba(74,158,107,0.06)" />
-      <path d="M238 110 L239.5 111.5 L242 108.5" stroke="rgba(74,158,107,0.4)" strokeWidth="0.5" fill="none" strokeLinecap="round" />
+      <circle cx="240" cy="110" r="3" stroke="rgba(184,151,58,0.3)" strokeWidth="0.5" fill="rgba(184,151,58,0.06)" />
+      <path d="M238 110 L239.5 111.5 L242 108.5" stroke="rgba(184,151,58,0.4)" strokeWidth="0.5" fill="none" strokeLinecap="round" />
       <line x1="243" y1="110" x2="254" y2="110" stroke="rgba(184,151,58,0.06)" strokeWidth="0.3" />
       {/* Node 3 — Pending */}
       <circle cx="240" cy="125" r="3" stroke="rgba(184,151,58,0.2)" strokeWidth="0.5" fill="rgba(184,151,58,0.04)" />
@@ -271,7 +271,7 @@ function DigitalContractIllustration() {
 
       {/* ── BOTTOM STATUS BAR ── */}
       <rect x="55" y="160" width="145" height="9" rx="1.5" fill="rgba(184,151,58,0.02)" stroke="rgba(184,151,58,0.06)" strokeWidth="0.3" />
-      <circle cx="62" cy="164.5" r="2" fill="rgba(74,158,107,0.2)" stroke="rgba(74,158,107,0.3)" strokeWidth="0.3" />
+      <circle cx="62" cy="164.5" r="2" fill="rgba(184,151,58,0.2)" stroke="rgba(184,151,58,0.3)" strokeWidth="0.3" />
       <text x="68" y="166.5" fill="rgba(184,151,58,0.1)" fontSize="3" fontFamily="monospace">VIGENTE — v2.1</text>
       <text x="160" y="166.5" fill="rgba(184,151,58,0.08)" fontSize="3" fontFamily="monospace">14.03.2026</text>
 
@@ -318,7 +318,7 @@ export default function TerminosPage() {
             transition={{ duration: 0.7, ease }}
             className="inline-flex items-center gap-3 mb-6 px-6 py-3 rounded-full glass-light"
           >
-            <Scale className="w-5 h-5" style={{ color: "#b8973a" }} />
+            <Scale className="w-5 h-5" style={{ color: "var(--mk-accent)" }} />
             <span
               className="text-sm uppercase tracking-[0.15em]"
               style={{
@@ -342,7 +342,7 @@ export default function TerminosPage() {
             }}
           >
             Términos de{" "}
-            <em style={{ fontStyle: "italic", color: "#b8973a" }}>Servicio</em>
+            <em className="italic text-[var(--mk-accent-light)]">Servicio</em>
           </motion.h1>
           <motion.p
             initial={{ opacity: 0, y: 20 }}
@@ -366,7 +366,7 @@ export default function TerminosPage() {
               color: "rgba(244,240,232,0.35)",
             }}
           >
-            <span className="w-1 h-1 rounded-full" style={{ background: "#b8973a" }} />
+            <span className="w-1 h-1 rounded-full" style={{ background: "var(--mk-accent)" }} />
             Última actualización: 14 de marzo de 2026
           </motion.p>
 
@@ -451,7 +451,7 @@ export default function TerminosPage() {
                     className="p-3 rounded-xl"
                     style={{ backgroundColor: "rgba(184, 151, 58, 0.12)" }}
                   >
-                    <FileText className="w-6 h-6" style={{ color: "#b8973a" }} />
+                    <FileText className="w-6 h-6" style={{ color: "var(--mk-accent)" }} />
                   </div>
                   <div>
                     <h2
@@ -491,7 +491,7 @@ export default function TerminosPage() {
                     <a
                       href="/privacidad"
                       className="underline"
-                      style={{ color: "#b8973a" }}
+                      style={{ color: "var(--mk-accent)" }}
                     >
                       Política de Privacidad
                     </a>
@@ -514,7 +514,7 @@ export default function TerminosPage() {
                     className="p-3 rounded-xl"
                     style={{ backgroundColor: "rgba(184, 151, 58, 0.12)" }}
                   >
-                    <Server className="w-6 h-6" style={{ color: "#b8973a" }} />
+                    <Server className="w-6 h-6" style={{ color: "var(--mk-accent)" }} />
                   </div>
                   <div>
                     <h2
@@ -578,7 +578,7 @@ export default function TerminosPage() {
                     className="p-3 rounded-xl"
                     style={{ backgroundColor: "rgba(184, 151, 58, 0.12)" }}
                   >
-                    <UserCheck className="w-6 h-6" style={{ color: "#b8973a" }} />
+                    <UserCheck className="w-6 h-6" style={{ color: "var(--mk-accent)" }} />
                   </div>
                   <div>
                     <h2
@@ -652,7 +652,7 @@ export default function TerminosPage() {
                     className="p-3 rounded-xl"
                     style={{ backgroundColor: "rgba(184, 151, 58, 0.12)" }}
                   >
-                    <CreditCard className="w-6 h-6" style={{ color: "#b8973a" }} />
+                    <CreditCard className="w-6 h-6" style={{ color: "var(--mk-accent)" }} />
                   </div>
                   <div>
                     <h2
@@ -679,7 +679,7 @@ export default function TerminosPage() {
                     <a
                       href="https://noddo.io/pricing"
                       className="underline"
-                      style={{ color: "#b8973a" }}
+                      style={{ color: "var(--mk-accent)" }}
                     >
                       noddo.io/pricing
                     </a>
@@ -745,7 +745,7 @@ export default function TerminosPage() {
                     className="p-3 rounded-xl"
                     style={{ backgroundColor: "rgba(184, 151, 58, 0.12)" }}
                   >
-                    <Shield className="w-6 h-6" style={{ color: "#b8973a" }} />
+                    <Shield className="w-6 h-6" style={{ color: "var(--mk-accent)" }} />
                   </div>
                   <div>
                     <h2
@@ -842,7 +842,7 @@ export default function TerminosPage() {
                     className="p-3 rounded-xl"
                     style={{ backgroundColor: "rgba(184, 151, 58, 0.12)" }}
                   >
-                    <Copyright className="w-6 h-6" style={{ color: "#b8973a" }} />
+                    <Copyright className="w-6 h-6" style={{ color: "var(--mk-accent)" }} />
                   </div>
                   <div>
                     <h2
@@ -937,7 +937,7 @@ export default function TerminosPage() {
                     className="p-3 rounded-xl"
                     style={{ backgroundColor: "rgba(184, 151, 58, 0.12)" }}
                   >
-                    <Server className="w-6 h-6" style={{ color: "#b8973a" }} />
+                    <Server className="w-6 h-6" style={{ color: "var(--mk-accent)" }} />
                   </div>
                   <div>
                     <h2
@@ -1003,7 +1003,7 @@ export default function TerminosPage() {
                     className="p-3 rounded-xl"
                     style={{ backgroundColor: "rgba(184, 151, 58, 0.12)" }}
                   >
-                    <AlertTriangle className="w-6 h-6" style={{ color: "#b8973a" }} />
+                    <AlertTriangle className="w-6 h-6" style={{ color: "var(--mk-accent)" }} />
                   </div>
                   <div>
                     <h2
@@ -1081,7 +1081,7 @@ export default function TerminosPage() {
                     className="p-3 rounded-xl"
                     style={{ backgroundColor: "rgba(184, 151, 58, 0.12)" }}
                   >
-                    <Scale className="w-6 h-6" style={{ color: "#b8973a" }} />
+                    <Scale className="w-6 h-6" style={{ color: "var(--mk-accent)" }} />
                   </div>
                   <div>
                     <h2
@@ -1143,7 +1143,7 @@ export default function TerminosPage() {
                     className="p-3 rounded-xl"
                     style={{ backgroundColor: "rgba(184, 151, 58, 0.12)" }}
                   >
-                    <Ban className="w-6 h-6" style={{ color: "#b8973a" }} />
+                    <Ban className="w-6 h-6" style={{ color: "var(--mk-accent)" }} />
                   </div>
                   <div>
                     <h2
@@ -1217,7 +1217,7 @@ export default function TerminosPage() {
                     className="p-3 rounded-xl"
                     style={{ backgroundColor: "rgba(184, 151, 58, 0.12)" }}
                   >
-                    <XCircle className="w-6 h-6" style={{ color: "#b8973a" }} />
+                    <XCircle className="w-6 h-6" style={{ color: "var(--mk-accent)" }} />
                   </div>
                   <div>
                     <h2
@@ -1318,7 +1318,7 @@ export default function TerminosPage() {
                     className="p-3 rounded-xl"
                     style={{ backgroundColor: "rgba(184, 151, 58, 0.12)" }}
                   >
-                    <RefreshCw className="w-6 h-6" style={{ color: "#b8973a" }} />
+                    <RefreshCw className="w-6 h-6" style={{ color: "var(--mk-accent)" }} />
                   </div>
                   <div>
                     <h2
@@ -1388,7 +1388,7 @@ export default function TerminosPage() {
                     className="p-3 rounded-xl"
                     style={{ backgroundColor: "rgba(184, 151, 58, 0.12)" }}
                   >
-                    <Scale className="w-6 h-6" style={{ color: "#b8973a" }} />
+                    <Scale className="w-6 h-6" style={{ color: "var(--mk-accent)" }} />
                   </div>
                   <div>
                     <h2
@@ -1465,7 +1465,7 @@ export default function TerminosPage() {
                     className="p-3 rounded-xl"
                     style={{ backgroundColor: "rgba(184, 151, 58, 0.12)" }}
                   >
-                    <Mail className="w-6 h-6" style={{ color: "#b8973a" }} />
+                    <Mail className="w-6 h-6" style={{ color: "var(--mk-accent)" }} />
                   </div>
                   <div>
                     <h2
@@ -1497,7 +1497,7 @@ export default function TerminosPage() {
                       <a
                         href="mailto:hola@noddo.io"
                         className="underline"
-                        style={{ color: "#b8973a" }}
+                        style={{ color: "var(--mk-accent)" }}
                       >
                         hola@noddo.io
                       </a>
@@ -1515,7 +1515,7 @@ export default function TerminosPage() {
                       <a
                         href="https://noddo.io"
                         className="underline"
-                        style={{ color: "#b8973a" }}
+                        style={{ color: "var(--mk-accent)" }}
                       >
                         noddo.io
                       </a>

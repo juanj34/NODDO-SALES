@@ -83,8 +83,8 @@ function BrowserPrivacyIllustration() {
       {/* URL bar */}
       <rect x="46" y="11" width="100" height="8" rx="2" fill="rgba(184,151,58,0.03)" stroke="rgba(184,151,58,0.08)" strokeWidth="0.3" />
       {/* Lock icon in URL bar */}
-      <rect x="50" y="13.5" width="3" height="2.5" rx="0.5" stroke="rgba(74,158,107,0.4)" strokeWidth="0.4" fill="none" />
-      <path d="M50.5 13.5 L50.5 12.5 A1 1 0 0 1 52.5 12.5 L52.5 13.5" stroke="rgba(74,158,107,0.3)" strokeWidth="0.4" fill="none" />
+      <rect x="50" y="13.5" width="3" height="2.5" rx="0.5" stroke="rgba(184,151,58,0.4)" strokeWidth="0.4" fill="none" />
+      <path d="M50.5 13.5 L50.5 12.5 A1 1 0 0 1 52.5 12.5 L52.5 13.5" stroke="rgba(184,151,58,0.3)" strokeWidth="0.4" fill="none" />
       {/* URL text */}
       <text x="56" y="17" fill="rgba(184,151,58,0.15)" fontSize="3.5" fontFamily="monospace">noddo.io/cookies</text>
 
@@ -123,11 +123,11 @@ function BrowserPrivacyIllustration() {
       <rect x="82" y="60" width="34" height="3" rx="0.5" fill="rgba(184,151,58,0.06)" />
       <text x="82" y="58" fill="rgba(184,151,58,0.15)" fontSize="3" fontFamily="monospace">ESENCIALES</text>
       {/* Toggle track */}
-      <rect x="162" y="57" width="16" height="8" rx="4" fill="rgba(74,158,107,0.15)" stroke="rgba(74,158,107,0.3)" strokeWidth="0.5" />
+      <rect x="162" y="57" width="16" height="8" rx="4" fill="rgba(184,151,58,0.15)" stroke="rgba(184,151,58,0.3)" strokeWidth="0.5" />
       {/* Toggle knob — always right */}
-      <circle cx="174" cy="61" r="3" fill="rgba(74,158,107,0.4)" />
+      <circle cx="174" cy="61" r="3" fill="rgba(184,151,58,0.4)" />
       {/* Checkmark */}
-      <path className="ck-check" d="M171 61 L173 63 L177 58" stroke="rgba(74,158,107,0.5)" strokeWidth="0.6" fill="none" strokeLinecap="round" />
+      <path className="ck-check" d="M171 61 L173 63 L177 58" stroke="rgba(184,151,58,0.5)" strokeWidth="0.6" fill="none" strokeLinecap="round" />
       {/* Required badge */}
       <rect x="120" y="57" width="28" height="7" rx="2" fill="rgba(184,151,58,0.06)" stroke="rgba(184,151,58,0.1)" strokeWidth="0.3" />
       <text x="134" y="62" textAnchor="middle" fill="rgba(184,151,58,0.18)" fontSize="3" fontFamily="monospace">REQUERIDA</text>
@@ -258,7 +258,7 @@ function BrowserPrivacyIllustration() {
 
       {/* ── STATUS BAR at browser bottom ── */}
       <rect x="12" y="163" width="195" height="9" rx="2" fill="rgba(184,151,58,0.02)" stroke="rgba(184,151,58,0.05)" strokeWidth="0.3" />
-      <circle cx="19" cy="167.5" r="2" fill="rgba(74,158,107,0.2)" stroke="rgba(74,158,107,0.3)" strokeWidth="0.3" />
+      <circle cx="19" cy="167.5" r="2" fill="rgba(184,151,58,0.2)" stroke="rgba(184,151,58,0.3)" strokeWidth="0.3" />
       <text x="25" y="169.5" fill="rgba(184,151,58,0.1)" fontSize="3" fontFamily="monospace">SEGURO — 2 cookies activas</text>
       <text x="170" y="169.5" fill="rgba(184,151,58,0.08)" fontSize="3" fontFamily="monospace">HTTPS</text>
 
@@ -297,7 +297,7 @@ export default function CookiesPage() {
             transition={{ duration: 0.7, ease }}
             className="inline-flex items-center gap-3 mb-6 px-6 py-3 rounded-full glass-light"
           >
-            <Cookie className="w-5 h-5" style={{ color: "#b8973a" }} />
+            <Cookie className="w-5 h-5" style={{ color: "var(--mk-accent)" }} />
             <span
               className="text-sm uppercase tracking-[0.15em]"
               style={{
@@ -321,7 +321,7 @@ export default function CookiesPage() {
             }}
           >
             Política de{" "}
-            <em style={{ fontStyle: "italic", color: "#b8973a" }}>Cookies</em>
+            <em className="italic text-[var(--mk-accent-light)]">Cookies</em>
           </motion.h1>
           <motion.p
             initial={{ opacity: 0, y: 20 }}
@@ -345,7 +345,7 @@ export default function CookiesPage() {
               color: "rgba(244,240,232,0.35)",
             }}
           >
-            <span className="w-1 h-1 rounded-full" style={{ background: "#b8973a" }} />
+            <span className="w-1 h-1 rounded-full" style={{ background: "var(--mk-accent)" }} />
             Última actualización: 14 de marzo de 2026
           </motion.p>
 
@@ -430,7 +430,7 @@ export default function CookiesPage() {
                     className="p-3 rounded-xl"
                     style={{ backgroundColor: "rgba(184, 151, 58, 0.12)" }}
                   >
-                    <Cookie className="w-6 h-6" style={{ color: "#b8973a" }} />
+                    <Cookie className="w-6 h-6" style={{ color: "var(--mk-accent)" }} />
                   </div>
                   <div>
                     <h2
@@ -480,7 +480,7 @@ export default function CookiesPage() {
                     className="p-3 rounded-xl"
                     style={{ backgroundColor: "rgba(184, 151, 58, 0.12)" }}
                   >
-                    <Eye className="w-6 h-6" style={{ color: "#b8973a" }} />
+                    <Eye className="w-6 h-6" style={{ color: "var(--mk-accent)" }} />
                   </div>
                   <div>
                     <h2
@@ -553,7 +553,7 @@ export default function CookiesPage() {
                     className="p-3 rounded-xl"
                     style={{ backgroundColor: "rgba(184, 151, 58, 0.12)" }}
                   >
-                    <Settings className="w-6 h-6" style={{ color: "#b8973a" }} />
+                    <Settings className="w-6 h-6" style={{ color: "var(--mk-accent)" }} />
                   </div>
                   <div>
                     <h2
@@ -578,7 +578,7 @@ export default function CookiesPage() {
                   {/* Esenciales */}
                   <div className="glass-light p-6 rounded-xl">
                     <div className="flex items-start gap-3 mb-3">
-                      <CheckCircle2 className="w-5 h-5 mt-0.5" style={{ color: "#b8973a" }} />
+                      <CheckCircle2 className="w-5 h-5 mt-0.5" style={{ color: "var(--mk-accent)" }} />
                       <div>
                         <h3
                           className="font-medium mb-2"
@@ -633,7 +633,7 @@ export default function CookiesPage() {
                   {/* Analytics */}
                   <div className="glass-light p-6 rounded-xl">
                     <div className="flex items-start gap-3 mb-3">
-                      <Eye className="w-5 h-5 mt-0.5" style={{ color: "#b8973a" }} />
+                      <Eye className="w-5 h-5 mt-0.5" style={{ color: "var(--mk-accent)" }} />
                       <div>
                         <h3
                           className="font-medium mb-2"
@@ -680,7 +680,7 @@ export default function CookiesPage() {
                   {/* Marketing */}
                   <div className="glass-light p-6 rounded-xl">
                     <div className="flex items-start gap-3 mb-3">
-                      <Shield className="w-5 h-5 mt-0.5" style={{ color: "#b8973a" }} />
+                      <Shield className="w-5 h-5 mt-0.5" style={{ color: "var(--mk-accent)" }} />
                       <div>
                         <h3
                           className="font-medium mb-2"
@@ -734,7 +734,7 @@ export default function CookiesPage() {
                     className="p-3 rounded-xl"
                     style={{ backgroundColor: "rgba(184, 151, 58, 0.12)" }}
                   >
-                    <Shield className="w-6 h-6" style={{ color: "#b8973a" }} />
+                    <Shield className="w-6 h-6" style={{ color: "var(--mk-accent)" }} />
                   </div>
                   <div>
                     <h2
@@ -769,7 +769,7 @@ export default function CookiesPage() {
                       <a
                         href="https://tools.google.com/dlpage/gaoptout"
                         className="underline"
-                        style={{ color: "#b8973a" }}
+                        style={{ color: "var(--mk-accent)" }}
                         target="_blank"
                         rel="noopener noreferrer"
                       >
@@ -810,7 +810,7 @@ export default function CookiesPage() {
                     className="p-3 rounded-xl"
                     style={{ backgroundColor: "rgba(184, 151, 58, 0.12)" }}
                   >
-                    <Settings className="w-6 h-6" style={{ color: "#b8973a" }} />
+                    <Settings className="w-6 h-6" style={{ color: "var(--mk-accent)" }} />
                   </div>
                   <div>
                     <h2
@@ -849,16 +849,16 @@ export default function CookiesPage() {
                       </p>
                       <ul className="list-disc pl-6 mt-1 space-y-1">
                         <li>
-                          <a href="https://support.google.com/chrome/answer/95647" className="underline" style={{ color: "#b8973a" }} target="_blank" rel="noopener noreferrer">Google Chrome</a>
+                          <a href="https://support.google.com/chrome/answer/95647" className="underline" style={{ color: "var(--mk-accent)" }} target="_blank" rel="noopener noreferrer">Google Chrome</a>
                         </li>
                         <li>
-                          <a href="https://support.mozilla.org/es/kb/impedir-que-los-sitios-web-guarden-sus-preferencia" className="underline" style={{ color: "#b8973a" }} target="_blank" rel="noopener noreferrer">Mozilla Firefox</a>
+                          <a href="https://support.mozilla.org/es/kb/impedir-que-los-sitios-web-guarden-sus-preferencia" className="underline" style={{ color: "var(--mk-accent)" }} target="_blank" rel="noopener noreferrer">Mozilla Firefox</a>
                         </li>
                         <li>
-                          <a href="https://support.apple.com/es-es/guide/safari/sfri11471/mac" className="underline" style={{ color: "#b8973a" }} target="_blank" rel="noopener noreferrer">Safari</a>
+                          <a href="https://support.apple.com/es-es/guide/safari/sfri11471/mac" className="underline" style={{ color: "var(--mk-accent)" }} target="_blank" rel="noopener noreferrer">Safari</a>
                         </li>
                         <li>
-                          <a href="https://support.microsoft.com/es-es/microsoft-edge/eliminar-las-cookies-en-microsoft-edge-63947406-40ac-c3b8-57b9-2a946a29ae09" className="underline" style={{ color: "#b8973a" }} target="_blank" rel="noopener noreferrer">Microsoft Edge</a>
+                          <a href="https://support.microsoft.com/es-es/microsoft-edge/eliminar-las-cookies-en-microsoft-edge-63947406-40ac-c3b8-57b9-2a946a29ae09" className="underline" style={{ color: "var(--mk-accent)" }} target="_blank" rel="noopener noreferrer">Microsoft Edge</a>
                         </li>
                       </ul>
                     </div>
@@ -927,7 +927,7 @@ export default function CookiesPage() {
                     className="p-3 rounded-xl"
                     style={{ backgroundColor: "rgba(184, 151, 58, 0.12)" }}
                   >
-                    <Cookie className="w-6 h-6" style={{ color: "#b8973a" }} />
+                    <Cookie className="w-6 h-6" style={{ color: "var(--mk-accent)" }} />
                   </div>
                   <div>
                     <h2
@@ -976,7 +976,7 @@ export default function CookiesPage() {
                     className="p-3 rounded-xl"
                     style={{ backgroundColor: "rgba(184, 151, 58, 0.12)" }}
                   >
-                    <Mail className="w-6 h-6" style={{ color: "#b8973a" }} />
+                    <Mail className="w-6 h-6" style={{ color: "var(--mk-accent)" }} />
                   </div>
                   <div>
                     <h2
@@ -1008,7 +1008,7 @@ export default function CookiesPage() {
                       <a
                         href="mailto:hola@noddo.io"
                         className="underline"
-                        style={{ color: "#b8973a" }}
+                        style={{ color: "var(--mk-accent)" }}
                       >
                         hola@noddo.io
                       </a>

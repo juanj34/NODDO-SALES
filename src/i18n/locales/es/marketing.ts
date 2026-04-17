@@ -283,7 +283,8 @@ const marketing = {
     heading: "Invierte por proyecto,",
     headingEmphasis: "sin suscripciones.",
     headerLabel: "Paga por proyecto, crece sin límites",
-    headerHeading: "Todo lo que necesitas para vender tu proyecto",
+    headerHeading: "Todo lo que necesitas para",
+    headerHeadingEmphasis: "vender tu proyecto",
     headerSubtitle: "Paga por proyecto. Agrega solo lo que necesites.",
     plans: {
       basicoName: "Básico",
@@ -324,7 +325,8 @@ const marketing = {
     },
     addOns: {
       label: "Complementos",
-      heading: "Agrega lo que necesites",
+      heading: "Agrega lo que",
+      headingEmphasis: "necesites",
       a0name: "Dominio personalizado",
       a0desc: "Usa tu propio dominio en vez de slug.noddo.io. Configuración DNS guiada paso a paso.",
       a1name: "Colaboradores extra",
@@ -340,7 +342,8 @@ const marketing = {
       t2: "Sin contratos de permanencia",
     },
     faq: {
-      heading: "Preguntas frecuentes",
+      heading: "Preguntas",
+      headingEmphasis: "frecuentes",
       q0: "¿Qué incluye el plan Básico?",
       a0: "El plan Básico incluye tu microsite premium completo: galería de imágenes, videos inmersivos, mapas interactivos con POIs, tours 360°, formulario de contacto con captura de leads y disponibilidad en tiempo real. Todo lo visual para presentar tu proyecto de forma profesional.",
       q1: "¿Qué agrega el plan Pro?",
@@ -357,7 +360,8 @@ const marketing = {
       a6: "Puedes pausar o archivar proyectos vendidos sin costo. Solo pagas por los proyectos activos en preventa. Esto te permite gestionar tu inversión según tus necesidades reales.",
     },
     cta: {
-      heading: "¿Listo para empezar?",
+      heading: "¿Listo para",
+      headingEmphasis: "empezar?",
       subtitle: "Agenda una demo y lanza tu proyecto en menos de 24 horas.",
       button: "Agendar Demo",
     },
@@ -604,7 +608,8 @@ const marketing = {
   // ── Roadmap Page ──
   roadmap: {
     badge: "Roadmap",
-    title: "Hacia dónde vamos",
+    title: "Hacia dónde",
+    titleEmphasis: "vamos",
     description: "Transparencia total. Aquí puedes ver qué estamos construyendo, qué acabamos de lanzar, y qué features estamos considerando basados en feedback de usuarios.",
     sections: {
       completedTitle: "Recién Lanzado",

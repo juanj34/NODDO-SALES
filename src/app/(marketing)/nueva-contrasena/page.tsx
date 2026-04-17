@@ -145,7 +145,8 @@ function NuevaContrasenaForm() {
         >
           <div className="relative p-8 sm:p-10">
             <h1 className="font-heading text-2xl font-light text-[var(--mk-text-primary)] mb-6 tracking-wide">
-              Nueva contrasena
+              Nueva{" "}
+              <em className="italic text-[var(--mk-accent-light)]">contrasena</em>
             </h1>
 
             {/* Success State */}
@@ -157,19 +158,20 @@ function NuevaContrasenaForm() {
                 <div
                   className="p-4 rounded-xl flex items-start gap-3 mb-6"
                   style={{
-                    background: "rgba(52, 211, 153, 0.08)",
-                    border: "1px solid rgba(52, 211, 153, 0.2)",
+                    background: "rgba(var(--mk-accent-rgb), 0.08)",
+                    border: "1px solid rgba(var(--mk-accent-rgb), 0.2)",
                   }}
                 >
                   <CheckCircle
                     size={16}
-                    className="shrink-0 mt-0.5 text-emerald-400"
+                    className="shrink-0 mt-0.5"
+                    style={{ color: "var(--mk-accent)" }}
                   />
                   <div>
-                    <span className="text-emerald-300 text-xs font-light leading-relaxed block">
+                    <span className="text-xs font-light leading-relaxed block" style={{ color: "var(--mk-accent-light)" }}>
                       Contrasena actualizada correctamente
                     </span>
-                    <span className="text-emerald-300/60 text-[11px] font-light leading-relaxed block mt-1">
+                    <span className="text-[11px] font-light leading-relaxed block mt-1" style={{ color: "rgba(var(--mk-accent-rgb), 0.6)" }}>
                       Redirigiendo a tu panel...
                     </span>
                   </div>

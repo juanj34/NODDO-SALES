@@ -111,17 +111,20 @@ function DemoConfirmadaContent() {
           className="flex flex-col items-center text-center"
         >
           {/* Success check */}
-          <div className="w-16 h-16 rounded-full bg-green-500/15 border-2 border-green-500/40 flex items-center justify-center mb-6">
-            <Check className="w-8 h-8 text-green-400" />
+          <div
+            className="w-16 h-16 rounded-full flex items-center justify-center mb-6"
+            style={{
+              background: "rgba(var(--mk-accent-rgb), 0.15)",
+              border: "2px solid rgba(var(--mk-accent-rgb), 0.4)",
+            }}
+          >
+            <Check className="w-8 h-8" style={{ color: "var(--mk-accent)" }} />
           </div>
 
-          <h1
-            className="text-4xl md:text-5xl font-light mb-3"
-            style={{ fontFamily: "var(--font-cormorant)" }}
-          >
-            {firstName
-              ? `${firstName}, tu demo está confirmada`
-              : "Tu demo está confirmada"}
+          <h1 className="font-heading text-4xl md:text-5xl font-light mb-3">
+            {firstName ? `${firstName}, tu demo está` : "Tu demo está"}
+            <br />
+            <em className="italic text-[var(--mk-accent-light)]">confirmada</em>
           </h1>
 
           {date && time && (

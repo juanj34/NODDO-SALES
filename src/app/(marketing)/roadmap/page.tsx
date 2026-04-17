@@ -16,7 +16,7 @@ export default function RoadmapPage() {
       status: "completed",
       title: t("roadmap.sections.completedTitle"),
       icon: CheckCircle2,
-      color: "#10b981",
+      color: "var(--mk-accent)",
       items: [
         {
           name: t("roadmap.items.i0name"),
@@ -54,7 +54,7 @@ export default function RoadmapPage() {
       status: "in-progress",
       title: t("roadmap.sections.inProgressTitle"),
       icon: Rocket,
-      color: "#b8973a",
+      color: "var(--mk-accent)",
       items: [
         {
           name: t("roadmap.items.i5name"),
@@ -90,7 +90,7 @@ export default function RoadmapPage() {
       status: "planned",
       title: t("roadmap.sections.plannedTitle"),
       icon: Clock,
-      color: "#d4b05a",
+      color: "var(--mk-accent-light)",
       items: [
         {
           name: t("roadmap.items.i9name"),
@@ -128,7 +128,7 @@ export default function RoadmapPage() {
       status: "considering",
       title: t("roadmap.sections.consideringTitle"),
       icon: Lightbulb,
-      color: "#a07e2e",
+      color: "var(--mk-accent-deep)",
       items: [
         {
           name: t("roadmap.items.i14name"),
@@ -168,20 +168,20 @@ export default function RoadmapPage() {
             {/* Rocket body */}
             <path
               d="M100 20 L100 200 L120 220 L100 240 L80 220 Z"
-              stroke="#b8973a"
+              stroke="rgb(184,151,58)"
               strokeWidth="1.5"
               fill="none"
             />
             {/* Window */}
-            <circle cx="100" cy="80" r="20" stroke="#b8973a" strokeWidth="1" />
-            <circle cx="100" cy="80" r="12" stroke="#b8973a" strokeWidth="0.5" opacity="0.5" />
+            <circle cx="100" cy="80" r="20" stroke="rgb(184,151,58)" strokeWidth="1" />
+            <circle cx="100" cy="80" r="12" stroke="rgb(184,151,58)" strokeWidth="0.5" opacity="0.5" />
             {/* Fins */}
-            <path d="M80 180 L50 220 L80 200 Z" stroke="#b8973a" strokeWidth="1" />
-            <path d="M120 180 L150 220 L120 200 Z" stroke="#b8973a" strokeWidth="1" />
+            <path d="M80 180 L50 220 L80 200 Z" stroke="rgb(184,151,58)" strokeWidth="1" />
+            <path d="M120 180 L150 220 L120 200 Z" stroke="rgb(184,151,58)" strokeWidth="1" />
             {/* Flame */}
             <path
               d="M85 240 Q90 260 100 280 Q110 260 115 240"
-              stroke="#b8973a"
+              stroke="rgb(184,151,58)"
               strokeWidth="0.8"
               strokeDasharray="2 2"
               opacity="0.6"
@@ -197,7 +197,7 @@ export default function RoadmapPage() {
             transition={{ duration: 0.7, ease }}
             className="inline-flex items-center gap-3 mb-6 px-6 py-3 rounded-full glass-light"
           >
-            <Sparkles className="w-5 h-5" style={{ color: "#b8973a" }} />
+            <Sparkles className="w-5 h-5" style={{ color: "var(--mk-accent)" }} />
             <span
               className="text-sm uppercase tracking-[0.15em]"
               style={{
@@ -214,14 +214,14 @@ export default function RoadmapPage() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.7, delay: 0.1, ease }}
-            className="text-5xl md:text-7xl mb-6"
-            style={{
-              fontFamily: "var(--font-cormorant)",
-              fontWeight: 300,
-              color: "rgba(244,240,232,0.92)",
-            }}
+            className="font-heading text-5xl md:text-7xl font-light mb-6"
+            style={{ color: "var(--mk-text-primary)" }}
           >
             {t("roadmap.title")}
+            <br />
+            <em className="italic text-[var(--mk-accent-light)]">
+              {t("roadmap.titleEmphasis")}
+            </em>
           </motion.h1>
 
           <motion.p
@@ -347,7 +347,7 @@ export default function RoadmapPage() {
                                   className="text-xs font-bold"
                                   style={{
                                     fontFamily: "var(--font-syne)",
-                                    color: "#b8973a",
+                                    color: "var(--mk-accent)",
                                   }}
                                 >
                                   {item.progress}%
@@ -386,7 +386,7 @@ export default function RoadmapPage() {
                                   fontFamily: "var(--font-syne)",
                                   fontWeight: 600,
                                   backgroundColor: "rgba(184, 151, 58, 0.15)",
-                                  color: "#b8973a",
+                                  color: "var(--mk-accent)",
                                   border: "1px solid rgba(184, 151, 58, 0.3)",
                                 }}
                               >
@@ -445,7 +445,7 @@ export default function RoadmapPage() {
             <Lightbulb
               className="w-14 h-14 mx-auto mb-6"
               style={{
-                color: "#b8973a",
+                color: "var(--mk-accent)",
                 filter: "drop-shadow(0 0 20px rgba(184, 151, 58, 0.3))",
               }}
             />
@@ -458,7 +458,7 @@ export default function RoadmapPage() {
               }}
             >
               {t("roadmap.ctaTitleLine1")}{" "}
-              <span style={{ fontStyle: "italic", color: "#b8973a" }}>{t("roadmap.ctaTitleEmphasis")}</span>
+              <em className="italic text-[var(--mk-accent-light)]">{t("roadmap.ctaTitleEmphasis")}</em>
             </h2>
             <p
               className="text-base mb-8 max-w-2xl mx-auto"
@@ -476,7 +476,7 @@ export default function RoadmapPage() {
                 fontFamily: "var(--font-syne)",
                 fontWeight: 700,
                 background: "linear-gradient(135deg, #b8973a 0%, #d4b05a 100%)",
-                color: "#0a0a0b",
+                color: "var(--mk-bg)",
                 boxShadow: "0 0 30px rgba(184, 151, 58, 0.3)",
               }}
             >

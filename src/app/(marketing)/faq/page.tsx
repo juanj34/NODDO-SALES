@@ -326,7 +326,7 @@ export default function FAQPage() {
   };
 
   return (
-    <div className="min-h-screen pt-32 pb-24 px-6 selection:bg-[rgba(184,151,58,0.30)] selection:text-[var(--mk-text-primary)]">
+    <div className="min-h-screen py-16 sm:py-24 lg:py-40 px-4 sm:px-6 lg:px-20 selection:bg-[rgba(184,151,58,0.30)] selection:text-[var(--mk-text-primary)]">
       <div className="max-w-4xl mx-auto">
         {/* Header */}
         <div className="text-center mb-16">
@@ -336,13 +336,12 @@ export default function FAQPage() {
             transition={{ duration: 0.7, ease }}
             className="inline-flex items-center gap-3 mb-6 px-6 py-3 rounded-full glass-light"
           >
-            <HelpCircle className="w-5 h-5" style={{ color: "#b8973a" }} />
+            <HelpCircle className="w-5 h-5" style={{ color: "var(--mk-accent)" }} />
             <span
-              className="text-sm uppercase tracking-[0.15em]"
+              className="font-ui text-sm uppercase tracking-[0.15em]"
               style={{
-                fontFamily: "var(--font-syne)",
                 fontWeight: 700,
-                color: "rgba(244,240,232,0.92)",
+                color: "var(--mk-text-primary)",
               }}
             >
               Ayuda
@@ -352,15 +351,12 @@ export default function FAQPage() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.7, delay: 0.1, ease }}
-            className="text-5xl md:text-7xl mb-6"
-            style={{
-              fontFamily: "var(--font-cormorant)",
-              fontWeight: 300,
-              color: "rgba(244,240,232,0.92)",
-            }}
+            className="font-heading text-5xl md:text-7xl font-light mb-6"
+            style={{ color: "var(--mk-text-primary)" }}
           >
-            Preguntas{" "}
-            <em style={{ fontStyle: "italic", color: "#b8973a" }}>Frecuentes</em>
+            Preguntas
+            <br />
+            <em className="italic text-[var(--mk-accent-light)]">Frecuentes</em>
           </motion.h1>
           <motion.p
             initial={{ opacity: 0, y: 20 }}
@@ -369,11 +365,11 @@ export default function FAQPage() {
             className="text-base max-w-2xl mx-auto"
             style={{
               fontWeight: 300,
-              color: "rgba(244,240,232,0.55)",
+              color: "var(--mk-text-secondary)",
             }}
           >
             {totalQuestions} respuestas sobre NODDO. Si no encuentras lo que buscas, escríbenos a{" "}
-            <a href="mailto:hola@noddo.io" className="underline" style={{ color: "#b8973a" }}>
+            <a href="mailto:hola@noddo.io" className="underline" style={{ color: "var(--mk-accent)" }}>
               hola@noddo.io
             </a>
           </motion.p>
@@ -402,15 +398,11 @@ export default function FAQPage() {
               <div className="flex items-center gap-3 mb-6">
                 <span
                   className="w-1 h-8 rounded-full"
-                  style={{ background: "#b8973a" }}
+                  style={{ background: "var(--mk-accent)" }}
                 />
                 <h2
-                  className="text-2xl"
-                  style={{
-                    fontFamily: "var(--font-cormorant)",
-                    fontWeight: 400,
-                    color: "rgba(244,240,232,0.92)",
-                  }}
+                  className="font-heading text-2xl font-normal"
+                  style={{ color: "var(--mk-text-primary)" }}
                 >
                   {category.category}
                 </h2>
@@ -429,7 +421,7 @@ export default function FAQPage() {
                           className="text-base pr-4"
                           style={{
                             fontWeight: 400,
-                            color: "rgba(244,240,232,0.92)",
+                            color: "var(--mk-text-primary)",
                           }}
                         >
                           {faq.q}
@@ -440,7 +432,7 @@ export default function FAQPage() {
                         >
                           <ChevronDown
                             className="w-5 h-5 shrink-0"
-                            style={{ color: "#b8973a" }}
+                            style={{ color: "var(--mk-accent)" }}
                           />
                         </motion.span>
                       </button>
@@ -457,7 +449,7 @@ export default function FAQPage() {
                                 className="text-sm leading-[1.8]"
                                 style={{
                                   fontWeight: 300,
-                                  color: "rgba(244,240,232,0.70)",
+                                  color: "var(--mk-text-secondary)",
                                 }}
                               >
                                 {faq.a}
@@ -484,20 +476,18 @@ export default function FAQPage() {
         >
           <div className="glass-card p-10">
             <h2
-              className="text-2xl mb-3"
-              style={{
-                fontFamily: "var(--font-cormorant)",
-                fontWeight: 300,
-                color: "rgba(244,240,232,0.92)",
-              }}
+              className="font-heading text-2xl md:text-3xl font-light mb-3"
+              style={{ color: "var(--mk-text-primary)" }}
             >
-              ¿No encontraste lo que buscabas?
+              ¿No encontraste
+              <br />
+              <em className="italic text-[var(--mk-accent-light)]">lo que buscabas?</em>
             </h2>
             <p
               className="text-sm mb-6"
               style={{
                 fontWeight: 300,
-                color: "rgba(244,240,232,0.55)",
+                color: "var(--mk-text-secondary)",
               }}
             >
               Nuestro equipo está listo para ayudarte

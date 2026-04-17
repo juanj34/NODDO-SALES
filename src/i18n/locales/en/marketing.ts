@@ -283,7 +283,8 @@ const marketing = {
     heading: "Invest per project,",
     headingEmphasis: "no subscriptions.",
     headerLabel: "Pay per project, grow without limits",
-    headerHeading: "Everything you need to sell your project",
+    headerHeading: "Everything you need to",
+    headerHeadingEmphasis: "sell your project",
     headerSubtitle: "Pay per project. Add only what you need.",
     plans: {
       basicoName: "Basic",
@@ -324,7 +325,8 @@ const marketing = {
     },
     addOns: {
       label: "Add-ons",
-      heading: "Add what you need",
+      heading: "Add what you",
+      headingEmphasis: "need",
       a0name: "Custom domain",
       a0desc: "Use your own domain instead of slug.noddo.io. Step-by-step DNS setup guided.",
       a1name: "Extra collaborators",
@@ -340,7 +342,8 @@ const marketing = {
       t2: "No lock-in contracts",
     },
     faq: {
-      heading: "Frequently asked questions",
+      heading: "Frequently asked",
+      headingEmphasis: "questions",
       q0: "What does the Basic plan include?",
       a0: "The Basic plan includes your complete premium microsite: image gallery, immersive videos, interactive maps with POIs, 360° tours, contact form with lead capture, and real-time availability. Everything visual to present your project professionally.",
       q1: "What does the Pro plan add?",
@@ -357,7 +360,8 @@ const marketing = {
       a6: "You can pause or archive sold projects at no cost. You only pay for active presale projects. This lets you manage your investment according to your real needs.",
     },
     cta: {
-      heading: "Ready to get started?",
+      heading: "Ready to",
+      headingEmphasis: "get started?",
       subtitle: "Book a demo and launch your project in less than 24 hours.",
       button: "Book Demo",
     },
@@ -604,7 +608,8 @@ const marketing = {
   // ── Roadmap Page ──
   roadmap: {
     badge: "Roadmap",
-    title: "Where we're headed",
+    title: "Where we're",
+    titleEmphasis: "headed",
     description: "Full transparency. Here you can see what we're building, what we just launched, and what features we're considering based on user feedback.",
     sections: {
       completedTitle: "Recently Launched",

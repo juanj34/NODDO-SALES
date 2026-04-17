@@ -203,7 +203,7 @@ function BlueprintConstructionIllustration() {
           {/* Cable (dashed) */}
           <line x1="258" y1="22" x2="258" y2="55" stroke="rgba(184,151,58,0.2)" strokeWidth="0.4" strokeDasharray="2 1" />
           {/* Golden block */}
-          <rect x="254" y="55" width="8" height="6" rx="1" fill="rgba(184,151,58,0.15)" stroke="#b8973a" strokeWidth="0.5" opacity="0.6" />
+          <rect x="254" y="55" width="8" height="6" rx="1" fill="rgba(184,151,58,0.15)" stroke="rgb(184,151,58)" strokeWidth="0.5" opacity="0.6" />
         </g>
 
         {/* ── Team constellation (bottom-left) ── */}
@@ -222,8 +222,8 @@ function BlueprintConstructionIllustration() {
             {/* Node circle */}
             <circle cx={p.cx} cy={p.cy} r="6" fill="rgba(184,151,58,0.04)" stroke="rgba(184,151,58,0.25)" strokeWidth="0.4" />
             {/* Person silhouette */}
-            <circle cx={p.cx} cy={p.cy - 2} r="1.5" fill="none" stroke="#b8973a" strokeWidth="0.4" opacity="0.4" />
-            <path d={`M${p.cx - 3} ${p.cy + 3} A3 2.5 0 0 1 ${p.cx + 3} ${p.cy + 3}`} fill="none" stroke="#b8973a" strokeWidth="0.4" opacity="0.4" />
+            <circle cx={p.cx} cy={p.cy - 2} r="1.5" fill="none" stroke="rgb(184,151,58)" strokeWidth="0.4" opacity="0.4" />
+            <path d={`M${p.cx - 3} ${p.cy + 3} A3 2.5 0 0 1 ${p.cx + 3} ${p.cy + 3}`} fill="none" stroke="rgb(184,151,58)" strokeWidth="0.4" opacity="0.4" />
             {/* Label */}
             <text x={p.cx} y={p.cy + 11} textAnchor="middle" fill="rgba(184,151,58,0.25)" fontSize="2.5" fontFamily="monospace">{p.label}</text>
           </g>
@@ -265,9 +265,9 @@ function BlueprintConstructionIllustration() {
 
         {/* 2026 — current (pulsing) */}
         <line x1="275" y1="153" x2="275" y2="163" stroke="rgba(184,151,58,0.3)" strokeWidth="0.3" />
-        <circle cx="275" cy="158" r="3" fill="#b8973a" opacity="0.6" className="ns-current" />
+        <circle cx="275" cy="158" r="3" fill="rgb(184,151,58)" opacity="0.6" className="ns-current" />
         <circle cx="275" cy="158" r="5" fill="none" stroke="rgba(184,151,58,0.3)" strokeWidth="0.3" className="ns-current-ring" />
-        <text x="275" y="151" textAnchor="middle" fill="#b8973a" fontSize="3.5" fontFamily="serif" fontWeight="400" opacity="0.8">2026</text>
+        <text x="275" y="151" textAnchor="middle" fill="rgb(184,151,58)" fontSize="3.5" fontFamily="serif" fontWeight="400" opacity="0.8">2026</text>
 
         {/* Labels under milestones */}
         <text x="155" y="167" textAnchor="middle" fill="rgba(184,151,58,0.2)" fontSize="2.2" fontFamily="monospace">FOUNDED</text>
@@ -280,27 +280,27 @@ function BlueprintConstructionIllustration() {
 
         {/* Metric rows */}
         <text x="16" y="32" fill="rgba(184,151,58,0.2)" fontSize="2.8" fontFamily="monospace">PROJECTS</text>
-        <text x="90" y="32" textAnchor="end" fill="#b8973a" fontSize="5" fontFamily="serif" fontWeight="300" opacity="0.7">34+</text>
+        <text x="90" y="32" textAnchor="end" fill="rgb(184,151,58)" fontSize="5" fontFamily="serif" fontWeight="300" opacity="0.7">34+</text>
 
         <line x1="16" y1="36" x2="100" y2="36" stroke="rgba(184,151,58,0.06)" strokeWidth="0.2" />
 
         <text x="16" y="46" fill="rgba(184,151,58,0.2)" fontSize="2.8" fontFamily="monospace">INVENTORY</text>
-        <text x="90" y="46" textAnchor="end" fill="#b8973a" fontSize="5" fontFamily="serif" fontWeight="300" opacity="0.7">$150M</text>
+        <text x="90" y="46" textAnchor="end" fill="rgb(184,151,58)" fontSize="5" fontFamily="serif" fontWeight="300" opacity="0.7">$150M</text>
 
         <line x1="16" y1="50" x2="100" y2="50" stroke="rgba(184,151,58,0.06)" strokeWidth="0.2" />
 
         <text x="16" y="60" fill="rgba(184,151,58,0.2)" fontSize="2.8" fontFamily="monospace">COUNTRIES</text>
-        <text x="90" y="60" textAnchor="end" fill="#b8973a" fontSize="5" fontFamily="serif" fontWeight="300" opacity="0.7">6</text>
+        <text x="90" y="60" textAnchor="end" fill="rgb(184,151,58)" fontSize="5" fontFamily="serif" fontWeight="300" opacity="0.7">6</text>
 
         <line x1="16" y1="64" x2="100" y2="64" stroke="rgba(184,151,58,0.06)" strokeWidth="0.2" />
 
         <text x="16" y="74" fill="rgba(184,151,58,0.2)" fontSize="2.8" fontFamily="monospace">UPTIME</text>
-        <text x="90" y="74" textAnchor="end" fill="#b8973a" fontSize="5" fontFamily="serif" fontWeight="300" opacity="0.7">99.97%</text>
+        <text x="90" y="74" textAnchor="end" fill="rgb(184,151,58)" fontSize="5" fontFamily="serif" fontWeight="300" opacity="0.7">99.97%</text>
 
         <line x1="16" y1="78" x2="100" y2="78" stroke="rgba(184,151,58,0.06)" strokeWidth="0.2" />
 
         <text x="16" y="87" fill="rgba(184,151,58,0.2)" fontSize="2.8" fontFamily="monospace">LEADS</text>
-        <text x="90" y="87" textAnchor="end" fill="#b8973a" fontSize="5" fontFamily="serif" fontWeight="300" opacity="0.7">12K+</text>
+        <text x="90" y="87" textAnchor="end" fill="rgb(184,151,58)" fontSize="5" fontFamily="serif" fontWeight="300" opacity="0.7">12K+</text>
 
         {/* ── Floating blueprint pages ── */}
         <g className="ns-page1">
@@ -321,12 +321,12 @@ function BlueprintConstructionIllustration() {
         </g>
 
         {/* ── Gold dust particles ── */}
-        <circle cx="30" cy="98" r="0.7" fill="#b8973a" className="ns-dust1" />
-        <circle cx="290" cy="40" r="0.6" fill="#b8973a" className="ns-dust2" />
-        <circle cx="160" cy="170" r="0.8" fill="#b8973a" className="ns-dust3" />
-        <circle cx="240" cy="100" r="0.5" fill="#b8973a" className="ns-dust4" />
-        <circle cx="100" cy="40" r="0.6" fill="#b8973a" className="ns-dust5" />
-        <circle cx="195" cy="130" r="0.7" fill="#b8973a" className="ns-dust6" />
+        <circle cx="30" cy="98" r="0.7" fill="rgb(184,151,58)" className="ns-dust1" />
+        <circle cx="290" cy="40" r="0.6" fill="rgb(184,151,58)" className="ns-dust2" />
+        <circle cx="160" cy="170" r="0.8" fill="rgb(184,151,58)" className="ns-dust3" />
+        <circle cx="240" cy="100" r="0.5" fill="rgb(184,151,58)" className="ns-dust4" />
+        <circle cx="100" cy="40" r="0.6" fill="rgb(184,151,58)" className="ns-dust5" />
+        <circle cx="195" cy="130" r="0.7" fill="rgb(184,151,58)" className="ns-dust6" />
       </svg>
     </div>
   );
@@ -382,7 +382,7 @@ export default function NosotrosPage() {
             transition={{ duration: 0.6, ease }}
             className="inline-flex items-center gap-3 mb-6 px-6 py-3 rounded-full glass-light"
           >
-            <Heart className="w-5 h-5" style={{ color: "#b8973a" }} />
+            <Heart className="w-5 h-5" style={{ color: "var(--mk-accent)" }} />
             <span
               className="text-sm uppercase tracking-[0.15em]"
               style={{
@@ -408,7 +408,7 @@ export default function NosotrosPage() {
           >
             Revolucionando la
             <br />
-            <em style={{ fontStyle: "italic", color: "#b8973a" }}>venta inmobiliaria</em>
+            <em className="italic text-[var(--mk-accent-light)]">venta inmobiliaria</em>
           </motion.h1>
 
           <motion.p
@@ -450,7 +450,7 @@ export default function NosotrosPage() {
               className="p-3 rounded-xl"
               style={{ backgroundColor: "rgba(184, 151, 58, 0.12)" }}
             >
-              <Target className="w-7 h-7" style={{ color: "#b8973a" }} />
+              <Target className="w-7 h-7" style={{ color: "var(--mk-accent)" }} />
             </div>
             <div>
               <h2
@@ -491,7 +491,7 @@ export default function NosotrosPage() {
               className="p-3 rounded-xl"
               style={{ backgroundColor: "rgba(184, 151, 58, 0.12)" }}
             >
-              <Rocket className="w-7 h-7" style={{ color: "#b8973a" }} />
+              <Rocket className="w-7 h-7" style={{ color: "var(--mk-accent)" }} />
             </div>
             <div>
               <h2
@@ -530,7 +530,7 @@ export default function NosotrosPage() {
                   <span
                     style={{
                       fontStyle: "italic",
-                      color: "#b8973a",
+                      color: "var(--mk-accent)",
                       fontFamily: "var(--font-cormorant)",
                       fontSize: "1.1em",
                     }}
@@ -586,7 +586,7 @@ export default function NosotrosPage() {
                     className="inline-flex p-3 rounded-xl mb-4"
                     style={{ backgroundColor: "rgba(184, 151, 58, 0.12)" }}
                   >
-                    <Icon className="w-6 h-6" style={{ color: "#b8973a" }} />
+                    <Icon className="w-6 h-6" style={{ color: "var(--mk-accent)" }} />
                   </div>
                   <h3
                     className="text-xl mb-3"
@@ -654,7 +654,7 @@ export default function NosotrosPage() {
                         className="text-5xl mb-2 font-light"
                         style={{
                           fontFamily: "var(--font-cormorant)",
-                          color: "#b8973a",
+                          color: "var(--mk-accent)",
                         }}
                       >
                         {item.year}
@@ -709,7 +709,7 @@ export default function NosotrosPage() {
                 className="p-3 rounded-xl"
                 style={{ backgroundColor: "rgba(184, 151, 58, 0.12)" }}
               >
-                <Users className="w-6 h-6" style={{ color: "#b8973a" }} />
+                <Users className="w-6 h-6" style={{ color: "var(--mk-accent)" }} />
               </div>
             </div>
             <h2
@@ -767,7 +767,7 @@ export default function NosotrosPage() {
                   style={{
                     fontFamily: "var(--font-syne)",
                     fontWeight: 600,
-                    color: "#b8973a",
+                    color: "var(--mk-accent)",
                   }}
                 >
                   {member.role}
@@ -790,7 +790,7 @@ export default function NosotrosPage() {
                     fontFamily: "var(--font-syne)",
                     fontWeight: 600,
                     backgroundColor: "rgba(184, 151, 58, 0.15)",
-                    color: "#b8973a",
+                    color: "var(--mk-accent)",
                     border: "1px solid rgba(184, 151, 58, 0.3)",
                   }}
                 >
@@ -817,7 +817,7 @@ export default function NosotrosPage() {
               className="p-3 rounded-xl"
               style={{ backgroundColor: "rgba(184, 151, 58, 0.12)" }}
             >
-              <Globe className="w-7 h-7" style={{ color: "#b8973a" }} />
+              <Globe className="w-7 h-7" style={{ color: "var(--mk-accent)" }} />
             </div>
             <div>
               <h2

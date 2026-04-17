@@ -162,7 +162,7 @@ function PricingCard({
               className="text-xs font-semibold px-5 py-1.5 rounded-full whitespace-nowrap"
               style={{
                 background: "var(--mk-accent)",
-                color: "#141414",
+                color: "var(--mk-bg)",
                 boxShadow: "0 4px 16px rgba(var(--mk-accent-rgb), 0.3)",
               }}
             >
@@ -249,11 +249,11 @@ function PricingCard({
                 <div
                   className="w-5 h-5 rounded-md flex items-center justify-center flex-shrink-0 mt-0.5"
                   style={{
-                    background: "rgba(34, 197, 94, 0.10)",
-                    border: "1px solid rgba(34, 197, 94, 0.15)",
+                    background: "rgba(var(--mk-accent-rgb), 0.10)",
+                    border: "1px solid rgba(var(--mk-accent-rgb), 0.15)",
                   }}
                 >
-                  <Check size={12} strokeWidth={2.5} color="#22c55e" />
+                  <Check size={12} strokeWidth={2.5} style={{ color: "var(--mk-accent)" }} />
                 </div>
               ) : (
                 <div
@@ -407,7 +407,7 @@ export default function PricingPage() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.1, ease }}
-            className="text-xs tracking-[0.4em] uppercase mb-5"
+            className="font-ui text-xs tracking-[0.4em] uppercase mb-5"
             style={{ color: "var(--mk-accent)" }}
           >
             {t("pricing.headerLabel")}
@@ -421,6 +421,10 @@ export default function PricingPage() {
             style={{ color: "var(--mk-text-primary)" }}
           >
             {t("pricing.headerHeading")}
+            <br />
+            <em className="italic text-[var(--mk-accent-light)]">
+              {t("pricing.headerHeadingEmphasis")}
+            </em>
           </motion.h1>
 
           <motion.p
@@ -456,7 +460,7 @@ export default function PricingPage() {
         <div className="max-w-4xl mx-auto">
           <FadeInSection className="text-center mb-10">
             <p
-              className="text-xs tracking-[0.4em] uppercase mb-4"
+              className="font-ui text-xs tracking-[0.4em] uppercase mb-4"
               style={{ color: "var(--mk-accent)" }}
             >
               {t("pricing.addOns.label")}
@@ -466,6 +470,10 @@ export default function PricingPage() {
               style={{ color: "var(--mk-text-primary)" }}
             >
               {t("pricing.addOns.heading")}
+              <br />
+              <em className="italic text-[var(--mk-accent-light)]">
+                {t("pricing.addOns.headingEmphasis")}
+              </em>
             </h2>
           </FadeInSection>
 
@@ -530,6 +538,10 @@ export default function PricingPage() {
               style={{ color: "var(--mk-text-primary)" }}
             >
               {t("pricing.faq.heading")}
+              <br />
+              <em className="italic text-[var(--mk-accent-light)]">
+                {t("pricing.faq.headingEmphasis")}
+              </em>
             </h2>
           </FadeInSection>
 
@@ -552,6 +564,10 @@ export default function PricingPage() {
             style={{ color: "var(--mk-text-primary)" }}
           >
             {t("pricing.cta.heading")}
+            <br />
+            <em className="italic text-[var(--mk-accent-light)]">
+              {t("pricing.cta.headingEmphasis")}
+            </em>
           </h2>
           <p
             className="text-base md:text-lg leading-relaxed mb-10"

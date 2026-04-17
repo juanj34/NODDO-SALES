@@ -8,9 +8,11 @@ export const metadata: Metadata = {
 
 export default function PrivacyPolicyPage() {
   return (
-    <article className="prose prose-invert prose-headings:font-site-heading max-w-none">
-      <h1 className="text-4xl font-site-heading font-light text-white mb-2">
-        Política de Privacidad
+    <article className="prose prose-invert prose-headings:font-heading max-w-none">
+      <h1 className="text-4xl font-heading font-light text-white mb-2">
+        Política de
+        {" "}
+        <em className="italic text-[var(--mk-accent-light)]">Privacidad</em>
       </h1>
       <p className="text-[var(--text-tertiary)] text-sm mb-8">
         Última actualización: {new Date().toLocaleDateString("es", { year: "numeric", month: "long", day: "numeric" })}
@@ -18,7 +20,7 @@ export default function PrivacyPolicyPage() {
 
       <div className="space-y-8 text-[var(--text-secondary)] leading-relaxed">
         <section>
-          <h2 className="text-2xl font-site-heading font-light text-white mt-12 mb-4">
+          <h2 className="text-2xl font-heading font-light text-white mt-12 mb-4">
             1. Introducción
           </h2>
           <p>
@@ -34,11 +36,11 @@ export default function PrivacyPolicyPage() {
         </section>
 
         <section>
-          <h2 className="text-2xl font-site-heading font-light text-white mt-12 mb-4">
+          <h2 className="text-2xl font-heading font-light text-white mt-12 mb-4">
             2. Información que Recopilamos
           </h2>
 
-          <h3 className="text-xl font-site-heading font-light text-white mt-8 mb-3">
+          <h3 className="text-xl font-heading font-light text-white mt-8 mb-3">
             2.1 Información que nos Proporcionas
           </h3>
           <ul className="list-disc list-inside space-y-2">
@@ -59,7 +61,7 @@ export default function PrivacyPolicyPage() {
             </li>
           </ul>
 
-          <h3 className="text-xl font-site-heading font-light text-white mt-8 mb-3">
+          <h3 className="text-xl font-heading font-light text-white mt-8 mb-3">
             2.2 Información que Recopilamos Automáticamente
           </h3>
           <ul className="list-disc list-inside space-y-2">
@@ -80,7 +82,7 @@ export default function PrivacyPolicyPage() {
             </li>
           </ul>
 
-          <h3 className="text-xl font-site-heading font-light text-white mt-8 mb-3">
+          <h3 className="text-xl font-heading font-light text-white mt-8 mb-3">
             2.3 Información de Visitantes de Microsites
           </h3>
           <ul className="list-disc list-inside space-y-2">
@@ -96,7 +98,7 @@ export default function PrivacyPolicyPage() {
         </section>
 
         <section>
-          <h2 className="text-2xl font-site-heading font-light text-white mt-12 mb-4">
+          <h2 className="text-2xl font-heading font-light text-white mt-12 mb-4">
             3. Cómo Usamos tu Información
           </h2>
           <ul className="list-disc list-inside space-y-2">
@@ -123,7 +125,7 @@ export default function PrivacyPolicyPage() {
         </section>
 
         <section>
-          <h2 className="text-2xl font-site-heading font-light text-white mt-12 mb-4">
+          <h2 className="text-2xl font-heading font-light text-white mt-12 mb-4">
             4. Cookies y Tecnologías de Seguimiento
           </h2>
           <p>Usamos cookies para mejorar tu experiencia. Tipos de cookies:</p>
@@ -149,7 +151,7 @@ export default function PrivacyPolicyPage() {
         </section>
 
         <section>
-          <h2 className="text-2xl font-site-heading font-light text-white mt-12 mb-4">
+          <h2 className="text-2xl font-heading font-light text-white mt-12 mb-4">
             5. Compartir tu Información
           </h2>
           <p>No vendemos tu información personal. Compartimos datos solo con:</p>
@@ -172,7 +174,7 @@ export default function PrivacyPolicyPage() {
         </section>
 
         <section>
-          <h2 className="text-2xl font-site-heading font-light text-white mt-12 mb-4">
+          <h2 className="text-2xl font-heading font-light text-white mt-12 mb-4">
             6. Seguridad de los Datos
           </h2>
           <p>
@@ -195,7 +197,7 @@ export default function PrivacyPolicyPage() {
         </section>
 
         <section>
-          <h2 className="text-2xl font-site-heading font-light text-white mt-12 mb-4">
+          <h2 className="text-2xl font-heading font-light text-white mt-12 mb-4">
             7. Tus Derechos (GDPR y Leyes Locales)
           </h2>
           <p>Tienes derecho a:</p>
@@ -235,7 +237,7 @@ export default function PrivacyPolicyPage() {
         </section>
 
         <section>
-          <h2 className="text-2xl font-site-heading font-light text-white mt-12 mb-4">
+          <h2 className="text-2xl font-heading font-light text-white mt-12 mb-4">
             8. Retención de Datos
           </h2>
           <ul className="list-disc list-inside space-y-2">
@@ -256,7 +258,7 @@ export default function PrivacyPolicyPage() {
         </section>
 
         <section>
-          <h2 className="text-2xl font-site-heading font-light text-white mt-12 mb-4">
+          <h2 className="text-2xl font-heading font-light text-white mt-12 mb-4">
             9. Transferencias Internacionales
           </h2>
           <p>
@@ -267,7 +269,7 @@ export default function PrivacyPolicyPage() {
         </section>
 
         <section>
-          <h2 className="text-2xl font-site-heading font-light text-white mt-12 mb-4">
+          <h2 className="text-2xl font-heading font-light text-white mt-12 mb-4">
             10. Menores de Edad
           </h2>
           <p>
@@ -278,7 +280,7 @@ export default function PrivacyPolicyPage() {
         </section>
 
         <section>
-          <h2 className="text-2xl font-site-heading font-light text-white mt-12 mb-4">
+          <h2 className="text-2xl font-heading font-light text-white mt-12 mb-4">
             11. Cambios a esta Política
           </h2>
           <p>
@@ -289,7 +291,7 @@ export default function PrivacyPolicyPage() {
         </section>
 
         <section>
-          <h2 className="text-2xl font-site-heading font-light text-white mt-12 mb-4">
+          <h2 className="text-2xl font-heading font-light text-white mt-12 mb-4">
             12. Contacto
           </h2>
           <p>Para preguntas sobre esta política o ejercer tus derechos:</p>

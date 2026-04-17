@@ -121,7 +121,7 @@ function SecurityArchitectureIllustration() {
         <polygon
           points="160,55 180,67 180,97 160,109 140,97 140,67"
           fill="rgba(184,151,58,0.03)"
-          stroke="#b8973a"
+          stroke="rgb(184,151,58)"
           strokeWidth="1"
           opacity="0.6"
         />
@@ -135,12 +135,12 @@ function SecurityArchitectureIllustration() {
 
         {/* Lock icon inside shield */}
         {/* Lock body */}
-        <rect x="153" y="80" width="14" height="11" rx="1.5" fill="none" stroke="#b8973a" strokeWidth="0.8" opacity="0.8" />
+        <rect x="153" y="80" width="14" height="11" rx="1.5" fill="none" stroke="rgb(184,151,58)" strokeWidth="0.8" opacity="0.8" />
         {/* Lock shackle */}
-        <path d="M156 80 V76 A4 4 0 0 1 164 76 V80" fill="none" stroke="#b8973a" strokeWidth="0.8" opacity="0.8" />
+        <path d="M156 80 V76 A4 4 0 0 1 164 76 V80" fill="none" stroke="rgb(184,151,58)" strokeWidth="0.8" opacity="0.8" />
         {/* Keyhole */}
-        <circle cx="160" cy="84" r="1.5" fill="#b8973a" opacity="0.7" />
-        <rect x="159.3" y="85" width="1.4" height="3" rx="0.5" fill="#b8973a" opacity="0.5" />
+        <circle cx="160" cy="84" r="1.5" fill="rgb(184,151,58)" opacity="0.7" />
+        <rect x="159.3" y="85" width="1.4" height="3" rx="0.5" fill="rgb(184,151,58)" opacity="0.5" />
         {/* Keyhole glow */}
         <circle cx="160" cy="84" r="4" fill="rgba(184,151,58,0.15)" className="sg-lock-glow" />
 
@@ -165,8 +165,8 @@ function SecurityArchitectureIllustration() {
         {/* Node 0: User */}
         <circle cx="28" cy="34" r="4" fill="rgba(184,151,58,0.06)" stroke="rgba(184,151,58,0.4)" strokeWidth="0.5" className="sg-auth0" />
         {/* Person icon */}
-        <circle cx="28" cy="32" r="1.2" fill="none" stroke="#b8973a" strokeWidth="0.5" opacity="0.6" />
-        <path d="M25.5 37 A2.5 2 0 0 1 30.5 37" fill="none" stroke="#b8973a" strokeWidth="0.5" opacity="0.6" />
+        <circle cx="28" cy="32" r="1.2" fill="none" stroke="rgb(184,151,58)" strokeWidth="0.5" opacity="0.6" />
+        <path d="M25.5 37 A2.5 2 0 0 1 30.5 37" fill="none" stroke="rgb(184,151,58)" strokeWidth="0.5" opacity="0.6" />
         <text x="28" y="43" textAnchor="middle" fill="rgba(184,151,58,0.3)" fontSize="2.8" fontFamily="monospace">USER</text>
 
         {/* Arrow 0→1 */}
@@ -175,9 +175,9 @@ function SecurityArchitectureIllustration() {
         {/* Node 1: Password/Key */}
         <circle cx="47" cy="34" r="4" fill="rgba(184,151,58,0.06)" stroke="rgba(184,151,58,0.4)" strokeWidth="0.5" className="sg-auth1" />
         {/* Key icon */}
-        <circle cx="46" cy="33" r="1" fill="none" stroke="#b8973a" strokeWidth="0.5" opacity="0.6" />
-        <line x1="47" y1="33" x2="50" y2="33" stroke="#b8973a" strokeWidth="0.5" opacity="0.6" />
-        <line x1="49" y1="33" x2="49" y2="35" stroke="#b8973a" strokeWidth="0.4" opacity="0.6" />
+        <circle cx="46" cy="33" r="1" fill="none" stroke="rgb(184,151,58)" strokeWidth="0.5" opacity="0.6" />
+        <line x1="47" y1="33" x2="50" y2="33" stroke="rgb(184,151,58)" strokeWidth="0.5" opacity="0.6" />
+        <line x1="49" y1="33" x2="49" y2="35" stroke="rgb(184,151,58)" strokeWidth="0.4" opacity="0.6" />
         <text x="47" y="43" textAnchor="middle" fill="rgba(184,151,58,0.3)" fontSize="2.8" fontFamily="monospace">PASS</text>
 
         {/* Arrow 1→2 */}
@@ -186,8 +186,8 @@ function SecurityArchitectureIllustration() {
         {/* Node 2: 2FA */}
         <circle cx="66" cy="34" r="4" fill="rgba(184,151,58,0.06)" stroke="rgba(184,151,58,0.4)" strokeWidth="0.5" className="sg-auth2" />
         {/* Phone icon */}
-        <rect x="64.5" y="31" width="3" height="5" rx="0.5" fill="none" stroke="#b8973a" strokeWidth="0.4" opacity="0.6" />
-        <line x1="65.2" y1="35" x2="66.8" y2="35" stroke="#b8973a" strokeWidth="0.3" opacity="0.6" />
+        <rect x="64.5" y="31" width="3" height="5" rx="0.5" fill="none" stroke="rgb(184,151,58)" strokeWidth="0.4" opacity="0.6" />
+        <line x1="65.2" y1="35" x2="66.8" y2="35" stroke="rgb(184,151,58)" strokeWidth="0.3" opacity="0.6" />
         <text x="66" y="43" textAnchor="middle" fill="rgba(184,151,58,0.3)" fontSize="2.8" fontFamily="monospace">2FA</text>
 
         {/* Arrow 2→3 */}
@@ -196,7 +196,7 @@ function SecurityArchitectureIllustration() {
         {/* Node 3: Access granted */}
         <circle cx="85" cy="34" r="4" fill="rgba(184,151,58,0.06)" stroke="rgba(184,151,58,0.4)" strokeWidth="0.5" className="sg-auth3" />
         {/* Checkmark */}
-        <path d="M82.5 34 L84.5 36 L87.5 32" fill="none" stroke="#b8973a" strokeWidth="0.6" opacity="0.7" />
+        <path d="M82.5 34 L84.5 36 L87.5 32" fill="none" stroke="rgb(184,151,58)" strokeWidth="0.6" opacity="0.7" />
         <text x="85" y="43" textAnchor="middle" fill="rgba(184,151,58,0.3)" fontSize="2.8" fontFamily="monospace">OK</text>
 
         {/* ── Database + RLS visualization (top-right) ── */}
@@ -220,10 +220,10 @@ function SecurityArchitectureIllustration() {
         {/* RLS Row indicators */}
         {/* Green — allowed */}
         <g className="sg-rls-green">
-          <rect x="266" y="28" width="32" height="5" rx="1" fill="rgba(74,158,107,0.08)" stroke="rgba(74,158,107,0.3)" strokeWidth="0.4" />
-          <circle cx="270" cy="30.5" r="1.2" fill="rgba(74,158,107,0.6)" />
+          <rect x="266" y="28" width="32" height="5" rx="1" fill="rgba(184,151,58,0.08)" stroke="rgba(184,151,58,0.3)" strokeWidth="0.4" />
+          <circle cx="270" cy="30.5" r="1.2" fill="rgba(184,151,58,0.6)" />
           <line x1="274" y1="30.5" x2="294" y2="30.5" stroke="rgba(244,240,232,0.15)" strokeWidth="0.4" />
-          <text x="296" y="31.5" fill="rgba(74,158,107,0.5)" fontSize="2.5" fontFamily="monospace">✓</text>
+          <text x="296" y="31.5" fill="rgba(184,151,58,0.5)" fontSize="2.5" fontFamily="monospace">✓</text>
         </g>
         {/* Red — blocked */}
         <g className="sg-rls-red">
@@ -340,7 +340,7 @@ function SecurityArchitectureIllustration() {
           {/* Small shield */}
           <path d="M100 95 L108 91 L116 95 L116 105 L108 110 L100 105Z" fill="rgba(184,151,58,0.03)" stroke="rgba(184,151,58,0.2)" strokeWidth="0.5" />
           {/* Checkmark inside */}
-          <path d="M104 101 L107 104 L112 97" fill="none" stroke="#b8973a" strokeWidth="0.6" opacity="0.5" />
+          <path d="M104 101 L107 104 L112 97" fill="none" stroke="rgb(184,151,58)" strokeWidth="0.6" opacity="0.5" />
           <text x="108" y="116" textAnchor="middle" fill="rgba(184,151,58,0.25)" fontSize="2.5" fontFamily="monospace">COMPLIANT</text>
         </g>
 
@@ -355,12 +355,12 @@ function SecurityArchitectureIllustration() {
         <line x1="175" y1="95" x2="226" y2="105" stroke="rgba(184,151,58,0.06)" strokeWidth="0.3" strokeDasharray="3 4" />
 
         {/* ── Gold dust particles ── */}
-        <circle cx="25" cy="65" r="0.8" fill="#b8973a" className="sg-dust1" />
-        <circle cx="295" cy="72" r="0.6" fill="#b8973a" className="sg-dust2" />
-        <circle cx="135" cy="145" r="0.7" fill="#b8973a" className="sg-dust3" />
-        <circle cx="195" cy="15" r="0.5" fill="#b8973a" className="sg-dust4" />
-        <circle cx="70" cy="85" r="0.6" fill="#b8973a" className="sg-dust5" />
-        <circle cx="210" cy="140" r="0.7" fill="#b8973a" className="sg-dust6" />
+        <circle cx="25" cy="65" r="0.8" fill="rgb(184,151,58)" className="sg-dust1" />
+        <circle cx="295" cy="72" r="0.6" fill="rgb(184,151,58)" className="sg-dust2" />
+        <circle cx="135" cy="145" r="0.7" fill="rgb(184,151,58)" className="sg-dust3" />
+        <circle cx="195" cy="15" r="0.5" fill="rgb(184,151,58)" className="sg-dust4" />
+        <circle cx="70" cy="85" r="0.6" fill="rgb(184,151,58)" className="sg-dust5" />
+        <circle cx="210" cy="140" r="0.7" fill="rgb(184,151,58)" className="sg-dust6" />
       </svg>
     </div>
   );
@@ -408,7 +408,7 @@ export default function SeguridadPage() {
             transition={{ duration: 0.6, ease }}
             className="inline-flex items-center gap-3 mb-6 px-6 py-3 rounded-full glass-light"
           >
-            <Shield className="w-5 h-5" style={{ color: "#b8973a" }} />
+            <Shield className="w-5 h-5" style={{ color: "var(--mk-accent)" }} />
             <span
               className="text-sm uppercase tracking-[0.15em]"
               style={{
@@ -434,7 +434,7 @@ export default function SeguridadPage() {
           >
             Seguridad de
             <br />
-            <em style={{ fontStyle: "italic", color: "#b8973a" }}>nivel empresarial</em>
+            <em className="italic text-[var(--mk-accent-light)]">nivel empresarial</em>
           </motion.h1>
 
           <motion.p
@@ -479,7 +479,7 @@ export default function SeguridadPage() {
                   className="inline-flex p-3 rounded-xl mb-4"
                   style={{ backgroundColor: "rgba(184, 151, 58, 0.12)" }}
                 >
-                  <Icon className="w-6 h-6" style={{ color: "#b8973a" }} />
+                  <Icon className="w-6 h-6" style={{ color: "var(--mk-accent)" }} />
                 </div>
                 <h3
                   className="text-xl mb-3"
@@ -509,7 +509,7 @@ export default function SeguridadPage() {
                 >
                   {card.items.map((item) => (
                     <li key={item} className="flex items-center gap-2">
-                      <CheckCircle2 className="w-4 h-4 shrink-0" style={{ color: "#b8973a" }} />
+                      <CheckCircle2 className="w-4 h-4 shrink-0" style={{ color: "var(--mk-accent)" }} />
                       <span>{item}</span>
                     </li>
                   ))}
@@ -532,7 +532,7 @@ export default function SeguridadPage() {
               className="p-3 rounded-xl"
               style={{ backgroundColor: "rgba(184, 151, 58, 0.12)" }}
             >
-              <FileCheck className="w-7 h-7" style={{ color: "#b8973a" }} />
+              <FileCheck className="w-7 h-7" style={{ color: "var(--mk-accent)" }} />
             </div>
             <div>
               <h2
@@ -593,7 +593,7 @@ export default function SeguridadPage() {
               className="p-3 rounded-xl"
               style={{ backgroundColor: "rgba(184, 151, 58, 0.12)" }}
             >
-              <Eye className="w-7 h-7" style={{ color: "#b8973a" }} />
+              <Eye className="w-7 h-7" style={{ color: "var(--mk-accent)" }} />
             </div>
             <div>
               <h2
@@ -617,7 +617,7 @@ export default function SeguridadPage() {
                   <li className="flex items-start gap-3">
                     <CheckCircle2
                       className="w-5 h-5 mt-1 shrink-0"
-                      style={{ color: "#b8973a" }}
+                      style={{ color: "var(--mk-accent)" }}
                     />
                     <div>
                       <strong style={{ color: "rgba(244,240,232,0.92)" }}>
@@ -629,7 +629,7 @@ export default function SeguridadPage() {
                   <li className="flex items-start gap-3">
                     <CheckCircle2
                       className="w-5 h-5 mt-1 shrink-0"
-                      style={{ color: "#b8973a" }}
+                      style={{ color: "var(--mk-accent)" }}
                     />
                     <div>
                       <strong style={{ color: "rgba(244,240,232,0.92)" }}>
@@ -641,7 +641,7 @@ export default function SeguridadPage() {
                   <li className="flex items-start gap-3">
                     <CheckCircle2
                       className="w-5 h-5 mt-1 shrink-0"
-                      style={{ color: "#b8973a" }}
+                      style={{ color: "var(--mk-accent)" }}
                     />
                     <div>
                       <strong style={{ color: "rgba(244,240,232,0.92)" }}>
@@ -653,7 +653,7 @@ export default function SeguridadPage() {
                   <li className="flex items-start gap-3">
                     <CheckCircle2
                       className="w-5 h-5 mt-1 shrink-0"
-                      style={{ color: "#b8973a" }}
+                      style={{ color: "var(--mk-accent)" }}
                     />
                     <div>
                       <strong style={{ color: "rgba(244,240,232,0.92)" }}>
@@ -681,7 +681,7 @@ export default function SeguridadPage() {
               className="p-3 rounded-xl"
               style={{ backgroundColor: "rgba(184, 151, 58, 0.12)" }}
             >
-              <AlertTriangle className="w-7 h-7" style={{ color: "#b8973a" }} />
+              <AlertTriangle className="w-7 h-7" style={{ color: "var(--mk-accent)" }} />
             </div>
             <div>
               <h2
@@ -710,7 +710,7 @@ export default function SeguridadPage() {
                   <a
                     href="mailto:security@noddo.io"
                     className="underline"
-                    style={{ color: "#b8973a" }}
+                    style={{ color: "var(--mk-accent)" }}
                   >
                     security@noddo.io
                   </a>

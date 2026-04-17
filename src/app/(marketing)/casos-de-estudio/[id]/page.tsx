@@ -42,7 +42,7 @@ export default function CaseStudyDetailPage() {
         <Link
           href="/casos-de-estudio"
           className="inline-flex items-center gap-2 text-sm"
-          style={{ color: "#b8973a" }}
+          style={{ color: "var(--mk-accent)" }}
         >
           <ArrowLeft className="w-4 h-4" />
           Volver a Casos de Estudio
@@ -104,7 +104,7 @@ export default function CaseStudyDetailPage() {
                 style={{
                   backgroundColor: "rgba(184, 151, 58, 0.15)",
                   border: "2px solid rgba(184, 151, 58, 0.3)",
-                  color: "#b8973a",
+                  color: "var(--mk-accent)",
                   fontFamily: "var(--font-syne)",
                   backdropFilter: "blur(12px)",
                 }}
@@ -143,7 +143,7 @@ export default function CaseStudyDetailPage() {
               <div className="p-5 text-center">
                 <Building2
                   className="w-4 h-4 mx-auto mb-1"
-                  style={{ color: "#b8973a" }}
+                  style={{ color: "var(--mk-accent)" }}
                 />
                 <div
                   className="text-lg font-bold"
@@ -168,7 +168,7 @@ export default function CaseStudyDetailPage() {
               <div className="p-5 text-center">
                 <MapPin
                   className="w-4 h-4 mx-auto mb-1"
-                  style={{ color: "#b8973a" }}
+                  style={{ color: "var(--mk-accent)" }}
                 />
                 <div
                   className="text-lg font-bold"
@@ -193,7 +193,7 @@ export default function CaseStudyDetailPage() {
               <div className="p-5 text-center">
                 <Wrench
                   className="w-4 h-4 mx-auto mb-1"
-                  style={{ color: "#b8973a" }}
+                  style={{ color: "var(--mk-accent)" }}
                 />
                 <div
                   className="text-lg font-bold"
@@ -236,9 +236,9 @@ export default function CaseStudyDetailPage() {
             }}
           >
             Sobre{" "}
-            <span style={{ fontStyle: "italic", color: "#b8973a" }}>
+            <em className="italic text-[var(--mk-accent-light)]">
               {study.client}
-            </span>
+            </em>
           </h2>
           <p
             className="text-[15px] leading-[1.9]"
@@ -327,7 +327,7 @@ export default function CaseStudyDetailPage() {
               >
                 <CheckCircle2
                   className="w-5 h-5"
-                  style={{ color: "#b8973a" }}
+                  style={{ color: "var(--mk-accent)" }}
                 />
               </div>
               <div>
@@ -347,7 +347,7 @@ export default function CaseStudyDetailPage() {
                     fontFamily: "var(--font-cormorant)",
                     fontWeight: 400,
                     fontStyle: "italic",
-                    color: "#b8973a",
+                    color: "var(--mk-accent)",
                   }}
                 >
                   {study.solution.title}
@@ -365,7 +365,7 @@ export default function CaseStudyDetailPage() {
                 <div key={step.day} className="flex gap-3">
                   <span
                     className="shrink-0 text-xs font-bold tracking-wider"
-                    style={{ fontFamily: "var(--font-syne)", color: "#b8973a" }}
+                    style={{ fontFamily: "var(--font-syne)", color: "var(--mk-accent)" }}
                   >
                     {step.day}
                   </span>
@@ -401,9 +401,9 @@ export default function CaseStudyDetailPage() {
             }}
           >
             Herramientas{" "}
-            <span style={{ fontStyle: "italic", color: "#b8973a" }}>
+            <em className="italic text-[var(--mk-accent-light)]">
               utilizadas
-            </span>
+            </em>
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {study.extended.toolsUsed.map((tool) => (
@@ -417,7 +417,7 @@ export default function CaseStudyDetailPage() {
               >
                 <Wrench
                   className="w-4 h-4 mb-2"
-                  style={{ color: "#b8973a" }}
+                  style={{ color: "var(--mk-accent)" }}
                 />
                 <h4
                   className="text-sm font-bold mb-1"
@@ -456,9 +456,9 @@ export default function CaseStudyDetailPage() {
             }}
           >
             Timeline de{" "}
-            <span style={{ fontStyle: "italic", color: "#b8973a" }}>
+            <em className="italic text-[var(--mk-accent-light)]">
               implementación
-            </span>
+            </em>
           </h2>
           <div className="space-y-0">
             {study.extended.detailedTimeline.map((phase, index) => (
@@ -497,7 +497,7 @@ export default function CaseStudyDetailPage() {
                       style={{
                         fontFamily: "var(--font-syne)",
                         fontWeight: 600,
-                        color: "#b8973a",
+                        color: "var(--mk-accent)",
                       }}
                     >
                       {phase.duration}
@@ -549,7 +549,7 @@ export default function CaseStudyDetailPage() {
                 fontFamily: "var(--font-cormorant)",
                 fontWeight: 400,
                 fontStyle: "italic",
-                color: "#b8973a",
+                color: "var(--mk-accent)",
               }}
             >
               {study.results.title}
@@ -570,7 +570,7 @@ export default function CaseStudyDetailPage() {
                   >
                     <Icon
                       className="w-6 h-6 mb-3"
-                      style={{ color: "#b8973a" }}
+                      style={{ color: "var(--mk-accent)" }}
                     />
                     <div
                       className="text-xs uppercase tracking-wider mb-2"
@@ -607,8 +607,8 @@ export default function CaseStudyDetailPage() {
                       style={{
                         fontFamily: "var(--font-syne)",
                         color: metric.change.startsWith("-")
-                          ? "#10b981"
-                          : "#b8973a",
+                          ? "var(--mk-accent-light)"
+                          : "var(--mk-accent)",
                       }}
                     >
                       {metric.change}
@@ -628,7 +628,7 @@ export default function CaseStudyDetailPage() {
             >
               <Quote
                 className="absolute top-4 left-4 w-10 h-10 opacity-20"
-                style={{ color: "#b8973a" }}
+                style={{ color: "var(--mk-accent)" }}
               />
               <p
                 className="text-base leading-[1.9] italic mb-4 pl-8"
@@ -645,7 +645,7 @@ export default function CaseStudyDetailPage() {
                   style={{
                     backgroundColor: "rgba(184, 151, 58, 0.15)",
                     border: "2px solid rgba(184, 151, 58, 0.3)",
-                    color: "#b8973a",
+                    color: "var(--mk-accent)",
                     fontFamily: "var(--font-syne)",
                   }}
                 >
@@ -696,7 +696,7 @@ export default function CaseStudyDetailPage() {
             }}
           >
             Conclusiones{" "}
-            <span style={{ fontStyle: "italic", color: "#b8973a" }}>clave</span>
+            <em className="italic text-[var(--mk-accent-light)]">clave</em>
           </h2>
           <div className="space-y-3">
             {study.extended.keyTakeaways.map((takeaway, i) => (
@@ -710,7 +710,7 @@ export default function CaseStudyDetailPage() {
               >
                 <Lightbulb
                   className="w-4 h-4 mt-0.5 shrink-0"
-                  style={{ color: "#b8973a" }}
+                  style={{ color: "var(--mk-accent)" }}
                 />
                 <p
                   className="text-sm leading-[1.7]"
@@ -741,9 +741,9 @@ export default function CaseStudyDetailPage() {
               }}
             >
               Más{" "}
-              <span style={{ fontStyle: "italic", color: "#b8973a" }}>
+              <em className="italic text-[var(--mk-accent-light)]">
                 voces del equipo
-              </span>
+              </em>
             </h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {study.extended.additionalQuotes.map((q) => (
@@ -757,7 +757,7 @@ export default function CaseStudyDetailPage() {
                 >
                   <Quote
                     className="w-6 h-6 mb-3 opacity-30"
-                    style={{ color: "#b8973a" }}
+                    style={{ color: "var(--mk-accent)" }}
                   />
                   <p
                     className="text-sm italic leading-[1.8] mb-4"
@@ -771,7 +771,7 @@ export default function CaseStudyDetailPage() {
                       style={{
                         backgroundColor: "rgba(184, 151, 58, 0.15)",
                         border: "1px solid rgba(184, 151, 58, 0.3)",
-                        color: "#b8973a",
+                        color: "var(--mk-accent)",
                         fontFamily: "var(--font-syne)",
                       }}
                     >
@@ -821,9 +821,9 @@ export default function CaseStudyDetailPage() {
             }}
           >
             Galería del{" "}
-            <span style={{ fontStyle: "italic", color: "#b8973a" }}>
+            <em className="italic text-[var(--mk-accent-light)]">
               proyecto
-            </span>
+            </em>
           </h2>
           <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
             {study.extended.galleryImages.map((img, i) => (
@@ -861,9 +861,9 @@ export default function CaseStudyDetailPage() {
               }}
             >
               ¿Listo para tener{" "}
-              <span style={{ fontStyle: "italic", color: "#b8973a" }}>
+              <em className="italic text-[var(--mk-accent-light)]">
                 tu caso de éxito?
-              </span>
+              </em>
             </h2>
             <p
               className="text-sm mb-6 max-w-2xl mx-auto"
@@ -880,7 +880,7 @@ export default function CaseStudyDetailPage() {
                 fontWeight: 700,
                 background:
                   "linear-gradient(135deg, #b8973a 0%, #d4b05a 100%)",
-                color: "#0a0a0b",
+                color: "var(--mk-bg)",
                 boxShadow: "0 0 30px rgba(184, 151, 58, 0.3)",
               }}
             >
@@ -930,7 +930,7 @@ export default function CaseStudyDetailPage() {
                         style={{
                           backgroundColor: "rgba(184, 151, 58, 0.15)",
                           border: "1px solid rgba(184, 151, 58, 0.3)",
-                          color: "#b8973a",
+                          color: "var(--mk-accent)",
                           fontFamily: "var(--font-syne)",
                         }}
                       >

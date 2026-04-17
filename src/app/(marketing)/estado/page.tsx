@@ -154,7 +154,7 @@ function InfrastructureMonitorIllustration() {
           className="st-ecg"
           d="M84 56 L92 56 L96 56 L100 56 L104 48 L108 64 L112 40 L116 68 L120 52 L124 56 L132 56 L136 56 L140 56 L144 48 L148 64 L152 38 L156 70 L160 52 L164 56 L172 56 L176 56 L180 56 L184 50 L188 62 L192 44 L196 56"
           fill="none"
-          stroke="#b8973a"
+          stroke="rgb(184,151,58)"
           strokeWidth="0.8"
           opacity="0.6"
         />
@@ -194,7 +194,7 @@ function InfrastructureMonitorIllustration() {
           className="st-gauge"
           cx="256" cy="58" r="18"
           fill="none"
-          stroke="#b8973a"
+          stroke="rgb(184,151,58)"
           strokeWidth="3"
           strokeLinecap="round"
           opacity="0.7"
@@ -202,7 +202,7 @@ function InfrastructureMonitorIllustration() {
         />
 
         {/* Gauge percentage text */}
-        <text className="st-pct" x="256" y="57" textAnchor="middle" fill="#b8973a" fontSize="8" fontFamily="serif" fontWeight="300" opacity="0.8">99.97</text>
+        <text className="st-pct" x="256" y="57" textAnchor="middle" fill="rgb(184,151,58)" fontSize="8" fontFamily="serif" fontWeight="300" opacity="0.8">99.97</text>
         <text x="256" y="63" textAnchor="middle" fill="rgba(184,151,58,0.4)" fontSize="3.5" fontFamily="monospace">% UPTIME</text>
 
         {/* Gauge tick marks */}
@@ -295,11 +295,11 @@ function InfrastructureMonitorIllustration() {
         </defs>
 
         {/* ── Gold dust ── */}
-        <circle cx="45" cy="115" r="0.7" fill="#b8973a" className="st-dust1" />
-        <circle cx="285" cy="30" r="0.6" fill="#b8973a" className="st-dust2" />
-        <circle cx="155" cy="168" r="0.8" fill="#b8973a" className="st-dust3" />
-        <circle cx="210" cy="120" r="0.5" fill="#b8973a" className="st-dust4" />
-        <circle cx="100" cy="35" r="0.6" fill="#b8973a" className="st-dust5" />
+        <circle cx="45" cy="115" r="0.7" fill="rgb(184,151,58)" className="st-dust1" />
+        <circle cx="285" cy="30" r="0.6" fill="rgb(184,151,58)" className="st-dust2" />
+        <circle cx="155" cy="168" r="0.8" fill="rgb(184,151,58)" className="st-dust3" />
+        <circle cx="210" cy="120" r="0.5" fill="rgb(184,151,58)" className="st-dust4" />
+        <circle cx="100" cy="35" r="0.6" fill="rgb(184,151,58)" className="st-dust5" />
       </svg>
     </div>
   );
@@ -330,10 +330,10 @@ export default function EstadoPage() {
 
   const getStatusColor = (s: string) => {
     switch (s) {
-      case "operational": return "#4ade80";
+      case "operational": return "var(--mk-accent)";
       case "degraded": return "#fbbf24";
       case "outage": return "#ef4444";
-      default: return "#6b7280";
+      default: return "var(--mk-text-tertiary)";
     }
   };
 
@@ -369,7 +369,7 @@ export default function EstadoPage() {
             transition={{ duration: 0.6, ease }}
             className="inline-flex items-center gap-3 mb-6 px-6 py-3 rounded-full glass-light"
           >
-            <Activity className="w-5 h-5" style={{ color: "#b8973a" }} />
+            <Activity className="w-5 h-5" style={{ color: "var(--mk-accent)" }} />
             <span
               className="text-sm uppercase tracking-[0.15em]"
               style={{
@@ -394,7 +394,7 @@ export default function EstadoPage() {
             }}
           >
             Estado del{" "}
-            <em style={{ fontStyle: "italic", color: "#b8973a" }}>Servicio</em>
+            <em className="italic text-[var(--mk-accent-light)]">Servicio</em>
           </motion.h1>
 
           <motion.p
@@ -506,7 +506,7 @@ export default function EstadoPage() {
                         className="p-2 rounded-lg"
                         style={{ backgroundColor: "rgba(184, 151, 58, 0.08)" }}
                       >
-                        <Icon className="w-5 h-5" style={{ color: "#b8973a" }} />
+                        <Icon className="w-5 h-5" style={{ color: "var(--mk-accent)" }} />
                       </div>
                       <div>
                         <h3
@@ -591,7 +591,7 @@ export default function EstadoPage() {
             >
               <CheckCircle2
                 className="w-12 h-12 mx-auto mb-4"
-                style={{ color: "#4ade80" }}
+                style={{ color: "var(--mk-accent)" }}
               />
               <h3
                 className="text-xl mb-2"
@@ -636,7 +636,7 @@ export default function EstadoPage() {
                       }}
                     >
                       {incident.status === "resolved" ? (
-                        <CheckCircle2 className="w-5 h-5" style={{ color: "#4ade80" }} />
+                        <CheckCircle2 className="w-5 h-5" style={{ color: "var(--mk-accent)" }} />
                       ) : (
                         <AlertCircle className="w-5 h-5" style={{ color: "#fbbf24" }} />
                       )}
@@ -664,7 +664,7 @@ export default function EstadoPage() {
                                 ? "rgba(78, 222, 128, 0.12)"
                                 : "rgba(251, 191, 36, 0.12)",
                             color:
-                              incident.status === "resolved" ? "#4ade80" : "#fbbf24",
+                              incident.status === "resolved" ? "var(--mk-accent)" : "#fbbf24",
                           }}
                         >
                           {incident.status === "resolved" ? "Resuelto" : "En Progreso"}
@@ -734,7 +734,7 @@ export default function EstadoPage() {
               <a
                 href="mailto:soporte@noddo.io"
                 className="underline"
-                style={{ color: "#b8973a" }}
+                style={{ color: "var(--mk-accent)" }}
               >
                 soporte@noddo.io
               </a>

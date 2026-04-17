@@ -95,16 +95,16 @@ function DataVaultIllustration() {
 
       {/* ── LEFT: User silhouettes flowing into data stream ── */}
       <g className="pv-person1">
-        <circle cx="42" cy="38" r="4" stroke="#b8973a" strokeWidth="0.6" opacity="0.3" fill="none" />
-        <path d="M35 48 C35 44 37 42 42 42 C47 42 49 44 49 48" stroke="#b8973a" strokeWidth="0.6" opacity="0.25" fill="none" />
+        <circle cx="42" cy="38" r="4" stroke="rgb(184,151,58)" strokeWidth="0.6" opacity="0.3" fill="none" />
+        <path d="M35 48 C35 44 37 42 42 42 C47 42 49 44 49 48" stroke="rgb(184,151,58)" strokeWidth="0.6" opacity="0.25" fill="none" />
       </g>
       <g className="pv-person2">
-        <circle cx="60" cy="34" r="3.5" stroke="#b8973a" strokeWidth="0.6" opacity="0.25" fill="none" />
-        <path d="M54 43 C54 39.5 56 38 60 38 C64 38 66 39.5 66 43" stroke="#b8973a" strokeWidth="0.6" opacity="0.2" fill="none" />
+        <circle cx="60" cy="34" r="3.5" stroke="rgb(184,151,58)" strokeWidth="0.6" opacity="0.25" fill="none" />
+        <path d="M54 43 C54 39.5 56 38 60 38 C64 38 66 39.5 66 43" stroke="rgb(184,151,58)" strokeWidth="0.6" opacity="0.2" fill="none" />
       </g>
       <g className="pv-person3">
-        <circle cx="78" cy="36" r="3" stroke="#b8973a" strokeWidth="0.6" opacity="0.2" fill="none" />
-        <path d="M73 44 C73 41 74.5 39.5 78 39.5 C81.5 39.5 83 41 83 44" stroke="#b8973a" strokeWidth="0.6" opacity="0.15" fill="none" />
+        <circle cx="78" cy="36" r="3" stroke="rgb(184,151,58)" strokeWidth="0.6" opacity="0.2" fill="none" />
+        <path d="M73 44 C73 41 74.5 39.5 78 39.5 C81.5 39.5 83 41 83 44" stroke="rgb(184,151,58)" strokeWidth="0.6" opacity="0.15" fill="none" />
       </g>
       {/* Data stream lines from users to vault */}
       <path className="pv-stream1" d="M49 48 Q70 65 105 72" stroke="rgba(184,151,58,0.18)" strokeWidth="0.6" fill="none" />
@@ -119,7 +119,7 @@ function DataVaultIllustration() {
       <circle className="pv-ring2" cx="160" cy="82" r="22" stroke="rgba(184,151,58,0.15)" strokeWidth="0.5" fill="none" />
       <circle className="pv-ring3" cx="160" cy="82" r="22" stroke="rgba(184,151,58,0.1)" strokeWidth="0.4" fill="none" />
       {/* Main vault circle */}
-      <circle cx="160" cy="82" r="28" stroke="#b8973a" strokeWidth="0.8" opacity="0.3" fill="url(#pv-vault-glow)" />
+      <circle cx="160" cy="82" r="28" stroke="rgb(184,151,58)" strokeWidth="0.8" opacity="0.3" fill="url(#pv-vault-glow)" />
       <circle cx="160" cy="82" r="22" stroke="rgba(184,151,58,0.18)" strokeWidth="0.5" fill="none" />
       {/* Vault spokes — rotating */}
       <g className="pv-vault-rotate">
@@ -145,9 +145,9 @@ function DataVaultIllustration() {
 
       {/* Toggle 1 — Always ON (essential) */}
       <rect x="226" y="54" width="40" height="4" rx="1" fill="rgba(184,151,58,0.08)" />
-      <rect x="272" y="52" width="16" height="8" rx="4" fill="rgba(74,158,107,0.15)" stroke="rgba(74,158,107,0.3)" strokeWidth="0.5" />
-      <circle cx="284" cy="56" r="3" fill="rgba(74,158,107,0.4)" />
-      <path className="pv-check" d="M281 56 L283 58 L287 53" stroke="rgba(74,158,107,0.5)" strokeWidth="0.6" fill="none" strokeLinecap="round" />
+      <rect x="272" y="52" width="16" height="8" rx="4" fill="rgba(184,151,58,0.15)" stroke="rgba(184,151,58,0.3)" strokeWidth="0.5" />
+      <circle cx="284" cy="56" r="3" fill="rgba(184,151,58,0.4)" />
+      <path className="pv-check" d="M281 56 L283 58 L287 53" stroke="rgba(184,151,58,0.5)" strokeWidth="0.6" fill="none" strokeLinecap="round" />
 
       {/* Toggle 2 — Animated (analytics) */}
       <rect x="226" y="70" width="36" height="4" rx="1" fill="rgba(184,151,58,0.06)" />
@@ -281,7 +281,7 @@ export default function PrivacidadPage() {
             transition={{ duration: 0.7, ease }}
             className="inline-flex items-center gap-3 mb-6 px-6 py-3 rounded-full glass-light"
           >
-            <Shield className="w-5 h-5" style={{ color: "#b8973a" }} />
+            <Shield className="w-5 h-5" style={{ color: "var(--mk-accent)" }} />
             <span
               className="text-sm uppercase tracking-[0.15em]"
               style={{
@@ -305,7 +305,7 @@ export default function PrivacidadPage() {
             }}
           >
             Política de{" "}
-            <em style={{ fontStyle: "italic", color: "#b8973a" }}>Privacidad</em>
+            <em className="italic text-[var(--mk-accent-light)]">Privacidad</em>
           </motion.h1>
           <motion.p
             initial={{ opacity: 0, y: 20 }}
@@ -329,7 +329,7 @@ export default function PrivacidadPage() {
               color: "rgba(244,240,232,0.35)",
             }}
           >
-            <span className="w-1 h-1 rounded-full" style={{ background: "#b8973a" }} />
+            <span className="w-1 h-1 rounded-full" style={{ background: "var(--mk-accent)" }} />
             Última actualización: 14 de marzo de 2026
           </motion.p>
 
@@ -414,7 +414,7 @@ export default function PrivacidadPage() {
                     className="p-3 rounded-xl"
                     style={{ backgroundColor: "rgba(184, 151, 58, 0.12)" }}
                   >
-                    <Building className="w-6 h-6" style={{ color: "#b8973a" }} />
+                    <Building className="w-6 h-6" style={{ color: "var(--mk-accent)" }} />
                   </div>
                   <div>
                     <h2
@@ -446,7 +446,7 @@ export default function PrivacidadPage() {
                     <a
                       href="https://noddo.io"
                       className="underline"
-                      style={{ color: "#b8973a" }}
+                      style={{ color: "var(--mk-accent)" }}
                     >
                       noddo.io
                     </a>
@@ -457,7 +457,7 @@ export default function PrivacidadPage() {
                     <a
                       href="mailto:hola@noddo.io"
                       className="underline"
-                      style={{ color: "#b8973a" }}
+                      style={{ color: "var(--mk-accent)" }}
                     >
                       hola@noddo.io
                     </a>
@@ -479,7 +479,7 @@ export default function PrivacidadPage() {
                     className="p-3 rounded-xl"
                     style={{ backgroundColor: "rgba(184, 151, 58, 0.12)" }}
                   >
-                    <Database className="w-6 h-6" style={{ color: "#b8973a" }} />
+                    <Database className="w-6 h-6" style={{ color: "var(--mk-accent)" }} />
                   </div>
                   <div>
                     <h2
@@ -606,7 +606,7 @@ export default function PrivacidadPage() {
                     className="p-3 rounded-xl"
                     style={{ backgroundColor: "rgba(184, 151, 58, 0.12)" }}
                   >
-                    <Eye className="w-6 h-6" style={{ color: "#b8973a" }} />
+                    <Eye className="w-6 h-6" style={{ color: "var(--mk-accent)" }} />
                   </div>
                   <div>
                     <h2
@@ -654,7 +654,7 @@ export default function PrivacidadPage() {
               >
                 <div className="flex items-start gap-4 mb-4">
                   <div className="p-3 rounded-xl" style={{ backgroundColor: "rgba(184, 151, 58, 0.12)" }}>
-                    <FileText className="w-6 h-6" style={{ color: "#b8973a" }} />
+                    <FileText className="w-6 h-6" style={{ color: "var(--mk-accent)" }} />
                   </div>
                   <div>
                     <h2 className="text-2xl mb-2" style={{ fontFamily: "var(--font-cormorant)", fontWeight: 400, color: "rgba(244,240,232,0.92)" }}>
@@ -687,7 +687,7 @@ export default function PrivacidadPage() {
               >
                 <div className="flex items-start gap-4 mb-4">
                   <div className="p-3 rounded-xl" style={{ backgroundColor: "rgba(184, 151, 58, 0.12)" }}>
-                    <Globe className="w-6 h-6" style={{ color: "#b8973a" }} />
+                    <Globe className="w-6 h-6" style={{ color: "var(--mk-accent)" }} />
                   </div>
                   <div>
                     <h2 className="text-2xl mb-2" style={{ fontFamily: "var(--font-cormorant)", fontWeight: 400, color: "rgba(244,240,232,0.92)" }}>
@@ -727,7 +727,7 @@ export default function PrivacidadPage() {
               >
                 <div className="flex items-start gap-4 mb-4">
                   <div className="p-3 rounded-xl" style={{ backgroundColor: "rgba(184, 151, 58, 0.12)" }}>
-                    <UserCheck className="w-6 h-6" style={{ color: "#b8973a" }} />
+                    <UserCheck className="w-6 h-6" style={{ color: "var(--mk-accent)" }} />
                   </div>
                   <div>
                     <h2 className="text-2xl mb-2" style={{ fontFamily: "var(--font-cormorant)", fontWeight: 400, color: "rgba(244,240,232,0.92)" }}>
@@ -748,7 +748,7 @@ export default function PrivacidadPage() {
                   </ul>
                   <p className="pt-3">
                     Para ejercer estos derechos, escriba a{" "}
-                    <a href="mailto:hola@noddo.io" className="underline" style={{ color: "#b8973a" }}>hola@noddo.io</a>{" "}
+                    <a href="mailto:hola@noddo.io" className="underline" style={{ color: "var(--mk-accent)" }}>hola@noddo.io</a>{" "}
                     con el asunto &quot;Ejercicio de derechos ARCO&quot;. Responderemos en un plazo máximo de <strong style={{ color: "rgba(244,240,232,0.92)" }}>15 días hábiles</strong>.
                   </p>
                 </div>
@@ -765,7 +765,7 @@ export default function PrivacidadPage() {
               >
                 <div className="flex items-start gap-4 mb-4">
                   <div className="p-3 rounded-xl" style={{ backgroundColor: "rgba(184, 151, 58, 0.12)" }}>
-                    <Lock className="w-6 h-6" style={{ color: "#b8973a" }} />
+                    <Lock className="w-6 h-6" style={{ color: "var(--mk-accent)" }} />
                   </div>
                   <div>
                     <h2 className="text-2xl mb-2" style={{ fontFamily: "var(--font-cormorant)", fontWeight: 400, color: "rgba(244,240,232,0.92)" }}>
@@ -800,7 +800,7 @@ export default function PrivacidadPage() {
               >
                 <div className="flex items-start gap-4 mb-4">
                   <div className="p-3 rounded-xl" style={{ backgroundColor: "rgba(184, 151, 58, 0.12)" }}>
-                    <Database className="w-6 h-6" style={{ color: "#b8973a" }} />
+                    <Database className="w-6 h-6" style={{ color: "var(--mk-accent)" }} />
                   </div>
                   <div>
                     <h2 className="text-2xl mb-2" style={{ fontFamily: "var(--font-cormorant)", fontWeight: 400, color: "rgba(244,240,232,0.92)" }}>
@@ -832,7 +832,7 @@ export default function PrivacidadPage() {
               >
                 <div className="flex items-start gap-4 mb-4">
                   <div className="p-3 rounded-xl" style={{ backgroundColor: "rgba(184, 151, 58, 0.12)" }}>
-                    <Eye className="w-6 h-6" style={{ color: "#b8973a" }} />
+                    <Eye className="w-6 h-6" style={{ color: "var(--mk-accent)" }} />
                   </div>
                   <div>
                     <h2 className="text-2xl mb-2" style={{ fontFamily: "var(--font-cormorant)", fontWeight: 400, color: "rgba(244,240,232,0.92)" }}>
@@ -853,7 +853,7 @@ export default function PrivacidadPage() {
                     </div>
                     <div className="pl-4 border-l-2" style={{ borderColor: "#b8973a" }}>
                       <h3 className="font-medium mb-1" style={{ color: "rgba(244,240,232,0.92)" }}>Google Tag Manager / Google Analytics</h3>
-                      <p>Análisis de tráfico web, comportamiento de usuarios, embudo de conversión. Configurado con IP anonimizada. Puede bloquearse mediante <a href="https://tools.google.com/dlpage/gaoptout" className="underline" style={{ color: "#b8973a" }} target="_blank" rel="noopener noreferrer">Google Analytics Opt-out Browser Add-on</a>.</p>
+                      <p>Análisis de tráfico web, comportamiento de usuarios, embudo de conversión. Configurado con IP anonimizada. Puede bloquearse mediante <a href="https://tools.google.com/dlpage/gaoptout" className="underline" style={{ color: "var(--mk-accent)" }} target="_blank" rel="noopener noreferrer">Google Analytics Opt-out Browser Add-on</a>.</p>
                     </div>
                     <div className="pl-4 border-l-2" style={{ borderColor: "#b8973a" }}>
                       <h3 className="font-medium mb-1" style={{ color: "rgba(244,240,232,0.92)" }}>Analytics propios (sin cookies)</h3>
@@ -877,7 +877,7 @@ export default function PrivacidadPage() {
               >
                 <div className="flex items-start gap-4 mb-4">
                   <div className="p-3 rounded-xl" style={{ backgroundColor: "rgba(184, 151, 58, 0.12)" }}>
-                    <Globe className="w-6 h-6" style={{ color: "#b8973a" }} />
+                    <Globe className="w-6 h-6" style={{ color: "var(--mk-accent)" }} />
                   </div>
                   <div>
                     <h2 className="text-2xl mb-2" style={{ fontFamily: "var(--font-cormorant)", fontWeight: 400, color: "rgba(244,240,232,0.92)" }}>
@@ -910,7 +910,7 @@ export default function PrivacidadPage() {
               >
                 <div className="flex items-start gap-4 mb-4">
                   <div className="p-3 rounded-xl" style={{ backgroundColor: "rgba(184, 151, 58, 0.12)" }}>
-                    <Shield className="w-6 h-6" style={{ color: "#b8973a" }} />
+                    <Shield className="w-6 h-6" style={{ color: "var(--mk-accent)" }} />
                   </div>
                   <div>
                     <h2 className="text-2xl mb-2" style={{ fontFamily: "var(--font-cormorant)", fontWeight: 400, color: "rgba(244,240,232,0.92)" }}>
@@ -920,7 +920,7 @@ export default function PrivacidadPage() {
                 </div>
                 <div className="space-y-3 text-sm leading-[1.8]" style={{ fontWeight: 300, color: "rgba(244,240,232,0.70)" }}>
                   <p>NODDO no está dirigido a menores de 18 años. No recopilamos intencionalmente datos de menores. Si detectamos que un menor de edad ha proporcionado datos personales sin autorización parental, eliminaremos esos datos de nuestros sistemas.</p>
-                  <p>Si usted es padre/madre/tutor y descubre que su hijo menor ha proporcionado datos a NODDO, contáctenos inmediatamente en <a href="mailto:hola@noddo.io" className="underline" style={{ color: "#b8973a" }}>hola@noddo.io</a>.</p>
+                  <p>Si usted es padre/madre/tutor y descubre que su hijo menor ha proporcionado datos a NODDO, contáctenos inmediatamente en <a href="mailto:hola@noddo.io" className="underline" style={{ color: "var(--mk-accent)" }}>hola@noddo.io</a>.</p>
                 </div>
               </motion.section>
 
@@ -935,7 +935,7 @@ export default function PrivacidadPage() {
               >
                 <div className="flex items-start gap-4 mb-4">
                   <div className="p-3 rounded-xl" style={{ backgroundColor: "rgba(184, 151, 58, 0.12)" }}>
-                    <FileText className="w-6 h-6" style={{ color: "#b8973a" }} />
+                    <FileText className="w-6 h-6" style={{ color: "var(--mk-accent)" }} />
                   </div>
                   <div>
                     <h2 className="text-2xl mb-2" style={{ fontFamily: "var(--font-cormorant)", fontWeight: 400, color: "rgba(244,240,232,0.92)" }}>
@@ -961,7 +961,7 @@ export default function PrivacidadPage() {
               >
                 <div className="flex items-start gap-4 mb-4">
                   <div className="p-3 rounded-xl" style={{ backgroundColor: "rgba(184, 151, 58, 0.12)" }}>
-                    <Mail className="w-6 h-6" style={{ color: "#b8973a" }} />
+                    <Mail className="w-6 h-6" style={{ color: "var(--mk-accent)" }} />
                   </div>
                   <div>
                     <h2 className="text-2xl mb-2" style={{ fontFamily: "var(--font-cormorant)", fontWeight: 400, color: "rgba(244,240,232,0.92)" }}>
@@ -972,10 +972,10 @@ export default function PrivacidadPage() {
                 <div className="space-y-4 text-sm leading-[1.8]" style={{ fontWeight: 300, color: "rgba(244,240,232,0.70)" }}>
                   <p>Para cualquier consulta relacionada con esta política, el tratamiento de sus datos personales, o el ejercicio de sus derechos, contáctenos en:</p>
                   <div className="pl-4 space-y-2">
-                    <div><strong style={{ color: "rgba(244,240,232,0.92)" }}>Email:</strong> <a href="mailto:hola@noddo.io" className="underline" style={{ color: "#b8973a" }}>hola@noddo.io</a></div>
+                    <div><strong style={{ color: "rgba(244,240,232,0.92)" }}>Email:</strong> <a href="mailto:hola@noddo.io" className="underline" style={{ color: "var(--mk-accent)" }}>hola@noddo.io</a></div>
                     <div><strong style={{ color: "rgba(244,240,232,0.92)" }}>Responsable de protección de datos:</strong> Antigravity SAS</div>
                     <div><strong style={{ color: "rgba(244,240,232,0.92)" }}>Ubicación:</strong> Medellín, Colombia</div>
-                    <div><strong style={{ color: "rgba(244,240,232,0.92)" }}>Sitio web:</strong> <a href="https://noddo.io" className="underline" style={{ color: "#b8973a" }}>noddo.io</a></div>
+                    <div><strong style={{ color: "rgba(244,240,232,0.92)" }}>Sitio web:</strong> <a href="https://noddo.io" className="underline" style={{ color: "var(--mk-accent)" }}>noddo.io</a></div>
                   </div>
                   <p className="pt-3">Responderemos a su solicitud en un plazo máximo de <strong style={{ color: "rgba(244,240,232,0.92)" }}>15 días hábiles</strong> de acuerdo con la Ley 1581 de 2012.</p>
                 </div>

@@ -21,9 +21,9 @@ export default function RecursosPage() {
         {/* Decorative book SVG */}
         <div className="absolute top-20 left-10 opacity-5 pointer-events-none hidden lg:block">
           <svg width="150" height="200" viewBox="0 0 150 200" fill="none">
-            <rect x="30" y="20" width="90" height="160" stroke="#b8973a" strokeWidth="1.5" />
+            <rect x="30" y="20" width="90" height="160" stroke="rgb(184,151,58)" strokeWidth="1.5" />
             <rect x="30" y="20" width="90" height="160" fill="rgba(184, 151, 58, 0.05)" />
-            <rect x="30" y="20" width="10" height="160" stroke="#b8973a" strokeWidth="1" />
+            <rect x="30" y="20" width="10" height="160" stroke="rgb(184,151,58)" strokeWidth="1" />
             {[0, 1, 2, 3, 4].map((i) => (
               <line
                 key={i}
@@ -31,12 +31,12 @@ export default function RecursosPage() {
                 y1={40 + i * 30}
                 x2="110"
                 y2={40 + i * 30}
-                stroke="#b8973a"
+                stroke="rgb(184,151,58)"
                 strokeWidth="0.5"
                 opacity="0.4"
               />
             ))}
-            <path d="M80 20 L80 60 L85 55 L90 60 L90 20" stroke="#b8973a" strokeWidth="0.8" />
+            <path d="M80 20 L80 60 L85 55 L90 60 L90 20" stroke="rgb(184,151,58)" strokeWidth="0.8" />
           </svg>
         </div>
 
@@ -48,7 +48,7 @@ export default function RecursosPage() {
             transition={{ duration: 0.7, ease }}
             className="inline-flex items-center gap-3 mb-6 px-6 py-3 rounded-full glass-light"
           >
-            <BookOpen className="w-5 h-5" style={{ color: "#b8973a" }} />
+            <BookOpen className="w-5 h-5" style={{ color: "var(--mk-accent)" }} />
             <span
               className="text-sm uppercase tracking-[0.15em]"
               style={{
@@ -74,9 +74,9 @@ export default function RecursosPage() {
           >
             {t("recursos.titleLine1")}
             <br />
-            <span style={{ fontStyle: "italic", color: "#b8973a" }}>
+            <em className="italic text-[var(--mk-accent-light)]">
               {t("recursos.titleEmphasis")}
-            </span>
+            </em>
           </motion.h1>
 
           <motion.p
@@ -112,7 +112,7 @@ export default function RecursosPage() {
                       fontFamily: "var(--font-syne)",
                       fontWeight: 700,
                       backgroundColor: "rgba(184, 151, 58, 0.95)",
-                      color: "#0a0a0b",
+                      color: "var(--mk-bg)",
                     }}
                   >
                     {t("recursos.featured")}
@@ -189,7 +189,7 @@ export default function RecursosPage() {
                       fontFamily: "var(--font-syne)",
                       fontWeight: 700,
                       background: "linear-gradient(135deg, #b8973a 0%, #d4b05a 100%)",
-                      color: "#0a0a0b",
+                      color: "var(--mk-bg)",
                     }}
                   >
                     {t("recursos.readArticle")}
@@ -285,7 +285,7 @@ export default function RecursosPage() {
                         style={{
                           fontFamily: "var(--font-syne)",
                           fontWeight: 600,
-                          color: "#b8973a",
+                          color: "var(--mk-accent)",
                         }}
                       >
                         {t("recursos.readMore")}
@@ -319,7 +319,7 @@ export default function RecursosPage() {
             <Lightbulb
               className="w-12 h-12 mx-auto mb-6 relative z-10"
               style={{
-                color: "#b8973a",
+                color: "var(--mk-accent)",
                 filter: "drop-shadow(0 0 20px rgba(184, 151, 58, 0.3))",
               }}
             />
@@ -333,7 +333,7 @@ export default function RecursosPage() {
               }}
             >
               {t("recursos.newsletterTitle")}
-              <span style={{ fontStyle: "italic", color: "#b8973a" }}>{t("recursos.newsletterTitleEmphasis")}</span>
+              <em className="italic text-[var(--mk-accent-light)]">{t("recursos.newsletterTitleEmphasis")}</em>
             </h2>
 
             <p
@@ -365,7 +365,7 @@ export default function RecursosPage() {
                   fontFamily: "var(--font-syne)",
                   fontWeight: 700,
                   background: "linear-gradient(135deg, #b8973a 0%, #d4b05a 100%)",
-                  color: "#0a0a0b",
+                  color: "var(--mk-bg)",
                 }}
               >
                 {t("recursos.newsletterButton")}

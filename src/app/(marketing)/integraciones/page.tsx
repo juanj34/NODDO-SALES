@@ -16,7 +16,7 @@ export default function IntegracionesPage() {
     {
       category: t("integraciones.categories.crm"),
       icon: Send,
-      color: "#b8973a",
+      color: "var(--mk-accent)",
       items: [
         {
           name: t("integraciones.items.i0name"),
@@ -44,7 +44,7 @@ export default function IntegracionesPage() {
     {
       category: t("integraciones.categories.analytics"),
       icon: BarChart3,
-      color: "#d4b05a",
+      color: "var(--mk-accent-light)",
       items: [
         {
           name: t("integraciones.items.i3name"),
@@ -79,7 +79,7 @@ export default function IntegracionesPage() {
     {
       category: t("integraciones.categories.automation"),
       icon: Zap,
-      color: "#a07e2e",
+      color: "var(--mk-accent-deep)",
       items: [
         {
           name: t("integraciones.items.i7name"),
@@ -107,7 +107,7 @@ export default function IntegracionesPage() {
     {
       category: t("integraciones.categories.infrastructure"),
       icon: Globe,
-      color: "#b8973a",
+      color: "var(--mk-accent)",
       items: [
         {
           name: t("integraciones.items.i10name"),
@@ -151,8 +151,8 @@ export default function IntegracionesPage() {
         <div className="absolute inset-0 overflow-hidden pointer-events-none" style={{ opacity: 0.04 }}>
           <svg width="100%" height="800" viewBox="0 0 1400 800" fill="none" xmlns="http://www.w3.org/2000/svg">
             {/* Central hub */}
-            <circle cx="700" cy="400" r="60" stroke="#b8973a" strokeWidth="1.5" />
-            <circle cx="700" cy="400" r="40" stroke="#b8973a" strokeWidth="0.8" opacity="0.5" />
+            <circle cx="700" cy="400" r="60" stroke="rgb(184,151,58)" strokeWidth="1.5" />
+            <circle cx="700" cy="400" r="40" stroke="rgb(184,151,58)" strokeWidth="0.8" opacity="0.5" />
 
             {/* Radiating connections */}
             {[0, 45, 90, 135, 180, 225, 270, 315].map((angle) => {
@@ -163,9 +163,9 @@ export default function IntegracionesPage() {
               const y2 = 400 + Math.sin(rad) * 300;
               return (
                 <g key={angle}>
-                  <line x1={x1} y1={y1} x2={x2} y2={y2} stroke="#b8973a" strokeWidth="0.5" strokeDasharray="4 4" />
-                  <circle cx={x2} cy={y2} r="20" stroke="#b8973a" strokeWidth="0.8" />
-                  <circle cx={x2} cy={y2} r="12" stroke="#b8973a" strokeWidth="0.4" opacity="0.3" />
+                  <line x1={x1} y1={y1} x2={x2} y2={y2} stroke="rgb(184,151,58)" strokeWidth="0.5" strokeDasharray="4 4" />
+                  <circle cx={x2} cy={y2} r="20" stroke="rgb(184,151,58)" strokeWidth="0.8" />
+                  <circle cx={x2} cy={y2} r="12" stroke="rgb(184,151,58)" strokeWidth="0.4" opacity="0.3" />
                 </g>
               );
             })}
@@ -173,8 +173,8 @@ export default function IntegracionesPage() {
             {/* Grid pattern */}
             {Array.from({ length: 20 }).map((_, i) => (
               <g key={`grid-${i}`} opacity="0.1">
-                <line x1={i * 70} y1="0" x2={i * 70} y2="800" stroke="#b8973a" strokeWidth="0.3" />
-                <line x1="0" y1={i * 40} x2="1400" y2={i * 40} stroke="#b8973a" strokeWidth="0.3" />
+                <line x1={i * 70} y1="0" x2={i * 70} y2="800" stroke="rgb(184,151,58)" strokeWidth="0.3" />
+                <line x1="0" y1={i * 40} x2="1400" y2={i * 40} stroke="rgb(184,151,58)" strokeWidth="0.3" />
               </g>
             ))}
           </svg>
@@ -188,7 +188,7 @@ export default function IntegracionesPage() {
             transition={{ duration: 0.7, ease }}
             className="inline-flex items-center gap-3 mb-6 px-6 py-3 rounded-full glass-light"
           >
-            <Plug className="w-5 h-5" style={{ color: "#b8973a" }} />
+            <Plug className="w-5 h-5" style={{ color: "var(--mk-accent)" }} />
             <span
               className="text-sm uppercase tracking-[0.15em]"
               style={{
@@ -214,9 +214,9 @@ export default function IntegracionesPage() {
           >
             {t("integraciones.titleLine1")}
             <br />
-            <span style={{ fontStyle: "italic", color: "#b8973a" }}>
+            <em className="italic text-[var(--mk-accent-light)]">
               {t("integraciones.titleEmphasis")}
-            </span>
+            </em>
           </motion.h1>
 
           <motion.p
@@ -294,7 +294,7 @@ export default function IntegracionesPage() {
                           style={{
                             backgroundColor: "rgba(184, 151, 58, 0.12)",
                             border: "1px solid rgba(184, 151, 58, 0.2)",
-                            color: "#b8973a",
+                            color: "var(--mk-accent)",
                             fontFamily: "var(--font-syne)",
                             letterSpacing: "0.05em",
                           }}
@@ -306,7 +306,7 @@ export default function IntegracionesPage() {
                             className="px-2 py-1 rounded text-[9px] tracking-wider"
                             style={{
                               backgroundColor: "rgba(184, 151, 58, 0.15)",
-                              color: "#b8973a",
+                              color: "var(--mk-accent)",
                               fontFamily: "var(--font-syne)",
                               fontWeight: 700,
                             }}
@@ -402,7 +402,7 @@ export default function IntegracionesPage() {
             <Webhook
               className="w-16 h-16 mx-auto mb-6"
               style={{
-                color: "#b8973a",
+                color: "var(--mk-accent)",
                 filter: "drop-shadow(0 0 20px rgba(184, 151, 58, 0.3))",
               }}
             />
@@ -416,7 +416,7 @@ export default function IntegracionesPage() {
               }}
             >
               {t("integraciones.ctaTitleLine1")}{" "}
-              <span style={{ fontStyle: "italic", color: "#b8973a" }}>{t("integraciones.ctaTitleEmphasis")}</span>
+              <em className="italic text-[var(--mk-accent-light)]">{t("integraciones.ctaTitleEmphasis")}</em>
             </h2>
 
             <p
@@ -436,7 +436,7 @@ export default function IntegracionesPage() {
                 fontFamily: "var(--font-syne)",
                 fontWeight: 700,
                 background: "linear-gradient(135deg, #b8973a 0%, #d4b05a 100%)",
-                color: "#0a0a0b",
+                color: "var(--mk-bg)",
                 boxShadow: "0 0 30px rgba(184, 151, 58, 0.3)",
               }}
             >

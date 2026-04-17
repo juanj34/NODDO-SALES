@@ -9,9 +9,11 @@ export const metadata: Metadata = {
 
 export default function TermsOfServicePage() {
   return (
-    <article className="prose prose-invert prose-headings:font-site-heading max-w-none">
-      <h1 className="text-4xl font-site-heading font-light text-white mb-2">
-        Términos de Servicio
+    <article className="prose prose-invert prose-headings:font-heading max-w-none">
+      <h1 className="text-4xl font-heading font-light text-white mb-2">
+        Términos de
+        {" "}
+        <em className="italic text-[var(--mk-accent-light)]">Servicio</em>
       </h1>
       <p className="text-[var(--text-tertiary)] text-sm mb-8">
         Última actualización: {new Date().toLocaleDateString("es", { year: "numeric", month: "long", day: "numeric" })}
@@ -19,7 +21,7 @@ export default function TermsOfServicePage() {
 
       <div className="space-y-8 text-[var(--text-secondary)] leading-relaxed">
         <section>
-          <h2 className="text-2xl font-site-heading font-light text-white mt-12 mb-4">
+          <h2 className="text-2xl font-heading font-light text-white mt-12 mb-4">
             1. Aceptación de los Términos
           </h2>
           <p>
@@ -34,7 +36,7 @@ export default function TermsOfServicePage() {
         </section>
 
         <section>
-          <h2 className="text-2xl font-site-heading font-light text-white mt-12 mb-4">
+          <h2 className="text-2xl font-heading font-light text-white mt-12 mb-4">
             2. Descripción del Servicio
           </h2>
           <p>
@@ -43,7 +45,7 @@ export default function TermsOfServicePage() {
             proyectos.
           </p>
 
-          <h3 className="text-xl font-site-heading font-light text-white mt-8 mb-3">
+          <h3 className="text-xl font-heading font-light text-white mt-8 mb-3">
             2.1 Funcionalidades
           </h3>
           <ul className="list-disc list-inside space-y-2">
@@ -55,7 +57,7 @@ export default function TermsOfServicePage() {
             <li>Integración con WhatsApp y sistemas CRM</li>
           </ul>
 
-          <h3 className="text-xl font-site-heading font-light text-white mt-8 mb-3">
+          <h3 className="text-xl font-heading font-light text-white mt-8 mb-3">
             2.2 Disponibilidad
           </h3>
           <p>
@@ -66,11 +68,11 @@ export default function TermsOfServicePage() {
         </section>
 
         <section>
-          <h2 className="text-2xl font-site-heading font-light text-white mt-12 mb-4">
+          <h2 className="text-2xl font-heading font-light text-white mt-12 mb-4">
             3. Registro y Cuenta
           </h2>
 
-          <h3 className="text-xl font-site-heading font-light text-white mt-8 mb-3">
+          <h3 className="text-xl font-heading font-light text-white mt-8 mb-3">
             3.1 Elegibilidad
           </h3>
           <p>
@@ -78,7 +80,7 @@ export default function TermsOfServicePage() {
             garantizas que la información proporcionada es veraz y actualizada.
           </p>
 
-          <h3 className="text-xl font-site-heading font-light text-white mt-8 mb-3">
+          <h3 className="text-xl font-heading font-light text-white mt-8 mb-3">
             3.2 Seguridad de la Cuenta
           </h3>
           <ul className="list-disc list-inside space-y-2">
@@ -88,7 +90,7 @@ export default function TermsOfServicePage() {
             <li>No puedes compartir tu cuenta con terceros sin autorización.</li>
           </ul>
 
-          <h3 className="text-xl font-site-heading font-light text-white mt-8 mb-3">
+          <h3 className="text-xl font-heading font-light text-white mt-8 mb-3">
             3.3 Cuentas Corporativas
           </h3>
           <p>
@@ -98,11 +100,11 @@ export default function TermsOfServicePage() {
         </section>
 
         <section>
-          <h2 className="text-2xl font-site-heading font-light text-white mt-12 mb-4">
+          <h2 className="text-2xl font-heading font-light text-white mt-12 mb-4">
             4. Planes y Pagos
           </h2>
 
-          <h3 className="text-xl font-site-heading font-light text-white mt-8 mb-3">
+          <h3 className="text-xl font-heading font-light text-white mt-8 mb-3">
             4.1 Planes de Suscripción
           </h3>
           <p>
@@ -114,7 +116,7 @@ export default function TermsOfServicePage() {
             .
           </p>
 
-          <h3 className="text-xl font-site-heading font-light text-white mt-8 mb-3">
+          <h3 className="text-xl font-heading font-light text-white mt-8 mb-3">
             4.2 Facturación
           </h3>
           <ul className="list-disc list-inside space-y-2">
@@ -124,7 +126,7 @@ export default function TermsOfServicePage() {
             <li>Los impuestos aplicables se añadirán según tu ubicación.</li>
           </ul>
 
-          <h3 className="text-xl font-site-heading font-light text-white mt-8 mb-3">
+          <h3 className="text-xl font-heading font-light text-white mt-8 mb-3">
             4.3 Renovación Automática
           </h3>
           <p>
@@ -132,7 +134,7 @@ export default function TermsOfServicePage() {
             canceles antes de la fecha de renovación.
           </p>
 
-          <h3 className="text-xl font-site-heading font-light text-white mt-8 mb-3">
+          <h3 className="text-xl font-heading font-light text-white mt-8 mb-3">
             4.4 Reembolsos
           </h3>
           <p>
@@ -141,7 +143,7 @@ export default function TermsOfServicePage() {
             final del período pagado).
           </p>
 
-          <h3 className="text-xl font-site-heading font-light text-white mt-8 mb-3">
+          <h3 className="text-xl font-heading font-light text-white mt-8 mb-3">
             4.5 Cambios de Precio
           </h3>
           <p>
@@ -151,11 +153,11 @@ export default function TermsOfServicePage() {
         </section>
 
         <section>
-          <h2 className="text-2xl font-site-heading font-light text-white mt-12 mb-4">
+          <h2 className="text-2xl font-heading font-light text-white mt-12 mb-4">
             5. Uso Aceptable
           </h2>
 
-          <h3 className="text-xl font-site-heading font-light text-white mt-8 mb-3">
+          <h3 className="text-xl font-heading font-light text-white mt-8 mb-3">
             5.1 Uso Permitido
           </h3>
           <p>Puedes usar NODDO únicamente para:</p>
@@ -165,7 +167,7 @@ export default function TermsOfServicePage() {
             <li>Promocionar tus desarrollos inmobiliarios.</li>
           </ul>
 
-          <h3 className="text-xl font-site-heading font-light text-white mt-8 mb-3">
+          <h3 className="text-xl font-heading font-light text-white mt-8 mb-3">
             5.2 Uso Prohibido
           </h3>
           <p>NO puedes usar NODDO para:</p>
@@ -179,7 +181,7 @@ export default function TermsOfServicePage() {
             <li>Violar leyes locales, nacionales o internacionales.</li>
           </ul>
 
-          <h3 className="text-xl font-site-heading font-light text-white mt-8 mb-3">
+          <h3 className="text-xl font-heading font-light text-white mt-8 mb-3">
             5.3 Consecuencias
           </h3>
           <p>
@@ -189,11 +191,11 @@ export default function TermsOfServicePage() {
         </section>
 
         <section>
-          <h2 className="text-2xl font-site-heading font-light text-white mt-12 mb-4">
+          <h2 className="text-2xl font-heading font-light text-white mt-12 mb-4">
             6. Propiedad Intelectual
           </h2>
 
-          <h3 className="text-xl font-site-heading font-light text-white mt-8 mb-3">
+          <h3 className="text-xl font-heading font-light text-white mt-8 mb-3">
             6.1 Tu Contenido
           </h3>
           <p>
@@ -202,7 +204,7 @@ export default function TermsOfServicePage() {
             almacenar, procesar y mostrar tu contenido en los microsites.
           </p>
 
-          <h3 className="text-xl font-site-heading font-light text-white mt-8 mb-3">
+          <h3 className="text-xl font-heading font-light text-white mt-8 mb-3">
             6.2 Nuestro Contenido
           </h3>
           <p>
@@ -210,7 +212,7 @@ export default function TermsOfServicePage() {
             están protegidos por derechos de autor y otras leyes de propiedad intelectual.
           </p>
 
-          <h3 className="text-xl font-site-heading font-light text-white mt-8 mb-3">
+          <h3 className="text-xl font-heading font-light text-white mt-8 mb-3">
             6.3 Feedback
           </h3>
           <p>
@@ -220,7 +222,7 @@ export default function TermsOfServicePage() {
         </section>
 
         <section>
-          <h2 className="text-2xl font-site-heading font-light text-white mt-12 mb-4">
+          <h2 className="text-2xl font-heading font-light text-white mt-12 mb-4">
             7. Privacidad y Datos
           </h2>
           <p>
@@ -234,7 +236,7 @@ export default function TermsOfServicePage() {
             para entender cómo manejamos tus datos.
           </p>
 
-          <h3 className="text-xl font-site-heading font-light text-white mt-8 mb-3">
+          <h3 className="text-xl font-heading font-light text-white mt-8 mb-3">
             7.1 Exportación de Datos
           </h3>
           <p>
@@ -244,11 +246,11 @@ export default function TermsOfServicePage() {
         </section>
 
         <section>
-          <h2 className="text-2xl font-site-heading font-light text-white mt-12 mb-4">
+          <h2 className="text-2xl font-heading font-light text-white mt-12 mb-4">
             8. Limitación de Responsabilidad
           </h2>
 
-          <h3 className="text-xl font-site-heading font-light text-white mt-8 mb-3">
+          <h3 className="text-xl font-heading font-light text-white mt-8 mb-3">
             8.1 &quot;AS IS&quot;
           </h3>
           <p>
@@ -256,7 +258,7 @@ export default function TermsOfServicePage() {
             tipo, expresas o implícitas.
           </p>
 
-          <h3 className="text-xl font-site-heading font-light text-white mt-8 mb-3">
+          <h3 className="text-xl font-heading font-light text-white mt-8 mb-3">
             8.2 Exclusión de Daños
           </h3>
           <p>
@@ -265,7 +267,7 @@ export default function TermsOfServicePage() {
             datos o uso.
           </p>
 
-          <h3 className="text-xl font-site-heading font-light text-white mt-8 mb-3">
+          <h3 className="text-xl font-heading font-light text-white mt-8 mb-3">
             8.3 Límite Máximo
           </h3>
           <p>
@@ -275,7 +277,7 @@ export default function TermsOfServicePage() {
         </section>
 
         <section>
-          <h2 className="text-2xl font-site-heading font-light text-white mt-12 mb-4">
+          <h2 className="text-2xl font-heading font-light text-white mt-12 mb-4">
             9. Indemnización
           </h2>
           <p>
@@ -291,11 +293,11 @@ export default function TermsOfServicePage() {
         </section>
 
         <section>
-          <h2 className="text-2xl font-site-heading font-light text-white mt-12 mb-4">
+          <h2 className="text-2xl font-heading font-light text-white mt-12 mb-4">
             10. Terminación
           </h2>
 
-          <h3 className="text-xl font-site-heading font-light text-white mt-8 mb-3">
+          <h3 className="text-xl font-heading font-light text-white mt-8 mb-3">
             10.1 Por Ti
           </h3>
           <p>
@@ -303,7 +305,7 @@ export default function TermsOfServicePage() {
             La cancelación es efectiva al final del período de facturación actual.
           </p>
 
-          <h3 className="text-xl font-site-heading font-light text-white mt-8 mb-3">
+          <h3 className="text-xl font-heading font-light text-white mt-8 mb-3">
             10.2 Por Nosotros
           </h3>
           <p>Podemos terminar tu cuenta inmediatamente si:</p>
@@ -314,7 +316,7 @@ export default function TermsOfServicePage() {
             <li>Por razones legales o de seguridad.</li>
           </ul>
 
-          <h3 className="text-xl font-site-heading font-light text-white mt-8 mb-3">
+          <h3 className="text-xl font-heading font-light text-white mt-8 mb-3">
             10.3 Efecto de la Terminación
           </h3>
           <p>
@@ -324,7 +326,7 @@ export default function TermsOfServicePage() {
         </section>
 
         <section>
-          <h2 className="text-2xl font-site-heading font-light text-white mt-12 mb-4">
+          <h2 className="text-2xl font-heading font-light text-white mt-12 mb-4">
             11. Modificaciones
           </h2>
           <p>
@@ -335,7 +337,7 @@ export default function TermsOfServicePage() {
         </section>
 
         <section>
-          <h2 className="text-2xl font-site-heading font-light text-white mt-12 mb-4">
+          <h2 className="text-2xl font-heading font-light text-white mt-12 mb-4">
             12. Ley Aplicable
           </h2>
           <p>
@@ -345,11 +347,11 @@ export default function TermsOfServicePage() {
         </section>
 
         <section>
-          <h2 className="text-2xl font-site-heading font-light text-white mt-12 mb-4">
+          <h2 className="text-2xl font-heading font-light text-white mt-12 mb-4">
             13. Miscelánea
           </h2>
 
-          <h3 className="text-xl font-site-heading font-light text-white mt-8 mb-3">
+          <h3 className="text-xl font-heading font-light text-white mt-8 mb-3">
             13.1 Acuerdo Completo
           </h3>
           <p>
@@ -357,21 +359,21 @@ export default function TermsOfServicePage() {
             entre tú y NODDO.
           </p>
 
-          <h3 className="text-xl font-site-heading font-light text-white mt-8 mb-3">
+          <h3 className="text-xl font-heading font-light text-white mt-8 mb-3">
             13.2 Divisibilidad
           </h3>
           <p>
             Si alguna disposición es inválida, el resto permanece en efecto.
           </p>
 
-          <h3 className="text-xl font-site-heading font-light text-white mt-8 mb-3">
+          <h3 className="text-xl font-heading font-light text-white mt-8 mb-3">
             13.3 No Renuncia
           </h3>
           <p>
             Nuestra falta de ejercicio de un derecho no constituye una renuncia a ese derecho.
           </p>
 
-          <h3 className="text-xl font-site-heading font-light text-white mt-8 mb-3">
+          <h3 className="text-xl font-heading font-light text-white mt-8 mb-3">
             13.4 Asignación
           </h3>
           <p>
@@ -381,7 +383,7 @@ export default function TermsOfServicePage() {
         </section>
 
         <section>
-          <h2 className="text-2xl font-site-heading font-light text-white mt-12 mb-4">
+          <h2 className="text-2xl font-heading font-light text-white mt-12 mb-4">
             14. Contacto
           </h2>
           <p>Para preguntas sobre estos Términos:</p>

@@ -31,7 +31,7 @@ export default function CasosDeEstudioPage() {
             transition={{ duration: 0.7, ease }}
             className="inline-flex items-center gap-3 mb-6 px-6 py-3 rounded-full glass-light"
           >
-            <TrendingUp className="w-5 h-5" style={{ color: "#b8973a" }} />
+            <TrendingUp className="w-5 h-5" style={{ color: "var(--mk-accent)" }} />
             <span
               className="text-sm uppercase tracking-[0.15em]"
               style={{
@@ -48,19 +48,15 @@ export default function CasosDeEstudioPage() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.7, delay: 0.1, ease }}
-            className="text-5xl md:text-7xl mb-6"
-            style={{
-              fontFamily: "var(--font-cormorant)",
-              fontWeight: 300,
-              color: "rgba(244,240,232,0.92)",
-            }}
+            className="font-heading text-5xl md:text-7xl font-light mb-6"
+            style={{ color: "var(--mk-text-primary)" }}
           >
             {t("caseStudies.titleLine1")}
             <br />
-            {t("caseStudies.titleLine2")}
-            <span style={{ fontStyle: "italic", color: "#b8973a" }}>
+            {t("caseStudies.titleLine2")}{" "}
+            <em className="italic text-[var(--mk-accent-light)]">
               {t("caseStudies.titleEmphasis")}
-            </span>
+            </em>
           </motion.h1>
 
           <motion.p
@@ -98,7 +94,7 @@ export default function CasosDeEstudioPage() {
                         style={{
                           backgroundColor: "rgba(184, 151, 58, 0.15)",
                           border: "2px solid rgba(184, 151, 58, 0.3)",
-                          color: "#b8973a",
+                          color: "var(--mk-accent)",
                           fontFamily: "var(--font-syne)",
                         }}
                       >
@@ -245,7 +241,7 @@ export default function CasosDeEstudioPage() {
                     >
                       <CheckCircle2
                         className="w-5 h-5"
-                        style={{ color: "#b8973a" }}
+                        style={{ color: "var(--mk-accent)" }}
                       />
                     </div>
                     <div>
@@ -265,7 +261,7 @@ export default function CasosDeEstudioPage() {
                           fontFamily: "var(--font-cormorant)",
                           fontWeight: 400,
                           fontStyle: "italic",
-                          color: "#b8973a",
+                          color: "var(--mk-accent)",
                         }}
                       >
                         {study.solution.title}
@@ -290,7 +286,7 @@ export default function CasosDeEstudioPage() {
                           className="shrink-0 text-xs font-bold tracking-wider"
                           style={{
                             fontFamily: "var(--font-syne)",
-                            color: "#b8973a",
+                            color: "var(--mk-accent)",
                           }}
                         >
                           {step.day}
@@ -328,7 +324,7 @@ export default function CasosDeEstudioPage() {
                     fontFamily: "var(--font-cormorant)",
                     fontWeight: 400,
                     fontStyle: "italic",
-                    color: "#b8973a",
+                    color: "var(--mk-accent)",
                   }}
                 >
                   {study.results.title}
@@ -349,7 +345,7 @@ export default function CasosDeEstudioPage() {
                       >
                         <Icon
                           className="w-6 h-6 mb-3"
-                          style={{ color: "#b8973a" }}
+                          style={{ color: "var(--mk-accent)" }}
                         />
                         <div
                           className="text-xs uppercase tracking-wider mb-2"
@@ -386,8 +382,8 @@ export default function CasosDeEstudioPage() {
                           style={{
                             fontFamily: "var(--font-syne)",
                             color: metric.change.startsWith("-")
-                              ? "#10b981"
-                              : "#b8973a",
+                              ? "var(--mk-accent-light)"
+                              : "var(--mk-accent)",
                           }}
                         >
                           {metric.change}
@@ -407,7 +403,7 @@ export default function CasosDeEstudioPage() {
                 >
                   <Quote
                     className="absolute top-4 left-4 w-10 h-10 opacity-20"
-                    style={{ color: "#b8973a" }}
+                    style={{ color: "var(--mk-accent)" }}
                   />
                   <p
                     className="text-base leading-[1.9] italic mb-4 pl-8"
@@ -424,7 +420,7 @@ export default function CasosDeEstudioPage() {
                       style={{
                         backgroundColor: "rgba(184, 151, 58, 0.15)",
                         border: "2px solid rgba(184, 151, 58, 0.3)",
-                        color: "#b8973a",
+                        color: "var(--mk-accent)",
                         fontFamily: "var(--font-syne)",
                       }}
                     >
@@ -463,7 +459,7 @@ export default function CasosDeEstudioPage() {
                   style={{
                     fontFamily: "var(--font-syne)",
                     fontWeight: 700,
-                    color: "#b8973a",
+                    color: "var(--mk-accent)",
                   }}
                 >
                   {t("caseStudies.viewFullCase")}
@@ -492,9 +488,9 @@ export default function CasosDeEstudioPage() {
               }}
             >
               {t("caseStudies.ctaTitleLine1")}
-              <span style={{ fontStyle: "italic", color: "#b8973a" }}>
+              <em className="italic text-[var(--mk-accent-light)]">
                 {t("caseStudies.ctaTitleEmphasis")}
-              </span>
+              </em>
             </h2>
             <p
               className="text-base mb-8 max-w-2xl mx-auto"
@@ -513,7 +509,7 @@ export default function CasosDeEstudioPage() {
                 fontWeight: 700,
                 background:
                   "linear-gradient(135deg, #b8973a 0%, #d4b05a 100%)",
-                color: "#0a0a0b",
+                color: "var(--mk-bg)",
                 boxShadow: "0 0 30px rgba(184, 151, 58, 0.3)",
               }}
             >

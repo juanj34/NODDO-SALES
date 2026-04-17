@@ -139,7 +139,7 @@ function LoginForm() {
           <div className="relative p-8 sm:p-10">
             {/* Title */}
             <h1 className="font-heading text-2xl font-light text-[var(--mk-text-primary)] mb-6 tracking-wide">
-              Bienvenido
+              <em className="italic text-[var(--mk-accent-light)]">Bienvenido</em>
             </h1>
 
             {/* Error Message */}
