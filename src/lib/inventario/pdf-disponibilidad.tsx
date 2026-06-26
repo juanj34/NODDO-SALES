@@ -146,7 +146,7 @@ export function AvailabilityDocument({ data }: { data: AvailabilityPDFData }) {
   const ROWS_FIRST_PAGE = 28;
   const ROWS_PER_PAGE = 36;
   const pages: AvailabilityUnit[][] = [];
-  let remaining = [...data.units];
+  const remaining = [...data.units];
   pages.push(remaining.splice(0, ROWS_FIRST_PAGE));
   while (remaining.length > 0) {
     pages.push(remaining.splice(0, ROWS_PER_PAGE));

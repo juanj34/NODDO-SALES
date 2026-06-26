@@ -30,7 +30,7 @@ import {
 import type { LucideIcon } from "lucide-react";
 import { useTranslation } from "@/i18n";
 import { cn } from "@/lib/utils";
-import type { SeccionesVisibles, AgentModeConfig } from "@/types";
+import type { SeccionesVisibles, AgentModeConfig, Proyecto } from "@/types";
 import {
   SECTION_KEYS,
   getEffectiveVisibility,
@@ -96,7 +96,7 @@ export default function MicrositeTab() {
       secciones_visibles: allVisible ? null : visibility,
       hide_noddo_badge: hideNoddoBadge,
       agent_mode_config: agentConfig,
-    } as any);
+    } as Partial<Proyecto>);
     hasPendingSave.current = false;
     if (!ok) toast.error(t("general.saveError"));
   }, [save, visibility, hideNoddoBadge, agentConfig, toast, t]);

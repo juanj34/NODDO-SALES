@@ -49,7 +49,6 @@ import { TowerCompositionDiagram } from "@/components/site/TowerCompositionDiagr
 export default function TipologiasPage() {
   const sectionVisible = useSectionVisibility("tipologias");
   const proyecto = useSiteProject();
-  if (!sectionVisible) return null;
   const searchParams = useSearchParams();
   const { t: tSite } = useTranslation("site");
   const unitPrefix = proyecto.unidad_display_prefix;
@@ -70,8 +69,8 @@ export default function TipologiasPage() {
   const isLotes = proyecto.tipo_proyecto === "lotes";
   const isHibrido = proyecto.tipo_proyecto === "hibrido";
   const isTipologiaPricing = proyecto.precio_source === "tipologia";
-  const ocultarVendidas = (proyecto as any).ocultar_vendidas ?? false;
-  const ocultarPrecioVendidas = (proyecto as any).ocultar_precio_vendidas ?? false;
+  const ocultarVendidas = proyecto.ocultar_vendidas ?? false;
+  const ocultarPrecioVendidas = proyecto.ocultar_precio_vendidas ?? false;
   const unidadTipologias = useMemo(() => proyecto.unidad_tipologias ?? [], [proyecto.unidad_tipologias]);
 
   // i18n-driven estado config and filters
@@ -267,14 +266,14 @@ export default function TipologiasPage() {
     return resolveColumnsForTipologia(
       active?.tipo_tipologia ?? null,
       proyecto.tipo_proyecto ?? "hibrido",
-      (proyecto as any).inventory_columns_microsite ?? proyecto.inventory_columns,
-      (proyecto as any).inventory_columns_microsite_by_type ?? proyecto.inventory_columns_by_type,
+      proyecto.inventory_columns_microsite ?? proyecto.inventory_columns,
+      proyecto.inventory_columns_microsite_by_type ?? proyecto.inventory_columns_by_type,
     );
   }, [active?.tipo_tipologia, proyecto.tipo_proyecto, proyecto.inventory_columns, proyecto.inventory_columns_by_type]);
 
   const tipFields = useMemo(() =>
-    getTipologiaFields(proyecto.tipo_proyecto ?? "hibrido", (proyecto as any).tipologia_fields),
-    [proyecto.tipo_proyecto, (proyecto as any).tipologia_fields]
+    getTipologiaFields(proyecto.tipo_proyecto ?? "hibrido", proyecto.tipologia_fields),
+    [proyecto.tipo_proyecto, proyecto.tipologia_fields]
   );
 
   // Tipologías available for the selected unit (for multi-tipo banner comparison)
@@ -348,7 +347,7 @@ export default function TipologiasPage() {
   const precioDesde = useMemo(() => {
     if (!active) return null;
     if (isTipologiaPricing) return active.precio_desde;
-    let tipoUnits = isMultiTipo
+    const tipoUnits = isMultiTipo
       ? unidades.filter(u =>
           u.estado === "disponible" && u.precio != null &&
           unidadTipologias.some(ut => ut.unidad_id === u.id && ut.tipologia_id === active.id)
@@ -446,6 +445,9 @@ export default function TipologiasPage() {
   }, [filteredUnidades]);
 
   const showFloorHeaders = unitsByFloor.length > 1;
+
+  // Section visibility guard — placed after all hooks so hook order stays stable
+  if (!sectionVisible) return null;
 
   // No tipologías available for this torre — show empty state
   if (!active) {

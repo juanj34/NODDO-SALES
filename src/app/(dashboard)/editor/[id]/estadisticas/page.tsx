@@ -83,10 +83,6 @@ export default function EstadisticasPage() {
   const { project } = useEditorProject();
   const { isAvailable } = usePlanGate();
   const [range, setRange] = useState<TimeRange>("30d");
-
-  if (!isAvailable("estadisticas_avanzadas")) {
-    return <PlanUpgradePrompt feature="estadisticas_avanzadas" plan={project.plan} />;
-  }
   const [customFrom, setCustomFrom] = useState<Date | null>(null);
   const [customTo, setCustomTo] = useState<Date | null>(null);
 
@@ -122,6 +118,11 @@ export default function EstadisticasPage() {
   }, [project.unidades]);
 
   const totalUnits = project.unidades?.length || 0;
+
+  // Plan gate — placed after all hooks so hooks run unconditionally (rules-of-hooks)
+  if (!isAvailable("estadisticas_avanzadas")) {
+    return <PlanUpgradePrompt feature="estadisticas_avanzadas" plan={project.plan} />;
+  }
 
   // Error state
   if (error && !data) {

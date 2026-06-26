@@ -230,7 +230,7 @@ SEGURIDAD:
     const aiPois = Array.isArray(p.pois) ? p.pois : null;
 
     // Validate POIs if present
-    let validPois: ValidPOI[] = [];
+    const validPois: ValidPOI[] = [];
     if (aiPois) {
       for (let i = 0; i < Math.min(aiPois.length, MAX_POIS); i++) {
         const raw = aiPois[i];

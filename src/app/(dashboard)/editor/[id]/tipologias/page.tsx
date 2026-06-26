@@ -1999,11 +1999,11 @@ export default function TipologiasPage() {
                         </div>
 
                         {/* ── Extras (conditional on project config) ── */}
-                        {TIPO_EXTRAS.some(e => (project as any)[e.projectFlag]) && (
+                        {TIPO_EXTRAS.some(e => (project as unknown as Record<string, boolean>)[e.projectFlag]) && (
                           <div>
                             <Label>{t("tipologias.extras") || "Extras"} <InfoTooltip content={tTooltips("tipologias.extras.short")} variant="dashboard" /></Label>
                             <div className={cn("grid grid-cols-2 mt-1", gap.compact)}>
-                              {TIPO_EXTRAS.filter(e => (project as any)[e.projectFlag]).map((extra) => {
+                              {TIPO_EXTRAS.filter(e => (project as unknown as Record<string, boolean>)[e.projectFlag]).map((extra) => {
                                 const isOn = form[extra.field] as boolean;
                                 const ExtraIcon = extra.icon;
                                 return (

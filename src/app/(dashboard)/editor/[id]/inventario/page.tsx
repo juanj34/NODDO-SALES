@@ -3879,7 +3879,7 @@ export default function InventarioPage() {
           <ColumnsConfigModal
             tipoProyecto={tipoProyecto}
             currentConfig={project.inventory_columns ?? null}
-            currentConfigMicrosite={(project as any).inventory_columns_microsite ?? null}
+            currentConfigMicrosite={project.inventory_columns_microsite ?? null}
             customColumns={project.custom_columns ?? []}
             onSave={handleSaveColumns}
             onSaveCustomColumns={handleSaveCustomColumns}

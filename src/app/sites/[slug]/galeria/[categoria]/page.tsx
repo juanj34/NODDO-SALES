@@ -15,14 +15,16 @@ import { useSectionVisibility } from "@/hooks/useSectionVisibility";
 export default function GaleriaCategoria() {
   const sectionVisible = useSectionVisibility("galeria");
   const proyecto = useSiteProject();
-  if (!sectionVisible) return null;
   const pathname = usePathname();
   const basePath = useSiteBasePath();
   const { t } = useTranslation("site");
+  const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
+
+  if (!sectionVisible) return null;
+
   // Extract categoria slug from URL - works for both /sites/slug/galeria/cat and /galeria/cat
   const pathParts = pathname.split("/");
   const categoriaSlug = pathParts[pathParts.length - 1];
-  const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
 
   const categoria = proyecto.galeria_categorias.find(
     (c) => c.slug === categoriaSlug

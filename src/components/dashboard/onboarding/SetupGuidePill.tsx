@@ -139,6 +139,7 @@ export function SetupGuidePill({
   useEffect(() => {
     if (allComplete && !dismissed) {
       localStorage.setItem(storageKey, "dismissed");
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- auto-dismiss persisting to localStorage when all steps complete
       setDismissed(true);
     }
   }, [allComplete, dismissed, storageKey]);

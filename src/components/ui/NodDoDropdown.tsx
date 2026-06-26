@@ -255,6 +255,7 @@ export function NodDoDropdown({
 
   useEffect(() => {
     if (!isOpen) return;
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- position derived from imperative getBoundingClientRect DOM measurement
     updatePosition();
     // Re-position on scroll (any ancestor) and resize
     window.addEventListener("scroll", updatePosition, true);

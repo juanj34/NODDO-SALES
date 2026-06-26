@@ -113,7 +113,6 @@ function TimelineDot({ isFirst }: { isFirst: boolean }) {
 export default function AvancesPage() {
   const sectionVisible = useSectionVisibility("avances");
   const proyecto = useSiteProject();
-  if (!sectionVisible) return null;
   const avances = (proyecto.avances_obra || [])
     .filter((a) => a.estado === "publicado")
     .sort((a, b) => new Date(b.fecha).getTime() - new Date(a.fecha).getTime());
@@ -143,6 +142,8 @@ export default function AvancesPage() {
       setLightboxSrc((target as HTMLImageElement).src);
     }
   }, []);
+
+  if (!sectionVisible) return null;
 
   const isSingle = avances.length === 1;
 

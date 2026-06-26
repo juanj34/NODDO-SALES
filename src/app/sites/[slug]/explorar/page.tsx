@@ -63,7 +63,6 @@ function formatPrecioShort(precio: number): string {
 export default function ExplorarPage() {
   const sectionVisible = useSectionVisibility("explorar");
   const proyecto = useSiteProject();
-  if (!sectionVisible) return null;
   const basePath = useSiteBasePath();
   const searchParams = useSearchParams();
   const { t: tSite, locale } = useTranslation("site");
@@ -79,7 +78,7 @@ export default function ExplorarPage() {
   const isLotes = proyecto.tipo_proyecto === "lotes";
   const isLoteBased = isCasas || isLotes;
   const columns = useMemo(
-    () => getInventoryColumns(proyecto.tipo_proyecto ?? "hibrido", (proyecto as any).inventory_columns_microsite ?? proyecto.inventory_columns),
+    () => getInventoryColumns(proyecto.tipo_proyecto ?? "hibrido", proyecto.inventory_columns_microsite ?? proyecto.inventory_columns),
     [proyecto.tipo_proyecto, proyecto.inventory_columns]
   );
   const unidadTipologias = useMemo<UnidadTipologia[]>(
@@ -177,8 +176,8 @@ export default function ExplorarPage() {
   // When tipología pricing: price = tipología.precio_desde (unit.precio is ignored)
   // When unit pricing: price = unit.precio (+ tipología.precio_desde for lot-based)
   const isTipologiaPricing = proyecto.precio_source === "tipologia";
-  const ocultarVendidas = (proyecto as any).ocultar_vendidas ?? false;
-  const ocultarPrecioVendidas = (proyecto as any).ocultar_precio_vendidas ?? false;
+  const ocultarVendidas = proyecto.ocultar_vendidas ?? false;
+  const ocultarPrecioVendidas = proyecto.ocultar_precio_vendidas ?? false;
   const getUnitPrice = useCallback((unit: Unidad): number | null => {
     if (unit.estado === "proximamente") return null;
     if (unit.estado === "vendida" && ocultarPrecioVendidas) return null;
@@ -306,6 +305,9 @@ export default function ExplorarPage() {
     window.addEventListener("keydown", handleKey);
     return () => window.removeEventListener("keydown", handleKey);
   }, [selectedUnit, cotizarUnidad, showImplantacionModal]);
+
+  // Section visibility guard — relocated below all hooks (rules-of-hooks)
+  if (!sectionVisible) return null;
 
   // Empty state — no fachadas configured (after all hooks)
   if (!fachadas || fachadas.length === 0) {

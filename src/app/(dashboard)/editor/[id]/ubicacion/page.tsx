@@ -1357,7 +1357,7 @@ export default function UbicacionPage() {
                             Hola! Puedo buscar lugares de interés cerca de tu proyecto.
                           </p>
                           <p className="text-xs text-[var(--text-muted)] max-w-xs mb-4">
-                            Prueba preguntas como: "busca hospitales", "hay parques a 2km?" o "qué restaurantes hay?"
+                            Prueba preguntas como: &quot;busca hospitales&quot;, &quot;hay parques a 2km?&quot; o &quot;qué restaurantes hay?&quot;
                           </p>
                           <div className="flex gap-2 flex-wrap justify-center">
                             {[

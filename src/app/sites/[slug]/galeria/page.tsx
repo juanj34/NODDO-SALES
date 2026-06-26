@@ -21,7 +21,6 @@ interface GalleryScope {
 export default function GaleriaPage() {
   const sectionVisible = useSectionVisibility("galeria");
   const proyecto = useSiteProject();
-  if (!sectionVisible) return null;
   const categorias = proyecto.galeria_categorias || [];
   const grupos = proyecto.galeria_grupos || [];
   const { t } = useTranslation("site");
@@ -116,6 +115,8 @@ export default function GaleriaPage() {
     window.addEventListener("keydown", handleKey);
     return () => window.removeEventListener("keydown", handleKey);
   }, [lightboxIndex, goNext, goPrev, activeSlide]);
+
+  if (!sectionVisible) return null;
 
   // Empty state — no gallery categories configured (after all hooks)
   if (!categorias || categorias.length === 0) {
