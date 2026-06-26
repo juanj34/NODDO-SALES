@@ -8,17 +8,30 @@ import {
 } from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 
-const R2_ACCOUNT_ID = process.env.R2_ACCOUNT_ID!;
-const R2_ACCESS_KEY_ID = process.env.R2_ACCESS_KEY_ID!;
-const R2_SECRET_ACCESS_KEY = process.env.R2_SECRET_ACCESS_KEY!;
-const R2_BUCKET_NAME = process.env.R2_BUCKET_NAME || "noddo-tours";
-const R2_PUBLIC_URL = process.env.R2_PUBLIC_URL!;
+// Trim env values defensively: a stray trailing newline/space in a credential makes the
+// AWS SigV4 Authorization header invalid → Node throws "Invalid character in header
+// content [authorization]" and every R2 upload 500s. (Root cause of the broken brochure
+// upload — prod vars were pasted with trailing "\n".)
+const env = (name: string, fallback = ""): string => (process.env[name] ?? fallback).trim();
+
+const R2_ACCOUNT_ID = env("R2_ACCOUNT_ID");
+const R2_ACCESS_KEY_ID = env("R2_ACCESS_KEY_ID");
+const R2_SECRET_ACCESS_KEY = env("R2_SECRET_ACCESS_KEY");
+const R2_BUCKET_NAME = env("R2_BUCKET_NAME", "noddo-tours");
+const R2_PUBLIC_URL = env("R2_PUBLIC_URL");
 
 /* Media bucket (for PDFs, large files, etc.) */
-const R2_MEDIA_BUCKET = process.env.R2_MEDIA_BUCKET_NAME || "noddo-media";
-const R2_MEDIA_PUBLIC_URL = process.env.R2_MEDIA_PUBLIC_URL || R2_PUBLIC_URL;
+const R2_MEDIA_BUCKET = env("R2_MEDIA_BUCKET_NAME", "noddo-media");
+const R2_MEDIA_PUBLIC_URL = env("R2_MEDIA_PUBLIC_URL") || R2_PUBLIC_URL;
+
+// The media bucket may use its own R2 access key (e.g. a token scoped to just the media
+// bucket). Falls back to the main credentials when not set, so existing single-token
+// setups keep working.
+const R2_MEDIA_ACCESS_KEY_ID = env("R2_MEDIA_ACCESS_KEY_ID") || R2_ACCESS_KEY_ID;
+const R2_MEDIA_SECRET_ACCESS_KEY = env("R2_MEDIA_SECRET_ACCESS_KEY") || R2_SECRET_ACCESS_KEY;
 
 let _client: S3Client | null = null;
+let _mediaClient: S3Client | null = null;
 
 function getR2Client(): S3Client {
   if (!_client) {
@@ -33,6 +46,26 @@ function getR2Client(): S3Client {
     });
   }
   return _client;
+}
+
+/** S3 client for the media bucket — may carry bucket-scoped credentials. */
+function getMediaR2Client(): S3Client {
+  // Reuse the main client when media credentials are identical (single-token setup).
+  if (R2_MEDIA_ACCESS_KEY_ID === R2_ACCESS_KEY_ID && R2_MEDIA_SECRET_ACCESS_KEY === R2_SECRET_ACCESS_KEY) {
+    return getR2Client();
+  }
+  if (!_mediaClient) {
+    _mediaClient = new S3Client({
+      region: "auto",
+      endpoint: `https://${R2_ACCOUNT_ID}.r2.cloudflarestorage.com`,
+      forcePathStyle: true,
+      credentials: {
+        accessKeyId: R2_MEDIA_ACCESS_KEY_ID,
+        secretAccessKey: R2_MEDIA_SECRET_ACCESS_KEY,
+      },
+    });
+  }
+  return _mediaClient;
 }
 
 export interface FileToSign {
@@ -134,7 +167,7 @@ export async function getPresignedMediaUploadUrl(
   contentType: string,
   size: number,
 ): Promise<MediaPresignResult> {
-  const client = getR2Client();
+  const client = getMediaR2Client();
   const key = `${folder}/${fileName}`;
 
   const command = new PutObjectCommand({
@@ -153,7 +186,7 @@ export async function getPresignedMediaUploadUrl(
  * Delete a single media file from R2.
  */
 export async function deleteMediaFile(key: string): Promise<void> {
-  const client = getR2Client();
+  const client = getMediaR2Client();
   await client.send(
     new DeleteObjectsCommand({
       Bucket: R2_MEDIA_BUCKET,
@@ -238,12 +271,10 @@ function corsRulesAreValid(
   );
 }
 
-async function ensureBucketCors(bucket: string): Promise<void> {
+async function ensureBucketCors(bucket: string, client: S3Client = getR2Client()): Promise<void> {
   // Skip if recently verified
   const lastVerified = corsVerifiedAt.get(bucket);
   if (lastVerified && Date.now() - lastVerified < CORS_CACHE_TTL) return;
-
-  const client = getR2Client();
 
   try {
     const existing = await client.send(
@@ -257,12 +288,23 @@ async function ensureBucketCors(bucket: string): Promise<void> {
     // NoSuchCORSConfiguration or similar — proceed to set it
   }
 
-  await client.send(
-    new PutBucketCorsCommand({
-      Bucket: bucket,
-      CORSConfiguration: { CORSRules: REQUIRED_CORS_RULES },
-    })
-  );
+  try {
+    await client.send(
+      new PutBucketCorsCommand({
+        Bucket: bucket,
+        CORSConfiguration: { CORSRules: REQUIRED_CORS_RULES },
+      })
+    );
+  } catch (err) {
+    // The R2 token may be object-scoped (no bucket-config permission), in which case it
+    // cannot manage CORS. Don't fail the upload — CORS is often configured out-of-band on
+    // the bucket. Log and continue so presign still returns a usable URL.
+    console.warn(
+      `[r2] Could not auto-configure CORS on "${bucket}" (continuing — set it manually if browser uploads fail):`,
+      err instanceof Error ? err.message : err
+    );
+  }
+  // Mark verified either way to avoid a PutBucketCors storm on every request.
   corsVerifiedAt.set(bucket, Date.now());
 }
 
@@ -277,5 +319,5 @@ export async function ensureToursBucketCors(): Promise<void> {
  * Ensure CORS is configured on the media bucket for direct browser uploads.
  */
 export async function ensureMediaBucketCors(): Promise<void> {
-  return ensureBucketCors(R2_MEDIA_BUCKET);
+  return ensureBucketCors(R2_MEDIA_BUCKET, getMediaR2Client());
 }
