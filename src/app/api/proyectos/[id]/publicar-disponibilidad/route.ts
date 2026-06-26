@@ -1,4 +1,5 @@
 import { getAuthContext } from "@/lib/auth-context";
+import { revalidateProyecto } from "@/lib/supabase/cached-queries";
 import { NextRequest, NextResponse } from "next/server";
 
 export async function POST(
@@ -16,7 +17,7 @@ export async function POST(
     // Verify project ownership (admin) or access (collaborator)
     const { data: proyecto, error: projErr } = await auth.supabase
       .from("proyectos")
-      .select("id, user_id")
+      .select("id, user_id, slug, subdomain")
       .eq("id", id)
       .single();
 
@@ -65,6 +66,14 @@ export async function POST(
       .eq("id", latestVersion.id);
 
     if (updateErr) throw updateErr;
+
+    // Snapshot changed -> invalidate the public microsite cache (slug + subdomain),
+    // mirroring publicar/despublicar. Without this, sold/reserved units keep showing
+    // as available on the public site for up to the 1h unstable_cache TTL (P0-10).
+    if (proyecto.slug) await revalidateProyecto(proyecto.slug);
+    if (proyecto.subdomain && proyecto.subdomain !== proyecto.slug) {
+      await revalidateProyecto(proyecto.subdomain);
+    }
 
     return NextResponse.json({
       updated: true,
