@@ -292,6 +292,7 @@ export function CotizadorTool({ project, tipologias, unidadTipologias }: Cotizad
   const [successState, setSuccessState] = useState<{
     id: string;
     pdfUrl: string | null;
+    pdfPending: boolean;
     clientName: string;
     unitId: string;
     total: number;
@@ -951,11 +952,12 @@ export function CotizadorTool({ project, tipologias, unidadTipologias }: Cotizad
       });
 
       if (res.ok) {
-        const { id, pdf_url } = await res.json();
+        const { id, pdf_url, pdf_pending } = await res.json();
         const total = cotizacion?.precio_total ?? cotizacion?.precio_neto ?? 0;
         setSuccessState({
           id,
           pdfUrl: pdf_url,
+          pdfPending: !!pdf_pending,
           clientName: effectiveClientName.trim(),
           unitId: selectedUnit.identificador,
           total,
@@ -1169,6 +1171,24 @@ export function CotizadorTool({ project, tipologias, unidadTipologias }: Cotizad
                     >
                       <Copy size={12} />
                       Copiar link
+                    </button>
+                  )}
+                  {!successState.pdfUrl && successState.pdfPending && (
+                    <button
+                      onClick={async () => {
+                        const r = await fetch(`/api/cotizaciones/${successState.id}/regenerate`, { method: "POST" });
+                        if (r.ok) {
+                          const { pdf_url } = await r.json();
+                          setSuccessState((s) => (s ? { ...s, pdfUrl: pdf_url, pdfPending: false } : s));
+                          toast.success(t("cotizadorPage.pdfReady"));
+                        } else {
+                          toast.error(t("cotizadorPage.pdfRetryFailed"));
+                        }
+                      }}
+                      className="flex items-center gap-2 px-4 py-2 rounded-lg bg-[var(--site-primary)] text-[var(--surface-0)] font-ui text-[10px] font-bold uppercase tracking-[0.1em] hover:brightness-110 transition-all"
+                    >
+                      <Download size={12} />
+                      Regenerar PDF
                     </button>
                   )}
                 </div>
