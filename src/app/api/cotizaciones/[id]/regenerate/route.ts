@@ -1,13 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getAuthContext } from "@/lib/auth-context";
 import { createClient } from "@supabase/supabase-js";
-import { calcularCotizacion } from "@/lib/cotizador/calcular";
-import { generarPDF } from "@/lib/cotizador/pdf-react/render";
-import type { CotizadorConfig } from "@/types";
+import { generateCotizacionPdf, getCotizacionSignedUrl } from "@/lib/cotizador/generate";
+import { buildInputFromDbRows } from "@/lib/cotizador/html/from-db";
+import type { CotizadorConfig, ResultadoCotizacion, Currency } from "@/types";
 import type { EmailLocale } from "@/lib/email-i18n";
-import sharp from "sharp";
 
-// PDF/image generation is CPU- and memory-heavy; raise above the Vercel default.
+// PDF generation is CPU- and memory-heavy; raise above the Vercel default.
 export const runtime = "nodejs";
 export const maxDuration = 60;
 
@@ -16,43 +15,6 @@ function getServiceClient() {
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.SUPABASE_SERVICE_ROLE_KEY!
   );
-}
-
-async function fetchImageAsBase64(
-  url: string | null,
-): Promise<{ base64: string; format: "JPEG" | "PNG"; width?: number; height?: number } | null> {
-  if (!url) return null;
-  try {
-    const res = await fetch(url, { signal: AbortSignal.timeout(5000) });
-    if (!res.ok) return null;
-    const buffer = await res.arrayBuffer();
-    const uint8 = new Uint8Array(buffer);
-
-    const isJPEG = uint8[0] === 0xff && uint8[1] === 0xd8;
-    const isPNG = uint8[0] === 0x89 && uint8[1] === 0x50;
-
-    if (!isJPEG && !isPNG) {
-      const jpegBuffer = await sharp(Buffer.from(buffer))
-        .resize(1200, null, { withoutEnlargement: true })
-        .jpeg({ quality: 80 })
-        .toBuffer();
-      const meta = await sharp(jpegBuffer).metadata();
-      return { base64: jpegBuffer.toString("base64"), format: "JPEG", width: meta.width, height: meta.height };
-    }
-
-    const resized = await sharp(Buffer.from(buffer))
-      .resize(1200, null, { withoutEnlargement: true })
-      .toBuffer();
-    const meta = await sharp(resized).metadata();
-    return {
-      base64: resized.toString("base64"),
-      format: isJPEG ? "JPEG" : "PNG",
-      width: meta.width,
-      height: meta.height,
-    };
-  } catch {
-    return null;
-  }
 }
 
 export async function POST(
@@ -93,17 +55,18 @@ export async function POST(
       return NextResponse.json({ error: "No autorizado" }, { status: 403 });
     }
 
-    // Use CURRENT config from project (not snapshot)
-    const config = cotizacion.proyectos.cotizador_config as CotizadorConfig;
-    const snapshot = cotizacion.unidad_snapshot;
+    // FAITHFUL REISSUE: render from the STORED snapshot + STORED resultado.
+    // Never re-price against the project's current config (that would be a new
+    // quote, not a regenerate). config_snapshot is the issued config; fall back
+    // to the project's current config only for legacy rows with no snapshot.
+    const config = (cotizacion.config_snapshot ?? cotizacion.proyectos.cotizador_config) as CotizadorConfig;
+    const resultado = cotizacion.resultado as ResultadoCotizacion; // issued numbers
+    const snapshot = (cotizacion.unidad_snapshot ?? {}) as Record<string, unknown>;
+    const moneda = (config.moneda || "COP") as Currency;
 
-    // Recalculate with current config
-    const resultado = calcularCotizacion(snapshot.precio, config, []);
-
-    // Fetch tipología data (renders + floor plan + key plan)
+    // Refresh layout/branding assets (renders + floor plan) from the tipología.
     let tipologiaRenders: string[] = [];
     let tipologiaPlanoUrl: string | null = null;
-    let tipologiaUbicacionPlanoUrl: string | null = null;
     if (cotizacion.unidad_id) {
       const { data: unidad } = await supabase
         .from("unidades")
@@ -114,143 +77,87 @@ export async function POST(
       if (unidad?.tipologia_id) {
         const { data: tipo } = await supabase
           .from("tipologias")
-          .select("renders, plano_url, ubicacion_plano_url, pisos")
+          .select("renders, plano_url, pisos")
           .eq("id", unidad.tipologia_id)
           .single();
         tipologiaRenders = tipo?.renders ?? [];
-        // Floor plan: prefer multi-floor first piso, fallback to single plano_url
         const pisos = tipo?.pisos as Array<{ plano_url?: string }> | null;
         if (pisos && pisos.length > 0 && pisos[0]?.plano_url) {
           tipologiaPlanoUrl = pisos[0].plano_url;
         } else {
           tipologiaPlanoUrl = tipo?.plano_url ?? null;
         }
-        tipologiaUbicacionPlanoUrl = tipo?.ubicacion_plano_url ?? null;
       }
     }
 
-    // Determine cover URL
     const coverUrl =
       config.portada_url ||
       cotizacion.proyectos.render_principal_url ||
       tipologiaRenders[0] ||
       null;
 
-    // Use PDF-specific logos if available, fallback to regular logos
-    const constructoraLogoUrl = config.pdf_logo_constructora_url || cotizacion.proyectos.constructora_logo_url;
-    const projectLogoUrl = config.pdf_logo_proyecto_url || cotizacion.proyectos.logo_url;
-
-    // Fetch images in parallel
-    const [coverImage, logoImage, projectLogoImage, planoImage, keyPlanImage] = await Promise.all([
-      fetchImageAsBase64(coverUrl),
-      fetchImageAsBase64(constructoraLogoUrl),
-      fetchImageAsBase64(projectLogoUrl),
-      fetchImageAsBase64(tipologiaPlanoUrl),
-      fetchImageAsBase64(tipologiaUbicacionPlanoUrl),
-    ]);
-
-    // Regenerate PDF
     const now = new Date();
     const projectLocale: EmailLocale = (cotizacion.proyectos.idioma as EmailLocale) || "es";
     const dateIntlLocale = projectLocale === "en" ? "en-US" : "es-CO";
     const fecha = now.toLocaleDateString(dateIntlLocale, { day: "numeric", month: "long", year: "numeric" });
     const refNumber = `COT-${now.getFullYear()}-${id.slice(0, 4).toUpperCase()}`;
 
-    const pdfBuffer = await generarPDF({
-      projectName: cotizacion.proyectos.nombre,
-      constructoraName: cotizacion.proyectos.constructora_nombre,
-      colorPrimario: cotizacion.proyectos.color_primario,
-      unidadId: snapshot.identificador,
-      tipologiaName: snapshot.tipologia,
-      area_construida: snapshot.area_construida ?? null,
-      area_privada: snapshot.area_privada ?? null,
-      area_lote: snapshot.area_lote ?? null,
-      area_m2: snapshot.area_m2 ?? null,
-      unidad_medida: cotizacion.proyectos.unidad_medida_base === "sqft" ? "sqft" : "m²",
-      piso: snapshot.piso,
-      vista: snapshot.vista,
-      habitaciones: snapshot.habitaciones,
-      banos: snapshot.banos,
-      orientacion: snapshot.orientacion,
-      parqueaderos: null,
-      depositos: null,
-      tiene_jacuzzi: snapshot.tiene_jacuzzi ?? false,
-      tiene_piscina: snapshot.tiene_piscina ?? false,
-      tiene_bbq: snapshot.tiene_bbq ?? false,
-      tiene_terraza: snapshot.tiene_terraza ?? false,
-      tiene_jardin: snapshot.tiene_jardin ?? false,
-      tiene_cuarto_servicio: snapshot.tiene_cuarto_servicio ?? false,
-      tiene_estudio: snapshot.tiene_estudio ?? false,
-      tiene_chimenea: snapshot.tiene_chimenea ?? false,
-      tiene_doble_altura: snapshot.tiene_doble_altura ?? false,
-      tiene_rooftop: snapshot.tiene_rooftop ?? false,
+    const input = buildInputFromDbRows({
       resultado,
       config,
-      buyerName: cotizacion.nombre,
-      buyerEmail: cotizacion.email,
-      buyerPhone: cotizacion.telefono,
-      agenteName: cotizacion.agente_nombre,
-      agentePhone: cotizacion.agente_telefono || null,
-      agenteEmail: null,
-      fecha,
-      referenceNumber: refNumber,
-      coverImageBase64: coverImage?.base64 ?? null,
-      coverImageFormat: coverImage?.format ?? null,
-      constructoraLogoBase64: logoImage?.base64 ?? null,
-      constructoraLogoFormat: logoImage?.format ?? null,
-      projectLogoBase64: projectLogoImage?.base64 ?? null,
-      projectLogoFormat: projectLogoImage?.format ?? null,
-      planoBase64: planoImage?.base64 ?? null,
-      planoFormat: planoImage?.format ?? null,
-      planoWidth: planoImage?.width ?? null,
-      planoHeight: planoImage?.height ?? null,
-      keyPlanBase64: keyPlanImage?.base64 ?? null,
-      keyPlanFormat: keyPlanImage?.format ?? null,
-      keyPlanWidth: keyPlanImage?.width ?? null,
-      keyPlanHeight: keyPlanImage?.height ?? null,
-      tour360Url: cotizacion.proyectos.tour_360_url,
-      whatsappNumero: cotizacion.proyectos.whatsapp_numero,
-      disclaimer: cotizacion.proyectos.disclaimer,
-      pdfSaludo: config.pdf_saludo ?? null,
-      pdfDespedida: config.pdf_despedida ?? null,
+      moneda,
+      proyecto: {
+        nombre: cotizacion.proyectos.nombre,
+        constructora_nombre: cotizacion.proyectos.constructora_nombre,
+        color_primario: cotizacion.proyectos.color_primario,
+        ubicacion_direccion: cotizacion.proyectos.ubicacion_direccion ?? null,
+        estado_construccion: cotizacion.proyectos.estado_construccion ?? "sobre_planos",
+        logo_url: config.pdf_logo_proyecto_url || cotizacion.proyectos.logo_url,
+        constructora_logo_url: config.pdf_logo_constructora_url || cotizacion.proyectos.constructora_logo_url,
+        cover_url: coverUrl,
+        renders: tipologiaRenders,
+        plano_url: tipologiaPlanoUrl,
+        whatsapp_numero: cotizacion.proyectos.whatsapp_numero,
+        tour_360_url: cotizacion.proyectos.tour_360_url,
+      },
+      unidadSnapshot: snapshot,
+      unidadMedida: cotizacion.proyectos.unidad_medida_base === "sqft" ? "sqft" : "m²",
+      agente: {
+        nombre: cotizacion.agente_nombre ?? null,
+        telefono: cotizacion.agente_telefono ?? null,
+        email: null,
+        avatarUrl: cotizacion.agente_avatar_url ?? null,
+      },
+      buyer: { nombre: cotizacion.nombre, email: cotizacion.email, telefono: cotizacion.telefono ?? null },
+      complementos: [],
+      fechaDisplay: fecha,
       fechaEstimadaEntrega: config.fecha_estimada_entrega ?? null,
-      coverStyle: config.pdf_cover_style ?? "hero",
-      pdfTheme: config.pdf_theme ?? "neutral",
-      pisoLabel: snapshot.piso != null ? (projectLocale === "en" ? `Floor ${snapshot.piso}` : `Piso ${snapshot.piso}`) : null,
+      referenceNumber: refNumber,
+      paymentPlanNombre: config.payment_plan_nombre ?? (projectLocale === "en" ? "Payment Plan" : "Plan de Pagos"),
       idioma: projectLocale,
-      ubicacionDireccion: cotizacion.proyectos.ubicacion_direccion ?? null,
-      estadoConstruccion: cotizacion.proyectos.estado_construccion ?? "sobre_planos",
+      monedaSecundaria: null,
+      tipoCambio: null,
     });
 
-    // Upload new PDF
-    const pdfPath = `cotizaciones/${cotizacion.proyecto_id}/${id}.pdf`;
+    // Explicit agent action → fail-loud (a worker outage surfaces as a 502).
+    const { pdfPath } = await generateCotizacionPdf(
+      supabase, cotizacion.proyecto_id, id, input, /* failSoft */ false,
+    );
 
-    const { error: uploadErr } = await supabase.storage
-      .from("uploads")
-      .upload(pdfPath, pdfBuffer, {
-        contentType: "application/pdf",
-        upsert: true, // Overwrite existing
-      });
+    // Persist only the new PDF path — do NOT overwrite resultado / config_snapshot
+    // (the issued record is the legal copy of what the buyer was quoted).
+    await supabase.from("cotizaciones").update({ pdf_url: pdfPath }).eq("id", id);
 
-    let pdfUrl: string | null = null;
-    if (!uploadErr) {
-      const { data: urlData } = supabase.storage.from("uploads").getPublicUrl(pdfPath);
-      pdfUrl = urlData.publicUrl;
-    }
-
-    // Update cotización record with new PDF URL and updated resultado
-    await supabase
-      .from("cotizaciones")
-      .update({
-        pdf_url: pdfUrl,
-        resultado,
-        config_snapshot: config, // Update config snapshot to current
-      })
-      .eq("id", id);
-
-    return NextResponse.json({ success: true, pdf_url: pdfUrl });
+    const signedUrl = pdfPath ? await getCotizacionSignedUrl(supabase, pdfPath) : null;
+    return NextResponse.json({ success: true, pdf_url: signedUrl });
   } catch (err) {
     console.error("[regenerate cotizacion] Error:", err);
-    return NextResponse.json({ error: "Error al regenerar PDF" }, { status: 500 });
+    const message = err instanceof Error ? err.message : "Error al regenerar PDF";
+    // Render-worker failures → 502 so the dashboard shows "worker down", not a generic error.
+    const isWorkerError = /render worker|COTIZADOR_RENDER_URL|RENDER_SHARED_SECRET/i.test(message);
+    return NextResponse.json(
+      { error: isWorkerError ? "El servicio de generación de PDF no está disponible." : "Error al regenerar PDF" },
+      { status: isWorkerError ? 502 : 500 },
+    );
   }
 }

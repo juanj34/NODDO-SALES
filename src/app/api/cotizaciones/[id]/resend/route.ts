@@ -42,16 +42,19 @@ export async function POST(
       return NextResponse.json({ error: "No autorizado" }, { status: 403 });
     }
 
-    // Download existing PDF
+    // Download the existing PDF from the PRIVATE bucket. pdf_url is now an object
+    // PATH ({proyecto_id}/{cotizacion_id}.pdf), not a public URL — download via service-role.
     if (!cotizacion.pdf_url) {
       return NextResponse.json({ error: "PDF no disponible" }, { status: 400 });
     }
 
-    const pdfRes = await fetch(cotizacion.pdf_url);
-    if (!pdfRes.ok) {
+    const { data: blob, error: dlErr } = await supabase.storage
+      .from("cotizaciones")
+      .download(cotizacion.pdf_url);
+    if (dlErr || !blob) {
       return NextResponse.json({ error: "PDF no disponible" }, { status: 500 });
     }
-    const pdfBuffer = Buffer.from(await pdfRes.arrayBuffer());
+    const pdfBuffer = Buffer.from(await blob.arrayBuffer());
 
     // Format total
     const moneda = (cotizacion.config_snapshot?.moneda || "COP") as Currency;
