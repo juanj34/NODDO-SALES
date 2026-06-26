@@ -27,6 +27,25 @@
 
 ---
 
+## 1.1 Confirmed problem + owner requirements (2026-06-26)
+
+**The PDF pipeline is currently DEAD in production.** Every `cotizaciones` row has `pdf_url = NULL` — the @react-pdf output is uploaded to the non-existent `uploads` bucket (`route.ts:624`, path `cotizaciones/{proyecto}/{id}.pdf`), so the upload fails and no PDF is ever stored. Agents get the on-screen result (e.g. $660.000.000) but **cannot download or email a PDF**. The Resend path (`/[id]/resend/route.ts:50`) does `fetch(pdf_url)` → fails on null. So this redesign is not "improve the PDF" — it **makes the PDF work at all**, then makes it premium.
+
+**Owner requirements — NodDo Quote agent flow:**
+- **Immediate PDF download** the instant a quote is created (the "Cotización generada" success card must offer a working "Descargar PDF" so the agent has it on screen, sitting with the client).
+- **Email the client via Resend** ("su cotización del proyecto") — verify `RESEND_API_KEY` is set in NODDO's Vercel and that the send actually fires.
+- **Persist the generated PDF** so it is re-downloadable from the cotizaciones list.
+
+**Owner requirements — PDF quality (varies a LOT per project and per number of cuotas):**
+- **No overlapping elements (no overlay).**
+- **No excess white space.**
+- **Tables MUST NOT break across pages** — a payment-plan table with many cuotas paginates cleanly: the header row repeats on each page and no row splits mid-row (`page-break-inside: avoid`, `thead { display: table-header-group }`). This is a primary reason HTML→Chromium beats @react-pdf.
+- **Project renders** (images) included.
+- **The quoted typology's floor plan (plano)** included.
+- Robust across the real projects (Hito 18, Índigo Houses, Garden Houses, The Meriva Collection, Alto de Yeguas) and any number of cuotas. **Each project's output is reviewed before sign-off.**
+
+---
+
 ## 2. Components
 
 ### C1 — Render worker `noddo-render` (Railway, generic)
@@ -41,7 +60,7 @@ A generic, app-agnostic HTML→PDF service (no NODDO/cotización specifics baked
 ### C2 — HTML builder `src/lib/cotizador/html/` (pure, no IO)
 - `buildCotizacionData(input)` → a normalized, render-ready `CotizacionView` (resolves unidad snapshot + the selected `plantilla_pago` + `cargos_adicionales` + branding + agent + the **pricing result from `calcular.ts`**, with currency formatting and dual-currency display).
 - `buildCotizacionHtml(view)` → one **self-contained premium HTML string**: inline CSS, brand fonts embedded as base64 `@font-face` (Cormorant/Syne/Inter/DM Mono), logo + images as base64 or absolute public URLs. No external/relative asset refs (worker renders from a temp file). Uses the NODDO design language (forest/champagne, the four brand fonts).
-- **Premium, data-driven layout** (sections render/condense based on config): cover (project + branding + unidad), price summary (neto, discounts, **cargos summed into a correct grand total**), payment-plan table (the `plantilla_pago` filas with dates/amounts/%, dual currency), delivery, agent contact card, legal notes, footer. Replaces `pdf-react/document.tsx`. The exact visual styling is iterated with mockups during implementation (see §6).
+- **Premium, data-driven layout** (sections render/condense based on config): cover (project + branding + unidad + **project render**), price summary (neto, discounts, **cargos summed into a correct grand total**), **payment-plan table** (the `plantilla_pago` filas with dates/amounts/%, dual currency — **never split across pages; header repeats; rows never break mid-row** regardless of cuota count), **project renders gallery**, **the quoted typology's floor plan (plano)**, delivery, agent contact card, legal notes, footer. **No overlays, no excess white space.** Replaces `pdf-react/document.tsx`. The exact visual styling is iterated with mockups during implementation (see §6), reviewed per real project.
 
 ### C3 — Pricing correctness (`calcular.ts` + builder)
 Fold in the confirmed cotizador bugs (see the existing plan `2026-06-25-cotizador-correctness.md`):
