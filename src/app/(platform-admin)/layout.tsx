@@ -38,6 +38,7 @@ import { AlertsBell } from "@/components/admin/AlertsBell";
 import { GlobalSearch } from "@/components/admin/GlobalSearch";
 import { createClient } from "@/lib/supabase/client";
 import { useMobileDrawer } from "@/hooks/useMobileDrawer";
+import { ThemeToggle } from "@/components/theme/ThemeToggle";
 
 const navItems = [
   { href: "/admin", label: "Overview", icon: LayoutDashboard, exact: true },
@@ -168,6 +169,11 @@ function AdminShell({ children }: { children: React.ReactNode }) {
             );
           })}
         </nav>
+
+        {/* Theme toggle */}
+        <div className="px-4 pb-1">
+          <ThemeToggle variant="sidebar" />
+        </div>
 
         {/* Back to dashboard */}
         <div className="px-4 pb-2">

@@ -18,6 +18,7 @@ import {
 } from "lucide-react";
 import { NodDoLogo } from "@/components/ui/NodDoLogo";
 import { LanguageToggle } from "@/components/ui/LanguageToggle";
+import { ThemeToggle } from "@/components/theme/ThemeToggle";
 import { useBooking } from "./BookingProvider";
 import { useTranslation } from "@/i18n";
 
@@ -201,6 +202,7 @@ export function MarketingNav() {
 
         {/* Right side */}
         <div className="flex items-center gap-4">
+          <ThemeToggle variant="nav" />
           <LanguageToggle compact className="hidden sm:flex" />
           <Link
             href="/login"

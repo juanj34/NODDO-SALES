@@ -18,6 +18,7 @@ import { ConfirmProvider } from "@/components/dashboard/ConfirmModal";
 import { CommandPalette } from "@/components/dashboard/CommandPalette";
 import { useTranslation } from "@/i18n";
 import { LanguageToggle } from "@/components/ui/LanguageToggle";
+import { ThemeToggle } from "@/components/theme/ThemeToggle";
 import { AuthContextProvider, useAuthRole } from "@/hooks/useAuthContext";
 import { usePermissions } from "@/hooks/usePermissions";
 import { ROLE_LABELS } from "@/lib/permissions";
@@ -377,7 +378,10 @@ function DashboardShell({ children }: { children: React.ReactNode }) {
           </a>
         </div>
 
-        {/* Language toggle */}
+        {/* Theme + Language toggles */}
+        <div className="px-4 pb-1">
+          <ThemeToggle variant="sidebar" />
+        </div>
         <div className="px-4 py-3 flex items-center justify-center">
           <LanguageToggle />
         </div>
