@@ -1421,3 +1421,151 @@ body.scroll-locked {
   letter-spacing: 0.4em;
   text-transform: uppercase;
 }
+
+/* ══════════════════════════════════════════════════════════════════
+   LIGHT THEME (app surfaces: dashboard, platform-admin, marketing)
+   Driven by <html data-theme="light">. Higher specificity than :root,
+   so it overrides the dark defaults regardless of source order.
+   Microsites are NOT affected — they set their own tokens inline
+   (SiteLayoutClient) which wins for that subtree.
+   ══════════════════════════════════════════════════════════════════ */
+:root[data-theme="light"] {
+  --background: #faf9f7;
+  --foreground: #141412;
+
+  /* Warm paper surface ramp (mirrors the proven microsite light vars) */
+  --surface-0: #faf9f7;
+  --surface-1: #f4f2ee;
+  --surface-2: #ebe8e3;
+  --surface-3: #e2ded8;
+  --surface-4: #d8d4cd;
+
+  /* Borders → ink at low alpha */
+  --border-subtle: rgba(0, 0, 0, 0.06);
+  --border-default: rgba(0, 0, 0, 0.10);
+  --border-strong: rgba(0, 0, 0, 0.16);
+  --border-accent: rgba(160, 126, 46, 0.28);
+
+  /* Text → warm ink */
+  --text-primary: rgba(20, 20, 18, 0.92);
+  --text-secondary: rgba(20, 20, 18, 0.62);
+  --text-tertiary: rgba(20, 20, 18, 0.45);
+  --text-muted: rgba(20, 20, 18, 0.32);
+
+  /* Gold must stay readable on light: lean on deep gold for text/edges */
+  --noddo-primary: #a07e2e;
+  --noddo-primary-rgb: 160, 126, 46;
+  --site-primary: #a07e2e;
+  --site-primary-rgb: 160, 126, 46;
+
+  /* Semantic overlay/contrast invert: scrims stay dark, "contrast" becomes ink */
+  --overlay-rgb: 0, 0, 0;
+  --contrast-rgb: 20, 20, 18;
+
+  /* Glass → frosted white */
+  --glass-bg: rgba(255, 255, 255, 0.60);
+  --glass-bg-hover: rgba(255, 255, 255, 0.75);
+  --glass-border: rgba(0, 0, 0, 0.08);
+
+  /* Shadows → soft */
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.06), 0 1px 3px rgba(0, 0, 0, 0.04);
+  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.08), 0 1px 3px rgba(0, 0, 0, 0.04);
+  --shadow-lg: 0 8px 32px rgba(0, 0, 0, 0.10), 0 2px 8px rgba(0, 0, 0, 0.06);
+  --shadow-xl: 0 16px 48px rgba(0, 0, 0, 0.12), 0 4px 12px rgba(0, 0, 0, 0.08);
+
+  /* Glow → subtle deep-gold */
+  --glow-xs: 0 0 12px rgba(160, 126, 46, 0.06);
+  --glow-sm: 0 0 20px rgba(160, 126, 46, 0.10);
+  --glow-md: 0 0 40px rgba(160, 126, 46, 0.10);
+  --glow-lg: 0 0 80px rgba(160, 126, 46, 0.08);
+
+  --glass-shadow: var(--shadow-lg);
+}
+
+/* ─── Marketing surface — LIGHT ─── */
+:root[data-theme="light"] .marketing {
+  --mk-bg: #faf9f7;
+  --mk-bg-alt: #f1eee9;
+  --mk-bg-dark: #ebe8e3;
+  --mk-text-primary: #141412;
+  --mk-text-secondary: rgba(20, 20, 18, 0.62);
+  --mk-text-tertiary: rgba(20, 20, 18, 0.45);
+  --mk-text-muted: rgba(20, 20, 18, 0.32);
+  --mk-border-rule: rgba(0, 0, 0, 0.08);
+  --mk-border-subtle: rgba(0, 0, 0, 0.10);
+  --mk-accent: #a07e2e;
+  --mk-accent-light: #b8973a;
+  --mk-accent-rgb: 160, 126, 46;
+  --mk-accent-glow: rgba(160, 126, 46, 0.12);
+  --mk-surface-2: #ebe8e3;
+  --mk-surface-3: #e2ded8;
+  --mk-shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.06), 0 1px 3px rgba(0, 0, 0, 0.04);
+  --mk-shadow-md: 0 4px 12px rgba(0, 0, 0, 0.08), 0 1px 3px rgba(0, 0, 0, 0.04);
+  --mk-mid: #6b6560;
+}
+
+/* ─── Light overrides for utility classes that hardcode dark colors ─── */
+:root[data-theme="light"] .input-glass {
+  color: var(--text-primary);
+}
+:root[data-theme="light"] .input-mk {
+  color: var(--mk-text-primary);
+}
+:root[data-theme="light"] .btn-ghost:hover {
+  background: rgba(var(--contrast-rgb), 0.05);
+}
+:root[data-theme="light"] .login-card {
+  background: var(--glass-bg);
+  border-color: var(--glass-border);
+}
+:root[data-theme="light"] .login-google-btn {
+  background: rgba(var(--contrast-rgb), 0.04);
+  border-color: rgba(var(--contrast-rgb), 0.12);
+}
+:root[data-theme="light"] .login-google-btn:hover {
+  background: rgba(var(--contrast-rgb), 0.08);
+  border-color: rgba(var(--contrast-rgb), 0.18);
+}
+:root[data-theme="light"] .animate-shimmer {
+  background: linear-gradient(90deg, transparent, rgba(var(--contrast-rgb), 0.04), transparent);
+}
+:root[data-theme="light"] .shimmer-gradient {
+  background: linear-gradient(90deg, transparent 0%, rgba(var(--contrast-rgb), 0.08) 50%, transparent 100%);
+}
+
+/* Scrollbars */
+:root[data-theme="light"] ::-webkit-scrollbar-thumb {
+  background: rgba(var(--contrast-rgb), 0.12);
+}
+:root[data-theme="light"] ::-webkit-scrollbar-thumb:hover {
+  background: rgba(var(--contrast-rgb), 0.22);
+}
+
+/* TipTap rich-text editor (dashboard) */
+:root[data-theme="light"] .tiptap-editor.ProseMirror {
+  color: var(--text-primary);
+}
+:root[data-theme="light"] .tiptap-editor.ProseMirror h2,
+:root[data-theme="light"] .tiptap-editor.ProseMirror h3,
+:root[data-theme="light"] .tiptap-editor.ProseMirror strong {
+  color: var(--text-primary);
+}
+:root[data-theme="light"] .tiptap-editor.ProseMirror blockquote {
+  color: var(--text-secondary);
+}
+:root[data-theme="light"] .tiptap-editor.ProseMirror p.is-editor-empty:first-child::before {
+  color: var(--text-muted);
+}
+:root[data-theme="light"] .tiptap-editor.ProseMirror .rte-inline-image {
+  border-color: var(--border-subtle);
+}
+
+/* Microsite prose rendered with .prose-invert: re-point tokens to ink on light */
+:root[data-theme="light"] .prose.prose-invert {
+  --tw-prose-body: var(--text-secondary);
+  --tw-prose-headings: var(--text-primary);
+  --tw-prose-bold: var(--text-primary);
+  --tw-prose-counters: var(--text-tertiary);
+  --tw-prose-bullets: var(--text-tertiary);
+  --tw-prose-quotes: var(--text-secondary);
+}
