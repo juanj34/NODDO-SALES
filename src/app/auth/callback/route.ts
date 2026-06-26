@@ -45,9 +45,20 @@ export async function GET(request: NextRequest) {
     const { error } = await supabase.auth.exchangeCodeForSession(code);
     if (!error) {
       // Link pending collaborator invitations by email
+      let profileTheme: "light" | "dark" | undefined;
       const { data: { user } } = await supabase.auth.getUser();
       if (user) {
         await linkPendingCollaborator(supabase, user);
+
+        // Seed the theme cookie from the account preference (cross-device sync).
+        const { data: themeProfile } = await supabase
+          .from("user_profiles")
+          .select("theme")
+          .eq("id", user.id)
+          .single();
+        if (themeProfile?.theme === "light" || themeProfile?.theme === "dark") {
+          profileTheme = themeProfile.theme;
+        }
 
         // Send welcome email for new users (created within last 5 min)
         const createdAt = new Date(user.created_at).getTime();
@@ -71,11 +82,16 @@ export async function GET(request: NextRequest) {
       }
 
       // Recovery flow: redirect to new password page
-      if (redirect === "/nueva-contrasena") {
-        return NextResponse.redirect(`${origin}/nueva-contrasena`);
+      const dest = redirect === "/nueva-contrasena" ? "/nueva-contrasena" : redirect;
+      const res = NextResponse.redirect(`${origin}${dest}`);
+      if (profileTheme) {
+        res.cookies.set("noddo-theme", profileTheme, {
+          path: "/",
+          maxAge: 31536000,
+          sameSite: "lax",
+        });
       }
-
-      return NextResponse.redirect(`${origin}${redirect}`);
+      return res;
     }
   }
 
