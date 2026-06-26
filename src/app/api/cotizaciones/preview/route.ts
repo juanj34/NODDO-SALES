@@ -7,6 +7,10 @@ import type { EmailLocale } from "@/lib/email-i18n";
 import type { CotizadorConfig, FaseConfig, DescuentoConfig, Unidad, Currency, ComplementoSeleccion } from "@/types";
 import { getAuthContext } from "@/lib/auth-context";
 
+// PDF/image generation is CPU- and memory-heavy; raise above the Vercel default.
+export const runtime = "nodejs";
+export const maxDuration = 60;
+
 /* ── Image cache (module-scope, survives across requests) ── */
 
 interface CachedImage {

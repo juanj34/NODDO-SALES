@@ -8,6 +8,10 @@ import { AvailabilityDocument } from "@/lib/inventario/pdf-disponibilidad";
 import type { AvailabilityUnit, AvailabilityPDFData } from "@/lib/inventario/pdf-disponibilidad";
 import { getPrimaryArea } from "@/lib/inventory-columns";
 
+// PDF/image generation is CPU- and memory-heavy; raise above the Vercel default.
+export const runtime = "nodejs";
+export const maxDuration = 60;
+
 /* ── Image fetcher (simplified, no cache needed for single use) ── */
 
 async function fetchImageBase64(

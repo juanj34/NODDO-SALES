@@ -16,6 +16,10 @@ import { logActivity } from "@/lib/activity-logger";
 import { getAuthContext } from "@/lib/auth-context";
 import { requireFeature, PlanFeatureError } from "@/lib/plan-guard";
 
+// PDF/image generation is CPU- and memory-heavy; raise above the Vercel default.
+export const runtime = "nodejs";
+export const maxDuration = 60;
+
 // Use service-role client for public endpoint (no user auth required)
 function getServiceClient() {
   return createClient(

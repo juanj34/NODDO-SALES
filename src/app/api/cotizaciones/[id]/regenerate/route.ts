@@ -7,6 +7,10 @@ import type { CotizadorConfig } from "@/types";
 import type { EmailLocale } from "@/lib/email-i18n";
 import sharp from "sharp";
 
+// PDF/image generation is CPU- and memory-heavy; raise above the Vercel default.
+export const runtime = "nodejs";
+export const maxDuration = 60;
+
 function getServiceClient() {
   return createClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
