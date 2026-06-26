@@ -1,7 +1,12 @@
 import type { Metadata, Viewport } from "next";
 import { Cormorant_Garamond, DM_Mono, Inter, Syne } from "next/font/google";
+import { cookies } from "next/headers";
 import { LanguageProvider } from "@/i18n";
 import { ReactQueryProvider } from "@/lib/react-query";
+import { resolveTheme } from "@/lib/theme/resolve";
+import { THEME_COOKIE } from "@/lib/theme/constants";
+import { ThemeScript } from "@/components/theme/ThemeScript";
+import { ThemeProvider } from "@/components/theme/ThemeProvider";
 import "./globals.css";
 
 const cormorant = Cormorant_Garamond({
@@ -72,21 +77,28 @@ export const metadata: Metadata = {
   },
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const cookieStore = await cookies();
+  const theme = resolveTheme(cookieStore.get(THEME_COOKIE)?.value);
   return (
-    <html lang="es">
+    <html lang="es" data-theme={theme} suppressHydrationWarning>
+      <head>
+        <ThemeScript />
+      </head>
       <body
         className={`${cormorant.variable} ${dmMono.variable} ${inter.variable} ${syne.variable} antialiased`}
       >
-        <ReactQueryProvider>
-          <LanguageProvider>
-            {children}
-          </LanguageProvider>
-        </ReactQueryProvider>
+        <ThemeProvider initialTheme={theme}>
+          <ReactQueryProvider>
+            <LanguageProvider>
+              {children}
+            </LanguageProvider>
+          </ReactQueryProvider>
+        </ThemeProvider>
       </body>
     </html>
   );
