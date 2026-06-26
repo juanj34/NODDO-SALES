@@ -52,3 +52,6 @@ supabase/.temp/
 
 # sentry
 .sentryclirc
+
+# generated at install (postinstall copies the pdf.js worker into /public)
+/public/pdf.worker.min.mjs
