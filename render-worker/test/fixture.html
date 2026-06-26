@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <title>NODDO render worker smoke fixture</title>
+  <style>
+    @page { size: A4; margin: 0; }
+    html, body { margin: 0; padding: 0; }
+    body {
+      width: 210mm;
+      min-height: 297mm;
+      background: #0f2417;
+      color: #f4efe6;
+      font-family: Inter, Arial, sans-serif;
+      -webkit-print-color-adjust: exact;
+      print-color-adjust: exact;
+      box-sizing: border-box;
+      padding: 24mm;
+    }
+    h1 { font-size: 48px; margin: 0 0 16px; }
+    p { font-size: 16px; line-height: 1.5; max-width: 60ch; }
+    .swatch { height: 60mm; margin-top: 24px; background: linear-gradient(135deg, #c9a96a, #0f2417); border-radius: 8px; }
+  </style>
+</head>
+<body>
+  <h1>Render worker smoke test</h1>
+  <p>If this paragraph and the colored panel below appear in the output PDF, the headless Chromium pipeline rendered backgrounds and text correctly. This fixture is intentionally heavy on solid color so the PDF clears the size floor.</p>
+  <div class="swatch"></div>
+</body>
+</html>

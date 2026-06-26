@@ -1,0 +1,16 @@
+{
+  "name": "noddo-render-worker",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Generic, app-agnostic HTML->PDF render worker (headless Chromium). Deployed to Railway. Zero runtime dependencies.",
+  "main": "server.mjs",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "start": "node server.mjs",
+    "check": "node --check server.mjs",
+    "test": "node --test"
+  }
+}
