@@ -45,19 +45,35 @@ export async function POST(
       );
     }
 
-    // 2. Fetch current unidades from DB
-    const { data: currentUnidades, error: unidadesErr } = await auth.supabase
-      .from("unidades")
-      .select("*")
-      .eq("proyecto_id", id)
-      .order("orden");
+    // 2. Re-fetch ALL inventory entities the public availability table renders.
+    // Refreshing only `unidades` desyncs the microsite from the live inventory:
+    // a unit assigned a tipología (or multi-tipo link / complemento) that didn't
+    // exist in the last full publish has no matching entry in the snapshot, so the
+    // microsite can't resolve its type/price and shows "—". Mirror the entity set
+    // (and queries) of the full publish, but leave gallery/copy/video/etc. snapshot
+    // arrays untouched so unrelated draft edits are NOT published by this action.
+    const [
+      { data: currentUnidades, error: unidadesErr },
+      { data: currentTipologias, error: tipologiasErr },
+      { data: currentUnidadTipologias, error: unidadTipologiasErr },
+      { data: currentComplementos, error: complementosErr },
+    ] = await Promise.all([
+      auth.supabase.from("unidades").select("*").eq("proyecto_id", id).order("orden"),
+      auth.supabase.from("tipologias").select("*").eq("proyecto_id", id).order("orden"),
+      auth.supabase.from("unidad_tipologias").select("*").eq("proyecto_id", id),
+      auth.supabase.from("complementos").select("*").eq("proyecto_id", id).order("orden"),
+    ]);
 
-    if (unidadesErr) throw unidadesErr;
+    const inventoryErr = unidadesErr || tipologiasErr || unidadTipologiasErr || complementosErr;
+    if (inventoryErr) throw inventoryErr;
 
-    // 3. Update only the unidades in the snapshot
+    // 3. Update only the inventory arrays in the snapshot
     const updatedSnapshot = {
       ...(latestVersion.snapshot as Record<string, unknown>),
       unidades: currentUnidades || [],
+      tipologias: currentTipologias || [],
+      unidad_tipologias: currentUnidadTipologias || [],
+      complementos: currentComplementos || [],
     };
 
     const { error: updateErr } = await auth.supabase
