@@ -190,7 +190,7 @@ function DigitalContractIllustration() {
         return <circle key={`scallop${i}`} cx={cx} cy={cy} r="1.2" fill="rgba(184,151,58,0.08)" />;
       })}
       {/* "N" monogram in seal */}
-      <text x="185" y="142" textAnchor="middle" fill="rgba(184,151,58,0.4)" fontSize="12" fontFamily="serif" fontWeight="300" fontStyle="italic">N</text>
+      <text x="185" y="142" textAnchor="middle" fill="rgba(184,151,58,0.4)" fontSize="12" fontFamily="system-ui, sans-serif" fontWeight="300" fontStyle="italic">N</text>
       {/* Seal ribbon */}
       <g className="tm-ribbon">
         <path d="M178 150 L172 168 L178 163 L184 170 L180 152" stroke="rgba(184,151,58,0.15)" strokeWidth="0.4" fill="rgba(184,151,58,0.04)" />
@@ -265,9 +265,9 @@ function DigitalContractIllustration() {
 
       {/* ── FLOATING LEGAL SYMBOLS ── */}
       {/* Section symbol § */}
-      <text x="22" y="80" fill="rgba(184,151,58,0.08)" fontSize="14" fontFamily="serif">§</text>
+      <text x="22" y="80" fill="rgba(184,151,58,0.08)" fontSize="14" fontFamily="system-ui, sans-serif">§</text>
       {/* Paragraph symbol ¶ */}
-      <text x="210" y="22" fill="rgba(184,151,58,0.06)" fontSize="10" fontFamily="serif">¶</text>
+      <text x="210" y="22" fill="rgba(184,151,58,0.06)" fontSize="10" fontFamily="system-ui, sans-serif">¶</text>
 
       {/* ── BOTTOM STATUS BAR ── */}
       <rect x="55" y="160" width="145" height="9" rx="1.5" fill="rgba(184,151,58,0.02)" stroke="rgba(184,151,58,0.06)" strokeWidth="0.3" />

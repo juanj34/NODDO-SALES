@@ -184,10 +184,10 @@ export function LeadFormMultiStep({
           <CheckCircle size={48} className="text-[var(--site-primary)]" />
         </motion.div>
         <h3 className="text-xl font-medium text-[var(--text-primary)] text-center">
-          {tSite("contacto.successTitle")}
+          {tSite("contacto.successHeading")}
         </h3>
         <p className="text-sm text-[var(--text-secondary)] text-center max-w-md">
-          {tSite("contacto.successMessage", { project: projectName || "" })}
+          {tSite("contacto.successDescription", { name: projectName || "" })}
         </p>
         <div className="flex items-center gap-2 mt-2">
           <Mail size={14} className="text-[var(--text-muted)]" />

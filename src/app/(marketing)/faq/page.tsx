@@ -131,7 +131,7 @@ function KnowledgeSearchIllustration() {
       {/* Bubble 1 — Question (left aligned) */}
       <g className="fq-bubble1">
         <rect x="4" y="35" width="28" height="14" rx="3" fill="rgba(184,151,58,0.03)" stroke="rgba(184,151,58,0.12)" strokeWidth="0.4" />
-        <text x="18" y="44" textAnchor="middle" fill="rgba(184,151,58,0.2)" fontSize="8" fontFamily="serif">?</text>
+        <text x="18" y="44" textAnchor="middle" fill="rgba(184,151,58,0.2)" fontSize="8" fontFamily="system-ui, sans-serif">?</text>
         {/* Tail */}
         <path d="M8 49 L4 54 L12 49" fill="rgba(184,151,58,0.03)" stroke="rgba(184,151,58,0.1)" strokeWidth="0.3" />
       </g>
@@ -147,7 +147,7 @@ function KnowledgeSearchIllustration() {
       {/* Bubble 3 — Question */}
       <g className="fq-bubble3">
         <rect x="4" y="82" width="26" height="14" rx="3" fill="rgba(184,151,58,0.025)" stroke="rgba(184,151,58,0.1)" strokeWidth="0.4" />
-        <text x="17" y="91" textAnchor="middle" fill="rgba(184,151,58,0.15)" fontSize="8" fontFamily="serif">?</text>
+        <text x="17" y="91" textAnchor="middle" fill="rgba(184,151,58,0.15)" fontSize="8" fontFamily="system-ui, sans-serif">?</text>
         <path d="M8 96 L4 100 L12 96" fill="rgba(184,151,58,0.025)" stroke="rgba(184,151,58,0.08)" strokeWidth="0.3" />
       </g>
 
@@ -197,11 +197,11 @@ function KnowledgeSearchIllustration() {
       <circle cx="240" cy="128" r="1" fill="rgba(184,151,58,0.04)" />
 
       {/* ── FLOATING ? PARTICLES ── */}
-      <text className="fq-q1" x="230" y="25" fill="rgba(184,151,58,0.15)" fontSize="10" fontFamily="serif">?</text>
-      <text className="fq-q2" x="280" y="50" fill="rgba(184,151,58,0.1)" fontSize="7" fontFamily="serif">?</text>
-      <text className="fq-q3" x="300" y="90" fill="rgba(184,151,58,0.08)" fontSize="12" fontFamily="serif">?</text>
-      <text className="fq-q4" x="260" y="145" fill="rgba(184,151,58,0.12)" fontSize="8" fontFamily="serif">?</text>
-      <text className="fq-q5" x="310" y="130" fill="rgba(184,151,58,0.06)" fontSize="9" fontFamily="serif">?</text>
+      <text className="fq-q1" x="230" y="25" fill="rgba(184,151,58,0.15)" fontSize="10" fontFamily="system-ui, sans-serif">?</text>
+      <text className="fq-q2" x="280" y="50" fill="rgba(184,151,58,0.1)" fontSize="7" fontFamily="system-ui, sans-serif">?</text>
+      <text className="fq-q3" x="300" y="90" fill="rgba(184,151,58,0.08)" fontSize="12" fontFamily="system-ui, sans-serif">?</text>
+      <text className="fq-q4" x="260" y="145" fill="rgba(184,151,58,0.12)" fontSize="8" fontFamily="system-ui, sans-serif">?</text>
+      <text className="fq-q5" x="310" y="130" fill="rgba(184,151,58,0.06)" fontSize="9" fontFamily="system-ui, sans-serif">?</text>
 
       {/* ── MAGNIFYING GLASS (scanning) ── */}
       <g className="fq-mag">

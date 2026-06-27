@@ -1,17 +1,8 @@
 import type { Metadata, Viewport } from "next";
-import { Cormorant_Garamond, DM_Mono, Inter, Syne } from "next/font/google";
+import { DM_Mono, Inter, Syne } from "next/font/google";
 import { LanguageProvider } from "@/i18n";
 import { ReactQueryProvider } from "@/lib/react-query";
 import "./globals.css";
-
-const cormorant = Cormorant_Garamond({
-  variable: "--font-cormorant",
-  subsets: ["latin"],
-  weight: ["300", "400", "600"],
-  style: ["normal", "italic"],
-  display: "swap",
-  preload: true,
-});
 
 const dmMono = DM_Mono({
   variable: "--font-dm-mono",
@@ -80,7 +71,7 @@ export default function RootLayout({
   return (
     <html lang="es">
       <body
-        className={`${cormorant.variable} ${dmMono.variable} ${inter.variable} ${syne.variable} antialiased`}
+        className={`${dmMono.variable} ${inter.variable} ${syne.variable} antialiased`}
       >
         <ReactQueryProvider>
           <LanguageProvider>

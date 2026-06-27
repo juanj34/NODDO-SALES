@@ -53,7 +53,7 @@ export default function GlobalError({
             {/* Message */}
             <h1
               style={{
-                fontFamily: "Georgia, 'Times New Roman', serif",
+                fontFamily: "system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif",
                 fontSize: "24px",
                 fontWeight: 300,
                 color: "rgba(244, 240, 232, 0.92)",

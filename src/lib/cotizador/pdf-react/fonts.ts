@@ -4,9 +4,8 @@
  * Registers the 4 NODDO brand fonts using the same path strategy as
  * the jsPDF pdf-fonts.ts (__dirname-relative, works on Vercel).
  *
- *   - Cormorant Garamond Light (300) → headings
+ *   - Inter Regular (400)           → headings + body text (serif removed brand-wide)
  *   - Syne Bold (700)               → labels, UPPERCASE
- *   - Inter Regular (400)           → body text
  *   - DM Mono Regular (400)         → prices, data
  */
 
@@ -15,7 +14,7 @@ import * as fs from "fs";
 import * as path from "path";
 
 export const FONT_FAMILY = {
-  HEADING: "Cormorant",
+  HEADING: "Inter",
   LABEL: "Syne",
   BODY: "Inter",
   MONO: "DMMono",
@@ -34,8 +33,8 @@ export function registerFonts(): void {
 
   const dir = fs.existsSync(fontsDir) ? fontsDir : fontsDirAlt;
 
+  // HEADING + BODY both map to "Inter" (serif removed); inter-regular serves both.
   const fonts = [
-    { file: "cormorant-light.ttf", family: FONT_FAMILY.HEADING, weight: 300 as const },
     { file: "syne-bold.ttf", family: FONT_FAMILY.LABEL, weight: 700 as const },
     { file: "inter-regular.ttf", family: FONT_FAMILY.BODY, weight: 400 as const },
     { file: "dm-mono-regular.ttf", family: FONT_FAMILY.MONO, weight: 400 as const },

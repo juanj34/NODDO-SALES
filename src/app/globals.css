@@ -134,9 +134,13 @@
 body {
   --font-sans: var(--font-inter);
   --font-mono: var(--font-dm-mono);
-  --font-heading: var(--font-cormorant);
+  /* Headings use Inter — the serif (Cormorant) was removed platform-wide.
+     --font-cormorant is repointed to Inter so any lingering inline
+     `var(--font-cormorant)` references (error/not-found/legal pages) also render sans. */
+  --font-cormorant: var(--font-inter);
+  --font-heading: var(--font-inter);
   --font-ui: var(--font-syne);
-  --font-site-heading: var(--font-cormorant);
+  --font-site-heading: var(--font-inter);
   background: var(--background);
   color: var(--foreground);
   font-family: var(--font-inter), system-ui, sans-serif;
@@ -160,7 +164,7 @@ button:disabled,
 /* ====== TYPOGRAPHY ====== */
 
 .font-heading {
-  font-family: var(--font-cormorant), Georgia, serif;
+  font-family: var(--font-inter), system-ui, sans-serif;
 }
 
 .font-ui {
@@ -177,7 +181,7 @@ button:disabled,
 }
 
 .font-site-heading {
-  font-family: var(--font-cormorant), Georgia, serif;
+  font-family: var(--font-inter), system-ui, sans-serif;
 }
 
 /* ====== SURFACE LAYERS ====== */
@@ -1126,7 +1130,7 @@ button:disabled,
 
 /* ─── Large Section Heading ─── */
 .mk-section-heading {
-  font-family: var(--font-cormorant), 'Cormorant Garamond', Georgia, serif;
+  font-family: var(--font-inter), system-ui, sans-serif;
   font-weight: 300;
   font-size: clamp(30px, 5vw, 72px);
   line-height: 1.1;
@@ -1403,7 +1407,7 @@ body.scroll-locked {
 
 /* Heading utilities */
 .heading-display {
-  font-family: var(--font-cormorant), Georgia, serif;
+  font-family: var(--font-inter), system-ui, sans-serif;
   font-weight: 300;
   font-size: clamp(32px, 4vw, 48px);
   line-height: 1.1;
