@@ -1,90 +1,17 @@
 import { NextRequest, NextResponse } from "next/server";
-import sharp from "sharp";
 import { calcularCotizacion, buildPrecioBaseComplementos } from "@/lib/cotizador/calcular";
 import { resolveDeliveryContext, formatDeliveryDisplay } from "@/lib/cotizador/delivery";
-import { generarPDF } from "@/lib/cotizador/pdf-react/render";
+import { renderCotizacionPdf } from "@/lib/cotizador/generate";
+import { buildCotizacionData } from "@/lib/cotizador/html/build-data";
+import { buildCotizacionHtml } from "@/lib/cotizador/html/build-html";
+import { buildInputFromDbRows } from "@/lib/cotizador/html/from-db";
 import type { EmailLocale } from "@/lib/email-i18n";
 import type { CotizadorConfig, FaseConfig, DescuentoConfig, Unidad, Currency, ComplementoSeleccion } from "@/types";
 import { getAuthContext } from "@/lib/auth-context";
 
-/* ── Image cache (module-scope, survives across requests) ── */
-
-interface CachedImage {
-  base64: string;
-  format: "JPEG" | "PNG";
-  width?: number;
-  height?: number;
-  cachedAt: number;
-}
-
-const IMAGE_CACHE = new Map<string, CachedImage | null>();
-const CACHE_TTL_MS = 10 * 60 * 1000; // 10 minutes
-
-async function fetchImageCached(
-  url: string | null,
-): Promise<{ base64: string; format: "JPEG" | "PNG"; width?: number; height?: number } | null> {
-  if (!url) return null;
-
-  // Check cache
-  const cached = IMAGE_CACHE.get(url);
-  if (cached !== undefined && cached !== null && Date.now() - cached.cachedAt < CACHE_TTL_MS) {
-    return cached;
-  }
-  if (cached === null) {
-    // Previously failed — retry after TTL
-    const failEntry = IMAGE_CACHE.get(url);
-    if (failEntry === null) {
-      // Null entries don't have cachedAt, always retry
-    }
-  }
-
-  try {
-    const res = await fetch(url, { signal: AbortSignal.timeout(5000) });
-    if (!res.ok) {
-      IMAGE_CACHE.set(url, null);
-      return null;
-    }
-    const buffer = await res.arrayBuffer();
-    const uint8 = new Uint8Array(buffer);
-
-    const isJPEG = uint8[0] === 0xff && uint8[1] === 0xd8;
-    const isPNG = uint8[0] === 0x89 && uint8[1] === 0x50;
-
-    let resized: Buffer;
-    let format: "JPEG" | "PNG";
-
-    if (!isJPEG && !isPNG) {
-      resized = await sharp(Buffer.from(buffer)).resize(1200, null, { withoutEnlargement: true }).jpeg({ quality: 80 }).toBuffer();
-      format = "JPEG";
-    } else {
-      resized = await sharp(Buffer.from(buffer)).resize(1200, null, { withoutEnlargement: true }).toBuffer();
-      format = isJPEG ? "JPEG" : "PNG";
-    }
-
-    const meta = await sharp(resized).metadata();
-    const result: CachedImage = {
-      base64: resized.toString("base64"),
-      format,
-      width: meta.width,
-      height: meta.height,
-      cachedAt: Date.now(),
-    };
-    IMAGE_CACHE.set(url, result);
-
-    // Evict old entries if cache grows too large
-    if (IMAGE_CACHE.size > 50) {
-      const now = Date.now();
-      for (const [key, val] of IMAGE_CACHE) {
-        if (val === null || now - val.cachedAt > CACHE_TTL_MS) IMAGE_CACHE.delete(key);
-      }
-    }
-
-    return result;
-  } catch {
-    IMAGE_CACHE.set(url, null);
-    return null;
-  }
-}
+// PDF/image generation is CPU- and memory-heavy; raise above the Vercel default.
+export const runtime = "nodejs";
+export const maxDuration = 60;
 
 /* ── POST /api/cotizaciones/preview ── */
 
@@ -181,7 +108,6 @@ export async function POST(request: NextRequest) {
     let tipologiaName: string | null = null;
     let tipologiaRenders: string[] = [];
     let tipologiaPlanoUrl: string | null = null;
-    let tipologiaUbicacionPlanoUrl: string | null = null;
     let tieneJacuzzi = false, tienePiscina = false, tieneBbq = false;
     let tieneTerraza = false, tieneJardin = false, tieneCuartoServicio = false;
     let tieneEstudio = false, tieneChimenea = false, tieneDobleAltura = false, tieneRooftop = false;
@@ -212,7 +138,6 @@ export async function POST(request: NextRequest) {
       } else {
         tipologiaPlanoUrl = tipo?.plano_url ?? null;
       }
-      tipologiaUbicacionPlanoUrl = tipo?.ubicacion_plano_url ?? null;
 
       if (isTipologiaPricing && tipo?.precio_desde != null) {
         unit.precio = tipo.precio_desde;
@@ -316,19 +241,8 @@ export async function POST(request: NextRequest) {
       deliveryContext,
     );
 
-    // Resolve image URLs
+    // Resolve cover image URL (worker fetches images by absolute URL at render time)
     const coverUrl = config.portada_url || proyecto.render_principal_url || tipologiaRenders[0] || null;
-    const constructoraLogoUrl = config.pdf_logo_constructora_url || proyecto.constructora_logo_url;
-    const projectLogoUrl = config.pdf_logo_proyecto_url || proyecto.logo_url;
-
-    // Fetch images with cache (parallel)
-    const [coverImage, logoImage, projectLogoImage, planoImage, keyPlanImage] = await Promise.all([
-      fetchImageCached(coverUrl),
-      fetchImageCached(constructoraLogoUrl),
-      fetchImageCached(projectLogoUrl),
-      fetchImageCached(tipologiaPlanoUrl),
-      fetchImageCached(tipologiaUbicacionPlanoUrl),
-    ]);
 
     // Agent info
     let agenteNombreCompleto = agente_nombre || null;
@@ -363,18 +277,14 @@ export async function POST(request: NextRequest) {
     const buyerEmail = email?.trim() || "preview@noddo.io";
     const buyerPhone = telefono?.trim() || null;
 
-    // Generate PDF
-    const pdfBuffer = await generarPDF({
-      projectName: proyecto.nombre,
-      constructoraName: proyecto.constructora_nombre,
-      colorPrimario: proyecto.color_primario,
-      unidadId: unit.identificador,
-      tipologiaName,
+    // Build the render input from the live unit (no stored snapshot for a preview).
+    const previewSnapshot: Record<string, unknown> = {
+      identificador: unit.identificador,
+      tipologia: tipologiaName,
+      area_m2: unit.area_m2,
       area_construida: unit.area_construida,
       area_privada: unit.area_privada,
       area_lote: unit.area_lote,
-      area_m2: unit.area_m2,
-      unidad_medida: proyecto.unidad_medida_base === "sqft" ? "sqft" : "m²",
       piso: unit.piso,
       vista: unit.vista,
       habitaciones: unit.habitaciones,
@@ -382,65 +292,56 @@ export async function POST(request: NextRequest) {
       orientacion: unit.orientacion,
       parqueaderos: unit.parqueaderos,
       depositos: unit.depositos,
-      tiene_jacuzzi: tieneJacuzzi,
-      tiene_piscina: tienePiscina,
-      tiene_bbq: tieneBbq,
-      tiene_terraza: tieneTerraza,
-      tiene_jardin: tieneJardin,
-      tiene_cuarto_servicio: tieneCuartoServicio,
-      tiene_estudio: tieneEstudio,
-      tiene_chimenea: tieneChimenea,
-      tiene_doble_altura: tieneDobleAltura,
-      tiene_rooftop: tieneRooftop,
+      tiene_jacuzzi: tieneJacuzzi || undefined,
+      tiene_piscina: tienePiscina || undefined,
+      tiene_bbq: tieneBbq || undefined,
+      tiene_terraza: tieneTerraza || undefined,
+      tiene_jardin: tieneJardin || undefined,
+      tiene_cuarto_servicio: tieneCuartoServicio || undefined,
+      tiene_estudio: tieneEstudio || undefined,
+      tiene_chimenea: tieneChimenea || undefined,
+      tiene_doble_altura: tieneDobleAltura || undefined,
+      tiene_rooftop: tieneRooftop || undefined,
+      amoblado: (amoblado || proyecto.politica_amoblado === "incluido") || undefined,
+    };
+
+    const input = buildInputFromDbRows({
       resultado,
       config: effectiveConfig,
-      complementos: complementoSelecciones.length > 0 ? complementoSelecciones : undefined,
-      buyerName,
-      buyerEmail,
-      buyerPhone,
-      agenteName: agenteNombreCompleto,
-      agentePhone: agenteTelefono,
-      agenteEmail,
-      fecha,
-      referenceNumber: "PREVIEW",
-      coverImageBase64: coverImage?.base64 ?? null,
-      coverImageFormat: coverImage?.format ?? null,
-      constructoraLogoBase64: logoImage?.base64 ?? null,
-      constructoraLogoFormat: logoImage?.format ?? null,
-      projectLogoBase64: projectLogoImage?.base64 ?? null,
-      projectLogoFormat: projectLogoImage?.format ?? null,
-      planoBase64: planoImage?.base64 ?? null,
-      planoFormat: planoImage?.format ?? null,
-      planoWidth: planoImage?.width ?? null,
-      planoHeight: planoImage?.height ?? null,
-      keyPlanBase64: keyPlanImage?.base64 ?? null,
-      keyPlanFormat: keyPlanImage?.format ?? null,
-      keyPlanWidth: keyPlanImage?.width ?? null,
-      keyPlanHeight: keyPlanImage?.height ?? null,
-      tour360Url: proyecto.tour_360_url,
-      whatsappNumero: proyecto.whatsapp_numero,
-      disclaimer: proyecto.disclaimer,
-      pdfSaludo: effectiveConfig.pdf_saludo ?? null,
-      pdfDespedida: effectiveConfig.pdf_despedida ?? null,
+      moneda,
+      proyecto: {
+        nombre: proyecto.nombre,
+        constructora_nombre: proyecto.constructora_nombre,
+        color_primario: proyecto.color_primario,
+        ubicacion_direccion: proyecto.ubicacion_direccion ?? null,
+        estado_construccion: proyecto.estado_construccion ?? "sobre_planos",
+        logo_url: config.pdf_logo_proyecto_url || proyecto.logo_url,
+        constructora_logo_url: config.pdf_logo_constructora_url || proyecto.constructora_logo_url,
+        cover_url: coverUrl,
+        renders: tipologiaRenders,
+        plano_url: tipologiaPlanoUrl,
+        whatsapp_numero: proyecto.whatsapp_numero,
+        tour_360_url: proyecto.tour_360_url,
+      },
+      unidadSnapshot: previewSnapshot,
+      unidadMedida: proyecto.unidad_medida_base === "sqft" ? "sqft" : "m²",
+      agente: { nombre: agenteNombreCompleto, telefono: agenteTelefono, email: agenteEmail, avatarUrl: null },
+      buyer: { nombre: buyerName, email: buyerEmail, telefono: buyerPhone },
+      complementos: complementoSelecciones,
+      fechaDisplay: fecha,
       fechaEstimadaEntrega: deliveryContext && effectiveConfig.tipo_entrega
         ? formatDeliveryDisplay(deliveryContext, effectiveConfig.tipo_entrega)
         : effectiveConfig.fecha_estimada_entrega ?? null,
-      tipoEntrega: effectiveConfig.tipo_entrega ?? null,
-      mesesRestantes: deliveryContext?.mesesDisponibles ?? null,
-      paymentPlanNombre: effectiveConfig.payment_plan_nombre ?? null,
-      adminFee: resultado.admin_fee ?? null,
-      adminFeeLabel: resultado.admin_fee_label ?? null,
-      coverStyle: config.pdf_cover_style ?? "hero",
-      pdfTheme: config.pdf_theme ?? "neutral",
-      pisoLabel: unit.piso != null ? (projectLocale === "en" ? `Floor ${unit.piso}` : `Piso ${unit.piso}`) : null,
+      referenceNumber: "PREVIEW",
+      paymentPlanNombre: effectiveConfig.payment_plan_nombre ?? (projectLocale === "en" ? "Payment Plan" : "Plan de Pagos"),
       idioma: projectLocale,
-      estadoConstruccion: proyecto.estado_construccion ?? "sobre_planos",
-      amoblado: amoblado || proyecto.politica_amoblado === "incluido" || undefined,
-      ubicacionDireccion: proyecto.ubicacion_direccion ?? null,
       monedaSecundaria: moneda_secundaria ?? null,
       tipoCambio: tipo_cambio ?? null,
-      hitosConstructivos: effectiveConfig.hitos_constructivos ?? [],
     });
+
+    // Preview is fail-loud: if the worker is down, surface a 502 (handled below).
+    const html = buildCotizacionHtml(buildCotizacionData(input));
+    const pdfBuffer = await renderCotizacionPdf(html);
 
     return new NextResponse(new Uint8Array(pdfBuffer), {
       status: 200,
@@ -451,9 +352,13 @@ export async function POST(request: NextRequest) {
     });
   } catch (error) {
     console.error("[cotizaciones/preview] Error:", error);
+    const message = error instanceof Error ? error.message : "Error generating preview";
+    // Render-worker failures surface as a 502 so the UI shows a clear "worker down"
+    // error instead of a blank PDF (preview is an active agent action → fail-loud).
+    const isWorkerError = /render worker|COTIZADOR_RENDER_URL|RENDER_SHARED_SECRET/i.test(message);
     return NextResponse.json(
-      { error: error instanceof Error ? error.message : "Error generating preview" },
-      { status: 500 },
+      { error: isWorkerError ? "El servicio de generación de PDF no está disponible. Intenta de nuevo en un momento." : message },
+      { status: isWorkerError ? 502 : 500 },
     );
   }
 }

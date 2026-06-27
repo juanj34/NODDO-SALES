@@ -13,9 +13,10 @@ import { useSectionVisibility } from "@/hooks/useSectionVisibility";
 export default function ContactoPage() {
   const sectionVisible = useSectionVisibility("contacto");
   const proyecto = useSiteProject();
-  if (!sectionVisible) return null;
   const { t } = useTranslation("site");
   const [selectedTipologia, setSelectedTipologia] = useState("");
+
+  if (!sectionVisible) return null;
 
   const valueProps = [
     {

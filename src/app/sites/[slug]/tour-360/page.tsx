@@ -12,7 +12,6 @@ import { useSectionVisibility } from "@/hooks/useSectionVisibility";
 export default function Tour360Page() {
   const sectionVisible = useSectionVisibility("tour360");
   const proyecto = useSiteProject();
-  if (!sectionVisible) return null;
   const { t } = useTranslation("site");
 
   useEffect(() => {
@@ -20,6 +19,8 @@ export default function Tour360Page() {
       trackEvent(proyecto.id, "tour_360_view");
     }
   }, [proyecto.id, proyecto.tour_360_url]);
+
+  if (!sectionVisible) return null;
 
   return (
     <SectionTransition className="h-screen flex flex-col">

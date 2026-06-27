@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useEffect, useCallback } from "react";
+import { useState, useRef, useEffect, useCallback, useMemo } from "react";
 import { createPortal } from "react-dom";
 import { Calendar, ChevronLeft, ChevronRight } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
@@ -54,7 +54,7 @@ export function DatePickerInput({
   const [dropUp, setDropUp] = useState(false);
   const [panelPos, setPanelPos] = useState<{ top: number; left: number } | null>(null);
 
-  const today = useRef(new Date()).current;
+  const today = useMemo(() => new Date(), []);
   const selected = parseDateStr(value);
 
   const [viewYear, setViewYear] = useState(() => (selected ?? today).getFullYear());
@@ -99,10 +99,14 @@ export function DatePickerInput({
   /* ── Reposition on scroll/resize ── */
   useEffect(() => {
     if (!open) return;
-    updatePosition();
+    // Defer the initial measure-and-position to the next frame so the state
+    // update is not called synchronously inside the effect body
+    // (react-hooks/set-state-in-effect).
+    const raf = requestAnimationFrame(updatePosition);
     window.addEventListener("scroll", updatePosition, true);
     window.addEventListener("resize", updatePosition);
     return () => {
+      cancelAnimationFrame(raf);
       window.removeEventListener("scroll", updatePosition, true);
       window.removeEventListener("resize", updatePosition);
     };

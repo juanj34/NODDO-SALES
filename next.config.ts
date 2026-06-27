@@ -8,6 +8,7 @@ const nextConfig: NextConfig = {
     "/api/cotizaciones": ["./src/lib/cotizador/fonts/**/*"],
     "/api/cotizaciones/preview": ["./src/lib/cotizador/fonts/**/*"],
     "/api/cotizaciones/\\[id\\]/regenerate": ["./src/lib/cotizador/fonts/**/*"],
+    "/api/unidades/export-pdf": ["./src/lib/cotizador/fonts/**/*"],
   },
   images: {
     formats: ["image/avif", "image/webp"],

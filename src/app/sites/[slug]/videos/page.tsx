@@ -17,7 +17,6 @@ import { useSectionVisibility } from "@/hooks/useSectionVisibility";
 export default function VideosPage() {
   const sectionVisible = useSectionVisibility("videos");
   const proyecto = useSiteProject();
-  if (!sectionVisible) return null;
   const { t } = useTranslation("site");
 
   // Filter out videos that are still processing or errored
@@ -61,6 +60,8 @@ export default function VideosPage() {
     window.addEventListener("keydown", handleKey);
     return () => window.removeEventListener("keydown", handleKey);
   }, [videos.length]);
+
+  if (!sectionVisible) return null;
 
   // Empty state — no videos ready (after all hooks)
   if (videos.length === 0) {

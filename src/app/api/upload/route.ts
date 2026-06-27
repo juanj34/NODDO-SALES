@@ -4,6 +4,10 @@ import { reportApiError } from "@/lib/error-reporter";
 import { NextRequest, NextResponse } from "next/server";
 import sharp from "sharp";
 
+// PDF/image generation is CPU- and memory-heavy; raise above the Vercel default.
+export const runtime = "nodejs";
+export const maxDuration = 60;
+
 const IMAGE_TYPES = new Set([
   "image/jpeg",
   "image/png",

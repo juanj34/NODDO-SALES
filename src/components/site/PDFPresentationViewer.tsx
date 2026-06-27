@@ -119,6 +119,7 @@ export function PDFPresentationViewer({
   }, []);
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- imperative auto-hide controls timer triggered on mount
     showControls();
     return () => {
       if (hideTimerRef.current) clearTimeout(hideTimerRef.current);

@@ -52,3 +52,12 @@ supabase/.temp/
 
 # sentry
 .sentryclirc
+
+# generated at install (postinstall copies the pdf.js worker into /public)
+/public/pdf.worker.min.mjs
+
+# local QA / debug artifacts (never commit)
+/qa-screenshots/
+/qa-*.py
+/test-*.pdf
+/test-output.pdf

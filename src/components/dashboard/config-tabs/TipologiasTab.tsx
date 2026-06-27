@@ -85,6 +85,7 @@ export default function TipologiasTab() {
   useEffect(() => {
     if (!project) return;
     if (hasPendingSave.current) return; // don't overwrite unsaved local changes
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- ref-guarded sync of form fields from external project source
     setTipologiaFields(project.tipologia_fields ?? null);
     const extrasState: Record<string, boolean> = {};
     for (const extra of EXTRAS_CONFIG) {

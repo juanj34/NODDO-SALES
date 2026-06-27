@@ -1,4 +1,5 @@
 import { getAuthContext, requirePermission } from "@/lib/auth-context";
+import { revalidateProyecto } from "@/lib/supabase/cached-queries";
 import { NextRequest, NextResponse } from "next/server";
 
 export async function POST(
@@ -15,7 +16,7 @@ export async function POST(
     // Verify ownership
     const { data: proyecto } = await auth.supabase
       .from("proyectos")
-      .select("id")
+      .select("id, slug, subdomain")
       .eq("id", id)
       .eq("user_id", auth.adminUserId)
       .single();
@@ -166,6 +167,14 @@ export async function POST(
       .eq("user_id", auth.adminUserId);
 
     if (updateErr) throw updateErr;
+
+    // Restore replaced all live child data + the project row from an old snapshot,
+    // so bust the public microsite cache (slug + subdomain) or it keeps serving the
+    // previous snapshot for up to the 1h unstable_cache TTL (P0-10).
+    if (proyecto.slug) await revalidateProyecto(proyecto.slug);
+    if (proyecto.subdomain && proyecto.subdomain !== proyecto.slug) {
+      await revalidateProyecto(proyecto.subdomain);
+    }
 
     return NextResponse.json({ success: true });
   } catch (err) {

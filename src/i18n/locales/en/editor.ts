@@ -1480,6 +1480,8 @@ const editor = {
     generatedSuccess: "Quote generated successfully",
     generateError: "Error generating quote",
     linkCopied: "Link copied",
+    pdfReady: "PDF generated",
+    pdfRetryFailed: "Could not regenerate the PDF. Please try again.",
   },
   errors: {
     connectionError: "Connection error",

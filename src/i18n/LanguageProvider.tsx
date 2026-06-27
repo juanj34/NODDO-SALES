@@ -45,6 +45,7 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     const stored = getStoredLocale();
     if (stored !== "es") {
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- mount sync from localStorage/cookie locale (not available during SSR/render)
       setLocaleState(stored);
       document.documentElement.lang = stored;
     }

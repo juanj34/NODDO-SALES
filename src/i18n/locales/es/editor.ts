@@ -1502,6 +1502,8 @@ const editor = {
     generatedSuccess: "Cotización generada exitosamente",
     generateError: "Error al generar cotización",
     linkCopied: "Link copiado",
+    pdfReady: "PDF generado",
+    pdfRetryFailed: "No se pudo regenerar el PDF. Intenta de nuevo.",
   },
   errors: {
     connectionError: "Error de conexión",

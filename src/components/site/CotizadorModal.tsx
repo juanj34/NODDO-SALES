@@ -323,11 +323,6 @@ export function CotizadorModal({
   const proyecto = useSiteProject();
   const { siteFormat } = useSiteFormatCurrency();
 
-  // Agent mode: render the full dashboard CotizadorTool in a fullscreen modal
-  if (isAgentMode) {
-    return <AgentCotizadorModal open={isOpen} onClose={onClose} />;
-  }
-
   const enabledExtras = useMemo(() => ({
     tiene_jacuzzi: proyecto.habilitar_extra_jacuzzi,
     tiene_piscina: proyecto.habilitar_extra_piscina,
@@ -361,21 +356,19 @@ export function CotizadorModal({
 
   const columns = useMemo(() => {
     if (isHibrido && unitTipoTipologia) {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       return getHybridInventoryColumns(
         unitTipoTipologia,
-        (proyecto as any).inventory_columns_microsite_by_type ??
+        proyecto.inventory_columns_microsite_by_type ??
           proyecto.inventory_columns_by_type
       );
     }
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     return getInventoryColumns(
       (proyecto.tipo_proyecto ?? "hibrido") as
         | "apartamentos"
         | "casas"
         | "lotes"
         | "hibrido",
-      (proyecto as any).inventory_columns_microsite ??
+      proyecto.inventory_columns_microsite ??
         proyecto.inventory_columns
     );
   }, [
@@ -439,10 +432,9 @@ export function CotizadorModal({
   const areaSymbol = UNIT_CONFIG[(proyecto.unidad_medida_base || "m2") as UnitOfMeasurement]?.symbol ?? "m²";
 
   // Get render image for the unit summary
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const renderUrl =
     activeTipologia?.renders?.[0] ??
-    ((proyecto as any).render_principal_url as string | null) ??
+    proyecto.render_principal_url ??
     null;
 
   const handleClose = useCallback(() => {
@@ -463,6 +455,11 @@ export function CotizadorModal({
     window.addEventListener("keydown", handleKey);
     return () => window.removeEventListener("keydown", handleKey);
   }, [isOpen, handleClose]);
+
+  // Agent mode: render the full dashboard CotizadorTool in a fullscreen modal
+  if (isAgentMode) {
+    return <AgentCotizadorModal open={isOpen} onClose={onClose} />;
+  }
 
   return (
     <AnimatePresence>

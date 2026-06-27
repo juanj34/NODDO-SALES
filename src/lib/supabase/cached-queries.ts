@@ -34,6 +34,9 @@ export const getProyectoBySlug = (slug: string) =>
  */
 export async function revalidateProyecto(slug: string) {
   const { revalidateTag } = await import("next/cache");
+  // Next 16: { expire: 0 } = immediate blocking invalidation (the deprecated
+  // single-arg behavior). Route Handlers cannot use updateTag (Server Action only),
+  // and the editor expects the public site to reflect changes on the very next request.
   revalidateTag(`proyecto-${slug}`, { expire: 0 });
 }
 
@@ -43,5 +46,8 @@ export async function revalidateProyecto(slug: string) {
  */
 export async function revalidateAllProyectos() {
   const { revalidateTag } = await import("next/cache");
+  // Next 16: { expire: 0 } = immediate blocking invalidation (the deprecated
+  // single-arg behavior). Route Handlers cannot use updateTag (Server Action only),
+  // and the editor expects the public site to reflect changes on the very next request.
   revalidateTag("proyectos", { expire: 0 });
 }

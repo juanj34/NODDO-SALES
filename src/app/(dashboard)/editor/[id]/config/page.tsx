@@ -84,6 +84,7 @@ export default function ConfigPage() {
   useEffect(() => {
     const param = searchParams.get("tab");
     if (param && VALID_TABS.has(param)) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- sync active tab from external searchParams change (e.g. redirect)
       setActiveTab(param as ConfigTab);
     }
   }, [searchParams]);

@@ -51,7 +51,6 @@ const CUSTOM_COL_ICON = { text: Type, number: Hash, date: Calendar, select: List
 export default function InventarioPage() {
   const sectionVisible = useSectionVisibility("inventario");
   const proyecto = useSiteProject();
-  if (!sectionVisible) return null;
   const basePath = useSiteBasePath();
   const { t: tSite } = useTranslation("site");
   const unitPrefix = proyecto.unidad_display_prefix;
@@ -120,8 +119,8 @@ export default function InventarioPage() {
   const isLotes = proyecto.tipo_proyecto === "lotes";
   const isHibrido = proyecto.tipo_proyecto === "hibrido";
   const isTipologiaPricing = proyecto.precio_source === "tipologia";
-  const ocultarVendidas = (proyecto as any).ocultar_vendidas ?? false;
-  const ocultarPrecioVendidas = (proyecto as any).ocultar_precio_vendidas ?? false;
+  const ocultarVendidas = proyecto.ocultar_vendidas ?? false;
+  const ocultarPrecioVendidas = proyecto.ocultar_precio_vendidas ?? false;
 
   const unidadTipologias = useMemo<UnidadTipologia[]>(() => proyecto.unidad_tipologias ?? [], [proyecto.unidad_tipologias]);
 
@@ -184,6 +183,7 @@ export default function InventarioPage() {
 
   useEffect(() => {
     if (showTipoTabs && availableTipoTabs.length > 0 && !activeTipoTab) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- one-time default tab init from derived list
       setActiveTipoTab(availableTipoTabs[0]);
     }
   }, [showTipoTabs, availableTipoTabs, activeTipoTab]);
@@ -202,11 +202,11 @@ export default function InventarioPage() {
       return resolveColumnsForTipologia(
         activeTipoTab,
         proyecto.tipo_proyecto ?? "hibrido",
-        (proyecto as any).inventory_columns_microsite ?? proyecto.inventory_columns,
-        (proyecto as any).inventory_columns_microsite_by_type ?? proyecto.inventory_columns_by_type,
+        proyecto.inventory_columns_microsite ?? proyecto.inventory_columns,
+        proyecto.inventory_columns_microsite_by_type ?? proyecto.inventory_columns_by_type,
       );
     }
-    return getInventoryColumns(proyecto.tipo_proyecto ?? "hibrido", (proyecto as any).inventory_columns_microsite ?? proyecto.inventory_columns);
+    return getInventoryColumns(proyecto.tipo_proyecto ?? "hibrido", proyecto.inventory_columns_microsite ?? proyecto.inventory_columns);
   }, [showTipoTabs, activeTipoTab, proyecto.tipo_proyecto, proyecto.inventory_columns, proyecto.inventory_columns_by_type]);
 
   // Filter state for select-type custom columns: key → selected value ("todas" = all)
@@ -389,7 +389,7 @@ export default function InventarioPage() {
     });
 
     return result;
-  }, [unidades, torreFilter, tipologiaFilter, estadoFilter, habFilter, banosFilter, etapaFilter, customFilters, searchQuery, sortBy, isMultiTipo, unidadTipologias, tipoTabTipologiaIds, getUnitPrice, ocultarVendidas]);
+  }, [unidades, torreFilter, tipologiaFilter, estadoFilter, habFilter, banosFilter, etapaFilter, customFilters, searchQuery, sortBy, isMultiTipo, unidadTipologias, tipoTabTipologiaIds, getUnitPrice, ocultarVendidas, columns]);
 
   // Multi-tipo helpers (must be before early return — hooks rule)
   const getUnitTipoCount = useCallback((unitId: string) => {
@@ -428,6 +428,9 @@ export default function InventarioPage() {
     window.addEventListener("keydown", handler);
     return () => window.removeEventListener("keydown", handler);
   }, [tipoSelectorUnit]);
+
+  // Section hidden — early return AFTER all hooks (hooks rule)
+  if (!sectionVisible) return null;
 
   // Empty state — no units configured (AFTER all hooks)
   if (!unidades || unidades.length === 0) {

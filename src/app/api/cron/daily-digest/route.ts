@@ -221,7 +221,7 @@ async function getAdminActivitySummary(projectIds: string[]) {
  * Get platform-level stats (only for platform admin)
  */
 async function getPlatformStats() {
-  let redisStats = { commandsToday: 0, memoryUsageMB: 0, maxMemoryMB: 25, rateLimitBlocked: 0 };
+  const redisStats = { commandsToday: 0, memoryUsageMB: 0, maxMemoryMB: 25, rateLimitBlocked: 0 };
 
   try {
     const redis = getRedis();

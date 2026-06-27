@@ -108,7 +108,6 @@ function getCategoryConfig(categoria: string): CategoryConfig {
 export default function UbicacionPage() {
   const sectionVisible = useSectionVisibility("ubicacion");
   const proyecto = useSiteProject();
-  if (!sectionVisible) return null;
   const {
     ubicacion_lat: lat,
     ubicacion_lng: lng,
@@ -187,6 +186,8 @@ export default function UbicacionPage() {
     window.addEventListener("keydown", handleKey);
     return () => window.removeEventListener("keydown", handleKey);
   }, [selectedPOI, filteredPOIs, showMapaImagen]);
+
+  if (!sectionVisible) return null;
 
   if (!lat || !lng) {
     return (

@@ -11,6 +11,7 @@ export function CustomCursor() {
 
   useEffect(() => {
     const mq = window.matchMedia("(hover: hover) and (pointer: fine)");
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- mount sync from window.matchMedia (not available during SSR/render)
     setIsTouch(!mq.matches);
     const handler = (e: MediaQueryListEvent) => setIsTouch(!e.matches);
     mq.addEventListener("change", handler);

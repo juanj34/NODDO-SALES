@@ -20,7 +20,6 @@ import { useSectionVisibility } from "@/hooks/useSectionVisibility";
 export default function ImplantacionesPage() {
   const sectionVisible = useSectionVisibility("implantaciones");
   const proyecto = useSiteProject();
-  if (!sectionVisible) return null;
   const { t } = useTranslation("site");
 
   /* ── Visible urbanismo planos (editor "Implantaciones") ── */
@@ -65,6 +64,7 @@ export default function ImplantacionesPage() {
     const currentId = activePlano?.id ?? null;
     if (currentId !== prevPlanoIdRef.current) {
       prevPlanoIdRef.current = currentId;
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- ref-guarded reset of imperative image-load state on plano change
       setSelectedPuntoId(null);
       setImageLoaded(false);
       setImageError(false);
@@ -133,6 +133,8 @@ export default function ImplantacionesPage() {
     window.addEventListener("keydown", handleKey);
     return () => window.removeEventListener("keydown", handleKey);
   }, [selectedPuntoId, renderModalPunto]);
+
+  if (!sectionVisible) return null;
 
   /* ── Empty state ────────────────────────────────────── */
   if (planos.length === 0) {

@@ -31,6 +31,7 @@ export default function DashboardPage() {
     if (!loading && isAdmin && projects.length === 0) {
       const done = localStorage.getItem("noddo_onboarding_done");
       if (!done) {
+        // eslint-disable-next-line react-hooks/set-state-in-effect -- one-time mount sync from localStorage (not readable during SSR/render)
         setShowOnboarding(true);
       }
     }

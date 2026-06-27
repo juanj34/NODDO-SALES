@@ -1,9 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
-import sharp from "sharp";
 import { calcularCotizacion, buildPrecioBaseComplementos } from "@/lib/cotizador/calcular";
 import { resolveDeliveryContext, formatDeliveryDisplay } from "@/lib/cotizador/delivery";
-import { generarPDF } from "@/lib/cotizador/pdf-react/render";
+import { generateCotizacionPdf, getCotizacionSignedUrl } from "@/lib/cotizador/generate";
+import { buildInputFromDbRows } from "@/lib/cotizador/html/from-db";
 import { sendCotizacionBuyer, sendCotizacionAdmin, getUserLocale } from "@/lib/email";
 import type { EmailLocale } from "@/lib/email-i18n";
 import { isRateLimited, apiLimiter } from "@/lib/rate-limit";
@@ -15,6 +15,10 @@ import { formatCurrency } from "@/lib/currency";
 import { logActivity } from "@/lib/activity-logger";
 import { getAuthContext } from "@/lib/auth-context";
 import { requireFeature, PlanFeatureError } from "@/lib/plan-guard";
+
+// PDF/image generation is CPU- and memory-heavy; raise above the Vercel default.
+export const runtime = "nodejs";
+export const maxDuration = 60;
 
 // Use service-role client for public endpoint (no user auth required)
 function getServiceClient() {
@@ -106,52 +110,24 @@ export async function GET(request: NextRequest) {
       totalValue: cotizaciones?.reduce((sum: number, c: { resultado?: { precio_neto?: number } }) => sum + (c.resultado?.precio_neto || 0), 0) || 0,
     };
 
+    // pdf_url is now a PRIVATE object PATH — mint a short-lived signed URL per row
+    // so the dashboard can download it (the client cannot read a private path).
+    const serviceClient = getServiceClient();
+    const withSigned = await Promise.all(
+      (cotizaciones ?? []).map(async (c: { pdf_url: string | null }) => ({
+        ...c,
+        pdf_url: c.pdf_url ? await getCotizacionSignedUrl(serviceClient, c.pdf_url) : null,
+      })),
+    );
+
     return NextResponse.json({
-      cotizaciones: cotizaciones || [],
+      cotizaciones: withSigned,
       total: count || 0,
       stats,
     });
   } catch (err) {
     console.error("[GET cotizaciones] Error:", err);
     return NextResponse.json({ error: "Error interno" }, { status: 500 });
-  }
-}
-
-async function fetchImageAsBase64(
-  url: string | null,
-): Promise<{ base64: string; format: "JPEG" | "PNG"; width?: number; height?: number } | null> {
-  if (!url) return null;
-  try {
-    const res = await fetch(url, { signal: AbortSignal.timeout(5000) });
-    if (!res.ok) return null;
-    const buffer = await res.arrayBuffer();
-    const uint8 = new Uint8Array(buffer);
-
-    // Detect format from magic bytes
-    const isJPEG = uint8[0] === 0xff && uint8[1] === 0xd8;
-    const isPNG = uint8[0] === 0x89 && uint8[1] === 0x50;
-
-    if (!isJPEG && !isPNG) {
-      // Convert WebP/AVIF/other to JPEG via sharp
-      const sharpInst = sharp(Buffer.from(buffer)).resize(1200, null, { withoutEnlargement: true }).jpeg({ quality: 80 });
-      const jpegBuffer = await sharpInst.toBuffer();
-      const meta = await sharp(jpegBuffer).metadata();
-      return { base64: jpegBuffer.toString("base64"), format: "JPEG", width: meta.width, height: meta.height };
-    }
-
-    // Resize raster images to keep PDF small
-    const sharpInst = sharp(Buffer.from(buffer)).resize(1200, null, { withoutEnlargement: true });
-    const resized = await sharpInst.toBuffer();
-    const meta = await sharp(resized).metadata();
-    return {
-      base64: resized.toString("base64"),
-      format: isJPEG ? "JPEG" : "PNG",
-      width: meta.width,
-      height: meta.height,
-    };
-  } catch (err) {
-    console.warn("[cotizaciones] Image fetch failed:", url, err);
-    return null;
   }
 }
 
@@ -277,7 +253,6 @@ export async function POST(request: NextRequest) {
     let tipologiaName: string | null = null;
     let tipologiaRenders: string[] = [];
     let tipologiaPlanoUrl: string | null = null;
-    let tipologiaUbicacionPlanoUrl: string | null = null;
     let tieneJacuzzi = false;
     let tienePiscina = false;
     let tieneBbq = false;
@@ -313,7 +288,6 @@ export async function POST(request: NextRequest) {
       } else {
         tipologiaPlanoUrl = tipo?.plano_url ?? null;
       }
-      tipologiaUbicacionPlanoUrl = tipo?.ubicacion_plano_url ?? null;
 
       // Tipología pricing: price comes from tipología, not from unit
       if (isTipologiaPricing && tipo?.precio_desde != null) {
@@ -455,18 +429,8 @@ export async function POST(request: NextRequest) {
       tipologiaRenders[0] ||
       null;
 
-    // Use PDF-specific logos if configured, fallback to regular project logos
-    const constructoraLogoUrl = config.pdf_logo_constructora_url || proyecto.constructora_logo_url;
-    const projectLogoUrl = config.pdf_logo_proyecto_url || proyecto.logo_url;
-
-    // Fetch images in parallel (with timeout, graceful degradation)
-    const [coverImage, logoImage, projectLogoImage, planoImage, keyPlanImage] = await Promise.all([
-      fetchImageAsBase64(coverUrl),
-      fetchImageAsBase64(constructoraLogoUrl),
-      fetchImageAsBase64(projectLogoUrl),
-      fetchImageAsBase64(tipologiaPlanoUrl),
-      fetchImageAsBase64(tipologiaUbicacionPlanoUrl),
-    ]);
+    // Images are referenced by absolute URL in the HTML and fetched by the
+    // Chromium worker at render time — no app-side base64 fetch needed.
 
     // Fetch agent profile if agent_id provided
     let agenteNombreCompleto = agente_nombre ? sanitize(agente_nombre, 200) : null;
@@ -503,85 +467,7 @@ export async function POST(request: NextRequest) {
     const cotizacionId = crypto.randomUUID();
     const refNumber = `COT-${now.getFullYear()}-${cotizacionId.slice(0, 4).toUpperCase()}`;
 
-    const pdfBuffer = await generarPDF({
-      projectName: proyecto.nombre,
-      constructoraName: proyecto.constructora_nombre,
-      colorPrimario: proyecto.color_primario,
-      unidadId: unit.identificador,
-      tipologiaName,
-      area_construida: unit.area_construida,
-      area_privada: unit.area_privada,
-      area_lote: unit.area_lote,
-      area_m2: unit.area_m2,
-      unidad_medida: proyecto.unidad_medida_base === "sqft" ? "sqft" : "m²",
-      piso: unit.piso,
-      vista: unit.vista,
-      habitaciones: unit.habitaciones,
-      banos: unit.banos,
-      orientacion: unit.orientacion,
-      parqueaderos: unit.parqueaderos,
-      depositos: unit.depositos,
-      tiene_jacuzzi: tieneJacuzzi,
-      tiene_piscina: tienePiscina,
-      tiene_bbq: tieneBbq,
-      tiene_terraza: tieneTerraza,
-      tiene_jardin: tieneJardin,
-      tiene_cuarto_servicio: tieneCuartoServicio,
-      tiene_estudio: tieneEstudio,
-      tiene_chimenea: tieneChimenea,
-      tiene_doble_altura: tieneDobleAltura,
-      tiene_rooftop: tieneRooftop,
-      resultado,
-      config: effectiveConfig,
-      complementos: complementoSelecciones.length > 0 ? complementoSelecciones : undefined,
-      buyerName: sanitize(nombre, 200),
-      buyerEmail: sanitize(email, 320),
-      buyerPhone: telefono ? sanitize(telefono, 30) : null,
-      agenteName: agenteNombreCompleto,
-      agentePhone: agenteTelefono,
-      agenteEmail,
-      fecha,
-      referenceNumber: refNumber,
-      coverImageBase64: coverImage?.base64 ?? null,
-      coverImageFormat: coverImage?.format ?? null,
-      constructoraLogoBase64: logoImage?.base64 ?? null,
-      constructoraLogoFormat: logoImage?.format ?? null,
-      projectLogoBase64: projectLogoImage?.base64 ?? null,
-      projectLogoFormat: projectLogoImage?.format ?? null,
-      planoBase64: planoImage?.base64 ?? null,
-      planoFormat: planoImage?.format ?? null,
-      planoWidth: planoImage?.width ?? null,
-      planoHeight: planoImage?.height ?? null,
-      keyPlanBase64: keyPlanImage?.base64 ?? null,
-      keyPlanFormat: keyPlanImage?.format ?? null,
-      keyPlanWidth: keyPlanImage?.width ?? null,
-      keyPlanHeight: keyPlanImage?.height ?? null,
-      tour360Url: proyecto.tour_360_url,
-      whatsappNumero: proyecto.whatsapp_numero,
-      disclaimer: proyecto.disclaimer,
-      pdfSaludo: effectiveConfig.pdf_saludo ?? null,
-      pdfDespedida: effectiveConfig.pdf_despedida ?? null,
-      fechaEstimadaEntrega: deliveryContext && effectiveConfig.tipo_entrega
-        ? formatDeliveryDisplay(deliveryContext, effectiveConfig.tipo_entrega)
-        : effectiveConfig.fecha_estimada_entrega ?? null,
-      tipoEntrega: effectiveConfig.tipo_entrega ?? null,
-      mesesRestantes: deliveryContext?.mesesDisponibles ?? null,
-      paymentPlanNombre: effectiveConfig.payment_plan_nombre ?? null,
-      adminFee: resultado.admin_fee ?? null,
-      adminFeeLabel: resultado.admin_fee_label ?? null,
-      coverStyle: config.pdf_cover_style ?? "hero",
-      pdfTheme: config.pdf_theme ?? "neutral",
-      pisoLabel: unit.piso != null ? (projectLocale === "en" ? `Floor ${unit.piso}` : `Piso ${unit.piso}`) : null,
-      idioma: projectLocale,
-      estadoConstruccion: proyecto.estado_construccion ?? "sobre_planos",
-      amoblado: amoblado || proyecto.politica_amoblado === "incluido" || undefined,
-      ubicacionDireccion: proyecto.ubicacion_direccion ?? null,
-      monedaSecundaria: moneda_secundaria ?? null,
-      tipoCambio: tipo_cambio ?? null,
-      hitosConstructivos: effectiveConfig.hitos_constructivos ?? [],
-    });
-
-    // Snapshot unit data
+    // Snapshot unit data (built before render so it can also feed the HTML builder)
     const unidadSnapshot: Record<string, unknown> = {
       identificador: unit.identificador,
       tipologia: tipologiaName,
@@ -595,6 +481,8 @@ export async function POST(request: NextRequest) {
       habitaciones: unit.habitaciones,
       banos: unit.banos,
       orientacion: unit.orientacion,
+      parqueaderos: unit.parqueaderos,
+      depositos: unit.depositos,
       lote: unit.lote,
       etapa_nombre: unit.etapa_nombre,
       tiene_jacuzzi: tieneJacuzzi || undefined,
@@ -607,6 +495,7 @@ export async function POST(request: NextRequest) {
       tiene_chimenea: tieneChimenea || undefined,
       tiene_doble_altura: tieneDobleAltura || undefined,
       tiene_rooftop: tieneRooftop || undefined,
+      amoblado: (amoblado || proyecto.politica_amoblado === "incluido") || undefined,
     };
     // Track if tipología was buyer-selected (not pre-assigned)
     if (!unit.tipologia_id && selectedTipologiaId) {
@@ -616,23 +505,51 @@ export async function POST(request: NextRequest) {
     if (complementoSelecciones.length > 0) {
       unidadSnapshot.complementos = complementoSelecciones;
     }
-    // Upload PDF to Supabase Storage
-    const pdfPath = `cotizaciones/${proyecto_id}/${cotizacionId}.pdf`;
 
-    const { error: uploadErr } = await supabase.storage
-      .from("uploads")
-      .upload(pdfPath, pdfBuffer, {
-        contentType: "application/pdf",
-        upsert: false,
-      });
+    // Build the render input and render the PDF via the Chromium worker.
+    // Buyer-facing public POST is fail-soft (lead capture must never break);
+    // agent-initiated POST (agente_id present) is fail-loud so the agent sees a 502.
+    const input = buildInputFromDbRows({
+      resultado,
+      config: effectiveConfig,
+      moneda,
+      proyecto: {
+        nombre: proyecto.nombre,
+        constructora_nombre: proyecto.constructora_nombre,
+        color_primario: proyecto.color_primario,
+        ubicacion_direccion: proyecto.ubicacion_direccion ?? null,
+        estado_construccion: proyecto.estado_construccion ?? "sobre_planos",
+        logo_url: config.pdf_logo_proyecto_url || proyecto.logo_url,
+        constructora_logo_url: config.pdf_logo_constructora_url || proyecto.constructora_logo_url,
+        cover_url: coverUrl,
+        renders: tipologiaRenders,
+        plano_url: tipologiaPlanoUrl,
+        whatsapp_numero: proyecto.whatsapp_numero,
+        tour_360_url: proyecto.tour_360_url,
+      },
+      unidadSnapshot,
+      unidadMedida: proyecto.unidad_medida_base === "sqft" ? "sqft" : "m²",
+      agente: { nombre: agenteNombreCompleto, telefono: agenteTelefono, email: agenteEmail, avatarUrl: agenteAvatarUrl },
+      buyer: { nombre: sanitize(nombre, 200), email: sanitize(email, 320), telefono: telefono ? sanitize(telefono, 30) : null },
+      complementos: complementoSelecciones,
+      fechaDisplay: fecha,
+      fechaEstimadaEntrega: deliveryContext && effectiveConfig.tipo_entrega
+        ? formatDeliveryDisplay(deliveryContext, effectiveConfig.tipo_entrega)
+        : effectiveConfig.fecha_estimada_entrega ?? null,
+      referenceNumber: refNumber,
+      paymentPlanNombre: effectiveConfig.payment_plan_nombre ?? (projectLocale === "en" ? "Payment Plan" : "Plan de Pagos"),
+      idioma: projectLocale,
+      monedaSecundaria: moneda_secundaria ?? null,
+      tipoCambio: tipo_cambio ?? null,
+    });
 
-    let pdfUrl: string | null = null;
-    if (!uploadErr) {
-      const { data: urlData } = supabase.storage.from("uploads").getPublicUrl(pdfPath);
-      pdfUrl = urlData.publicUrl;
-    } else {
-      console.warn("[cotizaciones] PDF upload failed:", uploadErr.message);
-    }
+    const isAgentAction = !!agente_id;
+    const { pdfPath, pdfBuffer } = await generateCotizacionPdf(
+      supabase, proyecto_id, cotizacionId, input, /* failSoft */ !isAgentAction,
+    );
+
+    // Persist the object PATH in the private bucket (NOT a public URL).
+    const pdfUrl = pdfPath;
 
     // Insert cotización record
     const { error: insertErr } = await supabase
@@ -721,35 +638,39 @@ export async function POST(request: NextRequest) {
       if (recRows) recursosForEmail = recRows;
     }
 
-    // Email to buyer with PDF (project's language)
-    sendCotizacionBuyer({
-      buyerEmail: sanitize(email, 320),
-      buyerName: sanitize(nombre, 200),
-      projectName: proyecto.nombre,
-      unidadId: unit.identificador,
-      totalFormatted,
-      tipologiaName,
-      areaM2: unit.area_m2,
-      habitaciones: unit.habitaciones,
-      banos: unit.banos,
-      pdfBuffer,
-      locale: projectLocale,
-      emailConfig: emailCfg,
-      projectSlug: proyecto.slug,
-      projectLogoUrl: proyecto.logo_url,
-      constructoraLogoUrl: proyecto.constructora_logo_url,
-      constructoraNombre: proyecto.constructora_nombre,
-      colorPrimario: proyecto.color_primario,
-      whatsappNumero: proyecto.whatsapp_numero,
-      tour360Url: proyecto.tour_360_url,
-      brochureUrl: proyecto.brochure_url,
-      micrositeUrl,
-      recursos: recursosForEmail,
-      agentName: agenteNombreCompleto,
-      agentPhone: agenteTelefono,
-      agentEmail: agenteEmail,
-      agentAvatarUrl: agenteAvatarUrl,
-    }).catch((err) => console.error("[cotizaciones] Buyer email failed:", err));
+    // Email to buyer with PDF (project's language).
+    // Only send when the worker actually produced a PDF — on a fail-soft worker
+    // outage pdfBuffer is null, the lead is still captured, and the agent can regenerate.
+    if (pdfBuffer) {
+      sendCotizacionBuyer({
+        buyerEmail: sanitize(email, 320),
+        buyerName: sanitize(nombre, 200),
+        projectName: proyecto.nombre,
+        unidadId: unit.identificador,
+        totalFormatted,
+        tipologiaName,
+        areaM2: unit.area_m2,
+        habitaciones: unit.habitaciones,
+        banos: unit.banos,
+        pdfBuffer,
+        locale: projectLocale,
+        emailConfig: emailCfg,
+        projectSlug: proyecto.slug,
+        projectLogoUrl: proyecto.logo_url,
+        constructoraLogoUrl: proyecto.constructora_logo_url,
+        constructoraNombre: proyecto.constructora_nombre,
+        colorPrimario: proyecto.color_primario,
+        whatsappNumero: proyecto.whatsapp_numero,
+        tour360Url: proyecto.tour_360_url,
+        brochureUrl: proyecto.brochure_url,
+        micrositeUrl,
+        recursos: recursosForEmail,
+        agentName: agenteNombreCompleto,
+        agentPhone: agenteTelefono,
+        agentEmail: agenteEmail,
+        agentAvatarUrl: agenteAvatarUrl,
+      }).catch((err) => console.error("[cotizaciones] Buyer email failed:", err));
+    }
 
     // Email to admin (admin's language)
     const { data: adminUser } = await supabase.auth.admin.getUserById(proyecto.user_id);
@@ -776,7 +697,13 @@ export async function POST(request: NextRequest) {
       entityType: "cotizacion", entityId: cotizacionId,
     });
 
-    return NextResponse.json({ id: cotizacionId, pdf_url: pdfUrl }, { status: 201 });
+    // Mint a short-lived signed URL for the agent response — never leak the raw
+    // private object path. pdf_pending lets the UI offer a regenerate on outage.
+    const signedUrl = pdfPath ? await getCotizacionSignedUrl(supabase, pdfPath) : null;
+    return NextResponse.json(
+      { id: cotizacionId, pdf_url: signedUrl, pdf_pending: pdfPath === null },
+      { status: 201 },
+    );
   } catch (err) {
     console.error("[cotizaciones] Error:", err);
     return NextResponse.json(

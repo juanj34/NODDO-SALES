@@ -22,7 +22,7 @@ import { useTranslation } from "@/i18n";
 import { CurrencyInput } from "@/components/dashboard/CurrencyInput";
 import { cn } from "@/lib/utils";
 import { getInventoryColumns, getDefaultColumns, getHybridInventoryColumns, getDefaultColumnsForTipo, INVENTORY_COLUMN_KEYS } from "@/lib/inventory-columns";
-import type { InventoryColumnConfig, InventoryColumnsByType, ComplementoMode, TipoTipologia, Orientacion, Vista } from "@/types";
+import type { InventoryColumnConfig, InventoryColumnsByType, ComplementoMode, TipoTipologia, Orientacion, Vista, Proyecto } from "@/types";
 import { X, Plus } from "lucide-react";
 
 /* ── Column icon map ────────────────────────────────────────────── */
@@ -113,14 +113,14 @@ export default function InventarioTab({ orientaciones = [], vistas = [], onRefre
     if (hasPendingSave.current) return;
     setInventoryColumns(project.inventory_columns ?? null);
     setInventoryColumnsByType(project.inventory_columns_by_type ?? null);
-    setInventoryColumnsMicrosite((project as any).inventory_columns_microsite ?? null);
-    setInventoryColumnsMicrositeByType((project as any).inventory_columns_microsite_by_type ?? null);
-    setOcultarVendidas((project as any).ocultar_vendidas ?? false);
-    setOcultarPrecioVendidas((project as any).ocultar_precio_vendidas ?? false);
+    setInventoryColumnsMicrosite(project.inventory_columns_microsite ?? null);
+    setInventoryColumnsMicrositeByType(project.inventory_columns_microsite_by_type ?? null);
+    setOcultarVendidas(project.ocultar_vendidas ?? false);
+    setOcultarPrecioVendidas(project.ocultar_precio_vendidas ?? false);
 
     const extrasState: Record<string, boolean> = {};
     for (const extra of EXTRAS_CONFIG) {
-      extrasState[extra.key] = (project as any)[extra.projectField] ?? false;
+      extrasState[extra.key] = (project as unknown as Record<string, boolean>)[extra.projectField] ?? false;
     }
     setExtrasEnabled(extrasState);
     setParqueaderosMode((project.parqueaderos_mode ?? "sin_inventario") as ComplementoMode);
@@ -193,7 +193,7 @@ export default function InventarioTab({ orientaciones = [], vistas = [], onRefre
       depositos_mode: depositosMode,
       parqueaderos_precio_base: parqueaderosMode === "precio_base" ? parqueaderosPrecioBase : null,
       depositos_precio_base: depositosMode === "precio_base" ? depositosPrecioBase : null,
-    } as any);
+    } as unknown as Partial<Proyecto>);
     hasPendingSave.current = false;
     if (!ok) toast.error(t("general.saveError"));
   }, [save, inventoryColumns, inventoryColumnsByType, inventoryColumnsMicrosite, inventoryColumnsMicrositeByType, ocultarVendidas, ocultarPrecioVendidas, extrasEnabled, parqueaderosMode, depositosMode, parqueaderosPrecioBase, depositosPrecioBase, toast, t]);

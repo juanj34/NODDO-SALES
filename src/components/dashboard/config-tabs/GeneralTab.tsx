@@ -40,6 +40,7 @@ export default function GeneralTab() {
   useEffect(() => {
     if (!project) return;
     if (hasPendingSave.current) return;
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- ref-guarded sync of form fields from external project source
     setSlug(project.slug || "");
     setTipoProyecto(project.tipo_proyecto || "hibrido");
     setTipologiaMode(project.tipologia_mode || "fija");
