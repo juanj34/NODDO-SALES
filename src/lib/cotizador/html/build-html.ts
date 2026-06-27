@@ -192,7 +192,7 @@ ${fonts}
 @page{size:Letter;margin:14mm 12mm;}
 html,body{font-family:'Inter',system-ui,sans-serif;color:#1b1b1b;font-size:10px;line-height:1.45;}
 .sec{color:#8a8580;font-size:0.78em;}
-h1,.title{font-family:'Cormorant',serif;font-weight:300;}
+h1,.title{font-family:'Inter',system-ui,sans-serif;font-weight:600;letter-spacing:-0.015em;}
 .label{font-family:'Syne',sans-serif;font-weight:700;font-size:8px;letter-spacing:1.4px;text-transform:uppercase;color:${accent};margin:0 0 6px;}
 .mono{font-family:'DM Mono',monospace;}
 .cover{position:relative;height:240mm;display:flex;flex-direction:column;justify-content:flex-end;page-break-after:always;background:#0e1512;color:#f4f0e8;overflow:hidden;}
