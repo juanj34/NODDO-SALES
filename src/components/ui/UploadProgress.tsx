@@ -109,7 +109,7 @@ export function UploadProgress({
               cy="25"
               r={radius}
               fill="none"
-              stroke="rgba(255, 255, 255, 0.1)"
+              stroke="rgba(var(--contrast-rgb), 0.1)"
               strokeWidth="3"
             />
             {/* Progress circle */}
@@ -213,7 +213,7 @@ export function UploadProgress({
       </div>
 
       {/* Progress bar */}
-      <div className="w-full h-1.5 bg-white/10 rounded-full overflow-hidden">
+      <div className="w-full h-1.5 bg-[var(--surface-3)] rounded-full overflow-hidden">
         <motion.div
           className={`h-full rounded-full ${getBarColor()}`}
           initial={{ width: "0%" }}
@@ -251,7 +251,7 @@ export function UploadProgressOverlay({
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
-      className="absolute inset-0 bg-black/60 backdrop-blur-sm flex flex-col items-center justify-center gap-4 px-6 z-10"
+      className="absolute inset-0 bg-[rgba(var(--overlay-rgb),0.6)] backdrop-blur-sm flex flex-col items-center justify-center gap-4 px-6 z-10"
     >
       <UploadProgress {...props} variant="circular" className="w-full max-w-[240px]" />
       {message && (

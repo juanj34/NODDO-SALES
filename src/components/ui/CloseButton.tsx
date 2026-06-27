@@ -20,10 +20,10 @@ export function CloseButton({
 }: CloseButtonProps) {
   const variantStyles = {
     glass:
-      "w-10 h-10 glass rounded-full text-[var(--text-secondary)] hover:text-white",
-    dark: "w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 text-[var(--text-secondary)]",
+      "w-10 h-10 glass rounded-full text-[var(--text-secondary)] hover:text-[var(--text-primary)]",
+    dark: "w-8 h-8 rounded-full bg-[var(--surface-3)] hover:bg-[var(--surface-4)] text-[var(--text-secondary)]",
     subtle:
-      "rounded-lg p-1 text-[var(--text-tertiary)] hover:text-[var(--text-primary)] hover:bg-white/5",
+      "rounded-lg p-1 text-[var(--text-tertiary)] hover:text-[var(--text-primary)] hover:bg-[var(--surface-2)]",
   };
 
   return (

@@ -12,8 +12,8 @@ interface ShaderBackgroundProps {
 
 export function ShaderBackground({
   children,
-  colors = ["#000000", "#1a0a3e", "#7C5CFC", "#0c1445", "#06081a"],
-  secondaryColors = ["#000000", "#7C5CFC", "#3B82F6", "#000000"],
+  colors = ["#000000", "#1a0a3e", "#7C5CFC", "#0c1445", "#06081a"], // theme-allow: decorative WebGL mesh-gradient palette
+  secondaryColors = ["#000000", "#7C5CFC", "#3B82F6", "#000000"], // theme-allow: decorative WebGL mesh-gradient palette
 }: ShaderBackgroundProps) {
   return (
     <div className="min-h-screen w-full relative overflow-hidden">
@@ -99,7 +99,7 @@ export function PulsingCircle() {
           <defs>
             <path id="circle" d="M 50, 50 m -38, 0 a 38,38 0 1,1 76,0 a 38,38 0 1,1 -76,0" />
           </defs>
-          <text className="text-sm fill-white/80">
+          <text className="text-sm fill-white/80"> {/* // theme-allow: label over dark decorative shader */}
             <textPath href="#circle" startOffset="0%">
               NODDO • MICROSITIOS PREMIUM • NODDO • MICROSITIOS PREMIUM •
             </textPath>

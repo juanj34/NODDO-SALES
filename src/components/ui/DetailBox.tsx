@@ -57,7 +57,7 @@ export function DetailBox({
             {label}
           </span>
         </div>
-        <span className={cn("text-white font-medium", fontSize.md)}>
+        <span className={cn("text-[var(--text-primary)] font-medium", fontSize.md)}>
           {value}
         </span>
       </div>
@@ -77,7 +77,7 @@ export function DetailBox({
           {Icon && (
             <div
               className={cn(
-                "w-10 h-10 flex items-center justify-center bg-[var(--site-primary)] text-black",
+                "w-10 h-10 flex items-center justify-center bg-[var(--site-primary)] text-black", // theme-allow: dark text on gold
                 radius.lg
               )}
             >
@@ -88,7 +88,7 @@ export function DetailBox({
             {label}
           </span>
         </div>
-        <span className={cn("text-white font-bold", fontSize.heading)}>
+        <span className={cn("text-[var(--text-primary)] font-bold", fontSize.heading)}>
           {value}
         </span>
       </div>
@@ -119,7 +119,7 @@ export function DetailBox({
           {label}
         </span>
       </div>
-      <span className={cn("text-white font-medium", fontSize.md)}>
+      <span className={cn("text-[var(--text-primary)] font-medium", fontSize.md)}>
         {value}
       </span>
     </div>

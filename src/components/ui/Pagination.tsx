@@ -38,7 +38,7 @@ export function Pagination({
     radius.md,
     gap.compact,
     "bg-[var(--surface-2)] border-[var(--border-default)] text-[var(--text-secondary)]",
-    "hover:bg-[var(--surface-3)] hover:text-white hover:border-[var(--border-strong)]",
+    "hover:bg-[var(--surface-3)] hover:text-[var(--text-primary)] hover:border-[var(--border-strong)]",
     "disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-[var(--surface-2)] disabled:hover:text-[var(--text-secondary)]"
   );
 
@@ -46,7 +46,7 @@ export function Pagination({
     "flex items-center justify-center min-w-[32px] h-8 font-ui font-bold transition-all border",
     fontSize.label,
     radius.md,
-    "bg-[var(--site-primary)] border-[var(--site-primary)] text-black",
+    "bg-[var(--site-primary)] border-[var(--site-primary)] text-black", // theme-allow: dark text on gold
     "shadow-lg shadow-[rgba(var(--site-primary-rgb),0.2)]"
   );
 
@@ -55,7 +55,7 @@ export function Pagination({
     fontSize.label,
     radius.md,
     "bg-[var(--surface-2)] border-[var(--border-default)] text-[var(--text-secondary)]",
-    "hover:bg-[var(--surface-3)] hover:text-white hover:border-[var(--border-strong)]"
+    "hover:bg-[var(--surface-3)] hover:text-[var(--text-primary)] hover:border-[var(--border-strong)]"
   );
 
   if (variant === "compact") {

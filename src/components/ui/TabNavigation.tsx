@@ -63,8 +63,8 @@ export function TabNavigation({
         gap.compact,
         sizeClasses[size],
         isActive
-          ? "bg-[var(--site-primary)] text-black shadow-lg shadow-[rgba(var(--site-primary-rgb),0.3)]"
-          : "text-[var(--text-secondary)] hover:text-white hover:bg-[var(--surface-3)]"
+          ? "bg-[var(--site-primary)] text-black shadow-lg shadow-[rgba(var(--site-primary-rgb),0.3)]" // theme-allow: dark text on gold
+          : "text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--surface-3)]"
       );
     }
 
@@ -75,8 +75,8 @@ export function TabNavigation({
         gap.compact,
         sizeClasses[size],
         isActive
-          ? "border-[var(--site-primary)] text-white"
-          : "border-transparent text-[var(--text-secondary)] hover:text-white hover:border-[var(--border-default)]"
+          ? "border-[var(--site-primary)] text-[var(--text-primary)]"
+          : "border-transparent text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:border-[var(--border-default)]"
       );
     }
 
@@ -88,8 +88,8 @@ export function TabNavigation({
       gap.compact,
       sizeClasses[size],
       isActive
-        ? "bg-[var(--surface-2)] border-[var(--site-primary)] text-white"
-        : "bg-transparent border-transparent text-[var(--text-secondary)] hover:text-white hover:bg-[var(--surface-1)]"
+        ? "bg-[var(--surface-2)] border-[var(--site-primary)] text-[var(--text-primary)]"
+        : "bg-transparent border-transparent text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--surface-1)]"
     );
   };
 
@@ -111,7 +111,7 @@ export function TabNavigation({
                 radius.full,
                 fontSize.caption,
                 tab.id === activeTab
-                  ? "bg-black/20 text-black"
+                  ? "bg-black/20 text-black" // theme-allow: count chip sits on gold active pill
                   : "bg-[var(--surface-3)] text-[var(--text-muted)]"
               )}
             >

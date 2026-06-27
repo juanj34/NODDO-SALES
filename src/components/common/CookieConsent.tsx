@@ -104,7 +104,7 @@ export function CookieConsent() {
   return (
     <div className="fixed inset-x-0 bottom-0 z-[100] pointer-events-none">
       <div className="container max-w-7xl mx-auto px-4 sm:px-6 pb-4 sm:pb-6">
-        <div className="pointer-events-auto relative overflow-hidden rounded-[1.25rem] border border-[#b8973a]/20 shadow-[0_8px_32px_rgba(0,0,0,0.4)] backdrop-blur-xl" style={{ background: 'linear-gradient(135deg, rgba(20,20,20,0.95) 0%, rgba(26,26,26,0.95) 100%)' }}>
+        <div className="pointer-events-auto relative overflow-hidden rounded-[1.25rem] border border-[var(--site-primary)]/20 shadow-[0_8px_32px_rgba(var(--overlay-rgb),0.4)] backdrop-blur-xl" style={{ background: 'linear-gradient(135deg, var(--surface-1) 0%, var(--surface-2) 100%)' }}>
           <div className={showDetails ? "p-4 sm:p-5" : "px-4 sm:px-5 py-3"}>
             {/* Main content — compact single row */}
             {!showDetails ? (
@@ -143,30 +143,30 @@ export function CookieConsent() {
             ) : (
               <>
                 <div className="flex items-center justify-between mb-3">
-                  <h3 className="font-ui text-xs font-bold uppercase text-white tracking-wide">
+                  <h3 className="font-ui text-xs font-bold uppercase text-[var(--text-primary)] tracking-wide">
                     PERSONALIZAR COOKIES
                   </h3>
                   <button
                     onClick={() => setShowDetails(false)}
-                    className="p-1 rounded-lg hover:bg-white/5 transition-colors cursor-pointer"
+                    className="p-1 rounded-lg hover:bg-[var(--surface-2)] transition-colors cursor-pointer"
                     aria-label="Cerrar"
                   >
-                    <X className="w-3.5 h-3.5 text-white/40" />
+                    <X className="w-3.5 h-3.5 text-[var(--text-tertiary)]" />
                   </button>
                 </div>
 
                 {/* Cookie categories — compact */}
                 <div className="space-y-2 mb-3">
                   {/* Necessary */}
-                  <label className="flex items-center gap-3 p-2.5 rounded-lg bg-white/3 border border-white/10">
+                  <label className="flex items-center gap-3 p-2.5 rounded-lg bg-[var(--surface-2)] border border-[var(--border-default)]">
                     <input
                       type="checkbox"
                       checked={true}
                       disabled
-                      className="w-3.5 h-3.5 rounded border-white/20"
+                      className="w-3.5 h-3.5 rounded border-[var(--border-strong)]"
                     />
                     <div className="flex-1 min-w-0">
-                      <span className="font-ui text-[11px] font-semibold text-white tracking-wide">
+                      <span className="font-ui text-[11px] font-semibold text-[var(--text-primary)] tracking-wide">
                         NECESARIAS
                       </span>
                       <span className="text-[11px] text-[var(--text-muted)] ml-1.5">
@@ -176,17 +176,17 @@ export function CookieConsent() {
                   </label>
 
                   {/* Analytics */}
-                  <label className="flex items-center gap-3 p-2.5 rounded-lg bg-white/3 border border-white/10 cursor-pointer hover:bg-white/5 transition-colors">
+                  <label className="flex items-center gap-3 p-2.5 rounded-lg bg-[var(--surface-2)] border border-[var(--border-default)] cursor-pointer hover:bg-[var(--surface-3)] transition-colors">
                     <input
                       type="checkbox"
                       checked={preferences.analytics}
                       onChange={(e) =>
                         setPreferences({ ...preferences, analytics: e.target.checked })
                       }
-                      className="w-3.5 h-3.5 rounded border-white/20 accent-[var(--site-primary)]"
+                      className="w-3.5 h-3.5 rounded border-[var(--border-strong)] accent-[var(--site-primary)]"
                     />
                     <div className="flex-1 min-w-0">
-                      <span className="font-ui text-[11px] font-semibold text-white tracking-wide">
+                      <span className="font-ui text-[11px] font-semibold text-[var(--text-primary)] tracking-wide">
                         ANALÍTICAS
                       </span>
                       <span className="text-[11px] text-[var(--text-muted)] ml-1.5">
@@ -196,17 +196,17 @@ export function CookieConsent() {
                   </label>
 
                   {/* Marketing */}
-                  <label className="flex items-center gap-3 p-2.5 rounded-lg bg-white/3 border border-white/10 cursor-pointer hover:bg-white/5 transition-colors">
+                  <label className="flex items-center gap-3 p-2.5 rounded-lg bg-[var(--surface-2)] border border-[var(--border-default)] cursor-pointer hover:bg-[var(--surface-3)] transition-colors">
                     <input
                       type="checkbox"
                       checked={preferences.marketing}
                       onChange={(e) =>
                         setPreferences({ ...preferences, marketing: e.target.checked })
                       }
-                      className="w-3.5 h-3.5 rounded border-white/20 accent-[var(--site-primary)]"
+                      className="w-3.5 h-3.5 rounded border-[var(--border-strong)] accent-[var(--site-primary)]"
                     />
                     <div className="flex-1 min-w-0">
-                      <span className="font-ui text-[11px] font-semibold text-white tracking-wide">
+                      <span className="font-ui text-[11px] font-semibold text-[var(--text-primary)] tracking-wide">
                         MARKETING
                       </span>
                       <span className="text-[11px] text-[var(--text-muted)] ml-1.5">

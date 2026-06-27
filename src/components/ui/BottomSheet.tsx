@@ -74,7 +74,7 @@ export function BottomSheet({
             exit={{ opacity: 0 }}
             transition={{ duration: 0.2 }}
             onClick={closeOnBackdrop ? onClose : undefined}
-            className="fixed inset-0 bg-black/60 backdrop-blur-sm z-40"
+            className="fixed inset-0 bg-[rgba(var(--overlay-rgb),0.6)] backdrop-blur-sm z-40"
             aria-hidden="true"
           />
 
@@ -96,7 +96,7 @@ export function BottomSheet({
             className={cn(
               "fixed bottom-0 left-0 right-0 z-50 flex flex-col",
               "bg-[var(--surface-1)] border-t border-[var(--border-default)]",
-              "rounded-t-3xl shadow-[0_-4px_24px_rgba(0,0,0,0.3)]",
+              "rounded-t-3xl shadow-[0_-4px_24px_rgba(var(--overlay-rgb),0.3)]",
               heightClasses[height]
             )}
             role="dialog"
@@ -118,7 +118,7 @@ export function BottomSheet({
                 </h3>
                 <button
                   onClick={onClose}
-                  className="p-1.5 rounded-lg text-[var(--text-muted)] hover:text-[var(--text-secondary)] hover:bg-white/5 transition-colors"
+                  className="p-1.5 rounded-lg text-[var(--text-muted)] hover:text-[var(--text-secondary)] hover:bg-[var(--surface-2)] transition-colors"
                   aria-label="Cerrar"
                 >
                   <X size={18} />

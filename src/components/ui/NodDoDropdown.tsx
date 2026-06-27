@@ -41,17 +41,17 @@ const variantStyles = {
     triggerTextPlaceholder: "text-[var(--text-muted)]",
     panel: "bg-[rgba(26,26,29,0.95)] border-[var(--border-default)]",
     optionSelected: "bg-[rgba(184,151,58,0.12)] text-[var(--site-primary)]",
-    optionHover: "hover:bg-[var(--surface-3)] hover:text-white",
+    optionHover: "hover:bg-[var(--surface-3)] hover:text-[var(--text-primary)]",
     optionText: "text-[var(--text-secondary)]",
   },
   marketing: {
-    trigger: "border hover:border-[rgba(255,255,255,0.12)]",
+    trigger: "border hover:border-[rgba(var(--contrast-rgb),0.12)]",
     triggerOpen: "border-[rgba(184,151,58,0.4)] shadow-[0_0_0_3px_rgba(184,151,58,0.08)]",
     triggerText: "text-[rgba(244,240,232,0.9)]",
     triggerTextPlaceholder: "text-[rgba(244,240,232,0.4)]",
-    panel: "bg-[rgba(26,26,29,0.95)] border-[rgba(255,255,255,0.08)]",
+    panel: "bg-[rgba(26,26,29,0.95)] border-[rgba(var(--contrast-rgb),0.08)]",
     optionSelected: "bg-[rgba(184,151,58,0.12)] text-[#b8973a]",
-    optionHover: "hover:bg-[rgba(255,255,255,0.05)] hover:text-[rgba(244,240,232,1)]",
+    optionHover: "hover:bg-[rgba(var(--contrast-rgb),0.05)] hover:text-[rgba(244,240,232,1)]",
     optionText: "text-[rgba(244,240,232,0.7)]",
   },
   site: {
@@ -61,27 +61,27 @@ const variantStyles = {
     triggerTextPlaceholder: "text-[var(--text-muted)]",
     panel: "bg-[rgba(26,26,29,0.95)] border-[var(--border-default)]",
     optionSelected: "bg-[rgba(var(--site-primary-rgb),0.12)] text-[var(--site-primary)]",
-    optionHover: "hover:bg-[var(--surface-3)] hover:text-white",
+    optionHover: "hover:bg-[var(--surface-3)] hover:text-[var(--text-primary)]",
     optionText: "text-[var(--text-secondary)]",
   },
   table: {
     trigger: "bg-transparent border-[var(--border-default)] hover:border-[var(--border-strong)]",
     triggerOpen: "border-[rgba(184,151,58,0.4)]",
-    triggerText: "text-white",
+    triggerText: "text-[var(--text-primary)]",
     triggerTextPlaceholder: "text-[var(--text-muted)]",
     panel: "bg-[rgba(26,26,29,0.95)] border-[var(--border-default)]",
     optionSelected: "bg-[rgba(184,151,58,0.12)] text-[var(--site-primary)]",
-    optionHover: "hover:bg-[var(--surface-3)] hover:text-white",
+    optionHover: "hover:bg-[var(--surface-3)] hover:text-[var(--text-primary)]",
     optionText: "text-[var(--text-secondary)]",
   },
   form: {
     trigger: "bg-[var(--surface-3)] border-[var(--border-default)] hover:border-[var(--border-strong)]",
     triggerOpen: "border-[rgba(var(--site-primary-rgb),0.5)] shadow-[0_0_0_3px_rgba(var(--site-primary-rgb),0.10)]",
-    triggerText: "text-white",
+    triggerText: "text-[var(--text-primary)]",
     triggerTextPlaceholder: "text-[var(--text-muted)]",
     panel: "bg-[rgba(26,26,29,0.95)] border-[var(--border-default)]",
     optionSelected: "bg-[rgba(184,151,58,0.12)] text-[var(--site-primary)]",
-    optionHover: "hover:bg-[var(--surface-3)] hover:text-white",
+    optionHover: "hover:bg-[var(--surface-3)] hover:text-[var(--text-primary)]",
     optionText: "text-[var(--text-secondary)]",
   },
 };
@@ -154,8 +154,8 @@ export function NodDoDropdown({
 
   // Inline styles for marketing variant (special case)
   const marketingTriggerStyle = variant === "marketing" ? {
-    background: "rgba(255,255,255,0.04)",
-    borderColor: isOpen ? "rgba(184,151,58,0.4)" : "rgba(255,255,255,0.08)",
+    background: "rgba(var(--contrast-rgb),0.04)",
+    borderColor: isOpen ? "rgba(184,151,58,0.4)" : "rgba(var(--contrast-rgb),0.08)",
   } : undefined;
 
   // Handler functions - defined before effects that use them
@@ -289,7 +289,7 @@ export function NodDoDropdown({
       role="listbox"
       className={`
         fixed z-[9999] overflow-hidden rounded-[0.75rem]
-        shadow-[0_8px_40px_rgba(0,0,0,0.5)] border
+        shadow-[0_8px_40px_rgba(var(--overlay-rgb),0.5)] border
         ${vStyles.panel}
       `}
       style={{

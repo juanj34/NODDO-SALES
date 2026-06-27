@@ -18,7 +18,7 @@ export function LanguageToggle({ className, compact }: LanguageToggleProps) {
         onClick={() => setLocale(locale === "es" ? "en" : "es")}
         className={cn(
           "w-8 h-8 rounded-lg flex items-center justify-center text-[10px] font-bold tracking-wider uppercase transition-colors cursor-pointer",
-          "bg-white/[0.04] hover:bg-white/[0.08] text-[var(--text-tertiary)] hover:text-[var(--text-secondary)]",
+          "bg-[var(--surface-2)] hover:bg-[var(--surface-3)] text-[var(--text-tertiary)] hover:text-[var(--text-secondary)]",
           className
         )}
       >
@@ -30,7 +30,7 @@ export function LanguageToggle({ className, compact }: LanguageToggleProps) {
   return (
     <div
       className={cn(
-        "relative flex items-center bg-white/[0.04] rounded-full border border-[var(--border-subtle)] p-0.5",
+        "relative flex items-center bg-[var(--surface-2)] rounded-full border border-[var(--border-subtle)] p-0.5",
         className
       )}
     >

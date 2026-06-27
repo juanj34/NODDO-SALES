@@ -35,8 +35,8 @@ const variantStyles = {
     trigger: "text-[var(--site-primary)] hover:text-[rgba(var(--site-primary-rgb),0.8)]",
   },
   marketing: {
-    tooltip: "bg-[rgba(26,26,29,0.95)] border-[rgba(255,255,255,0.08)] text-[rgba(244,240,232,0.9)]",
-    arrow: "bg-[rgba(26,26,29,0.95)] border-[rgba(255,255,255,0.08)]",
+    tooltip: "bg-[rgba(26,26,29,0.95)] border-[rgba(var(--contrast-rgb),0.08)] text-[rgba(244,240,232,0.9)]",
+    arrow: "bg-[rgba(26,26,29,0.95)] border-[rgba(var(--contrast-rgb),0.08)]",
     trigger: "text-[#b8973a] hover:text-[#d4b05a]",
   },
   site: {
@@ -341,7 +341,7 @@ export function InfoTooltip({
                 variants={tooltipVariants}
                 role="tooltip"
                 className={`
-                  fixed z-[60] rounded-xl border shadow-[0_8px_40px_rgba(0,0,0,0.5),0_0_0_1px_rgba(var(--site-primary-rgb),0.15)]
+                  fixed z-[60] rounded-xl border shadow-[0_8px_40px_rgba(var(--overlay-rgb),0.5),0_0_0_1px_rgba(var(--site-primary-rgb),0.15)]
                   ${vStyles.tooltip}
                 `}
                 style={{
