@@ -153,16 +153,17 @@ export function buildCotizacionHtml(view: CotizacionView): string {
 
   const rendersHtml =
     view.renders.length > 0
-      ? `<section class="page renders"><div class="label">${t.renders}</div>` +
+      ? `<section class="renders"><div class="label">${t.renders}</div>` +
+        `<div class="render-stack">` +
         view.renders
           .slice(0, 4)
           .map((r) => `<img class="render" src="${esc(r)}" alt="" />`)
           .join("") +
-        `</section>`
+        `</div></section>`
       : "";
 
   const planoHtml = view.planoUrl
-    ? `<section class="page plano"><div class="label">${t.floorPlan}</div>` +
+    ? `<section class="plano"><div class="label">${t.floorPlan}</div>` +
       `<div class="plano-head">${esc(view.tipologiaName ?? "")} · ${t.unit}: ${esc(view.unidadId)}</div>` +
       `<img class="plano-img" src="${esc(view.planoUrl)}" alt="" /></section>`
     : "";
@@ -230,11 +231,14 @@ tr.discount td{color:#2e8b57;}
 tr.extra td{color:#444;}
 tr.total td{font-family:'Syne',sans-serif;font-weight:700;background:${accent};color:#fff;font-size:10px;letter-spacing:0.5px;}
 tr.total td.c-amt{font-family:'DM Mono',monospace;}
-.page{page-break-before:always;}
-.render{width:100%;height:auto;border-radius:6px;margin:0 0 8px;page-break-inside:avoid;}
+.renders,.plano{page-break-before:always;}
+.renders>.label{margin-bottom:8px;}
+.render-stack{display:flex;flex-direction:column;gap:8px;height:232mm;}
+.render{flex:1 1 0;min-height:0;width:100%;object-fit:cover;border-radius:6px;}
+.plano .label{margin-bottom:6px;}
 .plano-head{font-family:'DM Mono',monospace;font-size:9px;color:#6b6b6b;margin:0 0 8px;}
-.plano-img{width:100%;height:auto;page-break-inside:avoid;}
-.footer-block{margin-top:14px;border-top:0.5px solid #e6e2da;padding-top:10px;}
+.plano-img{width:100%;height:auto;max-height:224mm;object-fit:contain;display:block;}
+.footer-block{margin-top:18px;border-top:0.5px solid #e6e2da;padding-top:12px;page-break-inside:avoid;}
 .agent{margin-top:10px;}
 .agent-name{font-size:11px;}
 .agent-line{font-family:'DM Mono',monospace;font-size:9px;color:#6b6b6b;}
