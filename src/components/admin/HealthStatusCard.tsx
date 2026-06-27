@@ -84,7 +84,7 @@ export function HealthStatusCard({
       {/* Value */}
       <div className="mb-3">
         <div className="flex items-baseline gap-2">
-          <span className="font-heading text-3xl font-light text-white">
+          <span className="font-heading text-3xl font-light text-[var(--text-primary)]">
             {typeof value === "number" ? value.toFixed(1) : value}
           </span>
           {suffix && <span className="text-xs text-[var(--text-muted)]">{suffix}</span>}

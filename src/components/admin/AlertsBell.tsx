@@ -38,13 +38,14 @@ export function AlertsBell() {
     <div ref={ref} className="relative">
       <button
         onClick={() => setOpen(!open)}
-        className="relative w-9 h-9 rounded-lg bg-[var(--surface-2)] border border-[var(--border-subtle)] flex items-center justify-center text-[var(--text-tertiary)] hover:text-white hover:border-[var(--border-default)] transition-all"
+        className="relative w-9 h-9 rounded-lg bg-[var(--surface-2)] border border-[var(--border-subtle)] flex items-center justify-center text-[var(--text-tertiary)] hover:text-[var(--text-primary)] hover:border-[var(--border-default)] transition-all"
         aria-label="Alertas"
       >
         <Bell size={15} />
         {alerts.length > 0 && (
           <span className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-red-500 flex items-center justify-center">
-            <span className="font-ui text-[8px] font-bold text-white">{alerts.length}</span>
+            <span className={"font-ui text-[8px] font-bold text-white" // theme-allow: white count on red badge
+            }>{alerts.length}</span>
           </span>
         )}
       </button>
@@ -64,7 +65,7 @@ export function AlertsBell() {
               </span>
               <button
                 onClick={() => setOpen(false)}
-                className="text-[var(--text-muted)] hover:text-white transition-colors"
+                className="text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-colors"
               >
                 <X size={14} />
               </button>

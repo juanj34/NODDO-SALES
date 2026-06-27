@@ -33,29 +33,29 @@ export function RevenueChart({ data }: RevenueChartProps) {
             <stop offset="100%" stopColor="#b8973a" stopOpacity={0} />
           </linearGradient>
         </defs>
-        <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" vertical={false} />
+        <CartesianGrid strokeDasharray="3 3" stroke="rgba(var(--contrast-rgb),0.05)" vertical={false} />
         <XAxis
           dataKey="monthLabel"
-          stroke="rgba(255,255,255,0.2)"
-          tick={{ fill: "rgba(255,255,255,0.35)", fontSize: 10 }}
+          stroke="rgba(var(--contrast-rgb),0.2)"
+          tick={{ fill: "rgba(var(--contrast-rgb),0.35)", fontSize: 10 }}
           tickLine={false}
-          axisLine={{ stroke: "rgba(255,255,255,0.1)" }}
+          axisLine={{ stroke: "rgba(var(--contrast-rgb),0.1)" }}
         />
         <YAxis
-          stroke="rgba(255,255,255,0.2)"
-          tick={{ fill: "rgba(255,255,255,0.35)", fontSize: 10 }}
+          stroke="rgba(var(--contrast-rgb),0.2)"
+          tick={{ fill: "rgba(var(--contrast-rgb),0.35)", fontSize: 10 }}
           tickLine={false}
-          axisLine={{ stroke: "rgba(255,255,255,0.1)" }}
+          axisLine={{ stroke: "rgba(var(--contrast-rgb),0.1)" }}
           tickFormatter={(value) => `$${(value / 1000).toFixed(0)}k`}
         />
         <Tooltip
           contentStyle={{
-            backgroundColor: "rgba(20, 20, 20, 0.95)",
-            border: "1px solid rgba(255, 255, 255, 0.1)",
+            backgroundColor: "var(--surface-3)",
+            border: "1px solid rgba(var(--contrast-rgb), 0.1)",
             borderRadius: "8px",
             padding: "8px 12px",
           }}
-          labelStyle={{ color: "rgba(255,255,255,0.9)", fontSize: 11, marginBottom: 4 }}
+          labelStyle={{ color: "rgba(var(--contrast-rgb),0.9)", fontSize: 11, marginBottom: 4 }}
           itemStyle={{ color: "#b8973a", fontSize: 11 }}
           formatter={(value) => [`$${Number(value).toLocaleString("es-CO")}`, "Revenue"]}
         />

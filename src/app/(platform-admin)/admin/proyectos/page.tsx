@@ -202,7 +202,7 @@ export default function AdminProyectosPage() {
         {projects.length > 0 && (
           <button
             onClick={handleExportCSV}
-            className="flex items-center gap-2 px-4 py-2 rounded-lg bg-[var(--surface-2)] border border-[var(--border-subtle)] text-xs font-ui font-bold uppercase tracking-wider text-[var(--text-secondary)] hover:text-white hover:border-[var(--border-default)] transition-all"
+            className="flex items-center gap-2 px-4 py-2 rounded-lg bg-[var(--surface-2)] border border-[var(--border-subtle)] text-xs font-ui font-bold uppercase tracking-wider text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:border-[var(--border-default)] transition-all"
           >
             <Download size={13} />
             Exportar CSV
@@ -229,7 +229,7 @@ export default function AdminProyectosPage() {
               onClick={() => setStatusFilter(s)}
               className={`px-3 py-1.5 rounded-md text-[11px] font-ui font-bold uppercase tracking-wider transition-all ${
                 statusFilter === s
-                  ? "bg-[var(--surface-3)] text-white shadow-sm"
+                  ? "bg-[var(--surface-3)] text-[var(--text-primary)] shadow-sm"
                   : "text-[var(--text-tertiary)] hover:text-[var(--text-secondary)]"
               }`}
             >
@@ -251,7 +251,7 @@ export default function AdminProyectosPage() {
           <p className="text-[11px] text-[var(--text-muted)] mb-4">Verifica tu conexión e intenta de nuevo</p>
           <button
             onClick={fetchProjects}
-            className="flex items-center gap-2 px-4 py-2 rounded-lg bg-[var(--surface-2)] border border-[var(--border-subtle)] text-xs text-[var(--text-secondary)] hover:text-white hover:border-[var(--border-default)] transition-all"
+            className="flex items-center gap-2 px-4 py-2 rounded-lg bg-[var(--surface-2)] border border-[var(--border-subtle)] text-xs text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:border-[var(--border-default)] transition-all"
           >
             <RefreshCw size={13} /> Reintentar
           </button>

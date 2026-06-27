@@ -270,7 +270,7 @@ export default function AdminUsuariosPage() {
             className="flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-ui font-bold uppercase tracking-wider transition-all cursor-pointer"
             style={{
               background: "linear-gradient(135deg, #b8973a 0%, #d4b05a 100%)",
-              color: "#141414",
+              color: "#141414", // theme-allow: dark text on gold
             }}
           >
             <UserPlus size={13} />
@@ -279,7 +279,7 @@ export default function AdminUsuariosPage() {
           {users.length > 0 && (
             <button
               onClick={handleExportCSV}
-              className="flex items-center gap-2 px-4 py-2 rounded-lg bg-[var(--surface-2)] border border-[var(--border-subtle)] text-xs font-ui font-bold uppercase tracking-wider text-[var(--text-secondary)] hover:text-white hover:border-[var(--border-default)] transition-all"
+              className="flex items-center gap-2 px-4 py-2 rounded-lg bg-[var(--surface-2)] border border-[var(--border-subtle)] text-xs font-ui font-bold uppercase tracking-wider text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:border-[var(--border-default)] transition-all"
             >
               <Download size={13} />
               Exportar CSV
@@ -312,7 +312,7 @@ export default function AdminUsuariosPage() {
           <p className="text-[11px] text-[var(--text-muted)] mb-4">Verifica tu conexión e intenta de nuevo</p>
           <button
             onClick={fetchUsers}
-            className="flex items-center gap-2 px-4 py-2 rounded-lg bg-[var(--surface-2)] border border-[var(--border-subtle)] text-xs text-[var(--text-secondary)] hover:text-white hover:border-[var(--border-default)] transition-all"
+            className="flex items-center gap-2 px-4 py-2 rounded-lg bg-[var(--surface-2)] border border-[var(--border-subtle)] text-xs text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:border-[var(--border-default)] transition-all"
           >
             <RefreshCw size={13} /> Reintentar
           </button>
@@ -588,7 +588,7 @@ export default function AdminUsuariosPage() {
             onClick={() => setShowInviteModal(false)}
           >
             {/* Backdrop */}
-            <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" />
+            <div className="absolute inset-0 bg-[rgba(var(--overlay-rgb),0.6)] backdrop-blur-sm" />
 
             {/* Modal */}
             <motion.div
@@ -681,7 +681,7 @@ export default function AdminUsuariosPage() {
                     className="w-full py-3 rounded-lg text-xs font-ui font-bold uppercase tracking-wider transition-all disabled:opacity-50 cursor-pointer flex items-center justify-center gap-2"
                     style={{
                       background: "linear-gradient(135deg, #b8973a 0%, #d4b05a 100%)",
-                      color: "#141414",
+                      color: "#141414", // theme-allow: dark text on gold
                     }}
                   >
                     {inviteLoading ? (

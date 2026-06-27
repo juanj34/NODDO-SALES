@@ -93,7 +93,7 @@ export default function AdminOverviewPage() {
         <p className="text-[11px] text-[var(--text-muted)] mb-4">Verifica tu conexión e intenta de nuevo</p>
         <button
           onClick={() => fetchStats(range)}
-          className="flex items-center gap-2 px-4 py-2 rounded-lg bg-[var(--surface-2)] border border-[var(--border-subtle)] text-xs text-[var(--text-secondary)] hover:text-white hover:border-[var(--border-default)] transition-all"
+          className="flex items-center gap-2 px-4 py-2 rounded-lg bg-[var(--surface-2)] border border-[var(--border-subtle)] text-xs text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:border-[var(--border-default)] transition-all"
         >
           <RefreshCw size={13} /> Reintentar
         </button>
@@ -167,7 +167,7 @@ export default function AdminOverviewPage() {
               </div>
               <ArrowRight size={14} className="text-[var(--text-muted)] group-hover:text-[var(--site-primary)] transition-colors" />
             </div>
-            <h3 className="font-ui text-xs font-bold uppercase tracking-wider text-[var(--text-secondary)] group-hover:text-white transition-colors mb-1">
+            <h3 className="font-ui text-xs font-bold uppercase tracking-wider text-[var(--text-secondary)] group-hover:text-[var(--text-primary)] transition-colors mb-1">
               Ver Actividad
             </h3>
             <p className="text-[10px] text-[var(--text-muted)] font-mono font-light">
@@ -186,7 +186,7 @@ export default function AdminOverviewPage() {
               </div>
               <ArrowRight size={14} className="text-[var(--text-muted)] group-hover:text-[var(--site-primary)] transition-colors" />
             </div>
-            <h3 className="font-ui text-xs font-bold uppercase tracking-wider text-[var(--text-secondary)] group-hover:text-white transition-colors mb-1">
+            <h3 className="font-ui text-xs font-bold uppercase tracking-wider text-[var(--text-secondary)] group-hover:text-[var(--text-primary)] transition-colors mb-1">
               Citas de Hoy
             </h3>
             <p className="text-[10px] text-[var(--text-muted)] font-mono font-light">
@@ -205,7 +205,7 @@ export default function AdminOverviewPage() {
               </div>
               <ArrowRight size={14} className="text-[var(--text-muted)] group-hover:text-[var(--site-primary)] transition-colors" />
             </div>
-            <h3 className="font-ui text-xs font-bold uppercase tracking-wider text-[var(--text-secondary)] group-hover:text-white transition-colors mb-1">
+            <h3 className="font-ui text-xs font-bold uppercase tracking-wider text-[var(--text-secondary)] group-hover:text-[var(--text-primary)] transition-colors mb-1">
               Gestionar Admins
             </h3>
             <p className="text-[10px] text-[var(--text-muted)] font-mono font-light">
@@ -227,7 +227,7 @@ export default function AdminOverviewPage() {
               </div>
               <ArrowRight size={14} className="text-[var(--text-muted)] group-hover:text-[var(--site-primary)] transition-colors" />
             </div>
-            <h3 className="font-ui text-xs font-bold uppercase tracking-wider text-[var(--text-secondary)] group-hover:text-white transition-colors mb-1">
+            <h3 className="font-ui text-xs font-bold uppercase tracking-wider text-[var(--text-secondary)] group-hover:text-[var(--text-primary)] transition-colors mb-1">
               Exportar Reporte
             </h3>
             <p className="text-[10px] text-[var(--text-muted)] font-mono font-light">
@@ -303,7 +303,7 @@ export default function AdminOverviewPage() {
               <span className={`px-2 py-1 rounded-md font-ui text-[10px] font-bold uppercase tracking-wider ${PLAN_COLORS[plan] || "text-neutral-400 bg-neutral-500/15"}`}>
                 {plan}
               </span>
-              <span className="font-heading text-lg font-light text-white">{count}</span>
+              <span className="font-heading text-lg font-light text-[var(--text-primary)]">{count}</span>
             </div>
           ))}
           {stats.totalUsers - Object.values(stats.planDistribution).reduce((a, b) => a + b, 0) > 0 && (
@@ -311,7 +311,7 @@ export default function AdminOverviewPage() {
               <span className="px-2 py-1 rounded-md font-ui text-[10px] font-bold uppercase tracking-wider text-[var(--text-muted)] bg-[var(--surface-3)]">
                 Sin plan
               </span>
-              <span className="font-heading text-lg font-light text-white">
+              <span className="font-heading text-lg font-light text-[var(--text-primary)]">
                 {stats.totalUsers - Object.values(stats.planDistribution).reduce((a, b) => a + b, 0)}
               </span>
             </div>

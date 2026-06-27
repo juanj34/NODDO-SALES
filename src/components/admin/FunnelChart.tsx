@@ -35,7 +35,7 @@ export function FunnelChart({ data }: Props) {
                 {stage.label}
               </span>
               <div className="flex items-center gap-2">
-                <span className="font-mono text-xs text-white">{value}</span>
+                <span className="font-mono text-xs text-[var(--text-primary)]">{value}</span>
                 {conversionFromPrev !== null && (
                   <span className="font-mono text-[10px] text-[var(--text-muted)]">
                     ({conversionFromPrev}%)

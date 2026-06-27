@@ -140,7 +140,7 @@ export default function AdminModeracionPage() {
         <p className="text-[11px] text-[var(--text-muted)] mb-4">Verifica tu conexión e intenta de nuevo</p>
         <button
           onClick={fetchData}
-          className="flex items-center gap-2 px-4 py-2 rounded-lg bg-[var(--surface-2)] border border-[var(--border-subtle)] text-xs text-[var(--text-secondary)] hover:text-white hover:border-[var(--border-default)] transition-all"
+          className="flex items-center gap-2 px-4 py-2 rounded-lg bg-[var(--surface-2)] border border-[var(--border-subtle)] text-xs text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:border-[var(--border-default)] transition-all"
         >
           <RefreshCw size={13} /> Reintentar
         </button>
@@ -174,7 +174,7 @@ export default function AdminModeracionPage() {
           </div>
           <button
             onClick={fetchData}
-            className="flex items-center gap-2 px-4 py-2 rounded-lg bg-[var(--surface-2)] border border-[var(--border-subtle)] text-xs font-ui font-bold uppercase tracking-wider text-[var(--text-secondary)] hover:text-white hover:border-[var(--border-default)] transition-all"
+            className="flex items-center gap-2 px-4 py-2 rounded-lg bg-[var(--surface-2)] border border-[var(--border-subtle)] text-xs font-ui font-bold uppercase tracking-wider text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:border-[var(--border-default)] transition-all"
           >
             <RefreshCw size={13} />
             Actualizar
@@ -201,7 +201,7 @@ export default function AdminModeracionPage() {
               onClick={() => setFilter(f.key)}
               className={`flex items-center gap-2 px-4 py-2 rounded-lg border font-ui text-xs font-bold uppercase tracking-wider transition-all ${
                 filter === f.key
-                  ? "bg-[var(--surface-2)] text-white border-[var(--site-primary)]"
+                  ? "bg-[var(--surface-2)] text-[var(--text-primary)] border-[var(--site-primary)]"
                   : "bg-[var(--surface-1)] text-[var(--text-tertiary)] border-[var(--border-subtle)] hover:border-[var(--border-default)]"
               }`}
             >
