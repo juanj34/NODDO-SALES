@@ -423,7 +423,7 @@ export default function FAQPage() {
                     <div key={qIndex} className="glass-card overflow-hidden">
                       <button
                         onClick={() => toggleQuestion(catIndex, qIndex)}
-                        className="w-full px-6 py-5 flex items-center justify-between text-left transition-all duration-200 hover:bg-white/5"
+                        className="w-full px-6 py-5 flex items-center justify-between text-left transition-all duration-200 hover:bg-[var(--surface-2)]"
                       >
                         <span
                           className="text-base pr-4"

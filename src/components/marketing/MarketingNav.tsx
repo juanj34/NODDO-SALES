@@ -122,7 +122,7 @@ export function MarketingNav() {
   };
 
   const linkClasses =
-    "text-[11px] font-semibold tracking-[0.18em] uppercase text-[rgba(244,240,232,0.4)] hover:text-[var(--mk-accent)] transition-colors duration-200";
+    "text-[11px] font-semibold tracking-[0.18em] uppercase text-[var(--mk-text-tertiary)] hover:text-[var(--mk-accent)] transition-colors duration-200";
 
   return (
     <motion.header
@@ -131,7 +131,7 @@ export function MarketingNav() {
       className="fixed top-0 left-0 right-0 z-50"
       style={{
         background:
-          "linear-gradient(to bottom, rgba(20, 20, 20, 0.9), transparent)",
+          "linear-gradient(to bottom, color-mix(in srgb, var(--mk-bg) 90%, transparent), transparent)",
         backdropFilter: "blur(8px)",
         WebkitBackdropFilter: "blur(8px)",
         pointerEvents: visible ? "auto" : "none",
@@ -206,14 +206,14 @@ export function MarketingNav() {
           <LanguageToggle compact className="hidden sm:flex" />
           <Link
             href="/login"
-            className="hidden md:inline-flex items-center gap-1.5 text-[11px] tracking-[0.18em] uppercase text-[rgba(244,240,232,0.4)] hover:text-[var(--mk-accent)] transition-colors duration-200"
+            className="hidden md:inline-flex items-center gap-1.5 text-[11px] tracking-[0.18em] uppercase text-[var(--mk-text-tertiary)] hover:text-[var(--mk-accent)] transition-colors duration-200"
           >
             <LogIn size={13} strokeWidth={2} />
             {t("nav.login")}
           </Link>
           <Link
             href="/solicitar-demo"
-            className="hidden md:inline-flex items-center gap-1.5 text-[11px] tracking-[0.18em] uppercase text-[rgba(244,240,232,0.55)] hover:text-[var(--mk-accent)] transition-colors duration-200"
+            className="hidden md:inline-flex items-center gap-1.5 text-[11px] tracking-[0.18em] uppercase text-[var(--mk-text-secondary)] hover:text-[var(--mk-accent)] transition-colors duration-200"
           >
             {t("nav.requestDemo")}
           </Link>
@@ -229,7 +229,7 @@ export function MarketingNav() {
           <button
             type="button"
             onClick={() => setMobileOpen((prev) => !prev)}
-            className="md:hidden flex flex-col gap-1.5 p-2 min-w-[44px] min-h-[44px] items-center justify-center hover:bg-[rgba(255,255,255,0.05)] active:bg-[rgba(255,255,255,0.1)] rounded transition-colors"
+            className="md:hidden flex flex-col gap-1.5 p-2 min-w-[44px] min-h-[44px] items-center justify-center hover:bg-[rgba(var(--contrast-rgb),0.05)] active:bg-[rgba(var(--contrast-rgb),0.1)] rounded transition-colors"
             aria-label="Toggle menu"
           >
             <motion.span
@@ -262,7 +262,7 @@ export function MarketingNav() {
             transition={{ duration: 0.25, ease: "easeInOut" }}
             className="md:hidden overflow-hidden border-t border-[var(--mk-border-rule)]"
             style={{
-              background: "rgba(20, 20, 20, 0.95)",
+              background: "color-mix(in srgb, var(--mk-bg) 95%, transparent)",
               backdropFilter: "blur(8px)",
               WebkitBackdropFilter: "blur(8px)",
             }}
@@ -352,11 +352,11 @@ function DropdownPanel({ items }: { items: DropdownItem[] }) {
       <div
         className="rounded-xl overflow-hidden"
         style={{
-          background: "rgba(20, 20, 20, 0.97)",
-          border: "1px solid rgba(255,255,255,0.08)",
+          background: "color-mix(in srgb, var(--surface-1) 97%, transparent)",
+          border: "1px solid rgba(var(--contrast-rgb),0.08)",
           backdropFilter: "blur(24px)",
           boxShadow:
-            "0 20px 60px rgba(0,0,0,0.5), 0 0 0 1px rgba(255,255,255,0.03)",
+            "0 20px 60px rgba(var(--overlay-rgb),0.5), 0 0 0 1px rgba(var(--contrast-rgb),0.03)",
         }}
       >
         <div className="p-2">
@@ -366,31 +366,31 @@ function DropdownPanel({ items }: { items: DropdownItem[] }) {
               <Link
                 key={item.href}
                 href={item.href}
-                className="flex items-start gap-3 p-3 rounded-lg hover:bg-[rgba(255,255,255,0.05)] transition-colors duration-150 group"
+                className="flex items-start gap-3 p-3 rounded-lg hover:bg-[rgba(var(--contrast-rgb),0.05)] transition-colors duration-150 group"
               >
                 <div
                   className="p-1.5 rounded-md shrink-0 mt-0.5"
                   style={{
-                    backgroundColor: "rgba(184,151,58,0.1)",
-                    border: "1px solid rgba(184,151,58,0.15)",
+                    backgroundColor: "rgba(var(--mk-accent-rgb),0.1)",
+                    border: "1px solid rgba(var(--mk-accent-rgb),0.15)",
                   }}
                 >
                   <Icon
                     size={14}
                     strokeWidth={2}
-                    style={{ color: "#b8973a" }}
+                    style={{ color: "var(--mk-accent)" }}
                   />
                 </div>
                 <div>
                   <div
                     className="text-[11px] font-semibold tracking-[0.1em] uppercase group-hover:text-[var(--mk-accent)] transition-colors duration-150"
-                    style={{ color: "rgba(244,240,232,0.85)" }}
+                    style={{ color: "var(--mk-text-primary)" }}
                   >
                     {item.label}
                   </div>
                   <div
                     className="text-[10px] leading-[1.5] mt-0.5"
-                    style={{ color: "rgba(244,240,232,0.35)" }}
+                    style={{ color: "var(--mk-text-tertiary)" }}
                   >
                     {item.description}
                   </div>
@@ -447,9 +447,9 @@ function MobileAccordion({
                     key={item.href}
                     href={item.href}
                     onClick={onNavigate}
-                    className="flex items-center gap-2.5 py-2 text-[11px] tracking-[0.12em] text-[rgba(244,240,232,0.45)] hover:text-[var(--mk-accent)] transition-colors duration-150"
+                    className="flex items-center gap-2.5 py-2 text-[11px] tracking-[0.12em] text-[var(--mk-text-tertiary)] hover:text-[var(--mk-accent)] transition-colors duration-150"
                   >
-                    <Icon size={13} strokeWidth={2} style={{ color: "#b8973a", opacity: 0.6 }} />
+                    <Icon size={13} strokeWidth={2} style={{ color: "var(--mk-accent)", opacity: 0.6 }} />
                     {item.label}
                   </Link>
                 );

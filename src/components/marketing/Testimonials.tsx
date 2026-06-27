@@ -59,7 +59,7 @@ export function Testimonials() {
         </motion.h2>
 
         {/* Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-px bg-[rgba(255,255,255,0.04)]">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-px bg-[rgba(var(--contrast-rgb),0.04)]">
           {testimonials.map((item, i) => (
             <motion.div
               key={item.name}
@@ -77,7 +77,7 @@ export function Testimonials() {
                   right: 24,
                   width: 24,
                   height: 2,
-                  background: "rgba(184,151,58,0.4)",
+                  background: "rgba(var(--mk-accent-rgb),0.4)",
                   borderRadius: 1,
                 }}
               />
@@ -88,7 +88,7 @@ export function Testimonials() {
                 style={{
                   fontWeight: 300,
                   lineHeight: 0.6,
-                  color: "rgba(184,151,58,0.15)",
+                  color: "rgba(var(--mk-accent-rgb),0.15)",
                 }}
               >
                 &ldquo;
@@ -97,7 +97,7 @@ export function Testimonials() {
               {/* Quote text */}
               <p
                 className="text-[14px] leading-[1.9] mb-7 flex-1 italic"
-                style={{ color: "rgba(244, 240, 232, 0.6)" }}
+                style={{ color: "var(--mk-text-secondary)" }}
               >
                 {item.quote}
               </p>
@@ -108,7 +108,7 @@ export function Testimonials() {
                 style={{
                   width: 32,
                   height: 1,
-                  background: "rgba(184,151,58,0.3)",
+                  background: "rgba(var(--mk-accent-rgb),0.3)",
                 }}
               />
 
@@ -124,7 +124,7 @@ export function Testimonials() {
                   style={{
                     width: 42,
                     height: 42,
-                    border: "2px solid rgba(184,151,58,0.2)",
+                    border: "2px solid rgba(var(--mk-accent-rgb),0.2)",
                   }}
                 />
                 <div>
@@ -133,7 +133,7 @@ export function Testimonials() {
                   </p>
                   <p
                     className="text-[10px] tracking-[0.1em]"
-                    style={{ color: "rgba(244, 240, 232, 0.3)" }}
+                    style={{ color: "var(--mk-text-tertiary)" }}
                   >
                     {item.role}
                   </p>

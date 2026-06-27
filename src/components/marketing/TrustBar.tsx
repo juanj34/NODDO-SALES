@@ -48,16 +48,16 @@ export function TrustBar() {
                 <div
                   className="w-9 h-9 flex items-center justify-center text-[10px] font-ui font-bold tracking-wider"
                   style={{
-                    background: "rgba(255, 255, 255, 0.04)",
-                    border: "1px solid rgba(255, 255, 255, 0.08)",
-                    color: "rgba(255, 255, 255, 0.35)",
+                    background: "rgba(var(--contrast-rgb), 0.04)",
+                    border: "1px solid rgba(var(--contrast-rgb), 0.08)",
+                    color: "var(--mk-text-tertiary)",
                   }}
                 >
                   {logo.initials}
                 </div>
                 <span
                   className="text-[12px] font-medium whitespace-nowrap"
-                  style={{ color: "rgba(255, 255, 255, 0.25)" }}
+                  style={{ color: "var(--mk-text-muted)" }}
                 >
                   {logo.name}
                 </span>

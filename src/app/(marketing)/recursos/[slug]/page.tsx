@@ -250,7 +250,7 @@ export default function ArticlePage() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.7, delay: 0.15, ease }}
           className="relative w-full h-64 md:h-80 rounded-xl overflow-hidden mb-12"
-          style={{ border: "1px solid rgba(255,255,255,0.08)" }}
+          style={{ border: "1px solid rgba(var(--contrast-rgb),0.08)" }}
         >
           <Image
             src={article.image}
@@ -275,7 +275,7 @@ export default function ArticlePage() {
           animate={{ opacity: 1 }}
           transition={{ duration: 0.5, delay: 0.4, ease }}
           className="flex items-center gap-2 flex-wrap mt-12 pt-8"
-          style={{ borderTop: "1px solid rgba(255,255,255,0.06)" }}
+          style={{ borderTop: "1px solid rgba(var(--contrast-rgb),0.06)" }}
         >
           <Tag className="w-4 h-4" style={{ color: "rgba(244,240,232,0.35)" }} />
           {article.tags.map((tag) => (
@@ -283,7 +283,7 @@ export default function ArticlePage() {
               key={tag}
               className="px-3 py-1 rounded-lg text-xs"
               style={{
-                backgroundColor: "rgba(255,255,255,0.05)",
+                backgroundColor: "rgba(var(--contrast-rgb),0.05)",
                 color: "rgba(244,240,232,0.55)",
               }}
             >
@@ -375,7 +375,7 @@ export default function ArticlePage() {
                   <Link
                     key={rel.id}
                     href={`/recursos/${rel.id}`}
-                    className="glass-card overflow-hidden group hover:bg-white/5 transition-all duration-300"
+                    className="glass-card overflow-hidden group hover:bg-[var(--surface-2)] transition-all duration-300"
                   >
                     <div className="relative h-40 overflow-hidden">
                       <Image

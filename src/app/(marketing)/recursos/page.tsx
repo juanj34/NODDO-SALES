@@ -102,7 +102,7 @@ export default function RecursosPage() {
           className="mb-16"
         >
           <Link href={`/recursos/${articles[0].id}`} className="block">
-            <div className="glass-card overflow-hidden group hover:bg-white/5 transition-all duration-300">
+            <div className="glass-card overflow-hidden group hover:bg-[var(--surface-2)] transition-all duration-300">
               <div className="grid grid-cols-1 lg:grid-cols-2">
                 <div className="relative h-64 lg:h-auto overflow-hidden">
                   <Image src={articles[0].image} alt="" fill className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
@@ -174,7 +174,7 @@ export default function RecursosPage() {
                         className="px-3 py-1 rounded-lg text-xs"
                         style={{
                           fontWeight: 400,
-                          backgroundColor: "rgba(255, 255, 255, 0.05)",
+                          backgroundColor: "rgba(var(--contrast-rgb), 0.05)",
                           color: "rgba(244,240,232,0.55)",
                         }}
                       >
@@ -214,7 +214,7 @@ export default function RecursosPage() {
                 transition={{ duration: 0.6, delay: index * 0.1, ease }}
               >
                 <Link href={`/recursos/${article.id}`} className="block h-full">
-                  <div className="glass-card overflow-hidden group hover:bg-white/5 transition-all duration-300 h-full flex flex-col">
+                  <div className="glass-card overflow-hidden group hover:bg-[var(--surface-2)] transition-all duration-300 h-full flex flex-col">
                     <div className="relative h-48 overflow-hidden">
                       <Image src={article.image} alt="" fill className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
                     </div>
@@ -271,7 +271,7 @@ export default function RecursosPage() {
                             className="px-2 py-0.5 rounded text-[10px]"
                             style={{
                               fontWeight: 400,
-                              backgroundColor: "rgba(255, 255, 255, 0.05)",
+                              backgroundColor: "rgba(var(--contrast-rgb), 0.05)",
                               color: "rgba(244,240,232,0.45)",
                             }}
                           >
@@ -353,8 +353,8 @@ export default function RecursosPage() {
                 className="flex-1 px-6 py-4 rounded-xl input-glass text-sm"
                 style={{
                   fontWeight: 300,
-                  backgroundColor: "rgba(255, 255, 255, 0.05)",
-                  border: "1px solid rgba(255, 255, 255, 0.1)",
+                  backgroundColor: "rgba(var(--contrast-rgb), 0.05)",
+                  border: "1px solid rgba(var(--contrast-rgb), 0.1)",
                   color: "rgba(244,240,232,0.92)",
                 }}
               />

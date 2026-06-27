@@ -22,6 +22,10 @@ const projects: Project[] = [
 
 const VISIBLE_CARDS = 3;
 
+// Decorative dark-render fills for the isometric thumbnail building — intentionally dark in both themes
+const THUMB_DARK_A = "#1a1a1a"; // theme-allow: isometric building face shade
+const THUMB_DARK_B = "#111"; // theme-allow: isometric building face shade
+
 /* Mini isometric building SVG for thumbnail */
 function BuildingThumb({ seed }: { seed: number }) {
   const lx = 30 + seed * 10;
@@ -31,23 +35,23 @@ function BuildingThumb({ seed }: { seed: number }) {
   const bot = 190 - seed * 2;
   return (
     <svg viewBox="0 0 260 200" fill="none" width="260" height="200" style={{ opacity: 0.45 }}>
-      <polygon points={`${lx},${bot} ${lx},${top + 30} ${apex},${top} ${apex},${bot - 30}`} fill="#1a1a1a" />
-      <polygon points={`${apex},${bot - 30} ${apex},${top} ${rx},${top + 30} ${rx},${bot}`} fill="#111" />
+      <polygon points={`${lx},${bot} ${lx},${top + 30} ${apex},${top} ${apex},${bot - 30}`} fill={THUMB_DARK_A} />
+      <polygon points={`${apex},${bot - 30} ${apex},${top} ${rx},${top + 30} ${rx},${bot}`} fill={THUMB_DARK_B} />
       {/* Floor lines */}
       {[0, 1, 2, 3].map((fl) => (
-        <line key={fl} x1={lx} y1={top + 30 + fl * 26} x2={apex} y2={top + fl * 26} stroke="rgba(184,151,58,.12)" strokeWidth=".8" />
+        <line key={fl} x1={lx} y1={top + 30 + fl * 26} x2={apex} y2={top + fl * 26} stroke="rgba(var(--mk-accent-rgb),.12)" strokeWidth=".8" />
       ))}
       {/* Edge lines */}
-      <line x1={lx} y1={top + 30} x2={apex} y2={top} stroke="rgba(184,151,58,.5)" strokeWidth="1.2" />
-      <line x1={apex} y1={top} x2={rx} y2={top + 30} stroke="rgba(184,151,58,.32)" strokeWidth="1" />
-      <line x1={apex} y1={top} x2={apex} y2={bot - 30} stroke="rgba(184,151,58,.7)" strokeWidth="1.8" />
+      <line x1={lx} y1={top + 30} x2={apex} y2={top} stroke="rgba(var(--mk-accent-rgb),.5)" strokeWidth="1.2" />
+      <line x1={apex} y1={top} x2={rx} y2={top + 30} stroke="rgba(var(--mk-accent-rgb),.32)" strokeWidth="1" />
+      <line x1={apex} y1={top} x2={apex} y2={bot - 30} stroke="rgba(var(--mk-accent-rgb),.7)" strokeWidth="1.8" />
       {/* Some windows */}
       {[0, 1, 2].map((row) =>
         [0, 1].map((col) => (
           <polygon
             key={`${row}-${col}`}
             points={`${lx + 18 + col * 32},${top + 60 + row * 26} ${lx + 38 + col * 32},${top + 54 + row * 26} ${lx + 38 + col * 32},${top + 66 + row * 26} ${lx + 18 + col * 32},${top + 72 + row * 26}`}
-            fill="rgba(184,151,58,.22)"
+            fill="rgba(var(--mk-accent-rgb),.22)"
           />
         ))
       )}
@@ -96,7 +100,7 @@ export function ProjectsShowcase() {
             {t("projectsShowcase.headingLine1")}<br />
             <em>{t("projectsShowcase.headingEmphasis")}</em>
           </h2>
-          <p className="text-[13px] leading-[1.7] max-w-[420px]" style={{ color: "rgba(244,240,232,0.55)" }}>
+          <p className="text-[13px] leading-[1.7] max-w-[420px]" style={{ color: "var(--mk-text-secondary)" }}>
             {t("projectsShowcase.description")}
           </p>
         </div>
@@ -104,12 +108,12 @@ export function ProjectsShowcase() {
           <button
             onClick={() => slideTo(idx - 1)}
             aria-label={t("projectsShowcase.prevProjects")}
-            className="flex items-center justify-center hover:border-[rgba(255,255,255,0.25)] hover:text-[rgba(244,240,232,0.7)]"
+            className="flex items-center justify-center hover:border-[rgba(var(--contrast-rgb),0.25)] hover:text-[var(--mk-text-secondary)]"
             style={{
               width: 44, height: 44,
-              border: "1px solid rgba(255,255,255,0.1)",
+              border: "1px solid rgba(var(--contrast-rgb),0.1)",
               background: "none",
-              color: "rgba(244,240,232,0.4)",
+              color: "var(--mk-text-tertiary)",
               fontSize: 14,
               cursor: "pointer",
               transition: "border-color 0.2s, color 0.2s",
@@ -120,12 +124,12 @@ export function ProjectsShowcase() {
           <button
             onClick={() => slideTo(idx + 1)}
             aria-label={t("projectsShowcase.nextProjects")}
-            className="flex items-center justify-center hover:border-[rgba(255,255,255,0.25)] hover:text-[rgba(244,240,232,0.7)]"
+            className="flex items-center justify-center hover:border-[rgba(var(--contrast-rgb),0.25)] hover:text-[var(--mk-text-secondary)]"
             style={{
               width: 44, height: 44,
-              border: "1px solid rgba(255,255,255,0.1)",
+              border: "1px solid rgba(var(--contrast-rgb),0.1)",
               background: "none",
-              color: "rgba(244,240,232,0.4)",
+              color: "var(--mk-text-tertiary)",
               fontSize: 14,
               cursor: "pointer",
               transition: "border-color 0.2s, color 0.2s",
@@ -152,26 +156,26 @@ export function ProjectsShowcase() {
               key={proj.name}
               className="flex-shrink-0 overflow-hidden w-[300px] sm:w-[420px]"
               style={{
-                border: "1px solid rgba(255,255,255,0.06)",
-                background: "#111",
+                border: "1px solid var(--mk-border-subtle)",
+                background: "var(--mk-bg)",
                 transition: "border-color 0.3s",
               }}
             >
               {/* Thumbnail */}
               <div
                 className="relative flex items-center justify-center overflow-hidden"
-                style={{ height: 220, background: "#0a0a0a" }}
+                style={{ height: 220, background: "#0a0a0a" }} // theme-allow: dark render well behind isometric building illustration
               >
                 <BuildingThumb seed={i} />
-                <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to bottom, transparent 40%, rgba(0,0,0,0.8))" }} />
+                <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to bottom, transparent 40%, rgba(var(--overlay-rgb),0.8))" }} />
                 <span
                   className="absolute font-ui text-[8px] tracking-[0.25em] uppercase"
                   style={{
                     top: 16, left: 16,
                     color: "var(--mk-accent)",
-                    background: "rgba(0,0,0,0.7)",
+                    background: "rgba(var(--overlay-rgb),0.7)",
                     padding: "5px 10px",
-                    border: "1px solid rgba(184,151,58,0.2)",
+                    border: "1px solid rgba(var(--mk-accent-rgb),0.2)",
                   }}
                 >
                   {proj.city}
@@ -192,25 +196,25 @@ export function ProjectsShowcase() {
                 <div className="font-heading text-[22px] font-light mb-1" style={{ color: "var(--mk-text-primary)" }}>
                   {proj.name}
                 </div>
-                <div className="text-[10px] tracking-[0.1em] mb-5" style={{ color: "rgba(244,240,232,0.3)" }}>
+                <div className="text-[10px] tracking-[0.1em] mb-5" style={{ color: "var(--mk-text-tertiary)" }}>
                   {proj.location}
                 </div>
 
                 {/* Stats */}
                 <div
                   className="grid grid-cols-3 mb-5"
-                  style={{ gap: "1px", background: "rgba(255,255,255,0.05)" }}
+                  style={{ gap: "1px", background: "rgba(var(--contrast-rgb),0.05)" }}
                 >
                   {[
                     { val: proj.units, label: t("projectsShowcase.units") },
                     { val: proj.sold, label: t("projectsShowcase.sold") },
                     { val: proj.leads, label: t("projectsShowcase.leads") },
                   ].map((s) => (
-                    <div key={s.label} style={{ background: "#111", padding: 12 }}>
+                    <div key={s.label} style={{ background: "var(--mk-bg)", padding: 12 }}>
                       <div className="font-heading text-[18px] font-light" style={{ color: "var(--mk-accent-light)" }}>
                         {s.val}
                       </div>
-                      <div className="text-[8px] tracking-[0.12em] mt-0.5" style={{ color: "rgba(244,240,232,0.25)" }}>
+                      <div className="text-[8px] tracking-[0.12em] mt-0.5" style={{ color: "var(--mk-text-muted)" }}>
                         {s.label}
                       </div>
                     </div>
@@ -219,7 +223,7 @@ export function ProjectsShowcase() {
 
                 <span
                   className="font-ui text-[9px] font-bold tracking-[0.18em] uppercase inline-flex items-center gap-2"
-                  style={{ color: "rgba(244,240,232,0.3)", textDecoration: "none", transition: "color 0.2s" }}
+                  style={{ color: "var(--mk-text-tertiary)", textDecoration: "none", transition: "color 0.2s" }}
                 >
                   {t("projectsShowcase.viewShowroom")}
                 </span>

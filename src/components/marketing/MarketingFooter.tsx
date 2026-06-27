@@ -38,7 +38,7 @@ export function MarketingFooter() {
       {/* Top: 4-column grid */}
       <div
         className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-[2fr_1fr_1fr_1fr] gap-10 lg:gap-16 pb-14 mb-14"
-        style={{ borderBottom: "1px solid rgba(255,255,255,0.05)", maxWidth: 1200, margin: "0 auto" }}
+        style={{ borderBottom: "1px solid var(--mk-border-subtle)", maxWidth: 1200, margin: "0 auto" }}
       >
         {/* Brand column */}
         <div>
@@ -50,7 +50,7 @@ export function MarketingFooter() {
           </span>
           <p
             className="text-[12px] leading-[1.8] mb-6"
-            style={{ color: "rgba(244,240,232,0.3)", maxWidth: 280 }}
+            style={{ color: "var(--mk-text-tertiary)", maxWidth: 280 }}
           >
             {t("footer.tagline")}
           </p>
@@ -61,8 +61,8 @@ export function MarketingFooter() {
                 className="flex items-center gap-1.5 font-ui text-[8px] tracking-[0.15em] uppercase"
                 style={{
                   padding: "5px 10px",
-                  border: "1px solid rgba(255,255,255,0.08)",
-                  color: "rgba(244,240,232,0.3)",
+                  border: "1px solid rgba(var(--contrast-rgb),0.08)",
+                  color: "var(--mk-text-tertiary)",
                 }}
               >
                 <div
@@ -84,7 +84,7 @@ export function MarketingFooter() {
         <div>
           <div
             className="font-ui text-[9px] font-bold tracking-[0.25em] uppercase mb-5"
-            style={{ color: "rgba(244,240,232,0.25)" }}
+            style={{ color: "var(--mk-text-muted)" }}
           >
             {t("footer.product")}
           </div>
@@ -94,7 +94,7 @@ export function MarketingFooter() {
                 <Link
                   href={l.href}
                   className="text-[12px] hover:text-[var(--mk-accent)] transition-colors"
-                  style={{ color: "rgba(244,240,232,0.35)", textDecoration: "none" }}
+                  style={{ color: "var(--mk-text-tertiary)", textDecoration: "none" }}
                 >
                   {l.label}
                 </Link>
@@ -107,7 +107,7 @@ export function MarketingFooter() {
         <div>
           <div
             className="font-ui text-[9px] font-bold tracking-[0.25em] uppercase mb-5"
-            style={{ color: "rgba(244,240,232,0.25)" }}
+            style={{ color: "var(--mk-text-muted)" }}
           >
             {t("footer.company")}
           </div>
@@ -117,7 +117,7 @@ export function MarketingFooter() {
                 <Link
                   href={l.href}
                   className="text-[12px] hover:text-[var(--mk-accent)] transition-colors"
-                  style={{ color: "rgba(244,240,232,0.35)", textDecoration: "none" }}
+                  style={{ color: "var(--mk-text-tertiary)", textDecoration: "none" }}
                 >
                   {l.label}
                 </Link>
@@ -130,7 +130,7 @@ export function MarketingFooter() {
         <div>
           <div
             className="font-ui text-[9px] font-bold tracking-[0.25em] uppercase mb-5"
-            style={{ color: "rgba(244,240,232,0.25)" }}
+            style={{ color: "var(--mk-text-muted)" }}
           >
             {t("footer.legal")}
           </div>
@@ -140,7 +140,7 @@ export function MarketingFooter() {
                 <Link
                   href={l.href}
                   className="text-[12px] hover:text-[var(--mk-accent)] transition-colors"
-                  style={{ color: "rgba(244,240,232,0.35)", textDecoration: "none" }}
+                  style={{ color: "var(--mk-text-tertiary)", textDecoration: "none" }}
                 >
                   {l.label}
                 </Link>
@@ -155,10 +155,10 @@ export function MarketingFooter() {
         className="flex flex-col sm:flex-row items-center justify-between gap-4"
         style={{ maxWidth: 1200, margin: "0 auto" }}
       >
-        <p className="text-[10px] tracking-[0.15em]" style={{ color: "rgba(244,240,232,0.15)" }}>
+        <p className="text-[10px] tracking-[0.15em]" style={{ color: "var(--mk-text-muted)" }}>
           {t("footer.copyright")}
         </p>
-        <p className="text-[10px] tracking-[0.15em]" style={{ color: "rgba(244,240,232,0.15)" }}>
+        <p className="text-[10px] tracking-[0.15em]" style={{ color: "var(--mk-text-muted)" }}>
           {t("footer.contact")}
         </p>
       </div>

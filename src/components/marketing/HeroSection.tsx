@@ -105,7 +105,7 @@ export function HeroSection() {
               style={{
                 color: i === activeIndex
                   ? "var(--mk-accent)"
-                  : "rgba(244, 240, 232, 0.35)",
+                  : "var(--mk-text-tertiary)",
                 background: "none",
                 border: "none",
                 cursor: "pointer",
@@ -139,7 +139,7 @@ export function HeroSection() {
               transition={{ duration: 0.4, ease: "easeInOut" }}
               className="text-[13px] sm:text-[15px] leading-[1.75] sm:leading-[1.85] max-w-[580px]"
               style={{
-                color: "rgba(244, 240, 232, 0.5)",
+                color: "var(--mk-text-secondary)",
                 gridArea: "1 / 1",
                 pointerEvents: i === activeIndex ? "auto" : "none",
               }}
@@ -162,7 +162,7 @@ export function HeroSection() {
                 className="absolute inset-0 rounded-[12px]"
                 style={{
                   background: "transparent",
-                  boxShadow: "0 0 0 0 rgba(184,151,58,0.7)",
+                  boxShadow: "0 0 0 0 rgba(var(--mk-accent-rgb),0.7)",
                   animation: "pulse-ring 2s cubic-bezier(0.4, 0, 0.6, 1) infinite",
                 }}
               />
@@ -209,7 +209,7 @@ export function HeroSection() {
                       marginLeft: i === 0 ? 0 : -10,
                       position: "relative",
                       zIndex: 5 - i,
-                      boxShadow: "0 2px 8px rgba(0,0,0,0.3), 0 0 0 1px rgba(184,151,58,0.2)",
+                      boxShadow: "0 2px 8px rgba(var(--overlay-rgb),0.3), 0 0 0 1px rgba(var(--mk-accent-rgb),0.2)",
                       overflow: "hidden",
                     }}
                   >
@@ -227,16 +227,16 @@ export function HeroSection() {
                   </div>
                 ))}
               </div>
-              <span style={{ fontSize: 13, color: "rgba(244,240,232,0.5)" }}>
+              <span style={{ fontSize: 13, color: "var(--mk-text-secondary)" }}>
                 <strong style={{ color: "var(--mk-text-primary)", fontWeight: 500 }}>100+</strong> {t("hero.developers")}
               </span>
             </div>
 
             {/* Divider — hidden on mobile */}
-            <div className="hidden sm:block" style={{ width: 1, height: 20, background: "rgba(255,255,255,0.1)" }} />
+            <div className="hidden sm:block" style={{ width: 1, height: 20, background: "rgba(var(--contrast-rgb),0.1)" }} />
 
             {/* Micro-copy trust elements */}
-            <div className="flex items-center gap-3 sm:gap-4 text-[11px] sm:text-[12px]" style={{ color: "rgba(244,240,232,0.4)" }}>
+            <div className="flex items-center gap-3 sm:gap-4 text-[11px] sm:text-[12px]" style={{ color: "var(--mk-text-tertiary)" }}>
               <div className="flex items-center gap-1.5">
                 <span style={{ color: "var(--mk-accent)" }}>✓</span>
                 {t("hero.trustNoCard")}
@@ -257,13 +257,13 @@ export function HeroSection() {
         <style jsx>{`
           @keyframes pulse-ring {
             0% {
-              box-shadow: 0 0 0 0 rgba(184,151,58,0.7);
+              box-shadow: 0 0 0 0 rgba(var(--mk-accent-rgb),0.7);
             }
             50% {
-              box-shadow: 0 0 0 10px rgba(184,151,58,0);
+              box-shadow: 0 0 0 10px rgba(var(--mk-accent-rgb),0);
             }
             100% {
-              box-shadow: 0 0 0 0 rgba(184,151,58,0);
+              box-shadow: 0 0 0 0 rgba(var(--mk-accent-rgb),0);
             }
           }
         `}</style>
@@ -297,13 +297,13 @@ export function HeroSection() {
           className="w-px h-10"
           style={{
             background:
-              "linear-gradient(to bottom, rgba(184, 151, 58, 0.6), transparent)",
+              "linear-gradient(to bottom, rgba(var(--mk-accent-rgb), 0.6), transparent)",
             animation: "scrollPulse 2s infinite",
           }}
         />
         <span
           className="text-[8px] tracking-[0.3em] uppercase"
-          style={{ color: "rgba(244, 240, 232, 0.2)" }}
+          style={{ color: "var(--mk-text-muted)" }}
         >
           {t("hero.scroll")}
         </span>

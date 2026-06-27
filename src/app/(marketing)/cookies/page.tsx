@@ -213,7 +213,7 @@ function BrowserPrivacyIllustration() {
       <g className="ck-cookie1">
         <circle cx="295" cy="30" r="6" stroke="rgba(184,151,58,0.18)" strokeWidth="0.5" fill="rgba(184,151,58,0.03)" />
         {/* Bite mark */}
-        <circle cx="299" cy="27" r="2.5" fill="#141414" stroke="rgba(184,151,58,0.08)" strokeWidth="0.3" />
+        <circle cx="299" cy="27" r="2.5" fill="var(--mk-bg)" stroke="rgba(184,151,58,0.08)" strokeWidth="0.3" />
         {/* Chips */}
         <circle cx="293" cy="29" r="1" fill="rgba(184,151,58,0.12)" />
         <circle cx="296" cy="33" r="0.8" fill="rgba(184,151,58,0.1)" />
@@ -221,13 +221,13 @@ function BrowserPrivacyIllustration() {
       </g>
       <g className="ck-cookie2">
         <circle cx="305" cy="100" r="5" stroke="rgba(184,151,58,0.14)" strokeWidth="0.4" fill="rgba(184,151,58,0.025)" />
-        <circle cx="309" cy="98" r="2" fill="#141414" stroke="rgba(184,151,58,0.06)" strokeWidth="0.3" />
+        <circle cx="309" cy="98" r="2" fill="var(--mk-bg)" stroke="rgba(184,151,58,0.06)" strokeWidth="0.3" />
         <circle cx="303" cy="99" r="0.8" fill="rgba(184,151,58,0.1)" />
         <circle cx="306" cy="102" r="0.7" fill="rgba(184,151,58,0.08)" />
       </g>
       <g className="ck-cookie3">
         <circle cx="288" cy="155" r="4.5" stroke="rgba(184,151,58,0.12)" strokeWidth="0.4" fill="rgba(184,151,58,0.02)" />
-        <circle cx="291" cy="153" r="1.8" fill="#141414" stroke="rgba(184,151,58,0.05)" strokeWidth="0.3" />
+        <circle cx="291" cy="153" r="1.8" fill="var(--mk-bg)" stroke="rgba(184,151,58,0.05)" strokeWidth="0.3" />
         <circle cx="286" cy="154" r="0.7" fill="rgba(184,151,58,0.08)" />
         <circle cx="288" cy="158" r="0.6" fill="rgba(184,151,58,0.06)" />
       </g>
@@ -297,7 +297,7 @@ export default function CookiesPage() {
             transition={{ duration: 0.7, ease }}
             className="inline-flex items-center gap-3 mb-6 px-6 py-3 rounded-full glass-light"
           >
-            <Cookie className="w-5 h-5" style={{ color: "#b8973a" }} />
+            <Cookie className="w-5 h-5" style={{ color: "var(--site-primary)" }} />
             <span
               className="text-sm uppercase tracking-[0.15em]"
               style={{
@@ -321,7 +321,7 @@ export default function CookiesPage() {
             }}
           >
             Política de{" "}
-            <em style={{ fontStyle: "italic", color: "#b8973a" }}>Cookies</em>
+            <em style={{ fontStyle: "italic", color: "var(--site-primary)" }}>Cookies</em>
           </motion.h1>
           <motion.p
             initial={{ opacity: 0, y: 20 }}
@@ -345,7 +345,7 @@ export default function CookiesPage() {
               color: "rgba(244,240,232,0.35)",
             }}
           >
-            <span className="w-1 h-1 rounded-full" style={{ background: "#b8973a" }} />
+            <span className="w-1 h-1 rounded-full" style={{ background: "var(--site-primary)" }} />
             Última actualización: 14 de marzo de 2026
           </motion.p>
 

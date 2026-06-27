@@ -74,26 +74,26 @@ function InsightCard({ stepIndex }: { stepIndex: number }) {
       transition={{ duration: 0.4, delay: 0.2 }}
       className="flex items-start gap-3 rounded-xl px-4 py-3 mt-5"
       style={{
-        background: "rgba(184,151,58,0.06)",
-        border: "1px solid rgba(184,151,58,0.12)",
+        background: "rgba(var(--mk-accent-rgb),0.06)",
+        border: "1px solid rgba(var(--mk-accent-rgb),0.12)",
       }}
     >
       <div
         className="w-8 h-8 rounded-lg flex items-center justify-center shrink-0"
-        style={{ background: "rgba(184,151,58,0.12)" }}
+        style={{ background: "rgba(var(--mk-accent-rgb),0.12)" }}
       >
-        <Icon size={16} className="text-[#b8973a]" />
+        <Icon size={16} className="text-[var(--mk-accent)]" />
       </div>
       <div className="min-w-0">
         <span
           className="font-heading text-lg font-light"
-          style={{ color: "#b8973a" }}
+          style={{ color: "var(--mk-accent)" }}
         >
           {insight.stat}
         </span>
         <p
           className="text-[11px] leading-relaxed mt-0.5"
-          style={{ color: "rgba(244,240,232,0.45)" }}
+          style={{ color: "rgba(var(--contrast-rgb),0.45)" }}
         >
           {insight.text}
         </p>
@@ -116,10 +116,10 @@ function StepDots({ current, total }: { current: number; total: number }) {
             height: 6,
             background:
               i === current
-                ? "#b8973a"
+                ? "var(--mk-accent)"
                 : i < current
-                ? "rgba(184,151,58,0.4)"
-                : "rgba(255,255,255,0.1)",
+                ? "rgba(var(--mk-accent-rgb),0.4)"
+                : "rgba(var(--contrast-rgb),0.1)",
           }}
         />
       ))}
@@ -130,9 +130,9 @@ function StepDots({ current, total }: { current: number; total: number }) {
 // ─── Shared input style helper ─────────────────────────────────────────
 
 const inputStyle = {
-  background: "rgba(255,255,255,0.04)",
-  border: "1px solid rgba(255,255,255,0.08)",
-  color: "rgba(244,240,232,0.9)",
+  background: "rgba(var(--contrast-rgb),0.04)",
+  border: "1px solid rgba(var(--contrast-rgb),0.08)",
+  color: "rgba(var(--contrast-rgb),0.9)",
 };
 
 function FocusInput(props: React.InputHTMLAttributes<HTMLInputElement> & { className?: string }) {
@@ -142,8 +142,8 @@ function FocusInput(props: React.InputHTMLAttributes<HTMLInputElement> & { class
       {...rest}
       className={`w-full px-3.5 py-2.5 rounded-[0.625rem] text-[13px] outline-none transition-all ${className}`}
       style={inputStyle}
-      onFocus={(e) => (e.target.style.borderColor = "rgba(184,151,58,0.4)")}
-      onBlur={(e) => (e.target.style.borderColor = "rgba(255,255,255,0.08)")}
+      onFocus={(e) => (e.target.style.borderColor = "rgba(var(--mk-accent-rgb),0.4)")}
+      onBlur={(e) => (e.target.style.borderColor = "rgba(var(--contrast-rgb),0.08)")}
     />
   );
 }
@@ -279,7 +279,7 @@ export function ContactForm({ onClose, defaultPlan, source }: ContactFormProps) 
         {onClose && (
           <button
             onClick={onClose}
-            className="absolute top-4 right-4 text-[rgba(244,240,232,0.3)] hover:text-[rgba(244,240,232,0.7)] transition-colors"
+            className="absolute top-4 right-4 text-[rgba(var(--contrast-rgb),0.3)] hover:text-[rgba(var(--contrast-rgb),0.7)] transition-colors"
           >
             <X size={20} />
           </button>
@@ -293,21 +293,21 @@ export function ContactForm({ onClose, defaultPlan, source }: ContactFormProps) 
           <div
             className="w-16 h-16 rounded-full flex items-center justify-center mb-6 mx-auto"
             style={{
-              background: "linear-gradient(135deg, rgba(184,151,58,0.3), rgba(184,151,58,0.1))",
-              boxShadow: "0 0 40px rgba(184,151,58,0.15)",
+              background: "linear-gradient(135deg, rgba(var(--mk-accent-rgb),0.3), rgba(var(--mk-accent-rgb),0.1))",
+              boxShadow: "0 0 40px rgba(var(--mk-accent-rgb),0.15)",
             }}
           >
-            <Check size={28} className="text-[#b8973a]" />
+            <Check size={28} className="text-[var(--mk-accent)]" />
           </div>
 
           <h3
             className="font-heading text-2xl font-light mb-3"
-            style={{ color: "rgba(244,240,232,0.92)" }}
+            style={{ color: "rgba(var(--contrast-rgb),0.92)" }}
           >
             ¡Listo, {name.split(" ")[0]}!
           </h3>
 
-          <p className="text-[13px] mb-8" style={{ color: "rgba(244,240,232,0.5)" }}>
+          <p className="text-[13px] mb-8" style={{ color: "rgba(var(--contrast-rgb),0.5)" }}>
             Te contactaremos en menos de 24 horas.
           </p>
         </motion.div>
@@ -336,17 +336,17 @@ export function ContactForm({ onClose, defaultPlan, source }: ContactFormProps) 
               animate={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.3, delay: 0.1 }}
               className="flex items-start gap-3 rounded-xl p-3"
-              style={{ background: "rgba(255,255,255,0.03)" }}
+              style={{ background: "rgba(var(--contrast-rgb),0.03)" }}
             >
               <span className="text-lg shrink-0">{item.emoji}</span>
               <div>
                 <p
                   className="text-[11px] font-ui font-bold tracking-[0.08em] uppercase"
-                  style={{ color: "#b8973a" }}
+                  style={{ color: "var(--mk-accent)" }}
                 >
                   {item.title}
                 </p>
-                <p className="text-[12px] mt-0.5" style={{ color: "rgba(244,240,232,0.45)" }}>
+                <p className="text-[12px] mt-0.5" style={{ color: "rgba(var(--contrast-rgb),0.45)" }}>
                   {item.desc}
                 </p>
               </div>
@@ -372,7 +372,7 @@ export function ContactForm({ onClose, defaultPlan, source }: ContactFormProps) 
       {onClose && (
         <button
           onClick={onClose}
-          className="absolute top-4 right-4 text-[rgba(244,240,232,0.3)] hover:text-[rgba(244,240,232,0.7)] transition-colors z-10"
+          className="absolute top-4 right-4 text-[rgba(var(--contrast-rgb),0.3)] hover:text-[rgba(var(--contrast-rgb),0.7)] transition-colors z-10"
         >
           <X size={20} />
         </button>
@@ -396,11 +396,11 @@ export function ContactForm({ onClose, defaultPlan, source }: ContactFormProps) 
             <div className="mb-5">
               <h3
                 className="font-heading text-xl sm:text-2xl font-light"
-                style={{ color: "rgba(244,240,232,0.92)" }}
+                style={{ color: "rgba(var(--contrast-rgb),0.92)" }}
               >
                 Empecemos contigo
               </h3>
-              <p className="text-[12px] mt-1.5" style={{ color: "rgba(244,240,232,0.4)" }}>
+              <p className="text-[12px] mt-1.5" style={{ color: "rgba(var(--contrast-rgb),0.4)" }}>
                 Solo necesitamos tu nombre y correo para comenzar.
               </p>
             </div>
@@ -409,7 +409,7 @@ export function ContactForm({ onClose, defaultPlan, source }: ContactFormProps) 
               <div>
                 <label
                   className="block text-[10px] font-ui font-bold tracking-[0.12em] uppercase mb-1.5"
-                  style={{ color: "rgba(244,240,232,0.4)" }}
+                  style={{ color: "rgba(var(--contrast-rgb),0.4)" }}
                 >
                   Nombre
                 </label>
@@ -424,7 +424,7 @@ export function ContactForm({ onClose, defaultPlan, source }: ContactFormProps) 
               <div>
                 <label
                   className="block text-[10px] font-ui font-bold tracking-[0.12em] uppercase mb-1.5"
-                  style={{ color: "rgba(244,240,232,0.4)" }}
+                  style={{ color: "rgba(var(--contrast-rgb),0.4)" }}
                 >
                   Email
                 </label>
@@ -446,10 +446,10 @@ export function ContactForm({ onClose, defaultPlan, source }: ContactFormProps) 
               className="w-full flex items-center justify-center gap-2 py-3 rounded-[0.75rem] font-ui text-[10px] font-bold tracking-[0.15em] uppercase transition-all mt-6 disabled:opacity-30 disabled:cursor-not-allowed"
               style={{
                 background: isStep1Valid
-                  ? "linear-gradient(135deg, #b8973a, #d4b05a)"
-                  : "rgba(255,255,255,0.06)",
-                color: isStep1Valid ? "#141414" : "rgba(244,240,232,0.3)",
-                boxShadow: isStep1Valid ? "0 0 20px rgba(184,151,58,0.2)" : "none",
+                  ? "linear-gradient(135deg, var(--mk-accent), var(--mk-accent-light))"
+                  : "rgba(var(--contrast-rgb),0.06)",
+                color: isStep1Valid ? "#141414" : "rgba(var(--contrast-rgb),0.3)", // theme-allow: dark text on gold button
+                boxShadow: isStep1Valid ? "0 0 20px rgba(var(--mk-accent-rgb),0.2)" : "none",
               }}
             >
               Continuar <ArrowRight size={14} />
@@ -471,11 +471,11 @@ export function ContactForm({ onClose, defaultPlan, source }: ContactFormProps) 
             <div className="mb-5">
               <h3
                 className="font-heading text-xl sm:text-2xl font-light"
-                style={{ color: "rgba(244,240,232,0.92)" }}
+                style={{ color: "rgba(var(--contrast-rgb),0.92)" }}
               >
                 Cuéntanos de tu proyecto
               </h3>
-              <p className="text-[12px] mt-1.5" style={{ color: "rgba(244,240,232,0.4)" }}>
+              <p className="text-[12px] mt-1.5" style={{ color: "rgba(var(--contrast-rgb),0.4)" }}>
                 Esto nos ayuda a preparar una demo personalizada para ti.
               </p>
             </div>
@@ -484,7 +484,7 @@ export function ContactForm({ onClose, defaultPlan, source }: ContactFormProps) 
               <div>
                 <label
                   className="block text-[10px] font-ui font-bold tracking-[0.12em] uppercase mb-1.5"
-                  style={{ color: "rgba(244,240,232,0.4)" }}
+                  style={{ color: "rgba(var(--contrast-rgb),0.4)" }}
                 >
                   Empresa / Constructora
                 </label>
@@ -501,7 +501,7 @@ export function ContactForm({ onClose, defaultPlan, source }: ContactFormProps) 
                 <div>
                   <label
                     className="block text-[10px] font-ui font-bold tracking-[0.12em] uppercase mb-1.5"
-                    style={{ color: "rgba(244,240,232,0.4)" }}
+                    style={{ color: "rgba(var(--contrast-rgb),0.4)" }}
                   >
                     Teléfono
                   </label>
@@ -538,7 +538,7 @@ export function ContactForm({ onClose, defaultPlan, source }: ContactFormProps) 
                 <div>
                   <label
                     className="block text-[10px] font-ui font-bold tracking-[0.12em] uppercase mb-1.5"
-                    style={{ color: "rgba(244,240,232,0.4)" }}
+                    style={{ color: "rgba(var(--contrast-rgb),0.4)" }}
                   >
                     ¿Cuántos proyectos manejas?
                   </label>
@@ -565,9 +565,9 @@ export function ContactForm({ onClose, defaultPlan, source }: ContactFormProps) 
                 onClick={goBack}
                 className="flex items-center justify-center gap-1.5 py-3 px-5 rounded-[0.75rem] font-ui text-[10px] font-bold tracking-[0.12em] uppercase transition-all"
                 style={{
-                  background: "rgba(255,255,255,0.04)",
-                  color: "rgba(244,240,232,0.5)",
-                  border: "1px solid rgba(255,255,255,0.08)",
+                  background: "rgba(var(--contrast-rgb),0.04)",
+                  color: "rgba(var(--contrast-rgb),0.5)",
+                  border: "1px solid rgba(var(--contrast-rgb),0.08)",
                 }}
               >
                 <ArrowLeft size={12} /> Atrás
@@ -576,9 +576,9 @@ export function ContactForm({ onClose, defaultPlan, source }: ContactFormProps) 
                 onClick={goNext}
                 className="flex-1 flex items-center justify-center gap-2 py-3 rounded-[0.75rem] font-ui text-[10px] font-bold tracking-[0.15em] uppercase transition-all"
                 style={{
-                  background: "linear-gradient(135deg, #b8973a, #d4b05a)",
-                  color: "#141414",
-                  boxShadow: "0 0 20px rgba(184,151,58,0.2)",
+                  background: "linear-gradient(135deg, var(--mk-accent), var(--mk-accent-light))",
+                  color: "#141414", // theme-allow: dark text on gold button
+                  boxShadow: "0 0 20px rgba(var(--mk-accent-rgb),0.2)",
                 }}
               >
                 Continuar <ArrowRight size={14} />
@@ -601,11 +601,11 @@ export function ContactForm({ onClose, defaultPlan, source }: ContactFormProps) 
             <div className="mb-5">
               <h3
                 className="font-heading text-xl sm:text-2xl font-light"
-                style={{ color: "rgba(244,240,232,0.92)" }}
+                style={{ color: "rgba(var(--contrast-rgb),0.92)" }}
               >
                 Casi listo, {name.split(" ")[0]}
               </h3>
-              <p className="text-[12px] mt-1.5" style={{ color: "rgba(244,240,232,0.4)" }}>
+              <p className="text-[12px] mt-1.5" style={{ color: "rgba(var(--contrast-rgb),0.4)" }}>
                 Elige el plan que más te interesa y déjanos cualquier pregunta.
               </p>
             </div>
@@ -614,7 +614,7 @@ export function ContactForm({ onClose, defaultPlan, source }: ContactFormProps) 
               <div>
                 <label
                   className="block text-[10px] font-ui font-bold tracking-[0.12em] uppercase mb-1.5"
-                  style={{ color: "rgba(244,240,232,0.4)" }}
+                  style={{ color: "rgba(var(--contrast-rgb),0.4)" }}
                 >
                   Plan de interés
                 </label>
@@ -631,7 +631,7 @@ export function ContactForm({ onClose, defaultPlan, source }: ContactFormProps) 
               <div>
                 <label
                   className="block text-[10px] font-ui font-bold tracking-[0.12em] uppercase mb-1.5"
-                  style={{ color: "rgba(244,240,232,0.4)" }}
+                  style={{ color: "rgba(var(--contrast-rgb),0.4)" }}
                 >
                   ¿Algo más que debamos saber?
                 </label>
@@ -645,8 +645,8 @@ export function ContactForm({ onClose, defaultPlan, source }: ContactFormProps) 
                     ...inputStyle,
                     lineHeight: 1.7,
                   }}
-                  onFocus={(e) => (e.target.style.borderColor = "rgba(184,151,58,0.4)")}
-                  onBlur={(e) => (e.target.style.borderColor = "rgba(255,255,255,0.08)")}
+                  onFocus={(e) => (e.target.style.borderColor = "rgba(var(--mk-accent-rgb),0.4)")}
+                  onBlur={(e) => (e.target.style.borderColor = "rgba(var(--contrast-rgb),0.08)")}
                 />
               </div>
 
@@ -655,13 +655,13 @@ export function ContactForm({ onClose, defaultPlan, source }: ContactFormProps) 
                 <div
                   className="w-4 h-4 rounded border flex items-center justify-center shrink-0 mt-0.5 transition-all"
                   style={{
-                    borderColor: whatsappOptin ? "#b8973a" : "rgba(255,255,255,0.15)",
-                    background: whatsappOptin ? "rgba(184,151,58,0.15)" : "transparent",
+                    borderColor: whatsappOptin ? "var(--mk-accent)" : "rgba(var(--contrast-rgb),0.15)",
+                    background: whatsappOptin ? "rgba(var(--mk-accent-rgb),0.15)" : "transparent",
                   }}
                 >
-                  {whatsappOptin && <Check size={10} className="text-[#b8973a]" />}
+                  {whatsappOptin && <Check size={10} className="text-[var(--mk-accent)]" />}
                 </div>
-                <span className="text-[11px] leading-relaxed" style={{ color: "rgba(244,240,232,0.5)" }}>
+                <span className="text-[11px] leading-relaxed" style={{ color: "rgba(var(--contrast-rgb),0.5)" }}>
                   Acepto recibir información por WhatsApp
                 </span>
               </label>
@@ -677,9 +677,9 @@ export function ContactForm({ onClose, defaultPlan, source }: ContactFormProps) 
                 onClick={goBack}
                 className="flex items-center justify-center gap-1.5 py-3 px-5 rounded-[0.75rem] font-ui text-[10px] font-bold tracking-[0.12em] uppercase transition-all"
                 style={{
-                  background: "rgba(255,255,255,0.04)",
-                  color: "rgba(244,240,232,0.5)",
-                  border: "1px solid rgba(255,255,255,0.08)",
+                  background: "rgba(var(--contrast-rgb),0.04)",
+                  color: "rgba(var(--contrast-rgb),0.5)",
+                  border: "1px solid rgba(var(--contrast-rgb),0.08)",
                 }}
               >
                 <ArrowLeft size={12} /> Atrás
@@ -690,10 +690,10 @@ export function ContactForm({ onClose, defaultPlan, source }: ContactFormProps) 
                 className="flex-1 flex items-center justify-center gap-2 py-3 rounded-[0.75rem] font-ui text-[10px] font-bold tracking-[0.15em] uppercase transition-all disabled:opacity-40 disabled:cursor-not-allowed"
                 style={{
                   background: canSubmit
-                    ? "linear-gradient(135deg, #b8973a, #d4b05a)"
-                    : "rgba(255,255,255,0.06)",
-                  color: canSubmit ? "#141414" : "rgba(244,240,232,0.3)",
-                  boxShadow: canSubmit ? "0 0 20px rgba(184,151,58,0.2)" : "none",
+                    ? "linear-gradient(135deg, var(--mk-accent), var(--mk-accent-light))"
+                    : "rgba(var(--contrast-rgb),0.06)",
+                  color: canSubmit ? "#141414" : "rgba(var(--contrast-rgb),0.3)", // theme-allow: dark text on gold button
+                  boxShadow: canSubmit ? "0 0 20px rgba(var(--mk-accent-rgb),0.2)" : "none",
                 }}
               >
                 {status === "sending" ? (
@@ -710,12 +710,12 @@ export function ContactForm({ onClose, defaultPlan, source }: ContactFormProps) 
             {/* Privacy */}
             <p
               className="text-[10px] text-center leading-relaxed mt-4"
-              style={{ color: "rgba(244,240,232,0.2)" }}
+              style={{ color: "rgba(var(--contrast-rgb),0.2)" }}
             >
               Al enviar, aceptas nuestra{" "}
               <a
                 href="/privacidad"
-                className="underline hover:text-[rgba(244,240,232,0.4)] transition-colors"
+                className="underline hover:text-[rgba(var(--contrast-rgb),0.4)] transition-colors"
               >
                 política de privacidad
               </a>

@@ -742,7 +742,7 @@ export default function NosotrosPage() {
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true, margin: "-40px" }}
                 transition={{ duration: 0.5, delay: i * 0.1, ease }}
-                className="glass-card p-6 text-center hover:bg-white/5 transition-all duration-300"
+                className="glass-card p-6 text-center hover:bg-[var(--surface-2)] transition-all duration-300"
               >
                 <Image
                   src={member.avatar}

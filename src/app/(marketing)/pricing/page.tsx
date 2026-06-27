@@ -162,7 +162,7 @@ function PricingCard({
               className="text-xs font-semibold px-5 py-1.5 rounded-full whitespace-nowrap"
               style={{
                 background: "var(--mk-accent)",
-                color: "#141414",
+                color: "var(--mk-bg)",
                 boxShadow: "0 4px 16px rgba(var(--mk-accent-rgb), 0.3)",
               }}
             >
@@ -259,7 +259,7 @@ function PricingCard({
                 <div
                   className="w-5 h-5 rounded-md flex items-center justify-center flex-shrink-0 mt-0.5"
                   style={{
-                    background: "rgba(255, 255, 255, 0.03)",
+                    background: "rgba(var(--contrast-rgb), 0.03)",
                     border: "1px solid var(--mk-border-subtle)",
                   }}
                 >
@@ -555,7 +555,7 @@ export default function PricingPage() {
           </h2>
           <p
             className="text-base md:text-lg leading-relaxed mb-10"
-            style={{ color: "rgba(255, 255, 255, 0.5)" }}
+            style={{ color: "rgba(var(--contrast-rgb), 0.5)" }}
           >
             {t("pricing.cta.subtitle")}
           </p>

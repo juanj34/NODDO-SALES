@@ -108,9 +108,9 @@ export function ScrollFeatures() {
         if (i === stepIdx) {
           dot.style.background = "var(--mk-accent)";
           dot.style.transform = "scale(1.5)";
-          dot.style.boxShadow = "0 0 8px rgba(184,151,58,.5)";
+          dot.style.boxShadow = "0 0 8px rgba(var(--mk-accent-rgb),.5)";
         } else {
-          dot.style.background = "rgba(255,255,255,.1)";
+          dot.style.background = "rgba(var(--contrast-rgb),.1)";
           dot.style.transform = "scale(1)";
           dot.style.boxShadow = "none";
         }
@@ -242,7 +242,7 @@ export function ScrollFeatures() {
       ref={sectionRef}
       className="relative z-[1] h-[250vh] lg:h-[420vh]"
       style={{
-        borderTop: "1px solid rgba(255,255,255,.04)",
+        borderTop: "1px solid rgba(var(--contrast-rgb),.04)",
       }}
     >
       <div
@@ -261,8 +261,8 @@ export function ScrollFeatures() {
             alignItems: "center",
             justifyContent: "center",
             position: "relative",
-            background: "#0f0f0f",
-            borderRight: "1px solid rgba(255,255,255,.05)",
+            background: "var(--surface-0)",
+            borderRight: "1px solid rgba(var(--contrast-rgb),.05)",
           }}
         >
           {/* Gold glow backdrop */}
@@ -270,7 +270,7 @@ export function ScrollFeatures() {
             style={{
               position: "absolute",
               inset: 0,
-              background: "radial-gradient(ellipse 70% 60% at 50% 55%, rgba(184,151,58,.05) 0%, transparent 70%)",
+              background: "radial-gradient(ellipse 70% 60% at 50% 55%, rgba(var(--mk-accent-rgb),.05) 0%, transparent 70%)",
               pointerEvents: "none",
             }}
           />
@@ -281,7 +281,7 @@ export function ScrollFeatures() {
               position: "relative",
               width: "min(480px, 85%)",
               aspectRatio: "480/560",
-              filter: "drop-shadow(0 60px 80px rgba(0,0,0,.8))",
+              filter: "drop-shadow(0 60px 80px rgba(var(--overlay-rgb),.8))",
             }}
           >
             {/* Base dashboard frame SVG */}
@@ -296,57 +296,57 @@ export function ScrollFeatures() {
                 </clipPath>
               </defs>
               {/* Browser outer frame */}
-              <rect x="8" y="8" width="464" height="544" rx="12" fill="#0c0c0c" stroke="rgba(255,255,255,.08)" strokeWidth="1" />
+              <rect x="8" y="8" width="464" height="544" rx="12" fill="var(--surface-1)" stroke="rgba(var(--contrast-rgb),.08)" strokeWidth="1" />
               {/* Browser chrome bar */}
-              <rect x="8" y="8" width="464" height="32" rx="12" fill="#161616" />
-              <rect x="8" y="28" width="464" height="12" fill="#161616" />
+              <rect x="8" y="8" width="464" height="32" rx="12" fill="var(--surface-2)" />
+              <rect x="8" y="28" width="464" height="12" fill="var(--surface-2)" />
               {/* Traffic light dots */}
               <circle cx="26" cy="24" r="4.5" fill="rgba(255,95,87,.5)" />
               <circle cx="40" cy="24" r="4.5" fill="rgba(255,189,46,.5)" />
               <circle cx="54" cy="24" r="4.5" fill="rgba(39,201,63,.5)" />
               {/* URL bar */}
-              <rect x="110" y="16" width="200" height="16" rx="4" fill="rgba(255,255,255,.04)" />
-              <text x="210" y="27" textAnchor="middle" fontFamily="DM Mono,monospace" fontSize="7.5" fill="rgba(244,240,232,.25)">dashboard.noddo.io</text>
+              <rect x="110" y="16" width="200" height="16" rx="4" fill="rgba(var(--contrast-rgb),.04)" />
+              <text x="210" y="27" textAnchor="middle" fontFamily="DM Mono,monospace" fontSize="7.5" fill="rgba(var(--contrast-rgb),.25)">dashboard.noddo.io</text>
 
               {/* Left sidebar */}
-              <rect x="8" y="40" width="82" height="512" fill="#111" />
+              <rect x="8" y="40" width="82" height="512" fill="var(--surface-1)" />
               {/* Sidebar bottom round corners (cover) */}
-              <rect x="8" y="540" width="10" height="12" rx="0" fill="#111" />
-              <path d="M8,544 L8,552 Q8,552 8,552 L20,552 L20,544 Z" fill="#0c0c0c" />
+              <rect x="8" y="540" width="10" height="12" rx="0" fill="var(--surface-1)" />
+              <path d="M8,544 L8,552 Q8,552 8,552 L20,552 L20,544 Z" fill="var(--surface-1)" />
               {/* NODDO logo placeholder — 2 gold lines */}
-              <rect x="22" y="52" width="24" height="2.5" rx="1" fill="rgba(184,151,58,.7)" />
-              <rect x="22" y="58" width="16" height="2.5" rx="1" fill="rgba(184,151,58,.4)" />
+              <rect x="22" y="52" width="24" height="2.5" rx="1" fill="rgba(var(--mk-accent-rgb),.7)" />
+              <rect x="22" y="58" width="16" height="2.5" rx="1" fill="rgba(var(--mk-accent-rgb),.4)" />
               {/* Nav items */}
               {/* Active item */}
-              <rect x="14" y="78" width="70" height="24" rx="5" fill="rgba(184,151,58,.1)" />
-              <rect x="14" y="78" width="2.5" height="24" rx="1" fill="#b8973a" />
-              <rect x="24" y="85" width="10" height="10" rx="2" fill="rgba(184,151,58,.3)" />
-              <text x="40" y="94" fontFamily="Syne,sans-serif" fontSize="7" fill="rgba(184,151,58,.9)" fontWeight="700" letterSpacing="0.5">Grid</text>
+              <rect x="14" y="78" width="70" height="24" rx="5" fill="rgba(var(--mk-accent-rgb),.1)" />
+              <rect x="14" y="78" width="2.5" height="24" rx="1" fill="var(--mk-accent)" />
+              <rect x="24" y="85" width="10" height="10" rx="2" fill="rgba(var(--mk-accent-rgb),.3)" />
+              <text x="40" y="94" fontFamily="Syne,sans-serif" fontSize="7" fill="rgba(var(--mk-accent-rgb),.9)" fontWeight="700" letterSpacing="0.5">Grid</text>
               {/* Inactive items */}
               {([112, 142, 172, 202, 232] as const).map((y, i) => (
                 <g key={`nav-${i}`}>
-                  <rect x="24" y={y + 7} width="10" height="10" rx="2" fill="rgba(255,255,255,.06)" />
-                  <rect x="40" y={y + 10} width={[28, 22, 32, 26, 20][i]} height="4" rx="1.5" fill="rgba(255,255,255,.08)" />
+                  <rect x="24" y={y + 7} width="10" height="10" rx="2" fill="rgba(var(--contrast-rgb),.06)" />
+                  <rect x="40" y={y + 10} width={[28, 22, 32, 26, 20][i]} height="4" rx="1.5" fill="rgba(var(--contrast-rgb),.08)" />
                 </g>
               ))}
 
               {/* Sidebar / content separator */}
-              <line x1="90" y1="40" x2="90" y2="552" stroke="rgba(255,255,255,.06)" strokeWidth="1" />
+              <line x1="90" y1="40" x2="90" y2="552" stroke="rgba(var(--contrast-rgb),.06)" strokeWidth="1" />
 
               {/* Content area header */}
-              <text x="106" y="66" fontFamily="Syne,sans-serif" fontSize="11" fill="rgba(244,240,232,.85)" fontWeight="700" letterSpacing="1.2">TORRE RESIDENCIAL</text>
+              <text x="106" y="66" fontFamily="Syne,sans-serif" fontSize="11" fill="rgba(var(--contrast-rgb),.85)" fontWeight="700" letterSpacing="1.2">TORRE RESIDENCIAL</text>
               {/* Tab bar */}
-              <text x="106" y="84" fontFamily="Syne,sans-serif" fontSize="7.5" fill="rgba(184,151,58,.85)" fontWeight="700" letterSpacing="1">GENERAL</text>
-              <line x1="106" y1="87" x2="140" y2="87" stroke="#b8973a" strokeWidth="1.5" />
-              <text x="152" y="84" fontFamily="Syne,sans-serif" fontSize="7.5" fill="rgba(244,240,232,.25)" fontWeight="600" letterSpacing="1">GRID</text>
-              <text x="182" y="84" fontFamily="Syne,sans-serif" fontSize="7.5" fill="rgba(244,240,232,.25)" fontWeight="600" letterSpacing="1">INVENTARIO</text>
-              <text x="230" y="84" fontFamily="Syne,sans-serif" fontSize="7.5" fill="rgba(244,240,232,.25)" fontWeight="600" letterSpacing="1">LEADS</text>
+              <text x="106" y="84" fontFamily="Syne,sans-serif" fontSize="7.5" fill="rgba(var(--mk-accent-rgb),.85)" fontWeight="700" letterSpacing="1">GENERAL</text>
+              <line x1="106" y1="87" x2="140" y2="87" stroke="var(--mk-accent)" strokeWidth="1.5" />
+              <text x="152" y="84" fontFamily="Syne,sans-serif" fontSize="7.5" fill="rgba(var(--contrast-rgb),.25)" fontWeight="600" letterSpacing="1">GRID</text>
+              <text x="182" y="84" fontFamily="Syne,sans-serif" fontSize="7.5" fill="rgba(var(--contrast-rgb),.25)" fontWeight="600" letterSpacing="1">INVENTARIO</text>
+              <text x="230" y="84" fontFamily="Syne,sans-serif" fontSize="7.5" fill="rgba(var(--contrast-rgb),.25)" fontWeight="600" letterSpacing="1">LEADS</text>
               {/* Tab bar divider */}
-              <line x1="90" y1="92" x2="472" y2="92" stroke="rgba(255,255,255,.05)" strokeWidth="1" />
+              <line x1="90" y1="92" x2="472" y2="92" stroke="rgba(var(--contrast-rgb),.05)" strokeWidth="1" />
 
               {/* Faint horizontal grid lines in content area */}
               {[140, 190, 240, 290, 340, 390, 440, 490].map((y, i) => (
-                <line key={`gl-${i}`} x1="90" y1={y} x2="472" y2={y} stroke="rgba(255,255,255,.025)" strokeWidth=".5" />
+                <line key={`gl-${i}`} x1="90" y1={y} x2="472" y2={y} stroke="rgba(var(--contrast-rgb),.025)" strokeWidth=".5" />
               ))}
             </svg>
 
@@ -358,32 +358,32 @@ export function ScrollFeatures() {
               style={{ position: "absolute", inset: 0, width: "100%", height: "100%", opacity: 0, pointerEvents: "none", willChange: "opacity,transform" }}
             >
               {/* Simplified 2D building elevation on left side of content */}
-              <rect x="106" y="110" width="140" height="380" rx="2" fill="none" stroke="rgba(255,255,255,.08)" strokeWidth=".8" />
+              <rect x="106" y="110" width="140" height="380" rx="2" fill="none" stroke="rgba(var(--contrast-rgb),.08)" strokeWidth=".8" />
               {/* Floor dividers */}
               {[148, 186, 224, 262, 300, 338, 376, 414, 452].map((y, i) => (
-                <line key={`fd-${i}`} x1="106" y1={y} x2="246" y2={y} stroke="rgba(255,255,255,.05)" strokeWidth=".5" />
+                <line key={`fd-${i}`} x1="106" y1={y} x2="246" y2={y} stroke="rgba(var(--contrast-rgb),.05)" strokeWidth=".5" />
               ))}
               {/* Column dividers */}
-              <line x1="141" y1="110" x2="141" y2="490" stroke="rgba(255,255,255,.04)" strokeWidth=".5" />
-              <line x1="176" y1="110" x2="176" y2="490" stroke="rgba(255,255,255,.04)" strokeWidth=".5" />
-              <line x1="211" y1="110" x2="211" y2="490" stroke="rgba(255,255,255,.04)" strokeWidth=".5" />
+              <line x1="141" y1="110" x2="141" y2="490" stroke="rgba(var(--contrast-rgb),.04)" strokeWidth=".5" />
+              <line x1="176" y1="110" x2="176" y2="490" stroke="rgba(var(--contrast-rgb),.04)" strokeWidth=".5" />
+              <line x1="211" y1="110" x2="211" y2="490" stroke="rgba(var(--contrast-rgb),.04)" strokeWidth=".5" />
 
               {/* Unit cells — colored rects with data-unit */}
               {([
                 { x: 107, y: 453, w: 33, h: 36, fill: "rgba(74,158,107,.65)", stroke: "rgba(74,158,107,.8)" },
-                { x: 142, y: 453, w: 33, h: 36, fill: "rgba(184,151,58,.7)", stroke: "rgba(184,151,58,.85)" },
+                { x: 142, y: 453, w: 33, h: 36, fill: "rgba(var(--mk-accent-rgb),.7)", stroke: "rgba(var(--mk-accent-rgb),.85)" },
                 { x: 177, y: 453, w: 33, h: 36, fill: "rgba(100,100,100,.5)", stroke: "rgba(130,130,130,.6)" },
                 { x: 212, y: 453, w: 33, h: 36, fill: "rgba(74,158,107,.6)", stroke: "rgba(74,158,107,.75)" },
                 { x: 107, y: 415, w: 33, h: 36, fill: "rgba(196,133,58,.6)", stroke: "rgba(196,133,58,.75)" },
                 { x: 142, y: 415, w: 33, h: 36, fill: "rgba(74,158,107,.65)", stroke: "rgba(74,158,107,.8)" },
                 { x: 177, y: 415, w: 33, h: 36, fill: "rgba(74,158,107,.55)", stroke: "rgba(74,158,107,.7)" },
                 { x: 212, y: 415, w: 33, h: 36, fill: "rgba(100,100,100,.5)", stroke: "rgba(130,130,130,.6)" },
-                { x: 107, y: 377, w: 33, h: 36, fill: "rgba(184,151,58,.65)", stroke: "rgba(184,151,58,.8)" },
+                { x: 107, y: 377, w: 33, h: 36, fill: "rgba(var(--mk-accent-rgb),.65)", stroke: "rgba(var(--mk-accent-rgb),.8)" },
                 { x: 142, y: 377, w: 33, h: 36, fill: "rgba(100,100,100,.5)", stroke: "rgba(130,130,130,.6)" },
                 { x: 177, y: 377, w: 33, h: 36, fill: "rgba(74,158,107,.7)", stroke: "rgba(74,158,107,.85)" },
                 { x: 212, y: 377, w: 33, h: 36, fill: "rgba(196,133,58,.6)", stroke: "rgba(196,133,58,.75)" },
                 { x: 107, y: 339, w: 33, h: 36, fill: "rgba(74,158,107,.6)", stroke: "rgba(74,158,107,.75)" },
-                { x: 142, y: 339, w: 33, h: 36, fill: "rgba(184,151,58,.7)", stroke: "rgba(184,151,58,.85)" },
+                { x: 142, y: 339, w: 33, h: 36, fill: "rgba(var(--mk-accent-rgb),.7)", stroke: "rgba(var(--mk-accent-rgb),.85)" },
               ] as const).map((u, i) => (
                 <rect
                   key={i}
@@ -403,33 +403,33 @@ export function ScrollFeatures() {
 
               {/* Unit detail card (right side of content area) */}
               <g id="sfGridLabel" opacity="0">
-                <rect x="268" y="130" width="185" height="120" rx="6" fill="#0e0e0e" stroke="rgba(184,151,58,.2)" strokeWidth=".8" />
-                <text x="282" y="150" fontFamily="Syne,sans-serif" fontSize="7.5" fill="rgba(184,151,58,.9)" letterSpacing="2" fontWeight="700">UNIDAD 6B</text>
-                <line x1="282" y1="158" x2="438" y2="158" stroke="rgba(255,255,255,.06)" strokeWidth=".5" />
-                <text x="282" y="174" fontFamily="DM Mono,monospace" fontSize="8" fill="rgba(244,240,232,.35)">Piso</text>
-                <text x="380" y="174" fontFamily="DM Mono,monospace" fontSize="8" fill="rgba(244,240,232,.65)" textAnchor="end">6</text>
-                <text x="282" y="190" fontFamily="DM Mono,monospace" fontSize="8" fill="rgba(244,240,232,.35)">Tipo</text>
-                <text x="380" y="190" fontFamily="DM Mono,monospace" fontSize="8" fill="rgba(244,240,232,.65)" textAnchor="end">B - 72m2</text>
-                <text x="282" y="206" fontFamily="DM Mono,monospace" fontSize="8" fill="rgba(244,240,232,.35)">Precio</text>
-                <text x="380" y="206" fontFamily="DM Mono,monospace" fontSize="8" fill="rgba(244,240,232,.65)" textAnchor="end">$385.000.000</text>
-                <text x="282" y="222" fontFamily="DM Mono,monospace" fontSize="8" fill="rgba(244,240,232,.35)">Estado</text>
+                <rect x="268" y="130" width="185" height="120" rx="6" fill="var(--surface-1)" stroke="rgba(var(--mk-accent-rgb),.2)" strokeWidth=".8" />
+                <text x="282" y="150" fontFamily="Syne,sans-serif" fontSize="7.5" fill="rgba(var(--mk-accent-rgb),.9)" letterSpacing="2" fontWeight="700">UNIDAD 6B</text>
+                <line x1="282" y1="158" x2="438" y2="158" stroke="rgba(var(--contrast-rgb),.06)" strokeWidth=".5" />
+                <text x="282" y="174" fontFamily="DM Mono,monospace" fontSize="8" fill="rgba(var(--contrast-rgb),.35)">Piso</text>
+                <text x="380" y="174" fontFamily="DM Mono,monospace" fontSize="8" fill="rgba(var(--contrast-rgb),.65)" textAnchor="end">6</text>
+                <text x="282" y="190" fontFamily="DM Mono,monospace" fontSize="8" fill="rgba(var(--contrast-rgb),.35)">Tipo</text>
+                <text x="380" y="190" fontFamily="DM Mono,monospace" fontSize="8" fill="rgba(var(--contrast-rgb),.65)" textAnchor="end">B - 72m2</text>
+                <text x="282" y="206" fontFamily="DM Mono,monospace" fontSize="8" fill="rgba(var(--contrast-rgb),.35)">Precio</text>
+                <text x="380" y="206" fontFamily="DM Mono,monospace" fontSize="8" fill="rgba(var(--contrast-rgb),.65)" textAnchor="end">$385.000.000</text>
+                <text x="282" y="222" fontFamily="DM Mono,monospace" fontSize="8" fill="rgba(var(--contrast-rgb),.35)">Estado</text>
                 <rect x="348" y="215" width="48" height="12" rx="3" fill="rgba(74,158,107,.12)" />
                 <text x="372" y="224" textAnchor="middle" fontFamily="DM Mono,monospace" fontSize="7" fill="rgba(74,158,107,.85)">Disponible</text>
-                <text x="282" y="242" fontFamily="DM Mono,monospace" fontSize="8" fill="rgba(244,240,232,.35)">Vista</text>
-                <text x="380" y="242" fontFamily="DM Mono,monospace" fontSize="8" fill="rgba(244,240,232,.65)" textAnchor="end">Interior</text>
+                <text x="282" y="242" fontFamily="DM Mono,monospace" fontSize="8" fill="rgba(var(--contrast-rgb),.35)">Vista</text>
+                <text x="380" y="242" fontFamily="DM Mono,monospace" fontSize="8" fill="rgba(var(--contrast-rgb),.65)" textAnchor="end">Interior</text>
               </g>
 
               {/* Color legend */}
               <g id="sfGridLegend" opacity="0">
-                <rect x="268" y="270" width="185" height="50" rx="6" fill="#0e0e0e" stroke="rgba(255,255,255,.06)" strokeWidth=".5" />
+                <rect x="268" y="270" width="185" height="50" rx="6" fill="var(--surface-1)" stroke="rgba(var(--contrast-rgb),.06)" strokeWidth=".5" />
                 <circle cx="284" cy="288" r="4" fill="rgba(74,158,107,.8)" />
-                <text x="294" y="291" fontFamily="DM Mono,monospace" fontSize="7.5" fill="rgba(244,240,232,.35)">Disponible</text>
+                <text x="294" y="291" fontFamily="DM Mono,monospace" fontSize="7.5" fill="rgba(var(--contrast-rgb),.35)">Disponible</text>
                 <circle cx="356" cy="288" r="4" fill="rgba(196,133,58,.8)" />
-                <text x="366" y="291" fontFamily="DM Mono,monospace" fontSize="7.5" fill="rgba(244,240,232,.35)">Reservado</text>
+                <text x="366" y="291" fontFamily="DM Mono,monospace" fontSize="7.5" fill="rgba(var(--contrast-rgb),.35)">Reservado</text>
                 <circle cx="284" cy="306" r="4" fill="rgba(100,100,100,.8)" />
-                <text x="294" y="309" fontFamily="DM Mono,monospace" fontSize="7.5" fill="rgba(244,240,232,.35)">Vendido</text>
-                <circle cx="356" cy="306" r="4" fill="rgba(184,151,58,.8)" />
-                <text x="366" y="309" fontFamily="DM Mono,monospace" fontSize="7.5" fill="rgba(244,240,232,.35)">Separado</text>
+                <text x="294" y="309" fontFamily="DM Mono,monospace" fontSize="7.5" fill="rgba(var(--contrast-rgb),.35)">Vendido</text>
+                <circle cx="356" cy="306" r="4" fill="rgba(var(--mk-accent-rgb),.8)" />
+                <text x="366" y="309" fontFamily="DM Mono,monospace" fontSize="7.5" fill="rgba(var(--contrast-rgb),.35)">Separado</text>
               </g>
             </svg>
 
@@ -442,18 +442,18 @@ export function ScrollFeatures() {
             >
               {/* 3 KPI stat cards at top */}
               {/* Disponibles */}
-              <rect x="100" y="104" width="118" height="52" rx="6" fill="#0e0e0e" stroke="rgba(74,158,107,.25)" strokeWidth=".8" />
-              <text x="114" y="122" fontFamily="Syne,sans-serif" fontSize="6.5" fill="rgba(244,240,232,.3)" letterSpacing="1.5" fontWeight="700">DISPONIBLES</text>
+              <rect x="100" y="104" width="118" height="52" rx="6" fill="var(--surface-1)" stroke="rgba(74,158,107,.25)" strokeWidth=".8" />
+              <text x="114" y="122" fontFamily="Syne,sans-serif" fontSize="6.5" fill="rgba(var(--contrast-rgb),.3)" letterSpacing="1.5" fontWeight="700">DISPONIBLES</text>
               <text x="114" y="146" fontFamily="Cormorant Garamond,serif" fontSize="24" fontWeight="300" fill="#4a9e6b">24</text>
               <circle cx="200" cy="140" r="3" fill="rgba(74,158,107,.6)" />
               {/* Reservados */}
-              <rect x="226" y="104" width="118" height="52" rx="6" fill="#0e0e0e" stroke="rgba(196,133,58,.25)" strokeWidth=".8" />
-              <text x="240" y="122" fontFamily="Syne,sans-serif" fontSize="6.5" fill="rgba(244,240,232,.3)" letterSpacing="1.5" fontWeight="700">RESERVADOS</text>
+              <rect x="226" y="104" width="118" height="52" rx="6" fill="var(--surface-1)" stroke="rgba(196,133,58,.25)" strokeWidth=".8" />
+              <text x="240" y="122" fontFamily="Syne,sans-serif" fontSize="6.5" fill="rgba(var(--contrast-rgb),.3)" letterSpacing="1.5" fontWeight="700">RESERVADOS</text>
               <text x="240" y="146" fontFamily="Cormorant Garamond,serif" fontSize="24" fontWeight="300" fill="#c4853a">8</text>
               <circle cx="326" cy="140" r="3" fill="rgba(196,133,58,.6)" />
               {/* Vendidos */}
-              <rect x="352" y="104" width="118" height="52" rx="6" fill="#0e0e0e" stroke="rgba(100,100,100,.25)" strokeWidth=".8" />
-              <text x="366" y="122" fontFamily="Syne,sans-serif" fontSize="6.5" fill="rgba(244,240,232,.3)" letterSpacing="1.5" fontWeight="700">VENDIDOS</text>
+              <rect x="352" y="104" width="118" height="52" rx="6" fill="var(--surface-1)" stroke="rgba(100,100,100,.25)" strokeWidth=".8" />
+              <text x="366" y="122" fontFamily="Syne,sans-serif" fontSize="6.5" fill="rgba(var(--contrast-rgb),.3)" letterSpacing="1.5" fontWeight="700">VENDIDOS</text>
               <text x="366" y="146" fontFamily="Cormorant Garamond,serif" fontSize="24" fontWeight="300" fill="#888">8</text>
               <circle cx="452" cy="140" r="3" fill="rgba(100,100,100,.6)" />
 
@@ -478,27 +478,27 @@ export function ScrollFeatures() {
 
               {/* Availability progress card */}
               <g id="sfAvailCard" opacity="0">
-                <rect x="108" y="250" width="352" height="60" rx="6" fill="#0e0e0e" stroke="rgba(74,158,107,.2)" strokeWidth=".8" />
-                <text x="124" y="270" fontFamily="Syne,sans-serif" fontSize="7" fill="rgba(244,240,232,.3)" letterSpacing="2" fontWeight="700">OCUPACION DEL PROYECTO</text>
+                <rect x="108" y="250" width="352" height="60" rx="6" fill="var(--surface-1)" stroke="rgba(74,158,107,.2)" strokeWidth=".8" />
+                <text x="124" y="270" fontFamily="Syne,sans-serif" fontSize="7" fill="rgba(var(--contrast-rgb),.3)" letterSpacing="2" fontWeight="700">OCUPACION DEL PROYECTO</text>
                 <text x="124" y="294" fontFamily="Cormorant Garamond,serif" fontSize="22" fontWeight="300" fill="#4a9e6b">60%</text>
                 {/* Progress bar background */}
-                <rect x="180" y="282" width="260" height="8" rx="4" fill="rgba(255,255,255,.04)" />
+                <rect x="180" y="282" width="260" height="8" rx="4" fill="rgba(var(--contrast-rgb),.04)" />
                 {/* Progress bar fill */}
                 <rect x="180" y="282" width="156" height="8" rx="4" fill="rgba(74,158,107,.5)" />
-                <rect x="180" y="282" width="96" height="8" rx="4" fill="rgba(184,151,58,.5)" />
+                <rect x="180" y="282" width="96" height="8" rx="4" fill="rgba(var(--mk-accent-rgb),.5)" />
                 <rect x="180" y="282" width="48" height="8" rx="4" fill="rgba(100,100,100,.5)" />
               </g>
 
               {/* Availability label */}
               <g id="sfAvailLabel" opacity="0">
-                <rect x="108" y="330" width="352" height="44" rx="6" fill="#0e0e0e" stroke="rgba(255,255,255,.05)" strokeWidth=".5" />
-                <text x="124" y="348" fontFamily="DM Mono,monospace" fontSize="8" fill="rgba(244,240,232,.35)">Unidades totales:</text>
-                <text x="236" y="348" fontFamily="DM Mono,monospace" fontSize="8" fill="rgba(244,240,232,.65)">40</text>
-                <text x="270" y="348" fontFamily="DM Mono,monospace" fontSize="8" fill="rgba(244,240,232,.35)">Precio promedio:</text>
-                <text x="400" y="348" fontFamily="DM Mono,monospace" fontSize="8" fill="rgba(244,240,232,.65)">$392M</text>
-                <text x="124" y="364" fontFamily="DM Mono,monospace" fontSize="8" fill="rgba(244,240,232,.35)">Ventas este mes:</text>
+                <rect x="108" y="330" width="352" height="44" rx="6" fill="var(--surface-1)" stroke="rgba(var(--contrast-rgb),.05)" strokeWidth=".5" />
+                <text x="124" y="348" fontFamily="DM Mono,monospace" fontSize="8" fill="rgba(var(--contrast-rgb),.35)">Unidades totales:</text>
+                <text x="236" y="348" fontFamily="DM Mono,monospace" fontSize="8" fill="rgba(var(--contrast-rgb),.65)">40</text>
+                <text x="270" y="348" fontFamily="DM Mono,monospace" fontSize="8" fill="rgba(var(--contrast-rgb),.35)">Precio promedio:</text>
+                <text x="400" y="348" fontFamily="DM Mono,monospace" fontSize="8" fill="rgba(var(--contrast-rgb),.65)">$392M</text>
+                <text x="124" y="364" fontFamily="DM Mono,monospace" fontSize="8" fill="rgba(var(--contrast-rgb),.35)">Ventas este mes:</text>
                 <text x="236" y="364" fontFamily="DM Mono,monospace" fontSize="8" fill="rgba(74,158,107,.75)">+3</text>
-                <text x="270" y="364" fontFamily="DM Mono,monospace" fontSize="8" fill="rgba(244,240,232,.35)">Reservas activas:</text>
+                <text x="270" y="364" fontFamily="DM Mono,monospace" fontSize="8" fill="rgba(var(--contrast-rgb),.35)">Reservas activas:</text>
                 <text x="400" y="364" fontFamily="DM Mono,monospace" fontSize="8" fill="rgba(196,133,58,.75)">5</text>
               </g>
             </svg>
@@ -511,68 +511,68 @@ export function ScrollFeatures() {
               style={{ position: "absolute", inset: 0, width: "100%", height: "100%", opacity: 0, pointerEvents: "none", willChange: "opacity,transform" }}
             >
               {/* Lead table header */}
-              <rect x="100" y="104" width="368" height="28" rx="4" fill="rgba(255,255,255,.03)" />
-              <text x="126" y="122" fontFamily="Syne,sans-serif" fontSize="7" fill="rgba(244,240,232,.3)" letterSpacing="1.2" fontWeight="700">NOMBRE</text>
-              <text x="220" y="122" fontFamily="Syne,sans-serif" fontSize="7" fill="rgba(244,240,232,.3)" letterSpacing="1.2" fontWeight="700">CORREO</text>
-              <text x="336" y="122" fontFamily="Syne,sans-serif" fontSize="7" fill="rgba(244,240,232,.3)" letterSpacing="1.2" fontWeight="700">UNIDAD</text>
-              <text x="400" y="122" fontFamily="Syne,sans-serif" fontSize="7" fill="rgba(244,240,232,.3)" letterSpacing="1.2" fontWeight="700">FUENTE</text>
+              <rect x="100" y="104" width="368" height="28" rx="4" fill="rgba(var(--contrast-rgb),.03)" />
+              <text x="126" y="122" fontFamily="Syne,sans-serif" fontSize="7" fill="rgba(var(--contrast-rgb),.3)" letterSpacing="1.2" fontWeight="700">NOMBRE</text>
+              <text x="220" y="122" fontFamily="Syne,sans-serif" fontSize="7" fill="rgba(var(--contrast-rgb),.3)" letterSpacing="1.2" fontWeight="700">CORREO</text>
+              <text x="336" y="122" fontFamily="Syne,sans-serif" fontSize="7" fill="rgba(var(--contrast-rgb),.3)" letterSpacing="1.2" fontWeight="700">UNIDAD</text>
+              <text x="400" y="122" fontFamily="Syne,sans-serif" fontSize="7" fill="rgba(var(--contrast-rgb),.3)" letterSpacing="1.2" fontWeight="700">FUENTE</text>
 
               {/* Lead row 1 */}
               <g id="sfLead1" opacity="0" style={{ transform: "translateY(44px)" }}>
-                <rect x="100" y="140" width="368" height="52" rx="6" fill="#0e0e0e" stroke="rgba(184,151,58,.15)" strokeWidth=".8" />
-                <circle cx="120" cy="166" r="14" fill="rgba(184,151,58,.1)" stroke="rgba(184,151,58,.25)" strokeWidth=".8" />
-                <text x="120" y="170" textAnchor="middle" fontFamily="Cormorant Garamond,serif" fontSize="11" fill="#d4b05a">MG</text>
-                <text x="142" y="160" fontFamily="Syne,sans-serif" fontSize="8.5" fontWeight="700" fill="rgba(244,240,232,.82)">Maria Garcia</text>
-                <text x="142" y="174" fontFamily="DM Mono,monospace" fontSize="7" fill="rgba(244,240,232,.28)">+57 310 456 7890</text>
-                <text x="220" y="164" fontFamily="DM Mono,monospace" fontSize="7.5" fill="rgba(244,240,232,.4)">maria.g@</text>
-                <text x="220" y="176" fontFamily="DM Mono,monospace" fontSize="7.5" fill="rgba(244,240,232,.4)">gmail.com</text>
-                <text x="336" y="168" fontFamily="DM Mono,monospace" fontSize="8" fill="rgba(244,240,232,.55)">6B</text>
+                <rect x="100" y="140" width="368" height="52" rx="6" fill="var(--surface-1)" stroke="rgba(var(--mk-accent-rgb),.15)" strokeWidth=".8" />
+                <circle cx="120" cy="166" r="14" fill="rgba(var(--mk-accent-rgb),.1)" stroke="rgba(var(--mk-accent-rgb),.25)" strokeWidth=".8" />
+                <text x="120" y="170" textAnchor="middle" fontFamily="Cormorant Garamond,serif" fontSize="11" fill="var(--mk-accent-light)">MG</text>
+                <text x="142" y="160" fontFamily="Syne,sans-serif" fontSize="8.5" fontWeight="700" fill="rgba(var(--contrast-rgb),.82)">Maria Garcia</text>
+                <text x="142" y="174" fontFamily="DM Mono,monospace" fontSize="7" fill="rgba(var(--contrast-rgb),.28)">+57 310 456 7890</text>
+                <text x="220" y="164" fontFamily="DM Mono,monospace" fontSize="7.5" fill="rgba(var(--contrast-rgb),.4)">maria.g@</text>
+                <text x="220" y="176" fontFamily="DM Mono,monospace" fontSize="7.5" fill="rgba(var(--contrast-rgb),.4)">gmail.com</text>
+                <text x="336" y="168" fontFamily="DM Mono,monospace" fontSize="8" fill="rgba(var(--contrast-rgb),.55)">6B</text>
                 <rect x="394" y="158" width="56" height="16" rx="4" fill="rgba(74,158,107,.1)" stroke="rgba(74,158,107,.25)" strokeWidth=".5" />
                 <text x="422" y="170" textAnchor="middle" fontFamily="DM Mono,monospace" fontSize="7" fill="rgba(74,200,120,.72)" letterSpacing=".8">Instagram</text>
               </g>
 
               {/* Lead row 2 */}
               <g id="sfLead2" opacity="0" style={{ transform: "translateY(44px)" }}>
-                <rect x="100" y="200" width="368" height="52" rx="6" fill="#0e0e0e" stroke="rgba(184,151,58,.15)" strokeWidth=".8" />
-                <circle cx="120" cy="226" r="14" fill="rgba(184,151,58,.1)" stroke="rgba(184,151,58,.25)" strokeWidth=".8" />
-                <text x="120" y="230" textAnchor="middle" fontFamily="Cormorant Garamond,serif" fontSize="11" fill="#d4b05a">CR</text>
-                <text x="142" y="220" fontFamily="Syne,sans-serif" fontSize="8.5" fontWeight="700" fill="rgba(244,240,232,.82)">Carlos Rojas</text>
-                <text x="142" y="234" fontFamily="DM Mono,monospace" fontSize="7" fill="rgba(244,240,232,.28)">+57 315 678 1234</text>
-                <text x="220" y="224" fontFamily="DM Mono,monospace" fontSize="7.5" fill="rgba(244,240,232,.4)">carlos.r@</text>
-                <text x="220" y="236" fontFamily="DM Mono,monospace" fontSize="7.5" fill="rgba(244,240,232,.4)">outlook.com</text>
-                <text x="336" y="228" fontFamily="DM Mono,monospace" fontSize="8" fill="rgba(244,240,232,.55)">9D</text>
+                <rect x="100" y="200" width="368" height="52" rx="6" fill="var(--surface-1)" stroke="rgba(var(--mk-accent-rgb),.15)" strokeWidth=".8" />
+                <circle cx="120" cy="226" r="14" fill="rgba(var(--mk-accent-rgb),.1)" stroke="rgba(var(--mk-accent-rgb),.25)" strokeWidth=".8" />
+                <text x="120" y="230" textAnchor="middle" fontFamily="Cormorant Garamond,serif" fontSize="11" fill="var(--mk-accent-light)">CR</text>
+                <text x="142" y="220" fontFamily="Syne,sans-serif" fontSize="8.5" fontWeight="700" fill="rgba(var(--contrast-rgb),.82)">Carlos Rojas</text>
+                <text x="142" y="234" fontFamily="DM Mono,monospace" fontSize="7" fill="rgba(var(--contrast-rgb),.28)">+57 315 678 1234</text>
+                <text x="220" y="224" fontFamily="DM Mono,monospace" fontSize="7.5" fill="rgba(var(--contrast-rgb),.4)">carlos.r@</text>
+                <text x="220" y="236" fontFamily="DM Mono,monospace" fontSize="7.5" fill="rgba(var(--contrast-rgb),.4)">outlook.com</text>
+                <text x="336" y="228" fontFamily="DM Mono,monospace" fontSize="8" fill="rgba(var(--contrast-rgb),.55)">9D</text>
                 <rect x="394" y="218" width="56" height="16" rx="4" fill="rgba(74,158,107,.1)" stroke="rgba(74,158,107,.25)" strokeWidth=".5" />
                 <text x="422" y="230" textAnchor="middle" fontFamily="DM Mono,monospace" fontSize="7" fill="rgba(74,200,120,.72)" letterSpacing=".8">Google</text>
               </g>
 
               {/* Lead row 3 */}
               <g id="sfLead3" opacity="0" style={{ transform: "translateY(44px)" }}>
-                <rect x="100" y="260" width="368" height="52" rx="6" fill="#0e0e0e" stroke="rgba(184,151,58,.15)" strokeWidth=".8" />
-                <circle cx="120" cy="286" r="14" fill="rgba(184,151,58,.1)" stroke="rgba(184,151,58,.25)" strokeWidth=".8" />
-                <text x="120" y="290" textAnchor="middle" fontFamily="Cormorant Garamond,serif" fontSize="11" fill="#d4b05a">LV</text>
-                <text x="142" y="280" fontFamily="Syne,sans-serif" fontSize="8.5" fontWeight="700" fill="rgba(244,240,232,.82)">Luisa Vargas</text>
-                <text x="142" y="294" fontFamily="DM Mono,monospace" fontSize="7" fill="rgba(244,240,232,.28)">+57 300 123 4567</text>
-                <text x="220" y="284" fontFamily="DM Mono,monospace" fontSize="7.5" fill="rgba(244,240,232,.4)">luisa.v@</text>
-                <text x="220" y="296" fontFamily="DM Mono,monospace" fontSize="7.5" fill="rgba(244,240,232,.4)">yahoo.com</text>
-                <text x="336" y="288" fontFamily="DM Mono,monospace" fontSize="8" fill="rgba(244,240,232,.55)">10C</text>
-                <rect x="394" y="278" width="56" height="16" rx="4" fill="rgba(184,151,58,.1)" stroke="rgba(184,151,58,.25)" strokeWidth=".5" />
-                <text x="422" y="290" textAnchor="middle" fontFamily="DM Mono,monospace" fontSize="7" fill="rgba(184,151,58,.72)" letterSpacing=".8">Referido</text>
+                <rect x="100" y="260" width="368" height="52" rx="6" fill="var(--surface-1)" stroke="rgba(var(--mk-accent-rgb),.15)" strokeWidth=".8" />
+                <circle cx="120" cy="286" r="14" fill="rgba(var(--mk-accent-rgb),.1)" stroke="rgba(var(--mk-accent-rgb),.25)" strokeWidth=".8" />
+                <text x="120" y="290" textAnchor="middle" fontFamily="Cormorant Garamond,serif" fontSize="11" fill="var(--mk-accent-light)">LV</text>
+                <text x="142" y="280" fontFamily="Syne,sans-serif" fontSize="8.5" fontWeight="700" fill="rgba(var(--contrast-rgb),.82)">Luisa Vargas</text>
+                <text x="142" y="294" fontFamily="DM Mono,monospace" fontSize="7" fill="rgba(var(--contrast-rgb),.28)">+57 300 123 4567</text>
+                <text x="220" y="284" fontFamily="DM Mono,monospace" fontSize="7.5" fill="rgba(var(--contrast-rgb),.4)">luisa.v@</text>
+                <text x="220" y="296" fontFamily="DM Mono,monospace" fontSize="7.5" fill="rgba(var(--contrast-rgb),.4)">yahoo.com</text>
+                <text x="336" y="288" fontFamily="DM Mono,monospace" fontSize="8" fill="rgba(var(--contrast-rgb),.55)">10C</text>
+                <rect x="394" y="278" width="56" height="16" rx="4" fill="rgba(var(--mk-accent-rgb),.1)" stroke="rgba(var(--mk-accent-rgb),.25)" strokeWidth=".5" />
+                <text x="422" y="290" textAnchor="middle" fontFamily="DM Mono,monospace" fontSize="7" fill="rgba(var(--mk-accent-rgb),.72)" letterSpacing=".8">Referido</text>
               </g>
 
               {/* Invisible connecting lines — kept for JS compatibility */}
-              <line id="sfLeadLine1" x1="120" y1="192" x2="120" y2="200" stroke="rgba(184,151,58,.2)" strokeWidth=".8" strokeDasharray="4 3" strokeDashoffset="100" />
-              <line id="sfLeadLine2" x1="120" y1="252" x2="120" y2="260" stroke="rgba(184,151,58,.2)" strokeWidth=".8" strokeDasharray="4 3" strokeDashoffset="100" />
+              <line id="sfLeadLine1" x1="120" y1="192" x2="120" y2="200" stroke="rgba(var(--mk-accent-rgb),.2)" strokeWidth=".8" strokeDasharray="4 3" strokeDashoffset="100" />
+              <line id="sfLeadLine2" x1="120" y1="252" x2="120" y2="260" stroke="rgba(var(--mk-accent-rgb),.2)" strokeWidth=".8" strokeDasharray="4 3" strokeDashoffset="100" />
 
               {/* Lead label */}
               <g id="sfLeadLabel" opacity="0">
-                <rect x="100" y="326" width="368" height="40" rx="6" fill="#0e0e0e" stroke="rgba(255,255,255,.05)" strokeWidth=".5" />
-                <text x="116" y="342" fontFamily="DM Mono,monospace" fontSize="8" fill="rgba(244,240,232,.35)">Total leads esta semana:</text>
-                <text x="276" y="342" fontFamily="Cormorant Garamond,serif" fontSize="14" fontWeight="300" fill="#d4b05a">12</text>
+                <rect x="100" y="326" width="368" height="40" rx="6" fill="var(--surface-1)" stroke="rgba(var(--contrast-rgb),.05)" strokeWidth=".5" />
+                <text x="116" y="342" fontFamily="DM Mono,monospace" fontSize="8" fill="rgba(var(--contrast-rgb),.35)">Total leads esta semana:</text>
+                <text x="276" y="342" fontFamily="Cormorant Garamond,serif" fontSize="14" fontWeight="300" fill="var(--mk-accent-light)">12</text>
                 <text x="300" y="342" fontFamily="DM Mono,monospace" fontSize="8" fill="rgba(74,158,107,.65)">+4 vs anterior</text>
-                <text x="116" y="358" fontFamily="DM Mono,monospace" fontSize="7.5" fill="rgba(244,240,232,.25)">Tasa de conversion:</text>
-                <text x="248" y="358" fontFamily="DM Mono,monospace" fontSize="7.5" fill="rgba(184,151,58,.7)">18.5%</text>
-                <text x="300" y="358" fontFamily="DM Mono,monospace" fontSize="7.5" fill="rgba(244,240,232,.25)">Fuente top:</text>
-                <text x="378" y="358" fontFamily="DM Mono,monospace" fontSize="7.5" fill="rgba(244,240,232,.55)">Instagram</text>
+                <text x="116" y="358" fontFamily="DM Mono,monospace" fontSize="7.5" fill="rgba(var(--contrast-rgb),.25)">Tasa de conversion:</text>
+                <text x="248" y="358" fontFamily="DM Mono,monospace" fontSize="7.5" fill="rgba(var(--mk-accent-rgb),.7)">18.5%</text>
+                <text x="300" y="358" fontFamily="DM Mono,monospace" fontSize="7.5" fill="rgba(var(--contrast-rgb),.25)">Fuente top:</text>
+                <text x="378" y="358" fontFamily="DM Mono,monospace" fontSize="7.5" fill="rgba(var(--contrast-rgb),.55)">Instagram</text>
               </g>
             </svg>
           </div>
@@ -588,7 +588,7 @@ export function ScrollFeatures() {
               top: 0,
               bottom: 0,
               width: 2,
-              background: "rgba(255,255,255,.04)",
+              background: "rgba(var(--contrast-rgb),.04)",
               zIndex: 2,
             }}
           >
@@ -651,7 +651,7 @@ export function ScrollFeatures() {
               <div
                 className="font-heading font-light text-[11px] tracking-[0.1em] text-right flex-shrink-0 ml-6"
                 style={{
-                  color: "rgba(244,240,232,.2)",
+                  color: "rgba(var(--contrast-rgb),.2)",
                 }}
               >
                 <strong
@@ -660,7 +660,7 @@ export function ScrollFeatures() {
                     fontSize: 28,
                     lineHeight: 1,
                     fontWeight: 300,
-                    color: "rgba(184,151,58,.35)",
+                    color: "rgba(var(--mk-accent-rgb),.35)",
                     display: "block",
                   }}
                 >
@@ -705,48 +705,48 @@ export function ScrollFeatures() {
                 </div>
 
                 {/* Mobile mini-visual — inline SVG per step */}
-                <div className="lg:hidden mb-6" style={{ padding: "16px", background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.04)", borderRadius: 10 }}>
+                <div className="lg:hidden mb-6" style={{ padding: "16px", background: "rgba(var(--contrast-rgb),0.02)", border: "1px solid rgba(var(--contrast-rgb),0.04)", borderRadius: 10 }}>
                   {i === 0 && (
                     <svg viewBox="0 0 160 48" fill="none" style={{ width: "100%", maxWidth: 280 }}>
-                      <rect x="0" y="0" width="160" height="48" rx="4" fill="rgba(255,255,255,.02)" stroke="rgba(184,151,58,.15)" strokeWidth=".5" />
+                      <rect x="0" y="0" width="160" height="48" rx="4" fill="rgba(var(--contrast-rgb),.02)" stroke="rgba(var(--mk-accent-rgb),.15)" strokeWidth=".5" />
                       {[0,1,2,3].map(col => [0,1,2].map(row => {
                         const colors = ["#4a9e6b","#c4853a","#888","#4a9e6b","#4a9e6b","#c4853a","#4a9e6b","#888","#4a9e6b","#4a9e6b","#4a9e6b","#888"];
                         return <rect key={`${col}-${row}`} x={12 + col * 20} y={8 + row * 12} width={16} height={9} rx={1.5} fill={colors[col * 3 + row]} opacity={0.6} />;
                       }))}
-                      <rect x="100" y="8" width="52" height="14" rx="2" fill="rgba(255,255,255,.03)" stroke="rgba(184,151,58,.12)" strokeWidth=".4" />
-                      <text x="108" y="18" fontFamily="DM Mono,monospace" fontSize="6" fill="rgba(244,240,232,.4)">6B — 72m²</text>
-                      <rect x="100" y="26" width="52" height="14" rx="2" fill="rgba(255,255,255,.03)" stroke="rgba(74,158,107,.15)" strokeWidth=".4" />
+                      <rect x="100" y="8" width="52" height="14" rx="2" fill="rgba(var(--contrast-rgb),.03)" stroke="rgba(var(--mk-accent-rgb),.12)" strokeWidth=".4" />
+                      <text x="108" y="18" fontFamily="DM Mono,monospace" fontSize="6" fill="rgba(var(--contrast-rgb),.4)">6B — 72m²</text>
+                      <rect x="100" y="26" width="52" height="14" rx="2" fill="rgba(var(--contrast-rgb),.03)" stroke="rgba(74,158,107,.15)" strokeWidth=".4" />
                       <text x="108" y="36" fontFamily="DM Mono,monospace" fontSize="6" fill="rgba(74,158,107,.7)">Disponible</text>
                     </svg>
                   )}
                   {i === 1 && (
                     <svg viewBox="0 0 160 48" fill="none" style={{ width: "100%", maxWidth: 280 }}>
-                      <rect x="0" y="0" width="160" height="48" rx="4" fill="rgba(255,255,255,.02)" stroke="rgba(74,158,107,.15)" strokeWidth=".5" />
-                      <text x="10" y="16" fontFamily="Syne,sans-serif" fontSize="5" fill="rgba(244,240,232,.3)" letterSpacing="1" fontWeight="700">DISPONIBLES</text>
+                      <rect x="0" y="0" width="160" height="48" rx="4" fill="rgba(var(--contrast-rgb),.02)" stroke="rgba(74,158,107,.15)" strokeWidth=".5" />
+                      <text x="10" y="16" fontFamily="Syne,sans-serif" fontSize="5" fill="rgba(var(--contrast-rgb),.3)" letterSpacing="1" fontWeight="700">DISPONIBLES</text>
                       <text x="10" y="36" fontFamily="Cormorant Garamond,serif" fontSize="18" fontWeight="300" fill="#4a9e6b">24</text>
-                      <rect x="60" y="6" width="40" height="18" rx="3" fill="rgba(255,255,255,.02)" stroke="rgba(196,133,58,.15)" strokeWidth=".4" />
-                      <text x="68" y="16" fontFamily="Syne,sans-serif" fontSize="4.5" fill="rgba(244,240,232,.3)" letterSpacing="1" fontWeight="700">RESERVADOS</text>
+                      <rect x="60" y="6" width="40" height="18" rx="3" fill="rgba(var(--contrast-rgb),.02)" stroke="rgba(196,133,58,.15)" strokeWidth=".4" />
+                      <text x="68" y="16" fontFamily="Syne,sans-serif" fontSize="4.5" fill="rgba(var(--contrast-rgb),.3)" letterSpacing="1" fontWeight="700">RESERVADOS</text>
                       <text x="68" y="22" fontFamily="Cormorant Garamond,serif" fontSize="6" fontWeight="300" fill="#c4853a">8</text>
-                      <rect x="108" y="6" width="44" height="18" rx="3" fill="rgba(255,255,255,.02)" stroke="rgba(100,100,100,.15)" strokeWidth=".4" />
-                      <text x="116" y="16" fontFamily="Syne,sans-serif" fontSize="4.5" fill="rgba(244,240,232,.3)" letterSpacing="1" fontWeight="700">VENDIDOS</text>
+                      <rect x="108" y="6" width="44" height="18" rx="3" fill="rgba(var(--contrast-rgb),.02)" stroke="rgba(100,100,100,.15)" strokeWidth=".4" />
+                      <text x="116" y="16" fontFamily="Syne,sans-serif" fontSize="4.5" fill="rgba(var(--contrast-rgb),.3)" letterSpacing="1" fontWeight="700">VENDIDOS</text>
                       <text x="116" y="22" fontFamily="Cormorant Garamond,serif" fontSize="6" fontWeight="300" fill="#888">8</text>
-                      <rect x="60" y="28" width="92" height="6" rx="3" fill="rgba(255,255,255,.04)" />
+                      <rect x="60" y="28" width="92" height="6" rx="3" fill="rgba(var(--contrast-rgb),.04)" />
                       <rect x="60" y="28" width="55" height="6" rx="3" fill="rgba(74,158,107,.4)" />
-                      <rect x="60" y="28" width="34" height="6" rx="3" fill="rgba(184,151,58,.4)" />
-                      <text x="60" y="42" fontFamily="DM Mono,monospace" fontSize="5" fill="rgba(244,240,232,.35)">60% ocupación</text>
+                      <rect x="60" y="28" width="34" height="6" rx="3" fill="rgba(var(--mk-accent-rgb),.4)" />
+                      <text x="60" y="42" fontFamily="DM Mono,monospace" fontSize="5" fill="rgba(var(--contrast-rgb),.35)">60% ocupación</text>
                     </svg>
                   )}
                   {i === 2 && (
                     <svg viewBox="0 0 160 48" fill="none" style={{ width: "100%", maxWidth: 280 }}>
-                      <rect x="0" y="0" width="160" height="48" rx="4" fill="rgba(255,255,255,.02)" stroke="rgba(184,151,58,.15)" strokeWidth=".5" />
-                      <circle cx="16" cy="18" r="8" fill="rgba(184,151,58,.08)" stroke="rgba(184,151,58,.2)" strokeWidth=".5" />
-                      <text x="16" y="21" textAnchor="middle" fontFamily="Cormorant Garamond,serif" fontSize="8" fill="#d4b05a">MG</text>
-                      <text x="30" y="15" fontFamily="Syne,sans-serif" fontSize="6" fontWeight="700" fill="rgba(244,240,232,.8)">Maria Garcia</text>
-                      <text x="30" y="22" fontFamily="DM Mono,monospace" fontSize="5" fill="rgba(244,240,232,.3)">+57 310 456 7890</text>
+                      <rect x="0" y="0" width="160" height="48" rx="4" fill="rgba(var(--contrast-rgb),.02)" stroke="rgba(var(--mk-accent-rgb),.15)" strokeWidth=".5" />
+                      <circle cx="16" cy="18" r="8" fill="rgba(var(--mk-accent-rgb),.08)" stroke="rgba(var(--mk-accent-rgb),.2)" strokeWidth=".5" />
+                      <text x="16" y="21" textAnchor="middle" fontFamily="Cormorant Garamond,serif" fontSize="8" fill="var(--mk-accent-light)">MG</text>
+                      <text x="30" y="15" fontFamily="Syne,sans-serif" fontSize="6" fontWeight="700" fill="rgba(var(--contrast-rgb),.8)">Maria Garcia</text>
+                      <text x="30" y="22" fontFamily="DM Mono,monospace" fontSize="5" fill="rgba(var(--contrast-rgb),.3)">+57 310 456 7890</text>
                       <rect x="110" y="10" width="38" height="12" rx="3" fill="rgba(74,158,107,.08)" stroke="rgba(74,158,107,.2)" strokeWidth=".4" />
                       <text x="129" y="19" textAnchor="middle" fontFamily="DM Mono,monospace" fontSize="5" fill="rgba(74,200,120,.7)">Instagram</text>
-                      <line x1="8" y1="32" x2="152" y2="32" stroke="rgba(255,255,255,.04)" strokeWidth=".5" />
-                      <text x="10" y="42" fontFamily="DM Mono,monospace" fontSize="5" fill="rgba(244,240,232,.3)">12 leads esta semana</text>
+                      <line x1="8" y1="32" x2="152" y2="32" stroke="rgba(var(--contrast-rgb),.04)" strokeWidth=".5" />
+                      <text x="10" y="42" fontFamily="DM Mono,monospace" fontSize="5" fill="rgba(var(--contrast-rgb),.3)">12 leads esta semana</text>
                       <text x="90" y="42" fontFamily="DM Mono,monospace" fontSize="5" fill="rgba(74,158,107,.6)">+4 vs anterior</text>
                     </svg>
                   )}
@@ -774,7 +774,7 @@ export function ScrollFeatures() {
                   className="text-[13px] lg:text-[15px]"
                   style={{
                     lineHeight: 1.75,
-                    color: "rgba(244,240,232,.55)",
+                    color: "rgba(var(--contrast-rgb),.55)",
                     maxWidth: 420,
                     marginBottom: 24,
                   }}
@@ -795,7 +795,7 @@ export function ScrollFeatures() {
                     textTransform: "uppercase" as const,
                     color: "var(--mk-accent)",
                     padding: "8px 18px",
-                    border: "1px solid rgba(184,151,58,.25)",
+                    border: "1px solid rgba(var(--mk-accent-rgb),.25)",
                   }}
                 >
                   <span
@@ -851,7 +851,7 @@ export function ScrollFeatures() {
                     height: 5,
                     borderRadius: "50%",
                     display: "block",
-                    background: i === 0 ? "var(--mk-accent)" : "rgba(255,255,255,.1)",
+                    background: i === 0 ? "var(--mk-accent)" : "rgba(var(--contrast-rgb),.1)",
                     willChange: "background, transform, box-shadow",
                   }}
                 />
@@ -867,7 +867,7 @@ export function ScrollFeatures() {
               left: 0,
               right: 0,
               height: 2,
-              background: "rgba(255,255,255,.04)",
+              background: "rgba(var(--contrast-rgb),.04)",
             }}
           >
             <div

@@ -51,7 +51,7 @@ function AnimatedCounter({ target, suffix, label, delay }: CounterData & { delay
       ref={ref}
       className="text-center transition-all duration-600 ease-out p-6 sm:p-8 lg:p-12"
       style={{
-        background: "#111",
+        background: "var(--mk-bg)",
         opacity: visible ? 1 : 0,
         transform: visible ? "translateY(0)" : "translateY(20px)",
         transitionDelay: `${delay}ms`,
@@ -62,11 +62,11 @@ function AnimatedCounter({ target, suffix, label, delay }: CounterData & { delay
         style={{ fontWeight: 300, color: "var(--mk-accent-light)" }}
       >
         {value.toLocaleString("es-CO")}
-        <span className="text-[clamp(14px,4vw,28px)]" style={{ color: "rgba(184,151,58,0.5)" }}>{suffix}</span>
+        <span className="text-[clamp(14px,4vw,28px)]" style={{ color: "rgba(var(--mk-accent-rgb),0.5)" }}>{suffix}</span>
       </div>
       <div
         className="font-ui text-[9px] tracking-[0.22em] uppercase"
-        style={{ color: "rgba(244,240,232,0.3)" }}
+        style={{ color: "var(--mk-text-tertiary)" }}
       >
         {label}
       </div>
@@ -87,11 +87,11 @@ export function CountersSection() {
   return (
     <section
       className="relative z-[1] border-t border-[var(--mk-border-rule)] py-16 px-4 sm:py-20 sm:px-6 lg:py-24 lg:px-6"
-      style={{ background: "#111" }}
+      style={{ background: "var(--mk-bg)" }}
     >
       <div
         className="grid grid-cols-2 lg:grid-cols-4 max-w-[1200px] mx-auto"
-        style={{ gap: "1px", background: "rgba(255,255,255,0.04)" }}
+        style={{ gap: "1px", background: "rgba(var(--contrast-rgb),0.04)" }}
       >
         {counters.map((c, i) => (
           <AnimatedCounter key={c.label} {...c} delay={i * 100} />

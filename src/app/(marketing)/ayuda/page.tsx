@@ -488,8 +488,8 @@ export default function AyudaPage() {
                 placeholder={helpDict.page.searchPlaceholder}
                 className="w-full pl-12 pr-5 py-4 rounded-[1rem] text-[13px] font-light outline-none transition-all duration-200"
                 style={{
-                  background: "var(--mk-surface-3, #2a2a2a)",
-                  border: "1px solid rgba(255,255,255,0.06)",
+                  background: "var(--mk-surface-3)",
+                  border: "1px solid rgba(var(--contrast-rgb),0.06)",
                   color: "var(--mk-text-primary)",
                 }}
                 onFocus={(e) => {
@@ -500,7 +500,7 @@ export default function AyudaPage() {
                 }}
                 onBlur={(e) => {
                   e.currentTarget.style.borderColor =
-                    "rgba(255,255,255,0.06)";
+                    "rgba(var(--contrast-rgb),0.06)";
                   e.currentTarget.style.boxShadow = "none";
                 }}
               />
@@ -565,7 +565,7 @@ export default function AyudaPage() {
                   <div
                     className="flex-1 h-px"
                     style={{
-                      background: "rgba(255,255,255,0.06)",
+                      background: "rgba(var(--contrast-rgb),0.06)",
                     }}
                   />
                   <span
@@ -621,8 +621,8 @@ export default function AyudaPage() {
       <section
         className="relative px-6 lg:px-20 py-28 border-t"
         style={{
-          borderColor: "var(--mk-border-rule, rgba(255,255,255,0.04))",
-          background: "var(--mk-bg-dark, #0a0a0a)",
+          borderColor: "var(--mk-border-rule)",
+          background: "var(--mk-bg)",
         }}
       >
         <div className="max-w-2xl mx-auto text-center">
@@ -708,8 +708,8 @@ function CategoryCard({
         onClick={onClick}
         className="w-full text-left rounded-[1.25rem] p-6 transition-all duration-300 group cursor-pointer"
         style={{
-          background: "var(--mk-surface-3, #2a2a2a)",
-          border: "1px solid rgba(255,255,255,0.06)",
+          background: "var(--mk-surface-3)",
+          border: "1px solid rgba(var(--contrast-rgb),0.06)",
         }}
         onMouseEnter={(e) => {
           e.currentTarget.style.borderColor = "rgba(184, 151, 58, 0.3)";
@@ -717,7 +717,7 @@ function CategoryCard({
             "0 0 30px rgba(184, 151, 58, 0.06)";
         }}
         onMouseLeave={(e) => {
-          e.currentTarget.style.borderColor = "rgba(255,255,255,0.06)";
+          e.currentTarget.style.borderColor = "rgba(var(--contrast-rgb),0.06)";
           e.currentTarget.style.boxShadow = "none";
         }}
       >
@@ -787,10 +787,10 @@ function ArticleCard({
       id={`help-${article.id}`}
       className="rounded-[1.25rem] transition-all duration-300"
       style={{
-        background: "var(--mk-surface-3, #2a2a2a)",
+        background: "var(--mk-surface-3)",
         border: isExpanded
           ? "1px solid rgba(184, 151, 58, 0.25)"
-          : "1px solid rgba(255,255,255,0.06)",
+          : "1px solid rgba(var(--contrast-rgb),0.06)",
         boxShadow: isExpanded
           ? "0 0 40px rgba(184, 151, 58, 0.06)"
           : "none",
@@ -803,7 +803,7 @@ function ArticleCard({
         style={{}}
         onMouseEnter={(e) => {
           if (!isExpanded) {
-            e.currentTarget.style.background = "rgba(255,255,255,0.02)";
+            e.currentTarget.style.background = "rgba(var(--contrast-rgb),0.02)";
           }
         }}
         onMouseLeave={(e) => {
@@ -816,7 +816,7 @@ function ArticleCard({
           style={{
             background: isExpanded
               ? "rgba(184, 151, 58, 0.15)"
-              : "rgba(255,255,255,0.04)",
+              : "rgba(var(--contrast-rgb),0.04)",
             boxShadow: isExpanded
               ? "0 0 20px rgba(184, 151, 58, 0.12)"
               : "none",

@@ -94,6 +94,7 @@ export default function CaseStudyDetailPage() {
               <div
                 className="absolute inset-0"
                 style={{
+                  // theme-allow: dark scrim gradient over full-bleed hero photo; photo stays dark in both themes
                   background:
                     "linear-gradient(to top, rgba(10,10,11,0.95) 0%, rgba(10,10,11,0.4) 50%, transparent 100%)",
                 }}
@@ -118,6 +119,7 @@ export default function CaseStudyDetailPage() {
                   style={{
                     fontFamily: "var(--font-cormorant)",
                     fontWeight: 300,
+                    // theme-allow: title sits directly over full-bleed dark hero photo; stays light in both themes
                     color: "rgba(244,240,232,0.92)",
                     lineHeight: 1.1,
                   }}
@@ -126,6 +128,7 @@ export default function CaseStudyDetailPage() {
                 </h1>
                 <p
                   className="text-base"
+                  // theme-allow: subtitle over full-bleed dark hero photo; stays light in both themes
                   style={{ color: "rgba(244,240,232,0.55)" }}
                 >
                   {study.client} · {study.location}
@@ -135,9 +138,9 @@ export default function CaseStudyDetailPage() {
 
             {/* Stats strip */}
             <div
-              className="grid grid-cols-3 divide-x divide-[rgba(255,255,255,0.06)]"
+              className="grid grid-cols-3 divide-x divide-[rgba(var(--contrast-rgb),0.06)]"
               style={{
-                borderTop: "1px solid rgba(255,255,255,0.06)",
+                borderTop: "1px solid rgba(var(--contrast-rgb),0.06)",
               }}
             >
               <div className="p-5 text-center">
@@ -411,8 +414,8 @@ export default function CaseStudyDetailPage() {
                 key={tool.name}
                 className="p-5 rounded-xl"
                 style={{
-                  backgroundColor: "rgba(255,255,255,0.03)",
-                  border: "1px solid rgba(255,255,255,0.08)",
+                  backgroundColor: "rgba(var(--contrast-rgb),0.03)",
+                  border: "1px solid rgba(var(--contrast-rgb),0.08)",
                 }}
               >
                 <Wrench
@@ -564,8 +567,8 @@ export default function CaseStudyDetailPage() {
                     key={metric.label}
                     className="p-6 rounded-xl"
                     style={{
-                      backgroundColor: "rgba(255,255,255,0.03)",
-                      border: "1px solid rgba(255,255,255,0.08)",
+                      backgroundColor: "rgba(var(--contrast-rgb),0.03)",
+                      border: "1px solid rgba(var(--contrast-rgb),0.08)",
                     }}
                   >
                     <Icon
@@ -704,8 +707,8 @@ export default function CaseStudyDetailPage() {
                 key={i}
                 className="flex gap-3 p-4 rounded-xl"
                 style={{
-                  backgroundColor: "rgba(255,255,255,0.02)",
-                  border: "1px solid rgba(255,255,255,0.06)",
+                  backgroundColor: "rgba(var(--contrast-rgb),0.02)",
+                  border: "1px solid rgba(var(--contrast-rgb),0.06)",
                 }}
               >
                 <Lightbulb
@@ -751,8 +754,8 @@ export default function CaseStudyDetailPage() {
                   key={q.author}
                   className="p-6 rounded-xl relative"
                   style={{
-                    backgroundColor: "rgba(255,255,255,0.03)",
-                    border: "1px solid rgba(255,255,255,0.08)",
+                    backgroundColor: "rgba(var(--contrast-rgb),0.03)",
+                    border: "1px solid rgba(var(--contrast-rgb),0.08)",
                   }}
                 >
                   <Quote
@@ -830,7 +833,7 @@ export default function CaseStudyDetailPage() {
               <div
                 key={i}
                 className="relative aspect-[3/2] rounded-xl overflow-hidden"
-                style={{ border: "1px solid rgba(255,255,255,0.08)" }}
+                style={{ border: "1px solid rgba(var(--contrast-rgb),0.08)" }}
               >
                 <Image
                   src={img}
@@ -913,7 +916,7 @@ export default function CaseStudyDetailPage() {
                 <Link
                   key={other.id}
                   href={`/casos-de-estudio/${other.id}`}
-                  className="glass-card overflow-hidden group hover:bg-white/5 transition-all duration-300"
+                  className="glass-card overflow-hidden group hover:bg-[var(--surface-2)] transition-all duration-300"
                 >
                   <div className="relative h-40 overflow-hidden">
                     <Image

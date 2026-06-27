@@ -282,7 +282,7 @@ export default function RoadmapPage() {
                       whileInView={{ opacity: 1, x: 0 }}
                       viewport={{ once: true, margin: "-60px" }}
                       transition={{ duration: 0.5, delay: itemIndex * 0.05, ease }}
-                      className="glass-card p-6 hover:bg-white/5 transition-all duration-300"
+                      className="glass-card p-6 hover:bg-[var(--surface-2)] transition-all duration-300"
                     >
                       <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4">
                         <div className="flex-1">
@@ -307,8 +307,8 @@ export default function RoadmapPage() {
                                     item.impact === "high"
                                       ? "rgba(184, 151, 58, 0.15)"
                                       : item.impact === "medium"
-                                      ? "rgba(255, 255, 255, 0.05)"
-                                      : "rgba(255, 255, 255, 0.03)",
+                                      ? "rgba(var(--contrast-rgb), 0.05)"
+                                      : "rgba(var(--contrast-rgb), 0.03)",
                                   color:
                                     item.impact === "high"
                                       ? "#b8973a"
@@ -355,7 +355,7 @@ export default function RoadmapPage() {
                               </div>
                               <div
                                 className="h-2 rounded-full overflow-hidden"
-                                style={{ backgroundColor: "rgba(255, 255, 255, 0.08)" }}
+                                style={{ backgroundColor: "rgba(var(--contrast-rgb), 0.08)" }}
                               >
                                 <div
                                   className="h-full transition-all duration-500"
@@ -400,8 +400,8 @@ export default function RoadmapPage() {
                         <div
                           className="shrink-0 px-4 py-2 rounded-lg text-center"
                           style={{
-                            backgroundColor: "rgba(255, 255, 255, 0.05)",
-                            border: "1px solid rgba(255, 255, 255, 0.08)",
+                            backgroundColor: "rgba(var(--contrast-rgb), 0.05)",
+                            border: "1px solid rgba(var(--contrast-rgb), 0.08)",
                           }}
                         >
                           <div

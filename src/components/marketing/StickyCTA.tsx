@@ -27,22 +27,22 @@ export function StickyCTA() {
         left: "50%",
         transform: `translateX(-50%) translateY(${visible ? 0 : 100}px)`,
         opacity: visible ? 1 : 0,
-        background: "linear-gradient(135deg, rgba(22,22,24,0.98) 0%, rgba(18,18,18,0.97) 100%)",
-        border: "1px solid rgba(184,151,58,0.35)",
+        background: "linear-gradient(135deg, color-mix(in srgb, var(--surface-2) 98%, transparent) 0%, color-mix(in srgb, var(--surface-1) 97%, transparent) 100%)",
+        border: "1px solid rgba(var(--mk-accent-rgb),0.35)",
         borderRadius: "12px",
         padding: "10px 14px",
         backdropFilter: "blur(32px)",
         WebkitBackdropFilter: "blur(32px)",
-        boxShadow: "0 0 0 1px rgba(184,151,58,0.08) inset, 0 24px 64px rgba(0,0,0,0.7), 0 0 40px rgba(184,151,58,0.15)",
+        boxShadow: "0 0 0 1px rgba(var(--mk-accent-rgb),0.08) inset, 0 24px 64px rgba(var(--overlay-rgb),0.7), 0 0 40px rgba(var(--mk-accent-rgb),0.15)",
         transition: "transform 0.6s cubic-bezier(0.22,1,0.36,1), opacity 0.6s ease, box-shadow 0.3s ease",
         maxWidth: "calc(100vw - 32px)",
         willChange: "transform",
       }}
       onMouseEnter={(e) => {
-        e.currentTarget.style.boxShadow = "0 0 0 1px rgba(184,151,58,0.12) inset, 0 28px 72px rgba(0,0,0,0.8), 0 0 60px rgba(184,151,58,0.25)";
+        e.currentTarget.style.boxShadow = "0 0 0 1px rgba(var(--mk-accent-rgb),0.12) inset, 0 28px 72px rgba(var(--overlay-rgb),0.8), 0 0 60px rgba(var(--mk-accent-rgb),0.25)";
       }}
       onMouseLeave={(e) => {
-        e.currentTarget.style.boxShadow = "0 0 0 1px rgba(184,151,58,0.08) inset, 0 24px 64px rgba(0,0,0,0.7), 0 0 40px rgba(184,151,58,0.15)";
+        e.currentTarget.style.boxShadow = "0 0 0 1px rgba(var(--mk-accent-rgb),0.08) inset, 0 24px 64px rgba(var(--overlay-rgb),0.7), 0 0 40px rgba(var(--mk-accent-rgb),0.15)";
       }}
     >
       {/* Mobile Layout — compact pill */}
@@ -57,7 +57,7 @@ export function StickyCTA() {
             flexShrink: 0,
           }}
         />
-        <span style={{ fontSize: 11, color: "rgba(244,240,232,0.55)", whiteSpace: "nowrap" }}>
+        <span style={{ fontSize: 11, color: "var(--mk-text-secondary)", whiteSpace: "nowrap" }}>
           <strong style={{ color: "var(--mk-text-primary)", fontWeight: 500 }}>100+</strong> {t("stickyCta.projectsLive")}
         </span>
 
@@ -87,11 +87,11 @@ export function StickyCTA() {
                   width: 32,
                   height: 32,
                   borderRadius: "50%",
-                  border: "2px solid rgba(18,18,18,0.9)",
+                  border: "2px solid color-mix(in srgb, var(--surface-1) 90%, transparent)",
                   marginLeft: i === 0 ? 0 : -10,
                   position: "relative",
                   zIndex: 4 - i,
-                  boxShadow: "0 2px 8px rgba(0,0,0,0.3), 0 0 0 1px rgba(184,151,58,0.2)",
+                  boxShadow: "0 2px 8px rgba(var(--overlay-rgb),0.3), 0 0 0 1px rgba(var(--mk-accent-rgb),0.2)",
                   overflow: "hidden",
                 }}
               >
@@ -113,16 +113,16 @@ export function StickyCTA() {
                 <Star
                   key={i}
                   size={12}
-                  fill="#b8973a"
-                  stroke="#b8973a"
+                  fill="var(--mk-accent)"
+                  stroke="var(--mk-accent)"
                   strokeWidth={1.5}
                 />
               ))}
-              <span style={{ fontSize: 10, color: "rgba(244,240,232,0.8)", marginLeft: 3, fontWeight: 600 }}>
+              <span style={{ fontSize: 10, color: "var(--mk-text-primary)", marginLeft: 3, fontWeight: 600 }}>
                 5.0
               </span>
             </div>
-            <div className="flex items-center gap-1.5" style={{ fontSize: 10, color: "rgba(244,240,232,0.45)", letterSpacing: "0.02em" }}>
+            <div className="flex items-center gap-1.5" style={{ fontSize: 10, color: "var(--mk-text-tertiary)", letterSpacing: "0.02em" }}>
               <div
                 style={{
                   width: 6,
@@ -141,7 +141,7 @@ export function StickyCTA() {
         </div>
 
         {/* Divider */}
-        <div style={{ width: 1, height: 36, background: "rgba(255,255,255,0.06)" }} />
+        <div style={{ width: 1, height: 36, background: "rgba(var(--contrast-rgb),0.06)" }} />
 
         {/* Center: Key benefits */}
         <div className="flex items-center gap-6">
@@ -152,16 +152,16 @@ export function StickyCTA() {
                 width: 28,
                 height: 28,
                 borderRadius: "6px",
-                background: "rgba(184,151,58,0.08)",
-                border: "1px solid rgba(184,151,58,0.15)",
+                background: "rgba(var(--mk-accent-rgb),0.08)",
+                border: "1px solid rgba(var(--mk-accent-rgb),0.15)",
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
               }}
             >
-              <Clock size={13} stroke="#b8973a" strokeWidth={2} />
+              <Clock size={13} stroke="var(--mk-accent)" strokeWidth={2} />
             </div>
-            <div style={{ fontSize: 11, color: "rgba(244,240,232,0.85)", fontWeight: 500, whiteSpace: "nowrap" }}>
+            <div style={{ fontSize: 11, color: "var(--mk-text-primary)", fontWeight: 500, whiteSpace: "nowrap" }}>
               {t("stickyCta.publishedIn24h")}
             </div>
           </div>
@@ -173,23 +173,23 @@ export function StickyCTA() {
                 width: 28,
                 height: 28,
                 borderRadius: "6px",
-                background: "rgba(184,151,58,0.08)",
-                border: "1px solid rgba(184,151,58,0.15)",
+                background: "rgba(var(--mk-accent-rgb),0.08)",
+                border: "1px solid rgba(var(--mk-accent-rgb),0.15)",
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
               }}
             >
-              <Shield size={13} stroke="#b8973a" strokeWidth={2} />
+              <Shield size={13} stroke="var(--mk-accent)" strokeWidth={2} />
             </div>
-            <div style={{ fontSize: 11, color: "rgba(244,240,232,0.85)", fontWeight: 500, whiteSpace: "nowrap" }}>
+            <div style={{ fontSize: 11, color: "var(--mk-text-primary)", fontWeight: 500, whiteSpace: "nowrap" }}>
               {t("stickyCta.noCommitment")}
             </div>
           </div>
         </div>
 
         {/* Divider */}
-        <div style={{ width: 1, height: 36, background: "rgba(255,255,255,0.06)" }} />
+        <div style={{ width: 1, height: 36, background: "rgba(var(--contrast-rgb),0.06)" }} />
 
         {/* Right: CTA */}
         <div className="relative">
@@ -198,7 +198,7 @@ export function StickyCTA() {
             className="absolute inset-0 rounded-[12px]"
             style={{
               background: "transparent",
-              boxShadow: "0 0 0 0 rgba(184,151,58,0.7)",
+              boxShadow: "0 0 0 0 rgba(var(--mk-accent-rgb),0.7)",
               animation: "pulse-ring 2s cubic-bezier(0.4, 0, 0.6, 1) infinite",
             }}
           />
@@ -222,7 +222,7 @@ export function StickyCTA() {
             <div
               className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-700"
               style={{
-                background: "linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.15) 50%, transparent 100%)",
+                background: "linear-gradient(90deg, transparent 0%, rgba(var(--contrast-rgb),0.15) 50%, transparent 100%)",
                 animation: "shine 2s infinite",
               }}
             />
@@ -242,13 +242,13 @@ export function StickyCTA() {
 
         @keyframes pulse-ring {
           0% {
-            box-shadow: 0 0 0 0 rgba(184,151,58,0.7);
+            box-shadow: 0 0 0 0 rgba(var(--mk-accent-rgb),0.7);
           }
           50% {
-            box-shadow: 0 0 0 8px rgba(184,151,58,0);
+            box-shadow: 0 0 0 8px rgba(var(--mk-accent-rgb),0);
           }
           100% {
-            box-shadow: 0 0 0 0 rgba(184,151,58,0);
+            box-shadow: 0 0 0 0 rgba(var(--mk-accent-rgb),0);
           }
         }
       `}</style>

@@ -64,7 +64,7 @@ type LocalSlotsData = Record<string, LocalSlot[]>;
 
 const HostAvatar = ({ size = 56, className = "" }: { size?: number; className?: string }) => (
   <div
-    className={`rounded-full border-2 border-[rgba(184,151,58,0.4)] overflow-hidden shrink-0 ${className}`}
+    className={`rounded-full border-2 border-[rgba(var(--mk-accent-rgb),0.4)] overflow-hidden shrink-0 ${className}`}
     style={{ width: size, height: size }}
   >
     <Image
@@ -110,12 +110,12 @@ const HostCard = () => {
   return (
     <div className="flex flex-col items-center pt-3 pb-4">
       {/* NODDO logo */}
-      <NodDoLogo width={72} colorNod="rgba(244,240,232,.35)" colorDo="#b8983c" />
+      <NodDoLogo width={72} colorNod="rgba(var(--contrast-rgb),.35)" colorDo="var(--mk-accent)" />
 
       {/* Avatar with glow ring */}
       <div className="relative mt-3 mb-3">
-        <div className="absolute -inset-2 rounded-full bg-[rgba(184,151,58,0.08)] blur-lg" />
-        <HostAvatar size={64} className="relative border-[rgba(184,151,58,0.5)]" />
+        <div className="absolute -inset-2 rounded-full bg-[rgba(var(--mk-accent-rgb),0.08)] blur-lg" />
+        <HostAvatar size={64} className="relative border-[rgba(var(--mk-accent-rgb),0.5)]" />
       </div>
 
       {/* Session title with advisor name */}
@@ -146,7 +146,7 @@ const CallBadges = () => {
       {badges.map(({ Icon, label }) => (
         <span
           key={label}
-          className="inline-flex items-center gap-1.5 text-[10px] text-[var(--mk-text-secondary)] bg-white/[0.04] border border-white/[0.08] rounded-lg px-2.5 py-1.5"
+          className="inline-flex items-center gap-1.5 text-[10px] text-[var(--mk-text-secondary)] bg-[var(--surface-2)] border border-[var(--border-subtle)] rounded-lg px-2.5 py-1.5"
         >
           <span className="text-[var(--mk-accent)]"><Icon /></span>
           {label}
@@ -183,21 +183,21 @@ const BookingInsight = ({ index }: { index: number }) => {
     <div
       className="flex items-start gap-3 rounded-xl px-4 py-3 mt-4"
       style={{
-        background: "rgba(184,151,58,0.06)",
-        border: "1px solid rgba(184,151,58,0.12)",
+        background: "rgba(var(--mk-accent-rgb),0.06)",
+        border: "1px solid rgba(var(--mk-accent-rgb),0.12)",
       }}
     >
       <div
         className="w-7 h-7 rounded-lg flex items-center justify-center shrink-0"
-        style={{ background: "rgba(184,151,58,0.12)" }}
+        style={{ background: "rgba(var(--mk-accent-rgb),0.12)" }}
       >
-        <Icon size={14} className="text-[#b8973a]" />
+        <Icon size={14} className="text-[var(--mk-accent)]" />
       </div>
       <div className="min-w-0">
-        <span className="font-heading text-base font-light text-[#b8973a]">
+        <span className="font-heading text-base font-light text-[var(--mk-accent)]">
           {insight.stat}
         </span>
-        <p className="text-[10px] leading-relaxed mt-0.5 text-white/35">
+        <p className="text-[10px] leading-relaxed mt-0.5 text-[var(--mk-text-tertiary)]">
           {insight.text}
         </p>
       </div>
@@ -213,14 +213,14 @@ const HostMiniCard = () => {
     <div className="glass-booking rounded-xl p-3 mb-4 flex items-center gap-3">
       <HostAvatar size={32} className="!border" />
       <div className="flex-1 min-w-0">
-        <p className="text-[12px] font-bold text-white truncate">
+        <p className="text-[12px] font-bold text-[var(--mk-text-primary)] truncate">
           {t("booking.sessionWith")} {BOOKING_HOST.name.split(" ")[0]}
         </p>
         <p className="text-[10px] text-[var(--mk-text-tertiary)]">
           {t("booking.sessionSub")}
         </p>
       </div>
-      <span className="font-ui text-[9px] font-bold uppercase tracking-wider text-[var(--mk-accent)] bg-[rgba(184,151,58,0.1)] border border-[rgba(184,151,58,0.15)] rounded-md px-2 py-1 shrink-0">
+      <span className="font-ui text-[9px] font-bold uppercase tracking-wider text-[var(--mk-accent)] bg-[rgba(var(--mk-accent-rgb),0.1)] border border-[rgba(var(--mk-accent-rgb),0.15)] rounded-md px-2 py-1 shrink-0">
         {t("booking.duration")}
       </span>
     </div>
@@ -247,7 +247,7 @@ const StepIndicator = ({ currentStep }: { currentStep: number }) => {
             {i > 0 && (
               <div
                 className={`w-10 h-px ${
-                  done ? "bg-[var(--mk-accent)]" : "bg-white/[0.08]"
+                  done ? "bg-[var(--mk-accent)]" : "bg-[var(--surface-3)]"
                 }`}
               />
             )}
@@ -255,10 +255,10 @@ const StepIndicator = ({ currentStep }: { currentStep: number }) => {
               <div
                 className={`w-5 h-5 rounded-full flex items-center justify-center text-[9px] font-bold transition-all ${
                   done
-                    ? "bg-[var(--mk-accent)] text-black"
+                    ? "bg-[var(--mk-accent)] text-black" // theme-allow: dark text on gold step dot
                     : active
-                    ? "border border-[var(--mk-accent)] text-[var(--mk-accent)] shadow-[0_0_8px_rgba(184,151,58,0.3)]"
-                    : "bg-white/[0.06] text-white/25"
+                    ? "border border-[var(--mk-accent)] text-[var(--mk-accent)] shadow-[0_0_8px_rgba(var(--mk-accent-rgb),0.3)]"
+                    : "bg-[var(--surface-2)] text-[var(--mk-text-muted)]"
                 }`}
               >
                 {done ? <Check className="w-3 h-3" /> : i + 1}
@@ -268,8 +268,8 @@ const StepIndicator = ({ currentStep }: { currentStep: number }) => {
                   active
                     ? "text-[var(--mk-accent)]"
                     : done
-                    ? "text-white/50"
-                    : "text-white/25"
+                    ? "text-[var(--mk-text-secondary)]"
+                    : "text-[var(--mk-text-muted)]"
                 }`}
               >
                 {label}
@@ -318,19 +318,19 @@ const DayPillGrid = ({
   return (
     <div>
       <div className="flex items-center justify-between mb-3">
-        <p className="text-xs font-bold text-white/60">{monthLabel}</p>
+        <p className="text-xs font-bold text-[var(--mk-text-secondary)]">{monthLabel}</p>
         <div className="flex gap-1">
           <button
             onClick={() => setPage(Math.max(0, page - 1))}
             disabled={page === 0}
-            className="p-1 rounded-md hover:bg-white/10 disabled:opacity-20 text-white/60"
+            className="p-1 rounded-md hover:bg-[var(--surface-3)] disabled:opacity-20 text-[var(--mk-text-secondary)]"
           >
             <ChevronLeft className="w-4 h-4" />
           </button>
           <button
             onClick={() => setPage(Math.min(totalPages - 1, page + 1))}
             disabled={page >= totalPages - 1}
-            className="p-1 rounded-md hover:bg-white/10 disabled:opacity-20 text-white/60"
+            className="p-1 rounded-md hover:bg-[var(--surface-3)] disabled:opacity-20 text-[var(--mk-text-secondary)]"
           >
             <ChevronRight className="w-4 h-4" />
           </button>
@@ -350,20 +350,20 @@ const DayPillGrid = ({
               onClick={() => onSelect(dateStr)}
               className={`relative rounded-xl py-3 px-1 text-center transition-all ${
                 isSelected
-                  ? "border-2 border-[var(--mk-accent)] bg-[rgba(184,151,58,0.1)] shadow-[0_0_15px_rgba(184,151,58,0.2)]"
-                  : "glass-booking hover:border-[rgba(184,151,58,0.3)]"
+                  ? "border-2 border-[var(--mk-accent)] bg-[rgba(var(--mk-accent-rgb),0.1)] shadow-[0_0_15px_rgba(var(--mk-accent-rgb),0.2)]"
+                  : "glass-booking hover:border-[rgba(var(--mk-accent-rgb),0.3)]"
               }`}
             >
               <p
                 className={`font-ui text-[10px] font-bold uppercase ${
-                  isSelected ? "text-[var(--mk-accent)]" : "text-white/40"
+                  isSelected ? "text-[var(--mk-accent)]" : "text-[var(--mk-text-tertiary)]"
                 }`}
               >
                 {dayName}
               </p>
               <p
                 className={`text-lg font-black leading-tight ${
-                  isSelected ? "text-white" : "text-white/70"
+                  isSelected ? "text-[var(--mk-text-primary)]" : "text-[var(--mk-text-primary)]"
                 }`}
               >
                 {dayNum}
@@ -393,7 +393,7 @@ const FallbackView = ({ onClose }: { onClose?: () => void }) => {
     <>
       {/* Header */}
       {onClose && (
-        <div className="bg-[#1a1a1a] border-b border-[rgba(184,151,58,0.15)] px-4 py-3 flex items-center gap-3 shrink-0">
+        <div className="bg-[var(--surface-1)] border-b border-[rgba(var(--mk-accent-rgb),0.15)] px-4 py-3 flex items-center gap-3 shrink-0">
           <div className="flex-1">
             <h3 className="font-ui text-sm font-bold text-[var(--mk-text-primary)] uppercase tracking-wide">
               {t("booking.fallbackTitle")}
@@ -404,7 +404,7 @@ const FallbackView = ({ onClose }: { onClose?: () => void }) => {
           </div>
           <button
             onClick={onClose}
-            className="p-2 rounded-lg hover:bg-white/10 transition-colors text-[var(--mk-text-tertiary)] hover:text-white"
+            className="p-2 rounded-lg hover:bg-[var(--surface-3)] transition-colors text-[var(--mk-text-tertiary)] hover:text-[var(--mk-text-primary)]"
           >
             <X className="w-5 h-5" />
           </button>
@@ -423,7 +423,7 @@ const FallbackView = ({ onClose }: { onClose?: () => void }) => {
 
         {timedOut && !iframeLoaded && (
           <div className="absolute inset-0 flex flex-col items-center justify-center gap-4 z-10 px-6">
-            <p className="text-sm text-white font-bold text-center">
+            <p className="text-sm text-[var(--mk-text-primary)] font-bold text-center">
               {t("booking.fallbackProblem")}
             </p>
             <p className="text-xs text-[var(--mk-text-tertiary)] text-center max-w-sm">
@@ -466,9 +466,9 @@ const FallbackView = ({ onClose }: { onClose?: () => void }) => {
       </div>
 
       {/* Footer */}
-      <div className="bg-[#1a1a1a] border-t border-[rgba(184,151,58,0.15)] px-4 py-2.5 flex items-center justify-between shrink-0">
+      <div className="bg-[var(--surface-1)] border-t border-[rgba(var(--mk-accent-rgb),0.15)] px-4 py-2.5 flex items-center justify-between shrink-0">
         <div className="flex items-center gap-2">
-          <ShieldCheck className="w-3.5 h-3.5 text-[rgba(184,151,58,0.5)]" />
+          <ShieldCheck className="w-3.5 h-3.5 text-[rgba(var(--mk-accent-rgb),0.5)]" />
           <p className="text-[10px] text-[var(--mk-text-tertiary)]">
             {t("booking.fallbackFooter")}
           </p>
@@ -498,11 +498,11 @@ const ModalHeader = ({
 }) => {
   const { t } = useTranslation("common");
   return (
-    <div className="bg-[#1a1a1a] border-b border-[rgba(184,151,58,0.15)] px-4 py-3 flex items-center gap-2 shrink-0">
+    <div className="bg-[var(--surface-1)] border-b border-[rgba(var(--mk-accent-rgb),0.15)] px-4 py-3 flex items-center gap-2 shrink-0">
       {onBack && (
         <button
           onClick={onBack}
-          className="p-1.5 rounded-lg hover:bg-white/10 transition-colors text-[var(--mk-text-tertiary)] hover:text-white"
+          className="p-1.5 rounded-lg hover:bg-[var(--surface-3)] transition-colors text-[var(--mk-text-tertiary)] hover:text-[var(--mk-text-primary)]"
         >
           <ChevronLeft className="w-5 h-5" />
         </button>
@@ -515,7 +515,7 @@ const ModalHeader = ({
       </div>
       <button
         onClick={onClose}
-        className="p-2 rounded-lg hover:bg-white/10 transition-colors text-[var(--mk-text-tertiary)] hover:text-white"
+        className="p-2 rounded-lg hover:bg-[var(--surface-3)] transition-colors text-[var(--mk-text-tertiary)] hover:text-[var(--mk-text-primary)]"
       >
         <X className="w-5 h-5" />
       </button>
@@ -760,13 +760,13 @@ const BookingFlow = ({ onClose }: BookingFlowProps) => {
       <div className="flex flex-col items-center justify-center gap-4 py-20">
         <div className="relative w-16 h-16">
           {/* Spinning ring */}
-          <div className="absolute inset-0 rounded-full border border-[rgba(184,151,58,0.15)] border-t-[var(--mk-accent)] animate-spin" />
+          <div className="absolute inset-0 rounded-full border border-[rgba(var(--mk-accent-rgb),0.15)] border-t-[var(--mk-accent)] animate-spin" />
           {/* Photo inside */}
           <div className="absolute inset-2">
             <HostAvatar size={48} className="!border-0" />
           </div>
         </div>
-        <p className="text-sm text-white font-bold">
+        <p className="text-sm text-[var(--mk-text-primary)] font-bold">
           {t("booking.bookingInProgress")}
         </p>
         <p className="text-[10px] text-[var(--mk-text-tertiary)]">
@@ -784,7 +784,7 @@ const BookingFlow = ({ onClose }: BookingFlowProps) => {
           <div className="flex justify-end p-3">
             <button
               onClick={onClose}
-              className="p-2 rounded-lg hover:bg-white/10 transition-colors text-[var(--mk-text-tertiary)] hover:text-white"
+              className="p-2 rounded-lg hover:bg-[var(--surface-3)] transition-colors text-[var(--mk-text-tertiary)] hover:text-[var(--mk-text-primary)]"
             >
               <X className="w-5 h-5" />
             </button>
@@ -795,8 +795,8 @@ const BookingFlow = ({ onClose }: BookingFlowProps) => {
           <div className="flex flex-col items-center mb-6">
             <div className="relative mb-4 animate-success-pop">
               <HostAvatar size={72} className="border-green-500/50" />
-              <div className="absolute -bottom-1 -right-1 w-6 h-6 rounded-full bg-green-500 border-2 border-[#141414] flex items-center justify-center">
-                <Check className="w-3.5 h-3.5 text-white" />
+              <div className="absolute -bottom-1 -right-1 w-6 h-6 rounded-full bg-green-500 border-2 border-[var(--surface-0)] flex items-center justify-center">
+                <Check className="w-3.5 h-3.5 text-[var(--mk-text-primary)]" />
               </div>
             </div>
             <h2 className="font-heading text-2xl font-light text-[var(--mk-text-primary)] mb-1">
@@ -812,7 +812,7 @@ const BookingFlow = ({ onClose }: BookingFlowProps) => {
             <p className="font-ui text-[9px] font-bold text-[var(--mk-accent)] uppercase tracking-[0.2em] mb-2">
               {t("booking.step2Label")}
             </p>
-            <p className="text-sm font-bold text-white mb-1">
+            <p className="text-sm font-bold text-[var(--mk-text-primary)] mb-1">
               {t("booking.step2Title")}
             </p>
             <p className="text-xs text-[var(--mk-text-tertiary)] leading-relaxed">
@@ -838,7 +838,7 @@ const BookingFlow = ({ onClose }: BookingFlowProps) => {
 
           <button
             onClick={() => onClose?.()}
-            className="w-full py-3.5 rounded-xl glass-booking border border-[rgba(184,151,58,0.2)] text-white font-bold text-sm hover:bg-[rgba(184,151,58,0.1)] transition-all"
+            className="w-full py-3.5 rounded-xl glass-booking border border-[rgba(var(--mk-accent-rgb),0.2)] text-[var(--mk-text-primary)] font-bold text-sm hover:bg-[rgba(var(--mk-accent-rgb),0.1)] transition-all"
           >
             {t("booking.backToSite")}
           </button>
@@ -870,8 +870,8 @@ const BookingFlow = ({ onClose }: BookingFlowProps) => {
             }}
             className={`w-full mt-5 py-3.5 rounded-xl font-ui font-bold text-sm uppercase tracking-wider flex items-center justify-center gap-2 transition-all ${
               selectedDate
-                ? "btn-mk-primary shadow-[0_0_25px_rgba(184,151,58,0.2)]"
-                : "bg-white/5 border border-white/10 text-white/25 cursor-not-allowed"
+                ? "btn-mk-primary shadow-[0_0_25px_rgba(var(--mk-accent-rgb),0.2)]"
+                : "bg-[var(--surface-2)] border border-[var(--border-default)] text-[var(--mk-text-muted)] cursor-not-allowed"
             }`}
           >
             {t("booking.next")}
@@ -896,7 +896,7 @@ const BookingFlow = ({ onClose }: BookingFlowProps) => {
         <div className="overflow-y-auto px-5 pt-4 pb-5 flex-1">
           <HostMiniCard />
           <StepIndicator currentStep={1} />
-          <p className="text-center font-heading text-lg font-light text-white/80 mb-1 capitalize">
+          <p className="text-center font-heading text-lg font-light text-[var(--mk-text-primary)] mb-1 capitalize">
             {formatDateLong(selectedDate, locale)}
           </p>
           <p className="text-center text-[10px] text-[var(--mk-text-tertiary)] mb-5">
@@ -918,8 +918,8 @@ const BookingFlow = ({ onClose }: BookingFlowProps) => {
                   }}
                   className={`py-3.5 rounded-xl text-center font-bold text-sm transition-all ${
                     active
-                      ? "border-2 border-[var(--mk-accent)] bg-[rgba(184,151,58,0.15)] text-white shadow-[0_0_15px_rgba(184,151,58,0.2)]"
-                      : "glass-booking text-white/70 hover:border-[rgba(184,151,58,0.3)] hover:text-white"
+                      ? "border-2 border-[var(--mk-accent)] bg-[rgba(var(--mk-accent-rgb),0.15)] text-[var(--mk-text-primary)] shadow-[0_0_15px_rgba(var(--mk-accent-rgb),0.2)]"
+                      : "glass-booking text-[var(--mk-text-primary)] hover:border-[rgba(var(--mk-accent-rgb),0.3)] hover:text-[var(--mk-text-primary)]"
                   }`}
                 >
                   {slot.localTime}
@@ -936,8 +936,8 @@ const BookingFlow = ({ onClose }: BookingFlowProps) => {
             }}
             className={`w-full mt-5 py-3.5 rounded-xl font-ui font-bold text-sm uppercase tracking-wider flex items-center justify-center gap-2 transition-all ${
               selectedTime
-                ? "btn-mk-primary shadow-[0_0_25px_rgba(184,151,58,0.2)]"
-                : "bg-white/5 border border-white/10 text-white/25 cursor-not-allowed"
+                ? "btn-mk-primary shadow-[0_0_25px_rgba(var(--mk-accent-rgb),0.2)]"
+                : "bg-[var(--surface-2)] border border-[var(--border-default)] text-[var(--mk-text-muted)] cursor-not-allowed"
             }`}
           >
             {t("booking.confirmTime")}
@@ -966,7 +966,7 @@ const BookingFlow = ({ onClose }: BookingFlowProps) => {
           <div className="glass-booking rounded-xl p-4 mb-5 flex items-center gap-3">
             <Calendar className="w-5 h-5 text-[var(--mk-accent)] shrink-0" />
             <div className="flex-1 min-w-0">
-              <p className="text-sm font-bold text-white capitalize">
+              <p className="text-sm font-bold text-[var(--mk-text-primary)] capitalize">
                 {formatDateLong(selectedDate, locale)}
               </p>
               <p className="text-xs text-[var(--mk-text-tertiary)]">
@@ -1040,9 +1040,9 @@ const BookingFlow = ({ onClose }: BookingFlowProps) => {
                 type="checkbox"
                 checked={wantWA}
                 onChange={(e) => setWantWA(e.target.checked)}
-                className="w-4 h-4 rounded border-white/20 bg-white/5 accent-[var(--mk-accent)]"
+                className="w-4 h-4 rounded border-[var(--border-strong)] bg-[var(--surface-2)] accent-[var(--mk-accent)]"
               />
-              <span className="text-xs text-white/60">
+              <span className="text-xs text-[var(--mk-text-secondary)]">
                 {t("booking.waReminder")}
               </span>
             </label>
@@ -1060,8 +1060,8 @@ const BookingFlow = ({ onClose }: BookingFlowProps) => {
             onClick={handleBook}
             className={`w-full py-4 rounded-xl font-ui font-bold text-base uppercase tracking-wider flex items-center justify-center gap-2 transition-all ${
               formEmail.includes("@")
-                ? "btn-mk-primary shadow-[0_0_30px_rgba(184,151,58,0.3)]"
-                : "bg-white/5 border border-white/10 text-white/25 cursor-not-allowed"
+                ? "btn-mk-primary shadow-[0_0_30px_rgba(var(--mk-accent-rgb),0.3)]"
+                : "bg-[var(--surface-2)] border border-[var(--border-default)] text-[var(--mk-text-muted)] cursor-not-allowed"
             }`}
           >
             <Check className="w-5 h-5" />
@@ -1070,7 +1070,7 @@ const BookingFlow = ({ onClose }: BookingFlowProps) => {
 
           {/* Trust */}
           <div className="flex items-center justify-center gap-2 mt-4">
-            <ShieldCheck className="w-3.5 h-3.5 text-[rgba(184,151,58,0.5)]" />
+            <ShieldCheck className="w-3.5 h-3.5 text-[rgba(var(--mk-accent-rgb),0.5)]" />
             <p className="text-[10px] text-[var(--mk-text-tertiary)]">
               {t("booking.trustLine")}
             </p>

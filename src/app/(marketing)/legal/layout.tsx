@@ -9,13 +9,13 @@ export const metadata: Metadata = {
 
 export default function LegalLayout({ children }: { children: React.ReactNode }) {
   return (
-    <div className="min-h-screen bg-[var(--site-bg)] text-white">
+    <div className="min-h-screen bg-[var(--site-bg)] text-[var(--text-primary)]">
       {/* Header */}
-      <header className="border-b border-white/10">
+      <header className="border-b border-[var(--border-default)]">
         <div className="container max-w-4xl mx-auto px-4 sm:px-6 py-4">
           <Link
             href="/"
-            className="inline-flex items-center gap-2 text-sm text-[var(--text-secondary)] hover:text-white transition-colors"
+            className="inline-flex items-center gap-2 text-sm text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors"
           >
             <svg
               className="w-4 h-4"
@@ -41,26 +41,26 @@ export default function LegalLayout({ children }: { children: React.ReactNode })
       </main>
 
       {/* Footer */}
-      <footer className="border-t border-white/10 mt-16">
+      <footer className="border-t border-[var(--border-default)] mt-16">
         <div className="container max-w-4xl mx-auto px-4 sm:px-6 py-8">
           <div className="flex flex-col sm:flex-row justify-between items-center gap-4 text-sm text-[var(--text-tertiary)]">
             <p>© {new Date().getFullYear()} NODDO. Todos los derechos reservados.</p>
             <div className="flex gap-6">
               <Link
                 href="/legal/privacidad"
-                className="hover:text-white transition-colors"
+                className="hover:text-[var(--text-primary)] transition-colors"
               >
                 Privacidad
               </Link>
               <Link
                 href="/legal/terminos"
-                className="hover:text-white transition-colors"
+                className="hover:text-[var(--text-primary)] transition-colors"
               >
                 Términos
               </Link>
               <a
                 href="mailto:hola@noddo.io"
-                className="hover:text-white transition-colors"
+                className="hover:text-[var(--text-primary)] transition-colors"
               >
                 Contacto
               </a>

@@ -37,7 +37,7 @@ export function FAQSection() {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true, margin: "-40px" }}
               transition={{ duration: 0.5, delay: i * 0.05, ease }}
-              style={{ borderBottom: "1px solid rgba(255,255,255,0.06)" }}
+              style={{ borderBottom: "1px solid var(--mk-border-subtle)" }}
             >
               {/* Question */}
               <button
@@ -46,7 +46,7 @@ export function FAQSection() {
                 className="flex items-center justify-between w-full text-left gap-5 font-ui font-semibold py-6 tracking-wide transition-colors"
                 style={{
                   fontSize: "clamp(14px, 1.5vw, 15px)",
-                  color: openIdx === i ? "var(--mk-text-primary)" : "rgba(244,240,232,0.65)",
+                  color: openIdx === i ? "var(--mk-text-primary)" : "var(--mk-text-secondary)",
                   background: "none",
                   border: "none",
                   cursor: "pointer",
@@ -59,9 +59,9 @@ export function FAQSection() {
                   style={{
                     width: 24,
                     height: 24,
-                    border: `1px solid ${openIdx === i ? "var(--mk-accent)" : "rgba(255,255,255,0.12)"}`,
+                    border: `1px solid ${openIdx === i ? "var(--mk-accent)" : "rgba(var(--contrast-rgb),0.12)"}`,
                     fontSize: 12,
-                    color: openIdx === i ? "var(--mk-accent)" : "rgba(244,240,232,0.35)",
+                    color: openIdx === i ? "var(--mk-accent)" : "var(--mk-text-tertiary)",
                     transition: "transform 0.3s, border-color 0.2s, color 0.2s",
                     transform: openIdx === i ? "rotate(45deg)" : "none",
                   }}
@@ -79,7 +79,7 @@ export function FAQSection() {
                   paddingBottom: openIdx === i ? 24 : 0,
                   fontSize: 14,
                   lineHeight: 1.9,
-                  color: "rgba(244,240,232,0.55)",
+                  color: "var(--mk-text-secondary)",
                 }}
               >
                 {faq.a}

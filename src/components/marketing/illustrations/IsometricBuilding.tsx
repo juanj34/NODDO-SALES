@@ -4,10 +4,12 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { motion, useMotionValue, useTransform } from "framer-motion";
 
 /* ── Color constants ── */
-const GOLD = "#b8973a";
-const GOLD_LIGHT = "#d4b05a";
-const PAPER = "#f4f0e8";
-const CHARCOAL = "#141414";
+const GOLD = "var(--mk-accent)";
+const GOLD_LIGHT = "var(--mk-accent-light)";
+const PAPER = "var(--mk-text-primary)";
+const CHARCOAL = "#141414"; // theme-allow: dark ink on gold price card (stays dark both themes)
+// Decorative dark-render fills for the isometric building — intentionally dark in both themes
+const BUILDING_DARK = "#1a1a1a"; // theme-allow: isometric building render shade
 const AVAILABLE = "#4a9e6b";
 const RESERVED = "#c4853a";
 const SOLD = "#888";
@@ -163,7 +165,7 @@ function BuildingSVG({ svgRef }: { svgRef: React.RefObject<SVGSVGElement | null>
       xmlns="http://www.w3.org/2000/svg"
       className="w-full h-full"
       style={{
-        filter: "drop-shadow(0 40px 80px rgba(0,0,0,.8))",
+        filter: "drop-shadow(0 40px 80px rgba(var(--overlay-rgb),.8))",
         animation: "buildingFloat 6s ease-in-out infinite",
       }}
     >
@@ -178,7 +180,7 @@ function BuildingSVG({ svgRef }: { svgRef: React.RefObject<SVGSVGElement | null>
         </linearGradient>
         <linearGradient id="roofG" x1="0" y1="0" x2="0" y2="1">
           <stop offset="0%" stopColor="#303030" />
-          <stop offset="100%" stopColor="#1a1a1a" />
+          <stop offset="100%" stopColor={BUILDING_DARK} />
         </linearGradient>
         <linearGradient id="gEdge" x1="0" y1="0" x2="0" y2="1">
           <stop offset="0%" stopColor="#e8c96a" stopOpacity=".9" />
@@ -205,10 +207,10 @@ function BuildingSVG({ svgRef }: { svgRef: React.RefObject<SVGSVGElement | null>
       </defs>
 
       {/* Ground shadow */}
-      <ellipse cx="260" cy="498" rx="160" ry="12" fill="rgba(0,0,0,.5)" />
+      <ellipse cx="260" cy="498" rx="160" ry="12" fill="rgba(var(--overlay-rgb),.5)" />
 
       {/* Base platform */}
-      <polygon points="60,450 260,490 460,450 260,410" fill="#1c1c1c" stroke="rgba(184,151,58,.2)" strokeWidth="1" />
+      <polygon points="60,450 260,490 460,450 260,410" fill="#1c1c1c" stroke="rgba(var(--mk-accent-rgb),.2)" strokeWidth="1" />
       <polygon points="60,450 60,462 260,502 260,490" fill="#111" />
       <polygon points="460,450 460,462 260,502 260,490" fill="#181818" />
 
@@ -221,7 +223,7 @@ function BuildingSVG({ svgRef }: { svgRef: React.RefObject<SVGSVGElement | null>
         const [x2, y2] = lfPt(lx, 320);
         return (
           <line key={`vcl-${i}`} x1={x1} y1={y1} x2={x2} y2={y2}
-            stroke="rgba(184,151,58,.05)" strokeWidth=".5" />
+            stroke="rgba(var(--mk-accent-rgb),.05)" strokeWidth=".5" />
         );
       })}
 
@@ -229,7 +231,7 @@ function BuildingSVG({ svgRef }: { svgRef: React.RefObject<SVGSVGElement | null>
       {Array.from({ length: 10 }, (_, i) => (
         <polygon key={`slb-l-${i}`}
           points={makePoly(0, 295 - i * 32 + 20, 200, 5)}
-          fill="rgba(184,151,58,.03)" />
+          fill="rgba(var(--mk-accent-rgb),.03)" />
       ))}
 
       {/* Left face — floor lines */}
@@ -237,14 +239,14 @@ function BuildingSVG({ svgRef }: { svgRef: React.RefObject<SVGSVGElement | null>
         <line key={`fl-l-${i}`}
           x1="60" y1={130 + 32 * (i + 1)}
           x2="260" y2={80 + 32 * (i + 1)}
-          stroke="rgba(184,151,58,.1)" strokeWidth=".7" />
+          stroke="rgba(var(--mk-accent-rgb),.1)" strokeWidth=".7" />
       ))}
 
       {/* Left face — windows with glass details */}
       {leftWindows.map(({ points, floor, col, isPenthouse, lx, ly, lw, lh }) => (
         <g key={`lwg-${floor}-${col}`}>
           <polygon data-win="left" points={points}
-            fill="url(#winDepthL)" stroke="rgba(184,151,58,.3)"
+            fill="url(#winDepthL)" stroke="rgba(var(--mk-accent-rgb),.3)"
             strokeWidth={isPenthouse ? ".9" : ".8"} />
           {/* Glass reflection highlight */}
           <polygon points={makePoly(lx + 1.5, ly + 1, lw * 0.3, lh * 0.4)}
@@ -253,13 +255,13 @@ function BuildingSVG({ svgRef }: { svgRef: React.RefObject<SVGSVGElement | null>
           <line
             x1={lfPt(lx + 1, ly + lh * 0.55)[0]} y1={lfPt(lx + 1, ly + lh * 0.55)[1]}
             x2={lfPt(lx + lw - 1, ly + lh * 0.55)[0]} y2={lfPt(lx + lw - 1, ly + lh * 0.55)[1]}
-            stroke="rgba(184,151,58,.12)" strokeWidth=".4" />
+            stroke="rgba(var(--mk-accent-rgb),.12)" strokeWidth=".4" />
           {/* Vertical mullion */}
           {!isPenthouse && (
             <line
               x1={lfPt(lx + lw * 0.5, ly + 1)[0]} y1={lfPt(lx + lw * 0.5, ly + 1)[1]}
               x2={lfPt(lx + lw * 0.5, ly + lh - 1)[0]} y2={lfPt(lx + lw * 0.5, ly + lh - 1)[1]}
-              stroke="rgba(184,151,58,.08)" strokeWidth=".3" />
+              stroke="rgba(var(--mk-accent-rgb),.08)" strokeWidth=".3" />
           )}
         </g>
       ))}
@@ -267,12 +269,12 @@ function BuildingSVG({ svgRef }: { svgRef: React.RefObject<SVGSVGElement | null>
       {/* Left face — balconies */}
       {leftBalconies.map((b, i) => (
         <polygon key={`lb-${i}`} points={b.points}
-          fill="#1c1c1c" stroke="rgba(184,151,58,.22)" strokeWidth=".6" />
+          fill="#1c1c1c" stroke="rgba(var(--mk-accent-rgb),.22)" strokeWidth=".6" />
       ))}
 
       {/* Left face — decorative accent band at mid-height */}
       <polygon points={makePoly(0, 153, 200, 3)}
-        fill="rgba(184,151,58,.08)" stroke="rgba(184,151,58,.15)" strokeWidth=".3" />
+        fill="rgba(var(--mk-accent-rgb),.08)" stroke="rgba(var(--mk-accent-rgb),.15)" strokeWidth=".3" />
 
       {/* ═══ RIGHT FACE ═══ */}
       <polygon points="260,400 260,80 460,130 460,450" fill="url(#fR)" />
@@ -340,56 +342,56 @@ function BuildingSVG({ svgRef }: { svgRef: React.RefObject<SVGSVGElement | null>
       <polygon points="60,130 260,80 460,130 260,180" fill="url(#roofG)" />
 
       {/* Parapet walls */}
-      <polygon points="60,130 60,124 260,74 260,80" fill="url(#parapetL)" stroke="rgba(184,151,58,.15)" strokeWidth=".5" />
-      <polygon points="260,80 260,74 460,124 460,130" fill="url(#parapetR)" stroke="rgba(184,151,58,.1)" strokeWidth=".5" />
+      <polygon points="60,130 60,124 260,74 260,80" fill="url(#parapetL)" stroke="rgba(var(--mk-accent-rgb),.15)" strokeWidth=".5" />
+      <polygon points="260,80 260,74 460,124 460,130" fill="url(#parapetR)" stroke="rgba(var(--mk-accent-rgb),.1)" strokeWidth=".5" />
       {/* Parapet cap (gold trim) */}
-      <line x1="60" y1="124" x2="260" y2="74" stroke="rgba(184,151,58,.35)" strokeWidth=".8" />
-      <line x1="260" y1="74" x2="460" y2="124" stroke="rgba(184,151,58,.22)" strokeWidth=".7" />
+      <line x1="60" y1="124" x2="260" y2="74" stroke="rgba(var(--mk-accent-rgb),.35)" strokeWidth=".8" />
+      <line x1="260" y1="74" x2="460" y2="124" stroke="rgba(var(--mk-accent-rgb),.22)" strokeWidth=".7" />
 
       {/* Roof surface lines */}
-      <line x1="60" y1="130" x2="260" y2="180" stroke="rgba(184,151,58,.08)" strokeWidth=".5" />
-      <line x1="460" y1="130" x2="260" y2="180" stroke="rgba(184,151,58,.05)" strokeWidth=".5" />
+      <line x1="60" y1="130" x2="260" y2="180" stroke="rgba(var(--mk-accent-rgb),.08)" strokeWidth=".5" />
+      <line x1="460" y1="130" x2="260" y2="180" stroke="rgba(var(--mk-accent-rgb),.05)" strokeWidth=".5" />
 
       {/* Rooftop equipment */}
-      <rect x="220" y="71" width="16" height="7" rx="1" fill="#222" stroke="rgba(184,151,58,.15)" strokeWidth=".6" />
-      <rect x="238" y="69" width="12" height="9" rx="1" fill="#1c1c1c" stroke="rgba(184,151,58,.12)" strokeWidth=".6" />
+      <rect x="220" y="71" width="16" height="7" rx="1" fill="#222" stroke="rgba(var(--mk-accent-rgb),.15)" strokeWidth=".6" />
+      <rect x="238" y="69" width="12" height="9" rx="1" fill="#1c1c1c" stroke="rgba(var(--mk-accent-rgb),.12)" strokeWidth=".6" />
       {/* Elevator shaft housing */}
-      <polygon points="272,74 272,60 290,54 290,68" fill="#1a1a1a" stroke="rgba(184,151,58,.12)" strokeWidth=".6" />
-      <polygon points="272,60 280,56 298,50 290,54" fill="#222" stroke="rgba(184,151,58,.08)" strokeWidth=".4" />
+      <polygon points="272,74 272,60 290,54 290,68" fill={BUILDING_DARK} stroke="rgba(var(--mk-accent-rgb),.12)" strokeWidth=".6" />
+      <polygon points="272,60 280,56 298,50 290,54" fill="#222" stroke="rgba(var(--mk-accent-rgb),.08)" strokeWidth=".4" />
       {/* Antenna with beacon */}
-      <line x1="284" y1="50" x2="284" y2="34" stroke="rgba(184,151,58,.25)" strokeWidth=".7" />
-      <line x1="280" y1="42" x2="288" y2="42" stroke="rgba(184,151,58,.15)" strokeWidth=".4" />
-      <circle cx="284" cy="33" r="1.5" fill="rgba(184,151,58,.7)">
+      <line x1="284" y1="50" x2="284" y2="34" stroke="rgba(var(--mk-accent-rgb),.25)" strokeWidth=".7" />
+      <line x1="280" y1="42" x2="288" y2="42" stroke="rgba(var(--mk-accent-rgb),.15)" strokeWidth=".4" />
+      <circle cx="284" cy="33" r="1.5" fill="rgba(var(--mk-accent-rgb),.7)">
         <animate attributeName="opacity" values=".7;.2;.7" dur="2s" repeatCount="indefinite" />
       </circle>
-      <circle cx="284" cy="33" r="4" fill="rgba(184,151,58,.06)">
+      <circle cx="284" cy="33" r="4" fill="rgba(var(--mk-accent-rgb),.06)">
         <animate attributeName="r" values="4;7;4" dur="2s" repeatCount="indefinite" />
         <animate attributeName="opacity" values=".06;.02;.06" dur="2s" repeatCount="indefinite" />
       </circle>
       {/* Status light */}
-      <circle cx="242" cy="77" r="2.5" fill="rgba(184,151,58,.6)" />
-      <circle cx="242" cy="77" r="6" fill="rgba(184,151,58,.06)" />
+      <circle cx="242" cy="77" r="2.5" fill="rgba(var(--mk-accent-rgb),.6)" />
+      <circle cx="242" cy="77" r="6" fill="rgba(var(--mk-accent-rgb),.06)" />
 
       {/* ═══ STRUCTURAL EDGES ═══ */}
       <line x1="60" y1="124" x2="60" y2="450" stroke="url(#gEdge)" strokeWidth="1.4" />
       <line x1="260" y1="74" x2="260" y2="400" stroke="url(#gEdge)" strokeWidth="2.4" />
-      <line x1="460" y1="124" x2="460" y2="450" stroke="rgba(184,151,58,.2)" strokeWidth=".8" />
-      <line x1="60" y1="124" x2="260" y2="74" stroke="rgba(184,151,58,.5)" strokeWidth="1.2" />
-      <line x1="460" y1="124" x2="260" y2="74" stroke="rgba(184,151,58,.32)" strokeWidth="1" />
+      <line x1="460" y1="124" x2="460" y2="450" stroke="rgba(var(--mk-accent-rgb),.2)" strokeWidth=".8" />
+      <line x1="60" y1="124" x2="260" y2="74" stroke="rgba(var(--mk-accent-rgb),.5)" strokeWidth="1.2" />
+      <line x1="460" y1="124" x2="260" y2="74" stroke="rgba(var(--mk-accent-rgb),.32)" strokeWidth="1" />
       {/* Bottom edges */}
-      <line x1="60" y1="450" x2="260" y2="400" stroke="rgba(184,151,58,.08)" strokeWidth=".5" />
-      <line x1="460" y1="450" x2="260" y2="400" stroke="rgba(184,151,58,.06)" strokeWidth=".5" />
+      <line x1="60" y1="450" x2="260" y2="400" stroke="rgba(var(--mk-accent-rgb),.08)" strokeWidth=".5" />
+      <line x1="460" y1="450" x2="260" y2="400" stroke="rgba(var(--mk-accent-rgb),.06)" strokeWidth=".5" />
 
       {/* ═══ ENTRANCE ═══ */}
       {/* Left face lobby doors */}
       <polygon points={makePoly(80, 298, 40, 22)}
-        fill="rgba(184,151,58,.07)" stroke="rgba(184,151,58,.28)" strokeWidth=".8" />
+        fill="rgba(var(--mk-accent-rgb),.07)" stroke="rgba(var(--mk-accent-rgb),.28)" strokeWidth=".8" />
       <line x1={lfPt(100, 298)[0]} y1={lfPt(100, 298)[1]}
         x2={lfPt(100, 320)[0]} y2={lfPt(100, 320)[1]}
-        stroke="rgba(184,151,58,.15)" strokeWidth=".5" />
+        stroke="rgba(var(--mk-accent-rgb),.15)" strokeWidth=".5" />
       {/* Entrance canopy */}
       <polygon points={makePoly(76, 296, 48, 2)}
-        fill="rgba(184,151,58,.1)" stroke="rgba(184,151,58,.2)" strokeWidth=".4" />
+        fill="rgba(var(--mk-accent-rgb),.1)" stroke="rgba(var(--mk-accent-rgb),.2)" strokeWidth=".4" />
 
       {/* Right face entrance */}
       <polygon points={makeRightPoly(70, 302, 36, 18)}
@@ -402,8 +404,8 @@ function BuildingSVG({ svgRef }: { svgRef: React.RefObject<SVGSVGElement | null>
       <polygon
         data-sel-unit=""
         points={makePoly(62, 199, 30, 18)}
-        fill="rgba(184,151,58,.42)"
-        stroke="rgba(184,151,58,.98)"
+        fill="rgba(var(--mk-accent-rgb),.42)"
+        stroke="rgba(var(--mk-accent-rgb),.98)"
         strokeWidth="1.5"
       />
     </svg>
@@ -419,9 +421,9 @@ function FloorplanCard() {
     <div
       className="rounded-[10px] px-3.5 py-3 backdrop-blur-xl"
       style={{
-        background: "rgba(20,20,20,0.82)",
-        border: "1px solid rgba(184,151,58,0.25)",
-        boxShadow: "0 8px 32px rgba(0,0,0,0.4)",
+        background: "color-mix(in srgb, var(--surface-1) 82%, transparent)",
+        border: "1px solid rgba(var(--mk-accent-rgb),0.25)",
+        boxShadow: "0 8px 32px rgba(var(--overlay-rgb),0.4)",
         width: 172,
       }}
     >
@@ -430,17 +432,17 @@ function FloorplanCard() {
       </p>
       <svg viewBox="0 0 140 70" fill="none" className="w-full mb-2.5" style={{ height: 56 }}>
         <rect x="4" y="4" width="132" height="62" rx="2" stroke={GOLD} strokeWidth="1.2" strokeOpacity="0.5" fill="none" />
-        <rect x="4" y="4" width="72" height="38" stroke={GOLD} strokeWidth="0.6" strokeOpacity="0.25" fill="rgba(184,151,58,0.06)" />
+        <rect x="4" y="4" width="72" height="38" stroke={GOLD} strokeWidth="0.6" strokeOpacity="0.25" fill="rgba(var(--mk-accent-rgb),0.06)" />
         <text x="40" y="26" textAnchor="middle" fill={GOLD} fillOpacity="0.35" fontSize="6" fontFamily="monospace">LIVING</text>
-        <rect x="76" y="4" width="60" height="38" stroke={GOLD} strokeWidth="0.6" strokeOpacity="0.25" fill="rgba(184,151,58,0.04)" />
+        <rect x="76" y="4" width="60" height="38" stroke={GOLD} strokeWidth="0.6" strokeOpacity="0.25" fill="rgba(var(--mk-accent-rgb),0.04)" />
         <text x="106" y="26" textAnchor="middle" fill={GOLD} fillOpacity="0.3" fontSize="5.5" fontFamily="monospace">COCINA</text>
-        <rect x="4" y="42" width="48" height="24" stroke={GOLD} strokeWidth="0.6" strokeOpacity="0.25" fill="rgba(184,151,58,0.05)" />
+        <rect x="4" y="42" width="48" height="24" stroke={GOLD} strokeWidth="0.6" strokeOpacity="0.25" fill="rgba(var(--mk-accent-rgb),0.05)" />
         <text x="28" y="57" textAnchor="middle" fill={GOLD} fillOpacity="0.3" fontSize="5" fontFamily="monospace">HAB 1</text>
-        <rect x="52" y="42" width="44" height="24" stroke={GOLD} strokeWidth="0.6" strokeOpacity="0.25" fill="rgba(184,151,58,0.05)" />
+        <rect x="52" y="42" width="44" height="24" stroke={GOLD} strokeWidth="0.6" strokeOpacity="0.25" fill="rgba(var(--mk-accent-rgb),0.05)" />
         <text x="74" y="57" textAnchor="middle" fill={GOLD} fillOpacity="0.3" fontSize="5" fontFamily="monospace">HAB 2</text>
-        <rect x="96" y="42" width="40" height="12" stroke={GOLD} strokeWidth="0.5" strokeOpacity="0.2" fill="rgba(184,151,58,0.03)" />
+        <rect x="96" y="42" width="40" height="12" stroke={GOLD} strokeWidth="0.5" strokeOpacity="0.2" fill="rgba(var(--mk-accent-rgb),0.03)" />
         <text x="116" y="51" textAnchor="middle" fill={GOLD} fillOpacity="0.25" fontSize="4.5" fontFamily="monospace">BAÑO 1</text>
-        <rect x="96" y="54" width="40" height="12" stroke={GOLD} strokeWidth="0.5" strokeOpacity="0.2" fill="rgba(184,151,58,0.03)" />
+        <rect x="96" y="54" width="40" height="12" stroke={GOLD} strokeWidth="0.5" strokeOpacity="0.2" fill="rgba(var(--mk-accent-rgb),0.03)" />
         <text x="116" y="63" textAnchor="middle" fill={GOLD} fillOpacity="0.25" fontSize="4.5" fontFamily="monospace">BAÑO 2</text>
         <path d="M 28 42 A 8 8 0 0 1 36 42" stroke={GOLD} strokeWidth="0.5" strokeOpacity="0.3" fill="none" />
         <path d="M 60 42 A 8 8 0 0 1 68 42" stroke={GOLD} strokeWidth="0.5" strokeOpacity="0.3" fill="none" />
@@ -448,7 +450,7 @@ function FloorplanCard() {
       <p className="font-heading" style={{ fontSize: 22, fontWeight: 300, color: PAPER, lineHeight: 1.1, marginBottom: 3 }}>
         78 m&sup2;
       </p>
-      <p style={{ fontSize: 9, color: "rgba(244,240,232,0.4)" }}>2 hab &middot; 2 baños</p>
+      <p style={{ fontSize: 9, color: "var(--mk-text-tertiary)" }}>2 hab &middot; 2 baños</p>
     </div>
   );
 }
@@ -459,16 +461,16 @@ function PriceCard({ price, unitLabel, typeLabel }: { price: string; unitLabel: 
       className="rounded-[10px] px-4 py-2.5 backdrop-blur-xl"
       style={{
         background: `linear-gradient(135deg, ${GOLD}, ${GOLD_LIGHT})`,
-        boxShadow: "0 8px 28px rgba(184,151,58,0.25), 0 2px 8px rgba(0,0,0,0.3)",
+        boxShadow: "0 8px 28px rgba(var(--mk-accent-rgb),0.25), 0 2px 8px rgba(var(--overlay-rgb),0.3)",
       }}
     >
-      <p className="font-ui uppercase" style={{ fontSize: 7, letterSpacing: "0.3em", color: "rgba(20,20,20,0.6)", marginBottom: 2 }}>
+      <p className="font-ui uppercase" style={{ fontSize: 7, letterSpacing: "0.3em", color: "rgba(var(--overlay-rgb),0.6)", marginBottom: 2 }}>
         {unitLabel}
       </p>
       <p className="font-heading" style={{ fontSize: 26, fontWeight: 600, color: CHARCOAL, lineHeight: 1 }}>
         {price}
       </p>
-      <p style={{ fontSize: 8, color: "rgba(20,20,20,0.5)", marginTop: 2 }}>{typeLabel}</p>
+      <p style={{ fontSize: 8, color: "rgba(var(--overlay-rgb),0.5)", marginTop: 2 }}>{typeLabel}</p>
     </div>
   );
 }
@@ -478,9 +480,9 @@ function AvailabilityCard({ dotColors }: { dotColors: string[] }) {
     <div
       className="rounded-[10px] px-3.5 py-3 backdrop-blur-xl"
       style={{
-        background: "rgba(20,20,20,0.82)",
-        border: "1px solid rgba(255,255,255,0.06)",
-        boxShadow: "0 8px 32px rgba(0,0,0,0.4)",
+        background: "color-mix(in srgb, var(--surface-1) 82%, transparent)",
+        border: "1px solid rgba(var(--contrast-rgb),0.06)",
+        boxShadow: "0 8px 32px rgba(var(--overlay-rgb),0.4)",
         width: 148,
       }}
     >
@@ -508,7 +510,7 @@ function AvailabilityCard({ dotColors }: { dotColors: string[] }) {
         ].map(({ c, l }) => (
           <div key={l} className="flex items-center gap-1">
             <div className="rounded-full" style={{ width: 5, height: 5, background: c, opacity: c === SOLD ? 0.5 : 0.85 }} />
-            <span style={{ fontSize: 7, color: "rgba(244,240,232,0.35)" }}>{l}</span>
+            <span style={{ fontSize: 7, color: "var(--mk-text-tertiary)" }}>{l}</span>
           </div>
         ))}
       </div>
@@ -521,9 +523,9 @@ function LeadCard({ name, detail }: { name: string; detail: string }) {
     <div
       className="rounded-[10px] px-3.5 py-2.5 backdrop-blur-xl"
       style={{
-        background: "rgba(20,20,20,0.82)",
+        background: "color-mix(in srgb, var(--surface-1) 82%, transparent)",
         border: "1px solid rgba(74,158,107,0.3)",
-        boxShadow: "0 8px 32px rgba(0,0,0,0.4)",
+        boxShadow: "0 8px 32px rgba(var(--overlay-rgb),0.4)",
         width: 160,
       }}
     >
@@ -542,7 +544,7 @@ function LeadCard({ name, detail }: { name: string; detail: string }) {
       <p className="font-heading" style={{ fontSize: 16, fontWeight: 300, color: PAPER, lineHeight: 1.2 }}>
         {name}
       </p>
-      <p style={{ fontSize: 9, color: "rgba(244,240,232,0.4)", marginTop: 2 }}>{detail}</p>
+      <p style={{ fontSize: 9, color: "var(--mk-text-tertiary)", marginTop: 2 }}>{detail}</p>
     </div>
   );
 }
@@ -552,9 +554,9 @@ function ProgressCard() {
     <div
       className="rounded-[10px] px-3.5 py-2.5 backdrop-blur-xl"
       style={{
-        background: "rgba(20,20,20,0.82)",
-        border: "1px solid rgba(255,255,255,0.06)",
-        boxShadow: "0 8px 32px rgba(0,0,0,0.4)",
+        background: "color-mix(in srgb, var(--surface-1) 82%, transparent)",
+        border: "1px solid rgba(var(--contrast-rgb),0.06)",
+        boxShadow: "0 8px 32px rgba(var(--overlay-rgb),0.4)",
         width: 140,
       }}
     >
@@ -563,9 +565,9 @@ function ProgressCard() {
       </p>
       <div className="flex items-baseline gap-1.5 mb-2">
         <p className="font-heading" style={{ fontSize: 22, fontWeight: 300, color: PAPER, lineHeight: 1 }}>68%</p>
-        <p style={{ fontSize: 9, color: "rgba(244,240,232,0.4)" }}>completado</p>
+        <p style={{ fontSize: 9, color: "var(--mk-text-tertiary)" }}>completado</p>
       </div>
-      <div className="rounded-full overflow-hidden" style={{ height: 5, background: "rgba(255,255,255,0.06)" }}>
+      <div className="rounded-full overflow-hidden" style={{ height: 5, background: "rgba(var(--contrast-rgb),0.06)" }}>
         <motion.div
           className="h-full rounded-full"
           style={{ background: `linear-gradient(90deg, ${GOLD}, ${GOLD_LIGHT})` }}
@@ -574,7 +576,7 @@ function ProgressCard() {
           transition={{ duration: 1.4, delay: 0.3, ease: [0.25, 0.46, 0.45, 0.94] }}
         />
       </div>
-      <p style={{ fontSize: 8, color: "rgba(244,240,232,0.35)", marginTop: 6 }}>Entrega: Q2 2026</p>
+      <p style={{ fontSize: 8, color: "var(--mk-text-tertiary)", marginTop: 6 }}>Entrega: Q2 2026</p>
     </div>
   );
 }
@@ -731,8 +733,8 @@ export function IsometricBuilding({ className }: { className?: string }) {
     let currentIdx = 13; // floor 4, col B
     const interval = setInterval(() => {
       // Deselect
-      selUnit.setAttribute("fill", "rgba(184,151,58,.06)");
-      selUnit.setAttribute("stroke", "rgba(184,151,58,.12)");
+      selUnit.setAttribute("fill", "rgba(var(--mk-accent-rgb),.06)");
+      selUnit.setAttribute("stroke", "rgba(var(--mk-accent-rgb),.12)");
       selUnit.setAttribute("stroke-width", ".5");
 
       // Pick next
@@ -741,8 +743,8 @@ export function IsometricBuilding({ className }: { className?: string }) {
 
       // Move
       selUnit.setAttribute("points", makePoly(u.lx, u.ly, u.lw, u.lh));
-      selUnit.setAttribute("fill", "rgba(184,151,58,.42)");
-      selUnit.setAttribute("stroke", "rgba(184,151,58,.98)");
+      selUnit.setAttribute("fill", "rgba(var(--mk-accent-rgb),.42)");
+      selUnit.setAttribute("stroke", "rgba(var(--mk-accent-rgb),.98)");
       selUnit.setAttribute("stroke-width", "1.5");
 
       // Update price card data
@@ -795,7 +797,7 @@ export function IsometricBuilding({ className }: { className?: string }) {
           top: "50%", left: "50%",
           width: 360, height: 360,
           transform: "translate(-50%, -50%)",
-          background: "radial-gradient(circle, rgba(184,151,58,.06) 0%, transparent 70%)",
+          background: "radial-gradient(circle, rgba(var(--mk-accent-rgb),.06) 0%, transparent 70%)",
           borderRadius: "50%",
           animation: "glowPulse 4s ease-in-out infinite",
         }}

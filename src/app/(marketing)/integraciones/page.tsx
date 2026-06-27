@@ -277,7 +277,7 @@ export default function IntegracionesPage() {
                       whileInView={{ opacity: 1, y: 0 }}
                       viewport={{ once: true, margin: "-60px" }}
                       transition={{ duration: 0.5, delay: itemIndex * 0.08, ease }}
-                      className="glass-card p-6 hover:bg-white/5 transition-all duration-300 relative overflow-hidden group"
+                      className="glass-card p-6 hover:bg-[var(--surface-2)] transition-all duration-300 relative overflow-hidden group"
                     >
                       {/* Glow effect on hover */}
                       <div
@@ -364,8 +364,8 @@ export default function IntegracionesPage() {
                       <div
                         className="inline-block px-3 py-1.5 rounded-lg text-[10px] tracking-[0.1em]"
                         style={{
-                          backgroundColor: "rgba(255, 255, 255, 0.05)",
-                          border: "1px solid rgba(255, 255, 255, 0.08)",
+                          backgroundColor: "rgba(var(--contrast-rgb), 0.05)",
+                          border: "1px solid rgba(var(--contrast-rgb), 0.08)",
                           color: "rgba(244,240,232,0.55)",
                           fontFamily: "var(--font-syne)",
                           fontWeight: 600,

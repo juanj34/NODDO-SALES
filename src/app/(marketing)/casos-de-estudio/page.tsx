@@ -131,8 +131,8 @@ export default function CasosDeEstudioPage() {
                       <div
                         className="px-4 py-2 rounded-lg"
                         style={{
-                          backgroundColor: "rgba(255, 255, 255, 0.05)",
-                          border: "1px solid rgba(255, 255, 255, 0.08)",
+                          backgroundColor: "rgba(var(--contrast-rgb), 0.05)",
+                          border: "1px solid rgba(var(--contrast-rgb), 0.08)",
                         }}
                       >
                         <span
@@ -156,7 +156,7 @@ export default function CasosDeEstudioPage() {
                     height={300}
                     className="w-full md:w-80 h-48 object-cover rounded-xl"
                     style={{
-                      border: "1px solid rgba(255, 255, 255, 0.1)",
+                      border: "1px solid rgba(var(--contrast-rgb), 0.1)",
                     }}
                   />
                 </div>
@@ -343,8 +343,8 @@ export default function CasosDeEstudioPage() {
                         key={metric.label}
                         className="p-6 rounded-xl"
                         style={{
-                          backgroundColor: "rgba(255, 255, 255, 0.03)",
-                          border: "1px solid rgba(255, 255, 255, 0.08)",
+                          backgroundColor: "rgba(var(--contrast-rgb), 0.03)",
+                          border: "1px solid rgba(var(--contrast-rgb), 0.08)",
                         }}
                       >
                         <Icon
