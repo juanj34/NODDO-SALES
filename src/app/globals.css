@@ -1,6 +1,13 @@
 @import "tailwindcss";
 @plugin "@tailwindcss/typography";
 
+/* Tailwind v4 auto-scans the whole repo for class/variable usage. Exclude docs/
+   (plan & spec markdown — no UI): they contain Windows scratchpad paths like
+   ...\48328299-... that Tailwind misreads as CSS unicode escapes (\483282 →
+   code point 4731522 > U+10FFFF), crashing the build with
+   "RangeError: Invalid code point" in markUsedVariable. */
+@source not "../../docs";
+
 :root {
   --background: #141414;
   --foreground: #f4f0e8;
