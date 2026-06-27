@@ -5,6 +5,24 @@ import { readFileSync, readdirSync, statSync } from "node:fs";
 import { join, extname } from "node:path";
 import { pathToFileURL } from "node:url";
 
+// Non-themed surfaces: rendered outside the app theme (email clients, PDFs, social
+// cards, the crash boundary's own document, server notification strings). Colors
+// here are intentionally fixed — see the spec's "Out of scope" section.
+const EXCLUDE = [
+  "src/app/globals.css", // defines the raw token values by design
+  "src/lib/email", // transactional/marketing email HTML
+  "src/app/api/cron/", // email digest cron jobs
+  "src/lib/cotizador/pdf-react/", // generated PDF document
+  "src/app/opengraph-image", // static social card
+  "src/app/global-error", // crash boundary renders its own <html> outside providers
+  "src/lib/security-alerts", // server alert email/slack strings
+  "src/lib/error-reporter", // server error report strings
+];
+
+function isExcluded(norm) {
+  return EXCLUDE.some((p) => norm.includes(p));
+}
+
 const PATTERNS = [
   // Tailwind color utilities that don't go through a token
   /\b(?:text|bg|border|divide|ring|from|via|to|fill|stroke|shadow|outline|ring-offset)-(?:white|black)(?:\/\d{1,3})?\b/g,
@@ -39,10 +57,11 @@ function* walk(dir) {
 export function scan(root = "src") {
   const exts = new Set([".tsx", ".ts", ".css"]);
   const findings = [];
-  for (const file of walk(root)) {
+  const iter = statSync(root).isFile() ? [root] : walk(root);
+  for (const file of iter) {
     if (!exts.has(extname(file))) continue;
     const norm = file.replace(/\\/g, "/");
-    if (norm.endsWith("src/app/globals.css")) continue; // defines raw colors by design
+    if (isExcluded(norm)) continue;
     const lines = readFileSync(file, "utf8").split("\n");
     lines.forEach((line, i) => {
       for (const hit of findHardcodedColors(line, file)) {
