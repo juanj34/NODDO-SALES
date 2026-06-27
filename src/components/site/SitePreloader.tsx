@@ -58,7 +58,7 @@ export function SitePreloader({ logoUrl, projectName, onComplete }: SitePreloade
         if (phase === "exiting") onComplete();
       }}
       className="fixed inset-0 z-[100] flex flex-col items-center justify-center"
-      style={{ backgroundColor: "var(--site-bg, #0A0A0B)" }}
+      style={{ backgroundColor: "var(--site-bg, var(--surface-0))" }}
     >
       {/* Subtle radial glow behind logo */}
       <div

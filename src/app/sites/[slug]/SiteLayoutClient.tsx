@@ -110,10 +110,10 @@ export function SiteLayoutClient({ proyecto, basePath, children }: Props) {
                 className="fixed top-1/2 -translate-y-1/2 z-[56] hidden lg:flex items-center justify-center w-4 h-9 rounded-r-md cursor-pointer"
                 animate={{
                   left: navExpanded ? 200 : 60,
-                  backgroundColor: isLight ? "rgba(240,238,234,0.9)" : "rgba(26,26,26,0.7)",
+                  backgroundColor: isLight ? "rgba(240,238,234,0.9)" : "rgba(26,26,26,0.7)", // theme-allow: isLight conditional already handles both themes
                 }}
                 whileHover={{
-                  backgroundColor: isLight ? "rgba(228,224,218,0.95)" : "rgba(42,42,42,0.9)",
+                  backgroundColor: isLight ? "rgba(228,224,218,0.95)" : "rgba(42,42,42,0.9)", // theme-allow: isLight conditional already handles both themes
                   width: 20,
                 }}
                 transition={{ duration: 0.25, ease: [0.4, 0, 0.2, 1] }}
@@ -179,10 +179,10 @@ function getLightThemeVars(): Record<string, string> {
     "--surface-2": "#ebe8e3",
     "--surface-3": "#e2ded8",
     "--surface-4": "#d8d4cd",
-    "--text-primary": "rgba(20, 20, 18, 0.92)",
-    "--text-secondary": "rgba(20, 20, 18, 0.60)",
-    "--text-tertiary": "rgba(20, 20, 18, 0.40)",
-    "--text-muted": "rgba(20, 20, 18, 0.18)",
+    "--text-primary": "rgba(20, 20, 18, 0.92)", // theme-allow: light-theme token definition (source of truth)
+    "--text-secondary": "rgba(20, 20, 18, 0.60)", // theme-allow: light-theme token definition (source of truth)
+    "--text-tertiary": "rgba(20, 20, 18, 0.40)", // theme-allow: light-theme token definition (source of truth)
+    "--text-muted": "rgba(20, 20, 18, 0.18)", // theme-allow: light-theme token definition (source of truth)
     "--border-subtle": "rgba(0, 0, 0, 0.06)", // theme-allow: light-theme token definition (source of truth)
     "--border-default": "rgba(0, 0, 0, 0.10)", // theme-allow: light-theme token definition (source of truth)
     "--border-strong": "rgba(0, 0, 0, 0.16)", // theme-allow: light-theme token definition (source of truth)

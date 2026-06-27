@@ -421,7 +421,7 @@ function InlineMultiTipo({
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: -4, scale: 0.96 }}
             transition={{ duration: 0.12 }}
-            className="absolute z-50 top-full mt-1 left-0 min-w-[180px] p-1.5 rounded-xl bg-[rgba(26,26,29,0.95)] border border-[var(--border-default)] shadow-[0_8px_40px_rgba(var(--overlay-rgb),0.5)]"
+            className="absolute z-50 top-full mt-1 left-0 min-w-[180px] p-1.5 rounded-xl bg-[var(--surface-3)] border border-[var(--border-default)] shadow-[0_8px_40px_rgba(var(--overlay-rgb),0.5)]"
             style={{ backdropFilter: "blur(32px)" }}
           >
             <p className="px-2 py-1 text-[9px] text-[var(--text-muted)] uppercase tracking-wider font-bold">

@@ -22,10 +22,10 @@ export default function DashboardError({
           <span className="text-red-500 text-xl">!</span>
         </div>
 
-        <h1 className="font-heading text-2xl font-light text-[rgba(244,240,232,0.92)] mb-2">
+        <h1 className="font-heading text-2xl font-light text-[var(--text-primary)] mb-2">
           Algo salió mal
         </h1>
-        <p className="font-body text-[13px] font-light text-[rgba(244,240,232,0.35)] mb-8 leading-relaxed">
+        <p className="font-body text-[13px] font-light text-[var(--text-tertiary)] mb-8 leading-relaxed">
           Ha ocurrido un error inesperado. Intenta recargar o vuelve a proyectos.
         </p>
 
@@ -38,7 +38,7 @@ export default function DashboardError({
           </button>
           <a
             href="/proyectos"
-            className="inline-block px-7 py-3 bg-transparent text-[rgba(244,240,232,0.55)] font-ui text-[11px] font-bold uppercase tracking-[0.15em] rounded-[8px] border border-[var(--border-default)] no-underline hover:border-[var(--border-strong)] transition-colors"
+            className="inline-block px-7 py-3 bg-transparent text-[var(--text-secondary)] font-ui text-[11px] font-bold uppercase tracking-[0.15em] rounded-[8px] border border-[var(--border-default)] no-underline hover:border-[var(--border-strong)] transition-colors"
           >
             Ir a proyectos
           </a>

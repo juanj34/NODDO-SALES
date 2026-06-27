@@ -222,7 +222,7 @@ export default function AdminErrorsPage() {
           transition={{ delay: 0.05, duration: 0.3 }}
           className="grid grid-cols-2 sm:grid-cols-4 gap-3"
         >
-          <StatCard label="Sin resolver" value={stats.total_unresolved} color="#f4f0e8" />
+          <StatCard label="Sin resolver" value={stats.total_unresolved} color="var(--text-primary)" />
           <StatCard label="Críticos" value={stats.critical} color="#ef4444" />
           <StatCard label="Errores" value={stats.errors} color="#f59e0b" />
           <StatCard label="Warnings" value={stats.warnings} color="#3b82f6" />

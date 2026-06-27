@@ -91,7 +91,7 @@ export function EnhancedProjectCard({ proyecto, stats, index, isAdmin, onDelete,
             className="absolute inset-0"
             style={{
               background:
-                "radial-gradient(ellipse at center, transparent 50%, rgba(10,10,11,0.35) 100%)",
+                "radial-gradient(ellipse at center, transparent 50%, rgba(var(--overlay-rgb),0.35) 100%)",
             }}
           />
 

@@ -324,7 +324,7 @@ export default function TerminosPage() {
               style={{
                 fontFamily: "var(--font-syne)",
                 fontWeight: 700,
-                color: "rgba(244,240,232,0.92)",
+                color: "var(--mk-text-primary)",
               }}
             >
               Legal
@@ -338,7 +338,7 @@ export default function TerminosPage() {
             style={{
               fontFamily: "var(--font-cormorant)",
               fontWeight: 300,
-              color: "rgba(244,240,232,0.92)",
+              color: "var(--mk-text-primary)",
             }}
           >
             Términos de{" "}
@@ -351,7 +351,7 @@ export default function TerminosPage() {
             className="text-base max-w-2xl mx-auto"
             style={{
               fontWeight: 300,
-              color: "rgba(244,240,232,0.55)",
+              color: "var(--mk-text-secondary)",
             }}
           >
             Condiciones generales de uso de la plataforma NODDO. Al utilizar nuestro servicio,
@@ -363,7 +363,7 @@ export default function TerminosPage() {
             transition={{ duration: 0.7, delay: 0.3, ease }}
             className="text-xs mt-4 flex items-center justify-center gap-2"
             style={{
-              color: "rgba(244,240,232,0.35)",
+              color: "var(--mk-text-tertiary)",
             }}
           >
             <span className="w-1 h-1 rounded-full" style={{ background: "#b8973a" }} />
@@ -395,7 +395,7 @@ export default function TerminosPage() {
                 style={{
                   fontFamily: "var(--font-syne)",
                   fontWeight: 700,
-                  color: "rgba(244,240,232,0.55)",
+                  color: "var(--mk-text-secondary)",
                 }}
               >
                 Contenido
@@ -418,8 +418,8 @@ export default function TerminosPage() {
                             ? "2px solid #b8973a"
                             : "2px solid transparent",
                           color: isActive
-                            ? "rgba(244,240,232,0.92)"
-                            : "rgba(244,240,232,0.55)",
+                            ? "var(--mk-text-primary)"
+                            : "var(--mk-text-secondary)",
                           fontSize: "0.75rem",
                           fontWeight: 300,
                         }}
@@ -459,7 +459,7 @@ export default function TerminosPage() {
                       style={{
                         fontFamily: "var(--font-cormorant)",
                         fontWeight: 400,
-                        color: "rgba(244,240,232,0.92)",
+                        color: "var(--mk-text-primary)",
                       }}
                     >
                       1. Aceptación de los términos
@@ -470,13 +470,13 @@ export default function TerminosPage() {
                   className="space-y-3 text-sm leading-[1.8]"
                   style={{
                     fontWeight: 300,
-                    color: "rgba(244,240,232,0.70)",
+                    color: "var(--mk-text-secondary)",
                   }}
                 >
                   <p>
                     Al acceder y utilizar la plataforma NODDO (en adelante, &quot;el Servicio&quot;),
                     operada por{" "}
-                    <strong style={{ color: "rgba(244,240,232,0.92)" }}>Antigravity SAS</strong>{" "}
+                    <strong style={{ color: "var(--mk-text-primary)" }}>Antigravity SAS</strong>{" "}
                     (en adelante, &quot;la Empresa&quot;, &quot;nosotros&quot;, &quot;NODDO&quot;), usted (en adelante, &quot;el
                     Usuario&quot;, &quot;usted&quot;) acepta quedar vinculado por estos Términos de Servicio en
                     su totalidad.
@@ -522,7 +522,7 @@ export default function TerminosPage() {
                       style={{
                         fontFamily: "var(--font-cormorant)",
                         fontWeight: 400,
-                        color: "rgba(244,240,232,0.92)",
+                        color: "var(--mk-text-primary)",
                       }}
                     >
                       2. Descripción del Servicio
@@ -533,7 +533,7 @@ export default function TerminosPage() {
                   className="space-y-3 text-sm leading-[1.8]"
                   style={{
                     fontWeight: 300,
-                    color: "rgba(244,240,232,0.70)",
+                    color: "var(--mk-text-secondary)",
                   }}
                 >
                   <p>
@@ -586,7 +586,7 @@ export default function TerminosPage() {
                       style={{
                         fontFamily: "var(--font-cormorant)",
                         fontWeight: 400,
-                        color: "rgba(244,240,232,0.92)",
+                        color: "var(--mk-text-primary)",
                       }}
                     >
                       3. Registro y cuenta
@@ -597,7 +597,7 @@ export default function TerminosPage() {
                   className="space-y-3 text-sm leading-[1.8]"
                   style={{
                     fontWeight: 300,
-                    color: "rgba(244,240,232,0.70)",
+                    color: "var(--mk-text-secondary)",
                   }}
                 >
                   <p>
@@ -628,7 +628,7 @@ export default function TerminosPage() {
                     por dicho uso no autorizado.
                   </p>
                   <p>
-                    <strong style={{ color: "rgba(244,240,232,0.92)" }}>
+                    <strong style={{ color: "var(--mk-text-primary)" }}>
                       Colaboradores:
                     </strong>{" "}
                     Puede invitar hasta 3 colaboradores por proyecto. Los colaboradores tienen
@@ -660,7 +660,7 @@ export default function TerminosPage() {
                       style={{
                         fontFamily: "var(--font-cormorant)",
                         fontWeight: 400,
-                        color: "rgba(244,240,232,0.92)",
+                        color: "var(--mk-text-primary)",
                       }}
                     >
                       4. Planes, pagos y facturación
@@ -671,7 +671,7 @@ export default function TerminosPage() {
                   className="space-y-3 text-sm leading-[1.8]"
                   style={{
                     fontWeight: 300,
-                    color: "rgba(244,240,232,0.70)",
+                    color: "var(--mk-text-secondary)",
                   }}
                 >
                   <p>
@@ -688,7 +688,7 @@ export default function TerminosPage() {
 
                   <div className="space-y-2 pt-2">
                     <p>
-                      <strong style={{ color: "rgba(244,240,232,0.92)" }}>
+                      <strong style={{ color: "var(--mk-text-primary)" }}>
                         Facturación recurrente:
                       </strong>{" "}
                       Los pagos son recurrentes según el ciclo de facturación seleccionado
@@ -696,21 +696,21 @@ export default function TerminosPage() {
                       su método de pago.
                     </p>
                     <p>
-                      <strong style={{ color: "rgba(244,240,232,0.92)" }}>
+                      <strong style={{ color: "var(--mk-text-primary)" }}>
                         Procesamiento de pagos:
                       </strong>{" "}
                       Los pagos se procesan mediante proveedores de pago de terceros (Stripe u
                       otros). NODDO no almacena datos completos de tarjetas de crédito.
                     </p>
                     <p>
-                      <strong style={{ color: "rgba(244,240,232,0.92)" }}>
+                      <strong style={{ color: "var(--mk-text-primary)" }}>
                         Falta de pago:
                       </strong>{" "}
                       La falta de pago puede resultar en la suspensión inmediata del Servicio. Si
                       el pago no se regulariza en 15 días, su cuenta será marcada para eliminación.
                     </p>
                     <p>
-                      <strong style={{ color: "rgba(244,240,232,0.92)" }}>
+                      <strong style={{ color: "var(--mk-text-primary)" }}>
                         Cambios de precio:
                       </strong>{" "}
                       NODDO se reserva el derecho de modificar los precios con 60 días de
@@ -718,12 +718,12 @@ export default function TerminosPage() {
                       suscripción antes de que el cambio entre en vigor.
                     </p>
                     <p>
-                      <strong style={{ color: "rgba(244,240,232,0.92)" }}>Impuestos:</strong> Los
+                      <strong style={{ color: "var(--mk-text-primary)" }}>Impuestos:</strong> Los
                       precios no incluyen impuestos locales (IVA, retenciones). Los impuestos
                       aplicables se añadirán según la jurisdicción del Usuario.
                     </p>
                     <p>
-                      <strong style={{ color: "rgba(244,240,232,0.92)" }}>Facturas:</strong> Se
+                      <strong style={{ color: "var(--mk-text-primary)" }}>Facturas:</strong> Se
                       emitirá factura electrónica por cada pago. Las facturas están disponibles en
                       el panel de administración.
                     </p>
@@ -753,7 +753,7 @@ export default function TerminosPage() {
                       style={{
                         fontFamily: "var(--font-cormorant)",
                         fontWeight: 400,
-                        color: "rgba(244,240,232,0.92)",
+                        color: "var(--mk-text-primary)",
                       }}
                     >
                       5. Uso aceptable
@@ -764,7 +764,7 @@ export default function TerminosPage() {
                   className="space-y-3 text-sm leading-[1.8]"
                   style={{
                     fontWeight: 300,
-                    color: "rgba(244,240,232,0.70)",
+                    color: "var(--mk-text-secondary)",
                   }}
                 >
                   <p>
@@ -773,7 +773,7 @@ export default function TerminosPage() {
                     de todas las leyes aplicables.
                   </p>
                   <p>
-                    <strong style={{ color: "rgba(244,240,232,0.92)" }}>
+                    <strong style={{ color: "var(--mk-text-primary)" }}>
                       Queda estrictamente prohibido:
                     </strong>
                   </p>
@@ -850,7 +850,7 @@ export default function TerminosPage() {
                       style={{
                         fontFamily: "var(--font-cormorant)",
                         fontWeight: 400,
-                        color: "rgba(244,240,232,0.92)",
+                        color: "var(--mk-text-primary)",
                       }}
                     >
                       6. Propiedad intelectual
@@ -861,13 +861,13 @@ export default function TerminosPage() {
                   className="space-y-3 text-sm leading-[1.8]"
                   style={{
                     fontWeight: 300,
-                    color: "rgba(244,240,232,0.70)",
+                    color: "var(--mk-text-secondary)",
                   }}
                 >
                   <div>
                     <h3
                       className="font-medium mb-2"
-                      style={{ color: "rgba(244,240,232,0.92)" }}
+                      style={{ color: "var(--mk-text-primary)" }}
                     >
                       Su contenido
                     </h3>
@@ -904,7 +904,7 @@ export default function TerminosPage() {
                   <div className="pt-3">
                     <h3
                       className="font-medium mb-2"
-                      style={{ color: "rgba(244,240,232,0.92)" }}
+                      style={{ color: "var(--mk-text-primary)" }}
                     >
                       Propiedad de NODDO
                     </h3>
@@ -945,7 +945,7 @@ export default function TerminosPage() {
                       style={{
                         fontFamily: "var(--font-cormorant)",
                         fontWeight: 400,
-                        color: "rgba(244,240,232,0.92)",
+                        color: "var(--mk-text-primary)",
                       }}
                     >
                       7. Disponibilidad del Servicio y SLA
@@ -956,7 +956,7 @@ export default function TerminosPage() {
                   className="space-y-3 text-sm leading-[1.8]"
                   style={{
                     fontWeight: 300,
-                    color: "rgba(244,240,232,0.70)",
+                    color: "var(--mk-text-secondary)",
                   }}
                 >
                   <p>
@@ -964,7 +964,7 @@ export default function TerminosPage() {
                     uptime del 99.5% mensual (excluyendo mantenimientos programados).
                   </p>
                   <p>
-                    <strong style={{ color: "rgba(244,240,232,0.92)" }}>Sin embargo</strong>, no
+                    <strong style={{ color: "var(--mk-text-primary)" }}>Sin embargo</strong>, no
                     garantizamos disponibilidad ininterrumpida. Pueden ocurrir interrupciones por:
                   </p>
                   <ul className="list-disc pl-6 space-y-1">
@@ -981,7 +981,7 @@ export default function TerminosPage() {
                     de servicio según las políticas de compensación (disponibles previa solicitud).
                   </p>
                   <p>
-                    <strong style={{ color: "rgba(244,240,232,0.92)" }}>Backups:</strong> NODDO
+                    <strong style={{ color: "var(--mk-text-primary)" }}>Backups:</strong> NODDO
                     realiza copias de seguridad diarias automáticas con retención de 30 días. Sin
                     embargo, usted es responsable de mantener copias propias de su contenido
                     crítico.
@@ -1011,7 +1011,7 @@ export default function TerminosPage() {
                       style={{
                         fontFamily: "var(--font-cormorant)",
                         fontWeight: 400,
-                        color: "rgba(244,240,232,0.92)",
+                        color: "var(--mk-text-primary)",
                       }}
                     >
                       8. Limitación de responsabilidad
@@ -1022,11 +1022,11 @@ export default function TerminosPage() {
                   className="space-y-3 text-sm leading-[1.8]"
                   style={{
                     fontWeight: 300,
-                    color: "rgba(244,240,232,0.70)",
+                    color: "var(--mk-text-secondary)",
                   }}
                 >
                   <p>
-                    <strong style={{ color: "rgba(244,240,232,0.92)" }}>
+                    <strong style={{ color: "var(--mk-text-primary)" }}>
                       EN LA MÁXIMA MEDIDA PERMITIDA POR LA LEY:
                     </strong>
                   </p>
@@ -1055,7 +1055,7 @@ export default function TerminosPage() {
                       La responsabilidad total y agregada de NODDO, por cualquier reclamación
                       relacionada con estos términos o el Servicio, estará limitada al monto total
                       pagado por el Usuario en los últimos{" "}
-                      <strong style={{ color: "rgba(244,240,232,0.92)" }}>12 meses</strong>, o
+                      <strong style={{ color: "var(--mk-text-primary)" }}>12 meses</strong>, o
                       USD $100, lo que sea mayor.
                     </li>
                   </ul>
@@ -1089,7 +1089,7 @@ export default function TerminosPage() {
                       style={{
                         fontFamily: "var(--font-cormorant)",
                         fontWeight: 400,
-                        color: "rgba(244,240,232,0.92)",
+                        color: "var(--mk-text-primary)",
                       }}
                     >
                       9. Indemnización
@@ -1100,7 +1100,7 @@ export default function TerminosPage() {
                   className="space-y-3 text-sm leading-[1.8]"
                   style={{
                     fontWeight: 300,
-                    color: "rgba(244,240,232,0.70)",
+                    color: "var(--mk-text-secondary)",
                   }}
                 >
                   <p>
@@ -1151,7 +1151,7 @@ export default function TerminosPage() {
                       style={{
                         fontFamily: "var(--font-cormorant)",
                         fontWeight: 400,
-                        color: "rgba(244,240,232,0.92)",
+                        color: "var(--mk-text-primary)",
                       }}
                     >
                       10. Suspensión y terminación
@@ -1162,7 +1162,7 @@ export default function TerminosPage() {
                   className="space-y-3 text-sm leading-[1.8]"
                   style={{
                     fontWeight: 300,
-                    color: "rgba(244,240,232,0.70)",
+                    color: "var(--mk-text-secondary)",
                   }}
                 >
                   <p>
@@ -1225,7 +1225,7 @@ export default function TerminosPage() {
                       style={{
                         fontFamily: "var(--font-cormorant)",
                         fontWeight: 400,
-                        color: "rgba(244,240,232,0.92)",
+                        color: "var(--mk-text-primary)",
                       }}
                     >
                       11. Cancelación y reembolsos
@@ -1236,11 +1236,11 @@ export default function TerminosPage() {
                   className="space-y-3 text-sm leading-[1.8]"
                   style={{
                     fontWeight: 300,
-                    color: "rgba(244,240,232,0.70)",
+                    color: "var(--mk-text-secondary)",
                   }}
                 >
                   <p>
-                    <strong style={{ color: "rgba(244,240,232,0.92)" }}>
+                    <strong style={{ color: "var(--mk-text-primary)" }}>
                       Cancelación por el Usuario:
                     </strong>
                   </p>
@@ -1262,33 +1262,33 @@ export default function TerminosPage() {
                   </ul>
 
                   <p className="pt-3">
-                    <strong style={{ color: "rgba(244,240,232,0.92)" }}>
+                    <strong style={{ color: "var(--mk-text-primary)" }}>
                       Política de reembolsos:
                     </strong>
                   </p>
                   <ul className="list-disc pl-6 space-y-1">
                     <li>
-                      <strong style={{ color: "rgba(244,240,232,0.92)" }}>
+                      <strong style={{ color: "var(--mk-text-primary)" }}>
                         Garantía de 14 días:
                       </strong>{" "}
                       Si cancela dentro de los primeros 14 días de su primera suscripción, le
                       reembolsaremos el 100% del pago (excepto cargos de procesamiento).
                     </li>
                     <li>
-                      <strong style={{ color: "rgba(244,240,232,0.92)" }}>
+                      <strong style={{ color: "var(--mk-text-primary)" }}>
                         Después de 14 días:
                       </strong>{" "}
                       NO hay reembolsos por meses/años parciales. La cancelación es efectiva al
                       final del período pagado.
                     </li>
                     <li>
-                      <strong style={{ color: "rgba(244,240,232,0.92)" }}>
+                      <strong style={{ color: "var(--mk-text-primary)" }}>
                         Planes anuales:
                       </strong>{" "}
                       No hay reembolsos prorrateados si cancela antes de cumplir el año.
                     </li>
                     <li>
-                      <strong style={{ color: "rgba(244,240,232,0.92)" }}>
+                      <strong style={{ color: "var(--mk-text-primary)" }}>
                         Excepciones:
                       </strong>{" "}
                       NODDO puede ofrecer reembolsos discrecionales en casos de fallas graves del
@@ -1326,7 +1326,7 @@ export default function TerminosPage() {
                       style={{
                         fontFamily: "var(--font-cormorant)",
                         fontWeight: 400,
-                        color: "rgba(244,240,232,0.92)",
+                        color: "var(--mk-text-primary)",
                       }}
                     >
                       12. Modificaciones a estos términos
@@ -1337,7 +1337,7 @@ export default function TerminosPage() {
                   className="space-y-3 text-sm leading-[1.8]"
                   style={{
                     fontWeight: 300,
-                    color: "rgba(244,240,232,0.70)",
+                    color: "var(--mk-text-secondary)",
                   }}
                 >
                   <p>
@@ -1353,7 +1353,7 @@ export default function TerminosPage() {
                     </li>
                     <li>
                       Le notificaremos por email con al menos{" "}
-                      <strong style={{ color: "rgba(244,240,232,0.92)" }}>30 días</strong> de
+                      <strong style={{ color: "var(--mk-text-primary)" }}>30 días</strong> de
                       anticipación
                     </li>
                     <li>
@@ -1396,7 +1396,7 @@ export default function TerminosPage() {
                       style={{
                         fontFamily: "var(--font-cormorant)",
                         fontWeight: 400,
-                        color: "rgba(244,240,232,0.92)",
+                        color: "var(--mk-text-primary)",
                       }}
                     >
                       13. Legislación aplicable y resolución de disputas
@@ -1407,24 +1407,24 @@ export default function TerminosPage() {
                   className="space-y-3 text-sm leading-[1.8]"
                   style={{
                     fontWeight: 300,
-                    color: "rgba(244,240,232,0.70)",
+                    color: "var(--mk-text-secondary)",
                   }}
                 >
                   <p>
                     Estos términos se rigen e interpretan de acuerdo con las leyes de la{" "}
-                    <strong style={{ color: "rgba(244,240,232,0.92)" }}>
+                    <strong style={{ color: "var(--mk-text-primary)" }}>
                       República de Colombia
                     </strong>
                     , sin perjuicio de sus disposiciones sobre conflicto de leyes.
                   </p>
                   <p>
-                    <strong style={{ color: "rgba(244,240,232,0.92)" }}>
+                    <strong style={{ color: "var(--mk-text-primary)" }}>
                       Resolución de disputas:
                     </strong>
                   </p>
                   <ul className="list-disc pl-6 space-y-2">
                     <li>
-                      <strong style={{ color: "rgba(244,240,232,0.92)" }}>
+                      <strong style={{ color: "var(--mk-text-primary)" }}>
                         Negociación informal:
                       </strong>{" "}
                       Antes de iniciar cualquier procedimiento legal, las partes acuerdan intentar
@@ -1432,13 +1432,13 @@ export default function TerminosPage() {
                       días.
                     </li>
                     <li>
-                      <strong style={{ color: "rgba(244,240,232,0.92)" }}>Jurisdicción:</strong>{" "}
+                      <strong style={{ color: "var(--mk-text-primary)" }}>Jurisdicción:</strong>{" "}
                       Para cualquier controversia que no pueda resolverse de manera informal, las
                       partes se someten expresamente a la jurisdicción exclusiva de los tribunales
                       de Medellín, Colombia.
                     </li>
                     <li>
-                      <strong style={{ color: "rgba(244,240,232,0.92)" }}>Arbitraje:</strong> Las
+                      <strong style={{ color: "var(--mk-text-primary)" }}>Arbitraje:</strong> Las
                       partes pueden acordar mutuamente someter la disputa a arbitraje bajo las
                       reglas de la Cámara de Comercio de Medellín.
                     </li>
@@ -1473,7 +1473,7 @@ export default function TerminosPage() {
                       style={{
                         fontFamily: "var(--font-cormorant)",
                         fontWeight: 400,
-                        color: "rgba(244,240,232,0.92)",
+                        color: "var(--mk-text-primary)",
                       }}
                     >
                       14. Contacto y soporte
@@ -1484,7 +1484,7 @@ export default function TerminosPage() {
                   className="space-y-4 text-sm leading-[1.8]"
                   style={{
                     fontWeight: 300,
-                    color: "rgba(244,240,232,0.70)",
+                    color: "var(--mk-text-secondary)",
                   }}
                 >
                   <p>
@@ -1493,7 +1493,7 @@ export default function TerminosPage() {
                   </p>
                   <div className="pl-4 space-y-2">
                     <div>
-                      <strong style={{ color: "rgba(244,240,232,0.92)" }}>Email:</strong>{" "}
+                      <strong style={{ color: "var(--mk-text-primary)" }}>Email:</strong>{" "}
                       <a
                         href="mailto:hola@noddo.io"
                         className="underline"
@@ -1503,15 +1503,15 @@ export default function TerminosPage() {
                       </a>
                     </div>
                     <div>
-                      <strong style={{ color: "rgba(244,240,232,0.92)" }}>Empresa:</strong>{" "}
+                      <strong style={{ color: "var(--mk-text-primary)" }}>Empresa:</strong>{" "}
                       Antigravity SAS
                     </div>
                     <div>
-                      <strong style={{ color: "rgba(244,240,232,0.92)" }}>Ubicación:</strong>{" "}
+                      <strong style={{ color: "var(--mk-text-primary)" }}>Ubicación:</strong>{" "}
                       Medellín, Colombia
                     </div>
                     <div>
-                      <strong style={{ color: "rgba(244,240,232,0.92)" }}>Sitio web:</strong>{" "}
+                      <strong style={{ color: "var(--mk-text-primary)" }}>Sitio web:</strong>{" "}
                       <a
                         href="https://noddo.io"
                         className="underline"
@@ -1545,7 +1545,7 @@ export default function TerminosPage() {
               className="text-sm mb-4"
               style={{
                 fontWeight: 300,
-                color: "rgba(244,240,232,0.70)",
+                color: "var(--mk-text-secondary)",
               }}
             >
               ¿Tiene dudas sobre nuestros términos? Estamos aquí para ayudar.

@@ -22,7 +22,7 @@ export default function SiteError({
         alignItems: "center",
         justifyContent: "center",
         padding: 24,
-        backgroundColor: "#0A0A0B",
+        backgroundColor: "var(--surface-0)",
       }}
     >
       <div style={{ textAlign: "center", maxWidth: 400 }}>

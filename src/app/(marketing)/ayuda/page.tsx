@@ -479,7 +479,7 @@ export default function AyudaPage() {
               <Search
                 size={18}
                 className="absolute left-4 top-1/2 -translate-y-1/2 pointer-events-none"
-                style={{ color: "rgba(244, 240, 232, 0.25)" }}
+                style={{ color: "var(--mk-text-muted)" }}
               />
               <input
                 type="text"
@@ -601,7 +601,7 @@ export default function AyudaPage() {
                 <Search
                   size={40}
                   className="mx-auto mb-4"
-                  style={{ color: "rgba(244, 240, 232, 0.12)" }}
+                  style={{ color: "var(--mk-text-muted)" }}
                 />
                 <p
                   className="text-[13px] font-light"
@@ -827,7 +827,7 @@ function ArticleCard({
             style={{
               color: isExpanded
                 ? "var(--mk-accent)"
-                : "rgba(244, 240, 232, 0.3)",
+                : "var(--mk-text-tertiary)",
             }}
           />
         </div>
@@ -860,7 +860,7 @@ function ArticleCard({
             style={{
               color: isExpanded
                 ? "var(--mk-accent)"
-                : "rgba(244, 240, 232, 0.15)",
+                : "var(--mk-text-muted)",
             }}
           />
         </motion.div>

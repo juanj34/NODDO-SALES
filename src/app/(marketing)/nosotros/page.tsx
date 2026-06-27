@@ -388,7 +388,7 @@ export default function NosotrosPage() {
               style={{
                 fontFamily: "var(--font-syne)",
                 fontWeight: 700,
-                color: "rgba(244,240,232,0.92)",
+                color: "var(--mk-text-primary)",
               }}
             >
               Nosotros
@@ -403,7 +403,7 @@ export default function NosotrosPage() {
             style={{
               fontFamily: "var(--font-cormorant)",
               fontWeight: 300,
-              color: "rgba(244,240,232,0.92)",
+              color: "var(--mk-text-primary)",
             }}
           >
             Revolucionando la
@@ -418,7 +418,7 @@ export default function NosotrosPage() {
             className="text-lg max-w-2xl mx-auto leading-relaxed"
             style={{
               fontWeight: 300,
-              color: "rgba(244,240,232,0.55)",
+              color: "var(--mk-text-secondary)",
             }}
           >
             NODDO nació de una frustración: las constructoras invierten meses y decenas de miles
@@ -458,7 +458,7 @@ export default function NosotrosPage() {
                 style={{
                   fontFamily: "var(--font-cormorant)",
                   fontWeight: 400,
-                  color: "rgba(244,240,232,0.92)",
+                  color: "var(--mk-text-primary)",
                 }}
               >
                 Nuestra Misión
@@ -467,7 +467,7 @@ export default function NosotrosPage() {
                 className="text-base leading-[1.9]"
                 style={{
                   fontWeight: 300,
-                  color: "rgba(244,240,232,0.70)",
+                  color: "var(--mk-text-secondary)",
                 }}
               >
                 Democratizar la tecnología de ventas inmobiliarias. Que una constructora de 3
@@ -499,7 +499,7 @@ export default function NosotrosPage() {
                 style={{
                   fontFamily: "var(--font-cormorant)",
                   fontWeight: 400,
-                  color: "rgba(244,240,232,0.92)",
+                  color: "var(--mk-text-primary)",
                 }}
               >
                 Nuestra Historia
@@ -508,7 +508,7 @@ export default function NosotrosPage() {
                 className="space-y-4 text-base leading-[1.9]"
                 style={{
                   fontWeight: 300,
-                  color: "rgba(244,240,232,0.70)",
+                  color: "var(--mk-text-secondary)",
                 }}
               >
                 <p>
@@ -519,7 +519,7 @@ export default function NosotrosPage() {
                 <p>
                   Las agencias cobraban entre $5,000 y $15,000 USD, tardaban 2-3 meses, y
                   entregaban sitios bonitos pero{" "}
-                  <span style={{ color: "rgba(244,240,232,0.92)", fontWeight: 400 }}>
+                  <span style={{ color: "var(--mk-text-primary)", fontWeight: 400 }}>
                     completamente estáticos
                   </span>
                   . Cambiar un precio requería un ticket de soporte. Actualizar inventario era un
@@ -541,7 +541,7 @@ export default function NosotrosPage() {
                 </p>
                 <p>
                   Así nació NODDO. No solo un generador de sitios, sino una{" "}
-                  <span style={{ color: "rgba(244,240,232,0.92)", fontWeight: 400 }}>
+                  <span style={{ color: "var(--mk-text-primary)", fontWeight: 400 }}>
                     sala de ventas digital completa
                   </span>
                   : inventario en vivo, cotizador, captura de leads con CRM integrado, analytics,
@@ -565,7 +565,7 @@ export default function NosotrosPage() {
             style={{
               fontFamily: "var(--font-cormorant)",
               fontWeight: 400,
-              color: "rgba(244,240,232,0.92)",
+              color: "var(--mk-text-primary)",
             }}
           >
             Nuestros Valores
@@ -593,7 +593,7 @@ export default function NosotrosPage() {
                     style={{
                       fontFamily: "var(--font-cormorant)",
                       fontWeight: 400,
-                      color: "rgba(244,240,232,0.92)",
+                      color: "var(--mk-text-primary)",
                     }}
                   >
                     {v.title}
@@ -602,7 +602,7 @@ export default function NosotrosPage() {
                     className="text-sm leading-[1.8]"
                     style={{
                       fontWeight: 300,
-                      color: "rgba(244,240,232,0.70)",
+                      color: "var(--mk-text-secondary)",
                     }}
                   >
                     {v.desc}
@@ -626,7 +626,7 @@ export default function NosotrosPage() {
             style={{
               fontFamily: "var(--font-cormorant)",
               fontWeight: 400,
-              color: "rgba(244,240,232,0.92)",
+              color: "var(--mk-text-primary)",
             }}
           >
             Nuestro Recorrido
@@ -664,7 +664,7 @@ export default function NosotrosPage() {
                         style={{
                           fontFamily: "var(--font-cormorant)",
                           fontWeight: 400,
-                          color: "rgba(244,240,232,0.92)",
+                          color: "var(--mk-text-primary)",
                         }}
                       >
                         {item.title}
@@ -673,7 +673,7 @@ export default function NosotrosPage() {
                         className="text-sm leading-[1.7]"
                         style={{
                           fontWeight: 300,
-                          color: "rgba(244,240,232,0.70)",
+                          color: "var(--mk-text-secondary)",
                         }}
                       >
                         {item.desc}
@@ -684,7 +684,7 @@ export default function NosotrosPage() {
                     className="w-6 h-6 rounded-full border-4 relative z-10"
                     style={{
                       borderColor: "#b8973a",
-                      backgroundColor: "#0a0a0b",
+                      backgroundColor: "var(--mk-bg)",
                       boxShadow: "0 0 20px rgba(184, 151, 58, 0.5)",
                     }}
                   />
@@ -717,7 +717,7 @@ export default function NosotrosPage() {
               style={{
                 fontFamily: "var(--font-cormorant)",
                 fontWeight: 400,
-                color: "rgba(244,240,232,0.92)",
+                color: "var(--mk-text-primary)",
               }}
             >
               El Equipo
@@ -726,7 +726,7 @@ export default function NosotrosPage() {
               className="text-base max-w-2xl mx-auto leading-[1.9]"
               style={{
                 fontWeight: 300,
-                color: "rgba(244,240,232,0.70)",
+                color: "var(--mk-text-secondary)",
               }}
             >
               Somos un equipo pequeño y ágil con experiencia en proptech, SaaS, y desarrollo
@@ -757,7 +757,7 @@ export default function NosotrosPage() {
                   style={{
                     fontFamily: "var(--font-cormorant)",
                     fontWeight: 400,
-                    color: "rgba(244,240,232,0.92)",
+                    color: "var(--mk-text-primary)",
                   }}
                 >
                   {member.name}
@@ -776,7 +776,7 @@ export default function NosotrosPage() {
                   className="text-sm leading-[1.7] mb-4"
                   style={{
                     fontWeight: 300,
-                    color: "rgba(244,240,232,0.70)",
+                    color: "var(--mk-text-secondary)",
                   }}
                 >
                   {member.bio}
@@ -825,7 +825,7 @@ export default function NosotrosPage() {
                 style={{
                   fontFamily: "var(--font-cormorant)",
                   fontWeight: 400,
-                  color: "rgba(244,240,232,0.92)",
+                  color: "var(--mk-text-primary)",
                 }}
               >
                 Alcance Global
@@ -834,7 +834,7 @@ export default function NosotrosPage() {
                 className="text-base leading-[1.9]"
                 style={{
                   fontWeight: 300,
-                  color: "rgba(244,240,232,0.70)",
+                  color: "var(--mk-text-secondary)",
                 }}
               >
                 Nacimos en Colombia, pero servimos a constructoras en toda América Latina.
@@ -859,7 +859,7 @@ export default function NosotrosPage() {
               style={{
                 fontFamily: "var(--font-cormorant)",
                 fontWeight: 300,
-                color: "rgba(244,240,232,0.92)",
+                color: "var(--mk-text-primary)",
               }}
             >
               ¿Listo para revolucionar su estrategia de ventas?
@@ -868,7 +868,7 @@ export default function NosotrosPage() {
               className="text-base mb-6 max-w-xl mx-auto"
               style={{
                 fontWeight: 300,
-                color: "rgba(244,240,232,0.55)",
+                color: "var(--mk-text-secondary)",
               }}
             >
               Únase a las constructoras que ya confían en NODDO para vender más rápido.

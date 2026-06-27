@@ -342,7 +342,7 @@ export default function FAQPage() {
               style={{
                 fontFamily: "var(--font-syne)",
                 fontWeight: 700,
-                color: "rgba(244,240,232,0.92)",
+                color: "var(--mk-text-primary)",
               }}
             >
               Ayuda
@@ -356,7 +356,7 @@ export default function FAQPage() {
             style={{
               fontFamily: "var(--font-cormorant)",
               fontWeight: 300,
-              color: "rgba(244,240,232,0.92)",
+              color: "var(--mk-text-primary)",
             }}
           >
             Preguntas{" "}
@@ -369,7 +369,7 @@ export default function FAQPage() {
             className="text-base max-w-2xl mx-auto"
             style={{
               fontWeight: 300,
-              color: "rgba(244,240,232,0.55)",
+              color: "var(--mk-text-secondary)",
             }}
           >
             {totalQuestions} respuestas sobre NODDO. Si no encuentras lo que buscas, escríbenos a{" "}
@@ -409,7 +409,7 @@ export default function FAQPage() {
                   style={{
                     fontFamily: "var(--font-cormorant)",
                     fontWeight: 400,
-                    color: "rgba(244,240,232,0.92)",
+                    color: "var(--mk-text-primary)",
                   }}
                 >
                   {category.category}
@@ -429,7 +429,7 @@ export default function FAQPage() {
                           className="text-base pr-4"
                           style={{
                             fontWeight: 400,
-                            color: "rgba(244,240,232,0.92)",
+                            color: "var(--mk-text-primary)",
                           }}
                         >
                           {faq.q}
@@ -457,7 +457,7 @@ export default function FAQPage() {
                                 className="text-sm leading-[1.8]"
                                 style={{
                                   fontWeight: 300,
-                                  color: "rgba(244,240,232,0.70)",
+                                  color: "var(--mk-text-secondary)",
                                 }}
                               >
                                 {faq.a}
@@ -488,7 +488,7 @@ export default function FAQPage() {
               style={{
                 fontFamily: "var(--font-cormorant)",
                 fontWeight: 300,
-                color: "rgba(244,240,232,0.92)",
+                color: "var(--mk-text-primary)",
               }}
             >
               ¿No encontraste lo que buscabas?
@@ -497,7 +497,7 @@ export default function FAQPage() {
               className="text-sm mb-6"
               style={{
                 fontWeight: 300,
-                color: "rgba(244,240,232,0.55)",
+                color: "var(--mk-text-secondary)",
               }}
             >
               Nuestro equipo está listo para ayudarte

@@ -54,7 +54,7 @@ export default function RecursosPage() {
               style={{
                 fontFamily: "var(--font-syne)",
                 fontWeight: 700,
-                color: "rgba(244,240,232,0.92)",
+                color: "var(--mk-text-primary)",
               }}
             >
               {t("recursos.badge")}
@@ -69,7 +69,7 @@ export default function RecursosPage() {
             style={{
               fontFamily: "var(--font-cormorant)",
               fontWeight: 300,
-              color: "rgba(244,240,232,0.92)",
+              color: "var(--mk-text-primary)",
             }}
           >
             {t("recursos.titleLine1")}
@@ -86,7 +86,7 @@ export default function RecursosPage() {
             className="text-lg max-w-3xl mx-auto leading-relaxed"
             style={{
               fontWeight: 300,
-              color: "rgba(244,240,232,0.55)",
+              color: "var(--mk-text-secondary)",
             }}
           >
             {t("recursos.description")}
@@ -112,7 +112,7 @@ export default function RecursosPage() {
                       fontFamily: "var(--font-syne)",
                       fontWeight: 700,
                       backgroundColor: "rgba(184, 151, 58, 0.95)",
-                      color: "#0a0a0b",
+                      color: "#0a0a0b", // theme-allow: dark ink on the fixed gold badge; badge stays gold in both themes
                     }}
                   >
                     {t("recursos.featured")}
@@ -130,7 +130,7 @@ export default function RecursosPage() {
                       style={{
                         fontFamily: "var(--font-syne)",
                         fontWeight: 600,
-                        color: "rgba(244,240,232,0.55)",
+                        color: "var(--mk-text-secondary)",
                       }}
                     >
                       {articles[0].category}
@@ -139,7 +139,7 @@ export default function RecursosPage() {
                       className="text-xs"
                       style={{
                         fontWeight: 300,
-                        color: "rgba(244,240,232,0.35)",
+                        color: "var(--mk-text-tertiary)",
                       }}
                     >
                       • {articles[0].readTime}
@@ -151,7 +151,7 @@ export default function RecursosPage() {
                     style={{
                       fontFamily: "var(--font-cormorant)",
                       fontWeight: 400,
-                      color: "rgba(244,240,232,0.92)",
+                      color: "var(--mk-text-primary)",
                     }}
                   >
                     {articles[0].title}
@@ -161,7 +161,7 @@ export default function RecursosPage() {
                     className="text-base leading-[1.8] mb-6"
                     style={{
                       fontWeight: 300,
-                      color: "rgba(244,240,232,0.70)",
+                      color: "var(--mk-text-secondary)",
                     }}
                   >
                     {articles[0].excerpt}
@@ -175,7 +175,7 @@ export default function RecursosPage() {
                         style={{
                           fontWeight: 400,
                           backgroundColor: "rgba(var(--contrast-rgb), 0.05)",
-                          color: "rgba(244,240,232,0.55)",
+                          color: "var(--mk-text-secondary)",
                         }}
                       >
                         {tag}
@@ -189,7 +189,7 @@ export default function RecursosPage() {
                       fontFamily: "var(--font-syne)",
                       fontWeight: 700,
                       background: "linear-gradient(135deg, #b8973a 0%, #d4b05a 100%)",
-                      color: "#0a0a0b",
+                      color: "#0a0a0b", // theme-allow: dark ink on the fixed gold gradient button; gradient stays gold in both themes
                     }}
                   >
                     {t("recursos.readArticle")}
@@ -227,7 +227,7 @@ export default function RecursosPage() {
                           style={{
                             fontFamily: "var(--font-syne)",
                             fontWeight: 600,
-                            color: "rgba(244,240,232,0.55)",
+                            color: "var(--mk-text-secondary)",
                           }}
                         >
                           {article.category}
@@ -236,7 +236,7 @@ export default function RecursosPage() {
                           className="text-xs"
                           style={{
                             fontWeight: 300,
-                            color: "rgba(244,240,232,0.35)",
+                            color: "var(--mk-text-tertiary)",
                           }}
                         >
                           • {article.readTime}
@@ -248,7 +248,7 @@ export default function RecursosPage() {
                         style={{
                           fontFamily: "var(--font-cormorant)",
                           fontWeight: 400,
-                          color: "rgba(244,240,232,0.92)",
+                          color: "var(--mk-text-primary)",
                         }}
                       >
                         {article.title}
@@ -258,7 +258,7 @@ export default function RecursosPage() {
                         className="text-sm leading-[1.7] mb-4 flex-1"
                         style={{
                           fontWeight: 300,
-                          color: "rgba(244,240,232,0.70)",
+                          color: "var(--mk-text-secondary)",
                         }}
                       >
                         {article.excerpt}
@@ -272,7 +272,7 @@ export default function RecursosPage() {
                             style={{
                               fontWeight: 400,
                               backgroundColor: "rgba(var(--contrast-rgb), 0.05)",
-                              color: "rgba(244,240,232,0.45)",
+                              color: "var(--mk-text-tertiary)",
                             }}
                           >
                             {tag}
@@ -329,7 +329,7 @@ export default function RecursosPage() {
               style={{
                 fontFamily: "var(--font-cormorant)",
                 fontWeight: 300,
-                color: "rgba(244,240,232,0.92)",
+                color: "var(--mk-text-primary)",
               }}
             >
               {t("recursos.newsletterTitle")}
@@ -340,7 +340,7 @@ export default function RecursosPage() {
               className="text-base mb-8 max-w-2xl mx-auto relative z-10"
               style={{
                 fontWeight: 300,
-                color: "rgba(244,240,232,0.55)",
+                color: "var(--mk-text-secondary)",
               }}
             >
               {t("recursos.newsletterDescription")}
@@ -355,7 +355,7 @@ export default function RecursosPage() {
                   fontWeight: 300,
                   backgroundColor: "rgba(var(--contrast-rgb), 0.05)",
                   border: "1px solid rgba(var(--contrast-rgb), 0.1)",
-                  color: "rgba(244,240,232,0.92)",
+                  color: "var(--mk-text-primary)",
                 }}
               />
               <button
@@ -365,7 +365,7 @@ export default function RecursosPage() {
                   fontFamily: "var(--font-syne)",
                   fontWeight: 700,
                   background: "linear-gradient(135deg, #b8973a 0%, #d4b05a 100%)",
-                  color: "#0a0a0b",
+                  color: "#0a0a0b", // theme-allow: dark ink on the fixed gold gradient button; gradient stays gold in both themes
                 }}
               >
                 {t("recursos.newsletterButton")}
@@ -376,7 +376,7 @@ export default function RecursosPage() {
               className="text-xs mt-4 relative z-10"
               style={{
                 fontWeight: 300,
-                color: "rgba(244,240,232,0.35)",
+                color: "var(--mk-text-tertiary)",
               }}
             >
               {t("recursos.newsletterDisclaimer")}

@@ -54,7 +54,7 @@ export function AgentLoginModal({ open, onClose }: AgentLoginModalProps) {
             exit={{ opacity: 0, scale: 0.95, y: 10 }}
             transition={{ type: "spring", damping: 25, stiffness: 350 }}
             onClick={(e) => e.stopPropagation()}
-            className="relative w-full max-w-sm rounded-2xl border border-[var(--border-default)] bg-[#111113]/95 backdrop-blur-xl shadow-2xl"
+            className="relative w-full max-w-sm rounded-2xl border border-[var(--border-default)] bg-[var(--surface-1)] backdrop-blur-xl shadow-2xl"
           >
             {/* Close button */}
             <button
@@ -120,7 +120,9 @@ export function AgentLoginModal({ open, onClose }: AgentLoginModalProps) {
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full flex items-center justify-center gap-2 rounded-lg bg-[var(--site-primary)] text-[#0A0A0B] font-ui text-xs font-bold uppercase tracking-[0.08em] py-2.5 hover:brightness-110 transition-all disabled:opacity-50 cursor-pointer"
+                className={
+                  "w-full flex items-center justify-center gap-2 rounded-lg bg-[var(--site-primary)] text-[#0A0A0B] font-ui text-xs font-bold uppercase tracking-[0.08em] py-2.5 hover:brightness-110 transition-all disabled:opacity-50 cursor-pointer" // theme-allow: dark ink on the --site-primary gold accent button; reads on the gold in both themes
+                }
               >
                 {loading ? (
                   <Loader2 size={14} className="animate-spin" />

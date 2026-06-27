@@ -120,7 +120,7 @@ function LoginForm() {
           >
             <NodDoLogo
               height={22}
-              colorNod="#f4f0e8"
+              colorNod="var(--mk-text-primary)"
               colorDo="#b8973a"
             />
           </Link>

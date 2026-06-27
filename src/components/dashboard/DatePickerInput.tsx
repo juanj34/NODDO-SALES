@@ -190,7 +190,7 @@ export function DatePickerInput({
           top: dropUp ? undefined : panelPos.top,
           bottom: dropUp ? window.innerHeight - panelPos.top : undefined,
           left: panelPos.left,
-          background: "rgba(26,26,29,0.96)",
+          background: "var(--surface-3)",
           backdropFilter: "blur(32px)",
           WebkitBackdropFilter: "blur(32px)",
           willChange: "transform, opacity",

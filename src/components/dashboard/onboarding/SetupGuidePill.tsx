@@ -194,7 +194,7 @@ export function SetupGuidePill({
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -8 }}
             transition={{ duration: 0.15 }}
-            className="absolute top-full left-0 mt-2 w-72 z-50 rounded-xl border border-[var(--border-default)] bg-[rgba(26,26,29,0.95)] backdrop-blur-xl shadow-2xl"
+            className="absolute top-full left-0 mt-2 w-72 z-50 rounded-xl border border-[var(--border-default)] bg-[var(--surface-3)] backdrop-blur-xl shadow-2xl"
           >
             {/* Header */}
             <div className="px-4 pt-3.5 pb-3">

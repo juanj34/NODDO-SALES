@@ -30,18 +30,18 @@ interface TooltipPosition {
 
 const variantStyles = {
   dashboard: {
-    tooltip: "bg-[rgba(34,34,38,0.95)] border-[var(--border-default)] text-[var(--text-primary)]",
-    arrow: "bg-[rgba(34,34,38,0.95)] border-[var(--border-default)]",
+    tooltip: "bg-[var(--surface-4)] border-[var(--border-default)] text-[var(--text-primary)]",
+    arrow: "bg-[var(--surface-4)] border-[var(--border-default)]",
     trigger: "text-[var(--site-primary)] hover:text-[rgba(var(--site-primary-rgb),0.8)]",
   },
   marketing: {
-    tooltip: "bg-[rgba(26,26,29,0.95)] border-[rgba(var(--contrast-rgb),0.08)] text-[rgba(244,240,232,0.9)]",
-    arrow: "bg-[rgba(26,26,29,0.95)] border-[rgba(var(--contrast-rgb),0.08)]",
+    tooltip: "bg-[var(--mk-surface-3)] border-[rgba(var(--contrast-rgb),0.08)] text-[var(--mk-text-primary)]",
+    arrow: "bg-[var(--mk-surface-3)] border-[rgba(var(--contrast-rgb),0.08)]",
     trigger: "text-[#b8973a] hover:text-[#d4b05a]",
   },
   site: {
-    tooltip: "bg-[rgba(34,34,38,0.95)] border-[var(--border-default)] text-[var(--text-primary)]",
-    arrow: "bg-[rgba(34,34,38,0.95)] border-[var(--border-default)]",
+    tooltip: "bg-[var(--surface-4)] border-[var(--border-default)] text-[var(--text-primary)]",
+    arrow: "bg-[var(--surface-4)] border-[var(--border-default)]",
     trigger: "text-[var(--site-primary)] hover:text-[rgba(var(--site-primary-rgb),0.8)]",
   },
 };

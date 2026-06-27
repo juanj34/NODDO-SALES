@@ -355,7 +355,7 @@ export function SiteEmptyState({ variant, title, description, compact }: SiteEmp
         ? "flex flex-col items-center justify-center text-center px-8 py-16"
         : "h-screen flex flex-col items-center justify-center text-center px-8"
       }
-      style={compact ? undefined : { background: "var(--site-bg, #0A0A0B)" }}
+      style={compact ? undefined : { background: "var(--site-bg, var(--surface-0))" }}
     >
       {/* Subtle ambient grid dots (full-page only) */}
       {!compact && (
@@ -388,7 +388,7 @@ export function SiteEmptyState({ variant, title, description, compact }: SiteEmp
         {/* Description — DM Mono */}
         <p
           className="max-w-[360px] leading-[1.7]"
-          style={{ fontSize: 13, color: "rgba(244,240,232,0.3)" }}
+          style={{ fontSize: 13, color: "var(--text-tertiary)" }}
         >
           {description}
         </p>

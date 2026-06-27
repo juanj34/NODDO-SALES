@@ -37,7 +37,7 @@ export default function CasosDeEstudioPage() {
               style={{
                 fontFamily: "var(--font-syne)",
                 fontWeight: 700,
-                color: "rgba(244,240,232,0.92)",
+                color: "var(--mk-text-primary)",
               }}
             >
               {t("caseStudies.badge")}
@@ -52,7 +52,7 @@ export default function CasosDeEstudioPage() {
             style={{
               fontFamily: "var(--font-cormorant)",
               fontWeight: 300,
-              color: "rgba(244,240,232,0.92)",
+              color: "var(--mk-text-primary)",
             }}
           >
             {t("caseStudies.titleLine1")}
@@ -70,7 +70,7 @@ export default function CasosDeEstudioPage() {
             className="text-lg max-w-3xl mx-auto leading-relaxed"
             style={{
               fontWeight: 300,
-              color: "rgba(244,240,232,0.55)",
+              color: "var(--mk-text-secondary)",
             }}
           >
             {t("caseStudies.description")}
@@ -110,7 +110,7 @@ export default function CasosDeEstudioPage() {
                           style={{
                             fontFamily: "var(--font-cormorant)",
                             fontWeight: 400,
-                            color: "rgba(244,240,232,0.92)",
+                            color: "var(--mk-text-primary)",
                           }}
                         >
                           {study.project}
@@ -119,7 +119,7 @@ export default function CasosDeEstudioPage() {
                           className="text-sm"
                           style={{
                             fontWeight: 300,
-                            color: "rgba(244,240,232,0.55)",
+                            color: "var(--mk-text-secondary)",
                           }}
                         >
                           {study.client} · {study.location}
@@ -140,7 +140,7 @@ export default function CasosDeEstudioPage() {
                           style={{
                             fontFamily: "var(--font-syne)",
                             fontWeight: 600,
-                            color: "rgba(244,240,232,0.55)",
+                            color: "var(--mk-text-secondary)",
                           }}
                         >
                           {study.units} unidades · {study.type}
@@ -184,7 +184,7 @@ export default function CasosDeEstudioPage() {
                         style={{
                           fontFamily: "var(--font-cormorant)",
                           fontWeight: 400,
-                          color: "rgba(244,240,232,0.92)",
+                          color: "var(--mk-text-primary)",
                         }}
                       >
                         {t("caseStudies.challenge")}
@@ -207,7 +207,7 @@ export default function CasosDeEstudioPage() {
                     className="text-sm leading-[1.8] mb-4"
                     style={{
                       fontWeight: 300,
-                      color: "rgba(244,240,232,0.70)",
+                      color: "var(--mk-text-secondary)",
                     }}
                   >
                     {study.challenge.description}
@@ -220,7 +220,7 @@ export default function CasosDeEstudioPage() {
                         className="flex items-center gap-2 text-xs"
                         style={{
                           fontWeight: 300,
-                          color: "rgba(244,240,232,0.55)",
+                          color: "var(--mk-text-secondary)",
                         }}
                       >
                         <div
@@ -254,7 +254,7 @@ export default function CasosDeEstudioPage() {
                         style={{
                           fontFamily: "var(--font-cormorant)",
                           fontWeight: 400,
-                          color: "rgba(244,240,232,0.92)",
+                          color: "var(--mk-text-primary)",
                         }}
                       >
                         {t("caseStudies.solution")}
@@ -277,7 +277,7 @@ export default function CasosDeEstudioPage() {
                     className="text-sm leading-[1.8] mb-4"
                     style={{
                       fontWeight: 300,
-                      color: "rgba(244,240,232,0.70)",
+                      color: "var(--mk-text-secondary)",
                     }}
                   >
                     {study.solution.description}
@@ -299,7 +299,7 @@ export default function CasosDeEstudioPage() {
                           className="text-xs leading-[1.7]"
                           style={{
                             fontWeight: 300,
-                            color: "rgba(244,240,232,0.55)",
+                            color: "var(--mk-text-secondary)",
                           }}
                         >
                           {step.tasks}
@@ -317,7 +317,7 @@ export default function CasosDeEstudioPage() {
                   style={{
                     fontFamily: "var(--font-cormorant)",
                     fontWeight: 400,
-                    color: "rgba(244,240,232,0.92)",
+                    color: "var(--mk-text-primary)",
                   }}
                 >
                   {t("caseStudies.results")}
@@ -356,7 +356,7 @@ export default function CasosDeEstudioPage() {
                           style={{
                             fontFamily: "var(--font-syne)",
                             fontWeight: 600,
-                            color: "rgba(244,240,232,0.45)",
+                            color: "var(--mk-text-tertiary)",
                           }}
                         >
                           {metric.label}
@@ -366,7 +366,7 @@ export default function CasosDeEstudioPage() {
                             className="text-2xl"
                             style={{
                               fontWeight: 400,
-                              color: "rgba(244,240,232,0.92)",
+                              color: "var(--mk-text-primary)",
                             }}
                           >
                             {metric.after}
@@ -375,7 +375,7 @@ export default function CasosDeEstudioPage() {
                             className="text-xs line-through"
                             style={{
                               fontWeight: 300,
-                              color: "rgba(244,240,232,0.35)",
+                              color: "var(--mk-text-tertiary)",
                             }}
                           >
                             {metric.before}
@@ -413,7 +413,7 @@ export default function CasosDeEstudioPage() {
                     className="text-base leading-[1.9] italic mb-4 pl-8"
                     style={{
                       fontWeight: 300,
-                      color: "rgba(244,240,232,0.85)",
+                      color: "var(--mk-text-primary)",
                     }}
                   >
                     {study.results.quote}
@@ -438,7 +438,7 @@ export default function CasosDeEstudioPage() {
                         className="text-sm font-bold"
                         style={{
                           fontFamily: "var(--font-syne)",
-                          color: "rgba(244,240,232,0.92)",
+                          color: "var(--mk-text-primary)",
                         }}
                       >
                         {study.results.author}
@@ -447,7 +447,7 @@ export default function CasosDeEstudioPage() {
                         className="text-xs"
                         style={{
                           fontWeight: 300,
-                          color: "rgba(244,240,232,0.55)",
+                          color: "var(--mk-text-secondary)",
                         }}
                       >
                         {study.results.role}
@@ -488,7 +488,7 @@ export default function CasosDeEstudioPage() {
               style={{
                 fontFamily: "var(--font-cormorant)",
                 fontWeight: 300,
-                color: "rgba(244,240,232,0.92)",
+                color: "var(--mk-text-primary)",
               }}
             >
               {t("caseStudies.ctaTitleLine1")}
@@ -500,7 +500,7 @@ export default function CasosDeEstudioPage() {
               className="text-base mb-8 max-w-2xl mx-auto"
               style={{
                 fontWeight: 300,
-                color: "rgba(244,240,232,0.55)",
+                color: "var(--mk-text-secondary)",
               }}
             >
               {t("caseStudies.ctaDescription")}
@@ -513,7 +513,7 @@ export default function CasosDeEstudioPage() {
                 fontWeight: 700,
                 background:
                   "linear-gradient(135deg, #b8973a 0%, #d4b05a 100%)",
-                color: "#0a0a0b",
+                color: "#0a0a0b", // theme-allow: dark ink on the fixed gold gradient button; gradient stays gold in both themes
                 boxShadow: "0 0 30px rgba(184, 151, 58, 0.3)",
               }}
             >

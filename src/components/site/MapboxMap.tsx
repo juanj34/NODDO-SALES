@@ -191,7 +191,7 @@ export function MapboxMap({
           type: 'fill-extrusion',
           minzoom: 15,
           paint: {
-            'fill-extrusion-color': '#111113', // Dark surface-1 color
+            'fill-extrusion-color': '#111113', // theme-allow: 3D building fill on the always-dark/satellite Mapbox style; stays dark in both themes
             'fill-extrusion-height': [
               'interpolate',
               ['linear'],

@@ -119,15 +119,15 @@ function AssistantAvatar({ size = 48 }: { size?: number }) {
 
       {/* AI sparkle (top-right) */}
       <g transform="translate(135, 70)">
-        <circle cx="0" cy="0" r="3" fill="#f4f0e8" />
-        <line x1="0" y1="-8" x2="0" y2="-12" stroke="#f4f0e8" strokeWidth="2" strokeLinecap="round" />
-        <line x1="8" y1="0" x2="12" y2="0" stroke="#f4f0e8" strokeWidth="2" strokeLinecap="round" />
-        <line x1="-8" y1="0" x2="-12" y2="0" stroke="#f4f0e8" strokeWidth="2" strokeLinecap="round" />
-        <line x1="0" y1="8" x2="0" y2="12" stroke="#f4f0e8" strokeWidth="2" strokeLinecap="round" />
-        <line x1="6" y1="-6" x2="9" y2="-9" stroke="#f4f0e8" strokeWidth="1.5" strokeLinecap="round" />
-        <line x1="6" y1="6" x2="9" y2="9" stroke="#f4f0e8" strokeWidth="1.5" strokeLinecap="round" />
-        <line x1="-6" y1="-6" x2="-9" y2="-9" stroke="#f4f0e8" strokeWidth="1.5" strokeLinecap="round" />
-        <line x1="-6" y1="6" x2="-9" y2="9" stroke="#f4f0e8" strokeWidth="1.5" strokeLinecap="round" />
+        <circle cx="0" cy="0" r="3" fill="#f4f0e8" /* // theme-allow: AI sparkle (brand illustration) */ />
+        <line x1="0" y1="-8" x2="0" y2="-12" stroke="#f4f0e8" strokeWidth="2" strokeLinecap="round" /* // theme-allow: AI sparkle (brand illustration) */ />
+        <line x1="8" y1="0" x2="12" y2="0" stroke="#f4f0e8" strokeWidth="2" strokeLinecap="round" /* // theme-allow: AI sparkle (brand illustration) */ />
+        <line x1="-8" y1="0" x2="-12" y2="0" stroke="#f4f0e8" strokeWidth="2" strokeLinecap="round" /* // theme-allow: AI sparkle (brand illustration) */ />
+        <line x1="0" y1="8" x2="0" y2="12" stroke="#f4f0e8" strokeWidth="2" strokeLinecap="round" /* // theme-allow: AI sparkle (brand illustration) */ />
+        <line x1="6" y1="-6" x2="9" y2="-9" stroke="#f4f0e8" strokeWidth="1.5" strokeLinecap="round" /* // theme-allow: AI sparkle (brand illustration) */ />
+        <line x1="6" y1="6" x2="9" y2="9" stroke="#f4f0e8" strokeWidth="1.5" strokeLinecap="round" /* // theme-allow: AI sparkle (brand illustration) */ />
+        <line x1="-6" y1="-6" x2="-9" y2="-9" stroke="#f4f0e8" strokeWidth="1.5" strokeLinecap="round" /* // theme-allow: AI sparkle (brand illustration) */ />
+        <line x1="-6" y1="6" x2="-9" y2="9" stroke="#f4f0e8" strokeWidth="1.5" strokeLinecap="round" /* // theme-allow: AI sparkle (brand illustration) */ />
       </g>
 
       {/* "H" letter for Hugo */}

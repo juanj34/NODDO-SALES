@@ -153,7 +153,7 @@ function IllustrationGrid() {
 
       {/* Floating tooltip */}
       <g className="hiw-g-tooltip">
-        <rect x="150" y="55" width="62" height="34" rx="2" fill="rgba(20,20,20,0.9)" stroke="var(--mk-accent)" strokeWidth="0.6" opacity="0.6" />
+        <rect x="150" y="55" width="62" height="34" rx="2" fill="var(--mk-surface-3)" stroke="var(--mk-accent)" strokeWidth="0.6" opacity="0.6" />
         <line x1="156" y1="64" x2="200" y2="64" stroke="var(--mk-accent)" strokeWidth="0.5" opacity="0.4" />
         <line x1="156" y1="72" x2="190" y2="72" stroke="rgba(var(--contrast-rgb),0.15)" strokeWidth="0.4" />
         <line x1="156" y1="78" x2="180" y2="78" stroke="rgba(var(--contrast-rgb),0.1)" strokeWidth="0.4" />

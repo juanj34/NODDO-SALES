@@ -126,12 +126,12 @@ function DemoConfirmadaContent() {
 
           {date && time && (
             <div className="flex items-center gap-4 mt-4">
-              <div className="flex items-center gap-2 text-sm" style={{ color: "rgba(244,240,232,0.55)" }}>
+              <div className="flex items-center gap-2 text-sm" style={{ color: "var(--mk-text-secondary)" }}>
                 <Calendar className="w-4 h-4 text-[var(--mk-accent)]" />
                 <span className="capitalize">{formatDateLong(date)}</span>
               </div>
-              <span style={{ color: "rgba(244,240,232,0.18)" }}>·</span>
-              <div className="flex items-center gap-2 text-sm" style={{ color: "rgba(244,240,232,0.55)" }}>
+              <span style={{ color: "var(--mk-text-muted)" }}>·</span>
+              <div className="flex items-center gap-2 text-sm" style={{ color: "var(--mk-text-secondary)" }}>
                 <Clock className="w-4 h-4 text-[var(--mk-accent)]" />
                 <span>{time}</span>
               </div>
@@ -197,7 +197,7 @@ function DemoConfirmadaContent() {
             <p
               className="text-sm text-center max-w-lg mx-auto mb-8"
               style={{
-                color: "rgba(244,240,232,0.55)",
+                color: "var(--mk-text-secondary)",
                 lineHeight: "1.8",
               }}
             >
@@ -224,7 +224,7 @@ function DemoConfirmadaContent() {
                     className="text-xs uppercase tracking-[0.15em] font-bold"
                     style={{
                       fontFamily: "var(--font-syne)",
-                      color: "rgba(244,240,232,0.35)",
+                      color: "var(--mk-text-tertiary)",
                     }}
                   >
                     Video próximamente
@@ -264,7 +264,7 @@ function DemoConfirmadaContent() {
             <p
               className="text-sm text-center max-w-lg mx-auto mb-12"
               style={{
-                color: "rgba(244,240,232,0.55)",
+                color: "var(--mk-text-secondary)",
                 lineHeight: "1.8",
               }}
             >
@@ -297,7 +297,7 @@ function DemoConfirmadaContent() {
                         <p
                           className="text-sm font-light mb-1"
                           style={{
-                            color: "rgba(244,240,232,0.92)",
+                            color: "var(--mk-text-primary)",
                           }}
                         >
                           {video.question}
@@ -305,7 +305,7 @@ function DemoConfirmadaContent() {
                         <p
                           className="text-xs"
                           style={{
-                            color: "rgba(244,240,232,0.35)",
+                            color: "var(--mk-text-tertiary)",
                           }}
                         >
                           {video.durationLabel}
@@ -328,7 +328,7 @@ function DemoConfirmadaContent() {
                       <p
                         className="text-sm font-light"
                         style={{
-                          color: "rgba(244,240,232,0.92)",
+                          color: "var(--mk-text-primary)",
                         }}
                       >
                         {video.question}
@@ -346,7 +346,7 @@ function DemoConfirmadaContent() {
                         <p
                           className="text-sm font-light mb-2"
                           style={{
-                            color: "rgba(244,240,232,0.92)",
+                            color: "var(--mk-text-primary)",
                           }}
                         >
                           {video.question}
@@ -354,7 +354,7 @@ function DemoConfirmadaContent() {
                         <p
                           className="text-xs"
                           style={{
-                            color: "rgba(244,240,232,0.55)",
+                            color: "var(--mk-text-secondary)",
                             lineHeight: "1.7",
                           }}
                         >
@@ -431,7 +431,7 @@ function DemoConfirmadaContent() {
                 <p
                   className="text-sm font-light flex-1 mb-6"
                   style={{
-                    color: "rgba(244,240,232,0.85)",
+                    color: "var(--mk-text-primary)",
                     lineHeight: "1.8",
                   }}
                 >
@@ -460,7 +460,7 @@ function DemoConfirmadaContent() {
                     <p
                       className="text-xs font-medium"
                       style={{
-                        color: "rgba(244,240,232,0.92)",
+                        color: "var(--mk-text-primary)",
                       }}
                     >
                       {t.name}
@@ -468,7 +468,7 @@ function DemoConfirmadaContent() {
                     <p
                       className="text-[10px]"
                       style={{
-                        color: "rgba(244,240,232,0.35)",
+                        color: "var(--mk-text-tertiary)",
                       }}
                     >
                       {t.role} · {t.company}

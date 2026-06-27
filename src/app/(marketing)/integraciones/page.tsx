@@ -194,7 +194,7 @@ export default function IntegracionesPage() {
               style={{
                 fontFamily: "var(--font-syne)",
                 fontWeight: 700,
-                color: "rgba(244,240,232,0.92)",
+                color: "var(--mk-text-primary)",
               }}
             >
               {t("integraciones.badge")}
@@ -209,7 +209,7 @@ export default function IntegracionesPage() {
             style={{
               fontFamily: "var(--font-cormorant)",
               fontWeight: 300,
-              color: "rgba(244,240,232,0.92)",
+              color: "var(--mk-text-primary)",
             }}
           >
             {t("integraciones.titleLine1")}
@@ -226,7 +226,7 @@ export default function IntegracionesPage() {
             className="text-lg max-w-3xl mx-auto leading-relaxed"
             style={{
               fontWeight: 300,
-              color: "rgba(244,240,232,0.55)",
+              color: "var(--mk-text-secondary)",
             }}
           >
             {t("integraciones.description")}
@@ -261,7 +261,7 @@ export default function IntegracionesPage() {
                     style={{
                       fontFamily: "var(--font-cormorant)",
                       fontWeight: 400,
-                      color: "rgba(244,240,232,0.92)",
+                      color: "var(--mk-text-primary)",
                     }}
                   >
                     {category.category}
@@ -322,7 +322,7 @@ export default function IntegracionesPage() {
                         style={{
                           fontFamily: "var(--font-cormorant)",
                           fontWeight: 400,
-                          color: "rgba(244,240,232,0.92)",
+                          color: "var(--mk-text-primary)",
                         }}
                       >
                         {item.name}
@@ -333,7 +333,7 @@ export default function IntegracionesPage() {
                         className="text-sm leading-[1.8] mb-4"
                         style={{
                           fontWeight: 300,
-                          color: "rgba(244,240,232,0.55)",
+                          color: "var(--mk-text-secondary)",
                         }}
                       >
                         {item.description}
@@ -351,7 +351,7 @@ export default function IntegracionesPage() {
                               className="text-xs leading-[1.6]"
                               style={{
                                 fontWeight: 300,
-                                color: "rgba(244,240,232,0.70)",
+                                color: "var(--mk-text-secondary)",
                               }}
                             >
                               {feature}
@@ -366,7 +366,7 @@ export default function IntegracionesPage() {
                         style={{
                           backgroundColor: "rgba(var(--contrast-rgb), 0.05)",
                           border: "1px solid rgba(var(--contrast-rgb), 0.08)",
-                          color: "rgba(244,240,232,0.55)",
+                          color: "var(--mk-text-secondary)",
                           fontFamily: "var(--font-syne)",
                           fontWeight: 600,
                         }}
@@ -412,7 +412,7 @@ export default function IntegracionesPage() {
               style={{
                 fontFamily: "var(--font-cormorant)",
                 fontWeight: 300,
-                color: "rgba(244,240,232,0.92)",
+                color: "var(--mk-text-primary)",
               }}
             >
               {t("integraciones.ctaTitleLine1")}{" "}
@@ -423,7 +423,7 @@ export default function IntegracionesPage() {
               className="text-base mb-8 max-w-2xl mx-auto"
               style={{
                 fontWeight: 300,
-                color: "rgba(244,240,232,0.55)",
+                color: "var(--mk-text-secondary)",
               }}
             >
               {t("integraciones.ctaDescription")}
@@ -436,7 +436,7 @@ export default function IntegracionesPage() {
                 fontFamily: "var(--font-syne)",
                 fontWeight: 700,
                 background: "linear-gradient(135deg, #b8973a 0%, #d4b05a 100%)",
-                color: "#0a0a0b",
+                color: "#0a0a0b", // theme-allow: dark ink on the fixed gold gradient button; gradient stays gold in both themes
                 boxShadow: "0 0 30px rgba(184, 151, 58, 0.3)",
               }}
             >

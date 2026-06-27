@@ -62,7 +62,7 @@ export function EventsChart({ data }: Props) {
             <Tooltip
               cursor={{ fill: "rgba(184,151,58,0.1)" }}
               contentStyle={{
-                backgroundColor: "rgba(26,26,29,0.95)",
+                backgroundColor: "var(--surface-3)",
                 border: "1px solid rgba(var(--contrast-rgb),0.1)",
                 borderRadius: "8px",
                 fontSize: "12px",

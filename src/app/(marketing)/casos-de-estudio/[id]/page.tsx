@@ -34,7 +34,7 @@ export default function CaseStudyDetailPage() {
           style={{
             fontFamily: "var(--font-cormorant)",
             fontWeight: 300,
-            color: "rgba(244,240,232,0.92)",
+            color: "var(--mk-text-primary)",
           }}
         >
           Caso de estudio no encontrado
@@ -68,7 +68,7 @@ export default function CaseStudyDetailPage() {
             style={{
               fontFamily: "var(--font-syne)",
               fontWeight: 600,
-              color: "rgba(244,240,232,0.45)",
+              color: "var(--mk-text-tertiary)",
             }}
           >
             <ArrowLeft className="w-3.5 h-3.5" />
@@ -94,9 +94,9 @@ export default function CaseStudyDetailPage() {
               <div
                 className="absolute inset-0"
                 style={{
-                  // theme-allow: dark scrim gradient over full-bleed hero photo; photo stays dark in both themes
+                  // dark scrim gradient over full-bleed hero photo; --overlay-rgb keeps it dark in both themes
                   background:
-                    "linear-gradient(to top, rgba(10,10,11,0.95) 0%, rgba(10,10,11,0.4) 50%, transparent 100%)",
+                    "linear-gradient(to top, rgba(var(--overlay-rgb),0.95) 0%, rgba(var(--overlay-rgb),0.4) 50%, transparent 100%)",
                 }}
               />
               {/* Logo badge */}
@@ -120,7 +120,7 @@ export default function CaseStudyDetailPage() {
                     fontFamily: "var(--font-cormorant)",
                     fontWeight: 300,
                     // theme-allow: title sits directly over full-bleed dark hero photo; stays light in both themes
-                    color: "rgba(244,240,232,0.92)",
+                    color: "var(--mk-text-primary)",
                     lineHeight: 1.1,
                   }}
                 >
@@ -129,7 +129,7 @@ export default function CaseStudyDetailPage() {
                 <p
                   className="text-base"
                   // theme-allow: subtitle over full-bleed dark hero photo; stays light in both themes
-                  style={{ color: "rgba(244,240,232,0.55)" }}
+                  style={{ color: "var(--mk-text-secondary)" }}
                 >
                   {study.client} · {study.location}
                 </p>
@@ -152,7 +152,7 @@ export default function CaseStudyDetailPage() {
                   className="text-lg font-bold"
                   style={{
                     fontFamily: "var(--font-cormorant)",
-                    color: "rgba(244,240,232,0.92)",
+                    color: "var(--mk-text-primary)",
                   }}
                 >
                   {study.units}
@@ -162,7 +162,7 @@ export default function CaseStudyDetailPage() {
                   style={{
                     fontFamily: "var(--font-syne)",
                     fontWeight: 600,
-                    color: "rgba(244,240,232,0.35)",
+                    color: "var(--mk-text-tertiary)",
                   }}
                 >
                   Unidades
@@ -177,7 +177,7 @@ export default function CaseStudyDetailPage() {
                   className="text-lg font-bold"
                   style={{
                     fontFamily: "var(--font-cormorant)",
-                    color: "rgba(244,240,232,0.92)",
+                    color: "var(--mk-text-primary)",
                   }}
                 >
                   {study.location.split(",")[0]}
@@ -187,7 +187,7 @@ export default function CaseStudyDetailPage() {
                   style={{
                     fontFamily: "var(--font-syne)",
                     fontWeight: 600,
-                    color: "rgba(244,240,232,0.35)",
+                    color: "var(--mk-text-tertiary)",
                   }}
                 >
                   Ciudad
@@ -202,7 +202,7 @@ export default function CaseStudyDetailPage() {
                   className="text-lg font-bold"
                   style={{
                     fontFamily: "var(--font-cormorant)",
-                    color: "rgba(244,240,232,0.92)",
+                    color: "var(--mk-text-primary)",
                   }}
                 >
                   {study.type}
@@ -212,7 +212,7 @@ export default function CaseStudyDetailPage() {
                   style={{
                     fontFamily: "var(--font-syne)",
                     fontWeight: 600,
-                    color: "rgba(244,240,232,0.35)",
+                    color: "var(--mk-text-tertiary)",
                   }}
                 >
                   Tipo
@@ -235,7 +235,7 @@ export default function CaseStudyDetailPage() {
             style={{
               fontFamily: "var(--font-cormorant)",
               fontWeight: 400,
-              color: "rgba(244,240,232,0.92)",
+              color: "var(--mk-text-primary)",
             }}
           >
             Sobre{" "}
@@ -245,7 +245,7 @@ export default function CaseStudyDetailPage() {
           </h2>
           <p
             className="text-[15px] leading-[1.9]"
-            style={{ color: "rgba(244,240,232,0.70)" }}
+            style={{ color: "var(--mk-text-secondary)" }}
           >
             {study.extended.aboutClient}
           </p>
@@ -277,7 +277,7 @@ export default function CaseStudyDetailPage() {
                   style={{
                     fontFamily: "var(--font-cormorant)",
                     fontWeight: 400,
-                    color: "rgba(244,240,232,0.92)",
+                    color: "var(--mk-text-primary)",
                   }}
                 >
                   El Desafío
@@ -297,7 +297,7 @@ export default function CaseStudyDetailPage() {
             </div>
             <p
               className="text-sm leading-[1.8] mb-5"
-              style={{ fontWeight: 300, color: "rgba(244,240,232,0.70)" }}
+              style={{ fontWeight: 300, color: "var(--mk-text-secondary)" }}
             >
               {study.challenge.description}
             </p>
@@ -306,7 +306,7 @@ export default function CaseStudyDetailPage() {
                 <div
                   key={metric}
                   className="flex items-center gap-2 text-xs"
-                  style={{ fontWeight: 300, color: "rgba(244,240,232,0.55)" }}
+                  style={{ fontWeight: 300, color: "var(--mk-text-secondary)" }}
                 >
                   <div
                     className="w-1.5 h-1.5 rounded-full"
@@ -339,7 +339,7 @@ export default function CaseStudyDetailPage() {
                   style={{
                     fontFamily: "var(--font-cormorant)",
                     fontWeight: 400,
-                    color: "rgba(244,240,232,0.92)",
+                    color: "var(--mk-text-primary)",
                   }}
                 >
                   La Solución
@@ -359,7 +359,7 @@ export default function CaseStudyDetailPage() {
             </div>
             <p
               className="text-sm leading-[1.8] mb-5"
-              style={{ fontWeight: 300, color: "rgba(244,240,232,0.70)" }}
+              style={{ fontWeight: 300, color: "var(--mk-text-secondary)" }}
             >
               {study.solution.description}
             </p>
@@ -376,7 +376,7 @@ export default function CaseStudyDetailPage() {
                     className="text-xs leading-[1.7]"
                     style={{
                       fontWeight: 300,
-                      color: "rgba(244,240,232,0.55)",
+                      color: "var(--mk-text-secondary)",
                     }}
                   >
                     {step.tasks}
@@ -400,7 +400,7 @@ export default function CaseStudyDetailPage() {
             style={{
               fontFamily: "var(--font-cormorant)",
               fontWeight: 400,
-              color: "rgba(244,240,232,0.92)",
+              color: "var(--mk-text-primary)",
             }}
           >
             Herramientas{" "}
@@ -426,14 +426,14 @@ export default function CaseStudyDetailPage() {
                   className="text-sm font-bold mb-1"
                   style={{
                     fontFamily: "var(--font-syne)",
-                    color: "rgba(244,240,232,0.92)",
+                    color: "var(--mk-text-primary)",
                   }}
                 >
                   {tool.name}
                 </h4>
                 <p
                   className="text-xs leading-[1.7]"
-                  style={{ color: "rgba(244,240,232,0.55)" }}
+                  style={{ color: "var(--mk-text-secondary)" }}
                 >
                   {tool.description}
                 </p>
@@ -455,7 +455,7 @@ export default function CaseStudyDetailPage() {
             style={{
               fontFamily: "var(--font-cormorant)",
               fontWeight: 400,
-              color: "rgba(244,240,232,0.92)",
+              color: "var(--mk-text-primary)",
             }}
           >
             Timeline de{" "}
@@ -490,7 +490,7 @@ export default function CaseStudyDetailPage() {
                       className="text-sm font-bold"
                       style={{
                         fontFamily: "var(--font-syne)",
-                        color: "rgba(244,240,232,0.92)",
+                        color: "var(--mk-text-primary)",
                       }}
                     >
                       {phase.phase}
@@ -511,11 +511,11 @@ export default function CaseStudyDetailPage() {
                       <li
                         key={i}
                         className="flex items-start gap-2 text-xs leading-[1.7]"
-                        style={{ color: "rgba(244,240,232,0.55)" }}
+                        style={{ color: "var(--mk-text-secondary)" }}
                       >
                         <span
                           className="mt-1.5 w-1 h-1 rounded-full shrink-0"
-                          style={{ backgroundColor: "rgba(244,240,232,0.25)" }}
+                          style={{ backgroundColor: "var(--mk-text-muted)" }}
                         />
                         {detail}
                       </li>
@@ -541,7 +541,7 @@ export default function CaseStudyDetailPage() {
               style={{
                 fontFamily: "var(--font-cormorant)",
                 fontWeight: 400,
-                color: "rgba(244,240,232,0.92)",
+                color: "var(--mk-text-primary)",
               }}
             >
               Resultados
@@ -580,7 +580,7 @@ export default function CaseStudyDetailPage() {
                       style={{
                         fontFamily: "var(--font-syne)",
                         fontWeight: 600,
-                        color: "rgba(244,240,232,0.45)",
+                        color: "var(--mk-text-tertiary)",
                       }}
                     >
                       {metric.label}
@@ -590,7 +590,7 @@ export default function CaseStudyDetailPage() {
                         className="text-2xl"
                         style={{
                           fontWeight: 400,
-                          color: "rgba(244,240,232,0.92)",
+                          color: "var(--mk-text-primary)",
                         }}
                       >
                         {metric.after}
@@ -599,7 +599,7 @@ export default function CaseStudyDetailPage() {
                         className="text-xs line-through"
                         style={{
                           fontWeight: 300,
-                          color: "rgba(244,240,232,0.35)",
+                          color: "var(--mk-text-tertiary)",
                         }}
                       >
                         {metric.before}
@@ -637,7 +637,7 @@ export default function CaseStudyDetailPage() {
                 className="text-base leading-[1.9] italic mb-4 pl-8"
                 style={{
                   fontWeight: 300,
-                  color: "rgba(244,240,232,0.85)",
+                  color: "var(--mk-text-primary)",
                 }}
               >
                 {study.results.quote}
@@ -662,7 +662,7 @@ export default function CaseStudyDetailPage() {
                     className="text-sm font-bold"
                     style={{
                       fontFamily: "var(--font-syne)",
-                      color: "rgba(244,240,232,0.92)",
+                      color: "var(--mk-text-primary)",
                     }}
                   >
                     {study.results.author}
@@ -671,7 +671,7 @@ export default function CaseStudyDetailPage() {
                     className="text-xs"
                     style={{
                       fontWeight: 300,
-                      color: "rgba(244,240,232,0.55)",
+                      color: "var(--mk-text-secondary)",
                     }}
                   >
                     {study.results.role}
@@ -695,7 +695,7 @@ export default function CaseStudyDetailPage() {
             style={{
               fontFamily: "var(--font-cormorant)",
               fontWeight: 400,
-              color: "rgba(244,240,232,0.92)",
+              color: "var(--mk-text-primary)",
             }}
           >
             Conclusiones{" "}
@@ -717,7 +717,7 @@ export default function CaseStudyDetailPage() {
                 />
                 <p
                   className="text-sm leading-[1.7]"
-                  style={{ color: "rgba(244,240,232,0.70)" }}
+                  style={{ color: "var(--mk-text-secondary)" }}
                 >
                   {takeaway}
                 </p>
@@ -740,7 +740,7 @@ export default function CaseStudyDetailPage() {
               style={{
                 fontFamily: "var(--font-cormorant)",
                 fontWeight: 400,
-                color: "rgba(244,240,232,0.92)",
+                color: "var(--mk-text-primary)",
               }}
             >
               Más{" "}
@@ -764,7 +764,7 @@ export default function CaseStudyDetailPage() {
                   />
                   <p
                     className="text-sm italic leading-[1.8] mb-4"
-                    style={{ color: "rgba(244,240,232,0.75)" }}
+                    style={{ color: "var(--mk-text-secondary)" }}
                   >
                     &ldquo;{q.text}&rdquo;
                   </p>
@@ -788,14 +788,14 @@ export default function CaseStudyDetailPage() {
                         className="text-xs font-bold"
                         style={{
                           fontFamily: "var(--font-syne)",
-                          color: "rgba(244,240,232,0.92)",
+                          color: "var(--mk-text-primary)",
                         }}
                       >
                         {q.author}
                       </p>
                       <p
                         className="text-[10px]"
-                        style={{ color: "rgba(244,240,232,0.45)" }}
+                        style={{ color: "var(--mk-text-tertiary)" }}
                       >
                         {q.role}
                       </p>
@@ -820,7 +820,7 @@ export default function CaseStudyDetailPage() {
             style={{
               fontFamily: "var(--font-cormorant)",
               fontWeight: 400,
-              color: "rgba(244,240,232,0.92)",
+              color: "var(--mk-text-primary)",
             }}
           >
             Galería del{" "}
@@ -860,7 +860,7 @@ export default function CaseStudyDetailPage() {
               style={{
                 fontFamily: "var(--font-cormorant)",
                 fontWeight: 300,
-                color: "rgba(244,240,232,0.92)",
+                color: "var(--mk-text-primary)",
               }}
             >
               ¿Listo para tener{" "}
@@ -870,7 +870,7 @@ export default function CaseStudyDetailPage() {
             </h2>
             <p
               className="text-sm mb-6 max-w-2xl mx-auto"
-              style={{ color: "rgba(244,240,232,0.55)" }}
+              style={{ color: "var(--mk-text-secondary)" }}
             >
               Agenda una llamada de 30 minutos y te mostramos cómo NODDO puede
               transformar tu estrategia de ventas
@@ -883,7 +883,7 @@ export default function CaseStudyDetailPage() {
                 fontWeight: 700,
                 background:
                   "linear-gradient(135deg, #b8973a 0%, #d4b05a 100%)",
-                color: "#0a0a0b",
+                color: "#0a0a0b", // theme-allow: dark ink on the fixed gold gradient button; gradient stays gold in both themes
                 boxShadow: "0 0 30px rgba(184, 151, 58, 0.3)",
               }}
             >
@@ -906,7 +906,7 @@ export default function CaseStudyDetailPage() {
               style={{
                 fontFamily: "var(--font-cormorant)",
                 fontWeight: 400,
-                color: "rgba(244,240,232,0.92)",
+                color: "var(--mk-text-primary)",
               }}
             >
               Más casos de éxito
@@ -945,14 +945,14 @@ export default function CaseStudyDetailPage() {
                           style={{
                             fontFamily: "var(--font-cormorant)",
                             fontWeight: 400,
-                            color: "rgba(244,240,232,0.92)",
+                            color: "var(--mk-text-primary)",
                           }}
                         >
                           {other.project}
                         </h4>
                         <p
                           className="text-[10px]"
-                          style={{ color: "rgba(244,240,232,0.45)" }}
+                          style={{ color: "var(--mk-text-tertiary)" }}
                         >
                           {other.client} · {other.location}
                         </p>
