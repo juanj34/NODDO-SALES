@@ -32,6 +32,16 @@ const PATTERNS = [
   // Literal rgba whites/blacks (use rgba(var(--contrast-rgb)/--overlay-rgb) instead)
   /rgba\(\s*255\s*,\s*255\s*,\s*255/gi,
   /rgba\(\s*0\s*,\s*0\s*,\s*0/gi,
+  // Brand bone/paper off-white used as a foreground — invisible in light mode.
+  // Use --text-* (app) or --mk-text-* (marketing) tokens instead.
+  /rgba\(\s*244\s*,\s*240\s*,\s*232/gi,
+  /rgba\(\s*245\s*,\s*240\s*,\s*232/gi,
+  /#f[45]f0e8\b/gi,
+  /\b(?:text|bg|border|from|via|to|fill|stroke|ring|divide)-(?:cream|paper|warm-(?:50|100|200|300))\b/g,
+  // Hardcoded dark surface backgrounds off the token system. If left, they don't
+  // flip and ink text placed on them becomes invisible in light mode. Use --surface-*.
+  /#(?:0a0a0b|111113|1a1a1d|222226|2a2a2f|18181b|27272a|0e0e0e|161616|0f0f0f|0a0a0a)\b/gi,
+  /rgba\(\s*(?:[0-9]|[1-4][0-9])\s*,\s*(?:[0-9]|[1-4][0-9])\s*,\s*(?:[0-9]|[1-4][0-9])\s*[,)]/gi,
 ];
 
 export function findHardcodedColors(line, file) {
