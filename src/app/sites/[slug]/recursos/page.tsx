@@ -123,6 +123,21 @@ export default function RecursosPage() {
 
   const recursos = proyecto.recursos || [];
 
+  // Surface the project's main brochure (stored separately in proyecto.brochure_url, not in
+  // the recursos array) as a downloadable card at the top of the list.
+  const brochureRecurso: Recurso | null = proyecto.brochure_url
+    ? {
+        id: "__brochure__",
+        proyecto_id: proyecto.id,
+        nombre: proyecto.nombre,
+        descripcion: t("brochure.description", { name: proyecto.nombre }),
+        tipo: "brochure",
+        url: proyecto.brochure_url,
+        orden: -1,
+      }
+    : null;
+  const allRecursos = brochureRecurso ? [brochureRecurso, ...recursos] : recursos;
+
   return (
     <>
       <SectionTransition className="relative min-h-screen flex flex-col items-center px-6 lg:px-12 py-20 bg-[radial-gradient(ellipse_at_center,_var(--surface-1)_0%,_var(--surface-0)_70%)]">
@@ -156,14 +171,14 @@ export default function RecursosPage() {
           </div>
 
           {/* ── Resource list ─────────────────────────────── */}
-          {recursos.length > 0 ? (
+          {allRecursos.length > 0 ? (
             <motion.div
               variants={stagger}
               initial="hidden"
               animate="visible"
               className="flex flex-col gap-4"
             >
-              {recursos.map((recurso) => {
+              {allRecursos.map((recurso) => {
                 const iconConfig = tipoIcons[recurso.tipo];
                 const Icon = iconConfig.icon;
                 const pdf = isPDF(recurso.url);
