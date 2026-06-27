@@ -137,10 +137,10 @@ function StatCard({
             accent || "bg-[var(--surface-3)]"
           )}
         >
-          <Icon size={14} className={accent ? "text-white" : "text-[var(--text-tertiary)]"} />
+          <Icon size={14} className={accent ? "text-[var(--text-primary)]" : "text-[var(--text-tertiary)]"} />
         </div>
       </div>
-      <p className="text-xl font-light text-white">{value}</p>
+      <p className="text-xl font-light text-[var(--text-primary)]">{value}</p>
     </div>
   );
 }
@@ -161,7 +161,7 @@ function ConfirmDialog({
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-[rgba(var(--overlay-rgb),0.6)] backdrop-blur-sm"
       onClick={onCancel}
     >
       <motion.div
@@ -175,7 +175,7 @@ function ConfirmDialog({
           <div className="p-2 bg-red-500/10 rounded-lg">
             <AlertTriangle size={18} className="text-red-400" />
           </div>
-          <h3 className="text-sm font-medium text-white">{title}</h3>
+          <h3 className="text-sm font-medium text-[var(--text-primary)]">{title}</h3>
         </div>
         <p className="text-sm text-[var(--text-secondary)] mb-6">{message}</p>
         <div className="flex items-center justify-end gap-3">
@@ -184,7 +184,7 @@ function ConfirmDialog({
           </button>
           <button
             onClick={onConfirm}
-            className="flex items-center gap-1.5 px-4 py-2 bg-red-500/80 text-white rounded-lg text-xs font-medium hover:bg-red-500 transition-all"
+            className="flex items-center gap-1.5 px-4 py-2 bg-red-500/80 text-white rounded-lg text-xs font-medium hover:bg-red-500 transition-all" /* // theme-allow: light text on solid red button */
           >
             <Trash2 size={12} />
             Eliminar
@@ -485,7 +485,7 @@ function ComplementoForm({
                     set("unidad_id", "");
                     setUnitSearch("");
                   }}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-[var(--text-muted)] hover:text-white transition-colors"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-colors"
                 >
                   <X size={12} />
                 </button>
@@ -942,7 +942,7 @@ export function ComplementosSection({ project, onRefresh, parqueaderosMode, depo
             className={cn(
               "flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-medium transition-all",
               activeTab === "parqueadero"
-                ? "bg-[var(--surface-3)] text-white shadow-sm"
+                ? "bg-[var(--surface-3)] text-[var(--text-primary)] shadow-sm"
                 : "text-[var(--text-tertiary)] hover:text-[var(--text-secondary)] hover:bg-[var(--surface-2)]"
             )}
           >
@@ -959,7 +959,7 @@ export function ComplementosSection({ project, onRefresh, parqueaderosMode, depo
             className={cn(
               "flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-medium transition-all",
               activeTab === "deposito"
-                ? "bg-[var(--surface-3)] text-white shadow-sm"
+                ? "bg-[var(--surface-3)] text-[var(--text-primary)] shadow-sm"
                 : "text-[var(--text-tertiary)] hover:text-[var(--text-secondary)] hover:bg-[var(--surface-2)]"
             )}
           >
@@ -986,7 +986,7 @@ export function ComplementosSection({ project, onRefresh, parqueaderosMode, depo
             className={cn(
               "flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-medium transition-all whitespace-nowrap shrink-0",
               activeTorreId === null
-                ? "bg-[var(--surface-3)] text-white shadow-sm"
+                ? "bg-[var(--surface-3)] text-[var(--text-primary)] shadow-sm"
                 : "text-[var(--text-tertiary)] hover:text-[var(--text-secondary)] hover:bg-[var(--surface-2)]"
             )}
           >
@@ -1009,7 +1009,7 @@ export function ComplementosSection({ project, onRefresh, parqueaderosMode, depo
                 className={cn(
                   "flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-medium transition-all whitespace-nowrap shrink-0",
                   activeTorreId === torre.id
-                    ? "bg-[var(--surface-3)] text-white shadow-sm"
+                    ? "bg-[var(--surface-3)] text-[var(--text-primary)] shadow-sm"
                     : "text-[var(--text-tertiary)] hover:text-[var(--text-secondary)] hover:bg-[var(--surface-2)]"
                 )}
               >
@@ -1028,7 +1028,7 @@ export function ComplementosSection({ project, onRefresh, parqueaderosMode, depo
               className={cn(
                 "flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-medium transition-all whitespace-nowrap shrink-0",
                 activeTorreId === "__none__"
-                  ? "bg-[var(--surface-3)] text-white shadow-sm"
+                  ? "bg-[var(--surface-3)] text-[var(--text-primary)] shadow-sm"
                   : "text-[var(--text-tertiary)] hover:text-[var(--text-secondary)] hover:bg-[var(--surface-2)]"
               )}
             >
@@ -1295,7 +1295,7 @@ export function ComplementosSection({ project, onRefresh, parqueaderosMode, depo
                       </td>
                     ) : activeTab === "addon" ? (
                       <>
-                        <td className="py-3 px-4 text-white font-medium">
+                        <td className="py-3 px-4 text-[var(--text-primary)] font-medium">
                           {comp.identificador}
                         </td>
                         <td className="py-3 px-4 text-[var(--text-secondary)]">
@@ -1313,7 +1313,7 @@ export function ComplementosSection({ project, onRefresh, parqueaderosMode, depo
                                 setEditingId(comp.id);
                                 setShowCreateForm(false);
                               }}
-                              className="p-1.5 hover:bg-[var(--surface-2)] rounded-lg transition-colors text-[var(--text-tertiary)] hover:text-white"
+                              className="p-1.5 hover:bg-[var(--surface-2)] rounded-lg transition-colors text-[var(--text-tertiary)] hover:text-[var(--text-primary)]"
                               title="Editar"
                             >
                               <Pencil size={14} />
@@ -1338,14 +1338,14 @@ export function ComplementosSection({ project, onRefresh, parqueaderosMode, depo
                             {selectedIds.has(comp.id) ? (
                               <CheckSquare
                                 size={16}
-                                className="text-[#b8973a]"
+                                className="text-[var(--site-primary)]"
                               />
                             ) : (
                               <Square size={16} />
                             )}
                           </button>
                         </td>
-                        <td className="py-3 px-4 text-white font-medium">
+                        <td className="py-3 px-4 text-[var(--text-primary)] font-medium">
                           {comp.identificador}
                         </td>
                         <td className="py-3 px-4 text-[var(--text-secondary)]">
@@ -1369,7 +1369,7 @@ export function ComplementosSection({ project, onRefresh, parqueaderosMode, depo
                         </td>
                         <td className="py-3 px-4">
                           {comp.unidad_id ? (
-                            <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[11px] font-medium bg-[rgba(184,151,58,0.1)] text-[#b8973a] border border-[rgba(184,151,58,0.2)]">
+                            <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[11px] font-medium bg-[rgba(184,151,58,0.1)] text-[var(--site-primary)] border border-[rgba(184,151,58,0.2)]">
                               <Link size={10} />
                               {getUnitIdentificador(comp.unidad_id)}
                             </span>
@@ -1386,7 +1386,7 @@ export function ComplementosSection({ project, onRefresh, parqueaderosMode, depo
                                 setEditingId(comp.id);
                                 setShowCreateForm(false);
                               }}
-                              className="p-1.5 hover:bg-[var(--surface-2)] rounded-lg transition-colors text-[var(--text-tertiary)] hover:text-white"
+                              className="p-1.5 hover:bg-[var(--surface-2)] rounded-lg transition-colors text-[var(--text-tertiary)] hover:text-[var(--text-primary)]"
                               title="Editar"
                             >
                               <Pencil size={14} />

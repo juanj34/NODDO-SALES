@@ -202,7 +202,7 @@ function MobileUnitCard({
     <div className="p-3.5 bg-[var(--surface-2)] border border-[var(--border-subtle)] rounded-xl space-y-2.5">
       {/* Row 1: ID + current badge */}
       <div className="flex items-center justify-between">
-        <span className="text-sm font-medium text-white">{unit.identificador}</span>
+        <span className="text-sm font-medium text-[var(--text-primary)]">{unit.identificador}</span>
         <EstadoBadge estado={unit.estado} />
       </div>
       {/* Row 2: Details */}
@@ -269,7 +269,7 @@ function MobileUnitCard({
         <div className="flex items-center gap-1">
           <button
             onClick={() => onEdit(unit.id)}
-            className="p-2 hover:bg-[var(--surface-3)] rounded-lg transition-colors text-[var(--text-tertiary)] hover:text-white"
+            className="p-2 hover:bg-[var(--surface-3)] rounded-lg transition-colors text-[var(--text-tertiary)] hover:text-[var(--text-primary)]"
           >
             <Pencil size={14} />
           </button>
@@ -302,7 +302,7 @@ function ConfirmDialog({
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-[rgba(var(--overlay-rgb),0.6)] backdrop-blur-sm"
       onClick={onCancel}
     >
       <motion.div
@@ -316,7 +316,7 @@ function ConfirmDialog({
           <div className="p-2 bg-red-500/10 rounded-lg">
             <AlertTriangle size={18} className="text-red-400" />
           </div>
-          <h3 className="text-sm font-medium text-white">{title}</h3>
+          <h3 className="text-sm font-medium text-[var(--text-primary)]">{title}</h3>
         </div>
         <p className="text-sm text-[var(--text-secondary)] mb-6">{message}</p>
         <div className="flex items-center justify-end gap-3">
@@ -325,7 +325,7 @@ function ConfirmDialog({
           </button>
           <button
             onClick={onConfirm}
-            className="flex items-center gap-1.5 px-4 py-2 bg-red-500/80 text-white rounded-lg text-xs font-medium hover:bg-red-500 transition-all"
+            className="flex items-center gap-1.5 px-4 py-2 bg-red-500/80 text-[var(--text-primary)] rounded-lg text-xs font-medium hover:bg-red-500 transition-all"
           >
             <Trash2 size={12} />
             {t("galeria.delete")}
@@ -421,7 +421,7 @@ function InlineMultiTipo({
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: -4, scale: 0.96 }}
             transition={{ duration: 0.12 }}
-            className="absolute z-50 top-full mt-1 left-0 min-w-[180px] p-1.5 rounded-xl bg-[rgba(26,26,29,0.95)] border border-[var(--border-default)] shadow-[0_8px_40px_rgba(0,0,0,0.5)]"
+            className="absolute z-50 top-full mt-1 left-0 min-w-[180px] p-1.5 rounded-xl bg-[rgba(26,26,29,0.95)] border border-[var(--border-default)] shadow-[0_8px_40px_rgba(var(--overlay-rgb),0.5)]"
             style={{ backdropFilter: "blur(32px)" }}
           >
             <p className="px-2 py-1 text-[9px] text-[var(--text-muted)] uppercase tracking-wider font-bold">
@@ -1056,7 +1056,7 @@ function PriceAdjustModal({
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-[rgba(var(--overlay-rgb),0.6)] backdrop-blur-sm p-4"
       onClick={onClose}
     >
       <motion.div
@@ -1072,7 +1072,7 @@ function PriceAdjustModal({
             <div className="p-2 bg-[rgba(var(--site-primary-rgb),0.1)] rounded-lg">
               <TrendingUp size={18} className="text-[var(--site-primary)]" />
             </div>
-            <h3 className="text-sm font-medium text-white">{t("inventario.priceAdjustTitle")}</h3>
+            <h3 className="text-sm font-medium text-[var(--text-primary)]">{t("inventario.priceAdjustTitle")}</h3>
           </div>
           <button onClick={onClose} className="p-2 hover:bg-[var(--surface-3)] rounded-lg transition-colors">
             <X size={16} className="text-[var(--text-tertiary)]" />
@@ -1106,7 +1106,7 @@ function PriceAdjustModal({
                   className={cn(
                     "flex items-center gap-1.5 px-3 py-1.5 rounded-md text-[11px] font-medium transition-all flex-1 justify-center",
                     targetType === "unidades"
-                      ? "bg-[var(--surface-3)] text-white shadow-sm"
+                      ? "bg-[var(--surface-3)] text-[var(--text-primary)] shadow-sm"
                       : "text-[var(--text-tertiary)] hover:text-[var(--text-secondary)]"
                   )}
                 >
@@ -1119,7 +1119,7 @@ function PriceAdjustModal({
                     className={cn(
                       "flex items-center gap-1.5 px-3 py-1.5 rounded-md text-[11px] font-medium transition-all flex-1 justify-center",
                       targetType === "parqueadero"
-                        ? "bg-[var(--surface-3)] text-white shadow-sm"
+                        ? "bg-[var(--surface-3)] text-[var(--text-primary)] shadow-sm"
                         : "text-[var(--text-tertiary)] hover:text-[var(--text-secondary)]"
                     )}
                   >
@@ -1133,7 +1133,7 @@ function PriceAdjustModal({
                     className={cn(
                       "flex items-center gap-1.5 px-3 py-1.5 rounded-md text-[11px] font-medium transition-all flex-1 justify-center",
                       targetType === "deposito"
-                        ? "bg-[var(--surface-3)] text-white shadow-sm"
+                        ? "bg-[var(--surface-3)] text-[var(--text-primary)] shadow-sm"
                         : "text-[var(--text-tertiary)] hover:text-[var(--text-secondary)]"
                     )}
                   >
@@ -1177,7 +1177,7 @@ function PriceAdjustModal({
                 className={cn(
                   "flex-1 py-2 rounded-lg text-xs font-medium transition-all",
                   adjustType === "percentage"
-                    ? "bg-[var(--surface-3)] text-white shadow-sm"
+                    ? "bg-[var(--surface-3)] text-[var(--text-primary)] shadow-sm"
                     : "text-[var(--text-tertiary)] hover:text-[var(--text-secondary)] hover:bg-[var(--surface-2)]"
                 )}
               >
@@ -1188,7 +1188,7 @@ function PriceAdjustModal({
                 className={cn(
                   "flex-1 py-2 rounded-lg text-xs font-medium transition-all",
                   adjustType === "fixed"
-                    ? "bg-[var(--surface-3)] text-white shadow-sm"
+                    ? "bg-[var(--surface-3)] text-[var(--text-primary)] shadow-sm"
                     : "text-[var(--text-tertiary)] hover:text-[var(--text-secondary)] hover:bg-[var(--surface-2)]"
                 )}
               >
@@ -1241,9 +1241,9 @@ function PriceAdjustModal({
                       const diff = newP - item.precio;
                       return (
                         <tr key={item.id} className="border-b border-[var(--border-subtle)]">
-                          <td className="py-1.5 px-3 text-white">{item.identificador}</td>
+                          <td className="py-1.5 px-3 text-[var(--text-primary)]">{item.identificador}</td>
                           <td className="py-1.5 px-3 text-right text-[var(--text-secondary)]">{formatCurrency(item.precio, moneda, {})}</td>
-                          <td className="py-1.5 px-3 text-right text-white">{formatCurrency(newP, moneda, {})}</td>
+                          <td className="py-1.5 px-3 text-right text-[var(--text-primary)]">{formatCurrency(newP, moneda, {})}</td>
                           <td className={cn("py-1.5 px-3 text-right", diff > 0 ? "text-green-400" : "text-red-400")}>
                             {diff > 0 ? "+" : ""}{formatCurrency(diff, moneda, {})}
                           </td>
@@ -1331,7 +1331,7 @@ function ColumnSetupWizard({
         <Settings size={24} className="text-[var(--site-primary)]" />
       </div>
 
-      <h2 className="font-heading font-light text-2xl text-white mb-2 text-center">
+      <h2 className="font-heading font-light text-2xl text-[var(--text-primary)] mb-2 text-center">
         {t("inventario.setupWizard.title")}
       </h2>
       <p className="text-xs text-[var(--text-tertiary)] text-center mb-8 max-w-sm leading-relaxed">
@@ -1349,7 +1349,7 @@ function ColumnSetupWizard({
               className={cn(
                 "flex items-center gap-2.5 px-3 py-2.5 rounded-xl border transition-all text-left text-xs",
                 isOn
-                  ? "bg-[rgba(var(--site-primary-rgb),0.08)] border-[rgba(var(--site-primary-rgb),0.3)] text-white"
+                  ? "bg-[rgba(var(--site-primary-rgb),0.08)] border-[rgba(var(--site-primary-rgb),0.3)] text-[var(--text-primary)]"
                   : "bg-[var(--surface-1)] border-[var(--border-subtle)] text-[var(--text-muted)] hover:border-[var(--border-default)]"
               )}
             >
@@ -1362,7 +1362,7 @@ function ColumnSetupWizard({
                 )}
               >
                 {isOn && (
-                  <svg viewBox="0 0 12 12" className="w-2.5 h-2.5 text-black">
+                  <svg viewBox="0 0 12 12" className="w-2.5 h-2.5 text-black">{/* // theme-allow: dark text on gold */}
                     <path d="M2 6l3 3 5-5" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
                   </svg>
                 )}
@@ -1496,7 +1496,7 @@ function ColumnsConfigModal({
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-[rgba(var(--overlay-rgb),0.6)] backdrop-blur-sm p-4"
       onClick={onClose}
     >
       <motion.div
@@ -1513,7 +1513,7 @@ function ColumnsConfigModal({
               <Settings size={18} className="text-[var(--site-primary)]" />
             </div>
             <div>
-              <h3 className="text-sm font-medium text-white">{t("general.project.columnsTitle")}</h3>
+              <h3 className="text-sm font-medium text-[var(--text-primary)]">{t("general.project.columnsTitle")}</h3>
               <p className="text-[10px] text-[var(--text-tertiary)]">{t("general.project.columnsDescription")}</p>
             </div>
           </div>
@@ -1562,7 +1562,7 @@ function ColumnsConfigModal({
                     className={cn(
                       "flex items-center gap-2.5 px-3 py-2 rounded-lg border transition-all text-left text-xs",
                       isOn
-                        ? "bg-[rgba(var(--site-primary-rgb),0.08)] border-[rgba(var(--site-primary-rgb),0.3)] text-white"
+                        ? "bg-[rgba(var(--site-primary-rgb),0.08)] border-[rgba(var(--site-primary-rgb),0.3)] text-[var(--text-primary)]"
                         : "bg-[var(--surface-1)] border-[var(--border-subtle)] text-[var(--text-muted)] hover:border-[var(--border-default)]"
                     )}
                   >
@@ -1575,7 +1575,7 @@ function ColumnsConfigModal({
                       )}
                     >
                       {isOn && (
-                        <svg viewBox="0 0 12 12" className="w-2.5 h-2.5 text-black">
+                        <svg viewBox="0 0 12 12" className="w-2.5 h-2.5 text-black">{/* // theme-allow: dark text on gold */}
                           <path d="M2 6l3 3 5-5" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
                         </svg>
                       )}
@@ -1599,7 +1599,7 @@ function ColumnsConfigModal({
                   className="flex items-center gap-2 p-2.5 rounded-lg bg-[var(--surface-1)] border border-[var(--border-subtle)]"
                 >
                   <div className="flex-1 min-w-0">
-                    <p className="text-xs text-white font-medium truncate">{col.label}</p>
+                    <p className="text-xs text-[var(--text-primary)] font-medium truncate">{col.label}</p>
                     <p className="text-[10px] text-[var(--text-muted)]">
                       {CUSTOM_COL_TYPES.find((ct) => ct.value === col.type)?.label ?? col.type}
                       {col.type === "select" && col.options?.length ? ` · ${col.options.join(", ")}` : ""}
@@ -2804,7 +2804,7 @@ export default function InventarioPage() {
             className={cn(
               "flex items-center gap-2 px-4 py-2.5 rounded-lg text-sm font-medium transition-all",
               activeInventoryTab === "unidades"
-                ? "bg-[var(--surface-3)] text-white shadow-sm"
+                ? "bg-[var(--surface-3)] text-[var(--text-primary)] shadow-sm"
                 : "text-[var(--text-tertiary)] hover:text-[var(--text-secondary)] hover:bg-[var(--surface-2)]"
             )}
           >
@@ -2818,7 +2818,7 @@ export default function InventarioPage() {
               className={cn(
                 "flex items-center gap-2 px-4 py-2.5 rounded-lg text-sm font-medium transition-all",
                 activeInventoryTab === "parqueadero"
-                  ? "bg-[var(--surface-3)] text-white shadow-sm"
+                  ? "bg-[var(--surface-3)] text-[var(--text-primary)] shadow-sm"
                   : "text-[var(--text-tertiary)] hover:text-[var(--text-secondary)] hover:bg-[var(--surface-2)]"
               )}
             >
@@ -2833,7 +2833,7 @@ export default function InventarioPage() {
               className={cn(
                 "flex items-center gap-2 px-4 py-2.5 rounded-lg text-sm font-medium transition-all",
                 activeInventoryTab === "deposito"
-                  ? "bg-[var(--surface-3)] text-white shadow-sm"
+                  ? "bg-[var(--surface-3)] text-[var(--text-primary)] shadow-sm"
                   : "text-[var(--text-tertiary)] hover:text-[var(--text-secondary)] hover:bg-[var(--surface-2)]"
               )}
             >
@@ -2857,7 +2857,7 @@ export default function InventarioPage() {
               className={cn(
                 "flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-medium transition-all whitespace-nowrap shrink-0",
                 activeTorreId === null
-                  ? "bg-[var(--surface-3)] text-white shadow-sm"
+                  ? "bg-[var(--surface-3)] text-[var(--text-primary)] shadow-sm"
                   : "text-[var(--text-tertiary)] hover:text-[var(--text-secondary)] hover:bg-[var(--surface-2)]"
               )}
             >
@@ -2873,7 +2873,7 @@ export default function InventarioPage() {
                   className={cn(
                     "flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-medium transition-all whitespace-nowrap shrink-0",
                     activeTorreId === torre.id
-                      ? "bg-[var(--surface-3)] text-white shadow-sm"
+                      ? "bg-[var(--surface-3)] text-[var(--text-primary)] shadow-sm"
                       : "text-[var(--text-tertiary)] hover:text-[var(--text-secondary)] hover:bg-[var(--surface-2)]"
                   )}
                 >
@@ -2888,7 +2888,7 @@ export default function InventarioPage() {
                 className={cn(
                   "flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-medium transition-all whitespace-nowrap shrink-0",
                   activeTorreId === "__none__"
-                    ? "bg-[var(--surface-3)] text-white shadow-sm"
+                    ? "bg-[var(--surface-3)] text-[var(--text-primary)] shadow-sm"
                     : "text-[var(--text-tertiary)] hover:text-[var(--text-secondary)] hover:bg-[var(--surface-2)]"
                 )}
               >
@@ -2980,7 +2980,7 @@ export default function InventarioPage() {
             >
               <span className={cn("w-2 h-2 rounded-full shrink-0", UNIT_STATUS_COLORS[e.value].dot)} />
               <span className="text-[11px] text-[var(--text-tertiary)]">{e.label}</span>
-              <span className="text-xs font-medium text-white tabular-nums">{stats[e.value]}</span>
+              <span className="text-xs font-medium text-[var(--text-primary)] tabular-nums">{stats[e.value]}</span>
             </div>
           ))}
         </div>
@@ -3441,7 +3441,7 @@ export default function InventarioPage() {
                               )}
                             </button>
                           </td>
-                          <td className="py-2 px-4 text-white font-medium">
+                          <td className="py-2 px-4 text-[var(--text-primary)] font-medium">
                             {unit.identificador}
                           </td>
                           <td className="py-2 px-4">
@@ -3681,7 +3681,7 @@ export default function InventarioPage() {
                                   setEditingId(unit.id);
                                   setShowCreateForm(false);
                                 }}
-                                className="p-1.5 hover:bg-[var(--surface-2)] rounded-lg transition-colors text-[var(--text-tertiary)] hover:text-white"
+                                className="p-1.5 hover:bg-[var(--surface-2)] rounded-lg transition-colors text-[var(--text-tertiary)] hover:text-[var(--text-primary)]"
                                 title="Editar"
                               >
                                 <Pencil size={14} />
@@ -3754,7 +3754,7 @@ export default function InventarioPage() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm"
+            className="fixed inset-0 z-50 flex items-center justify-center bg-[rgba(var(--overlay-rgb),0.6)] backdrop-blur-sm"
             onClick={() => !bulkDeleting && setBulkDeleteConfirm(false)}
           >
             <motion.div
@@ -3768,7 +3768,7 @@ export default function InventarioPage() {
                 <div className="p-2 bg-red-500/10 rounded-lg">
                   <AlertTriangle size={18} className="text-red-400" />
                 </div>
-                <h3 className="text-sm font-medium text-white">
+                <h3 className="text-sm font-medium text-[var(--text-primary)]">
                   Eliminar {selectedIds.size} unidad{selectedIds.size !== 1 ? "es" : ""}
                 </h3>
               </div>
@@ -3789,7 +3789,7 @@ export default function InventarioPage() {
                 <button
                   onClick={handleBulkDelete}
                   disabled={bulkDeleting}
-                  className="flex items-center gap-1.5 px-4 py-2 bg-red-500/80 text-white rounded-lg text-xs font-medium hover:bg-red-500 transition-all disabled:opacity-50"
+                  className="flex items-center gap-1.5 px-4 py-2 bg-red-500/80 text-[var(--text-primary)] rounded-lg text-xs font-medium hover:bg-red-500 transition-all disabled:opacity-50"
                 >
                   {bulkDeleting ? (
                     <Loader2 size={12} className="animate-spin" />
@@ -3895,7 +3895,7 @@ export default function InventarioPage() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm"
+            className="fixed inset-0 z-50 flex items-center justify-center bg-[rgba(var(--overlay-rgb),0.6)] backdrop-blur-sm"
             onClick={() => setTipologiaRequiredModal(null)}
           >
             <motion.div
@@ -3909,7 +3909,7 @@ export default function InventarioPage() {
                 <div className="p-2 bg-[rgba(var(--site-primary-rgb),0.1)] rounded-lg">
                   <AlertTriangle size={18} className="text-[var(--site-primary)]" />
                 </div>
-                <h3 className="text-sm font-medium text-white">Tipología requerida</h3>
+                <h3 className="text-sm font-medium text-[var(--text-primary)]">Tipología requerida</h3>
               </div>
               <p className="text-sm text-[var(--text-secondary)] mb-4">
                 Para cambiar el estado a <strong>{tipologiaRequiredModal.newEstado}</strong>, debes confirmar una tipología para esta unidad.
@@ -3922,7 +3922,7 @@ export default function InventarioPage() {
                     className="flex items-center justify-between w-full px-4 py-3 rounded-xl bg-[var(--surface-3)] border border-[var(--border-subtle)] hover:border-[var(--site-primary)] transition-all text-left group"
                   >
                     <div>
-                      <p className="text-xs font-medium text-white">{tp.nombre}</p>
+                      <p className="text-xs font-medium text-[var(--text-primary)]">{tp.nombre}</p>
                       <p className="text-[10px] text-[var(--text-tertiary)]">
                         {(() => { const a = getPrimaryArea(tp, columns); return a != null ? `${a} m²` : ""; })()}
                         {tp.habitaciones != null ? ` · ${tp.habitaciones} hab` : ""}

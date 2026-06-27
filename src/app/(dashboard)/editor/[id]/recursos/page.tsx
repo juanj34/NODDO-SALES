@@ -303,7 +303,7 @@ export default function RecursosPage() {
                   href={project.brochure_url}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="text-[var(--text-tertiary)] hover:text-white transition-colors"
+                  className="text-[var(--text-tertiary)] hover:text-[var(--text-primary)] transition-colors"
                 >
                   <Download size={13} />
                 </a>
@@ -485,14 +485,14 @@ export default function RecursosPage() {
                     href={r.url}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="flex items-center gap-1 px-3 py-1.5 text-xs text-[var(--text-tertiary)] hover:text-white hover:bg-[var(--surface-2)] rounded-lg transition-colors"
+                    className="flex items-center gap-1 px-3 py-1.5 text-xs text-[var(--text-tertiary)] hover:text-[var(--text-primary)] hover:bg-[var(--surface-2)] rounded-lg transition-colors"
                   >
                     <Download size={12} />
                     {t("recursos.view")}
                   </a>
                   <button
                     onClick={() => openEdit(r)}
-                    className="flex items-center gap-1 px-3 py-1.5 text-xs text-[var(--text-tertiary)] hover:text-white hover:bg-[var(--surface-2)] rounded-lg transition-colors"
+                    className="flex items-center gap-1 px-3 py-1.5 text-xs text-[var(--text-tertiary)] hover:text-[var(--text-primary)] hover:bg-[var(--surface-2)] rounded-lg transition-colors"
                   >
                     <Pencil size={12} />
                     {t("recursos.edit")}

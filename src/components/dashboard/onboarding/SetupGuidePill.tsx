@@ -46,7 +46,7 @@ function ProgressRing({ progress }: { progress: number }) {
         cy={8}
         r={6}
         fill="none"
-        stroke="rgba(255,255,255,0.08)"
+        stroke="rgba(var(--contrast-rgb),0.08)"
         strokeWidth={2}
       />
       <motion.circle
@@ -208,7 +208,7 @@ export function SetupGuidePill({
               </div>
               {/* Linear progress bar */}
               <div className="flex items-center gap-2">
-                <div className="flex-1 h-1 rounded-full bg-white/5 overflow-hidden">
+                <div className="flex-1 h-1 rounded-full bg-[var(--surface-2)] overflow-hidden">
                   <motion.div
                     className="h-full rounded-full bg-[var(--noddo-primary)]"
                     initial={{ width: 0 }}
@@ -237,7 +237,7 @@ export function SetupGuidePill({
                         ? "opacity-50"
                         : isCurrent
                           ? "bg-[rgba(var(--noddo-primary-rgb),0.08)]"
-                          : "hover:bg-white/[0.03]"
+                          : "hover:bg-[var(--surface-2)]"
                     )}
                   >
                     {/* Step indicator */}
@@ -245,7 +245,7 @@ export function SetupGuidePill({
                       className={cn(
                         "w-5 h-5 rounded-md flex items-center justify-center shrink-0 text-[10px] font-bold",
                         step.isComplete
-                          ? "bg-[var(--noddo-primary)] text-[#141414]"
+                          ? "bg-[var(--noddo-primary)] text-[#141414]" // theme-allow: dark text on gold
                           : isCurrent
                             ? "border border-[var(--noddo-primary)] text-[var(--noddo-primary)]"
                             : "border border-[var(--border-default)] text-[var(--text-muted)]"

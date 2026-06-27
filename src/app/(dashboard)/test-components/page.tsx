@@ -33,7 +33,7 @@ export default function TestComponentsPage() {
     <div className="max-w-7xl mx-auto p-8 space-y-12">
       {/* Page Title */}
       <div className="text-center mb-12">
-        <h1 className="text-3xl font-heading font-light text-white mb-2">
+        <h1 className="text-3xl font-heading font-light text-[var(--text-primary)] mb-2">
           🧪 Component Testing Lab
         </h1>
         <p className="text-sm text-[var(--text-tertiary)]">
@@ -44,7 +44,7 @@ export default function TestComponentsPage() {
       {/* Section: PageHeader Component */}
       <div className="space-y-8">
         <div className="border-t border-[var(--border-subtle)] pt-8">
-          <h2 className="text-xl font-heading font-light text-white mb-1">
+          <h2 className="text-xl font-heading font-light text-[var(--text-primary)] mb-1">
             PageHeader Component
           </h2>
           <p className="text-sm text-[var(--text-muted)] mb-6">
@@ -125,7 +125,8 @@ export default function TestComponentsPage() {
               title="General"
               description="Información básica del proyecto"
               actions={
-                <button className="px-4 py-2 bg-[var(--site-primary)] text-[#141414] rounded-lg text-xs font-bold uppercase tracking-wider hover:brightness-110 transition-all">
+                <button className={"px-4 py-2 bg-[var(--site-primary)] text-[#141414] rounded-lg text-xs font-bold uppercase tracking-wider hover:brightness-110 transition-all" // theme-allow: dark text on gold
+                }>
                   Acción
                 </button>
               }
@@ -180,7 +181,7 @@ export default function TestComponentsPage() {
 
       {/* Validation Checklist */}
       <div className="mt-12 p-6 rounded-xl bg-[var(--surface-2)] border border-[var(--border-default)]">
-        <h3 className="text-lg font-heading font-light text-white mb-4">
+        <h3 className="text-lg font-heading font-light text-[var(--text-primary)] mb-4">
           📋 Validation Checklist
         </h3>
         <div className="space-y-2 text-sm text-[var(--text-secondary)]">

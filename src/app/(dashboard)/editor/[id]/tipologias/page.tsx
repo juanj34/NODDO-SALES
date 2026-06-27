@@ -472,7 +472,7 @@ function TipologiasConfigModal({
         >
           {/* Backdrop */}
           <motion.div
-            className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+            className="absolute inset-0 bg-[rgba(var(--overlay-rgb),0.6)] backdrop-blur-sm"
             onClick={onClose}
           />
 
@@ -588,7 +588,7 @@ function TipologiasConfigModal({
                                   {t(fieldDef.labelKey)}
                                 </span>
                                 <div className={cn("relative inline-flex h-4 w-7 items-center rounded-full transition-colors shrink-0", isOn ? "bg-[var(--site-primary)]" : "bg-[var(--surface-3)]")}>
-                                  <span className={cn("inline-block h-2.5 w-2.5 rounded-full bg-white shadow-sm transition-transform", isOn ? "translate-x-[14px]" : "translate-x-[3px]")} />
+                                  <span className={cn("inline-block h-2.5 w-2.5 rounded-full bg-[var(--surface-0)] shadow-sm transition-transform", isOn ? "translate-x-[14px]" : "translate-x-[3px]")} />
                                 </div>
                               </button>
                             );
@@ -642,7 +642,7 @@ function TipologiasConfigModal({
                           {t(extra.labelKey)}
                         </span>
                         <div className={cn("relative inline-flex h-4 w-7 items-center rounded-full transition-colors shrink-0", isOn ? "bg-[var(--site-primary)]" : "bg-[var(--surface-3)]")}>
-                          <span className={cn("inline-block h-2.5 w-2.5 rounded-full bg-white shadow-sm transition-transform", isOn ? "translate-x-[14px]" : "translate-x-[3px]")} />
+                          <span className={cn("inline-block h-2.5 w-2.5 rounded-full bg-[var(--surface-0)] shadow-sm transition-transform", isOn ? "translate-x-[14px]" : "translate-x-[3px]")} />
                         </div>
                       </button>
                     );
@@ -707,7 +707,7 @@ function TipologiaListItem({
           className={cn(
             "font-medium truncate",
             fontSize.base,
-            isSelected ? "text-white" : "text-[var(--text-secondary)]"
+            isSelected ? "text-[var(--text-primary)]" : "text-[var(--text-secondary)]"
           )}
         >
           {t.nombre}
@@ -1376,7 +1376,7 @@ export default function TipologiasPage() {
               fontSize.subtitle,
               radius.md,
               activeTorreId === null
-                ? "bg-[var(--surface-3)] text-white shadow-sm"
+                ? "bg-[var(--surface-3)] text-[var(--text-primary)] shadow-sm"
                 : "text-[var(--text-muted)] hover:text-[var(--text-secondary)] hover:bg-[var(--surface-2)]"
             )}
           >
@@ -1399,7 +1399,7 @@ export default function TipologiasPage() {
                   fontSize.subtitle,
                   radius.md,
                   activeTorreId === t.id
-                    ? "bg-[var(--surface-3)] text-white shadow-sm"
+                    ? "bg-[var(--surface-3)] text-[var(--text-primary)] shadow-sm"
                     : "text-[var(--text-muted)] hover:text-[var(--text-secondary)] hover:bg-[var(--surface-2)]"
                 )}
               >
@@ -1425,7 +1425,7 @@ export default function TipologiasPage() {
                 fontSize.subtitle,
                 radius.md,
                 activeTorreId === "__none__"
-                  ? "bg-[var(--surface-3)] text-white shadow-sm"
+                  ? "bg-[var(--surface-3)] text-[var(--text-primary)] shadow-sm"
                   : "text-[var(--text-muted)] hover:text-[var(--text-secondary)] hover:bg-[var(--surface-2)]"
               )}
             >
@@ -1580,7 +1580,7 @@ export default function TipologiasPage() {
                           fontSize.subtitle,
                           gap.normal,
                           isActive
-                            ? "bg-[var(--site-primary)] text-black"
+                            ? "bg-[var(--site-primary)] text-black" // theme-allow: dark text on gold
                             : "text-[var(--text-tertiary)] hover:text-[var(--text-secondary)] hover:bg-[var(--surface-2)]"
                         )}
                       >
@@ -1593,7 +1593,7 @@ export default function TipologiasPage() {
                               fontSize.caption,
                               radius.full,
                               isActive
-                                ? "bg-black/20 text-black"
+                                ? "bg-black/20 text-black" // theme-allow: dark chip + dark text on gold active tab
                                 : "bg-[rgba(var(--site-primary-rgb),0.2)] text-[var(--site-primary)]"
                             )}
                           >
@@ -1605,7 +1605,7 @@ export default function TipologiasPage() {
                             className={cn(
                               "w-1.5 h-1.5",
                               radius.full,
-                              isActive ? "bg-black/40" : "bg-[var(--site-primary)]"
+                              isActive ? "bg-black/40" : "bg-[var(--site-primary)]" // theme-allow: dark dot on gold active tab
                             )}
                           />
                         )}
@@ -1682,7 +1682,7 @@ export default function TipologiasPage() {
                                       fontSize.subtitle,
                                       radius.md,
                                       isActive
-                                        ? "bg-[rgba(var(--site-primary-rgb),0.08)] border-[rgba(var(--site-primary-rgb),0.3)] text-white"
+                                        ? "bg-[rgba(var(--site-primary-rgb),0.08)] border-[rgba(var(--site-primary-rgb),0.3)] text-[var(--text-primary)]"
                                         : "bg-[var(--surface-1)] border-[var(--border-subtle)] text-[var(--text-muted)] hover:border-[var(--border-default)]"
                                     )}
                                   >
@@ -1848,7 +1848,7 @@ export default function TipologiasPage() {
                                 {c}
                                 <button
                                   onClick={() => removeCaracteristica(i)}
-                                  className="hover:text-white transition-colors"
+                                  className="hover:text-[var(--text-primary)] transition-colors"
                                 >
                                   <X size={iconSize.xs} />
                                 </button>
@@ -1876,7 +1876,7 @@ export default function TipologiasPage() {
                                 </div>
                                 <div className="flex-1 min-w-0">
                                   <Label variant="card">{t("tipologias.internalArea")}</Label>
-                                  <input type="number" value={form.area_m2} onChange={(e) => updateForm("area_m2", e.target.value)} placeholder="0" className="w-full bg-transparent text-sm font-mono text-white placeholder:text-[var(--text-muted)] focus:outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none" />
+                                  <input type="number" value={form.area_m2} onChange={(e) => updateForm("area_m2", e.target.value)} placeholder="0" className="w-full bg-transparent text-sm font-mono text-[var(--text-primary)] placeholder:text-[var(--text-muted)] focus:outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none" />
                                 </div>
                                 {form.area_m2 && <span className="text-[11px] font-mono text-[var(--text-muted)] shrink-0">m²</span>}
                               </div>
@@ -1888,7 +1888,7 @@ export default function TipologiasPage() {
                                 </div>
                                 <div className="flex-1 min-w-0">
                                   <Label variant="card">{t("tipologias.balconyArea")}</Label>
-                                  <input type="number" value={form.area_balcon} onChange={(e) => updateForm("area_balcon", e.target.value)} placeholder="0" className="w-full bg-transparent text-sm font-mono text-white placeholder:text-[var(--text-muted)] focus:outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none" />
+                                  <input type="number" value={form.area_balcon} onChange={(e) => updateForm("area_balcon", e.target.value)} placeholder="0" className="w-full bg-transparent text-sm font-mono text-[var(--text-primary)] placeholder:text-[var(--text-muted)] focus:outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none" />
                                 </div>
                                 {form.area_balcon && <span className="text-[11px] font-mono text-[var(--text-muted)] shrink-0">m²</span>}
                               </div>
@@ -1915,7 +1915,7 @@ export default function TipologiasPage() {
                               </div>
                               <div className="flex-1 min-w-0">
                                 <Label variant="card">{t("inventario.columns.areaConstruida")}</Label>
-                                <input type="number" value={form.area_construida} onChange={(e) => updateForm("area_construida", e.target.value)} placeholder="0" className="w-full bg-transparent text-sm font-mono text-white placeholder:text-[var(--text-muted)] focus:outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none" />
+                                <input type="number" value={form.area_construida} onChange={(e) => updateForm("area_construida", e.target.value)} placeholder="0" className="w-full bg-transparent text-sm font-mono text-[var(--text-primary)] placeholder:text-[var(--text-muted)] focus:outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none" />
                               </div>
                               {form.area_construida && <span className="text-[11px] font-mono text-[var(--text-muted)] shrink-0">m²</span>}
                             </div>
@@ -1927,7 +1927,7 @@ export default function TipologiasPage() {
                               </div>
                               <div className="flex-1 min-w-0">
                                 <Label variant="card">{t("inventario.columns.areaPrivada")}</Label>
-                                <input type="number" value={form.area_privada} onChange={(e) => updateForm("area_privada", e.target.value)} placeholder="0" className="w-full bg-transparent text-sm font-mono text-white placeholder:text-[var(--text-muted)] focus:outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none" />
+                                <input type="number" value={form.area_privada} onChange={(e) => updateForm("area_privada", e.target.value)} placeholder="0" className="w-full bg-transparent text-sm font-mono text-[var(--text-primary)] placeholder:text-[var(--text-muted)] focus:outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none" />
                               </div>
                               {form.area_privada && <span className="text-[11px] font-mono text-[var(--text-muted)] shrink-0">m²</span>}
                             </div>
@@ -1939,7 +1939,7 @@ export default function TipologiasPage() {
                                 </div>
                                 <div className="flex-1 min-w-0">
                                   <Label variant="card">{t("inventario.columns.areaLote")}</Label>
-                                  <input type="number" value={form.area_lote} onChange={(e) => updateForm("area_lote", e.target.value)} placeholder="0" className="w-full bg-transparent text-sm font-mono text-white placeholder:text-[var(--text-muted)] focus:outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none" />
+                                  <input type="number" value={form.area_lote} onChange={(e) => updateForm("area_lote", e.target.value)} placeholder="0" className="w-full bg-transparent text-sm font-mono text-[var(--text-primary)] placeholder:text-[var(--text-muted)] focus:outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none" />
                                 </div>
                                 {form.area_lote && <span className="text-[11px] font-mono text-[var(--text-muted)] shrink-0">m²</span>}
                               </div>
@@ -1958,7 +1958,7 @@ export default function TipologiasPage() {
                               </div>
                               <div className="flex-1 min-w-0">
                                 <Label variant="card">{t("tipologias.bedrooms")}</Label>
-                                <input type="number" value={form.habitaciones} onChange={(e) => updateForm("habitaciones", e.target.value)} placeholder="0" className="w-full bg-transparent text-sm font-mono text-white placeholder:text-[var(--text-muted)] focus:outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none" />
+                                <input type="number" value={form.habitaciones} onChange={(e) => updateForm("habitaciones", e.target.value)} placeholder="0" className="w-full bg-transparent text-sm font-mono text-[var(--text-primary)] placeholder:text-[var(--text-muted)] focus:outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none" />
                               </div>
                             </div>
                             )}
@@ -1969,7 +1969,7 @@ export default function TipologiasPage() {
                               </div>
                               <div className="flex-1 min-w-0">
                                 <Label variant="card">{t("tipologias.bathrooms")}</Label>
-                                <input type="number" value={form.banos} onChange={(e) => updateForm("banos", e.target.value)} placeholder="0" className="w-full bg-transparent text-sm font-mono text-white placeholder:text-[var(--text-muted)] focus:outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none" />
+                                <input type="number" value={form.banos} onChange={(e) => updateForm("banos", e.target.value)} placeholder="0" className="w-full bg-transparent text-sm font-mono text-[var(--text-primary)] placeholder:text-[var(--text-muted)] focus:outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none" />
                               </div>
                             </div>
                             )}
@@ -1980,7 +1980,7 @@ export default function TipologiasPage() {
                               </div>
                               <div className="flex-1 min-w-0">
                                 <Label variant="card">{t("tipologias.parking")}</Label>
-                                <input type="number" value={form.parqueaderos} onChange={(e) => updateForm("parqueaderos", e.target.value)} placeholder="0" className="w-full bg-transparent text-sm font-mono text-white placeholder:text-[var(--text-muted)] focus:outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none" />
+                                <input type="number" value={form.parqueaderos} onChange={(e) => updateForm("parqueaderos", e.target.value)} placeholder="0" className="w-full bg-transparent text-sm font-mono text-[var(--text-primary)] placeholder:text-[var(--text-muted)] focus:outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none" />
                               </div>
                             </div>
                             )}
@@ -1991,7 +1991,7 @@ export default function TipologiasPage() {
                               </div>
                               <div className="flex-1 min-w-0">
                                 <Label variant="card">Depósitos</Label>
-                                <input type="number" value={form.depositos} onChange={(e) => updateForm("depositos", e.target.value)} placeholder="0" className="w-full bg-transparent text-sm font-mono text-white placeholder:text-[var(--text-muted)] focus:outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none" />
+                                <input type="number" value={form.depositos} onChange={(e) => updateForm("depositos", e.target.value)} placeholder="0" className="w-full bg-transparent text-sm font-mono text-[var(--text-primary)] placeholder:text-[var(--text-muted)] focus:outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none" />
                               </div>
                             </div>
                             )}
@@ -2024,11 +2024,11 @@ export default function TipologiasPage() {
                                     )}>
                                       <ExtraIcon size={iconSize.md} className={isOn ? "text-[var(--site-primary)]" : "text-[var(--text-tertiary)]"} />
                                     </div>
-                                    <span className={cn("flex-1 text-xs font-medium text-left", isOn ? "text-white" : "text-[var(--text-tertiary)]")}>
+                                    <span className={cn("flex-1 text-xs font-medium text-left", isOn ? "text-[var(--text-primary)]" : "text-[var(--text-tertiary)]")}>
                                       {t(extra.labelKey)}
                                     </span>
                                     <div className={cn("relative inline-flex h-5 w-9 items-center rounded-full transition-colors shrink-0", isOn ? "bg-[var(--site-primary)]" : "bg-[var(--surface-3)]")}>
-                                      <span className={cn("inline-block h-3.5 w-3.5 rounded-full bg-white shadow-sm transition-transform", isOn ? "translate-x-[18px]" : "translate-x-[3px]")} />
+                                      <span className={cn("inline-block h-3.5 w-3.5 rounded-full bg-[var(--surface-0)] shadow-sm transition-transform", isOn ? "translate-x-[18px]" : "translate-x-[3px]")} />
                                     </div>
                                   </button>
                                 );
@@ -2151,7 +2151,7 @@ export default function TipologiasPage() {
                                   radius.md,
                                   fontSize.subtitle,
                                   activePisoIndex === i
-                                    ? "bg-[var(--site-primary)] text-black"
+                                    ? "bg-[var(--site-primary)] text-black" // theme-allow: dark text on gold
                                     : "bg-[var(--surface-2)] text-[var(--text-muted)] hover:text-[var(--text-secondary)]"
                                 )}
                               >
@@ -2272,7 +2272,7 @@ export default function TipologiasPage() {
                                   radius.md,
                                   fontSize.subtitle,
                                   activePisoIndex === i
-                                    ? "bg-[var(--site-primary)] text-black font-medium"
+                                    ? "bg-[var(--site-primary)] text-black font-medium" // theme-allow: dark text on gold
                                     : "bg-[var(--surface-2)] text-[var(--text-muted)] hover:text-[var(--text-secondary)]"
                                 )}
                               >

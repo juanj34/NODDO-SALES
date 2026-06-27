@@ -175,7 +175,7 @@ export function LeadsCRMTable({
                       {lead.nombre.charAt(0).toUpperCase()}
                     </div>
                     <div className="min-w-0">
-                      <p className={cn("text-white truncate", fontSize.md)}>{lead.nombre}</p>
+                      <p className={cn("text-[var(--text-primary)] truncate", fontSize.md)}>{lead.nombre}</p>
                       <p className={cn("text-[var(--text-muted)] truncate md:hidden", fontSize.body)}>
                         {lead.email}
                       </p>

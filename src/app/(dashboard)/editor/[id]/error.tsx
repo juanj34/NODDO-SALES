@@ -71,7 +71,7 @@ export default function EditorError({
             style={{
               padding: "12px 28px",
               backgroundColor: "var(--site-primary)",
-              color: "#141414",
+              color: "#141414", // theme-allow: dark text on gold
               fontFamily: "var(--font-syne, 'Syne', sans-serif)",
               fontSize: 11,
               fontWeight: 700,
@@ -96,7 +96,7 @@ export default function EditorError({
               textTransform: "uppercase" as const,
               letterSpacing: "0.15em",
               borderRadius: 8,
-              border: "1px solid rgba(255, 255, 255, 0.1)",
+              border: "1px solid rgba(var(--contrast-rgb), 0.1)",
               textDecoration: "none",
               display: "inline-block",
             }}

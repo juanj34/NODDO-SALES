@@ -83,10 +83,10 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
                 className={`flex items-center gap-3 px-4 py-3 rounded-lg border backdrop-blur-sm shadow-xl min-w-[280px] ${colorMap[t.type]}`}
               >
                 <Icon size={16} className={iconColorMap[t.type]} />
-                <span className="text-sm text-white flex-1">{t.message}</span>
+                <span className="text-sm text-[var(--text-primary)] flex-1">{t.message}</span>
                 <button
                   onClick={() => removeToast(t.id)}
-                  className="text-[var(--text-tertiary)] hover:text-white transition-colors"
+                  className="text-[var(--text-tertiary)] hover:text-[var(--text-primary)] transition-colors"
                 >
                   <X size={14} />
                 </button>

@@ -169,7 +169,7 @@ export function AmenidadesEditor({ entity, projectId, onUpdate, embedded }: Amen
                 {a.nombre}
                 <button
                   onClick={() => remove(a.id)}
-                  className="ml-0.5 p-0.5 rounded hover:bg-white/10 transition-colors"
+                  className="ml-0.5 p-0.5 rounded hover:bg-[var(--surface-3)] transition-colors"
                 >
                   <X size={10} />
                 </button>
@@ -192,7 +192,7 @@ export function AmenidadesEditor({ entity, projectId, onUpdate, embedded }: Amen
         {search && (
           <button
             onClick={() => setSearch("")}
-            className="absolute right-3 top-1/2 -translate-y-1/2 text-[var(--text-muted)] hover:text-white"
+            className="absolute right-3 top-1/2 -translate-y-1/2 text-[var(--text-muted)] hover:text-[var(--text-primary)]"
           >
             <X size={14} />
           </button>

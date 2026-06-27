@@ -87,7 +87,7 @@ function AvanceCard({
         </button>
         {/* Video badge */}
         {avance.video_url && (
-          <span className="absolute bottom-2 left-2 flex items-center gap-1 px-2 py-1 rounded-full text-[10px] font-medium bg-black/60 text-white backdrop-blur-sm">
+          <span className="absolute bottom-2 left-2 flex items-center gap-1 px-2 py-1 rounded-full text-[10px] font-medium bg-[rgba(var(--overlay-rgb),0.6)] text-[var(--text-primary)] backdrop-blur-sm">
             <Film size={10} />
             Video
           </span>
@@ -96,7 +96,7 @@ function AvanceCard({
 
       {/* Content */}
       <div className="p-4 space-y-2">
-        <h3 className="text-sm font-medium text-white truncate">
+        <h3 className="text-sm font-medium text-[var(--text-primary)] truncate">
           {avance.titulo}
         </h3>
         <div className="flex items-center gap-1.5 text-[11px] text-[var(--text-tertiary)]">
@@ -114,7 +114,7 @@ function AvanceCard({
       <div className="flex items-center border-t border-[var(--border-subtle)] opacity-0 group-hover:opacity-100 transition-opacity">
         <button
           onClick={onEdit}
-          className="flex-1 flex items-center justify-center gap-1.5 py-2.5 text-xs text-[var(--text-tertiary)] hover:text-white hover:bg-[var(--surface-2)] transition-colors"
+          className="flex-1 flex items-center justify-center gap-1.5 py-2.5 text-xs text-[var(--text-tertiary)] hover:text-[var(--text-primary)] hover:bg-[var(--surface-2)] transition-colors"
         >
           <Pencil size={12} />
           {t("avances.edit")}

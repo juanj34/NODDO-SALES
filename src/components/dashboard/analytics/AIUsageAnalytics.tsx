@@ -101,7 +101,7 @@ export function AIUsageAnalytics() {
               onClick={() => setPeriod(p)}
               className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
                 period === p
-                  ? "bg-[var(--noddo-primary)] text-black"
+                  ? "bg-[var(--noddo-primary)] text-black" // theme-allow: dark text on gold
                   : "bg-[var(--surface-2)] text-[var(--text-secondary)] hover:bg-[var(--surface-3)]"
               }`}
             >

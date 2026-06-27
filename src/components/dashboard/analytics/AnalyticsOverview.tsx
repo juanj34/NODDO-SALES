@@ -54,7 +54,7 @@ const StatCard = ({
         <p className="text-xs text-[var(--text-tertiary)] mb-1">
           {label}
         </p>
-        <p className="font-heading text-3xl font-light text-white">
+        <p className="font-heading text-3xl font-light text-[var(--text-primary)]">
           {value.toLocaleString()}
         </p>
       </div>

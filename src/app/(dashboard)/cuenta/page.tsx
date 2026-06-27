@@ -383,12 +383,14 @@ export default function CuentaPage() {
                 type="button"
                 onClick={() => avatarInputRef.current?.click()}
                 disabled={avatarUploading}
-                className="absolute inset-0 rounded-full bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center cursor-pointer"
+                className="absolute inset-0 rounded-full bg-[rgba(var(--overlay-rgb),0.5)] opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center cursor-pointer"
               >
                 {avatarUploading ? (
-                  <Loader2 size={18} className="text-white animate-spin" />
+                  <Loader2 size={18} className={"text-white animate-spin" // theme-allow: light icon on permanent dark scrim over avatar image
+                  } />
                 ) : (
-                  <Camera size={18} className="text-white" />
+                  <Camera size={18} className={"text-white" // theme-allow: light icon on permanent dark scrim over avatar image
+                  } />
                 )}
               </button>
               <input
@@ -893,7 +895,8 @@ export default function CuentaPage() {
                 <button
                   onClick={handleDeleteAccount}
                   disabled={deleteLoading || deleteConfirmEmail !== user?.email}
-                  className="px-5 py-2.5 text-xs font-ui font-bold uppercase tracking-wider text-white bg-red-600 rounded-[0.75rem] hover:bg-red-700 transition-colors disabled:opacity-50 flex items-center gap-2"
+                  className={"px-5 py-2.5 text-xs font-ui font-bold uppercase tracking-wider text-white bg-red-600 rounded-[0.75rem] hover:bg-red-700 transition-colors disabled:opacity-50 flex items-center gap-2" // theme-allow: light text on fixed semantic red button
+                  }
                 >
                   {deleteLoading ? (
                     <Loader2 size={14} className="animate-spin" />

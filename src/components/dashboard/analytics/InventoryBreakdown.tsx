@@ -53,7 +53,7 @@ export function InventoryBreakdown({
               style={{ backgroundColor: color }}
             />
             <div>
-              <p className="font-heading text-xl font-light text-white leading-none">
+              <p className="font-heading text-xl font-light text-[var(--text-primary)] leading-none">
                 {counts[key]}
               </p>
               <p className="font-ui text-[9px] font-bold uppercase tracking-[0.1em] text-[var(--text-muted)] mt-0.5">

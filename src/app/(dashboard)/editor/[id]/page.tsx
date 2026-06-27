@@ -62,9 +62,9 @@ export default function EditorGeneralPage() {
   const [nombre, setNombre] = useState("");
   const [descripcion, setDescripcion] = useState("");
   const [constructoraNombre, setConstructoraNombre] = useState("");
-  const [colorPrimario, setColorPrimario] = useState("#b8973a");
-  const [colorSecundario, setColorSecundario] = useState("#ffffff");
-  const [colorFondo, setColorFondo] = useState("#0a0a0a");
+  const [colorPrimario, setColorPrimario] = useState("#b8973a"); // theme-allow: stored published-site color data, not admin chrome
+  const [colorSecundario, setColorSecundario] = useState("#ffffff"); // theme-allow: stored published-site color data, not admin chrome
+  const [colorFondo, setColorFondo] = useState("#0a0a0a"); // theme-allow: stored published-site color data, not admin chrome
   const [temaModo, setTemaModo] = useState<"oscuro" | "claro">("oscuro");
   const [disclaimer, setDisclaimer] = useState("");
   const [politicaPrivacidadUrl, setPoliticaPrivacidadUrl] = useState("");
@@ -94,9 +94,9 @@ export default function EditorGeneralPage() {
     setNombre(project.nombre || "");
     setDescripcion(project.descripcion || "");
     setConstructoraNombre(project.constructora_nombre || "");
-    setColorPrimario(project.color_primario || "#b8973a");
-    setColorSecundario(project.color_secundario || "#ffffff");
-    setColorFondo(project.color_fondo || "#0a0a0a");
+    setColorPrimario(project.color_primario || "#b8973a"); // theme-allow: stored published-site color data, not admin chrome
+    setColorSecundario(project.color_secundario || "#ffffff"); // theme-allow: stored published-site color data, not admin chrome
+    setColorFondo(project.color_fondo || "#0a0a0a"); // theme-allow: stored published-site color data, not admin chrome
     setTemaModo((project.tema_modo as "oscuro" | "claro") || "oscuro");
     setDisclaimer(project.disclaimer || "");
     setPoliticaPrivacidadUrl(project.politica_privacidad_url || "");
@@ -232,7 +232,7 @@ export default function EditorGeneralPage() {
               onClick={() => setActiveTab(tab.id)}
               className={`flex items-center gap-2 px-4 py-2 rounded-lg font-ui text-[10px] font-bold uppercase tracking-[0.08em] transition-all shrink-0 whitespace-nowrap ${
                 isActive
-                  ? "bg-[var(--surface-3)] text-white shadow-sm"
+                  ? "bg-[var(--surface-3)] text-[var(--text-primary)] shadow-sm"
                   : "text-[var(--text-tertiary)] hover:text-[var(--text-secondary)] hover:bg-[var(--surface-2)]"
               }`}
             >
@@ -398,7 +398,7 @@ export default function EditorGeneralPage() {
                           />
                           <button
                             onClick={() => { setHeroVideoUrl(""); scheduleAutoSave(); }}
-                            className="absolute top-2 right-2 w-7 h-7 bg-black/70 backdrop-blur-sm rounded-full flex items-center justify-center text-[var(--text-secondary)] hover:text-red-400 transition-colors"
+                            className="absolute top-2 right-2 w-7 h-7 bg-[rgba(var(--overlay-rgb),0.7)] backdrop-blur-sm rounded-full flex items-center justify-center text-[var(--text-secondary)] hover:text-red-400 transition-colors"
                           >
                             <Trash2 size={14} />
                           </button>
@@ -535,8 +535,8 @@ export default function EditorGeneralPage() {
                 </label>
                 <div className="flex gap-2 mt-1.5">
                   {([
-                    { value: "oscuro" as const, label: t("general.design.dark"), Icon: Moon, bg: "#141414", text: "#f4f0e8" },
-                    { value: "claro" as const, label: t("general.design.light"), Icon: Sun, bg: "#faf9f7", text: "#141412" },
+                    { value: "oscuro" as const, label: t("general.design.dark"), Icon: Moon, bg: "#141414", text: "#f4f0e8" }, // theme-allow: published-site dark-mode swatch preview
+                    { value: "claro" as const, label: t("general.design.light"), Icon: Sun, bg: "#faf9f7", text: "#141412" }, // theme-allow: published-site light-mode swatch preview
                   ]).map((opt) => (
                     <button
                       key={opt.value}
@@ -544,11 +544,11 @@ export default function EditorGeneralPage() {
                       onClick={() => {
                         setTemaModo(opt.value);
                         if (opt.value === "claro") {
-                          setColorFondo("#faf9f7");
-                          setColorSecundario("#141412");
+                          setColorFondo("#faf9f7"); // theme-allow: published-site stored color data
+                          setColorSecundario("#141412"); // theme-allow: published-site stored color data
                         } else {
-                          setColorFondo("#0a0a0a");
-                          setColorSecundario("#f4f0e8");
+                          setColorFondo("#0a0a0a"); // theme-allow: published-site stored color data
+                          setColorSecundario("#f4f0e8"); // theme-allow: published-site stored color data
                         }
                         scheduleAutoSave();
                       }}
@@ -600,10 +600,10 @@ export default function EditorGeneralPage() {
                 <button
                   type="button"
                   onClick={() => {
-                    setColorPrimario("#b8973a");
+                    setColorPrimario("#b8973a"); // theme-allow: published-site stored color data
                     setTemaModo("oscuro");
-                    setColorSecundario("#f4f0e8");
-                    setColorFondo("#0a0a0a");
+                    setColorSecundario("#f4f0e8"); // theme-allow: published-site stored color data
+                    setColorFondo("#0a0a0a"); // theme-allow: published-site stored color data
                     scheduleAutoSave();
                   }}
                   className="flex items-center gap-1.5 px-3 py-2 mb-5 rounded-lg border border-[var(--border-default)] hover:border-[var(--border-strong)] text-[var(--text-tertiary)] hover:text-[var(--text-secondary)] transition-colors text-xs font-ui uppercase tracking-wider cursor-pointer"

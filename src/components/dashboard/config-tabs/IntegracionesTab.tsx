@@ -215,7 +215,7 @@ export default function IntegracionesTab() {
           >
             <span
               className={cn(
-                "inline-block h-4 w-4 rounded-full bg-white transition-transform",
+                "inline-block h-4 w-4 rounded-full bg-[var(--surface-0)] transition-transform",
                 enabled ? "translate-x-6" : "translate-x-1",
               )}
             />
@@ -278,7 +278,7 @@ export default function IntegracionesTab() {
                     className="accent-[var(--site-primary)] w-4 h-4 rounded"
                   />
                   <div className="flex-1">
-                    <div className="text-xs text-white font-medium font-mono">{evt.label}</div>
+                    <div className="text-xs text-[var(--text-primary)] font-medium font-mono">{evt.label}</div>
                     <div className="text-[10px] text-[var(--text-muted)] mt-0.5">{evt.desc}</div>
                   </div>
                 </label>
@@ -408,7 +408,7 @@ export default function IntegracionesTab() {
                           ) : (
                             <XCircle size={13} className="text-red-400 shrink-0" />
                           )}
-                          <span className="text-xs font-medium text-white font-mono">
+                          <span className="text-xs font-medium text-[var(--text-primary)] font-mono">
                             {log.event_type}
                           </span>
                           {log.status_code && (

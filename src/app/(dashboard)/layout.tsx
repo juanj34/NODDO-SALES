@@ -62,7 +62,7 @@ function SidebarLink({
       className={cn(
         "flex items-center gap-3 px-3 py-2 rounded-[0.625rem] font-ui text-xs font-semibold uppercase tracking-[0.08em] transition-all",
         isActive
-          ? "bg-[var(--surface-2)] text-white border-l-2 border-[var(--site-primary)]"
+          ? "bg-[var(--surface-2)] text-[var(--text-primary)] border-l-2 border-[var(--site-primary)]"
           : "text-[var(--text-tertiary)] hover:text-[var(--text-secondary)] hover:bg-[var(--surface-2)]",
         extraClass
       )}
@@ -164,7 +164,7 @@ function DashboardShell({ children }: { children: React.ReactNode }) {
   // isAdmin and can() now come from usePermissions()
 
   return (
-    <div className="min-h-screen relative bg-[var(--surface-0)] text-white flex">
+    <div className="min-h-screen relative bg-[var(--surface-0)] text-[var(--text-primary)] flex">
       {/* Gold grid + noise atmosphere */}
       <div className="bg-grid-lines-subtle fixed inset-0 pointer-events-none z-0" />
       <div className="bg-noise fixed inset-0 pointer-events-none z-0" />
@@ -193,7 +193,7 @@ function DashboardShell({ children }: { children: React.ReactNode }) {
             exit={{ opacity: 0 }}
             transition={{ duration: 0.2 }}
             onClick={closeDrawer}
-            className="fixed inset-0 z-[39] bg-black/60 md:hidden"
+            className="fixed inset-0 z-[39] bg-[rgba(var(--overlay-rgb),0.6)] md:hidden"
           />
         )}
       </AnimatePresence>

@@ -72,7 +72,7 @@ export function ProjectsTable({
           <FolderOpen size={28} className="text-[var(--site-primary)]" />
         </div>
 
-        <h3 className="font-heading text-xl font-light text-white mb-2">
+        <h3 className="font-heading text-xl font-light text-[var(--text-primary)] mb-2">
           No se encontraron proyectos
         </h3>
 

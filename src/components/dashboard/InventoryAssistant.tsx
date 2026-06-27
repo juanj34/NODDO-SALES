@@ -94,7 +94,7 @@ function AssistantAvatar({ size = 48 }: { size?: number }) {
       </defs>
 
       {/* Background */}
-      <circle cx="100" cy="100" r="100" fill="#141414" />
+      <circle cx="100" cy="100" r="100" fill="#141414" /* // theme-allow: avatar badge background (brand illustration) */ />
 
       {/* Outer glow */}
       <circle cx="100" cy="100" r="90" fill={`url(#${id}-glow)`} opacity="0.4" />
@@ -108,13 +108,13 @@ function AssistantAvatar({ size = 48 }: { size?: number }) {
 
       {/* Building grid inside bubble */}
       <g opacity="0.4">
-        <line x1="70" y1="75" x2="70" y2="115" stroke="#141414" strokeWidth="1.5" />
-        <line x1="85" y1="75" x2="85" y2="115" stroke="#141414" strokeWidth="1.5" />
-        <line x1="100" y1="75" x2="100" y2="115" stroke="#141414" strokeWidth="1.5" />
-        <line x1="115" y1="75" x2="115" y2="115" stroke="#141414" strokeWidth="1.5" />
-        <line x1="130" y1="75" x2="130" y2="115" stroke="#141414" strokeWidth="1.5" />
-        <line x1="60" y1="85" x2="140" y2="85" stroke="#141414" strokeWidth="1.5" />
-        <line x1="60" y1="100" x2="140" y2="100" stroke="#141414" strokeWidth="1.5" />
+        <line x1="70" y1="75" x2="70" y2="115" stroke="#141414" strokeWidth="1.5" /* // theme-allow: dark grid lines on gold bubble (brand illustration) */ />
+        <line x1="85" y1="75" x2="85" y2="115" stroke="#141414" strokeWidth="1.5" /* // theme-allow: dark grid lines on gold bubble (brand illustration) */ />
+        <line x1="100" y1="75" x2="100" y2="115" stroke="#141414" strokeWidth="1.5" /* // theme-allow: dark grid lines on gold bubble (brand illustration) */ />
+        <line x1="115" y1="75" x2="115" y2="115" stroke="#141414" strokeWidth="1.5" /* // theme-allow: dark grid lines on gold bubble (brand illustration) */ />
+        <line x1="130" y1="75" x2="130" y2="115" stroke="#141414" strokeWidth="1.5" /* // theme-allow: dark grid lines on gold bubble (brand illustration) */ />
+        <line x1="60" y1="85" x2="140" y2="85" stroke="#141414" strokeWidth="1.5" /* // theme-allow: dark grid lines on gold bubble (brand illustration) */ />
+        <line x1="60" y1="100" x2="140" y2="100" stroke="#141414" strokeWidth="1.5" /* // theme-allow: dark grid lines on gold bubble (brand illustration) */ />
       </g>
 
       {/* AI sparkle (top-right) */}
@@ -137,7 +137,7 @@ function AssistantAvatar({ size = 48 }: { size?: number }) {
         fontFamily="system-ui, -apple-system, sans-serif"
         fontSize="32"
         fontWeight="700"
-        fill="#141414"
+        fill="#141414" /* // theme-allow: dark "H" letter on gold bubble (brand illustration) */
         textAnchor="middle"
         dominantBaseline="middle"
         opacity="0.8"
@@ -827,7 +827,7 @@ export function InventoryAssistant({
       exit={{ x: "100%" }}
       transition={{ type: "spring", damping: 30, stiffness: 300 }}
       style={{ zIndex: 2147483648 }}
-      className="fixed top-0 right-0 bottom-0 w-full max-w-lg bg-[var(--surface-0)] border-l border-[var(--border-default)] flex flex-col shadow-[-8px_0_30px_rgba(0,0,0,0.5)]"
+      className="fixed top-0 right-0 bottom-0 w-full max-w-lg bg-[var(--surface-0)] border-l border-[var(--border-default)] flex flex-col shadow-[-8px_0_30px_rgba(var(--overlay-rgb),0.5)]"
       onDragEnter={handleDragEnter}
       onDragLeave={handleDragLeave}
       onDragOver={handleDragOver}
@@ -861,7 +861,7 @@ export function InventoryAssistant({
               <AssistantAvatar size={40} />
             </div>
             <div>
-              <h3 className="font-ui text-[11px] font-bold uppercase tracking-[0.1em] text-white">
+              <h3 className="font-ui text-[11px] font-bold uppercase tracking-[0.1em] text-[var(--text-primary)]">
                 Asistente de Inventario
               </h3>
               <p className="text-[10px] font-mono text-[var(--text-muted)] mt-0.5">
@@ -896,7 +896,7 @@ export function InventoryAssistant({
                 <div className="flex items-start gap-3">
                   <AssistantAvatar size={28} />
                   <div className="pt-0.5">
-                    <p className="text-sm text-white font-medium leading-relaxed">
+                    <p className="text-sm text-[var(--text-primary)] font-medium leading-relaxed">
                       ¡Hola! Soy tu asistente de inventario.
                     </p>
                     <p className="text-xs text-[var(--text-tertiary)] mt-1 leading-relaxed">
@@ -944,7 +944,7 @@ export function InventoryAssistant({
                           animate={{ opacity: 1, scale: 1 }}
                           transition={{ delay: 0.3 + i * 0.04 }}
                           onClick={() => handleSuggestion(chip)}
-                          className="flex items-center gap-2 px-3 py-2 bg-[var(--surface-1)] border border-[var(--border-subtle)] rounded-lg text-[11px] text-[var(--text-secondary)] hover:text-white hover:border-[rgba(184,151,58,0.3)] hover:bg-[rgba(184,151,58,0.06)] transition-all"
+                          className="flex items-center gap-2 px-3 py-2 bg-[var(--surface-1)] border border-[var(--border-subtle)] rounded-lg text-[11px] text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:border-[rgba(184,151,58,0.3)] hover:bg-[rgba(184,151,58,0.06)] transition-all"
                         >
                           <chip.icon
                             size={13}
@@ -1005,7 +1005,7 @@ export function InventoryAssistant({
                 className="flex items-center gap-2 px-3 py-2 mb-2 bg-[var(--surface-1)] border border-[rgba(184,151,58,0.2)] rounded-lg"
               >
                 <FileSpreadsheet size={14} className="text-[#b8973a] shrink-0" />
-                <span className="text-xs text-white truncate flex-1">{attachedFile.name}</span>
+                <span className="text-xs text-[var(--text-primary)] truncate flex-1">{attachedFile.name}</span>
                 <span className="text-[10px] font-mono text-[var(--text-muted)]">
                   {formatFileSize(attachedFile.size)}
                 </span>
@@ -1132,7 +1132,7 @@ function MessageBubble({
         className={cn(
           "max-w-[85%] rounded-xl px-4 py-3",
           isUser
-            ? "bg-[rgba(184,151,58,0.12)] border border-[rgba(184,151,58,0.18)] text-white"
+            ? "bg-[rgba(184,151,58,0.12)] border border-[rgba(184,151,58,0.18)] text-[var(--text-primary)]"
             : "bg-[var(--surface-1)] border border-[var(--border-subtle)] text-[var(--text-secondary)]"
         )}
       >
@@ -1228,7 +1228,7 @@ function ChangesPreview({
                 key={row.key}
                 className="border-t border-[var(--border-subtle)] hover:bg-[var(--surface-1)]/50"
               >
-                <td className="py-1.5 px-3 text-white font-mono font-medium text-[11px]">
+                <td className="py-1.5 px-3 text-[var(--text-primary)] font-mono font-medium text-[11px]">
                   {row.identificador}
                 </td>
                 <td className="py-1.5 px-3 text-[var(--text-tertiary)] font-mono text-[11px]">

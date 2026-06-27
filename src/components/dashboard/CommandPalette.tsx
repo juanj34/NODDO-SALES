@@ -32,7 +32,7 @@ export function CommandPalette() {
     if (!open) return null;
 
     return (
-        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-start justify-center pt-[15vh]">
+        <div className="fixed inset-0 z-50 bg-[rgba(var(--overlay-rgb),0.6)] backdrop-blur-sm flex items-start justify-center pt-[15vh]">
             {/* Click outside to close */}
             <div className="absolute inset-0" onClick={() => setOpen(false)} />
 
@@ -60,63 +60,63 @@ export function CommandPalette() {
                         <Command.Group heading={t("commandPalette.navigation")} className="px-2 py-3 font-ui text-[10px] font-bold text-[var(--text-tertiary)] tracking-wider uppercase">
                             <Command.Item
                                 onSelect={() => runCommand(() => router.push("/proyectos"))}
-                                className="flex items-center px-4 py-3 mt-1 rounded-lg text-sm text-[var(--text-secondary)] hover:bg-[var(--surface-3)] hover:text-white cursor-pointer transition-colors aria-selected:bg-[var(--surface-3)] aria-selected:text-white"
+                                className="flex items-center px-4 py-3 mt-1 rounded-lg text-sm text-[var(--text-secondary)] hover:bg-[var(--surface-3)] hover:text-[var(--text-primary)] cursor-pointer transition-colors aria-selected:bg-[var(--surface-3)] aria-selected:text-[var(--text-primary)]"
                             >
                                 <FolderOpen className="mr-3 shrink-0" size={16} />
                                 {t("commandPalette.viewAllProjects")}
                             </Command.Item>
                             <Command.Item
                                 onSelect={() => runCommand(() => router.push("/leads"))}
-                                className="flex items-center px-4 py-3 rounded-lg text-sm text-[var(--text-secondary)] hover:bg-[var(--surface-3)] hover:text-white cursor-pointer transition-colors aria-selected:bg-[var(--surface-3)] aria-selected:text-white"
+                                className="flex items-center px-4 py-3 rounded-lg text-sm text-[var(--text-secondary)] hover:bg-[var(--surface-3)] hover:text-[var(--text-primary)] cursor-pointer transition-colors aria-selected:bg-[var(--surface-3)] aria-selected:text-[var(--text-primary)]"
                             >
                                 <ContactRound className="mr-3 shrink-0" size={16} />
                                 Leads
                             </Command.Item>
                             <Command.Item
                                 onSelect={() => runCommand(() => router.push("/analytics"))}
-                                className="flex items-center px-4 py-3 rounded-lg text-sm text-[var(--text-secondary)] hover:bg-[var(--surface-3)] hover:text-white cursor-pointer transition-colors aria-selected:bg-[var(--surface-3)] aria-selected:text-white"
+                                className="flex items-center px-4 py-3 rounded-lg text-sm text-[var(--text-secondary)] hover:bg-[var(--surface-3)] hover:text-[var(--text-primary)] cursor-pointer transition-colors aria-selected:bg-[var(--surface-3)] aria-selected:text-[var(--text-primary)]"
                             >
                                 <BarChart3 className="mr-3 shrink-0" size={16} />
                                 Analytics
                             </Command.Item>
                             <Command.Item
                                 onSelect={() => runCommand(() => router.push("/financiero"))}
-                                className="flex items-center px-4 py-3 rounded-lg text-sm text-[var(--text-secondary)] hover:bg-[var(--surface-3)] hover:text-white cursor-pointer transition-colors aria-selected:bg-[var(--surface-3)] aria-selected:text-white"
+                                className="flex items-center px-4 py-3 rounded-lg text-sm text-[var(--text-secondary)] hover:bg-[var(--surface-3)] hover:text-[var(--text-primary)] cursor-pointer transition-colors aria-selected:bg-[var(--surface-3)] aria-selected:text-[var(--text-primary)]"
                             >
                                 <CircleDollarSign className="mr-3 shrink-0" size={16} />
                                 Financiero
                             </Command.Item>
                             <Command.Item
                                 onSelect={() => runCommand(() => router.push("/disponibilidad"))}
-                                className="flex items-center px-4 py-3 rounded-lg text-sm text-[var(--text-secondary)] hover:bg-[var(--surface-3)] hover:text-white cursor-pointer transition-colors aria-selected:bg-[var(--surface-3)] aria-selected:text-white"
+                                className="flex items-center px-4 py-3 rounded-lg text-sm text-[var(--text-secondary)] hover:bg-[var(--surface-3)] hover:text-[var(--text-primary)] cursor-pointer transition-colors aria-selected:bg-[var(--surface-3)] aria-selected:text-[var(--text-primary)]"
                             >
                                 <ToggleLeft className="mr-3 shrink-0" size={16} />
                                 Disponibilidad
                             </Command.Item>
                             <Command.Item
                                 onSelect={() => runCommand(() => router.push("/cotizador"))}
-                                className="flex items-center px-4 py-3 rounded-lg text-sm text-[var(--text-secondary)] hover:bg-[var(--surface-3)] hover:text-white cursor-pointer transition-colors aria-selected:bg-[var(--surface-3)] aria-selected:text-white"
+                                className="flex items-center px-4 py-3 rounded-lg text-sm text-[var(--text-secondary)] hover:bg-[var(--surface-3)] hover:text-[var(--text-primary)] cursor-pointer transition-colors aria-selected:bg-[var(--surface-3)] aria-selected:text-[var(--text-primary)]"
                             >
                                 <Calculator className="mr-3 shrink-0" size={16} />
                                 NodDo Quote
                             </Command.Item>
                             <Command.Item
                                 onSelect={() => runCommand(() => router.push("/cotizaciones"))}
-                                className="flex items-center px-4 py-3 rounded-lg text-sm text-[var(--text-secondary)] hover:bg-[var(--surface-3)] hover:text-white cursor-pointer transition-colors aria-selected:bg-[var(--surface-3)] aria-selected:text-white"
+                                className="flex items-center px-4 py-3 rounded-lg text-sm text-[var(--text-secondary)] hover:bg-[var(--surface-3)] hover:text-[var(--text-primary)] cursor-pointer transition-colors aria-selected:bg-[var(--surface-3)] aria-selected:text-[var(--text-primary)]"
                             >
                                 <FileText className="mr-3 shrink-0" size={16} />
                                 NodDo Quote
                             </Command.Item>
                             <Command.Item
                                 onSelect={() => runCommand(() => router.push("/equipo"))}
-                                className="flex items-center px-4 py-3 rounded-lg text-sm text-[var(--text-secondary)] hover:bg-[var(--surface-3)] hover:text-white cursor-pointer transition-colors aria-selected:bg-[var(--surface-3)] aria-selected:text-white"
+                                className="flex items-center px-4 py-3 rounded-lg text-sm text-[var(--text-secondary)] hover:bg-[var(--surface-3)] hover:text-[var(--text-primary)] cursor-pointer transition-colors aria-selected:bg-[var(--surface-3)] aria-selected:text-[var(--text-primary)]"
                             >
                                 <Users className="mr-3 shrink-0" size={16} />
                                 Equipo
                             </Command.Item>
                             <Command.Item
                                 onSelect={() => runCommand(() => router.push("/cuenta"))}
-                                className="flex items-center px-4 py-3 rounded-lg text-sm text-[var(--text-secondary)] hover:bg-[var(--surface-3)] hover:text-white cursor-pointer transition-colors aria-selected:bg-[var(--surface-3)] aria-selected:text-white"
+                                className="flex items-center px-4 py-3 rounded-lg text-sm text-[var(--text-secondary)] hover:bg-[var(--surface-3)] hover:text-[var(--text-primary)] cursor-pointer transition-colors aria-selected:bg-[var(--surface-3)] aria-selected:text-[var(--text-primary)]"
                             >
                                 <Settings className="mr-3 shrink-0" size={16} />
                                 {t("commandPalette.accountSettings")}

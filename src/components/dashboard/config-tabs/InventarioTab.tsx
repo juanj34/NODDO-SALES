@@ -416,7 +416,7 @@ export default function InventarioTab({ orientaciones = [], vistas = [], onRefre
                       {t(colDef.labelKey)}
                     </span>
                     <div className={cn("relative inline-flex items-center rounded-full transition-colors shrink-0", size === "compact" ? "h-4 w-7" : "h-5 w-9", isOn ? "bg-[var(--site-primary)]" : "bg-[var(--surface-3)]")}>
-                      <span className={cn("inline-block rounded-full bg-white shadow-sm transition-transform", size === "compact" ? "h-3 w-3" : "h-3.5 w-3.5", isOn ? (size === "compact" ? "translate-x-[14px]" : "translate-x-[18px]") : (size === "compact" ? "translate-x-[2px]" : "translate-x-[3px]"))} />
+                      <span className={cn("inline-block rounded-full bg-[var(--surface-0)] shadow-sm transition-transform", size === "compact" ? "h-3 w-3" : "h-3.5 w-3.5", isOn ? (size === "compact" ? "translate-x-[14px]" : "translate-x-[18px]") : (size === "compact" ? "translate-x-[2px]" : "translate-x-[3px]"))} />
                     </div>
                   </button>
                 );
@@ -501,7 +501,7 @@ export default function InventarioTab({ orientaciones = [], vistas = [], onRefre
                   "relative px-4 py-2.5 rounded-lg transition-all font-ui text-xs font-bold uppercase tracking-[0.08em]",
                   isActive
                     ? "bg-[var(--site-primary)] text-[var(--surface-0)] shadow-[0_2px_8px_rgba(var(--site-primary-rgb),0.3)]"
-                    : "text-[var(--text-tertiary)] hover:text-[var(--text-primary)] hover:bg-white/5"
+                    : "text-[var(--text-tertiary)] hover:text-[var(--text-primary)] hover:bg-[var(--surface-2)]"
                 )}
                 title={tab.desc}
               >
@@ -571,7 +571,7 @@ export default function InventarioTab({ orientaciones = [], vistas = [], onRefre
         <div className="flex items-center gap-3">
           <button type="button" role="switch" aria-checked={ocultarVendidas} onClick={() => { setOcultarVendidas(!ocultarVendidas); scheduleAutoSave(); }}
             className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors cursor-pointer ${ocultarVendidas ? "bg-[var(--site-primary)]" : "bg-[var(--surface-3)]"}`}>
-            <span className={`inline-block h-3.5 w-3.5 rounded-full bg-white shadow-sm transition-transform ${ocultarVendidas ? "translate-x-[18px]" : "translate-x-[3px]"}`} />
+            <span className={`inline-block h-3.5 w-3.5 rounded-full bg-[var(--surface-0)] shadow-sm transition-transform ${ocultarVendidas ? "translate-x-[18px]" : "translate-x-[3px]"}`} />
           </button>
           <span className="text-sm text-[var(--text-secondary)]">{t("config.ocultarVendidas.hide")}</span>
         </div>
@@ -580,7 +580,7 @@ export default function InventarioTab({ orientaciones = [], vistas = [], onRefre
         <div className="flex items-center gap-3 mt-4">
           <button type="button" role="switch" aria-checked={ocultarPrecioVendidas} onClick={() => { setOcultarPrecioVendidas(!ocultarPrecioVendidas); scheduleAutoSave(); }}
             className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors cursor-pointer ${ocultarPrecioVendidas ? "bg-[var(--site-primary)]" : "bg-[var(--surface-3)]"}`}>
-            <span className={`inline-block h-3.5 w-3.5 rounded-full bg-white shadow-sm transition-transform ${ocultarPrecioVendidas ? "translate-x-[18px]" : "translate-x-[3px]"}`} />
+            <span className={`inline-block h-3.5 w-3.5 rounded-full bg-[var(--surface-0)] shadow-sm transition-transform ${ocultarPrecioVendidas ? "translate-x-[18px]" : "translate-x-[3px]"}`} />
           </button>
           <span className="text-sm text-[var(--text-secondary)]">{t("config.ocultarVendidas.hidePrice")}</span>
         </div>
@@ -605,7 +605,7 @@ export default function InventarioTab({ orientaciones = [], vistas = [], onRefre
                   <button type="button" role="switch" aria-checked={isOn}
                     onClick={() => { setExtrasEnabled(prev => ({ ...prev, [extra.key]: !prev[extra.key] })); scheduleAutoSave(); }}
                     className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors cursor-pointer ${isOn ? "bg-[var(--site-primary)]" : "bg-[var(--surface-3)]"}`}>
-                    <span className={`inline-block h-3.5 w-3.5 rounded-full bg-white shadow-sm transition-transform ${isOn ? "translate-x-[18px]" : "translate-x-[3px]"}`} />
+                    <span className={`inline-block h-3.5 w-3.5 rounded-full bg-[var(--surface-0)] shadow-sm transition-transform ${isOn ? "translate-x-[18px]" : "translate-x-[3px]"}`} />
                   </button>
                   <ExtraIcon size={15} className={isOn ? "text-[var(--site-primary)]" : "text-[var(--text-muted)]"} />
                   <span className="text-sm text-[var(--text-secondary)]">{t(extra.labelKey)}</span>

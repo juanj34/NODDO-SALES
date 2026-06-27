@@ -58,7 +58,7 @@ function DraggablePill({
       dragControls={controls}
       className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium cursor-pointer transition-all select-none shrink-0 ${
         isActive
-          ? "bg-[var(--surface-3)] text-white border border-[rgba(var(--site-primary-rgb),0.3)] shadow-[0_0_8px_rgba(var(--site-primary-rgb),0.1)]"
+          ? "bg-[var(--surface-3)] text-[var(--text-primary)] border border-[rgba(var(--site-primary-rgb),0.3)] shadow-[0_0_8px_rgba(var(--site-primary-rgb),0.1)]"
           : "bg-[var(--surface-2)] text-[var(--text-tertiary)] border border-transparent hover:text-[var(--text-secondary)] hover:bg-[var(--surface-3)]"
       }`}
       whileDrag={{ scale: 1.05, zIndex: 10 }}
@@ -470,7 +470,7 @@ export default function GaleriaPage() {
                   value={newScopeName}
                   onChange={(e) => setNewScopeName(e.target.value)}
                   placeholder={t("galeria.scopeNamePlaceholder")}
-                  className="px-2 py-1 rounded-lg text-[10px] bg-[var(--surface-2)] border border-[var(--border-default)] text-white placeholder:text-[var(--text-muted)] outline-none focus:border-[rgba(var(--site-primary-rgb),0.4)] w-32"
+                  className="px-2 py-1 rounded-lg text-[10px] bg-[var(--surface-2)] border border-[var(--border-default)] text-[var(--text-primary)] placeholder:text-[var(--text-muted)] outline-none focus:border-[rgba(var(--site-primary-rgb),0.4)] w-32"
                   onKeyDown={(e) => {
                     if (e.key === "Enter") addScope();
                     if (e.key === "Escape") { setShowScopeForm(false); setNewScopeName(""); }
@@ -600,7 +600,7 @@ export default function GaleriaPage() {
               {/* Toolbar */}
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
-                  <h3 className="text-sm font-medium text-white">
+                  <h3 className="text-sm font-medium text-[var(--text-primary)]">
                     {selectedCat.nombre}
                   </h3>
                   <span className={badgeGold}>
@@ -673,20 +673,20 @@ export default function GaleriaPage() {
                       <Image src={img.thumbnail_url || img.url} alt={img.alt_text || ""} fill className="w-full h-full object-cover pointer-events-none" />
 
                       {/* Drag handle */}
-                      <div className="absolute top-1 left-1 w-5 h-5 bg-black/60 rounded-full flex items-center justify-center text-[var(--text-muted)] opacity-0 group-hover:opacity-100 transition-all">
+                      <div className="absolute top-1 left-1 w-5 h-5 bg-[rgba(var(--overlay-rgb),0.6)] rounded-full flex items-center justify-center text-[var(--text-muted)] opacity-0 group-hover:opacity-100 transition-all">
                         <GripVertical size={10} />
                       </div>
 
                       {/* Delete button */}
                       <button
                         onClick={(e) => { e.stopPropagation(); deleteImage(img.id); }}
-                        className="absolute top-1 right-1 w-5 h-5 bg-black/70 rounded-full flex items-center justify-center text-[var(--text-secondary)] hover:text-red-400 opacity-0 group-hover:opacity-100 transition-all"
+                        className="absolute top-1 right-1 w-5 h-5 bg-[rgba(var(--overlay-rgb),0.7)] rounded-full flex items-center justify-center text-[var(--text-secondary)] hover:text-red-400 opacity-0 group-hover:opacity-100 transition-all"
                       >
                         <X size={10} />
                       </button>
 
                       {/* Title overlay — bottom of thumbnail */}
-                      <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent pt-6 pb-1.5 px-2">
+                      <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-[rgba(var(--overlay-rgb),0.8)] via-[rgba(var(--overlay-rgb),0.4)] to-transparent pt-6 pb-1.5 px-2">
                         {editingTitleId === img.id ? (
                           <input
                             ref={titleInputRef}
@@ -700,7 +700,7 @@ export default function GaleriaPage() {
                             }}
                             onClick={(e) => e.stopPropagation()}
                             placeholder={t("galeria.imageTitlePlaceholder")}
-                            className="w-full bg-transparent text-[10px] text-white placeholder:text-white/30 border-b border-white/30 focus:border-[var(--site-primary)] outline-none pb-0.5"
+                            className="w-full bg-transparent text-[10px] text-[var(--text-primary)] placeholder:text-[var(--text-tertiary)] border-b border-[var(--border-strong)] focus:border-[var(--site-primary)] outline-none pb-0.5"
                           />
                         ) : (
                           <button
@@ -708,9 +708,9 @@ export default function GaleriaPage() {
                             className="w-full text-left flex items-center gap-1 group/title"
                           >
                             {img.alt_text ? (
-                              <span className="text-[10px] text-white/80 truncate">{img.alt_text}</span>
+                              <span className="text-[10px] text-[var(--text-primary)] truncate">{img.alt_text}</span>
                             ) : (
-                              <span className="text-[10px] text-white/25 opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-1">
+                              <span className="text-[10px] text-[var(--text-muted)] opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-1">
                                 <Type size={8} />
                                 {t("galeria.addTitle")}
                               </span>

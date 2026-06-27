@@ -62,13 +62,13 @@ export function NotificationBell() {
     <div ref={ref} className="relative">
       <button
         onClick={() => setOpen(!open)}
-        className="relative w-9 h-9 rounded-lg bg-[var(--surface-2)] border border-[var(--border-subtle)] flex items-center justify-center text-[var(--text-tertiary)] hover:text-white hover:border-[var(--border-default)] transition-all cursor-pointer"
+        className="relative w-9 h-9 rounded-lg bg-[var(--surface-2)] border border-[var(--border-subtle)] flex items-center justify-center text-[var(--text-tertiary)] hover:text-[var(--text-primary)] hover:border-[var(--border-default)] transition-all cursor-pointer"
         aria-label={t("notifications.title")}
       >
         <Bell size={15} />
         {unreadCount > 0 && (
           <span className="absolute -top-1 -right-1 min-w-[16px] h-4 px-1 rounded-full bg-[var(--site-primary)] flex items-center justify-center">
-            <span className="font-ui text-[8px] font-bold text-black">
+            <span className="font-ui text-[8px] font-bold text-black" /* // theme-allow: dark text on gold */>
               {unreadCount > 99 ? "99+" : unreadCount}
             </span>
           </span>
@@ -93,14 +93,14 @@ export function NotificationBell() {
                 {unreadCount > 0 && (
                   <button
                     onClick={() => markAllRead()}
-                    className="text-[9px] font-ui uppercase tracking-wider text-[var(--site-primary)] hover:text-white transition-colors cursor-pointer"
+                    className="text-[9px] font-ui uppercase tracking-wider text-[var(--site-primary)] hover:text-[var(--text-primary)] transition-colors cursor-pointer"
                   >
                     {t("notifications.markAllRead")}
                   </button>
                 )}
                 <button
                   onClick={() => setOpen(false)}
-                  className="text-[var(--text-muted)] hover:text-white transition-colors cursor-pointer"
+                  className="text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-colors cursor-pointer"
                 >
                   <X size={14} />
                 </button>
@@ -125,7 +125,7 @@ export function NotificationBell() {
                   const config = TYPE_CONFIG[notif.type] || {
                     icon: Bell,
                     color: "text-[var(--text-tertiary)]",
-                    bg: "bg-white/5",
+                    bg: "bg-[var(--surface-2)]",
                   };
                   const Icon = config.icon;
                   const title =
@@ -143,7 +143,7 @@ export function NotificationBell() {
                       onClick={() => {
                         if (!notif.read) markAsRead(notif.id);
                       }}
-                      className={`w-full text-left px-4 py-3 border-b border-[var(--border-subtle)] last:border-b-0 hover:bg-white/3 transition-colors cursor-pointer ${
+                      className={`w-full text-left px-4 py-3 border-b border-[var(--border-subtle)] last:border-b-0 hover:bg-[var(--surface-2)] transition-colors cursor-pointer ${
                         !notif.read ? "bg-[rgba(184,151,58,0.03)]" : ""
                       }`}
                     >
@@ -155,7 +155,7 @@ export function NotificationBell() {
                         </div>
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center gap-2">
-                            <p className="text-xs text-white font-medium truncate">
+                            <p className="text-xs text-[var(--text-primary)] font-medium truncate">
                               {title}
                             </p>
                             {!notif.read && (

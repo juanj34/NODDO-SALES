@@ -616,7 +616,7 @@ export default function EquipoPage() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4"
+            className="fixed inset-0 z-50 bg-[rgba(var(--overlay-rgb),0.7)] backdrop-blur-sm flex items-center justify-center p-4"
             onClick={() => !sending && setShowInvite(false)}
           >
             <motion.form
@@ -640,7 +640,7 @@ export default function EquipoPage() {
                 <button
                   type="button"
                   onClick={() => setShowInvite(false)}
-                  className="text-[var(--text-muted)] hover:text-[var(--text-secondary)] transition-colors p-1 rounded-lg hover:bg-white/5"
+                  className="text-[var(--text-muted)] hover:text-[var(--text-secondary)] transition-colors p-1 rounded-lg hover:bg-[var(--surface-2)]"
                 >
                   <X size={18} />
                 </button>
@@ -720,7 +720,8 @@ export default function EquipoPage() {
                             : "border-[var(--border-default)]"
                         )}
                       >
-                        {inviteAllProjects && <Check size={10} className="text-black" />}
+                        {inviteAllProjects && <Check size={10} className={"text-black" // theme-allow: dark text on gold
+                        } />}
                       </span>
                       <span className="text-xs text-[var(--text-secondary)]">
                         {t("equipo.allProjects")}
@@ -762,7 +763,8 @@ export default function EquipoPage() {
                               onClick={() => toggleInviteProject(project.id)}
                             >
                               {inviteSelectedProjects.has(project.id) && (
-                                <Check size={9} className="text-black" />
+                                <Check size={9} className={"text-black" // theme-allow: dark text on gold
+                                } />
                               )}
                             </span>
                             <span className="text-[11px] text-[var(--text-tertiary)]">
@@ -805,7 +807,7 @@ export default function EquipoPage() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4"
+            className="fixed inset-0 z-50 bg-[rgba(var(--overlay-rgb),0.7)] backdrop-blur-sm flex items-center justify-center p-4"
             onClick={() => !savingProjects && setEditProjectsForId(null)}
           >
             <motion.div
@@ -822,7 +824,7 @@ export default function EquipoPage() {
                 </h3>
                 <button
                   onClick={() => setEditProjectsForId(null)}
-                  className="text-[var(--text-muted)] hover:text-[var(--text-secondary)] transition-colors p-1 rounded-lg hover:bg-white/5"
+                  className="text-[var(--text-muted)] hover:text-[var(--text-secondary)] transition-colors p-1 rounded-lg hover:bg-[var(--surface-2)]"
                 >
                   <X size={16} />
                 </button>
@@ -841,7 +843,8 @@ export default function EquipoPage() {
                         : "border-[var(--border-default)]"
                     )}
                   >
-                    {editAllProjects && <Check size={10} className="text-black" />}
+                    {editAllProjects && <Check size={10} className={"text-black" // theme-allow: dark text on gold
+                    } />}
                   </span>
                   <span className="text-xs text-[var(--text-secondary)]">
                     {t("equipo.allProjects")}
@@ -877,7 +880,8 @@ export default function EquipoPage() {
                           )}
                         >
                           {editSelectedProjects.has(project.id) && (
-                            <Check size={9} className="text-black" />
+                            <Check size={9} className={"text-black" // theme-allow: dark text on gold
+                            } />
                           )}
                         </span>
                         <span className="text-[11px] text-[var(--text-tertiary)]">

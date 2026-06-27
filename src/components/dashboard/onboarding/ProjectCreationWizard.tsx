@@ -328,7 +328,7 @@ export function ProjectCreationWizard({
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
-        className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4"
+        className="fixed inset-0 z-50 bg-[rgba(var(--overlay-rgb),0.7)] backdrop-blur-sm flex items-center justify-center p-4"
         onClick={handleClose}
         onKeyDown={(e) => e.key === "Escape" && handleClose()}
       >
@@ -366,7 +366,7 @@ export function ProjectCreationWizard({
               <button
                 type="button"
                 onClick={handleClose}
-                className="text-[var(--text-muted)] hover:text-[var(--text-secondary)] transition-colors p-1.5 -mr-1.5 -mt-0.5 rounded-lg hover:bg-white/5"
+                className="text-[var(--text-muted)] hover:text-[var(--text-secondary)] transition-colors p-1.5 -mr-1.5 -mt-0.5 rounded-lg hover:bg-[var(--surface-2)]"
               >
                 <X size={16} />
               </button>

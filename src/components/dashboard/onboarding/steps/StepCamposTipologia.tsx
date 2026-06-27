@@ -95,7 +95,7 @@ function Toggle({
     >
       <span
         className={cn(
-          "pointer-events-none inline-block h-[14px] w-[14px] rounded-full bg-white shadow-sm transition-transform duration-200",
+          "pointer-events-none inline-block h-[14px] w-[14px] rounded-full bg-[var(--surface-0)] shadow-sm transition-transform duration-200",
           "absolute top-[2px]",
           checked ? "translate-x-[16px]" : "translate-x-[2px]"
         )}

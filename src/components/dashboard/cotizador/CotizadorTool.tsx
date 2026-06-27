@@ -1153,7 +1153,7 @@ export function CotizadorTool({ project, tipologias, unidadTipologias }: Cotizad
                       href={successState.pdfUrl}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="flex items-center gap-2 px-4 py-2 rounded-lg bg-[var(--surface-2)] border border-[var(--border-default)] text-[var(--text-secondary)] font-ui text-[10px] font-bold uppercase tracking-[0.1em] hover:text-white hover:border-[var(--border-strong)] transition-all"
+                      className="flex items-center gap-2 px-4 py-2 rounded-lg bg-[var(--surface-2)] border border-[var(--border-default)] text-[var(--text-secondary)] font-ui text-[10px] font-bold uppercase tracking-[0.1em] hover:text-[var(--text-primary)] hover:border-[var(--border-strong)] transition-all"
                     >
                       <ExternalLink size={12} />
                       Ver PDF
@@ -1165,7 +1165,7 @@ export function CotizadorTool({ project, tipologias, unidadTipologias }: Cotizad
                         navigator.clipboard.writeText(successState.pdfUrl!);
                         toast.success(t("cotizadorPage.linkCopied"));
                       }}
-                      className="flex items-center gap-2 px-4 py-2 rounded-lg bg-[var(--surface-2)] border border-[var(--border-default)] text-[var(--text-secondary)] font-ui text-[10px] font-bold uppercase tracking-[0.1em] hover:text-white hover:border-[var(--border-strong)] transition-all"
+                      className="flex items-center gap-2 px-4 py-2 rounded-lg bg-[var(--surface-2)] border border-[var(--border-default)] text-[var(--text-secondary)] font-ui text-[10px] font-bold uppercase tracking-[0.1em] hover:text-[var(--text-primary)] hover:border-[var(--border-strong)] transition-all"
                     >
                       <Copy size={12} />
                       Copiar link
@@ -1176,14 +1176,14 @@ export function CotizadorTool({ project, tipologias, unidadTipologias }: Cotizad
                 <div className="flex items-center justify-center gap-3 pt-4 border-t border-[var(--border-subtle)]">
                   <button
                     onClick={() => resetForNew(false)}
-                    className="flex items-center gap-2 px-4 py-2 rounded-lg bg-[var(--surface-2)] border border-[var(--border-subtle)] text-[var(--text-secondary)] font-ui text-[10px] font-bold uppercase tracking-[0.1em] hover:text-white hover:border-[var(--border-default)] transition-all"
+                    className="flex items-center gap-2 px-4 py-2 rounded-lg bg-[var(--surface-2)] border border-[var(--border-subtle)] text-[var(--text-secondary)] font-ui text-[10px] font-bold uppercase tracking-[0.1em] hover:text-[var(--text-primary)] hover:border-[var(--border-default)] transition-all"
                   >
                     <Plus size={12} />
                     Nueva cotización
                   </button>
                   <button
                     onClick={() => resetForNew(true)}
-                    className="flex items-center gap-2 px-4 py-2 rounded-lg bg-[var(--surface-2)] border border-[var(--border-subtle)] text-[var(--text-secondary)] font-ui text-[10px] font-bold uppercase tracking-[0.1em] hover:text-white hover:border-[var(--border-default)] transition-all"
+                    className="flex items-center gap-2 px-4 py-2 rounded-lg bg-[var(--surface-2)] border border-[var(--border-subtle)] text-[var(--text-secondary)] font-ui text-[10px] font-bold uppercase tracking-[0.1em] hover:text-[var(--text-primary)] hover:border-[var(--border-default)] transition-all"
                   >
                     <ArrowLeft size={12} />
                     Mismo cliente, otra unidad
@@ -2073,7 +2073,7 @@ export function CotizadorTool({ project, tipologias, unidadTipologias }: Cotizad
                             )}
                           </span>
                           <div className="text-right">
-                            <span className="font-mono font-medium text-white">
+                            <span className="font-mono font-medium text-[var(--text-primary)]">
                               {formatCurrency(fase.monto_total, moneda, {})}
                             </span>
                             {fase.cuotas > 1 && (
@@ -2213,14 +2213,14 @@ export function CotizadorTool({ project, tipologias, unidadTipologias }: Cotizad
                               prev.map((d) => d.id === desc.id ? { ...d, nombre: e.target.value } : d)
                             )}
                             placeholder="Nombre"
-                            className="flex-1 min-w-0 bg-[var(--surface-2)] border border-[var(--border-subtle)] rounded-lg px-2 py-1 text-[11px] text-white placeholder:text-[var(--text-muted)] focus:outline-none focus:border-[rgba(var(--site-primary-rgb),0.5)]"
+                            className="flex-1 min-w-0 bg-[var(--surface-2)] border border-[var(--border-subtle)] rounded-lg px-2 py-1 text-[11px] text-[var(--text-primary)] placeholder:text-[var(--text-muted)] focus:outline-none focus:border-[rgba(var(--site-primary-rgb),0.5)]"
                           />
                           <select
                             value={desc.tipo}
                             onChange={(e) => setAdHocDiscounts((prev) =>
                               prev.map((d) => d.id === desc.id ? { ...d, tipo: e.target.value as "porcentaje" | "fijo" } : d)
                             )}
-                            className="bg-[var(--surface-2)] border border-[var(--border-subtle)] rounded-lg px-1.5 py-1 text-[11px] text-white focus:outline-none w-[52px]"
+                            className="bg-[var(--surface-2)] border border-[var(--border-subtle)] rounded-lg px-1.5 py-1 text-[11px] text-[var(--text-primary)] focus:outline-none w-[52px]"
                           >
                             <option value="porcentaje">%</option>
                             <option value="fijo">{moneda}</option>
@@ -2232,7 +2232,7 @@ export function CotizadorTool({ project, tipologias, unidadTipologias }: Cotizad
                               prev.map((d) => d.id === desc.id ? { ...d, valor: Number(e.target.value) } : d)
                             )}
                             placeholder="0"
-                            className="w-16 bg-[var(--surface-2)] border border-[var(--border-subtle)] rounded-lg px-2 py-1 text-[11px] text-white text-right placeholder:text-[var(--text-muted)] focus:outline-none focus:border-[rgba(var(--site-primary-rgb),0.5)]"
+                            className="w-16 bg-[var(--surface-2)] border border-[var(--border-subtle)] rounded-lg px-2 py-1 text-[11px] text-[var(--text-primary)] text-right placeholder:text-[var(--text-muted)] focus:outline-none focus:border-[rgba(var(--site-primary-rgb),0.5)]"
                           />
                           <button
                             onClick={() => setAdHocDiscounts((prev) => prev.filter((d) => d.id !== desc.id))}
@@ -2265,7 +2265,7 @@ export function CotizadorTool({ project, tipologias, unidadTipologias }: Cotizad
                         <button
                           type="button"
                           onClick={() => setPriceOverride(null)}
-                          className="mt-4 p-2 rounded-lg bg-[var(--surface-3)] border border-[var(--border-subtle)] text-[var(--text-muted)] hover:text-white hover:border-[var(--border-default)] transition-all"
+                          className="mt-4 p-2 rounded-lg bg-[var(--surface-3)] border border-[var(--border-subtle)] text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:border-[var(--border-default)] transition-all"
                           title="Resetear al precio calculado"
                         >
                           <RotateCcw size={12} />
@@ -2330,7 +2330,7 @@ export function CotizadorTool({ project, tipologias, unidadTipologias }: Cotizad
                   className={cn(
                     "px-3 py-2 rounded-lg text-[10px] font-ui font-bold uppercase tracking-[0.08em] transition-all",
                     fechaCompra && fechaEntrega
-                      ? "bg-[var(--surface-2)] border border-[var(--border-default)] text-[var(--text-secondary)] hover:text-white hover:border-[var(--border-strong)]"
+                      ? "bg-[var(--surface-2)] border border-[var(--border-default)] text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:border-[var(--border-strong)]"
                       : "bg-[var(--surface-2)] border border-[var(--border-subtle)] text-[var(--text-muted)] cursor-not-allowed"
                   )}
                 >
@@ -2412,7 +2412,7 @@ export function CotizadorTool({ project, tipologias, unidadTipologias }: Cotizad
                             type="button"
                             onClick={fetchExchangeRate}
                             disabled={fetchingRate}
-                            className="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-[var(--surface-2)] border border-[var(--border-default)] text-[10px] font-ui font-bold uppercase tracking-[0.08em] text-[var(--text-secondary)] hover:text-white hover:border-[var(--border-strong)] transition-all disabled:opacity-50"
+                            className="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-[var(--surface-2)] border border-[var(--border-default)] text-[10px] font-ui font-bold uppercase tracking-[0.08em] text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:border-[var(--border-strong)] transition-all disabled:opacity-50"
                           >
                             <RefreshCw size={11} className={fetchingRate ? "animate-spin" : ""} />
                             Obtener tasa
@@ -2589,7 +2589,7 @@ export function CotizadorTool({ project, tipologias, unidadTipologias }: Cotizad
                   <div className="px-5 py-2">
                     <button
                       onClick={addCuota}
-                      className="flex items-center gap-1.5 text-[10px] text-[var(--site-primary)] hover:text-white transition-colors"
+                      className="flex items-center gap-1.5 text-[10px] text-[var(--site-primary)] hover:text-[var(--text-primary)] transition-colors"
                     >
                       <Plus size={12} /> Agregar cuota
                     </button>
@@ -2756,14 +2756,14 @@ function PrecioBaseCounter({
       <div className="flex items-center gap-3">
         <button
           onClick={() => onChange(Math.max(0, count - 1))}
-          className="w-7 h-7 rounded-lg bg-[var(--surface-3)] border border-[var(--border-subtle)] flex items-center justify-center text-[var(--text-secondary)] hover:text-white hover:border-[var(--border-default)] transition-all"
+          className="w-7 h-7 rounded-lg bg-[var(--surface-3)] border border-[var(--border-subtle)] flex items-center justify-center text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:border-[var(--border-default)] transition-all"
         >
           <Minus size={12} />
         </button>
         <span className="text-sm text-[var(--text-primary)] font-medium min-w-[20px] text-center">{count}</span>
         <button
           onClick={() => onChange(count + 1)}
-          className="w-7 h-7 rounded-lg bg-[var(--surface-3)] border border-[var(--border-subtle)] flex items-center justify-center text-[var(--text-secondary)] hover:text-white hover:border-[var(--border-default)] transition-all"
+          className="w-7 h-7 rounded-lg bg-[var(--surface-3)] border border-[var(--border-subtle)] flex items-center justify-center text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:border-[var(--border-default)] transition-all"
         >
           <Plus size={12} />
         </button>
@@ -2813,7 +2813,7 @@ function ComplementoSelector({
         {available.length > 0 && (
           <button
             onClick={() => setOpen(!open)}
-            className="ml-auto text-[10px] text-[var(--site-primary)] hover:text-white transition-colors flex items-center gap-1"
+            className="ml-auto text-[10px] text-[var(--site-primary)] hover:text-[var(--text-primary)] transition-colors flex items-center gap-1"
           >
             <Plus size={11} /> Agregar
           </button>

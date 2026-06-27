@@ -38,7 +38,7 @@ export default function DashboardError({
           </button>
           <a
             href="/proyectos"
-            className="inline-block px-7 py-3 bg-transparent text-[rgba(244,240,232,0.55)] font-ui text-[11px] font-bold uppercase tracking-[0.15em] rounded-[8px] border border-white/10 no-underline hover:border-white/20 transition-colors"
+            className="inline-block px-7 py-3 bg-transparent text-[rgba(244,240,232,0.55)] font-ui text-[11px] font-bold uppercase tracking-[0.15em] rounded-[8px] border border-[var(--border-default)] no-underline hover:border-[var(--border-strong)] transition-colors"
           >
             Ir a proyectos
           </a>

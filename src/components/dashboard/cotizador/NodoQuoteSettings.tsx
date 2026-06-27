@@ -56,7 +56,7 @@ export function NodoQuoteSettings() {
       <button
         type="button"
         onClick={() => setOpen((v) => !v)}
-        className="flex items-center gap-3 w-full px-5 py-4 text-left hover:bg-white/[0.02] transition-colors"
+        className="flex items-center gap-3 w-full px-5 py-4 text-left hover:bg-[var(--surface-2)] transition-colors"
       >
         <Settings size={16} className="text-[var(--text-tertiary)]" />
         <span className="font-ui text-xs font-bold uppercase tracking-[0.1em] text-[var(--text-secondary)]">
@@ -110,7 +110,7 @@ export function NodoQuoteSettings() {
                 >
                   <span
                     className={cn(
-                      "pointer-events-none inline-block h-5 w-5 rounded-full bg-white shadow-lg ring-0 transition-transform",
+                      "pointer-events-none inline-block h-5 w-5 rounded-full bg-[var(--surface-0)] shadow-lg ring-0 transition-transform",
                       micrositeEnabled ? "translate-x-5" : "translate-x-0"
                     )}
                   />
@@ -131,7 +131,7 @@ export function NodoQuoteSettings() {
                         "relative flex items-center gap-2 px-4 py-2.5 rounded-lg transition-all font-ui text-xs font-bold uppercase tracking-[0.08em]",
                         isActive
                           ? "bg-[var(--site-primary)] text-[var(--surface-0)] shadow-[0_2px_8px_rgba(var(--site-primary-rgb),0.3)]"
-                          : "text-[var(--text-tertiary)] hover:text-[var(--text-primary)] hover:bg-white/5"
+                          : "text-[var(--text-tertiary)] hover:text-[var(--text-primary)] hover:bg-[var(--surface-2)]"
                       )}
                     >
                       <TabIcon size={13} />
@@ -251,7 +251,7 @@ function QuickQuoteDefaults({
         >
           <span
             className={cn(
-              "pointer-events-none inline-block h-5 w-5 rounded-full bg-white shadow-lg ring-0 transition-transform",
+              "pointer-events-none inline-block h-5 w-5 rounded-full bg-[var(--surface-0)] shadow-lg ring-0 transition-transform",
               enabled ? "translate-x-5" : "translate-x-0"
             )}
           />

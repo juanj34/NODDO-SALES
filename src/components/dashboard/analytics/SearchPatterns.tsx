@@ -24,7 +24,7 @@ export function SearchPatterns({ searches }: Props) {
       "
     >
       <div className="mb-4">
-        <h3 className="font-ui text-xs font-bold uppercase tracking-wider text-white mb-1">
+        <h3 className="font-ui text-xs font-bold uppercase tracking-wider text-[var(--text-primary)] mb-1">
           Búsquedas populares
         </h3>
         <p className="font-mono text-xs text-[var(--text-tertiary)]">
@@ -47,7 +47,7 @@ export function SearchPatterns({ searches }: Props) {
               <div className="flex items-center justify-between mb-1">
                 <div className="flex items-center gap-2 flex-1 min-w-0">
                   <Search size={12} className="text-[var(--text-muted)] shrink-0" />
-                  <p className="font-mono text-xs text-white truncate">
+                  <p className="font-mono text-xs text-[var(--text-primary)] truncate">
                     &quot;{item.query}&quot;
                   </p>
                 </div>

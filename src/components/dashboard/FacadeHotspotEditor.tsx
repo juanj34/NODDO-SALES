@@ -30,7 +30,7 @@ const STATUS_LABELS: Record<Unidad["estado"], string> = {
   proximamente: "Próximamente",
 };
 
-const EMPTY_DOT_COLOR = "#ffffff";
+const EMPTY_DOT_COLOR = "#ffffff"; // theme-allow: empty dot marker over facade image
 const SELECTION_COLOR = "#38bdf8";
 const DRAG_THRESHOLD = 5; // px
 const MAX_UNDO = 50;
@@ -1034,7 +1034,7 @@ export function FacadeHotspotEditor({
       <div className="flex items-center gap-3 px-3 py-1.5 bg-[var(--surface-1)] border border-[var(--border-subtle)] rounded-lg">
         <span className="font-ui text-[9px] font-bold text-[var(--text-muted)] uppercase tracking-widest mr-1">Estado</span>
         <div className="flex items-center gap-1.5">
-          <span className="w-2 h-2 rounded-full border border-dashed border-gray-500 bg-white" />
+          <span className="w-2 h-2 rounded-full border border-dashed border-gray-500 bg-white" /> {/* // theme-allow: legend swatch for white over-image dot */}
           <span className="text-[10px] text-[var(--text-muted)]">Vacío</span>
         </div>
         {(Object.keys(STATUS_COLORS) as Unidad["estado"][]).map((s) => (
@@ -1099,19 +1099,19 @@ export function FacadeHotspotEditor({
                 initial={{ opacity: 0, y: -8 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -8 }}
-                className="flex items-center gap-3 px-4 py-2.5 bg-black/80 backdrop-blur-xl border border-red-500/30 rounded-xl shadow-lg"
+                className="flex items-center gap-3 px-4 py-2.5 bg-black/80 backdrop-blur-xl border border-red-500/30 rounded-xl shadow-lg" // theme-allow: floating confirm bar over facade image
               >
                 <AlertTriangle size={15} className="text-red-400 shrink-0" />
                 <span className="text-[12px] text-red-300 whitespace-nowrap">Eliminar todos los puntos?</span>
                 <button
                   onClick={() => setConfirmClear(false)}
-                  className="px-3 py-1 text-[11px] text-[var(--text-secondary)] hover:text-white bg-[var(--surface-3)] hover:bg-[var(--surface-4)] rounded-lg border border-[var(--border-subtle)] transition-colors"
+                  className="px-3 py-1 text-[11px] text-[var(--text-secondary)] hover:text-white bg-[var(--surface-3)] hover:bg-[var(--surface-4)] rounded-lg border border-[var(--border-subtle)] transition-colors" // theme-allow: button label over facade image toolbar
                 >
                   Cancelar
                 </button>
                 <button
                   onClick={handleClearAll}
-                  className="px-3 py-1 text-[11px] text-white bg-red-500/80 hover:bg-red-500 rounded-lg transition-colors"
+                  className="px-3 py-1 text-[11px] text-white bg-red-500/80 hover:bg-red-500 rounded-lg transition-colors" // theme-allow: button label over facade image toolbar
                 >
                   Confirmar
                 </button>
@@ -1122,13 +1122,13 @@ export function FacadeHotspotEditor({
                 initial={{ opacity: 0, y: -8 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -8 }}
-                className="flex items-center gap-2 px-2 py-1.5 whitespace-nowrap bg-black/70 backdrop-blur-xl border border-[var(--border-default)] rounded-xl shadow-lg"
+                className="flex items-center gap-2 px-2 py-1.5 whitespace-nowrap bg-black/70 backdrop-blur-xl border border-[var(--border-default)] rounded-xl shadow-lg" // theme-allow: floating toolbar over facade image
               >
                 {/* Undo / Redo */}
                 <button
                   onClick={handleUndo}
                   disabled={undoLen === 0}
-                  className="flex items-center justify-center w-7 h-7 text-[var(--text-secondary)] hover:text-white bg-[var(--surface-2)]/60 hover:bg-[var(--surface-3)] border border-[var(--border-subtle)] rounded-lg transition-all disabled:opacity-30 disabled:pointer-events-none"
+                  className="flex items-center justify-center w-7 h-7 text-[var(--text-secondary)] hover:text-white bg-[var(--surface-2)]/60 hover:bg-[var(--surface-3)] border border-[var(--border-subtle)] rounded-lg transition-all disabled:opacity-30 disabled:pointer-events-none" /* // theme-allow: toolbar button over facade image */
                   title="Deshacer (Ctrl+Z)"
                 >
                   <Undo2 size={13} />
@@ -1136,7 +1136,7 @@ export function FacadeHotspotEditor({
                 <button
                   onClick={handleRedo}
                   disabled={redoLen === 0}
-                  className="flex items-center justify-center w-7 h-7 text-[var(--text-secondary)] hover:text-white bg-[var(--surface-2)]/60 hover:bg-[var(--surface-3)] border border-[var(--border-subtle)] rounded-lg transition-all disabled:opacity-30 disabled:pointer-events-none"
+                  className="flex items-center justify-center w-7 h-7 text-[var(--text-secondary)] hover:text-white bg-[var(--surface-2)]/60 hover:bg-[var(--surface-3)] border border-[var(--border-subtle)] rounded-lg transition-all disabled:opacity-30 disabled:pointer-events-none" /* // theme-allow: toolbar button over facade image */
                   title="Rehacer (Ctrl+Shift+Z)"
                 >
                   <Redo2 size={13} />
@@ -1398,7 +1398,7 @@ export function FacadeHotspotEditor({
                 {activeMenuUnit && (
                   <button
                     onClick={handleUnassignDot}
-                    className="w-full flex items-center gap-2 px-3 py-1.5 text-[11px] text-[var(--text-secondary)] hover:text-white hover:bg-[var(--surface-2)] transition-colors"
+                    className="w-full flex items-center gap-2 px-3 py-1.5 text-[11px] text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--surface-2)] transition-colors"
                   >
                     <Unlink size={12} />
                     Desasignar
@@ -1451,14 +1451,14 @@ export function FacadeHotspotEditor({
                 <label className="font-ui text-[10px] text-[var(--text-tertiary)] uppercase tracking-wider font-bold mb-1 block">Copias</label>
                 <input type="number" min={1} max={50} value={repeatCount}
                   onChange={(e) => setRepeatCount(Math.max(1, Math.min(50, parseInt(e.target.value) || 1)))}
-                  className="w-full px-2 py-1.5 text-[12px] text-white bg-[var(--surface-3)] border border-[var(--border-subtle)] rounded-lg focus:border-[var(--site-primary)] focus:outline-none transition-colors"
+                  className="w-full px-2 py-1.5 text-[12px] text-[var(--text-primary)] bg-[var(--surface-3)] border border-[var(--border-subtle)] rounded-lg focus:border-[var(--site-primary)] focus:outline-none transition-colors"
                 />
               </div>
               <div>
                 <label className="font-ui text-[10px] text-[var(--text-tertiary)] uppercase tracking-wider font-bold mb-1 block">Espaciado %</label>
                 <input type="number" min={0.5} max={20} step={0.5} value={repeatSpacing}
                   onChange={(e) => setRepeatSpacing(Math.max(0.5, Math.min(20, parseFloat(e.target.value) || 1)))}
-                  className="w-full px-2 py-1.5 text-[12px] text-white bg-[var(--surface-3)] border border-[var(--border-subtle)] rounded-lg focus:border-[var(--site-primary)] focus:outline-none transition-colors"
+                  className="w-full px-2 py-1.5 text-[12px] text-[var(--text-primary)] bg-[var(--surface-3)] border border-[var(--border-subtle)] rounded-lg focus:border-[var(--site-primary)] focus:outline-none transition-colors"
                 />
               </div>
               <div>
@@ -1469,7 +1469,7 @@ export function FacadeHotspotEditor({
                     className={cn("flex items-center justify-center w-7 h-7 rounded-md border text-[11px] transition-all",
                       repeatDirection === "up"
                         ? "bg-[rgba(var(--site-primary-rgb),0.15)] border-[rgba(var(--site-primary-rgb),0.4)] text-[var(--site-primary)]"
-                        : "bg-[var(--surface-3)] border-[var(--border-subtle)] text-[var(--text-secondary)] hover:text-white"
+                        : "bg-[var(--surface-3)] border-[var(--border-subtle)] text-[var(--text-secondary)] hover:text-[var(--text-primary)]"
                     )}>
                     <ArrowUp size={12} />
                   </button>
@@ -1478,7 +1478,7 @@ export function FacadeHotspotEditor({
                     className={cn("flex items-center justify-center w-7 h-7 rounded-md border text-[11px] transition-all",
                       repeatDirection === "left"
                         ? "bg-[rgba(var(--site-primary-rgb),0.15)] border-[rgba(var(--site-primary-rgb),0.4)] text-[var(--site-primary)]"
-                        : "bg-[var(--surface-3)] border-[var(--border-subtle)] text-[var(--text-secondary)] hover:text-white"
+                        : "bg-[var(--surface-3)] border-[var(--border-subtle)] text-[var(--text-secondary)] hover:text-[var(--text-primary)]"
                     )}>
                     <ArrowLeft size={12} />
                   </button>
@@ -1486,7 +1486,7 @@ export function FacadeHotspotEditor({
                     className={cn("flex items-center justify-center w-7 h-7 rounded-md border text-[11px] transition-all",
                       repeatDirection === "down"
                         ? "bg-[rgba(var(--site-primary-rgb),0.15)] border-[rgba(var(--site-primary-rgb),0.4)] text-[var(--site-primary)]"
-                        : "bg-[var(--surface-3)] border-[var(--border-subtle)] text-[var(--text-secondary)] hover:text-white"
+                        : "bg-[var(--surface-3)] border-[var(--border-subtle)] text-[var(--text-secondary)] hover:text-[var(--text-primary)]"
                     )}>
                     <ArrowDown size={12} />
                   </button>
@@ -1494,7 +1494,7 @@ export function FacadeHotspotEditor({
                     className={cn("flex items-center justify-center w-7 h-7 rounded-md border text-[11px] transition-all",
                       repeatDirection === "right"
                         ? "bg-[rgba(var(--site-primary-rgb),0.15)] border-[rgba(var(--site-primary-rgb),0.4)] text-[var(--site-primary)]"
-                        : "bg-[var(--surface-3)] border-[var(--border-subtle)] text-[var(--text-secondary)] hover:text-white"
+                        : "bg-[var(--surface-3)] border-[var(--border-subtle)] text-[var(--text-secondary)] hover:text-[var(--text-primary)]"
                     )}>
                     <ArrowRight size={12} />
                   </button>
@@ -1508,7 +1508,7 @@ export function FacadeHotspotEditor({
             )}
             <div className="flex items-center justify-end gap-2">
               <button onClick={() => setShowRepeatRow(false)}
-                className="px-3 py-1.5 text-[11px] text-[var(--text-secondary)] hover:text-white bg-[var(--surface-3)] hover:bg-[var(--surface-4)] rounded-lg border border-[var(--border-subtle)] transition-colors">
+                className="px-3 py-1.5 text-[11px] text-[var(--text-secondary)] hover:text-[var(--text-primary)] bg-[var(--surface-3)] hover:bg-[var(--surface-4)] rounded-lg border border-[var(--border-subtle)] transition-colors">
                 Cancelar
               </button>
               <button onClick={handleApplyRepeatRow} disabled={previewDots.length === 0}
@@ -1545,14 +1545,14 @@ export function FacadeHotspotEditor({
                 <label className="font-ui text-[10px] text-[var(--text-tertiary)] uppercase tracking-wider font-bold mb-1 block">Columnas</label>
                 <input type="number" min={1} max={20} value={gridCols}
                   onChange={(e) => setGridCols(Math.max(1, Math.min(20, parseInt(e.target.value) || 1)))}
-                  className="w-full px-2 py-1.5 text-[12px] text-white bg-[var(--surface-3)] border border-[var(--border-subtle)] rounded-lg focus:border-[var(--site-primary)] focus:outline-none transition-colors"
+                  className="w-full px-2 py-1.5 text-[12px] text-[var(--text-primary)] bg-[var(--surface-3)] border border-[var(--border-subtle)] rounded-lg focus:border-[var(--site-primary)] focus:outline-none transition-colors"
                 />
               </div>
               <div>
                 <label className="font-ui text-[10px] text-[var(--text-tertiary)] uppercase tracking-wider font-bold mb-1 block">Filas</label>
                 <input type="number" min={1} max={50} value={gridRows}
                   onChange={(e) => setGridRows(Math.max(1, Math.min(50, parseInt(e.target.value) || 1)))}
-                  className="w-full px-2 py-1.5 text-[12px] text-white bg-[var(--surface-3)] border border-[var(--border-subtle)] rounded-lg focus:border-[var(--site-primary)] focus:outline-none transition-colors"
+                  className="w-full px-2 py-1.5 text-[12px] text-[var(--text-primary)] bg-[var(--surface-3)] border border-[var(--border-subtle)] rounded-lg focus:border-[var(--site-primary)] focus:outline-none transition-colors"
                 />
               </div>
             </div>
@@ -1564,7 +1564,7 @@ export function FacadeHotspotEditor({
                   </label>
                   <input type="number" min={0} max={100} value={gridBounds[key]}
                     onChange={(e) => setGridBounds((b) => ({ ...b, [key]: Math.max(0, Math.min(100, parseFloat(e.target.value) || 0)) }))}
-                    className="w-full px-2 py-1.5 text-[12px] text-white bg-[var(--surface-3)] border border-[var(--border-subtle)] rounded-lg focus:border-[var(--site-primary)] focus:outline-none transition-colors"
+                    className="w-full px-2 py-1.5 text-[12px] text-[var(--text-primary)] bg-[var(--surface-3)] border border-[var(--border-subtle)] rounded-lg focus:border-[var(--site-primary)] focus:outline-none transition-colors"
                   />
                 </div>
               ))}
@@ -1576,7 +1576,7 @@ export function FacadeHotspotEditor({
             )}
             <div className="flex items-center justify-end gap-2">
               <button onClick={() => setShowQuickGrid(false)}
-                className="px-3 py-1.5 text-[11px] text-[var(--text-secondary)] hover:text-white bg-[var(--surface-3)] hover:bg-[var(--surface-4)] rounded-lg border border-[var(--border-subtle)] transition-colors">
+                className="px-3 py-1.5 text-[11px] text-[var(--text-secondary)] hover:text-[var(--text-primary)] bg-[var(--surface-3)] hover:bg-[var(--surface-4)] rounded-lg border border-[var(--border-subtle)] transition-colors">
                 Cancelar
               </button>
               <button onClick={handleApplyQuickGrid} disabled={previewDots.length === 0}
@@ -1647,10 +1647,10 @@ function AllDots({
               top: px.top,
               transform: 'translate(-50%, -50%)',
               backgroundColor: STATUS_COLORS[unit.estado],
-              borderColor: isSelected || isMenuOpen ? SELECTION_COLOR : "rgba(0,0,0,0.5)",
+              borderColor: isSelected || isMenuOpen ? SELECTION_COLOR : "rgba(0,0,0,0.5)", // theme-allow: dot marker border over facade image
               boxShadow: isHovered || isMenuOpen
                 ? `0 0 0 4px ${STATUS_COLORS[unit.estado]}40`
-                : "0 1px 3px rgba(0,0,0,0.5)",
+                : "0 1px 3px rgba(0,0,0,0.5)", // theme-allow: dot marker shadow over facade image
               zIndex: isSelected || isHovered || isMenuOpen ? 20 : 10,
               pointerEvents: isDragging && !isThisDragging && !isSelected ? "none" : "auto",
             }}
@@ -1661,13 +1661,13 @@ function AllDots({
           >
             {/* Always-visible identifier label */}
             <div
-              className="absolute left-full top-1/2 -translate-y-1/2 ml-1 px-1 py-0.5 bg-black/75 rounded pointer-events-none whitespace-nowrap"
+              className="absolute left-full top-1/2 -translate-y-1/2 ml-1 px-1 py-0.5 bg-black/75 rounded pointer-events-none whitespace-nowrap" /* // theme-allow: unit label chip over facade image */
               style={{ zIndex: 25 }}
             >
-              <span className="text-[9px] font-mono font-bold text-white leading-none">{unit.identificador}</span>
+              <span className="text-[9px] font-mono font-bold text-white leading-none">{unit.identificador}</span> {/* // theme-allow: unit label text over facade image */}
             </div>
             {(isHovered || isSelected) && !isMenuOpen && (
-              <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-2 py-1 bg-black/90 text-white text-[10px] rounded-md whitespace-nowrap pointer-events-none z-30">
+              <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-2 py-1 bg-black/90 text-white text-[10px] rounded-md whitespace-nowrap pointer-events-none z-30"> {/* // theme-allow: tooltip over facade image */}
                 <span className="font-medium">{unit.identificador}</span>
                 <span className="text-[var(--text-secondary)] ml-1">({STATUS_LABELS[unit.estado]})</span>
               </div>
@@ -1698,10 +1698,10 @@ function AllDots({
               top: px.top,
               transform: 'translate(-50%, -50%)',
               backgroundColor: EMPTY_DOT_COLOR,
-              border: `2px dashed ${isSelected || isMenuOpen ? SELECTION_COLOR : "rgba(255,255,255,0.4)"}`,
+              border: `2px dashed ${isSelected || isMenuOpen ? SELECTION_COLOR : "rgba(255,255,255,0.4)"}`, // theme-allow: empty dot dashed border over facade image
               boxShadow: isHovered || isMenuOpen
                 ? `0 0 0 4px ${EMPTY_DOT_COLOR}40`
-                : "0 1px 3px rgba(0,0,0,0.5)",
+                : "0 1px 3px rgba(0,0,0,0.5)", // theme-allow: empty dot shadow over facade image
               zIndex: isSelected || isHovered || isMenuOpen ? 20 : 10,
               pointerEvents: isDragging && !isThisDragging && !isSelected ? "none" : "auto",
             }}
@@ -1711,7 +1711,7 @@ function AllDots({
             onContextMenu={(e) => { e.preventDefault(); onContextMenu(dot.localId, true); }}
           >
             {isHovered && !isMenuOpen && (
-              <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-2 py-1 bg-black/90 text-white text-[10px] rounded-md whitespace-nowrap pointer-events-none z-30">
+              <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-2 py-1 bg-black/90 text-white text-[10px] rounded-md whitespace-nowrap pointer-events-none z-30"> {/* // theme-allow: tooltip over facade image */}
                 Sin asignar
               </div>
             )}

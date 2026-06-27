@@ -119,7 +119,7 @@ export function OnboardingWizard({ onDismiss }: OnboardingWizardProps) {
           background:
             "linear-gradient(to bottom, var(--surface-1), var(--surface-0))",
           boxShadow:
-            "0 25px 50px -12px rgba(0,0,0,0.4), 0 0 0 1px rgba(255,255,255,0.03)",
+            "0 25px 50px -12px rgba(var(--overlay-rgb),0.4), 0 0 0 1px rgba(var(--contrast-rgb),0.03)",
         }}
       >
         {/* Ambient glow */}
@@ -134,7 +134,7 @@ export function OnboardingWizard({ onDismiss }: OnboardingWizardProps) {
         {/* Skip button */}
         <button
           onClick={handleSkip}
-          className="absolute top-4 right-4 z-10 p-1.5 rounded-lg hover:bg-white/5 transition-colors cursor-pointer"
+          className="absolute top-4 right-4 z-10 p-1.5 rounded-lg hover:bg-[var(--surface-2)] transition-colors cursor-pointer"
           aria-label="Skip"
         >
           <X size={16} className="text-[var(--text-muted)]" />
@@ -146,7 +146,7 @@ export function OnboardingWizard({ onDismiss }: OnboardingWizardProps) {
             {STEPS.map((_, idx) => (
               <div
                 key={idx}
-                className="flex-1 h-1 rounded-full overflow-hidden bg-white/5"
+                className="flex-1 h-1 rounded-full overflow-hidden bg-[var(--surface-2)]"
               >
                 <motion.div
                   className="h-full rounded-full"
@@ -156,7 +156,7 @@ export function OnboardingWizard({ onDismiss }: OnboardingWizardProps) {
                     backgroundColor:
                       idx <= step
                         ? "rgb(184, 151, 58)"
-                        : "rgba(255,255,255,0.05)",
+                        : "rgba(var(--contrast-rgb),0.05)",
                   }}
                   transition={{ duration: 0.4 }}
                 />
@@ -181,12 +181,12 @@ export function OnboardingWizard({ onDismiss }: OnboardingWizardProps) {
               transition={{ duration: 0.3 }}
             >
               {/* Icon */}
-              <div className="w-14 h-14 rounded-2xl bg-[rgba(184,151,58,0.10)] border border-[rgba(184,151,58,0.20)] flex items-center justify-center mb-5 text-[#b8973a]">
+              <div className="w-14 h-14 rounded-2xl bg-[rgba(184,151,58,0.10)] border border-[rgba(184,151,58,0.20)] flex items-center justify-center mb-5 text-[var(--site-primary)]">
                 {current.icon}
               </div>
 
               {/* Title */}
-              <h2 className="text-2xl font-heading font-light text-white tracking-wide mb-3">
+              <h2 className="text-2xl font-heading font-light text-[var(--text-primary)] tracking-wide mb-3">
                 {t(current.titleKey)}
               </h2>
 
@@ -213,9 +213,9 @@ export function OnboardingWizard({ onDismiss }: OnboardingWizardProps) {
                   ].map((f, i) => (
                     <div
                       key={i}
-                      className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-white/3 border border-white/6 text-xs text-[var(--text-secondary)]"
+                      className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-[var(--surface-2)] border border-[var(--border-subtle)] text-xs text-[var(--text-secondary)]"
                     >
-                      <span className="text-[#b8973a]">{f.icon}</span>
+                      <span className="text-[var(--site-primary)]">{f.icon}</span>
                       {f.label}
                     </div>
                   ))}
@@ -227,9 +227,9 @@ export function OnboardingWizard({ onDismiss }: OnboardingWizardProps) {
                 <a
                   href="/templates/inventario-template.csv"
                   download="inventario-template.csv"
-                  className="inline-flex items-center gap-2 px-4 py-2 rounded-[0.75rem] bg-white/5 border border-white/10 text-sm text-[var(--text-secondary)] hover:bg-white/8 hover:border-white/15 transition-all mb-6"
+                  className="inline-flex items-center gap-2 px-4 py-2 rounded-[0.75rem] bg-[var(--surface-2)] border border-[var(--border-default)] text-sm text-[var(--text-secondary)] hover:bg-[var(--surface-3)] hover:border-[var(--border-strong)] transition-all mb-6"
                 >
-                  <Download size={14} className="text-[#b8973a]" />
+                  <Download size={14} className="text-[var(--site-primary)]" />
                   {t("onboarding.downloadTemplate")}
                 </a>
               )}
@@ -237,11 +237,11 @@ export function OnboardingWizard({ onDismiss }: OnboardingWizardProps) {
           </AnimatePresence>
 
           {/* Navigation */}
-          <div className="flex items-center justify-between mt-8 pt-6 border-t border-white/5">
+          <div className="flex items-center justify-between mt-8 pt-6 border-t border-[var(--border-subtle)]">
             <button
               onClick={handlePrev}
               disabled={step === 0}
-              className="flex items-center gap-2 text-sm text-[var(--text-secondary)] hover:text-white transition-colors disabled:opacity-0 disabled:pointer-events-none cursor-pointer"
+              className="flex items-center gap-2 text-sm text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors disabled:opacity-0 disabled:pointer-events-none cursor-pointer"
             >
               <ArrowLeft size={14} />
               {t("onboarding.prev")}

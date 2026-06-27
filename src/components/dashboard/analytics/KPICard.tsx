@@ -25,7 +25,7 @@ export function KPICard({ label, value, icon, trend, suffix }: Props) {
         </div>
       </div>
       <div className="flex items-end gap-2">
-        <span className={cn("font-heading font-light text-white leading-none", fontSize.hero)}>
+        <span className={cn("font-heading font-light text-[var(--text-primary)] leading-none", fontSize.hero)}>
           {typeof value === "number" ? value.toLocaleString("es-CO") : value}
         </span>
         {suffix && (

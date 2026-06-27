@@ -205,7 +205,7 @@ export default function CotizacionesPage() {
         <button
           onClick={exportCSV}
           disabled={!data?.cotizaciones.length}
-          className="flex items-center gap-2 px-4 py-2 rounded-xl bg-[var(--surface-2)] border border-[var(--border-subtle)] text-[var(--text-secondary)] font-ui text-[10px] font-bold uppercase tracking-[0.1em] hover:text-white hover:border-[var(--border-default)] transition-all disabled:opacity-40"
+          className="flex items-center gap-2 px-4 py-2 rounded-xl bg-[var(--surface-2)] border border-[var(--border-subtle)] text-[var(--text-secondary)] font-ui text-[10px] font-bold uppercase tracking-[0.1em] hover:text-[var(--text-primary)] hover:border-[var(--border-default)] transition-all disabled:opacity-40"
         >
           <Download size={13} />
           Exportar CSV
@@ -290,7 +290,7 @@ export default function CotizacionesPage() {
         {hasFilters && (
           <button
             onClick={() => { setSearch(""); setDateFrom(null); setDateTo(null); setProyectoFilter(null); }}
-            className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-[10px] font-ui font-bold uppercase tracking-[0.08em] text-[var(--text-muted)] hover:text-white transition-colors"
+            className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-[10px] font-ui font-bold uppercase tracking-[0.08em] text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-colors"
           >
             <X size={12} />
             Limpiar
@@ -403,7 +403,7 @@ export default function CotizacionesPage() {
             {hasFilters && (
               <button
                 onClick={() => { setSearch(""); setDateFrom(null); setDateTo(null); setProyectoFilter(null); }}
-                className="mt-2 text-[10px] font-ui font-bold uppercase tracking-wider text-[var(--site-primary)] hover:text-white transition-colors"
+                className="mt-2 text-[10px] font-ui font-bold uppercase tracking-wider text-[var(--site-primary)] hover:text-[var(--text-primary)] transition-colors"
               >
                 Limpiar filtros
               </button>
@@ -422,7 +422,7 @@ export default function CotizacionesPage() {
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               onClick={() => setSelectedId(null)}
-              className="fixed inset-0 bg-black/50 z-40"
+              className="fixed inset-0 bg-[rgba(var(--overlay-rgb),0.5)] z-40"
             />
 
             {/* Panel */}
@@ -438,7 +438,7 @@ export default function CotizacionesPage() {
                 <h3 className="font-heading text-lg font-light text-[var(--text-primary)]">Detalle</h3>
                 <button
                   onClick={() => setSelectedId(null)}
-                  className="p-1.5 rounded-lg hover:bg-[var(--surface-2)] text-[var(--text-muted)] hover:text-white transition-colors"
+                  className="p-1.5 rounded-lg hover:bg-[var(--surface-2)] text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-colors"
                 >
                   <X size={16} />
                 </button>
@@ -549,7 +549,7 @@ export default function CotizacionesPage() {
                   <button
                     onClick={() => handleResend(selectedCotizacion.id)}
                     disabled={!!actionLoading}
-                    className="flex items-center justify-center gap-2 px-3 py-2 rounded-xl bg-[var(--surface-2)] border border-[var(--border-subtle)] text-[var(--text-secondary)] font-ui text-[10px] font-bold uppercase tracking-[0.08em] hover:text-white hover:border-[var(--border-default)] transition-all disabled:opacity-50"
+                    className="flex items-center justify-center gap-2 px-3 py-2 rounded-xl bg-[var(--surface-2)] border border-[var(--border-subtle)] text-[var(--text-secondary)] font-ui text-[10px] font-bold uppercase tracking-[0.08em] hover:text-[var(--text-primary)] hover:border-[var(--border-default)] transition-all disabled:opacity-50"
                   >
                     {actionLoading === `resend-${selectedCotizacion.id}` ? (
                       <Loader2 size={12} className="animate-spin" />
@@ -561,7 +561,7 @@ export default function CotizacionesPage() {
                   <button
                     onClick={() => handleRegenerate(selectedCotizacion.id)}
                     disabled={!!actionLoading}
-                    className="flex items-center justify-center gap-2 px-3 py-2 rounded-xl bg-[var(--surface-2)] border border-[var(--border-subtle)] text-[var(--text-secondary)] font-ui text-[10px] font-bold uppercase tracking-[0.08em] hover:text-white hover:border-[var(--border-default)] transition-all disabled:opacity-50"
+                    className="flex items-center justify-center gap-2 px-3 py-2 rounded-xl bg-[var(--surface-2)] border border-[var(--border-subtle)] text-[var(--text-secondary)] font-ui text-[10px] font-bold uppercase tracking-[0.08em] hover:text-[var(--text-primary)] hover:border-[var(--border-default)] transition-all disabled:opacity-50"
                   >
                     {actionLoading === `regen-${selectedCotizacion.id}` ? (
                       <Loader2 size={12} className="animate-spin" />

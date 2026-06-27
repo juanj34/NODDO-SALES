@@ -355,7 +355,7 @@ export function AITextImprover({
                       <div className="text-sm font-semibold text-[var(--text-primary)] mb-0.5 flex items-center gap-2">
                         {item.label}
                         {idx === 0 && (
-                          <span className="text-[9px] font-ui font-bold uppercase tracking-wider px-1.5 py-0.5 rounded bg-[var(--site-primary)] text-black">
+                          <span className="text-[9px] font-ui font-bold uppercase tracking-wider px-1.5 py-0.5 rounded bg-[var(--site-primary)] text-black" /* // theme-allow: dark text on gold */>
                             Recomendado
                           </span>
                         )}
@@ -432,13 +432,13 @@ export function AITextImprover({
           <div className="flex items-center justify-end gap-2">
             <button
               onClick={handleDiscard}
-              className="px-4 py-2 text-xs font-medium rounded-[0.625rem] text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-white/5 border border-[var(--border-subtle)] transition-colors cursor-pointer"
+              className="px-4 py-2 text-xs font-medium rounded-[0.625rem] text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--surface-2)] border border-[var(--border-subtle)] transition-colors cursor-pointer"
             >
               Descartar
             </button>
             <button
               onClick={handleApply}
-              className="px-4 py-2 text-xs font-semibold rounded-[0.625rem] bg-[var(--site-primary)] hover:bg-[var(--site-secondary)] text-black transition-colors shadow-[var(--glow-sm)] flex items-center gap-1.5 cursor-pointer"
+              className="px-4 py-2 text-xs font-semibold rounded-[0.625rem] bg-[var(--site-primary)] hover:bg-[var(--site-secondary)] text-black transition-colors shadow-[var(--glow-sm)] flex items-center gap-1.5 cursor-pointer" /* // theme-allow: dark text on gold */
             >
               <Check size={14} />
               Aplicar
@@ -460,7 +460,7 @@ export function AITextImprover({
           >
             {/* backdrop */}
             <div
-              className="absolute inset-0 bg-black/70 backdrop-blur-sm"
+              className="absolute inset-0 bg-[rgba(var(--overlay-rgb),0.7)] backdrop-blur-sm"
               onClick={closeModal}
             />
 
@@ -530,7 +530,7 @@ export function AITextImprover({
                             onClick={() => setLang(l)}
                             className={`flex-1 px-4 py-3 rounded-[0.625rem] text-sm font-ui font-bold uppercase tracking-wider transition-all cursor-pointer ${
                               lang === l
-                                ? "bg-[var(--site-primary)] text-black shadow-[var(--glow-sm)]"
+                                ? "bg-[var(--site-primary)] text-black shadow-[var(--glow-sm)]" // theme-allow: dark text on gold
                                 : "bg-[var(--surface-3)] text-[var(--text-tertiary)] border border-[var(--border-default)] hover:border-[var(--site-primary)]"
                             }`}
                           >
@@ -592,13 +592,13 @@ export function AITextImprover({
                     <div className="flex items-center justify-end gap-3 pt-4 border-t border-[var(--border-subtle)]">
                       <button
                         onClick={closeModal}
-                        className="px-5 py-2.5 text-sm font-medium rounded-[0.75rem] text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-white/5 border border-[var(--border-subtle)] transition-colors cursor-pointer"
+                        className="px-5 py-2.5 text-sm font-medium rounded-[0.75rem] text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--surface-2)] border border-[var(--border-subtle)] transition-colors cursor-pointer"
                       >
                         Cancelar
                       </button>
                       <button
                         onClick={handleGenerate}
-                        className="px-5 py-2.5 text-sm font-semibold rounded-[0.75rem] bg-[var(--site-primary)] hover:bg-[var(--site-secondary)] text-black transition-colors shadow-[var(--glow-sm)] flex items-center gap-2 cursor-pointer"
+                        className="px-5 py-2.5 text-sm font-semibold rounded-[0.75rem] bg-[var(--site-primary)] hover:bg-[var(--site-secondary)] text-black transition-colors shadow-[var(--glow-sm)] flex items-center gap-2 cursor-pointer" /* // theme-allow: dark text on gold */
                       >
                         <Sparkles size={16} />
                         Generar
@@ -660,13 +660,13 @@ export function AITextImprover({
                     <div className="flex items-center justify-end gap-3 pt-4 border-t border-[var(--border-subtle)]">
                       <button
                         onClick={handleDiscard}
-                        className="px-5 py-2.5 text-sm font-medium rounded-[0.75rem] text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-white/5 border border-[var(--border-subtle)] transition-colors cursor-pointer"
+                        className="px-5 py-2.5 text-sm font-medium rounded-[0.75rem] text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--surface-2)] border border-[var(--border-subtle)] transition-colors cursor-pointer"
                       >
                         Descartar
                       </button>
                       <button
                         onClick={handleApply}
-                        className="px-5 py-2.5 text-sm font-semibold rounded-[0.75rem] bg-[var(--site-primary)] hover:bg-[var(--site-secondary)] text-black transition-colors shadow-[var(--glow-sm)] flex items-center gap-2 cursor-pointer"
+                        className="px-5 py-2.5 text-sm font-semibold rounded-[0.75rem] bg-[var(--site-primary)] hover:bg-[var(--site-secondary)] text-black transition-colors shadow-[var(--glow-sm)] flex items-center gap-2 cursor-pointer" /* // theme-allow: dark text on gold */
                       >
                         <Check size={16} />
                         Aplicar cambios

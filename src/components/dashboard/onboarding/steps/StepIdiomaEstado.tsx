@@ -92,7 +92,7 @@ export default function StepIdiomaEstado({
                   />
                 </div>
                 <div className="flex flex-col gap-0.5">
-                  <span className="text-sm font-medium text-white">{label}</span>
+                  <span className="text-sm font-medium text-[var(--text-primary)]">{label}</span>
                   <span className="font-mono text-[10px] text-[var(--text-muted)]">
                     {desc}
                   </span>
@@ -142,7 +142,7 @@ export default function StepIdiomaEstado({
                   />
                 </div>
                 <div className="flex flex-col gap-0.5">
-                  <span className="text-sm font-medium text-white">{label}</span>
+                  <span className="text-sm font-medium text-[var(--text-primary)]">{label}</span>
                   <span className="font-mono text-[10px] text-[var(--text-muted)]">
                     {desc}
                   </span>

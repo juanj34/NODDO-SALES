@@ -53,7 +53,7 @@ export function RankedList({ data, maxItems = 6, title, icon: Icon }: Props) {
                 <span className="font-mono text-[11px] text-[var(--text-muted)]">
                   {pct}%
                 </span>
-                <span className="font-mono text-[12px] text-white font-medium min-w-[32px] text-right">
+                <span className="font-mono text-[12px] text-[var(--text-primary)] font-medium min-w-[32px] text-right">
                   {item.count.toLocaleString("es-CO")}
                 </span>
               </div>

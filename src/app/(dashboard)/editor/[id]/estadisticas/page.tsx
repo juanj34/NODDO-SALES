@@ -147,7 +147,7 @@ export default function EstadisticasPage() {
           <p className={emptyStateDescription}>{error?.message || "Error desconocido"}</p>
           <button
             onClick={() => refresh()}
-            className="mt-4 flex items-center gap-2 px-4 py-2 bg-[var(--surface-3)] border border-[var(--border-default)] rounded-lg font-ui text-[11px] font-bold uppercase tracking-[0.08em] text-[var(--text-secondary)] hover:text-white hover:bg-[var(--surface-4)] transition-all"
+            className="mt-4 flex items-center gap-2 px-4 py-2 bg-[var(--surface-3)] border border-[var(--border-default)] rounded-lg font-ui text-[11px] font-bold uppercase tracking-[0.08em] text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--surface-4)] transition-all"
           >
             <RefreshCw size={13} />
             Reintentar
@@ -221,7 +221,7 @@ export default function EstadisticasPage() {
           {data && (
             <button
               onClick={() => exportAnalyticsCSV(data, project.nombre)}
-              className="w-8 h-8 flex items-center justify-center rounded-lg border border-[var(--border-default)] bg-[var(--surface-2)] text-[var(--text-tertiary)] hover:text-white hover:bg-[var(--surface-3)] transition-all"
+              className="w-8 h-8 flex items-center justify-center rounded-lg border border-[var(--border-default)] bg-[var(--surface-2)] text-[var(--text-tertiary)] hover:text-[var(--text-primary)] hover:bg-[var(--surface-3)] transition-all"
               title="Exportar CSV"
             >
               <Download size={13} />
@@ -230,7 +230,7 @@ export default function EstadisticasPage() {
           <button
             onClick={() => refresh()}
             disabled={loading}
-            className="w-8 h-8 flex items-center justify-center rounded-lg border border-[var(--border-default)] bg-[var(--surface-2)] text-[var(--text-tertiary)] hover:text-white hover:bg-[var(--surface-3)] transition-all disabled:opacity-50"
+            className="w-8 h-8 flex items-center justify-center rounded-lg border border-[var(--border-default)] bg-[var(--surface-2)] text-[var(--text-tertiary)] hover:text-[var(--text-primary)] hover:bg-[var(--surface-3)] transition-all disabled:opacity-50"
             title="Actualizar datos"
           >
             <RefreshCw size={13} className={loading ? "animate-spin" : ""} />
@@ -380,7 +380,7 @@ export default function EstadisticasPage() {
                   style={{ backgroundColor: color }}
                 />
                 <div>
-                  <p className="font-heading text-xl font-light text-white leading-none">
+                  <p className="font-heading text-xl font-light text-[var(--text-primary)] leading-none">
                     {count}
                   </p>
                   <p className="font-ui text-[9px] font-bold uppercase tracking-[0.1em] text-[var(--text-muted)] mt-0.5 capitalize">

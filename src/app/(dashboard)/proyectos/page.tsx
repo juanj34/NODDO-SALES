@@ -256,7 +256,7 @@ export default function ProyectosPage() {
             <NodDoLogo height={14} colorNod="var(--text-secondary)" colorDo="var(--site-primary)" />
           </div>
 
-          <h3 className="font-heading text-xl font-light text-white mb-2">
+          <h3 className="font-heading text-xl font-light text-[var(--text-primary)] mb-2">
             {isAdmin ? "Aún no tienes proyectos" : "No hay proyectos disponibles"}
           </h3>
 
@@ -269,17 +269,17 @@ export default function ProyectosPage() {
           {isAdmin && (
             <button
               onClick={() => setShowCreate(true)}
-              className="
+              className={`
                 flex items-center gap-2
                 px-6 py-3
                 bg-[var(--site-primary)]
-                text-[#141414]
                 rounded-[0.75rem]
                 font-ui text-xs font-bold uppercase tracking-[0.1em]
                 hover:brightness-110
                 transition-all
                 shadow-[0_4px_16px_rgba(var(--site-primary-rgb),0.2)]
-              "
+              ` + " text-[#141414]" // theme-allow: dark text on gold
+              }
             >
               <Plus size={16} />
               Crear Proyecto
@@ -322,7 +322,7 @@ export default function ProyectosPage() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4"
+            className="fixed inset-0 z-50 bg-[rgba(var(--overlay-rgb),0.7)] backdrop-blur-sm flex items-center justify-center p-4"
             onClick={() => setShowCreate(false)}
             onKeyDown={(e) => e.key === "Escape" && setShowCreate(false)}
           >
@@ -354,7 +354,7 @@ export default function ProyectosPage() {
                   <button
                     type="button"
                     onClick={() => setShowCreate(false)}
-                    className="text-[var(--text-muted)] hover:text-[var(--text-secondary)] transition-colors p-1.5 -mr-1.5 -mt-0.5 rounded-lg hover:bg-white/5"
+                    className="text-[var(--text-muted)] hover:text-[var(--text-secondary)] transition-colors p-1.5 -mr-1.5 -mt-0.5 rounded-lg hover:bg-[var(--surface-2)]"
                   >
                     <X size={16} />
                   </button>

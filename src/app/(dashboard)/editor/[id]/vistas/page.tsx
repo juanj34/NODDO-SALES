@@ -359,7 +359,7 @@ export default function VistasPage() {
                 className={cn(
                   "flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-medium transition-all whitespace-nowrap shrink-0",
                   activeTorreTab === torre.id
-                    ? "bg-[var(--surface-3)] text-white shadow-sm"
+                    ? "bg-[var(--surface-3)] text-[var(--text-primary)] shadow-sm"
                     : "text-[var(--text-tertiary)] hover:text-[var(--text-secondary)] hover:bg-[var(--surface-2)]"
                 )}
               >
@@ -409,7 +409,7 @@ export default function VistasPage() {
                 initial={{ opacity: 0, scale: 0.97 }}
                 animate={{ opacity: 1, scale: 1 }}
                 exit={{ opacity: 0, scale: 0.97 }}
-                className="bg-[rgba(255,255,255,0.03)] border border-[var(--border-subtle)] rounded-[1.25rem] overflow-hidden group hover:border-[var(--border-default)] transition-all"
+                className="bg-[rgba(var(--contrast-rgb),0.03)] border border-[var(--border-subtle)] rounded-[1.25rem] overflow-hidden group hover:border-[var(--border-default)] transition-all"
               >
                 {/* Thumbnail */}
                 <div className="relative aspect-video bg-[var(--surface-2)] overflow-hidden">
@@ -428,14 +428,14 @@ export default function VistasPage() {
                   <div className="absolute top-2 right-2 flex items-center gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity">
                     <button
                       onClick={() => openEdit(vista)}
-                      className="w-8 h-8 rounded-lg bg-black/60 backdrop-blur-sm flex items-center justify-center text-white/70 hover:text-white transition-colors"
+                      className="w-8 h-8 rounded-lg bg-[rgba(var(--overlay-rgb),0.6)] backdrop-blur-sm flex items-center justify-center text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors"
                     >
                       <Pencil size={14} />
                     </button>
                     <button
                       onClick={() => handleDelete(vista)}
                       disabled={deletingId === vista.id}
-                      className="w-8 h-8 rounded-lg bg-black/60 backdrop-blur-sm flex items-center justify-center text-red-400/70 hover:text-red-400 transition-colors"
+                      className="w-8 h-8 rounded-lg bg-[rgba(var(--overlay-rgb),0.6)] backdrop-blur-sm flex items-center justify-center text-red-400/70 hover:text-red-400 transition-colors"
                     >
                       {deletingId === vista.id ? (
                         <Loader2 size={14} className="animate-spin" />
@@ -447,7 +447,7 @@ export default function VistasPage() {
 
                   {/* Assigned count badge */}
                   <div className="absolute bottom-2 left-2">
-                    <span className="flex items-center gap-1 px-2 py-1 rounded-lg bg-black/60 backdrop-blur-sm text-[10px] text-white/80">
+                    <span className="flex items-center gap-1 px-2 py-1 rounded-lg bg-[rgba(var(--overlay-rgb),0.6)] backdrop-blur-sm text-[10px] text-[var(--text-primary)]">
                       <Users size={10} />
                       {assignedCount} unidad{assignedCount !== 1 ? "es" : ""}{" "}
                       asignada{assignedCount !== 1 ? "s" : ""}
@@ -459,7 +459,7 @@ export default function VistasPage() {
                 <div className="px-4 py-3 space-y-2">
                   {/* Title + badges row */}
                   <div className="flex items-start justify-between gap-2">
-                    <h3 className="text-sm font-medium text-white truncate">
+                    <h3 className="text-sm font-medium text-[var(--text-primary)] truncate">
                       {vista.nombre}
                     </h3>
                     <div className="flex items-center gap-1.5 shrink-0">
@@ -615,7 +615,7 @@ export default function VistasPage() {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm"
+              className="fixed inset-0 z-50 bg-[rgba(var(--overlay-rgb),0.5)] backdrop-blur-sm"
               onClick={closePanel}
             />
 
@@ -626,7 +626,7 @@ export default function VistasPage() {
             >
               {/* Panel header */}
               <div className="flex items-center justify-between px-6 py-4 border-b border-[var(--border-subtle)]">
-                <h3 className="text-sm font-medium text-white flex items-center gap-2">
+                <h3 className="text-sm font-medium text-[var(--text-primary)] flex items-center gap-2">
                   <Eye size={16} className="text-[rgba(184,151,58,1)]" />
                   {editingVistaId ? t("vistas.editVista") : t("vistas.newVista")}
                 </h3>
@@ -764,7 +764,9 @@ export default function VistasPage() {
                                 >
                                   <path
                                     d="M1 4L3.5 6.5L9 1"
-                                    stroke="#141414"
+                                    stroke={
+                                      "#141414" // theme-allow: dark check mark on gold
+                                    }
                                     strokeWidth="1.5"
                                     strokeLinecap="round"
                                     strokeLinejoin="round"

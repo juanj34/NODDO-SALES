@@ -218,7 +218,7 @@ export default function MicrositeTab() {
                   isOn ? "bg-[var(--site-primary)]" : "bg-[var(--surface-3)]"
                 )}>
                   <span className={cn(
-                    "inline-block h-3.5 w-3.5 rounded-full bg-white shadow-sm transition-transform",
+                    "inline-block h-3.5 w-3.5 rounded-full bg-[var(--surface-0)] shadow-sm transition-transform",
                     isOn ? "translate-x-[18px]" : "translate-x-[3px]"
                   )} />
                 </div>
@@ -252,7 +252,7 @@ export default function MicrositeTab() {
             )}
           >
             <span className={cn(
-              "inline-block h-3.5 w-3.5 rounded-full bg-white shadow-sm transition-transform",
+              "inline-block h-3.5 w-3.5 rounded-full bg-[var(--surface-0)] shadow-sm transition-transform",
               agentConfig.enabled ? "translate-x-[18px]" : "translate-x-[3px]"
             )} />
           </button>
@@ -286,7 +286,7 @@ export default function MicrositeTab() {
                   )}
                 >
                   <span className={cn(
-                    "inline-block h-2.5 w-2.5 rounded-full bg-white shadow-sm transition-transform",
+                    "inline-block h-2.5 w-2.5 rounded-full bg-[var(--surface-0)] shadow-sm transition-transform",
                     agentConfig[key] ? "translate-x-[14px]" : "translate-x-[3px]"
                   )} />
                 </button>
@@ -317,7 +317,7 @@ export default function MicrositeTab() {
               hideNoddoBadge ? "bg-[var(--site-primary)]" : "bg-[var(--surface-3)]"
             }`}
           >
-            <span className={`inline-block h-3.5 w-3.5 rounded-full bg-white shadow-sm transition-transform ${
+            <span className={`inline-block h-3.5 w-3.5 rounded-full bg-[var(--surface-0)] shadow-sm transition-transform ${
               hideNoddoBadge ? "translate-x-[18px]" : "translate-x-[3px]"
             }`} />
           </button>

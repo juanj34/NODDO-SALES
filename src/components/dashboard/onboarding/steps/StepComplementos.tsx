@@ -97,7 +97,7 @@ function ModeSelector({
                 />
               </div>
               <div className="flex flex-col gap-0.5">
-                <span className="text-xs font-medium text-white">{optLabel}</span>
+                <span className="text-xs font-medium text-[var(--text-primary)]">{optLabel}</span>
                 <span className="font-mono text-[9px] leading-tight text-[var(--text-muted)]">
                   {desc}
                 </span>

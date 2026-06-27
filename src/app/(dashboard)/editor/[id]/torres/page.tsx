@@ -508,7 +508,7 @@ export default function TorresPage() {
         )}>
           <Layers size={iconSize.md} className="text-[var(--site-primary)] mt-0.5 shrink-0" />
           <div className="flex-1">
-            <p className={cn(fontSize.md, "font-medium text-white mb-1")}>
+            <p className={cn(fontSize.md, "font-medium text-[var(--text-primary)] mb-1")}>
               {t("torres.etapaHintTitle")}
             </p>
             <p className={cn(fontSize.body, "text-[var(--text-tertiary)] leading-relaxed")}>
@@ -572,7 +572,7 @@ export default function TorresPage() {
                     }
                   </div>
                   <div className="min-w-0 flex-1">
-                    <p className={cn(fontSize.md, "font-medium text-white truncate")}>{torre.nombre}</p>
+                    <p className={cn(fontSize.md, "font-medium text-[var(--text-primary)] truncate")}>{torre.nombre}</p>
                     {hasData ? (
                       <div className={cn("flex items-center gap-1.5", fontSize.label, "text-[var(--text-muted)]")}>
                         {hasFloors && <span>{torre.pisos_residenciales || torre.num_pisos}p</span>}
@@ -660,7 +660,7 @@ export default function TorresPage() {
           {isMobile && (selectedTorreId || showAddForm) && (
             <button
               onClick={() => { setSelectedTorreId(null); setShowAddForm(false); }}
-              className={cn("flex items-center mb-3 text-[var(--text-secondary)] hover:text-white transition-colors", gap.normal, fontSize.md)}
+              className={cn("flex items-center mb-3 text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors", gap.normal, fontSize.md)}
             >
               <ChevronRight size={iconSize.sm} className="rotate-180" />
               {t("torres.backToList")}
@@ -677,7 +677,7 @@ export default function TorresPage() {
                 transition={{ duration: 0.15 }}
               >
                 <div className={sectionCard + " border-[rgba(var(--site-primary-rgb),0.3)]"}>
-                  <h3 className={cn(fontSize.md, "font-medium text-white mb-3")}>{t("torres.newTower")}</h3>
+                  <h3 className={cn(fontSize.md, "font-medium text-[var(--text-primary)] mb-3")}>{t("torres.newTower")}</h3>
 
                   {/* Type selector - only show for hibrido projects */}
                   {project?.tipo_proyecto === "hibrido" && (
@@ -705,7 +705,7 @@ export default function TorresPage() {
                           >
                             {tipo === "torre" ? <Building2 size={iconSize.md} className="text-[var(--site-primary)] shrink-0" /> : <Home size={iconSize.md} className="text-[var(--site-primary)] shrink-0" />}
                             <div>
-                              <p className={cn(fontSize.md, "font-medium text-white")}>
+                              <p className={cn(fontSize.md, "font-medium text-[var(--text-primary)]")}>
                                 {t(tipo === "torre" ? "torres.typeTorre" : "torres.typeUrbanismo")}
                               </p>
                               <p className={cn(fontSize.label, "text-[var(--text-muted)]")}>
@@ -822,7 +822,7 @@ export default function TorresPage() {
                           fontSize.md,
                           radius.md,
                           isActive
-                            ? "bg-[var(--surface-3)] text-white shadow-sm"
+                            ? "bg-[var(--surface-3)] text-[var(--text-primary)] shadow-sm"
                             : "text-[var(--text-muted)] hover:text-[var(--text-secondary)] hover:bg-[var(--surface-2)]"
                         )}
                       >
@@ -955,7 +955,7 @@ function FachadasTabContent({ torre, fachadas: fachadasList, projectId }: Fachad
   const nFachadas = fachadasList.length;
   return (
     <div className={sectionCard}>
-      <h3 className={cn(fontSize.md, "font-medium text-white mb-2")}>
+      <h3 className={cn(fontSize.md, "font-medium text-[var(--text-primary)] mb-2")}>
         {t("torres.fachadasOf", { name: torre.nombre })}
       </h3>
       <p className={cn(fontSize.md, "text-[var(--text-tertiary)] mb-4")}>
@@ -1008,7 +1008,7 @@ function UnidadesTabContent({ torre, unidades: unidadesList, tipologias, project
 
   return (
     <div className={sectionCard}>
-      <h3 className={cn(fontSize.md, "font-medium text-white mb-2")}>
+      <h3 className={cn(fontSize.md, "font-medium text-[var(--text-primary)] mb-2")}>
         {t("torres.unitsOf", { name: torre.nombre })}
       </h3>
       <p className={cn(fontSize.md, "text-[var(--text-tertiary)] mb-4")}>
@@ -1020,7 +1020,7 @@ function UnidadesTabContent({ torre, unidades: unidadesList, tipologias, project
             const tipNombre = getTipologiaNombre(u.tipologia_id);
             return (
               <div key={u.id} className={cn("flex items-center p-2.5 bg-[var(--surface-2)]", gap.relaxed, radius.md)}>
-                <span className={cn(fontSize.md, "font-medium text-white")}>{u.identificador}</span>
+                <span className={cn(fontSize.md, "font-medium text-[var(--text-primary)]")}>{u.identificador}</span>
                 {tipNombre && (
                   <span className={cn(fontSize.label, "text-[var(--text-muted)]")}>{tipNombre}</span>
                 )}
@@ -1217,7 +1217,7 @@ function TorreEditFormInline({
             { label: t("torres.floorTypes.residential"), count: res, color: "bg-[rgba(var(--site-primary-rgb),0.5)]", text: "text-[var(--site-primary)]" },
             { label: t("torres.floorTypes.podium"), count: pod, color: "bg-blue-400/30", text: "text-blue-300" },
             { label: t("torres.floorTypes.groundFloorShort"), count: pb, color: "bg-emerald-400/30", text: "text-emerald-300" },
-            { label: t("torres.floorTypes.basementSingle"), count: s, color: "bg-white/8", text: "text-[var(--text-muted)]" },
+            { label: t("torres.floorTypes.basementSingle"), count: s, color: "bg-[var(--surface-3)]", text: "text-[var(--text-muted)]" },
           ].filter((sec) => sec.count > 0);
 
           return (

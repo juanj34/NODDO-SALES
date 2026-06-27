@@ -91,7 +91,7 @@ export default function ReportesPage() {
             <div className="flex-1">
               <div className="flex items-center gap-2">
                 <Mail size={14} className="text-[var(--site-primary)]" />
-                <span className="font-ui text-[11px] font-bold uppercase tracking-[0.1em] text-white">
+                <span className="font-ui text-[11px] font-bold uppercase tracking-[0.1em] text-[var(--text-primary)]">
                   Reporte Semanal
                 </span>
               </div>
@@ -121,7 +121,7 @@ export default function ReportesPage() {
             <div className="flex-1">
               <div className="flex items-center gap-2">
                 <Clock size={14} className="text-[var(--site-primary)]" />
-                <span className="font-ui text-[11px] font-bold uppercase tracking-[0.1em] text-white">
+                <span className="font-ui text-[11px] font-bold uppercase tracking-[0.1em] text-[var(--text-primary)]">
                   Reporte Mensual
                 </span>
               </div>

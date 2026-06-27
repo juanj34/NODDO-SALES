@@ -87,7 +87,7 @@ function DraggableVideo({
       dragListener={false}
       dragControls={controls}
       className={cn(listItem, "select-none")}
-      whileDrag={{ scale: 1.02, boxShadow: "0 8px 32px rgba(0,0,0,0.3)" }}
+      whileDrag={{ scale: 1.02, boxShadow: "0 8px 32px rgba(var(--overlay-rgb),0.3)" }}
     >
       <div
         onPointerDown={(e) => { e.preventDefault(); controls.start(e); }}
@@ -113,7 +113,7 @@ function DraggableVideo({
         )}
         {/* Duration badge */}
         {video.duration && video.stream_status === "ready" && (
-          <div className="absolute bottom-1 right-1 px-1.5 py-0.5 rounded bg-black/70 text-[10px] text-white tabular-nums">
+          <div className="absolute bottom-1 right-1 px-1.5 py-0.5 rounded bg-[rgba(var(--overlay-rgb),0.7)] text-[10px] text-[var(--text-primary)] tabular-nums">
             {formatDuration(video.duration)}
           </div>
         )}
@@ -125,7 +125,7 @@ function DraggableVideo({
         )}
       </div>
       <div className="flex-1 min-w-0">
-        <h3 className="text-sm font-medium text-white">
+        <h3 className="text-sm font-medium text-[var(--text-primary)]">
           {video.titulo || t("videos.untitled")}
         </h3>
         <p className="text-xs text-[var(--text-tertiary)] truncate mt-0.5">
@@ -138,7 +138,7 @@ function DraggableVideo({
         {!video.stream_uid && (
           <button
             onClick={onEdit}
-            className="flex items-center gap-1 px-3 py-1.5 text-xs text-[var(--text-tertiary)] hover:text-white hover:bg-[var(--surface-2)] rounded-lg transition-colors"
+            className="flex items-center gap-1 px-3 py-1.5 text-xs text-[var(--text-tertiary)] hover:text-[var(--text-primary)] hover:bg-[var(--surface-2)] rounded-lg transition-colors"
           >
             <Pencil size={12} />
             {t("videos.edit")}
@@ -473,7 +473,7 @@ export default function VideosPage() {
                     className={cn(
                       "flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium transition-colors",
                       formTab === "url"
-                        ? "bg-[var(--surface-3)] text-white"
+                        ? "bg-[var(--surface-3)] text-[var(--text-primary)]"
                         : "text-[var(--text-tertiary)] hover:text-[var(--text-secondary)]"
                     )}
                   >
@@ -485,7 +485,7 @@ export default function VideosPage() {
                     className={cn(
                       "flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium transition-colors",
                       formTab === "upload"
-                        ? "bg-[var(--surface-3)] text-white"
+                        ? "bg-[var(--surface-3)] text-[var(--text-primary)]"
                         : "text-[var(--text-tertiary)] hover:text-[var(--text-secondary)]"
                     )}
                   >

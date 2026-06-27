@@ -99,7 +99,7 @@ export function LeadsCRMFilters({
               placeholder={locale === "es" ? "Nombre, email o teléfono..." : "Name, email or phone..."}
               value={search}
               onChange={(e) => onSearchChange(e.target.value)}
-              className="w-full bg-[var(--surface-2)] border border-[var(--border-default)] rounded-lg pl-10 pr-4 py-2 text-sm text-white placeholder:text-[var(--text-muted)] focus:outline-none focus:border-[rgba(var(--site-primary-rgb),0.5)] transition-colors"
+              className="w-full bg-[var(--surface-2)] border border-[var(--border-default)] rounded-lg pl-10 pr-4 py-2 text-sm text-[var(--text-primary)] placeholder:text-[var(--text-muted)] focus:outline-none focus:border-[rgba(var(--site-primary-rgb),0.5)] transition-colors"
               aria-label={locale === "es" ? "Buscar leads por nombre, email o teléfono" : "Search leads by name, email or phone"}
             />
           </div>
@@ -107,7 +107,7 @@ export function LeadsCRMFilters({
         <button
           onClick={onExport}
           disabled={total === 0 || loading}
-          className="flex items-center gap-2 px-4 py-2 border border-[var(--border-default)] rounded-lg font-ui text-[10px] font-bold uppercase tracking-[0.1em] text-[var(--text-secondary)] hover:text-white hover:border-[var(--border-default)] transition-all disabled:opacity-30 shrink-0"
+          className="flex items-center gap-2 px-4 py-2 border border-[var(--border-default)] rounded-lg font-ui text-[10px] font-bold uppercase tracking-[0.1em] text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:border-[var(--border-default)] transition-all disabled:opacity-30 shrink-0"
           aria-label={locale === "es" ? "Exportar leads a CSV" : "Export leads to CSV"}
         >
           <Download size={14} aria-hidden="true" />
@@ -157,7 +157,7 @@ export function LeadsCRMFilters({
               className={cn(
                 "px-2.5 py-1 font-ui text-[10px] font-bold uppercase tracking-[0.1em] rounded-md transition-all",
                 datePreset === opt.value
-                  ? "bg-[var(--site-primary)] text-[#141414] shadow-sm"
+                  ? "bg-[var(--site-primary)] text-[#141414] shadow-sm" // theme-allow: dark text on gold
                   : "text-[var(--text-muted)] hover:text-[var(--text-secondary)]"
               )}
               aria-label={locale === "es" ? `Últimos ${opt.label}` : `Last ${opt.label}`}
@@ -171,7 +171,7 @@ export function LeadsCRMFilters({
             className={cn(
               "px-2.5 py-1 font-ui text-[10px] font-bold uppercase tracking-[0.1em] rounded-md transition-all",
               datePreset === "custom"
-                ? "bg-[var(--site-primary)] text-[#141414] shadow-sm"
+                ? "bg-[var(--site-primary)] text-[#141414] shadow-sm" // theme-allow: dark text on gold
                 : "text-[var(--text-muted)] hover:text-[var(--text-secondary)]"
             )}
             aria-label={locale === "es" ? "Rango personalizado" : "Custom range"}
@@ -242,7 +242,7 @@ export function LeadsCRMFilters({
         {hasActiveFilters && (
           <button
             onClick={clearAll}
-            className="inline-flex items-center gap-1 px-2 py-1.5 rounded-lg text-[10px] font-bold uppercase tracking-wider text-[var(--text-muted)] hover:text-white transition-all"
+            className="inline-flex items-center gap-1 px-2 py-1.5 rounded-lg text-[10px] font-bold uppercase tracking-wider text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-all"
             aria-label={locale === "es" ? "Limpiar todos los filtros" : "Clear all filters"}
           >
             <X size={11} aria-hidden="true" />

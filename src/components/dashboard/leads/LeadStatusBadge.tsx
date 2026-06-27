@@ -28,7 +28,7 @@ export const STATUS_CONFIG: Record<
     label: "Cerrado",
     labelEn: "Closed",
     dot: "bg-[var(--text-muted)]",
-    bg: "bg-white/5 text-[var(--text-muted)] border-white/10",
+    bg: "bg-[var(--surface-2)] text-[var(--text-muted)] border-[var(--border-default)]",
   },
 };
 

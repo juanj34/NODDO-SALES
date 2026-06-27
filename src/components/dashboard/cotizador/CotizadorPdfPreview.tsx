@@ -178,7 +178,7 @@ export function CotizadorPdfPreview({
             type="button"
             onClick={fetchPreview}
             disabled={loading}
-            className="p-1.5 rounded-lg hover:bg-[var(--surface-3)] text-[var(--text-muted)] hover:text-white transition-all disabled:opacity-50"
+            className="p-1.5 rounded-lg hover:bg-[var(--surface-3)] text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-all disabled:opacity-50"
             title="Actualizar preview"
           >
             <RefreshCw size={12} />
@@ -186,7 +186,7 @@ export function CotizadorPdfPreview({
           <button
             type="button"
             onClick={onClose}
-            className="p-1.5 rounded-lg hover:bg-[var(--surface-3)] text-[var(--text-muted)] hover:text-white transition-all"
+            className="p-1.5 rounded-lg hover:bg-[var(--surface-3)] text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-all"
             title="Cerrar preview"
           >
             <X size={12} />
@@ -215,7 +215,7 @@ export function CotizadorPdfPreview({
                 <span className="text-[10px] text-red-400">{error}</span>
                 <button
                   onClick={fetchPreview}
-                  className="text-[10px] font-ui font-bold uppercase tracking-wider text-[var(--site-primary)] hover:text-white transition-colors"
+                  className="text-[10px] font-ui font-bold uppercase tracking-wider text-[var(--site-primary)] hover:text-[var(--text-primary)] transition-colors"
                 >
                   Reintentar
                 </button>

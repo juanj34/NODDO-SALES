@@ -92,7 +92,7 @@ export function PriceAuditBadge({
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               transition={{ duration: 0.2 }}
-              className="fixed inset-0 bg-black/70 backdrop-blur-sm z-[100]"
+              className="fixed inset-0 bg-[rgba(var(--overlay-rgb),0.7)] backdrop-blur-sm z-[100]"
               onClick={() => setIsOpen(false)}
             />
 
@@ -112,7 +112,7 @@ export function PriceAuditBadge({
                       <History size={20} className="text-[var(--site-primary)]" />
                     </div>
                     <div>
-                      <h3 className="text-lg font-heading font-light text-white">
+                      <h3 className="text-lg font-heading font-light text-[var(--text-primary)]">
                         Historial de Cambios de Precio
                       </h3>
                       <p className="text-xs text-[var(--text-muted)] font-mono">
@@ -122,7 +122,7 @@ export function PriceAuditBadge({
                   </div>
                   <button
                     onClick={() => setIsOpen(false)}
-                    className="p-2 hover:bg-[var(--surface-3)] rounded-lg transition-colors text-[var(--text-tertiary)] hover:text-white"
+                    className="p-2 hover:bg-[var(--surface-3)] rounded-lg transition-colors text-[var(--text-tertiary)] hover:text-[var(--text-primary)]"
                   >
                     <X size={20} />
                   </button>
@@ -186,16 +186,16 @@ export function PriceAuditBadge({
                               }`}
                             >
                               {entry.precio_anterior === null ? (
-                                <span className="text-xs font-bold text-black">$</span>
+                                <span className="text-xs font-bold text-[var(--text-primary)]">$</span>
                               ) : isIncrease ? (
                                 <TrendingUp
                                   size={16}
-                                  className={isFirst ? "text-black" : "text-green-400"}
+                                  className={isFirst ? "text-black" : "text-green-400"} /* // theme-allow: dark text on gold (isFirst dot) */
                                 />
                               ) : (
                                 <TrendingDown
                                   size={16}
-                                  className={isFirst ? "text-black" : "text-red-400"}
+                                  className={isFirst ? "text-black" : "text-red-400"} /* // theme-allow: dark text on gold (isFirst dot) */
                                 />
                               )}
                             </div>
@@ -225,7 +225,7 @@ export function PriceAuditBadge({
                                   </p>
                                 </div>
                                 <div className="text-right">
-                                  <p className="text-xl font-bold text-white font-mono">
+                                  <p className="text-xl font-bold text-[var(--text-primary)] font-mono">
                                     {formatCurrency(entry.precio_nuevo, currency)}
                                   </p>
                                   {priceDiff !== null && percentChange !== null && (
@@ -277,7 +277,7 @@ export function PriceAuditBadge({
                   </p>
                   <button
                     onClick={() => setIsOpen(false)}
-                    className="px-4 py-2 rounded-lg bg-[var(--surface-3)] hover:bg-[var(--surface-4)] text-white text-sm font-medium transition-colors"
+                    className="px-4 py-2 rounded-lg bg-[var(--surface-3)] hover:bg-[var(--surface-4)] text-[var(--text-primary)] text-sm font-medium transition-colors"
                   >
                     Cerrar
                   </button>

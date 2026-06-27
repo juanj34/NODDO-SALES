@@ -179,7 +179,7 @@ export default function GeneralTab() {
               >
                 <Icon size={18} className={cn("shrink-0", isActive ? "text-[var(--site-primary)]" : "text-[var(--text-tertiary)]")} />
                 <div>
-                  <p className={cn("text-xs font-medium", isActive ? "text-white" : "text-[var(--text-secondary)]")}>
+                  <p className={cn("text-xs font-medium", isActive ? "text-[var(--text-primary)]" : "text-[var(--text-secondary)]")}>
                     {t(tipo.labelKey)}
                   </p>
                   <p className="text-[10px] text-[var(--text-muted)] mt-0.5">
@@ -229,7 +229,7 @@ export default function GeneralTab() {
                           : "bg-[var(--surface-1)] border-[var(--border-subtle)] hover:border-[var(--border-default)]"
                       )}
                     >
-                      <p className={cn("text-xs font-medium", isActive ? "text-white" : "text-[var(--text-secondary)]")}>
+                      <p className={cn("text-xs font-medium", isActive ? "text-[var(--text-primary)]" : "text-[var(--text-secondary)]")}>
                         {t(mode.labelKey)}
                       </p>
                       <p className="text-[10px] text-[var(--text-muted)] mt-0.5">
@@ -270,7 +270,7 @@ export default function GeneralTab() {
                     : "bg-[var(--surface-1)] border-[var(--border-subtle)] hover:border-[var(--border-default)]"
                 )}
               >
-                <p className={cn("text-xs font-medium", isActive ? "text-white" : "text-[var(--text-secondary)]")}>
+                <p className={cn("text-xs font-medium", isActive ? "text-[var(--text-primary)]" : "text-[var(--text-secondary)]")}>
                   {t(mode.labelKey)}
                 </p>
                 <p className="text-[10px] text-[var(--text-muted)] mt-0.5">
