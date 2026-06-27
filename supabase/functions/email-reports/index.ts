@@ -251,7 +251,7 @@ function generateReportHTML(data: ProjectReportData[], type: string, from: Date,
 
         <!-- Heading -->
         <tr><td align="center" style="padding:16px 40px 4px;">
-          <h1 style="margin:0;font-family:Georgia,'Times New Roman',serif;font-size:22px;font-weight:300;color:#f4f0e8;letter-spacing:0.02em;">
+          <h1 style="margin:0;font-family:'Inter','Helvetica Neue',Helvetica,Arial,sans-serif;font-size:22px;font-weight:300;color:#f4f0e8;letter-spacing:0.02em;">
             ${heading}
           </h1>
         </td></tr>
