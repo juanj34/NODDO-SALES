@@ -9,7 +9,7 @@ export function UnitToggle() {
   const { displayUnit, setDisplayUnit } = useUnitPreference();
 
   return (
-    <div className="relative inline-flex items-center bg-white/[0.04] rounded-full border border-[var(--border-subtle)] p-0.5">
+    <div className="relative inline-flex items-center bg-[var(--surface-2)] rounded-full border border-[var(--border-subtle)] p-0.5">
       {/* Active indicator */}
       <motion.div
         className="absolute h-[calc(100%-4px)] w-[calc(50%-2px)] rounded-full"

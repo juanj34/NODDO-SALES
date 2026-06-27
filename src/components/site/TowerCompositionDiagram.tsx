@@ -46,9 +46,9 @@ export function TowerCompositionDiagram({ torre, className, highlightFloor }: To
         label: "Sótano",
         labelShort: "SÓT",
         count: s,
-        color: "rgba(255,255,255,0.04)",
-        borderColor: "rgba(255,255,255,0.08)",
-        textColor: "rgba(255,255,255,0.3)",
+        color: "rgba(var(--contrast-rgb),0.04)",
+        borderColor: "rgba(var(--contrast-rgb),0.08)",
+        textColor: "rgba(var(--contrast-rgb),0.3)",
       },
       {
         key: "ground",
@@ -152,7 +152,7 @@ export function TowerCompositionDiagram({ torre, className, highlightFloor }: To
               {sec.key === "basement" && (
                 <div
                   className="absolute top-0 left-1 right-1 border-t border-dashed"
-                  style={{ borderColor: "rgba(255,255,255,0.15)" }}
+                  style={{ borderColor: "rgba(var(--contrast-rgb),0.15)" }}
                 />
               )}
             </motion.div>
@@ -161,7 +161,7 @@ export function TowerCompositionDiagram({ torre, className, highlightFloor }: To
 
         {/* Ground line */}
         <div className="absolute left-[-6px] right-[-6px] z-10" style={{ bottom: `${((sections[0]?.key === "basement" ? sections[0].count : 0) / total) * 100}%` }}>
-          <div className="h-px bg-white/20" />
+          <div className="h-px bg-[var(--border-strong)]" />
         </div>
       </div>
 

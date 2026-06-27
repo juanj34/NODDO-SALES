@@ -19,7 +19,7 @@ export function NoddoBadge({ hide, className }: NoddoBadgeProps) {
       className={cn(
         "fixed bottom-3 right-3 z-30",
         "inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-full",
-        "bg-black/40 backdrop-blur-md border border-white/[0.06]",
+        "bg-[rgba(var(--overlay-rgb),0.4)] backdrop-blur-md border border-[rgba(var(--contrast-rgb),0.06)]", // theme-allow: floating badge over hero photo/map
         "opacity-40 hover:opacity-70 transition-all duration-300",
         "no-underline",
         className

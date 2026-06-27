@@ -139,7 +139,7 @@ export default function ImplantacionesPage() {
     return (
       <SectionTransition className="h-screen flex overflow-hidden bg-[var(--site-bg)]">
         <div className="flex-1 flex flex-col items-center justify-center gap-4 text-center px-8">
-          <div className="w-16 h-16 rounded-2xl bg-white/5 flex items-center justify-center">
+          <div className="w-16 h-16 rounded-2xl bg-[var(--surface-2)] flex items-center justify-center">
             <Layers size={28} className="text-[var(--text-muted)]" />
           </div>
           <div>
@@ -165,7 +165,7 @@ export default function ImplantacionesPage() {
             <p className="text-[10px] tracking-[0.3em] text-[var(--site-primary)] uppercase mb-2">
               {t("implantaciones.heading")}
             </p>
-            <h2 className="font-site-heading text-2xl text-white leading-tight mb-3">
+            <h2 className="font-site-heading text-2xl text-[var(--text-primary)] leading-tight mb-3">
               {activePlano.nombre}
             </h2>
             {activePlano.descripcion && (
@@ -180,7 +180,7 @@ export default function ImplantacionesPage() {
       {/* ── Amenidades section ── */}
       {activePlano && activePlano.amenidades_data && activePlano.amenidades_data.length > 0 && (
         <>
-          <div className="border-t border-white/5 mx-5" />
+          <div className="border-t border-[var(--border-subtle)] mx-5" />
           <div className="flex-shrink-0 px-5 pt-4 pb-2">
             <p className="text-[10px] tracking-[0.25em] text-[var(--text-tertiary)] uppercase mb-3">
               Amenidades
@@ -189,7 +189,7 @@ export default function ImplantacionesPage() {
               {activePlano.amenidades_data.slice(0, 6).map((amenidad) => (
                 <div
                   key={amenidad.id}
-                  className="flex items-center gap-1.5 px-2 py-1.5 rounded-lg bg-white/[0.03] border border-white/5"
+                  className="flex items-center gap-1.5 px-2 py-1.5 rounded-lg bg-[var(--surface-2)] border border-[var(--border-subtle)]"
                 >
                   {amenidad.icon_url ? (
                     <img src={amenidad.icon_url} alt="" className="w-3.5 h-3.5 object-contain opacity-70" />
@@ -203,7 +203,7 @@ export default function ImplantacionesPage() {
               ))}
             </div>
             {activePlano.amenidades_data.length > 6 && (
-              <div className="flex items-center justify-center px-2 py-1.5 rounded-lg bg-white/[0.02] border border-white/5 text-[10px] text-[var(--text-muted)] mt-1.5">
+              <div className="flex items-center justify-center px-2 py-1.5 rounded-lg bg-[var(--surface-2)] border border-[var(--border-subtle)] text-[10px] text-[var(--text-muted)] mt-1.5">
                 +{activePlano.amenidades_data.length - 6} más
               </div>
             )}
@@ -212,7 +212,7 @@ export default function ImplantacionesPage() {
       )}
 
       {/* ── Divider ── */}
-      <div className="border-t border-white/5 mx-5" />
+      <div className="border-t border-[var(--border-subtle)] mx-5" />
 
       {/* ── Hotspots section ── */}
       <div className="flex-shrink-0 px-5 pt-4 pb-2 flex items-center justify-between">
@@ -243,7 +243,7 @@ export default function ImplantacionesPage() {
                     "w-full flex items-center gap-3 px-3 py-3 rounded-xl text-left transition-all duration-200 cursor-pointer group",
                     isSelected
                       ? "bg-[rgba(var(--site-primary-rgb),0.10)] ring-1 ring-[rgba(var(--site-primary-rgb),0.25)]"
-                      : "hover:bg-white/5"
+                      : "hover:bg-[var(--surface-2)]"
                   )}
                 >
                   {/* Number badge */}
@@ -251,8 +251,8 @@ export default function ImplantacionesPage() {
                     className={cn(
                       "w-7 h-7 rounded-full flex items-center justify-center text-[11px] font-bold flex-shrink-0 transition-colors",
                       isSelected
-                        ? "bg-[var(--site-primary)] text-black"
-                        : "bg-white/10 text-[var(--text-secondary)] group-hover:bg-[rgba(var(--site-primary-rgb),0.2)] group-hover:text-[var(--site-primary)]"
+                        ? "bg-[var(--site-primary)] text-black" // theme-allow: dark number on gold badge
+                        : "bg-[var(--surface-3)] text-[var(--text-secondary)] group-hover:bg-[rgba(var(--site-primary-rgb),0.2)] group-hover:text-[var(--site-primary)]"
                     )}
                   >
                     {number}
@@ -260,7 +260,7 @@ export default function ImplantacionesPage() {
 
                   {/* Render thumbnail */}
                   {(punto.render_url || punto.imagen_url) && (
-                    <div className="w-12 h-9 rounded-lg overflow-hidden bg-white/5 flex-shrink-0">
+                    <div className="w-12 h-9 rounded-lg overflow-hidden bg-[var(--surface-2)] flex-shrink-0">
                       {/* eslint-disable-next-line @next/next/no-img-element */}
                       <img
                         src={(punto.render_url || punto.imagen_url)!}
@@ -272,7 +272,7 @@ export default function ImplantacionesPage() {
 
                   {/* Text content */}
                   <div className="flex-1 min-w-0">
-                    <p className="text-[13px] text-white font-medium truncate">
+                    <p className="text-[13px] text-[var(--text-primary)] font-medium truncate">
                       {punto.titulo}
                     </p>
                     {punto.descripcion && (
@@ -335,7 +335,7 @@ export default function ImplantacionesPage() {
                 src={retryCount > 0 ? `${activePlano.imagen_url}${activePlano.imagen_url.includes("?") ? "&" : "?"}_r=${retryCount}` : activePlano.imagen_url}
                 alt={activePlano.nombre}
                 className={cn(
-                  "block max-h-[calc(100vh-120px)] max-w-full w-auto rounded-2xl shadow-2xl shadow-black/50 transition-opacity duration-500",
+                  "block max-h-[calc(100vh-120px)] max-w-full w-auto rounded-2xl shadow-2xl shadow-[rgba(var(--overlay-rgb),0.5)] transition-opacity duration-500",
                   imageLoaded ? "opacity-100" : "opacity-0"
                 )}
                 draggable={false}
@@ -380,8 +380,8 @@ export default function ImplantacionesPage() {
                         {/* Numbered dot */}
                         <span
                           className={cn(
-                            "relative flex items-center justify-center w-7 h-7 rounded-full border-2 border-white shadow-lg transition-transform duration-150",
-                            "bg-[var(--site-primary)] text-black",
+                            "relative flex items-center justify-center w-7 h-7 rounded-full border-2 border-white shadow-lg transition-transform duration-150", // theme-allow: hotspot marker over plan image
+                            "bg-[var(--site-primary)] text-black", // theme-allow: dark number on gold marker over plan image
                             isSelected && "scale-110",
                             isHovered && !isSelected && "scale-105"
                           )}
@@ -401,7 +401,9 @@ export default function ImplantacionesPage() {
                             exit={{ opacity: 0, y: 8 }}
                             className="absolute top-full mt-2 left-1/2 -translate-x-1/2 glass-dark px-3 py-1.5 rounded-lg whitespace-nowrap z-30 pointer-events-none"
                           >
-                            <span className="text-[11px] font-medium text-white tracking-wider">
+                            <span className={
+                              "text-[11px] font-medium text-white tracking-wider" // theme-allow: text inside fixed-dark glass tooltip
+                            }>
                               {punto.titulo}
                             </span>
                           </motion.div>
@@ -537,7 +539,7 @@ export default function ImplantacionesPage() {
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               transition={{ duration: 0.2 }}
-              className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-md"
+              className="fixed inset-0 z-50 flex items-center justify-center bg-[rgba(var(--overlay-rgb),0.8)] backdrop-blur-md"
               onClick={() => setRenderModalPunto(null)}
             >
               <motion.div
@@ -551,11 +553,18 @@ export default function ImplantacionesPage() {
                 <button
                   onClick={() => setRenderModalPunto(null)}
                   aria-label={t("implantaciones.closeRender")}
-                  className="absolute -top-4 -right-4 z-10 p-2 rounded-full glass hover:bg-white/20 transition-colors cursor-pointer"
+                  className={
+                    "absolute -top-4 -right-4 z-10 p-2 rounded-full glass hover:bg-white/20 transition-colors cursor-pointer" // theme-allow: close button over dark lightbox scrim
+                  }
                 >
-                  <X size={18} className="text-white" />
+                  <X
+                    size={18}
+                    className={
+                      "text-white" // theme-allow: close icon over dark lightbox scrim
+                    }
+                  />
                 </button>
-                <div className="rounded-2xl overflow-hidden shadow-2xl shadow-black/60">
+                <div className="rounded-2xl overflow-hidden shadow-2xl shadow-[rgba(var(--overlay-rgb),0.6)]">
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img
                     src={imgs[0] || (renderModalPunto.render_url || renderModalPunto.imagen_url)!}
@@ -569,7 +578,9 @@ export default function ImplantacionesPage() {
                   transition={{ delay: 0.15 }}
                   className="mt-4 text-center max-w-lg"
                 >
-                  <h3 className="font-site-heading text-lg text-white mb-1">
+                  <h3 className={
+                    "font-site-heading text-lg text-white mb-1" // theme-allow: caption over dark lightbox scrim
+                  }>
                     {renderModalPunto.titulo}
                   </h3>
                   {renderModalPunto.descripcion && (

@@ -45,7 +45,7 @@ export function AgentLoginModal({ open, onClose }: AgentLoginModalProps) {
           onClick={onClose}
         >
           {/* Backdrop */}
-          <div className="absolute inset-0 bg-black/70 backdrop-blur-sm" />
+          <div className="absolute inset-0 bg-[rgba(var(--overlay-rgb),0.7)] backdrop-blur-sm" />
 
           {/* Modal */}
           <motion.div
@@ -54,13 +54,13 @@ export function AgentLoginModal({ open, onClose }: AgentLoginModalProps) {
             exit={{ opacity: 0, scale: 0.95, y: 10 }}
             transition={{ type: "spring", damping: 25, stiffness: 350 }}
             onClick={(e) => e.stopPropagation()}
-            className="relative w-full max-w-sm rounded-2xl border border-white/10 bg-[#111113]/95 backdrop-blur-xl shadow-2xl"
+            className="relative w-full max-w-sm rounded-2xl border border-[var(--border-default)] bg-[#111113]/95 backdrop-blur-xl shadow-2xl"
           >
             {/* Close button */}
             <button
               type="button"
               onClick={onClose}
-              className="absolute top-4 right-4 p-1 text-white/40 hover:text-white/80 transition-colors"
+              className="absolute top-4 right-4 p-1 text-[var(--text-tertiary)] hover:text-[var(--text-primary)] transition-colors"
             >
               <X size={18} />
             </button>
@@ -70,10 +70,10 @@ export function AgentLoginModal({ open, onClose }: AgentLoginModalProps) {
               <div className="mx-auto w-10 h-10 rounded-full bg-[rgba(var(--site-primary-rgb),0.15)] flex items-center justify-center mb-3">
                 <Lock size={18} className="text-[var(--site-primary)]" />
               </div>
-              <h3 className="font-heading text-xl text-white/90">
+              <h3 className="font-heading text-xl text-[var(--text-primary)]">
                 Modo Agente
               </h3>
-              <p className="text-xs text-white/40 mt-1 font-mono">
+              <p className="text-xs text-[var(--text-tertiary)] mt-1 font-mono">
                 Ingresa con tu cuenta de agente
               </p>
             </div>
@@ -88,7 +88,7 @@ export function AgentLoginModal({ open, onClose }: AgentLoginModalProps) {
               )}
 
               <div>
-                <label className="block text-xs text-white/50 mb-1.5 font-mono">
+                <label className="block text-xs text-[var(--text-secondary)] mb-1.5 font-mono">
                   Email
                 </label>
                 <input
@@ -96,14 +96,14 @@ export function AgentLoginModal({ open, onClose }: AgentLoginModalProps) {
                   required
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="w-full rounded-lg border border-white/10 bg-white/5 px-3 py-2.5 text-sm text-white placeholder-white/25 outline-none focus:border-[var(--site-primary)] focus:ring-1 focus:ring-[var(--site-primary)] transition-colors"
+                  className="w-full rounded-lg border border-[var(--border-default)] bg-[var(--surface-2)] px-3 py-2.5 text-sm text-[var(--text-primary)] placeholder-white/25 outline-none focus:border-[var(--site-primary)] focus:ring-1 focus:ring-[var(--site-primary)] transition-colors"
                   placeholder="agente@ejemplo.com"
                   autoComplete="email"
                 />
               </div>
 
               <div>
-                <label className="block text-xs text-white/50 mb-1.5 font-mono">
+                <label className="block text-xs text-[var(--text-secondary)] mb-1.5 font-mono">
                   Contraseña
                 </label>
                 <input
@@ -111,7 +111,7 @@ export function AgentLoginModal({ open, onClose }: AgentLoginModalProps) {
                   required
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="w-full rounded-lg border border-white/10 bg-white/5 px-3 py-2.5 text-sm text-white placeholder-white/25 outline-none focus:border-[var(--site-primary)] focus:ring-1 focus:ring-[var(--site-primary)] transition-colors"
+                  className="w-full rounded-lg border border-[var(--border-default)] bg-[var(--surface-2)] px-3 py-2.5 text-sm text-[var(--text-primary)] placeholder-white/25 outline-none focus:border-[var(--site-primary)] focus:ring-1 focus:ring-[var(--site-primary)] transition-colors"
                   placeholder="••••••••"
                   autoComplete="current-password"
                 />

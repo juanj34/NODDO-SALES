@@ -84,7 +84,7 @@ export function POIPanel({ pois, selectedPOI, onSelectPOI, onClose }: POIPanelPr
           </span>
 
           {/* POI name */}
-          <h3 className="text-xl font-heading font-light text-white mb-1">
+          <h3 className="text-xl font-heading font-light text-[var(--text-primary)] mb-1">
             {selectedPOI.nombre}
           </h3>
 
@@ -121,14 +121,14 @@ export function POIPanel({ pois, selectedPOI, onSelectPOI, onClose }: POIPanelPr
           )}
 
           {/* Divider */}
-          <div className="border-t border-white/10 my-4" />
+          <div className="border-t border-[var(--border-default)] my-4" />
 
           {/* Navigation */}
           <div className="flex items-center justify-between">
             <button
               onClick={handlePrev}
               disabled={isFirst}
-              className="p-2 rounded-full hover:bg-white/10 transition-colors disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer"
+              className="p-2 rounded-full hover:bg-[var(--surface-3)] transition-colors disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer"
               aria-label={t("accessibility.previousPOI")}
             >
               <ChevronLeft className="w-5 h-5 text-[var(--text-secondary)]" />
@@ -141,7 +141,7 @@ export function POIPanel({ pois, selectedPOI, onSelectPOI, onClose }: POIPanelPr
             <button
               onClick={handleNext}
               disabled={isLast}
-              className="p-2 rounded-full hover:bg-white/10 transition-colors disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer"
+              className="p-2 rounded-full hover:bg-[var(--surface-3)] transition-colors disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer"
               aria-label={t("accessibility.nextPOI")}
             >
               <ChevronRight className="w-5 h-5 text-[var(--text-secondary)]" />

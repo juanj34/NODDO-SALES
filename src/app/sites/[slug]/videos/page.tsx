@@ -84,7 +84,7 @@ export default function VideosPage() {
           initial={{ opacity: 0, scale: 0.97 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ duration: 0.3 }}
-          className="w-full aspect-video rounded-2xl overflow-hidden bg-black shadow-2xl shadow-black/50 mb-5"
+          className="w-full aspect-video rounded-2xl overflow-hidden bg-[rgba(var(--overlay-rgb),1)] shadow-2xl shadow-[rgba(var(--overlay-rgb),0.5)] mb-5"
         >
           <iframe
             src={getVideoSrc(current)}
@@ -116,7 +116,7 @@ export default function VideosPage() {
                 aria-label={t("videos.prevVideos")}
                 className="absolute left-0 top-0 bottom-6 z-10 w-10 flex items-center justify-center bg-gradient-to-r from-[var(--site-bg)] to-transparent opacity-0 group-hover/strip:opacity-100 transition-opacity cursor-pointer"
               >
-                <ChevronLeft size={18} className="text-white/70" />
+                <ChevronLeft size={18} className="text-[var(--text-secondary)]" />
               </button>
             )}
 
@@ -145,33 +145,39 @@ export default function VideosPage() {
                       "relative w-full aspect-video rounded-xl overflow-hidden mb-1.5 transition-all duration-200",
                       idx === activeVideo
                         ? "ring-2 ring-[var(--site-primary)] shadow-lg shadow-[rgba(var(--site-primary-rgb),0.10)]"
-                        : "ring-1 ring-[var(--border-default)] group-hover:ring-white/20"
+                        : "ring-1 ring-[var(--border-default)] group-hover:ring-[var(--border-strong)]"
                     )}>
                       {thumb ? (
                         <Image src={thumb} alt="" fill className="w-full h-full object-cover" />
                       ) : (
-                        <div className="w-full h-full bg-white/5 flex items-center justify-center">
+                        <div className="w-full h-full bg-[var(--surface-2)] flex items-center justify-center">
                           <Film size={20} className="text-[var(--text-muted)]" />
                         </div>
                       )}
                       {/* Play overlay */}
                       <div className={cn(
                         "absolute inset-0 flex items-center justify-center transition-all duration-200",
-                        idx === activeVideo ? "bg-black/20" : "bg-black/40 group-hover:bg-black/25"
+                        idx === activeVideo ? "bg-[rgba(var(--overlay-rgb),0.2)]" : "bg-[rgba(var(--overlay-rgb),0.4)] group-hover:bg-[rgba(var(--overlay-rgb),0.25)]"
                       )}>
                         <div className={cn(
                           "w-7 h-7 rounded-full flex items-center justify-center transition-all duration-200",
                           idx === activeVideo
                             ? "bg-[var(--site-primary)] scale-110"
-                            : "bg-white/20 group-hover:bg-white/30"
+                            : "bg-white/20 group-hover:bg-white/30" // theme-allow: play button over thumbnail photo
                         )}>
-                          <Play size={12} className={idx === activeVideo ? "text-black" : "text-white"} fill="currentColor" />
+                          <Play
+                            size={12}
+                            className={
+                              idx === activeVideo ? "text-black" : "text-white" // theme-allow: dark icon on gold / white over photo
+                            }
+                            fill="currentColor"
+                          />
                         </div>
                       </div>
                     </div>
                     <p className={cn(
                       "text-[11px] font-ui uppercase tracking-[0.08em] truncate transition-colors duration-200",
-                      idx === activeVideo ? "text-white" : "text-[var(--text-tertiary)] group-hover:text-[var(--text-secondary)]"
+                      idx === activeVideo ? "text-[var(--text-primary)]" : "text-[var(--text-tertiary)] group-hover:text-[var(--text-secondary)]"
                     )}>
                       {video.titulo || `Video ${idx + 1}`}
                     </p>
@@ -187,7 +193,7 @@ export default function VideosPage() {
                 aria-label={t("videos.nextVideos")}
                 className="absolute right-0 top-0 bottom-6 z-10 w-10 flex items-center justify-center bg-gradient-to-l from-[var(--site-bg)] to-transparent opacity-0 group-hover/strip:opacity-100 transition-opacity cursor-pointer"
               >
-                <ChevronRight size={18} className="text-white/70" />
+                <ChevronRight size={18} className="text-[var(--text-secondary)]" />
               </button>
             )}
           </div>

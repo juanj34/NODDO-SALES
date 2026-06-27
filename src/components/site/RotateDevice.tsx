@@ -39,7 +39,7 @@ export function RotateDevice() {
           </p>
           <button
             onClick={() => setDismissed(true)}
-            className="mt-4 px-6 py-2.5 text-xs tracking-[0.08em] uppercase text-white/50 border border-white/10 rounded-lg hover:text-white/80 hover:border-white/20 transition-colors"
+            className="mt-4 px-6 py-2.5 text-xs tracking-[0.08em] uppercase text-[var(--text-secondary)] border border-[var(--border-default)] rounded-lg hover:text-[var(--text-primary)] hover:border-[var(--border-strong)] transition-colors"
           >
             {t("rotateDevice.dismiss")}
           </button>

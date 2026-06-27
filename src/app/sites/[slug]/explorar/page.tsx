@@ -594,7 +594,9 @@ export default function ExplorarPage() {
                   className="object-cover"
                 />
                 {selectedTipologia.renders.length > 1 && (
-                  <div className="absolute bottom-2 right-2 px-2 py-0.5 rounded-full glass text-[8px] text-white/70">
+                  <div className={
+                    "absolute bottom-2 right-2 px-2 py-0.5 rounded-full glass text-[8px] text-white/70" // theme-allow: count badge over tipología render photo
+                  }>
                     1/{selectedTipologia.renders.length}
                   </div>
                 )}
@@ -832,7 +834,7 @@ export default function ExplorarPage() {
                     "flex items-center gap-1 px-2 py-0.5 rounded-md text-[9px] tracking-wider transition-all cursor-pointer",
                     estadoFilter === "todas"
                       ? "bg-[rgba(var(--site-primary-rgb),0.15)] text-[var(--site-primary)] font-medium"
-                      : "text-[var(--text-tertiary)] hover:text-[var(--text-secondary)] hover:bg-white/5"
+                      : "text-[var(--text-tertiary)] hover:text-[var(--text-secondary)] hover:bg-[var(--surface-2)]"
                   )}
                 >
                   {tCommon("labels.all")}
@@ -849,7 +851,7 @@ export default function ExplorarPage() {
                         "flex items-center gap-1 px-2 py-0.5 rounded-md text-[9px] tracking-wider transition-all cursor-pointer",
                         estadoFilter === estado
                           ? cn(cfg.bg, cfg.color, "font-medium")
-                          : "text-[var(--text-tertiary)] hover:text-[var(--text-secondary)] hover:bg-white/5"
+                          : "text-[var(--text-tertiary)] hover:text-[var(--text-secondary)] hover:bg-[var(--surface-2)]"
                       )}
                     >
                       <span className={cn("w-1.5 h-1.5 rounded-full", cfg.dot)} />
@@ -1069,7 +1071,7 @@ export default function ExplorarPage() {
               src={fachadaUrl}
               alt={tSite("explorar.fachadasLabel")}
               className={cn(
-                "block max-h-[calc(100vh-120px)] max-w-full w-auto rounded-2xl shadow-2xl shadow-black/50 transition-opacity duration-500",
+                "block max-h-[calc(100vh-120px)] max-w-full w-auto rounded-2xl shadow-2xl shadow-[rgba(var(--overlay-rgb),0.5)] transition-opacity duration-500",
                 imageLoaded ? "opacity-100" : "opacity-0"
               )}
               draggable={false}
@@ -1125,9 +1127,9 @@ export default function ExplorarPage() {
 
                   {/* The dot */}
                   <span className={cn(
-                    "relative block w-3 h-3 rounded-full border-[1.5px] border-white/80 shadow-md transition-transform duration-150",
+                    "relative block w-3 h-3 rounded-full border-[1.5px] border-white/80 shadow-md transition-transform duration-150", // theme-allow: unit marker over plan photo
                     config.dot,
-                    isSelected && "scale-150 border-white",
+                    isSelected && "scale-150 border-white", // theme-allow: unit marker over plan photo
                     isHovered && !isSelected && "scale-125"
                   )} />
 
@@ -1140,7 +1142,9 @@ export default function ExplorarPage() {
                         exit={{ opacity: 0, y: 6 }}
                         className="absolute bottom-full mb-3 left-1/2 -translate-x-1/2 glass-dark px-3 py-2 rounded-xl whitespace-nowrap z-40 pointer-events-none"
                       >
-                        <p className="text-xs font-medium text-white">{getUnitDisplayName(unit, unitPrefix)}</p>
+                        <p className={
+                          "text-xs font-medium text-white" // theme-allow: tooltip inside fixed-dark glass over plan photo
+                        }>{getUnitDisplayName(unit, unitPrefix)}</p>
                       </motion.div>
                     )}
                   </AnimatePresence>
@@ -1162,7 +1166,7 @@ export default function ExplorarPage() {
             transition={{ delay: 0.5 }}
           >
             <div
-              className="relative rounded-xl overflow-hidden border border-[var(--border-subtle)] bg-[var(--surface-1)]/80 backdrop-blur-md cursor-pointer shadow-lg shadow-black/40 hover:border-[var(--border-default)] transition-all group"
+              className="relative rounded-xl overflow-hidden border border-[var(--border-subtle)] bg-[var(--surface-1)]/80 backdrop-blur-md cursor-pointer shadow-lg shadow-[rgba(var(--overlay-rgb),0.4)] hover:border-[var(--border-default)] transition-all group"
               onClick={() => setShowImplantacionModal(true)}
             >
               {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -1197,10 +1201,10 @@ export default function ExplorarPage() {
                     )}
                     <span
                       className={cn(
-                        "relative flex items-center justify-center w-3.5 h-3.5 rounded-full border border-white text-[6px] font-bold shadow-sm",
+                        "relative flex items-center justify-center w-3.5 h-3.5 rounded-full border border-white text-[6px] font-bold shadow-sm", // theme-allow: tower marker over mini-map plan image
                         isActivePunto
-                          ? "bg-[var(--site-primary)] text-black"
-                          : "bg-white/20 text-white backdrop-blur-sm"
+                          ? "bg-[var(--site-primary)] text-black" // theme-allow: dark number on gold marker over image
+                          : "bg-white/20 text-white backdrop-blur-sm" // theme-allow: marker over mini-map plan image
                       )}
                     >
                       {idx + 1}
@@ -1208,8 +1212,13 @@ export default function ExplorarPage() {
                   </button>
                 );
               })}
-              <div className="absolute top-1.5 right-1.5 p-1 rounded-md bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity">
-                <Maximize2 size={10} className="text-white/70" />
+              <div className="absolute top-1.5 right-1.5 p-1 rounded-md bg-[rgba(var(--overlay-rgb),0.4)] opacity-0 group-hover:opacity-100 transition-opacity">
+                <Maximize2
+                  size={10}
+                  className={
+                    "text-white/70" // theme-allow: icon over mini-map plan image
+                  }
+                />
               </div>
             </div>
           </motion.div>
@@ -1266,7 +1275,7 @@ export default function ExplorarPage() {
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 0.2 }}
-            className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-md"
+            className="fixed inset-0 z-50 flex items-center justify-center bg-[rgba(var(--overlay-rgb),0.8)] backdrop-blur-md"
             onClick={() => setShowImplantacionModal(false)}
           >
             <motion.div
@@ -1280,13 +1289,20 @@ export default function ExplorarPage() {
               {/* Close button */}
               <button
                 onClick={() => setShowImplantacionModal(false)}
-                className="absolute -top-4 -right-4 z-10 p-2 rounded-full glass hover:bg-white/20 transition-colors cursor-pointer"
+                className={
+                  "absolute -top-4 -right-4 z-10 p-2 rounded-full glass hover:bg-white/20 transition-colors cursor-pointer" // theme-allow: close button over dark modal scrim
+                }
               >
-                <X size={18} className="text-white" />
+                <X
+                  size={18}
+                  className={
+                    "text-white" // theme-allow: close icon over dark modal scrim
+                  }
+                />
               </button>
 
               {/* Plan image with hotspots */}
-              <div className="relative rounded-2xl overflow-hidden shadow-2xl shadow-black/60">
+              <div className="relative rounded-2xl overflow-hidden shadow-2xl shadow-[rgba(var(--overlay-rgb),0.6)]">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
                   src={implantacionPlano.imagen_url}
@@ -1328,10 +1344,10 @@ export default function ExplorarPage() {
                       {/* Numbered dot */}
                       <span
                         className={cn(
-                          "relative flex items-center justify-center w-7 h-7 rounded-full border-2 border-white text-[11px] font-bold shadow-lg transition-transform duration-150",
+                          "relative flex items-center justify-center w-7 h-7 rounded-full border-2 border-white text-[11px] font-bold shadow-lg transition-transform duration-150", // theme-allow: tower marker over plan image
                           isActive
-                            ? "bg-[var(--site-primary)] text-black scale-125"
-                            : "bg-white/20 text-white backdrop-blur-sm group-hover:scale-110"
+                            ? "bg-[var(--site-primary)] text-black scale-125" // theme-allow: dark number on gold marker over image
+                            : "bg-white/20 text-white backdrop-blur-sm group-hover:scale-110" // theme-allow: marker over plan image
                         )}
                       >
                         {idx + 1}
@@ -1339,7 +1355,9 @@ export default function ExplorarPage() {
                       {/* Tooltip */}
                       <AnimatePresence>
                         <span className="absolute top-full mt-2 left-1/2 -translate-x-1/2 glass-dark px-3 py-1.5 rounded-lg whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-30">
-                          <span className="text-[11px] font-medium text-white tracking-wider">{punto.titulo}</span>
+                          <span className={
+                            "text-[11px] font-medium text-white tracking-wider" // theme-allow: tooltip inside fixed-dark glass over plan image
+                          }>{punto.titulo}</span>
                         </span>
                       </AnimatePresence>
                     </button>
@@ -1354,7 +1372,9 @@ export default function ExplorarPage() {
                 transition={{ delay: 0.15 }}
                 className="mt-4 text-center"
               >
-                <h3 className="font-site-heading text-lg text-white">{implantacionPlano.nombre}</h3>
+                <h3 className={
+                  "font-site-heading text-lg text-white" // theme-allow: caption over dark modal scrim
+                }>{implantacionPlano.nombre}</h3>
                 <p className="text-xs text-[var(--text-tertiary)] mt-1">{tSite("explorar.selectTower")}</p>
               </motion.div>
             </motion.div>

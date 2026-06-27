@@ -99,7 +99,7 @@ export function PortalSlider({ portal }: Props) {
             className="h-8 w-auto object-contain sm:h-10"
           />
         ) : (
-          <h1 className="font-heading text-2xl font-light tracking-wide text-white sm:text-3xl">
+          <h1 className="font-heading text-2xl font-light tracking-wide text-white sm:text-3xl"> {/* // theme-allow: portal name in header floats over full-bleed hero photo */}
             {portal.nombre}
           </h1>
         )}
@@ -135,8 +135,8 @@ export function PortalSlider({ portal }: Props) {
           )}
 
           {/* Gradient overlays */}
-          <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-black/50" />
-          <div className="absolute inset-0 bg-gradient-to-r from-black/40 to-transparent" />
+          <div className="absolute inset-0 bg-gradient-to-t from-[rgba(var(--overlay-rgb),0.8)] via-[rgba(var(--overlay-rgb),0.3)] to-[rgba(var(--overlay-rgb),0.5)]" /> {/* theme-allow: dark scrim over full-bleed hero photo */}
+          <div className="absolute inset-0 bg-gradient-to-r from-[rgba(var(--overlay-rgb),0.4)] to-transparent" /> {/* theme-allow: dark scrim over full-bleed hero photo */}
 
           {/* Project logo (top right) */}
           {project.logo_url && (
@@ -158,7 +158,7 @@ export function PortalSlider({ portal }: Props) {
               animate={{ y: 0, opacity: 1 }}
               transition={{ delay: 0.2, duration: 0.5 }}
             >
-              <h2 className="font-heading text-4xl font-light leading-tight text-white sm:text-5xl md:text-6xl">
+              <h2 className="font-heading text-4xl font-light leading-tight text-white sm:text-5xl md:text-6xl"> {/* // theme-allow: project name sits over full-bleed hero photo */}
                 {project.nombre}
               </h2>
               {project.descripcion && (
@@ -187,16 +187,16 @@ export function PortalSlider({ portal }: Props) {
           <button
             onClick={prev}
             aria-label="Proyecto anterior"
-            className="absolute left-4 top-1/2 z-20 -translate-y-1/2 rounded-full border border-white/10 bg-black/30 p-2.5 backdrop-blur-md transition-all hover:border-white/20 hover:bg-black/50 sm:left-6 sm:p-3"
+            className="absolute left-4 top-1/2 z-20 -translate-y-1/2 rounded-full border border-[rgba(var(--contrast-rgb),0.1)] bg-[rgba(var(--overlay-rgb),0.3)] p-2.5 backdrop-blur-md transition-all hover:border-[rgba(var(--contrast-rgb),0.2)] hover:bg-[rgba(var(--overlay-rgb),0.5)] sm:left-6 sm:p-3"
           >
-            <ChevronLeft className="h-5 w-5 text-white/70" />
+            <ChevronLeft className="h-5 w-5 text-white/70" /> {/* // theme-allow: nav icon over hero photo */}
           </button>
           <button
             onClick={next}
             aria-label="Proyecto siguiente"
-            className="absolute right-4 top-1/2 z-20 -translate-y-1/2 rounded-full border border-white/10 bg-black/30 p-2.5 backdrop-blur-md transition-all hover:border-white/20 hover:bg-black/50 sm:right-6 sm:p-3"
+            className="absolute right-4 top-1/2 z-20 -translate-y-1/2 rounded-full border border-[rgba(var(--contrast-rgb),0.1)] bg-[rgba(var(--overlay-rgb),0.3)] p-2.5 backdrop-blur-md transition-all hover:border-[rgba(var(--contrast-rgb),0.2)] hover:bg-[rgba(var(--overlay-rgb),0.5)] sm:right-6 sm:p-3"
           >
-            <ChevronRight className="h-5 w-5 text-white/70" />
+            <ChevronRight className="h-5 w-5 text-white/70" /> {/* // theme-allow: nav icon over hero photo */}
           </button>
         </>
       )}
@@ -215,7 +215,7 @@ export function PortalSlider({ portal }: Props) {
                 className={`absolute inset-0 rounded-full transition-all duration-300 ${
                   i === current
                     ? "scale-100 bg-[var(--site-primary)]"
-                    : "scale-75 bg-white/30 group-hover:scale-90 group-hover:bg-white/50"
+                    : "scale-75 bg-white/30 group-hover:scale-90 group-hover:bg-white/50" // theme-allow: slide-position dots sit over full-bleed hero photo (stay light)
                 }`}
               />
               {i === current && (
@@ -237,7 +237,7 @@ export function PortalSlider({ portal }: Props) {
           href="https://noddo.io"
           target="_blank"
           rel="noopener noreferrer"
-          className="inline-flex items-center gap-1.5 rounded-full border border-white/[0.06] bg-black/40 px-2.5 py-1.5 opacity-40 backdrop-blur-md transition-all duration-300 hover:opacity-70"
+          className="inline-flex items-center gap-1.5 rounded-full border border-[rgba(var(--contrast-rgb),0.06)] bg-[rgba(var(--overlay-rgb),0.4)] px-2.5 py-1.5 opacity-40 backdrop-blur-md transition-all duration-300 hover:opacity-70"
         >
           <span className="text-[7px] uppercase tracking-[0.12em] text-[var(--text-tertiary)]">
             by

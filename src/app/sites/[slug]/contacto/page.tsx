@@ -58,7 +58,7 @@ export default function ContactoPage() {
             <p className="text-[10px] tracking-[0.4em] text-[var(--site-primary)] uppercase font-ui mb-4">
               {t("contacto.sectionLabel")}
             </p>
-            <h2 className="font-site-heading text-[clamp(32px,4vw,48px)] font-light leading-[1.15] tracking-wider text-white mb-3">
+            <h2 className="font-site-heading text-[clamp(32px,4vw,48px)] font-light leading-[1.15] tracking-wider text-[var(--text-primary)] mb-3">
               {t("contacto.heading", { name: proyecto.nombre })}
             </h2>
             <p className="text-sm text-[var(--text-secondary)] leading-relaxed max-w-md">
@@ -80,7 +80,7 @@ export default function ContactoPage() {
                   <vp.icon size={18} className="text-[var(--site-primary)]" />
                 </div>
                 <div>
-                  <h3 className="text-sm font-medium text-white mb-0.5">
+                  <h3 className="text-sm font-medium text-[var(--text-primary)] mb-0.5">
                     {vp.title}
                   </h3>
                   <p className="text-xs text-[var(--text-tertiary)] leading-relaxed">
@@ -114,7 +114,7 @@ export default function ContactoPage() {
                     className={`text-xs font-ui tracking-wider px-3.5 py-1.5 rounded-lg border transition-all duration-200 cursor-pointer ${
                       selectedTipologia === tip.nombre
                         ? "bg-[rgba(var(--site-primary-rgb),0.15)] border-[rgba(var(--site-primary-rgb),0.4)] text-[var(--site-primary)]"
-                        : "bg-white/3 border-[var(--border-subtle)] text-[var(--text-secondary)] hover:border-[rgba(var(--site-primary-rgb),0.25)] hover:text-[var(--site-primary)]"
+                        : "bg-[var(--surface-2)] border-[var(--border-subtle)] text-[var(--text-secondary)] hover:border-[rgba(var(--site-primary-rgb),0.25)] hover:text-[var(--site-primary)]"
                     }`}
                   >
                     {tip.nombre}

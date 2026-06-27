@@ -222,7 +222,7 @@ function SuccessState({
       </div>
 
       {/* Main message */}
-      <h3 className="text-xl text-white font-light text-center">
+      <h3 className="text-xl text-[var(--text-primary)] font-light text-center">
         {isCotizador
           ? tSite("cotizador.quoteSent")
           : tSite("cotizador.requestSent")}
@@ -511,7 +511,7 @@ export function CotizadorModal({
             ) : needsTipologiaSelection && !selectedTipo ? (
               /* ── Tipología Selection Step (multi-tipo lots) ── */
               <div className="p-6 sm:p-8">
-                <h2 className="text-lg font-semibold text-white mb-1">
+                <h2 className="text-lg font-semibold text-[var(--text-primary)] mb-1">
                   {locale === "es"
                     ? "Seleccionar tipología"
                     : "Select typology"}
@@ -530,10 +530,10 @@ export function CotizadorModal({
                       onClick={() => setSelectedTipo(tipo)}
                       whileHover={{ scale: 1.01 }}
                       whileTap={{ scale: 0.99 }}
-                      className="w-full text-left bg-white/5 hover:bg-white/8 border border-white/8 hover:border-[rgba(var(--site-primary-rgb),0.3)] rounded-2xl p-4 transition-colors cursor-pointer"
+                      className="w-full text-left bg-[var(--surface-2)] hover:bg-[var(--surface-3)] border border-[var(--border-default)] hover:border-[rgba(var(--site-primary-rgb),0.3)] rounded-2xl p-4 transition-colors cursor-pointer"
                     >
                       <div className="flex items-center justify-between mb-2">
-                        <h3 className="text-sm font-semibold text-white">
+                        <h3 className="text-sm font-semibold text-[var(--text-primary)]">
                           {tipo.nombre}
                         </h3>
                         <ChevronRight
@@ -619,7 +619,7 @@ export function CotizadorModal({
               /* ── Form State ── */
               <div className="p-6 sm:p-8">
                 {/* Header */}
-                <h2 className="text-lg font-semibold text-white mb-1">
+                <h2 className="text-lg font-semibold text-[var(--text-primary)] mb-1">
                   {tSite("cotizador.heading")}
                 </h2>
                 <p className="text-xs text-[var(--text-tertiary)] mb-5">
@@ -633,7 +633,7 @@ export function CotizadorModal({
                   <button
                     type="button"
                     onClick={() => setSelectedTipo(null)}
-                    className="flex items-center gap-1.5 text-xs text-[var(--text-secondary)] hover:text-white mb-3 transition-colors cursor-pointer"
+                    className="flex items-center gap-1.5 text-xs text-[var(--text-secondary)] hover:text-[var(--text-primary)] mb-3 transition-colors cursor-pointer"
                   >
                     <ChevronRight size={12} className="rotate-180" />
                     {locale === "es" ? "Cambiar tipología" : "Change typology"}

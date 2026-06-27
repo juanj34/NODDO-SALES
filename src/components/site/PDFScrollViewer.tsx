@@ -268,7 +268,7 @@ export function PDFScrollViewer({
                     style={{ minHeight: estimatedPageHeight }}
                   >
                     {loadedPages.has(pageNum) ? (
-                      <div className="rounded-lg overflow-hidden shadow-2xl shadow-black/40 ring-1 ring-[var(--border-subtle)]">
+                      <div className="rounded-lg overflow-hidden shadow-2xl shadow-[rgba(var(--overlay-rgb),0.4)] ring-1 ring-[var(--border-subtle)]">
                         <Page
                           pageNumber={pageNum}
                           width={pageWidth}

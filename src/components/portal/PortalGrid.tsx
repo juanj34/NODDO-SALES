@@ -28,8 +28,8 @@ export function PortalGrid({ portal }: Props) {
 
   if (count === 0) {
     return (
-      <div className="flex h-dvh items-center justify-center bg-black">
-        <p className="font-mono text-sm text-white/30">
+      <div className="flex h-dvh items-center justify-center bg-[var(--surface-0)]">
+        <p className="font-mono text-sm text-[var(--text-tertiary)]">
           No hay proyectos disponibles.
         </p>
       </div>
@@ -37,7 +37,7 @@ export function PortalGrid({ portal }: Props) {
   }
 
   return (
-    <div className="min-h-dvh bg-black">
+    <div className="min-h-dvh bg-[var(--surface-0)]">
       {/* ── Floating logo — anchored top center ──────────────────── */}
       <motion.div
         initial={{ opacity: 0, y: -10 }}
@@ -52,11 +52,11 @@ export function PortalGrid({ portal }: Props) {
               alt={portal.nombre}
               width={160}
               height={60}
-              className="h-8 w-auto object-contain sm:h-10 md:h-12 drop-shadow-[0_2px_20px_rgba(0,0,0,0.8)]"
+              className="h-8 w-auto object-contain sm:h-10 md:h-12 drop-shadow-[0_2px_20px_rgba(var(--overlay-rgb),0.8)]"
               priority
             />
           ) : (
-            <h1 className="font-heading text-2xl font-light tracking-[0.08em] text-white sm:text-3xl drop-shadow-[0_2px_20px_rgba(0,0,0,0.8)]">
+            <h1 className="font-heading text-2xl font-light tracking-[0.08em] text-white sm:text-3xl drop-shadow-[0_2px_20px_rgba(var(--overlay-rgb),0.8)]"> {/* // theme-allow: portal name floats over full-bleed project photos */}
               {portal.nombre}
             </h1>
           )}
@@ -192,13 +192,13 @@ function ProjectPanel({ project, url, index, className = "", nameSize = "text-3x
       <div
         className="absolute inset-0 transition-opacity duration-700"
         style={{
-          background: "linear-gradient(to top, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0.15) 40%, rgba(0,0,0,0.08) 100%)",
+          background: "linear-gradient(to top, rgba(var(--overlay-rgb),0.85) 0%, rgba(var(--overlay-rgb),0.15) 40%, rgba(var(--overlay-rgb),0.08) 100%)", // theme-allow: dark gradient scrim over full-bleed project photo
           opacity: hovered ? 1 : 0.7,
         }}
       />
 
       {/* Thin border between panels */}
-      <div className="absolute inset-0 border border-white/[0.04]" />
+      <div className="absolute inset-0 border border-white/[0.04]" /> {/* // theme-allow: hairline divider over full-bleed project photos */}
 
       {/* Project logo — top right, very subtle */}
       {project.logo_url && (
@@ -225,9 +225,7 @@ function ProjectPanel({ project, url, index, className = "", nameSize = "text-3x
         />
 
         {/* Project name */}
-        <h2
-          className={`font-heading font-light text-white leading-[1.05] tracking-wide ${nameSize}`}
-        >
+        <h2 className={`font-heading font-light text-white leading-[1.05] tracking-wide ${nameSize}`}> {/* // theme-allow: project name sits over full-bleed hero photo (stays light) */}
           {project.nombre}
         </h2>
 

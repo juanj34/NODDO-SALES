@@ -51,7 +51,7 @@ export function ProcessTimeline({
                 <p className="text-[10px] uppercase tracking-wider text-[var(--site-primary)] font-medium mb-1">
                   {step.day}
                 </p>
-                <p className="text-sm font-medium text-white mb-1">
+                <p className="text-sm font-medium text-[var(--text-primary)] mb-1">
                   {step.label}
                 </p>
                 <p className="text-xs text-[var(--text-secondary)]">
@@ -91,7 +91,7 @@ export function ProcessTimeline({
               </p>
 
               {/* Label */}
-              <p className="text-xs font-medium text-white mb-1">
+              <p className="text-xs font-medium text-[var(--text-primary)] mb-1">
                 {step.label}
               </p>
 

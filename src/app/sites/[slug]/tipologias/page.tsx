@@ -496,7 +496,7 @@ export default function TipologiasPage() {
                   "font-ui flex items-center gap-2.5 px-5 py-2.5 rounded-full text-[11px] font-semibold tracking-[0.15em] uppercase transition-all cursor-pointer",
                   activeTorreId === torre.id
                     ? "bg-[rgba(var(--site-primary-rgb),0.15)] text-[var(--site-primary)] ring-1 ring-[rgba(var(--site-primary-rgb),0.4)] shadow-[0_0_12px_rgba(var(--site-primary-rgb),0.15)]"
-                    : "text-[var(--text-tertiary)] hover:text-[var(--text-secondary)] hover:bg-white/[0.07] hover:ring-1 hover:ring-white/10"
+                    : "text-[var(--text-tertiary)] hover:text-[var(--text-secondary)] hover:bg-[var(--surface-2)] hover:ring-1 hover:ring-[var(--border-default)]"
                 )}
               >
                 <Building2 size={14} strokeWidth={2.5} />
@@ -583,7 +583,7 @@ export default function TipologiasPage() {
                           "font-ui px-4 py-2 rounded-lg text-[11px] font-bold tracking-[0.12em] uppercase transition-all cursor-pointer",
                           activePisoIdx === i
                             ? "bg-gradient-to-br from-[var(--site-primary)] to-[rgba(var(--site-primary-rgb),0.8)] text-[#0A0A0B] shadow-[0_0_16px_rgba(var(--site-primary-rgb),0.4)]"
-                            : "text-[var(--text-tertiary)] hover:text-[var(--text-primary)] hover:bg-white/[0.05]"
+                            : "text-[var(--text-tertiary)] hover:text-[var(--text-primary)] hover:bg-[var(--surface-2)]"
                         )}
                       >
                         {piso.nombre}
@@ -700,7 +700,7 @@ export default function TipologiasPage() {
                         onClick={() => setShowVideoModal(true)}
                         className="bg-[var(--surface-2)] rounded-xl overflow-hidden border border-[var(--border-default)] shadow-lg cursor-pointer group transition-all hover:border-[rgba(var(--site-primary-rgb),0.4)] hover:shadow-[var(--glow-sm)] flex items-center gap-2.5 px-3 py-2.5"
                       >
-                        <div className="w-10 h-10 rounded-lg overflow-hidden flex-shrink-0 bg-black/50 flex items-center justify-center">
+                        <div className="w-10 h-10 rounded-lg overflow-hidden flex-shrink-0 bg-[var(--surface-3)] flex items-center justify-center">
                           {(() => {
                             const thumb = getVideoThumb(linkedVideo);
                             return thumb ? (
@@ -774,8 +774,8 @@ export default function TipologiasPage() {
                       transition={{ type: "spring", damping: 28, stiffness: 300 }}
                       className="absolute bottom-4 left-4 right-4 z-20 rounded-[1.25rem] overflow-hidden"
                       style={{
-                        background: "#0A0A0B",
-                        boxShadow: "0 -4px 40px rgba(0,0,0,0.6), 0 0 0 1px rgba(255,255,255,0.06)",
+                        background: "var(--surface-0)",
+                        boxShadow: "0 -4px 40px rgba(var(--overlay-rgb),0.6), 0 0 0 1px rgba(var(--contrast-rgb),0.06)",
                       }}
                     >
                       {/* Top accent line */}
@@ -784,13 +784,13 @@ export default function TipologiasPage() {
                       <div className="p-4 flex gap-4">
                         {/* Render thumbnail */}
                         {active?.renders?.[0] && (
-                          <div className="flex-shrink-0 w-20 h-20 rounded-xl overflow-hidden border border-white/8 relative">
+                          <div className="flex-shrink-0 w-20 h-20 rounded-xl overflow-hidden border border-[var(--border-default)] relative">
                             <img
                               src={active.renders[0]}
                               alt={active.nombre}
                               className="w-full h-full object-cover"
                             />
-                            <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent" />
+                            <div className="absolute inset-0 bg-gradient-to-t from-[rgba(var(--overlay-rgb),0.4)] to-transparent" />
                           </div>
                         )}
 
@@ -820,47 +820,47 @@ export default function TipologiasPage() {
                           {/* Specs as pill-style items — gated by columns config */}
                           <div className="flex flex-wrap gap-1.5 mb-2.5">
                             {columns.area_m2 && (selectedUnit.area_m2 ?? bannerTipo?.area_m2) != null && !columns.area_construida && !columns.area_privada && !columns.area_lote && (
-                              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg text-[11px] font-mono text-[var(--text-secondary)] bg-white/5 border border-white/6">
+                              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg text-[11px] font-mono text-[var(--text-secondary)] bg-[var(--surface-2)] border border-[var(--border-subtle)]">
                                 <Maximize size={10} className="text-[var(--site-primary)] opacity-70" /> {selectedUnit.area_m2 ?? bannerTipo?.area_m2} m²
                               </span>
                             )}
                             {columns.area_construida && (selectedUnit.area_construida ?? bannerTipo?.area_construida) != null && (
-                              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg text-[11px] font-mono text-[var(--text-secondary)] bg-white/5 border border-white/6">
+                              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg text-[11px] font-mono text-[var(--text-secondary)] bg-[var(--surface-2)] border border-[var(--border-subtle)]">
                                 <Maximize size={10} className="text-[var(--site-primary)] opacity-70" /> {selectedUnit.area_construida ?? bannerTipo?.area_construida} m² {tSite("tipologias.areaConstruida").toLowerCase()}
                               </span>
                             )}
                             {columns.area_privada && (selectedUnit.area_privada ?? bannerTipo?.area_privada) != null && (
-                              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg text-[11px] font-mono text-[var(--text-secondary)] bg-white/5 border border-white/6">
+                              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg text-[11px] font-mono text-[var(--text-secondary)] bg-[var(--surface-2)] border border-[var(--border-subtle)]">
                                 <Maximize size={10} className="text-[var(--site-primary)] opacity-70" /> {selectedUnit.area_privada ?? bannerTipo?.area_privada} m² {tSite("tipologias.areaPrivada").toLowerCase()}
                               </span>
                             )}
                             {columns.area_lote && (selectedUnit.area_lote ?? bannerTipo?.area_lote) != null && (
-                              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg text-[11px] font-mono text-[var(--text-secondary)] bg-white/5 border border-white/6">
+                              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg text-[11px] font-mono text-[var(--text-secondary)] bg-[var(--surface-2)] border border-[var(--border-subtle)]">
                                 <Maximize size={10} className="text-[var(--site-primary)] opacity-70" /> {selectedUnit.area_lote ?? bannerTipo?.area_lote} m² {tSite("tipologias.areaLote").toLowerCase()}
                               </span>
                             )}
                             {columns.piso && selectedUnit.piso && (
-                              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg text-[11px] font-mono text-[var(--text-secondary)] bg-white/5 border border-white/6">
+                              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg text-[11px] font-mono text-[var(--text-secondary)] bg-[var(--surface-2)] border border-[var(--border-subtle)]">
                                 <Building2 size={10} className="text-[var(--site-primary)] opacity-70" /> {tSite("tipologias.floor")} {selectedUnit.piso}
                               </span>
                             )}
                             {columns.habitaciones && (selectedUnit.habitaciones ?? bannerTipo?.habitaciones) != null && (
-                              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg text-[11px] font-mono text-[var(--text-secondary)] bg-white/5 border border-white/6">
+                              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg text-[11px] font-mono text-[var(--text-secondary)] bg-[var(--surface-2)] border border-[var(--border-subtle)]">
                                 <BedDouble size={10} className="text-[var(--site-primary)] opacity-70" /> {selectedUnit.habitaciones ?? bannerTipo?.habitaciones} {tSite("cotizador.hab")}
                               </span>
                             )}
                             {columns.banos && (selectedUnit.banos ?? bannerTipo?.banos) != null && (
-                              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg text-[11px] font-mono text-[var(--text-secondary)] bg-white/5 border border-white/6">
+                              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg text-[11px] font-mono text-[var(--text-secondary)] bg-[var(--surface-2)] border border-[var(--border-subtle)]">
                                 <Bath size={10} className="text-[var(--site-primary)] opacity-70" /> {selectedUnit.banos ?? bannerTipo?.banos} {tSite("cotizador.banos")}
                               </span>
                             )}
                             {columns.parqueaderos && (() => { const p = selectedUnit.parqueaderos ?? bannerTipo?.parqueaderos; return p != null && p > 0 ? (
-                              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg text-[11px] font-mono text-[var(--text-secondary)] bg-white/5 border border-white/6">
+                              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg text-[11px] font-mono text-[var(--text-secondary)] bg-[var(--surface-2)] border border-[var(--border-subtle)]">
                                 <Car size={10} className="text-[var(--site-primary)] opacity-70" /> {p} Parq.
                               </span>
                             ) : null; })()}
                             {columns.orientacion && selectedUnit.orientacion && (
-                              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg text-[11px] font-mono text-[var(--text-secondary)] bg-white/5 border border-white/6">
+                              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg text-[11px] font-mono text-[var(--text-secondary)] bg-[var(--surface-2)] border border-[var(--border-subtle)]">
                                 <Compass size={10} className="text-[var(--site-primary)] opacity-70" /> {selectedUnit.orientacion}
                               </span>
                             )}
@@ -871,13 +871,13 @@ export default function TipologiasPage() {
                               return unitVista ? (
                                 <button
                                   onClick={() => setShowVistaModal(unitVista)}
-                                  className="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg text-[11px] font-mono bg-white/5 border border-white/6 text-[var(--site-primary)] hover:bg-white/8 transition-colors cursor-pointer"
+                                  className="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg text-[11px] font-mono bg-[var(--surface-2)] border border-[var(--border-subtle)] text-[var(--site-primary)] hover:bg-[var(--surface-3)] transition-colors cursor-pointer"
                                 >
                                   <Eye size={10} />
                                   {tSite("tipologias.verVista")}
                                 </button>
                               ) : selectedUnit.vista ? (
-                                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg text-[11px] font-mono text-[var(--text-secondary)] bg-white/5 border border-white/6">
+                                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg text-[11px] font-mono text-[var(--text-secondary)] bg-[var(--surface-2)] border border-[var(--border-subtle)]">
                                   <Eye size={10} className="text-[var(--site-primary)] opacity-70" /> {selectedUnit.vista}
                                 </span>
                               ) : null;
@@ -888,7 +888,7 @@ export default function TipologiasPage() {
                           {active?.caracteristicas && active.caracteristicas.length > 0 && (
                             <div className="flex flex-wrap gap-1 mb-2">
                               {active.caracteristicas.slice(0, 4).map((c) => (
-                                <span key={c} className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md text-[9px] font-mono uppercase tracking-wider text-[var(--text-tertiary)] border border-white/5">
+                                <span key={c} className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md text-[9px] font-mono uppercase tracking-wider text-[var(--text-tertiary)] border border-[var(--border-subtle)]">
                                   <CheckCircle2 size={8} className="text-[var(--site-primary)] opacity-60" />
                                   {c}
                                 </span>
@@ -909,7 +909,7 @@ export default function TipologiasPage() {
                           <button
                             onClick={() => setSelectedUnit(null)}
                             aria-label={tSite("tipologias.closeDetail")}
-                            className="p-1.5 rounded-full bg-white/6 hover:bg-white/10 transition-colors cursor-pointer"
+                            className="p-1.5 rounded-full bg-[var(--surface-2)] hover:bg-[var(--surface-3)] transition-colors cursor-pointer"
                           >
                             <X size={12} className="text-[var(--text-secondary)]" />
                           </button>
@@ -1493,13 +1493,13 @@ export default function TipologiasPage() {
             className="fixed inset-0 z-[70] flex items-center justify-center p-8"
             onClick={() => setShowVideoModal(false)}
           >
-            <div className="absolute inset-0 bg-black/70 backdrop-blur-md" />
+            <div className="absolute inset-0 bg-[rgba(var(--overlay-rgb),0.7)] backdrop-blur-md" />
             <motion.div
               initial={{ opacity: 0, scale: 0.92 }}
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.92 }}
               transition={{ duration: 0.25, ease: [0.4, 0, 0.2, 1] }}
-              className="relative w-full max-w-4xl aspect-video rounded-2xl overflow-hidden shadow-2xl bg-black"
+              className="relative w-full max-w-4xl aspect-video rounded-2xl overflow-hidden shadow-2xl bg-[rgba(var(--overlay-rgb),1)]"
               onClick={(e) => e.stopPropagation()}
             >
               <iframe
@@ -1531,13 +1531,13 @@ export default function TipologiasPage() {
             className="fixed inset-0 z-[70] flex items-center justify-center p-8"
             onClick={() => setShowTourModal(false)}
           >
-            <div className="absolute inset-0 bg-black/70 backdrop-blur-md" />
+            <div className="absolute inset-0 bg-[rgba(var(--overlay-rgb),0.7)] backdrop-blur-md" />
             <motion.div
               initial={{ opacity: 0, scale: 0.92 }}
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.92 }}
               transition={{ duration: 0.25, ease: [0.4, 0, 0.2, 1] }}
-              className="relative w-full max-w-5xl aspect-video rounded-2xl overflow-hidden shadow-2xl bg-black"
+              className="relative w-full max-w-5xl aspect-video rounded-2xl overflow-hidden shadow-2xl bg-[rgba(var(--overlay-rgb),1)]"
               onClick={(e) => e.stopPropagation()}
             >
               <iframe

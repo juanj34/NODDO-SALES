@@ -131,7 +131,7 @@ export function MultiStepForm({
           transition={{ duration: 0.3 }}
           className="text-center"
         >
-          <h3 className="text-lg font-medium text-white mb-1">{step.title}</h3>
+          <h3 className="text-lg font-medium text-[var(--text-primary)] mb-1">{step.title}</h3>
           {step.subtitle && (
             <p className="text-sm text-[var(--text-secondary)]">
               {step.subtitle}

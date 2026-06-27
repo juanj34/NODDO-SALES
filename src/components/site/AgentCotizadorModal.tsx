@@ -71,7 +71,7 @@ export function AgentCotizadorModal({ open, onClose }: AgentCotizadorModalProps)
         >
           {/* Backdrop */}
           <div
-            className="absolute inset-0 bg-black/80 backdrop-blur-sm"
+            className="absolute inset-0 bg-[rgba(var(--overlay-rgb),0.8)] backdrop-blur-sm"
             onClick={onClose}
           />
 
@@ -81,23 +81,23 @@ export function AgentCotizadorModal({ open, onClose }: AgentCotizadorModalProps)
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.97, y: 12 }}
             transition={{ type: "spring", damping: 25, stiffness: 300 }}
-            className="relative w-[96vw] h-[92vh] max-w-7xl bg-[var(--surface-0)] rounded-2xl border border-white/10 shadow-2xl overflow-hidden flex flex-col"
+            className="relative w-[96vw] h-[92vh] max-w-7xl bg-[var(--surface-0)] rounded-2xl border border-[var(--border-default)] shadow-2xl overflow-hidden flex flex-col"
             onClick={(e) => e.stopPropagation()}
           >
             {/* Header */}
-            <div className="flex items-center justify-between px-6 py-4 border-b border-white/10 shrink-0">
+            <div className="flex items-center justify-between px-6 py-4 border-b border-[var(--border-default)] shrink-0">
               <div>
-                <h2 className="text-base font-heading text-white/90">
+                <h2 className="text-base font-heading text-[var(--text-primary)]">
                   Cotizador — {proyecto.nombre}
                 </h2>
-                <p className="text-xs font-mono text-white/40 mt-0.5">
+                <p className="text-xs font-mono text-[var(--text-tertiary)] mt-0.5">
                   Modo Agente
                 </p>
               </div>
               <button
                 type="button"
                 onClick={onClose}
-                className="p-2 rounded-lg text-white/40 hover:text-white hover:bg-white/5 transition-colors cursor-pointer"
+                className="p-2 rounded-lg text-[var(--text-tertiary)] hover:text-[var(--text-primary)] hover:bg-[var(--surface-2)] transition-colors cursor-pointer"
               >
                 <X size={20} />
               </button>

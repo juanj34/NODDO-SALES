@@ -5,7 +5,7 @@ export default function SiteNotFound() {
     <div
       style={{
         minHeight: "100vh",
-        backgroundColor: "var(--site-bg, #0a0a0a)",
+        backgroundColor: "var(--site-bg, var(--surface-0))",
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
@@ -33,7 +33,7 @@ export default function SiteNotFound() {
             fontFamily: "var(--font-cormorant, 'Cormorant Garamond', Georgia, serif)",
             fontSize: "22px",
             fontWeight: 300,
-            color: "rgba(244, 240, 232, 0.92)",
+            color: "var(--text-primary)",
             marginBottom: "8px",
             letterSpacing: "0.02em",
           }}
@@ -45,7 +45,7 @@ export default function SiteNotFound() {
             fontFamily: "var(--font-dm-mono, 'DM Mono', monospace)",
             fontSize: "13px",
             fontWeight: 300,
-            color: "rgba(244, 240, 232, 0.35)",
+            color: "var(--text-tertiary)",
             marginBottom: "32px",
             lineHeight: 1.7,
           }}
@@ -59,7 +59,7 @@ export default function SiteNotFound() {
             display: "inline-block",
             padding: "12px 32px",
             backgroundColor: "var(--site-primary, #b8973a)",
-            color: "#141414",
+            color: "#141414", // theme-allow: dark label on gold button
             fontFamily: "var(--font-syne, 'Syne', sans-serif)",
             fontSize: "11px",
             fontWeight: 700,

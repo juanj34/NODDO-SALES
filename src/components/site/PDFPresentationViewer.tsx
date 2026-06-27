@@ -329,7 +329,7 @@ export function PDFPresentationViewer({
                   else if (info.offset.x > 80 && currentPage > 1) goPrev();
                 }}
               >
-                <div className="rounded-xl overflow-hidden shadow-2xl shadow-black/60 ring-1 ring-[var(--border-subtle)]">
+                <div className="rounded-xl overflow-hidden shadow-2xl shadow-[rgba(var(--overlay-rgb),0.6)] ring-1 ring-[var(--border-subtle)]">
                   <Page
                     pageNumber={currentPage}
                     width={pageDimensions.width}
@@ -410,7 +410,7 @@ export function PDFPresentationViewer({
         style={{ pointerEvents: controlsVisible ? "auto" : "none" }}
       >
         {/* Progress bar */}
-        <div className="h-[2px] bg-white/5 w-full">
+        <div className="h-[2px] bg-[var(--surface-2)] w-full">
           <motion.div
             className="h-full bg-[var(--site-primary)]"
             initial={false}
@@ -432,7 +432,7 @@ export function PDFPresentationViewer({
                 className={`flex-shrink-0 transition-all duration-200 cursor-pointer rounded-md ${
                   p === currentPage
                     ? "w-8 h-1.5 bg-[var(--site-primary)] scale-110"
-                    : "w-4 h-1.5 bg-white/10 hover:bg-white/25"
+                    : "w-4 h-1.5 bg-[var(--surface-3)] hover:bg-[var(--surface-4)]"
                 }`}
                 aria-label={`Page ${p}`}
               />

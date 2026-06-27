@@ -331,7 +331,7 @@ export function PlanoZoomLightbox({
           <button
             onClick={zoomOut}
             disabled={scale <= MIN_SCALE}
-            className="w-8 h-8 flex items-center justify-center rounded-lg text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-white/10 disabled:opacity-30 transition-colors cursor-pointer"
+            className="w-8 h-8 flex items-center justify-center rounded-lg text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--surface-3)] disabled:opacity-30 transition-colors cursor-pointer"
             aria-label="Zoom out"
           >
             <ZoomOut size={16} />
@@ -344,7 +344,7 @@ export function PlanoZoomLightbox({
           <button
             onClick={zoomInBtn}
             disabled={scale >= MAX_SCALE}
-            className="w-8 h-8 flex items-center justify-center rounded-lg text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-white/10 disabled:opacity-30 transition-colors cursor-pointer"
+            className="w-8 h-8 flex items-center justify-center rounded-lg text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--surface-3)] disabled:opacity-30 transition-colors cursor-pointer"
             aria-label="Zoom in"
           >
             <ZoomIn size={16} />
@@ -353,7 +353,7 @@ export function PlanoZoomLightbox({
           {isZoomed && (
             <button
               onClick={resetZoom}
-              className="w-8 h-8 flex items-center justify-center rounded-lg text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-white/10 transition-colors cursor-pointer"
+              className="w-8 h-8 flex items-center justify-center rounded-lg text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--surface-3)] transition-colors cursor-pointer"
               aria-label="Reset zoom"
             >
               <Minimize2 size={16} />

@@ -5,10 +5,10 @@ interface DisclaimerProps {
 export function Disclaimer({ text }: DisclaimerProps) {
   return (
     <div
-      className="fixed bottom-0 left-0 right-0 z-40 bg-black/80 backdrop-blur-sm border-t border-white/5 px-6 py-2"
+      className="fixed bottom-0 left-0 right-0 z-40 bg-[var(--surface-0)]/80 backdrop-blur-sm border-t border-[var(--border-subtle)] px-6 py-2"
       style={{ paddingBottom: "max(8px, var(--safe-area-bottom, 0px))" }}
     >
-      <p className="text-[10px] text-white/30 text-center tracking-wider">
+      <p className="text-[10px] text-[var(--text-tertiary)] text-center tracking-wider">
         {text}
       </p>
     </div>
