@@ -1,4 +1,9 @@
 @import "tailwindcss";
+/* Exclude docs/ from Tailwind's content scan: plan/spec .md files contain emoji
+   and other multi-byte chars that crash Tailwind v4's markUsedVariable
+   ("Invalid code point") during the production build. Docs have no Tailwind
+   classes, so excluding them is safe. */
+@source not "../../docs/**";
 @plugin "@tailwindcss/typography";
 
 :root {
