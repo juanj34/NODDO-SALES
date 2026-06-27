@@ -2,7 +2,7 @@
  * NODDO Brand Font Registration for jsPDF
  *
  * Fonts:
- *   - cormorant (light 300)   → headings, project names, display text
+ *   - inter (regular 400)     → headings + project names + body (serif removed brand-wide)
  *   - syne (bold 700)         → section labels, UPPERCASE UI text
  *   - inter (regular 400)     → body text, descriptions
  *   - dm-mono (regular 400)   → prices, data values, reference numbers
@@ -19,8 +19,8 @@ import * as path from "path";
 
 /** Font family constants for use with doc.setFont() */
 export const FONT = {
-  /** Cormorant Garamond Light — headings, project name, display text */
-  HEADING: "cormorant",
+  /** Inter Regular — headings, project name, display text (serif removed brand-wide) */
+  HEADING: "inter",
   /** Syne Bold — section labels, UPPERCASE text, badges */
   LABEL: "syne",
   /** Inter Regular — body text, descriptions, paragraphs */
@@ -37,7 +37,6 @@ function loadFonts(): Map<string, string> {
 
   const fontsDir = path.join(__dirname, "fonts");
   const fontFiles = [
-    { file: "cormorant-light.ttf", vfsName: "cormorant-light.ttf" },
     { file: "syne-bold.ttf", vfsName: "syne-bold.ttf" },
     { file: "inter-regular.ttf", vfsName: "inter-regular.ttf" },
     { file: "dm-mono-regular.ttf", vfsName: "dm-mono-regular.ttf" },
@@ -63,8 +62,8 @@ function loadFonts(): Map<string, string> {
 export function registerFonts(doc: jsPDF): void {
   const fonts = loadFonts();
 
+  // HEADING + BODY both map to "inter" (serif removed); inter-regular serves both.
   const registrations = [
-    { vfsName: "cormorant-light.ttf", family: FONT.HEADING, style: "normal" },
     { vfsName: "syne-bold.ttf", family: FONT.LABEL, style: "bold" },
     { vfsName: "inter-regular.ttf", family: FONT.BODY, style: "normal" },
     { vfsName: "dm-mono-regular.ttf", family: FONT.MONO, style: "normal" },

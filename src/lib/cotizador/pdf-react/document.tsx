@@ -9,7 +9,7 @@
  *   Page N+2: Additional info (conditional)
  *
  * Typography rules:
- *   Cormorant (HEADING) — cover title, section titles only (≥14pt)
+ *   Inter (HEADING)     — cover title, section titles (≥14pt) — serif removed brand-wide
  *   Syne (LABEL)        — section labels, table header, buttons (7–8pt, UPPERCASE)
  *   Inter (BODY)         — all body text, descriptions, greetings (8pt)
  *   DM Mono (MONO)      — prices, dates, ref numbers, data values (8pt)

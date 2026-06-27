@@ -236,7 +236,7 @@ export function buildBrandedCotizacionEmail(data: BrandedEmailData): string {
   // Assemble full email
   return `<!DOCTYPE html>
 <html lang="${locale}">
-<head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300&display=swap" rel="stylesheet"></head>
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet"></head>
 <body style="margin:0;padding:0;background-color:${th.bodyBg};font-family:'Helvetica Neue',Helvetica,Arial,sans-serif;-webkit-font-smoothing:antialiased;">
   <table width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color:${th.bodyBg};padding:40px 20px;">
     <tr><td align="center">
@@ -247,7 +247,7 @@ export function buildBrandedCotizacionEmail(data: BrandedEmailData): string {
           <span style="color:${primaryColor};font-size:16px;letter-spacing:8px;">&#x2014; &#x2726; &#x2014;</span>
         </td></tr>
         <tr><td align="center" style="padding:0 40px 4px;">
-          <h1 style="margin:0;font-family:'Cormorant Garamond',Georgia,serif;font-size:26px;font-weight:300;font-style:italic;color:${th.headingText};letter-spacing:0.02em;">
+          <h1 style="margin:0;font-family:'Inter','Helvetica Neue',Helvetica,Arial,sans-serif;font-size:26px;font-weight:600;color:${th.headingText};letter-spacing:-0.01em;">
             ${s.cotizacionBuyer.heading}
           </h1>
         </td></tr>

@@ -444,17 +444,17 @@ export function ScrollFeatures() {
               {/* Disponibles */}
               <rect x="100" y="104" width="118" height="52" rx="6" fill="#0e0e0e" stroke="rgba(74,158,107,.25)" strokeWidth=".8" />
               <text x="114" y="122" fontFamily="Syne,sans-serif" fontSize="6.5" fill="rgba(244,240,232,.3)" letterSpacing="1.5" fontWeight="700">DISPONIBLES</text>
-              <text x="114" y="146" fontFamily="Cormorant Garamond,serif" fontSize="24" fontWeight="300" fill="#4a9e6b">24</text>
+              <text x="114" y="146" fontFamily="system-ui, sans-serif" fontSize="24" fontWeight="300" fill="#4a9e6b">24</text>
               <circle cx="200" cy="140" r="3" fill="rgba(74,158,107,.6)" />
               {/* Reservados */}
               <rect x="226" y="104" width="118" height="52" rx="6" fill="#0e0e0e" stroke="rgba(196,133,58,.25)" strokeWidth=".8" />
               <text x="240" y="122" fontFamily="Syne,sans-serif" fontSize="6.5" fill="rgba(244,240,232,.3)" letterSpacing="1.5" fontWeight="700">RESERVADOS</text>
-              <text x="240" y="146" fontFamily="Cormorant Garamond,serif" fontSize="24" fontWeight="300" fill="#c4853a">8</text>
+              <text x="240" y="146" fontFamily="system-ui, sans-serif" fontSize="24" fontWeight="300" fill="#c4853a">8</text>
               <circle cx="326" cy="140" r="3" fill="rgba(196,133,58,.6)" />
               {/* Vendidos */}
               <rect x="352" y="104" width="118" height="52" rx="6" fill="#0e0e0e" stroke="rgba(100,100,100,.25)" strokeWidth=".8" />
               <text x="366" y="122" fontFamily="Syne,sans-serif" fontSize="6.5" fill="rgba(244,240,232,.3)" letterSpacing="1.5" fontWeight="700">VENDIDOS</text>
-              <text x="366" y="146" fontFamily="Cormorant Garamond,serif" fontSize="24" fontWeight="300" fill="#888">8</text>
+              <text x="366" y="146" fontFamily="system-ui, sans-serif" fontSize="24" fontWeight="300" fill="#888">8</text>
               <circle cx="452" cy="140" r="3" fill="rgba(100,100,100,.6)" />
 
               {/* Dot grid — 10x2 (20 dots) */}
@@ -480,7 +480,7 @@ export function ScrollFeatures() {
               <g id="sfAvailCard" opacity="0">
                 <rect x="108" y="250" width="352" height="60" rx="6" fill="#0e0e0e" stroke="rgba(74,158,107,.2)" strokeWidth=".8" />
                 <text x="124" y="270" fontFamily="Syne,sans-serif" fontSize="7" fill="rgba(244,240,232,.3)" letterSpacing="2" fontWeight="700">OCUPACION DEL PROYECTO</text>
-                <text x="124" y="294" fontFamily="Cormorant Garamond,serif" fontSize="22" fontWeight="300" fill="#4a9e6b">60%</text>
+                <text x="124" y="294" fontFamily="system-ui, sans-serif" fontSize="22" fontWeight="300" fill="#4a9e6b">60%</text>
                 {/* Progress bar background */}
                 <rect x="180" y="282" width="260" height="8" rx="4" fill="rgba(255,255,255,.04)" />
                 {/* Progress bar fill */}
@@ -521,7 +521,7 @@ export function ScrollFeatures() {
               <g id="sfLead1" opacity="0" style={{ transform: "translateY(44px)" }}>
                 <rect x="100" y="140" width="368" height="52" rx="6" fill="#0e0e0e" stroke="rgba(184,151,58,.15)" strokeWidth=".8" />
                 <circle cx="120" cy="166" r="14" fill="rgba(184,151,58,.1)" stroke="rgba(184,151,58,.25)" strokeWidth=".8" />
-                <text x="120" y="170" textAnchor="middle" fontFamily="Cormorant Garamond,serif" fontSize="11" fill="#d4b05a">MG</text>
+                <text x="120" y="170" textAnchor="middle" fontFamily="system-ui, sans-serif" fontSize="11" fill="#d4b05a">MG</text>
                 <text x="142" y="160" fontFamily="Syne,sans-serif" fontSize="8.5" fontWeight="700" fill="rgba(244,240,232,.82)">Maria Garcia</text>
                 <text x="142" y="174" fontFamily="DM Mono,monospace" fontSize="7" fill="rgba(244,240,232,.28)">+57 310 456 7890</text>
                 <text x="220" y="164" fontFamily="DM Mono,monospace" fontSize="7.5" fill="rgba(244,240,232,.4)">maria.g@</text>
@@ -535,7 +535,7 @@ export function ScrollFeatures() {
               <g id="sfLead2" opacity="0" style={{ transform: "translateY(44px)" }}>
                 <rect x="100" y="200" width="368" height="52" rx="6" fill="#0e0e0e" stroke="rgba(184,151,58,.15)" strokeWidth=".8" />
                 <circle cx="120" cy="226" r="14" fill="rgba(184,151,58,.1)" stroke="rgba(184,151,58,.25)" strokeWidth=".8" />
-                <text x="120" y="230" textAnchor="middle" fontFamily="Cormorant Garamond,serif" fontSize="11" fill="#d4b05a">CR</text>
+                <text x="120" y="230" textAnchor="middle" fontFamily="system-ui, sans-serif" fontSize="11" fill="#d4b05a">CR</text>
                 <text x="142" y="220" fontFamily="Syne,sans-serif" fontSize="8.5" fontWeight="700" fill="rgba(244,240,232,.82)">Carlos Rojas</text>
                 <text x="142" y="234" fontFamily="DM Mono,monospace" fontSize="7" fill="rgba(244,240,232,.28)">+57 315 678 1234</text>
                 <text x="220" y="224" fontFamily="DM Mono,monospace" fontSize="7.5" fill="rgba(244,240,232,.4)">carlos.r@</text>
@@ -549,7 +549,7 @@ export function ScrollFeatures() {
               <g id="sfLead3" opacity="0" style={{ transform: "translateY(44px)" }}>
                 <rect x="100" y="260" width="368" height="52" rx="6" fill="#0e0e0e" stroke="rgba(184,151,58,.15)" strokeWidth=".8" />
                 <circle cx="120" cy="286" r="14" fill="rgba(184,151,58,.1)" stroke="rgba(184,151,58,.25)" strokeWidth=".8" />
-                <text x="120" y="290" textAnchor="middle" fontFamily="Cormorant Garamond,serif" fontSize="11" fill="#d4b05a">LV</text>
+                <text x="120" y="290" textAnchor="middle" fontFamily="system-ui, sans-serif" fontSize="11" fill="#d4b05a">LV</text>
                 <text x="142" y="280" fontFamily="Syne,sans-serif" fontSize="8.5" fontWeight="700" fill="rgba(244,240,232,.82)">Luisa Vargas</text>
                 <text x="142" y="294" fontFamily="DM Mono,monospace" fontSize="7" fill="rgba(244,240,232,.28)">+57 300 123 4567</text>
                 <text x="220" y="284" fontFamily="DM Mono,monospace" fontSize="7.5" fill="rgba(244,240,232,.4)">luisa.v@</text>
@@ -567,7 +567,7 @@ export function ScrollFeatures() {
               <g id="sfLeadLabel" opacity="0">
                 <rect x="100" y="326" width="368" height="40" rx="6" fill="#0e0e0e" stroke="rgba(255,255,255,.05)" strokeWidth=".5" />
                 <text x="116" y="342" fontFamily="DM Mono,monospace" fontSize="8" fill="rgba(244,240,232,.35)">Total leads esta semana:</text>
-                <text x="276" y="342" fontFamily="Cormorant Garamond,serif" fontSize="14" fontWeight="300" fill="#d4b05a">12</text>
+                <text x="276" y="342" fontFamily="system-ui, sans-serif" fontSize="14" fontWeight="300" fill="#d4b05a">12</text>
                 <text x="300" y="342" fontFamily="DM Mono,monospace" fontSize="8" fill="rgba(74,158,107,.65)">+4 vs anterior</text>
                 <text x="116" y="358" fontFamily="DM Mono,monospace" fontSize="7.5" fill="rgba(244,240,232,.25)">Tasa de conversion:</text>
                 <text x="248" y="358" fontFamily="DM Mono,monospace" fontSize="7.5" fill="rgba(184,151,58,.7)">18.5%</text>
@@ -723,13 +723,13 @@ export function ScrollFeatures() {
                     <svg viewBox="0 0 160 48" fill="none" style={{ width: "100%", maxWidth: 280 }}>
                       <rect x="0" y="0" width="160" height="48" rx="4" fill="rgba(255,255,255,.02)" stroke="rgba(74,158,107,.15)" strokeWidth=".5" />
                       <text x="10" y="16" fontFamily="Syne,sans-serif" fontSize="5" fill="rgba(244,240,232,.3)" letterSpacing="1" fontWeight="700">DISPONIBLES</text>
-                      <text x="10" y="36" fontFamily="Cormorant Garamond,serif" fontSize="18" fontWeight="300" fill="#4a9e6b">24</text>
+                      <text x="10" y="36" fontFamily="system-ui, sans-serif" fontSize="18" fontWeight="300" fill="#4a9e6b">24</text>
                       <rect x="60" y="6" width="40" height="18" rx="3" fill="rgba(255,255,255,.02)" stroke="rgba(196,133,58,.15)" strokeWidth=".4" />
                       <text x="68" y="16" fontFamily="Syne,sans-serif" fontSize="4.5" fill="rgba(244,240,232,.3)" letterSpacing="1" fontWeight="700">RESERVADOS</text>
-                      <text x="68" y="22" fontFamily="Cormorant Garamond,serif" fontSize="6" fontWeight="300" fill="#c4853a">8</text>
+                      <text x="68" y="22" fontFamily="system-ui, sans-serif" fontSize="6" fontWeight="300" fill="#c4853a">8</text>
                       <rect x="108" y="6" width="44" height="18" rx="3" fill="rgba(255,255,255,.02)" stroke="rgba(100,100,100,.15)" strokeWidth=".4" />
                       <text x="116" y="16" fontFamily="Syne,sans-serif" fontSize="4.5" fill="rgba(244,240,232,.3)" letterSpacing="1" fontWeight="700">VENDIDOS</text>
-                      <text x="116" y="22" fontFamily="Cormorant Garamond,serif" fontSize="6" fontWeight="300" fill="#888">8</text>
+                      <text x="116" y="22" fontFamily="system-ui, sans-serif" fontSize="6" fontWeight="300" fill="#888">8</text>
                       <rect x="60" y="28" width="92" height="6" rx="3" fill="rgba(255,255,255,.04)" />
                       <rect x="60" y="28" width="55" height="6" rx="3" fill="rgba(74,158,107,.4)" />
                       <rect x="60" y="28" width="34" height="6" rx="3" fill="rgba(184,151,58,.4)" />
@@ -740,7 +740,7 @@ export function ScrollFeatures() {
                     <svg viewBox="0 0 160 48" fill="none" style={{ width: "100%", maxWidth: 280 }}>
                       <rect x="0" y="0" width="160" height="48" rx="4" fill="rgba(255,255,255,.02)" stroke="rgba(184,151,58,.15)" strokeWidth=".5" />
                       <circle cx="16" cy="18" r="8" fill="rgba(184,151,58,.08)" stroke="rgba(184,151,58,.2)" strokeWidth=".5" />
-                      <text x="16" y="21" textAnchor="middle" fontFamily="Cormorant Garamond,serif" fontSize="8" fill="#d4b05a">MG</text>
+                      <text x="16" y="21" textAnchor="middle" fontFamily="system-ui, sans-serif" fontSize="8" fill="#d4b05a">MG</text>
                       <text x="30" y="15" fontFamily="Syne,sans-serif" fontSize="6" fontWeight="700" fill="rgba(244,240,232,.8)">Maria Garcia</text>
                       <text x="30" y="22" fontFamily="DM Mono,monospace" fontSize="5" fill="rgba(244,240,232,.3)">+57 310 456 7890</text>
                       <rect x="110" y="10" width="38" height="12" rx="3" fill="rgba(74,158,107,.08)" stroke="rgba(74,158,107,.2)" strokeWidth=".4" />

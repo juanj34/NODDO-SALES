@@ -880,7 +880,7 @@ export function emailWrapper(heading: string, subLabel: string | undefined, body
           <img src="https://noddo.io/LOGO_LOGO-WHITE.svg" alt="NODDO" width="140" height="22" style="display:block;border:0;outline:none;" />
         </td></tr>
         <tr><td align="center" style="padding:16px 40px 4px;">
-          <h1 style="margin:0;font-family:Georgia,'Times New Roman',serif;font-size:22px;font-weight:300;color:#f4f0e8;letter-spacing:0.02em;">
+          <h1 style="margin:0;font-family:'Inter','Helvetica Neue',Helvetica,Arial,sans-serif;font-size:22px;font-weight:600;color:#f4f0e8;letter-spacing:-0.01em;">
             ${heading}
           </h1>
         </td></tr>
