@@ -163,7 +163,7 @@ export function CotizadorSandbox({ hidePdfOptions: _hidePdfOptions }: { hidePdfO
                     type="number"
                     value={imp.porcentaje || ""}
                     onChange={(e) => updateImpuesto(imp.id, { ...imp, porcentaje: Number(e.target.value) })}
-                    className={cn("w-full bg-[var(--surface-3)] border border-[var(--border-default)] px-3 py-2 text-white focus:outline-none focus:border-[rgba(var(--site-primary-rgb),0.5)]", radius.lg, fontSize.md)}
+                    className={cn("w-full bg-[var(--surface-3)] border border-[var(--border-default)] px-3 py-2 text-[var(--text-primary)] focus:outline-none focus:border-[rgba(var(--site-primary-rgb),0.5)]", radius.lg, fontSize.md)}
                     placeholder="4"
                     step="0.1"
                   />
@@ -195,7 +195,7 @@ export function CotizadorSandbox({ hidePdfOptions: _hidePdfOptions }: { hidePdfO
                 value={config.admin_fee ?? ""}
                 onChange={(v) => saveConfig({ ...config, admin_fee: Number(v) || undefined })}
                 currency={moneda as Currency}
-                inputClassName={cn("w-full bg-[var(--surface-3)] border border-[var(--border-default)] px-3 py-2 text-white focus:outline-none focus:border-[rgba(var(--site-primary-rgb),0.5)]", radius.lg, fontSize.md)}
+                inputClassName={cn("w-full bg-[var(--surface-3)] border border-[var(--border-default)] px-3 py-2 text-[var(--text-primary)] focus:outline-none focus:border-[rgba(var(--site-primary-rgb),0.5)]", radius.lg, fontSize.md)}
                 placeholder="0"
               />
             </div>

@@ -83,14 +83,14 @@ export default function BrochureViewer({ url, projectId }: BrochureViewerProps) 
         <div className="flex items-center gap-1.5">
           <button
             onClick={toggleFullscreen}
-            className="w-8 h-8 rounded-lg flex items-center justify-center text-[var(--text-muted)] hover:text-white hover:bg-white/5 transition-all cursor-pointer"
+            className="w-8 h-8 rounded-lg flex items-center justify-center text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:bg-[var(--surface-2)] transition-all cursor-pointer"
             aria-label={isFullscreen ? "Salir de pantalla completa" : "Pantalla completa"}
           >
             {isFullscreen ? <Minimize size={14} /> : <Maximize size={14} />}
           </button>
           <button
             onClick={handleDownload}
-            className="w-8 h-8 rounded-lg flex items-center justify-center text-[var(--text-muted)] hover:text-[var(--site-primary)] hover:bg-white/5 transition-all cursor-pointer"
+            className="w-8 h-8 rounded-lg flex items-center justify-center text-[var(--text-muted)] hover:text-[var(--site-primary)] hover:bg-[var(--surface-2)] transition-all cursor-pointer"
             aria-label="Descargar PDF"
           >
             <Download size={14} />
@@ -134,7 +134,7 @@ export default function BrochureViewer({ url, projectId }: BrochureViewerProps) 
             </div>
 
             {/* Indeterminate progress bar */}
-            <div className="w-48 h-1 bg-white/5 rounded-full overflow-hidden">
+            <div className="w-48 h-1 bg-[var(--surface-2)] rounded-full overflow-hidden">
               <motion.div
                 className="h-full w-1/3 rounded-full bg-[var(--site-primary)]"
                 animate={{ x: ["-100%", "288px"] }}

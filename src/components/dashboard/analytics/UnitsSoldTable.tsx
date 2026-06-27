@@ -62,12 +62,12 @@ export function UnitsSoldTable({ units, currency }: Props) {
                 <tbody>
                   {monthUnits.map((u) => (
                     <tr key={u.unidad_id} className="border-b border-[var(--border-subtle)]">
-                      <td className="py-2 px-2 font-mono text-white">{u.identificador}</td>
+                      <td className="py-2 px-2 font-mono text-[var(--text-primary)]">{u.identificador}</td>
                       <td className="py-2 px-2 font-mono text-[var(--text-secondary)]">{u.tipologia || "—"}</td>
                       <td className="py-2 px-2 font-mono text-[var(--text-secondary)] text-right">
                         {u.area_m2 ? `${u.area_m2.toFixed(1)} m²` : "—"}
                       </td>
-                      <td className="py-2 px-2 font-mono text-white text-right font-medium">
+                      <td className="py-2 px-2 font-mono text-[var(--text-primary)] text-right font-medium">
                         {formatCurrency(u.precio)}
                       </td>
                       <td className="py-2 px-2 font-mono text-[var(--text-tertiary)] text-right">

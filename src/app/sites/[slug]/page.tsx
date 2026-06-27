@@ -157,7 +157,13 @@ export default function SiteLanding() {
                 <span className="text-[7px] tracking-[0.2em] uppercase font-medium text-[var(--text-secondary)]">
                   powered by
                 </span>
-                <NodDoLogo width={80} colorNod="#fff" colorDo="#b8983c" />
+                <NodDoLogo
+                  width={80}
+                  colorNod={
+                    "#fff" // theme-allow: powered-by logo over hero photo
+                  }
+                  colorDo="#b8983c"
+                />
               </a>
             </>
           )}
@@ -253,7 +259,7 @@ export default function SiteLanding() {
             <motion.h1
               variants={fadeUpBlur}
               className="font-site-heading text-3xl sm:text-5xl lg:text-8xl font-light tracking-[0.15em] text-[var(--text-primary)] mb-6 leading-tight"
-              style={{ textShadow: "0 10px 40px rgba(0,0,0,0.8)" }}
+              style={{ textShadow: "0 10px 40px rgba(var(--overlay-rgb),0.8)" }}
             >
               {proyecto.nombre.toUpperCase()}
             </motion.h1>

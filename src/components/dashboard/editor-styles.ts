@@ -21,7 +21,7 @@
 // ── Inputs & Labels ──────────────────────────────────────────────
 
 export const inputClass =
-  "w-full bg-[var(--surface-3)] border border-[var(--border-default)] rounded-[0.625rem] px-4 py-2.5 text-sm text-white placeholder:text-[var(--text-muted)] focus:outline-none focus:border-[rgba(var(--site-primary-rgb),0.5)] focus:shadow-[0_0_0_3px_rgba(var(--site-primary-rgb),0.10)] transition-all";
+  "w-full bg-[var(--surface-3)] border border-[var(--border-default)] rounded-[0.625rem] px-4 py-2.5 text-sm text-[var(--text-primary)] placeholder:text-[var(--text-muted)] focus:outline-none focus:border-[rgba(var(--site-primary-rgb),0.5)] focus:shadow-[0_0_0_3px_rgba(var(--site-primary-rgb),0.10)] transition-all";
 
 /**
  * @deprecated Use <Label> component from @/components/ui instead.
@@ -37,10 +37,10 @@ export const fieldHint =
 // ── Buttons ──────────────────────────────────────────────────────
 
 export const btnPrimary =
-  "flex items-center gap-1.5 px-4 py-2 bg-[var(--site-primary)] text-[#141414] rounded-[0.625rem] font-ui text-xs font-bold uppercase tracking-[0.1em] hover:brightness-110 hover:shadow-[0_4px_16px_rgba(var(--site-primary-rgb),0.25)] transition-all disabled:opacity-40 disabled:cursor-not-allowed";
+  "flex items-center gap-1.5 px-4 py-2 bg-[var(--site-primary)] text-[#141414] rounded-[0.625rem] font-ui text-xs font-bold uppercase tracking-[0.1em] hover:brightness-110 hover:shadow-[0_4px_16px_rgba(var(--site-primary-rgb),0.25)] transition-all disabled:opacity-40 disabled:cursor-not-allowed"; // theme-allow: dark text on gold
 
 export const btnSecondary =
-  "flex items-center gap-1.5 px-4 py-2 border border-[var(--border-default)] bg-[var(--surface-2)] rounded-[0.625rem] font-ui text-xs font-bold uppercase tracking-[0.1em] text-[var(--text-secondary)] hover:text-white hover:border-[var(--border-strong)] hover:bg-[var(--surface-3)] transition-all";
+  "flex items-center gap-1.5 px-4 py-2 border border-[var(--border-default)] bg-[var(--surface-2)] rounded-[0.625rem] font-ui text-xs font-bold uppercase tracking-[0.1em] text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:border-[var(--border-strong)] hover:bg-[var(--surface-3)] transition-all";
 
 export const btnDanger =
   "flex items-center gap-1.5 px-3 py-1.5 font-ui text-xs font-bold uppercase tracking-[0.1em] text-red-400/70 hover:text-red-400 hover:bg-red-500/10 rounded-[0.625rem] transition-all";
@@ -51,7 +51,7 @@ export const pageHeader =
   "flex items-start justify-between mb-8";
 
 export const pageTitle =
-  "font-heading text-2xl font-light text-white";
+  "font-heading text-2xl font-light text-[var(--text-primary)]";
 
 export const pageDescription =
   "text-sm text-[var(--text-tertiary)] mt-1.5 max-w-lg leading-relaxed";
@@ -65,7 +65,7 @@ export const sectionCard =
   "p-6 bg-[var(--surface-1)] rounded-xl border border-[var(--border-subtle)] shadow-[var(--shadow-sm)]";
 
 export const sectionTitle =
-  "flex items-center gap-2 font-ui text-xs font-bold uppercase tracking-[0.1em] text-white mb-1";
+  "flex items-center gap-2 font-ui text-xs font-bold uppercase tracking-[0.1em] text-[var(--text-primary)] mb-1";
 
 export const sectionDescription =
   "text-xs text-[var(--text-tertiary)] mb-5";

@@ -180,7 +180,7 @@ function QuickCreatePanel({
             type="number"
             value={def.porcentaje_inicial || ""}
             onChange={(e) => setDef({ ...def, porcentaje_inicial: Math.min(100, Math.max(0, Number(e.target.value))) })}
-            className={cn("w-full bg-[var(--surface-3)] border border-[var(--border-default)] px-3 py-2 text-white focus:outline-none focus:border-[rgba(var(--site-primary-rgb),0.5)]", radius.lg, fontSize.md)}
+            className={cn("w-full bg-[var(--surface-3)] border border-[var(--border-default)] px-3 py-2 text-[var(--text-primary)] focus:outline-none focus:border-[rgba(var(--site-primary-rgb),0.5)]", radius.lg, fontSize.md)}
             placeholder="30" min={1} max={100}
           />
         </div>
@@ -190,7 +190,7 @@ function QuickCreatePanel({
             type="number"
             value={def.cuotas || ""}
             onChange={(e) => setDef({ ...def, cuotas: Math.max(1, Number(e.target.value)) })}
-            className={cn("w-full bg-[var(--surface-3)] border border-[var(--border-default)] px-3 py-2 text-white focus:outline-none focus:border-[rgba(var(--site-primary-rgb),0.5)]", radius.lg, fontSize.md)}
+            className={cn("w-full bg-[var(--surface-3)] border border-[var(--border-default)] px-3 py-2 text-[var(--text-primary)] focus:outline-none focus:border-[rgba(var(--site-primary-rgb),0.5)]", radius.lg, fontSize.md)}
             placeholder="6" min={1}
           />
         </div>
@@ -235,7 +235,7 @@ function QuickCreatePanel({
                 <CurrencyInput
                   value={def.separacion_monto ?? ""} onChange={(v) => setDef({ ...def, separacion_monto: Number(v) || 0 })}
                   currency={moneda as Currency}
-                  inputClassName={cn("w-full bg-[var(--surface-3)] border border-[var(--border-default)] px-3 py-2 text-white focus:outline-none focus:border-[rgba(var(--site-primary-rgb),0.5)]", radius.lg, "rounded-l-none", fontSize.md)}
+                  inputClassName={cn("w-full bg-[var(--surface-3)] border border-[var(--border-default)] px-3 py-2 text-[var(--text-primary)] focus:outline-none focus:border-[rgba(var(--site-primary-rgb),0.5)]", radius.lg, "rounded-l-none", fontSize.md)}
                   placeholder="5,000,000"
                 />
               ) : (
@@ -243,7 +243,7 @@ function QuickCreatePanel({
                   type="number"
                   value={def.separacion_monto ?? ""}
                   onChange={(e) => setDef({ ...def, separacion_monto: Math.min(100, Math.max(0, Number(e.target.value))) })}
-                  className={cn("w-full bg-[var(--surface-3)] border border-[var(--border-default)] px-3 py-2 text-white focus:outline-none focus:border-[rgba(var(--site-primary-rgb),0.5)]", radius.lg, "rounded-l-none", fontSize.md)}
+                  className={cn("w-full bg-[var(--surface-3)] border border-[var(--border-default)] px-3 py-2 text-[var(--text-primary)] focus:outline-none focus:border-[rgba(var(--site-primary-rgb),0.5)]", radius.lg, "rounded-l-none", fontSize.md)}
                   placeholder="5" min={0} max={100}
                 />
               )}
@@ -330,11 +330,11 @@ function TemplateCard({
               onChange={(e) => onRename(e.target.value)}
               onBlur={onStopEditing}
               onKeyDown={(e) => { if (e.key === "Enter") onStopEditing(); }}
-              className={cn("flex-1 bg-transparent border-b border-[rgba(var(--site-primary-rgb),0.4)] text-white font-medium focus:outline-none min-w-0 py-0.5", fontSize.md)}
+              className={cn("flex-1 bg-transparent border-b border-[rgba(var(--site-primary-rgb),0.4)] text-[var(--text-primary)] font-medium focus:outline-none min-w-0 py-0.5", fontSize.md)}
               placeholder="Nombre del plan"
             />
           ) : (
-            <span className={cn("font-medium truncate", fontSize.md, isSelected ? "text-white" : "text-[var(--text-secondary)]")}>
+            <span className={cn("font-medium truncate", fontSize.md, isSelected ? "text-[var(--text-primary)]" : "text-[var(--text-secondary)]")}>
               {plantilla.nombre}
             </span>
           )}
@@ -395,7 +395,7 @@ function FilaRow({
 
       <div className={cn("flex items-center", gap.normal, "min-w-0")}>
         <input type="text" value={fila.nombre} onChange={(e) => onChange({ ...fila, nombre: e.target.value })}
-          className={cn("flex-1 bg-transparent border-none text-white focus:outline-none placeholder:text-[var(--text-muted)] min-w-0", fontSize.md)}
+          className={cn("flex-1 bg-transparent border-none text-[var(--text-primary)] focus:outline-none placeholder:text-[var(--text-muted)] min-w-0", fontSize.md)}
           placeholder="Nombre"
         />
       </div>
@@ -416,12 +416,12 @@ function FilaRow({
             >{fila.tipo_valor === "porcentaje" ? "%" : "$"}</button>
             {fila.tipo_valor === "porcentaje" ? (
               <input type="number" value={fila.valor || ""} onChange={(e) => onChange({ ...fila, valor: parseFloat(e.target.value) || 0 })}
-                className={cn("w-14 bg-transparent text-white focus:outline-none border-b border-transparent focus:border-[rgba(var(--site-primary-rgb),0.3)] min-w-0", fontSize.md)}
+                className={cn("w-14 bg-transparent text-[var(--text-primary)] focus:outline-none border-b border-transparent focus:border-[rgba(var(--site-primary-rgb),0.3)] min-w-0", fontSize.md)}
                 placeholder="0" step="0.5"
               />
             ) : (
               <CurrencyInput value={fila.valor || ""} onChange={(v) => onChange({ ...fila, valor: Number(v) })} currency={moneda as Currency}
-                inputClassName={cn("w-full bg-transparent text-white focus:outline-none border-b border-transparent focus:border-[rgba(var(--site-primary-rgb),0.3)] min-w-0", fontSize.md)}
+                inputClassName={cn("w-full bg-transparent text-[var(--text-primary)] focus:outline-none border-b border-transparent focus:border-[rgba(var(--site-primary-rgb),0.3)] min-w-0", fontSize.md)}
               />
             )}
           </>
@@ -443,7 +443,7 @@ function FilaRow({
         {fila.regla_fecha.tipo === "meses_desde_reserva" && (
           <input type="number" min={0} value={fila.regla_fecha.meses ?? ""}
             onChange={(e) => onChange({ ...fila, regla_fecha: { ...fila.regla_fecha, meses: parseInt(e.target.value) || 0 } })}
-            className={cn("w-10 bg-transparent text-white text-center focus:outline-none border-b border-transparent focus:border-[rgba(var(--site-primary-rgb),0.3)]", fontSize.md)}
+            className={cn("w-10 bg-transparent text-[var(--text-primary)] text-center focus:outline-none border-b border-transparent focus:border-[rgba(var(--site-primary-rgb),0.3)]", fontSize.md)}
             title="Meses desde reserva"
           />
         )}
@@ -451,7 +451,7 @@ function FilaRow({
           <div className={cn("flex items-center", gap.compact)}>
             <input type="number" min={1} max={100} value={fila.regla_fecha.porcentaje_avance ?? ""}
               onChange={(e) => onChange({ ...fila, regla_fecha: { ...fila.regla_fecha, porcentaje_avance: parseInt(e.target.value) || 0 } })}
-              className={cn("w-10 bg-transparent text-white text-center focus:outline-none border-b border-transparent focus:border-[rgba(var(--site-primary-rgb),0.3)]", fontSize.md)}
+              className={cn("w-10 bg-transparent text-[var(--text-primary)] text-center focus:outline-none border-b border-transparent focus:border-[rgba(var(--site-primary-rgb),0.3)]", fontSize.md)}
               title="Porcentaje de avance"
             />
             <span className={cn("text-[var(--text-muted)]", fontSize.label)}>%</span>
@@ -754,7 +754,7 @@ export function PlantillaEditor({
                 <span className={cn("text-[var(--text-muted)] uppercase", fontSize.label, letterSpacing.wider)}>Inicial</span>
                 <input type="number" value={selected.quick_def.porcentaje_inicial || ""}
                   onChange={(e) => updateQuickDef({ porcentaje_inicial: Math.min(100, Math.max(0, Number(e.target.value))) })}
-                  className={cn("w-12 bg-transparent text-white text-center focus:outline-none border-b border-[rgba(var(--site-primary-rgb),0.3)]", fontSize.md)}
+                  className={cn("w-12 bg-transparent text-[var(--text-primary)] text-center focus:outline-none border-b border-[rgba(var(--site-primary-rgb),0.3)]", fontSize.md)}
                 />
                 <span className={cn("text-[var(--text-muted)]", fontSize.md)}>%</span>
               </div>
@@ -762,7 +762,7 @@ export function PlantillaEditor({
                 <span className={cn("text-[var(--text-muted)] uppercase", fontSize.label, letterSpacing.wider)}>en</span>
                 <input type="number" value={selected.quick_def.cuotas || ""}
                   onChange={(e) => updateQuickDef({ cuotas: Math.max(1, Number(e.target.value)) })}
-                  className={cn("w-10 bg-transparent text-white text-center focus:outline-none border-b border-[rgba(var(--site-primary-rgb),0.3)]", fontSize.md)}
+                  className={cn("w-10 bg-transparent text-[var(--text-primary)] text-center focus:outline-none border-b border-[rgba(var(--site-primary-rgb),0.3)]", fontSize.md)}
                   min={1}
                 />
                 <span className={cn("text-[var(--text-muted)]", fontSize.md)}>cuotas</span>
@@ -888,7 +888,7 @@ export function PlantillaEditor({
               {cargo.tipo === "porcentaje" ? (
                 <div className="flex items-center gap-1">
                   <input type="number" value={cargo.valor || ""} onChange={(e) => updateCargo(cargo.id, { ...cargo, valor: Number(e.target.value) })}
-                    className={cn("w-full bg-[var(--surface-3)] border border-[var(--border-default)] px-2 py-1.5 text-white focus:outline-none focus:border-[rgba(var(--site-primary-rgb),0.5)] text-center", radius.lg, fontSize.md)}
+                    className={cn("w-full bg-[var(--surface-3)] border border-[var(--border-default)] px-2 py-1.5 text-[var(--text-primary)] focus:outline-none focus:border-[rgba(var(--site-primary-rgb),0.5)] text-center", radius.lg, fontSize.md)}
                     placeholder="4" step="0.1"
                   />
                   <span className={cn("text-[var(--text-muted)]", fontSize.label)}>%</span>
@@ -896,7 +896,7 @@ export function PlantillaEditor({
               ) : (
                 <CurrencyInput value={cargo.valor || ""} onChange={(v) => updateCargo(cargo.id, { ...cargo, valor: Number(v) || 0 })}
                   currency={selectedMoneda}
-                  inputClassName={cn("w-full bg-[var(--surface-3)] border border-[var(--border-default)] px-2 py-1.5 text-white focus:outline-none focus:border-[rgba(var(--site-primary-rgb),0.5)]", radius.lg, fontSize.md)}
+                  inputClassName={cn("w-full bg-[var(--surface-3)] border border-[var(--border-default)] px-2 py-1.5 text-[var(--text-primary)] focus:outline-none focus:border-[rgba(var(--site-primary-rgb),0.5)]", radius.lg, fontSize.md)}
                   placeholder="0"
                 />
               )}

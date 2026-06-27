@@ -38,6 +38,7 @@ import { AlertsBell } from "@/components/admin/AlertsBell";
 import { GlobalSearch } from "@/components/admin/GlobalSearch";
 import { createClient } from "@/lib/supabase/client";
 import { useMobileDrawer } from "@/hooks/useMobileDrawer";
+import { ThemeToggle } from "@/components/theme/ThemeToggle";
 
 const navItems = [
   { href: "/admin", label: "Overview", icon: LayoutDashboard, exact: true },
@@ -89,7 +90,7 @@ function AdminShell({ children }: { children: React.ReactNode }) {
   };
 
   return (
-    <div className="min-h-screen relative bg-[var(--surface-0)] text-white flex">
+    <div className="min-h-screen relative bg-[var(--surface-0)] text-[var(--text-primary)] flex">
       {/* Atmosphere */}
       <div className="bg-grid-lines-subtle fixed inset-0 pointer-events-none z-0" />
       <div className="bg-noise fixed inset-0 pointer-events-none z-0" />
@@ -112,7 +113,7 @@ function AdminShell({ children }: { children: React.ReactNode }) {
             exit={{ opacity: 0 }}
             transition={{ duration: 0.2 }}
             onClick={closeDrawer}
-            className="fixed inset-0 z-[39] bg-black/60 md:hidden"
+            className="fixed inset-0 z-[39] bg-[rgba(var(--overlay-rgb),0.6)] md:hidden"
           />
         )}
       </AnimatePresence>
@@ -153,7 +154,7 @@ function AdminShell({ children }: { children: React.ReactNode }) {
                 className={cn(
                   "flex items-center gap-3 px-3 py-2 rounded-[0.625rem] font-ui text-xs font-semibold uppercase tracking-[0.08em] transition-all",
                   isActive
-                    ? "bg-[var(--surface-2)] text-white border-l-2 border-[var(--site-primary)]"
+                    ? "bg-[var(--surface-2)] text-[var(--text-primary)] border-l-2 border-[var(--site-primary)]"
                     : "text-[var(--text-tertiary)] hover:text-[var(--text-secondary)] hover:bg-[var(--surface-2)]"
                 )}
                 style={
@@ -168,6 +169,11 @@ function AdminShell({ children }: { children: React.ReactNode }) {
             );
           })}
         </nav>
+
+        {/* Theme toggle */}
+        <div className="px-4 pb-1">
+          <ThemeToggle variant="sidebar" />
+        </div>
 
         {/* Back to dashboard */}
         <div className="px-4 pb-2">

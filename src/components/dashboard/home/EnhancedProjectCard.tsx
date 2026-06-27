@@ -59,7 +59,7 @@ export function EnhancedProjectCard({ proyecto, stats, index, isAdmin, onDelete,
       <Tilt
         glareEnable={true}
         glareMaxOpacity={0.05}
-        glareColor="#ffffff"
+        glareColor="var(--text-primary)"
         glarePosition="all"
         glareBorderRadius="12px"
         tiltMaxAngleX={3}
@@ -69,7 +69,7 @@ export function EnhancedProjectCard({ proyecto, stats, index, isAdmin, onDelete,
         className={`group bg-[var(--surface-1)] rounded-xl overflow-hidden h-full flex flex-col transition-all duration-300 ${
           isPublished
             ? "border border-[rgba(184,151,58,0.15)] shadow-[0_0_30px_rgba(184,151,58,0.05)] hover:shadow-[0_8px_40px_rgba(184,151,58,0.08)]"
-            : "border border-[var(--border-subtle)] hover:border-[var(--border-default)] hover:shadow-[0_8px_40px_rgba(0,0,0,0.3)]"
+            : "border border-[var(--border-subtle)] hover:border-[var(--border-default)] hover:shadow-[0_8px_40px_rgba(var(--overlay-rgb),0.3)]"
         }`}
       >
         {/* Image */}
@@ -91,13 +91,13 @@ export function EnhancedProjectCard({ proyecto, stats, index, isAdmin, onDelete,
             className="absolute inset-0"
             style={{
               background:
-                "radial-gradient(ellipse at center, transparent 50%, rgba(10,10,11,0.35) 100%)",
+                "radial-gradient(ellipse at center, transparent 50%, rgba(var(--overlay-rgb),0.35) 100%)",
             }}
           />
 
           {/* Status badge — top left */}
           <div className="absolute top-3 left-3">
-            <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg backdrop-blur-md bg-black/40 border border-white/10">
+            <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg backdrop-blur-md bg-[rgba(var(--overlay-rgb),0.4)] border border-[var(--border-default)]">
               <span className="relative flex h-1.5 w-1.5">
                 {isPublished && (
                   <span
@@ -115,7 +115,7 @@ export function EnhancedProjectCard({ proyecto, stats, index, isAdmin, onDelete,
                 className={`px-2 py-0.5 rounded-md font-ui text-[9px] font-bold uppercase tracking-wider backdrop-blur-md border ${
                   proyecto.plan === "pro"
                     ? "text-[#b8973a] bg-[rgba(184,151,58,0.15)] border-[rgba(184,151,58,0.25)]"
-                    : "text-white/50 bg-black/30 border-white/10"
+                    : "text-[var(--text-secondary)] bg-[rgba(var(--overlay-rgb),0.3)] border-[var(--border-default)]"
                 }`}
               >
                 {proyecto.plan === "pro" ? "PRO" : "BÁSICO"}
@@ -164,7 +164,7 @@ export function EnhancedProjectCard({ proyecto, stats, index, isAdmin, onDelete,
               <Link
                 href={`/sites/${proyecto.slug}`}
                 target="_blank"
-                className="flex items-center gap-1.5 px-3.5 py-2 rounded-[0.625rem] font-ui text-[10px] font-bold uppercase tracking-[0.1em] border border-[var(--border-default)] text-[var(--text-secondary)] hover:text-white hover:border-[var(--border-strong)] hover:bg-[var(--surface-3)] transition-all"
+                className="flex items-center gap-1.5 px-3.5 py-2 rounded-[0.625rem] font-ui text-[10px] font-bold uppercase tracking-[0.1em] border border-[var(--border-default)] text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:border-[var(--border-strong)] hover:bg-[var(--surface-3)] transition-all"
               >
                 <ExternalLink size={12} />
                 {t("proyectos.viewSite")}
@@ -201,7 +201,7 @@ function StatPill({ icon, value, label }: { icon: React.ReactNode; value: number
   return (
     <div className="flex items-center gap-1.5">
       <span className="text-[var(--text-muted)]">{icon}</span>
-      <span className="font-mono text-[12px] text-white font-medium">
+      <span className="font-mono text-[12px] text-[var(--text-primary)] font-medium">
         {value.toLocaleString("es-CO")}
       </span>
       <span className="text-[10px] text-[var(--text-muted)]">{label}</span>

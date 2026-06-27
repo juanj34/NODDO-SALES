@@ -49,7 +49,7 @@ export function PopularShortcuts({ shortcuts }: Props) {
       "
     >
       <div className="mb-4">
-        <h3 className="font-ui text-xs font-bold uppercase tracking-wider text-white mb-1">
+        <h3 className="font-ui text-xs font-bold uppercase tracking-wider text-[var(--text-primary)] mb-1">
           Shortcuts más usados
         </h3>
         <p className="text-xs text-[var(--text-tertiary)]">
@@ -94,7 +94,7 @@ export function PopularShortcuts({ shortcuts }: Props) {
                 </div>
 
                 <div className="flex-1 min-w-0">
-                  <p className="font-ui text-xs font-bold uppercase tracking-wider text-white">
+                  <p className="font-ui text-xs font-bold uppercase tracking-wider text-[var(--text-primary)]">
                     {config.label}
                   </p>
                   <p className="font-mono text-xs text-[var(--text-tertiary)]">
@@ -102,7 +102,7 @@ export function PopularShortcuts({ shortcuts }: Props) {
                   </p>
                 </div>
 
-                <div className="font-mono text-sm font-bold text-white">
+                <div className="font-mono text-sm font-bold text-[var(--text-primary)]">
                   {item.clicks}
                 </div>
               </div>

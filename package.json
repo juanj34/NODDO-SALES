@@ -9,6 +9,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
+    "check:colors": "node scripts/check-hardcoded-colors.mjs",
     "typecheck": "tsc --noEmit",
     "verify:vercel": "tsx scripts/verify-vercel-token.ts",
     "create-admin": "tsx scripts/create-first-admin.ts",

@@ -126,12 +126,12 @@ function DemoConfirmadaContent() {
 
           {date && time && (
             <div className="flex items-center gap-4 mt-4">
-              <div className="flex items-center gap-2 text-sm" style={{ color: "rgba(244,240,232,0.55)" }}>
+              <div className="flex items-center gap-2 text-sm" style={{ color: "var(--mk-text-secondary)" }}>
                 <Calendar className="w-4 h-4 text-[var(--mk-accent)]" />
                 <span className="capitalize">{formatDateLong(date)}</span>
               </div>
-              <span style={{ color: "rgba(244,240,232,0.18)" }}>·</span>
-              <div className="flex items-center gap-2 text-sm" style={{ color: "rgba(244,240,232,0.55)" }}>
+              <span style={{ color: "var(--mk-text-muted)" }}>·</span>
+              <div className="flex items-center gap-2 text-sm" style={{ color: "var(--mk-text-secondary)" }}>
                 <Clock className="w-4 h-4 text-[var(--mk-accent)]" />
                 <span>{time}</span>
               </div>
@@ -145,8 +145,11 @@ function DemoConfirmadaContent() {
                 href={buildGoogleCalendarUrl(name, date, time)}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex items-center gap-2 px-5 py-3 rounded-xl bg-[var(--mk-accent)] text-[#141414] text-xs font-bold uppercase tracking-wider hover:brightness-110 transition-all"
-                style={{ fontFamily: "var(--font-syne)" }}
+                className="flex items-center gap-2 px-5 py-3 rounded-xl bg-[var(--mk-accent)] text-xs font-bold uppercase tracking-wider hover:brightness-110 transition-all"
+                style={{
+                  fontFamily: "var(--font-syne)",
+                  color: "#141414", // theme-allow: ink on the gold --mk-accent button; accent is theme-independent so the text must stay dark in both modes
+                }}
               >
                 <Calendar className="w-4 h-4" />
                 Agregar a Google Calendar
@@ -194,7 +197,7 @@ function DemoConfirmadaContent() {
             <p
               className="text-sm text-center max-w-lg mx-auto mb-8"
               style={{
-                color: "rgba(244,240,232,0.55)",
+                color: "var(--mk-text-secondary)",
                 lineHeight: "1.8",
               }}
             >
@@ -202,7 +205,7 @@ function DemoConfirmadaContent() {
             </p>
 
             {PRE_CALL_VIDEO.url ? (
-              <div className="relative aspect-video rounded-2xl overflow-hidden border border-white/10 shadow-[0_0_60px_rgba(184,151,58,0.08)]">
+              <div className="relative aspect-video rounded-2xl overflow-hidden border border-[var(--border-default)] shadow-[0_0_60px_rgba(184,151,58,0.08)]">
                 <iframe
                   src={PRE_CALL_VIDEO.url}
                   className="absolute inset-0 w-full h-full"
@@ -212,7 +215,7 @@ function DemoConfirmadaContent() {
                 />
               </div>
             ) : (
-              <div className="relative aspect-video rounded-2xl overflow-hidden border border-white/10 bg-[#1a1a1a] flex items-center justify-center">
+              <div className="relative aspect-video rounded-2xl overflow-hidden border border-[var(--border-default)] bg-[var(--mk-surface-3)] flex items-center justify-center">
                 <div className="text-center">
                   <div className="w-16 h-16 rounded-full bg-[rgba(184,151,58,0.15)] border border-[rgba(184,151,58,0.3)] flex items-center justify-center mx-auto mb-4">
                     <Play className="w-7 h-7 text-[var(--mk-accent)] ml-1" />
@@ -221,7 +224,7 @@ function DemoConfirmadaContent() {
                     className="text-xs uppercase tracking-[0.15em] font-bold"
                     style={{
                       fontFamily: "var(--font-syne)",
-                      color: "rgba(244,240,232,0.35)",
+                      color: "var(--mk-text-tertiary)",
                     }}
                   >
                     Video próximamente
@@ -261,7 +264,7 @@ function DemoConfirmadaContent() {
             <p
               className="text-sm text-center max-w-lg mx-auto mb-12"
               style={{
-                color: "rgba(244,240,232,0.55)",
+                color: "var(--mk-text-secondary)",
                 lineHeight: "1.8",
               }}
             >
@@ -284,7 +287,7 @@ function DemoConfirmadaContent() {
                 {video.videoUrl && playingVideo !== video.id ? (
                   <button
                     onClick={() => setPlayingVideo(video.id)}
-                    className="w-full text-left rounded-2xl border border-white/8 bg-[#141414] p-5 hover:border-[rgba(184,151,58,0.2)] hover:bg-[#1a1a1a] transition-all group"
+                    className="w-full text-left rounded-2xl border border-[var(--border-subtle)] bg-[var(--mk-surface-2)] p-5 hover:border-[rgba(184,151,58,0.2)] hover:bg-[var(--mk-surface-3)] transition-all group"
                   >
                     <div className="flex items-start gap-4">
                       <div className="w-10 h-10 rounded-full bg-[rgba(184,151,58,0.1)] border border-[rgba(184,151,58,0.2)] flex items-center justify-center shrink-0 group-hover:bg-[rgba(184,151,58,0.2)] transition-colors">
@@ -294,7 +297,7 @@ function DemoConfirmadaContent() {
                         <p
                           className="text-sm font-light mb-1"
                           style={{
-                            color: "rgba(244,240,232,0.92)",
+                            color: "var(--mk-text-primary)",
                           }}
                         >
                           {video.question}
@@ -302,7 +305,7 @@ function DemoConfirmadaContent() {
                         <p
                           className="text-xs"
                           style={{
-                            color: "rgba(244,240,232,0.35)",
+                            color: "var(--mk-text-tertiary)",
                           }}
                         >
                           {video.durationLabel}
@@ -311,7 +314,7 @@ function DemoConfirmadaContent() {
                     </div>
                   </button>
                 ) : playingVideo === video.id ? (
-                  <div className="rounded-2xl border border-[rgba(184,151,58,0.2)] bg-[#141414] overflow-hidden">
+                  <div className="rounded-2xl border border-[rgba(184,151,58,0.2)] bg-[var(--mk-surface-2)] overflow-hidden">
                     <div className="aspect-video">
                       <iframe
                         src={video.videoUrl}
@@ -325,7 +328,7 @@ function DemoConfirmadaContent() {
                       <p
                         className="text-sm font-light"
                         style={{
-                          color: "rgba(244,240,232,0.92)",
+                          color: "var(--mk-text-primary)",
                         }}
                       >
                         {video.question}
@@ -334,7 +337,7 @@ function DemoConfirmadaContent() {
                   </div>
                 ) : (
                   /* No video URL — show text-only card */
-                  <div className="rounded-2xl border border-white/8 bg-[#141414] p-5">
+                  <div className="rounded-2xl border border-[var(--border-subtle)] bg-[var(--mk-surface-2)] p-5">
                     <div className="flex items-start gap-4">
                       <div className="w-10 h-10 rounded-full bg-[rgba(184,151,58,0.1)] border border-[rgba(184,151,58,0.2)] flex items-center justify-center shrink-0">
                         <ArrowRight className="w-4 h-4 text-[var(--mk-accent)]" />
@@ -343,7 +346,7 @@ function DemoConfirmadaContent() {
                         <p
                           className="text-sm font-light mb-2"
                           style={{
-                            color: "rgba(244,240,232,0.92)",
+                            color: "var(--mk-text-primary)",
                           }}
                         >
                           {video.question}
@@ -351,7 +354,7 @@ function DemoConfirmadaContent() {
                         <p
                           className="text-xs"
                           style={{
-                            color: "rgba(244,240,232,0.55)",
+                            color: "var(--mk-text-secondary)",
                             lineHeight: "1.7",
                           }}
                         >
@@ -404,7 +407,7 @@ function DemoConfirmadaContent() {
                   delay: i * 0.1,
                   ease: [0.25, 0.46, 0.45, 0.94],
                 }}
-                className="rounded-2xl border border-white/8 bg-[#141414] p-6 flex flex-col"
+                className="rounded-2xl border border-[var(--border-subtle)] bg-[var(--mk-surface-2)] p-6 flex flex-col"
               >
                 {/* Metric badge */}
                 {t.resultMetric && (
@@ -428,7 +431,7 @@ function DemoConfirmadaContent() {
                 <p
                   className="text-sm font-light flex-1 mb-6"
                   style={{
-                    color: "rgba(244,240,232,0.85)",
+                    color: "var(--mk-text-primary)",
                     lineHeight: "1.8",
                   }}
                 >
@@ -457,7 +460,7 @@ function DemoConfirmadaContent() {
                     <p
                       className="text-xs font-medium"
                       style={{
-                        color: "rgba(244,240,232,0.92)",
+                        color: "var(--mk-text-primary)",
                       }}
                     >
                       {t.name}
@@ -465,7 +468,7 @@ function DemoConfirmadaContent() {
                     <p
                       className="text-[10px]"
                       style={{
-                        color: "rgba(244,240,232,0.35)",
+                        color: "var(--mk-text-tertiary)",
                       }}
                     >
                       {t.role} · {t.company}

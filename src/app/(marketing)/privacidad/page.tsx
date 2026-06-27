@@ -287,7 +287,7 @@ export default function PrivacidadPage() {
               style={{
                 fontFamily: "var(--font-syne)",
                 fontWeight: 700,
-                color: "rgba(244,240,232,0.92)",
+                color: "var(--mk-text-primary)",
               }}
             >
               Legal
@@ -301,7 +301,7 @@ export default function PrivacidadPage() {
             style={{
               fontFamily: "var(--font-cormorant)",
               fontWeight: 300,
-              color: "rgba(244,240,232,0.92)",
+              color: "var(--mk-text-primary)",
             }}
           >
             Política de{" "}
@@ -314,7 +314,7 @@ export default function PrivacidadPage() {
             className="text-base max-w-2xl mx-auto"
             style={{
               fontWeight: 300,
-              color: "rgba(244,240,232,0.55)",
+              color: "var(--mk-text-secondary)",
             }}
           >
             En NODDO protegemos sus datos personales con medidas de seguridad de nivel empresarial
@@ -326,7 +326,7 @@ export default function PrivacidadPage() {
             transition={{ duration: 0.7, delay: 0.3, ease }}
             className="text-xs mt-4 flex items-center justify-center gap-2"
             style={{
-              color: "rgba(244,240,232,0.35)",
+              color: "var(--mk-text-tertiary)",
             }}
           >
             <span className="w-1 h-1 rounded-full" style={{ background: "#b8973a" }} />
@@ -358,7 +358,7 @@ export default function PrivacidadPage() {
                 style={{
                   fontFamily: "var(--font-syne)",
                   fontWeight: 700,
-                  color: "rgba(244,240,232,0.55)",
+                  color: "var(--mk-text-secondary)",
                 }}
               >
                 Contenido
@@ -381,8 +381,8 @@ export default function PrivacidadPage() {
                             ? "2px solid #b8973a"
                             : "2px solid transparent",
                           color: isActive
-                            ? "rgba(244,240,232,0.92)"
-                            : "rgba(244,240,232,0.55)",
+                            ? "var(--mk-text-primary)"
+                            : "var(--mk-text-secondary)",
                           fontSize: "0.75rem",
                           fontWeight: 300,
                         }}
@@ -422,7 +422,7 @@ export default function PrivacidadPage() {
                       style={{
                         fontFamily: "var(--font-cormorant)",
                         fontWeight: 400,
-                        color: "rgba(244,240,232,0.92)",
+                        color: "var(--mk-text-primary)",
                       }}
                     >
                       1. Responsable del tratamiento
@@ -433,11 +433,11 @@ export default function PrivacidadPage() {
                   className="space-y-3 text-sm leading-[1.8]"
                   style={{
                     fontWeight: 300,
-                    color: "rgba(244,240,232,0.70)",
+                    color: "var(--mk-text-secondary)",
                   }}
                 >
                   <p>
-                    <strong style={{ color: "rgba(244,240,232,0.92)" }}>
+                    <strong style={{ color: "var(--mk-text-primary)" }}>
                       Antigravity SAS
                     </strong>
                     , identificada con NIT [por definir], con domicilio en Medellín, Colombia,
@@ -487,7 +487,7 @@ export default function PrivacidadPage() {
                       style={{
                         fontFamily: "var(--font-cormorant)",
                         fontWeight: 400,
-                        color: "rgba(244,240,232,0.92)",
+                        color: "var(--mk-text-primary)",
                       }}
                     >
                       2. Datos que recopilamos
@@ -498,7 +498,7 @@ export default function PrivacidadPage() {
                   className="space-y-4 text-sm leading-[1.8]"
                   style={{
                     fontWeight: 300,
-                    color: "rgba(244,240,232,0.70)",
+                    color: "var(--mk-text-secondary)",
                   }}
                 >
                   <p>Recopilamos los siguientes tipos de datos personales:</p>
@@ -507,7 +507,7 @@ export default function PrivacidadPage() {
                     <div className="pl-4 border-l-2" style={{ borderColor: "#b8973a" }}>
                       <h3
                         className="font-medium mb-1"
-                        style={{ color: "rgba(244,240,232,0.92)" }}
+                        style={{ color: "var(--mk-text-primary)" }}
                       >
                         Datos de registro y autenticación
                       </h3>
@@ -521,7 +521,7 @@ export default function PrivacidadPage() {
                     <div className="pl-4 border-l-2" style={{ borderColor: "#b8973a" }}>
                       <h3
                         className="font-medium mb-1"
-                        style={{ color: "rgba(244,240,232,0.92)" }}
+                        style={{ color: "var(--mk-text-primary)" }}
                       >
                         Datos de contacto (leads de proyectos inmobiliarios)
                       </h3>
@@ -534,7 +534,7 @@ export default function PrivacidadPage() {
                     <div className="pl-4 border-l-2" style={{ borderColor: "#b8973a" }}>
                       <h3
                         className="font-medium mb-1"
-                        style={{ color: "rgba(244,240,232,0.92)" }}
+                        style={{ color: "var(--mk-text-primary)" }}
                       >
                         Datos de uso y analytics
                       </h3>
@@ -549,7 +549,7 @@ export default function PrivacidadPage() {
                     <div className="pl-4 border-l-2" style={{ borderColor: "#b8973a" }}>
                       <h3
                         className="font-medium mb-1"
-                        style={{ color: "rgba(244,240,232,0.92)" }}
+                        style={{ color: "var(--mk-text-primary)" }}
                       >
                         Datos de proyecto cargados por el usuario
                       </h3>
@@ -564,7 +564,7 @@ export default function PrivacidadPage() {
                     <div className="pl-4 border-l-2" style={{ borderColor: "#b8973a" }}>
                       <h3
                         className="font-medium mb-1"
-                        style={{ color: "rgba(244,240,232,0.92)" }}
+                        style={{ color: "var(--mk-text-primary)" }}
                       >
                         Datos de facturación y pago
                       </h3>
@@ -578,7 +578,7 @@ export default function PrivacidadPage() {
                     <div className="pl-4 border-l-2" style={{ borderColor: "#b8973a" }}>
                       <h3
                         className="font-medium mb-1"
-                        style={{ color: "rgba(244,240,232,0.92)" }}
+                        style={{ color: "var(--mk-text-primary)" }}
                       >
                         Datos de colaboradores
                       </h3>
@@ -614,7 +614,7 @@ export default function PrivacidadPage() {
                       style={{
                         fontFamily: "var(--font-cormorant)",
                         fontWeight: 400,
-                        color: "rgba(244,240,232,0.92)",
+                        color: "var(--mk-text-primary)",
                       }}
                     >
                       3. Finalidad del tratamiento
@@ -625,7 +625,7 @@ export default function PrivacidadPage() {
                   className="space-y-3 text-sm leading-[1.8]"
                   style={{
                     fontWeight: 300,
-                    color: "rgba(244,240,232,0.70)",
+                    color: "var(--mk-text-secondary)",
                   }}
                 >
                   <p>Los datos personales se utilizan para:</p>
@@ -657,21 +657,21 @@ export default function PrivacidadPage() {
                     <FileText className="w-6 h-6" style={{ color: "#b8973a" }} />
                   </div>
                   <div>
-                    <h2 className="text-2xl mb-2" style={{ fontFamily: "var(--font-cormorant)", fontWeight: 400, color: "rgba(244,240,232,0.92)" }}>
+                    <h2 className="text-2xl mb-2" style={{ fontFamily: "var(--font-cormorant)", fontWeight: 400, color: "var(--mk-text-primary)" }}>
                       4. Base legal del tratamiento
                     </h2>
                   </div>
                 </div>
-                <div className="space-y-3 text-sm leading-[1.8]" style={{ fontWeight: 300, color: "rgba(244,240,232,0.70)" }}>
+                <div className="space-y-3 text-sm leading-[1.8]" style={{ fontWeight: 300, color: "var(--mk-text-secondary)" }}>
                   <p>El tratamiento de datos se realiza con base en:</p>
                   <ul className="list-disc pl-6 space-y-2">
-                    <li><strong style={{ color: "rgba(244,240,232,0.92)" }}>Ejecución del contrato:</strong> El procesamiento de sus datos es necesario para prestar el Servicio que ha contratado.</li>
-                    <li><strong style={{ color: "rgba(244,240,232,0.92)" }}>Consentimiento informado:</strong> Al enviar formularios de contacto, agendar demos, o suscribirse a comunicaciones, usted otorga consentimiento expreso.</li>
-                    <li><strong style={{ color: "rgba(244,240,232,0.92)" }}>Interés legítimo:</strong> Para análisis de uso agregado, mejora del Servicio, detección de fraude, y seguridad de la plataforma.</li>
-                    <li><strong style={{ color: "rgba(244,240,232,0.92)" }}>Obligación legal:</strong> Cumplimiento de normativas fiscales, contables, y respuesta a solicitudes de autoridades competentes.</li>
+                    <li><strong style={{ color: "var(--mk-text-primary)" }}>Ejecución del contrato:</strong> El procesamiento de sus datos es necesario para prestar el Servicio que ha contratado.</li>
+                    <li><strong style={{ color: "var(--mk-text-primary)" }}>Consentimiento informado:</strong> Al enviar formularios de contacto, agendar demos, o suscribirse a comunicaciones, usted otorga consentimiento expreso.</li>
+                    <li><strong style={{ color: "var(--mk-text-primary)" }}>Interés legítimo:</strong> Para análisis de uso agregado, mejora del Servicio, detección de fraude, y seguridad de la plataforma.</li>
+                    <li><strong style={{ color: "var(--mk-text-primary)" }}>Obligación legal:</strong> Cumplimiento de normativas fiscales, contables, y respuesta a solicitudes de autoridades competentes.</li>
                   </ul>
                   <p className="pt-3">
-                    En cumplimiento de la <strong style={{ color: "rgba(244,240,232,0.92)" }}>Ley 1581 de 2012</strong> de Colombia y su decreto reglamentario 1377 de 2013 (Régimen General de Protección de Datos Personales).
+                    En cumplimiento de la <strong style={{ color: "var(--mk-text-primary)" }}>Ley 1581 de 2012</strong> de Colombia y su decreto reglamentario 1377 de 2013 (Régimen General de Protección de Datos Personales).
                   </p>
                 </div>
               </motion.section>
@@ -690,28 +690,28 @@ export default function PrivacidadPage() {
                     <Globe className="w-6 h-6" style={{ color: "#b8973a" }} />
                   </div>
                   <div>
-                    <h2 className="text-2xl mb-2" style={{ fontFamily: "var(--font-cormorant)", fontWeight: 400, color: "rgba(244,240,232,0.92)" }}>
+                    <h2 className="text-2xl mb-2" style={{ fontFamily: "var(--font-cormorant)", fontWeight: 400, color: "var(--mk-text-primary)" }}>
                       5. Compartir datos con terceros
                     </h2>
                   </div>
                 </div>
-                <div className="space-y-4 text-sm leading-[1.8]" style={{ fontWeight: 300, color: "rgba(244,240,232,0.70)" }}>
+                <div className="space-y-4 text-sm leading-[1.8]" style={{ fontWeight: 300, color: "var(--mk-text-secondary)" }}>
                   <p>Los datos de leads se comparten con el administrador del proyecto inmobiliario donde el visitante envió el formulario. Esto es esencial para el funcionamiento del Servicio.</p>
                   <p>Adicionalmente, utilizamos los siguientes proveedores de servicio (data processors):</p>
                   <div className="space-y-2 pl-4">
-                    <div><strong style={{ color: "rgba(244,240,232,0.92)" }}>Supabase (EE.UU.)</strong> — Base de datos PostgreSQL, autenticación, almacenamiento de archivos. Datos encriptados en tránsito y en reposo.</div>
-                    <div><strong style={{ color: "rgba(244,240,232,0.92)" }}>Vercel (EE.UU.)</strong> — Hosting de la aplicación web, CDN global para entrega rápida de contenido.</div>
-                    <div><strong style={{ color: "rgba(244,240,232,0.92)" }}>Cloudflare R2 &amp; Stream (global)</strong> — Almacenamiento de tours 360°, videos de alta resolución, y assets pesados.</div>
-                    <div><strong style={{ color: "rgba(244,240,232,0.92)" }}>Resend (EE.UU.)</strong> — Envío de emails transaccionales (notificaciones de leads, recuperación de contraseña).</div>
-                    <div><strong style={{ color: "rgba(244,240,232,0.92)" }}>Mapbox (EE.UU.)</strong> — Mapas satelitales interactivos (no se envían datos personales, solo coordenadas de proyectos).</div>
-                    <div><strong style={{ color: "rgba(244,240,232,0.92)" }}>Sentry (EE.UU.)</strong> — Monitoreo de errores y performance. Datos anonimizados, sin PII.</div>
-                    <div><strong style={{ color: "rgba(244,240,232,0.92)" }}>Meta Pixel (Facebook/Meta)</strong> — Tracking de conversiones y remarketing. Puede deshabilitarse bloqueando scripts de terceros.</div>
-                    <div><strong style={{ color: "rgba(244,240,232,0.92)" }}>Google Tag Manager / Analytics</strong> — Análisis de tráfico web y comportamiento de usuarios. IP anonimizada.</div>
-                    <div><strong style={{ color: "rgba(244,240,232,0.92)" }}>GoHighLevel (GHL)</strong> — Integración CRM opcional. Si el administrador del proyecto habilita la integración, los leads se envían a su cuenta GHL en tiempo real.</div>
-                    <div><strong style={{ color: "rgba(244,240,232,0.92)" }}>Stripe</strong> — Procesamiento de pagos (datos de tarjeta no pasan por servidores de NODDO).</div>
+                    <div><strong style={{ color: "var(--mk-text-primary)" }}>Supabase (EE.UU.)</strong> — Base de datos PostgreSQL, autenticación, almacenamiento de archivos. Datos encriptados en tránsito y en reposo.</div>
+                    <div><strong style={{ color: "var(--mk-text-primary)" }}>Vercel (EE.UU.)</strong> — Hosting de la aplicación web, CDN global para entrega rápida de contenido.</div>
+                    <div><strong style={{ color: "var(--mk-text-primary)" }}>Cloudflare R2 &amp; Stream (global)</strong> — Almacenamiento de tours 360°, videos de alta resolución, y assets pesados.</div>
+                    <div><strong style={{ color: "var(--mk-text-primary)" }}>Resend (EE.UU.)</strong> — Envío de emails transaccionales (notificaciones de leads, recuperación de contraseña).</div>
+                    <div><strong style={{ color: "var(--mk-text-primary)" }}>Mapbox (EE.UU.)</strong> — Mapas satelitales interactivos (no se envían datos personales, solo coordenadas de proyectos).</div>
+                    <div><strong style={{ color: "var(--mk-text-primary)" }}>Sentry (EE.UU.)</strong> — Monitoreo de errores y performance. Datos anonimizados, sin PII.</div>
+                    <div><strong style={{ color: "var(--mk-text-primary)" }}>Meta Pixel (Facebook/Meta)</strong> — Tracking de conversiones y remarketing. Puede deshabilitarse bloqueando scripts de terceros.</div>
+                    <div><strong style={{ color: "var(--mk-text-primary)" }}>Google Tag Manager / Analytics</strong> — Análisis de tráfico web y comportamiento de usuarios. IP anonimizada.</div>
+                    <div><strong style={{ color: "var(--mk-text-primary)" }}>GoHighLevel (GHL)</strong> — Integración CRM opcional. Si el administrador del proyecto habilita la integración, los leads se envían a su cuenta GHL en tiempo real.</div>
+                    <div><strong style={{ color: "var(--mk-text-primary)" }}>Stripe</strong> — Procesamiento de pagos (datos de tarjeta no pasan por servidores de NODDO).</div>
                   </div>
                   <p className="pt-3">
-                    <strong style={{ color: "rgba(244,240,232,0.92)" }}>NO vendemos, alquilamos ni compartimos datos personales con fines publicitarios o de marketing de terceros.</strong> Todos los proveedores listados operan bajo acuerdos de procesamiento de datos (DPA) y cumplen con estándares internacionales de seguridad.
+                    <strong style={{ color: "var(--mk-text-primary)" }}>NO vendemos, alquilamos ni compartimos datos personales con fines publicitarios o de marketing de terceros.</strong> Todos los proveedores listados operan bajo acuerdos de procesamiento de datos (DPA) y cumplen con estándares internacionales de seguridad.
                   </p>
                 </div>
               </motion.section>
@@ -730,26 +730,26 @@ export default function PrivacidadPage() {
                     <UserCheck className="w-6 h-6" style={{ color: "#b8973a" }} />
                   </div>
                   <div>
-                    <h2 className="text-2xl mb-2" style={{ fontFamily: "var(--font-cormorant)", fontWeight: 400, color: "rgba(244,240,232,0.92)" }}>
+                    <h2 className="text-2xl mb-2" style={{ fontFamily: "var(--font-cormorant)", fontWeight: 400, color: "var(--mk-text-primary)" }}>
                       6. Derechos del titular
                     </h2>
                   </div>
                 </div>
-                <div className="space-y-3 text-sm leading-[1.8]" style={{ fontWeight: 300, color: "rgba(244,240,232,0.70)" }}>
+                <div className="space-y-3 text-sm leading-[1.8]" style={{ fontWeight: 300, color: "var(--mk-text-secondary)" }}>
                   <p>De acuerdo con la Ley 1581 de 2012, usted tiene derecho a:</p>
                   <ul className="list-disc pl-6 space-y-2">
-                    <li><strong style={{ color: "rgba(244,240,232,0.92)" }}>Conocer, actualizar y rectificar</strong> sus datos personales. Puede hacerlo desde la configuración de su cuenta o escribiéndonos.</li>
-                    <li><strong style={{ color: "rgba(244,240,232,0.92)" }}>Solicitar prueba de la autorización</strong> otorgada para el tratamiento de datos.</li>
-                    <li><strong style={{ color: "rgba(244,240,232,0.92)" }}>Ser informado del uso</strong> dado a sus datos personales.</li>
-                    <li><strong style={{ color: "rgba(244,240,232,0.92)" }}>Revocar la autorización y/o solicitar la supresión</strong> de sus datos (sujeto a obligaciones legales de retención).</li>
-                    <li><strong style={{ color: "rgba(244,240,232,0.92)" }}>Acceder gratuitamente</strong> a los datos objeto de tratamiento.</li>
-                    <li><strong style={{ color: "rgba(244,240,232,0.92)" }}>Presentar quejas</strong> ante la Superintendencia de Industria y Comercio (SIC) por infracciones a la ley.</li>
-                    <li><strong style={{ color: "rgba(244,240,232,0.92)" }}>Portabilidad de datos</strong> — Puede solicitar una exportación completa de sus datos en formato JSON.</li>
+                    <li><strong style={{ color: "var(--mk-text-primary)" }}>Conocer, actualizar y rectificar</strong> sus datos personales. Puede hacerlo desde la configuración de su cuenta o escribiéndonos.</li>
+                    <li><strong style={{ color: "var(--mk-text-primary)" }}>Solicitar prueba de la autorización</strong> otorgada para el tratamiento de datos.</li>
+                    <li><strong style={{ color: "var(--mk-text-primary)" }}>Ser informado del uso</strong> dado a sus datos personales.</li>
+                    <li><strong style={{ color: "var(--mk-text-primary)" }}>Revocar la autorización y/o solicitar la supresión</strong> de sus datos (sujeto a obligaciones legales de retención).</li>
+                    <li><strong style={{ color: "var(--mk-text-primary)" }}>Acceder gratuitamente</strong> a los datos objeto de tratamiento.</li>
+                    <li><strong style={{ color: "var(--mk-text-primary)" }}>Presentar quejas</strong> ante la Superintendencia de Industria y Comercio (SIC) por infracciones a la ley.</li>
+                    <li><strong style={{ color: "var(--mk-text-primary)" }}>Portabilidad de datos</strong> — Puede solicitar una exportación completa de sus datos en formato JSON.</li>
                   </ul>
                   <p className="pt-3">
                     Para ejercer estos derechos, escriba a{" "}
                     <a href="mailto:hola@noddo.io" className="underline" style={{ color: "#b8973a" }}>hola@noddo.io</a>{" "}
-                    con el asunto &quot;Ejercicio de derechos ARCO&quot;. Responderemos en un plazo máximo de <strong style={{ color: "rgba(244,240,232,0.92)" }}>15 días hábiles</strong>.
+                    con el asunto &quot;Ejercicio de derechos ARCO&quot;. Responderemos en un plazo máximo de <strong style={{ color: "var(--mk-text-primary)" }}>15 días hábiles</strong>.
                   </p>
                 </div>
               </motion.section>
@@ -768,22 +768,22 @@ export default function PrivacidadPage() {
                     <Lock className="w-6 h-6" style={{ color: "#b8973a" }} />
                   </div>
                   <div>
-                    <h2 className="text-2xl mb-2" style={{ fontFamily: "var(--font-cormorant)", fontWeight: 400, color: "rgba(244,240,232,0.92)" }}>
+                    <h2 className="text-2xl mb-2" style={{ fontFamily: "var(--font-cormorant)", fontWeight: 400, color: "var(--mk-text-primary)" }}>
                       7. Seguridad de los datos
                     </h2>
                   </div>
                 </div>
-                <div className="space-y-3 text-sm leading-[1.8]" style={{ fontWeight: 300, color: "rgba(244,240,232,0.70)" }}>
+                <div className="space-y-3 text-sm leading-[1.8]" style={{ fontWeight: 300, color: "var(--mk-text-secondary)" }}>
                   <p>Implementamos medidas técnicas y organizativas de nivel empresarial para proteger sus datos:</p>
                   <ul className="list-disc pl-6 space-y-2">
-                    <li><strong style={{ color: "rgba(244,240,232,0.92)" }}>Encriptación en tránsito</strong> — Todas las comunicaciones usan HTTPS/TLS 1.3.</li>
-                    <li><strong style={{ color: "rgba(244,240,232,0.92)" }}>Encriptación en reposo</strong> — Contraseñas con bcrypt, datos sensibles con AES-256.</li>
-                    <li><strong style={{ color: "rgba(244,240,232,0.92)" }}>Row Level Security (RLS)</strong> — Control de acceso a nivel de fila en base de datos.</li>
-                    <li><strong style={{ color: "rgba(244,240,232,0.92)" }}>Control de acceso basado en roles (RBAC)</strong> — Administradores, colaboradores y usuarios públicos con permisos separados.</li>
-                    <li><strong style={{ color: "rgba(244,240,232,0.92)" }}>Auditoría y logging</strong> — Registro de accesos, cambios sensibles, y eventos de seguridad.</li>
-                    <li><strong style={{ color: "rgba(244,240,232,0.92)" }}>Backups automáticos</strong> — Copias de seguridad diarias con retención de 30 días.</li>
-                    <li><strong style={{ color: "rgba(244,240,232,0.92)" }}>Monitoreo 24/7</strong> — Detección de anomalías, intentos de acceso no autorizado, y ataques DDoS.</li>
-                    <li><strong style={{ color: "rgba(244,240,232,0.92)" }}>Autenticación multifactor (MFA)</strong> — Disponible opcionalmente para administradores.</li>
+                    <li><strong style={{ color: "var(--mk-text-primary)" }}>Encriptación en tránsito</strong> — Todas las comunicaciones usan HTTPS/TLS 1.3.</li>
+                    <li><strong style={{ color: "var(--mk-text-primary)" }}>Encriptación en reposo</strong> — Contraseñas con bcrypt, datos sensibles con AES-256.</li>
+                    <li><strong style={{ color: "var(--mk-text-primary)" }}>Row Level Security (RLS)</strong> — Control de acceso a nivel de fila en base de datos.</li>
+                    <li><strong style={{ color: "var(--mk-text-primary)" }}>Control de acceso basado en roles (RBAC)</strong> — Administradores, colaboradores y usuarios públicos con permisos separados.</li>
+                    <li><strong style={{ color: "var(--mk-text-primary)" }}>Auditoría y logging</strong> — Registro de accesos, cambios sensibles, y eventos de seguridad.</li>
+                    <li><strong style={{ color: "var(--mk-text-primary)" }}>Backups automáticos</strong> — Copias de seguridad diarias con retención de 30 días.</li>
+                    <li><strong style={{ color: "var(--mk-text-primary)" }}>Monitoreo 24/7</strong> — Detección de anomalías, intentos de acceso no autorizado, y ataques DDoS.</li>
+                    <li><strong style={{ color: "var(--mk-text-primary)" }}>Autenticación multifactor (MFA)</strong> — Disponible opcionalmente para administradores.</li>
                   </ul>
                   <p className="pt-3">A pesar de estas medidas, ningún sistema es 100% seguro. En caso de brecha de seguridad que afecte datos personales, notificaremos a los usuarios afectados dentro de 72 horas y a la SIC según lo establece la ley.</p>
                 </div>
@@ -803,20 +803,20 @@ export default function PrivacidadPage() {
                     <Database className="w-6 h-6" style={{ color: "#b8973a" }} />
                   </div>
                   <div>
-                    <h2 className="text-2xl mb-2" style={{ fontFamily: "var(--font-cormorant)", fontWeight: 400, color: "rgba(244,240,232,0.92)" }}>
+                    <h2 className="text-2xl mb-2" style={{ fontFamily: "var(--font-cormorant)", fontWeight: 400, color: "var(--mk-text-primary)" }}>
                       8. Retención de datos
                     </h2>
                   </div>
                 </div>
-                <div className="space-y-3 text-sm leading-[1.8]" style={{ fontWeight: 300, color: "rgba(244,240,232,0.70)" }}>
+                <div className="space-y-3 text-sm leading-[1.8]" style={{ fontWeight: 300, color: "var(--mk-text-secondary)" }}>
                   <p>Los períodos de retención varían según el tipo de dato:</p>
                   <ul className="list-disc pl-6 space-y-2">
-                    <li><strong style={{ color: "rgba(244,240,232,0.92)" }}>Datos de cuenta:</strong> Se conservan mientras la suscripción esté activa y 30 días adicionales tras la cancelación (para permitir reactivación).</li>
-                    <li><strong style={{ color: "rgba(244,240,232,0.92)" }}>Datos de leads:</strong> Se conservan mientras el proyecto esté activo. Tras desactivación del proyecto, se mantienen 90 días antes de eliminación permanente.</li>
-                    <li><strong style={{ color: "rgba(244,240,232,0.92)" }}>Datos de facturación:</strong> Se conservan por 10 años en cumplimiento de obligaciones fiscales colombianas (Estatuto Tributario Art. 632).</li>
-                    <li><strong style={{ color: "rgba(244,240,232,0.92)" }}>Datos de analytics:</strong> Se conservan de forma agregada y anonimizada indefinidamente para análisis estadístico.</li>
-                    <li><strong style={{ color: "rgba(244,240,232,0.92)" }}>Logs de acceso:</strong> Se conservan por 6 meses para auditoría de seguridad.</li>
-                    <li><strong style={{ color: "rgba(244,240,232,0.92)" }}>Backups:</strong> Los backups automáticos se conservan por 30 días, luego se eliminan permanentemente.</li>
+                    <li><strong style={{ color: "var(--mk-text-primary)" }}>Datos de cuenta:</strong> Se conservan mientras la suscripción esté activa y 30 días adicionales tras la cancelación (para permitir reactivación).</li>
+                    <li><strong style={{ color: "var(--mk-text-primary)" }}>Datos de leads:</strong> Se conservan mientras el proyecto esté activo. Tras desactivación del proyecto, se mantienen 90 días antes de eliminación permanente.</li>
+                    <li><strong style={{ color: "var(--mk-text-primary)" }}>Datos de facturación:</strong> Se conservan por 10 años en cumplimiento de obligaciones fiscales colombianas (Estatuto Tributario Art. 632).</li>
+                    <li><strong style={{ color: "var(--mk-text-primary)" }}>Datos de analytics:</strong> Se conservan de forma agregada y anonimizada indefinidamente para análisis estadístico.</li>
+                    <li><strong style={{ color: "var(--mk-text-primary)" }}>Logs de acceso:</strong> Se conservan por 6 meses para auditoría de seguridad.</li>
+                    <li><strong style={{ color: "var(--mk-text-primary)" }}>Backups:</strong> Los backups automáticos se conservan por 30 días, luego se eliminan permanentemente.</li>
                   </ul>
                 </div>
               </motion.section>
@@ -835,33 +835,33 @@ export default function PrivacidadPage() {
                     <Eye className="w-6 h-6" style={{ color: "#b8973a" }} />
                   </div>
                   <div>
-                    <h2 className="text-2xl mb-2" style={{ fontFamily: "var(--font-cormorant)", fontWeight: 400, color: "rgba(244,240,232,0.92)" }}>
+                    <h2 className="text-2xl mb-2" style={{ fontFamily: "var(--font-cormorant)", fontWeight: 400, color: "var(--mk-text-primary)" }}>
                       9. Cookies y tecnologías de tracking
                     </h2>
                   </div>
                 </div>
-                <div className="space-y-4 text-sm leading-[1.8]" style={{ fontWeight: 300, color: "rgba(244,240,232,0.70)" }}>
+                <div className="space-y-4 text-sm leading-[1.8]" style={{ fontWeight: 300, color: "var(--mk-text-secondary)" }}>
                   <p>NODDO utiliza las siguientes cookies y tecnologías de tracking:</p>
                   <div className="space-y-3">
                     <div className="pl-4 border-l-2" style={{ borderColor: "#b8973a" }}>
-                      <h3 className="font-medium mb-1" style={{ color: "rgba(244,240,232,0.92)" }}>Cookies esenciales (no se pueden desactivar)</h3>
+                      <h3 className="font-medium mb-1" style={{ color: "var(--mk-text-primary)" }}>Cookies esenciales (no se pueden desactivar)</h3>
                       <p>Sesión de autenticación (Supabase), preferencias de usuario, protección CSRF. Estas cookies son necesarias para el funcionamiento del Servicio.</p>
                     </div>
                     <div className="pl-4 border-l-2" style={{ borderColor: "#b8973a" }}>
-                      <h3 className="font-medium mb-1" style={{ color: "rgba(244,240,232,0.92)" }}>Meta Pixel (Facebook)</h3>
+                      <h3 className="font-medium mb-1" style={{ color: "var(--mk-text-primary)" }}>Meta Pixel (Facebook)</h3>
                       <p>Rastreo de conversiones, remarketing, y optimización de campañas publicitarias. Puede bloquearse mediante extensiones anti-tracking o configuración de privacidad del navegador.</p>
                     </div>
                     <div className="pl-4 border-l-2" style={{ borderColor: "#b8973a" }}>
-                      <h3 className="font-medium mb-1" style={{ color: "rgba(244,240,232,0.92)" }}>Google Tag Manager / Google Analytics</h3>
+                      <h3 className="font-medium mb-1" style={{ color: "var(--mk-text-primary)" }}>Google Tag Manager / Google Analytics</h3>
                       <p>Análisis de tráfico web, comportamiento de usuarios, embudo de conversión. Configurado con IP anonimizada. Puede bloquearse mediante <a href="https://tools.google.com/dlpage/gaoptout" className="underline" style={{ color: "#b8973a" }} target="_blank" rel="noopener noreferrer">Google Analytics Opt-out Browser Add-on</a>.</p>
                     </div>
                     <div className="pl-4 border-l-2" style={{ borderColor: "#b8973a" }}>
-                      <h3 className="font-medium mb-1" style={{ color: "rgba(244,240,232,0.92)" }}>Analytics propios (sin cookies)</h3>
+                      <h3 className="font-medium mb-1" style={{ color: "var(--mk-text-primary)" }}>Analytics propios (sin cookies)</h3>
                       <p>Sistema de analytics server-side que no usa cookies de terceros. Rastrea pageviews, eventos, y conversiones de forma respetuosa con la privacidad.</p>
                     </div>
                   </div>
                   <p className="pt-3">
-                    <strong style={{ color: "rgba(244,240,232,0.92)" }}>NO utilizamos cookies de seguimiento publicitario invasivo.</strong> Puede controlar las cookies desde la configuración de su navegador. Bloquear cookies esenciales puede afectar la funcionalidad del Servicio.
+                    <strong style={{ color: "var(--mk-text-primary)" }}>NO utilizamos cookies de seguimiento publicitario invasivo.</strong> Puede controlar las cookies desde la configuración de su navegador. Bloquear cookies esenciales puede afectar la funcionalidad del Servicio.
                   </p>
                 </div>
               </motion.section>
@@ -880,12 +880,12 @@ export default function PrivacidadPage() {
                     <Globe className="w-6 h-6" style={{ color: "#b8973a" }} />
                   </div>
                   <div>
-                    <h2 className="text-2xl mb-2" style={{ fontFamily: "var(--font-cormorant)", fontWeight: 400, color: "rgba(244,240,232,0.92)" }}>
+                    <h2 className="text-2xl mb-2" style={{ fontFamily: "var(--font-cormorant)", fontWeight: 400, color: "var(--mk-text-primary)" }}>
                       10. Transferencia internacional de datos
                     </h2>
                   </div>
                 </div>
-                <div className="space-y-3 text-sm leading-[1.8]" style={{ fontWeight: 300, color: "rgba(244,240,232,0.70)" }}>
+                <div className="space-y-3 text-sm leading-[1.8]" style={{ fontWeight: 300, color: "var(--mk-text-secondary)" }}>
                   <p>Sus datos pueden ser procesados en servidores ubicados fuera de Colombia, principalmente en Estados Unidos y Europa, a través de nuestros proveedores de infraestructura (Supabase, Vercel, Cloudflare).</p>
                   <p>Estos proveedores cumplen con estándares de seguridad equivalentes o superiores a los exigidos por la legislación colombiana. Las transferencias se realizan bajo contratos de procesamiento de datos (DPA) que garantizan:</p>
                   <ul className="list-disc pl-6 space-y-1">
@@ -913,12 +913,12 @@ export default function PrivacidadPage() {
                     <Shield className="w-6 h-6" style={{ color: "#b8973a" }} />
                   </div>
                   <div>
-                    <h2 className="text-2xl mb-2" style={{ fontFamily: "var(--font-cormorant)", fontWeight: 400, color: "rgba(244,240,232,0.92)" }}>
+                    <h2 className="text-2xl mb-2" style={{ fontFamily: "var(--font-cormorant)", fontWeight: 400, color: "var(--mk-text-primary)" }}>
                       11. Menores de edad
                     </h2>
                   </div>
                 </div>
-                <div className="space-y-3 text-sm leading-[1.8]" style={{ fontWeight: 300, color: "rgba(244,240,232,0.70)" }}>
+                <div className="space-y-3 text-sm leading-[1.8]" style={{ fontWeight: 300, color: "var(--mk-text-secondary)" }}>
                   <p>NODDO no está dirigido a menores de 18 años. No recopilamos intencionalmente datos de menores. Si detectamos que un menor de edad ha proporcionado datos personales sin autorización parental, eliminaremos esos datos de nuestros sistemas.</p>
                   <p>Si usted es padre/madre/tutor y descubre que su hijo menor ha proporcionado datos a NODDO, contáctenos inmediatamente en <a href="mailto:hola@noddo.io" className="underline" style={{ color: "#b8973a" }}>hola@noddo.io</a>.</p>
                 </div>
@@ -938,12 +938,12 @@ export default function PrivacidadPage() {
                     <FileText className="w-6 h-6" style={{ color: "#b8973a" }} />
                   </div>
                   <div>
-                    <h2 className="text-2xl mb-2" style={{ fontFamily: "var(--font-cormorant)", fontWeight: 400, color: "rgba(244,240,232,0.92)" }}>
+                    <h2 className="text-2xl mb-2" style={{ fontFamily: "var(--font-cormorant)", fontWeight: 400, color: "var(--mk-text-primary)" }}>
                       12. Modificaciones a esta política
                     </h2>
                   </div>
                 </div>
-                <div className="space-y-3 text-sm leading-[1.8]" style={{ fontWeight: 300, color: "rgba(244,240,232,0.70)" }}>
+                <div className="space-y-3 text-sm leading-[1.8]" style={{ fontWeight: 300, color: "var(--mk-text-secondary)" }}>
                   <p>Esta política puede ser actualizada periódicamente para reflejar cambios en nuestras prácticas de datos, nuevas funcionalidades, o requisitos legales.</p>
                   <p>Publicaremos los cambios en esta página y actualizaremos la fecha de &quot;Última actualización&quot; al inicio del documento. Si los cambios son significativos (nuevos usos de datos, nuevos terceros), notificaremos por email con al menos 30 días de anticipación.</p>
                   <p>Le recomendamos revisar esta política periódicamente para mantenerse informado sobre cómo protegemos sus datos.</p>
@@ -964,20 +964,20 @@ export default function PrivacidadPage() {
                     <Mail className="w-6 h-6" style={{ color: "#b8973a" }} />
                   </div>
                   <div>
-                    <h2 className="text-2xl mb-2" style={{ fontFamily: "var(--font-cormorant)", fontWeight: 400, color: "rgba(244,240,232,0.92)" }}>
+                    <h2 className="text-2xl mb-2" style={{ fontFamily: "var(--font-cormorant)", fontWeight: 400, color: "var(--mk-text-primary)" }}>
                       13. Contacto
                     </h2>
                   </div>
                 </div>
-                <div className="space-y-4 text-sm leading-[1.8]" style={{ fontWeight: 300, color: "rgba(244,240,232,0.70)" }}>
+                <div className="space-y-4 text-sm leading-[1.8]" style={{ fontWeight: 300, color: "var(--mk-text-secondary)" }}>
                   <p>Para cualquier consulta relacionada con esta política, el tratamiento de sus datos personales, o el ejercicio de sus derechos, contáctenos en:</p>
                   <div className="pl-4 space-y-2">
-                    <div><strong style={{ color: "rgba(244,240,232,0.92)" }}>Email:</strong> <a href="mailto:hola@noddo.io" className="underline" style={{ color: "#b8973a" }}>hola@noddo.io</a></div>
-                    <div><strong style={{ color: "rgba(244,240,232,0.92)" }}>Responsable de protección de datos:</strong> Antigravity SAS</div>
-                    <div><strong style={{ color: "rgba(244,240,232,0.92)" }}>Ubicación:</strong> Medellín, Colombia</div>
-                    <div><strong style={{ color: "rgba(244,240,232,0.92)" }}>Sitio web:</strong> <a href="https://noddo.io" className="underline" style={{ color: "#b8973a" }}>noddo.io</a></div>
+                    <div><strong style={{ color: "var(--mk-text-primary)" }}>Email:</strong> <a href="mailto:hola@noddo.io" className="underline" style={{ color: "#b8973a" }}>hola@noddo.io</a></div>
+                    <div><strong style={{ color: "var(--mk-text-primary)" }}>Responsable de protección de datos:</strong> Antigravity SAS</div>
+                    <div><strong style={{ color: "var(--mk-text-primary)" }}>Ubicación:</strong> Medellín, Colombia</div>
+                    <div><strong style={{ color: "var(--mk-text-primary)" }}>Sitio web:</strong> <a href="https://noddo.io" className="underline" style={{ color: "#b8973a" }}>noddo.io</a></div>
                   </div>
-                  <p className="pt-3">Responderemos a su solicitud en un plazo máximo de <strong style={{ color: "rgba(244,240,232,0.92)" }}>15 días hábiles</strong> de acuerdo con la Ley 1581 de 2012.</p>
+                  <p className="pt-3">Responderemos a su solicitud en un plazo máximo de <strong style={{ color: "var(--mk-text-primary)" }}>15 días hábiles</strong> de acuerdo con la Ley 1581 de 2012.</p>
                 </div>
               </motion.section>
             </div>
@@ -997,7 +997,7 @@ export default function PrivacidadPage() {
               className="text-sm mb-4"
               style={{
                 fontWeight: 300,
-                color: "rgba(244,240,232,0.70)",
+                color: "var(--mk-text-secondary)",
               }}
             >
               ¿Tiene dudas sobre nuestro tratamiento de datos? Estamos aquí para ayudar.

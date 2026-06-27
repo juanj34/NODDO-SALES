@@ -206,7 +206,7 @@ export default function UbicacionPage() {
             <MapPin size={16} className="text-[var(--site-primary)]" />
           </div>
           <div>
-            <h2 className="text-base font-semibold text-white tracking-wide">
+            <h2 className="text-base font-semibold text-[var(--text-primary)] tracking-wide">
               {t("ubicacion.pointsOfInterest")}
             </h2>
             <p className="text-xs text-[var(--text-tertiary)]">
@@ -225,8 +225,8 @@ export default function UbicacionPage() {
               className={cn(
                 "flex-shrink-0 px-3.5 py-1.5 rounded-full text-xs font-medium tracking-wide whitespace-nowrap transition-all duration-300 cursor-pointer",
                 activeCategory === null
-                  ? "bg-[var(--site-primary)] text-black"
-                  : "bg-white/8 text-[var(--text-secondary)] hover:text-white hover:bg-white/12"
+                  ? "bg-[var(--site-primary)] text-black" // theme-allow: dark label on gold pill
+                  : "bg-[var(--surface-2)] text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--surface-3)]"
               )}
             >
               {t("ubicacion.all")}
@@ -241,8 +241,8 @@ export default function UbicacionPage() {
                   className={cn(
                     "flex-shrink-0 flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-medium tracking-wide whitespace-nowrap transition-all duration-300 cursor-pointer",
                     activeCategory === cat
-                      ? "bg-[var(--site-primary)] text-black"
-                      : "bg-white/8 text-[var(--text-secondary)] hover:text-white hover:bg-white/12"
+                      ? "bg-[var(--site-primary)] text-black" // theme-allow: dark label on gold pill
+                      : "bg-[var(--surface-2)] text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--surface-3)]"
                   )}
                 >
                   <Icon size={12} />
@@ -278,8 +278,8 @@ export default function UbicacionPage() {
                 className={cn(
                   "w-full text-left px-3 py-2.5 rounded-xl mb-1 transition-all duration-200 cursor-pointer group",
                   isSelected
-                    ? "bg-white/10 ring-1 ring-[rgba(var(--site-primary-rgb),0.30)]"
-                    : "hover:bg-white/[0.04]"
+                    ? "bg-[var(--surface-3)] ring-1 ring-[rgba(var(--site-primary-rgb),0.30)]"
+                    : "hover:bg-[var(--surface-2)]"
                 )}
               >
                 <div className="flex items-center gap-3">
@@ -295,7 +295,7 @@ export default function UbicacionPage() {
                     <h3
                       className={cn(
                         "text-[13px] font-medium leading-tight truncate transition-colors duration-200",
-                        isSelected ? "text-white" : "text-white/75 group-hover:text-white"
+                        isSelected ? "text-[var(--text-primary)]" : "text-[var(--text-secondary)] group-hover:text-[var(--text-primary)]"
                       )}
                     >
                       {poi.nombre}
@@ -312,7 +312,7 @@ export default function UbicacionPage() {
                       "flex-shrink-0 transition-all duration-200",
                       isSelected
                         ? "text-[var(--site-primary)] rotate-90"
-                        : "text-white/15 group-hover:text-[var(--text-tertiary)]"
+                        : "text-[var(--text-muted)] group-hover:text-[var(--text-tertiary)]"
                     )}
                   />
                 </div>
@@ -352,7 +352,7 @@ export default function UbicacionPage() {
 
         {filteredPOIs.length === 0 && (
           <div className="flex flex-col items-center justify-center py-12 text-center">
-            <MapPin size={24} className="text-white/15 mb-3" />
+            <MapPin size={24} className="text-[var(--text-muted)] mb-3" />
             <p className="text-[var(--text-tertiary)] text-sm">
               {t("ubicacion.noPoisCategory")}
             </p>
@@ -366,7 +366,7 @@ export default function UbicacionPage() {
           href={`https://www.google.com/maps?q=${lat},${lng}`}
           target="_blank"
           rel="noopener noreferrer"
-          className="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-full border border-[var(--border-default)] text-xs tracking-widest text-[var(--text-secondary)] hover:text-white hover:border-white/30 transition-all duration-300 uppercase"
+          className="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-full border border-[var(--border-default)] text-xs tracking-widest text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:border-[var(--border-strong)] transition-all duration-300 uppercase"
         >
           <Navigation size={14} className="text-[var(--site-primary)]" />
           {t("ubicacion.getDirections")}
@@ -403,8 +403,8 @@ export default function UbicacionPage() {
             className={cn(
               "flex items-center gap-2 px-4 py-2 rounded-full text-xs tracking-wider transition-all duration-300 cursor-pointer",
               mapStyle === "satellite"
-                ? "bg-[var(--site-primary)] text-black"
-                : "text-[var(--text-secondary)] hover:text-white hover:bg-white/10"
+                ? "bg-[var(--site-primary)] text-black" // theme-allow: dark label on gold pill
+                : "text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--surface-3)]"
             )}
           >
             <Satellite size={14} />
@@ -415,8 +415,8 @@ export default function UbicacionPage() {
             className={cn(
               "flex items-center gap-2 px-4 py-2 rounded-full text-xs tracking-wider transition-all duration-300 cursor-pointer",
               mapStyle === "streets"
-                ? "bg-[var(--site-primary)] text-black"
-                : "text-[var(--text-secondary)] hover:text-white hover:bg-white/10"
+                ? "bg-[var(--site-primary)] text-black" // theme-allow: dark label on gold pill
+                : "text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--surface-3)]"
             )}
           >
             <MapIcon size={14} />
@@ -425,7 +425,7 @@ export default function UbicacionPage() {
           {mapa_ubicacion_url && (
             <button
               onClick={() => setShowMapaImagen(true)}
-              className="flex items-center gap-2 px-4 py-2 rounded-full text-xs tracking-wider transition-all duration-300 cursor-pointer text-[var(--text-secondary)] hover:text-white hover:bg-white/10"
+              className="flex items-center gap-2 px-4 py-2 rounded-full text-xs tracking-wider transition-all duration-300 cursor-pointer text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--surface-3)]"
             >
               <ImageIcon size={14} />
               {!isMobile && t("ubicacion.render")}
@@ -449,7 +449,7 @@ export default function UbicacionPage() {
               className="text-[var(--site-primary)] mt-0.5 flex-shrink-0"
             />
             <div>
-              <h2 className="text-sm font-medium tracking-wider text-white mb-1">
+              <h2 className="text-sm font-medium tracking-wider text-[var(--text-primary)] mb-1">
                 {nombre}
               </h2>
               {ubicacion_direccion && (
@@ -463,7 +463,7 @@ export default function UbicacionPage() {
             href={`https://www.google.com/maps?q=${lat},${lng}`}
             target="_blank"
             rel="noopener noreferrer"
-            className="mt-3 flex items-center gap-2 text-xs tracking-wider text-[var(--site-primary)] hover:text-white transition-colors duration-300"
+            className="mt-3 flex items-center gap-2 text-xs tracking-wider text-[var(--site-primary)] hover:text-[var(--text-primary)] transition-colors duration-300"
           >
             <Navigation size={12} />
             {t("ubicacion.openGoogleMaps")}
@@ -507,7 +507,7 @@ export default function UbicacionPage() {
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             className="fixed inset-0 z-50 flex items-center justify-center p-6"
-            style={{ backgroundColor: "rgba(0,0,0,0.85)" }}
+            style={{ backgroundColor: "rgba(var(--overlay-rgb),0.85)" }}
             onClick={() => setShowMapaImagen(false)}
           >
             {/* Close button */}

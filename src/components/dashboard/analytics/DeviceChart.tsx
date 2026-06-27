@@ -10,9 +10,9 @@ interface Props {
 
 const DEVICE_CONFIG: Record<string, { color: string; icon: typeof Monitor; label: string }> = {
   desktop: { color: "var(--site-primary)", icon: Monitor, label: "Desktop" },
-  mobile: { color: "rgba(255,255,255,0.35)", icon: Smartphone, label: "Mobile" },
-  tablet: { color: "rgba(255,255,255,0.18)", icon: Tablet, label: "Tablet" },
-  unknown: { color: "rgba(255,255,255,0.10)", icon: Monitor, label: "Otro" },
+  mobile: { color: "rgba(var(--contrast-rgb),0.35)", icon: Smartphone, label: "Mobile" },
+  tablet: { color: "rgba(var(--contrast-rgb),0.18)", icon: Tablet, label: "Tablet" },
+  unknown: { color: "rgba(var(--contrast-rgb),0.10)", icon: Monitor, label: "Otro" },
 };
 
 function CustomTooltip({ active, payload }: { active?: boolean; payload?: Array<{ name: string; value: number }> }) {
@@ -20,7 +20,7 @@ function CustomTooltip({ active, payload }: { active?: boolean; payload?: Array<
   const entry = payload[0];
   return (
     <div className="bg-[var(--surface-3)] border border-[var(--border-default)] rounded-lg px-3 py-2 shadow-lg">
-      <p className="font-mono text-[12px] text-white">
+      <p className="font-mono text-[12px] text-[var(--text-primary)]">
         {entry?.name}: {entry?.value?.toLocaleString("es-CO")}
       </p>
     </div>
@@ -41,7 +41,7 @@ export function DeviceChart({ data }: Props) {
   const chartData = data.map((d) => ({
     name: DEVICE_CONFIG[d.label]?.label || d.label,
     value: d.count,
-    color: DEVICE_CONFIG[d.label]?.color || "rgba(255,255,255,0.10)",
+    color: DEVICE_CONFIG[d.label]?.color || "rgba(var(--contrast-rgb),0.10)",
   }));
 
   return (
@@ -76,7 +76,7 @@ export function DeviceChart({ data }: Props) {
               <span className="font-mono text-[11px] text-[var(--text-secondary)] flex-1">
                 {config.label}
               </span>
-              <span className="font-mono text-[11px] text-white font-medium">
+              <span className="font-mono text-[11px] text-[var(--text-primary)] font-medium">
                 {pct}%
               </span>
             </div>

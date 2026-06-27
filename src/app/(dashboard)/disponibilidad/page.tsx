@@ -691,7 +691,7 @@ export default function DisponibilidadPage() {
                       "inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-ui font-bold uppercase tracking-wider transition-all",
                       isActive
                         ? `${sc.bg} ${sc.text} font-medium`
-                        : "text-[var(--text-tertiary)] hover:text-[var(--text-secondary)] hover:bg-white/5"
+                        : "text-[var(--text-tertiary)] hover:text-[var(--text-secondary)] hover:bg-[var(--surface-2)]"
                     )}
                   >
                     {e.short}
@@ -709,7 +709,7 @@ export default function DisponibilidadPage() {
             {/* Tipología pills */}
             {tipologias.length > 1 && (
               <>
-                <div className="w-px h-5 bg-white/[0.06] shrink-0" />
+                <div className="w-px h-5 bg-[var(--surface-2)] shrink-0" />
                 <div className="flex items-center gap-0.5 shrink-0">
                   {tipologias.map((t) => {
                     const isActive = filterTipo === t.id;
@@ -721,7 +721,7 @@ export default function DisponibilidadPage() {
                           "px-2 py-0.5 rounded-md text-[10px] font-mono transition-all",
                           isActive
                             ? "bg-[rgba(184,151,58,0.15)] text-[var(--site-primary)] font-medium"
-                            : "text-[var(--text-tertiary)] hover:text-[var(--text-secondary)] hover:bg-white/5"
+                            : "text-[var(--text-tertiary)] hover:text-[var(--text-secondary)] hover:bg-[var(--surface-2)]"
                         )}
                       >
                         {t.nombre}
@@ -735,7 +735,7 @@ export default function DisponibilidadPage() {
             {/* Torre pills */}
             {torres.length > 1 && (
               <>
-                <div className="w-px h-5 bg-white/[0.06] shrink-0" />
+                <div className="w-px h-5 bg-[var(--surface-2)] shrink-0" />
                 <div className="flex items-center gap-0.5 shrink-0">
                   {torres.map((t) => {
                     const isActive = filterTorre === t.id;
@@ -747,7 +747,7 @@ export default function DisponibilidadPage() {
                           "px-2 py-0.5 rounded-md text-[10px] font-mono transition-all",
                           isActive
                             ? "bg-[rgba(184,151,58,0.15)] text-[var(--site-primary)] font-medium"
-                            : "text-[var(--text-tertiary)] hover:text-[var(--text-secondary)] hover:bg-white/5"
+                            : "text-[var(--text-tertiary)] hover:text-[var(--text-secondary)] hover:bg-[var(--surface-2)]"
                         )}
                       >
                         {t.nombre}
@@ -761,7 +761,7 @@ export default function DisponibilidadPage() {
             {/* Etapa pills */}
             {columns.etapa && uniqueEtapas.length > 1 && (
               <>
-                <div className="w-px h-5 bg-white/[0.06] shrink-0" />
+                <div className="w-px h-5 bg-[var(--surface-2)] shrink-0" />
                 <div className="flex items-center gap-0.5 shrink-0">
                   {uniqueEtapas.map((e) => {
                     const isActive = filterEtapa === e;
@@ -773,7 +773,7 @@ export default function DisponibilidadPage() {
                           "px-2 py-0.5 rounded-md text-[10px] font-mono transition-all",
                           isActive
                             ? "bg-[rgba(184,151,58,0.15)] text-[var(--site-primary)] font-medium"
-                            : "text-[var(--text-tertiary)] hover:text-[var(--text-secondary)] hover:bg-white/5"
+                            : "text-[var(--text-tertiary)] hover:text-[var(--text-secondary)] hover:bg-[var(--surface-2)]"
                         )}
                       >
                         {e}
@@ -880,7 +880,7 @@ export default function DisponibilidadPage() {
                         isUpdating && "opacity-50 pointer-events-none"
                       )}
                     >
-                      <span className="text-sm font-medium text-white w-[60px] shrink-0 truncate">
+                      <span className="text-sm font-medium text-[var(--text-primary)] w-[60px] shrink-0 truncate">
                         {unit.identificador}
                       </span>
                       <span className="text-xs text-[var(--text-tertiary)] w-[90px] shrink-0 truncate hidden sm:block">

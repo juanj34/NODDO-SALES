@@ -222,14 +222,14 @@ function SecurityArchitectureIllustration() {
         <g className="sg-rls-green">
           <rect x="266" y="28" width="32" height="5" rx="1" fill="rgba(74,158,107,0.08)" stroke="rgba(74,158,107,0.3)" strokeWidth="0.4" />
           <circle cx="270" cy="30.5" r="1.2" fill="rgba(74,158,107,0.6)" />
-          <line x1="274" y1="30.5" x2="294" y2="30.5" stroke="rgba(244,240,232,0.15)" strokeWidth="0.4" />
+          <line x1="274" y1="30.5" x2="294" y2="30.5" stroke="var(--mk-border-rule)" strokeWidth="0.4" />
           <text x="296" y="31.5" fill="rgba(74,158,107,0.5)" fontSize="2.5" fontFamily="monospace">✓</text>
         </g>
         {/* Red — blocked */}
         <g className="sg-rls-red">
           <rect x="266" y="36" width="32" height="5" rx="1" fill="rgba(200,70,70,0.06)" stroke="rgba(200,70,70,0.25)" strokeWidth="0.4" />
           <circle cx="270" cy="38.5" r="1.2" fill="rgba(200,70,70,0.5)" />
-          <line x1="274" y1="38.5" x2="294" y2="38.5" stroke="rgba(244,240,232,0.1)" strokeWidth="0.4" />
+          <line x1="274" y1="38.5" x2="294" y2="38.5" stroke="var(--mk-border-rule)" strokeWidth="0.4" />
           {/* Lock on blocked row */}
           <rect x="295" y="37" width="3" height="2.5" rx="0.3" fill="none" stroke="rgba(200,70,70,0.4)" strokeWidth="0.3" />
           <path d="M296 37 V36 A0.8 0.8 0 0 1 297.5 36 V37" fill="none" stroke="rgba(200,70,70,0.4)" strokeWidth="0.3" />
@@ -238,7 +238,7 @@ function SecurityArchitectureIllustration() {
         <g className="sg-rls-gold">
           <rect x="266" y="44" width="32" height="5" rx="1" fill="rgba(184,151,58,0.06)" stroke="rgba(184,151,58,0.2)" strokeWidth="0.4" />
           <circle cx="270" cy="46.5" r="1.2" fill="rgba(184,151,58,0.5)" />
-          <line x1="274" y1="46.5" x2="294" y2="46.5" stroke="rgba(244,240,232,0.1)" strokeWidth="0.4" />
+          <line x1="274" y1="46.5" x2="294" y2="46.5" stroke="var(--mk-border-rule)" strokeWidth="0.4" />
           <text x="296" y="47.5" fill="rgba(184,151,58,0.4)" fontSize="2.5" fontFamily="monospace">?</text>
         </g>
 
@@ -414,7 +414,7 @@ export default function SeguridadPage() {
               style={{
                 fontFamily: "var(--font-syne)",
                 fontWeight: 700,
-                color: "rgba(244,240,232,0.92)",
+                color: "var(--mk-text-primary)",
               }}
             >
               Seguridad
@@ -429,7 +429,7 @@ export default function SeguridadPage() {
             style={{
               fontFamily: "var(--font-cormorant)",
               fontWeight: 300,
-              color: "rgba(244,240,232,0.92)",
+              color: "var(--mk-text-primary)",
             }}
           >
             Seguridad de
@@ -444,7 +444,7 @@ export default function SeguridadPage() {
             className="text-base max-w-2xl mx-auto"
             style={{
               fontWeight: 300,
-              color: "rgba(244,240,232,0.55)",
+              color: "var(--mk-text-secondary)",
             }}
           >
             La seguridad de sus datos es nuestra máxima prioridad. Implementamos las mejores
@@ -486,7 +486,7 @@ export default function SeguridadPage() {
                   style={{
                     fontFamily: "var(--font-cormorant)",
                     fontWeight: 400,
-                    color: "rgba(244,240,232,0.92)",
+                    color: "var(--mk-text-primary)",
                   }}
                 >
                   {card.title}
@@ -495,7 +495,7 @@ export default function SeguridadPage() {
                   className="text-sm leading-[1.8] mb-3"
                   style={{
                     fontWeight: 300,
-                    color: "rgba(244,240,232,0.70)",
+                    color: "var(--mk-text-secondary)",
                   }}
                 >
                   {card.description}
@@ -504,7 +504,7 @@ export default function SeguridadPage() {
                   className="text-sm leading-[1.8] space-y-1"
                   style={{
                     fontWeight: 300,
-                    color: "rgba(244,240,232,0.70)",
+                    color: "var(--mk-text-secondary)",
                   }}
                 >
                   {card.items.map((item) => (
@@ -540,7 +540,7 @@ export default function SeguridadPage() {
                 style={{
                   fontFamily: "var(--font-cormorant)",
                   fontWeight: 400,
-                  color: "rgba(244,240,232,0.92)",
+                  color: "var(--mk-text-primary)",
                 }}
               >
                 Cumplimiento Normativo
@@ -549,7 +549,7 @@ export default function SeguridadPage() {
                 className="space-y-3 text-base leading-[1.9]"
                 style={{
                   fontWeight: 300,
-                  color: "rgba(244,240,232,0.70)",
+                  color: "var(--mk-text-secondary)",
                 }}
               >
                 <p>
@@ -557,19 +557,19 @@ export default function SeguridadPage() {
                 </p>
                 <ul className="list-disc pl-6 space-y-2">
                   <li>
-                    <strong style={{ color: "rgba(244,240,232,0.92)" }}>
+                    <strong style={{ color: "var(--mk-text-primary)" }}>
                       Ley 1581 de 2012 (Colombia)
                     </strong>{" "}
                     — Régimen General de Protección de Datos Personales
                   </li>
                   <li>
-                    <strong style={{ color: "rgba(244,240,232,0.92)" }}>
+                    <strong style={{ color: "var(--mk-text-primary)" }}>
                       GDPR-ready
                     </strong>{" "}
                     — Preparados para clientes en Europa (portabilidad, derecho al olvido, DPA)
                   </li>
                   <li>
-                    <strong style={{ color: "rgba(244,240,232,0.92)" }}>
+                    <strong style={{ color: "var(--mk-text-primary)" }}>
                       DIFC Data Protection Law
                     </strong>{" "}
                     — Próximamente para clientes en Dubai/UAE
@@ -601,7 +601,7 @@ export default function SeguridadPage() {
                 style={{
                   fontFamily: "var(--font-cormorant)",
                   fontWeight: 400,
-                  color: "rgba(244,240,232,0.92)",
+                  color: "var(--mk-text-primary)",
                 }}
               >
                 Monitoreo y Respuesta
@@ -610,7 +610,7 @@ export default function SeguridadPage() {
                 className="space-y-3 text-base leading-[1.9]"
                 style={{
                   fontWeight: 300,
-                  color: "rgba(244,240,232,0.70)",
+                  color: "var(--mk-text-secondary)",
                 }}
               >
                 <ul className="space-y-2">
@@ -620,7 +620,7 @@ export default function SeguridadPage() {
                       style={{ color: "#b8973a" }}
                     />
                     <div>
-                      <strong style={{ color: "rgba(244,240,232,0.92)" }}>
+                      <strong style={{ color: "var(--mk-text-primary)" }}>
                         Monitoreo 24/7
                       </strong>{" "}
                       — Sentry para detección de errores en tiempo real, alertas automáticas
@@ -632,7 +632,7 @@ export default function SeguridadPage() {
                       style={{ color: "#b8973a" }}
                     />
                     <div>
-                      <strong style={{ color: "rgba(244,240,232,0.92)" }}>
+                      <strong style={{ color: "var(--mk-text-primary)" }}>
                         Backups diarios
                       </strong>{" "}
                       — Copias automáticas cada 24h, retención 30 días, recuperación point-in-time
@@ -644,7 +644,7 @@ export default function SeguridadPage() {
                       style={{ color: "#b8973a" }}
                     />
                     <div>
-                      <strong style={{ color: "rgba(244,240,232,0.92)" }}>
+                      <strong style={{ color: "var(--mk-text-primary)" }}>
                         Plan de respuesta a incidentes
                       </strong>{" "}
                       — Protocolo documentado para brechas de seguridad, notificación en menos de 72h
@@ -656,7 +656,7 @@ export default function SeguridadPage() {
                       style={{ color: "#b8973a" }}
                     />
                     <div>
-                      <strong style={{ color: "rgba(244,240,232,0.92)" }}>
+                      <strong style={{ color: "var(--mk-text-primary)" }}>
                         Logs de auditoría
                       </strong>{" "}
                       — Registro de todos los accesos y cambios sensibles, retención 6 meses
@@ -689,7 +689,7 @@ export default function SeguridadPage() {
                 style={{
                   fontFamily: "var(--font-cormorant)",
                   fontWeight: 400,
-                  color: "rgba(244,240,232,0.92)",
+                  color: "var(--mk-text-primary)",
                 }}
               >
                 Reporte de Vulnerabilidades
@@ -698,7 +698,7 @@ export default function SeguridadPage() {
                 className="space-y-3 text-base leading-[1.9]"
                 style={{
                   fontWeight: 300,
-                  color: "rgba(244,240,232,0.70)",
+                  color: "var(--mk-text-secondary)",
                 }}
               >
                 <p>
@@ -706,7 +706,7 @@ export default function SeguridadPage() {
                   manera responsable a:
                 </p>
                 <div className="pl-4">
-                  <strong style={{ color: "rgba(244,240,232,0.92)" }}>Email:</strong>{" "}
+                  <strong style={{ color: "var(--mk-text-primary)" }}>Email:</strong>{" "}
                   <a
                     href="mailto:security@noddo.io"
                     className="underline"
@@ -742,7 +742,7 @@ export default function SeguridadPage() {
               style={{
                 fontFamily: "var(--font-cormorant)",
                 fontWeight: 300,
-                color: "rgba(244,240,232,0.92)",
+                color: "var(--mk-text-primary)",
               }}
             >
               ¿Preguntas sobre seguridad?
@@ -751,7 +751,7 @@ export default function SeguridadPage() {
               className="text-sm mb-6"
               style={{
                 fontWeight: 300,
-                color: "rgba(244,240,232,0.55)",
+                color: "var(--mk-text-secondary)",
               }}
             >
               Estamos felices de responder cualquier consulta sobre nuestras prácticas de seguridad

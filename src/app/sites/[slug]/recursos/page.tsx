@@ -186,7 +186,7 @@ export default function RecursosPage() {
 
                       {/* Text content */}
                       <div className="flex-1 min-w-0">
-                        <span className="inline-block font-ui text-[9px] font-bold tracking-[0.2em] uppercase text-[var(--text-tertiary)] bg-white/5 px-2.5 py-1 rounded-full mb-2">
+                        <span className="inline-block font-ui text-[9px] font-bold tracking-[0.2em] uppercase text-[var(--text-tertiary)] bg-[var(--surface-2)] px-2.5 py-1 rounded-full mb-2">
                           {t(tipoLabelKeys[recurso.tipo])}
                         </span>
                         <h3 className="font-site-heading text-xl md:text-2xl font-light text-[var(--text-primary)] tracking-wide leading-tight">

@@ -53,7 +53,7 @@ export function RecentActivity({ events }: Props) {
       "
     >
       <div className="p-6 border-b border-[var(--border-subtle)]">
-        <h3 className="font-ui text-xs font-bold uppercase tracking-wider text-white mb-1">
+        <h3 className="font-ui text-xs font-bold uppercase tracking-wider text-[var(--text-primary)] mb-1">
           Actividad reciente
         </h3>
         <p className="font-mono text-xs text-[var(--text-tertiary)]">
@@ -98,7 +98,7 @@ export function RecentActivity({ events }: Props) {
 
                     {/* Content */}
                     <div className="flex-1 min-w-0">
-                      <p className="font-mono text-xs text-white mb-0.5">
+                      <p className="font-mono text-xs text-[var(--text-primary)] mb-0.5">
                         {config.label}
                         {!!event.metadata?.project_name && (
                           <span className="text-[var(--text-tertiary)]">

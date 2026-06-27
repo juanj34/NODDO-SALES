@@ -12,7 +12,7 @@ export function StatsBar() {
     ];
 
     return (
-        <section className="relative py-16 lg:py-24 border-y border-white/[0.05] bg-[#050505] overflow-hidden">
+        <section className="relative py-16 lg:py-24 border-y border-[var(--border-subtle)] bg-[var(--surface-0)] overflow-hidden">
             {/* Subtle Moving Background */}
             <div className="absolute inset-0 pointer-events-none overflow-hidden">
                 <motion.div
@@ -26,7 +26,7 @@ export function StatsBar() {
             </div>
 
             <div className="relative z-10 max-w-7xl mx-auto px-6 lg:px-12">
-                <div className="flex flex-col md:flex-row items-center justify-between gap-12 md:gap-8 divide-y md:divide-y-0 md:divide-x divide-white/10">
+                <div className="flex flex-col md:flex-row items-center justify-between gap-12 md:gap-8 divide-y md:divide-y-0 md:divide-x divide-[var(--border-default)]">
                     {stats.map((stat, i) => (
                         <motion.div
                             key={i}
@@ -38,12 +38,12 @@ export function StatsBar() {
                         >
                             <div className="relative mb-4">
                                 <div className="absolute inset-0 bg-[var(--noddo-primary)]/20 blur-xl rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
-                                <div className="relative w-12 h-12 rounded-xl flex items-center justify-center bg-white/[0.03] border border-white/10 shadow-[0_0_15px_rgba(0,0,0,0.5)_inset] group-hover:border-[var(--noddo-primary)]/30 transition-colors duration-500">
-                                    <stat.icon size={20} className="text-[var(--text-secondary)] group-hover:text-white transition-colors duration-500" strokeWidth={1.5} />
+                                <div className="relative w-12 h-12 rounded-xl flex items-center justify-center bg-[var(--surface-2)] border border-[var(--border-default)] shadow-[0_0_15px_rgba(var(--overlay-rgb),0.5)_inset] group-hover:border-[var(--noddo-primary)]/30 transition-colors duration-500">
+                                    <stat.icon size={20} className="text-[var(--text-secondary)] group-hover:text-[var(--text-primary)] transition-colors duration-500" strokeWidth={1.5} />
                                 </div>
                             </div>
                             <motion.span
-                                className="text-4xl lg:text-5xl font-heading font-medium tracking-tight text-white mb-2"
+                                className="text-4xl lg:text-5xl font-heading font-medium tracking-tight text-[var(--text-primary)] mb-2"
                             >
                                 {stat.value}
                             </motion.span>

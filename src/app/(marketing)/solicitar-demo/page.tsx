@@ -34,8 +34,8 @@ export default function SolicitarDemoPage() {
           transition={{ delay: 0.15 }}
           className="rounded-[1.25rem] border border-[rgba(184,151,58,0.12)] overflow-hidden"
           style={{
-            background: "linear-gradient(to bottom, rgba(26,26,26,0.95), rgba(20,20,20,0.98))",
-            boxShadow: "0 25px 50px -12px rgba(0,0,0,0.4)",
+            background: "linear-gradient(to bottom, var(--mk-surface-3), var(--mk-surface-2))",
+            boxShadow: "0 25px 50px -12px rgba(var(--overlay-rgb),0.4)",
           }}
         >
           <ContactForm source="solicitar-demo" />

@@ -30,7 +30,7 @@ function createPickerMarkerElement(): HTMLDivElement {
   // Inner dot
   const dot = document.createElement("div");
   dot.style.cssText =
-    "width:40px;height:40px;background:var(--site-primary);border-radius:50%;border:3.5px solid white;box-shadow:0 0 0 5px rgba(184,151,58,0.3),0 4px 12px rgba(0,0,0,0.6);";
+    "width:40px;height:40px;background:var(--site-primary);border-radius:50%;border:3.5px solid white;box-shadow:0 0 0 5px rgba(184,151,58,0.3),0 4px 12px rgba(0,0,0,0.6);"; // theme-allow: Leaflet/map marker pin over satellite tiles
   el.appendChild(dot);
   return el;
 }
@@ -310,44 +310,44 @@ export function MapPickerModal({
 
       <div
         className="fixed inset-0 z-50 flex items-center justify-center p-0 md:p-4"
-        style={{ backgroundColor: "rgba(0,0,0,0.8)" }}
+        style={{ backgroundColor: "rgba(var(--overlay-rgb),0.8)" }}
       >
       <div
         className="w-full max-w-4xl h-[100dvh] md:h-[80vh] glass-modal !rounded-none md:!rounded-2xl overflow-hidden flex flex-col"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header with search — z-10 ensures clicks don't pass through to the map */}
-        <div className="flex-shrink-0 relative z-10 flex items-center gap-3 px-5 py-3 border-b border-white/5">
+        <div className="flex-shrink-0 relative z-10 flex items-center gap-3 px-5 py-3 border-b border-[var(--border-subtle)]">
           <MapPin size={16} className="text-[var(--site-primary)] shrink-0" />
           <div className="flex-1 relative">
             <div className="relative">
               <Search
                 size={14}
-                className="absolute left-3.5 top-1/2 -translate-y-1/2 text-white/30 pointer-events-none"
+                className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[var(--text-tertiary)] pointer-events-none"
               />
               <input
                 type="text"
                 value={searchQuery}
                 onChange={(e) => handleSearchInput(e.target.value)}
                 placeholder={t("mapPicker.searchPlaceholder")}
-                className="w-full bg-white/5 border border-white/10 rounded-lg pl-10 pr-3 py-2 text-sm text-white placeholder:text-white/30 focus:outline-none focus:border-[rgba(184,151,58,0.5)] focus:ring-1 focus:ring-[rgba(184,151,58,0.2)] transition-colors"
+                className="w-full bg-[var(--surface-2)] border border-[var(--border-default)] rounded-lg pl-10 pr-3 py-2 text-sm text-[var(--text-primary)] placeholder:text-[var(--text-tertiary)] focus:outline-none focus:border-[rgba(184,151,58,0.5)] focus:ring-1 focus:ring-[rgba(184,151,58,0.2)] transition-colors"
               />
               {searching && (
                 <Loader2
                   size={14}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-white/30 animate-spin"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-[var(--text-tertiary)] animate-spin"
                 />
               )}
             </div>
 
             {/* Search results dropdown */}
             {searchResults.length > 0 && (
-              <div className="absolute top-full left-0 right-0 mt-1 bg-[#1a1a1a] border border-white/10 rounded-lg overflow-hidden z-10 shadow-2xl max-h-[40vh] overflow-y-auto">
+              <div className="absolute top-full left-0 right-0 mt-1 bg-[var(--surface-0)] border border-[var(--border-default)] rounded-lg overflow-hidden z-10 shadow-2xl max-h-[40vh] overflow-y-auto">
                 {searchResults.map((result, i) => (
                   <button
                     key={i}
                     onClick={() => selectSearchResult(result)}
-                    className="w-full text-left px-4 py-2.5 text-sm text-white/70 hover:text-white hover:bg-white/5 transition-colors border-b border-white/5 last:border-0 flex items-start gap-2.5"
+                    className="w-full text-left px-4 py-2.5 text-sm text-[var(--text-primary)] hover:text-[var(--text-primary)] hover:bg-[var(--surface-2)] transition-colors border-b border-[var(--border-subtle)] last:border-0 flex items-start gap-2.5"
                   >
                     <MapPin size={13} className="text-[var(--site-primary)] shrink-0 mt-0.5" />
                     <span className="line-clamp-1">{result.place_name}</span>
@@ -374,7 +374,7 @@ export function MapPickerModal({
           />
           {/* Loading overlay */}
           {!mapReady && (
-            <div className="absolute inset-0 z-10 flex items-center justify-center bg-[#141414]">
+            <div className="absolute inset-0 z-10 flex items-center justify-center bg-[var(--surface-0)]">
               <div className="flex items-center gap-2">
                 {mapError ? (
                   <p className="text-red-400/70 text-sm">
@@ -383,7 +383,7 @@ export function MapPickerModal({
                 ) : (
                   <>
                     <Loader2 size={16} className="text-[var(--site-primary)] animate-spin" />
-                    <p className="text-white/40 text-sm">{t("mapPicker.loadingMap")}</p>
+                    <p className="text-[var(--text-tertiary)] text-sm">{t("mapPicker.loadingMap")}</p>
                   </>
                 )}
               </div>
@@ -392,30 +392,30 @@ export function MapPickerModal({
         </div>
 
         {/* Footer with coordinates — z-10 ensures clicks don't pass through to the map */}
-        <div className="flex-shrink-0 relative z-10 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2 px-4 sm:px-5 py-3 border-t border-white/5 bg-[#0f0f0f]">
+        <div className="flex-shrink-0 relative z-10 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2 px-4 sm:px-5 py-3 border-t border-[var(--border-subtle)] bg-[var(--surface-0)]">
           <div className="flex-1 min-w-0">
             {selectedLat !== null && selectedLng !== null ? (
               <div className="space-y-0.5">
-                <div className="flex items-center gap-4 text-xs text-white/50">
+                <div className="flex items-center gap-4 text-xs text-[var(--text-secondary)]">
                   <span>
                     Lat:{" "}
-                    <span className="text-white/80 font-mono">
+                    <span className="text-[var(--text-primary)] font-mono">
                       {selectedLat}
                     </span>
                   </span>
                   <span>
                     Lng:{" "}
-                    <span className="text-white/80 font-mono">
+                    <span className="text-[var(--text-primary)] font-mono">
                       {selectedLng}
                     </span>
                   </span>
                 </div>
                 {address && (
-                  <p className="text-xs text-white/40 truncate">{address}</p>
+                  <p className="text-xs text-[var(--text-tertiary)] truncate">{address}</p>
                 )}
               </div>
             ) : (
-              <p className="text-xs text-white/30">
+              <p className="text-xs text-[var(--text-tertiary)]">
                 {t("mapPicker.searchOrClickHint")}
               </p>
             )}
@@ -424,14 +424,14 @@ export function MapPickerModal({
           <div className="flex items-center gap-2 sm:ml-4">
             <button
               onClick={onClose}
-              className="px-5 py-2.5 text-xs text-white/50 border border-white/10 rounded-lg hover:text-white hover:border-white/20 transition-colors"
+              className="px-5 py-2.5 text-xs text-[var(--text-secondary)] border border-[var(--border-default)] rounded-lg hover:text-[var(--text-primary)] hover:border-[var(--border-strong)] transition-colors"
             >
               {t("mapPicker.cancel")}
             </button>
             <button
               onClick={handleConfirm}
               disabled={selectedLat === null || selectedLng === null}
-              className="flex items-center gap-1.5 px-5 py-2.5 bg-[var(--site-primary)] text-black rounded-lg text-xs font-medium hover:brightness-110 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+              className="flex items-center gap-1.5 px-5 py-2.5 bg-[var(--site-primary)] text-black rounded-lg text-xs font-medium hover:brightness-110 transition-all disabled:opacity-50 disabled:cursor-not-allowed" // theme-allow: dark text on gold
             >
               <Check size={14} />
               {t("mapPicker.confirmLocation")}

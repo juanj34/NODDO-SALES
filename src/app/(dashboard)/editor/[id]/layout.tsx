@@ -616,7 +616,7 @@ export default function EditorLayout({
               exit={{ opacity: 0 }}
               transition={{ duration: 0.2 }}
               onClick={closeDrawer}
-              className="fixed inset-0 z-[39] bg-black/60 md:hidden"
+              className="fixed inset-0 z-[39] bg-[rgba(var(--overlay-rgb),0.6)] md:hidden"
             />
           )}
         </AnimatePresence>
@@ -643,7 +643,7 @@ export default function EditorLayout({
 
           {/* Project info */}
           <div className="px-4 py-3">
-            <h2 className="text-[13px] font-semibold text-white truncate leading-tight">
+            <h2 className="text-[13px] font-semibold text-[var(--text-primary)] truncate leading-tight">
               {project.nombre}
             </h2>
             <p className="text-[var(--text-muted)] text-[10px] mt-1 truncate">
@@ -681,7 +681,7 @@ export default function EditorLayout({
                           isLocked
                             ? "text-[var(--text-muted)] hover:text-[var(--text-tertiary)] hover:bg-[var(--surface-2)]/30"
                             : isActive
-                              ? "bg-[var(--surface-2)] text-white"
+                              ? "bg-[var(--surface-2)] text-[var(--text-primary)]"
                               : "text-[var(--text-tertiary)] hover:text-[var(--text-secondary)] hover:bg-[var(--surface-2)]/50"
                         )}
                       >
@@ -787,7 +787,7 @@ export default function EditorLayout({
                   href={previewUrl}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="flex items-center justify-center gap-2 w-full px-3 py-2 bg-[var(--surface-2)] border border-[var(--border-default)] rounded-lg font-ui text-[10px] font-bold uppercase tracking-[0.1em] text-[var(--text-secondary)] hover:text-white hover:border-[var(--border-strong)] hover:bg-[var(--surface-3)] transition-all"
+                  className="flex items-center justify-center gap-2 w-full px-3 py-2 bg-[var(--surface-2)] border border-[var(--border-default)] rounded-lg font-ui text-[10px] font-bold uppercase tracking-[0.1em] text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:border-[var(--border-strong)] hover:bg-[var(--surface-3)] transition-all"
                 >
                   <ExternalLink size={13} />
                   {t("layout.viewMicrosite")}
@@ -918,7 +918,7 @@ export default function EditorLayout({
                   </button>
 
                   {/* Divider */}
-                  <div className="w-px h-5 bg-[rgba(0,0,0,0.15)]" />
+                  <div className="w-px h-5 bg-[var(--border-default)]" />
 
                   {/* Dropdown toggle */}
                   <button

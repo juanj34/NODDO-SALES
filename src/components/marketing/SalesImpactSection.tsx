@@ -98,7 +98,7 @@ function AnimatedStat({
       <span
         style={{
           fontSize: "0.45em",
-          color: "rgba(184,151,58,0.5)",
+          color: "rgba(var(--mk-accent-rgb),0.5)",
           marginLeft: 2,
         }}
       >
@@ -182,7 +182,7 @@ export function SalesImpactSection() {
             gridTemplateColumns: "repeat(12, 1fr)",
             gridTemplateRows: "auto auto",
             gap: "1px",
-            background: "rgba(255,255,255,0.04)",
+            background: "rgba(var(--contrast-rgb),0.04)",
           }}
         >
           {/* Row 1 — Featured stat (7 cols) */}
@@ -205,7 +205,7 @@ export function SalesImpactSection() {
             />
             <p
               className="text-[14px] leading-[1.8] mt-4 max-w-[420px]"
-              style={{ color: "rgba(244,240,232,0.5)" }}
+              style={{ color: "rgba(var(--contrast-rgb),0.5)" }}
             >
               {featured.description}
             </p>
@@ -214,12 +214,12 @@ export function SalesImpactSection() {
               style={{
                 width: 32,
                 height: 1,
-                background: "rgba(184,151,58,0.3)",
+                background: "rgba(var(--mk-accent-rgb),0.3)",
               }}
             />
             <div
               className="font-ui text-[10px] tracking-[0.18em] uppercase"
-              style={{ color: "rgba(244,240,232,0.25)" }}
+              style={{ color: "rgba(var(--contrast-rgb),0.25)" }}
             >
               {featured.category}
             </div>
@@ -244,7 +244,7 @@ export function SalesImpactSection() {
             />
             <p
               className="text-[14px] leading-[1.8] mt-4"
-              style={{ color: "rgba(244,240,232,0.45)" }}
+              style={{ color: "rgba(var(--contrast-rgb),0.45)" }}
             >
               {right1.description}
             </p>
@@ -253,12 +253,12 @@ export function SalesImpactSection() {
               style={{
                 width: 32,
                 height: 1,
-                background: "rgba(184,151,58,0.3)",
+                background: "rgba(var(--mk-accent-rgb),0.3)",
               }}
             />
             <div
               className="font-ui text-[10px] tracking-[0.18em] uppercase"
-              style={{ color: "rgba(244,240,232,0.25)" }}
+              style={{ color: "rgba(var(--contrast-rgb),0.25)" }}
             >
               {right1.category}
             </div>
@@ -283,7 +283,7 @@ export function SalesImpactSection() {
             />
             <p
               className="text-[14px] leading-[1.8] mt-4"
-              style={{ color: "rgba(244,240,232,0.45)" }}
+              style={{ color: "rgba(var(--contrast-rgb),0.45)" }}
             >
               {bottom1.description}
             </p>
@@ -292,12 +292,12 @@ export function SalesImpactSection() {
               style={{
                 width: 32,
                 height: 1,
-                background: "rgba(184,151,58,0.3)",
+                background: "rgba(var(--mk-accent-rgb),0.3)",
               }}
             />
             <div
               className="font-ui text-[10px] tracking-[0.18em] uppercase"
-              style={{ color: "rgba(244,240,232,0.25)" }}
+              style={{ color: "rgba(var(--contrast-rgb),0.25)" }}
             >
               {bottom1.category}
             </div>
@@ -322,7 +322,7 @@ export function SalesImpactSection() {
             />
             <p
               className="text-[14px] leading-[1.8] mt-4"
-              style={{ color: "rgba(244,240,232,0.45)" }}
+              style={{ color: "rgba(var(--contrast-rgb),0.45)" }}
             >
               {bottom2.description}
             </p>
@@ -331,12 +331,12 @@ export function SalesImpactSection() {
               style={{
                 width: 32,
                 height: 1,
-                background: "rgba(184,151,58,0.3)",
+                background: "rgba(var(--mk-accent-rgb),0.3)",
               }}
             />
             <div
               className="font-ui text-[10px] tracking-[0.18em] uppercase"
-              style={{ color: "rgba(244,240,232,0.25)" }}
+              style={{ color: "rgba(var(--contrast-rgb),0.25)" }}
             >
               {bottom2.category}
             </div>
@@ -353,21 +353,21 @@ export function SalesImpactSection() {
               gridColumn: "span 4",
               padding: "44px 36px",
               background: "var(--mk-bg)",
-              borderLeft: "2px solid rgba(184,151,58,0.2)",
+              borderLeft: "2px solid rgba(var(--mk-accent-rgb),0.2)",
             }}
           >
             <p
               className="font-heading text-[18px] italic leading-[1.7] mb-6"
               style={{
                 fontWeight: 300,
-                color: "rgba(244,240,232,0.6)",
+                color: "rgba(var(--contrast-rgb),0.6)",
               }}
             >
               &ldquo;{quote.text}&rdquo;
             </p>
             <div
               className="font-ui text-[10px] tracking-[0.18em] uppercase"
-              style={{ color: "rgba(184,151,58,0.4)" }}
+              style={{ color: "rgba(var(--mk-accent-rgb),0.4)" }}
             >
               — {quote.role}
             </div>
@@ -377,7 +377,7 @@ export function SalesImpactSection() {
         {/* ── Mobile stack ────────────────────────────── */}
         <div
           className="md:hidden flex flex-col"
-          style={{ gap: "1px", background: "rgba(255,255,255,0.04)" }}
+          style={{ gap: "1px", background: "rgba(var(--contrast-rgb),0.04)" }}
         >
           {/* Stats */}
           {[featured, right1, bottom1, bottom2].map((stat, i) => (
@@ -400,7 +400,7 @@ export function SalesImpactSection() {
               />
               <p
                 className="text-[14px] leading-[1.8] mt-3"
-                style={{ color: "rgba(244,240,232,0.45)" }}
+                style={{ color: "rgba(var(--contrast-rgb),0.45)" }}
               >
                 {stat.description}
               </p>
@@ -409,12 +409,12 @@ export function SalesImpactSection() {
                 style={{
                   width: 32,
                   height: 1,
-                  background: "rgba(184,151,58,0.3)",
+                  background: "rgba(var(--mk-accent-rgb),0.3)",
                 }}
               />
               <div
                 className="font-ui text-[10px] tracking-[0.18em] uppercase"
-                style={{ color: "rgba(244,240,232,0.25)" }}
+                style={{ color: "rgba(var(--contrast-rgb),0.25)" }}
               >
                 {stat.category}
               </div>
@@ -430,21 +430,21 @@ export function SalesImpactSection() {
             style={{
               padding: "32px 20px",
               background: "var(--mk-bg)",
-              borderLeft: "2px solid rgba(184,151,58,0.2)",
+              borderLeft: "2px solid rgba(var(--mk-accent-rgb),0.2)",
             }}
           >
             <p
               className="font-heading text-[18px] italic leading-[1.7] mb-5"
               style={{
                 fontWeight: 300,
-                color: "rgba(244,240,232,0.6)",
+                color: "rgba(var(--contrast-rgb),0.6)",
               }}
             >
               &ldquo;{quote.text}&rdquo;
             </p>
             <div
               className="font-ui text-[10px] tracking-[0.18em] uppercase"
-              style={{ color: "rgba(184,151,58,0.4)" }}
+              style={{ color: "rgba(var(--mk-accent-rgb),0.4)" }}
             >
               — {quote.role}
             </div>
@@ -459,8 +459,8 @@ export function SalesImpactSection() {
           transition={{ duration: 0.7, delay: 0.4, ease }}
           className="mt-12 sm:mt-16"
           style={{
-            background: "linear-gradient(135deg, rgba(184,151,58,0.08) 0%, rgba(184,151,58,0.04) 100%)",
-            border: "1px solid rgba(184,151,58,0.2)",
+            background: "linear-gradient(135deg, rgba(var(--mk-accent-rgb),0.08) 0%, rgba(var(--mk-accent-rgb),0.04) 100%)",
+            border: "1px solid rgba(var(--mk-accent-rgb),0.2)",
             borderRadius: "16px",
             padding: "clamp(32px, 5vw, 48px) clamp(20px, 4vw, 40px)",
             position: "relative",
@@ -475,14 +475,14 @@ export function SalesImpactSection() {
               right: 0,
               width: 200,
               height: 200,
-              background: "radial-gradient(circle at top right, rgba(184,151,58,0.12), transparent 70%)",
+              background: "radial-gradient(circle at top right, rgba(var(--mk-accent-rgb),0.12), transparent 70%)",
               pointerEvents: "none",
             }}
           />
 
           <div className="relative z-[1] text-center max-w-[680px] mx-auto">
             <div className="flex items-center justify-center gap-2 mb-4">
-              <TrendingUp size={20} stroke="#b8973a" strokeWidth={2} />
+              <TrendingUp size={20} stroke="var(--mk-accent)" strokeWidth={2} />
               <span
                 className="font-ui text-[10px] tracking-[0.2em] uppercase"
                 style={{ color: "var(--mk-accent)" }}
@@ -500,7 +500,7 @@ export function SalesImpactSection() {
 
             <p
               className="text-[14px] leading-[1.8] mb-8"
-              style={{ color: "rgba(244,240,232,0.5)" }}
+              style={{ color: "rgba(var(--contrast-rgb),0.5)" }}
             >
               {t("salesImpact.ctaDescription")}
             </p>
@@ -512,7 +512,7 @@ export function SalesImpactSection() {
                   className="absolute inset-0 rounded-[12px]"
                   style={{
                     background: "transparent",
-                    boxShadow: "0 0 0 0 rgba(184,151,58,0.7)",
+                    boxShadow: "0 0 0 0 rgba(var(--mk-accent-rgb),0.7)",
                     animation: "pulse-ring 2s cubic-bezier(0.4, 0, 0.6, 1) infinite",
                   }}
                 />
@@ -541,11 +541,11 @@ export function SalesImpactSection() {
                       width: 24,
                       height: 24,
                       borderRadius: "50%",
-                      border: "2px solid rgba(18,18,18,0.9)",
+                      border: "2px solid color-mix(in srgb, var(--surface-1) 90%, transparent)",
                       marginLeft: i === 0 ? 0 : -8,
                       position: "relative",
                       zIndex: 4 - i,
-                      boxShadow: "0 2px 6px rgba(0,0,0,0.2)",
+                      boxShadow: "0 2px 6px rgba(var(--overlay-rgb),0.2)",
                       overflow: "hidden",
                     }}
                   >
@@ -553,7 +553,7 @@ export function SalesImpactSection() {
                   </div>
                 ))}
               </div>
-              <span style={{ fontSize: 12, color: "rgba(244,240,232,0.4)" }}>
+              <span style={{ fontSize: 12, color: "rgba(var(--contrast-rgb),0.4)" }}>
                 <strong style={{ color: "var(--mk-text-primary)", fontWeight: 500 }}>100+</strong> {t("salesImpact.ctaTeams")}
               </span>
             </div>
@@ -562,13 +562,13 @@ export function SalesImpactSection() {
           <style jsx>{`
             @keyframes pulse-ring {
               0% {
-                box-shadow: 0 0 0 0 rgba(184,151,58,0.7);
+                box-shadow: 0 0 0 0 rgba(var(--mk-accent-rgb),0.7);
               }
               50% {
-                box-shadow: 0 0 0 10px rgba(184,151,58,0);
+                box-shadow: 0 0 0 10px rgba(var(--mk-accent-rgb),0);
               }
               100% {
-                box-shadow: 0 0 0 0 rgba(184,151,58,0);
+                box-shadow: 0 0 0 0 rgba(var(--mk-accent-rgb),0);
               }
             }
           `}</style>

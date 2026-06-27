@@ -292,12 +292,12 @@ export default function PortalPage() {
           <div className="flex items-center justify-between gap-3 p-3 rounded-xl bg-[var(--surface-1)] border border-[var(--border-subtle)]">
             <div className="flex items-center gap-2.5 min-w-0">
               <Globe size={15} className="text-[var(--site-primary)] shrink-0" />
-              <span className="font-mono text-sm text-white truncate">
+              <span className="font-mono text-sm text-[var(--text-primary)] truncate">
                 {portalUrl}
               </span>
               <button
                 onClick={handleCopyUrl}
-                className="p-1.5 rounded-lg hover:bg-[var(--surface-3)] text-[var(--text-tertiary)] hover:text-white transition-colors shrink-0"
+                className="p-1.5 rounded-lg hover:bg-[var(--surface-3)] text-[var(--text-tertiary)] hover:text-[var(--text-primary)] transition-colors shrink-0"
                 title="Copiar URL"
               >
                 <Copy size={13} />
@@ -306,7 +306,7 @@ export default function PortalPage() {
                 href={portalPreviewUrl}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="p-1.5 rounded-lg hover:bg-[var(--surface-3)] text-[var(--text-tertiary)] hover:text-white transition-colors shrink-0"
+                className="p-1.5 rounded-lg hover:bg-[var(--surface-3)] text-[var(--text-tertiary)] hover:text-[var(--text-primary)] transition-colors shrink-0"
                 title={isLocalhost ? "Ver en localhost" : "Abrir portal"}
               >
                 <ExternalLink size={13} />
@@ -438,10 +438,11 @@ export default function PortalPage() {
                               : "border-[var(--border-strong)] bg-[var(--surface-3)]"
                           }`}
                         >
-                          {isSelected && <Check size={12} className="text-[#141414]" />}
+                          {isSelected && <Check size={12} className={"text-[#141414]" // theme-allow: dark text on gold
+                          } />}
                         </div>
                         <div className="flex-1 min-w-0">
-                          <p className="text-sm text-white truncate">{p.nombre}</p>
+                          <p className="text-sm text-[var(--text-primary)] truncate">{p.nombre}</p>
                           <p className="text-[11px] font-mono text-[var(--text-muted)]">
                             /{p.slug}
                           </p>
@@ -482,21 +483,21 @@ export default function PortalPage() {
                             <span className="font-mono text-xs text-[var(--text-tertiary)] w-5">
                               {idx + 1}.
                             </span>
-                            <span className="text-sm text-white flex-1 truncate">
+                            <span className="text-sm text-[var(--text-primary)] flex-1 truncate">
                               {p.nombre}
                             </span>
                             <div className="flex gap-0.5">
                               <button
                                 onClick={() => moveProject(idx, "up")}
                                 disabled={idx === 0}
-                                className="p-1 rounded hover:bg-[var(--surface-3)] text-[var(--text-tertiary)] hover:text-white disabled:opacity-30 transition-colors"
+                                className="p-1 rounded hover:bg-[var(--surface-3)] text-[var(--text-tertiary)] hover:text-[var(--text-primary)] disabled:opacity-30 transition-colors"
                               >
                                 <ChevronUp size={14} />
                               </button>
                               <button
                                 onClick={() => moveProject(idx, "down")}
                                 disabled={idx === selectedProjects.length - 1}
-                                className="p-1 rounded hover:bg-[var(--surface-3)] text-[var(--text-tertiary)] hover:text-white disabled:opacity-30 transition-colors"
+                                className="p-1 rounded hover:bg-[var(--surface-3)] text-[var(--text-tertiary)] hover:text-[var(--text-primary)] disabled:opacity-30 transition-colors"
                               >
                                 <ChevronDown size={14} />
                               </button>
@@ -629,7 +630,8 @@ function LayoutOption({ active, onClick, icon: Icon, label, description }: Layou
     >
       {active && (
         <div className="absolute top-2 right-2 w-4 h-4 rounded-full bg-[var(--site-primary)] flex items-center justify-center">
-          <Check size={9} className="text-[#141414]" />
+          <Check size={9} className={"text-[#141414]" // theme-allow: dark text on gold
+          } />
         </div>
       )}
       <div
@@ -645,7 +647,7 @@ function LayoutOption({ active, onClick, icon: Icon, label, description }: Layou
         />
       </div>
       <div>
-        <p className={`text-xs font-bold ${active ? "text-white" : "text-[var(--text-secondary)]"}`}>
+        <p className={`text-xs font-bold ${active ? "text-[var(--text-primary)]" : "text-[var(--text-secondary)]"}`}>
           {label}
         </p>
         <p className="text-[10px] text-[var(--text-tertiary)] mt-0.5">

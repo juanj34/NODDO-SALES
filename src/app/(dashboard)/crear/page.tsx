@@ -346,7 +346,7 @@ export default function AICreatorPage() {
               <div
                 className={`max-w-[80%] px-4 py-3 rounded-2xl text-sm whitespace-pre-wrap ${
                   msg.role === "user"
-                    ? "bg-[var(--site-primary)] text-white rounded-br-md"
+                    ? "bg-[var(--site-primary)] text-[var(--text-primary)] rounded-br-md"
                     : "bg-[var(--surface-2)] text-[var(--text-secondary)] border border-[var(--border-subtle)] rounded-bl-md"
                 }`}
               >
@@ -439,7 +439,7 @@ export default function AICreatorPage() {
             <button
               type="submit"
               disabled={!input.trim() || thinking}
-              className="shrink-0 p-2.5 bg-[var(--site-primary)] rounded-xl text-white hover:brightness-110 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+              className="shrink-0 p-2.5 bg-[var(--site-primary)] rounded-xl text-[var(--text-primary)] hover:brightness-110 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
             >
               <Send size={18} />
             </button>
@@ -521,7 +521,7 @@ export default function AICreatorPage() {
                     c.color && (
                       <div key={c.label} className="flex items-center gap-1.5">
                         <div
-                          className="w-5 h-5 rounded-md border border-white/10"
+                          className="w-5 h-5 rounded-md border border-[var(--border-default)]"
                           style={{ background: c.color }}
                         />
                         <span className="text-[10px] text-[var(--text-muted)]">{c.color}</span>
@@ -592,7 +592,7 @@ export default function AICreatorPage() {
           <button
             onClick={handleCreateProject}
             disabled={!projectData.nombre || creating}
-            className="w-full flex items-center justify-center gap-2 py-3 bg-[var(--site-primary)] text-white rounded-xl text-sm font-medium hover:brightness-110 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+            className="w-full flex items-center justify-center gap-2 py-3 bg-[var(--site-primary)] text-[var(--text-primary)] rounded-xl text-sm font-medium hover:brightness-110 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {creating ? (
               <>

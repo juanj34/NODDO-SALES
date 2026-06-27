@@ -212,7 +212,7 @@ export function UploadModal({
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
         className="fixed inset-0 z-50 flex items-center justify-center p-4"
-        style={{ backgroundColor: "rgba(0,0,0,0.75)" }}
+        style={{ backgroundColor: "rgba(var(--overlay-rgb),0.75)" }}
         onClick={onClose}
       >
         <motion.div
@@ -226,7 +226,7 @@ export function UploadModal({
           <div className="flex items-center justify-between px-5 py-4 border-b border-[var(--border-subtle)]">
             <div className="flex items-center gap-2.5">
               <Upload size={16} className="text-[var(--site-primary)]" />
-              <h3 className="text-sm font-medium text-white">
+              <h3 className="text-sm font-medium text-[var(--text-primary)]">
                 {t("uploadModal.uploadTo", { name: categoryName })}
               </h3>
             </div>
@@ -268,7 +268,7 @@ export function UploadModal({
                     </div>
                     <button
                       onClick={() => inputRef.current?.click()}
-                      className="flex items-center gap-1.5 px-5 py-2.5 border border-[var(--border-default)] bg-[var(--surface-2)] rounded-[0.625rem] text-xs text-[var(--text-secondary)] hover:text-white hover:border-[var(--border-strong)] hover:bg-[var(--surface-3)] transition-all"
+                      className="flex items-center gap-1.5 px-5 py-2.5 border border-[var(--border-default)] bg-[var(--surface-2)] rounded-[0.625rem] text-xs text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:border-[var(--border-strong)] hover:bg-[var(--surface-3)] transition-all"
                     >
                       <FolderOpen size={14} />
                       {t("uploadModal.openExplorer")}
@@ -296,7 +296,7 @@ export function UploadModal({
                       {!uploading && !compressing && (
                         <button
                           onClick={() => removeStaged(staged.id)}
-                          className="absolute top-1 right-1 w-5 h-5 bg-black/70 rounded-full flex items-center justify-center text-[var(--text-secondary)] hover:text-red-400 opacity-0 group-hover:opacity-100 transition-all"
+                          className="absolute top-1 right-1 w-5 h-5 bg-black/70 rounded-full flex items-center justify-center text-[var(--text-secondary)] hover:text-red-400 opacity-0 group-hover:opacity-100 transition-all" /* // theme-allow: scrim over image preview (remove button) */
                         >
                           <X size={10} />
                         </button>
@@ -373,14 +373,14 @@ export function UploadModal({
             <button
               onClick={onClose}
               disabled={uploading || compressing}
-              className="flex items-center gap-1.5 px-5 py-2.5 border border-[var(--border-default)] bg-[var(--surface-2)] rounded-[0.625rem] text-xs text-[var(--text-secondary)] hover:text-white hover:border-[var(--border-strong)] hover:bg-[var(--surface-3)] transition-all disabled:opacity-40"
+              className="flex items-center gap-1.5 px-5 py-2.5 border border-[var(--border-default)] bg-[var(--surface-2)] rounded-[0.625rem] text-xs text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:border-[var(--border-strong)] hover:bg-[var(--surface-3)] transition-all disabled:opacity-40"
             >
               {t("uploadModal.cancel")}
             </button>
             <button
               onClick={handleUploadAll}
               disabled={uploading || compressing || stagedFiles.length === 0}
-              className="flex items-center gap-1.5 px-5 py-2.5 bg-[var(--site-primary)] text-[#141414] rounded-[0.625rem] text-xs font-semibold hover:brightness-110 hover:shadow-[0_4px_16px_rgba(var(--site-primary-rgb),0.25)] transition-all disabled:opacity-40 disabled:cursor-not-allowed"
+              className="flex items-center gap-1.5 px-5 py-2.5 bg-[var(--site-primary)] text-[#141414] rounded-[0.625rem] text-xs font-semibold hover:brightness-110 hover:shadow-[0_4px_16px_rgba(var(--site-primary-rgb),0.25)] transition-all disabled:opacity-40 disabled:cursor-not-allowed" /* // theme-allow: dark text on gold */
             >
               {compressing || uploading ? (
                 <Loader2 size={14} className="animate-spin" />

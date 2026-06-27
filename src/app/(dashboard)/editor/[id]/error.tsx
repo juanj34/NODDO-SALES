@@ -46,7 +46,7 @@ export default function EditorError({
             fontFamily: "var(--font-cormorant, 'Cormorant Garamond', Georgia, serif)",
             fontSize: 24,
             fontWeight: 300,
-            color: "rgba(244, 240, 232, 0.92)",
+            color: "var(--text-primary)",
             marginBottom: 8,
           }}
         >
@@ -57,7 +57,7 @@ export default function EditorError({
             fontFamily: "var(--font-dm-mono, 'DM Mono', monospace)",
             fontSize: 13,
             fontWeight: 300,
-            color: "rgba(244, 240, 232, 0.35)",
+            color: "var(--text-tertiary)",
             marginBottom: 32,
             lineHeight: 1.7,
           }}
@@ -71,7 +71,7 @@ export default function EditorError({
             style={{
               padding: "12px 28px",
               backgroundColor: "var(--site-primary)",
-              color: "#141414",
+              color: "#141414", // theme-allow: dark text on gold
               fontFamily: "var(--font-syne, 'Syne', sans-serif)",
               fontSize: 11,
               fontWeight: 700,
@@ -89,14 +89,14 @@ export default function EditorError({
             style={{
               padding: "12px 28px",
               backgroundColor: "transparent",
-              color: "rgba(244, 240, 232, 0.55)",
+              color: "var(--text-secondary)",
               fontFamily: "var(--font-syne, 'Syne', sans-serif)",
               fontSize: 11,
               fontWeight: 700,
               textTransform: "uppercase" as const,
               letterSpacing: "0.15em",
               borderRadius: 8,
-              border: "1px solid rgba(255, 255, 255, 0.1)",
+              border: "1px solid rgba(var(--contrast-rgb), 0.1)",
               textDecoration: "none",
               display: "inline-block",
             }}

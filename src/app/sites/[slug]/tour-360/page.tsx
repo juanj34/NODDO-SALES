@@ -41,7 +41,7 @@ export default function Tour360Page() {
           </motion.div>
         ) : (
           <div className="w-full h-full flex flex-col items-center justify-center gap-4 text-center">
-            <div className="w-16 h-16 rounded-2xl bg-white/5 flex items-center justify-center">
+            <div className="w-16 h-16 rounded-2xl bg-[var(--surface-2)] flex items-center justify-center">
               <Globe size={28} className="text-[var(--text-muted)]" />
             </div>
             <div>

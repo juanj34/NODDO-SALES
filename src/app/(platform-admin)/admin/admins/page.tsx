@@ -113,7 +113,7 @@ export default function AdminAdminsPage() {
         </div>
         <button
           onClick={() => setShowModal(true)}
-          className="flex items-center gap-2 px-4 py-2 rounded-lg bg-[var(--surface-2)] border border-[var(--border-subtle)] text-xs font-ui font-bold uppercase tracking-wider text-[var(--text-secondary)] hover:text-white hover:border-[var(--border-default)] transition-all"
+          className="flex items-center gap-2 px-4 py-2 rounded-lg bg-[var(--surface-2)] border border-[var(--border-subtle)] text-xs font-ui font-bold uppercase tracking-wider text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:border-[var(--border-default)] transition-all"
         >
           <Plus size={13} />
           Agregar Admin
@@ -131,7 +131,7 @@ export default function AdminAdminsPage() {
           <p className="text-sm text-[var(--text-secondary)] mb-1">Error al cargar administradores</p>
           <button
             onClick={fetchAdmins}
-            className="flex items-center gap-2 px-4 py-2 mt-4 rounded-lg bg-[var(--surface-2)] border border-[var(--border-subtle)] text-xs text-[var(--text-secondary)] hover:text-white hover:border-[var(--border-default)] transition-all"
+            className="flex items-center gap-2 px-4 py-2 mt-4 rounded-lg bg-[var(--surface-2)] border border-[var(--border-subtle)] text-xs text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:border-[var(--border-default)] transition-all"
           >
             <RefreshCw size={13} /> Reintentar
           </button>
@@ -217,15 +217,15 @@ export default function AdminAdminsPage() {
 
       {/* Add Modal */}
       {showModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-[rgba(var(--overlay-rgb),0.6)]">
           <motion.div
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
             className="bg-[var(--surface-2)] border border-[var(--border-default)] rounded-xl p-6 w-full max-w-md mx-4 shadow-xl"
           >
             <div className="flex items-center justify-between mb-4">
-              <h2 className="font-heading text-lg font-light text-white">Agregar Administrador</h2>
-              <button onClick={() => setShowModal(false)} className="text-[var(--text-muted)] hover:text-white transition-colors">
+              <h2 className="font-heading text-lg font-light text-[var(--text-primary)]">Agregar Administrador</h2>
+              <button onClick={() => setShowModal(false)} className="text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-colors">
                 <X size={18} />
               </button>
             </div>
@@ -244,14 +244,15 @@ export default function AdminAdminsPage() {
             <div className="flex items-center justify-end gap-3">
               <button
                 onClick={() => setShowModal(false)}
-                className="px-4 py-2 rounded-lg text-xs text-[var(--text-tertiary)] hover:text-white transition-colors"
+                className="px-4 py-2 rounded-lg text-xs text-[var(--text-tertiary)] hover:text-[var(--text-primary)] transition-colors"
               >
                 Cancelar
               </button>
               <button
                 onClick={handleAdd}
                 disabled={!newEmail.trim() || submitting}
-                className="flex items-center gap-2 px-4 py-2 rounded-lg bg-[var(--site-primary)] text-black font-ui text-xs font-bold uppercase tracking-wider disabled:opacity-50 hover:brightness-110 transition-all"
+                className={"flex items-center gap-2 px-4 py-2 rounded-lg bg-[var(--site-primary)] text-black font-ui text-xs font-bold uppercase tracking-wider disabled:opacity-50 hover:brightness-110 transition-all" // theme-allow: dark text on gold
+                }
               >
                 {submitting && <Loader2 size={12} className="animate-spin" />}
                 Agregar

@@ -10,7 +10,7 @@ export function NodDoLogo({
   className,
   width,
   height,
-  colorNod = "#fff",
+  colorNod = "var(--text-primary)",
   colorDo = "#b8983c",
 }: NodDoLogoProps) {
   return (

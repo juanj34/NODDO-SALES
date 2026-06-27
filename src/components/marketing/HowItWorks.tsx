@@ -33,53 +33,53 @@ function IllustrationUpload() {
       `}</style>
 
       {/* Panel frame */}
-      <rect x="10" y="10" width="200" height="130" rx="4" stroke="#b8973a" strokeWidth="0.8" opacity="0.4" />
+      <rect x="10" y="10" width="200" height="130" rx="4" stroke="var(--mk-accent)" strokeWidth="0.8" opacity="0.4" />
       {/* Title bar */}
-      <line x1="10" y1="30" x2="210" y2="30" stroke="#b8973a" strokeWidth="0.5" opacity="0.25" />
+      <line x1="10" y1="30" x2="210" y2="30" stroke="var(--mk-accent)" strokeWidth="0.5" opacity="0.25" />
       {/* 3 dots */}
-      <circle cx="22" cy="20" r="2" fill="rgba(184,151,58,0.3)" />
-      <circle cx="30" cy="20" r="2" fill="rgba(184,151,58,0.2)" />
-      <circle cx="38" cy="20" r="2" fill="rgba(184,151,58,0.15)" />
+      <circle cx="22" cy="20" r="2" fill="rgba(var(--mk-accent-rgb),0.3)" />
+      <circle cx="30" cy="20" r="2" fill="rgba(var(--mk-accent-rgb),0.2)" />
+      <circle cx="38" cy="20" r="2" fill="rgba(var(--mk-accent-rgb),0.15)" />
 
       {/* Project name field */}
-      <rect x="22" y="40" width="80" height="8" rx="1.5" stroke="#b8973a" strokeWidth="0.5" opacity="0.3" />
-      <line className="hiw-u-type1" x1="26" y1="44" x2="70" y2="44" stroke="#b8973a" strokeWidth="0.8" opacity="0.5" />
+      <rect x="22" y="40" width="80" height="8" rx="1.5" stroke="var(--mk-accent)" strokeWidth="0.5" opacity="0.3" />
+      <line className="hiw-u-type1" x1="26" y1="44" x2="70" y2="44" stroke="var(--mk-accent)" strokeWidth="0.8" opacity="0.5" />
       {/* Blinking cursor */}
-      <line className="hiw-u-cursor" x1="71" y1="41" x2="71" y2="47" stroke="#b8973a" strokeWidth="0.6" />
+      <line className="hiw-u-cursor" x1="71" y1="41" x2="71" y2="47" stroke="var(--mk-accent)" strokeWidth="0.6" />
 
       {/* Location field with pin */}
-      <rect x="22" y="56" width="80" height="8" rx="1.5" stroke="#b8973a" strokeWidth="0.5" opacity="0.3" />
-      <circle cx="28" cy="60" r="2" stroke="#b8973a" strokeWidth="0.5" opacity="0.5" />
-      <line className="hiw-u-type2" x1="34" y1="60" x2="62" y2="60" stroke="#b8973a" strokeWidth="0.6" opacity="0.4" />
+      <rect x="22" y="56" width="80" height="8" rx="1.5" stroke="var(--mk-accent)" strokeWidth="0.5" opacity="0.3" />
+      <circle cx="28" cy="60" r="2" stroke="var(--mk-accent)" strokeWidth="0.5" opacity="0.5" />
+      <line className="hiw-u-type2" x1="34" y1="60" x2="62" y2="60" stroke="var(--mk-accent)" strokeWidth="0.6" opacity="0.4" />
 
       {/* Description field */}
-      <rect x="22" y="72" width="80" height="18" rx="1.5" stroke="#b8973a" strokeWidth="0.5" opacity="0.25" />
-      <line className="hiw-u-type3" x1="26" y1="78" x2="90" y2="78" stroke="#b8973a" strokeWidth="0.4" opacity="0.25" />
-      <line className="hiw-u-type4" x1="26" y1="83" x2="76" y2="83" stroke="#b8973a" strokeWidth="0.4" opacity="0.2" />
+      <rect x="22" y="72" width="80" height="18" rx="1.5" stroke="var(--mk-accent)" strokeWidth="0.5" opacity="0.25" />
+      <line className="hiw-u-type3" x1="26" y1="78" x2="90" y2="78" stroke="var(--mk-accent)" strokeWidth="0.4" opacity="0.25" />
+      <line className="hiw-u-type4" x1="26" y1="83" x2="76" y2="83" stroke="var(--mk-accent)" strokeWidth="0.4" opacity="0.2" />
 
       {/* Right: image placeholders (renders) */}
-      <rect className="hiw-u-img1" x="116" y="40" width="40" height="28" rx="2" stroke="#b8973a" strokeWidth="0.6" opacity="0.35" />
-      <path d="M122 62 L130 54 L136 58 L142 50 L150 62" stroke="#b8973a" strokeWidth="0.5" opacity="0.3" />
-      <circle cx="126" cy="50" r="2" stroke="#b8973a" strokeWidth="0.4" opacity="0.3" />
+      <rect className="hiw-u-img1" x="116" y="40" width="40" height="28" rx="2" stroke="var(--mk-accent)" strokeWidth="0.6" opacity="0.35" />
+      <path d="M122 62 L130 54 L136 58 L142 50 L150 62" stroke="var(--mk-accent)" strokeWidth="0.5" opacity="0.3" />
+      <circle cx="126" cy="50" r="2" stroke="var(--mk-accent)" strokeWidth="0.4" opacity="0.3" />
 
-      <rect className="hiw-u-img2" x="162" y="40" width="40" height="28" rx="2" stroke="#b8973a" strokeWidth="0.6" opacity="0.35" />
-      <line x1="170" y1="48" x2="194" y2="48" stroke="#b8973a" strokeWidth="0.3" opacity="0.25" />
-      <line x1="170" y1="54" x2="194" y2="54" stroke="#b8973a" strokeWidth="0.3" opacity="0.25" />
-      <line x1="182" y1="44" x2="182" y2="64" stroke="#b8973a" strokeWidth="0.3" opacity="0.25" />
+      <rect className="hiw-u-img2" x="162" y="40" width="40" height="28" rx="2" stroke="var(--mk-accent)" strokeWidth="0.6" opacity="0.35" />
+      <line x1="170" y1="48" x2="194" y2="48" stroke="var(--mk-accent)" strokeWidth="0.3" opacity="0.25" />
+      <line x1="170" y1="54" x2="194" y2="54" stroke="var(--mk-accent)" strokeWidth="0.3" opacity="0.25" />
+      <line x1="182" y1="44" x2="182" y2="64" stroke="var(--mk-accent)" strokeWidth="0.3" opacity="0.25" />
 
       {/* Small thumbnail row */}
-      <rect className="hiw-u-thumb1" x="116" y="74" width="26" height="16" rx="1.5" stroke="#b8973a" strokeWidth="0.4" opacity="0.25" />
-      <rect className="hiw-u-thumb2" x="146" y="74" width="26" height="16" rx="1.5" stroke="#b8973a" strokeWidth="0.4" opacity="0.25" />
-      <rect className="hiw-u-thumb3" x="176" y="74" width="26" height="16" rx="1.5" stroke="#b8973a" strokeWidth="0.4" opacity="0.25" />
+      <rect className="hiw-u-thumb1" x="116" y="74" width="26" height="16" rx="1.5" stroke="var(--mk-accent)" strokeWidth="0.4" opacity="0.25" />
+      <rect className="hiw-u-thumb2" x="146" y="74" width="26" height="16" rx="1.5" stroke="var(--mk-accent)" strokeWidth="0.4" opacity="0.25" />
+      <rect className="hiw-u-thumb3" x="176" y="74" width="26" height="16" rx="1.5" stroke="var(--mk-accent)" strokeWidth="0.4" opacity="0.25" />
 
       {/* Progress bar */}
-      <rect x="22" y="106" width="180" height="5" rx="2.5" stroke="#b8973a" strokeWidth="0.4" opacity="0.2" />
-      <rect className="hiw-u-progress" x="22" y="106" width="120" height="5" rx="2.5" fill="rgba(184,151,58,0.2)" />
+      <rect x="22" y="106" width="180" height="5" rx="2.5" stroke="var(--mk-accent)" strokeWidth="0.4" opacity="0.2" />
+      <rect className="hiw-u-progress" x="22" y="106" width="120" height="5" rx="2.5" fill="rgba(var(--mk-accent-rgb),0.2)" />
 
       {/* Upload arrow — bobs up/down */}
       <g className="hiw-u-arrow">
-        <path d="M110 118 L110 128" stroke="#b8973a" strokeWidth="0.8" opacity="0.4" />
-        <path d="M106 122 L110 118 L114 122" stroke="#b8973a" strokeWidth="0.8" opacity="0.4" strokeLinecap="round" />
+        <path d="M110 118 L110 128" stroke="var(--mk-accent)" strokeWidth="0.8" opacity="0.4" />
+        <path d="M106 122 L110 118 L114 122" stroke="var(--mk-accent)" strokeWidth="0.8" opacity="0.4" strokeLinecap="round" />
       </g>
     </svg>
   );
@@ -122,18 +122,18 @@ function IllustrationGrid() {
       `}</style>
 
       {/* Building outline */}
-      <polygon points="24,20 94,10 94,120 24,130" stroke="#b8973a" strokeWidth="0.8" opacity="0.3" fill="none" />
-      <polygon points="94,10 168,20 168,130 94,120" stroke="#b8973a" strokeWidth="0.7" opacity="0.25" fill="none" />
-      <line x1="94" y1="10" x2="94" y2="120" stroke="#b8973a" strokeWidth="1.2" opacity="0.5" />
-      <line x1="24" y1="20" x2="94" y2="10" stroke="#b8973a" strokeWidth="0.8" opacity="0.4" />
-      <line x1="94" y1="10" x2="168" y2="20" stroke="#b8973a" strokeWidth="0.7" opacity="0.35" />
+      <polygon points="24,20 94,10 94,120 24,130" stroke="var(--mk-accent)" strokeWidth="0.8" opacity="0.3" fill="none" />
+      <polygon points="94,10 168,20 168,130 94,120" stroke="var(--mk-accent)" strokeWidth="0.7" opacity="0.25" fill="none" />
+      <line x1="94" y1="10" x2="94" y2="120" stroke="var(--mk-accent)" strokeWidth="1.2" opacity="0.5" />
+      <line x1="24" y1="20" x2="94" y2="10" stroke="var(--mk-accent)" strokeWidth="0.8" opacity="0.4" />
+      <line x1="94" y1="10" x2="168" y2="20" stroke="var(--mk-accent)" strokeWidth="0.7" opacity="0.35" />
 
       {/* Floor lines */}
       {[0, 1, 2, 3, 4].map(i => (
-        <line key={`fl${i}`} x1="24" y1={42 + i * 16} x2="94" y2={32 + i * 16} stroke="#b8973a" strokeWidth="0.3" opacity="0.15" />
+        <line key={`fl${i}`} x1="24" y1={42 + i * 16} x2="94" y2={32 + i * 16} stroke="var(--mk-accent)" strokeWidth="0.3" opacity="0.15" />
       ))}
       {[0, 1, 2, 3, 4].map(i => (
-        <line key={`fr${i}`} x1="94" y1={32 + i * 16} x2="168" y2={42 + i * 16} stroke="#b8973a" strokeWidth="0.3" opacity="0.12" />
+        <line key={`fr${i}`} x1="94" y1={32 + i * 16} x2="168" y2={42 + i * 16} stroke="var(--mk-accent)" strokeWidth="0.3" opacity="0.12" />
       ))}
 
       {/* Unit dots */}
@@ -146,21 +146,21 @@ function IllustrationGrid() {
       ))}
 
       {/* Glow behind selected unit */}
-      <circle className="hiw-g-glow" cx="74" cy="62" r="12" fill="rgba(184,151,58,0.15)" />
+      <circle className="hiw-g-glow" cx="74" cy="62" r="12" fill="rgba(var(--mk-accent-rgb),0.15)" />
       {/* Selection ring — pulses */}
-      <circle className="hiw-g-ring" cx="74" cy="62" r="7" stroke="#b8973a" strokeWidth="1" fill="none" />
-      <line x1="79" y1="67" x2="86" y2="74" stroke="#b8973a" strokeWidth="0.8" opacity="0.5" />
+      <circle className="hiw-g-ring" cx="74" cy="62" r="7" stroke="var(--mk-accent)" strokeWidth="1" fill="none" />
+      <line x1="79" y1="67" x2="86" y2="74" stroke="var(--mk-accent)" strokeWidth="0.8" opacity="0.5" />
 
       {/* Floating tooltip */}
       <g className="hiw-g-tooltip">
-        <rect x="150" y="55" width="62" height="34" rx="2" fill="rgba(20,20,20,0.9)" stroke="#b8973a" strokeWidth="0.6" opacity="0.6" />
-        <line x1="156" y1="64" x2="200" y2="64" stroke="#b8973a" strokeWidth="0.5" opacity="0.4" />
-        <line x1="156" y1="72" x2="190" y2="72" stroke="rgba(244,240,232,0.15)" strokeWidth="0.4" />
-        <line x1="156" y1="78" x2="180" y2="78" stroke="rgba(244,240,232,0.1)" strokeWidth="0.4" />
+        <rect x="150" y="55" width="62" height="34" rx="2" fill="var(--mk-surface-3)" stroke="var(--mk-accent)" strokeWidth="0.6" opacity="0.6" />
+        <line x1="156" y1="64" x2="200" y2="64" stroke="var(--mk-accent)" strokeWidth="0.5" opacity="0.4" />
+        <line x1="156" y1="72" x2="190" y2="72" stroke="rgba(var(--contrast-rgb),0.15)" strokeWidth="0.4" />
+        <line x1="156" y1="78" x2="180" y2="78" stroke="rgba(var(--contrast-rgb),0.1)" strokeWidth="0.4" />
       </g>
 
       {/* Connector — flowing dashes */}
-      <line className="hiw-g-connector" x1="81" y1="62" x2="150" y2="68" stroke="#b8973a" strokeWidth="0.4" opacity="0.3" />
+      <line className="hiw-g-connector" x1="81" y1="62" x2="150" y2="68" stroke="var(--mk-accent)" strokeWidth="0.4" opacity="0.3" />
 
       {/* Legend */}
       <circle cx="38" cy="142" r="3" fill="#4a9e6b" opacity="0.7" />
@@ -195,64 +195,64 @@ function IllustrationShare() {
       `}</style>
 
       {/* Browser frame */}
-      <rect x="10" y="10" width="200" height="130" rx="4" stroke="#b8973a" strokeWidth="0.8" opacity="0.4" />
-      <line x1="10" y1="28" x2="210" y2="28" stroke="#b8973a" strokeWidth="0.5" opacity="0.25" />
+      <rect x="10" y="10" width="200" height="130" rx="4" stroke="var(--mk-accent)" strokeWidth="0.8" opacity="0.4" />
+      <line x1="10" y1="28" x2="210" y2="28" stroke="var(--mk-accent)" strokeWidth="0.5" opacity="0.25" />
       {/* Browser dots */}
-      <circle cx="22" cy="19" r="2" fill="rgba(184,151,58,0.3)" />
-      <circle cx="30" cy="19" r="2" fill="rgba(184,151,58,0.2)" />
-      <circle cx="38" cy="19" r="2" fill="rgba(184,151,58,0.15)" />
+      <circle cx="22" cy="19" r="2" fill="rgba(var(--mk-accent-rgb),0.3)" />
+      <circle cx="30" cy="19" r="2" fill="rgba(var(--mk-accent-rgb),0.2)" />
+      <circle cx="38" cy="19" r="2" fill="rgba(var(--mk-accent-rgb),0.15)" />
       {/* URL bar with shimmer */}
-      <rect className="hiw-s-url" x="50" y="15" width="110" height="8" rx="4" stroke="#b8973a" strokeWidth="0.4" opacity="0.25" />
-      <line x1="56" y1="19" x2="130" y2="19" stroke="#b8973a" strokeWidth="0.5" opacity="0.35" />
+      <rect className="hiw-s-url" x="50" y="15" width="110" height="8" rx="4" stroke="var(--mk-accent)" strokeWidth="0.4" opacity="0.25" />
+      <line x1="56" y1="19" x2="130" y2="19" stroke="var(--mk-accent)" strokeWidth="0.5" opacity="0.35" />
       {/* Live indicator dot */}
       <circle className="hiw-s-live" cx="167" cy="19" r="1.5" fill="#4a9e6b" />
 
       {/* Hero image area */}
-      <rect x="18" y="34" width="184" height="40" rx="1" stroke="#b8973a" strokeWidth="0.4" opacity="0.2" />
-      <rect x="18" y="54" width="184" height="20" fill="rgba(184,151,58,0.06)" />
-      <line x1="26" y1="62" x2="90" y2="62" stroke="#b8973a" strokeWidth="0.8" opacity="0.4" />
-      <line x1="26" y1="68" x2="70" y2="68" stroke="#b8973a" strokeWidth="0.5" opacity="0.25" />
+      <rect x="18" y="34" width="184" height="40" rx="1" stroke="var(--mk-accent)" strokeWidth="0.4" opacity="0.2" />
+      <rect x="18" y="54" width="184" height="20" fill="rgba(var(--mk-accent-rgb),0.06)" />
+      <line x1="26" y1="62" x2="90" y2="62" stroke="var(--mk-accent)" strokeWidth="0.8" opacity="0.4" />
+      <line x1="26" y1="68" x2="70" y2="68" stroke="var(--mk-accent)" strokeWidth="0.5" opacity="0.25" />
 
       {/* Mini building silhouette */}
-      <rect x="150" y="38" width="16" height="32" stroke="#b8973a" strokeWidth="0.4" opacity="0.15" />
-      <rect x="168" y="44" width="12" height="26" stroke="#b8973a" strokeWidth="0.3" opacity="0.12" />
-      <rect x="138" y="48" width="10" height="22" stroke="#b8973a" strokeWidth="0.3" opacity="0.1" />
+      <rect x="150" y="38" width="16" height="32" stroke="var(--mk-accent)" strokeWidth="0.4" opacity="0.15" />
+      <rect x="168" y="44" width="12" height="26" stroke="var(--mk-accent)" strokeWidth="0.3" opacity="0.12" />
+      <rect x="138" y="48" width="10" height="22" stroke="var(--mk-accent)" strokeWidth="0.3" opacity="0.1" />
 
       {/* Content cards */}
-      <rect x="18" y="80" width="56" height="30" rx="1.5" stroke="#b8973a" strokeWidth="0.4" opacity="0.2" />
-      <rect x="80" y="80" width="56" height="30" rx="1.5" stroke="#b8973a" strokeWidth="0.4" opacity="0.2" />
-      <rect x="142" y="80" width="56" height="30" rx="1.5" stroke="#b8973a" strokeWidth="0.4" opacity="0.2" />
-      <line x1="24" y1="92" x2="60" y2="92" stroke="#b8973a" strokeWidth="0.3" opacity="0.15" />
-      <line x1="24" y1="97" x2="50" y2="97" stroke="#b8973a" strokeWidth="0.3" opacity="0.1" />
-      <line x1="86" y1="92" x2="122" y2="92" stroke="#b8973a" strokeWidth="0.3" opacity="0.15" />
-      <line x1="86" y1="97" x2="110" y2="97" stroke="#b8973a" strokeWidth="0.3" opacity="0.1" />
-      <line x1="148" y1="92" x2="184" y2="92" stroke="#b8973a" strokeWidth="0.3" opacity="0.15" />
-      <line x1="148" y1="97" x2="174" y2="97" stroke="#b8973a" strokeWidth="0.3" opacity="0.1" />
+      <rect x="18" y="80" width="56" height="30" rx="1.5" stroke="var(--mk-accent)" strokeWidth="0.4" opacity="0.2" />
+      <rect x="80" y="80" width="56" height="30" rx="1.5" stroke="var(--mk-accent)" strokeWidth="0.4" opacity="0.2" />
+      <rect x="142" y="80" width="56" height="30" rx="1.5" stroke="var(--mk-accent)" strokeWidth="0.4" opacity="0.2" />
+      <line x1="24" y1="92" x2="60" y2="92" stroke="var(--mk-accent)" strokeWidth="0.3" opacity="0.15" />
+      <line x1="24" y1="97" x2="50" y2="97" stroke="var(--mk-accent)" strokeWidth="0.3" opacity="0.1" />
+      <line x1="86" y1="92" x2="122" y2="92" stroke="var(--mk-accent)" strokeWidth="0.3" opacity="0.15" />
+      <line x1="86" y1="97" x2="110" y2="97" stroke="var(--mk-accent)" strokeWidth="0.3" opacity="0.1" />
+      <line x1="148" y1="92" x2="184" y2="92" stroke="var(--mk-accent)" strokeWidth="0.3" opacity="0.15" />
+      <line x1="148" y1="97" x2="174" y2="97" stroke="var(--mk-accent)" strokeWidth="0.3" opacity="0.1" />
 
       {/* ── Share / radiating connections ── */}
       {/* Expanding ring from share node */}
-      <circle className="hiw-s-ring" cx="110" cy="126" r="5" stroke="#b8973a" strokeWidth="0.6" fill="none" />
+      <circle className="hiw-s-ring" cx="110" cy="126" r="5" stroke="var(--mk-accent)" strokeWidth="0.6" fill="none" />
       {/* Static glow halo */}
-      <circle className="hiw-s-glow" cx="110" cy="126" r="12" fill="rgba(184,151,58,0.15)" />
+      <circle className="hiw-s-glow" cx="110" cy="126" r="12" fill="rgba(var(--mk-accent-rgb),0.15)" />
 
       {/* Central share node */}
-      <circle className="hiw-s-node" cx="110" cy="126" r="5" stroke="#b8973a" strokeWidth="0.8" fill="rgba(184,151,58,0.08)" />
+      <circle className="hiw-s-node" cx="110" cy="126" r="5" stroke="var(--mk-accent)" strokeWidth="0.8" fill="rgba(var(--mk-accent-rgb),0.08)" />
       {/* Link icon inside */}
-      <path d="M107 126 L113 126" stroke="#b8973a" strokeWidth="0.8" opacity="0.5" strokeLinecap="round" />
-      <path d="M108 124 C106 124 105 125 105 126 C105 127 106 128 108 128" stroke="#b8973a" strokeWidth="0.6" opacity="0.4" fill="none" />
-      <path d="M112 124 C114 124 115 125 115 126 C115 127 114 128 112 128" stroke="#b8973a" strokeWidth="0.6" opacity="0.4" fill="none" />
+      <path d="M107 126 L113 126" stroke="var(--mk-accent)" strokeWidth="0.8" opacity="0.5" strokeLinecap="round" />
+      <path d="M108 124 C106 124 105 125 105 126 C105 127 106 128 108 128" stroke="var(--mk-accent)" strokeWidth="0.6" opacity="0.4" fill="none" />
+      <path d="M112 124 C114 124 115 125 115 126 C115 127 114 128 112 128" stroke="var(--mk-accent)" strokeWidth="0.6" opacity="0.4" fill="none" />
 
       {/* Radiating lines — flowing dashes */}
-      <line className="hiw-s-ray" x1="105" y1="124" x2="60" y2="118" stroke="#b8973a" strokeWidth="0.4" opacity="0.3" />
-      <line className="hiw-s-ray" x1="115" y1="124" x2="160" y2="118" stroke="#b8973a" strokeWidth="0.4" opacity="0.3" />
-      <line className="hiw-s-ray" x1="105" y1="128" x2="70" y2="138" stroke="#b8973a" strokeWidth="0.4" opacity="0.3" />
-      <line className="hiw-s-ray" x1="115" y1="128" x2="150" y2="138" stroke="#b8973a" strokeWidth="0.4" opacity="0.3" />
+      <line className="hiw-s-ray" x1="105" y1="124" x2="60" y2="118" stroke="var(--mk-accent)" strokeWidth="0.4" opacity="0.3" />
+      <line className="hiw-s-ray" x1="115" y1="124" x2="160" y2="118" stroke="var(--mk-accent)" strokeWidth="0.4" opacity="0.3" />
+      <line className="hiw-s-ray" x1="105" y1="128" x2="70" y2="138" stroke="var(--mk-accent)" strokeWidth="0.4" opacity="0.3" />
+      <line className="hiw-s-ray" x1="115" y1="128" x2="150" y2="138" stroke="var(--mk-accent)" strokeWidth="0.4" opacity="0.3" />
 
       {/* Channel endpoints — sequential pulse */}
-      <circle className="hiw-s-ep1" cx="58" cy="117" r="3" stroke="#b8973a" strokeWidth="0.5" fill="rgba(184,151,58,0.1)" />
-      <circle className="hiw-s-ep2" cx="162" cy="117" r="3" stroke="#b8973a" strokeWidth="0.5" fill="rgba(184,151,58,0.1)" />
-      <circle className="hiw-s-ep3" cx="68" cy="139" r="3" stroke="#b8973a" strokeWidth="0.5" fill="rgba(184,151,58,0.1)" />
-      <circle className="hiw-s-ep4" cx="152" cy="139" r="3" stroke="#b8973a" strokeWidth="0.5" fill="rgba(184,151,58,0.1)" />
+      <circle className="hiw-s-ep1" cx="58" cy="117" r="3" stroke="var(--mk-accent)" strokeWidth="0.5" fill="rgba(var(--mk-accent-rgb),0.1)" />
+      <circle className="hiw-s-ep2" cx="162" cy="117" r="3" stroke="var(--mk-accent)" strokeWidth="0.5" fill="rgba(var(--mk-accent-rgb),0.1)" />
+      <circle className="hiw-s-ep3" cx="68" cy="139" r="3" stroke="var(--mk-accent)" strokeWidth="0.5" fill="rgba(var(--mk-accent-rgb),0.1)" />
+      <circle className="hiw-s-ep4" cx="152" cy="139" r="3" stroke="var(--mk-accent)" strokeWidth="0.5" fill="rgba(var(--mk-accent-rgb),0.1)" />
     </svg>
   );
 }
@@ -298,7 +298,7 @@ export function HowItWorks() {
 
         <div
           className="grid grid-cols-1 md:grid-cols-3 relative"
-          style={{ gap: "1px", background: "rgba(255,255,255,0.04)" }}
+          style={{ gap: "1px", background: "rgba(var(--contrast-rgb),0.04)" }}
         >
           {steps.map((step, i) => (
             <motion.div
@@ -313,7 +313,7 @@ export function HowItWorks() {
               {/* Number — watermark */}
               <div
                 className="absolute font-heading leading-none select-none text-[48px] sm:text-[72px]"
-                style={{ top: 20, right: 20, fontWeight: 300, color: "rgba(184,151,58,0.08)", letterSpacing: "-0.03em" }}
+                style={{ top: 20, right: 20, fontWeight: 300, color: "rgba(var(--mk-accent-rgb),0.08)", letterSpacing: "-0.03em" }}
               >
                 {step.num}
               </div>
@@ -329,7 +329,7 @@ export function HowItWorks() {
               </div>
 
               {/* Body */}
-              <div className="text-[14px] leading-[1.8]" style={{ color: "rgba(244,240,232,0.55)" }}>
+              <div className="text-[14px] leading-[1.8]" style={{ color: "rgba(var(--contrast-rgb),0.55)" }}>
                 {step.body}
               </div>
 
@@ -339,7 +339,7 @@ export function HowItWorks() {
                 style={{
                   color: "var(--mk-accent)",
                   padding: "5px 12px",
-                  border: "1px solid rgba(184,151,58,0.3)",
+                  border: "1px solid rgba(var(--mk-accent-rgb),0.3)",
                 }}
               >
                 {step.tag}
@@ -358,7 +358,7 @@ export function HowItWorks() {
         >
           <p
             className="font-heading text-[24px] font-light leading-[1.4] mb-8"
-            style={{ color: "rgba(244,240,232,0.7)" }}
+            style={{ color: "rgba(var(--contrast-rgb),0.7)" }}
           >
             {t("howItWorks.ctaQuestion")} <span style={{ color: "var(--mk-accent-light)", fontStyle: "italic" }}>{t("howItWorks.ctaEmphasis")}</span>?
           </p>
@@ -370,7 +370,7 @@ export function HowItWorks() {
                 className="absolute inset-0 rounded-[12px]"
                 style={{
                   background: "transparent",
-                  boxShadow: "0 0 0 0 rgba(184,151,58,0.7)",
+                  boxShadow: "0 0 0 0 rgba(var(--mk-accent-rgb),0.7)",
                   animation: "pulse-ring 2s cubic-bezier(0.4, 0, 0.6, 1) infinite",
                 }}
               />
@@ -385,7 +385,7 @@ export function HowItWorks() {
             </div>
           </div>
 
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-3 sm:gap-6 text-[12px]" style={{ color: "rgba(244,240,232,0.35)" }}>
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-3 sm:gap-6 text-[12px]" style={{ color: "rgba(var(--contrast-rgb),0.35)" }}>
             <div className="flex items-center gap-1.5">
               <span style={{ color: "var(--mk-accent)" }}>✓</span>
               {t("howItWorks.trustNoCode")}
@@ -404,13 +404,13 @@ export function HowItWorks() {
         <style jsx>{`
           @keyframes pulse-ring {
             0% {
-              box-shadow: 0 0 0 0 rgba(184,151,58,0.7);
+              box-shadow: 0 0 0 0 rgba(var(--mk-accent-rgb),0.7);
             }
             50% {
-              box-shadow: 0 0 0 10px rgba(184,151,58,0);
+              box-shadow: 0 0 0 10px rgba(var(--mk-accent-rgb),0);
             }
             100% {
-              box-shadow: 0 0 0 0 rgba(184,151,58,0);
+              box-shadow: 0 0 0 0 rgba(var(--mk-accent-rgb),0);
             }
           }
         `}</style>

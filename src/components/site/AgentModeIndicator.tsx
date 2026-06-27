@@ -21,10 +21,10 @@ export function AgentModeIndicator() {
       <button
         type="button"
         onClick={() => setMenuOpen(!menuOpen)}
-        className="flex items-center gap-2 px-3 py-2 rounded-xl border border-[rgba(var(--site-primary-rgb),0.3)] bg-[#111113]/90 backdrop-blur-xl shadow-lg hover:border-[rgba(var(--site-primary-rgb),0.5)] transition-colors cursor-pointer"
+        className="flex items-center gap-2 px-3 py-2 rounded-xl border border-[rgba(var(--site-primary-rgb),0.3)] bg-[var(--surface-1)] backdrop-blur-xl shadow-lg hover:border-[rgba(var(--site-primary-rgb),0.5)] transition-colors cursor-pointer"
       >
         <Shield size={14} className="text-[var(--site-primary)]" />
-        <span className="text-xs font-mono text-white/70 max-w-[120px] truncate">
+        <span className="text-xs font-mono text-[var(--text-secondary)] max-w-[120px] truncate">
           {displayName}
         </span>
         <span className="w-1.5 h-1.5 rounded-full bg-[var(--site-primary)] animate-pulse" />
@@ -37,13 +37,13 @@ export function AgentModeIndicator() {
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 4, scale: 0.95 }}
             transition={{ duration: 0.15 }}
-            className="absolute bottom-full left-0 mb-2 w-48 rounded-xl border border-white/10 bg-[#111113]/95 backdrop-blur-xl shadow-2xl overflow-hidden"
+            className="absolute bottom-full left-0 mb-2 w-48 rounded-xl border border-[var(--border-default)] bg-[var(--surface-1)] backdrop-blur-xl shadow-2xl overflow-hidden"
           >
-            <div className="px-3 py-2 border-b border-white/5">
+            <div className="px-3 py-2 border-b border-[var(--border-subtle)]">
               <p className="text-[10px] font-ui uppercase tracking-[0.12em] text-[var(--site-primary)]">
                 Modo Agente
               </p>
-              <p className="text-xs font-mono text-white/50 truncate mt-0.5">
+              <p className="text-xs font-mono text-[var(--text-secondary)] truncate mt-0.5">
                 {agentUser.email}
               </p>
             </div>
@@ -53,7 +53,7 @@ export function AgentModeIndicator() {
                 setMenuOpen(false);
                 await logout();
               }}
-              className="w-full flex items-center gap-2 px-3 py-2.5 text-xs font-mono text-white/60 hover:text-white hover:bg-white/5 transition-colors cursor-pointer"
+              className="w-full flex items-center gap-2 px-3 py-2.5 text-xs font-mono text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--surface-2)] transition-colors cursor-pointer"
             >
               <LogOut size={13} />
               Cerrar sesión

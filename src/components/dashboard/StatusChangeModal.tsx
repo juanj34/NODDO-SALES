@@ -389,7 +389,7 @@ export function StatusChangeModal({
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
-        className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm"
+        className="fixed inset-0 z-50 flex items-center justify-center bg-[rgba(var(--overlay-rgb),0.6)] backdrop-blur-sm"
         onClick={onClose}
       >
         <motion.div
@@ -413,7 +413,7 @@ export function StatusChangeModal({
                         : `Estás por revertir esta unidad a ${estadoLabel.toLowerCase()}.`}
                 </p>
                 <div className="flex items-center gap-3 mb-1">
-                  <h3 className="text-2xl font-heading font-light text-white leading-none">
+                  <h3 className="text-2xl font-heading font-light text-[var(--text-primary)] leading-none">
                     {getUnitDisplayName(unit, unitDisplayPrefix)}
                   </h3>
                   <div className="flex items-center gap-1.5">
@@ -443,7 +443,7 @@ export function StatusChangeModal({
               </div>
               <button
                 onClick={onClose}
-                className="p-1.5 rounded-lg hover:bg-[var(--surface-3)] transition-colors text-[var(--text-muted)] hover:text-white shrink-0"
+                className="p-1.5 rounded-lg hover:bg-[var(--surface-3)] transition-colors text-[var(--text-muted)] hover:text-[var(--text-primary)] shrink-0"
               >
                 <X size={16} />
               </button>
@@ -476,10 +476,10 @@ export function StatusChangeModal({
                           ? "border-[var(--site-primary)] bg-[var(--site-primary)]"
                           : "border-[var(--border-default)]"
                       )}>
-                        {isSelected && <div className="w-1.5 h-1.5 rounded-full bg-[#141414]" />}
+                        {isSelected && <div className="w-1.5 h-1.5 rounded-full bg-[#141414]" /* // theme-allow: dark mark on gold radio */ />}
                       </div>
                       <div className="flex-1 min-w-0">
-                        <p className="text-xs font-medium text-white">{tipo.nombre}</p>
+                        <p className="text-xs font-medium text-[var(--text-primary)]">{tipo.nombre}</p>
                         <p className="text-[10px] text-[var(--text-muted)] mt-0.5">
                           {[
                             tipo.area_m2 && `${tipo.area_m2} m²`,
@@ -521,7 +521,7 @@ export function StatusChangeModal({
                       </p>
                       <p className={cn(
                         "text-xs font-mono leading-none truncate",
-                        field.highlight ? "text-[var(--site-primary)] font-medium" : "text-white"
+                        field.highlight ? "text-[var(--site-primary)] font-medium" : "text-[var(--text-primary)]"
                       )}>
                         {field.value}
                       </p>
@@ -559,7 +559,7 @@ export function StatusChangeModal({
                     ? "border-[var(--site-primary)] bg-[var(--site-primary)]"
                     : "border-[var(--border-default)]"
                 )}>
-                  {sellWithoutClient && <Check size={10} className="text-[#141414]" />}
+                  {sellWithoutClient && <Check size={10} className="text-[#141414]" /* // theme-allow: dark mark on gold checkbox */ />}
                 </div>
                 <span className="text-[11px] text-[var(--text-secondary)]">
                   Marcar vendida sin cliente y/o cotización
@@ -635,12 +635,12 @@ export function StatusChangeModal({
                             <User size={12} className="text-[var(--text-tertiary)]" />
                           </div>
                           <div className="flex-1 min-w-0">
-                            <p className="text-xs text-white truncate">{selectedLead.nombre}</p>
+                            <p className="text-xs text-[var(--text-primary)] truncate">{selectedLead.nombre}</p>
                             <p className="text-[10px] text-[var(--text-muted)] truncate">{selectedLead.email}</p>
                           </div>
                           <button
                             onClick={() => setSelectedLeadId(null)}
-                            className="p-1 rounded-md hover:bg-[var(--surface-3)] text-[var(--text-muted)] hover:text-white transition-colors shrink-0"
+                            className="p-1 rounded-md hover:bg-[var(--surface-3)] text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-colors shrink-0"
                           >
                             <X size={12} />
                           </button>
@@ -669,7 +669,7 @@ export function StatusChangeModal({
                                   className="w-full flex items-center gap-2.5 px-3 py-2 hover:bg-[var(--surface-1)] transition-colors text-left"
                                 >
                                   <div className="flex-1 min-w-0">
-                                    <p className="text-[11px] text-white truncate">{lead.nombre}</p>
+                                    <p className="text-[11px] text-[var(--text-primary)] truncate">{lead.nombre}</p>
                                     <p className="text-[10px] text-[var(--text-muted)] truncate">{lead.email}</p>
                                   </div>
                                   <span className={cn(
@@ -725,7 +725,7 @@ export function StatusChangeModal({
                             <FileText size={12} className="text-[var(--text-tertiary)]" />
                           </div>
                           <div className="flex-1 min-w-0">
-                            <p className="text-xs text-white truncate">{selectedCotizacion.nombre}</p>
+                            <p className="text-xs text-[var(--text-primary)] truncate">{selectedCotizacion.nombre}</p>
                             <p className="text-[10px] text-[var(--text-muted)]">
                               {formatDate(selectedCotizacion.created_at)}
                               {selectedCotizacion.resultado?.precio_neto != null &&
@@ -734,7 +734,7 @@ export function StatusChangeModal({
                           </div>
                           <button
                             onClick={() => setSelectedCotizacionId(null)}
-                            className="p-1 rounded-md hover:bg-[var(--surface-3)] text-[var(--text-muted)] hover:text-white transition-colors shrink-0"
+                            className="p-1 rounded-md hover:bg-[var(--surface-3)] text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-colors shrink-0"
                           >
                             <X size={12} />
                           </button>
@@ -748,7 +748,7 @@ export function StatusChangeModal({
                               className="w-full flex items-center gap-2.5 px-3 py-2 hover:bg-[var(--surface-1)] transition-colors text-left"
                             >
                               <div className="flex-1 min-w-0">
-                                <p className="text-[11px] text-white truncate">{cot.nombre}</p>
+                                <p className="text-[11px] text-[var(--text-primary)] truncate">{cot.nombre}</p>
                                 <p className="text-[10px] text-[var(--text-muted)]">
                                   {formatDate(cot.created_at)}
                                   {cot.resultado?.precio_neto != null &&

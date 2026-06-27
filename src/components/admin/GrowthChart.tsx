@@ -38,7 +38,7 @@ function CustomTooltip({
       <p className="font-mono text-[11px] text-[var(--text-muted)] mb-1">
         {label ? formatDate(label) : ""}
       </p>
-      <p className="font-mono text-[12px] text-white">
+      <p className="font-mono text-[12px] text-[var(--text-primary)]">
         {tooltipLabel ?? "Total"}: {payload[0]?.value?.toLocaleString("es-CO") ?? 0}
       </p>
     </div>
@@ -68,15 +68,15 @@ export function GrowthChart({ data, label }: Props) {
             <stop offset="100%" stopColor="#b8973a" stopOpacity={0} />
           </linearGradient>
         </defs>
-        <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.06)" vertical={false} />
+        <CartesianGrid strokeDasharray="3 3" stroke="rgba(var(--contrast-rgb),0.06)" vertical={false} />
         <XAxis
           dataKey="date"
-          tick={{ fontSize: 10, fill: "rgba(255,255,255,0.18)", fontFamily: "var(--font-mono)" }}
+          tick={{ fontSize: 10, fill: "rgba(var(--contrast-rgb),0.18)", fontFamily: "var(--font-mono)" }}
           tickLine={false}
           axisLine={false}
         />
         <YAxis
-          tick={{ fontSize: 10, fill: "rgba(255,255,255,0.18)", fontFamily: "var(--font-mono)" }}
+          tick={{ fontSize: 10, fill: "rgba(var(--contrast-rgb),0.18)", fontFamily: "var(--font-mono)" }}
           tickLine={false}
           axisLine={false}
           allowDecimals={false}

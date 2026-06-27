@@ -148,14 +148,14 @@ function SectionCard({
   count?: number;
 }) {
   return (
-    <div className="rounded-xl border border-[var(--border-subtle)] bg-[rgba(255,255,255,0.02)] backdrop-blur-sm overflow-hidden">
+    <div className="rounded-xl border border-[var(--border-subtle)] bg-[rgba(var(--contrast-rgb),0.02)] backdrop-blur-sm overflow-hidden">
       <div className="flex items-center gap-3 px-4 py-3 border-b border-[var(--border-subtle)] bg-[var(--surface-1)]/50">
         <div className="w-7 h-7 rounded-lg bg-[rgba(var(--site-primary-rgb),0.1)] flex items-center justify-center shrink-0">
           <Icon size={14} className="text-[var(--site-primary)]" />
         </div>
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2">
-            <span className="font-ui text-[11px] font-bold uppercase tracking-[0.1em] text-white">
+            <span className="font-ui text-[11px] font-bold uppercase tracking-[0.1em] text-[var(--text-primary)]">
               {title}
             </span>
             {count !== undefined && (
@@ -809,25 +809,25 @@ export function SmartImportModal({
 
   // ---- Select class for config dropdowns ----
   const selectClass =
-    "flex-1 bg-[var(--surface-3)] border border-[var(--border-default)] text-white text-[11px] px-2.5 py-1.5 rounded-lg focus:outline-none focus:border-[rgba(var(--site-primary-rgb),0.5)] focus:shadow-[0_0_0_2px_rgba(var(--site-primary-rgb),0.08)] transition-all appearance-none cursor-pointer";
+    "flex-1 bg-[var(--surface-3)] border border-[var(--border-default)] text-[var(--text-primary)] text-[11px] px-2.5 py-1.5 rounded-lg focus:outline-none focus:border-[rgba(var(--site-primary-rgb),0.5)] focus:shadow-[0_0_0_2px_rgba(var(--site-primary-rgb),0.08)] transition-all appearance-none cursor-pointer";
 
   // ---- Inline edit input class ----
   const cellInputClass =
-    "bg-transparent border-b border-transparent text-white text-[11px] px-1 py-0.5 focus:outline-none focus:border-[rgba(var(--site-primary-rgb),0.4)] transition-colors hover:border-[var(--border-default)]";
+    "bg-transparent border-b border-transparent text-[var(--text-primary)] text-[11px] px-1 py-0.5 focus:outline-none focus:border-[rgba(var(--site-primary-rgb),0.4)] transition-colors hover:border-[var(--border-default)]";
 
   return (
     <motion.div
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-md p-4"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-[rgba(var(--overlay-rgb),0.7)] backdrop-blur-md p-4"
     >
       <motion.div
         initial={{ scale: 0.96, opacity: 0, y: 8 }}
         animate={{ scale: 1, opacity: 1, y: 0 }}
         exit={{ scale: 0.96, opacity: 0, y: 8 }}
         transition={{ type: "spring", damping: 28, stiffness: 350 }}
-        className="bg-[var(--surface-0)] border border-[var(--border-default)] rounded-2xl w-full max-w-[calc(100vw-2rem)] lg:max-w-5xl max-h-[90vh] flex flex-col shadow-[0_25px_80px_rgba(0,0,0,0.5),0_0_0_1px_rgba(255,255,255,0.03)_inset]"
+        className="bg-[var(--surface-0)] border border-[var(--border-default)] rounded-2xl w-full max-w-[calc(100vw-2rem)] lg:max-w-5xl max-h-[90vh] flex flex-col shadow-[0_25px_80px_rgba(var(--overlay-rgb),0.5),0_0_0_1px_rgba(var(--contrast-rgb),0.03)_inset]"
       >
         {/* ═══════════ Header ═══════════ */}
         <div className="flex items-center justify-between px-6 py-4 border-b border-[var(--border-subtle)]">
@@ -836,7 +836,7 @@ export function SmartImportModal({
               <FileSpreadsheet size={16} className="text-[var(--site-primary)]" />
             </div>
             <div>
-              <h3 className="font-ui text-xs font-bold uppercase tracking-[0.1em] text-white">
+              <h3 className="font-ui text-xs font-bold uppercase tracking-[0.1em] text-[var(--text-primary)]">
                 Importar inventario
               </h3>
               <p className="text-[10px] text-[var(--text-muted)] mt-0.5">
@@ -863,7 +863,7 @@ export function SmartImportModal({
                           isDone &&
                             "bg-[rgba(var(--site-primary-rgb),0.15)] text-[var(--site-primary)]",
                           isActive &&
-                            "bg-[var(--site-primary)] text-[#141414] shadow-[0_0_16px_rgba(var(--site-primary-rgb),0.3)]",
+                            "bg-[var(--site-primary)] text-[#141414] shadow-[0_0_16px_rgba(var(--site-primary-rgb),0.3)]", // theme-allow: dark text on gold
                           isFuture &&
                             "bg-[var(--surface-3)] text-[var(--text-muted)]"
                         )}
@@ -878,7 +878,7 @@ export function SmartImportModal({
                         className={cn(
                           "text-[10px] font-medium hidden md:inline transition-colors duration-300",
                           isActive
-                            ? "text-white"
+                            ? "text-[var(--text-primary)]"
                             : isDone
                               ? "text-[var(--text-secondary)]"
                               : "text-[var(--text-muted)]"
@@ -937,7 +937,7 @@ export function SmartImportModal({
                       className={cn(
                         "flex-1 px-3 py-2 rounded-lg text-xs font-medium transition-all text-center",
                         importMode === opt.value
-                          ? "bg-[var(--surface-3)] text-white shadow-sm"
+                          ? "bg-[var(--surface-3)] text-[var(--text-primary)] shadow-sm"
                           : "text-[var(--text-tertiary)] hover:text-[var(--text-secondary)] hover:bg-[var(--surface-2)]"
                       )}
                     >
@@ -1182,7 +1182,7 @@ export function SmartImportModal({
                             className={cn(
                               "text-[11px] w-24 shrink-0 transition-colors",
                               isMapped
-                                ? "text-white font-medium"
+                                ? "text-[var(--text-primary)] font-medium"
                                 : "text-[var(--text-muted)]"
                             )}
                           >
@@ -1507,7 +1507,7 @@ export function SmartImportModal({
                                 }))
                               }
                               placeholder="—"
-                              className="w-full bg-[var(--surface-3)] border border-[var(--border-default)] text-white text-[11px] px-2.5 py-2 rounded-lg focus:outline-none focus:border-[rgba(var(--site-primary-rgb),0.5)] focus:shadow-[0_0_0_2px_rgba(var(--site-primary-rgb),0.08)] transition-all placeholder:text-[var(--text-muted)]"
+                              className="w-full bg-[var(--surface-3)] border border-[var(--border-default)] text-[var(--text-primary)] text-[11px] px-2.5 py-2 rounded-lg focus:outline-none focus:border-[rgba(var(--site-primary-rgb),0.5)] focus:shadow-[0_0_0_2px_rgba(var(--site-primary-rgb),0.08)] transition-all placeholder:text-[var(--text-muted)]"
                             />
                           </div>
                         ))}
@@ -1566,7 +1566,7 @@ export function SmartImportModal({
                         <th className="py-2.5 px-2 text-left border-b border-[var(--border-default)]">
                           <button
                             onClick={toggleAll}
-                            className="text-[var(--text-tertiary)] hover:text-white transition-colors"
+                            className="text-[var(--text-tertiary)] hover:text-[var(--text-primary)] transition-colors"
                           >
                             {previewUnits.every((u) => u._selected) ? (
                               <CheckSquare size={14} className="text-[var(--site-primary)]" />
@@ -1609,7 +1609,7 @@ export function SmartImportModal({
                           <td className="py-1.5 px-2">
                             <button
                               onClick={() => toggleUnit(i)}
-                              className="text-[var(--text-tertiary)] hover:text-white transition-colors"
+                              className="text-[var(--text-tertiary)] hover:text-[var(--text-primary)] transition-colors"
                             >
                               {u._selected ? (
                                 <CheckSquare

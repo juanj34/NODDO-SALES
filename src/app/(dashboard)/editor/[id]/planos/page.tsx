@@ -378,7 +378,7 @@ export default function PlanoInteractivoPage() {
                       : "border-[var(--border-subtle)] hover:border-[var(--border-default)]"
                   }`}
                 >
-                  <div className="aspect-square bg-black/40">
+                  <div className="aspect-square bg-[rgba(var(--overlay-rgb),0.4)]">
                     {p.imagen_url ? (
                       <Image src={p.imagen_url} alt="" fill className="w-full h-full object-cover" />
                     ) : (
@@ -402,8 +402,8 @@ export default function PlanoInteractivoPage() {
                     disabled={togglingId === p.id}
                     className={`absolute top-0.5 left-0.5 opacity-0 group-hover:opacity-100 w-4 h-4 flex items-center justify-center rounded-full transition-all ${
                       p.visible
-                        ? "bg-[rgba(var(--site-primary-rgb),0.8)] text-black"
-                        : "bg-black/60 text-[var(--text-muted)]"
+                        ? "bg-[rgba(var(--site-primary-rgb),0.8)] text-black" // theme-allow: dark text on gold
+                        : "bg-[rgba(var(--overlay-rgb),0.6)] text-[var(--text-muted)]"
                     }`}
                     title={p.visible ? t("planos.visible") : t("planos.hidden")}
                   >
@@ -423,7 +423,7 @@ export default function PlanoInteractivoPage() {
                       handleDeletePlano(p.id);
                     }}
                     disabled={deletingId === p.id}
-                    className="absolute top-0.5 right-0.5 opacity-0 group-hover:opacity-100 w-4 h-4 flex items-center justify-center rounded-full bg-black/60 text-red-400/70 hover:text-red-400 transition-all"
+                    className="absolute top-0.5 right-0.5 opacity-0 group-hover:opacity-100 w-4 h-4 flex items-center justify-center rounded-full bg-[rgba(var(--overlay-rgb),0.6)] text-red-400/70 hover:text-red-400 transition-all"
                   >
                     {deletingId === p.id ? (
                       <Loader2 size={8} className="animate-spin" />
@@ -434,7 +434,8 @@ export default function PlanoInteractivoPage() {
 
                   {/* Point count badge */}
                   {count > 0 && (
-                    <div className="absolute bottom-[calc(100%-16px)] right-0.5 min-w-[16px] h-[16px] flex items-center justify-center px-0.5 bg-[var(--site-primary)] text-black text-[8px] font-bold rounded-full">
+                    <div className={"absolute bottom-[calc(100%-16px)] right-0.5 min-w-[16px] h-[16px] flex items-center justify-center px-0.5 bg-[var(--site-primary)] text-black text-[8px] font-bold rounded-full" // theme-allow: dark text on gold
+                    }>
                       {count}
                     </div>
                   )}
@@ -457,7 +458,7 @@ export default function PlanoInteractivoPage() {
                   {/* Plano info bar */}
                   <div className="px-4 py-2.5 bg-[var(--surface-1)] rounded-xl border border-[var(--border-subtle)] flex items-center justify-between">
                     <div className="flex items-center gap-3">
-                      <span className="text-sm font-medium text-white">
+                      <span className="text-sm font-medium text-[var(--text-primary)]">
                         {selectedPlano.nombre}
                       </span>
                       <span className="text-[10px] text-[var(--text-muted)]">
@@ -593,7 +594,7 @@ export default function PlanoInteractivoPage() {
                                 }}
                                 className="w-full text-left group flex items-center gap-2"
                               >
-                                <p className="text-sm text-white font-medium">{selectedPlano.nombre}</p>
+                                <p className="text-sm text-[var(--text-primary)] font-medium">{selectedPlano.nombre}</p>
                                 <Pencil size={11} className="text-[var(--text-muted)] opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0" />
                               </button>
                             )}
@@ -699,7 +700,7 @@ export default function PlanoInteractivoPage() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm"
+            className="fixed inset-0 z-50 flex items-center justify-center bg-[rgba(var(--overlay-rgb),0.5)] backdrop-blur-sm"
             onClick={() => {
               setShowAddForm(false);
               setNewNombre("");

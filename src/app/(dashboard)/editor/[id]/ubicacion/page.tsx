@@ -629,7 +629,7 @@ export default function UbicacionPage() {
                 onClick={() => setActiveTab(tab.id)}
                 className={`flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-medium transition-all cursor-pointer ${
                   isActive
-                    ? "bg-[var(--site-primary)] text-black"
+                    ? "bg-[var(--site-primary)] text-black" // theme-allow: dark text on gold
                     : "text-[var(--text-tertiary)] hover:text-[var(--text-secondary)] hover:bg-[var(--surface-2)]"
                 }`}
               >
@@ -638,7 +638,7 @@ export default function UbicacionPage() {
                 {tab.id === "pois" && project.puntos_interes.length > 0 && (
                   <span className={`text-[10px] px-1.5 py-0.5 rounded-full font-medium ${
                     isActive
-                      ? "bg-black/20 text-black"
+                      ? "bg-[rgba(var(--overlay-rgb),0.2)] text-black" // theme-allow: dark text on gold
                       : "bg-[var(--surface-3)] text-[var(--text-muted)]"
                   }`}>
                     {project.puntos_interes.length}
@@ -841,8 +841,8 @@ export default function UbicacionPage() {
                 onClick={() => setFilterCat("")}
                 className={`px-3 py-1 rounded-full text-xs transition-colors ${
                   !filterCat
-                    ? "bg-[var(--site-primary)] text-black"
-                    : "bg-[var(--surface-2)] text-[var(--text-secondary)] hover:text-white"
+                    ? "bg-[var(--site-primary)] text-black" // theme-allow: dark text on gold
+                    : "bg-[var(--surface-2)] text-[var(--text-secondary)] hover:text-[var(--text-primary)]"
                 }`}
               >
                 {t("ubicacion.pois.all")}
@@ -853,8 +853,8 @@ export default function UbicacionPage() {
                   onClick={() => setFilterCat(cat === filterCat ? "" : cat)}
                   className={`px-3 py-1 rounded-full text-xs transition-colors ${
                     filterCat === cat
-                      ? "bg-[var(--site-primary)] text-black"
-                      : "bg-[var(--surface-2)] text-[var(--text-secondary)] hover:text-white"
+                      ? "bg-[var(--site-primary)] text-black" // theme-allow: dark text on gold
+                      : "bg-[var(--surface-2)] text-[var(--text-secondary)] hover:text-[var(--text-primary)]"
                   }`}
                 >
                   {t(CATEGORIA_LABEL_KEYS[cat] ?? cat)}
@@ -1097,7 +1097,7 @@ export default function UbicacionPage() {
                   <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
                     <button
                       onClick={() => openEditPoi(poi)}
-                      className="flex items-center gap-1 px-2 py-1 text-xs text-[var(--text-tertiary)] hover:text-white hover:bg-[var(--surface-2)] rounded transition-colors"
+                      className="flex items-center gap-1 px-2 py-1 text-xs text-[var(--text-tertiary)] hover:text-[var(--text-primary)] hover:bg-[var(--surface-2)] rounded transition-colors"
                     >
                       <Pencil size={12} />
                     </button>
@@ -1123,7 +1123,7 @@ export default function UbicacionPage() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4"
+            className="fixed inset-0 z-50 flex items-center justify-center bg-[rgba(var(--overlay-rgb),0.7)] p-4"
           >
             <motion.div
               initial={{ scale: 0.95, opacity: 0 }}
@@ -1146,7 +1146,7 @@ export default function UbicacionPage() {
                 </div>
                 <button
                   onClick={() => setDiscoveryOpen(false)}
-                  className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-[var(--surface-3)] transition-colors text-[var(--text-muted)] hover:text-white"
+                  className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-[var(--surface-3)] transition-colors text-[var(--text-muted)] hover:text-[var(--text-primary)]"
                 >
                   <X size={16} />
                 </button>
@@ -1158,8 +1158,8 @@ export default function UbicacionPage() {
                   onClick={() => setDiscoveryTab("quick")}
                   className={`flex items-center gap-2 px-3 py-1.5 text-xs font-medium rounded-lg transition-colors ${
                     discoveryTab === "quick"
-                      ? "bg-[var(--surface-3)] text-white"
-                      : "text-[var(--text-tertiary)] hover:text-white"
+                      ? "bg-[var(--surface-3)] text-[var(--text-primary)]"
+                      : "text-[var(--text-tertiary)] hover:text-[var(--text-primary)]"
                   }`}
                 >
                   <Sparkles size={13} />
@@ -1169,8 +1169,8 @@ export default function UbicacionPage() {
                   onClick={() => setDiscoveryTab("chat")}
                   className={`flex items-center gap-2 px-3 py-1.5 text-xs font-medium rounded-lg transition-colors ${
                     discoveryTab === "chat"
-                      ? "bg-[var(--surface-3)] text-white"
-                      : "text-[var(--text-tertiary)] hover:text-white"
+                      ? "bg-[var(--surface-3)] text-[var(--text-primary)]"
+                      : "text-[var(--text-tertiary)] hover:text-[var(--text-primary)]"
                   }`}
                 >
                   <MessageCircle size={13} />
@@ -1191,10 +1191,10 @@ export default function UbicacionPage() {
                           disabled={!!searchingCategory}
                           className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all flex items-center gap-1.5 whitespace-nowrap ${
                             searchingCategory === "Todas"
-                              ? "bg-[var(--site-primary)] text-black"
+                              ? "bg-[var(--site-primary)] text-black" // theme-allow: dark text on gold
                               : searchedCategories.size === CATEGORIAS.length
                                 ? "bg-[var(--surface-3)] text-[var(--text-muted)] border border-[var(--border-subtle)]"
-                                : "bg-[var(--surface-2)] text-[var(--text-secondary)] hover:bg-[var(--surface-3)] hover:text-white border border-[var(--border-subtle)]"
+                                : "bg-[var(--surface-2)] text-[var(--text-secondary)] hover:bg-[var(--surface-3)] hover:text-[var(--text-primary)] border border-[var(--border-subtle)]"
                           }`}
                         >
                           {searchingCategory === "Todas" ? (
@@ -1216,10 +1216,10 @@ export default function UbicacionPage() {
                               disabled={!!searchingCategory}
                               className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all flex items-center gap-1.5 whitespace-nowrap ${
                                 isSearching
-                                  ? "bg-[var(--site-primary)] text-black"
+                                  ? "bg-[var(--site-primary)] text-black" // theme-allow: dark text on gold
                                   : wasSearched
                                     ? "bg-[var(--surface-3)] text-[var(--text-muted)] border border-[var(--border-subtle)]"
-                                    : "bg-[var(--surface-2)] text-[var(--text-secondary)] hover:bg-[var(--surface-3)] hover:text-white border border-[var(--border-subtle)]"
+                                    : "bg-[var(--surface-2)] text-[var(--text-secondary)] hover:bg-[var(--surface-3)] hover:text-[var(--text-primary)] border border-[var(--border-subtle)]"
                               }`}
                             >
                               {isSearching ? (
@@ -1269,7 +1269,7 @@ export default function UbicacionPage() {
                               <span className="text-[var(--text-muted)]">·</span>
                               <button
                                 onClick={() => setSelectedDiscovered(new Set())}
-                                className="text-xs text-[var(--text-muted)] hover:text-white hover:underline"
+                                className="text-xs text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:underline"
                               >
                                 Ninguno
                               </button>
@@ -1369,7 +1369,7 @@ export default function UbicacionPage() {
                                 key={suggestion}
                                 onClick={() => sendChatMessage(suggestion)}
                                 disabled={chatSending}
-                                className="text-xs px-2.5 py-1 rounded-full bg-[var(--surface-2)] text-[var(--text-secondary)] hover:text-white hover:bg-[var(--surface-3)] transition-colors border border-[var(--border-subtle)]"
+                                className="text-xs px-2.5 py-1 rounded-full bg-[var(--surface-2)] text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--surface-3)] transition-colors border border-[var(--border-subtle)]"
                               >
                                 {suggestion}
                               </button>
@@ -1382,13 +1382,15 @@ export default function UbicacionPage() {
                             <div key={idx}>
                               {msg.role === "user" ? (
                                 <div className="flex justify-end">
-                                  <div className="max-w-xs bg-[var(--site-primary)] text-black px-3 py-2 rounded-lg text-sm">
+                                  <div className={
+                                    "max-w-xs bg-[var(--site-primary)] text-black px-3 py-2 rounded-lg text-sm" // theme-allow: dark text on gold
+                                  }>
                                     {msg.text}
                                   </div>
                                 </div>
                               ) : (
                                 <div className="flex justify-start">
-                                  <div className="max-w-2xl bg-[var(--surface-2)] text-white px-3 py-2 rounded-lg space-y-2">
+                                  <div className="max-w-2xl bg-[var(--surface-2)] text-[var(--text-primary)] px-3 py-2 rounded-lg space-y-2">
                                     <p className="text-sm">{msg.text}</p>
                                     {msg.pois && msg.pois.length > 0 && (
                                       <div className="space-y-1 pt-1 border-t border-[var(--border-subtle)]">
@@ -1420,7 +1422,7 @@ export default function UbicacionPage() {
                                                 className="w-3 h-3 rounded accent-[var(--site-primary)] shrink-0"
                                               />
                                               <div className="flex-1 min-w-0">
-                                                <div className="font-medium text-white">
+                                                <div className="font-medium text-[var(--text-primary)]">
                                                   {poi.nombre}
                                                 </div>
                                                 {poi.descripcion && (
@@ -1476,7 +1478,7 @@ export default function UbicacionPage() {
                         }}
                         placeholder="Describe lo que buscas..."
                         disabled={chatSending}
-                        className="flex-1 bg-[var(--surface-2)] border border-[var(--border-subtle)] rounded-lg px-3 py-2 text-sm text-white placeholder:text-[var(--text-muted)] focus:outline-none focus:border-[var(--site-primary)]"
+                        className="flex-1 bg-[var(--surface-2)] border border-[var(--border-subtle)] rounded-lg px-3 py-2 text-sm text-[var(--text-primary)] placeholder:text-[var(--text-muted)] focus:outline-none focus:border-[var(--site-primary)]"
                       />
                       <button
                         onClick={() => sendChatMessage(chatInput)}
@@ -1484,7 +1486,7 @@ export default function UbicacionPage() {
                         className={`px-3 py-2 rounded-lg flex items-center justify-center transition-all ${
                           !chatInput.trim() || chatSending
                             ? "bg-[var(--surface-3)] text-[var(--text-muted)] cursor-not-allowed"
-                            : "bg-[var(--site-primary)] text-black hover:brightness-110"
+                            : "bg-[var(--site-primary)] text-black hover:brightness-110" // theme-allow: dark text on gold
                         }`}
                       >
                         <Send size={16} />

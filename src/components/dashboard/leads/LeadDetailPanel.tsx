@@ -116,7 +116,7 @@ export function LeadDetailPanel({
           {/* Back button (mobile) */}
           <button
             onClick={onClose}
-            className="lg:hidden text-[var(--text-muted)] hover:text-white transition-colors p-1 -ml-1"
+            className="lg:hidden text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-colors p-1 -ml-1"
           >
             <ArrowLeft size={18} />
           </button>
@@ -133,7 +133,7 @@ export function LeadDetailPanel({
           </div>
 
           <div className="flex-1 min-w-0">
-            <h2 className="font-heading text-lg font-light text-white truncate">
+            <h2 className="font-heading text-lg font-light text-[var(--text-primary)] truncate">
               {lead.nombre}
             </h2>
             <p className="text-[11px] text-[var(--text-muted)]">
@@ -144,7 +144,7 @@ export function LeadDetailPanel({
           {/* Close button (desktop) */}
           <button
             onClick={onClose}
-            className="hidden lg:flex text-[var(--text-muted)] hover:text-white transition-colors p-1.5 rounded-lg hover:bg-white/5"
+            className="hidden lg:flex text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-colors p-1.5 rounded-lg hover:bg-[var(--surface-2)]"
           >
             <X size={16} />
           </button>
@@ -167,7 +167,7 @@ export function LeadDetailPanel({
           )}
           <a
             href={`mailto:${lead.email}`}
-            className="flex-1 flex items-center justify-center gap-2 py-2 rounded-lg bg-[var(--surface-2)] border border-[var(--border-subtle)] text-[var(--text-secondary)] text-[11px] font-bold uppercase tracking-wider hover:text-white hover:border-[var(--border-default)] transition-colors"
+            className="flex-1 flex items-center justify-center gap-2 py-2 rounded-lg bg-[var(--surface-2)] border border-[var(--border-subtle)] text-[var(--text-secondary)] text-[11px] font-bold uppercase tracking-wider hover:text-[var(--text-primary)] hover:border-[var(--border-default)] transition-colors"
           >
             <Mail size={13} />
             Email
@@ -175,7 +175,7 @@ export function LeadDetailPanel({
           {lead.telefono && (
             <button
               onClick={copyPhone}
-              className="flex items-center justify-center gap-2 px-3 py-2 rounded-lg bg-[var(--surface-2)] border border-[var(--border-subtle)] text-[var(--text-secondary)] text-[11px] font-bold uppercase tracking-wider hover:text-white hover:border-[var(--border-default)] transition-colors"
+              className="flex items-center justify-center gap-2 px-3 py-2 rounded-lg bg-[var(--surface-2)] border border-[var(--border-subtle)] text-[var(--text-secondary)] text-[11px] font-bold uppercase tracking-wider hover:text-[var(--text-primary)] hover:border-[var(--border-default)] transition-colors"
             >
               {copied ? <Check size={13} className="text-emerald-400" /> : <Copy size={13} />}
             </button>

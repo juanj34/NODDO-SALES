@@ -18,7 +18,7 @@ function renderSection(section: ArticleSection, index: number) {
         <p
           key={index}
           className="text-[15px] leading-[1.9] mb-6"
-          style={{ color: "rgba(244,240,232,0.75)" }}
+          style={{ color: "var(--mk-text-secondary)" }}
         >
           {section.text}
         </p>
@@ -31,7 +31,7 @@ function renderSection(section: ArticleSection, index: number) {
           style={{
             fontFamily: "var(--font-cormorant)",
             fontWeight: 400,
-            color: "rgba(244,240,232,0.92)",
+            color: "var(--mk-text-primary)",
           }}
         >
           {section.text}
@@ -45,7 +45,7 @@ function renderSection(section: ArticleSection, index: number) {
           style={{
             fontFamily: "var(--font-cormorant)",
             fontWeight: 400,
-            color: "rgba(244,240,232,0.85)",
+            color: "var(--mk-text-primary)",
           }}
         >
           {section.text}
@@ -60,7 +60,7 @@ function renderSection(section: ArticleSection, index: number) {
                 className="mt-2.5 w-1.5 h-1.5 rounded-full shrink-0"
                 style={{ backgroundColor: "#b8973a" }}
               />
-              <span style={{ color: "rgba(244,240,232,0.70)" }}>{item}</span>
+              <span style={{ color: "var(--mk-text-secondary)" }}>{item}</span>
             </li>
           ))}
         </ul>
@@ -79,7 +79,7 @@ function renderSection(section: ArticleSection, index: number) {
             style={{
               fontFamily: "var(--font-cormorant)",
               fontWeight: 400,
-              color: "rgba(244,240,232,0.85)",
+              color: "var(--mk-text-primary)",
             }}
           >
             &ldquo;{section.text}&rdquo;
@@ -87,7 +87,7 @@ function renderSection(section: ArticleSection, index: number) {
           {section.author && (
             <cite
               className="block mt-2 text-xs not-italic"
-              style={{ color: "rgba(244,240,232,0.45)" }}
+              style={{ color: "var(--mk-text-tertiary)" }}
             >
               — {section.author}
             </cite>
@@ -106,7 +106,7 @@ function renderSection(section: ArticleSection, index: number) {
         >
           <p
             className="text-[14px] leading-[1.8]"
-            style={{ color: "rgba(244,240,232,0.80)" }}
+            style={{ color: "var(--mk-text-secondary)" }}
           >
             {section.text}
           </p>
@@ -131,7 +131,7 @@ export default function ArticlePage() {
           style={{
             fontFamily: "var(--font-cormorant)",
             fontWeight: 300,
-            color: "rgba(244,240,232,0.92)",
+            color: "var(--mk-text-primary)",
           }}
         >
           Artículo no encontrado
@@ -166,7 +166,7 @@ export default function ArticlePage() {
             style={{
               fontFamily: "var(--font-syne)",
               fontWeight: 600,
-              color: "rgba(244,240,232,0.45)",
+              color: "var(--mk-text-tertiary)",
             }}
           >
             <ArrowLeft className="w-3.5 h-3.5" />
@@ -203,19 +203,19 @@ export default function ArticlePage() {
               </span>
             </div>
             <div className="flex items-center gap-1.5">
-              <Clock className="w-3.5 h-3.5" style={{ color: "rgba(244,240,232,0.35)" }} />
+              <Clock className="w-3.5 h-3.5" style={{ color: "var(--mk-text-tertiary)" }} />
               <span
                 className="text-xs"
-                style={{ color: "rgba(244,240,232,0.35)" }}
+                style={{ color: "var(--mk-text-tertiary)" }}
               >
                 {article.readTime}
               </span>
             </div>
             <div className="flex items-center gap-1.5">
-              <Calendar className="w-3.5 h-3.5" style={{ color: "rgba(244,240,232,0.35)" }} />
+              <Calendar className="w-3.5 h-3.5" style={{ color: "var(--mk-text-tertiary)" }} />
               <span
                 className="text-xs"
-                style={{ color: "rgba(244,240,232,0.35)" }}
+                style={{ color: "var(--mk-text-tertiary)" }}
               >
                 {article.date}
               </span>
@@ -228,7 +228,7 @@ export default function ArticlePage() {
             style={{
               fontFamily: "var(--font-cormorant)",
               fontWeight: 300,
-              color: "rgba(244,240,232,0.92)",
+              color: "var(--mk-text-primary)",
               lineHeight: 1.15,
             }}
           >
@@ -238,7 +238,7 @@ export default function ArticlePage() {
           {/* Excerpt */}
           <p
             className="text-lg leading-[1.7]"
-            style={{ color: "rgba(244,240,232,0.55)" }}
+            style={{ color: "var(--mk-text-secondary)" }}
           >
             {article.excerpt}
           </p>
@@ -250,7 +250,7 @@ export default function ArticlePage() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.7, delay: 0.15, ease }}
           className="relative w-full h-64 md:h-80 rounded-xl overflow-hidden mb-12"
-          style={{ border: "1px solid rgba(255,255,255,0.08)" }}
+          style={{ border: "1px solid rgba(var(--contrast-rgb),0.08)" }}
         >
           <Image
             src={article.image}
@@ -275,16 +275,16 @@ export default function ArticlePage() {
           animate={{ opacity: 1 }}
           transition={{ duration: 0.5, delay: 0.4, ease }}
           className="flex items-center gap-2 flex-wrap mt-12 pt-8"
-          style={{ borderTop: "1px solid rgba(255,255,255,0.06)" }}
+          style={{ borderTop: "1px solid rgba(var(--contrast-rgb),0.06)" }}
         >
-          <Tag className="w-4 h-4" style={{ color: "rgba(244,240,232,0.35)" }} />
+          <Tag className="w-4 h-4" style={{ color: "var(--mk-text-tertiary)" }} />
           {article.tags.map((tag) => (
             <span
               key={tag}
               className="px-3 py-1 rounded-lg text-xs"
               style={{
-                backgroundColor: "rgba(255,255,255,0.05)",
-                color: "rgba(244,240,232,0.55)",
+                backgroundColor: "rgba(var(--contrast-rgb),0.05)",
+                color: "var(--mk-text-secondary)",
               }}
             >
               {tag}
@@ -316,7 +316,7 @@ export default function ArticlePage() {
               style={{
                 fontFamily: "var(--font-cormorant)",
                 fontWeight: 300,
-                color: "rgba(244,240,232,0.92)",
+                color: "var(--mk-text-primary)",
               }}
             >
               ¿Listo para vender{" "}
@@ -326,7 +326,7 @@ export default function ArticlePage() {
             </h2>
             <p
               className="text-sm mb-6 max-w-lg mx-auto relative z-10"
-              style={{ color: "rgba(244,240,232,0.55)" }}
+              style={{ color: "var(--mk-text-secondary)" }}
             >
               Agenda una llamada de 30 minutos y te mostramos cómo NODDO puede
               transformar tu estrategia de ventas
@@ -339,7 +339,7 @@ export default function ArticlePage() {
                 fontWeight: 700,
                 background:
                   "linear-gradient(135deg, #b8973a 0%, #d4b05a 100%)",
-                color: "#0a0a0b",
+                color: "#0a0a0b", // theme-allow: dark ink on the fixed gold gradient button; gradient stays gold in both themes
                 boxShadow: "0 0 30px rgba(184, 151, 58, 0.3)",
               }}
             >
@@ -363,7 +363,7 @@ export default function ArticlePage() {
               style={{
                 fontFamily: "var(--font-cormorant)",
                 fontWeight: 400,
-                color: "rgba(244,240,232,0.92)",
+                color: "var(--mk-text-primary)",
               }}
             >
               También te puede interesar
@@ -375,7 +375,7 @@ export default function ArticlePage() {
                   <Link
                     key={rel.id}
                     href={`/recursos/${rel.id}`}
-                    className="glass-card overflow-hidden group hover:bg-white/5 transition-all duration-300"
+                    className="glass-card overflow-hidden group hover:bg-[var(--surface-2)] transition-all duration-300"
                   >
                     <div className="relative h-40 overflow-hidden">
                       <Image
@@ -396,7 +396,7 @@ export default function ArticlePage() {
                           style={{
                             fontFamily: "var(--font-syne)",
                             fontWeight: 600,
-                            color: "rgba(244,240,232,0.55)",
+                            color: "var(--mk-text-secondary)",
                           }}
                         >
                           {rel.category}
@@ -407,7 +407,7 @@ export default function ArticlePage() {
                         style={{
                           fontFamily: "var(--font-cormorant)",
                           fontWeight: 400,
-                          color: "rgba(244,240,232,0.92)",
+                          color: "var(--mk-text-primary)",
                         }}
                       >
                         {rel.title}

@@ -144,9 +144,9 @@ export function CotizadorPdfSettings() {
               <button
                 type="button"
                 onClick={() => saveConfig({ ...config, plan_pago_bg_url: undefined })}
-                className="absolute top-1.5 right-1.5 w-6 h-6 flex items-center justify-center bg-black/60 hover:bg-black/80 rounded-full transition-colors"
+                className="absolute top-1.5 right-1.5 w-6 h-6 flex items-center justify-center bg-[rgba(var(--overlay-rgb),0.6)] hover:bg-[rgba(var(--overlay-rgb),0.8)] rounded-full transition-colors"
               >
-                <X size={12} className="text-white" />
+                <X size={12} className="text-white" /* // theme-allow: icon on dark overlay over image */ />
               </button>
             </div>
           ) : (
@@ -219,14 +219,14 @@ export function CotizadorPdfSettings() {
                   <img
                     src={config.pdf_logo_constructora_url}
                     alt="Logo constructora PDF"
-                    className={cn("w-full h-16 object-contain border border-[var(--border-subtle)] bg-white p-2", radius.sm)}
+                    className={cn("w-full h-16 object-contain border border-[var(--border-subtle)] bg-white p-2", radius.sm)} /* // theme-allow: white plate for logo asset visibility */
                   />
                   <button
                     type="button"
                     onClick={() => saveConfig({ ...config, pdf_logo_constructora_url: null })}
-                    className="absolute top-1.5 right-1.5 w-6 h-6 flex items-center justify-center bg-black/60 hover:bg-black/80 rounded-full transition-colors"
+                    className="absolute top-1.5 right-1.5 w-6 h-6 flex items-center justify-center bg-[rgba(var(--overlay-rgb),0.6)] hover:bg-[rgba(var(--overlay-rgb),0.8)] rounded-full transition-colors"
                   >
-                    <X size={12} className="text-white" />
+                    <X size={12} className="text-white" /* // theme-allow: icon on dark overlay over image */ />
                   </button>
                 </div>
               ) : (
@@ -247,14 +247,14 @@ export function CotizadorPdfSettings() {
                   <img
                     src={config.pdf_logo_proyecto_url}
                     alt="Logo proyecto PDF"
-                    className={cn("w-full h-16 object-contain border border-[var(--border-subtle)] bg-white p-2", radius.sm)}
+                    className={cn("w-full h-16 object-contain border border-[var(--border-subtle)] bg-white p-2", radius.sm)} /* // theme-allow: white plate for logo asset visibility */
                   />
                   <button
                     type="button"
                     onClick={() => saveConfig({ ...config, pdf_logo_proyecto_url: null })}
-                    className="absolute top-1.5 right-1.5 w-6 h-6 flex items-center justify-center bg-black/60 hover:bg-black/80 rounded-full transition-colors"
+                    className="absolute top-1.5 right-1.5 w-6 h-6 flex items-center justify-center bg-[rgba(var(--overlay-rgb),0.6)] hover:bg-[rgba(var(--overlay-rgb),0.8)] rounded-full transition-colors"
                   >
-                    <X size={12} className="text-white" />
+                    <X size={12} className="text-white" /* // theme-allow: icon on dark overlay over image */ />
                   </button>
                 </div>
               ) : (

@@ -112,7 +112,7 @@ export default function StepConfigPrecios({
                   />
                 </div>
                 <div className="flex flex-col gap-0.5">
-                  <span className="text-sm font-medium text-white">
+                  <span className="text-sm font-medium text-[var(--text-primary)]">
                     {label}
                   </span>
                   <span className="font-mono text-[10px] text-[var(--text-muted)]">
@@ -141,7 +141,7 @@ export default function StepConfigPrecios({
                 className={cn(
                   "rounded-lg px-4 py-2 font-mono text-xs font-medium transition-colors",
                   active
-                    ? "bg-[var(--noddo-primary)] text-[#141414]"
+                    ? "bg-[var(--noddo-primary)] text-[#141414]" // theme-allow: dark text on gold
                     : "bg-[var(--surface-1)] border border-[var(--border-subtle)] text-[var(--text-secondary)] hover:border-[var(--border-default)]"
                 )}
               >
@@ -168,7 +168,7 @@ export default function StepConfigPrecios({
                 className={cn(
                   "rounded-lg px-4 py-2 font-mono text-xs font-medium transition-colors",
                   active
-                    ? "bg-[var(--noddo-primary)] text-[#141414]"
+                    ? "bg-[var(--noddo-primary)] text-[#141414]" // theme-allow: dark text on gold
                     : "bg-[var(--surface-1)] border border-[var(--border-subtle)] text-[var(--text-secondary)] hover:border-[var(--border-default)]"
                 )}
               >
@@ -218,7 +218,7 @@ export default function StepConfigPrecios({
                   />
                 </div>
                 <div className="flex flex-col gap-0.5">
-                  <span className="text-sm font-medium text-white">{label}</span>
+                  <span className="text-sm font-medium text-[var(--text-primary)]">{label}</span>
                   <span className="font-mono text-[10px] text-[var(--text-muted)]">
                     {desc}
                   </span>

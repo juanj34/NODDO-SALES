@@ -61,11 +61,11 @@ export function ProjectFinancialTable({ projects }: Props) {
                 className="border-b border-[var(--border-subtle)] hover:bg-[var(--surface-2)] transition-colors"
               >
                 <td className="py-3 px-3">
-                  <span className="font-mono text-white text-[12px]">
+                  <span className="font-mono text-[var(--text-primary)] text-[12px]">
                     {p.nombre}
                   </span>
                 </td>
-                <td className="py-3 px-3 text-right font-mono text-white font-medium text-[12px]">
+                <td className="py-3 px-3 text-right font-mono text-[var(--text-primary)] font-medium text-[12px]">
                   {formatCurrency(f.total_revenue, p.currency)}
                 </td>
                 <td className="py-3 px-3 text-right font-mono text-[var(--text-secondary)] text-[12px]">

@@ -92,7 +92,7 @@ export default function AdminStoragePage() {
         <p className="text-sm text-[var(--text-secondary)] mb-1">Error al cargar datos de storage</p>
         <button
           onClick={fetchData}
-          className="flex items-center gap-2 px-4 py-2 mt-4 rounded-lg bg-[var(--surface-2)] border border-[var(--border-subtle)] text-xs text-[var(--text-secondary)] hover:text-white hover:border-[var(--border-default)] transition-all"
+          className="flex items-center gap-2 px-4 py-2 mt-4 rounded-lg bg-[var(--surface-2)] border border-[var(--border-subtle)] text-xs text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:border-[var(--border-default)] transition-all"
         >
           <RefreshCw size={13} /> Reintentar
         </button>
@@ -140,7 +140,7 @@ export default function AdminStoragePage() {
                   {kpi.label}
                 </span>
               </div>
-              <p className="font-heading text-xl font-light text-white mb-1">
+              <p className="font-heading text-xl font-light text-[var(--text-primary)] mb-1">
                 {kpi.value}
               </p>
               <p className="font-mono text-[10px] text-[var(--text-muted)] mb-2">
@@ -204,7 +204,7 @@ export default function AdminStoragePage() {
                     <span className="font-mono text-[11px] text-[var(--text-tertiary)]">{formatBytes(p.media_bytes)}</span>
                   </td>
                   <td className="px-4 py-3 text-right">
-                    <span className="font-mono text-xs text-white">{formatBytes(p.total_bytes)}</span>
+                    <span className="font-mono text-xs text-[var(--text-primary)]">{formatBytes(p.total_bytes)}</span>
                   </td>
                   <td className="px-4 py-3">
                     <div className="flex items-center gap-2">

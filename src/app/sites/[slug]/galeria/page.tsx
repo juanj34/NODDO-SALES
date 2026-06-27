@@ -184,7 +184,7 @@ export default function GaleriaPage() {
                 "px-4 py-1.5 rounded-full text-[10px] tracking-[0.2em] uppercase font-bold transition-all duration-300 cursor-pointer whitespace-nowrap font-ui",
                 idx === activeScope
                   ? "bg-[rgba(var(--site-primary-rgb),0.15)] text-[var(--site-primary)] ring-1 ring-[rgba(var(--site-primary-rgb),0.35)] shadow-[0_0_12px_rgba(var(--site-primary-rgb),0.12)] backdrop-blur-sm"
-                  : "text-[var(--text-muted)] hover:text-[var(--text-secondary)] hover:bg-white/5 backdrop-blur-sm"
+                  : "text-[var(--text-muted)] hover:text-[var(--text-secondary)] hover:bg-white/5 backdrop-blur-sm" // theme-allow: scope tab hover over fullscreen photo carousel
               )}
             >
               {scope.label}
@@ -207,7 +207,7 @@ export default function GaleriaPage() {
           <button
             key={cat.id}
             onClick={() => handleCategoryChange(idx)}
-            style={{ textShadow: "0 1px 8px rgba(0,0,0,0.5)" }}
+            style={{ textShadow: "0 1px 8px rgba(var(--overlay-rgb),0.5)" }}
             className={cn(
               "relative pb-2.5 text-sm lg:text-base font-site-heading tracking-wide transition-all duration-300 cursor-pointer whitespace-nowrap",
               idx === activeCategory
@@ -245,7 +245,7 @@ export default function GaleriaPage() {
                 exit={{ opacity: 0, y: -10 }}
                 transition={{ duration: 0.3 }}
                 className="font-site-heading text-xl sm:text-3xl lg:text-5xl tracking-wider text-[var(--text-primary)] mb-4"
-                style={{ textShadow: "0 2px 20px rgba(0,0,0,0.5)" }}
+                style={{ textShadow: "0 2px 20px rgba(var(--overlay-rgb),0.5)" }}
               >
                 {current.alt_text}
               </motion.h2>

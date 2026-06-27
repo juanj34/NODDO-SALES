@@ -56,7 +56,7 @@ export function StorageOverview({ data }: Props) {
                 {item.label}
               </span>
             </div>
-            <p className="font-heading text-xl font-light text-white mb-1">
+            <p className="font-heading text-xl font-light text-[var(--text-primary)] mb-1">
               {formatBytes(item.value)}
             </p>
             {item.limit ? (

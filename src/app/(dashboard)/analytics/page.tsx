@@ -201,7 +201,7 @@ export default function AnalyticsPage() {
                 bg-[var(--surface-2)]
                 border border-[var(--border-default)]
                 rounded-lg
-                font-mono text-xs text-white
+                font-mono text-xs text-[var(--text-primary)]
                 focus:outline-none focus:border-[var(--site-primary)]
                 transition-colors
               "

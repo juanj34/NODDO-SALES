@@ -92,7 +92,7 @@ export function DashboardKPIStrip({ data, projects, selectedProjectId, onSelectP
             </div>
 
             <div className={cn("flex items-end justify-between", gap.normal)}>
-              <span className="font-heading text-2xl font-light text-white leading-none">
+              <span className="font-heading text-2xl font-light text-[var(--text-primary)] leading-none">
                 <AnimatedCounter target={kpi.value} />
               </span>
               {kpi.sparkline && <MiniSparkline data={kpi.sparkline} />}

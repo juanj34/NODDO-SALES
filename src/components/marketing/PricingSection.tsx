@@ -113,7 +113,7 @@ export function PricingSection() {
 
         <div
           className="grid grid-cols-1 md:grid-cols-3"
-          style={{ gap: "1px", background: "rgba(255,255,255,0.04)" }}
+          style={{ gap: "1px", background: "rgba(var(--contrast-rgb),0.04)" }}
         >
           {plans.map((plan, i) => (
             <motion.div
@@ -124,8 +124,8 @@ export function PricingSection() {
               transition={{ duration: 0.6, delay: i * 0.1, ease }}
               className="relative p-6 sm:p-8 lg:p-[40px_36px]"
               style={{
-                background: plan.featured ? "#181818" : "var(--mk-bg)",
-                outline: plan.featured ? "1px solid rgba(184,151,58,0.28)" : "none",
+                background: plan.featured ? "var(--mk-bg-alt)" : "var(--mk-bg)",
+                outline: plan.featured ? "1px solid rgba(var(--mk-accent-rgb),0.28)" : "none",
               }}
             >
               {/* Badge */}
@@ -149,7 +149,7 @@ export function PricingSection() {
               {/* Plan name */}
               <div
                 className="font-ui text-[10px] font-bold tracking-[0.2em] uppercase mb-5"
-                style={{ color: "rgba(244,240,232,0.4)" }}
+                style={{ color: "var(--mk-text-tertiary)" }}
               >
                 {plan.name}
               </div>
@@ -157,7 +157,7 @@ export function PricingSection() {
               {/* Price */}
               <div className="font-heading leading-none mb-1" style={{ fontSize: plan.pricePrefix ? "clamp(36px,10vw,52px)" : "clamp(28px,8vw,36px)", fontWeight: 300, color: "var(--mk-text-primary)", paddingTop: plan.pricePrefix ? 0 : 8 }}>
                 {plan.pricePrefix && (
-                  <span style={{ fontSize: 18, color: "rgba(244,240,232,0.4)" }}>{plan.pricePrefix}</span>
+                  <span style={{ fontSize: 18, color: "var(--mk-text-tertiary)" }}>{plan.pricePrefix}</span>
                 )}
                 {plan.price}
               </div>
@@ -165,7 +165,7 @@ export function PricingSection() {
               {/* Period */}
               <div
                 className="text-[10px] tracking-[0.1em] mb-8"
-                style={{ color: "rgba(244,240,232,0.3)" }}
+                style={{ color: "var(--mk-text-tertiary)" }}
               >
                 {plan.period}
               </div>
@@ -178,8 +178,8 @@ export function PricingSection() {
                     className="flex items-baseline gap-2.5 text-[12px]"
                     style={{
                       padding: "9px 0",
-                      borderBottom: "1px solid rgba(255,255,255,0.04)",
-                      color: f.on ? "rgba(244,240,232,0.8)" : "rgba(244,240,232,0.5)",
+                      borderBottom: "1px solid rgba(var(--contrast-rgb),0.04)",
+                      color: f.on ? "var(--mk-text-primary)" : "var(--mk-text-secondary)",
                     }}
                   >
                     <span style={{ color: "var(--mk-accent)", flexShrink: 0 }}>·</span>
@@ -195,7 +195,7 @@ export function PricingSection() {
                     className="absolute inset-0 rounded-[12px]"
                     style={{
                       background: "transparent",
-                      boxShadow: "0 0 0 0 rgba(184,151,58,0.7)",
+                      boxShadow: "0 0 0 0 rgba(var(--mk-accent-rgb),0.7)",
                       animation: "pulse-ring 2s cubic-bezier(0.4, 0, 0.6, 1) infinite",
                     }}
                   />
@@ -230,12 +230,12 @@ export function PricingSection() {
         >
           <div
             className="font-ui text-[9px] font-bold tracking-[0.2em] uppercase mb-5 text-center"
-            style={{ color: "rgba(244,240,232,0.35)" }}
+            style={{ color: "var(--mk-text-tertiary)" }}
           >
             {t("pricing.addOns.label")}
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-px" style={{ background: "rgba(255,255,255,0.04)" }}>
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-px" style={{ background: "rgba(var(--contrast-rgb),0.04)" }}>
             {addOns.map((addon) => (
               <div
                 key={addon.name}
@@ -244,10 +244,10 @@ export function PricingSection() {
               >
                 <Plus size={14} style={{ color: "var(--mk-accent)", flexShrink: 0, marginTop: 2 }} />
                 <div>
-                  <div className="text-[12px] font-medium" style={{ color: "rgba(244,240,232,0.8)" }}>
+                  <div className="text-[12px] font-medium" style={{ color: "var(--mk-text-primary)" }}>
                     {addon.name}
                   </div>
-                  <div className="text-[11px] mt-0.5" style={{ color: "rgba(244,240,232,0.35)" }}>
+                  <div className="text-[11px] mt-0.5" style={{ color: "var(--mk-text-tertiary)" }}>
                     {addon.desc}
                   </div>
                 </div>
@@ -258,14 +258,14 @@ export function PricingSection() {
 
         {/* Implementation note */}
         <div className="text-center mt-8 mb-10">
-          <p className="text-[11px] italic" style={{ color: "rgba(244,240,232,0.3)", maxWidth: 500, margin: "0 auto" }}>
+          <p className="text-[11px] italic" style={{ color: "var(--mk-text-tertiary)", maxWidth: 500, margin: "0 auto" }}>
             {t("pricing.implementation")}
           </p>
         </div>
 
         {/* Trust elements below pricing */}
         <div className="text-center">
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-3 sm:gap-6 text-[12px]" style={{ color: "rgba(244,240,232,0.3)" }}>
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-3 sm:gap-6 text-[12px]" style={{ color: "var(--mk-text-tertiary)" }}>
             <div className="flex items-center gap-1.5">
               <span style={{ color: "var(--mk-accent)" }}>✓</span>
               {t("pricing.trustItems.t0")}
@@ -284,13 +284,13 @@ export function PricingSection() {
         <style jsx>{`
           @keyframes pulse-ring {
             0% {
-              box-shadow: 0 0 0 0 rgba(184,151,58,0.7);
+              box-shadow: 0 0 0 0 rgba(var(--mk-accent-rgb),0.7);
             }
             50% {
-              box-shadow: 0 0 0 8px rgba(184,151,58,0);
+              box-shadow: 0 0 0 8px rgba(var(--mk-accent-rgb),0);
             }
             100% {
-              box-shadow: 0 0 0 0 rgba(184,151,58,0);
+              box-shadow: 0 0 0 0 rgba(var(--mk-accent-rgb),0);
             }
           }
         `}</style>

@@ -375,7 +375,7 @@ export default function EstadoPage() {
               style={{
                 fontFamily: "var(--font-syne)",
                 fontWeight: 700,
-                color: "rgba(244,240,232,0.92)",
+                color: "var(--mk-text-primary)",
               }}
             >
               Estado del Sistema
@@ -390,7 +390,7 @@ export default function EstadoPage() {
             style={{
               fontFamily: "var(--font-cormorant)",
               fontWeight: 300,
-              color: "rgba(244,240,232,0.92)",
+              color: "var(--mk-text-primary)",
             }}
           >
             Estado del{" "}
@@ -404,7 +404,7 @@ export default function EstadoPage() {
             className="text-base max-w-2xl mx-auto"
             style={{
               fontWeight: 300,
-              color: "rgba(244,240,232,0.55)",
+              color: "var(--mk-text-secondary)",
             }}
           >
             Monitoreo en tiempo real de todos los servicios de NODDO. Última verificación:{" "}
@@ -448,7 +448,7 @@ export default function EstadoPage() {
                   style={{
                     fontFamily: "var(--font-cormorant)",
                     fontWeight: 400,
-                    color: "rgba(244,240,232,0.92)",
+                    color: "var(--mk-text-primary)",
                   }}
                 >
                   Todos los Sistemas{" "}
@@ -460,7 +460,7 @@ export default function EstadoPage() {
                   className="text-sm"
                   style={{
                     fontWeight: 300,
-                    color: "rgba(244,240,232,0.55)",
+                    color: "var(--mk-text-secondary)",
                   }}
                 >
                   Uptime últimos 30 días: {status.uptime}
@@ -483,7 +483,7 @@ export default function EstadoPage() {
             style={{
               fontFamily: "var(--font-cormorant)",
               fontWeight: 400,
-              color: "rgba(244,240,232,0.92)",
+              color: "var(--mk-text-primary)",
             }}
           >
             Estado de Servicios
@@ -513,7 +513,7 @@ export default function EstadoPage() {
                           className="text-base font-medium mb-0.5"
                           style={{
                             fontWeight: 400,
-                            color: "rgba(244,240,232,0.92)",
+                            color: "var(--mk-text-primary)",
                           }}
                         >
                           {service.name}
@@ -522,7 +522,7 @@ export default function EstadoPage() {
                           className="text-xs"
                           style={{
                             fontWeight: 300,
-                            color: "rgba(244,240,232,0.55)",
+                            color: "var(--mk-text-secondary)",
                           }}
                         >
                           {service.description}
@@ -535,7 +535,7 @@ export default function EstadoPage() {
                           className="text-xs mb-0.5"
                           style={{
                             fontWeight: 300,
-                            color: "rgba(244,240,232,0.55)",
+                            color: "var(--mk-text-secondary)",
                           }}
                         >
                           Uptime 30d
@@ -544,7 +544,7 @@ export default function EstadoPage() {
                           className="text-sm font-medium"
                           style={{
                             fontWeight: 400,
-                            color: "rgba(244,240,232,0.92)",
+                            color: "var(--mk-text-primary)",
                           }}
                         >
                           {service.uptime}
@@ -576,7 +576,7 @@ export default function EstadoPage() {
             style={{
               fontFamily: "var(--font-cormorant)",
               fontWeight: 400,
-              color: "rgba(244,240,232,0.92)",
+              color: "var(--mk-text-primary)",
             }}
           >
             Incidentes Recientes
@@ -598,7 +598,7 @@ export default function EstadoPage() {
                 style={{
                   fontFamily: "var(--font-cormorant)",
                   fontWeight: 400,
-                  color: "rgba(244,240,232,0.92)",
+                  color: "var(--mk-text-primary)",
                 }}
               >
                 Sin Incidentes
@@ -607,7 +607,7 @@ export default function EstadoPage() {
                 className="text-sm"
                 style={{
                   fontWeight: 300,
-                  color: "rgba(244,240,232,0.55)",
+                  color: "var(--mk-text-secondary)",
                 }}
               >
                 No se han reportado incidentes en los últimos 90 días. Todos los sistemas operan
@@ -647,7 +647,7 @@ export default function EstadoPage() {
                           className="text-base font-medium"
                           style={{
                             fontWeight: 400,
-                            color: "rgba(244,240,232,0.92)",
+                            color: "var(--mk-text-primary)",
                           }}
                         >
                           {incident.title}
@@ -674,7 +674,7 @@ export default function EstadoPage() {
                         className="text-sm mb-2"
                         style={{
                           fontWeight: 300,
-                          color: "rgba(244,240,232,0.70)",
+                          color: "var(--mk-text-secondary)",
                         }}
                       >
                         {incident.description}
@@ -683,7 +683,7 @@ export default function EstadoPage() {
                         className="text-xs"
                         style={{
                           fontWeight: 300,
-                          color: "rgba(244,240,232,0.55)",
+                          color: "var(--mk-text-secondary)",
                         }}
                       >
                         {incident.date} • Duración: {incident.duration}
@@ -709,7 +709,7 @@ export default function EstadoPage() {
             style={{
               fontFamily: "var(--font-cormorant)",
               fontWeight: 400,
-              color: "rgba(244,240,232,0.92)",
+              color: "var(--mk-text-primary)",
             }}
           >
             Sobre Esta Página
@@ -718,7 +718,7 @@ export default function EstadoPage() {
             className="space-y-2 text-sm leading-[1.8]"
             style={{
               fontWeight: 300,
-              color: "rgba(244,240,232,0.70)",
+              color: "var(--mk-text-secondary)",
             }}
           >
             <p>
@@ -727,7 +727,7 @@ export default function EstadoPage() {
               infraestructura.
             </p>
             <p>
-              <strong style={{ color: "rgba(244,240,232,0.92)" }}>
+              <strong style={{ color: "var(--mk-text-primary)" }}>
                 ¿Experimentando problemas?
               </strong>{" "}
               Si nota comportamiento anormal que no está reflejado aquí, por favor contáctenos en{" "}
@@ -740,7 +740,7 @@ export default function EstadoPage() {
               </a>
             </p>
             <p>
-              <strong style={{ color: "rgba(244,240,232,0.92)" }}>Suscribirse a alertas:</strong>{" "}
+              <strong style={{ color: "var(--mk-text-primary)" }}>Suscribirse a alertas:</strong>{" "}
               Próximamente podrás suscribirte a notificaciones por email o SMS cuando ocurran
               incidentes.
             </p>

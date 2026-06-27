@@ -22,7 +22,7 @@ export default function SiteError({
         alignItems: "center",
         justifyContent: "center",
         padding: 24,
-        backgroundColor: "#0A0A0B",
+        backgroundColor: "var(--surface-0)",
       }}
     >
       <div style={{ textAlign: "center", maxWidth: 400 }}>
@@ -47,7 +47,7 @@ export default function SiteError({
             fontFamily: "var(--font-cormorant, 'Cormorant Garamond', Georgia, serif)",
             fontSize: 24,
             fontWeight: 300,
-            color: "rgba(255, 255, 255, 0.92)",
+            color: "rgba(255, 255, 255, 0.92)", // theme-allow: error fallback stays on fixed dark bg
             marginBottom: 8,
           }}
         >
@@ -58,7 +58,7 @@ export default function SiteError({
             fontFamily: "var(--font-dm-mono, 'DM Mono', monospace)",
             fontSize: 13,
             fontWeight: 300,
-            color: "rgba(255, 255, 255, 0.35)",
+            color: "rgba(255, 255, 255, 0.35)", // theme-allow: error fallback stays on fixed dark bg
             marginBottom: 32,
             lineHeight: 1.7,
           }}
@@ -70,15 +70,15 @@ export default function SiteError({
           onClick={() => reset()}
           style={{
             padding: "12px 32px",
-            backgroundColor: "rgba(255, 255, 255, 0.1)",
-            color: "rgba(255, 255, 255, 0.85)",
+            backgroundColor: "rgba(255, 255, 255, 0.1)", // theme-allow: error fallback stays on fixed dark bg
+            color: "rgba(255, 255, 255, 0.85)", // theme-allow: error fallback stays on fixed dark bg
             fontFamily: "var(--font-syne, 'Syne', sans-serif)",
             fontSize: 11,
             fontWeight: 700,
             textTransform: "uppercase" as const,
             letterSpacing: "0.15em",
             borderRadius: 8,
-            border: "1px solid rgba(255, 255, 255, 0.15)",
+            border: "1px solid rgba(255, 255, 255, 0.15)", // theme-allow: error fallback stays on fixed dark bg
             cursor: "pointer",
           }}
         >

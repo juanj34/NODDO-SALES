@@ -120,8 +120,8 @@ export const iconColor = {
   secondary: "text-[var(--text-secondary)]",       // White 55%
   tertiary: "text-[var(--text-tertiary)]",         // White 35%
   muted: "text-[var(--text-muted)]",               // White 18%
-  white: "text-white",                             // Pure white
-  dark: "text-[#141414]",                          // Dark text (on gold backgrounds)
+  white: "text-white", // theme-allow: pure-white icon helper (over imagery/gold)
+  dark: "text-[#141414]", // theme-allow: dark icon helper (on gold backgrounds)
   success: "text-green-400",                       // Success states
   warning: "text-amber-400",                       // Warning states
   error: "text-red-400",                           // Error states

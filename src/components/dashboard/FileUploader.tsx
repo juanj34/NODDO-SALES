@@ -722,7 +722,7 @@ export function FileUploader({
                 </span>
                 <button
                   onClick={() => { setPreview(null); onUpload(""); }}
-                  className="absolute top-2 right-2 w-6 h-6 rounded-full bg-black/60 backdrop-blur-sm flex items-center justify-center text-[var(--text-muted)] hover:text-red-400 transition-colors"
+                  className="absolute top-2 right-2 w-6 h-6 rounded-full bg-black/60 backdrop-blur-sm flex items-center justify-center text-[var(--text-muted)] hover:text-red-400 transition-colors" /* // theme-allow: scrim over image preview (remove button) */
                 >
                   <X size={12} />
                 </button>
@@ -764,7 +764,7 @@ export function FileUploader({
                     setPreview(null);
                     onUpload("");
                   }}
-                  className="absolute top-2 right-2 w-7 h-7 bg-black/70 backdrop-blur-sm rounded-full flex items-center justify-center text-[var(--text-secondary)] hover:text-white transition-colors"
+                  className="absolute top-2 right-2 w-7 h-7 bg-black/70 backdrop-blur-sm rounded-full flex items-center justify-center text-[var(--text-secondary)] hover:text-white transition-colors" /* // theme-allow: scrim over image preview (remove button) */
                 >
                   <X size={14} />
                 </button>
@@ -815,7 +815,7 @@ export function FileUploader({
                       {uploadProgressPercent}%
                     </span>
                   </div>
-                  <div className="w-full h-1.5 bg-white/8 rounded-full overflow-hidden">
+                  <div className="w-full h-1.5 bg-[var(--surface-3)] rounded-full overflow-hidden">
                     <motion.div
                       className="h-full rounded-full bg-[var(--site-primary)]"
                       initial={{ width: "0%" }}
@@ -931,7 +931,7 @@ export function FileUploader({
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4"
+            className="fixed inset-0 z-50 bg-[rgba(var(--overlay-rgb),0.7)] backdrop-blur-sm flex items-center justify-center p-4"
             onClick={() => setAspectWarning(null)}
           >
             <motion.div
@@ -974,7 +974,7 @@ export function FileUploader({
                 </button>
                 <button
                   onClick={handleAspectUploadAsIs}
-                  className="flex-1 py-2.5 text-xs border border-[var(--border-default)] rounded-[0.75rem] text-[var(--text-secondary)] hover:text-white hover:border-[var(--border-strong)] transition-all"
+                  className="flex-1 py-2.5 text-xs border border-[var(--border-default)] rounded-[0.75rem] text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:border-[var(--border-strong)] transition-all"
                 >
                   {t("fileUploader.uploadAsIs")}
                 </button>

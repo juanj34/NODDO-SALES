@@ -84,7 +84,7 @@ export function ConfirmProvider({ children }: { children: React.ReactNode }) {
           >
             {/* Backdrop */}
             <div
-              className="absolute inset-0 bg-black/70 backdrop-blur-sm"
+              className="absolute inset-0 bg-[rgba(var(--overlay-rgb),0.7)] backdrop-blur-sm"
               onClick={() => handleClose(false)}
             />
 
@@ -192,7 +192,7 @@ export function ConfirmProvider({ children }: { children: React.ReactNode }) {
               <div className="mt-6 flex items-center gap-2.5">
                 <button
                   onClick={() => handleClose(false)}
-                  className="flex-1 px-4 py-2.5 font-ui text-xs font-bold uppercase tracking-[0.1em] rounded-[0.75rem] text-[var(--text-secondary)] hover:text-[var(--text-primary)] border border-[var(--border-default)] hover:border-[var(--border-strong)] hover:bg-white/5 transition-all"
+                  className="flex-1 px-4 py-2.5 font-ui text-xs font-bold uppercase tracking-[0.1em] rounded-[0.75rem] text-[var(--text-secondary)] hover:text-[var(--text-primary)] border border-[var(--border-default)] hover:border-[var(--border-strong)] hover:bg-[var(--surface-2)] transition-all"
                 >
                   {options.cancelLabel || "Cancelar"}
                 </button>

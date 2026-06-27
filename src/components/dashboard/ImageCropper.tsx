@@ -57,20 +57,20 @@ export function ImageCropper({
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
-      className="fixed inset-0 z-50 bg-black/90 backdrop-blur-sm flex flex-col"
+      className="fixed inset-0 z-50 bg-[var(--surface-0)] backdrop-blur-sm flex flex-col"
     >
       {/* Header */}
-      <div className="flex items-center justify-between px-6 py-4 border-b border-white/5">
+      <div className="flex items-center justify-between px-6 py-4 border-b border-[var(--border-subtle)]">
         <div className="flex items-center gap-3">
           <Crop size={16} className="text-[var(--site-primary)]" />
-          <span className="text-sm text-white/70">
+          <span className="text-sm text-[var(--text-primary)]">
             Recortar imagen
-            <span className="ml-2 text-xs text-white/30">({aspectLabel})</span>
+            <span className="ml-2 text-xs text-[var(--text-tertiary)]">({aspectLabel})</span>
           </span>
         </div>
         <button
           onClick={onCancel}
-          className="text-white/30 hover:text-white/60 transition-colors"
+          className="text-[var(--text-tertiary)] hover:text-[var(--text-secondary)] transition-colors"
         >
           <X size={18} />
         </button>
@@ -87,17 +87,17 @@ export function ImageCropper({
           onZoomChange={setZoom}
           onCropComplete={onCropComplete}
           style={{
-            containerStyle: { background: "#0a0a0a" },
+            containerStyle: { background: "#0a0a0a" }, // theme-allow: scrim over image being cropped
             cropAreaStyle: { border: "2px solid var(--site-primary)" },
           }}
         />
       </div>
 
       {/* Controls */}
-      <div className="flex flex-col sm:flex-row items-center justify-between gap-3 px-4 sm:px-6 py-4 border-t border-white/5 bg-[#0f0f0f]">
+      <div className="flex flex-col sm:flex-row items-center justify-between gap-3 px-4 sm:px-6 py-4 border-t border-[var(--border-subtle)] bg-[var(--surface-0)]">
         {/* Zoom slider */}
         <div className="flex items-center gap-3 w-full sm:w-auto">
-          <ZoomOut size={14} className="text-white/30 shrink-0" />
+          <ZoomOut size={14} className="text-[var(--text-tertiary)] shrink-0" />
           <input
             type="range"
             min={1}
@@ -107,21 +107,21 @@ export function ImageCropper({
             onChange={(e) => setZoom(Number(e.target.value))}
             className="flex-1 sm:w-32 accent-noddo-primary"
           />
-          <ZoomIn size={14} className="text-white/30 shrink-0" />
+          <ZoomIn size={14} className="text-[var(--text-tertiary)] shrink-0" />
         </div>
 
         {/* Buttons */}
         <div className="flex items-center gap-2 w-full sm:w-auto">
           <button
             onClick={onCancel}
-            className="px-4 py-2 text-xs text-white/50 border border-white/10 rounded-lg hover:text-white hover:border-white/20 transition-colors"
+            className="px-4 py-2 text-xs text-[var(--text-secondary)] border border-[var(--border-default)] rounded-lg hover:text-[var(--text-primary)] hover:border-[var(--border-strong)] transition-colors"
           >
             Cancelar
           </button>
           <button
             onClick={handleConfirm}
             disabled={processing}
-            className="flex items-center gap-1.5 px-4 py-2 bg-[var(--site-primary)] text-black rounded-lg text-xs font-medium hover:brightness-110 transition-all disabled:opacity-50"
+            className="flex items-center gap-1.5 px-4 py-2 bg-[var(--site-primary)] text-black rounded-lg text-xs font-medium hover:brightness-110 transition-all disabled:opacity-50" /* // theme-allow: dark text on gold */
           >
             <Crop size={14} />
             {processing ? "Procesando..." : "Recortar y subir"}

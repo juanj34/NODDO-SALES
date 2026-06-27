@@ -149,7 +149,7 @@ export default function FinancieroPage() {
           </p>
           <button
             onClick={() => refresh()}
-            className="mt-4 inline-flex items-center gap-2 px-4 py-2 bg-[var(--surface-3)] border border-[var(--border-default)] rounded-lg font-ui text-[11px] font-bold uppercase tracking-[0.08em] text-[var(--text-secondary)] hover:text-white hover:bg-[var(--surface-4)] transition-all"
+            className="mt-4 inline-flex items-center gap-2 px-4 py-2 bg-[var(--surface-3)] border border-[var(--border-default)] rounded-lg font-ui text-[11px] font-bold uppercase tracking-[0.08em] text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--surface-4)] transition-all"
           >
             <RefreshCw size={13} />
             Reintentar
@@ -203,7 +203,7 @@ export default function FinancieroPage() {
           {data && (
             <button
               onClick={exportCSV}
-              className="w-8 h-8 flex items-center justify-center rounded-lg border border-[var(--border-default)] bg-[var(--surface-2)] text-[var(--text-tertiary)] hover:text-white hover:bg-[var(--surface-3)] transition-all"
+              className="w-8 h-8 flex items-center justify-center rounded-lg border border-[var(--border-default)] bg-[var(--surface-2)] text-[var(--text-tertiary)] hover:text-[var(--text-primary)] hover:bg-[var(--surface-3)] transition-all"
               title="Exportar CSV"
             >
               <Download size={13} />
@@ -212,7 +212,7 @@ export default function FinancieroPage() {
           <button
             onClick={() => refresh()}
             disabled={loading}
-            className="w-8 h-8 flex items-center justify-center rounded-lg border border-[var(--border-default)] bg-[var(--surface-2)] text-[var(--text-tertiary)] hover:text-white hover:bg-[var(--surface-3)] transition-all disabled:opacity-50"
+            className="w-8 h-8 flex items-center justify-center rounded-lg border border-[var(--border-default)] bg-[var(--surface-2)] text-[var(--text-tertiary)] hover:text-[var(--text-primary)] hover:bg-[var(--surface-3)] transition-all disabled:opacity-50"
             title="Actualizar datos"
           >
             <RefreshCw size={13} className={loading ? "animate-spin" : ""} />

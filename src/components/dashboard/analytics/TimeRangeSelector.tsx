@@ -56,7 +56,7 @@ export function TimeRangeSelector({ value, onChange, onCustomRange }: Props) {
             className={cn(
               "px-3 py-1.5 font-ui text-[10px] font-bold uppercase tracking-[0.1em] rounded-md transition-all",
               value === opt.value
-                ? "bg-[var(--site-primary)] text-[#141414] shadow-sm"
+                ? "bg-[var(--site-primary)] text-[#141414] shadow-sm" // theme-allow: dark text on gold
                 : "text-[var(--text-muted)] hover:text-[var(--text-secondary)]"
             )}
           >
@@ -68,7 +68,7 @@ export function TimeRangeSelector({ value, onChange, onCustomRange }: Props) {
           className={cn(
             "px-3 py-1.5 font-ui text-[10px] font-bold uppercase tracking-[0.1em] rounded-md transition-all",
             value === "custom"
-              ? "bg-[var(--site-primary)] text-[#141414] shadow-sm"
+              ? "bg-[var(--site-primary)] text-[#141414] shadow-sm" // theme-allow: dark text on gold
               : "text-[var(--text-muted)] hover:text-[var(--text-secondary)]"
           )}
         >

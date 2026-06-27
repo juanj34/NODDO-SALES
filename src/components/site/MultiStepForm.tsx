@@ -90,7 +90,7 @@ export function MultiStepForm({
                   <motion.div
                     className={`w-6 h-6 rounded-full border-2 flex items-center justify-center text-[10px] font-bold transition-colors ${
                       isActive
-                        ? "border-[var(--site-primary)] bg-[var(--site-primary)] text-[#0A0A0B]"
+                        ? "border-[var(--site-primary)] bg-[var(--site-primary)] text-[#0A0A0B]" // theme-allow: dark ink on the --site-primary gold accent fill; reads on the gold in both themes
                         : isCompleted
                         ? "border-[var(--site-primary)] bg-[rgba(var(--site-primary-rgb),0.15)] text-[var(--site-primary)]"
                         : "border-[var(--border-subtle)] bg-[var(--surface-1)] text-[var(--text-muted)]"
@@ -131,7 +131,7 @@ export function MultiStepForm({
           transition={{ duration: 0.3 }}
           className="text-center"
         >
-          <h3 className="text-lg font-medium text-white mb-1">{step.title}</h3>
+          <h3 className="text-lg font-medium text-[var(--text-primary)] mb-1">{step.title}</h3>
           {step.subtitle && (
             <p className="text-sm text-[var(--text-secondary)]">
               {step.subtitle}

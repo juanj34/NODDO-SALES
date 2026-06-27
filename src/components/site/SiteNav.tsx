@@ -157,7 +157,7 @@ export function SiteNav({ basePath, projectName, logoUrl, faviconUrl, constructo
           "fixed left-0 top-0 bottom-0 z-[55] flex flex-col items-center py-6 overflow-hidden",
           "bg-[var(--surface-1)]/95 backdrop-blur-3xl",
           "border-r border-[var(--border-default)]",
-          "shadow-[var(--shadow-lg),inset_1px_0_0_rgba(255,255,255,0.04)]",
+          "shadow-[var(--shadow-lg),inset_1px_0_0_rgba(var(--contrast-rgb),0.04)]",
           "lg:translate-x-0 transition-transform duration-300",
           isOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"
         )}
@@ -234,8 +234,8 @@ export function SiteNav({ basePath, projectName, logoUrl, faviconUrl, constructo
                     "relative flex items-center gap-3 rounded-xl transition-all duration-200 cursor-pointer",
                     expanded ? "px-3 py-2.5" : "justify-center w-10 h-10 mx-auto",
                     isActive
-                      ? "text-white bg-[rgba(var(--site-primary-rgb),0.12)] border border-[rgba(var(--site-primary-rgb),0.25)]"
-                      : "text-[var(--text-tertiary)] hover:text-white hover:bg-[var(--surface-2)] hover:border-[var(--border-default)] border border-transparent"
+                      ? "text-[var(--text-primary)] bg-[rgba(var(--site-primary-rgb),0.12)] border border-[rgba(var(--site-primary-rgb),0.25)]"
+                      : "text-[var(--text-tertiary)] hover:text-[var(--text-primary)] hover:bg-[var(--surface-2)] hover:border-[var(--border-default)] border border-transparent"
                   )}
                 >
                   {/* Active indicator — left accent bar with subtle glow */}
@@ -275,7 +275,7 @@ export function SiteNav({ basePath, projectName, logoUrl, faviconUrl, constructo
                         transition={{ type: "spring", damping: 25, stiffness: 300 }}
                         className="absolute left-full ml-3 top-1/2 -translate-y-1/2 z-[60] glass-dark px-3 py-2 rounded-lg whitespace-nowrap pointer-events-none border border-[var(--border-default)] shadow-[var(--shadow-md)]"
                       >
-                        <span className="font-ui text-[10px] tracking-[0.1em] uppercase font-semibold text-white">
+                        <span className="font-ui text-[10px] tracking-[0.1em] uppercase font-semibold text-[var(--text-primary)]">
                           {item.label}
                         </span>
                       </motion.div>
@@ -299,8 +299,8 @@ export function SiteNav({ basePath, projectName, logoUrl, faviconUrl, constructo
                 className={cn(
                   "flex items-center transition-all cursor-pointer rounded-lg",
                   expanded
-                    ? "gap-2 px-2 py-1.5 w-full hover:bg-white/5"
-                    : "justify-center w-8 h-8 hover:bg-white/5",
+                    ? "gap-2 px-2 py-1.5 w-full hover:bg-[var(--surface-2)]"
+                    : "justify-center w-8 h-8 hover:bg-[var(--surface-2)]",
                   showSettings
                     ? "text-[var(--site-primary)]"
                     : "text-[var(--text-muted)] hover:text-[var(--text-tertiary)]"
@@ -386,7 +386,7 @@ export function SiteNav({ basePath, projectName, logoUrl, faviconUrl, constructo
                                   setShowSettings(false);
                                   await logout();
                                 }}
-                                className="w-full text-[9px] font-ui uppercase tracking-[0.1em] text-white/50 hover:text-white py-1 transition-colors cursor-pointer"
+                                className="w-full text-[9px] font-ui uppercase tracking-[0.1em] text-[var(--text-secondary)] hover:text-[var(--text-primary)] py-1 transition-colors cursor-pointer"
                               >
                                 Cerrar sesión
                               </button>
@@ -421,8 +421,8 @@ export function SiteNav({ basePath, projectName, logoUrl, faviconUrl, constructo
                 className={cn(
                   "flex items-center transition-all cursor-pointer rounded-lg",
                   expanded
-                    ? "gap-2 px-2 py-1.5 hover:bg-white/5"
-                    : "justify-center w-8 h-8 hover:bg-white/5",
+                    ? "gap-2 px-2 py-1.5 hover:bg-[var(--surface-2)]"
+                    : "justify-center w-8 h-8 hover:bg-[var(--surface-2)]",
                   "text-[var(--text-muted)] hover:text-[var(--text-tertiary)]"
                 )}
                 aria-label="Legal information"

@@ -132,7 +132,7 @@ export function RecentActivityWidget({ locale }: RecentActivityWidgetProps) {
                     background: `rgba(${rgb}, 0.12)`,
                   }}
                 >
-                  <Icon size={14} className="text-white/60" />
+                  <Icon size={14} className="text-[var(--text-secondary)]" />
                 </div>
 
                 {/* Content */}

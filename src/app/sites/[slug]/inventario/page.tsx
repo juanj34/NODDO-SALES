@@ -461,7 +461,7 @@ export default function InventarioPage() {
           <div className="w-8 h-8 rounded-lg bg-[rgba(var(--site-primary-rgb),0.15)] flex items-center justify-center shrink-0">
             <Building2 size={16} className="text-[var(--site-primary)]" />
           </div>
-          <h1 className="text-lg font-site-heading text-white">{tSite("inventario.heading")}</h1>
+          <h1 className="text-lg font-site-heading text-[var(--text-primary)]">{tSite("inventario.heading")}</h1>
           <span className="text-[11px] text-[var(--text-tertiary)]">
             {estadoCounts.disponible}/{estadoCounts.todas} {tSite("inventario.available")}
           </span>
@@ -521,7 +521,7 @@ export default function InventarioPage() {
                 "flex items-center gap-2 px-4 py-2 rounded-full text-xs font-medium tracking-wider transition-all cursor-pointer",
                 torreFilter === "todas"
                   ? "bg-[rgba(var(--site-primary-rgb),0.15)] text-[var(--site-primary)] ring-1 ring-[rgba(var(--site-primary-rgb),0.3)]"
-                  : "text-[var(--text-tertiary)] hover:text-[var(--text-secondary)] hover:bg-white/5"
+                  : "text-[var(--text-tertiary)] hover:text-[var(--text-secondary)] hover:bg-[var(--surface-2)]"
               )}
             >
               {tCommon("labels.allTowers")}
@@ -534,7 +534,7 @@ export default function InventarioPage() {
                   "flex items-center gap-2 px-4 py-2 rounded-full text-xs font-medium tracking-wider transition-all cursor-pointer",
                   torreFilter === torre.id
                     ? "bg-[rgba(var(--site-primary-rgb),0.15)] text-[var(--site-primary)] ring-1 ring-[rgba(var(--site-primary-rgb),0.3)]"
-                    : "text-[var(--text-tertiary)] hover:text-[var(--text-secondary)] hover:bg-white/5"
+                    : "text-[var(--text-tertiary)] hover:text-[var(--text-secondary)] hover:bg-[var(--surface-2)]"
                 )}
               >
                 {torre.tipo === "urbanismo" ? <Home size={13} /> : <Building2 size={13} />}
@@ -554,7 +554,7 @@ export default function InventarioPage() {
               placeholder={tSite("inventario.search")}
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-36 bg-white/5 border border-white/[0.08] rounded-lg pl-7 pr-3 py-1.5 text-[11px] text-white placeholder:text-[var(--text-muted)] focus:outline-none focus:border-[rgba(var(--site-primary-rgb),0.30)] transition-colors"
+              className="w-36 bg-[var(--surface-2)] border border-[var(--border-default)] rounded-lg pl-7 pr-3 py-1.5 text-[11px] text-[var(--text-primary)] placeholder:text-[var(--text-muted)] focus:outline-none focus:border-[rgba(var(--site-primary-rgb),0.30)] transition-colors"
             />
           </div>
 
@@ -572,7 +572,7 @@ export default function InventarioPage() {
 
           {columns.etapa && etapaOptions.length > 1 && (
             <>
-              <div className="w-px h-5 bg-white/[0.06] shrink-0" />
+              <div className="w-px h-5 bg-[var(--border-default)] shrink-0" />
               <NodDoDropdown
                 variant="site"
                 size="sm"
@@ -588,7 +588,7 @@ export default function InventarioPage() {
 
           {columns.habitaciones && (
             <>
-              <div className="w-px h-5 bg-white/[0.06] shrink-0" />
+              <div className="w-px h-5 bg-[var(--border-default)] shrink-0" />
 
               {/* Habitaciones pills */}
               <div className="flex items-center gap-0.5 shrink-0">
@@ -601,7 +601,7 @@ export default function InventarioPage() {
                       "px-2 py-0.5 rounded-md text-[10px] transition-all cursor-pointer",
                       habFilter === opt.value
                         ? "bg-[rgba(var(--site-primary-rgb),0.15)] text-[var(--site-primary)] font-medium"
-                        : "text-[var(--text-tertiary)] hover:text-[var(--text-secondary)] hover:bg-white/5"
+                        : "text-[var(--text-tertiary)] hover:text-[var(--text-secondary)] hover:bg-[var(--surface-2)]"
                     )}
                   >
                     {opt.label}
@@ -613,7 +613,7 @@ export default function InventarioPage() {
 
           {columns.banos && (
             <>
-              <div className="w-px h-5 bg-white/[0.06] shrink-0" />
+              <div className="w-px h-5 bg-[var(--border-default)] shrink-0" />
 
               {/* Baños pills */}
               <div className="flex items-center gap-0.5 shrink-0">
@@ -626,7 +626,7 @@ export default function InventarioPage() {
                       "px-2 py-0.5 rounded-md text-[10px] transition-all cursor-pointer",
                       banosFilter === opt.value
                         ? "bg-[rgba(var(--site-primary-rgb),0.15)] text-[var(--site-primary)] font-medium"
-                        : "text-[var(--text-tertiary)] hover:text-[var(--text-secondary)] hover:bg-white/5"
+                        : "text-[var(--text-tertiary)] hover:text-[var(--text-secondary)] hover:bg-[var(--surface-2)]"
                     )}
                   >
                     {opt.label}
@@ -643,7 +643,7 @@ export default function InventarioPage() {
             const currentVal = customFilters[key] ?? "todas";
             return (
               <div key={key} className="contents">
-                <div className="w-px h-5 bg-white/[0.06] shrink-0" />
+                <div className="w-px h-5 bg-[var(--border-default)] shrink-0" />
                 <div className="flex items-center gap-0.5 shrink-0">
                   <span className="text-[9px] text-[var(--text-muted)] mr-1 truncate max-w-16">{cc.label}</span>
                   {[{ value: "todas", label: tSite("inventario.allBedrooms") }, ...options.map(o => ({ value: o, label: o }))].map((opt) => (
@@ -654,7 +654,7 @@ export default function InventarioPage() {
                         "px-2 py-0.5 rounded-md text-[10px] transition-all cursor-pointer",
                         currentVal === opt.value
                           ? "bg-[rgba(var(--site-primary-rgb),0.15)] text-[var(--site-primary)] font-medium"
-                          : "text-[var(--text-tertiary)] hover:text-[var(--text-secondary)] hover:bg-white/5"
+                          : "text-[var(--text-tertiary)] hover:text-[var(--text-secondary)] hover:bg-[var(--surface-2)]"
                       )}
                     >
                       {opt.label}
@@ -665,7 +665,7 @@ export default function InventarioPage() {
             );
           })}
 
-          <div className="w-px h-5 bg-white/[0.06] shrink-0" />
+          <div className="w-px h-5 bg-[var(--border-default)] shrink-0" />
 
           {/* Estado pills */}
           <div className="flex items-center gap-0.5 shrink-0">
@@ -684,7 +684,7 @@ export default function InventarioPage() {
                       ? isAll
                         ? "bg-[rgba(var(--site-primary-rgb),0.15)] text-[var(--site-primary)] font-medium"
                         : cn(config?.bg, config?.color, "font-medium")
-                      : "text-[var(--text-tertiary)] hover:text-[var(--text-secondary)] hover:bg-white/5"
+                      : "text-[var(--text-tertiary)] hover:text-[var(--text-secondary)] hover:bg-[var(--surface-2)]"
                   )}
                 >
                   {isAll ? tSite("inventario.allBedrooms") : config?.label?.slice(0, 3)}
@@ -709,7 +709,7 @@ export default function InventarioPage() {
             />
           </div>
 
-          <div className="w-px h-5 bg-white/[0.06] shrink-0" />
+          <div className="w-px h-5 bg-[var(--border-default)] shrink-0" />
 
           {/* View toggle */}
           <div className="flex items-center gap-0.5 shrink-0">
@@ -774,7 +774,7 @@ export default function InventarioPage() {
                     {/* Top: status dot + identifier + tipo + floor/lote */}
                     <div className="flex items-center gap-2 mb-1.5">
                       <span className={cn("w-1.5 h-1.5 rounded-full shrink-0", config.dot)} title={config.label} />
-                      <h3 className="text-sm font-semibold text-white">{getUnitDisplayName(unit, unitPrefix)}</h3>
+                      <h3 className="text-sm font-semibold text-[var(--text-primary)]">{getUnitDisplayName(unit, unitPrefix)}</h3>
                       {hasMultiTipos ? (
                         <span className="text-[9px] px-1.5 py-0.5 rounded-full bg-[rgba(var(--site-primary-rgb),0.12)] text-[var(--site-primary)] font-medium">
                           {tipoCount} tipos
@@ -799,7 +799,7 @@ export default function InventarioPage() {
                     {/* Etapa badge */}
                     {columns.etapa && unit.etapa_nombre && (
                       <div className="mb-1.5">
-                        <span className="text-[9px] px-1.5 py-0.5 rounded-full bg-white/5 text-[var(--text-tertiary)]">
+                        <span className="text-[9px] px-1.5 py-0.5 rounded-full bg-[var(--surface-2)] text-[var(--text-tertiary)]">
                           {tSite("inventario.etapa")} {unit.etapa_nombre}
                         </span>
                       </div>
@@ -928,7 +928,7 @@ export default function InventarioPage() {
                     </div>
 
                     {/* Price + actions — single row */}
-                    <div className="flex items-center justify-between pt-2 border-t border-white/5">
+                    <div className="flex items-center justify-between pt-2 border-t border-[var(--border-subtle)]">
                       {(() => {
                         // Multi-tipo: show per-tipología prices (lot-based: terreno + construcción)
                         if (unit.estado === "proximamente") return <span />;
@@ -941,7 +941,7 @@ export default function InventarioPage() {
                                 {tiposWithPrice.map(t => (
                                   <p key={t.id} className="text-[11px] text-[var(--text-secondary)] flex items-baseline gap-1.5">
                                     <span className="text-[9px] text-[var(--text-tertiary)] truncate max-w-[80px]">{t.nombre}</span>
-                                    <span className="font-semibold text-white tabular-nums">
+                                    <span className="font-semibold text-[var(--text-primary)] tabular-nums">
                                       {siteFormat(t.precio_desde!)}
                                     </span>
                                   </p>
@@ -956,14 +956,14 @@ export default function InventarioPage() {
                         if (price) {
                           const showDesde = isTipologiaPricing && isMultiTipo && !!unit.tipologia_id;
                           return (
-                            <p className="text-sm font-semibold text-white">
+                            <p className="text-sm font-semibold text-[var(--text-primary)]">
                               {showDesde && <span className="text-[10px] text-[var(--text-tertiary)] mr-1">{tSite("tipologias.from")}</span>}
                               {siteFormat(price)}
                             </p>
                           );
                         }
                         if (!isTipologiaPricing && useRanges && specRanges?.precio) return (
-                          <p className="text-sm font-semibold text-white">
+                          <p className="text-sm font-semibold text-[var(--text-primary)]">
                             <span className="text-[10px] text-[var(--text-tertiary)] mr-1">{tSite("tipologias.from")}</span>
                             {siteFormat(specRanges.precio.min)}
                           </p>
@@ -974,7 +974,7 @@ export default function InventarioPage() {
                         {unit.plano_url && (
                           <button
                             onClick={() => setPlanoLightboxUrl(unit.plano_url)}
-                            className="p-1.5 rounded-lg text-[var(--text-secondary)] hover:text-white bg-white/5 hover:bg-white/10 transition-all cursor-pointer"
+                            className="p-1.5 rounded-lg text-[var(--text-secondary)] hover:text-[var(--text-primary)] bg-[var(--surface-2)] hover:bg-[var(--surface-3)] transition-all cursor-pointer"
                             aria-label={tSite("inventario.viewFloorPlan")}
                             title={tSite("inventario.viewFloorPlan")}
                           >
@@ -984,7 +984,7 @@ export default function InventarioPage() {
                         {hasMultiTipos ? (
                           <button
                             onClick={() => setTipoSelectorUnit(unit)}
-                            className="p-1.5 rounded-lg text-[var(--text-secondary)] hover:text-white bg-white/5 hover:bg-white/10 transition-all cursor-pointer"
+                            className="p-1.5 rounded-lg text-[var(--text-secondary)] hover:text-[var(--text-primary)] bg-[var(--surface-2)] hover:bg-[var(--surface-3)] transition-all cursor-pointer"
                             aria-label={tSite("inventario.viewUnit", { unit: unit.identificador })}
                           >
                             <Eye size={13} />
@@ -998,7 +998,7 @@ export default function InventarioPage() {
                                   ? `?tipo=${unidadTipologias.find(ut => ut.unidad_id === unit.id)?.tipologia_id}&unidad=${unit.id}`
                                   : `?unidad=${unit.id}`
                             }`}
-                            className="p-1.5 rounded-lg text-[var(--text-secondary)] hover:text-white bg-white/5 hover:bg-white/10 transition-all"
+                            className="p-1.5 rounded-lg text-[var(--text-secondary)] hover:text-[var(--text-primary)] bg-[var(--surface-2)] hover:bg-[var(--surface-3)] transition-all"
                             aria-label={tSite("inventario.viewUnit", { unit: unit.identificador })}
                           >
                             <Eye size={13} />
@@ -1006,7 +1006,7 @@ export default function InventarioPage() {
                         )}
                         <button
                           onClick={() => setCotizarUnidad(unit)}
-                          className="p-1.5 rounded-lg text-[var(--site-primary)] hover:text-white bg-[rgba(var(--site-primary-rgb),0.15)] hover:bg-[rgba(var(--site-primary-rgb),0.30)] transition-all cursor-pointer"
+                          className="p-1.5 rounded-lg text-[var(--site-primary)] hover:text-[var(--text-primary)] bg-[rgba(var(--site-primary-rgb),0.15)] hover:bg-[rgba(var(--site-primary-rgb),0.30)] transition-all cursor-pointer"
                           aria-label={tSite("inventario.enquireUnit", { unit: unit.identificador })}
                         >
                           <Sparkles size={13} />
@@ -1025,8 +1025,8 @@ export default function InventarioPage() {
           <div className="glass rounded-xl" style={{ overflowX: "clip" }}>
             {/* Table header — sticky within scroll parent */}
             <div
-              className="sticky top-0 z-10 flex items-center gap-2 px-3 py-2 border-b border-white/[0.06] text-[10px] text-[var(--text-muted)] tracking-wider uppercase backdrop-blur-xl"
-              style={{ backgroundColor: "rgba(17, 17, 19, 0.92)" }}
+              className="sticky top-0 z-10 flex items-center gap-2 px-3 py-2 border-b border-[var(--border-default)] text-[10px] text-[var(--text-muted)] tracking-wider uppercase backdrop-blur-xl"
+              style={{ backgroundColor: "var(--surface-1)" }}
             >
               <span className="w-4 shrink-0" />
               <span className="w-24 shrink-0">{tSite("inventario.unit")}</span>
@@ -1069,10 +1069,10 @@ export default function InventarioPage() {
                     animate={{ opacity: 1, x: 0 }}
                     exit={{ opacity: 0, x: 8 }}
                     transition={{ delay: Math.min(index * 0.01, 0.15), duration: 0.2 }}
-                    className="flex items-center gap-2 px-3 py-2 border-b border-white/[0.03] hover:bg-white/[0.03] transition-colors group"
+                    className="flex items-center gap-2 px-3 py-2 border-b border-[var(--border-subtle)] hover:bg-[var(--surface-2)] transition-colors group"
                   >
                     <span className={cn("w-1.5 h-1.5 rounded-full shrink-0", config.dot)} title={config.label} />
-                    <span className="w-24 shrink-0 text-xs font-medium text-white truncate">{getUnitDisplayName(unit, unitPrefix)}</span>
+                    <span className="w-24 shrink-0 text-xs font-medium text-[var(--text-primary)] truncate">{getUnitDisplayName(unit, unitPrefix)}</span>
                     <span className="w-28 shrink-0 text-[11px] text-[var(--text-tertiary)] truncate hidden md:block">
                       {listHasMultiTipos ? (
                         <span className="text-[9px] px-1.5 py-0.5 rounded-full bg-[rgba(var(--site-primary-rgb),0.12)] text-[var(--site-primary)] font-medium">
@@ -1160,7 +1160,7 @@ export default function InventarioPage() {
                         {unit.piso ?? "—"}
                       </span>
                     )}
-                    <span className="flex-1 text-xs font-semibold text-white text-right tabular-nums">
+                    <span className="flex-1 text-xs font-semibold text-[var(--text-primary)] text-right tabular-nums">
                       {(() => {
                         // Multi-tipo: show per-tipología prices stacked
                         if (listHasMultiTipos && !unit.tipologia_id) {
@@ -1194,7 +1194,7 @@ export default function InventarioPage() {
                       {unit.plano_url && (
                         <button
                           onClick={() => setPlanoLightboxUrl(unit.plano_url)}
-                          className="p-1 rounded-md text-[var(--text-secondary)] hover:text-white bg-white/5 hover:bg-white/10 transition-all cursor-pointer"
+                          className="p-1 rounded-md text-[var(--text-secondary)] hover:text-[var(--text-primary)] bg-[var(--surface-2)] hover:bg-[var(--surface-3)] transition-all cursor-pointer"
                           aria-label={tSite("inventario.viewFloorPlan")}
                           title={tSite("inventario.viewFloorPlan")}
                         >
@@ -1204,7 +1204,7 @@ export default function InventarioPage() {
                       {listHasMultiTipos ? (
                         <button
                           onClick={() => setTipoSelectorUnit(unit)}
-                          className="p-1 rounded-md text-[var(--text-secondary)] hover:text-white bg-white/5 hover:bg-white/10 transition-all cursor-pointer"
+                          className="p-1 rounded-md text-[var(--text-secondary)] hover:text-[var(--text-primary)] bg-[var(--surface-2)] hover:bg-[var(--surface-3)] transition-all cursor-pointer"
                           aria-label={tSite("inventario.viewUnit", { unit: unit.identificador })}
                         >
                           <Eye size={12} />
@@ -1218,7 +1218,7 @@ export default function InventarioPage() {
                                 ? `?tipo=${unidadTipologias.find(ut => ut.unidad_id === unit.id)?.tipologia_id}&unidad=${unit.id}`
                                 : `?unidad=${unit.id}`
                           }`}
-                          className="p-1 rounded-md text-[var(--text-secondary)] hover:text-white bg-white/5 hover:bg-white/10 transition-all"
+                          className="p-1 rounded-md text-[var(--text-secondary)] hover:text-[var(--text-primary)] bg-[var(--surface-2)] hover:bg-[var(--surface-3)] transition-all"
                           aria-label={tSite("inventario.viewUnit", { unit: unit.identificador })}
                         >
                           <Eye size={12} />
@@ -1226,7 +1226,7 @@ export default function InventarioPage() {
                       )}
                       <button
                         onClick={() => setCotizarUnidad(unit)}
-                        className="p-1 rounded-md text-[var(--site-primary)] hover:text-white bg-[rgba(var(--site-primary-rgb),0.15)] hover:bg-[rgba(var(--site-primary-rgb),0.30)] transition-all cursor-pointer"
+                        className="p-1 rounded-md text-[var(--site-primary)] hover:text-[var(--text-primary)] bg-[rgba(var(--site-primary-rgb),0.15)] hover:bg-[rgba(var(--site-primary-rgb),0.30)] transition-all cursor-pointer"
                         aria-label={tSite("inventario.enquireUnit", { unit: unit.identificador })}
                       >
                         <Sparkles size={12} />
@@ -1246,7 +1246,7 @@ export default function InventarioPage() {
             animate={{ opacity: 1 }}
             className="flex flex-col items-center justify-center py-20 text-center"
           >
-            <Building2 size={40} className="text-white/10 mb-4" />
+            <Building2 size={40} className="text-[var(--text-muted)] mb-4" />
             <h3 className="text-[var(--text-tertiary)] text-lg mb-2">{tSite("inventario.noResults")}</h3>
             <p className="text-[var(--text-muted)] text-sm max-w-xs">
               {tSite("inventario.noResultsDescription")}
@@ -1279,7 +1279,7 @@ export default function InventarioPage() {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm"
+              className="fixed inset-0 z-50 flex items-center justify-center bg-[rgba(var(--overlay-rgb),0.6)] backdrop-blur-sm"
               onClick={() => setTipoSelectorUnit(null)}
             >
               <motion.div
@@ -1292,7 +1292,7 @@ export default function InventarioPage() {
               >
                 <div className="flex items-center justify-between mb-4">
                   <div>
-                    <h3 className="text-sm font-semibold text-white">
+                    <h3 className="text-sm font-semibold text-[var(--text-primary)]">
                       {getUnitDisplayName(tipoSelectorUnit, unitPrefix)}
                     </h3>
                     <p className="text-[10px] text-[var(--text-muted)] uppercase tracking-wider mt-0.5">
@@ -1301,7 +1301,7 @@ export default function InventarioPage() {
                   </div>
                   <button
                     onClick={() => setTipoSelectorUnit(null)}
-                    className="p-1.5 rounded-lg text-[var(--text-tertiary)] hover:text-white bg-white/5 hover:bg-white/10 transition-all cursor-pointer"
+                    className="p-1.5 rounded-lg text-[var(--text-tertiary)] hover:text-[var(--text-primary)] bg-[var(--surface-2)] hover:bg-[var(--surface-3)] transition-all cursor-pointer"
                   >
                     <X size={14} />
                   </button>
@@ -1312,10 +1312,10 @@ export default function InventarioPage() {
                       key={tipo.id}
                       href={`${basePath}/tipologias?tipo=${tipo.id}&unidad=${tipoSelectorUnit.id}`}
                       onClick={() => setTipoSelectorUnit(null)}
-                      className="flex items-center justify-between w-full px-4 py-3 rounded-xl bg-white/5 border border-[var(--border-subtle)] hover:border-[rgba(var(--site-primary-rgb),0.3)] hover:bg-white/[0.08] transition-all group"
+                      className="flex items-center justify-between w-full px-4 py-3 rounded-xl bg-[var(--surface-2)] border border-[var(--border-subtle)] hover:border-[rgba(var(--site-primary-rgb),0.3)] hover:bg-[var(--surface-3)] transition-all group"
                     >
                       <div>
-                        <p className="text-xs font-medium text-white group-hover:text-[var(--site-primary)] transition-colors">
+                        <p className="text-xs font-medium text-[var(--text-primary)] group-hover:text-[var(--site-primary)] transition-colors">
                           {tipo.nombre}
                         </p>
                         <div className="flex items-center gap-2 mt-1 text-[10px] text-[var(--text-tertiary)]">

@@ -160,7 +160,7 @@ export default function AdminErrorsPage() {
         <p className="text-sm text-[var(--text-secondary)] mb-1">Error al cargar errores</p>
         <button
           onClick={fetchData}
-          className="flex items-center gap-2 px-4 py-2 mt-3 rounded-lg bg-[var(--surface-2)] border border-[var(--border-subtle)] text-xs text-[var(--text-secondary)] hover:text-white transition-all"
+          className="flex items-center gap-2 px-4 py-2 mt-3 rounded-lg bg-[var(--surface-2)] border border-[var(--border-subtle)] text-xs text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-all"
         >
           <RefreshCw size={13} /> Reintentar
         </button>
@@ -206,7 +206,7 @@ export default function AdminErrorsPage() {
           <button
             onClick={fetchData}
             disabled={loading}
-            className="flex items-center gap-2 px-4 py-2 rounded-lg bg-[var(--surface-2)] border border-[var(--border-subtle)] text-xs font-ui font-bold uppercase tracking-wider text-[var(--text-secondary)] hover:text-white hover:border-[var(--border-default)] transition-all disabled:opacity-50"
+            className="flex items-center gap-2 px-4 py-2 rounded-lg bg-[var(--surface-2)] border border-[var(--border-subtle)] text-xs font-ui font-bold uppercase tracking-wider text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:border-[var(--border-default)] transition-all disabled:opacity-50"
           >
             <RefreshCw size={13} className={loading ? "animate-spin" : ""} />
             Actualizar
@@ -222,7 +222,7 @@ export default function AdminErrorsPage() {
           transition={{ delay: 0.05, duration: 0.3 }}
           className="grid grid-cols-2 sm:grid-cols-4 gap-3"
         >
-          <StatCard label="Sin resolver" value={stats.total_unresolved} color="#f4f0e8" />
+          <StatCard label="Sin resolver" value={stats.total_unresolved} color="var(--text-primary)" />
           <StatCard label="Críticos" value={stats.critical} color="#ef4444" />
           <StatCard label="Errores" value={stats.errors} color="#f59e0b" />
           <StatCard label="Warnings" value={stats.warnings} color="#3b82f6" />

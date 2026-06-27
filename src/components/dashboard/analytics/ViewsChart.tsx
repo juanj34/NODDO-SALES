@@ -28,7 +28,7 @@ function CustomTooltip({ active, payload, label }: { active?: boolean; payload?:
         {label ? formatDate(label) : ""}
       </p>
       {payload.map((entry) => (
-        <p key={entry.name} className="font-mono text-[12px] text-white">
+        <p key={entry.name} className="font-mono text-[12px] text-[var(--text-primary)]">
           {entry.name === "views" ? "Visitas" : "Únicos"}: {entry.value.toLocaleString("es-CO")}
         </p>
       ))}
@@ -59,19 +59,19 @@ export function ViewsChart({ data }: Props) {
             <stop offset="100%" stopColor="#b8973a" stopOpacity={0} />
           </linearGradient>
           <linearGradient id="visitorsGradient" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0%" stopColor="#ffffff" stopOpacity={0.08} />
-            <stop offset="100%" stopColor="#ffffff" stopOpacity={0} />
+            <stop offset="0%" stopColor="rgba(var(--contrast-rgb),1)" stopOpacity={0.08} />
+            <stop offset="100%" stopColor="rgba(var(--contrast-rgb),1)" stopOpacity={0} />
           </linearGradient>
         </defs>
-        <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.06)" vertical={false} />
+        <CartesianGrid strokeDasharray="3 3" stroke="rgba(var(--contrast-rgb),0.06)" vertical={false} />
         <XAxis
           dataKey="date"
-          tick={{ fontSize: 10, fill: "rgba(255,255,255,0.18)", fontFamily: "var(--font-mono)" }}
+          tick={{ fontSize: 10, fill: "rgba(var(--contrast-rgb),0.18)", fontFamily: "var(--font-mono)" }}
           tickLine={false}
           axisLine={false}
         />
         <YAxis
-          tick={{ fontSize: 10, fill: "rgba(255,255,255,0.18)", fontFamily: "var(--font-mono)" }}
+          tick={{ fontSize: 10, fill: "rgba(var(--contrast-rgb),0.18)", fontFamily: "var(--font-mono)" }}
           tickLine={false}
           axisLine={false}
           allowDecimals={false}
@@ -88,7 +88,7 @@ export function ViewsChart({ data }: Props) {
         <Area
           type="monotone"
           dataKey="visitors"
-          stroke="rgba(255,255,255,0.35)"
+          stroke="rgba(var(--contrast-rgb),0.35)"
           strokeWidth={1.5}
           strokeDasharray="4 4"
           fill="url(#visitorsGradient)"

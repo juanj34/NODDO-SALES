@@ -300,16 +300,16 @@ export function HotspotEditor({
                 onPointerDown={(e) => handlePointerDown(e, hs.id)}
                 onClick={(e) => handleDotClick(e, hs.id)}
               >
-                <div className={`w-7 h-7 rounded-full border-2 border-white shadow-lg flex items-center justify-center transition-colors ${
-                  editingId === hs.id ? "bg-white" : "bg-[var(--site-primary)]"
+                <div className={`w-7 h-7 rounded-full border-2 border-white shadow-lg flex items-center justify-center transition-colors ${ // theme-allow: marker over plan/photo image
+                  editingId === hs.id ? "bg-white" : "bg-[var(--site-primary)]" // theme-allow: marker over plan/photo image
                 }`}>
                   <span className={`text-[9px] font-bold ${
-                    editingId === hs.id ? "text-[var(--site-primary)]" : "text-black"
+                    editingId === hs.id ? "text-[var(--site-primary)]" : "text-black" // theme-allow: dot number over marker on image
                   }`}>
                     {i + 1}
                   </span>
                 </div>
-                <div className="absolute top-full mt-1 left-1/2 -translate-x-1/2 whitespace-nowrap px-1.5 py-0.5 bg-black/80 rounded text-[9px] text-white pointer-events-none flex items-center gap-1">
+                <div className="absolute top-full mt-1 left-1/2 -translate-x-1/2 whitespace-nowrap px-1.5 py-0.5 bg-black/80 rounded text-[9px] text-white pointer-events-none flex items-center gap-1"> {/* // theme-allow: label chip over plan/photo image */}
                   {hs.label}
                   {imgCount > 1 && (
                     <span className="opacity-60">({imgCount})</span>
@@ -332,8 +332,8 @@ export function HotspotEditor({
                   transform: "translate(-50%, -50%)",
                 }}
               >
-                <div className="w-7 h-7 rounded-full bg-green-500 border-2 border-white shadow-lg animate-pulse flex items-center justify-center">
-                  <Plus size={12} className="text-white" />
+                <div className="w-7 h-7 rounded-full bg-green-500 border-2 border-white shadow-lg animate-pulse flex items-center justify-center"> {/* // theme-allow: new-hotspot preview marker over image */}
+                  <Plus size={12} className="text-white" /> {/* // theme-allow: new-hotspot preview marker over image */}
                 </div>
               </div>
             );

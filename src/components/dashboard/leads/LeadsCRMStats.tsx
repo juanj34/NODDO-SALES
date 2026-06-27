@@ -41,7 +41,7 @@ export function LeadsCRMStats({ stats, loading }: Props) {
               {loading ? (
                 <div className="h-8 w-16 bg-[var(--surface-2)] rounded-lg animate-pulse" />
               ) : (
-                <span className="font-heading text-3xl font-light text-white leading-none">
+                <span className="font-heading text-3xl font-light text-[var(--text-primary)] leading-none">
                   {value.toLocaleString("es-CO")}
                 </span>
               )}

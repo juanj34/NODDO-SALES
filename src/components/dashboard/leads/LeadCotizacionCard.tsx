@@ -49,7 +49,7 @@ export function LeadCotizacionCard({ cotizacion, locale, onResendSuccess }: Prop
     <div className="p-3 bg-[var(--surface-2)] border border-[var(--border-subtle)] rounded-xl space-y-2">
       <div className="flex items-start justify-between gap-2">
         <div className="min-w-0">
-          <p className="text-sm text-white font-medium truncate">
+          <p className="text-sm text-[var(--text-primary)] font-medium truncate">
             {identificador}
           </p>
           {tipologia && (

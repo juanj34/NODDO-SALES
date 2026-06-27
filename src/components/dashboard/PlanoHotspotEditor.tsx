@@ -479,12 +479,12 @@ export function PlanoHotspotEditor({
                   height: 28,
                   borderRadius: "50%",
                   backgroundColor: "var(--site-primary)",
-                  border: isSelected ? "3px solid white" : "2px solid rgba(0,0,0,0.4)",
+                  border: isSelected ? "3px solid white" : "2px solid rgba(0,0,0,0.4)", // theme-allow: marker border over plan image
                   boxShadow: isSelected
-                    ? "0 0 0 4px rgba(var(--site-primary-rgb),0.4), 0 2px 8px rgba(0,0,0,0.5)"
+                    ? "0 0 0 4px rgba(var(--site-primary-rgb),0.4), 0 2px 8px rgba(0,0,0,0.5)" // theme-allow: marker shadow over plan image
                     : isHovered
-                      ? "0 0 0 4px rgba(var(--site-primary-rgb),0.25), 0 2px 8px rgba(0,0,0,0.4)"
-                      : "0 2px 6px rgba(0,0,0,0.4)",
+                      ? "0 0 0 4px rgba(var(--site-primary-rgb),0.25), 0 2px 8px rgba(0,0,0,0.4)" // theme-allow: marker shadow over plan image
+                      : "0 2px 6px rgba(0,0,0,0.4)", // theme-allow: marker shadow over plan image
                   zIndex: isSelected || isHovered || isDragging ? 20 : 10,
                   pointerEvents: dragging && !isDragging ? "none" : "auto",
                 }}
@@ -492,11 +492,11 @@ export function PlanoHotspotEditor({
                 onMouseEnter={() => setHoveredId(punto.id)}
                 onMouseLeave={() => setHoveredId(null)}
               >
-                <span className="text-[11px] font-bold text-[#141414] select-none pointer-events-none">
+                <span className="text-[11px] font-bold text-[#141414] select-none pointer-events-none"> {/* // theme-allow: dot number over marker on plan image */}
                   {index + 1}
                 </span>
                 {(isHovered || isSelected) && !isDragging && (
-                  <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-2.5 py-1 bg-black/90 backdrop-blur-sm text-white text-[10px] rounded-md whitespace-nowrap pointer-events-none z-30 max-w-[200px] truncate">
+                  <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-2.5 py-1 bg-black/90 backdrop-blur-sm text-white text-[10px] rounded-md whitespace-nowrap pointer-events-none z-30 max-w-[200px] truncate"> {/* // theme-allow: tooltip over plan image */}
                     {getTooltip(punto)}
                   </div>
                 )}
@@ -516,13 +516,13 @@ export function PlanoHotspotEditor({
               >
                 <div className="absolute inset-0 w-8 h-8 -m-1 rounded-full bg-green-500/20 animate-ping" />
                 <div
-                  className="relative w-6 h-6 rounded-full border-2 border-white flex items-center justify-center"
+                  className="relative w-6 h-6 rounded-full border-2 border-white flex items-center justify-center" /* // theme-allow: preview marker over plan image */
                   style={{
                     backgroundColor: "#22c55e",
-                    boxShadow: "0 0 0 4px rgba(34,197,94,0.3), 0 2px 8px rgba(0,0,0,0.5)",
+                    boxShadow: "0 0 0 4px rgba(34,197,94,0.3), 0 2px 8px rgba(0,0,0,0.5)", // theme-allow: preview marker shadow over plan image
                   }}
                 >
-                  <span className="text-[10px] font-bold text-white select-none">+</span>
+                  <span className="text-[10px] font-bold text-white select-none">+</span> {/* // theme-allow: preview marker glyph over plan image */}
                 </div>
               </div>
             );
@@ -751,7 +751,7 @@ export function PlanoHotspotEditor({
                       >
                         {/* Number badge */}
                         <span
-                          className="w-6 h-6 rounded-full flex items-center justify-center text-[11px] font-bold text-[#141414] shrink-0"
+                          className="w-6 h-6 rounded-full flex items-center justify-center text-[11px] font-bold text-[#141414] shrink-0" /* // theme-allow: dark text on gold */
                           style={{ backgroundColor: "var(--site-primary)" }}
                         >
                           {index + 1}

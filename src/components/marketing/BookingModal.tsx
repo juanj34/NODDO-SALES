@@ -52,7 +52,7 @@ export function BookingModal() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="absolute inset-0 bg-black/70 backdrop-blur-sm"
+            className="absolute inset-0 bg-[rgba(var(--overlay-rgb),0.7)] backdrop-blur-sm"
             onClick={closeBooking}
           />
 
@@ -62,7 +62,7 @@ export function BookingModal() {
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.95, y: 20 }}
             transition={{ duration: 0.3, ease: [0.25, 0.46, 0.45, 0.94] }}
-            className="relative w-full h-full sm:h-auto sm:max-h-[90vh] sm:max-w-lg flex flex-col sm:rounded-2xl overflow-hidden border-0 sm:border border-[rgba(184,151,58,0.2)] shadow-[0_0_60px_rgba(184,151,58,0.1)] bg-[#141414]"
+            className="relative w-full h-full sm:h-auto sm:max-h-[90vh] sm:max-w-lg flex flex-col sm:rounded-2xl overflow-hidden border-0 sm:border border-[rgba(var(--mk-accent-rgb),0.2)] shadow-[0_0_60px_rgba(var(--mk-accent-rgb),0.1)] bg-[var(--mk-bg)]"
             onClick={(e) => e.stopPropagation()}
           >
             <BookingFlow key={mountKey} onClose={closeBooking} />

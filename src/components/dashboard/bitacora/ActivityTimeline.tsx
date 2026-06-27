@@ -278,7 +278,7 @@ export function ActivityTimeline({ activities, loading, locale }: ActivityTimeli
                       boxShadow: `0 0 16px rgba(${rgb}, 0.1)`,
                     }}
                   >
-                    <Icon size={16} className="text-white/70" />
+                    <Icon size={16} className="text-[var(--text-primary)]" />
                   </div>
 
                   {/* Card */}

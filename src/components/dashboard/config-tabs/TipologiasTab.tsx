@@ -226,7 +226,7 @@ export default function TipologiasTab() {
                           {t(fieldDef.labelKey)}
                         </span>
                         <div className={cn("relative inline-flex h-5 w-9 items-center rounded-full transition-colors shrink-0", isOn ? "bg-[var(--site-primary)]" : "bg-[var(--surface-3)]")}>
-                          <span className={cn("inline-block h-3.5 w-3.5 rounded-full bg-white shadow-sm transition-transform", isOn ? "translate-x-[18px]" : "translate-x-[3px]")} />
+                          <span className={cn("inline-block h-3.5 w-3.5 rounded-full bg-[var(--surface-0)] shadow-sm transition-transform", isOn ? "translate-x-[18px]" : "translate-x-[3px]")} />
                         </div>
                       </button>
                     );
@@ -273,7 +273,7 @@ export default function TipologiasTab() {
                   </span>
                 </div>
                 <div className={cn("relative inline-flex h-5 w-9 items-center rounded-full transition-colors shrink-0", isOn ? "bg-[var(--site-primary)]" : "bg-[var(--surface-3)]")}>
-                  <span className={cn("inline-block h-3.5 w-3.5 rounded-full bg-white shadow-sm transition-transform", isOn ? "translate-x-[18px]" : "translate-x-[3px]")} />
+                  <span className={cn("inline-block h-3.5 w-3.5 rounded-full bg-[var(--surface-0)] shadow-sm transition-transform", isOn ? "translate-x-[18px]" : "translate-x-[3px]")} />
                 </div>
               </button>
             );

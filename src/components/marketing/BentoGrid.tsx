@@ -50,7 +50,7 @@ export function BentoGrid() {
           className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3"
           style={{
             gap: "1px",
-            background: "rgba(255, 255, 255, 0.04)",
+            background: "rgba(var(--contrast-rgb), 0.04)",
           }}
         >
           {features.map((ft, i) => (
@@ -69,7 +69,7 @@ export function BentoGrid() {
               {/* Number */}
               <div
                 className="font-heading text-5xl font-light leading-none mb-5"
-                style={{ color: "rgba(184, 151, 58, 0.2)" }}
+                style={{ color: "rgba(var(--mk-accent-rgb), 0.2)" }}
               >
                 {ft.num}
               </div>
@@ -82,7 +82,7 @@ export function BentoGrid() {
               {/* Body */}
               <div
                 className="text-[13px] leading-[1.85]"
-                style={{ color: "rgba(244, 240, 232, 0.4)" }}
+                style={{ color: "var(--mk-text-tertiary)" }}
               >
                 {ft.body}
               </div>

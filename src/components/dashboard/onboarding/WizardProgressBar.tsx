@@ -17,7 +17,7 @@ export function WizardProgressBar({ currentStep, totalSteps }: WizardProgressBar
             "h-[3px] flex-1 rounded-full transition-colors duration-300",
             i <= currentStep
               ? "bg-[var(--noddo-primary)]"
-              : "bg-white/8"
+              : "bg-[var(--surface-3)]"
           )}
         />
       ))}

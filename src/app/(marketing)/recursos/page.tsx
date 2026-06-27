@@ -54,7 +54,7 @@ export default function RecursosPage() {
               style={{
                 fontFamily: "var(--font-syne)",
                 fontWeight: 700,
-                color: "rgba(244,240,232,0.92)",
+                color: "var(--mk-text-primary)",
               }}
             >
               {t("recursos.badge")}
@@ -69,7 +69,7 @@ export default function RecursosPage() {
             style={{
               fontFamily: "var(--font-cormorant)",
               fontWeight: 300,
-              color: "rgba(244,240,232,0.92)",
+              color: "var(--mk-text-primary)",
             }}
           >
             {t("recursos.titleLine1")}
@@ -86,7 +86,7 @@ export default function RecursosPage() {
             className="text-lg max-w-3xl mx-auto leading-relaxed"
             style={{
               fontWeight: 300,
-              color: "rgba(244,240,232,0.55)",
+              color: "var(--mk-text-secondary)",
             }}
           >
             {t("recursos.description")}
@@ -102,7 +102,7 @@ export default function RecursosPage() {
           className="mb-16"
         >
           <Link href={`/recursos/${articles[0].id}`} className="block">
-            <div className="glass-card overflow-hidden group hover:bg-white/5 transition-all duration-300">
+            <div className="glass-card overflow-hidden group hover:bg-[var(--surface-2)] transition-all duration-300">
               <div className="grid grid-cols-1 lg:grid-cols-2">
                 <div className="relative h-64 lg:h-auto overflow-hidden">
                   <Image src={articles[0].image} alt="" fill className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
@@ -112,7 +112,7 @@ export default function RecursosPage() {
                       fontFamily: "var(--font-syne)",
                       fontWeight: 700,
                       backgroundColor: "rgba(184, 151, 58, 0.95)",
-                      color: "#0a0a0b",
+                      color: "#0a0a0b", // theme-allow: dark ink on the fixed gold badge; badge stays gold in both themes
                     }}
                   >
                     {t("recursos.featured")}
@@ -130,7 +130,7 @@ export default function RecursosPage() {
                       style={{
                         fontFamily: "var(--font-syne)",
                         fontWeight: 600,
-                        color: "rgba(244,240,232,0.55)",
+                        color: "var(--mk-text-secondary)",
                       }}
                     >
                       {articles[0].category}
@@ -139,7 +139,7 @@ export default function RecursosPage() {
                       className="text-xs"
                       style={{
                         fontWeight: 300,
-                        color: "rgba(244,240,232,0.35)",
+                        color: "var(--mk-text-tertiary)",
                       }}
                     >
                       • {articles[0].readTime}
@@ -151,7 +151,7 @@ export default function RecursosPage() {
                     style={{
                       fontFamily: "var(--font-cormorant)",
                       fontWeight: 400,
-                      color: "rgba(244,240,232,0.92)",
+                      color: "var(--mk-text-primary)",
                     }}
                   >
                     {articles[0].title}
@@ -161,7 +161,7 @@ export default function RecursosPage() {
                     className="text-base leading-[1.8] mb-6"
                     style={{
                       fontWeight: 300,
-                      color: "rgba(244,240,232,0.70)",
+                      color: "var(--mk-text-secondary)",
                     }}
                   >
                     {articles[0].excerpt}
@@ -174,8 +174,8 @@ export default function RecursosPage() {
                         className="px-3 py-1 rounded-lg text-xs"
                         style={{
                           fontWeight: 400,
-                          backgroundColor: "rgba(255, 255, 255, 0.05)",
-                          color: "rgba(244,240,232,0.55)",
+                          backgroundColor: "rgba(var(--contrast-rgb), 0.05)",
+                          color: "var(--mk-text-secondary)",
                         }}
                       >
                         {tag}
@@ -189,7 +189,7 @@ export default function RecursosPage() {
                       fontFamily: "var(--font-syne)",
                       fontWeight: 700,
                       background: "linear-gradient(135deg, #b8973a 0%, #d4b05a 100%)",
-                      color: "#0a0a0b",
+                      color: "#0a0a0b", // theme-allow: dark ink on the fixed gold gradient button; gradient stays gold in both themes
                     }}
                   >
                     {t("recursos.readArticle")}
@@ -214,7 +214,7 @@ export default function RecursosPage() {
                 transition={{ duration: 0.6, delay: index * 0.1, ease }}
               >
                 <Link href={`/recursos/${article.id}`} className="block h-full">
-                  <div className="glass-card overflow-hidden group hover:bg-white/5 transition-all duration-300 h-full flex flex-col">
+                  <div className="glass-card overflow-hidden group hover:bg-[var(--surface-2)] transition-all duration-300 h-full flex flex-col">
                     <div className="relative h-48 overflow-hidden">
                       <Image src={article.image} alt="" fill className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
                     </div>
@@ -227,7 +227,7 @@ export default function RecursosPage() {
                           style={{
                             fontFamily: "var(--font-syne)",
                             fontWeight: 600,
-                            color: "rgba(244,240,232,0.55)",
+                            color: "var(--mk-text-secondary)",
                           }}
                         >
                           {article.category}
@@ -236,7 +236,7 @@ export default function RecursosPage() {
                           className="text-xs"
                           style={{
                             fontWeight: 300,
-                            color: "rgba(244,240,232,0.35)",
+                            color: "var(--mk-text-tertiary)",
                           }}
                         >
                           • {article.readTime}
@@ -248,7 +248,7 @@ export default function RecursosPage() {
                         style={{
                           fontFamily: "var(--font-cormorant)",
                           fontWeight: 400,
-                          color: "rgba(244,240,232,0.92)",
+                          color: "var(--mk-text-primary)",
                         }}
                       >
                         {article.title}
@@ -258,7 +258,7 @@ export default function RecursosPage() {
                         className="text-sm leading-[1.7] mb-4 flex-1"
                         style={{
                           fontWeight: 300,
-                          color: "rgba(244,240,232,0.70)",
+                          color: "var(--mk-text-secondary)",
                         }}
                       >
                         {article.excerpt}
@@ -271,8 +271,8 @@ export default function RecursosPage() {
                             className="px-2 py-0.5 rounded text-[10px]"
                             style={{
                               fontWeight: 400,
-                              backgroundColor: "rgba(255, 255, 255, 0.05)",
-                              color: "rgba(244,240,232,0.45)",
+                              backgroundColor: "rgba(var(--contrast-rgb), 0.05)",
+                              color: "var(--mk-text-tertiary)",
                             }}
                           >
                             {tag}
@@ -329,7 +329,7 @@ export default function RecursosPage() {
               style={{
                 fontFamily: "var(--font-cormorant)",
                 fontWeight: 300,
-                color: "rgba(244,240,232,0.92)",
+                color: "var(--mk-text-primary)",
               }}
             >
               {t("recursos.newsletterTitle")}
@@ -340,7 +340,7 @@ export default function RecursosPage() {
               className="text-base mb-8 max-w-2xl mx-auto relative z-10"
               style={{
                 fontWeight: 300,
-                color: "rgba(244,240,232,0.55)",
+                color: "var(--mk-text-secondary)",
               }}
             >
               {t("recursos.newsletterDescription")}
@@ -353,9 +353,9 @@ export default function RecursosPage() {
                 className="flex-1 px-6 py-4 rounded-xl input-glass text-sm"
                 style={{
                   fontWeight: 300,
-                  backgroundColor: "rgba(255, 255, 255, 0.05)",
-                  border: "1px solid rgba(255, 255, 255, 0.1)",
-                  color: "rgba(244,240,232,0.92)",
+                  backgroundColor: "rgba(var(--contrast-rgb), 0.05)",
+                  border: "1px solid rgba(var(--contrast-rgb), 0.1)",
+                  color: "var(--mk-text-primary)",
                 }}
               />
               <button
@@ -365,7 +365,7 @@ export default function RecursosPage() {
                   fontFamily: "var(--font-syne)",
                   fontWeight: 700,
                   background: "linear-gradient(135deg, #b8973a 0%, #d4b05a 100%)",
-                  color: "#0a0a0b",
+                  color: "#0a0a0b", // theme-allow: dark ink on the fixed gold gradient button; gradient stays gold in both themes
                 }}
               >
                 {t("recursos.newsletterButton")}
@@ -376,7 +376,7 @@ export default function RecursosPage() {
               className="text-xs mt-4 relative z-10"
               style={{
                 fontWeight: 300,
-                color: "rgba(244,240,232,0.35)",
+                color: "var(--mk-text-tertiary)",
               }}
             >
               {t("recursos.newsletterDisclaimer")}

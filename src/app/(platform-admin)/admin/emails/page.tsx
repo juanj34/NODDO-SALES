@@ -74,7 +74,7 @@ export default function AdminEmailsPage() {
         <p className="text-[11px] text-[var(--text-muted)] mb-4">Verifica tu conexión e intenta de nuevo</p>
         <button
           onClick={fetchData}
-          className="flex items-center gap-2 px-4 py-2 rounded-lg bg-[var(--surface-2)] border border-[var(--border-subtle)] text-xs text-[var(--text-secondary)] hover:text-white hover:border-[var(--border-default)] transition-all"
+          className="flex items-center gap-2 px-4 py-2 rounded-lg bg-[var(--surface-2)] border border-[var(--border-subtle)] text-xs text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:border-[var(--border-default)] transition-all"
         >
           <RefreshCw size={13} /> Reintentar
         </button>
@@ -101,7 +101,7 @@ export default function AdminEmailsPage() {
           </div>
           <button
             onClick={fetchData}
-            className="flex items-center gap-2 px-4 py-2 rounded-lg bg-[var(--surface-2)] border border-[var(--border-subtle)] text-xs font-ui font-bold uppercase tracking-wider text-[var(--text-secondary)] hover:text-white hover:border-[var(--border-default)] transition-all"
+            className="flex items-center gap-2 px-4 py-2 rounded-lg bg-[var(--surface-2)] border border-[var(--border-subtle)] text-xs font-ui font-bold uppercase tracking-wider text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:border-[var(--border-default)] transition-all"
           >
             <RefreshCw size={13} />
             Actualizar
@@ -188,7 +188,7 @@ export default function AdminEmailsPage() {
               </div>
               <p className="text-[10px] text-[var(--text-muted)] mb-3">{sequence.description}</p>
               <div className="flex items-baseline gap-2">
-                <span className="font-heading text-2xl font-light text-white">
+                <span className="font-heading text-2xl font-light text-[var(--text-primary)]">
                   {sequence.count}
                 </span>
                 <span className="text-xs text-[var(--text-muted)]">enviados</span>

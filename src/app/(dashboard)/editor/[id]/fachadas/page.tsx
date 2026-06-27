@@ -726,7 +726,7 @@ export default function NoddoGridPage() {
                 : "border-[var(--border-subtle)] hover:border-[var(--border-default)]"
             }`}
           >
-            <div className="relative aspect-square bg-black/40">
+            <div className="relative aspect-square bg-[rgba(var(--overlay-rgb),0.4)]">
               {f.imagen_url ? (
                 <Image src={f.imagen_url} alt="" fill className="object-cover" />
               ) : (
@@ -761,19 +761,21 @@ export default function NoddoGridPage() {
             </div>
             <button
               onClick={(e) => { e.stopPropagation(); setRenamingId(f.id); setRenameValue(f.nombre); }}
-              className="absolute top-0.5 left-5 opacity-0 group-hover:opacity-100 w-4 h-4 flex items-center justify-center rounded-full bg-black/60 text-[var(--text-tertiary)] hover:text-[var(--site-primary)] transition-all"
+              className="absolute top-0.5 left-5 opacity-0 group-hover:opacity-100 w-4 h-4 flex items-center justify-center rounded-full bg-[rgba(var(--overlay-rgb),0.6)] text-[var(--text-tertiary)] hover:text-[var(--site-primary)] transition-all"
             >
               <Pencil size={7} />
             </button>
             <button
               onClick={(e) => { e.stopPropagation(); handleDeleteFachada(f.id); }}
               disabled={deletingId === f.id}
-              className="absolute top-0.5 right-0.5 opacity-0 group-hover:opacity-100 w-4 h-4 flex items-center justify-center rounded-full bg-black/60 text-red-400/70 hover:text-red-400 transition-all"
+              className="absolute top-0.5 right-0.5 opacity-0 group-hover:opacity-100 w-4 h-4 flex items-center justify-center rounded-full bg-[rgba(var(--overlay-rgb),0.6)] text-red-400/70 hover:text-red-400 transition-all"
             >
               {deletingId === f.id ? <Loader2 size={8} className="animate-spin" /> : <Trash2 size={8} />}
             </button>
             {count > 0 && (
-              <div className="absolute top-0.5 left-0.5 min-w-[16px] h-[16px] flex items-center justify-center px-0.5 bg-[var(--site-primary)] text-black text-[8px] font-bold rounded-full">
+              <div className={
+                "absolute top-0.5 left-0.5 min-w-[16px] h-[16px] flex items-center justify-center px-0.5 bg-[var(--site-primary)] text-black text-[8px] font-bold rounded-full" // theme-allow: dark text on gold
+              }>
                 {count}
               </div>
             )}
@@ -1004,7 +1006,7 @@ export default function NoddoGridPage() {
           className={cn(
             "flex items-center gap-1.5 px-3 py-1.5 rounded-md text-[11px] font-medium transition-all",
             viewMode === "fachada"
-              ? "bg-[var(--surface-3)] text-white shadow-sm"
+              ? "bg-[var(--surface-3)] text-[var(--text-primary)] shadow-sm"
               : "text-[var(--text-tertiary)] hover:text-[var(--text-secondary)]"
           )}
         >
@@ -1016,7 +1018,7 @@ export default function NoddoGridPage() {
           className={cn(
             "flex items-center gap-1.5 px-3 py-1.5 rounded-md text-[11px] font-medium transition-all",
             viewMode === "planta"
-              ? "bg-[var(--surface-3)] text-white shadow-sm"
+              ? "bg-[var(--surface-3)] text-[var(--text-primary)] shadow-sm"
               : "text-[var(--text-tertiary)] hover:text-[var(--text-secondary)]"
           )}
         >
@@ -1140,7 +1142,7 @@ export default function NoddoGridPage() {
               className={cn(
                 "flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-medium transition-all whitespace-nowrap shrink-0",
                 activeTab === "implantacion"
-                  ? "bg-[var(--surface-3)] text-white shadow-sm"
+                  ? "bg-[var(--surface-3)] text-[var(--text-primary)] shadow-sm"
                   : "text-[var(--text-tertiary)] hover:text-[var(--text-secondary)] hover:bg-[var(--surface-2)]"
               )}
             >
@@ -1161,7 +1163,7 @@ export default function NoddoGridPage() {
                   className={cn(
                     "flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-medium transition-all whitespace-nowrap shrink-0",
                     activeTab === torre.id
-                      ? "bg-[var(--surface-3)] text-white shadow-sm"
+                      ? "bg-[var(--surface-3)] text-[var(--text-primary)] shadow-sm"
                       : "text-[var(--text-tertiary)] hover:text-[var(--text-secondary)] hover:bg-[var(--surface-2)]"
                   )}
                 >
@@ -1428,7 +1430,7 @@ export default function NoddoGridPage() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm"
+            className="fixed inset-0 z-50 flex items-center justify-center bg-[rgba(var(--overlay-rgb),0.5)] backdrop-blur-sm"
             onClick={resetAddForm}
           >
             <motion.div
@@ -1477,7 +1479,7 @@ export default function NoddoGridPage() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm"
+            className="fixed inset-0 z-50 flex items-center justify-center bg-[rgba(var(--overlay-rgb),0.5)] backdrop-blur-sm"
             onClick={resetPlantaTipoForm}
           >
             <motion.div
@@ -1545,7 +1547,7 @@ export default function NoddoGridPage() {
                   </div>
                   <div className="space-y-2.5 max-h-52 overflow-y-auto scrollbar-thin rounded-xl border border-[var(--border-subtle)] bg-[var(--surface-0)] p-3">
                     {([
-                      { name: "Sótano", color: "bg-white/20" },
+                      { name: "Sótano", color: "bg-[var(--surface-4)]" },
                       { name: "Planta Baja", color: "bg-emerald-400/50" },
                       { name: "Podio", color: "bg-blue-400/50" },
                       { name: "Residencial", color: "bg-[rgba(var(--site-primary-rgb),0.6)]" },
@@ -1648,7 +1650,7 @@ export default function NoddoGridPage() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm"
+            className="fixed inset-0 z-50 flex items-center justify-center bg-[rgba(var(--overlay-rgb),0.5)] backdrop-blur-sm"
             onClick={() => setShowDuplicateModal(false)}
           >
             <motion.div

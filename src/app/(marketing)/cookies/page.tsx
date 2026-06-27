@@ -213,7 +213,7 @@ function BrowserPrivacyIllustration() {
       <g className="ck-cookie1">
         <circle cx="295" cy="30" r="6" stroke="rgba(184,151,58,0.18)" strokeWidth="0.5" fill="rgba(184,151,58,0.03)" />
         {/* Bite mark */}
-        <circle cx="299" cy="27" r="2.5" fill="#141414" stroke="rgba(184,151,58,0.08)" strokeWidth="0.3" />
+        <circle cx="299" cy="27" r="2.5" fill="var(--mk-bg)" stroke="rgba(184,151,58,0.08)" strokeWidth="0.3" />
         {/* Chips */}
         <circle cx="293" cy="29" r="1" fill="rgba(184,151,58,0.12)" />
         <circle cx="296" cy="33" r="0.8" fill="rgba(184,151,58,0.1)" />
@@ -221,13 +221,13 @@ function BrowserPrivacyIllustration() {
       </g>
       <g className="ck-cookie2">
         <circle cx="305" cy="100" r="5" stroke="rgba(184,151,58,0.14)" strokeWidth="0.4" fill="rgba(184,151,58,0.025)" />
-        <circle cx="309" cy="98" r="2" fill="#141414" stroke="rgba(184,151,58,0.06)" strokeWidth="0.3" />
+        <circle cx="309" cy="98" r="2" fill="var(--mk-bg)" stroke="rgba(184,151,58,0.06)" strokeWidth="0.3" />
         <circle cx="303" cy="99" r="0.8" fill="rgba(184,151,58,0.1)" />
         <circle cx="306" cy="102" r="0.7" fill="rgba(184,151,58,0.08)" />
       </g>
       <g className="ck-cookie3">
         <circle cx="288" cy="155" r="4.5" stroke="rgba(184,151,58,0.12)" strokeWidth="0.4" fill="rgba(184,151,58,0.02)" />
-        <circle cx="291" cy="153" r="1.8" fill="#141414" stroke="rgba(184,151,58,0.05)" strokeWidth="0.3" />
+        <circle cx="291" cy="153" r="1.8" fill="var(--mk-bg)" stroke="rgba(184,151,58,0.05)" strokeWidth="0.3" />
         <circle cx="286" cy="154" r="0.7" fill="rgba(184,151,58,0.08)" />
         <circle cx="288" cy="158" r="0.6" fill="rgba(184,151,58,0.06)" />
       </g>
@@ -297,13 +297,13 @@ export default function CookiesPage() {
             transition={{ duration: 0.7, ease }}
             className="inline-flex items-center gap-3 mb-6 px-6 py-3 rounded-full glass-light"
           >
-            <Cookie className="w-5 h-5" style={{ color: "#b8973a" }} />
+            <Cookie className="w-5 h-5" style={{ color: "var(--site-primary)" }} />
             <span
               className="text-sm uppercase tracking-[0.15em]"
               style={{
                 fontFamily: "var(--font-syne)",
                 fontWeight: 700,
-                color: "rgba(244,240,232,0.92)",
+                color: "var(--mk-text-primary)",
               }}
             >
               Legal
@@ -317,11 +317,11 @@ export default function CookiesPage() {
             style={{
               fontFamily: "var(--font-cormorant)",
               fontWeight: 300,
-              color: "rgba(244,240,232,0.92)",
+              color: "var(--mk-text-primary)",
             }}
           >
             Política de{" "}
-            <em style={{ fontStyle: "italic", color: "#b8973a" }}>Cookies</em>
+            <em style={{ fontStyle: "italic", color: "var(--site-primary)" }}>Cookies</em>
           </motion.h1>
           <motion.p
             initial={{ opacity: 0, y: 20 }}
@@ -330,7 +330,7 @@ export default function CookiesPage() {
             className="text-base max-w-2xl mx-auto"
             style={{
               fontWeight: 300,
-              color: "rgba(244,240,232,0.55)",
+              color: "var(--mk-text-secondary)",
             }}
           >
             Información sobre las cookies que utiliza NODDO, su propósito, y cómo puede
@@ -342,10 +342,10 @@ export default function CookiesPage() {
             transition={{ duration: 0.7, delay: 0.3, ease }}
             className="text-xs mt-4 flex items-center justify-center gap-2"
             style={{
-              color: "rgba(244,240,232,0.35)",
+              color: "var(--mk-text-tertiary)",
             }}
           >
-            <span className="w-1 h-1 rounded-full" style={{ background: "#b8973a" }} />
+            <span className="w-1 h-1 rounded-full" style={{ background: "var(--site-primary)" }} />
             Última actualización: 14 de marzo de 2026
           </motion.p>
 
@@ -374,7 +374,7 @@ export default function CookiesPage() {
                 style={{
                   fontFamily: "var(--font-syne)",
                   fontWeight: 700,
-                  color: "rgba(244,240,232,0.55)",
+                  color: "var(--mk-text-secondary)",
                 }}
               >
                 Contenido
@@ -397,8 +397,8 @@ export default function CookiesPage() {
                             ? "2px solid #b8973a"
                             : "2px solid transparent",
                           color: isActive
-                            ? "rgba(244,240,232,0.92)"
-                            : "rgba(244,240,232,0.55)",
+                            ? "var(--mk-text-primary)"
+                            : "var(--mk-text-secondary)",
                           fontSize: "0.75rem",
                           fontWeight: 300,
                         }}
@@ -438,7 +438,7 @@ export default function CookiesPage() {
                       style={{
                         fontFamily: "var(--font-cormorant)",
                         fontWeight: 400,
-                        color: "rgba(244,240,232,0.92)",
+                        color: "var(--mk-text-primary)",
                       }}
                     >
                       1. ¿Qué son las cookies?
@@ -449,7 +449,7 @@ export default function CookiesPage() {
                   className="space-y-3 text-sm leading-[1.8]"
                   style={{
                     fontWeight: 300,
-                    color: "rgba(244,240,232,0.70)",
+                    color: "var(--mk-text-secondary)",
                   }}
                 >
                   <p>
@@ -488,7 +488,7 @@ export default function CookiesPage() {
                       style={{
                         fontFamily: "var(--font-cormorant)",
                         fontWeight: 400,
-                        color: "rgba(244,240,232,0.92)",
+                        color: "var(--mk-text-primary)",
                       }}
                     >
                       2. Cómo usamos las cookies
@@ -499,38 +499,38 @@ export default function CookiesPage() {
                   className="space-y-3 text-sm leading-[1.8]"
                   style={{
                     fontWeight: 300,
-                    color: "rgba(244,240,232,0.70)",
+                    color: "var(--mk-text-secondary)",
                   }}
                 >
                   <p>NODDO utiliza cookies para:</p>
                   <ul className="list-disc pl-6 space-y-2">
                     <li>
-                      <strong style={{ color: "rgba(244,240,232,0.92)" }}>
+                      <strong style={{ color: "var(--mk-text-primary)" }}>
                         Mantener su sesión activa
                       </strong>{" "}
                       — Para que no tenga que iniciar sesión cada vez que visite el panel de
                       administración
                     </li>
                     <li>
-                      <strong style={{ color: "rgba(244,240,232,0.92)" }}>
+                      <strong style={{ color: "var(--mk-text-primary)" }}>
                         Recordar sus preferencias
                       </strong>{" "}
                       — Idioma, zona horaria, configuración del dashboard
                     </li>
                     <li>
-                      <strong style={{ color: "rgba(244,240,232,0.92)" }}>
+                      <strong style={{ color: "var(--mk-text-primary)" }}>
                         Proteger contra ataques CSRF
                       </strong>{" "}
                       — Tokens de seguridad para prevenir falsificación de solicitudes
                     </li>
                     <li>
-                      <strong style={{ color: "rgba(244,240,232,0.92)" }}>
+                      <strong style={{ color: "var(--mk-text-primary)" }}>
                         Analizar cómo usa el Servicio
                       </strong>{" "}
                       — Para mejorar funcionalidades y detectar problemas
                     </li>
                     <li>
-                      <strong style={{ color: "rgba(244,240,232,0.92)" }}>
+                      <strong style={{ color: "var(--mk-text-primary)" }}>
                         Medir conversiones de marketing
                       </strong>{" "}
                       — Para optimizar campañas publicitarias y entender qué funciona
@@ -561,7 +561,7 @@ export default function CookiesPage() {
                       style={{
                         fontFamily: "var(--font-cormorant)",
                         fontWeight: 400,
-                        color: "rgba(244,240,232,0.92)",
+                        color: "var(--mk-text-primary)",
                       }}
                     >
                       3. Tipos de cookies que utilizamos
@@ -572,7 +572,7 @@ export default function CookiesPage() {
                   className="space-y-6 text-sm leading-[1.8]"
                   style={{
                     fontWeight: 300,
-                    color: "rgba(244,240,232,0.70)",
+                    color: "var(--mk-text-secondary)",
                   }}
                 >
                   {/* Esenciales */}
@@ -582,7 +582,7 @@ export default function CookiesPage() {
                       <div>
                         <h3
                           className="font-medium mb-2"
-                          style={{ color: "rgba(244,240,232,0.92)" }}
+                          style={{ color: "var(--mk-text-primary)" }}
                         >
                           Cookies Esenciales (Obligatorias)
                         </h3>
@@ -597,25 +597,25 @@ export default function CookiesPage() {
                         <thead>
                           <tr
                             className="border-b"
-                            style={{ borderColor: "rgba(244,240,232,0.1)" }}
+                            style={{ borderColor: "var(--mk-border-rule)" }}
                           >
-                            <th className="text-left py-2 px-3" style={{ color: "rgba(244,240,232,0.92)" }}>Cookie</th>
-                            <th className="text-left py-2 px-3" style={{ color: "rgba(244,240,232,0.92)" }}>Propósito</th>
-                            <th className="text-left py-2 px-3" style={{ color: "rgba(244,240,232,0.92)" }}>Duración</th>
+                            <th className="text-left py-2 px-3" style={{ color: "var(--mk-text-primary)" }}>Cookie</th>
+                            <th className="text-left py-2 px-3" style={{ color: "var(--mk-text-primary)" }}>Propósito</th>
+                            <th className="text-left py-2 px-3" style={{ color: "var(--mk-text-primary)" }}>Duración</th>
                           </tr>
                         </thead>
                         <tbody>
-                          <tr className="border-b" style={{ borderColor: "rgba(244,240,232,0.05)" }}>
+                          <tr className="border-b" style={{ borderColor: "var(--mk-border-rule)" }}>
                             <td className="py-2 px-3">sb-access-token</td>
                             <td className="py-2 px-3">Sesión de autenticación Supabase</td>
                             <td className="py-2 px-3">1 hora</td>
                           </tr>
-                          <tr className="border-b" style={{ borderColor: "rgba(244,240,232,0.05)" }}>
+                          <tr className="border-b" style={{ borderColor: "var(--mk-border-rule)" }}>
                             <td className="py-2 px-3">sb-refresh-token</td>
                             <td className="py-2 px-3">Renovación automática de sesión</td>
                             <td className="py-2 px-3">30 días</td>
                           </tr>
-                          <tr className="border-b" style={{ borderColor: "rgba(244,240,232,0.05)" }}>
+                          <tr className="border-b" style={{ borderColor: "var(--mk-border-rule)" }}>
                             <td className="py-2 px-3">csrf_token</td>
                             <td className="py-2 px-3">Protección contra CSRF</td>
                             <td className="py-2 px-3">Sesión</td>
@@ -637,7 +637,7 @@ export default function CookiesPage() {
                       <div>
                         <h3
                           className="font-medium mb-2"
-                          style={{ color: "rgba(244,240,232,0.92)" }}
+                          style={{ color: "var(--mk-text-primary)" }}
                         >
                           Cookies de Analytics (Opcionales)
                         </h3>
@@ -650,19 +650,19 @@ export default function CookiesPage() {
                     <div className="overflow-x-auto">
                       <table className="w-full text-xs">
                         <thead>
-                          <tr className="border-b" style={{ borderColor: "rgba(244,240,232,0.1)" }}>
-                            <th className="text-left py-2 px-3" style={{ color: "rgba(244,240,232,0.92)" }}>Cookie</th>
-                            <th className="text-left py-2 px-3" style={{ color: "rgba(244,240,232,0.92)" }}>Propósito</th>
-                            <th className="text-left py-2 px-3" style={{ color: "rgba(244,240,232,0.92)" }}>Duración</th>
+                          <tr className="border-b" style={{ borderColor: "var(--mk-border-rule)" }}>
+                            <th className="text-left py-2 px-3" style={{ color: "var(--mk-text-primary)" }}>Cookie</th>
+                            <th className="text-left py-2 px-3" style={{ color: "var(--mk-text-primary)" }}>Propósito</th>
+                            <th className="text-left py-2 px-3" style={{ color: "var(--mk-text-primary)" }}>Duración</th>
                           </tr>
                         </thead>
                         <tbody>
-                          <tr className="border-b" style={{ borderColor: "rgba(244,240,232,0.05)" }}>
+                          <tr className="border-b" style={{ borderColor: "var(--mk-border-rule)" }}>
                             <td className="py-2 px-3">_ga</td>
                             <td className="py-2 px-3">Google Analytics - ID de usuario único</td>
                             <td className="py-2 px-3">2 años</td>
                           </tr>
-                          <tr className="border-b" style={{ borderColor: "rgba(244,240,232,0.05)" }}>
+                          <tr className="border-b" style={{ borderColor: "var(--mk-border-rule)" }}>
                             <td className="py-2 px-3">_ga_*</td>
                             <td className="py-2 px-3">Google Analytics - Estado de sesión</td>
                             <td className="py-2 px-3">2 años</td>
@@ -684,7 +684,7 @@ export default function CookiesPage() {
                       <div>
                         <h3
                           className="font-medium mb-2"
-                          style={{ color: "rgba(244,240,232,0.92)" }}
+                          style={{ color: "var(--mk-text-primary)" }}
                         >
                           Cookies de Marketing (Opcionales)
                         </h3>
@@ -696,14 +696,14 @@ export default function CookiesPage() {
                     <div className="overflow-x-auto">
                       <table className="w-full text-xs">
                         <thead>
-                          <tr className="border-b" style={{ borderColor: "rgba(244,240,232,0.1)" }}>
-                            <th className="text-left py-2 px-3" style={{ color: "rgba(244,240,232,0.92)" }}>Cookie</th>
-                            <th className="text-left py-2 px-3" style={{ color: "rgba(244,240,232,0.92)" }}>Propósito</th>
-                            <th className="text-left py-2 px-3" style={{ color: "rgba(244,240,232,0.92)" }}>Duración</th>
+                          <tr className="border-b" style={{ borderColor: "var(--mk-border-rule)" }}>
+                            <th className="text-left py-2 px-3" style={{ color: "var(--mk-text-primary)" }}>Cookie</th>
+                            <th className="text-left py-2 px-3" style={{ color: "var(--mk-text-primary)" }}>Propósito</th>
+                            <th className="text-left py-2 px-3" style={{ color: "var(--mk-text-primary)" }}>Duración</th>
                           </tr>
                         </thead>
                         <tbody>
-                          <tr className="border-b" style={{ borderColor: "rgba(244,240,232,0.05)" }}>
+                          <tr className="border-b" style={{ borderColor: "var(--mk-border-rule)" }}>
                             <td className="py-2 px-3">_fbp</td>
                             <td className="py-2 px-3">Meta Pixel - Tracking conversiones FB/IG</td>
                             <td className="py-2 px-3">3 meses</td>
@@ -742,7 +742,7 @@ export default function CookiesPage() {
                       style={{
                         fontFamily: "var(--font-cormorant)",
                         fontWeight: 400,
-                        color: "rgba(244,240,232,0.92)",
+                        color: "var(--mk-text-primary)",
                       }}
                     >
                       4. Cookies de terceros
@@ -753,7 +753,7 @@ export default function CookiesPage() {
                   className="space-y-3 text-sm leading-[1.8]"
                   style={{
                     fontWeight: 300,
-                    color: "rgba(244,240,232,0.70)",
+                    color: "var(--mk-text-secondary)",
                   }}
                 >
                   <p>
@@ -762,7 +762,7 @@ export default function CookiesPage() {
                   </p>
                   <ul className="list-disc pl-6 space-y-2">
                     <li>
-                      <strong style={{ color: "rgba(244,240,232,0.92)" }}>
+                      <strong style={{ color: "var(--mk-text-primary)" }}>
                         Google Analytics
                       </strong>{" "}
                       — Análisis de tráfico web. Puede deshabilitarlo con el{" "}
@@ -778,12 +778,12 @@ export default function CookiesPage() {
                       .
                     </li>
                     <li>
-                      <strong style={{ color: "rgba(244,240,232,0.92)" }}>Meta Pixel</strong> —
+                      <strong style={{ color: "var(--mk-text-primary)" }}>Meta Pixel</strong> —
                       Rastreo de conversiones de Facebook/Instagram. Configurable desde las
                       preferencias de su cuenta de Facebook.
                     </li>
                     <li>
-                      <strong style={{ color: "rgba(244,240,232,0.92)" }}>
+                      <strong style={{ color: "var(--mk-text-primary)" }}>
                         Google Tag Manager
                       </strong>{" "}
                       — Gestión centralizada de tags de marketing (no almacena datos por sí mismo).
@@ -818,7 +818,7 @@ export default function CookiesPage() {
                       style={{
                         fontFamily: "var(--font-cormorant)",
                         fontWeight: 400,
-                        color: "rgba(244,240,232,0.92)",
+                        color: "var(--mk-text-primary)",
                       }}
                     >
                       5. Cómo controlar las cookies
@@ -829,7 +829,7 @@ export default function CookiesPage() {
                   className="space-y-4 text-sm leading-[1.8]"
                   style={{
                     fontWeight: 300,
-                    color: "rgba(244,240,232,0.70)",
+                    color: "var(--mk-text-secondary)",
                   }}
                 >
                   <p>Usted tiene el control total sobre las cookies que se almacenan:</p>
@@ -838,7 +838,7 @@ export default function CookiesPage() {
                     <div className="pl-4 border-l-2" style={{ borderColor: "#b8973a" }}>
                       <h3
                         className="font-medium mb-1"
-                        style={{ color: "rgba(244,240,232,0.92)" }}
+                        style={{ color: "var(--mk-text-primary)" }}
                       >
                         1. Configuración del navegador
                       </h3>
@@ -866,7 +866,7 @@ export default function CookiesPage() {
                     <div className="pl-4 border-l-2" style={{ borderColor: "#b8973a" }}>
                       <h3
                         className="font-medium mb-1"
-                        style={{ color: "rgba(244,240,232,0.92)" }}
+                        style={{ color: "var(--mk-text-primary)" }}
                       >
                         2. Herramientas de privacidad
                       </h3>
@@ -879,7 +879,7 @@ export default function CookiesPage() {
                     <div className="pl-4 border-l-2" style={{ borderColor: "#b8973a" }}>
                       <h3
                         className="font-medium mb-1"
-                        style={{ color: "rgba(244,240,232,0.92)" }}
+                        style={{ color: "var(--mk-text-primary)" }}
                       >
                         3. Do Not Track (DNT)
                       </h3>
@@ -898,10 +898,10 @@ export default function CookiesPage() {
                     <div className="flex items-start gap-3">
                       <X
                         className="w-5 h-5 mt-0.5 shrink-0"
-                        style={{ color: "rgba(244,240,232,0.55)" }}
+                        style={{ color: "var(--mk-text-secondary)" }}
                       />
                       <p>
-                        <strong style={{ color: "rgba(244,240,232,0.92)" }}>
+                        <strong style={{ color: "var(--mk-text-primary)" }}>
                           Importante:
                         </strong>{" "}
                         Si bloquea las cookies esenciales, algunas funcionalidades del Servicio no
@@ -935,7 +935,7 @@ export default function CookiesPage() {
                       style={{
                         fontFamily: "var(--font-cormorant)",
                         fontWeight: 400,
-                        color: "rgba(244,240,232,0.92)",
+                        color: "var(--mk-text-primary)",
                       }}
                     >
                       6. Cambios a esta política
@@ -946,7 +946,7 @@ export default function CookiesPage() {
                   className="space-y-3 text-sm leading-[1.8]"
                   style={{
                     fontWeight: 300,
-                    color: "rgba(244,240,232,0.70)",
+                    color: "var(--mk-text-secondary)",
                   }}
                 >
                   <p>
@@ -984,7 +984,7 @@ export default function CookiesPage() {
                       style={{
                         fontFamily: "var(--font-cormorant)",
                         fontWeight: 400,
-                        color: "rgba(244,240,232,0.92)",
+                        color: "var(--mk-text-primary)",
                       }}
                     >
                       7. Contacto
@@ -995,7 +995,7 @@ export default function CookiesPage() {
                   className="space-y-3 text-sm leading-[1.8]"
                   style={{
                     fontWeight: 300,
-                    color: "rgba(244,240,232,0.70)",
+                    color: "var(--mk-text-secondary)",
                   }}
                 >
                   <p>
@@ -1004,7 +1004,7 @@ export default function CookiesPage() {
                   </p>
                   <div className="pl-4 space-y-2">
                     <div>
-                      <strong style={{ color: "rgba(244,240,232,0.92)" }}>Email:</strong>{" "}
+                      <strong style={{ color: "var(--mk-text-primary)" }}>Email:</strong>{" "}
                       <a
                         href="mailto:hola@noddo.io"
                         className="underline"
@@ -1033,7 +1033,7 @@ export default function CookiesPage() {
               className="text-sm mb-4"
               style={{
                 fontWeight: 300,
-                color: "rgba(244,240,232,0.70)",
+                color: "var(--mk-text-secondary)",
               }}
             >
               ¿Preguntas sobre cookies? Estamos aquí para ayudar.

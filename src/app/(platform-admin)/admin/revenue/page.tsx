@@ -73,7 +73,7 @@ export default function AdminRevenuePage() {
         <p className="text-[11px] text-[var(--text-muted)] mb-4">Verifica tu conexión e intenta de nuevo</p>
         <button
           onClick={fetchData}
-          className="flex items-center gap-2 px-4 py-2 rounded-lg bg-[var(--surface-2)] border border-[var(--border-subtle)] text-xs text-[var(--text-secondary)] hover:text-white hover:border-[var(--border-default)] transition-all"
+          className="flex items-center gap-2 px-4 py-2 rounded-lg bg-[var(--surface-2)] border border-[var(--border-subtle)] text-xs text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:border-[var(--border-default)] transition-all"
         >
           <RefreshCw size={13} /> Reintentar
         </button>
@@ -106,7 +106,7 @@ export default function AdminRevenuePage() {
           </div>
           <button
             onClick={fetchData}
-            className="flex items-center gap-2 px-4 py-2 rounded-lg bg-[var(--surface-2)] border border-[var(--border-subtle)] text-xs font-ui font-bold uppercase tracking-wider text-[var(--text-secondary)] hover:text-white hover:border-[var(--border-default)] transition-all"
+            className="flex items-center gap-2 px-4 py-2 rounded-lg bg-[var(--surface-2)] border border-[var(--border-subtle)] text-xs font-ui font-bold uppercase tracking-wider text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:border-[var(--border-default)] transition-all"
           >
             <RefreshCw size={13} />
             Actualizar
@@ -234,7 +234,7 @@ export default function AdminRevenuePage() {
               Total Payments
             </span>
           </div>
-          <span className="font-heading text-3xl font-light text-white">{data.total_payments}</span>
+          <span className="font-heading text-3xl font-light text-[var(--text-primary)]">{data.total_payments}</span>
         </div>
         <div className="bg-[var(--surface-1)] border border-[var(--border-subtle)] rounded-xl p-5">
           <div className="flex items-center justify-between mb-2">
@@ -242,7 +242,7 @@ export default function AdminRevenuePage() {
               Completed Payments
             </span>
           </div>
-          <span className="font-heading text-3xl font-light text-white">
+          <span className="font-heading text-3xl font-light text-[var(--text-primary)]">
             {data.completed_payments}
           </span>
           <p className="text-[10px] text-[var(--text-muted)] mt-1">

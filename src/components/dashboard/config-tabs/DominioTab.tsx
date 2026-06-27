@@ -192,7 +192,7 @@ export default function DominioTab() {
           </span>
           <button
             onClick={() => copyToClipboard(siteUrl, "url")}
-            className="text-[var(--text-muted)] hover:text-white transition-colors"
+            className="text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-colors"
             title={t("dominio.subdomain.copyUrl")}
           >
             {copied === "url" ? (
@@ -205,7 +205,7 @@ export default function DominioTab() {
             href={siteUrl}
             target="_blank"
             rel="noopener noreferrer"
-            className="text-[var(--text-muted)] hover:text-white transition-colors"
+            className="text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-colors"
             title={t("dominio.subdomain.openSite")}
           >
             <ExternalLink size={14} />
@@ -352,7 +352,7 @@ export default function DominioTab() {
                       onClick={() =>
                         copyToClipboard("76.76.21.21", "a-record")
                       }
-                      className="text-[var(--text-muted)] hover:text-white transition-colors"
+                      className="text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-colors"
                     >
                       {copied === "a-record" ? (
                         <Check size={14} className="text-emerald-400" />
@@ -394,7 +394,7 @@ export default function DominioTab() {
                           "cname-record"
                         )
                       }
-                      className="text-[var(--text-muted)] hover:text-white transition-colors"
+                      className="text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-colors"
                     >
                       {copied === "cname-record" ? (
                         <Check size={14} className="text-emerald-400" />

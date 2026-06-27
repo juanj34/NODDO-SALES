@@ -30,7 +30,7 @@ export function EventsChart({ data }: Props) {
       "
     >
       <div className="mb-6">
-        <h3 className="font-ui text-xs font-bold uppercase tracking-wider text-white mb-1">
+        <h3 className="font-ui text-xs font-bold uppercase tracking-wider text-[var(--text-primary)] mb-1">
           Actividad por día
         </h3>
         <p className="font-mono text-xs text-[var(--text-tertiary)]">
@@ -43,32 +43,32 @@ export function EventsChart({ data }: Props) {
           <BarChart data={chartData}>
             <CartesianGrid
               strokeDasharray="3 3"
-              stroke="rgba(255,255,255,0.05)"
+              stroke="rgba(var(--contrast-rgb),0.05)"
               vertical={false}
             />
             <XAxis
               dataKey="date"
-              stroke="rgba(255,255,255,0.3)"
-              tick={{ fill: "rgba(255,255,255,0.5)", fontSize: 11 }}
+              stroke="rgba(var(--contrast-rgb),0.3)"
+              tick={{ fill: "rgba(var(--contrast-rgb),0.5)", fontSize: 11 }}
               tickLine={false}
-              axisLine={{ stroke: "rgba(255,255,255,0.1)" }}
+              axisLine={{ stroke: "rgba(var(--contrast-rgb),0.1)" }}
             />
             <YAxis
-              stroke="rgba(255,255,255,0.3)"
-              tick={{ fill: "rgba(255,255,255,0.5)", fontSize: 11 }}
+              stroke="rgba(var(--contrast-rgb),0.3)"
+              tick={{ fill: "rgba(var(--contrast-rgb),0.5)", fontSize: 11 }}
               tickLine={false}
-              axisLine={{ stroke: "rgba(255,255,255,0.1)" }}
+              axisLine={{ stroke: "rgba(var(--contrast-rgb),0.1)" }}
             />
             <Tooltip
               cursor={{ fill: "rgba(184,151,58,0.1)" }}
               contentStyle={{
-                backgroundColor: "rgba(26,26,29,0.95)",
-                border: "1px solid rgba(255,255,255,0.1)",
+                backgroundColor: "var(--surface-3)",
+                border: "1px solid rgba(var(--contrast-rgb),0.1)",
                 borderRadius: "8px",
                 fontSize: "12px",
-                color: "white",
+                color: "var(--text-primary)",
               }}
-              labelStyle={{ color: "rgba(255,255,255,0.7)", marginBottom: "4px" }}
+              labelStyle={{ color: "rgba(var(--contrast-rgb),0.7)", marginBottom: "4px" }}
             />
             <Bar
               dataKey="count"

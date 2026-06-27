@@ -185,12 +185,12 @@ export function DatePickerInput({
         animate={{ opacity: 1, y: 0, scale: 1 }}
         exit={{ opacity: 0, y: dropUp ? 6 : -6, scale: 0.97 }}
         transition={{ duration: 0.14, ease: "easeOut" }}
-        className="fixed z-[9999] w-[280px] rounded-xl border border-[var(--border-default)] shadow-[0_8px_40px_rgba(0,0,0,0.5)]"
+        className="fixed z-[9999] w-[280px] rounded-xl border border-[var(--border-default)] shadow-[0_8px_40px_rgba(var(--overlay-rgb),0.5)]"
         style={{
           top: dropUp ? undefined : panelPos.top,
           bottom: dropUp ? window.innerHeight - panelPos.top : undefined,
           left: panelPos.left,
-          background: "rgba(26,26,29,0.96)",
+          background: "var(--surface-3)",
           backdropFilter: "blur(32px)",
           WebkitBackdropFilter: "blur(32px)",
           willChange: "transform, opacity",
@@ -201,7 +201,7 @@ export function DatePickerInput({
           <button
             type="button"
             onClick={prevMonth}
-            className="p-1 rounded-md hover:bg-[var(--surface-3)] text-[var(--text-secondary)] hover:text-white transition-colors"
+            className="p-1 rounded-md hover:bg-[var(--surface-3)] text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors"
           >
             <ChevronLeft size={14} />
           </button>
@@ -211,7 +211,7 @@ export function DatePickerInput({
           <button
             type="button"
             onClick={nextMonth}
-            className="p-1 rounded-md hover:bg-[var(--surface-3)] text-[var(--text-secondary)] hover:text-white transition-colors"
+            className="p-1 rounded-md hover:bg-[var(--surface-3)] text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors"
           >
             <ChevronRight size={14} />
           </button>
@@ -242,7 +242,7 @@ export function DatePickerInput({
                 className={cn(
                   "relative h-8 w-full rounded-md text-[11px] font-mono transition-colors",
                   !cell.current && "text-[var(--text-muted)] opacity-30 cursor-default",
-                  cell.current && !isSelected && "text-[var(--text-secondary)] hover:bg-[var(--surface-3)] hover:text-white cursor-pointer",
+                  cell.current && !isSelected && "text-[var(--text-secondary)] hover:bg-[var(--surface-3)] hover:text-[var(--text-primary)] cursor-pointer",
                   isSelected && "bg-[rgba(var(--site-primary-rgb),0.2)] text-[var(--site-primary)] font-medium ring-1 ring-[rgba(var(--site-primary-rgb),0.4)]",
                   isToday && !isSelected && "text-[var(--site-primary)]",
                 )}

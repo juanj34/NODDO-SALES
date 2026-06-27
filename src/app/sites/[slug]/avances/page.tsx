@@ -170,7 +170,7 @@ export default function AvancesPage() {
             >
               <IconAvancesHeader className="text-[var(--site-primary)]" />
             </motion.div>
-            <h1 className="text-3xl font-site-heading text-white tracking-wide mb-3">
+            <h1 className="text-3xl font-site-heading text-[var(--text-primary)] tracking-wide mb-3">
               {t("avances.heading")}
             </h1>
             <p className="text-[var(--text-tertiary)] text-sm max-w-md mx-auto leading-relaxed">
@@ -271,7 +271,7 @@ export default function AvancesPage() {
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               onClick={closeModal}
-              className="absolute inset-0 bg-black/90 backdrop-blur-md"
+              className="absolute inset-0 bg-[rgba(var(--overlay-rgb),0.9)] backdrop-blur-md"
             />
 
             {/* Modal content */}
@@ -284,7 +284,7 @@ export default function AvancesPage() {
               style={{
                 background: "linear-gradient(to bottom, var(--surface-1), var(--surface-0))",
                 border: "1px solid var(--border-subtle)",
-                boxShadow: "0 25px 50px -12px rgba(0,0,0,0.6), 0 0 0 1px rgba(255,255,255,0.03)",
+                boxShadow: "0 25px 50px -12px rgba(var(--overlay-rgb),0.6), 0 0 0 1px rgba(var(--contrast-rgb),0.03)",
               }}
             >
               {/* Modal header */}
@@ -294,13 +294,13 @@ export default function AvancesPage() {
                     <Calendar size={10} />
                     {formatDate(selectedAvance.fecha, dateLocale)}
                   </span>
-                  <h3 className="text-xl font-site-heading font-light tracking-wide text-white leading-tight">
+                  <h3 className="text-xl font-site-heading font-light tracking-wide text-[var(--text-primary)] leading-tight">
                     {selectedAvance.titulo}
                   </h3>
                 </div>
                 <button
                   onClick={closeModal}
-                  className="w-9 h-9 flex-shrink-0 flex items-center justify-center rounded-full bg-white/5 border border-[var(--border-subtle)] text-[var(--text-secondary)] hover:text-white hover:bg-white/10 transition-colors cursor-pointer"
+                  className="w-9 h-9 flex-shrink-0 flex items-center justify-center rounded-full bg-[var(--surface-2)] border border-[var(--border-subtle)] text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--surface-3)] transition-colors cursor-pointer"
                 >
                   <X size={16} />
                 </button>
@@ -312,7 +312,7 @@ export default function AvancesPage() {
                 {selectedAvance.video_url && (() => {
                   const embedUrl = getYouTubeEmbedUrl(selectedAvance.video_url);
                   return embedUrl ? (
-                    <div className="aspect-video rounded-xl overflow-hidden bg-black/50 border border-[var(--border-subtle)]">
+                    <div className="aspect-video rounded-xl overflow-hidden bg-[var(--surface-2)] border border-[var(--border-subtle)]">
                       <iframe
                         src={embedUrl}
                         title={selectedAvance.titulo}
@@ -358,7 +358,7 @@ export default function AvancesPage() {
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             onClick={closeLightbox}
-            className="fixed inset-0 z-[90] flex items-center justify-center p-4 bg-black/95 backdrop-blur-lg cursor-zoom-out"
+            className="fixed inset-0 z-[90] flex items-center justify-center p-4 bg-[rgba(var(--overlay-rgb),0.95)] backdrop-blur-lg cursor-zoom-out"
           >
             <motion.img
               initial={{ scale: 0.9, opacity: 0 }}
@@ -371,7 +371,9 @@ export default function AvancesPage() {
             />
             <button
               onClick={closeLightbox}
-              className="absolute top-4 right-4 w-10 h-10 flex items-center justify-center rounded-full bg-white/10 border border-white/10 text-white/70 hover:text-white hover:bg-white/20 transition-colors cursor-pointer"
+              className={
+                "absolute top-4 right-4 w-10 h-10 flex items-center justify-center rounded-full bg-white/10 border border-white/10 text-white/70 hover:text-white hover:bg-white/20 transition-colors cursor-pointer" // theme-allow: close button over dark lightbox scrim
+              }
             >
               <X size={18} />
             </button>
@@ -404,9 +406,9 @@ function TimelineCard({
       onClick={onClick}
       className="w-full text-left group cursor-pointer relative overflow-hidden rounded-2xl"
       style={{
-        background: "linear-gradient(to bottom, rgba(255,255,255,0.04), rgba(255,255,255,0.015))",
+        background: "linear-gradient(to bottom, rgba(var(--contrast-rgb),0.04), rgba(var(--contrast-rgb),0.015))",
         border: "1px solid var(--border-subtle)",
-        boxShadow: "0 4px 20px rgba(0,0,0,0.2)",
+        boxShadow: "0 4px 20px rgba(var(--overlay-rgb),0.2)",
       }}
     >
       {/* Hover gradient overlay */}
@@ -422,20 +424,28 @@ function TimelineCard({
             className="object-cover transition-transform duration-700 group-hover:scale-105"
           />
           {/* Dark gradient overlay */}
-          <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-black/10" />
+          <div className="absolute inset-0 bg-gradient-to-t from-[rgba(var(--overlay-rgb),0.6)] via-transparent to-[rgba(var(--overlay-rgb),0.1)]" />
 
           {/* Video play badge */}
           {avance.video_url && (
             <div className="absolute inset-0 flex items-center justify-center">
               <div className="w-12 h-12 rounded-full bg-[var(--site-primary)]/90 backdrop-blur-sm flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform duration-300">
-                <Play size={18} className="text-black ml-0.5" fill="currentColor" />
+                <Play
+                  size={18}
+                  className={
+                    "text-black ml-0.5" // theme-allow: dark icon on gold badge
+                  }
+                  fill="currentColor"
+                />
               </div>
             </div>
           )}
 
           {/* Date badge overlaid on image */}
           <div className="absolute top-3 left-3">
-            <span className="inline-flex items-center gap-1.5 text-[10px] tracking-[0.18em] uppercase text-white/90 bg-black/50 backdrop-blur-md px-3 py-1.5 rounded-full border border-white/10">
+            <span className={
+              "inline-flex items-center gap-1.5 text-[10px] tracking-[0.18em] uppercase text-white/90 bg-[rgba(var(--overlay-rgb),0.5)] backdrop-blur-md px-3 py-1.5 rounded-full border border-white/10" // theme-allow: date badge sits over hero photo
+            }>
               <Calendar size={10} />
               {formatDateShort(avance.fecha, dateLocale)}
             </span>
@@ -453,7 +463,7 @@ function TimelineCard({
           </span>
         )}
 
-        <h3 className="text-[15px] font-medium tracking-wide text-white mb-2 group-hover:text-[var(--site-primary)] transition-colors duration-300 leading-snug">
+        <h3 className="text-[15px] font-medium tracking-wide text-[var(--text-primary)] mb-2 group-hover:text-[var(--site-primary)] transition-colors duration-300 leading-snug">
           {avance.titulo}
         </h3>
 
@@ -494,9 +504,9 @@ function SingleAvanceCard({
       onClick={onClick}
       className="w-full text-left group cursor-pointer relative overflow-hidden rounded-2xl"
       style={{
-        background: "linear-gradient(to bottom, rgba(255,255,255,0.04), rgba(255,255,255,0.015))",
+        background: "linear-gradient(to bottom, rgba(var(--contrast-rgb),0.04), rgba(var(--contrast-rgb),0.015))",
         border: "1px solid var(--border-subtle)",
-        boxShadow: "0 8px 30px rgba(0,0,0,0.25), 0 0 0 1px rgba(255,255,255,0.03)",
+        boxShadow: "0 8px 30px rgba(var(--overlay-rgb),0.25), 0 0 0 1px rgba(var(--contrast-rgb),0.03)",
       }}
     >
       <div className="absolute inset-0 bg-gradient-to-br from-[rgba(var(--site-primary-rgb),0.06)] to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
@@ -510,12 +520,18 @@ function SingleAvanceCard({
             fill
             className="object-cover transition-transform duration-700 group-hover:scale-105"
           />
-          <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-black/10" />
+          <div className="absolute inset-0 bg-gradient-to-t from-[rgba(var(--overlay-rgb),0.6)] via-transparent to-[rgba(var(--overlay-rgb),0.1)]" />
 
           {avance.video_url && (
             <div className="absolute inset-0 flex items-center justify-center">
               <div className="w-14 h-14 rounded-full bg-[var(--site-primary)]/90 backdrop-blur-sm flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform duration-300">
-                <Play size={22} className="text-black ml-0.5" fill="currentColor" />
+                <Play
+                  size={22}
+                  className={
+                    "text-black ml-0.5" // theme-allow: dark icon on gold badge
+                  }
+                  fill="currentColor"
+                />
               </div>
             </div>
           )}
@@ -529,7 +545,7 @@ function SingleAvanceCard({
           {formatDate(avance.fecha, dateLocale)}
         </span>
 
-        <h3 className="text-xl font-site-heading font-light tracking-wide text-white mb-3 group-hover:text-[var(--site-primary)] transition-colors duration-300 leading-snug">
+        <h3 className="text-xl font-site-heading font-light tracking-wide text-[var(--text-primary)] mb-3 group-hover:text-[var(--site-primary)] transition-colors duration-300 leading-snug">
           {avance.titulo}
         </h3>
 

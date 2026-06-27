@@ -135,7 +135,7 @@ export function RecentProjectsPreview({
             <FolderOpen size={28} className="text-[var(--site-primary)]" />
           </div>
 
-          <h3 className="font-heading text-xl font-light text-white mb-2">
+          <h3 className="font-heading text-xl font-light text-[var(--text-primary)] mb-2">
             {isAdmin ? "Aún no tienes proyectos" : "No hay proyectos disponibles"}
           </h3>
 
@@ -148,17 +148,17 @@ export function RecentProjectsPreview({
           {isAdmin && onCreateProject && (
             <button
               onClick={onCreateProject}
-              className="
-                flex items-center gap-2
-                px-6 py-3
-                bg-[var(--site-primary)]
-                text-[#141414]
-                rounded-[0.75rem]
-                font-ui text-xs font-bold uppercase tracking-[0.1em]
-                hover:brightness-110
-                transition-all
-                shadow-[0_4px_16px_rgba(var(--site-primary-rgb),0.2)]
-              "
+              className={
+                "flex items-center gap-2 " +
+                "px-6 py-3 " +
+                "bg-[var(--site-primary)] " +
+                "text-[#141414] " + // theme-allow: dark text on gold
+                "rounded-[0.75rem] " +
+                "font-ui text-xs font-bold uppercase tracking-[0.1em] " +
+                "hover:brightness-110 " +
+                "transition-all " +
+                "shadow-[0_4px_16px_rgba(var(--site-primary-rgb),0.2)]"
+              }
             >
               <Plus size={16} />
               Crear Proyecto

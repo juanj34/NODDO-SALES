@@ -93,7 +93,7 @@ export function DashboardShortcutsEnhanced({ leadCount }: Props) {
                   size={16}
                   className="text-[var(--site-primary)] shrink-0"
                 />
-                <span className="font-ui text-[11px] font-bold uppercase tracking-wider text-[var(--text-secondary)] group-hover:text-white transition-colors duration-200">
+                <span className="font-ui text-[11px] font-bold uppercase tracking-wider text-[var(--text-secondary)] group-hover:text-[var(--text-primary)] transition-colors duration-200">
                   {item.label}
                 </span>
                 {item.badge !== undefined && (

@@ -187,7 +187,7 @@ export function InventorySetupWizard({ project, onComplete }: InventorySetupWiza
                         >
                           <span
                             className={cn(
-                              "inline-block rounded-full bg-white shadow-sm transition-transform h-3 w-3",
+                              "inline-block rounded-full bg-[var(--surface-0)] shadow-sm transition-transform h-3 w-3",
                               isOn ? "translate-x-[14px]" : "translate-x-[2px]"
                             )}
                           />

@@ -71,7 +71,7 @@ export function ProjectsFilters({
               bg-[var(--surface-2)]
               border border-[var(--border-default)]
               rounded-[0.625rem]
-              text-sm text-white
+              text-sm text-[var(--text-primary)]
               placeholder:text-[var(--text-muted)]
               focus:outline-none
               focus:border-[rgba(var(--site-primary-rgb),0.5)]
@@ -82,7 +82,7 @@ export function ProjectsFilters({
           {search && (
             <button
               onClick={() => onSearchChange("")}
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-[var(--text-muted)] hover:text-white transition-colors"
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-colors"
             >
               <X size={14} />
             </button>
@@ -93,18 +93,18 @@ export function ProjectsFilters({
         {isAdmin && onCreateClick && (
           <button
             onClick={onCreateClick}
-            className="
-              flex items-center gap-2
-              px-4 py-2.5
-              bg-[var(--site-primary)]
-              text-[#141414]
-              rounded-[0.625rem]
-              font-ui text-xs font-bold uppercase tracking-[0.1em]
-              hover:brightness-110
-              transition-all
-              shadow-[0_4px_12px_rgba(var(--site-primary-rgb),0.2)]
-              shrink-0
-            "
+            className={
+              "flex items-center gap-2 " +
+              "px-4 py-2.5 " +
+              "bg-[var(--site-primary)] " +
+              "text-[#141414] " + // theme-allow: dark text on gold
+              "rounded-[0.625rem] " +
+              "font-ui text-xs font-bold uppercase tracking-[0.1em] " +
+              "hover:brightness-110 " +
+              "transition-all " +
+              "shadow-[0_4px_12px_rgba(var(--site-primary-rgb),0.2)] " +
+              "shrink-0"
+            }
           >
             <Plus size={16} />
             <span className="hidden sm:inline">Crear Proyecto</span>
@@ -129,7 +129,7 @@ export function ProjectsFilters({
                 transition-all
                 ${
                   statusFilter === status.value
-                    ? "bg-[var(--site-primary)] text-[#141414] shadow-[0_2px_8px_rgba(var(--site-primary-rgb),0.3)]"
+                    ? "bg-[var(--site-primary)] text-[#141414] shadow-[0_2px_8px_rgba(var(--site-primary-rgb),0.3)]" // theme-allow: dark text on gold
                     : `${status.color} bg-[var(--surface-2)] hover:bg-[var(--surface-3)]`
                 }
               `}
@@ -163,7 +163,7 @@ export function ProjectsFilters({
               px-3 py-1.5
               text-xs font-mono
               text-[var(--text-muted)]
-              hover:text-white
+              hover:text-[var(--text-primary)]
               border border-[var(--border-default)]
               bg-[var(--surface-2)]
               rounded-lg

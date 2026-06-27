@@ -11,7 +11,7 @@ export default function NotFound() {
       <div className="text-center max-w-md relative z-10">
         {/* Logo */}
         <div className="mb-8 flex justify-center">
-          <NodDoLogo height={28} colorNod="#f4f0e8" colorDo="#b8973a" />
+          <NodDoLogo height={28} colorNod="var(--text-primary)" colorDo="var(--site-primary)" />
         </div>
 
         {/* 404 number */}
@@ -20,10 +20,10 @@ export default function NotFound() {
         </h1>
 
         {/* Message */}
-        <p className="font-heading text-2xl font-light text-[rgba(244,240,232,0.92)] mb-2 tracking-wide">
+        <p className="font-heading text-2xl font-light text-[var(--text-primary)] mb-2 tracking-wide">
           Pagina no encontrada
         </p>
-        <p className="font-body text-[13px] font-light text-[rgba(244,240,232,0.35)] mb-8 leading-relaxed">
+        <p className="font-body text-[13px] font-light text-[var(--text-tertiary)] mb-8 leading-relaxed">
           La pagina que buscas no existe o ha sido movida.
         </p>
 

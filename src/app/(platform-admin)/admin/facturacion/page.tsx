@@ -395,7 +395,7 @@ export default function FacturacionPage() {
 
       {/* Create Invoice Modal */}
       {showCreateModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60" onClick={() => setShowCreateModal(false)}>
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-[rgba(var(--overlay-rgb),0.6)]" onClick={() => setShowCreateModal(false)}>
           <motion.div
             initial={{ opacity: 0, scale: 0.95, y: 20 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}

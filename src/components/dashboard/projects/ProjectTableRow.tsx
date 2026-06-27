@@ -83,7 +83,7 @@ export function ProjectTableRow({
       {/* Nombre */}
       <td className="px-5 py-3">
         <div>
-          <p className="font-medium text-sm text-white truncate max-w-[200px]">{proyecto.nombre}</p>
+          <p className="font-medium text-sm text-[var(--text-primary)] truncate max-w-[200px]">{proyecto.nombre}</p>
           <p className="font-mono text-xs text-[var(--text-tertiary)] truncate max-w-[200px]">
             {proyecto.slug}.noddo.io
           </p>
@@ -109,21 +109,21 @@ export function ProjectTableRow({
 
       {/* Unidades */}
       <td className="px-5 py-3 text-center hidden md:table-cell">
-        <span className="font-mono text-sm text-white">
+        <span className="font-mono text-sm text-[var(--text-primary)]">
           {proyecto.stats?.unidades_total || 0}
         </span>
       </td>
 
       {/* Leads 7d */}
       <td className="px-5 py-3 text-center hidden lg:table-cell">
-        <span className="font-mono text-sm text-white">
+        <span className="font-mono text-sm text-[var(--text-primary)]">
           {proyecto.stats?.leads_7d || 0}
         </span>
       </td>
 
       {/* Visitas 7d */}
       <td className="px-5 py-3 text-center hidden xl:table-cell">
-        <span className="font-mono text-sm text-white">
+        <span className="font-mono text-sm text-[var(--text-primary)]">
           {proyecto.stats?.views_7d || 0}
         </span>
       </td>
@@ -213,7 +213,7 @@ export function ProjectTableRow({
                 className="
                   p-2 rounded-lg
                   text-[var(--text-muted)]
-                  hover:text-white
+                  hover:text-[var(--text-primary)]
                   hover:bg-[var(--surface-3)]
                   transition-colors
                 "
@@ -236,7 +236,7 @@ export function ProjectTableRow({
                     bg-[var(--surface-2)]
                     border border-[var(--border-default)]
                     rounded-lg
-                    shadow-[0_8px_24px_rgba(0,0,0,0.4)]
+                    shadow-[0_8px_24px_rgba(var(--overlay-rgb),0.4)]
                     py-1
                     min-w-[160px]
                   ">
@@ -252,7 +252,7 @@ export function ProjectTableRow({
                           px-4 py-2
                           text-sm text-[var(--text-secondary)]
                           hover:bg-[var(--surface-3)]
-                          hover:text-white
+                          hover:text-[var(--text-primary)]
                           transition-colors
                         "
                       >

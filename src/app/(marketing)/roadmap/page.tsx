@@ -203,7 +203,7 @@ export default function RoadmapPage() {
               style={{
                 fontFamily: "var(--font-syne)",
                 fontWeight: 700,
-                color: "rgba(244,240,232,0.92)",
+                color: "var(--mk-text-primary)",
               }}
             >
               {t("roadmap.badge")}
@@ -218,7 +218,7 @@ export default function RoadmapPage() {
             style={{
               fontFamily: "var(--font-cormorant)",
               fontWeight: 300,
-              color: "rgba(244,240,232,0.92)",
+              color: "var(--mk-text-primary)",
             }}
           >
             {t("roadmap.title")}
@@ -231,7 +231,7 @@ export default function RoadmapPage() {
             className="text-lg max-w-3xl mx-auto leading-relaxed"
             style={{
               fontWeight: 300,
-              color: "rgba(244,240,232,0.55)",
+              color: "var(--mk-text-secondary)",
             }}
           >
             {t("roadmap.description")}
@@ -266,7 +266,7 @@ export default function RoadmapPage() {
                     style={{
                       fontFamily: "var(--font-cormorant)",
                       fontWeight: 400,
-                      color: "rgba(244,240,232,0.92)",
+                      color: "var(--mk-text-primary)",
                     }}
                   >
                     {section.title}
@@ -282,7 +282,7 @@ export default function RoadmapPage() {
                       whileInView={{ opacity: 1, x: 0 }}
                       viewport={{ once: true, margin: "-60px" }}
                       transition={{ duration: 0.5, delay: itemIndex * 0.05, ease }}
-                      className="glass-card p-6 hover:bg-white/5 transition-all duration-300"
+                      className="glass-card p-6 hover:bg-[var(--surface-2)] transition-all duration-300"
                     >
                       <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4">
                         <div className="flex-1">
@@ -292,7 +292,7 @@ export default function RoadmapPage() {
                               style={{
                                 fontFamily: "var(--font-cormorant)",
                                 fontWeight: 400,
-                                color: "rgba(244,240,232,0.92)",
+                                color: "var(--mk-text-primary)",
                               }}
                             >
                               {item.name}
@@ -307,12 +307,12 @@ export default function RoadmapPage() {
                                     item.impact === "high"
                                       ? "rgba(184, 151, 58, 0.15)"
                                       : item.impact === "medium"
-                                      ? "rgba(255, 255, 255, 0.05)"
-                                      : "rgba(255, 255, 255, 0.03)",
+                                      ? "rgba(var(--contrast-rgb), 0.05)"
+                                      : "rgba(var(--contrast-rgb), 0.03)",
                                   color:
                                     item.impact === "high"
                                       ? "#b8973a"
-                                      : "rgba(244,240,232,0.45)",
+                                      : "var(--mk-text-tertiary)",
                                 }}
                               >
                                 {item.impact} impact
@@ -324,7 +324,7 @@ export default function RoadmapPage() {
                             className="text-sm leading-[1.8] mb-3"
                             style={{
                               fontWeight: 300,
-                              color: "rgba(244,240,232,0.70)",
+                              color: "var(--mk-text-secondary)",
                             }}
                           >
                             {item.description}
@@ -338,7 +338,7 @@ export default function RoadmapPage() {
                                   className="text-xs"
                                   style={{
                                     fontWeight: 300,
-                                    color: "rgba(244,240,232,0.55)",
+                                    color: "var(--mk-text-secondary)",
                                   }}
                                 >
                                   {t("roadmap.progress")}
@@ -355,7 +355,7 @@ export default function RoadmapPage() {
                               </div>
                               <div
                                 className="h-2 rounded-full overflow-hidden"
-                                style={{ backgroundColor: "rgba(255, 255, 255, 0.08)" }}
+                                style={{ backgroundColor: "rgba(var(--contrast-rgb), 0.08)" }}
                               >
                                 <div
                                   className="h-full transition-all duration-500"
@@ -375,7 +375,7 @@ export default function RoadmapPage() {
                                 className="text-xs"
                                 style={{
                                   fontWeight: 300,
-                                  color: "rgba(244,240,232,0.55)",
+                                  color: "var(--mk-text-secondary)",
                                 }}
                               >
                                 {item.votes} {t("roadmap.votes")}
@@ -400,8 +400,8 @@ export default function RoadmapPage() {
                         <div
                           className="shrink-0 px-4 py-2 rounded-lg text-center"
                           style={{
-                            backgroundColor: "rgba(255, 255, 255, 0.05)",
-                            border: "1px solid rgba(255, 255, 255, 0.08)",
+                            backgroundColor: "rgba(var(--contrast-rgb), 0.05)",
+                            border: "1px solid rgba(var(--contrast-rgb), 0.08)",
                           }}
                         >
                           <div
@@ -409,7 +409,7 @@ export default function RoadmapPage() {
                             style={{
                               fontFamily: "var(--font-syne)",
                               fontWeight: 600,
-                              color: "rgba(244,240,232,0.45)",
+                              color: "var(--mk-text-tertiary)",
                             }}
                           >
                             {"date" in item ? t("roadmap.dateLaunched") : "eta" in item ? t("roadmap.dateEta") : t("roadmap.dateProposed")}
@@ -454,7 +454,7 @@ export default function RoadmapPage() {
               style={{
                 fontFamily: "var(--font-cormorant)",
                 fontWeight: 300,
-                color: "rgba(244,240,232,0.92)",
+                color: "var(--mk-text-primary)",
               }}
             >
               {t("roadmap.ctaTitleLine1")}{" "}
@@ -464,7 +464,7 @@ export default function RoadmapPage() {
               className="text-base mb-8 max-w-2xl mx-auto"
               style={{
                 fontWeight: 300,
-                color: "rgba(244,240,232,0.55)",
+                color: "var(--mk-text-secondary)",
               }}
             >
               {t("roadmap.ctaDescription")}
@@ -476,7 +476,7 @@ export default function RoadmapPage() {
                 fontFamily: "var(--font-syne)",
                 fontWeight: 700,
                 background: "linear-gradient(135deg, #b8973a 0%, #d4b05a 100%)",
-                color: "#0a0a0b",
+                color: "#0a0a0b", // theme-allow: dark ink on the fixed gold gradient button; gradient stays gold in both themes
                 boxShadow: "0 0 30px rgba(184, 151, 58, 0.3)",
               }}
             >

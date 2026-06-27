@@ -97,7 +97,7 @@ function Toggle({
       >
         <span
           className={cn(
-            "inline-block h-3.5 w-3.5 rounded-full bg-white shadow transition-transform duration-200",
+            "inline-block h-3.5 w-3.5 rounded-full bg-[var(--surface-0)] shadow transition-transform duration-200",
             checked ? "translate-x-[18px]" : "translate-x-[3px]"
           )}
         />
@@ -696,7 +696,7 @@ export default function CorreosTab() {
               </p>
               <div className={cn(
                 "rounded-lg overflow-hidden border border-[var(--border-default)]",
-                tema === "claro" ? "bg-[#f5f5f0]" : "bg-[#0a0a0a]"
+                tema === "claro" ? "bg-[#f5f5f0]" : "bg-[var(--surface-0)]"
               )}>
                 <iframe
                   srcDoc={previewHtml}

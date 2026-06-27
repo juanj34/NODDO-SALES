@@ -116,7 +116,7 @@ export default function ConfigPage() {
                   "relative flex items-center gap-2 px-4 py-2.5 rounded-lg transition-all font-ui text-xs font-bold uppercase tracking-[0.08em] whitespace-nowrap cursor-pointer",
                   isActive
                     ? "bg-[var(--site-primary)] text-[var(--surface-0)] shadow-[0_2px_8px_rgba(var(--site-primary-rgb),0.3)]"
-                    : "text-[var(--text-tertiary)] hover:text-[var(--text-primary)] hover:bg-white/5"
+                    : "text-[var(--text-tertiary)] hover:text-[var(--text-primary)] hover:bg-[var(--surface-2)]"
                 )}
               >
                 <TabIcon size={13} />
