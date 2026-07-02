@@ -554,7 +554,7 @@ export default function ExplorarPage() {
             </div>
 
             {/* Multi-tipo: available tipología cards (when no confirmed tipología) */}
-            {isMultiTipo && selectedUnit && getUnitAvailableTipologias(selectedUnit.id).length > 1 && (() => {
+            {isAgentMode && isMultiTipo && selectedUnit && getUnitAvailableTipologias(selectedUnit.id).length > 1 && (() => {
               const availTipos = getUnitAvailableTipologias(selectedUnit.id);
               if (availTipos.length === 0) return null;
               return (
@@ -564,25 +564,23 @@ export default function ExplorarPage() {
                   </p>
                   <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-hide">
                     {availTipos.map(tipo => (
-                      isAgentMode && (
-                        <button
-                          key={tipo.id}
-                          onClick={() => setCotizarUnidad(selectedUnit)}
-                          className="flex-shrink-0 bg-[var(--glass-bg)] border border-[var(--border-subtle)] rounded-xl p-3 text-left hover:border-[rgba(var(--site-primary-rgb),0.3)] transition-colors min-w-[140px] cursor-pointer"
-                        >
-                          <p className="text-xs font-medium text-[var(--text-primary)] mb-1.5">{tipo.nombre}</p>
-                          <div className="space-y-1 text-[10px] text-[var(--text-secondary)]">
-                            {(tipo.area_construida ?? tipo.area_m2) && <p>{tipo.area_construida ?? tipo.area_m2} m²</p>}
-                            {tipo.habitaciones != null && <p>{tipo.habitaciones} hab</p>}
-                            {tipo.banos != null && <p>{tipo.banos} baños</p>}
-                            {tipo.precio_desde != null && (
-                              <p className="text-[var(--site-primary)] font-medium">
-                                {formatPrecioShort(tipo.precio_desde)}
-                              </p>
-                            )}
-                          </div>
-                        </button>
-                      )
+                      <button
+                        key={tipo.id}
+                        onClick={() => setCotizarUnidad(selectedUnit)}
+                        className="flex-shrink-0 bg-[var(--glass-bg)] border border-[var(--border-subtle)] rounded-xl p-3 text-left hover:border-[rgba(var(--site-primary-rgb),0.3)] transition-colors min-w-[140px] cursor-pointer"
+                      >
+                        <p className="text-xs font-medium text-[var(--text-primary)] mb-1.5">{tipo.nombre}</p>
+                        <div className="space-y-1 text-[10px] text-[var(--text-secondary)]">
+                          {(tipo.area_construida ?? tipo.area_m2) && <p>{tipo.area_construida ?? tipo.area_m2} m²</p>}
+                          {tipo.habitaciones != null && <p>{tipo.habitaciones} hab</p>}
+                          {tipo.banos != null && <p>{tipo.banos} baños</p>}
+                          {tipo.precio_desde != null && (
+                            <p className="text-[var(--site-primary)] font-medium">
+                              {formatPrecioShort(tipo.precio_desde)}
+                            </p>
+                          )}
+                        </div>
+                      </button>
                     ))}
                   </div>
                 </div>

@@ -18,7 +18,7 @@ export function useSectionVisibility(section: keyof SeccionesVisibles): boolean 
 
   useEffect(() => {
     if (!visible) {
-      router.replace(basePath);
+      router.replace(basePath || "/");
     }
   }, [visible, basePath, router]);
 

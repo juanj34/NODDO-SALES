@@ -79,7 +79,6 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       "/galeria",
       "/ubicacion",
       "/videos",
-      "/contacto",
       "/explorar",
       "/inventario",
       "/implantaciones",
