@@ -4,6 +4,7 @@ import { useState, useMemo, useEffect, useCallback, useRef } from "react";
 import { useSearchParams } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { useSiteProject } from "@/hooks/useSiteProject";
+import { useAgentMode } from "@/hooks/useAgentMode";
 import { usePersistedState } from "@/hooks/usePersistedState";
 import { useTranslation, getEstadoConfig } from "@/i18n";
 import { CotizadorModal } from "@/components/site/CotizadorModal";
@@ -157,6 +158,7 @@ export default function TipologiasPage() {
   // Unit context panel state
   const [selectedUnit, setSelectedUnit] = useState<Unidad | null>(null);
   const [cotizarUnidad, setCotizarUnidad] = useState<Unidad | null>(null);
+  const { isAgentMode } = useAgentMode();
   const [infoExpanded, setInfoExpanded] = useState(false);
   // Which tipología is selected in the unit detail banner (for multi-tipo lotes comparison)
   const [bannerTipoId, setBannerTipoId] = useState<string | null>(null);
@@ -994,13 +996,15 @@ export default function TipologiasPage() {
                           </div>
 
                           {/* Cotizar button */}
-                          <button
-                            onClick={() => setCotizarUnidad(selectedUnit)}
-                            className="flex-shrink-0 btn-warm px-5 py-2.5 flex items-center gap-2 text-xs tracking-wider cursor-pointer"
-                          >
-                            <Sparkles size={14} />
-                            {tSite("tipologias.enquire")}
-                          </button>
+                          {isAgentMode && (
+                            <button
+                              onClick={() => setCotizarUnidad(selectedUnit)}
+                              className="flex-shrink-0 btn-warm px-5 py-2.5 flex items-center gap-2 text-xs tracking-wider cursor-pointer"
+                            >
+                              <Sparkles size={14} />
+                              {tSite("tipologias.enquire")}
+                            </button>
+                          )}
                         </div>
                       </div>
                     </motion.div>

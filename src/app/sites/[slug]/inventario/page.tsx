@@ -32,6 +32,7 @@ import {
 } from "lucide-react";
 import { Lightbox } from "@/components/site/Lightbox";
 import { useSiteProject, useSiteBasePath } from "@/hooks/useSiteProject";
+import { useAgentMode } from "@/hooks/useAgentMode";
 import { usePersistedState } from "@/hooks/usePersistedState";
 import { useTranslation, getEstadoConfig } from "@/i18n";
 import { CotizadorModal } from "@/components/site/CotizadorModal";
@@ -105,6 +106,7 @@ export default function InventarioPage() {
     proyecto.slug,
   );
   const [cotizarUnidad, setCotizarUnidad] = useState<Unidad | null>(null);
+  const { isAgentMode } = useAgentMode();
   const [tipoSelectorUnit, setTipoSelectorUnit] = useState<Unidad | null>(null);
   const [planoLightboxUrl, setPlanoLightboxUrl] = useState<string | null>(null);
 
@@ -1007,13 +1009,15 @@ export default function InventarioPage() {
                             <Eye size={13} />
                           </Link>
                         )}
-                        <button
-                          onClick={() => setCotizarUnidad(unit)}
-                          className="p-1.5 rounded-lg text-[var(--site-primary)] hover:text-white bg-[rgba(var(--site-primary-rgb),0.15)] hover:bg-[rgba(var(--site-primary-rgb),0.30)] transition-all cursor-pointer"
-                          aria-label={tSite("inventario.enquireUnit", { unit: unit.identificador })}
-                        >
-                          <Sparkles size={13} />
-                        </button>
+                        {isAgentMode && (
+                          <button
+                            onClick={() => setCotizarUnidad(unit)}
+                            className="p-1.5 rounded-lg text-[var(--site-primary)] hover:text-white bg-[rgba(var(--site-primary-rgb),0.15)] hover:bg-[rgba(var(--site-primary-rgb),0.30)] transition-all cursor-pointer"
+                            aria-label={tSite("inventario.enquireUnit", { unit: unit.identificador })}
+                          >
+                            <Sparkles size={13} />
+                          </button>
+                        )}
                       </div>
                     </div>
                   </motion.div>
@@ -1227,13 +1231,15 @@ export default function InventarioPage() {
                           <Eye size={12} />
                         </Link>
                       )}
-                      <button
-                        onClick={() => setCotizarUnidad(unit)}
-                        className="p-1 rounded-md text-[var(--site-primary)] hover:text-white bg-[rgba(var(--site-primary-rgb),0.15)] hover:bg-[rgba(var(--site-primary-rgb),0.30)] transition-all cursor-pointer"
-                        aria-label={tSite("inventario.enquireUnit", { unit: unit.identificador })}
-                      >
-                        <Sparkles size={12} />
-                      </button>
+                      {isAgentMode && (
+                        <button
+                          onClick={() => setCotizarUnidad(unit)}
+                          className="p-1 rounded-md text-[var(--site-primary)] hover:text-white bg-[rgba(var(--site-primary-rgb),0.15)] hover:bg-[rgba(var(--site-primary-rgb),0.30)] transition-all cursor-pointer"
+                          aria-label={tSite("inventario.enquireUnit", { unit: unit.identificador })}
+                        >
+                          <Sparkles size={12} />
+                        </button>
+                      )}
                     </div>
                   </motion.div>
                 );
