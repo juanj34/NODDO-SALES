@@ -11,8 +11,6 @@ import { SmoothScroll } from "@/components/site/SmoothScroll";
 import { EditorialWatermark } from "@/components/site/EditorialWatermark";
 import { SitePreloader } from "@/components/site/SitePreloader";
 import { AudioProvider, AudioMuteButton } from "@/components/site/AudioPlayer";
-
-import { WhatsAppButton } from "@/components/site/WhatsAppButton";
 import { NoddoBadge } from "@/components/site/NoddoBadge";
 import { SiteTracker } from "@/components/site/SiteTracker";
 import { RouteProgressBar } from "@/components/ui/RouteProgressBar";
@@ -139,13 +137,6 @@ export function SiteLayoutClient({ proyecto, basePath, children }: Props) {
             <div className="fixed bottom-6 right-6 z-30">
               <AudioMuteButton />
             </div>
-          )}
-          {/* WhatsApp floating button — non-landing pages when number is configured */}
-          {!isLanding && proyecto.whatsapp_numero && (
-            <WhatsAppButton
-              numero={proyecto.whatsapp_numero}
-              proyectoId={proyecto.id}
-            />
           )}
           <AgentModeIndicator />
           <NoddoBadge hide={!!proyecto.hide_noddo_badge} />
