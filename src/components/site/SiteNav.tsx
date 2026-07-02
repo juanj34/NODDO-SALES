@@ -15,7 +15,6 @@ import {
   Film,
   FileText,
   Globe,
-  MessageCircle,
   Map as MapIcon,
   HardHat,
   Settings,
@@ -101,7 +100,6 @@ export function SiteNav({ basePath, projectName, logoUrl, faviconUrl, constructo
     ...(hasTour360 ? [{ label: tNav("tour360"), href: "/tour-360", Icon: Globe }] : []),
     ...(hasBrochure ? [{ label: tNav("brochure"), href: "/brochure", Icon: BookOpen }] : []),
     { label: tNav("recursos"), href: "/recursos", Icon: FileText },
-    { label: tNav("contacto"), href: "/contacto", Icon: MessageCircle },
   ].filter((item) => {
     const segment = item.href.replace("/", "");
     const sectionKey = ROUTE_TO_SECTION[segment];
