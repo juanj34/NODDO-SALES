@@ -1,8 +1,24 @@
 import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
 import { NextResponse } from "next/server";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { UserRole } from "@/types";
 import { hasPermission, type Permission } from "@/lib/permissions";
+
+/**
+ * Service-role client for collaborator linking. RLS on `colaboradores` only
+ * grants access to the admin or an ALREADY-linked collaborator, so a freshly
+ * invited user's session can never see (or activate) their own pending row.
+ * Returns null when SUPABASE_SERVICE_ROLE_KEY is not configured (previews).
+ */
+function tryCreateAdminClient(): SupabaseClient | null {
+  if (!process.env.SUPABASE_SERVICE_ROLE_KEY) return null;
+  try {
+    return createAdminClient();
+  } catch {
+    return null;
+  }
+}
 
 export type { UserRole };
 
@@ -59,35 +75,46 @@ export async function getAuthContext(): Promise<AuthContext | null> {
     .maybeSingle();
 
   // Auto-activate pending collaborators who already have a session
-  // (covers cases where linkPendingCollaborator wasn't triggered in /auth/callback)
+  // (covers cases where linkPendingCollaborator wasn't triggered in /auth/callback).
+  // Must run with service role: RLS only lets the ADMIN update colaboradores rows.
   if (collab && collab.estado === "pendiente") {
-    await supabase
-      .from("colaboradores")
-      .update({ estado: "activo", activated_at: new Date().toISOString() })
-      .eq("id", collab.id);
+    const admin = tryCreateAdminClient();
+    if (admin) {
+      await admin
+        .from("colaboradores")
+        .update({ estado: "activo", activated_at: new Date().toISOString() })
+        .eq("id", collab.id);
+    }
     collab = { ...collab, estado: "activo" };
   }
 
-  // Also check by email if no collab found by user_id (invitation with null colaborador_user_id)
+  // Also check by email if no collab found by user_id (invitation with null
+  // colaborador_user_id). The pending row is invisible to this user under RLS
+  // (they are neither the admin nor linked yet), so both the lookup and the
+  // linking need the service-role client. user.email comes from a verified
+  // session (supabase.auth.getUser), so matching by it is safe.
   if (!collab && user.email) {
-    const { data: pendingByEmail } = await supabase
-      .from("colaboradores")
-      .select("id, admin_user_id, rol, estado")
-      .eq("email", user.email.toLowerCase())
-      .eq("estado", "pendiente")
-      .limit(1)
-      .maybeSingle();
-
-    if (pendingByEmail) {
-      await supabase
+    const admin = tryCreateAdminClient();
+    if (admin) {
+      const { data: pendingByEmail } = await admin
         .from("colaboradores")
-        .update({
-          colaborador_user_id: user.id,
-          estado: "activo",
-          activated_at: new Date().toISOString(),
-        })
-        .eq("id", pendingByEmail.id);
-      collab = { ...pendingByEmail, estado: "activo" };
+        .select("id, admin_user_id, rol, estado")
+        .eq("email", user.email.toLowerCase())
+        .eq("estado", "pendiente")
+        .limit(1)
+        .maybeSingle();
+
+      if (pendingByEmail) {
+        await admin
+          .from("colaboradores")
+          .update({
+            colaborador_user_id: user.id,
+            estado: "activo",
+            activated_at: new Date().toISOString(),
+          })
+          .eq("id", pendingByEmail.id);
+        collab = { ...pendingByEmail, estado: "activo" };
+      }
     }
   }
 
@@ -185,28 +212,37 @@ export async function verifyProjectOwnership(
 
 /**
  * After login/signup, checks if this user's email has a pending collaborator
- * invitation and links them automatically.
+ * invitation and links them automatically. Returns true if a pending
+ * invitation was linked (the caller can use this to route onboarding).
+ *
+ * Runs with the service-role client: the pending row (colaborador_user_id
+ * still null) is invisible to the new user's session under RLS, which is why
+ * invited users used to fall through to an empty "admin" dashboard.
+ * The email is trusted because it comes from the verified auth session.
  */
 export async function linkPendingCollaborator(
-  supabase: SupabaseClient,
   user: { id: string; email?: string }
-): Promise<void> {
-  if (!user.email) return;
+): Promise<boolean> {
+  if (!user.email) return false;
+
+  const admin = tryCreateAdminClient();
+  if (!admin) return false;
 
   // Fetch pending record before update (to get rol for welcome email)
   // Match by email OR by colaborador_user_id — covers both cases:
   // 1. Invited user who hasn't been linked yet (colaborador_user_id is null)
   // 2. Invited user whose ID was set during invite (colaborador_user_id is already set)
-  const { data: pending } = await supabase
+  const { data: pending } = await admin
     .from("colaboradores")
     .select("id, rol")
     .eq("estado", "pendiente")
     .or(`email.eq.${user.email.toLowerCase()},colaborador_user_id.eq.${user.id}`)
+    .limit(1)
     .maybeSingle();
 
-  if (!pending) return;
+  if (!pending) return false;
 
-  await supabase
+  await admin
     .from("colaboradores")
     .update({
       colaborador_user_id: user.id,
@@ -225,4 +261,6 @@ export async function linkPendingCollaborator(
   } catch {
     // Email module not available — skip silently
   }
+
+  return true;
 }

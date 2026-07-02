@@ -7,11 +7,18 @@ import { sendWelcomeEmail, getUserLocale } from "@/lib/email";
 export async function GET(request: NextRequest) {
   const { searchParams, origin } = new URL(request.url);
   const code = searchParams.get("code");
+  const errorCode = searchParams.get("error_code");
   const rawRedirect = searchParams.get("redirect") || "/dashboard";
   // Prevent open redirect: only allow relative paths starting with /
   const redirect = rawRedirect.startsWith("/") && !rawRedirect.startsWith("//")
     ? rawRedirect
     : "/dashboard";
+
+  // Signups are disabled at the Supabase level (invite-only platform).
+  // Surface that clearly instead of a generic auth error.
+  if (errorCode === "signup_disabled") {
+    return NextResponse.redirect(`${origin}/login?error=signup_disabled`);
+  }
 
   if (code) {
     const cookieStore = await cookies();
@@ -46,13 +53,16 @@ export async function GET(request: NextRequest) {
     if (!error) {
       // Link pending collaborator invitations by email
       const { data: { user } } = await supabase.auth.getUser();
+      let justLinkedCollaborator = false;
       if (user) {
-        await linkPendingCollaborator(supabase, user);
+        justLinkedCollaborator = await linkPendingCollaborator(user);
 
-        // Send welcome email for new users (created within last 5 min)
+        // Send welcome email for new users (created within last 5 min).
+        // Collaborators already get their role-specific welcome from
+        // linkPendingCollaborator — don't double-send the admin welcome.
         const createdAt = new Date(user.created_at).getTime();
         const isNewUser = Date.now() - createdAt < 5 * 60 * 1000;
-        if (isNewUser && user.email) {
+        if (isNewUser && user.email && !justLinkedCollaborator) {
           // Fetch user plan to include in welcome email
           const { data: userPlan } = await supabase
             .from("user_plans")
@@ -73,6 +83,11 @@ export async function GET(request: NextRequest) {
       // Recovery flow: redirect to new password page
       if (redirect === "/nueva-contrasena") {
         return NextResponse.redirect(`${origin}/nueva-contrasena`);
+      }
+
+      // Freshly linked collaborator → onboarding (set name/password)
+      if (justLinkedCollaborator) {
+        return NextResponse.redirect(`${origin}/invitacion`);
       }
 
       return NextResponse.redirect(`${origin}${redirect}`);

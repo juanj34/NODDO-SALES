@@ -402,13 +402,15 @@ interface CollaboratorInviteData {
   inviterName: string;
   rol?: "administrador" | "director" | "asesor";
   locale?: EmailLocale;
+  /** Tokened invite link (/auth/confirm?token_hash=...). Falls back to /login. */
+  inviteUrl?: string;
 }
 
-export async function sendCollaboratorInvite(data: CollaboratorInviteData) {
+export async function sendCollaboratorInvite(data: CollaboratorInviteData): Promise<boolean> {
   const resend = getResend();
   if (!resend) {
     console.warn("[email] RESEND_API_KEY not configured — skipping collaborator invite");
-    return;
+    return false;
   }
 
   const locale = data.locale || "es";
@@ -428,20 +430,26 @@ export async function sendCollaboratorInvite(data: CollaboratorInviteData) {
         ${t(bodyTemplate, { inviter: escapeHtml(data.inviterName) })}
       </p>
     </td></tr>
-    ${ctaButton(appUrl + "/login", s.collaboratorInvite.cta)}`,
+    ${ctaButton(data.inviteUrl || appUrl + "/login", s.collaboratorInvite.cta)}`,
     locale,
   );
 
   try {
-    await resend.emails.send({
+    const { error } = await resend.emails.send({
       from: fromAddress,
       to: data.email,
       subject: t(s.collaboratorInvite.subject, { inviter: data.inviterName }),
       html,
       headers: { "List-Unsubscribe": "<mailto:hola@noddo.io?subject=Cancelar%20suscripcion>" },
     });
+    if (error) {
+      console.error("[email] Failed to send collaborator invite:", error);
+      return false;
+    }
+    return true;
   } catch (err) {
     console.error("[email] Failed to send collaborator invite:", err);
+    return false;
   }
 }
 

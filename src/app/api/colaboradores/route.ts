@@ -1,8 +1,6 @@
-import { logActivity } from "@/lib/activity-logger";
 import { getAuthContext, requirePermission } from "@/lib/auth-context";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { sendCollaboratorInvite, getUserLocale } from "@/lib/email";
-import { isAtLeast } from "@/lib/permissions";
 import { NextRequest, NextResponse } from "next/server";
 
 export async function GET() {
@@ -109,22 +107,23 @@ export async function POST(request: NextRequest) {
 
     let colaboradorUserId: string | null = null;
     let estado: "pendiente" | "activo" = "pendiente";
+    const appUrl = process.env.NEXT_PUBLIC_SITE_URL || process.env.NEXT_PUBLIC_APP_URL || "https://noddo.io";
+    // Default CTA (existing users already have credentials — plain login works)
+    let inviteUrl = `${appUrl}/login?redirect=/proyectos`;
 
     if (existingUser) {
       // User already has an account — link directly
       colaboradorUserId = existingUser.id;
       estado = "activo";
     } else {
-      // Ensure user_profiles row exists before invite (trigger may fail)
-      // inviteUserByEmail creates auth.users row → trigger creates profile
-      // If trigger fails, GoTrue returns "Database error saving new user"
-
-      // Send invitation email via Supabase
-      const appUrl = process.env.NEXT_PUBLIC_SITE_URL || process.env.NEXT_PUBLIC_APP_URL || "";
-      const { data: inviteData, error: inviteError } = await supabaseAdmin.auth.admin.inviteUserByEmail(
+      // Generate the invite link WITHOUT sending Supabase's generic email —
+      // the single branded Resend email below carries the real tokened link.
+      // The link goes through /auth/confirm (verifyOtp) → /invitacion onboarding.
+      const { data: inviteData, error: inviteError } = await supabaseAdmin.auth.admin.generateLink({
+        type: "invite",
         email,
-        { redirectTo: `${appUrl}/auth/callback?redirect=/proyectos` }
-      );
+        options: { redirectTo: `${appUrl}/auth/callback?redirect=/invitacion` },
+      });
       if (inviteError) {
         const msg = inviteError.message?.toLowerCase() || "";
         if (msg.includes("already") || msg.includes("exist") || msg.includes("duplicate")) {
@@ -132,7 +131,7 @@ export async function POST(request: NextRequest) {
           estado = "pendiente";
         } else if (msg.includes("database error")) {
           // Trigger failure — log and return clear error
-          console.error("[collab] inviteUserByEmail trigger error:", inviteError.message);
+          console.error("[collab] generateLink trigger error:", inviteError.message);
           return NextResponse.json(
             { error: "Error al crear usuario. Intenta de nuevo." },
             { status: 500 }
@@ -140,6 +139,11 @@ export async function POST(request: NextRequest) {
         } else {
           throw inviteError;
         }
+      }
+
+      const hashedToken = inviteData?.properties?.hashed_token;
+      if (hashedToken) {
+        inviteUrl = `${appUrl}/auth/confirm?token_hash=${encodeURIComponent(hashedToken)}&type=invite&next=/invitacion`;
       }
 
       // If invite succeeded, ensure user_profiles row exists
@@ -190,16 +194,19 @@ export async function POST(request: NextRequest) {
       throw error;
     }
 
-    // Send invite email (non-blocking, admin's locale, role-specific)
+    // Send the invite email. This is now the ONLY email the invitee gets
+    // (Supabase's mailer is bypassed via generateLink), so await it and
+    // report failures — the admin can hit "reenviar" if it didn't go out.
     const adminLocale = await getUserLocale(auth.supabase, auth.user.id);
-    sendCollaboratorInvite({
+    const emailSent = await sendCollaboratorInvite({
       email: email.toLowerCase(),
       inviterName: auth.user.email || "Un administrador",
       rol: validRol,
       locale: adminLocale,
-    }).catch((err) => console.error("[collab] invite email error:", err));
+      inviteUrl,
+    });
 
-    return NextResponse.json(data, { status: 201 });
+    return NextResponse.json({ ...data, emailSent }, { status: 201 });
   } catch (err) {
     return NextResponse.json(
       { error: err instanceof Error ? err.message : "Error" },

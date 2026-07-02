@@ -24,13 +24,24 @@ export default function LoginPage() {
   );
 }
 
+const URL_ERROR_MESSAGES: Record<string, string> = {
+  signup_disabled:
+    "NODDO es solo por invitación — no es posible crear una cuenta directamente. Si quieres conocer la plataforma, solicita una demo.",
+  invite_invalid:
+    "El enlace de invitación expiró o ya fue usado. Pide a tu administrador que reenvíe la invitación, o inicia sesión si ya tienes cuenta.",
+  auth: "No pudimos completar el inicio de sesión. Intenta de nuevo.",
+};
+
 function LoginForm() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
   const searchParams = useSearchParams();
   const redirect = searchParams.get("redirect") || "/dashboard";
+  const urlError = searchParams.get("error");
+  const [error, setError] = useState<string | null>(
+    urlError ? URL_ERROR_MESSAGES[urlError] || URL_ERROR_MESSAGES.auth : null
+  );
 
   const supabase = createClient();
 
@@ -273,6 +284,20 @@ function LoginForm() {
                 </Link>
               </div>
             </form>
+
+            {/* Request demo (no self-serve signup) */}
+            <div className="flex items-center gap-4 my-6">
+              <div className="flex-1 h-px bg-[var(--mk-border-subtle)]" />
+            </div>
+            <p className="text-center text-[11px] font-light text-[var(--mk-text-muted)]">
+              No tienes cuenta?{" "}
+              <Link
+                href="/solicitar-demo"
+                className="text-[var(--mk-accent)] hover:opacity-80 transition-opacity font-medium"
+              >
+                Solicita una demo
+              </Link>
+            </p>
           </div>
         </motion.div>
 

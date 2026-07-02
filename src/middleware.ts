@@ -94,6 +94,7 @@ export async function middleware(request: NextRequest) {
     pathname === "/cotizaciones" ||
     pathname === "/analytics" ||
     pathname === "/financiero" ||
+    pathname === "/invitacion" ||
     pathname.startsWith("/admin");
   const isLoginRoute = pathname === "/login";
 
