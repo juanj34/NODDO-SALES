@@ -14,7 +14,7 @@ export default function ContactoPage() {
   const router = useRouter();
 
   useEffect(() => {
-    router.replace(basePath);
+    router.replace(basePath || "/");
   }, [router, basePath]);
 
   return null;
