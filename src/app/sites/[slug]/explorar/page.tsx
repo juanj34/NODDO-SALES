@@ -23,6 +23,7 @@ import {
   X,
 } from "lucide-react";
 import { useSiteProject, useSiteBasePath } from "@/hooks/useSiteProject";
+import { useAgentMode } from "@/hooks/useAgentMode";
 import { getInventoryColumns, getPrimaryArea } from "@/lib/inventory-columns";
 import { DynamicIcon } from "@/data/amenidades-catalog";
 import { usePersistedState } from "@/hooks/usePersistedState";
@@ -153,6 +154,7 @@ export default function ExplorarPage() {
   const [selectedUnit, setSelectedUnit] = useState<Unidad | null>(null);
   const [hoveredUnit, setHoveredUnit] = useState<string | null>(null);
   const [cotizarUnidad, setCotizarUnidad] = useState<Unidad | null>(null);
+  const { isAgentMode } = useAgentMode();
   const [showVistaModal, setShowVistaModal] = useState<VistaPiso | null>(null);
   const [loadedUrl, setLoadedUrl] = useState<string | null>(null);
   const [errorUrl, setErrorUrl] = useState<string | null>(null);
@@ -562,23 +564,25 @@ export default function ExplorarPage() {
                   </p>
                   <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-hide">
                     {availTipos.map(tipo => (
-                      <button
-                        key={tipo.id}
-                        onClick={() => setCotizarUnidad(selectedUnit)}
-                        className="flex-shrink-0 bg-[var(--glass-bg)] border border-[var(--border-subtle)] rounded-xl p-3 text-left hover:border-[rgba(var(--site-primary-rgb),0.3)] transition-colors min-w-[140px] cursor-pointer"
-                      >
-                        <p className="text-xs font-medium text-[var(--text-primary)] mb-1.5">{tipo.nombre}</p>
-                        <div className="space-y-1 text-[10px] text-[var(--text-secondary)]">
-                          {(tipo.area_construida ?? tipo.area_m2) && <p>{tipo.area_construida ?? tipo.area_m2} m²</p>}
-                          {tipo.habitaciones != null && <p>{tipo.habitaciones} hab</p>}
-                          {tipo.banos != null && <p>{tipo.banos} baños</p>}
-                          {tipo.precio_desde != null && (
-                            <p className="text-[var(--site-primary)] font-medium">
-                              {formatPrecioShort(tipo.precio_desde)}
-                            </p>
-                          )}
-                        </div>
-                      </button>
+                      isAgentMode && (
+                        <button
+                          key={tipo.id}
+                          onClick={() => setCotizarUnidad(selectedUnit)}
+                          className="flex-shrink-0 bg-[var(--glass-bg)] border border-[var(--border-subtle)] rounded-xl p-3 text-left hover:border-[rgba(var(--site-primary-rgb),0.3)] transition-colors min-w-[140px] cursor-pointer"
+                        >
+                          <p className="text-xs font-medium text-[var(--text-primary)] mb-1.5">{tipo.nombre}</p>
+                          <div className="space-y-1 text-[10px] text-[var(--text-secondary)]">
+                            {(tipo.area_construida ?? tipo.area_m2) && <p>{tipo.area_construida ?? tipo.area_m2} m²</p>}
+                            {tipo.habitaciones != null && <p>{tipo.habitaciones} hab</p>}
+                            {tipo.banos != null && <p>{tipo.banos} baños</p>}
+                            {tipo.precio_desde != null && (
+                              <p className="text-[var(--site-primary)] font-medium">
+                                {formatPrecioShort(tipo.precio_desde)}
+                              </p>
+                            )}
+                          </div>
+                        </button>
+                      )
                     ))}
                   </div>
                 </div>
@@ -786,13 +790,15 @@ export default function ExplorarPage() {
 
             {/* Actions */}
             <div className="px-4 pb-5 mt-auto space-y-2">
-              <button
-                onClick={() => setCotizarUnidad(selectedUnit)}
-                className="w-full btn-warm py-2.5 flex items-center justify-center gap-2 text-sm tracking-wider cursor-pointer"
-              >
-                <Sparkles size={14} />
-                {tSite("explorar.enquireUnit")}
-              </button>
+              {isAgentMode && (
+                <button
+                  onClick={() => setCotizarUnidad(selectedUnit)}
+                  className="w-full btn-warm py-2.5 flex items-center justify-center gap-2 text-sm tracking-wider cursor-pointer"
+                >
+                  <Sparkles size={14} />
+                  {tSite("explorar.enquireUnit")}
+                </button>
+              )}
               {(selectedUnit.tipologia_id || (isMultiTipo && !selectedUnit.tipologia_id)) && (
                 <Link
                   href={selectedUnit.tipologia_id
