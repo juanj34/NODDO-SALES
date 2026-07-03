@@ -189,6 +189,7 @@ export async function getAccessibleProjectIds(
     .from("colaboradores")
     .select("id")
     .eq("colaborador_user_id", auth.user.id)
+    .eq("admin_user_id", auth.adminUserId)
     .maybeSingle();
   if (!collab) return null; // not a collaborator record — fall back to admin-scoped queries
 
