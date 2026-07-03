@@ -495,7 +495,7 @@ export default function EditorLayout({
   // Role-based tab filtering:
   // Admin: all tabs
   // Director: all except config (can view General/Torres read-only)
-  // Asesor: inventario (read-only), disponibilidad, cotizador, tipologias (read-only)
+  // Asesor: inventario (read-only), disponibilidad, cotizador, tipologias (read-only), planos
   const filteredSections = useMemo(() => {
     if (isAdmin || role === "administrador") return editorSections;
     if (role === "director") {
@@ -508,7 +508,7 @@ export default function EditorLayout({
         .filter((section) => section.tabs.length > 0);
     }
     // Asesor: limited tabs
-    const allowedTabs = ["tipologias", "inventario", "disponibilidad", "cotizador"];
+    const allowedTabs = ["tipologias", "inventario", "disponibilidad", "cotizador", "planos"];
     return editorSections
       .map((section) => ({
         ...section,
@@ -809,8 +809,8 @@ export default function EditorLayout({
                     ? "Estás editando como Director — algunos ajustes requieren acceso de Administrador"
                     : "Editing as Director — some settings require Administrator access")
                   : (locale === "es"
-                    ? "Estás en modo Asesor — acceso limitado a disponibilidad, cotizador y leads asignados"
-                    : "Advisor mode — limited to availability, quotation tool, and assigned leads")}
+                    ? "Estás en modo Asesor — acceso a tipologías, inventario, planos, disponibilidad y cotizador"
+                    : "Advisor mode — access to tipologías, inventario, planos, disponibilidad, and cotizador")}
               </span>
             </div>
           )}
