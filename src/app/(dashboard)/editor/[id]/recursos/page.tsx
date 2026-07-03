@@ -63,6 +63,7 @@ const emptyForm = {
   descripcion: "",
   tipo: "otro" as Recurso["tipo"],
   url: "",
+  mostrar_como_tab: false,
 };
 
 export default function RecursosPage() {
@@ -145,6 +146,7 @@ export default function RecursosPage() {
       descripcion: r.descripcion || "",
       tipo: r.tipo,
       url: r.url,
+      mostrar_como_tab: r.mostrar_como_tab,
     });
     setEditingId(r.id);
     setShowForm(true);
@@ -162,6 +164,7 @@ export default function RecursosPage() {
       descripcion: form.descripcion || null,
       tipo: form.tipo,
       url: form.url,
+      mostrar_como_tab: form.mostrar_como_tab,
     };
 
     const prevRecursos = project.recursos;
@@ -201,7 +204,7 @@ export default function RecursosPage() {
         tipo: payload.tipo as Recurso["tipo"],
         url: payload.url,
         orden: project.recursos.length,
-        mostrar_como_tab: false,
+        mostrar_como_tab: payload.mostrar_como_tab,
       };
       updateLocal((p) => ({
         ...p,
@@ -406,6 +409,20 @@ export default function RecursosPage() {
                   placeholder={t("recursos.descriptionPlaceholder")}
                   className={inputClass}
                 />
+                <label className="flex items-center gap-2.5 mt-3 cursor-pointer select-none">
+                  <input
+                    type="checkbox"
+                    checked={form.mostrar_como_tab}
+                    onChange={(e) => setForm((p) => ({ ...p, mostrar_como_tab: e.target.checked }))}
+                    className="w-4 h-4 rounded accent-[var(--site-primary)] cursor-pointer"
+                  />
+                  <span className="text-xs text-[var(--text-secondary)]">
+                    Mostrar como tab en el micrositio
+                    <span className="block text-[10px] text-[var(--text-tertiary)]">
+                      Crea una sección propia en el menú que abre este documento en el visor (solo PDF)
+                    </span>
+                  </span>
+                </label>
               </div>
 
               {/* Row 3: File upload (compact) + Actions */}
@@ -479,6 +496,11 @@ export default function RecursosPage() {
                   <p className="text-xs text-[var(--text-tertiary)]">
                     {tipoLabels[r.tipo]}
                     {r.descripcion ? ` — ${r.descripcion}` : ""}
+                    {r.mostrar_como_tab && (
+                      <span className="ml-2 text-[9px] font-ui font-bold tracking-[0.15em] uppercase text-[var(--site-primary)] bg-[rgba(var(--site-primary-rgb),0.12)] px-2 py-0.5 rounded-full">
+                        TAB
+                      </span>
+                    )}
                   </p>
                 </div>
                 <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
