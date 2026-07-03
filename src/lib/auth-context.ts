@@ -178,18 +178,26 @@ export function requirePermission(
 /**
  * Returns the list of project IDs a user can access, or null if they can
  * access ALL projects (admin, or collaborator with no specific assignments).
+ * Collaborators with explicit project assignments are scoped to those projects.
  */
 export async function getAccessibleProjectIds(
   auth: AuthContext
 ): Promise<string[] | null> {
   if (auth.role === "admin" || auth.role === "administrador") return null;
 
+  const { data: collab } = await auth.supabase
+    .from("colaboradores")
+    .select("id")
+    .eq("colaborador_user_id", auth.user.id)
+    .maybeSingle();
+  if (!collab) return null; // not a collaborator record — fall back to admin-scoped queries
+
   const { data: assigned } = await auth.supabase
     .from("colaborador_proyectos")
     .select("proyecto_id")
-    .eq("colaborador_user_id", auth.user.id);
+    .eq("colaborador_id", collab.id);
 
-  if (!assigned || assigned.length === 0) return null; // backward compat
+  if (!assigned || assigned.length === 0) return null; // backward compat: no assignments = all
   return assigned.map((r: { proyecto_id: string }) => r.proyecto_id);
 }
 
