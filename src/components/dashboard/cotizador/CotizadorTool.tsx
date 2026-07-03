@@ -20,6 +20,7 @@ import { useToast } from "@/components/dashboard/Toast";
 import { useTranslation } from "@/i18n";
 import { useAuthRole } from "@/hooks/useAuthContext";
 import { calcularCotizacion, buildPrecioBaseComplementos } from "@/lib/cotizador/calcular";
+import { roundPercentagesPreservingTotal } from "@/lib/cotizador/round-percentages";
 import { buildQuickQuoteFases, suggestCuotasFromDelivery } from "@/lib/cotizador/quick-quote";
 import { getTipologiaFields } from "@/lib/tipologia-fields";
 import type { CotizadorConfig, ResultadoCotizacion } from "@/types";
@@ -747,6 +748,17 @@ export function CotizadorTool({ project, tipologias, unidadTipologias }: Cotizad
   const balanceRemaining = effectiveTotal - balanceAssigned;
   const structure = useMemo(() => deriveStructure(paymentRows, effectiveTotal), [paymentRows, effectiveTotal]);
   const overBudget = balanceRemaining < 0;
+
+  // Largest-remainder rounding across ALL rows at once, so a phase split into
+  // cuotas (e.g. 70% ÷ 3) displays percentages that reconcile back to 70,
+  // instead of each row independently Math.round-ing and losing the remainder.
+  const paymentRowPcts = useMemo(() => {
+    const fractions = paymentRows.map((row) => {
+      const resolvedAmount = resolveRowAmount(row, effectiveTotal, paymentRows);
+      return effectiveTotal > 0 ? (resolvedAmount / effectiveTotal) * 100 : 0;
+    });
+    return roundPercentagesPreservingTotal(fractions);
+  }, [paymentRows, effectiveTotal]);
 
   const needsQuoteTip = isMultiTipo && getUnitTipologias(selectedUnitId ?? "").length > 1;
   const canProceedToStep1 = !!selectedUnit && !!activeCotizacion && clientFormValid && (!needsQuoteTip || !!selectedQuoteTipId);
@@ -2488,7 +2500,7 @@ export function CotizadorTool({ project, tipologias, unidadTipologias }: Cotizad
                 <div className="divide-y divide-[var(--border-subtle)]">
                   {paymentRows.map((row, rowIdx) => {
                     const resolvedAmount = resolveRowAmount(row, effectiveTotal, paymentRows);
-                    const pct = effectiveTotal > 0 ? Math.round((resolvedAmount / effectiveTotal) * 100) : 0;
+                    const pct = paymentRowPcts[rowIdx] ?? 0;
                     const isResto = row.tipo_valor === "resto";
                     const nonRestoCount = paymentRows.filter((r) => r.tipo_valor !== "resto").length;
                     const canDelete = !isResto && nonRestoCount > 1;
