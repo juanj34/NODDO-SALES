@@ -384,6 +384,8 @@ export interface Recurso {
   tipo: "brochure" | "ficha_tecnica" | "acabados" | "precios" | "planos" | "render" | "manual" | "reglamento" | "garantias" | "otro";
   url: string;
   orden: number;
+  /** Show this resource as its own viewer tab in the microsite nav */
+  mostrar_como_tab: boolean;
 }
 
 export interface Unidad {

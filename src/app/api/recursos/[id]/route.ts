@@ -18,7 +18,7 @@ export async function PUT(
     const body = await request.json();
     const { data, error } = await auth.supabase
       .from("recursos")
-      .update(pick(body, ["nombre", "descripcion", "tipo", "url", "orden"]))
+      .update(pick(body, ["nombre", "descripcion", "tipo", "url", "orden", "mostrar_como_tab"]))
       .eq("id", id)
       .select()
       .single();
