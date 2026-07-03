@@ -1,6 +1,7 @@
 import type { CotizadorConfig, DescuentoConfig, ResultadoCotizacion, FaseResultado, ComplementoSeleccion } from "@/types";
 import type { DeliveryContext } from "./delivery";
 import { adjustFasesToDelivery } from "./delivery";
+import { roundPercentagesPreservingTotal } from "./round-percentages";
 
 /**
  * Build virtual ComplementoSeleccion items for precio_base mode.
@@ -89,6 +90,7 @@ export function calcularCotizacion(
 
   // Calculate phases on precio_total (includes complementos if any)
   const fases: FaseResultado[] = [];
+  const fasePctFractions: number[] = [];
   let acumulado = 0;
   // When toggle is ON, separación is part of cuota inicial — deduct from the first % phase
   const shouldDeductSeparacion =
@@ -129,6 +131,12 @@ export function calcularCotizacion(
     const cuotas = Math.max(1, fase.cuotas);
     const monto_por_cuota = Math.round(monto_total / cuotas);
 
+    // Exact fractional percentage of this phase's money vs. the total. Computed
+    // uniformly for every phase (no more tipo==="porcentaje" special case) so the
+    // displayed % always reconciles with the money, even after a phase has been
+    // split into cuotas and each cuota re-priced as its own tipo:"fijo" fase.
+    fasePctFractions.push(precio_total > 0 ? (monto_total / precio_total) * 100 : 0);
+
     fases.push({
       nombre: fase.nombre,
       monto_total,
@@ -136,16 +144,22 @@ export function calcularCotizacion(
       monto_por_cuota,
       frecuencia: fase.frecuencia,
       fecha: fase.fecha || undefined,
-      porcentaje: fase.tipo === "porcentaje"
-        ? fase.valor
-        : precio_total > 0
-          ? Math.round((monto_total / precio_total) * 100)
-          : 0,
+      // Placeholder — replaced below by a largest-remainder rounding pass across
+      // ALL phases together, so independent per-row Math.round can't lose the
+      // remainder (e.g. 70% split 3 ways showing 23+23+23=69 instead of 70).
+      porcentaje: 0,
       condicion_hito: fase.condicion_hito || undefined,
     });
 
     acumulado += monto_total;
   }
+
+  // Largest-remainder (Hamilton) rounding: the displayed percentages must sum to
+  // the same rounded total as the exact fractions, never lose or gain a point.
+  const roundedPcts = roundPercentagesPreservingTotal(fasePctFractions);
+  fases.forEach((fase, i) => {
+    fase.porcentaje = roundedPcts[i];
+  });
 
   // ── Unified additional charges (backward compat: merge legacy impuestos + admin_fee) ──
   const cargos = config.cargos_adicionales ?? [];
