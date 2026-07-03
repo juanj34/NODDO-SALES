@@ -101,6 +101,9 @@ export function SiteLayoutClient({ proyecto, basePath, children }: Props) {
                 hasBrochure={!!proyecto.brochure_url}
                 hasPlanPago={proyecto.cotizador_enabled && !!proyecto.cotizador_config}
                 seccionesVisibles={proyecto.secciones_visibles}
+                documentTabs={(proyecto.recursos ?? [])
+                  .filter((r) => r.mostrar_como_tab)
+                  .map((r) => ({ id: r.id, nombre: r.nombre }))}
               />
               {/* Sidebar toggle arrow — outside the nav, centered vertically */}
               <motion.button

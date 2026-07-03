@@ -52,9 +52,10 @@ interface SiteNavProps {
   hasBrochure?: boolean;
   hasPlanPago?: boolean;
   seccionesVisibles?: SeccionesVisibles | null;
+  documentTabs?: { id: string; nombre: string }[];
 }
 
-export function SiteNav({ basePath, projectName, logoUrl, faviconUrl, constructoraLogoUrl, constructoraWebsite, expanded, disclaimer, politicaPrivacidadUrl, etapaLabel, hasImplantaciones, hasTour360, hasAvances, hasBrochure, hasPlanPago, seccionesVisibles }: SiteNavProps) {
+export function SiteNav({ basePath, projectName, logoUrl, faviconUrl, constructoraLogoUrl, constructoraWebsite, expanded, disclaimer, politicaPrivacidadUrl, etapaLabel, hasImplantaciones, hasTour360, hasAvances, hasBrochure, hasPlanPago, seccionesVisibles, documentTabs }: SiteNavProps) {
   const pathname = usePathname();
   const [isOpen, setIsOpen] = useState(false);
   const [hoveredItem, setHoveredItem] = useState<string | null>(null);
@@ -99,6 +100,7 @@ export function SiteNav({ basePath, projectName, logoUrl, faviconUrl, constructo
     ...(hasAvances ? [{ label: tNav("avances"), href: "/avances", Icon: HardHat }] : []),
     ...(hasTour360 ? [{ label: tNav("tour360"), href: "/tour-360", Icon: Globe }] : []),
     ...(hasBrochure ? [{ label: tNav("brochure"), href: "/brochure", Icon: BookOpen }] : []),
+    ...(documentTabs ?? []).map((d) => ({ label: d.nombre, href: `/documento/${d.id}`, Icon: FileText })),
     { label: tNav("recursos"), href: "/recursos", Icon: FileText },
   ].filter((item) => {
     const segment = item.href.replace("/", "");
