@@ -201,6 +201,7 @@ export default function RecursosPage() {
         tipo: payload.tipo as Recurso["tipo"],
         url: payload.url,
         orden: project.recursos.length,
+        mostrar_como_tab: false,
       };
       updateLocal((p) => ({
         ...p,

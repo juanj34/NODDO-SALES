@@ -21,7 +21,7 @@ export async function POST(request: NextRequest) {
 
     const { data, error } = await auth.supabase
       .from("recursos")
-      .insert(pick(body, ["proyecto_id", "nombre", "descripcion", "tipo", "url", "orden"]))
+      .insert(pick(body, ["proyecto_id", "nombre", "descripcion", "tipo", "url", "orden", "mostrar_como_tab"]))
       .select()
       .single();
 

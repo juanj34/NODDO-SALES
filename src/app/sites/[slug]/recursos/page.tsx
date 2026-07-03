@@ -134,6 +134,7 @@ export default function RecursosPage() {
         tipo: "brochure",
         url: proyecto.brochure_url,
         orden: -1,
+        mostrar_como_tab: false,
       }
     : null;
   const allRecursos = brochureRecurso ? [brochureRecurso, ...recursos] : recursos;
