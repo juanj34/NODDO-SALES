@@ -117,6 +117,72 @@ describe("agrupar_inicial — grouped cuota inicial rendering", () => {
     const rowCount = (html.match(/data-fase-row/g) || []).length;
     expect(rowCount).toBe(2);
   });
+
+  it("flag ON with matching NAMES but wrong TIPOS (Separación porcentaje instead of fijo) falls back to flat rendering", () => {
+    // The calculator always emits Separación as tipo:"fijo" + Cuota inicial as
+    // tipo:"porcentaje" (delivery-calc.ts). Name-only matching would group this
+    // impostor shape; the detection must require name AND tipo.
+    const config = baseConfig({
+      fases: [
+        { id: "s1", nombre: "Separación", tipo: "porcentaje", valor: 2.5, cuotas: 1, frecuencia: "unica" },
+        { id: "s2", nombre: "Cuota inicial", tipo: "porcentaje", valor: 47.5, cuotas: 23, frecuencia: "mensual" },
+        { id: "s3", nombre: "Financiación", tipo: "resto", valor: 0, cuotas: 1, frecuencia: "unica" },
+      ],
+    });
+    const view = buildCotizacionData(baseInput(config, { agrupar_inicial: true }));
+    expect(view.fases[0].tipo).toBe("porcentaje");
+    expect(view.fases[1].tipo).toBe("porcentaje");
+
+    const html = buildCotizacionHtml(view);
+    expect(html).not.toContain("data-group-header");
+    expect(html).not.toContain("data-group-sub");
+    const rowCount = (html.match(/data-fase-row/g) || []).length;
+    expect(rowCount).toBe(3);
+  });
+
+  it("exposes each fase's tipo on the view (fijo/porcentaje/resto from the engine)", () => {
+    const config = baseConfig();
+    const view = buildCotizacionData(baseInput(config));
+    expect(view.fases.map((f) => f.tipo)).toEqual(["fijo", "porcentaje", "resto"]);
+  });
+
+  it("EN locale renders the grouped block with English header and sub-row labels", () => {
+    const config = baseConfig();
+    const view = buildCotizacionData(baseInput(config, { agrupar_inicial: true, idioma: "en" }));
+    const html = buildCotizacionHtml(view);
+
+    expect(html).toContain("data-group-header");
+    expect(html).toContain("INITIAL PAYMENT (50%)");
+    expect(html).toContain("Down payment");
+    expect(html).toContain("23 monthly installments of");
+    expect(html).not.toContain("cuotas mensuales de");
+    expect(html).toContain(formatCurrency(337_500_000, "COP"));
+    expect(html).toContain(formatCurrency(13_940_217, "COP"));
+  });
+
+  it("non-integer pct plan: the group header equals the SUM of the sub-fases' Hamilton pcts (documented ±1 drift vs rounding the combined pct)", () => {
+    // 675M · separación fija $16,200,000 (exact 2.4%) · inicial 32.5% · resto.
+    // Exact fractions: 2.4 / 30.1 / 67.5 → Hamilton hands the single missing
+    // point to financiación (largest remainder .5) → displayed 2 / 30 / 68.
+    // Header = 2 + 30 = 32%, while rounding the combined exact 32.5% directly
+    // would give 33%. Accepted tradeoff: the header must reconcile with the
+    // whole displayed vector (32 + 68 = 100); money is unaffected.
+    const config = baseConfig({
+      fases: [
+        { id: "calc-separacion", nombre: "Separación", tipo: "fijo", valor: 16_200_000, cuotas: 1, frecuencia: "unica" },
+        { id: "calc-inicial", nombre: "Cuota inicial", tipo: "porcentaje", valor: 32.5, cuotas: 23, frecuencia: "mensual" },
+        { id: "calc-financiacion", nombre: "Financiación", tipo: "resto", valor: 0, cuotas: 1, frecuencia: "unica" },
+      ],
+    });
+    const view = buildCotizacionData(baseInput(config, { agrupar_inicial: true }));
+    expect(view.fases.map((f) => f.porcentaje)).toEqual([2, 30, 68]);
+
+    const html = buildCotizacionHtml(view);
+    expect(html).toContain("CUOTA INICIAL (32%)"); // sum of sub-pcts, NOT round(32.5)=33
+    expect(html).not.toContain("CUOTA INICIAL (33%)");
+    // Whole displayed vector still reconciles to 100.
+    expect(view.fases[0].porcentaje + view.fases[1].porcentaje + view.fases[2].porcentaje).toBe(100);
+  });
 });
 
 describe("extras band", () => {
@@ -167,6 +233,13 @@ describe("extras band", () => {
     const config = baseConfig({ leasing_nota: "   " });
     const view = buildCotizacionData(baseInput(config));
     expect(view.leasingNota).toBeNull();
+  });
+
+  it("extras band never splits across pages (.extras declares page-break-inside:avoid)", () => {
+    const config = baseConfig({ leasing_nota: "No" });
+    const view = buildCotizacionData(baseInput(config));
+    const html = buildCotizacionHtml(view);
+    expect(html).toMatch(/\.extras\{[^}]*page-break-inside:avoid;?[^}]*\}/);
   });
 });
 

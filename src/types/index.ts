@@ -1006,6 +1006,12 @@ export interface FaseResultado {
   porcentaje?: number;
   /** Milestone condition text (e.g. "Al completar estructura") */
   condicion_hito?: string;
+  /**
+   * The source FaseConfig's tipo, carried through so consumers (e.g. the PDF's
+   * grouped-inicial shape detection) can match on name AND tipo. Optional:
+   * resultados persisted before this field existed don't carry it.
+   */
+  tipo?: "fijo" | "porcentaje" | "resto";
 }
 
 export interface ResultadoCotizacion {

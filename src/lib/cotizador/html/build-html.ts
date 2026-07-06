@@ -64,9 +64,20 @@ function faseRow(f: ViewFase, view: CotizacionView): string {
   );
 }
 
-/** Detects the delivery-calculator's exact 3-fase shape: Separación (fijo) -> Cuota inicial (porcentaje) -> ... */
+/**
+ * Detects the delivery-calculator's exact 3-fase shape: Separación (fijo) ->
+ * Cuota inicial (porcentaje) -> ... Matches on name AND tipo (per the task
+ * brief) so a template plan that merely reuses the names never groups; a null
+ * tipo (legacy stored resultado with no aligned config) also refuses to group.
+ */
 function fasesMatchCalculatorShape(fases: ViewFase[]): boolean {
-  return fases.length >= 2 && fases[0].nombre === "Separación" && fases[1].nombre === "Cuota inicial";
+  return (
+    fases.length >= 2 &&
+    fases[0].nombre === "Separación" &&
+    fases[0].tipo === "fijo" &&
+    fases[1].nombre === "Cuota inicial" &&
+    fases[1].tipo === "porcentaje"
+  );
 }
 
 /**
@@ -84,6 +95,13 @@ function groupedInicialRows(fases: ViewFase[], view: CotizacionView, en: boolean
   // summing the two already-rounded fase percentages, never recomputed from money,
   // so the header always reconciles with the two rows it replaces (same idiom as
   // the split-cuotas percentage-rounding fix in calcular.ts).
+  //
+  // Known ±1 drift (accepted tradeoff): with a NON-integer pct_inicial the sum of
+  // the two Hamilton-rounded pcts can differ by one point from Math.round() of the
+  // combined exact pct — e.g. exact 2.4% + 30.1% displays 2 + 30 = 32%, while
+  // round(32.5) would say 33% (Hamilton gave the spare point to Financiación's .5
+  // remainder). Whole-vector consistency wins: the header plus the remaining rows
+  // always total 100, and the money amounts are unaffected either way.
   const pct = separacion.porcentaje + inicial.porcentaje;
   const amt = separacion.montoTotal + inicial.montoTotal;
   const groupLabel = en ? "INITIAL PAYMENT" : "CUOTA INICIAL";
@@ -235,7 +253,7 @@ export function buildCotizacionHtml(view: CotizacionView): string {
   if (view.bonosNota) extraPairs.push([t.bonuses, view.bonosNota]);
   const extrasHtml =
     extraPairs.length > 0
-      ? `<div class="section" data-extras><div class="label">${t.additionalInfo}</div><div class="grid">${detailRows(extraPairs)}</div></div>`
+      ? `<div class="section extras" data-extras><div class="label">${t.additionalInfo}</div><div class="grid">${detailRows(extraPairs)}</div></div>`
       : "";
 
   // Vigencia: printed above the legal notice, using the quote date already in the view.
@@ -348,6 +366,7 @@ tr.total td.c-amt{font-family:'DM Mono',monospace;}
 .prepared .mono{font-size:9px;color:#8a8580;}
 .legal{font-size:7.5px;color:#8a8580;margin-top:10px;line-height:1.5;white-space:pre-line;}
 .vigencia{font-size:7.5px;color:#8a8580;margin-top:8px;line-height:1.5;}
+.extras{page-break-inside:avoid;}
 .page-footer{text-align:center;font-size:7px;color:#b0aaa2;margin-top:14px;}
 </style>
 </head>

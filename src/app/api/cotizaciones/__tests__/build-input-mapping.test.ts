@@ -42,5 +42,31 @@ describe("buildInputFromDbRows", () => {
     expect(input.unidad.features.tiene_terraza).toBe(true);
     expect(input.notasLegales).toBe("Legal X");
     expect(input.resultado.precio_base).toBe(250_000_000);
+    // Not requested → grouped-PDF flag stays off downstream
+    expect(input.agrupar_inicial).toBeUndefined();
+  });
+
+  it("threads agrupar_inicial through to the build input (persist/preview/regenerate routes set it from plan_origen)", () => {
+    const resultado = calcularCotizacion(250_000_000, config);
+    const input = buildInputFromDbRows({
+      resultado, config, moneda: "COP",
+      proyecto: {
+        nombre: "P", constructora_nombre: null, color_primario: null,
+        ubicacion_direccion: null, estado_construccion: "sobre_planos",
+        logo_url: null, constructora_logo_url: null,
+        cover_url: null, renders: [], plano_url: null,
+        whatsapp_numero: null, tour_360_url: null,
+      },
+      unidadSnapshot: { identificador: "U1" },
+      unidadMedida: "m²",
+      agente: { nombre: null, telefono: null, email: null, avatarUrl: null },
+      buyer: { nombre: "B", email: "b@x.com", telefono: null },
+      complementos: [],
+      fechaDisplay: "—", fechaEstimadaEntrega: null, referenceNumber: "R",
+      paymentPlanNombre: "Plan", idioma: "es", monedaSecundaria: null, tipoCambio: null,
+      agrupar_inicial: true,
+    });
+
+    expect(input.agrupar_inicial).toBe(true);
   });
 });
