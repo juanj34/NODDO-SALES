@@ -8,6 +8,10 @@ import type { CotizadorConfig, FaseConfig, Torre } from "@/types";
  * N equal monthly cuotas, where N shrinks as the delivery date approaches.
  * The lib only BUILDS `FaseConfig[]` for the existing custom_fases path in
  * calcular.ts — it never re-implements the calculation engine itself.
+ *
+ * Precondition: consumers must send `separacion_incluida: true` alongside the
+ * built fases — the engine only deducts the separación from the porcentaje
+ * fase when `separacion_incluida_en_inicial !== false`.
  */
 
 /** Torre fields this lib consumes for per-etapa payment plan resolution. */
@@ -95,11 +99,15 @@ export function resolveEtapaPlan(
       torre.plan_separacion_tipo != null ||
       torre.plan_separacion_valor != null);
 
-  const fuente: EtapaPlan["fuente"] = torreParamUsed
-    ? "etapa"
-    : tipoEntrega === "fecha_fija" && !fechaEntrega
+  // "incompleta" takes precedence over "etapa": even if the torre set some plan
+  // param, a fecha_fija plan with no resolvable delivery date must surface the
+  // UI's block-signal — otherwise buildDeliveryPlan silently collapses to contado.
+  const fuente: EtapaPlan["fuente"] =
+    tipoEntrega === "fecha_fija" && !fechaEntrega
       ? "incompleta"
-      : "proyecto";
+      : torreParamUsed
+        ? "etapa"
+        : "proyecto";
 
   return {
     pctInicial,
