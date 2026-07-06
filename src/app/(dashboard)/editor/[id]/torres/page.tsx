@@ -199,6 +199,10 @@ export default function TorresPage() {
       galeria_independiente: false,
       orden: torres.length,
       created_at: new Date().toISOString(),
+      fecha_entrega: null,
+      plan_pct_inicial: null,
+      plan_separacion_tipo: null,
+      plan_separacion_valor: null,
     };
     const savedTipo = addTipo;
     resetAddForm();
@@ -1076,6 +1080,10 @@ function TorreEditFormInline({
   const [pisosPodio, setPisosPodio] = useState(torre.pisos_podio != null ? String(torre.pisos_podio) : "");
   const [pisosResidenciales, setPisosResidenciales] = useState(torre.pisos_residenciales != null ? String(torre.pisos_residenciales) : "");
   const [pisosRooftop, setPisosRooftop] = useState(torre.pisos_rooftop != null ? String(torre.pisos_rooftop) : "");
+  const [fechaEntrega, setFechaEntrega] = useState(torre.fecha_entrega ?? "");
+  const [planPctInicial, setPlanPctInicial] = useState(torre.plan_pct_inicial != null ? String(torre.plan_pct_inicial) : "");
+  const [planSeparacionTipo, setPlanSeparacionTipo] = useState<"" | "porcentaje" | "fijo">(torre.plan_separacion_tipo ?? "");
+  const [planSeparacionValor, setPlanSeparacionValor] = useState(torre.plan_separacion_valor != null ? String(torre.plan_separacion_valor) : "");
   const [typeSwitching, setTypeSwitching] = useState(false);
 
   // Sync from prop only when switching to a different torre
@@ -1089,6 +1097,10 @@ function TorreEditFormInline({
     setPisosPodio(torre.pisos_podio != null ? String(torre.pisos_podio) : "");
     setPisosResidenciales(torre.pisos_residenciales != null ? String(torre.pisos_residenciales) : "");
     setPisosRooftop(torre.pisos_rooftop != null ? String(torre.pisos_rooftop) : "");
+    setFechaEntrega(torre.fecha_entrega ?? "");
+    setPlanPctInicial(torre.plan_pct_inicial != null ? String(torre.plan_pct_inicial) : "");
+    setPlanSeparacionTipo(torre.plan_separacion_tipo ?? "");
+    setPlanSeparacionValor(torre.plan_separacion_valor != null ? String(torre.plan_separacion_valor) : "");
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [torre.id]);
 
@@ -1267,6 +1279,84 @@ function TorreEditFormInline({
           placeholder={t("torres.infoForm.prefixPlaceholder")}
         />
         <p className={cn(fontSize.label, "text-[var(--text-muted)] mt-1")}>{t("torres.infoForm.prefixHint")}</p>
+      </div>
+
+      {/* Entrega y plan de pagos (delivery calculator) */}
+      <div>
+        <Label>{t("torres.infoForm.deliverySectionTitle")}</Label>
+        <p className={cn(fontSize.label, "text-[var(--text-muted)] mb-2")}>
+          {t("torres.infoForm.deliverySectionHint")}
+        </p>
+        <div className={cn("grid grid-cols-2", gap.relaxed)}>
+          <div>
+            <Label>{t("torres.infoForm.fechaEntrega")}</Label>
+            <input
+              type="date"
+              value={fechaEntrega}
+              onChange={(e) => setFechaEntrega(e.target.value)}
+              onBlur={(e) => {
+                const val = e.target.value || null;
+                if (val !== torre.fecha_entrega) {
+                  onUpdate(torre.id, { fecha_entrega: val });
+                }
+              }}
+              className={inputClass}
+            />
+          </div>
+          <div>
+            <Label>{t("torres.infoForm.planPctInicial")}</Label>
+            <input
+              type="number"
+              min={0}
+              max={100}
+              value={planPctInicial}
+              onChange={(e) => setPlanPctInicial(e.target.value)}
+              onBlur={(e) => {
+                const val = e.target.value ? parseFloat(e.target.value) : null;
+                if (val !== torre.plan_pct_inicial) {
+                  onUpdate(torre.id, { plan_pct_inicial: val });
+                }
+              }}
+              className={inputClass}
+              placeholder={t("torres.infoForm.usaDefaultProyecto")}
+            />
+          </div>
+          <div>
+            <Label>{t("torres.infoForm.planSeparacionTipo")}</Label>
+            <select
+              value={planSeparacionTipo}
+              onChange={(e) => {
+                const val = (e.target.value || null) as "porcentaje" | "fijo" | null;
+                setPlanSeparacionTipo(val ?? "");
+                if (val !== torre.plan_separacion_tipo) {
+                  onUpdate(torre.id, { plan_separacion_tipo: val });
+                }
+              }}
+              className={inputClass}
+            >
+              <option value="">{t("torres.infoForm.usaDefaultOption")}</option>
+              <option value="porcentaje">{t("torres.infoForm.separacionPorcentaje")}</option>
+              <option value="fijo">{t("torres.infoForm.separacionFijo")}</option>
+            </select>
+          </div>
+          <div>
+            <Label>{t("torres.infoForm.planSeparacionValor")}</Label>
+            <input
+              type="number"
+              min={0}
+              value={planSeparacionValor}
+              onChange={(e) => setPlanSeparacionValor(e.target.value)}
+              onBlur={(e) => {
+                const val = e.target.value ? parseFloat(e.target.value) : null;
+                if (val !== torre.plan_separacion_valor) {
+                  onUpdate(torre.id, { plan_separacion_valor: val });
+                }
+              }}
+              className={inputClass}
+              placeholder={t("torres.infoForm.usaDefaultProyecto")}
+            />
+          </div>
+        </div>
       </div>
 
       {/* Características */}

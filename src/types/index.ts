@@ -491,6 +491,15 @@ export interface Torre {
   galeria_independiente: boolean;
   orden: number;
   created_at: string;
+  // Delivery calculator: per-etapa delivery date + payment plan params
+  /** Delivery date for this etapa/torre (ISO date, e.g. "2028-06-01"). Falls back to project cotizador_config.fecha_estimada_entrega when null. */
+  fecha_entrega: string | null;
+  /** % cuota inicial for this etapa (e.g. 50, 30). Falls back to project cotizador_config.calc_defaults when null. */
+  plan_pct_inicial: number | null;
+  /** Separación type for this etapa: percentage of the price or a fixed amount. */
+  plan_separacion_tipo: "porcentaje" | "fijo" | null;
+  /** Separación value: percentage (e.g. 2.5) when tipo is "porcentaje", or a fixed peso amount (e.g. 16875000) when tipo is "fijo". */
+  plan_separacion_valor: number | null;
 }
 
 export interface AmenidadItem {
@@ -938,6 +947,24 @@ export interface CotizadorConfig {
   // Quick Quote mode: simplified quotation without templates
   quick_quote_enabled?: boolean;
   quick_quote_defaults?: QuickQuoteParams;
+  // Delivery calculator: project-level defaults for per-etapa payment plan (etapa overrides via Torre.plan_*)
+  /** Default % inicial + separación used when an etapa/torre doesn't set its own plan_* fields. */
+  calc_defaults?: {
+    pct_inicial: number;
+    separacion_tipo: "porcentaje" | "fijo";
+    separacion_valor: number;
+  };
+  // Excel parity extras (printed on the PDF payment plan)
+  /** Leasing note, e.g. "No" or free text. */
+  leasing_nota?: string;
+  /** Label for the parking spaces line item, e.g. "Privados". */
+  parqueaderos_label?: string;
+  /** Free-text note about finishes ("acabados"). */
+  acabados_nota?: string;
+  /** Free-text note about bonuses/discounts ("bonos"). */
+  bonos_nota?: string;
+  /** Validity in calendar days from the expedition date, printed as "vigencia de X días calendario a partir de la expedición". */
+  vigencia_dias?: number;
 }
 
 /** Parameters for the Quick Quote mode — generates a 3-phase payment plan on the fly */
