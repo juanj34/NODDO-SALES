@@ -5,6 +5,7 @@ import { cn } from "@/lib/utils";
 import {
   Plus, Trash2, GripVertical, Copy, Sparkles, X, Star, Globe, ChevronDown, Pencil,
   Banknote, Receipt, Scale, Type, Coins, Truck, ToggleLeft, ListOrdered,
+  CalendarClock, Gift,
 } from "lucide-react";
 import { Reorder, useDragControls } from "framer-motion";
 import type { CotizadorConfig, PlantillaPago, PlantillaPagoFila, PlantillaQuickDef, ReglaFecha, CargoAdicional } from "@/types";
@@ -492,6 +493,24 @@ export function PlantillaEditor({
     [config, saveConfig],
   );
 
+  // ── Project-level config (delivery calculator defaults + Excel-parity extras) ──
+  const updateConfig = useCallback(
+    (patch: Partial<CotizadorConfig>) => { saveConfig({ ...config, ...patch }); },
+    [config, saveConfig],
+  );
+
+  const updateCalcDefaults = useCallback(
+    (patch: Partial<NonNullable<CotizadorConfig["calc_defaults"]>>) => {
+      const base = config.calc_defaults ?? {
+        pct_inicial: 50,
+        separacion_tipo: "porcentaje" as const,
+        separacion_valor: 2.5,
+      };
+      updateConfig({ calc_defaults: { ...base, ...patch } });
+    },
+    [config, updateConfig],
+  );
+
   const addPlantilla = useCallback(() => {
     const newP = defaultTemplate(defaultMoneda);
     updatePlantillas([...plantillas, newP]);
@@ -921,6 +940,90 @@ export function PlantillaEditor({
           <Hint>Aparece al final del PDF de cotización y en el plan de pagos del micrositio.</Hint>
         </div>
       )}
+
+      {/* ── Project-level: delivery calculator defaults + Excel-parity extras ── */}
+      <div className={cn("bg-[var(--surface-1)] border border-[var(--border-subtle)] p-5", radius.xl, "flex flex-col", gap.relaxed)}>
+        <SectionHeader icon={CalendarClock} title="Calculadora de entrega — valores por defecto"
+          tooltip="Se usan en la Calculadora de entrega cuando una etapa/torre no define su propio plan. Cada etapa puede sobreescribirlos en Torres/Etapas. La fecha de entrega se toma de cada etapa."
+        />
+        <div className={cn("grid grid-cols-3", gap.relaxed)}>
+          <div>
+            <FieldLabel>% Inicial</FieldLabel>
+            <input type="number" min={0} max={100}
+              value={config.calc_defaults?.pct_inicial ?? 50}
+              onChange={(e) => updateCalcDefaults({ pct_inicial: Math.max(0, Math.min(100, Number(e.target.value) || 0)) })}
+              className={cn(inputClass, fontSize.md)}
+            />
+          </div>
+          <div>
+            <FieldLabel>Separación (tipo)</FieldLabel>
+            <NodDoDropdown variant="dashboard" size="md"
+              value={config.calc_defaults?.separacion_tipo ?? "porcentaje"}
+              onChange={(val) => updateCalcDefaults({ separacion_tipo: val as "porcentaje" | "fijo", separacion_valor: val === "porcentaje" ? 2.5 : 0 })}
+              options={[{ value: "porcentaje", label: "%" }, { value: "fijo", label: defaultMoneda }]}
+            />
+          </div>
+          <div>
+            <FieldLabel>Separación (valor)</FieldLabel>
+            {(config.calc_defaults?.separacion_tipo ?? "porcentaje") === "porcentaje" ? (
+              <input type="number" min={0} step={0.1}
+                value={config.calc_defaults?.separacion_valor ?? 2.5}
+                onChange={(e) => updateCalcDefaults({ separacion_valor: Math.max(0, Number(e.target.value) || 0) })}
+                className={cn(inputClass, fontSize.md)}
+              />
+            ) : (
+              <CurrencyInput value={config.calc_defaults?.separacion_valor || ""}
+                onChange={(v) => updateCalcDefaults({ separacion_valor: Number(v) || 0 })}
+                currency={defaultMoneda as Currency}
+                inputClassName={cn(inputClass, fontSize.md)} placeholder="0"
+              />
+            )}
+          </div>
+        </div>
+        <Hint>Ej. inicial 50%, separación 2.5%. Reproducen los casos del Excel (Índigo, Garden).</Hint>
+
+        <SectionHeader icon={Gift} title="Extras (paridad Excel)"
+          tooltip="Notas y etiquetas impresas en el plan de pagos del PDF, para reproducir el formato del Excel del desarrollador."
+        />
+        <div className={cn("grid grid-cols-2", gap.relaxed)}>
+          <div>
+            <FieldLabel>Leasing</FieldLabel>
+            <input type="text" value={config.leasing_nota ?? ""}
+              onChange={(e) => updateConfig({ leasing_nota: e.target.value || undefined })}
+              className={cn(inputClass, fontSize.md)} placeholder='ej. "No"'
+            />
+          </div>
+          <div>
+            <FieldLabel>Etiqueta de parqueaderos</FieldLabel>
+            <input type="text" value={config.parqueaderos_label ?? ""}
+              onChange={(e) => updateConfig({ parqueaderos_label: e.target.value || undefined })}
+              className={cn(inputClass, fontSize.md)} placeholder='ej. "Privados"'
+            />
+          </div>
+          <div>
+            <FieldLabel>Nota de acabados</FieldLabel>
+            <input type="text" value={config.acabados_nota ?? ""}
+              onChange={(e) => updateConfig({ acabados_nota: e.target.value || undefined })}
+              className={cn(inputClass, fontSize.md)} placeholder="ej. Entrega en obra gris"
+            />
+          </div>
+          <div>
+            <FieldLabel>Nota de bonos</FieldLabel>
+            <input type="text" value={config.bonos_nota ?? ""}
+              onChange={(e) => updateConfig({ bonos_nota: e.target.value || undefined })}
+              className={cn(inputClass, fontSize.md)} placeholder="ej. Bono de separación"
+            />
+          </div>
+          <div>
+            <FieldLabel>Vigencia (días calendario)</FieldLabel>
+            <input type="number" min={0} value={config.vigencia_dias ?? ""}
+              onChange={(e) => updateConfig({ vigencia_dias: e.target.value ? Math.max(0, Number(e.target.value)) : undefined })}
+              className={cn(inputClass, fontSize.md)} placeholder="ej. 30"
+            />
+          </div>
+        </div>
+        <Hint>La vigencia se imprime como &quot;vigencia de X días calendario a partir de la expedición&quot;.</Hint>
+      </div>
     </div>
   );
 }

@@ -23,7 +23,7 @@ import { calcularCotizacion, buildPrecioBaseComplementos } from "@/lib/cotizador
 import { roundPercentagesPreservingTotal } from "@/lib/cotizador/round-percentages";
 import { buildQuickQuoteFases, suggestCuotasFromDelivery } from "@/lib/cotizador/quick-quote";
 import { getTipologiaFields } from "@/lib/tipologia-fields";
-import type { CotizadorConfig, ResultadoCotizacion } from "@/types";
+import type { CotizadorConfig, ResultadoCotizacion, FaseConfig, Torre } from "@/types";
 import { CurrencyInput } from "@/components/dashboard/CurrencyInput";
 import { DatePickerInput } from "@/components/dashboard/DatePickerInput";
 import { NodDoDropdown } from "@/components/ui/NodDoDropdown";
@@ -43,9 +43,11 @@ import {
   paymentRowsFromConfig,
   paymentRowsToFases,
 } from "@/lib/cotizador/payment-rows";
-import { resolveDeliveryContext } from "@/lib/cotizador/delivery";
+import { resolveDeliveryContext, adjustFasesToDelivery } from "@/lib/cotizador/delivery";
+import { resolveEtapaPlan } from "@/lib/cotizador/delivery-calc";
 import { resolveTemplate } from "@/lib/cotizador/plantilla-pago";
 import { CotizadorPdfPreview } from "./CotizadorPdfPreview";
+import { DeliveryCalculator } from "./DeliveryCalculator";
 
 /* ── Types ─────────────────────────────────────────────── */
 
@@ -85,6 +87,7 @@ interface UnitRow {
   parqueaderos: number | null;
   depositos: number | null;
   tipologia_id: string | null;
+  torre_id: string | null;
   tipologia: {
     nombre: string;
     area_m2: number | null;
@@ -251,6 +254,14 @@ export function CotizadorTool({ project, tipologias, unidadTipologias }: Cotizad
   const [paymentRows, setPaymentRows] = useState<PaymentRow[]>([]);
   const [selectedPlantillaId, setSelectedPlantillaId] = useState<string | null>(null);
 
+  /* ── Torres (etapas) — for the delivery calculator plan resolution ── */
+  const [torres, setTorres] = useState<Torre[]>([]);
+
+  /* ── Delivery calculator mode ── */
+  const [calcMode, setCalcMode] = useState<"calculadora" | "plantillas">("plantillas");
+  const [calcFases, setCalcFases] = useState<FaseConfig[] | null>(null);
+  const calcModeManualRef = useRef<string | null>(null); // unitId whose mode the user manually chose
+
   /* ── Quick Quote mode ── */
   const [quoteMode, setQuoteMode] = useState<"plantilla" | "rapido">("plantilla");
   const [qqSeparacion, setQqSeparacion] = useState(10);
@@ -302,6 +313,29 @@ export function CotizadorTool({ project, tipologias, unidadTipologias }: Cotizad
   const selectedUnit = units.find((u) => u.id === selectedUnitId);
   const selectedTipologia = selectedTipologiaId ? tipologias.find((t) => t.id === selectedTipologiaId) : null;
   const selectedQuoteTipologia = selectedQuoteTipId ? tipologias.find((t) => t.id === selectedQuoteTipId) : null;
+
+  /* ── Delivery calculator: resolve the selected unit's torre (etapa) + its plan ── */
+  const selectedTorre = useMemo(() => {
+    const tid = selectedUnit?.torre_id ?? null;
+    return tid ? torres.find((t) => t.id === tid) ?? null : null;
+  }, [selectedUnit, torres]);
+
+  const resolvedCalcPlan = useMemo(() => resolveEtapaPlan(selectedTorre, config), [selectedTorre, config]);
+  const calcAvailable = resolvedCalcPlan.fuente !== "incompleta";
+
+  // Default to the calculator when the selected unit resolves a usable plan; else
+  // templates. Respects a manual toggle (tracked per unit) so it isn't overridden.
+  useEffect(() => {
+    if (!selectedUnitId) return;
+    if (calcModeManualRef.current === selectedUnitId) return;
+    setCalcMode(calcAvailable ? "calculadora" : "plantillas");
+  }, [selectedUnitId, calcAvailable]);
+
+  const setCalcModeManual = useCallback((mode: "calculadora" | "plantillas") => {
+    calcModeManualRef.current = selectedUnitId;
+    setCalcMode(mode);
+    if (mode === "calculadora") setPreviewOpen(false);
+  }, [selectedUnitId]);
 
   /** Dynamic moneda: per-plantilla overrides project-level */
   const moneda = useMemo(() => {
@@ -370,10 +404,11 @@ export function CotizadorTool({ project, tipologias, unidadTipologias }: Cotizad
     if (!projectId) return;
     (async () => {
       try {
-        const [unitsRes, compRes, cotRes] = await Promise.all([
+        const [unitsRes, compRes, cotRes, torresRes] = await Promise.all([
           fetch(`/api/unidades?proyecto_id=${projectId}`),
           fetch(`/api/complementos?proyecto_id=${projectId}`),
           fetch(`/api/cotizaciones?proyecto_id=${projectId}&limit=5`),
+          fetch(`/api/torres?proyecto_id=${projectId}`),
         ]);
         if (unitsRes.ok) setUnits(await unitsRes.json());
         if (compRes.ok) setComplementos(await compRes.json());
@@ -381,6 +416,7 @@ export function CotizadorTool({ project, tipologias, unidadTipologias }: Cotizad
           const data = await cotRes.json();
           setRecentCotizaciones(data.cotizaciones || []);
         }
+        if (torresRes.ok) setTorres(await torresRes.json());
       } finally {
         setLoadingUnits(false);
       }
@@ -739,6 +775,22 @@ export function CotizadorTool({ project, tipologias, unidadTipologias }: Cotizad
   // Use quick quote result when in rapido mode
   const activeCotizacion = quoteMode === "rapido" ? qqCotizacion : cotizacion;
 
+  /* ── Templates warning (adjustment #8): when the delivery config silently shrinks
+     the rapido cuotas (adjustFasesToDelivery), surface it instead of hiding it. ── */
+  const rapidoCuotasAdjustment = useMemo(() => {
+    if (quoteMode !== "rapido" || !config) return null;
+    const dc = resolveDeliveryContext(config);
+    if (!dc) return null;
+    const qqFases = buildQuickQuoteFases({
+      separacion_pct: qqSeparacion,
+      financiacion_pct: qqFinanciacion,
+      cuotas: effectiveQqCuotas,
+      frecuencia: qqFrecuencia,
+    });
+    const { adjustments } = adjustFasesToDelivery(qqFases, dc.mesesDisponibles);
+    return adjustments.find((a) => a.faseId === "qq-cuotas") ?? null;
+  }, [quoteMode, config, qqSeparacion, qqFinanciacion, effectiveQqCuotas, qqFrecuencia]);
+
   /* ── Payment balance & structure ── */
 
   const { assigned: balanceAssigned, pctAssigned: balancePct } = useMemo(
@@ -762,6 +814,11 @@ export function CotizadorTool({ project, tipologias, unidadTipologias }: Cotizad
 
   const needsQuoteTip = isMultiTipo && getUnitTipologias(selectedUnitId ?? "").length > 1;
   const canProceedToStep1 = !!selectedUnit && !!activeCotizacion && clientFormValid && (!needsQuoteTip || !!selectedQuoteTipId);
+
+  /** In calculadora mode the plan must resolve (etapa not incompleta) and have emitted fases. */
+  const canGenerate = clientFormValid && (
+    calcMode === "calculadora" ? (calcAvailable && !!calcFases) : !!activeCotizacion
+  );
 
   /* ── Callbacks ── */
 
@@ -933,7 +990,12 @@ export function CotizadorTool({ project, tipologias, unidadTipologias }: Cotizad
           telefono: effectiveClientPhone.trim() || undefined,
           agente_id: user?.id,
           agente_nombre: user?.email,
-          ...(quoteMode === "rapido" ? {
+          ...(calcMode === "calculadora" && calcAvailable && calcFases ? {
+            // Delivery calculator: send its plan verbatim, bypassing paymentRowsToFases
+            // and any plantilla flattening. plan_origen drives the hierarchical PDF grouping.
+            custom_fases: calcFases,
+            plan_origen: "calculadora",
+          } : quoteMode === "rapido" ? {
             quick_quote: {
               separacion_pct: qqSeparacion,
               financiacion_pct: qqFinanciacion,
@@ -952,7 +1014,7 @@ export function CotizadorTool({ project, tipologias, unidadTipologias }: Cotizad
           })),
           precio_base_parqueaderos: hasParqPrecioBase ? precioBaseParqCount : undefined,
           precio_base_depositos: hasDepoPrecioBase ? precioBaseDepoCount : undefined,
-          separacion_incluida: config?.separacion_incluida_en_inicial ?? true,
+          separacion_incluida: calcMode === "calculadora" ? true : (config?.separacion_incluida_en_inicial ?? true),
           payment_plan_nombre: paymentPlanNombre || undefined,
           admin_fee: cotizacion?.admin_fee ?? undefined,
           precio_negociado: priceOverride ?? undefined,
@@ -1047,7 +1109,7 @@ export function CotizadorTool({ project, tipologias, unidadTipologias }: Cotizad
 
   /* ── Render ── */
 
-  const showPreview = previewOpen && currentStep === 1 && !!selectedUnit;
+  const showPreview = previewOpen && currentStep === 1 && !!selectedUnit && calcMode === "plantillas";
 
   return (
     <>
@@ -1956,22 +2018,72 @@ export function CotizadorTool({ project, tipologias, unidadTipologias }: Cotizad
                       </span>
                     )}
                   </div>
-                  <button
-                    type="button"
-                    onClick={() => setPreviewOpen((v) => !v)}
-                    className={cn(
-                      "flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-[9px] font-ui font-bold uppercase tracking-[0.1em] transition-all border",
-                      previewOpen
-                        ? "bg-[rgba(var(--site-primary-rgb),0.15)] border-[rgba(var(--site-primary-rgb),0.3)] text-[var(--site-primary)]"
-                        : "bg-[var(--surface-2)] border-[var(--border-subtle)] text-[var(--text-tertiary)] hover:text-[var(--text-primary)] hover:border-[var(--border-default)]"
-                    )}
-                  >
-                    <Eye size={12} />
-                    Preview
-                  </button>
+                  {calcMode === "plantillas" && (
+                    <button
+                      type="button"
+                      onClick={() => setPreviewOpen((v) => !v)}
+                      className={cn(
+                        "flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-[9px] font-ui font-bold uppercase tracking-[0.1em] transition-all border",
+                        previewOpen
+                          ? "bg-[rgba(var(--site-primary-rgb),0.15)] border-[rgba(var(--site-primary-rgb),0.3)] text-[var(--site-primary)]"
+                          : "bg-[var(--surface-2)] border-[var(--border-subtle)] text-[var(--text-tertiary)] hover:text-[var(--text-primary)] hover:border-[var(--border-default)]"
+                      )}
+                    >
+                      <Eye size={12} />
+                      Preview
+                    </button>
+                  )}
                 </div>
               </div>
 
+              {/* Top-level plan mode: Calculadora de entrega vs Plantillas */}
+              <div className="flex items-center gap-2 px-5 py-3 rounded-xl bg-[var(--surface-1)] border border-[var(--border-subtle)]">
+                <span className="text-[9px] font-ui font-bold uppercase tracking-[0.14em] text-[var(--text-muted)] mr-1">
+                  Plan
+                </span>
+                <button
+                  type="button"
+                  onClick={() => setCalcModeManual("calculadora")}
+                  className={cn(
+                    "flex items-center gap-1.5 px-3 py-1.5 border text-[10px] font-ui font-bold uppercase tracking-wider transition-all rounded-lg",
+                    calcMode === "calculadora"
+                      ? "border-[rgba(var(--site-primary-rgb),0.6)] bg-[rgba(var(--site-primary-rgb),0.1)] text-[var(--site-primary)]"
+                      : "border-[var(--border-default)] bg-[var(--surface-3)] text-[var(--text-secondary)] hover:border-[var(--border-strong)]",
+                  )}
+                >
+                  <Sparkles size={10} className="-mt-0.5" />
+                  Calculadora de entrega
+                  {!calcAvailable && (
+                    <AlertTriangle size={10} className="text-amber-400/80" />
+                  )}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setCalcModeManual("plantillas")}
+                  className={cn(
+                    "flex items-center gap-1.5 px-3 py-1.5 border text-[10px] font-ui font-bold uppercase tracking-wider transition-all rounded-lg",
+                    calcMode === "plantillas"
+                      ? "border-[rgba(var(--site-primary-rgb),0.6)] bg-[rgba(var(--site-primary-rgb),0.1)] text-[var(--site-primary)]"
+                      : "border-[var(--border-default)] bg-[var(--surface-3)] text-[var(--text-secondary)] hover:border-[var(--border-strong)]",
+                  )}
+                >
+                  <Layout size={10} className="-mt-0.5" />
+                  Plantillas
+                </button>
+              </div>
+
+              {/* Delivery calculator (calculadora mode) */}
+              {calcMode === "calculadora" && (
+                <DeliveryCalculator
+                  totalPesos={effectiveTotal}
+                  torre={selectedTorre}
+                  config={config}
+                  currency={moneda}
+                  onFasesChange={(fases) => setCalcFases(fases)}
+                />
+              )}
+
+              {calcMode === "plantillas" && (<>
               {/* Mode toggle: Plantilla vs Rápido */}
               <div className="flex items-center gap-2 px-5 py-3 rounded-xl bg-[var(--surface-1)] border border-[var(--border-subtle)]">
                 <span className="text-[9px] font-ui font-bold uppercase tracking-[0.14em] text-[var(--text-muted)] mr-1">
@@ -2088,6 +2200,16 @@ export function CotizadorTool({ project, tipologias, unidadTipologias }: Cotizad
                     <p className="text-xs text-red-400">Separación + financiación no puede exceder 100%</p>
                   )}
 
+                  {/* Delivery-adjustment warning (adjustment #8) */}
+                  {rapidoCuotasAdjustment && (
+                    <div className="flex items-start gap-2 px-3 py-2 rounded-lg bg-amber-500/5 border border-amber-500/20">
+                      <AlertTriangle size={13} className="text-amber-400 shrink-0 mt-0.5" />
+                      <span className="text-[11px] text-amber-200/90 leading-relaxed">
+                        ⚠️ El plan excede la fecha de entrega: las cuotas fueron ajustadas de {rapidoCuotasAdjustment.originalCuotas} a {rapidoCuotasAdjustment.adjustedCuotas} — revisa o usa la Calculadora de entrega.
+                      </span>
+                    </div>
+                  )}
+
                   {/* Live preview */}
                   {qqCotizacion && (
                     <div className="space-y-2 pt-3 border-t border-[var(--border-subtle)]">
@@ -2166,6 +2288,7 @@ export function CotizadorTool({ project, tipologias, unidadTipologias }: Cotizad
                   </button>
                 </div>
               )}
+              </>)}
 
               {/* Price adjustment panel */}
               <div className="rounded-xl bg-[var(--surface-1)] border border-[var(--border-subtle)] overflow-hidden">
@@ -2308,7 +2431,8 @@ export function CotizadorTool({ project, tipologias, unidadTipologias }: Cotizad
                 )}
               </div>
 
-              {/* Key dates row */}
+              {/* Key dates row (plantillas mode only — calculadora derives the delivery date from the etapa) */}
+              {calcMode === "plantillas" && (
               <div className="flex flex-wrap items-end gap-4 px-5 py-4 rounded-xl bg-[var(--surface-1)] border border-[var(--border-subtle)]">
                 <div className="flex-1 min-w-[160px]">
                   <label className="flex items-center gap-1.5 text-[9px] font-ui font-bold uppercase tracking-[0.14em] text-[var(--text-muted)] mb-1.5">
@@ -2369,6 +2493,7 @@ export function CotizadorTool({ project, tipologias, unidadTipologias }: Cotizad
                   Auto-distribuir fechas
                 </button>
               </div>
+              )}
 
               {/* Quote options: language + secondary currency */}
               <div className="rounded-xl bg-[var(--surface-1)] border border-[var(--border-subtle)] overflow-hidden">
@@ -2456,8 +2581,8 @@ export function CotizadorTool({ project, tipologias, unidadTipologias }: Cotizad
                 )}
               </div>
 
-              {/* Plan header + payment rows (hidden in rapido mode) */}
-              {quoteMode === "plantilla" && <>
+              {/* Plan header + payment rows (plantillas mode, plantilla submode only) */}
+              {calcMode === "plantillas" && quoteMode === "plantilla" && <>
               <div className="px-5 py-4 rounded-xl bg-[var(--surface-1)] border border-[var(--border-subtle)]">
                 <div className="flex flex-wrap items-center gap-4">
                   <div className="flex-1 min-w-[200px]">
@@ -2687,10 +2812,10 @@ export function CotizadorTool({ project, tipologias, unidadTipologias }: Cotizad
               {/* Generate button */}
               <button
                 onClick={handleGenerate}
-                disabled={generating || !clientFormValid || !activeCotizacion}
+                disabled={generating || !canGenerate}
                 className={cn(
                   "w-full py-3 rounded-xl font-ui text-xs font-bold uppercase tracking-[0.1em] flex items-center justify-center gap-2 transition-all",
-                  clientFormValid && activeCotizacion
+                  canGenerate
                     ? "bg-[var(--site-primary)] text-[var(--surface-0)] hover:brightness-110 cursor-pointer"
                     : "bg-[var(--surface-2)] text-[var(--text-muted)] cursor-not-allowed"
                 )}
