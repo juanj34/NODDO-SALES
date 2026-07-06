@@ -136,6 +136,19 @@ describe("resolveEtapaPlan", () => {
     expect(plan.fuente).toBe("proyecto");
   });
 
+  it("fuente 'incompleta' takes precedence over 'etapa': torre with plan params but no resolvable fecha (fecha_fija)", () => {
+    const t = torre({ plan_pct_inicial: 40 }); // fecha_entrega null
+    const config = baseConfig(); // no fecha_estimada_entrega, tipo_entrega defaults to fecha_fija
+
+    const plan = resolveEtapaPlan(t, config);
+
+    expect(plan.tipoEntrega).toBe("fecha_fija");
+    expect(plan.fechaEntrega).toBeNull();
+    // Must be "incompleta" (the UI's block-signal), NOT "etapa" — otherwise
+    // buildDeliveryPlan silently collapses to contado without any warning.
+    expect(plan.fuente).toBe("incompleta");
+  });
+
   it("torre providing only one field (partial override) still counts as fuente 'etapa'", () => {
     const t = torre({ plan_pct_inicial: 35 });
     const config = baseConfig({ fecha_estimada_entrega: "2028-01-01" });
@@ -295,7 +308,7 @@ describe("buildDeliveryPlan — fijo separacion", () => {
     expect(result.separacionPesos).toBe(10_000_000);
     expect(result.inicialPesos).toBe(200_000_000);
     expect(result.cuotas).toBe(12);
-    expect(result.cuotaMensualPesos).toBe(Math.round((200_000_000 - 10_000_000) / 12));
+    expect(result.cuotaMensualPesos).toBe(15_833_333);
     expect(result.fases[0]).toEqual(
       { id: "calc-separacion", nombre: "Separación", tipo: "fijo", valor: 10_000_000, cuotas: 1, frecuencia: "unica" },
     );
