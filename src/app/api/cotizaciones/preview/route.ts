@@ -43,6 +43,9 @@ export async function POST(request: NextRequest) {
       moneda_secundaria,
       tipo_cambio,
       precio_negociado,
+      // Calculator-mode metadata — parity with the persist route (Task 3 added it
+      // there; preview only needs minimal acceptance to drive the grouped PDF layout).
+      plan_origen,
     } = body as {
       proyecto_id: string;
       unidad_id: string;
@@ -66,7 +69,12 @@ export async function POST(request: NextRequest) {
       moneda_secundaria?: Currency | null;
       tipo_cambio?: number | null;
       precio_negociado?: number;
+      plan_origen?: "calculadora" | "plantilla";
     };
+
+    // Ignore anything that isn't a known value rather than 500ing.
+    const planOrigenValido: "calculadora" | "plantilla" | null =
+      plan_origen === "calculadora" || plan_origen === "plantilla" ? plan_origen : null;
 
     if (!proyecto_id || !unidad_id) {
       return NextResponse.json({ error: "proyecto_id y unidad_id requeridos" }, { status: 400 });
@@ -337,6 +345,7 @@ export async function POST(request: NextRequest) {
       idioma: projectLocale,
       monedaSecundaria: moneda_secundaria ?? null,
       tipoCambio: tipo_cambio ?? null,
+      agrupar_inicial: planOrigenValido === "calculadora",
     });
 
     // Preview is fail-loud: if the worker is down, surface a 502 (handled below).

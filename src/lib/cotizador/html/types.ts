@@ -86,6 +86,12 @@ export interface CotizacionView {
   complementosTotal: number;
   fases: ViewFase[];
   paymentPlanNombre: string;
+  /**
+   * Render Separación + Cuota inicial as one grouped "CUOTA INICIAL (NN%)" block
+   * (delivery-calculator mode) instead of three flat rows. Defaults to false —
+   * existing template-mode quotes are unaffected. See BuildCotizacionDataInput.agrupar_inicial.
+   */
+  agruparInicial: boolean;
 
   // Parties
   agenteNombre: string | null;
@@ -101,6 +107,15 @@ export interface CotizacionView {
   referenceNumber: string;
   notasLegales: string | null;
   idioma: EmailLocale;
+
+  // Excel-parity extras band (printed after the payment plan table) + validity note.
+  // Sourced straight from CotizadorConfig — non-empty-string normalized, null when unset.
+  leasingNota: string | null;
+  parqueaderosLabel: string | null;
+  acabadosNota: string | null;
+  bonosNota: string | null;
+  /** Validity in calendar days from the quote's expedition date (fechaDisplay). Null when unset. */
+  vigenciaDias: number | null;
 }
 
 /** Raw, already-fetched inputs the route hands to the builder. */
@@ -150,4 +165,11 @@ export interface BuildCotizacionDataInput {
   idioma: EmailLocale;
   monedaSecundaria: Currency | null;
   tipoCambio: number | null;
+  /**
+   * True when this quote's payment plan came from the delivery calculator
+   * (API sets it to `plan_origen === "calculadora"`). Enables the grouped
+   * "Cuota inicial" PDF layout when the fase shape also matches
+   * (Separación fijo -> Cuota inicial porcentaje). Defaults to false.
+   */
+  agrupar_inicial?: boolean;
 }

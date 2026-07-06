@@ -25,6 +25,11 @@ function complementoPrecio(c: ComplementoSeleccion): number | null {
   return p * (c.cantidad ?? 1);
 }
 
+/** Normalize an optional config string: blank/whitespace-only counts as absent. */
+function nonEmpty(s: string | null | undefined): string | null {
+  return typeof s === "string" && s.trim().length > 0 ? s : null;
+}
+
 /**
  * Fold an already-priced quote into a flat, render-ready CotizacionView.
  * Pure: no IO, no async, no re-pricing. The phases come straight from
@@ -115,6 +120,7 @@ export function buildCotizacionData(input: BuildCotizacionDataInput): Cotizacion
     complementosTotal,
     fases,
     paymentPlanNombre: input.paymentPlanNombre,
+    agruparInicial: input.agrupar_inicial === true,
 
     agenteNombre: agente.nombre,
     agenteTelefono: agente.telefono,
@@ -128,5 +134,14 @@ export function buildCotizacionData(input: BuildCotizacionDataInput): Cotizacion
     referenceNumber: input.referenceNumber,
     notasLegales: input.notasLegales,
     idioma: input.idioma,
+
+    leasingNota: nonEmpty(input.config.leasing_nota),
+    parqueaderosLabel: nonEmpty(input.config.parqueaderos_label),
+    acabadosNota: nonEmpty(input.config.acabados_nota),
+    bonosNota: nonEmpty(input.config.bonos_nota),
+    vigenciaDias:
+      typeof input.config.vigencia_dias === "number" && input.config.vigencia_dias > 0
+        ? input.config.vigencia_dias
+        : null,
   };
 }
