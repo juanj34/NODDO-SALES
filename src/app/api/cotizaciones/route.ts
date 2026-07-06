@@ -178,6 +178,9 @@ export async function POST(request: NextRequest) {
       idioma,
       moneda_secundaria,
       tipo_cambio,
+      // Negotiated unit price + calculator-mode metadata (parity with /preview)
+      precio_negociado,
+      plan_origen,
     } = body as {
       proyecto_id: string;
       unidad_id: string;
@@ -204,6 +207,8 @@ export async function POST(request: NextRequest) {
       idioma?: "es" | "en";
       moneda_secundaria?: Currency | null;
       tipo_cambio?: number | null;
+      precio_negociado?: number;
+      plan_origen?: "calculadora" | "plantilla";
     };
 
     // Validate required fields
@@ -316,6 +321,20 @@ export async function POST(request: NextRequest) {
         }
       }
     }
+
+    // Apply negotiated price override — parity with /api/cotizaciones/preview.
+    // Ignore invalid values (non-number, NaN/Infinity, zero/negative) rather than 500ing.
+    const precioNegociadoValido =
+      typeof precio_negociado === "number" && Number.isFinite(precio_negociado) && precio_negociado > 0
+        ? precio_negociado
+        : null;
+    if (precioNegociadoValido != null) {
+      unit.precio = precioNegociadoValido;
+    }
+
+    // Optional calculator-mode metadata (analytics/debug) — ignore anything else.
+    const planOrigenValido: "calculadora" | "plantilla" | null =
+      plan_origen === "calculadora" || plan_origen === "plantilla" ? plan_origen : null;
 
     if (!unit.precio) {
       return NextResponse.json({ error: "Unidad sin precio" }, { status: 400 });
@@ -551,6 +570,16 @@ export async function POST(request: NextRequest) {
     // Persist the object PATH in the private bucket (NOT a public URL).
     const pdfUrl = pdfPath;
 
+    // No dedicated columns for these (and no migration for this fix) — fold them
+    // into the existing config_snapshot JSONB so the negotiated price and the
+    // originating mode are recoverable for analytics/debug/support.
+    const configSnapshot: CotizadorConfig & {
+      precio_negociado?: number;
+      plan_origen?: "calculadora" | "plantilla";
+    } = { ...effectiveConfig };
+    if (precioNegociadoValido != null) configSnapshot.precio_negociado = precioNegociadoValido;
+    if (planOrigenValido != null) configSnapshot.plan_origen = planOrigenValido;
+
     // Insert cotización record
     const { error: insertErr } = await supabase
       .from("cotizaciones")
@@ -562,7 +591,7 @@ export async function POST(request: NextRequest) {
         email: sanitize(email, 320),
         telefono: telefono ? sanitize(telefono, 30) : null,
         unidad_snapshot: unidadSnapshot,
-        config_snapshot: effectiveConfig,
+        config_snapshot: configSnapshot,
         resultado,
         pdf_url: pdfUrl,
         utm_source: utm_source ? sanitize(utm_source, 200) : null,
