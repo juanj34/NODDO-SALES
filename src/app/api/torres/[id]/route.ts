@@ -17,7 +17,7 @@ export async function PUT(
 
     const body = await request.json();
 
-    const updateData = pick(body, ["nombre", "tipo", "num_pisos", "pisos_sotano", "pisos_planta_baja", "pisos_podio", "pisos_residenciales", "pisos_rooftop", "descripcion", "amenidades", "amenidades_data", "caracteristicas", "imagen_portada", "logo_url", "prefijo", "orden", "galeria_independiente"]);
+    const updateData = pick(body, ["nombre", "tipo", "num_pisos", "pisos_sotano", "pisos_planta_baja", "pisos_podio", "pisos_residenciales", "pisos_rooftop", "descripcion", "amenidades", "amenidades_data", "caracteristicas", "imagen_portada", "logo_url", "prefijo", "orden", "galeria_independiente", "fecha_entrega", "plan_pct_inicial", "plan_separacion_tipo", "plan_separacion_valor"]);
 
     // When switching to urbanismo, clear tower-specific composition fields
     if (updateData.tipo === "urbanismo") {
