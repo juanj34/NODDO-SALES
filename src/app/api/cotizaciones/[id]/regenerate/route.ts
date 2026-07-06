@@ -59,7 +59,12 @@ export async function POST(
     // Never re-price against the project's current config (that would be a new
     // quote, not a regenerate). config_snapshot is the issued config; fall back
     // to the project's current config only for legacy rows with no snapshot.
-    const config = (cotizacion.config_snapshot ?? cotizacion.proyectos.cotizador_config) as CotizadorConfig;
+    // The persist route folds plan_origen (and precio_negociado) into the
+    // snapshot JSONB, so a regenerated calculator-mode PDF keeps the grouped
+    // "Cuota inicial" layout of the originally issued document.
+    const config = (cotizacion.config_snapshot ?? cotizacion.proyectos.cotizador_config) as CotizadorConfig & {
+      plan_origen?: "calculadora" | "plantilla";
+    };
     const resultado = cotizacion.resultado as ResultadoCotizacion; // issued numbers
     const snapshot = (cotizacion.unidad_snapshot ?? {}) as Record<string, unknown>;
     const moneda = (config.moneda || "COP") as Currency;
@@ -137,6 +142,7 @@ export async function POST(
       idioma: projectLocale,
       monedaSecundaria: null,
       tipoCambio: null,
+      agrupar_inicial: config.plan_origen === "calculadora",
     });
 
     // Explicit agent action → fail-loud (a worker outage surfaces as a 502).

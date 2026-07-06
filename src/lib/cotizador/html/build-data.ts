@@ -43,7 +43,16 @@ export function buildCotizacionData(input: BuildCotizacionDataInput): Cotizacion
   const cargosTotal = resultado.cargos_total ?? 0;
   const grandTotal = planTotal + cargosTotal;
 
-  const fases: ViewFase[] = resultado.fases.map((f) => ({
+  // Legacy stored resultados (persisted before FaseResultado.tipo existed) fall
+  // back to the issued config's fases by index — safe because calcular.ts maps
+  // config fases 1:1 into resultado.fases (adjustFasesToDelivery only shrinks
+  // cuotas, never adds/removes fases). Guard on equal lengths anyway; a null
+  // tipo just means "shape unknown" and disables the grouped PDF layout.
+  const configFases = input.config.fases ?? [];
+  const tipoFallback = (i: number): ViewFase["tipo"] =>
+    resultado.fases.length === configFases.length ? (configFases[i]?.tipo ?? null) : null;
+
+  const fases: ViewFase[] = resultado.fases.map((f, i) => ({
     nombre: f.nombre,
     montoTotal: f.monto_total,
     cuotas: f.cuotas,
@@ -53,6 +62,7 @@ export function buildCotizacionData(input: BuildCotizacionDataInput): Cotizacion
     porcentaje:
       f.porcentaje ?? (planTotal > 0 ? Math.round((f.monto_total / planTotal) * 100) : 0),
     condicionHito: f.condicion_hito ?? null,
+    tipo: f.tipo ?? tipoFallback(i),
   }));
 
   const cargos: ViewCargo[] = (resultado.cargos_aplicados ?? []).map((c) => ({

@@ -16,6 +16,13 @@ export interface ViewFase {
   fecha: string | null;
   porcentaje: number;
   condicionHito: string | null;
+  /**
+   * Source FaseConfig tipo — used together with the fase name to detect the
+   * delivery calculator's shape for the grouped PDF layout. Null when the
+   * stored resultado predates FaseResultado.tipo and no aligned config
+   * fallback exists (a null tipo simply disables grouping).
+   */
+  tipo: "fijo" | "porcentaje" | "resto" | null;
 }
 
 export interface ViewCargo {

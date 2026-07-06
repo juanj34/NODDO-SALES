@@ -143,6 +143,7 @@ export function calcularCotizacion(
       cuotas,
       monto_por_cuota,
       frecuencia: fase.frecuencia,
+      tipo: fase.tipo,
       fecha: fase.fecha || undefined,
       // Placeholder — replaced below by a largest-remainder rounding pass across
       // ALL phases together, so independent per-row Math.round can't lose the
