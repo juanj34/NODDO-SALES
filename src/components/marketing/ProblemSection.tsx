@@ -300,9 +300,9 @@ function IllustrationFragmented() {
       </g>
 
       {/* Floating question marks */}
-      <text className="pf-q1" x="92" y="56" fill="rgba(184,151,58,0.18)" fontSize="16" fontFamily="system-ui, sans-serif">?</text>
-      <text className="pf-q2" x="108" y="82" fill="rgba(184,151,58,0.14)" fontSize="12" fontFamily="system-ui, sans-serif">?</text>
-      <text className="pf-q3" x="82" y="96" fill="rgba(184,151,58,0.10)" fontSize="10" fontFamily="system-ui, sans-serif">?</text>
+      <text className="pf-q1" x="92" y="56" fill="rgba(184,151,58,0.18)" fontSize="16" fontFamily="serif">?</text>
+      <text className="pf-q2" x="108" y="82" fill="rgba(184,151,58,0.14)" fontSize="12" fontFamily="serif">?</text>
+      <text className="pf-q3" x="82" y="96" fill="rgba(184,151,58,0.10)" fontSize="10" fontFamily="serif">?</text>
     </svg>
   );
 }
@@ -385,7 +385,7 @@ function IllustrationLeads() {
       <g className="pl-card-left">
       <rect x="8" y="36" width="48" height="56" rx="2" stroke="rgba(184,151,58,0.14)" strokeWidth="0.6" fill="rgba(184,151,58,0.02)" />
       <circle cx="32" cy="52" r="8" stroke="rgba(184,151,58,0.16)" strokeWidth="0.6" fill="none" />
-      <text className="pl-q" x="32" y="56" textAnchor="middle" fill="rgba(200,80,60,0.45)" fontSize="11" fontFamily="system-ui, sans-serif" style={{ transformOrigin: "32px 52px" }}>?</text>
+      <text className="pl-q" x="32" y="56" textAnchor="middle" fill="rgba(200,80,60,0.45)" fontSize="11" fontFamily="serif" style={{ transformOrigin: "32px 52px" }}>?</text>
       <line x1="16" y1="68" x2="48" y2="68" stroke="rgba(184,151,58,0.08)" strokeWidth="0.5" strokeDasharray="2 3" />
       <line x1="16" y1="74" x2="42" y2="74" stroke="rgba(184,151,58,0.06)" strokeWidth="0.5" strokeDasharray="2 3" />
       <line x1="16" y1="80" x2="44" y2="80" stroke="rgba(184,151,58,0.06)" strokeWidth="0.5" strokeDasharray="2 3" />
@@ -395,7 +395,7 @@ function IllustrationLeads() {
       <g className="pl-card-right">
       <rect x="164" y="40" width="48" height="56" rx="2" stroke="rgba(184,151,58,0.14)" strokeWidth="0.6" fill="rgba(184,151,58,0.02)" />
       <circle cx="188" cy="56" r="8" stroke="rgba(184,151,58,0.16)" strokeWidth="0.6" fill="none" />
-      <text className="pl-q2" x="188" y="60" textAnchor="middle" fill="rgba(200,80,60,0.45)" fontSize="11" fontFamily="system-ui, sans-serif" style={{ transformOrigin: "188px 56px" }}>?</text>
+      <text className="pl-q2" x="188" y="60" textAnchor="middle" fill="rgba(200,80,60,0.45)" fontSize="11" fontFamily="serif" style={{ transformOrigin: "188px 56px" }}>?</text>
       <line x1="172" y1="72" x2="204" y2="72" stroke="rgba(184,151,58,0.08)" strokeWidth="0.5" strokeDasharray="2 3" />
       <line x1="172" y1="78" x2="198" y2="78" stroke="rgba(184,151,58,0.06)" strokeWidth="0.5" strokeDasharray="2 3" />
       <line x1="172" y1="84" x2="200" y2="84" stroke="rgba(184,151,58,0.06)" strokeWidth="0.5" strokeDasharray="2 3" />

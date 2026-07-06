@@ -256,18 +256,18 @@ function BlueprintConstructionIllustration() {
         {/* 2024 */}
         <line x1="155" y1="153" x2="155" y2="163" stroke="rgba(184,151,58,0.2)" strokeWidth="0.3" />
         <circle cx="155" cy="158" r="2" fill="rgba(184,151,58,0.3)" stroke="rgba(184,151,58,0.4)" strokeWidth="0.3" />
-        <text x="155" y="151" textAnchor="middle" fill="rgba(184,151,58,0.4)" fontSize="3.5" fontFamily="system-ui, sans-serif" fontWeight="300">2024</text>
+        <text x="155" y="151" textAnchor="middle" fill="rgba(184,151,58,0.4)" fontSize="3.5" fontFamily="serif" fontWeight="300">2024</text>
 
         {/* 2025 */}
         <line x1="215" y1="153" x2="215" y2="163" stroke="rgba(184,151,58,0.2)" strokeWidth="0.3" />
         <circle cx="215" cy="158" r="2" fill="rgba(184,151,58,0.3)" stroke="rgba(184,151,58,0.4)" strokeWidth="0.3" />
-        <text x="215" y="151" textAnchor="middle" fill="rgba(184,151,58,0.4)" fontSize="3.5" fontFamily="system-ui, sans-serif" fontWeight="300">2025</text>
+        <text x="215" y="151" textAnchor="middle" fill="rgba(184,151,58,0.4)" fontSize="3.5" fontFamily="serif" fontWeight="300">2025</text>
 
         {/* 2026 — current (pulsing) */}
         <line x1="275" y1="153" x2="275" y2="163" stroke="rgba(184,151,58,0.3)" strokeWidth="0.3" />
         <circle cx="275" cy="158" r="3" fill="#b8973a" opacity="0.6" className="ns-current" />
         <circle cx="275" cy="158" r="5" fill="none" stroke="rgba(184,151,58,0.3)" strokeWidth="0.3" className="ns-current-ring" />
-        <text x="275" y="151" textAnchor="middle" fill="#b8973a" fontSize="3.5" fontFamily="system-ui, sans-serif" fontWeight="400" opacity="0.8">2026</text>
+        <text x="275" y="151" textAnchor="middle" fill="#b8973a" fontSize="3.5" fontFamily="serif" fontWeight="400" opacity="0.8">2026</text>
 
         {/* Labels under milestones */}
         <text x="155" y="167" textAnchor="middle" fill="rgba(184,151,58,0.2)" fontSize="2.2" fontFamily="monospace">FOUNDED</text>
@@ -280,27 +280,27 @@ function BlueprintConstructionIllustration() {
 
         {/* Metric rows */}
         <text x="16" y="32" fill="rgba(184,151,58,0.2)" fontSize="2.8" fontFamily="monospace">PROJECTS</text>
-        <text x="90" y="32" textAnchor="end" fill="#b8973a" fontSize="5" fontFamily="system-ui, sans-serif" fontWeight="300" opacity="0.7">34+</text>
+        <text x="90" y="32" textAnchor="end" fill="#b8973a" fontSize="5" fontFamily="serif" fontWeight="300" opacity="0.7">34+</text>
 
         <line x1="16" y1="36" x2="100" y2="36" stroke="rgba(184,151,58,0.06)" strokeWidth="0.2" />
 
         <text x="16" y="46" fill="rgba(184,151,58,0.2)" fontSize="2.8" fontFamily="monospace">INVENTORY</text>
-        <text x="90" y="46" textAnchor="end" fill="#b8973a" fontSize="5" fontFamily="system-ui, sans-serif" fontWeight="300" opacity="0.7">$150M</text>
+        <text x="90" y="46" textAnchor="end" fill="#b8973a" fontSize="5" fontFamily="serif" fontWeight="300" opacity="0.7">$150M</text>
 
         <line x1="16" y1="50" x2="100" y2="50" stroke="rgba(184,151,58,0.06)" strokeWidth="0.2" />
 
         <text x="16" y="60" fill="rgba(184,151,58,0.2)" fontSize="2.8" fontFamily="monospace">COUNTRIES</text>
-        <text x="90" y="60" textAnchor="end" fill="#b8973a" fontSize="5" fontFamily="system-ui, sans-serif" fontWeight="300" opacity="0.7">6</text>
+        <text x="90" y="60" textAnchor="end" fill="#b8973a" fontSize="5" fontFamily="serif" fontWeight="300" opacity="0.7">6</text>
 
         <line x1="16" y1="64" x2="100" y2="64" stroke="rgba(184,151,58,0.06)" strokeWidth="0.2" />
 
         <text x="16" y="74" fill="rgba(184,151,58,0.2)" fontSize="2.8" fontFamily="monospace">UPTIME</text>
-        <text x="90" y="74" textAnchor="end" fill="#b8973a" fontSize="5" fontFamily="system-ui, sans-serif" fontWeight="300" opacity="0.7">99.97%</text>
+        <text x="90" y="74" textAnchor="end" fill="#b8973a" fontSize="5" fontFamily="serif" fontWeight="300" opacity="0.7">99.97%</text>
 
         <line x1="16" y1="78" x2="100" y2="78" stroke="rgba(184,151,58,0.06)" strokeWidth="0.2" />
 
         <text x="16" y="87" fill="rgba(184,151,58,0.2)" fontSize="2.8" fontFamily="monospace">LEADS</text>
-        <text x="90" y="87" textAnchor="end" fill="#b8973a" fontSize="5" fontFamily="system-ui, sans-serif" fontWeight="300" opacity="0.7">12K+</text>
+        <text x="90" y="87" textAnchor="end" fill="#b8973a" fontSize="5" fontFamily="serif" fontWeight="300" opacity="0.7">12K+</text>
 
         {/* ── Floating blueprint pages ── */}
         <g className="ns-page1">

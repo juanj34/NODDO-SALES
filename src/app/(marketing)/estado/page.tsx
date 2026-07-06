@@ -202,7 +202,7 @@ function InfrastructureMonitorIllustration() {
         />
 
         {/* Gauge percentage text */}
-        <text className="st-pct" x="256" y="57" textAnchor="middle" fill="#b8973a" fontSize="8" fontFamily="system-ui, sans-serif" fontWeight="300" opacity="0.8">99.97</text>
+        <text className="st-pct" x="256" y="57" textAnchor="middle" fill="#b8973a" fontSize="8" fontFamily="serif" fontWeight="300" opacity="0.8">99.97</text>
         <text x="256" y="63" textAnchor="middle" fill="rgba(184,151,58,0.4)" fontSize="3.5" fontFamily="monospace">% UPTIME</text>
 
         {/* Gauge tick marks */}

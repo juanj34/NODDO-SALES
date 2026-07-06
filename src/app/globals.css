@@ -184,6 +184,21 @@ button:disabled,
   font-family: var(--font-inter), system-ui, sans-serif;
 }
 
+/* ====== MARKETING SERIF (scoped) ======
+   The marketing site keeps the original Cormorant serif design; the rest of
+   the platform (dashboard, microsites, PDFs, emails) stays sans. The
+   --font-cormorant-serif variable is defined by the (marketing) layout's
+   next/font loader, so the webfont only ships on marketing routes. */
+.mk-serif {
+  --font-cormorant: var(--font-cormorant-serif), Georgia, serif;
+  --font-heading: var(--font-cormorant-serif), Georgia, serif;
+}
+.mk-serif .font-heading,
+.mk-serif .heading-display,
+.mk-serif .mk-section-heading {
+  font-family: var(--font-cormorant-serif), Georgia, serif;
+}
+
 /* ====== SURFACE LAYERS ====== */
 
 .surface-0 {
