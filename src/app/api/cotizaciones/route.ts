@@ -429,8 +429,12 @@ export async function POST(request: NextRequest) {
     }
     const precioFinal = unit.precio;
 
-    // Resolve delivery context for dynamic payment plans
-    const deliveryContext = resolveDeliveryContext(effectiveConfig);
+    // Resolve delivery context for dynamic payment plans.
+    // Calculator-mode quotes carry their own delivery-derived equal cuotas (N = months
+    // to the etapa's delivery, computed in America/Bogota at the UI). Bypass the
+    // server-side delivery re-adjustment, which would re-shrink those cuotas against a
+    // single project-level fecha (wrong for multi-etapa projects) or a UTC month boundary.
+    const deliveryContext = planOrigenValido === "calculadora" ? null : resolveDeliveryContext(effectiveConfig);
 
     // Calculate quotation (server-side — source of truth)
     const resultado = calcularCotizacion(
@@ -482,7 +486,7 @@ export async function POST(request: NextRequest) {
     const now = new Date();
     const projectLocale: EmailLocale = idioma || (proyecto.idioma as EmailLocale) || "es";
     const dateIntlLocale = projectLocale === "en" ? "en-US" : "es-CO";
-    const fecha = now.toLocaleDateString(dateIntlLocale, { day: "numeric", month: "long", year: "numeric" });
+    const fecha = now.toLocaleDateString(dateIntlLocale, { day: "numeric", month: "long", year: "numeric", timeZone: "America/Bogota" });
     const cotizacionId = crypto.randomUUID();
     const refNumber = `COT-${now.getFullYear()}-${cotizacionId.slice(0, 4).toUpperCase()}`;
 
