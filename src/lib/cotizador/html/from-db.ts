@@ -32,6 +32,8 @@ interface DbRowsInput {
   idioma: EmailLocale;
   monedaSecundaria: Currency | null;
   tipoCambio: number | null;
+  /** True when plan_origen === "calculadora" — enables the grouped PDF layout. */
+  agrupar_inicial?: boolean;
 }
 
 function asNum(v: unknown): number | null {
@@ -99,5 +101,6 @@ export function buildInputFromDbRows(i: DbRowsInput): BuildCotizacionDataInput {
     idioma: i.idioma,
     monedaSecundaria: i.monedaSecundaria,
     tipoCambio: i.tipoCambio,
+    agrupar_inicial: i.agrupar_inicial,
   };
 }

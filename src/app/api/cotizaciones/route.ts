@@ -560,6 +560,9 @@ export async function POST(request: NextRequest) {
       idioma: projectLocale,
       monedaSecundaria: moneda_secundaria ?? null,
       tipoCambio: tipo_cambio ?? null,
+      // Grouped "Cuota inicial" PDF layout is calculator-mode only (build-html.ts
+      // also verifies the fase shape before actually grouping).
+      agrupar_inicial: planOrigenValido === "calculadora",
     });
 
     const isAgentAction = !!agente_id;
