@@ -976,6 +976,10 @@ export function CotizadorTool({ project, tipologias, unidadTipologias }: Cotizad
   // Generate cotización
   const handleGenerate = async () => {
     if (!selectedUnit || !clientFormValid) return;
+    // Calculator mode with no resolved plan must never fall through to the
+    // plantilla/rapido branches below — that would silently submit a payload
+    // that doesn't match what the UI is showing. Bail out instead.
+    if (calcMode === "calculadora" && !(calcAvailable && calcFases)) return;
     setGenerating(true);
     try {
       const res = await fetch("/api/cotizaciones", {
