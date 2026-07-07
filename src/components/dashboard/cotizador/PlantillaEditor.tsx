@@ -5,10 +5,10 @@ import { cn } from "@/lib/utils";
 import {
   Plus, Trash2, GripVertical, Copy, Sparkles, X, Star, Globe, ChevronDown, Pencil,
   Banknote, Receipt, Scale, Type, Coins, Truck, ToggleLeft, ListOrdered,
-  CalendarClock, Gift,
+  CalendarClock, Gift, Layers,
 } from "lucide-react";
 import { Reorder, useDragControls } from "framer-motion";
-import type { CotizadorConfig, PlantillaPago, PlantillaPagoFila, PlantillaQuickDef, ReglaFecha, CargoAdicional } from "@/types";
+import type { CotizadorConfig, PlantillaPago, PlantillaPagoFila, PlantillaQuickDef, ReglaFecha, CargoAdicional, EtapaPlanConfig } from "@/types";
 import { NodDoDropdown } from "@/components/ui/NodDoDropdown";
 import { CurrencyInput } from "@/components/dashboard/CurrencyInput";
 import type { Currency } from "@/lib/currency";
@@ -16,6 +16,7 @@ import { inputClass } from "@/components/dashboard/editor-styles";
 import { fontSize, gap, letterSpacing, radius, iconSize, iconColor } from "@/lib/design-tokens";
 import { InfoTooltip } from "@/components/ui/InfoTooltip";
 import { templatePctTotal, validateTemplate, expandQuickDef } from "@/lib/cotizador/plantilla-pago";
+import { useEditorProject } from "@/hooks/useEditorProject";
 
 /* ─── Helpers ─── */
 
@@ -467,6 +468,85 @@ function FilaRow({
   );
 }
 
+/* ─── Etapa plan row (per-fase delivery date + plan) ─── */
+
+function EtapaPlanRow({
+  nombre,
+  etapa,
+  moneda,
+  onChange,
+  onReset,
+}: {
+  nombre: string;
+  etapa: EtapaPlanConfig | null;
+  moneda: string;
+  onChange: (patch: Partial<EtapaPlanConfig>) => void;
+  onReset?: () => void;
+}) {
+  const separacionTipo = etapa?.separacion_tipo ?? "porcentaje";
+
+  return (
+    <div className={cn("bg-[var(--surface-2)] border border-[var(--border-subtle)] p-4", radius.lg, "flex flex-col", gap.normal)}>
+      <div className="flex items-center justify-between">
+        <span className={cn("text-white font-ui font-bold uppercase", fontSize.label, letterSpacing.wider)}>
+          Etapa {nombre}
+        </span>
+        {onReset && (
+          <button onClick={onReset} className="p-1 text-[var(--text-muted)] hover:text-red-400 transition-colors" title="Quitar plan de esta etapa">
+            <Trash2 size={13} />
+          </button>
+        )}
+      </div>
+      <div className={cn("grid grid-cols-4", gap.relaxed)}>
+        <div>
+          <FieldLabel>Fecha de entrega</FieldLabel>
+          <input type="date" value={etapa?.fecha_entrega ?? ""}
+            onChange={(e) => onChange({ fecha_entrega: e.target.value || null })}
+            className={cn(inputClass, fontSize.md)}
+          />
+        </div>
+        <div>
+          <FieldLabel>% Inicial</FieldLabel>
+          <input type="number" min={0} max={100} value={etapa?.pct_inicial ?? ""}
+            onChange={(e) => onChange({ pct_inicial: Math.max(0, Math.min(100, Number(e.target.value) || 0)) })}
+            className={cn(inputClass, fontSize.md)} placeholder="50"
+          />
+        </div>
+        <div>
+          <FieldLabel>Separación (tipo)</FieldLabel>
+          <NodDoDropdown variant="dashboard" size="md"
+            value={separacionTipo}
+            onChange={(val) => {
+              const tipo = val as EtapaPlanConfig["separacion_tipo"];
+              onChange({ separacion_tipo: tipo, separacion_valor: tipo === "fijo" ? 0 : 2.5 });
+            }}
+            options={[
+              { value: "porcentaje", label: "% del total" },
+              { value: "porcentaje_inicial", label: "% de la cuota inicial" },
+              { value: "fijo", label: "Monto fijo" },
+            ]}
+          />
+        </div>
+        <div>
+          <FieldLabel>Separación (valor)</FieldLabel>
+          {separacionTipo === "fijo" ? (
+            <CurrencyInput value={etapa?.separacion_valor || ""}
+              onChange={(v) => onChange({ separacion_valor: Number(v) || 0 })}
+              currency={moneda as Currency}
+              inputClassName={cn(inputClass, fontSize.md)} placeholder="0"
+            />
+          ) : (
+            <input type="number" min={0} step={0.1} value={etapa?.separacion_valor ?? ""}
+              onChange={(e) => onChange({ separacion_valor: Math.max(0, Number(e.target.value) || 0) })}
+              className={cn(inputClass, fontSize.md)} placeholder="2.5"
+            />
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 /* ─── Main PlantillaEditor ─── */
 
 export function PlantillaEditor({
@@ -482,6 +562,22 @@ export function PlantillaEditor({
   const [selectedId, setSelectedId] = useState<string | null>(() => plantillas[0]?.id ?? null);
   const [showQuickCreate, setShowQuickCreate] = useState(false);
   const [editingNameId, setEditingNameId] = useState<string | null>(null);
+
+  // ── Etapas / fases: auto-discover phase names from the project's unidades ──
+  const { project } = useEditorProject();
+  const phaseNames = useMemo(() => {
+    const names = new Set<string>();
+    for (const u of project.unidades ?? []) {
+      const nombre = u.etapa_nombre?.trim();
+      if (nombre) names.add(nombre);
+    }
+    // Keep any configured phase visible even if no unidad currently references it
+    // (e.g. inventory changed after the plan was set) — never silently drop config.
+    for (const e of config.etapas_plan ?? []) {
+      if (e.nombre) names.add(e.nombre);
+    }
+    return Array.from(names).sort((a, b) => a.localeCompare(b, undefined, { numeric: true, sensitivity: "base" }));
+  }, [project.unidades, config.etapas_plan]);
 
   const selected = plantillas.find((p) => p.id === selectedId) ?? null;
   const selectedMoneda = (selected?.moneda ?? defaultMoneda ?? "COP") as Currency;
@@ -507,6 +603,35 @@ export function PlantillaEditor({
         separacion_valor: 2.5,
       };
       updateConfig({ calc_defaults: { ...base, ...patch } });
+    },
+    [config, updateConfig],
+  );
+
+  const updateEtapaPlan = useCallback(
+    (nombre: string, patch: Partial<EtapaPlanConfig>) => {
+      const current = config.etapas_plan ?? [];
+      const idx = current.findIndex((e) => e.nombre === nombre);
+      if (idx >= 0) {
+        updateConfig({ etapas_plan: current.map((e, i) => (i === idx ? { ...e, ...patch } : e)) });
+        return;
+      }
+      const nueva: EtapaPlanConfig = {
+        nombre,
+        fecha_entrega: null,
+        pct_inicial: 50,
+        separacion_tipo: "porcentaje",
+        separacion_valor: 2.5,
+        ...patch,
+      };
+      updateConfig({ etapas_plan: [...current, nueva] });
+    },
+    [config, updateConfig],
+  );
+
+  const removeEtapaPlan = useCallback(
+    (nombre: string) => {
+      const current = config.etapas_plan ?? [];
+      updateConfig({ etapas_plan: current.filter((e) => e.nombre !== nombre) });
     },
     [config, updateConfig],
   );
@@ -981,6 +1106,30 @@ export function PlantillaEditor({
           </div>
         </div>
         <Hint>Ej. inicial 50%, separación 2.5%. Reproducen los casos del Excel (Índigo, Garden).</Hint>
+
+        <SectionHeader icon={Layers} title="Etapas / fases — plan de entrega por fase"
+          tooltip="Configura fecha de entrega y plan de pago por cada etapa (etapa_nombre) del inventario. La Calculadora de entrega usa este plan cuando la unidad seleccionada pertenece a esa etapa; si una etapa no tiene plan propio, usa los valores por defecto de arriba."
+        />
+        {phaseNames.length === 0 ? (
+          <Hint>No se detectaron etapas en el inventario. Asigna &quot;Etapa&quot; a las unidades en Inventario para configurar su plan aquí.</Hint>
+        ) : (
+          <div className="flex flex-col gap-3">
+            {phaseNames.map((nombre) => {
+              const etapa = (config.etapas_plan ?? []).find((e) => e.nombre === nombre) ?? null;
+              return (
+                <EtapaPlanRow
+                  key={nombre}
+                  nombre={nombre}
+                  etapa={etapa}
+                  moneda={defaultMoneda}
+                  onChange={(patch) => updateEtapaPlan(nombre, patch)}
+                  onReset={etapa ? () => removeEtapaPlan(nombre) : undefined}
+                />
+              );
+            })}
+          </div>
+        )}
+        <Hint>Etapas sin fecha de entrega configurada muestran el aviso &quot;sin plan&quot; en la calculadora de entrega.</Hint>
 
         <SectionHeader icon={Gift} title="Extras (paridad Excel)"
           tooltip="Notas y etiquetas impresas en el plan de pagos del PDF, para reproducir el formato del Excel del desarrollador."

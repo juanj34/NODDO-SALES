@@ -44,7 +44,7 @@ import {
   paymentRowsToFases,
 } from "@/lib/cotizador/payment-rows";
 import { resolveDeliveryContext, adjustFasesToDelivery } from "@/lib/cotizador/delivery";
-import { resolveEtapaPlan } from "@/lib/cotizador/delivery-calc";
+import { resolveEtapaPlan, findEtapaPlan } from "@/lib/cotizador/delivery-calc";
 import { resolveTemplate } from "@/lib/cotizador/plantilla-pago";
 import { CotizadorPdfPreview } from "./CotizadorPdfPreview";
 import { DeliveryCalculator } from "./DeliveryCalculator";
@@ -88,6 +88,7 @@ interface UnitRow {
   depositos: number | null;
   tipologia_id: string | null;
   torre_id: string | null;
+  etapa_nombre: string | null;
   tipologia: {
     nombre: string;
     area_m2: number | null;
@@ -320,10 +321,14 @@ export function CotizadorTool({ project, tipologias, unidadTipologias }: Cotizad
     return tid ? torres.find((t) => t.id === tid) ?? null : null;
   }, [selectedUnit, torres]);
 
-  // TODO(Task 2): pass the unit's resolved EtapaPlanConfig (via findEtapaPlan) as the first arg.
+  const etapaPlan = useMemo(
+    () => findEtapaPlan(selectedUnit?.etapa_nombre ?? null, config),
+    [selectedUnit, config],
+  );
+
   const resolvedCalcPlan = useMemo(
-    () => resolveEtapaPlan(null, selectedTorre, config),
-    [selectedTorre, config],
+    () => resolveEtapaPlan(etapaPlan, selectedTorre, config),
+    [etapaPlan, selectedTorre, config],
   );
   const calcAvailable = resolvedCalcPlan.fuente !== "incompleta";
 
@@ -2084,6 +2089,7 @@ export function CotizadorTool({ project, tipologias, unidadTipologias }: Cotizad
               {calcMode === "calculadora" && (
                 <DeliveryCalculator
                   totalPesos={effectiveTotal}
+                  etapaPlan={etapaPlan}
                   torre={selectedTorre}
                   config={config}
                   currency={moneda}
