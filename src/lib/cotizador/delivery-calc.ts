@@ -82,7 +82,10 @@ export function findEtapaPlan(
   config: CotizadorConfig | null | undefined,
 ): EtapaPlanConfig | null {
   if (!etapaNombre || !config?.etapas_plan) return null;
-  return config.etapas_plan.find((e) => e.nombre === etapaNombre) ?? null;
+  const norm = (s: string) => s.trim().toLowerCase();
+  const target = norm(etapaNombre);
+  if (!target) return null;
+  return config.etapas_plan.find((e) => norm(e.nombre) === target) ?? null;
 }
 
 /**

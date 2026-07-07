@@ -103,6 +103,24 @@ describe("findEtapaPlan", () => {
     expect(findEtapaPlan("1", null)).toBeNull();
     expect(findEtapaPlan("1", undefined)).toBeNull();
   });
+
+  it("matches regardless of surrounding whitespace or case (money-safety: a CSV/AI-imported etapa_nombre like '1 ' must still resolve its plan)", () => {
+    expect(findEtapaPlan(" 1 ", config)).toEqual({
+      nombre: "1",
+      fecha_entrega: "2028-01-01",
+      pct_inicial: 30,
+      separacion_tipo: "fijo",
+      separacion_valor: 15_000_000,
+    });
+    expect(findEtapaPlan("1", config)).toEqual({
+      nombre: "1",
+      fecha_entrega: "2028-01-01",
+      pct_inicial: 30,
+      separacion_tipo: "fijo",
+      separacion_valor: 15_000_000,
+    });
+    expect(findEtapaPlan("9", config)).toBeNull();
+  });
 });
 
 describe("resolveEtapaPlan", () => {
