@@ -6,6 +6,7 @@ import { cn } from "@/lib/utils";
 import { formatCurrency } from "@/lib/currency";
 import type { Currency } from "@/lib/currency";
 import { CurrencyInput } from "@/components/dashboard/CurrencyInput";
+import { NodDoDropdown } from "@/components/ui/NodDoDropdown";
 import { resolveEtapaPlan, buildDeliveryPlan } from "@/lib/cotizador/delivery-calc";
 import type { EtapaPlan } from "@/lib/cotizador/delivery-calc";
 import type { CotizadorConfig, EtapaPlanConfig, FaseConfig, Torre } from "@/types";
@@ -84,7 +85,9 @@ export function DeliveryCalculator({
 
   // Visible overrides — null means "use the resolved default".
   const [pctInicialOverride, setPctInicialOverride] = useState<number | null>(null);
-  const [sepTipoOverride, setSepTipoOverride] = useState<"porcentaje" | "fijo" | null>(null);
+  const [sepTipoOverride, setSepTipoOverride] = useState<
+    "porcentaje" | "porcentaje_inicial" | "fijo" | null
+  >(null);
   const [sepValorOverride, setSepValorOverride] = useState<number | null>(null);
 
   // Reset overrides when the underlying plan changes (e.g. different unit/etapa selected).
@@ -152,10 +155,14 @@ export function DeliveryCalculator({
     );
   }
 
-  const etapaNombre = torre?.nombre ?? "Proyecto";
+  const etapaNombre = torre?.nombre ?? (etapaPlan ? `Etapa ${etapaPlan.nombre}` : "Proyecto");
   const financiacionPct = Math.max(0, 100 - effectivePctInicial);
   const sepPctLabel =
-    effectiveSepTipo === "porcentaje" ? `${effectiveSepValor}%` : "monto fijo";
+    effectiveSepTipo === "porcentaje"
+      ? `${effectiveSepValor}%`
+      : effectiveSepTipo === "porcentaje_inicial"
+        ? `${effectiveSepValor}% de la inicial`
+        : "monto fijo";
 
   return (
     <div className="rounded-xl bg-[var(--surface-1)] border border-[var(--border-subtle)] p-5 space-y-4">
@@ -255,25 +262,33 @@ export function DeliveryCalculator({
             Separación
           </label>
           <div className="flex items-center gap-1.5">
-            <button
-              type="button"
-              onClick={() => {
-                const nextTipo = effectiveSepTipo === "porcentaje" ? "fijo" : "porcentaje";
-                setSepTipoOverride(nextTipo);
-                // Reset the value to a sensible default for the new tipo.
-                setSepValorOverride(nextTipo === "porcentaje" ? 2.5 : result.separacionPesos);
-              }}
-              className={cn(
-                "shrink-0 w-8 h-9 rounded-lg text-xs font-ui font-bold transition-all border",
-                effectiveSepTipo === "porcentaje"
-                  ? "bg-[rgba(var(--site-primary-rgb),0.15)] border-[rgba(var(--site-primary-rgb),0.3)] text-[var(--site-primary)]"
-                  : "bg-[var(--surface-3)] border-[var(--border-subtle)] text-[var(--text-tertiary)]",
-              )}
-              title={effectiveSepTipo === "porcentaje" ? "Cambiar a monto fijo" : "Cambiar a porcentaje"}
-            >
-              {effectiveSepTipo === "porcentaje" ? "%" : "$"}
-            </button>
-            {effectiveSepTipo === "porcentaje" ? (
+            <div className="shrink-0 w-[7.5rem]">
+              <NodDoDropdown
+                variant="dashboard"
+                size="sm"
+                value={effectiveSepTipo}
+                onChange={(val) => {
+                  const nextTipo = val as "porcentaje" | "porcentaje_inicial" | "fijo";
+                  setSepTipoOverride(nextTipo);
+                  // Reset the value to a sensible default for the new tipo.
+                  setSepValorOverride(nextTipo === "fijo" ? result.separacionPesos : 2.5);
+                }}
+                options={[
+                  { value: "porcentaje", label: "% del total" },
+                  { value: "porcentaje_inicial", label: "% de la inicial" },
+                  { value: "fijo", label: "Monto fijo" },
+                ]}
+              />
+            </div>
+            {effectiveSepTipo === "fijo" ? (
+              <CurrencyInput
+                value={effectiveSepValor || ""}
+                onChange={(v) => setSepValorOverride(v ? Number(v) : 0)}
+                currency={cur}
+                inputClassName="input-glass w-full text-sm font-mono"
+                placeholder="0"
+              />
+            ) : (
               <input
                 type="number"
                 value={effectiveSepValor}
@@ -284,14 +299,6 @@ export function DeliveryCalculator({
                 className="input-glass w-full text-sm font-mono"
                 min={0}
                 step={0.1}
-              />
-            ) : (
-              <CurrencyInput
-                value={effectiveSepValor || ""}
-                onChange={(v) => setSepValorOverride(v ? Number(v) : 0)}
-                currency={cur}
-                inputClassName="input-glass w-full text-sm font-mono"
-                placeholder="0"
               />
             )}
           </div>
