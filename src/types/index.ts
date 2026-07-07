@@ -496,8 +496,8 @@ export interface Torre {
   fecha_entrega: string | null;
   /** % cuota inicial for this etapa (e.g. 50, 30). Falls back to project cotizador_config.calc_defaults when null. */
   plan_pct_inicial: number | null;
-  /** Separación type for this etapa: percentage of the price or a fixed amount. */
-  plan_separacion_tipo: "porcentaje" | "fijo" | null;
+  /** Separación type for this etapa: percentage of the price, percentage of the cuota inicial, or a fixed amount. */
+  plan_separacion_tipo: "porcentaje" | "porcentaje_inicial" | "fijo" | null;
   /** Separación value: percentage (e.g. 2.5) when tipo is "porcentaje", or a fixed peso amount (e.g. 16875000) when tipo is "fijo". */
   plan_separacion_valor: number | null;
 }
@@ -905,6 +905,26 @@ export interface PlantillaQuickDef {
   separacion_monto?: number;
 }
 
+/**
+ * Per-phase (etapa_nombre) delivery date + payment plan, configured on
+ * CotizadorConfig.etapas_plan and matched to units via unidades.etapa_nombre —
+ * for projects modeled as temporal phases (e.g. lotes/urbanismo) rather than torres.
+ */
+export interface EtapaPlanConfig {
+  /** Matches unidades.etapa_nombre (e.g. "1", "2"). */
+  nombre: string;
+  /** Delivery date for this phase (ISO date). Drives N cuotas. */
+  fecha_entrega: string | null;
+  /** % cuota inicial for this phase (e.g. 50, 30). */
+  pct_inicial: number;
+  /** Separación type: % of total price, % of the cuota inicial, or a fixed peso amount. */
+  separacion_tipo: "porcentaje" | "porcentaje_inicial" | "fijo";
+  /** Separación value: pesos when tipo is "fijo", percentage otherwise. */
+  separacion_valor: number;
+  tipo_entrega?: "fecha_fija" | "plazo_desde_compra" | null;
+  plazo_meses?: number | null;
+}
+
 export interface CotizadorConfig {
   moneda: string;
   fases: FaseConfig[];
@@ -954,6 +974,10 @@ export interface CotizadorConfig {
     separacion_tipo: "porcentaje" | "fijo";
     separacion_valor: number;
   };
+  // Delivery calculator: per-phase (etapa_nombre) delivery date + payment plan,
+  // matched by unidades.etapa_nombre — for projects modeled as phases rather than torres.
+  /** Per-phase payment plans, keyed by `nombre` matching unidades.etapa_nombre. */
+  etapas_plan?: EtapaPlanConfig[];
   // Excel parity extras (printed on the PDF payment plan)
   /** Leasing note, e.g. "No" or free text. */
   leasing_nota?: string;

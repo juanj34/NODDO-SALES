@@ -2,9 +2,10 @@ import { describe, it, expect } from "vitest";
 import {
   monthsUntilDelivery,
   resolveEtapaPlan,
+  findEtapaPlan,
   buildDeliveryPlan,
 } from "@/lib/cotizador/delivery-calc";
-import type { CotizadorConfig, Torre } from "@/types";
+import type { CotizadorConfig, EtapaPlanConfig, Torre } from "@/types";
 
 /** Minimal Torre slice the lib actually consumes. */
 type TorrePlan = Pick<
@@ -55,8 +56,88 @@ describe("monthsUntilDelivery", () => {
   });
 });
 
+describe("findEtapaPlan", () => {
+  const config = baseConfig({
+    etapas_plan: [
+      {
+        nombre: "1",
+        fecha_entrega: "2028-01-01",
+        pct_inicial: 30,
+        separacion_tipo: "fijo",
+        separacion_valor: 15_000_000,
+      },
+      {
+        nombre: "2",
+        fecha_entrega: "2029-01-01",
+        pct_inicial: 50,
+        separacion_tipo: "porcentaje_inicial",
+        separacion_valor: 5,
+      },
+    ],
+  });
+
+  it("returns the matching entry by nombre", () => {
+    const found = findEtapaPlan("2", config);
+    expect(found).toEqual({
+      nombre: "2",
+      fecha_entrega: "2029-01-01",
+      pct_inicial: 50,
+      separacion_tipo: "porcentaje_inicial",
+      separacion_valor: 5,
+    });
+  });
+
+  it("returns null when nombre doesn't match any entry", () => {
+    expect(findEtapaPlan("9", config)).toBeNull();
+  });
+
+  it("returns null when etapaNombre is null", () => {
+    expect(findEtapaPlan(null, config)).toBeNull();
+  });
+
+  it("returns null when config has no etapas_plan", () => {
+    expect(findEtapaPlan("1", baseConfig())).toBeNull();
+  });
+
+  it("returns null when config is null/undefined", () => {
+    expect(findEtapaPlan("1", null)).toBeNull();
+    expect(findEtapaPlan("1", undefined)).toBeNull();
+  });
+});
+
 describe("resolveEtapaPlan", () => {
-  it("uses torre params when set (fuente 'etapa')", () => {
+  it("uses etapaPlan params when set (fuente 'etapa'), highest precedence over torre/config", () => {
+    const etapaPlan: EtapaPlanConfig = {
+      nombre: "1",
+      fecha_entrega: "2028-01-01",
+      pct_inicial: 30,
+      separacion_tipo: "fijo",
+      separacion_valor: 15_000_000,
+    };
+    const t = torre({
+      fecha_entrega: "2099-01-01",
+      plan_pct_inicial: 99,
+      plan_separacion_tipo: "porcentaje",
+      plan_separacion_valor: 1,
+    });
+    const config = baseConfig({
+      calc_defaults: { pct_inicial: 10, separacion_tipo: "fijo", separacion_valor: 1 },
+    });
+
+    const plan = resolveEtapaPlan(etapaPlan, t, config);
+
+    expect(plan).toEqual({
+      pctInicial: 30,
+      separacionTipo: "fijo",
+      separacionValor: 15_000_000,
+      fechaEntrega: "2028-01-01",
+      tipoEntrega: "fecha_fija",
+      plazoMeses: 24,
+      fuente: "etapa",
+    });
+  });
+
+  it("uses torre params when set and etapaPlan is null (fuente 'etapa')", () => {
     const t = torre({
       fecha_entrega: "2028-06-01",
       plan_pct_inicial: 50,
@@ -68,7 +149,7 @@ describe("resolveEtapaPlan", () => {
       fecha_estimada_entrega: "2030-01-01",
     });
 
-    const plan = resolveEtapaPlan(t, config);
+    const plan = resolveEtapaPlan(null, t, config);
 
     expect(plan).toEqual({
       pctInicial: 50,
@@ -81,13 +162,13 @@ describe("resolveEtapaPlan", () => {
     });
   });
 
-  it("falls back to project calc_defaults + fecha_estimada_entrega when torre is null (fuente 'proyecto')", () => {
+  it("falls back to project calc_defaults + fecha_estimada_entrega when etapaPlan and torre are both null (fuente 'proyecto')", () => {
     const config = baseConfig({
       calc_defaults: { pct_inicial: 30, separacion_tipo: "fijo", separacion_valor: 1_000_000 },
       fecha_estimada_entrega: "2029-03-01",
     });
 
-    const plan = resolveEtapaPlan(null, config);
+    const plan = resolveEtapaPlan(null, null, config);
 
     expect(plan).toEqual({
       pctInicial: 30,
@@ -101,7 +182,7 @@ describe("resolveEtapaPlan", () => {
   });
 
   it("falls back to built-ins when nothing is configured (fuente 'incompleta' — fecha_fija with no fecha)", () => {
-    const plan = resolveEtapaPlan(null, null);
+    const plan = resolveEtapaPlan(null, null, null);
 
     expect(plan).toEqual({
       pctInicial: 50,
@@ -120,16 +201,33 @@ describe("resolveEtapaPlan", () => {
       // no fecha_estimada_entrega
     });
 
-    const plan = resolveEtapaPlan(null, config);
+    const plan = resolveEtapaPlan(null, null, config);
 
     expect(plan.fuente).toBe("incompleta");
     expect(plan.fechaEntrega).toBeNull();
   });
 
+  it("a phase (etapaPlan) with no fecha_entrega and no other fecha source -> fuente 'incompleta'", () => {
+    const etapaPlan: EtapaPlanConfig = {
+      nombre: "3",
+      fecha_entrega: null,
+      pct_inicial: 40,
+      separacion_tipo: "porcentaje",
+      separacion_valor: 3,
+    };
+    const config = baseConfig(); // no fecha_estimada_entrega
+
+    const plan = resolveEtapaPlan(etapaPlan, null, config);
+
+    expect(plan.tipoEntrega).toBe("fecha_fija");
+    expect(plan.fechaEntrega).toBeNull();
+    expect(plan.fuente).toBe("incompleta");
+  });
+
   it("plazo_desde_compra mode with no plazo_entrega_meses configured falls back to 24, fuente 'proyecto'", () => {
     const config = baseConfig({ tipo_entrega: "plazo_desde_compra" });
 
-    const plan = resolveEtapaPlan(null, config);
+    const plan = resolveEtapaPlan(null, null, config);
 
     expect(plan.tipoEntrega).toBe("plazo_desde_compra");
     expect(plan.plazoMeses).toBe(24);
@@ -140,7 +238,7 @@ describe("resolveEtapaPlan", () => {
     const t = torre({ plan_pct_inicial: 40 }); // fecha_entrega null
     const config = baseConfig(); // no fecha_estimada_entrega, tipo_entrega defaults to fecha_fija
 
-    const plan = resolveEtapaPlan(t, config);
+    const plan = resolveEtapaPlan(null, t, config);
 
     expect(plan.tipoEntrega).toBe("fecha_fija");
     expect(plan.fechaEntrega).toBeNull();
@@ -153,7 +251,7 @@ describe("resolveEtapaPlan", () => {
     const t = torre({ plan_pct_inicial: 35 });
     const config = baseConfig({ fecha_estimada_entrega: "2028-01-01" });
 
-    const plan = resolveEtapaPlan(t, config);
+    const plan = resolveEtapaPlan(null, t, config);
 
     expect(plan.fuente).toBe("etapa");
     expect(plan.pctInicial).toBe(35);
@@ -164,6 +262,7 @@ describe("resolveEtapaPlan", () => {
 describe("buildDeliveryPlan — reference cases (real numbers, exact assertions)", () => {
   it("Indigo Etapa 2: $675,000,000 / 50% inicial / separacion 2.5% / 23 cuotas x $13,940,217 / financiacion 50%", () => {
     const plan = resolveEtapaPlan(
+      null,
       torre({
         fecha_entrega: "2028-06-01",
         plan_pct_inicial: 50,
@@ -191,6 +290,7 @@ describe("buildDeliveryPlan — reference cases (real numbers, exact assertions)
 
   it("Garden: $945,000,000 / 50% inicial / separacion $23,625,000 (2.5%) / 26 cuotas x $17,264,423 / financiacion 50%", () => {
     const plan = resolveEtapaPlan(
+      null,
       torre({
         fecha_entrega: "2028-09-01",
         plan_pct_inicial: 50,
@@ -212,6 +312,7 @@ describe("buildDeliveryPlan — reference cases (real numbers, exact assertions)
 
   it("Indigo Etapa 1 'plan 3070': same $675,000,000 total + same separacion mechanics, 30% inicial / 70% financiacion", () => {
     const plan = resolveEtapaPlan(
+      null,
       torre({
         fecha_entrega: "2028-06-01",
         plan_pct_inicial: 30,
@@ -233,11 +334,91 @@ describe("buildDeliveryPlan — reference cases (real numbers, exact assertions)
       { id: "calc-inicial", nombre: "Cuota inicial", tipo: "porcentaje", valor: 30, cuotas: 23, frecuencia: "mensual" },
     );
   });
+
+  it("Indigo E1 (real, etapaPlan): casa $670M, etapa '1' fijo separacion 15M, fecha 2028-01-01, quote 2026-07-07 -> 18 cuotas x $10,333,333", () => {
+    const etapaPlan: EtapaPlanConfig = {
+      nombre: "1",
+      fecha_entrega: "2028-01-01",
+      pct_inicial: 30,
+      separacion_tipo: "fijo",
+      separacion_valor: 15_000_000,
+    };
+    const plan = resolveEtapaPlan(etapaPlan, null, null);
+
+    const result = buildDeliveryPlan(670_000_000, plan, "2026-07-07");
+
+    expect(plan.fuente).toBe("etapa");
+    expect(result.cuotas).toBe(18);
+    expect(result.separacionPesos).toBe(15_000_000);
+    expect(result.inicialPesos).toBe(201_000_000);
+    expect(result.cuotaMensualPesos).toBe(10_333_333);
+    expect(result.financiacionPesos).toBe(469_000_000);
+    expect(result.contado).toBe(false);
+  });
+
+  it("Indigo E2 (real, etapaPlan): casa $670M, etapa '2' porcentaje_inicial 5%, fecha 2029-01-01, quote 2026-07-07 -> 30 cuotas x $10,608,333", () => {
+    const etapaPlan: EtapaPlanConfig = {
+      nombre: "2",
+      fecha_entrega: "2029-01-01",
+      pct_inicial: 50,
+      separacion_tipo: "porcentaje_inicial",
+      separacion_valor: 5,
+    };
+    const plan = resolveEtapaPlan(etapaPlan, null, null);
+
+    const result = buildDeliveryPlan(670_000_000, plan, "2026-07-07");
+
+    expect(plan.fuente).toBe("etapa");
+    expect(result.cuotas).toBe(30);
+    expect(result.inicialPesos).toBe(335_000_000);
+    expect(result.separacionPesos).toBe(16_750_000);
+    expect(result.cuotaMensualPesos).toBe(10_608_333);
+    expect(result.financiacionPesos).toBe(335_000_000);
+    expect(result.contado).toBe(false);
+  });
+
+  it("Indigo E1/E2 resolved end-to-end via findEtapaPlan against cotizador_config.etapas_plan", () => {
+    const config = baseConfig({
+      etapas_plan: [
+        {
+          nombre: "1",
+          fecha_entrega: "2028-01-01",
+          pct_inicial: 30,
+          separacion_tipo: "fijo",
+          separacion_valor: 15_000_000,
+        },
+        {
+          nombre: "2",
+          fecha_entrega: "2029-01-01",
+          pct_inicial: 50,
+          separacion_tipo: "porcentaje_inicial",
+          separacion_valor: 5,
+        },
+      ],
+    });
+
+    const plan1 = resolveEtapaPlan(findEtapaPlan("1", config), null, config);
+    const result1 = buildDeliveryPlan(670_000_000, plan1, "2026-07-07");
+    expect(result1.cuotas).toBe(18);
+    expect(result1.separacionPesos).toBe(15_000_000);
+    expect(result1.cuotaMensualPesos).toBe(10_333_333);
+
+    const plan2 = resolveEtapaPlan(findEtapaPlan("2", config), null, config);
+    const result2 = buildDeliveryPlan(670_000_000, plan2, "2026-07-07");
+    expect(result2.cuotas).toBe(30);
+    expect(result2.separacionPesos).toBe(16_750_000);
+    expect(result2.cuotaMensualPesos).toBe(10_608_333);
+
+    // E3: phase with no plan configured -> "incompleta", never invents a plan.
+    const plan3 = resolveEtapaPlan(findEtapaPlan("3", config), null, config);
+    expect(plan3.fuente).toBe("incompleta");
+  });
 });
 
 describe("buildDeliveryPlan — plazo_desde_compra model", () => {
   it("N is constant (plazoMeses), independent of quote date / fecha_entrega", () => {
     const plan = resolveEtapaPlan(
+      null,
       null,
       baseConfig({
         tipo_entrega: "plazo_desde_compra",
@@ -257,6 +438,7 @@ describe("buildDeliveryPlan — plazo_desde_compra model", () => {
 describe("buildDeliveryPlan — contado (N<=0)", () => {
   it("delivery date this month or in the past collapses to a single inicial payment", () => {
     const plan = resolveEtapaPlan(
+      null,
       torre({
         fecha_entrega: "2026-05-01",
         plan_pct_inicial: 50,
@@ -281,7 +463,7 @@ describe("buildDeliveryPlan — contado (N<=0)", () => {
   });
 
   it("fecha_fija plan with no fechaEntrega resolvable (incompleta) is treated as contado rather than throwing", () => {
-    const plan = resolveEtapaPlan(null, null); // fuente "incompleta", fechaEntrega null
+    const plan = resolveEtapaPlan(null, null, null); // fuente "incompleta", fechaEntrega null
 
     const result = buildDeliveryPlan(100_000_000, plan, "2026-07-15");
 
@@ -294,6 +476,7 @@ describe("buildDeliveryPlan — contado (N<=0)", () => {
 describe("buildDeliveryPlan — fijo separacion", () => {
   it("resolves a fixed-peso separacion instead of a percentage", () => {
     const plan = resolveEtapaPlan(
+      null,
       torre({
         fecha_entrega: "2027-07-01",
         plan_pct_inicial: 50,
@@ -315,9 +498,36 @@ describe("buildDeliveryPlan — fijo separacion", () => {
   });
 });
 
+describe("buildDeliveryPlan — porcentaje_inicial separacion", () => {
+  it("resolves separacion as a percentage of the cuota inicial (not of the total)", () => {
+    const plan = resolveEtapaPlan(
+      null,
+      torre({
+        fecha_entrega: "2027-07-01",
+        plan_pct_inicial: 50,
+        plan_separacion_tipo: "porcentaje_inicial",
+        plan_separacion_valor: 5,
+      }),
+      null,
+    );
+
+    const result = buildDeliveryPlan(400_000_000, plan, "2026-07-15");
+
+    // inicial = round(400M * 50%) = 200,000,000; separacion = round(200,000,000 * 5%) = 10,000,000
+    expect(result.inicialPesos).toBe(200_000_000);
+    expect(result.separacionPesos).toBe(10_000_000);
+    expect(result.cuotas).toBe(12);
+    expect(result.cuotaMensualPesos).toBe(15_833_333);
+    expect(result.fases[0]).toEqual(
+      { id: "calc-separacion", nombre: "Separación", tipo: "fijo", valor: 10_000_000, cuotas: 1, frecuencia: "unica" },
+    );
+  });
+});
+
 describe("buildDeliveryPlan — separacionExcedeInicial guard", () => {
   it("flags when separacion (fijo) meets or exceeds the resolved cuota inicial, but still builds", () => {
     const plan = resolveEtapaPlan(
+      null,
       torre({
         fecha_entrega: "2027-07-01",
         plan_pct_inicial: 10,

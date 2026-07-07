@@ -1082,7 +1082,12 @@ function TorreEditFormInline({
   const [pisosRooftop, setPisosRooftop] = useState(torre.pisos_rooftop != null ? String(torre.pisos_rooftop) : "");
   const [fechaEntrega, setFechaEntrega] = useState(torre.fecha_entrega ?? "");
   const [planPctInicial, setPlanPctInicial] = useState(torre.plan_pct_inicial != null ? String(torre.plan_pct_inicial) : "");
-  const [planSeparacionTipo, setPlanSeparacionTipo] = useState<"" | "porcentaje" | "fijo">(torre.plan_separacion_tipo ?? "");
+  // Note: the <select> below only offers "porcentaje" | "fijo" (torres don't support
+  // "porcentaje_inicial" — that's exclusive to cotizador_config.etapas_plan); the state
+  // type is widened purely so it can hold whatever Torre.plan_separacion_tipo carries.
+  const [planSeparacionTipo, setPlanSeparacionTipo] = useState<"" | "porcentaje" | "porcentaje_inicial" | "fijo">(
+    torre.plan_separacion_tipo ?? "",
+  );
   const [planSeparacionValor, setPlanSeparacionValor] = useState(torre.plan_separacion_valor != null ? String(torre.plan_separacion_valor) : "");
   const [typeSwitching, setTypeSwitching] = useState(false);
 
