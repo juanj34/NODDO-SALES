@@ -8,13 +8,15 @@ import type { Currency } from "@/lib/currency";
 import { CurrencyInput } from "@/components/dashboard/CurrencyInput";
 import { resolveEtapaPlan, buildDeliveryPlan } from "@/lib/cotizador/delivery-calc";
 import type { EtapaPlan } from "@/lib/cotizador/delivery-calc";
-import type { CotizadorConfig, FaseConfig, Torre } from "@/types";
+import type { CotizadorConfig, EtapaPlanConfig, FaseConfig, Torre } from "@/types";
 
 /* ── Props ─────────────────────────────────────────────── */
 
 interface DeliveryCalculatorProps {
   /** Effective total incl. complementos (from CotizadorTool). */
   totalPesos: number;
+  /** Resolved from the selected unidad.etapa_nombre via findEtapaPlan (null → torre/project fallback). */
+  etapaPlan: EtapaPlanConfig | null;
   /** Resolved from the selected unidad.torre_id (null → project-level fallback). */
   torre: Torre | null;
   config: CotizadorConfig | null | undefined;
@@ -64,6 +66,7 @@ function planSignature(plan: EtapaPlan): string {
 
 export function DeliveryCalculator({
   totalPesos,
+  etapaPlan,
   torre,
   config,
   onFasesChange,
@@ -76,8 +79,7 @@ export function DeliveryCalculator({
   const [quoteDateISO] = useState(bogotaTodayISO);
 
   // Resolved per-etapa plan (defaults, before overrides).
-  // TODO(Task 2): pass the unit's resolved EtapaPlanConfig (via findEtapaPlan) as the first arg.
-  const resolvedPlan = useMemo(() => resolveEtapaPlan(null, torre, config), [torre, config]);
+  const resolvedPlan = useMemo(() => resolveEtapaPlan(etapaPlan, torre, config), [etapaPlan, torre, config]);
   const signature = planSignature(resolvedPlan);
 
   // Visible overrides — null means "use the resolved default".
