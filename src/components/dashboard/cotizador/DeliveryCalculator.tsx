@@ -76,7 +76,8 @@ export function DeliveryCalculator({
   const [quoteDateISO] = useState(bogotaTodayISO);
 
   // Resolved per-etapa plan (defaults, before overrides).
-  const resolvedPlan = useMemo(() => resolveEtapaPlan(torre, config), [torre, config]);
+  // TODO(Task 2): pass the unit's resolved EtapaPlanConfig (via findEtapaPlan) as the first arg.
+  const resolvedPlan = useMemo(() => resolveEtapaPlan(null, torre, config), [torre, config]);
   const signature = planSignature(resolvedPlan);
 
   // Visible overrides — null means "use the resolved default".

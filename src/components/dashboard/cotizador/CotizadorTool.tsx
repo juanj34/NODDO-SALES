@@ -320,7 +320,11 @@ export function CotizadorTool({ project, tipologias, unidadTipologias }: Cotizad
     return tid ? torres.find((t) => t.id === tid) ?? null : null;
   }, [selectedUnit, torres]);
 
-  const resolvedCalcPlan = useMemo(() => resolveEtapaPlan(selectedTorre, config), [selectedTorre, config]);
+  // TODO(Task 2): pass the unit's resolved EtapaPlanConfig (via findEtapaPlan) as the first arg.
+  const resolvedCalcPlan = useMemo(
+    () => resolveEtapaPlan(null, selectedTorre, config),
+    [selectedTorre, config],
+  );
   const calcAvailable = resolvedCalcPlan.fuente !== "incompleta";
 
   // Default to the calculator when the selected unit resolves a usable plan; else

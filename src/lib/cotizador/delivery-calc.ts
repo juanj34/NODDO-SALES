@@ -1,4 +1,4 @@
-import type { CotizadorConfig, FaseConfig, Torre } from "@/types";
+import type { CotizadorConfig, EtapaPlanConfig, FaseConfig, Torre } from "@/types";
 
 /**
  * Delivery calculator — pure calculation lib (no Date.now()/new Date()).
@@ -22,8 +22,8 @@ export type TorrePlanFields = Pick<
 
 export interface EtapaPlan {
   pctInicial: number; // e.g. 50
-  separacionTipo: "porcentaje" | "fijo";
-  separacionValor: number; // pct value or pesos
+  separacionTipo: "porcentaje" | "porcentaje_inicial" | "fijo";
+  separacionValor: number; // pct value (of total or of inicial) or pesos
   fechaEntrega: string | null; // ISO date
   tipoEntrega: "fecha_fija" | "plazo_desde_compra";
   plazoMeses: number | null; // for plazo_desde_compra
@@ -41,9 +41,9 @@ export interface DeliveryPlanResult {
   separacionExcedeInicial: boolean; // UI warning: separacion >= inicial
 }
 
-/** Built-in fallbacks when neither the torre nor the project configure a plan. */
+/** Built-in fallbacks when neither the etapa, torre, nor the project configure a plan. */
 const BUILTIN_PCT_INICIAL = 50;
-const BUILTIN_SEPARACION_TIPO: "porcentaje" | "fijo" = "porcentaje";
+const BUILTIN_SEPARACION_TIPO: "porcentaje" | "porcentaje_inicial" | "fijo" = "porcentaje";
 const BUILTIN_SEPARACION_VALOR = 2.5;
 const BUILTIN_TIPO_ENTREGA: "fecha_fija" | "plazo_desde_compra" = "fecha_fija";
 const BUILTIN_PLAZO_MESES = 24;
@@ -73,24 +73,52 @@ function parseYearMonth(isoDate: string): [number, number] {
 }
 
 /**
+ * Find the phase plan matching `etapaNombre` (unidades.etapa_nombre) in
+ * `config.etapas_plan`. Returns null when there's no match, no `etapas_plan`,
+ * no `etapaNombre`, or no config — never invents a plan.
+ */
+export function findEtapaPlan(
+  etapaNombre: string | null,
+  config: CotizadorConfig | null | undefined,
+): EtapaPlanConfig | null {
+  if (!etapaNombre || !config?.etapas_plan) return null;
+  return config.etapas_plan.find((e) => e.nombre === etapaNombre) ?? null;
+}
+
+/**
  * Resolve the effective per-etapa payment plan, falling back field-by-field:
- * torre value -> config.calc_defaults -> built-ins (and, for fechaEntrega,
- * torre -> config.fecha_estimada_entrega -> null — dates are never invented).
+ * etapaPlan (cotizador_config.etapas_plan, matched by unidades.etapa_nombre)
+ * -> torre value -> config.calc_defaults -> built-ins (and, for fechaEntrega,
+ * etapaPlan -> torre -> config.fecha_estimada_entrega -> null — dates are
+ * never invented).
  */
 export function resolveEtapaPlan(
+  etapaPlan: EtapaPlanConfig | null,
   torre: TorrePlanFields | null,
   config: CotizadorConfig | null | undefined,
 ): EtapaPlan {
   const calcDefaults = config?.calc_defaults;
 
-  const pctInicial = torre?.plan_pct_inicial ?? calcDefaults?.pct_inicial ?? BUILTIN_PCT_INICIAL;
+  const pctInicial =
+    etapaPlan?.pct_inicial ?? torre?.plan_pct_inicial ?? calcDefaults?.pct_inicial ?? BUILTIN_PCT_INICIAL;
   const separacionTipo =
-    torre?.plan_separacion_tipo ?? calcDefaults?.separacion_tipo ?? BUILTIN_SEPARACION_TIPO;
+    etapaPlan?.separacion_tipo ??
+    torre?.plan_separacion_tipo ??
+    calcDefaults?.separacion_tipo ??
+    BUILTIN_SEPARACION_TIPO;
   const separacionValor =
-    torre?.plan_separacion_valor ?? calcDefaults?.separacion_valor ?? BUILTIN_SEPARACION_VALOR;
-  const fechaEntrega = torre?.fecha_entrega ?? config?.fecha_estimada_entrega ?? null;
-  const tipoEntrega = config?.tipo_entrega ?? BUILTIN_TIPO_ENTREGA;
-  const plazoMeses = config?.plazo_entrega_meses ?? BUILTIN_PLAZO_MESES;
+    etapaPlan?.separacion_valor ??
+    torre?.plan_separacion_valor ??
+    calcDefaults?.separacion_valor ??
+    BUILTIN_SEPARACION_VALOR;
+  const fechaEntrega =
+    etapaPlan?.fecha_entrega ?? torre?.fecha_entrega ?? config?.fecha_estimada_entrega ?? null;
+  const tipoEntrega = etapaPlan?.tipo_entrega ?? config?.tipo_entrega ?? BUILTIN_TIPO_ENTREGA;
+  const plazoMeses = etapaPlan?.plazo_meses ?? config?.plazo_entrega_meses ?? BUILTIN_PLAZO_MESES;
+
+  // EtapaPlanConfig's plan fields (pct_inicial, separacion_tipo, separacion_valor) are
+  // required, so any non-null etapaPlan always counts as a supplied plan.
+  const etapaParamUsed = etapaPlan != null;
 
   const torreParamUsed =
     torre != null &&
@@ -99,13 +127,13 @@ export function resolveEtapaPlan(
       torre.plan_separacion_tipo != null ||
       torre.plan_separacion_valor != null);
 
-  // "incompleta" takes precedence over "etapa": even if the torre set some plan
-  // param, a fecha_fija plan with no resolvable delivery date must surface the
+  // "incompleta" takes precedence over "etapa": even if the etapaPlan/torre set some
+  // plan param, a fecha_fija plan with no resolvable delivery date must surface the
   // UI's block-signal — otherwise buildDeliveryPlan silently collapses to contado.
   const fuente: EtapaPlan["fuente"] =
     tipoEntrega === "fecha_fija" && !fechaEntrega
       ? "incompleta"
-      : torreParamUsed
+      : etapaParamUsed || torreParamUsed
         ? "etapa"
         : "proyecto";
 
@@ -131,13 +159,15 @@ export function buildDeliveryPlan(
   plan: EtapaPlan,
   quoteDateISO: string,
 ): DeliveryPlanResult {
+  const inicialPesos = Math.round(totalPesos * (plan.pctInicial / 100));
+  const financiacionPesos = totalPesos - inicialPesos;
+
   const separacionPesos =
     plan.separacionTipo === "fijo"
       ? Math.round(plan.separacionValor)
-      : Math.round(totalPesos * (plan.separacionValor / 100));
-
-  const inicialPesos = Math.round(totalPesos * (plan.pctInicial / 100));
-  const financiacionPesos = totalPesos - inicialPesos;
+      : plan.separacionTipo === "porcentaje_inicial"
+        ? Math.round(inicialPesos * (plan.separacionValor / 100))
+        : Math.round(totalPesos * (plan.separacionValor / 100));
 
   const rawCuotas =
     plan.tipoEntrega === "plazo_desde_compra"
