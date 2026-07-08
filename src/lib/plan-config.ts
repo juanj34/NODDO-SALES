@@ -69,7 +69,7 @@ export const PLAN_TIERS: Record<ProjectPlan, PlanTierConfig> = {
     currency: "USD",
     features: BASICO_FEATURES,
     storage_bytes: 10 * 1024 ** 3,  // 10 GB
-    max_collaborators: 3,
+    max_collaborators: 5,
   },
   pro: {
     name: { es: "Pro", en: "Pro" },
