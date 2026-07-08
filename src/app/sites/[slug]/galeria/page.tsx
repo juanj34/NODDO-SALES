@@ -150,8 +150,10 @@ export default function GaleriaPage() {
             }}
           >
             <Image src={current.url} alt="" fill sizes="100vw" priority className="w-full h-full object-cover pointer-events-none" />
-            {/* Dark gradient overlay for readability — stronger at top and bottom */}
-            <div className="absolute inset-0 pointer-events-none" style={{ background: "linear-gradient(to bottom, rgba(var(--overlay-rgb), 0.6) 0%, rgba(var(--overlay-rgb), 0.15) 35%, rgba(var(--overlay-rgb), 0.1) 50%, rgba(var(--overlay-rgb), 0.8) 100%)" }} />
+            {/* Edge-only gradients — the renders must stay bright (owner: la viñeta
+                oscurecía demasiado las imágenes). Legibility comes from the top glass
+                strip and text shadows; the center stays fully clear. */}
+            <div className="absolute inset-0 pointer-events-none" style={{ background: "linear-gradient(to bottom, rgba(var(--overlay-rgb), 0.28) 0%, transparent 18%, transparent 74%, rgba(var(--overlay-rgb), 0.45) 100%)" }} />
           </motion.div>
         )}
       </AnimatePresence>

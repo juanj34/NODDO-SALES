@@ -1129,13 +1129,17 @@ export default function ExplorarPage() {
                     <span className={cn("absolute -inset-1.5 rounded-full border-2 animate-pulse", config.ring)} />
                   )}
 
-                  {/* The dot */}
+                  {/* The dot — carries the unit number so agents can locate units at a
+                      glance on the plano (owner request 2026-07-08) */}
                   <span className={cn(
-                    "relative block w-3 h-3 rounded-full border-[1.5px] border-white/80 shadow-md transition-transform duration-150",
+                    "relative flex items-center justify-center min-w-[18px] h-[18px] px-1 rounded-full border-[1.5px] border-white/80 shadow-md transition-transform duration-150",
+                    "font-mono text-[9px] font-semibold leading-none text-white",
                     config.dot,
                     isSelected && "scale-150 border-white",
                     isHovered && !isSelected && "scale-125"
-                  )} />
+                  )}>
+                    {unit.identificador}
+                  </span>
 
                   {/* Tooltip on hover */}
                   <AnimatePresence>
