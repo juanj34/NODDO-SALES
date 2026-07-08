@@ -6,26 +6,23 @@ import { useParams, useRouter } from "next/navigation";
 import { Loader2 } from "lucide-react";
 import { useSiteProject, useSiteBasePath } from "@/hooks/useSiteProject";
 
-const PDFPresentationViewer = dynamic(
-  () =>
-    import("@/components/site/PDFPresentationViewer").then((mod) => ({
-      default: mod.PDFPresentationViewer,
-    })),
-  {
-    ssr: false,
-    loading: () => (
-      <div className="fixed inset-0 z-[80] flex items-center justify-center bg-[var(--surface-0)]">
-        <Loader2 className="animate-spin text-[var(--site-primary)]" size={32} />
-      </div>
-    ),
-  }
-);
+// Same embedded viewer the Brochure tab uses — the document opens INSIDE the
+// microsite shell (side nav visible), instead of a fullscreen overlay that
+// feels like leaving the platform (owner request 2026-07-08).
+const BrochureViewer = dynamic(() => import("../../brochure/BrochureViewer"), {
+  ssr: false,
+  loading: () => (
+    <div className="h-screen flex items-center justify-center bg-[var(--surface-0)]">
+      <Loader2 className="animate-spin text-[var(--site-primary)]" size={28} />
+    </div>
+  ),
+});
 
 function isPDF(url: string): boolean {
   return url.toLowerCase().split("?")[0].endsWith(".pdf");
 }
 
-/** Fullscreen viewer tab for a resource flagged mostrar_como_tab. */
+/** Viewer tab for a resource flagged mostrar_como_tab — behaves like /brochure. */
 export default function DocumentoPage() {
   const proyecto = useSiteProject();
   const basePath = useSiteBasePath();
@@ -52,13 +49,12 @@ export default function DocumentoPage() {
   }
 
   return (
-    <PDFPresentationViewer
+    <BrochureViewer
       url={recurso.url}
-      title={recurso.nombre}
-      onClose={goHome}
       projectId={proyecto.id}
-      trackingEvent="recurso_download"
-      trackingMeta={{ recurso: recurso.nombre, tipo: recurso.tipo }}
+      viewEvent="recurso_view"
+      downloadEvent="recurso_download"
+      title={recurso.nombre}
     />
   );
 }

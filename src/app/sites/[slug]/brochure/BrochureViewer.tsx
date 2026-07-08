@@ -15,16 +15,29 @@ import { trackEvent } from "@/lib/tracking";
 interface BrochureViewerProps {
   url: string;
   projectId: string;
+  /** Analytics event fired on mount (default: brochure_view). The /documento
+      resource tabs reuse this viewer with their own events. */
+  viewEvent?: string;
+  /** Analytics event fired on download (default: brochure_download). */
+  downloadEvent?: string;
+  /** Toolbar + loading label (default: Brochure). */
+  title?: string;
 }
 
-export default function BrochureViewer({ url, projectId }: BrochureViewerProps) {
+export default function BrochureViewer({
+  url,
+  projectId,
+  viewEvent = "brochure_view",
+  downloadEvent = "brochure_download",
+  title = "Brochure",
+}: BrochureViewerProps) {
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [isLoaded, setIsLoaded] = useState(false);
   const viewerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    trackEvent(projectId, "brochure_view");
-  }, [projectId]);
+    trackEvent(projectId, viewEvent);
+  }, [projectId, viewEvent]);
 
   /* ── Fullscreen ───────────────────────────────────────── */
 
@@ -63,9 +76,9 @@ export default function BrochureViewer({ url, projectId }: BrochureViewerProps) 
   }, [isFullscreen, toggleFullscreen]);
 
   const handleDownload = useCallback(() => {
-    trackEvent(projectId, "brochure_download");
+    trackEvent(projectId, downloadEvent);
     window.open(url, "_blank", "noopener,noreferrer");
-  }, [url, projectId]);
+  }, [url, projectId, downloadEvent]);
 
   return (
     <div
@@ -77,7 +90,7 @@ export default function BrochureViewer({ url, projectId }: BrochureViewerProps) 
         <div className="flex items-center gap-3">
           <BookOpen size={15} className="text-[var(--site-primary)]" />
           <span className="text-[10px] font-ui uppercase tracking-[0.15em] text-[var(--text-secondary)]">
-            Brochure
+            {title}
           </span>
         </div>
         <div className="flex items-center gap-1.5">
@@ -123,7 +136,7 @@ export default function BrochureViewer({ url, projectId }: BrochureViewerProps) 
             {/* Text */}
             <div className="flex flex-col items-center gap-2">
               <span className="text-sm font-mono text-[var(--text-secondary)]">
-                Cargando brochure
+                Cargando documento
               </span>
               <div className="flex items-center gap-1.5">
                 <Loader2 className="animate-spin text-[var(--site-primary)]" size={12} />
@@ -147,7 +160,7 @@ export default function BrochureViewer({ url, projectId }: BrochureViewerProps) 
         <iframe
           src={`${url}#toolbar=0&navpanes=0&view=FitH`}
           className="w-full h-full border-0"
-          title="Brochure PDF"
+          title={`${title} PDF`}
           onLoad={() => setIsLoaded(true)}
           style={{ background: "var(--surface-1)" }}
         />
