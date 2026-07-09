@@ -1272,6 +1272,7 @@ const editor = {
     createAvanceError: "Error al crear avance",
     deleteAvanceError: "Error al eliminar",
     changeStatusError: "Error al cambiar estado",
+    draftHint: "Un avance en borrador no aparece en el micrositio aunque publiques el proyecto.",
   },
   hotspotEditor: {
     clickToAddHotspots: "Click en la imagen para agregar hotspots",

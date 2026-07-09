@@ -1250,6 +1250,7 @@ const editor = {
     createAvanceError: "Error creating update",
     deleteAvanceError: "Error deleting",
     changeStatusError: "Error changing status",
+    draftHint: "A draft update won't appear on the microsite even if you publish the project.",
   },
   hotspotEditor: {
     clickToAddHotspots: "Click on the image to add hotspots",

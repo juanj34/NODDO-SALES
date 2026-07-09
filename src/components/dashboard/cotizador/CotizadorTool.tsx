@@ -1231,6 +1231,10 @@ export function CotizadorTool({ project, tipologias, unidadTipologias }: Cotizad
                     <a
                       href={successState.pdfUrl}
                       download={`cotizacion-${successState.unitId}.pdf`}
+                      // Cross-origin (R2) ignores `download` and would navigate in-tab,
+                      // kicking the user out of NODDO. Open in a new tab instead.
+                      target="_blank"
+                      rel="noopener noreferrer"
                       className="flex items-center gap-2 px-4 py-2 rounded-lg bg-[var(--site-primary)] text-[var(--surface-0)] font-ui text-[10px] font-bold uppercase tracking-[0.1em] hover:brightness-110 transition-all"
                     >
                       <Download size={12} />

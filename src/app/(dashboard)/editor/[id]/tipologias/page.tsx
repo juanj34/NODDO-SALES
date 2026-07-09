@@ -220,6 +220,17 @@ function parseOptionalNumber(val: string): number | null {
   return isNaN(n) ? null : n;
 }
 
+/**
+ * Like parseOptionalNumber but for schema fields declared `.positive()`
+ * (area_* and precio_desde). Legacy records may carry a literal 0 in these
+ * columns; `.positive()` rejects 0, which would throw a spurious validation
+ * error just from selecting such a tipología. Normalize 0 (or negatives) → null.
+ */
+function parsePositiveOrNull(val: string): number | null {
+  const n = parseOptionalNumber(val);
+  return n != null && n > 0 ? n : null;
+}
+
 /* ─── Copy hotspots dropdown ─── */
 
 function CopyHotspotsDropdown({
@@ -808,13 +819,13 @@ export default function TipologiasPage() {
   const buildPayload = useCallback(() => ({
     nombre: form.nombre,
     descripcion: form.descripcion || null,
-    area_m2: parseOptionalNumber(form.area_m2),
-    area_construida: parseOptionalNumber(form.area_construida),
-    area_privada: parseOptionalNumber(form.area_privada),
-    area_lote: parseOptionalNumber(form.area_lote),
+    area_m2: parsePositiveOrNull(form.area_m2),
+    area_construida: parsePositiveOrNull(form.area_construida),
+    area_privada: parsePositiveOrNull(form.area_privada),
+    area_lote: parsePositiveOrNull(form.area_lote),
     habitaciones: parseOptionalNumber(form.habitaciones),
     banos: parseOptionalNumber(form.banos),
-    precio_desde: parseOptionalNumber(form.precio_desde),
+    precio_desde: parsePositiveOrNull(form.precio_desde),
     plano_url: form.pisos.length > 0 ? (form.pisos[0].plano_url || null) : (form.plano_url || null),
     renders: form.renders.filter((r) => r),
     caracteristicas: form.caracteristicas,
@@ -942,6 +953,9 @@ export default function TipologiasPage() {
     data: form,
     onSave: performSave,
     delay: 1500,
+    // Selecting a different tipología reloads `form`; re-baseline so merely
+    // switching selection never fires a spurious (and possibly invalid) save.
+    resetKey: selectedId,
     shouldSave: (data) => {
       // Only auto-save if we have a valid name
       if (!data.nombre.trim()) return false;

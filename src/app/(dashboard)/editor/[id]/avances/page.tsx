@@ -146,7 +146,9 @@ export default function AvancesPage() {
     descripcion: "",
     video_url: "",
     imagen_url: "",
-    estado: "borrador" as "borrador" | "publicado",
+    // Default to published: the project-level Publicar is the real gate, so a
+    // draft-by-default avance would silently never reach the microsite.
+    estado: "publicado" as "borrador" | "publicado",
   });
   const [editingId, setEditingId] = useState<string | null>(null);
   const [showForm, setShowForm] = useState(false);
@@ -161,7 +163,7 @@ export default function AvancesPage() {
       descripcion: "",
       video_url: "",
       imagen_url: "",
-      estado: "borrador",
+      estado: "publicado",
     });
     setEditingId(null);
     setShowForm(true);
@@ -361,6 +363,11 @@ export default function AvancesPage() {
                     {t("avances.published")}
                   </button>
                 </div>
+                {form.estado === "borrador" && (
+                  <p className="mt-1.5 text-[11px] text-amber-400/80">
+                    {t("avances.draftHint")}
+                  </p>
+                )}
               </div>
 
               <div>

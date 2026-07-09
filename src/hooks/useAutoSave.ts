@@ -18,6 +18,14 @@ interface UseAutoSaveOptions<T> {
   onSaveSuccess?: () => void;
   /** Called when save fails */
   onSaveError?: (error: Error) => void;
+  /**
+   * When this value changes, re-baseline: adopt the current `data` as the
+   * "last saved" snapshot WITHOUT firing a save. Use it when the form is
+   * reloaded with a different record (e.g. selecting another item) so that
+   * merely switching selection never triggers a spurious auto-save. Optional
+   * and backward compatible — omit it to keep the previous behavior.
+   */
+  resetKey?: unknown;
 }
 
 /**
@@ -31,14 +39,29 @@ export function useAutoSave<T>({
   shouldSave,
   onSaveSuccess,
   onSaveError,
+  resetKey,
 }: UseAutoSaveOptions<T>) {
   const [status, setStatus] = useState<AutoSaveStatus>("idle");
   const [lastSavedData, setLastSavedData] = useState<T>(data);
   const isSavingRef = useRef(false);
   const isFirstRenderRef = useRef(true);
+  // Re-baseline support: when `resetKey` changes we capture the freshly-loaded
+  // `data` so the pending debounced tick re-baselines instead of saving.
+  const resetKeyRef = useRef(resetKey);
+  const resetBaselineRef = useRef<{ data: T } | null>(null);
 
   // Debounce data changes
   const debouncedData = useDebounce(data, delay);
+
+  // Detect a resetKey change and capture the freshly-loaded data as the
+  // pending baseline. The debounced tick that settles to this exact value will
+  // re-baseline (no save); any different (edited) value falls through to a save.
+  useEffect(() => {
+    if (resetKeyRef.current !== resetKey) {
+      resetKeyRef.current = resetKey;
+      resetBaselineRef.current = { data };
+    }
+  }, [resetKey, data]);
 
   // Save function with status updates
   const save = useCallback(async () => {
@@ -87,6 +110,20 @@ export function useAutoSave<T>({
     if (isFirstRenderRef.current) {
       isFirstRenderRef.current = false;
       return;
+    }
+
+    // Pending re-baseline from a resetKey change (e.g. selecting another record).
+    if (resetBaselineRef.current) {
+      const baseline = resetBaselineRef.current.data;
+      if (JSON.stringify(debouncedData) === JSON.stringify(baseline)) {
+        // Debounce settled to the loaded record: adopt it as saved, don't save.
+        resetBaselineRef.current = null;
+        setLastSavedData(debouncedData);
+        return;
+      }
+      // Debounced value differs → the user actually edited; drop the guard and
+      // fall through to a normal save.
+      resetBaselineRef.current = null;
     }
 
     // Skip if data hasn't actually changed
