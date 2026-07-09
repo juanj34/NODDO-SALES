@@ -61,13 +61,17 @@ export type Permission =
   | "ai.use";
 
 const PERMISSION_MIN_ROLE: Record<Permission, UserRole> = {
-  "project.create": "administrador",
+  // Owner decisions 2026-07-09: everyone who edits can publish (asesoras were
+  // editing but could never see the Publicar button — changes silently never
+  // went live); directors can create projects (Catalina); asesoras can write
+  // content (videos/avances/puntos were failing with silent 403s for them).
+  "project.create": "director",
   "project.update": "administrador",
   "project.delete": "admin",
-  "project.publish": "director",
+  "project.publish": "asesor",
   "project.clone": "administrador",
   "project.read": "asesor",
-  "content.write": "director",
+  "content.write": "asesor",
   "content.read": "asesor",
   "inventory.write": "director",
   "inventory.estado": "asesor",

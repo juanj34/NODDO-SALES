@@ -83,9 +83,13 @@ export function LeadCotizacionCard({ cotizacion, locale, onResendSuccess }: Prop
             >
               <ExternalLink size={10} />
             </a>
+            {/* download is ignored on cross-origin (R2) URLs and would navigate
+                in-tab, kicking the user out of NODDO — force a new tab */}
             <a
               href={cotizacion.pdf_url}
               download
+              target="_blank"
+              rel="noopener noreferrer"
               className="inline-flex items-center gap-1 px-2 py-1 rounded-md text-[10px] text-[var(--text-tertiary)] hover:text-[var(--text-primary)] hover:bg-[var(--surface-3)] transition-colors"
               title="Descargar"
             >

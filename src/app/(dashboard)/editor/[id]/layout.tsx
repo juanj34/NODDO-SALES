@@ -809,13 +809,16 @@ export default function EditorLayout({
                     ? "Estás editando como Director — algunos ajustes requieren acceso de Administrador"
                     : "Editing as Director — some settings require Administrator access")
                   : (locale === "es"
-                    ? "Estás en modo Asesor — acceso a tipologías, inventario, planos, disponibilidad y cotizador"
-                    : "Advisor mode — access to tipologías, inventario, planos, disponibilidad, and cotizador")}
+                    ? "Estás en modo Asesor — tus cambios se ven en el micrositio solo cuando presionas Publicar"
+                    : "Advisor mode — your changes go live on the microsite only when you press Publish")}
               </span>
             </div>
           )}
-          {/* ── Publish header strip ── */}
-          {!isCollaborator && (
+          {/* ── Publish header strip — visible to EVERYONE who can publish (owner
+              decision 2026-07-09: asesoras edit, so they must see the publish
+              status and button; before this only the account owner saw it and
+              team changes silently never went live) ── */}
+          {can("project.publish") && (
             <div className="relative z-10 shrink-0 flex items-center justify-between px-3 md:px-6 h-12 border-b border-[var(--border-subtle)] bg-[var(--surface-1)]/60 backdrop-blur-sm">
               {/* Left: setup guide pill (fixed position) + auto-save indicator */}
               <div className="flex items-center gap-3">
