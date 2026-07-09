@@ -814,6 +814,16 @@ export default function TipologiasPage() {
   /** Temp IDs with a creation POST already in flight — prevents duplicate POSTs from auto-save. */
   const creatingInFlightRef = useRef<Set<string>>(new Set());
   const [activePisoIndex, setActivePisoIndex] = useState(0);
+  /**
+   * resetKey for useAutoSave — bumped ONLY where `form` is genuinely reloaded from a
+   * record (selectTipologia, torre-filter reset, startCreating, duplicate, delete
+   * fallback). Deliberately NOT tied to selectedId: the create flow promotes the
+   * temp→real id mid-edit (performSave's fire-and-forget POST .then does
+   * setSelectedId(temp → created.id)), and if resetKey tracked selectedId that
+   * promotion would re-baseline an edit made while the POST was in flight —
+   * silently dropping it with a false "Guardado".
+   */
+  const [formLoadKey, setFormLoadKey] = useState(0);
 
   /* ─── Build payload helper ─── */
   const buildPayload = useCallback(() => ({
@@ -955,7 +965,9 @@ export default function TipologiasPage() {
     delay: 1500,
     // Selecting a different tipología reloads `form`; re-baseline so merely
     // switching selection never fires a spurious (and possibly invalid) save.
-    resetKey: selectedId,
+    // NOT selectedId — see formLoadKey's doc comment (temp→real id promotion
+    // must not re-baseline away a mid-create edit).
+    resetKey: formLoadKey,
     shouldSave: (data) => {
       // Only auto-save if we have a valid name
       if (!data.nombre.trim()) return false;
@@ -1038,6 +1050,7 @@ export default function TipologiasPage() {
     } else {
       setSelectedId(null);
       setForm({ ...emptyTipologia });
+      setFormLoadKey((k) => k + 1);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeTorreId]);
@@ -1060,6 +1073,7 @@ export default function TipologiasPage() {
     });
     setIsCreating(false);
     setForm(tipologiaToForm(tip));
+    setFormLoadKey((k) => k + 1);
     setCaracInput("");
     setActiveTab("general");
     setActivePisoIndex(0);
@@ -1121,6 +1135,7 @@ export default function TipologiasPage() {
     setSelectedId(tempId);
     setIsCreating(true);
     setForm({ ...emptyTipologia, torre_ids: torreIds });
+    setFormLoadKey((k) => k + 1);
     setCaracInput("");
     setActiveTab("general");
   };
@@ -1236,6 +1251,7 @@ export default function TipologiasPage() {
       } else {
         setSelectedId(null);
         setForm({ ...emptyTipologia });
+        setFormLoadKey((k) => k + 1);
       }
     }
 
@@ -1272,6 +1288,7 @@ export default function TipologiasPage() {
     setSelectedId(tempId);
     setIsCreating(false);
     setForm(tipologiaToForm(tempTip));
+    setFormLoadKey((k) => k + 1);
 
     try {
       const payload = {
@@ -1323,7 +1340,10 @@ export default function TipologiasPage() {
         }));
         if (created?.id) {
           setSelectedId(created.id);
+          // Form is reloaded from the server record here, so bumping the load
+          // key is correct (unlike the create flow's id-only promotion).
           setForm(tipologiaToForm(created));
+          setFormLoadKey((k) => k + 1);
         }
         toast.success(t("tipologias.duplicated"));
       } else {
@@ -1567,7 +1587,7 @@ export default function TipologiasPage() {
                           setIsCreating(false);
                           const remaining = filteredTipologias.filter((t) => t.id !== tempId);
                           if (remaining.length > 0) selectTipologia(remaining[0]);
-                          else { setSelectedId(null); setForm({ ...emptyTipologia }); }
+                          else { setSelectedId(null); setForm({ ...emptyTipologia }); setFormLoadKey((k) => k + 1); }
                         }}
                         className="text-[var(--text-muted)] hover:text-[var(--text-secondary)]"
                       >

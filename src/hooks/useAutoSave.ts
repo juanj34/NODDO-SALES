@@ -24,6 +24,14 @@ interface UseAutoSaveOptions<T> {
    * reloaded with a different record (e.g. selecting another item) so that
    * merely switching selection never triggers a spurious auto-save. Optional
    * and backward compatible — omit it to keep the previous behavior.
+   *
+   * TRAP: pass a value that changes ONLY when `data` is genuinely reloaded
+   * from a record. Do NOT pass a record id that can change WITHOUT a data
+   * reload — e.g. an optimistic temp→real id promotion after a create POST.
+   * If the user edits while that POST is in flight, the id flip would
+   * re-baseline to the edited value without saving it: silent data loss
+   * behind a false "saved" status. Use a dedicated load counter instead
+   * (see tipologias/page.tsx `formLoadKey`).
    */
   resetKey?: unknown;
 }
@@ -48,20 +56,22 @@ export function useAutoSave<T>({
   // Re-baseline support: when `resetKey` changes we capture the freshly-loaded
   // `data` so the pending debounced tick re-baselines instead of saving.
   const resetKeyRef = useRef(resetKey);
-  const resetBaselineRef = useRef<{ data: T } | null>(null);
+  const resetBaselineRef = useRef<{ data: T; debouncedAtCapture: T } | null>(null);
 
   // Debounce data changes
   const debouncedData = useDebounce(data, delay);
 
   // Detect a resetKey change and capture the freshly-loaded data as the
-  // pending baseline. The debounced tick that settles to this exact value will
-  // re-baseline (no save); any different (edited) value falls through to a save.
+  // pending baseline, together with the debounced value current at capture
+  // time. The guard resolves on the FIRST debounce settle after the reload:
+  // settling to the loaded record re-baselines (no save); settling to a
+  // different (edited) value falls through to a save so the edit is kept.
   useEffect(() => {
     if (resetKeyRef.current !== resetKey) {
       resetKeyRef.current = resetKey;
-      resetBaselineRef.current = { data };
+      resetBaselineRef.current = { data, debouncedAtCapture: debouncedData };
     }
-  }, [resetKey, data]);
+  }, [resetKey, data, debouncedData]);
 
   // Save function with status updates
   const save = useCallback(async () => {
@@ -114,16 +124,24 @@ export function useAutoSave<T>({
 
     // Pending re-baseline from a resetKey change (e.g. selecting another record).
     if (resetBaselineRef.current) {
+      // This effect also re-runs on save-identity changes BEFORE the debounce
+      // settles (debouncedData still holds the pre-reload value). Consuming the
+      // guard there would let the eventual settle fire a spurious save — so
+      // until debouncedData actually moves past its capture-time value, keep
+      // the guard and suppress saves (the stale value has nothing to save).
+      if (debouncedData === resetBaselineRef.current.debouncedAtCapture) {
+        return;
+      }
+      // First settle after the reload → resolve the guard now.
       const baseline = resetBaselineRef.current.data;
+      resetBaselineRef.current = null;
       if (JSON.stringify(debouncedData) === JSON.stringify(baseline)) {
-        // Debounce settled to the loaded record: adopt it as saved, don't save.
-        resetBaselineRef.current = null;
+        // Settled to the loaded record: adopt it as saved, don't save.
         setLastSavedData(debouncedData);
         return;
       }
-      // Debounced value differs → the user actually edited; drop the guard and
-      // fall through to a normal save.
-      resetBaselineRef.current = null;
+      // Settled to a different value → the user edited during the debounce
+      // window; fall through to a normal save so the edit is NOT lost.
     }
 
     // Skip if data hasn't actually changed

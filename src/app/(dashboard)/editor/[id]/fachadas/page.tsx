@@ -516,7 +516,13 @@ export default function NoddoGridPage() {
     // Optimistic removal — the dot disappears immediately.
     setPlanoPuntos((prev) => prev.filter((pt) => pt.id !== id));
     const res = await fetch(`/api/plano-puntos/${id}`, { method: "DELETE" });
-    if (res.ok) void refresh();
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({ error: t("errors.unknown") }));
+      toast.error(err.error || `Error ${res.status}`);
+    }
+    // Resync unconditionally: on failure the refetch restores the optimistically
+    // removed point (visible rollback instead of a silent phantom delete).
+    void refresh();
   };
 
 

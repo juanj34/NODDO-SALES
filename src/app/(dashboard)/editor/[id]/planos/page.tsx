@@ -305,11 +305,15 @@ export default function PlanoInteractivoPage() {
     async (id: string) => {
       setPuntos((prev) => prev.filter((pt) => pt.id !== id));
       const res = await fetch(`/api/plano-puntos/${id}`, { method: "DELETE" });
-      if (res.ok) {
-        void refresh();
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({ error: t("errors.unknown") }));
+        toast.error(err.error || `Error ${res.status}`);
       }
+      // Resync unconditionally: on failure the refetch restores the optimistically
+      // removed point (visible rollback instead of a silent phantom delete).
+      void refresh();
     },
-    [refresh]
+    [refresh, toast, t]
   );
 
   /* ------------------------------------------------------------------
