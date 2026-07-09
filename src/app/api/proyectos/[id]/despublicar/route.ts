@@ -11,7 +11,7 @@ export async function POST(
     const auth = await getAuthContext();
     if (!auth)
       return NextResponse.json({ error: "No autorizado" }, { status: 401 });
-    const denied = requirePermission(auth, "project.publish");
+    const denied = requirePermission(auth, "project.update")  // despublicar tumba el micrositio: solo administrador+ (publicar sí es para todo el equipo);
     if (denied) return denied;
 
     // Verify ownership
