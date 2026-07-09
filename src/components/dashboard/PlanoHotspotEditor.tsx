@@ -531,7 +531,7 @@ export function PlanoHotspotEditor({
       </div>
 
       {/* ═══ RIGHT: Sidebar Panel ═══ */}
-      <div className="w-[320px] shrink-0 flex flex-col min-h-0 bg-[var(--surface-1)] rounded-xl border border-[var(--border-subtle)] overflow-hidden">
+      <div className="w-[320px] shrink-0 self-start max-h-[560px] flex flex-col min-h-0 bg-[var(--surface-1)] rounded-xl border border-[var(--border-subtle)] overflow-hidden">
         {/* Scrollable container for all content */}
         <div className="flex-1 overflow-y-auto min-h-0">
           {/* Form section */}

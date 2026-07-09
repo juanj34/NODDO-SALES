@@ -269,7 +269,8 @@ export default function PlanoInteractivoPage() {
       if (res.ok) {
         const created: PlanoPunto = await res.json();
         setPuntos((prev) => [...prev, created]);
-        await refresh();
+        // Reconcile in the background — don't block the Add button on a full refetch.
+        void refresh();
       } else {
         const err = await res.json().catch(() => ({ error: t("errors.unknown") }));
         toast.error(err.error || `Error ${res.status}`);
@@ -295,7 +296,7 @@ export default function PlanoInteractivoPage() {
         const err = await res.json().catch(() => ({ error: t("errors.unknown") }));
         toast.error(err.error || `Error ${res.status}`);
       }
-      await refresh();
+      void refresh();
     },
     [refresh, toast]
   );
@@ -305,7 +306,7 @@ export default function PlanoInteractivoPage() {
       setPuntos((prev) => prev.filter((pt) => pt.id !== id));
       const res = await fetch(`/api/plano-puntos/${id}`, { method: "DELETE" });
       if (res.ok) {
-        await refresh();
+        void refresh();
       }
     },
     [refresh]

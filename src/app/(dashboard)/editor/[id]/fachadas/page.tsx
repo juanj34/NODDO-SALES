@@ -74,6 +74,9 @@ export default function NoddoGridPage() {
   const [implantacionImagenUrl, setImplantacionImagenUrl] = useState("");
   const [creatingImplantacion, setCreatingImplantacion] = useState(false);
   const [deletingImplantacion, setDeletingImplantacion] = useState(false);
+  // Local overlay of plano puntos so hotspot add/update/delete apply optimistically
+  // (no full project refetch before the dot appears / disappears).
+  const [planoPuntos, setPlanoPuntos] = useState<PlanoPunto[]>([]);
 
   // Multi-torre tab
   const [activeTab, setActiveTab] = useState<string>("implantacion");
@@ -106,6 +109,7 @@ export default function NoddoGridPage() {
     if (!project) return;
     setFachadas(project.fachadas ?? []);
     setUnidades(project.unidades ?? []);
+    setPlanoPuntos(project.plano_puntos ?? []);
   }, [project]);
 
   /* ---- Derived data ---- */
@@ -131,9 +135,9 @@ export default function NoddoGridPage() {
   const implantacionPuntos = useMemo<PlanoPunto[]>(
     () =>
       implantacionPlano
-        ? (project?.plano_puntos ?? []).filter((p) => p.plano_id === implantacionPlano.id)
+        ? planoPuntos.filter((p) => p.plano_id === implantacionPlano.id)
         : [],
-    [project, implantacionPlano]
+    [planoPuntos, implantacionPlano]
   );
 
   const activeTorre = useMemo<Torre | null>(
@@ -476,26 +480,43 @@ export default function NoddoGridPage() {
     y: number;
   }) => {
     if (!implantacionPlano) return;
-    await fetch("/api/plano-puntos", {
+    const res = await fetch("/api/plano-puntos", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ plano_id: implantacionPlano.id, ...data }),
     });
-    await refresh();
+    if (res.ok) {
+      // Optimistic: show the new dot immediately from the POST response.
+      const created: PlanoPunto = await res.json();
+      setPlanoPuntos((prev) => [...prev, created]);
+      // Reconcile in the background — don't block the Add button on a full refetch.
+      void refresh();
+    } else {
+      const err = await res.json().catch(() => ({ error: t("errors.unknown") }));
+      toast.error(err.error || `Error ${res.status}`);
+    }
   };
 
   const handleUpdateImplantacionPunto = async (id: string, data: Partial<PlanoPunto>) => {
-    await fetch(`/api/plano-puntos/${id}`, {
+    // Optimistic update — reflect the change locally before the request resolves.
+    setPlanoPuntos((prev) => prev.map((pt) => (pt.id === id ? { ...pt, ...data } : pt)));
+    const res = await fetch(`/api/plano-puntos/${id}`, {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(data),
     });
-    await refresh();
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({ error: t("errors.unknown") }));
+      toast.error(err.error || `Error ${res.status}`);
+    }
+    void refresh();
   };
 
   const handleDeleteImplantacionPunto = async (id: string) => {
-    await fetch(`/api/plano-puntos/${id}`, { method: "DELETE" });
-    await refresh();
+    // Optimistic removal — the dot disappears immediately.
+    setPlanoPuntos((prev) => prev.filter((pt) => pt.id !== id));
+    const res = await fetch(`/api/plano-puntos/${id}`, { method: "DELETE" });
+    if (res.ok) void refresh();
   };
 
 
