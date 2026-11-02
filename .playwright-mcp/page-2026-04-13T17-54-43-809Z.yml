@@ -1,0 +1,11 @@
+- generic [active] [ref=e1]:
+  - generic [ref=e2]:
+    - complementary [ref=e3]
+    - main [ref=e39]
+  - generic [ref=e59]:
+    - img [ref=e61]
+    - button "Open Tanstack query devtools" [ref=e109] [cursor=pointer]:
+      - img [ref=e110]
+  - button "Open Next.js Dev Tools" [ref=e163] [cursor=pointer]:
+    - img [ref=e164]
+  - alert [ref=e167]

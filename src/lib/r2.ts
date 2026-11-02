@@ -143,7 +143,8 @@ export async function getPresignedMediaUploadUrl(
     ContentType: contentType,
   });
 
-  const uploadUrl = await getSignedUrl(client, command, { expiresIn: 900 });
+  // 60 min expiration — big PDFs/videos on slow connections need more time
+  const uploadUrl = await getSignedUrl(client, command, { expiresIn: 3600 });
   const publicUrl = `${R2_MEDIA_PUBLIC_URL}/${key}`;
 
   return { uploadUrl, publicUrl, key };

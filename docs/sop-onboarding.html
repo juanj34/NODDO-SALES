@@ -1,0 +1,706 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300&family=Syne:wght@400;600;700;800&family=Inter:wght@300;400;500;600&family=DM+Mono:wght@300;400;500&display=swap');
+
+  :root {
+    --gold: #b8983c;
+    --gold-light: #d4b05a;
+    --bg: #0e0e0e;
+    --surface-1: #161616;
+    --surface-2: #1e1e1e;
+    --text: #f4f0e8;
+    --text-secondary: rgba(244, 240, 232, 0.55);
+    --text-muted: rgba(244, 240, 232, 0.35);
+    --border: rgba(244, 240, 232, 0.08);
+  }
+
+  @page {
+    size: A4;
+    margin: 20mm 24mm 22mm 24mm;
+    background: var(--bg);
+    @bottom-left {
+      content: "noddo.io";
+      font-family: 'DM Mono', monospace;
+      font-size: 7pt;
+      color: rgba(244, 240, 232, 0.18);
+    }
+    @bottom-right {
+      content: counter(page);
+      font-family: 'DM Mono', monospace;
+      font-size: 7pt;
+      color: rgba(244, 240, 232, 0.18);
+    }
+  }
+  @page :first {
+    margin: 0;
+    @bottom-left { content: none; }
+    @bottom-right { content: none; }
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'Inter', system-ui, sans-serif;
+    font-size: 9.5pt;
+    line-height: 1.6;
+    color: var(--text);
+    background: var(--bg);
+  }
+
+  /* ─── COVER ─── */
+  .cover {
+    width: 210mm; height: 297mm;
+    background: var(--bg);
+    display: flex; flex-direction: column;
+    justify-content: center; align-items: center;
+    position: relative; overflow: hidden;
+    page-break-after: always;
+  }
+  .cover::before {
+    content: ''; position: absolute;
+    top: -50%; left: -50%; width: 200%; height: 200%;
+    background: radial-gradient(ellipse at 50% 40%, rgba(184,152,60,0.06) 0%, transparent 60%);
+  }
+  .cover-logo { width: 200px; margin-bottom: 60px; position: relative; z-index: 1; }
+  .cover-divider { width: 60px; height: 1px; background: var(--gold); margin-bottom: 40px; position: relative; z-index: 1; }
+  .cover-title {
+    font-family: 'Cormorant Garamond', serif; font-weight: 300; font-size: 32pt;
+    color: var(--text); text-align: center; letter-spacing: 0.02em;
+    line-height: 1.2; max-width: 420px; position: relative; z-index: 1;
+  }
+  .cover-subtitle {
+    font-family: 'Syne', sans-serif; font-weight: 700; font-size: 8pt;
+    letter-spacing: 0.2em; text-transform: uppercase;
+    color: var(--gold); margin-top: 24px; position: relative; z-index: 1;
+  }
+  .cover-version {
+    font-family: 'DM Mono', monospace; font-weight: 300; font-size: 7.5pt;
+    color: var(--text-muted); position: absolute; bottom: 40px; z-index: 1;
+  }
+  .cover-badge { position: absolute; top: 40px; right: 40px; width: 28px; z-index: 1; }
+
+  /* ─── SECTION HEADERS (h1 = major section, forced page break) ─── */
+  .fase-header {
+    page-break-before: always;
+    display: flex; align-items: baseline;
+    justify-content: space-between;
+    border-bottom: 1px solid var(--border);
+    padding-bottom: 3mm; margin-bottom: 5mm; margin-top: 0;
+  }
+  .fase-header h1 {
+    font-family: 'Cormorant Garamond', serif; font-weight: 300;
+    font-size: 22pt; color: var(--text); line-height: 1.15; margin: 0;
+  }
+  .fase-label {
+    font-family: 'Syne', sans-serif; font-weight: 700; font-size: 7pt;
+    letter-spacing: 0.15em; text-transform: uppercase; color: var(--gold);
+    white-space: nowrap;
+  }
+
+  /* First section after cover: no forced break */
+  .fase-header.first { page-break-before: avoid; }
+
+  h2 {
+    font-family: 'Cormorant Garamond', serif; font-weight: 400;
+    font-size: 15pt; color: var(--text);
+    margin-top: 6mm; margin-bottom: 3mm; line-height: 1.2;
+  }
+
+  h3 {
+    font-family: 'Syne', sans-serif; font-weight: 700; font-size: 8pt;
+    letter-spacing: 0.12em; text-transform: uppercase;
+    color: var(--gold); margin-top: 5mm; margin-bottom: 2mm;
+  }
+
+  p { color: var(--text-secondary); margin-bottom: 2mm; font-weight: 400; }
+
+  .lead {
+    font-size: 10pt; line-height: 1.65;
+    color: rgba(244, 240, 232, 0.6); margin-bottom: 5mm;
+  }
+
+  /* ─── INTRO BOX ─── */
+  .intro-box {
+    background: var(--surface-1); border: 1px solid var(--border);
+    border-left: 3px solid var(--gold); border-radius: 6px;
+    padding: 4mm 5mm; margin-bottom: 5mm;
+  }
+  .intro-box p { font-size: 8.5pt; color: rgba(244,240,232,0.55); margin: 0; }
+
+  /* ─── PHASE BLOCKS ─── */
+  .phase {
+    background: var(--surface-1); border: 1px solid var(--border);
+    border-radius: 8px; padding: 4mm 5mm; margin-bottom: 3mm;
+    page-break-inside: avoid;
+  }
+  .phase-header { display: flex; align-items: center; gap: 3mm; margin-bottom: 2mm; }
+  .phase-number {
+    font-family: 'DM Mono', monospace; font-weight: 500; font-size: 10pt;
+    color: var(--gold); background: rgba(184,152,60,0.12);
+    width: 26px; height: 26px; border-radius: 6px;
+    display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+  }
+  .phase-title {
+    font-family: 'Syne', sans-serif; font-weight: 700; font-size: 8.5pt;
+    letter-spacing: 0.08em; text-transform: uppercase; color: var(--text);
+  }
+  .phase-desc { font-size: 8pt; color: var(--text-muted); padding-left: 9mm; margin: 0; }
+
+  /* ─── CHECKLIST ─── */
+  .checklist { list-style: none; padding-left: 0; }
+  .checklist li {
+    position: relative; padding-left: 7mm; margin-bottom: 1.5mm;
+    font-size: 8.5pt; color: rgba(244,240,232,0.7); line-height: 1.5;
+  }
+  .checklist li::before {
+    content: ''; position: absolute; left: 0; top: 3px;
+    width: 11px; height: 11px; border: 1.5px solid rgba(184,152,60,0.5);
+    border-radius: 3px; background: rgba(184,152,60,0.05);
+  }
+  .checklist li.sub {
+    padding-left: 13mm; font-size: 8pt; color: var(--text-muted);
+  }
+  .checklist li.sub::before {
+    left: 6mm; width: 9px; height: 9px;
+    border-color: rgba(244,240,232,0.12); background: transparent; border-radius: 2px;
+  }
+  .checklist .nested { margin-top: 1mm; }
+
+  /* ─── TAG ─── */
+  .tag {
+    display: inline-block; font-family: 'DM Mono', monospace;
+    font-size: 6.5pt; font-weight: 400; color: var(--gold);
+    background: rgba(184,152,60,0.1); border: 1px solid rgba(184,152,60,0.15);
+    padding: 0px 5px; border-radius: 3px; margin-left: 1mm; vertical-align: middle;
+  }
+
+  /* ─── TABLE ─── */
+  .config-table {
+    width: 100%; border-collapse: collapse;
+    margin: 2mm 0 4mm 0; font-size: 8pt;
+  }
+  .config-table th {
+    font-family: 'Syne', sans-serif; font-weight: 700; font-size: 6.5pt;
+    letter-spacing: 0.1em; text-transform: uppercase; color: var(--gold);
+    text-align: left; padding: 2mm 2mm; border-bottom: 1px solid rgba(184,152,60,0.2);
+  }
+  .config-table td {
+    padding: 1.5mm 2mm; color: rgba(244,240,232,0.55);
+    border-bottom: 1px solid var(--border); vertical-align: top;
+  }
+  .config-table td:first-child {
+    font-family: 'DM Mono', monospace; font-size: 7.5pt;
+    color: rgba(244,240,232,0.75); white-space: nowrap;
+  }
+
+  /* ─── TIP ─── */
+  .tip {
+    background: rgba(184,152,60,0.06); border: 1px solid rgba(184,152,60,0.12);
+    border-radius: 6px; padding: 3mm 4mm; margin: 3mm 0;
+    font-size: 8pt; color: rgba(244,240,232,0.5); page-break-inside: avoid;
+  }
+  .tip strong { color: var(--gold); font-weight: 600; }
+
+  .divider { text-align: center; margin: 6mm 0; color: var(--gold); font-family: 'DM Mono', monospace; font-size: 7pt; letter-spacing: 0.3em; opacity: 0.3; }
+</style>
+</head>
+<body>
+
+<!-- ═══ COVER ═══ -->
+<div class="cover">
+  <img class="cover-badge" src="file:///c:/Users/Juan/Documents/ANTIGRAVITY/NODDO/public/LOGO_FAVICON-GOL.svg" alt="">
+  <img class="cover-logo" src="file:///c:/Users/Juan/Documents/ANTIGRAVITY/NODDO/public/LOGO_LOGO-WHITE.svg" alt="NODDO">
+  <div class="cover-divider"></div>
+  <div class="cover-title">Guia de Onboarding<br>para Constructoras</div>
+  <div class="cover-subtitle">Procedimiento Operativo Estandar</div>
+  <div class="cover-version">v1.0 &mdash; Abril 2026 &mdash; noddo.io</div>
+</div>
+
+<!-- ═══ INTRODUCCION ═══ -->
+<div class="fase-header first">
+  <h1>Antes de empezar</h1>
+  <span class="fase-label">Introduccion</span>
+</div>
+
+<p class="lead">Esta guia define todo lo que una constructora debe tener listo antes de crear su proyecto en NODDO. Seguir este checklist asegura un onboarding rapido, sin idas y vueltas, y un micrositio premium desde el primer dia.</p>
+
+<div class="intro-box">
+  <p><strong style="color: var(--gold);">Tiempo estimado de configuracion:</strong> 1&ndash;3 horas si tiene todo el material listo. Si falta contenido (renders, planos, etc.), coordine con su equipo de diseno antes de iniciar.</p>
+</div>
+
+<h2>Resumen del proceso</h2>
+<p>El onboarding se divide en 5 fases. Cada fase tiene un checklist que debe completarse antes de avanzar.</p>
+
+<div class="phase">
+  <div class="phase-header"><div class="phase-number">1</div><div class="phase-title">Definiciones del Proyecto</div></div>
+  <div class="phase-desc">Tipo de proyecto, moneda, idioma, modo de inventario, tipologias.</div>
+</div>
+<div class="phase">
+  <div class="phase-header"><div class="phase-number">2</div><div class="phase-title">Inventario y Precios</div></div>
+  <div class="phase-desc">CSV de unidades, precios, parqueaderos, depositos, columnas personalizadas.</div>
+</div>
+<div class="phase">
+  <div class="phase-header"><div class="phase-number">3</div><div class="phase-title">Contenido Visual</div></div>
+  <div class="phase-desc">Renders, galerias, fachadas, implantaciones, planos, videos, tour 360.</div>
+</div>
+<div class="phase">
+  <div class="phase-header"><div class="phase-number">4</div><div class="phase-title">Marca y Configuracion</div></div>
+  <div class="phase-desc">Logo, colores, dominio, correos, cotizador, webhooks, secciones visibles.</div>
+</div>
+<div class="phase">
+  <div class="phase-header"><div class="phase-number">5</div><div class="phase-title">Equipo y Publicacion</div></div>
+  <div class="phase-desc">Colaboradores, roles, pruebas finales, publicacion.</div>
+</div>
+
+<!-- ═══ FASE 1 ═══ -->
+<div class="fase-header">
+  <h1>Fase 1: Definiciones del Proyecto</h1>
+  <span class="fase-label">Fase 1</span>
+</div>
+
+<p class="lead">Antes de crear el proyecto en la plataforma, defina estas decisiones estrategicas que determinan la estructura de todo el micrositio.</p>
+
+<h3>1.1 Tipo de proyecto</h3>
+<ul class="checklist">
+  <li>Definir el tipo de proyecto <span class="tag">apartamentos</span> <span class="tag">casas</span> <span class="tag">hibrido</span> <span class="tag">lotes</span></li>
+  <li class="sub">Hibrido: mezcla de apartamentos, casas y/o locales comerciales con configuraciones independientes por tipologia</li>
+  <li class="sub">Lotes: unidades sin area construida, solo lote</li>
+</ul>
+
+<h3>1.2 Estructura de torres / urbanismos</h3>
+<ul class="checklist">
+  <li>Definir cuantas torres, fases o sectores tiene el proyecto</li>
+  <li>Nombre de cada torre o urbanismo (ej: "Torre A", "Etapa 1", "Sector Norte")</li>
+  <li>Tipo de cada estructura <span class="tag">torre</span> <span class="tag">urbanismo</span></li>
+  <li>Numero de pisos por torre (residenciales, sotano, podio, rooftop)</li>
+  <li>Prefijo de identificacion por torre (ej: "A-" para la Torre A)</li>
+  <li>Amenidades por torre (si difieren entre torres)</li>
+</ul>
+
+<h3>1.3 Tipologias</h3>
+<ul class="checklist">
+  <li>Listar todas las tipologias del proyecto con sus nombres</li>
+  <li>Para cada tipologia definir:</li>
+  <li class="sub">Area total (m2 o sqft)</li>
+  <li class="sub">Area construida, area privada, area de lote (si aplica)</li>
+  <li class="sub">Numero de habitaciones y banos</li>
+  <li class="sub">Precio desde (si el precio viene de tipologia)</li>
+  <li class="sub">Parqueaderos y depositos incluidos</li>
+  <li class="sub">Amenidades especiales (jacuzzi, piscina, BBQ, terraza, jardin, etc.)</li>
+  <li>Definir el tipo de cada tipologia <span class="tag">apartamento</span> <span class="tag">casa</span> <span class="tag">lote</span> <span class="tag">local comercial</span></li>
+</ul>
+
+<h3>1.4 Modelo de precios</h3>
+<ul class="checklist">
+  <li>Decidir fuente de precios:</li>
+  <li class="sub"><strong>Por tipologia:</strong> todas las unidades de la misma tipologia comparten precio</li>
+  <li class="sub"><strong>Por unidad:</strong> cada unidad tiene su precio individual (lo mas comun)</li>
+  <li>Modo de tipologia:</li>
+  <li class="sub"><strong>Fija:</strong> cada unidad tiene una sola tipologia</li>
+  <li class="sub"><strong>Multiple:</strong> una unidad puede tener varias tipologias compatibles</li>
+  <li>Moneda del proyecto <span class="tag">COP</span> <span class="tag">USD</span> <span class="tag">MXN</span> <span class="tag">EUR</span> <span class="tag">AED</span></li>
+  <li>Unidad de medida <span class="tag">m2</span> <span class="tag">sqft</span></li>
+</ul>
+
+<h3>1.5 Parqueaderos y depositos</h3>
+<ul class="checklist">
+  <li>Definir como se manejan los parqueaderos:</li>
+  <li class="sub"><strong>Sin inventario:</strong> no se gestionan en la plataforma</li>
+  <li class="sub"><strong>Inventario incluido:</strong> vienen con la unidad + extras negociables</li>
+  <li class="sub"><strong>Inventario separado:</strong> se gestionan como unidades independientes con estados</li>
+  <li class="sub"><strong>Precio base:</strong> cantidad fija a precio base (sin inventario detallado)</li>
+  <li>Repetir el mismo ejercicio para depositos</li>
+  <li>Si es inventario separado: preparar CSV o listado (ID, nivel, area, precio)</li>
+</ul>
+
+<div class="tip">
+  <strong>Tip:</strong> La diferencia clave entre "inventario incluido" y "precio base" es que con inventario incluido puede asignar parqueaderos especificos a unidades. Con precio base solo se indica la cantidad y un precio fijo.
+</div>
+
+<h3>1.6 Informacion general</h3>
+<ul class="checklist">
+  <li>Nombre del proyecto</li>
+  <li>Descripcion general (texto para la pagina principal)</li>
+  <li>Idioma del micrositio <span class="tag">espanol</span> <span class="tag">ingles</span></li>
+  <li>Estado de construccion <span class="tag">sobre planos</span> <span class="tag">en construccion</span> <span class="tag">entregado</span></li>
+  <li>Direccion completa del proyecto</li>
+  <li>Coordenadas GPS (latitud y longitud)</li>
+  <li>Numero de WhatsApp de contacto</li>
+  <li>Politica de amoblado <span class="tag">incluido</span> <span class="tag">opcional</span> <span class="tag">no</span></li>
+</ul>
+
+<!-- ═══ FASE 2 ═══ -->
+<div class="fase-header">
+  <h1>Fase 2: Inventario y Precios</h1>
+  <span class="fase-label">Fase 2</span>
+</div>
+
+<p class="lead">Prepare su inventario de unidades en formato CSV o Excel. Las unidades deben existir antes de asignar fachadas, hotspots o planos interactivos. NODDO usa inteligencia artificial para mapear automaticamente las columnas de su archivo.</p>
+
+<h3>2.1 Archivo CSV / Excel</h3>
+<ul class="checklist">
+  <li>Preparar archivo CSV o Excel con todo el inventario de unidades</li>
+  <li>Columnas base recomendadas:</li>
+</ul>
+
+<table class="config-table">
+  <thead><tr><th>Columna</th><th>Descripcion</th><th>Requerido</th></tr></thead>
+  <tbody>
+    <tr><td>identificador</td><td>ID unico de la unidad (ej: "101", "Casa 5", "L-A2")</td><td>Si</td></tr>
+    <tr><td>piso</td><td>Numero de piso</td><td>Recomendado</td></tr>
+    <tr><td>area_m2</td><td>Area total en m2 o sqft</td><td>Si</td></tr>
+    <tr><td>area_construida</td><td>Area construida (si difiere del total)</td><td>Opcional</td></tr>
+    <tr><td>area_privada</td><td>Area privada</td><td>Opcional</td></tr>
+    <tr><td>area_lote</td><td>Area de lote (casas/lotes)</td><td>Si aplica</td></tr>
+    <tr><td>precio</td><td>Precio de lista</td><td>Si</td></tr>
+    <tr><td>estado</td><td>disponible, separado, reservada, vendida, proximamente</td><td>Si</td></tr>
+    <tr><td>habitaciones</td><td>Numero de habitaciones</td><td>Si</td></tr>
+    <tr><td>banos</td><td>Numero de banos</td><td>Si</td></tr>
+    <tr><td>parqueaderos</td><td>Cantidad de parqueaderos</td><td>Opcional</td></tr>
+    <tr><td>depositos</td><td>Cantidad de depositos</td><td>Opcional</td></tr>
+    <tr><td>orientacion</td><td>Norte, Sur, Oriente, Occidente, etc.</td><td>Opcional</td></tr>
+    <tr><td>vista</td><td>Interior, Exterior, Montana, Ciudad, Parque</td><td>Opcional</td></tr>
+    <tr><td>torre</td><td>Nombre de la torre/etapa (se mapea automaticamente)</td><td>Si multi-torre</td></tr>
+    <tr><td>tipologia</td><td>Nombre de la tipologia (se mapea automaticamente)</td><td>Si</td></tr>
+    <tr><td>notas</td><td>Notas internas</td><td>Opcional</td></tr>
+  </tbody>
+</table>
+
+<div class="tip">
+  <strong>Tip:</strong> No se preocupe por el formato exacto de los nombres de columnas. La IA de NODDO detecta automaticamente la correspondencia entre las columnas de su archivo y los campos del sistema. Solo asegurese de que la informacion este presente.
+</div>
+
+<h3>2.2 Precios</h3>
+<ul class="checklist">
+  <li>Definir precios por unidad o por tipologia (segun la decision de la Fase 1)</li>
+  <li>Incluir precios en el CSV o definirlos por tipologia en la plataforma</li>
+  <li>Si hay precios de amoblado: definir el precio adicional</li>
+  <li>Si hay complementos con precio: definir precios de parqueaderos y depositos</li>
+</ul>
+
+<h3>2.3 Estados de unidades</h3>
+<ul class="checklist">
+  <li>Clasificar cada unidad con su estado actual:</li>
+</ul>
+
+<table class="config-table">
+  <thead><tr><th>Estado</th><th>Significado</th><th>Color</th></tr></thead>
+  <tbody>
+    <tr><td>disponible</td><td>Disponible para venta</td><td style="color: #22c55e;">Verde</td></tr>
+    <tr><td>proximamente</td><td>Proxima a estar disponible</td><td style="color: #3b82f6;">Azul</td></tr>
+    <tr><td>separado</td><td>En proceso de separacion / hold</td><td style="color: #eab308;">Amarillo</td></tr>
+    <tr><td>reservada</td><td>Reservada formalmente</td><td style="color: #f97316;">Naranja</td></tr>
+    <tr><td>vendida</td><td>Vendida</td><td style="color: #ef4444;">Rojo</td></tr>
+  </tbody>
+</table>
+
+<h3>2.4 Columnas personalizadas</h3>
+<ul class="checklist">
+  <li>Si necesita campos adicionales no estandar, definalos:</li>
+  <li class="sub">Nombre del campo y tipo: <span class="tag">texto</span> <span class="tag">numero</span> <span class="tag">fecha</span> <span class="tag">seleccion</span></li>
+  <li class="sub">Si es seleccion: listar las opciones disponibles</li>
+  <li class="sub">Indicar si se muestra en el editor, en el micrositio, o en ambos</li>
+</ul>
+
+<h3>2.5 Orientaciones y vistas</h3>
+<ul class="checklist">
+  <li>Definir las orientaciones disponibles (Norte, Sur, Oriente, Occidente, etc.)</li>
+  <li>Definir los tipos de vista (Interior, Exterior, Montana, Ciudad, Parque, etc.)</li>
+  <li>Si tiene imagenes de vista por piso: preparar una imagen por rango de pisos</li>
+</ul>
+
+<!-- ═══ FASE 3 ═══ -->
+<div class="fase-header">
+  <h1>Fase 3: Contenido Visual</h1>
+  <span class="fase-label">Fase 3</span>
+</div>
+
+<p class="lead">Con las unidades ya creadas, puede subir el contenido visual y asignar hotspots, fachadas y planos interactivos vinculados a unidades reales.</p>
+
+<h3>3.1 Render principal (Hero)</h3>
+<ul class="checklist">
+  <li>Render o fotografia principal del proyecto (hero image)</li>
+  <li class="sub">Formato recomendado: 16:9, minimo 1920x1080px</li>
+  <li class="sub">Calidad alta, sin marcas de agua, optimizada para web</li>
+  <li>Video hero (opcional) &mdash; video corto para la pagina principal</li>
+</ul>
+
+<h3>3.2 Implantacion aerea</h3>
+<ul class="checklist">
+  <li>Toma aerea o render aereo del conjunto completo</li>
+  <li>Decidir el tipo de vista:</li>
+  <li class="sub">Vista aerea de todo el proyecto en una sola toma</li>
+  <li class="sub">Si son multiples urbanismos: una toma por urbanismo o una toma general</li>
+  <li class="sub">Si son multiples etapas: decidir si van en una misma toma o separadas</li>
+  <li>Definir hotspots de amenidades en la implantacion (piscina, BBQ, parque, etc.)</li>
+</ul>
+
+<h3>3.3 Fachadas</h3>
+<ul class="checklist">
+  <li>Decidir que vistas de fachada se necesitan:</li>
+  <li class="sub">Vista aerea de cada torre</li>
+  <li class="sub">Vista frontal de cada torre</li>
+  <li class="sub">Vista aerea por urbanismo (si aplica)</li>
+  <li class="sub">Plantas tipo por piso (vista de planta)</li>
+  <li>Para cada fachada: imagen de alta calidad sin marcas de agua</li>
+  <li>Definir cuantos pisos se muestran en cada fachada</li>
+  <li>Asignar hotspots de unidades en cada fachada (requiere unidades creadas)</li>
+</ul>
+
+<h3>3.4 Tipologias &mdash; Material visual</h3>
+<ul class="checklist">
+  <li>Plano de planta de cada tipologia (imagen clara, con medidas)</li>
+  <li>Renders 3D de cada tipologia (sala, cocina, habitacion principal, etc.)</li>
+  <li>Plano de ubicacion dentro de la torre (donde queda la tipologia en el piso)</li>
+  <li>Hotspots interactivos para cada tipologia (puntos que muestran renders al hacer clic)</li>
+  <li>Si hay pisos diferenciados: plano por cada variacion de piso</li>
+</ul>
+
+<h3>3.5 Galeria de imagenes</h3>
+<ul class="checklist">
+  <li>Organizar imagenes por categorias (ej: "Exteriores", "Interiores", "Amenidades", "Lobby")</li>
+  <li>Minimo 5&ndash;10 imagenes por categoria</li>
+  <li>Formato recomendado: JPG o WebP, optimizado para web</li>
+  <li>Si las galerias varian por torre: indicar cuales categorias van con cual torre</li>
+</ul>
+
+<h3>3.6 Tour 360</h3>
+<ul class="checklist">
+  <li>Decidir si se agrega tour virtual 360</li>
+  <li>Opciones de hospedaje:</li>
+  <li class="sub"><strong>Vinculo externo:</strong> pegar URL de Matterport, Kuula u otra plataforma</li>
+  <li class="sub"><strong>Hospedado en NODDO:</strong> subir las imagenes 360 directamente &mdash; completamente gratis</li>
+  <li>Se puede configurar un tour por tipologia</li>
+</ul>
+
+<h3>3.7 Videos</h3>
+<ul class="checklist">
+  <li>Recopilar todos los videos del proyecto (recorridos, animaciones, testimonios)</li>
+  <li>Se pueden subir directamente a NODDO o pegar enlaces de YouTube</li>
+  <li>Tener titulo y thumbnail para cada video</li>
+</ul>
+
+<h3>3.8 Avances de obra</h3>
+<ul class="checklist">
+  <li>Si el proyecto esta en construccion: preparar fotos y/o videos de avance</li>
+  <li>Cada avance necesita: titulo, fecha, descripcion, y al menos una imagen o video</li>
+</ul>
+
+<h3>3.9 Planos interactivos</h3>
+<ul class="checklist">
+  <li>Si desea planos interactivos del urbanismo con hotspots clicables</li>
+  <li>Imagen base del plano (implantacion o urbanismo)</li>
+  <li>Definir puntos de interes en el plano (renders, fachadas, torres que se muestran al clic)</li>
+</ul>
+
+<h3>3.10 Vistas por piso</h3>
+<ul class="checklist">
+  <li>Si desea mostrar como se ve la vista desde diferentes pisos</li>
+  <li>Preparar una imagen por rango de pisos (ej: pisos 1-5, pisos 6-10, pisos 11-15)</li>
+  <li>Vincular cada vista a las tipologias correspondientes</li>
+</ul>
+
+<!-- ═══ FASE 4 ═══ -->
+<div class="fase-header">
+  <h1>Fase 4: Marca y Configuracion</h1>
+  <span class="fase-label">Fase 4</span>
+</div>
+
+<p class="lead">Personalice la experiencia del micrositio con la identidad visual de su proyecto y configure las herramientas avanzadas.</p>
+
+<h3>4.1 Identidad visual</h3>
+<ul class="checklist">
+  <li>Logo del proyecto (formato SVG o PNG con fondo transparente)</li>
+  <li>Logo de la constructora (formato SVG o PNG con fondo transparente)</li>
+  <li>Favicon (icono para pestana del navegador, SVG o PNG 32x32)</li>
+  <li>Imagen OG (para redes sociales, 1200x630px recomendado)</li>
+  <li>Color primario de la marca (codigo hex, ej: #b8983c)</li>
+  <li>Color secundario (codigo hex)</li>
+  <li>Color de fondo (codigo hex)</li>
+  <li>Modo del tema: <span class="tag">oscuro</span> <span class="tag">claro</span></li>
+  <li>Website de la constructora (URL completa)</li>
+</ul>
+
+<h3>4.2 Dominio</h3>
+<ul class="checklist">
+  <li>Subdominio por defecto: <span class="tag">proyecto.noddo.site</span> (automatico desde el slug)</li>
+  <li>Si desea dominio personalizado:</li>
+  <li class="sub">Tener el dominio registrado (ej: miproyecto.com)</li>
+  <li class="sub">Acceso a la configuracion DNS para agregar un registro CNAME</li>
+</ul>
+
+<h3>4.3 Secciones visibles del micrositio</h3>
+<ul class="checklist">
+  <li>Decidir cuales secciones mostrar al publico:</li>
+</ul>
+<table class="config-table">
+  <thead><tr><th>Seccion</th><th>Descripcion</th></tr></thead>
+  <tbody>
+    <tr><td>Galeria</td><td>Galeria de fotos y renders</td></tr>
+    <tr><td>Tipologias</td><td>Fichas detalladas de cada tipologia</td></tr>
+    <tr><td>Inventario</td><td>Tabla de disponibilidad de unidades</td></tr>
+    <tr><td>Explorar</td><td>Mapa interactivo / explorador visual</td></tr>
+    <tr><td>Implantaciones</td><td>Planos interactivos del conjunto</td></tr>
+    <tr><td>Ubicacion</td><td>Mapa con puntos de interes</td></tr>
+    <tr><td>Videos</td><td>Galeria de videos</td></tr>
+    <tr><td>Recursos</td><td>Documentos descargables</td></tr>
+    <tr><td>Avances</td><td>Actualizaciones de avance de obra</td></tr>
+    <tr><td>Tour 360</td><td>Recorridos virtuales</td></tr>
+    <tr><td>Contacto</td><td>Formulario de contacto</td></tr>
+    <tr><td>Plan de pago</td><td>Detalle de plan de pagos</td></tr>
+  </tbody>
+</table>
+
+<h3>4.4 Puntos de interes (POIs)</h3>
+<ul class="checklist">
+  <li>Listar lugares de interes cercanos al proyecto:</li>
+  <li class="sub">Nombre, categoria (escuela, transporte, restaurante, hospital, parque)</li>
+  <li class="sub">Distancia en km y tiempo en minutos</li>
+  <li class="sub">Coordenadas GPS y foto del lugar (opcional)</li>
+</ul>
+
+<h3>4.5 Recursos descargables</h3>
+<ul class="checklist">
+  <li>Preparar documentos para descarga:</li>
+  <li class="sub">Brochure del proyecto (PDF)</li>
+  <li class="sub">Ficha tecnica, acabados, lista de precios</li>
+  <li class="sub">Planos, renders de alta resolucion</li>
+  <li class="sub">Manual de propietario / reglamento / garantias</li>
+</ul>
+
+<h3>4.6 Configuracion de correos</h3>
+<ul class="checklist">
+  <li>Email de respuesta (reply-to) para notificaciones</li>
+  <li>Definir saludo, cuerpo y despedida del correo de cotizacion</li>
+  <li>Decidir que adjuntar: PDF de cotizacion, brochure, recursos</li>
+  <li>Botones a incluir: WhatsApp, tour 360, brochure, link al micrositio</li>
+  <li>Tema del correo <span class="tag">oscuro</span> <span class="tag">claro</span></li>
+</ul>
+
+<h3>4.7 Cotizador (Plan de pagos)</h3>
+<ul class="checklist">
+  <li>Decidir si se habilita el cotizador en el micrositio</li>
+  <li>Definir las fases de pago:</li>
+  <li class="sub">Nombre de la fase (ej: "Cuota inicial", "Cuotas mensuales", "Entrega")</li>
+  <li class="sub">Tipo: porcentaje del precio, monto fijo, o resto</li>
+  <li class="sub">Numero de cuotas y frecuencia (unica, mensual, bimestral, trimestral)</li>
+  <li class="sub">Hitos constructivos (ej: "Al 50% de avance")</li>
+  <li>Definir descuentos (porcentaje o monto fijo)</li>
+  <li>Definir cargos adicionales (impuestos, comisiones, gastos administrativos)</li>
+  <li>Tipo de entrega:</li>
+  <li class="sub"><strong>Fecha fija:</strong> para proyectos con fecha de entrega definida</li>
+  <li class="sub"><strong>Plazo desde compra:</strong> para casas/lotes (ej: 24 meses desde la compra)</li>
+  <li>Personalizacion del PDF de cotizacion (portada, tema, logos, textos)</li>
+</ul>
+
+<h3>4.8 Integraciones (Webhooks)</h3>
+<ul class="checklist">
+  <li>Si usa CRM externo: configurar webhook URL y clave secreta</li>
+  <li>Eventos disponibles: <span class="tag">lead.created</span> <span class="tag">cotizacion.created</span></li>
+</ul>
+
+<!-- ═══ FASE 5 ═══ -->
+<div class="fase-header">
+  <h1>Fase 5: Equipo y Publicacion</h1>
+  <span class="fase-label">Fase 5</span>
+</div>
+
+<p class="lead">Configure su equipo de trabajo y realice las pruebas finales antes de publicar.</p>
+
+<h3>5.1 Colaboradores</h3>
+<ul class="checklist">
+  <li>Identificar quienes tendran acceso al panel de administracion</li>
+  <li>Roles disponibles:</li>
+  <li class="sub"><strong>Director:</strong> acceso completo al proyecto (lectura y escritura)</li>
+  <li class="sub"><strong>Asesor:</strong> acceso limitado (solo puede cambiar estado de unidades)</li>
+  <li>Emails de cada colaborador para enviar invitacion</li>
+  <li>Si usa asesores, configurar modo agente:</li>
+  <li class="sub">Decidir si los asesores ven precios</li>
+  <li class="sub">Decidir si los asesores ven unidades vendidas</li>
+  <li class="sub">Decidir si los asesores pueden generar cotizaciones</li>
+  <li>Maximo 3 colaboradores por proyecto</li>
+</ul>
+
+<h3>5.2 Checklist pre-publicacion</h3>
+<ul class="checklist">
+  <li>Revisar el micrositio en vista previa</li>
+  <li>Verificar que todas las imagenes cargan correctamente</li>
+  <li>Probar el filtrado y busqueda en el inventario</li>
+  <li>Probar el cotizador con una unidad de ejemplo</li>
+  <li>Verificar que el correo de cotizacion llega correctamente</li>
+  <li>Enviar un lead de prueba desde el formulario de contacto</li>
+  <li>Verificar que WhatsApp abre correctamente</li>
+  <li>Revisar el micrositio en movil (el sitio es landscape-first)</li>
+  <li>Si tiene dominio personalizado: verificar que el DNS esta configurado</li>
+  <li>Verificar la imagen OG compartiendo la URL en redes sociales</li>
+</ul>
+
+<h3>5.3 Publicar</h3>
+<ul class="checklist">
+  <li>Cambiar estado del proyecto a <span class="tag">publicado</span></li>
+  <li>Compartir la URL del micrositio con el equipo comercial</li>
+  <li>Monitorear el dashboard de analiticas para verificar trafico</li>
+  <li>Revisar los leads entrantes en el panel de administracion</li>
+</ul>
+
+<div class="tip">
+  <strong>Tip:</strong> Puede volver al estado "borrador" en cualquier momento si necesita hacer ajustes sin que el publico vea cambios a medio hacer.
+</div>
+
+<!-- ═══ REFERENCIA RAPIDA ═══ -->
+<div class="fase-header">
+  <h1>Referencia rapida</h1>
+  <span class="fase-label">Resumen</span>
+</div>
+
+<h3>Decisiones estrategicas</h3>
+<table class="config-table">
+  <thead><tr><th>Decision</th><th>Opciones</th><th>Impacto</th></tr></thead>
+  <tbody>
+    <tr><td>Tipo de proyecto</td><td>Apartamentos, Casas, Hibrido, Lotes</td><td>Estructura de inventario y columnas</td></tr>
+    <tr><td>Fuente de precios</td><td>Por unidad, Por tipologia</td><td>Donde se gestionan los precios</td></tr>
+    <tr><td>Modo tipologia</td><td>Fija, Multiple</td><td>Si una unidad puede tener varias tipologias</td></tr>
+    <tr><td>Parqueaderos</td><td>Sin inv., Incluido, Separado, Precio base</td><td>Como se asignan parqueaderos</td></tr>
+    <tr><td>Depositos</td><td>Sin inv., Incluido, Separado, Precio base</td><td>Como se asignan depositos</td></tr>
+    <tr><td>Moneda</td><td>COP, USD, MXN, EUR, AED</td><td>Formato de precios</td></tr>
+    <tr><td>Amoblado</td><td>Incluido, Opcional, No</td><td>Opcion de amoblado con precio</td></tr>
+  </tbody>
+</table>
+
+<h3>Materiales requeridos</h3>
+<table class="config-table">
+  <thead><tr><th>Material</th><th>Formato</th><th>Prioridad</th></tr></thead>
+  <tbody>
+    <tr><td>Render principal</td><td>JPG/PNG 1920x1080+</td><td>Obligatorio</td></tr>
+    <tr><td>Logo del proyecto</td><td>SVG o PNG transparente</td><td>Obligatorio</td></tr>
+    <tr><td>Logo constructora</td><td>SVG o PNG transparente</td><td>Obligatorio</td></tr>
+    <tr><td>Favicon</td><td>SVG o PNG 32x32</td><td>Recomendado</td></tr>
+    <tr><td>Imagen OG</td><td>JPG/PNG 1200x630</td><td>Recomendado</td></tr>
+    <tr><td>Implantacion aerea</td><td>JPG/PNG alta resolucion</td><td>Obligatorio</td></tr>
+    <tr><td>Fachadas</td><td>JPG/PNG alta resolucion</td><td>Obligatorio</td></tr>
+    <tr><td>Planos tipologias</td><td>JPG/PNG sin marca de agua</td><td>Obligatorio</td></tr>
+    <tr><td>Renders tipologias</td><td>JPG/PNG alta calidad</td><td>Obligatorio</td></tr>
+    <tr><td>Galeria (5-10 /cat)</td><td>JPG/WebP optimizado</td><td>Obligatorio</td></tr>
+    <tr><td>CSV de inventario</td><td>CSV o Excel (.xlsx)</td><td>Obligatorio</td></tr>
+    <tr><td>Brochure</td><td>PDF</td><td>Recomendado</td></tr>
+    <tr><td>Videos</td><td>MP4 o enlace YouTube</td><td>Recomendado</td></tr>
+    <tr><td>Tour 360</td><td>URL o imagenes 360</td><td>Recomendado</td></tr>
+    <tr><td>Avances de obra</td><td>Fotos/video + texto</td><td>Si en construccion</td></tr>
+    <tr><td>Puntos de interes</td><td>Nombre, coords, distancia</td><td>Recomendado</td></tr>
+  </tbody>
+</table>
+
+<h3>Soporte</h3>
+<div class="intro-box">
+  <p>Si tiene dudas durante el onboarding, contactenos por WhatsApp o escribanos a <strong style="color: var(--gold);">soporte@noddo.io</strong>. Nuestro equipo lo guiara paso a paso.</p>
+</div>
+
+<div style="text-align: center; margin-top: 10mm;">
+  <img src="file:///c:/Users/Juan/Documents/ANTIGRAVITY/NODDO/public/LOGO_FAVICON-GOL.svg" alt="" style="width: 20px; opacity: 0.25;">
+</div>
+
+</body>
+</html>

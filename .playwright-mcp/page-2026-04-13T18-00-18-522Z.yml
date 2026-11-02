@@ -1,0 +1,172 @@
+- generic [active] [ref=e1]:
+  - generic [ref=e150]:
+    - complementary [ref=e151]:
+      - link "NODDO" [ref=e153] [cursor=pointer]:
+        - /url: /dashboard
+        - img [ref=e154]
+        - img "NODDO" [ref=e157]
+      - generic [ref=e164]:
+        - heading "Pruebas" [level=2] [ref=e165]
+        - paragraph [ref=e166]: pruebas.noddo.io
+      - navigation [ref=e168]:
+        - generic [ref=e169]:
+          - paragraph [ref=e170]: Structure
+          - generic [ref=e171]:
+            - link "Developments 1" [ref=e172] [cursor=pointer]:
+              - /url: /editor/18d38cc0-7b09-4db0-9cac-6c9b033db2c0/torres
+              - img [ref=e173]
+              - generic [ref=e176]: Developments
+              - generic [ref=e177]: "1"
+            - link "Unit Types 3" [ref=e178] [cursor=pointer]:
+              - /url: /editor/18d38cc0-7b09-4db0-9cac-6c9b033db2c0/tipologias
+              - img [ref=e179]
+              - generic [ref=e183]: Unit Types
+              - generic [ref=e184]: "3"
+            - link "Inventory 40" [ref=e185] [cursor=pointer]:
+              - /url: /editor/18d38cc0-7b09-4db0-9cac-6c9b033db2c0/inventario
+              - img [ref=e186]
+              - generic [ref=e190]: Inventory
+              - generic [ref=e191]: "40"
+        - generic [ref=e192]:
+          - paragraph [ref=e193]: Visual Content
+          - generic [ref=e194]:
+            - link "Gallery" [ref=e195] [cursor=pointer]:
+              - /url: /editor/18d38cc0-7b09-4db0-9cac-6c9b033db2c0/galeria
+              - img [ref=e196]
+              - generic [ref=e200]: Gallery
+            - link "Videos" [ref=e201] [cursor=pointer]:
+              - /url: /editor/18d38cc0-7b09-4db0-9cac-6c9b033db2c0/videos
+              - img [ref=e202]
+              - generic [ref=e204]: Videos
+            - link "Tour 360" [ref=e205] [cursor=pointer]:
+              - /url: /editor/18d38cc0-7b09-4db0-9cac-6c9b033db2c0/tour
+              - img [ref=e206]
+              - generic [ref=e211]: Tour 360
+            - link "Noddo Grid" [ref=e212] [cursor=pointer]:
+              - /url: /editor/18d38cc0-7b09-4db0-9cac-6c9b033db2c0/fachadas
+              - img [ref=e213]
+              - generic [ref=e216]: Noddo Grid
+            - link "Site Plans" [ref=e217] [cursor=pointer]:
+              - /url: /editor/18d38cc0-7b09-4db0-9cac-6c9b033db2c0/planos
+              - img [ref=e218]
+              - generic [ref=e220]: Site Plans
+            - link "Location" [ref=e221] [cursor=pointer]:
+              - /url: /editor/18d38cc0-7b09-4db0-9cac-6c9b033db2c0/ubicacion
+              - img [ref=e222]
+              - generic [ref=e225]: Location
+            - link "Views" [ref=e226] [cursor=pointer]:
+              - /url: /editor/18d38cc0-7b09-4db0-9cac-6c9b033db2c0/vistas
+              - img [ref=e227]
+              - generic [ref=e232]: Views
+        - generic [ref=e233]:
+          - paragraph [ref=e234]: Information
+          - generic [ref=e235]:
+            - link "General" [ref=e236] [cursor=pointer]:
+              - /url: /editor/18d38cc0-7b09-4db0-9cac-6c9b033db2c0
+              - img [ref=e237]
+              - generic [ref=e242]: General
+            - link "Resources" [ref=e243] [cursor=pointer]:
+              - /url: /editor/18d38cc0-7b09-4db0-9cac-6c9b033db2c0/recursos
+              - img [ref=e244]
+              - generic [ref=e247]: Resources
+            - link "Progress" [ref=e248] [cursor=pointer]:
+              - /url: /editor/18d38cc0-7b09-4db0-9cac-6c9b033db2c0/avances
+              - img [ref=e249]
+              - generic [ref=e254]: Progress
+        - generic [ref=e255]:
+          - paragraph [ref=e256]: Settings
+          - generic [ref=e257]:
+            - link "Configuration" [ref=e258] [cursor=pointer]:
+              - /url: /editor/18d38cc0-7b09-4db0-9cac-6c9b033db2c0/config
+              - img [ref=e259]
+              - generic [ref=e262]: Configuration
+            - link "Quotations" [ref=e263] [cursor=pointer]:
+              - /url: /editor/18d38cc0-7b09-4db0-9cac-6c9b033db2c0/cotizaciones
+              - img [ref=e264]
+              - generic [ref=e266]: Quotations
+        - generic [ref=e267]:
+          - paragraph [ref=e268]: Tools
+          - generic [ref=e269]:
+            - link "Availability" [ref=e270] [cursor=pointer]:
+              - /url: /editor/18d38cc0-7b09-4db0-9cac-6c9b033db2c0/disponibilidad
+              - img [ref=e271]
+              - generic [ref=e274]: Availability
+            - link "Quotation" [ref=e275] [cursor=pointer]:
+              - /url: /editor/18d38cc0-7b09-4db0-9cac-6c9b033db2c0/cotizador
+              - img [ref=e276]
+              - generic [ref=e278]: Quotation
+            - link "Analytics" [ref=e279] [cursor=pointer]:
+              - /url: /editor/18d38cc0-7b09-4db0-9cac-6c9b033db2c0/estadisticas
+              - img [ref=e280]
+              - generic [ref=e282]: Analytics
+      - generic [ref=e284]:
+        - img [ref=e285]
+        - generic [ref=e287]: 0 B / 50 GB
+      - generic [ref=e291]:
+        - button "ES" [ref=e293] [cursor=pointer]
+        - button "EN" [ref=e294] [cursor=pointer]
+      - link "Help" [ref=e296] [cursor=pointer]:
+        - /url: /ayuda#recursos
+        - img [ref=e297]
+        - generic [ref=e300]: Help
+        - img [ref=e301]
+      - link "View on Localhost" [ref=e306] [cursor=pointer]:
+        - /url: /sites/pruebas
+        - img [ref=e307]
+        - text: View on Localhost
+    - generic [ref=e309]:
+      - generic [ref=e310]:
+        - generic [ref=e311]:
+          - button "Setup 3/5" [ref=e313] [cursor=pointer]:
+            - img [ref=e314]
+            - generic [ref=e319]: Setup
+            - img [ref=e320]
+            - generic [ref=e323]: 3/5
+          - generic [ref=e415]:
+            - img [ref=e416]
+            - text: Saving...
+        - generic [ref=e325]:
+          - generic [ref=e328]: Draft
+          - button "Publish" [ref=e330] [cursor=pointer]:
+            - img [ref=e331]
+            - generic [ref=e336]: Publish
+          - button [ref=e338] [cursor=pointer]:
+            - img [ref=e339]
+      - generic [ref=e342]:
+        - generic [ref=e343]:
+          - generic [ref=e344]:
+            - img [ref=e346]
+            - generic [ref=e349]:
+              - heading "Resources & Documents" [level=2] [ref=e350]
+              - paragraph [ref=e351]: Brochures, data sheets, price lists and downloadable documents
+          - button "Add Resource" [ref=e353] [cursor=pointer]:
+            - img [ref=e354]
+            - text: Add Resource
+        - generic [ref=e355]:
+          - generic [ref=e357]:
+            - img [ref=e359]
+            - generic [ref=e361]:
+              - heading "Brochure Principal" [level=3] [ref=e362]
+              - paragraph [ref=e363]:
+                - text: PDF principal del micrositio
+                - button "More information" [ref=e364] [cursor=pointer]:
+                  - img [ref=e365]
+          - button "Subir PDF Drag, paste or click" [ref=e420] [cursor=pointer]:
+            - img [ref=e421]
+            - generic [ref=e424]: Subir PDF
+            - generic [ref=e425]: Drag, paste or click
+        - generic [ref=e382]:
+          - img [ref=e384]
+          - paragraph [ref=e390]: No resources
+          - paragraph [ref=e391]: Upload documents for your clients to download...
+          - button "Add Resource" [ref=e392] [cursor=pointer]:
+            - img [ref=e393]
+            - text: Add Resource
+  - generic [ref=e47]:
+    - img [ref=e49]
+    - button "Open Tanstack query devtools" [ref=e97] [cursor=pointer]:
+      - img [ref=e98]
+  - button "Open Next.js Dev Tools" [ref=e42] [cursor=pointer]:
+    - img [ref=e43]
+  - alert [ref=e46]
+  - button "Open chat" [ref=e146] [cursor=pointer]

@@ -1,0 +1,99 @@
+- generic [active] [ref=e1]:
+  - generic [ref=e2]:
+    - banner [ref=e3]:
+      - navigation [ref=e4]:
+        - link "NODDO Home" [ref=e5] [cursor=pointer]:
+          - /url: /
+          - img "NODDO" [ref=e6]
+        - list [ref=e12]:
+          - listitem [ref=e13]:
+            - button "Producto" [ref=e14] [cursor=pointer]:
+              - text: Producto
+              - img [ref=e15]
+          - listitem [ref=e17]:
+            - button "Recursos" [ref=e18] [cursor=pointer]:
+              - text: Recursos
+              - img [ref=e19]
+          - listitem [ref=e21]:
+            - link "Precios" [ref=e22] [cursor=pointer]:
+              - /url: /pricing
+          - listitem [ref=e23]:
+            - link "Nosotros" [ref=e24] [cursor=pointer]:
+              - /url: /nosotros
+        - generic [ref=e25]:
+          - button "EN" [ref=e26] [cursor=pointer]
+          - link "Iniciar Sesión" [ref=e27] [cursor=pointer]:
+            - /url: /login
+            - img [ref=e28]
+            - text: Iniciar Sesión
+          - link "Solicitar Demo" [ref=e31] [cursor=pointer]:
+            - /url: /solicitar-demo
+          - button "Agendar Llamada" [ref=e32]:
+            - text: Agendar Llamada
+            - img [ref=e33]
+    - main [ref=e35]
+    - contentinfo [ref=e37]:
+      - generic [ref=e38]:
+        - generic [ref=e39]:
+          - generic [ref=e40]: NODDO
+          - paragraph [ref=e41]: La sala de ventas digital para desarrolladores inmobiliarios que no quieren depender de agencias ni esperar meses.
+          - generic [ref=e42]:
+            - generic [ref=e43]: SSL
+            - generic [ref=e45]: GDPR
+            - generic [ref=e47]: 99.9%
+        - generic [ref=e49]:
+          - generic [ref=e50]: Producto
+          - list [ref=e51]:
+            - listitem [ref=e52]:
+              - link "Integraciones" [ref=e53] [cursor=pointer]:
+                - /url: /integraciones
+            - listitem [ref=e54]:
+              - link "Roadmap" [ref=e55] [cursor=pointer]:
+                - /url: /roadmap
+            - listitem [ref=e56]:
+              - link "Pricing" [ref=e57] [cursor=pointer]:
+                - /url: /pricing
+            - listitem [ref=e58]:
+              - link "Seguridad" [ref=e59] [cursor=pointer]:
+                - /url: /seguridad
+            - listitem [ref=e60]:
+              - link "Estado" [ref=e61] [cursor=pointer]:
+                - /url: /estado
+        - generic [ref=e62]:
+          - generic [ref=e63]: Compañía
+          - list [ref=e64]:
+            - listitem [ref=e65]:
+              - link "Nosotros" [ref=e66] [cursor=pointer]:
+                - /url: /nosotros
+            - listitem [ref=e67]:
+              - link "Casos de Estudio" [ref=e68] [cursor=pointer]:
+                - /url: /casos-de-estudio
+            - listitem [ref=e69]:
+              - link "Recursos" [ref=e70] [cursor=pointer]:
+                - /url: /recursos
+            - listitem [ref=e71]:
+              - link "FAQ" [ref=e72] [cursor=pointer]:
+                - /url: /faq
+            - listitem [ref=e73]:
+              - link "Contacto" [ref=e74] [cursor=pointer]:
+                - /url: /#contacto
+        - generic [ref=e75]:
+          - generic [ref=e76]: Legal
+          - list [ref=e77]:
+            - listitem [ref=e78]:
+              - link "Términos de uso" [ref=e79] [cursor=pointer]:
+                - /url: /terminos
+            - listitem [ref=e80]:
+              - link "Privacidad" [ref=e81] [cursor=pointer]:
+                - /url: /privacidad
+            - listitem [ref=e82]:
+              - link "Cookies" [ref=e83] [cursor=pointer]:
+                - /url: /privacidad#cookies
+            - listitem [ref=e84]:
+              - link "SLA" [ref=e85] [cursor=pointer]:
+                - /url: /terminos#disponibilidad
+      - generic [ref=e86]:
+        - paragraph [ref=e87]: © 2026 Noddo Technologies SAS · Bogotá, Colombia
+        - paragraph [ref=e88]: noddo.io · hola@noddo.io
+  - button "Open Next.js Dev Tools" [ref=e94] [cursor=pointer]:
+    - img [ref=e95]

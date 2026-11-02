@@ -46,7 +46,12 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    await ensureMediaBucketCors();
+    try {
+      await ensureMediaBucketCors();
+    } catch (corsErr) {
+      console.error("[media/presign] CORS config failed:", corsErr);
+      // Continue — CORS might already be set correctly; PUT will fail clearly if not
+    }
 
     const result = await getPresignedMediaUploadUrl(
       auth.user.id,

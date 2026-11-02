@@ -1,0 +1,787 @@
+- generic [ref=e2]:
+  - banner [ref=e3]:
+    - navigation [ref=e4]:
+      - link "NODDO Home" [ref=e5] [cursor=pointer]:
+        - /url: /
+        - img "NODDO" [ref=e6]
+      - list [ref=e12]:
+        - listitem [ref=e13]:
+          - button "Producto" [ref=e14] [cursor=pointer]:
+            - text: Producto
+            - img [ref=e15]
+        - listitem [ref=e17]:
+          - button "Recursos" [ref=e18] [cursor=pointer]:
+            - text: Recursos
+            - img [ref=e19]
+        - listitem [ref=e21]:
+          - link "Precios" [ref=e22] [cursor=pointer]:
+            - /url: /pricing
+        - listitem [ref=e23]:
+          - link "Nosotros" [ref=e24] [cursor=pointer]:
+            - /url: /nosotros
+      - generic [ref=e25]:
+        - button "EN" [ref=e26] [cursor=pointer]
+        - link "Iniciar Sesión" [ref=e27] [cursor=pointer]:
+          - /url: /login
+          - img [ref=e28]
+          - text: Iniciar Sesión
+        - link "Solicitar Demo" [ref=e31] [cursor=pointer]:
+          - /url: /solicitar-demo
+        - button "Agendar Llamada" [ref=e32]:
+          - text: Agendar Llamada
+          - img [ref=e33]
+  - main [ref=e35]:
+    - generic [ref=e36]:
+      - generic [ref=e38]:
+        - generic [ref=e41]: Showroom digital para constructoras
+        - heading "Tu proyecto merece más que un brochure." [level=1] [ref=e42]:
+          - text: Tu proyecto merece
+          - emphasis [ref=e43]: más que un brochure.
+        - generic [ref=e44]:
+          - button "Para compradores" [ref=e45] [cursor=pointer]: Para compradores
+          - button "Para asesores" [ref=e47] [cursor=pointer]
+        - generic [ref=e48]:
+          - paragraph [ref=e49]:
+            - text: El comprador ya no pide información,
+            - emphasis [ref=e50]: la busca
+            - text: ". Dale un showroom que responda solo:"
+            - strong [ref=e51]: inventario en vivo, planos, recorridos 360° y leads cualificados
+            - text: . En vivo en
+            - strong [ref=e52]: 24 horas
+            - text: . Tú lo manejas. Sin agencias, sin esperas.
+          - paragraph:
+            - text: Tu equipo de ventas pierde horas buscando renders y actualizando PDFs.
+            - emphasis: Eso se acaba
+            - text: . Con un showroom digital, presentan con
+            - strong: inventario en vivo, planos interactivos y disponibilidad al instante
+            - text: . Menos WhatsApps, más cierres.
+            - strong: Todo desde un link.
+        - generic [ref=e53]:
+          - generic [ref=e54]:
+            - button "Agendar Llamada" [ref=e57]:
+              - text: Agendar Llamada
+              - img [ref=e58]
+            - link "Ver Proyecto en Vivo" [ref=e60] [cursor=pointer]:
+              - /url: /sites/demo
+              - img [ref=e61]
+              - text: Ver Proyecto en Vivo
+          - generic [ref=e63]:
+            - generic [ref=e70]:
+              - strong [ref=e71]: 100+
+              - text: desarrolladores
+            - generic [ref=e73]:
+              - generic [ref=e74]:
+                - generic [ref=e75]: ✓
+                - text: Lanza en 24h
+              - generic [ref=e76]:
+                - generic [ref=e77]: ✓
+                - text: Setup incluido
+              - generic [ref=e78]:
+                - generic [ref=e79]: ✓
+                - text: Sin código
+        - generic [ref=e82]:
+          - img [ref=e85]
+          - generic:
+            - generic:
+              - paragraph: PLANTA
+              - img:
+                - generic: LIVING
+                - generic: COCINA
+                - generic: HAB 1
+                - generic: HAB 2
+                - generic: BAÑO 1
+                - generic: BAÑO 2
+              - paragraph: 78 m²
+              - paragraph: 2 hab · 2 baños
+          - generic:
+            - generic:
+              - paragraph: Piso 4 · Unidad 4B
+              - paragraph: $287,000
+              - paragraph: Tipo B · 78 m²
+          - generic:
+            - generic:
+              - paragraph: INVENTARIO
+              - generic:
+                - generic:
+                  - generic: Disp.
+                - generic:
+                  - generic: Reserv.
+                - generic:
+                  - generic: Vendido
+          - generic:
+            - generic:
+              - generic:
+                - paragraph: NUEVO LEAD
+              - paragraph: María García
+              - paragraph: Interesada en Piso 4 · Tipo B — Instagram Ads
+          - generic:
+            - generic:
+              - paragraph: AVANCE
+              - generic:
+                - paragraph: 68%
+                - paragraph: completado
+              - paragraph: "Entrega: Q2 2026"
+      - generic [ref=e507]:
+        - paragraph [ref=e509]: Constructoras que confían en Noddo
+        - generic [ref=e512]:
+          - generic [ref=e513]:
+            - generic [ref=e514]: CB
+            - generic [ref=e515]: Constructora Bolívar
+          - generic [ref=e516]:
+            - generic [ref=e517]: AM
+            - generic [ref=e518]: Amarilo
+          - generic [ref=e519]:
+            - generic [ref=e520]: MV
+            - generic [ref=e521]: Marval
+          - generic [ref=e522]:
+            - generic [ref=e523]: PD
+            - generic [ref=e524]: Prodesa
+          - generic [ref=e525]:
+            - generic [ref=e526]: CZ
+            - generic [ref=e527]: Cusezar
+          - generic [ref=e528]:
+            - generic [ref=e529]: OS
+            - generic [ref=e530]: Ospinas
+          - generic [ref=e531]:
+            - generic [ref=e532]: CB
+            - generic [ref=e533]: Constructora Bolívar
+          - generic [ref=e534]:
+            - generic [ref=e535]: AM
+            - generic [ref=e536]: Amarilo
+          - generic [ref=e537]:
+            - generic [ref=e538]: MV
+            - generic [ref=e539]: Marval
+          - generic [ref=e540]:
+            - generic [ref=e541]: PD
+            - generic [ref=e542]: Prodesa
+          - generic [ref=e543]:
+            - generic [ref=e544]: CZ
+            - generic [ref=e545]: Cusezar
+          - generic [ref=e546]:
+            - generic [ref=e547]: OS
+            - generic [ref=e548]: Ospinas
+          - generic [ref=e549]:
+            - generic [ref=e550]: CB
+            - generic [ref=e551]: Constructora Bolívar
+          - generic [ref=e552]:
+            - generic [ref=e553]: AM
+            - generic [ref=e554]: Amarilo
+          - generic [ref=e555]:
+            - generic [ref=e556]: MV
+            - generic [ref=e557]: Marval
+          - generic [ref=e558]:
+            - generic [ref=e559]: PD
+            - generic [ref=e560]: Prodesa
+          - generic [ref=e561]:
+            - generic [ref=e562]: CZ
+            - generic [ref=e563]: Cusezar
+          - generic [ref=e564]:
+            - generic [ref=e565]: OS
+            - generic [ref=e566]: Ospinas
+          - generic [ref=e567]:
+            - generic [ref=e568]: CB
+            - generic [ref=e569]: Constructora Bolívar
+          - generic [ref=e570]:
+            - generic [ref=e571]: AM
+            - generic [ref=e572]: Amarilo
+          - generic [ref=e573]:
+            - generic [ref=e574]: MV
+            - generic [ref=e575]: Marval
+          - generic [ref=e576]:
+            - generic [ref=e577]: PD
+            - generic [ref=e578]: Prodesa
+          - generic [ref=e579]:
+            - generic [ref=e580]: CZ
+            - generic [ref=e581]: Cusezar
+          - generic [ref=e582]:
+            - generic [ref=e583]: OS
+            - generic [ref=e584]: Ospinas
+          - generic [ref=e585]:
+            - generic [ref=e586]: CB
+            - generic [ref=e587]: Constructora Bolívar
+          - generic [ref=e588]:
+            - generic [ref=e589]: AM
+            - generic [ref=e590]: Amarilo
+          - generic [ref=e591]:
+            - generic [ref=e592]: MV
+            - generic [ref=e593]: Marval
+          - generic [ref=e594]:
+            - generic [ref=e595]: PD
+            - generic [ref=e596]: Prodesa
+          - generic [ref=e597]:
+            - generic [ref=e598]: CZ
+            - generic [ref=e599]: Cusezar
+          - generic [ref=e600]:
+            - generic [ref=e601]: OS
+            - generic [ref=e602]: Ospinas
+          - generic [ref=e603]:
+            - generic [ref=e604]: CB
+            - generic [ref=e605]: Constructora Bolívar
+          - generic [ref=e606]:
+            - generic [ref=e607]: AM
+            - generic [ref=e608]: Amarilo
+          - generic [ref=e609]:
+            - generic [ref=e610]: MV
+            - generic [ref=e611]: Marval
+          - generic [ref=e612]:
+            - generic [ref=e613]: PD
+            - generic [ref=e614]: Prodesa
+          - generic [ref=e615]:
+            - generic [ref=e616]: CZ
+            - generic [ref=e617]: Cusezar
+          - generic [ref=e618]:
+            - generic [ref=e619]: OS
+            - generic [ref=e620]: Ospinas
+      - generic [ref=e622]:
+        - generic [ref=e623]:
+          - generic [ref=e624]:
+            - generic [ref=e625]: El problema
+            - heading "Millones en producción. Cero interactividad." [level=2] [ref=e626]:
+              - text: Millones en producción.
+              - emphasis [ref=e627]: Cero interactividad.
+          - paragraph [ref=e629]:
+            - text: Las constructoras invierten
+            - strong [ref=e630]: fortunas en renders, videos y brochures
+            - text: para vender sus proyectos. Pero toda esa producción termina
+            - emphasis [ref=e631]: fragmentada
+            - text: en PDFs estáticos, carpetas dispersas y procesos manuales que
+            - strong [ref=e632]: no convierten
+            - text: .
+        - generic [ref=e633]:
+          - generic [ref=e634]:
+            - generic [ref=e635]: "01"
+            - img [ref=e637]:
+              - generic [ref=e656]: .PDF
+              - generic [ref=e672]: "0"
+            - generic [ref=e673]: Brochures estáticos
+            - generic [ref=e674]:
+              - text: Inviertes millones en brochures que terminan en un PDF que
+              - strong [ref=e675]: nadie abre
+              - text: .
+              - emphasis [ref=e676]: Sin interactividad
+              - text: ", sin inmersión, sin forma de medir si alguien lo leyó."
+          - generic [ref=e677]:
+            - generic [ref=e678]: "02"
+            - img [ref=e680]:
+              - generic [ref=e721]: SIN USO
+            - generic [ref=e722]: CGI desperdiciado
+            - generic [ref=e723]:
+              - text: Renders, recorridos 360°, videos, interiores —
+              - strong [ref=e724]: miles de dólares
+              - text: en producción visual que terminan perdidos en carpetas que
+              - emphasis [ref=e725]: nadie ve
+              - text: .
+          - generic [ref=e726]:
+            - generic [ref=e727]: "03"
+            - img [ref=e729]:
+              - generic [ref=e739]: DISPONIBILIDAD.xlsx
+              - generic [ref=e744]: BROCHURE.pdf
+              - generic [ref=e757]: "3"
+              - generic [ref=e775]: "?"
+              - generic [ref=e776]: "?"
+              - generic [ref=e777]: "?"
+            - generic [ref=e778]: Proceso fragmentado
+            - generic [ref=e779]:
+              - text: El comprador pregunta por una unidad y el vendedor busca en un Excel.
+              - strong [ref=e780]: 5 minutos después
+              - text: → se enfría → el
+              - emphasis [ref=e781]: momento de venta se pierde
+              - text: .
+          - generic [ref=e782]:
+            - generic [ref=e783]: "04"
+            - img [ref=e785]:
+              - generic [ref=e811]: "?"
+              - generic [ref=e815]: "?"
+              - generic [ref=e817]: SIN DATOS
+              - generic [ref=e820]: utm_source=?
+              - generic [ref=e823]: utm_campaign=?
+              - generic [ref=e826]: utm_medium=?
+            - generic [ref=e827]: Leads sin trazabilidad
+            - generic [ref=e828]:
+              - strong [ref=e829]: No sabes
+              - text: quién vio tu proyecto, qué unidad le interesó ni de qué campaña llegó. Cada oportunidad sin capturar es
+              - emphasis [ref=e830]: una venta que se pierde
+              - text: .
+      - generic [ref=e832]:
+        - generic [ref=e833]: Cómo funciona
+        - heading "Tres pasos. Un día." [level=2] [ref=e834]:
+          - text: Tres pasos.
+          - emphasis [ref=e835]: Un día.
+        - generic [ref=e836]:
+          - generic [ref=e837]:
+            - generic [ref=e838]: "01"
+            - img [ref=e840]
+            - generic [ref=e860]: Sube tu proyecto
+            - generic [ref=e861]: Nombre, ubicación, renders, planos y tipologías. Todo desde un panel simple. Sin código, sin agencia, sin fricción.
+            - generic [ref=e862]: 5 minutos
+          - generic [ref=e863]:
+            - generic [ref=e864]: "02"
+            - img [ref=e866]
+            - generic [ref=e920]: Configura el Noddo Grid
+            - generic [ref=e921]: Asigna cada unidad en la fachada. Define precio, área, estado y tipología. El Grid se actualiza en tiempo real a medida que vendes.
+            - generic [ref=e922]: 30 minutos
+          - generic [ref=e923]:
+            - generic [ref=e924]: "03"
+            - img [ref=e926]
+            - generic [ref=e954]: Comparte el link
+            - generic [ref=e955]: Tu sala de ventas queda en [proyecto].noddo.io, lista para campañas, WhatsApp, redes y equipos comerciales. Los leads llegan solos.
+            - generic [ref=e956]: Publicado en 1 día
+        - generic [ref=e957]:
+          - paragraph [ref=e958]: ¿Listo para publicar tu proyecto en 24 horas?
+          - button "Agendar Llamada" [ref=e962]:
+            - text: Agendar Llamada
+            - img [ref=e963]
+          - generic [ref=e965]:
+            - generic [ref=e966]:
+              - generic [ref=e967]: ✓
+              - text: Sin código
+            - generic [ref=e968]:
+              - generic [ref=e969]: ✓
+              - text: Sin agencia
+            - generic [ref=e970]:
+              - generic [ref=e971]: ✓
+              - text: Sin esperar
+      - generic [ref=e973]:
+        - generic [ref=e974]: La comparación real
+        - heading "Una herramienta las reemplaza a todas." [level=2] [ref=e975]:
+          - text: Una herramienta
+          - text: las reemplaza a todas.
+        - paragraph [ref=e976]: Tres opciones que los desarrolladores usan para vender. Solo una que las hace innecesarias.
+        - table [ref=e978]:
+          - rowgroup [ref=e979]:
+            - row "Brochure PDF $0 – $2,000 Recomendado NODDO Desde $149 / mes Software 3D · Maqueta $30k – $80k" [ref=e980]:
+              - columnheader [ref=e981]
+              - columnheader "Brochure PDF $0 – $2,000" [ref=e982]:
+                - img [ref=e985]
+                - generic [ref=e988]: Brochure PDF
+                - generic [ref=e989]: $0 – $2,000
+              - columnheader "Recomendado NODDO Desde $149 / mes" [ref=e990]:
+                - generic [ref=e991]: Recomendado
+                - generic [ref=e993]:
+                  - img [ref=e994]
+                  - img "NODDO" [ref=e1010]
+                - generic [ref=e1016]: Desde $149 / mes
+              - columnheader "Software 3D · Maqueta $30k – $80k" [ref=e1017]:
+                - img [ref=e1020]
+                - generic [ref=e1027]: Software 3D · Maqueta
+                - generic [ref=e1028]: $30k – $80k
+          - rowgroup [ref=e1029]:
+            - row "Tiempo hasta publicar ~1–2 semanas ✓1 día ✗3–6 meses" [ref=e1030]:
+              - cell "Tiempo hasta publicar" [ref=e1031]
+              - cell "~1–2 semanas" [ref=e1032]
+              - cell "✓1 día" [ref=e1033]
+              - cell "✗3–6 meses" [ref=e1034]
+            - row "Fachada interactiva por unidad ✗No ✓Noddo Grid ~A veces, extra" [ref=e1035]:
+              - cell "Fachada interactiva por unidad" [ref=e1036]
+              - cell "✗No" [ref=e1037]
+              - cell "✓Noddo Grid" [ref=e1038]
+              - cell "~A veces, extra" [ref=e1039]
+            - row "Inventario en tiempo real ✗No ✓Siempre al día ✗No" [ref=e1040]:
+              - cell "Inventario en tiempo real" [ref=e1041]
+              - cell "✗No" [ref=e1042]
+              - cell "✓Siempre al día" [ref=e1043]
+              - cell "✗No" [ref=e1044]
+            - row "Captura de leads + UTM ✗No ✓Por unidad y fuente ✗Requiere extra" [ref=e1045]:
+              - cell "Captura de leads + UTM" [ref=e1046]
+              - cell "✗No" [ref=e1047]
+              - cell "✓Por unidad y fuente" [ref=e1048]
+              - cell "✗Requiere extra" [ref=e1049]
+            - row "Edición sin intermediarios ~Manual y lento ✓Tú, en tiempo real ✗Pagas cada cambio" [ref=e1050]:
+              - cell "Edición sin intermediarios" [ref=e1051]
+              - cell "~Manual y lento" [ref=e1052]
+              - cell "✓Tú, en tiempo real" [ref=e1053]
+              - cell "✗Pagas cada cambio" [ref=e1054]
+            - row "Multi-proyecto ~Archivos separados ✓Dashboard unificado ✗Contrato por proyecto" [ref=e1055]:
+              - cell "Multi-proyecto" [ref=e1056]
+              - cell "~Archivos separados" [ref=e1057]
+              - cell "✓Dashboard unificado" [ref=e1058]
+              - cell "✗Contrato por proyecto" [ref=e1059]
+            - row "Planos, renders y avance de obra ~Adjuntos estáticos ✓Integrado en la sala ~Solo renders" [ref=e1060]:
+              - cell "Planos, renders y avance de obra" [ref=e1061]
+              - cell "~Adjuntos estáticos" [ref=e1062]
+              - cell "✓Integrado en la sala" [ref=e1063]
+              - cell "~Solo renders" [ref=e1064]
+            - row "Implementación asistida ✗Sin soporte ✓Incluida ~Project manager" [ref=e1065]:
+              - cell "Implementación asistida" [ref=e1066]
+              - cell "✗Sin soporte" [ref=e1067]
+              - cell "✓Incluida" [ref=e1068]
+              - cell "~Project manager" [ref=e1069]
+        - generic [ref=e1070]:
+          - generic [ref=e1071]: SSL Incluido
+          - generic [ref=e1073]: Dominio Personalizado
+          - generic [ref=e1075]: GDPR Ready
+          - generic [ref=e1077]: 99.9% Uptime
+          - generic [ref=e1079]: Soporte en Español
+          - generic [ref=e1081]: Implementación incluida
+      - generic [ref=e1085]:
+        - generic [ref=e1088]:
+          - generic [ref=e1089]:
+            - generic [ref=e1090]: Funcionalidades
+            - heading "Todo en un solo micrositio." [level=2] [ref=e1091]:
+              - text: Todo en un solo
+              - emphasis [ref=e1092]: micrositio.
+          - generic [ref=e1093]:
+            - strong [ref=e1094]: "01"
+            - text: de 03
+        - generic [ref=e1095]:
+          - generic:
+            - generic:
+              - generic: 01 / 03 — Noddo Grid
+              - generic:
+                - img:
+                  - generic: 6B — 72m²
+                  - generic: Disponible
+              - heading "La fachada habla sola." [level=2]:
+                - text: La fachada
+                - emphasis: habla sola.
+              - paragraph: El comprador hace clic directamente en el edificio. Ve qué unidad es, qué precio tiene, si está disponible y cómo se ve desde arriba. Sin llamadas, sin esperas.
+              - generic: Fachada 100% interactiva
+          - generic:
+            - generic:
+              - generic: 02 / 03 — Disponibilidad
+              - generic:
+                - img:
+                  - generic: DISPONIBLES
+                  - generic: "24"
+                  - generic: RESERVADOS
+                  - generic: "8"
+                  - generic: VENDIDOS
+                  - generic: "8"
+                  - generic: 60% ocupación
+              - heading "Inventario en tiempo real." [level=2]:
+                - text: Inventario en
+                - emphasis: tiempo real.
+              - paragraph: "Cada unidad tiene estado propio: disponible, reservada o vendida. Cuando tu equipo cierra una venta, el Grid se actualiza al instante."
+              - generic: Se actualiza tú mismo
+          - generic:
+            - generic:
+              - generic: 03 / 03 — Captura de leads
+              - generic:
+                - img:
+                  - generic: MG
+                  - generic: Maria Garcia
+                  - generic: +57 310 456 7890
+                  - generic: Instagram
+                  - generic: 12 leads esta semana
+                  - generic: +4 vs anterior
+              - heading "El lead llega cualificado." [level=2]:
+                - text: El lead llega
+                - emphasis: cualificado.
+              - paragraph: Cada lead incluye nombre, correo, WhatsApp, la unidad exacta que exploró y la fuente de tráfico. Tu equipo sabe exactamente a quién llamar y sobre qué.
+              - generic: Lead con piso y tipología
+        - generic [ref=e1096]:
+          - 'button "Ir al paso 1: Noddo Grid" [ref=e1097] [cursor=pointer]'
+          - 'button "Ir al paso 2: Disponibilidad" [ref=e1099] [cursor=pointer]'
+          - 'button "Ir al paso 3: Captura de leads" [ref=e1101] [cursor=pointer]'
+      - generic [ref=e1104]:
+        - generic [ref=e1105]:
+          - generic [ref=e1106]:
+            - generic [ref=e1107]: Proyectos en vivo
+            - heading "Ya están vendiendo con Noddo." [level=2] [ref=e1108]:
+              - text: Ya están vendiendo
+              - emphasis [ref=e1109]: con Noddo.
+            - paragraph [ref=e1110]: Cada uno de estos proyectos tiene su sala de ventas activa con Noddo. El comprador explora, cotiza y se convierte. Sin llamada previa.
+          - generic [ref=e1111]:
+            - button "Proyectos anteriores" [ref=e1112] [cursor=pointer]: ←
+            - button "Siguientes proyectos" [ref=e1113] [cursor=pointer]: →
+        - generic [ref=e1115]:
+          - generic [ref=e1116]:
+            - generic [ref=e1117]:
+              - img [ref=e1118]
+              - generic [ref=e1134]: Bogotá · Chapinero
+            - generic [ref=e1136]:
+              - generic [ref=e1137]: Torre Candelaria 90
+              - generic [ref=e1138]: "Cl. 53 #13-21 · Bogotá D.C."
+              - generic [ref=e1139]:
+                - generic [ref=e1140]:
+                  - generic [ref=e1141]: "124"
+                  - generic [ref=e1142]: Unidades
+                - generic [ref=e1143]:
+                  - generic [ref=e1144]: 68%
+                  - generic [ref=e1145]: Vendido
+                - generic [ref=e1146]:
+                  - generic [ref=e1147]: "847"
+                  - generic [ref=e1148]: Leads
+              - generic [ref=e1149]: Ver sala de ventas →
+          - generic [ref=e1150]:
+            - generic [ref=e1151]:
+              - img [ref=e1152]
+              - generic [ref=e1168]: Medellín · El Poblado
+            - generic [ref=e1170]:
+              - generic [ref=e1171]: Parque Envigado Residencias
+              - generic [ref=e1172]: "Cra. 43A #18 Sur · Medellín"
+              - generic [ref=e1173]:
+                - generic [ref=e1174]:
+                  - generic [ref=e1175]: "88"
+                  - generic [ref=e1176]: Unidades
+                - generic [ref=e1177]:
+                  - generic [ref=e1178]: 41%
+                  - generic [ref=e1179]: Vendido
+                - generic [ref=e1180]:
+                  - generic [ref=e1181]: "392"
+                  - generic [ref=e1182]: Leads
+              - generic [ref=e1183]: Ver sala de ventas →
+          - generic [ref=e1184]:
+            - generic [ref=e1185]:
+              - img [ref=e1186]
+              - generic [ref=e1202]: Cali · Ciudad Jardín
+            - generic [ref=e1204]:
+              - generic [ref=e1205]: Morada 170 — Torres
+              - generic [ref=e1206]: "Av. 6A Norte #24N · Cali"
+              - generic [ref=e1207]:
+                - generic [ref=e1208]:
+                  - generic [ref=e1209]: "216"
+                  - generic [ref=e1210]: Unidades
+                - generic [ref=e1211]:
+                  - generic [ref=e1212]: 22%
+                  - generic [ref=e1213]: Vendido
+                - generic [ref=e1214]:
+                  - generic [ref=e1215]: 1.2k
+                  - generic [ref=e1216]: Leads
+              - generic [ref=e1217]: Ver sala de ventas →
+      - generic [ref=e1219]:
+        - generic [ref=e1220]: Lo que dicen los desarrolladores
+        - heading "Historias de quienes venden diferente." [level=2] [ref=e1221]:
+          - text: Historias de quienes
+          - emphasis [ref=e1222]: venden diferente.
+        - generic [ref=e1223]:
+          - generic [ref=e1224]:
+            - generic [ref=e1226]: “
+            - paragraph [ref=e1227]: Lanzamos Torre Candelaria en 3 días. Antes con la agencia nos tardamos 5 meses en tener algo parecido, y costó 12 veces más. Los leads que llegan ya saben qué piso y qué tipología quieren.
+            - generic [ref=e1229]:
+              - img "Jorge Mora" [ref=e1230]
+              - generic [ref=e1231]:
+                - paragraph [ref=e1232]: Jorge Mora
+                - paragraph [ref=e1233]: Director Comercial · Arco Urbano
+          - generic [ref=e1234]:
+            - generic [ref=e1236]: “
+            - paragraph [ref=e1237]: Manejamos 4 proyectos simultáneos desde un solo dashboard. Antes necesitaba un equipo de marketing para cada uno. Ahora mi equipo de ventas tiene todo en tiempo real.
+            - generic [ref=e1239]:
+              - img "Lorena Castaño" [ref=e1240]
+              - generic [ref=e1241]:
+                - paragraph [ref=e1242]: Lorena Castaño
+                - paragraph [ref=e1243]: Gerente General · Vértice Grupo
+          - generic [ref=e1244]:
+            - generic [ref=e1246]: “
+            - paragraph [ref=e1247]: El Noddo Grid fue lo que convenció a nuestra junta. Los compradores pueden hacer clic en el edificio y ver exactamente qué unidades quedan. Eso no lo tiene ningún brochure del mercado.
+            - generic [ref=e1249]:
+              - img "Ricardo Fuentes" [ref=e1250]
+              - generic [ref=e1251]:
+                - paragraph [ref=e1252]: Ricardo Fuentes
+                - paragraph [ref=e1253]: VP de Proyectos · Cimientos & Co
+      - generic [ref=e1255]:
+        - generic [ref=e1256]: Planes
+        - heading "Invierte por proyecto, sin suscripciones." [level=2] [ref=e1257]:
+          - text: Invierte por proyecto,
+          - emphasis [ref=e1258]: sin suscripciones.
+        - generic [ref=e1259]:
+          - generic [ref=e1260]:
+            - generic [ref=e1261]: Básico
+            - generic [ref=e1262]: $199
+            - generic [ref=e1263]: USD/mes por proyecto
+            - list [ref=e1264]:
+              - listitem [ref=e1265]:
+                - generic [ref=e1266]: ·
+                - text: "Microsite completo: Galería, Videos, Mapas, Tours 360°"
+              - listitem [ref=e1267]:
+                - generic [ref=e1268]: ·
+                - text: Formulario de contacto con captura de leads
+              - listitem [ref=e1269]:
+                - generic [ref=e1270]: ·
+                - text: Disponibilidad en tiempo real
+              - listitem [ref=e1271]:
+                - generic [ref=e1272]: ·
+                - text: 10GB de almacenamiento
+              - listitem [ref=e1273]:
+                - generic [ref=e1274]: ·
+                - text: Soporte por email
+            - button "Comenzar" [ref=e1275]
+          - generic [ref=e1276]:
+            - generic [ref=e1277]: Recomendado
+            - generic [ref=e1278]: Pro
+            - generic [ref=e1279]: $249
+            - generic [ref=e1280]: USD/mes por proyecto
+            - list [ref=e1281]:
+              - listitem [ref=e1282]:
+                - generic [ref=e1283]: ·
+                - text: Todo en Básico +
+              - listitem [ref=e1284]:
+                - generic [ref=e1285]: ·
+                - text: Cotizador integrado con PDF automático
+              - listitem [ref=e1286]:
+                - generic [ref=e1287]: ·
+                - text: IA / Asistente inteligente
+              - listitem [ref=e1288]:
+                - generic [ref=e1289]: ·
+                - text: Soporte prioritario por WhatsApp
+            - button "Comenzar con Pro →" [ref=e1292]
+          - generic [ref=e1293]:
+            - generic [ref=e1294]: Personalizado
+            - generic [ref=e1295]: A medida
+            - generic [ref=e1296]: 5+ proyectos · tarifa especial
+            - list [ref=e1297]:
+              - listitem [ref=e1298]:
+                - generic [ref=e1299]: ·
+                - text: Todo en Pro +
+              - listitem [ref=e1300]:
+                - generic [ref=e1301]: ·
+                - text: Tarifa preferencial por volumen
+              - listitem [ref=e1302]:
+                - generic [ref=e1303]: ·
+                - text: Herramientas a medida
+              - listitem [ref=e1304]:
+                - generic [ref=e1305]: ·
+                - text: Onboarding dedicado
+              - listitem [ref=e1306]:
+                - generic [ref=e1307]: ·
+                - text: Soporte premium 24/7
+            - button "Hablar con ventas" [ref=e1308]
+        - generic [ref=e1309]:
+          - generic [ref=e1310]: Complementos
+          - generic [ref=e1311]:
+            - generic [ref=e1312]:
+              - img [ref=e1313]
+              - generic [ref=e1314]:
+                - generic [ref=e1315]: Dominio personalizado
+                - generic [ref=e1316]: Usa tu propio dominio en vez de slug.noddo.io. Configuración DNS guiada paso a paso.
+            - generic [ref=e1317]:
+              - img [ref=e1318]
+              - generic [ref=e1319]:
+                - generic [ref=e1320]: Colaboradores extra
+                - generic [ref=e1321]: Agrega miembros de tu equipo comercial al proyecto para gestión colaborativa.
+            - generic [ref=e1322]:
+              - img [ref=e1323]
+              - generic [ref=e1324]:
+                - generic [ref=e1325]: Analytics avanzado
+                - generic [ref=e1326]: Métricas detalladas de comportamiento de visitantes, fuentes de tráfico y conversión.
+        - paragraph [ref=e1328]: La implementación puede contratarse por separado según la complejidad del proyecto, o realizarse en autoservicio con nuestra documentación.
+        - generic [ref=e1330]:
+          - generic [ref=e1331]:
+            - generic [ref=e1332]: ✓
+            - text: Paga solo por proyecto activo
+          - generic [ref=e1333]:
+            - generic [ref=e1334]: ✓
+            - text: Autoservicio o implementación asistida
+          - generic [ref=e1335]:
+            - generic [ref=e1336]: ✓
+            - text: Sin contratos de permanencia
+      - generic [ref=e1338]:
+        - generic [ref=e1339]: Preguntas frecuentes
+        - heading "Resolvemos tus dudas." [level=2] [ref=e1340]:
+          - text: Resolvemos
+          - emphasis [ref=e1341]: tus dudas.
+        - generic [ref=e1342]:
+          - generic [ref=e1343]:
+            - button "¿Cuánto tiempo toma lanzar mi proyecto?" [ref=e1344] [cursor=pointer]:
+              - generic [ref=e1345]: ¿Cuánto tiempo toma lanzar mi proyecto?
+              - generic [ref=e1346]: +
+            - generic: Entre 1 y 3 días. Si tienes tu contenido listo (renders, planos, textos), puedes publicar en menos de 24 horas. Nuestro equipo te acompaña en el onboarding para acelerar el proceso. Muchos clientes lanzan el mismo día.
+          - generic [ref=e1347]:
+            - button "¿Necesito conocimientos técnicos o un equipo IT?" [ref=e1348] [cursor=pointer]:
+              - generic [ref=e1349]: ¿Necesito conocimientos técnicos o un equipo IT?
+              - generic [ref=e1350]: +
+            - generic: No. Si sabes usar Excel y subir archivos a Drive, puedes usar Noddo. Está diseñado para directores comerciales y gerentes de proyectos, no para desarrolladores. Todo es punto-y-click, sin código.
+          - generic [ref=e1351]:
+            - button "¿Cuánto cuesta? ¿Hay período de prueba?" [ref=e1352] [cursor=pointer]:
+              - generic [ref=e1353]: ¿Cuánto cuesta? ¿Hay período de prueba?
+              - generic [ref=e1354]: +
+            - generic: "El plan Básico es desde $199/mes por proyecto y el Pro desde $249/mes por proyecto. También ofrecemos complementos como dominio personalizado, colaboradores extra y analytics avanzado. Ofrecemos garantía de reembolso de 14 días: si no te convence, devolvemos el 100%."
+          - generic [ref=e1355]:
+            - button "¿Cómo recibo los leads? ¿Se integra con mi CRM?" [ref=e1356] [cursor=pointer]:
+              - generic [ref=e1357]: ¿Cómo recibo los leads? ¿Se integra con mi CRM?
+              - generic [ref=e1358]: +
+            - generic: Los leads llegan a tu dashboard con nombre, email, WhatsApp, unidad de interés y UTM de origen. También recibes notificaciones instantáneas por email. En el plan Pro tienes cotizador integrado y asistente con IA.
+          - generic [ref=e1359]:
+            - button "¿Puedo usar mi propio dominio en vez de .noddo.io?" [ref=e1360] [cursor=pointer]:
+              - generic [ref=e1361]: ¿Puedo usar mi propio dominio en vez de .noddo.io?
+              - generic [ref=e1362]: +
+            - generic: "Sí. Con el complemento de dominio personalizado puedes mapear tu dominio (ej: ventastorreazul.com). La configuración DNS es guiada paso a paso. Disponible como add-on en cualquier plan."
+          - generic [ref=e1363]:
+            - button "¿Qué pasa con mis datos si cancelo o cambio de plan?" [ref=e1364] [cursor=pointer]:
+              - generic [ref=e1365]: ¿Qué pasa con mis datos si cancelo o cambio de plan?
+              - generic [ref=e1366]: +
+            - generic: Tienes acceso hasta el final del período pagado. Después, tu sitio se desactiva pero tus datos (leads, contenido, analytics) se conservan por 30 días. Puedes exportar todo en cualquier momento (JSON, CSV). Si haces downgrade, no pierdes información.
+      - generic [ref=e1368]:
+        - generic [ref=e1374]:
+          - generic [ref=e1375]:
+            - img [ref=e1376]
+            - img [ref=e1378]
+            - img [ref=e1380]
+            - img [ref=e1382]
+            - img [ref=e1384]
+            - generic [ref=e1386]: "5.0"
+          - generic [ref=e1389]:
+            - strong [ref=e1390]: 100+
+            - text: proyectos en vivo
+        - generic [ref=e1392]:
+          - generic [ref=e1393]:
+            - img [ref=e1395]
+            - generic [ref=e1398]: Publicado en 24h
+          - generic [ref=e1399]:
+            - img [ref=e1401]
+            - generic [ref=e1403]: Implementación incluida
+        - button "AGENDAR LLAMADA →" [ref=e1407]:
+          - generic [ref=e1408]: AGENDAR LLAMADA →
+  - contentinfo [ref=e1410]:
+    - generic [ref=e1411]:
+      - generic [ref=e1412]:
+        - generic [ref=e1413]: NODDO
+        - paragraph [ref=e1414]: La sala de ventas digital para desarrolladores inmobiliarios que no quieren depender de agencias ni esperar meses.
+        - generic [ref=e1415]:
+          - generic [ref=e1416]: SSL
+          - generic [ref=e1418]: GDPR
+          - generic [ref=e1420]: 99.9%
+      - generic [ref=e1422]:
+        - generic [ref=e1423]: Producto
+        - list [ref=e1424]:
+          - listitem [ref=e1425]:
+            - link "Integraciones" [ref=e1426] [cursor=pointer]:
+              - /url: /integraciones
+          - listitem [ref=e1427]:
+            - link "Roadmap" [ref=e1428] [cursor=pointer]:
+              - /url: /roadmap
+          - listitem [ref=e1429]:
+            - link "Pricing" [ref=e1430] [cursor=pointer]:
+              - /url: /pricing
+          - listitem [ref=e1431]:
+            - link "Seguridad" [ref=e1432] [cursor=pointer]:
+              - /url: /seguridad
+          - listitem [ref=e1433]:
+            - link "Estado" [ref=e1434] [cursor=pointer]:
+              - /url: /estado
+      - generic [ref=e1435]:
+        - generic [ref=e1436]: Compañía
+        - list [ref=e1437]:
+          - listitem [ref=e1438]:
+            - link "Nosotros" [ref=e1439] [cursor=pointer]:
+              - /url: /nosotros
+          - listitem [ref=e1440]:
+            - link "Casos de Estudio" [ref=e1441] [cursor=pointer]:
+              - /url: /casos-de-estudio
+          - listitem [ref=e1442]:
+            - link "Recursos" [ref=e1443] [cursor=pointer]:
+              - /url: /recursos
+          - listitem [ref=e1444]:
+            - link "FAQ" [ref=e1445] [cursor=pointer]:
+              - /url: /faq
+          - listitem [ref=e1446]:
+            - link "Contacto" [ref=e1447] [cursor=pointer]:
+              - /url: /#contacto
+      - generic [ref=e1448]:
+        - generic [ref=e1449]: Legal
+        - list [ref=e1450]:
+          - listitem [ref=e1451]:
+            - link "Términos de uso" [ref=e1452] [cursor=pointer]:
+              - /url: /terminos
+          - listitem [ref=e1453]:
+            - link "Privacidad" [ref=e1454] [cursor=pointer]:
+              - /url: /privacidad
+          - listitem [ref=e1455]:
+            - link "Cookies" [ref=e1456] [cursor=pointer]:
+              - /url: /privacidad#cookies
+          - listitem [ref=e1457]:
+            - link "SLA" [ref=e1458] [cursor=pointer]:
+              - /url: /terminos#disponibilidad
+    - generic [ref=e1459]:
+      - paragraph [ref=e1460]: © 2026 Noddo Technologies SAS · Bogotá, Colombia
+      - paragraph [ref=e1461]: noddo.io · hola@noddo.io

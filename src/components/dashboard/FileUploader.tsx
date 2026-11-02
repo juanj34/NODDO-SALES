@@ -146,8 +146,27 @@ export function FileUploader({
       Uses presigned URL + XMLHttpRequest for real upload progress. */
   const uploadDirectToR2 = useCallback(
     async (file: File): Promise<UploadResult> => {
-      const ext = file.name.split(".").pop() || "bin";
+      const ext = file.name.split(".").pop()?.toLowerCase() || "bin";
       const baseName = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`;
+
+      // Infer content-type from extension if browser didn't set it (common with PDFs)
+      const inferContentType = (): string => {
+        if (file.type) return file.type;
+        switch (ext) {
+          case "pdf": return "application/pdf";
+          case "mp4": return "video/mp4";
+          case "webm": return "video/webm";
+          case "mov": return "video/quicktime";
+          case "mp3": return "audio/mpeg";
+          case "wav": return "audio/wav";
+          case "ogg": return "audio/ogg";
+          case "m4a": return "audio/mp4";
+          case "zip": return "application/zip";
+          case "json": return "application/json";
+          default: return "application/octet-stream";
+        }
+      };
+      const contentType = inferContentType();
 
       // 1. Get presigned URL from server
       const presignRes = await fetch("/api/media/presign", {
@@ -156,7 +175,7 @@ export function FileUploader({
         body: JSON.stringify({
           folder,
           fileName: baseName,
-          contentType: file.type || "application/octet-stream",
+          contentType,
           size: file.size,
         }),
       });
@@ -172,8 +191,9 @@ export function FileUploader({
       await new Promise<void>((resolve, reject) => {
         const xhr = new XMLHttpRequest();
         xhr.open("PUT", uploadUrl);
-        xhr.setRequestHeader("Content-Type", file.type || "application/octet-stream");
-        xhr.timeout = 10 * 60 * 1000; // 10 minutes
+        // IMPORTANT: Content-Type MUST match exactly what was sent to presign
+        xhr.setRequestHeader("Content-Type", contentType);
+        xhr.timeout = 30 * 60 * 1000; // 30 minutes for very large files
 
         const uploadStart = Date.now();
         xhr.upload.onprogress = (e) => {
@@ -190,15 +210,25 @@ export function FileUploader({
         };
 
         xhr.onload = () => {
-          if (xhr.status >= 200 && xhr.status < 300) resolve();
-          else reject(new Error(`Upload failed: ${xhr.status} ${xhr.statusText} — ${xhr.responseText?.slice(0, 200)}`));
+          if (xhr.status >= 200 && xhr.status < 300) {
+            resolve();
+          } else {
+            const body = xhr.responseText?.slice(0, 300) || "";
+            console.error("[R2 upload] non-2xx response", { status: xhr.status, body, contentType, size: file.size });
+            let msg = `R2 upload failed (${xhr.status})`;
+            if (xhr.status === 403) msg = "R2 rechazó la subida (403). Revisa permisos del token R2.";
+            else if (xhr.status === 400 && body.includes("SignatureDoesNotMatch")) msg = "Firma inválida — el Content-Type no coincide.";
+            else if (xhr.status === 413) msg = "Archivo demasiado grande para R2.";
+            else if (body) msg = `${msg}: ${body.slice(0, 150)}`;
+            reject(new Error(msg));
+          }
         };
         xhr.onerror = () => {
-          console.error("[R2 upload] network error", { status: xhr.status, readyState: xhr.readyState, response: xhr.responseText?.slice(0, 500) });
-          reject(new Error("Error de red al subir archivo"));
+          console.error("[R2 upload] network error", { status: xhr.status, readyState: xhr.readyState, size: file.size, contentType });
+          reject(new Error("Error de red/CORS al subir a R2. Verifica conexión y config CORS del bucket."));
         };
         xhr.ontimeout = () => {
-          reject(new Error("La subida tardó demasiado. Intenta de nuevo."));
+          reject(new Error(`La subida tardó demasiado (${Math.round((file.size / 1024 / 1024))}MB). Intenta con mejor conexión.`));
         };
 
         xhr.send(file);
@@ -247,8 +277,11 @@ export function FileUploader({
           return result;
         } catch (r2Err) {
           // For large files (>4MB), server fallback won't work (Vercel body limit)
+          // Surface the real R2 error instead of a generic message
           if (fileToR2.size > 4 * 1024 * 1024) {
-            throw new Error("Error al subir el archivo. Intenta de nuevo.");
+            console.error("[R2 upload] Failed for large file:", r2Err);
+            const msg = r2Err instanceof Error ? r2Err.message : "Error al subir archivo grande a R2";
+            throw new Error(msg);
           }
           console.warn("[R2 fallback] Direct upload failed, using server upload:", r2Err);
         }
