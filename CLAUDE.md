@@ -183,7 +183,7 @@ Four fonts. Each has a specific role. Usage depends on context (dashboard vs mic
 - **Microsite pages** use `useSiteProject()` hook (React context) to access the `ProyectoCompleto` object. Context is provided by `SiteLayoutClient` which receives data from the server layout.
 - **Dashboard pages** use React Query hooks (`useProjects`, `useCreateProject`, `useDeleteProject`) from `@/hooks/useProjectsQuery`. All API routes use server-side Supabase client with auth checks.
 - **Analytics tracking** via `trackDashboardEvent()` from `@/lib/dashboard-tracking` — tracks navigation, CRUD actions, search/filter usage, shortcut clicks. Events sent to `/api/track/dashboard`.
-- **Mock fallback**: `src/data/mock.ts` provides demo data with Unsplash images when Supabase is not configured.
+- **No mock fallback**: project and microsite data always come from Supabase, so it must be configured locally. `src/data/` holds only static marketing content (`articles.ts`, `case-studies.ts`, `amenidades-catalog.tsx`).
 
 ### Authentication
 
