@@ -1,4 +1,4 @@
-import { createClient } from "@/lib/supabase/server";
+import { createServiceRoleClient } from "@/lib/supabase/server";
 import { NextResponse } from "next/server";
 import { fetchAndCacheExchangeRates } from "@/lib/currency";
 
@@ -34,7 +34,8 @@ export async function GET(request: Request) {
     console.log("[exchange-rates/cron] Starting daily exchange rate refresh...");
     const rates = await fetchAndCacheExchangeRates(apiKey);
 
-    const supabase = await createClient();
+    // Service role: a cron request has no user session, so the insert must not depend on RLS
+    const supabase = createServiceRoleClient();
     const { error } = await supabase.from("exchange_rates").insert(rates);
 
     if (error) {

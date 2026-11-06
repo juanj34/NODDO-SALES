@@ -208,10 +208,14 @@ export async function fetchAndCacheExchangeRates(
     throw new Error(`Exchange rate API returned: ${data["error-type"] || "unknown error"}`);
   }
 
-  // Normalize to ExchangeRate[] format
+  // Keep only the currencies NODDO supports. The API returns ~166, and some
+  // (IRR is above 1,000,000 per USD) overflow exchange_rates.rate DECIMAL(12,6),
+  // which makes Postgres reject the whole batch.
   const rates: Partial<ExchangeRate>[] = Object.entries(
     data.conversion_rates as Record<string, number>
-  ).map(([target, rate]) => ({
+  )
+    .filter(([target]) => target in CURRENCY_CONFIG)
+    .map(([target, rate]) => ({
     base_currency: baseCurrency,
     target_currency: target as string,
     rate: rate as number,
